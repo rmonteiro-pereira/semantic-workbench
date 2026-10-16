@@ -1,8 +1,10 @@
+import{createHandler}from'../server/handler';
 import{chromium,expect}from'@playwright/test';import{createStore}from'../server/store';import{inspect}from'../src/model';import{readFile}from'node:fs/promises';
 const store=createStore(':memory:');const files=['ubl.ontology.yaml','ubl.owl.ttl','ubl.odcs.yaml','ubl.semantic.yaml','ubl.shacl.ttl','commerce.owl'];const asset=(filename:string)=>'public/examples/'+(filename==='commerce.owl'?'commerce/':'ubl/')+filename;for(const filename of files)store.save(filename,await Bun.file(asset(filename)).text());
 const browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1600,height:1000},acceptDownloads:true});const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));let passed=0;
 async function check(name:string,run:()=>Promise<void>){await run();passed++;console.log('PASS',name)}
-await page.route('**/api/documents',async route=>{try{if(route.request().method()==='GET')return route.fulfill({json:store.list()});const b=route.request().postDataJSON();return route.fulfill({json:store.save(b.filename,b.source,b.id,b.revision)});}catch(e){return route.fulfill({status:400,json:{error:(e as Error).message}})}});
+const handler=createHandler(store);let failNextSave=false;
+await page.route('**/api/documents',async route=>{const r=route.request();if(failNextSave&&r.method()==='POST'){failNextSave=false;await route.fulfill({status:503,json:{error:'Temporary API failure'}});return;}const response=await handler(new Request(r.url(),{method:r.method(),...(r.method()==='POST'?{body:r.postData()}:{} )}));await route.fulfill({status:response.status,body:await response.text(),contentType:'application/json'});});
 if(process.env.UI_MUTATION==='clear-nodes')await page.route('**/src/main.tsx*',async route=>{
  const response=await route.fetch();const source=await response.text();const anchor='setSource(loaded[0].source);';
  if(!source.includes(anchor))throw Error('UI mutation anchor missing');
@@ -75,6 +77,87 @@ await check('JSON upload and export retain JSON syntax and filename',async()=>{
  if(download.suggestedFilename()!=='roundtrip.json')throw Error('JSON export filename changed');
  const path=await download.path();if(!path)throw Error('No JSON download');
  const exported=await readFile(path,'utf8');if(exported!==source||JSON.parse(exported).ontology[0].description!=='Kept as JSON')throw Error('JSON export changed');
+});
+await check('invalid import preserves workspace, reports errors and cancels with keyboard',async()=>{
+ const before=store.list().length;const heading=await page.locator('h1').innerText();
+ await page.locator('input[type=file]').setInputFiles({name:'broken.yaml',mimeType:'application/yaml',buffer:Buffer.from('name: Broken\nontology: [{concept: A, extends: [Missing]}]')});
+ const dialog=page.getByRole('dialog',{name:'Review import'});
+ await expect(dialog).toBeVisible();await expect(dialog).toContainText('Unknown parent concept');
+ await expect(dialog.getByRole('button',{name:'Import repaired files'})).toBeDisabled();
+ if(store.list().length!==before)throw Error('Invalid import wrote to SQLite');
+ await page.screenshot({path:'/tmp/workbench-validation-import.png'});
+ await page.keyboard.press('Escape');await expect(dialog).toHaveCount(0);
+ await expect(page.locator('h1')).toHaveText(heading);
+ if(store.list().length!==before)throw Error('Cancel changed SQLite');
+});
+await check('mixed batch preflights all files and repairs without losing valid source',async()=>{
+ const before=store.list().length;
+ const good='name: Batch valid\nontology: [{concept: Good}]';
+ await page.locator('input[type=file]').setInputFiles([{name:'batch-good.yaml',mimeType:'application/yaml',buffer:Buffer.from(good)},{name:'batch-bad.json',mimeType:'application/json',buffer:Buffer.from('{"ontology":[')}]);
+ const dialog=page.getByRole('dialog',{name:'Review import'});await expect(dialog).toBeVisible();
+ if(store.list().length!==before)throw Error('Mixed batch partially saved before repair');
+ await dialog.getByLabel('File to review').selectOption('1');
+ await expect(dialog.getByLabel('Repair definition')).toHaveValue('{"ontology":[');
+ await dialog.getByLabel('Repair definition').fill('{"name":"Repaired","ontology":[{"concept":"Fixed"}]}');
+ await expect(dialog.getByRole('button',{name:'Import repaired files'})).toBeEnabled();
+ await dialog.getByLabel('Import filename').fill('../bad.json');await expect(dialog.getByRole('button',{name:'Import repaired files'})).toBeDisabled();
+ await dialog.getByLabel('Import filename').fill('batch-repaired.json');
+ await dialog.getByLabel('File to review').selectOption('0');await expect(dialog.getByLabel('Repair definition')).toHaveValue(good);
+ await dialog.getByRole('button',{name:'Import repaired files'}).click();await expect(dialog).toHaveCount(0);
+ await expect(page.locator('h1')).toHaveText('Repaired');
+ if(store.list().length!==before+2)throw Error('Repaired batch not saved');
+ const saved=store.list().find((d:any)=>d.filename==='batch-good.yaml')as any;if(saved.source!==good)throw Error('Valid batch file changed');
+ await expect(page.locator('.react-flow__node').first()).toBeVisible();
+});
+await check('invalid source blocks save, retains saved bytes and recovers in the same editor',async()=>{
+ await page.locator('.tabs').getByRole('button',{name:'Source',exact:true}).click();
+ const editor=page.getByLabel('Definition source');const original=await editor.inputValue();
+ const saved=store.list().find((d:any)=>d.filename==='batch-repaired.json')as any;
+ await editor.fill('');await expect(editor).toBeVisible();await expect(page.getByRole('button',{name:'Save changes',exact:true})).toBeDisabled();await expect(page.locator('.validation-details')).toContainText('definition is empty');
+ await editor.fill('{"name":"Invalid","ontology":[{"concept":"A","extends":["A"]}]}');
+ await expect(page.getByRole('button',{name:'Save changes',exact:true})).toBeDisabled();
+ await expect(page.locator('.validation-details')).toContainText('Cyclic inheritance');
+ await page.locator('.validation-details').getByRole('button',{name:'Go to line 1'}).first().click();await expect(editor).toBeFocused();
+ if((store.list().find((d:any)=>d.id===saved.id)as any).source!==original)throw Error('Invalid edit overwrote saved source');
+ await page.locator('.tabs').getByRole('button',{name:'Graph',exact:true}).click();await expect(page.getByRole('button',{name:'Repair in Source'})).toBeVisible();
+ await page.getByRole('button',{name:'Repair in Source'}).click();await expect(editor).toContainText('Invalid');
+ await editor.fill(original);await expect(page.getByRole('button',{name:'Save changes',exact:true})).toBeEnabled();
+ await page.getByRole('button',{name:'Save changes',exact:true}).click();await expect(page.getByRole('status')).toContainText('Saved to SQLite');
+ await page.getByRole('button',{name:/^Validation details/}).click();await expect(page.locator('.validation-details')).toBeVisible();
+ await page.getByRole('button',{name:/^Validation details/}).click();
+ await page.locator('.tabs').getByRole('button',{name:'Overview',exact:true}).click();await expect(page.locator('.area-entities button')).toHaveCount(1);
+ await page.screenshot({path:'/tmp/workbench-validation-recovered.png'});
+});
+await check('invalid ODCS, semantic, RDF, XML, OWL, SHACL and N-Triples use the repair flow',async()=>{
+ const before=store.list().length;
+ for(const [name,source]of [
+  ['invalid.odcs.yaml','kind: DataContract\napiVersion: v3.1.0\nid: x\nversion: "1"\nschema: [{name: x}]'],
+  ['invalid.ossie.yaml','name: Bad\ndatasets: [{name: x}]'],
+  ['invalid.ttl','@prefix ex: <https://example.org/> . ex:a ex:p'],
+  ['invalid.rdf','<rdf:RDF'],
+  ['invalid.owl','@prefix owl: <http://www.w3.org/2002/07/owl#> . <urn:r> a owl:Restriction .'],
+  ['invalid.shacl','@prefix sh: <http://www.w3.org/ns/shacl#> . <urn:s> a sh:PropertyShape .'],
+  ['invalid.nt','@prefix ex: <https://example.org/> . ex:a ex:p ex:b .'],
+ ]){
+  await page.locator('input[type=file]').setInputFiles({name,mimeType:'text/plain',buffer:Buffer.from(source)});
+  const dialog=page.getByRole('dialog',{name:'Review import'});await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole('button',{name:'Import repaired files'})).toBeDisabled();
+  await expect(dialog.locator('.validation-report li.error').first()).toBeVisible();
+  await dialog.getByRole('button',{name:'Cancel import'}).click();await expect(dialog).toHaveCount(0);
+ }
+ if(store.list().length!==before)throw Error('Invalid formats were persisted');
+});
+await check('API failure retains repaired draft and permits retry',async()=>{
+ const before=store.list().length;const heading=await page.locator('h1').innerText();
+ await page.locator('input[type=file]').setInputFiles({name:'retry.ttl',mimeType:'text/turtle',buffer:Buffer.from('@prefix ex:')});
+ const dialog=page.getByRole('dialog',{name:'Review import'});
+ await dialog.getByLabel('Repair definition').fill('<https://example.org/a> <https://example.org/p> "Recovered" .');
+ failNextSave=true;await dialog.getByRole('button',{name:'Import repaired files'}).click();
+ await expect(dialog.getByRole('alert')).toContainText('Could not save retry.ttl');
+ await expect(dialog.getByLabel('Repair definition')).toContainText('Recovered');
+ await expect(page.locator('h1')).toHaveText(heading);if(store.list().length!==before)throw Error('Failed save changed SQLite');
+ await dialog.getByRole('button',{name:'Import repaired files'}).click();await expect(dialog).toHaveCount(0);
+ await expect(page.getByRole('button',{name:'retry.ttl',exact:true})).toBeVisible();if(store.list().length!==before+1)throw Error('Retry failed');
 });
 await check('no browser runtime errors',async()=>{if(errors.length)throw Error(errors.join('\n'))});
 console.log(`${passed} UI checks passed`);

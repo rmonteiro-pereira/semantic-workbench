@@ -1,6 +1,7 @@
 import { parseDocument } from "yaml";
 import {inspectRdf,rdfSyntax} from "./rdf";
-import {validateKnownVersion} from "./validation";
+import {validateStructured} from "./validation";
+import {InputError,validateEnvelope,type Issue} from "./diagnostics";
 export type Entity = {
   id: string;
   name: string;
@@ -12,15 +13,27 @@ export type Entity = {
   readOnlyForm?: boolean;
 };
 export type Relationship={id:string;source:string;target:string;label:string;data:{path:(string|number)[];definition:any;kind:string;readOnlyForm?:boolean}};
-export function inspect(source: string, filename='') {
+export function inspect(source: string, filename='definition.yaml') {
+  validateEnvelope(source,filename);
+  if(/\.(trig|nq|jsonld|ofn|omn)$/i.test(filename))throw new InputError([{severity:'error',code:'unsupported',path:'/',message:'Unsupported serialization. Use YAML/JSON, Turtle, N-Triples, N3, or RDF/XML.'}]);
+  if(filename.toLowerCase().endsWith('.json'))try{JSON.parse(source)}catch(e){throw new InputError([{severity:'error',code:'json',path:'/',message:(e as Error).message}]);}
   const syntax=rdfSyntax(source,filename);
   if(syntax)return inspectRdf(source,filename,syntax);
-  const doc = parseDocument(source);
-  if (doc.errors.length) throw Error(doc.errors.map((e) => e.message).join("\n"));
-  const data = doc.toJS();
+  const doc = parseDocument(source, {uniqueKeys:true});
+  if (doc.errors.length) throw new InputError(doc.errors.map(e=>({severity:'error',code:'syntax',path:'/',message:e.message,line:e.linePos?.[0].line,column:e.linePos?.[0].col})));
+  if(doc.warnings.length)throw new InputError(doc.warnings.map(e=>({severity:'error',code:'yaml-tag',path:'/',message:e.message,line:e.linePos?.[0].line,column:e.linePos?.[0].col})));
+  let data:any;
+  try{data=doc.toJS({maxAliasCount:100});}catch(e){throw new InputError([{severity:'error',code:'aliases',path:'/',message:(e as Error).message}]);}
   if (!data || typeof data !== "object" || Array.isArray(data))
-    throw Error("Expected a YAML object");
-  validateKnownVersion(data);
+    throw new InputError([{severity:"error",code:"structure",path:"/",message:"Expected a YAML or JSON object."}]);
+  const locate=(items:Issue[])=>items.map(issue=>{
+    const path=issue.path.split('/').slice(1).map(s=>s.replace(/~1/g,'/').replace(/~0/g,'~'));
+    let node:any;while(path.length){node=doc.getIn(path,true);if(node?.range)break;path.pop();}
+    const offset=node?.range?.[0]??0,before=source.slice(0,offset);
+    return {...issue,line:before.split('\n').length,column:offset-(before.lastIndexOf('\n')+1)+1};
+  });
+  let issues:Issue[];
+  try{issues=locate(validateStructured(data));}catch(e){if(e instanceof InputError)throw new InputError(locate(e.issues));throw e;}
   const entities: Entity[] = [],
     edges: Relationship[] = [];
   const add = (item: any, path: (string | number)[], kind: string) => {
@@ -103,7 +116,7 @@ export function inspect(source: string, filename='') {
       }
     });
   }
-  return { kind, name: data.name ?? data.semantic_model?.[0]?.name ?? "Untitled", entities, edges };
+  return { kind, name: data.name ?? data.semantic_model?.[0]?.name ?? "Untitled", entities, edges, issues };
 }
 export function editEntity(source: string, path: (string | number)[], description: string) {
   const doc = parseDocument(source);

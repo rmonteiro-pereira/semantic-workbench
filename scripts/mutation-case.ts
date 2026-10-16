@@ -21,3 +21,33 @@ if(category==='full-layout'){
  const {default:ELK}=await import('elkjs/lib/elk-api.js');const elk=new ELK({algorithms:['layered','sporeOverlap'],workerFactory:()=>new Worker(import.meta.resolve('elkjs/lib/elk-worker.min.js'))});
  try{const result=await m.packNetwork({nodes:[{id:'area:g',group:'g',x:0,y:0,width:250,height:200},{id:'a',parentId:'area:g',x:28,y:62,width:184,height:60},{id:'b',parentId:'area:g',x:30,y:65,width:184,height:60}],entityCount:2,relationshipCount:1,routes:{}},elk);const children=result.nodes.filter((n:any)=>!n.group);assert.equal(children.length,2);const[a,b]=children;assert(!(a.x<b.x+b.width&&a.x+a.width>b.x&&a.y<b.y+b.height&&a.y+a.height>b.y));}finally{elk.terminateWorker();}
 }
+
+if(category==='validation'){
+ const ontology={ontology:[{concept:'A',relationships:[{name:'b',roles:[{concept:'B'}]}]},{concept:'B'}]};
+ assert.doesNotThrow(()=>m.validateStructured(ontology));
+ const invalids:any[]=[];
+ let d=structuredClone(ontology);invalids.push({ontology:[{concept:'A'},{concept:'A'}]});
+ d=structuredClone(ontology);(d.ontology[0]as any).extends=['B'];(d.ontology[1]as any).extends=['A'];invalids.push(d);
+ d=structuredClone(ontology);d.ontology[0].relationships![0].roles[0].concept='Missing';invalids.push(d);
+ const join={name:'S',datasets:[{name:'a',source:'db.a',fields:[{name:'id',expression:{dialects:[{dialect:'ANSI_SQL',expression:'id'}]}}]}],relationships:[{name:'self',from:'a',to:'a',from_columns:['id'],to_columns:['id']}]};
+ assert.doesNotThrow(()=>m.validateStructured(join));
+ const unknown=structuredClone(join);unknown.relationships[0].from_columns=['missing'];invalids.push(unknown);
+ const lengths=structuredClone(join);lengths.relationships[0].from_columns=['id','id'];invalids.push(lengths);
+ invalids.push({kind:'DataContract',apiVersion:'v3.1.0',id:'x',version:'1',schema:[{name:'x'}]});
+ for(const input of invalids)assert.throws(()=>m.validateStructured(input));
+}
+if(category==='diagnostics'){
+ assert.doesNotThrow(()=>m.validateEnvelope('ontology: [{concept: A}]','x.yaml'));
+ assert.throws(()=>m.validateEnvelope('source',''));
+ assert.throws(()=>m.validateEnvelope('é'.repeat(1000001),'x.yaml'));
+ assert.throws(()=>m.rejectIssues([{severity:'error',code:'test',path:'/',message:'test'}]));
+}
+if(category==='rdf-validation'){
+ const {graph,parse}=await import('rdflib');
+ const prefix='@prefix ex: <https://example.org/> . @prefix sh: <http://www.w3.org/ns/shacl#> . @prefix owl: <http://www.w3.org/2002/07/owl#> . ';
+ const check=(source:string)=>{const store=graph();parse(prefix+source,store,'https://example.org/','text/turtle');return m.validateRdf(store)};
+ assert.doesNotThrow(()=>check('ex:S sh:path ex:p; sh:minCount 0; sh:maxCount 2 .'));
+ assert.throws(()=>check('ex:S sh:path ex:p; sh:minCount 3; sh:maxCount 1 .'));
+ assert.throws(()=>check('ex:S a sh:PropertyShape .'));
+ assert.throws(()=>check('ex:R a owl:Restriction; owl:someValuesFrom ex:C .'));
+}

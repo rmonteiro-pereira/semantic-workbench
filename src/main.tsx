@@ -13,7 +13,9 @@ import {
   Box,
   CheckCircle2,
 } from "lucide-react";
-import { inspect, editEntity } from "./model";
+import {validateInput} from "./input";
+import {ValidationPanel, ImportRepair, type ImportDraft} from "./ValidationPanel";
+import { editEntity } from "./model";
 import {graphView,groupRelationships} from "./graph-view";
 import {layoutGraph} from "./layout";
 import {exportDocument} from "./export";
@@ -34,6 +36,9 @@ function App() {
     [search, setSearch] = useState(""),
     [message, setMessage] = useState(""),
     [busy, setBusy] = useState(false);
+  const [pendingImport,setPendingImport]=useState<ImportDraft[]|null>(null);
+  const [showValidation,setShowValidation]=useState(false);
+  const sourceEditor=useRef<HTMLTextAreaElement|null>(null);
   const nodeDocument=useRef<string|null>(null);
   const [hoveredEdge,setHoveredEdge]=useState("");
   const [showLabels,setShowLabels]=useState(false);
@@ -79,13 +84,8 @@ function App() {
     setSelectedEdge("");
     setSearch("");setShowAll(false);
   }
-  const result = useMemo(() => {
-    try {
-      return { model: inspect(source,current?.filename), error: "" };
-    } catch (e) {
-      return { model: null, error: source ? (e as Error).message : "" };
-    }
-  }, [source,current?.filename]);
+  const validation = useMemo(()=>validateInput(source,current?.filename??'definition.yaml'),[source,current?.filename]);
+  const result = {model:validation.model,error:(source||current)&&!validation.valid?validation.issues.filter(i=>i.severity==='error').map(i=>i.message).join('\n'):''};
   const model = result.model;
   const [showAll,setShowAll]=useState(false);
   const view=useMemo(()=>graphView(model?.entities??[],model?.edges??[],search,false),[model,search]);
@@ -182,17 +182,26 @@ function App() {
       setCurrent(d);
       setSource(d.source);
       setMessage("Saved to SQLite");
+      return true;
     } catch (e) {
       setMessage((e as Error).message);
+      return false;
     } finally {
       setBusy(false);
     }
   }
+  async function commitImports(drafts:ImportDraft[]) {
+    for(const draft of drafts)if(!await save(draft.source,draft.filename,true))throw Error(`Could not save ${draft.filename}. Previously imported files remain in Documents; retry only the failed files.`);
+    setPendingImport(null);setSelected('');setSelectedEdge('');setSearch('');setShowAll(false);setTab('graph');
+  }
   async function importFiles(files: File[]) {
     if (!files.length) return;
     if (current && source !== current.source && !confirm("Discard unsaved changes and import?"))return;
-    for(const file of files)await save(await file.text(),file.name,true);
-    setSelected('');setSelectedEdge('');setSearch('');setShowAll(false);setTab('graph');
+    try{
+      const drafts=await Promise.all(files.map(async file=>({filename:file.name,source:await file.text()})));
+      if(drafts.some(d=>!validateInput(d.source,d.filename).valid)){setPendingImport(drafts);return;}
+      await commitImports(drafts);
+    }catch(e){setMessage((e as Error).message);}
   }
   function download() {
     const exported=exportDocument(source,current?.filename??'ontology.ossie.yaml');
@@ -205,6 +214,7 @@ function App() {
   }
   return (
     <div className="shell">
+      {pendingImport&&<ImportRepair initial={pendingImport} onCancel={()=>setPendingImport(null)} onImport={commitImports}/>}
       <aside className="sidebar">
         <div className="brand">
           <Layers size={26} />
@@ -311,9 +321,10 @@ function App() {
             />
           </label>
         </div>
+        {(source||current)&&(showValidation||!!result.error)&&<details className="validation-details" open><summary onClick={e=>{e.preventDefault();setShowValidation(false);}}>Validation findings</summary><ValidationPanel issues={validation.issues} onLocate={issue=>{setTab('source');setTimeout(()=>{const editor=sourceEditor.current;if(!editor)return;const offset=source.split('\n').slice(0,(issue.line??1)-1).reduce((n,s)=>n+s.length+1,0);editor.focus();editor.setSelectionRange(offset,offset);},0);}}/></details>}
         <div className="canvas-row">
           <section className="canvas">
-            {!source ? (
+            {!source && !current ? (
               <div className="empty">
                 <div className="empty-icon">
                   <Network size={36} />
@@ -333,13 +344,14 @@ function App() {
               </div>
             ) : tab === "source" ? (
               <textarea
+                ref={sourceEditor}
                 aria-label="Definition source"
                 className="code"
                 spellCheck={false}
                 value={source}
                 onChange={(e) => setSource(e.target.value)}
               />
-            ) : tab === "catalog" ? (
+            ) : result.error ? <div className="invalid-definition"><h2>This definition needs repair</h2><p>Your saved document is unchanged. Open Source to fix the validation findings.</p><button onClick={()=>setTab("source")}>Repair in Source</button></div> : tab === "catalog" ? (
               <div className="catalog">
                 {model?.entities
                   .filter((e) => e.name.toLowerCase().includes(search.toLowerCase()))
@@ -447,6 +459,7 @@ function App() {
           <span>
             <CheckCircle2 size={14} />
             {result.error ? "Validation failed" : source ? "Structure checked" : "Ready to import"}
+            {(source||current)&&<button className="validation-toggle" onClick={()=>setShowValidation(v=>!v)}>Validation details{validation.issues.length?` (${validation.issues.length})`:""}</button>}
             {current && source !== current.source ? " · Unsaved changes" : ""}
           </span>
           <span>
@@ -455,7 +468,7 @@ function App() {
         </footer>
         {(message || result.error) && (
           <div role="status" className={`status ${result.error ? "error" : ""}`}>
-            {result.error || message}
+            {result.error ? "Validation failed. Review the findings and repair in Source." : message}
           </div>
         )}
       </main>

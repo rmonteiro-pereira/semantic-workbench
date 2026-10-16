@@ -1,6 +1,18 @@
 import{mkdtemp,rm}from'node:fs/promises';import{resolve,dirname}from'node:path';
 const root=process.cwd(),temp=await mkdtemp('/tmp/workbench-mutations-');
 const mutants:[string,string,string,string][]=[
+ ['validation','src/validation.ts',"if(names.has(x[key]))fail", "if(false)fail"],
+ ['validation','src/validation.ts','if(cycle.length)fail','if(false)fail'],
+ ['validation','src/validation.ts',"!names.has(role.concept)","false"],
+ ['validation','src/validation.ts',"!fieldNames.get(r[side])!.has(k)","false"],
+ ['validation','src/validation.ts','if(from.length!==to.length)fail','if(false)fail'],
+ ['validation','src/validation.ts','if(validator&&!validator(data))','if(false)'],
+ ['diagnostics','src/diagnostics.ts','> MAX_INPUT_BYTES','> MAX_INPUT_BYTES * 10'],
+ ['diagnostics','src/diagnostics.ts',"!filename.trim()","false"],
+ ['diagnostics','src/diagnostics.ts',"if (issues.some(i => i.severity === 'error'))",'if (false)'],
+ ['rdf-validation','src/rdf-validation.ts','BigInt(l.value)>BigInt(h.value)','false'],
+ ['rdf-validation','src/rdf-validation.ts',"paths.length!==1||!path(paths[0])",'false'],
+ ['rdf-validation','src/rdf-validation.ts',"on.length!==1||!resource(on[0])",'false'],
  ['full-layout','src/full-layout.ts',"'elk.algorithm':'sporeOverlap'","'elk.algorithm':'fixed'"],
  ['full-layout','src/full-layout.ts','result.nodes.map((n:any)=>n.group?','result.nodes.filter((n:any)=>n.group).map((n:any)=>n.group?'],
  ['overview','src/overview.ts','group.push(edge);','if(groupOf.get(edge.source)!==groupOf.get(edge.target))group.push(edge);'],
