@@ -1,0 +1,372 @@
+@prefix u: <https://example.org/ubl-workbench#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+u:OrderShape a sh:NodeShape ; rdfs:label "Order aggregate roles" ; sh:targetClass u:Order ;
+ sh:property [ sh:path u:Order_QuotationDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Order_OrderDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] ,
+ [ sh:path u:Order_OriginatorDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Order_AdditionalDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] ,
+ [ sh:path u:Order_Contract ; sh:class u:Contract ; sh:minCount 0 ] ,
+ [ sh:path u:Order_BuyerCustomerParty ; sh:class u:CustomerParty ; sh:minCount 1 ; sh:maxCount 1 ] ,
+ [ sh:path u:Order_SellerSupplierParty ; sh:class u:SupplierParty ; sh:minCount 1 ; sh:maxCount 1 ] ,
+ [ sh:path u:Order_OriginatorCustomerParty ; sh:class u:CustomerParty ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Order_FreightForwarderParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Order_AccountingCustomerParty ; sh:class u:CustomerParty ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Order_Delivery ; sh:class u:Delivery ; sh:minCount 0 ] ,
+ [ sh:path u:Order_PaymentMeans ; sh:class u:PaymentMeans ; sh:minCount 0 ] ,
+ [ sh:path u:Order_PaymentTerms ; sh:class u:PaymentTerms ; sh:minCount 0 ] ,
+ [ sh:path u:Order_AllowanceCharge ; sh:class u:AllowanceCharge ; sh:minCount 0 ] ,
+ [ sh:path u:Order_DestinationCountry ; sh:class u:Country ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Order_TaxTotal ; sh:class u:TaxTotal ; sh:minCount 0 ] ,
+ [ sh:path u:Order_AnticipatedMonetaryTotal ; sh:class u:MonetaryTotal ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Order_OrderLine ; sh:class u:OrderLine ; sh:minCount 1 ] .
+
+u:InvoiceShape a sh:NodeShape ; rdfs:label "Invoice aggregate roles" ; sh:targetClass u:Invoice ;
+ sh:property [ sh:path u:Invoice_OrderReference ; sh:class u:OrderReference ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Invoice_BillingReference ; sh:class u:BillingReference ; sh:minCount 0 ] ,
+ [ sh:path u:Invoice_DespatchDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] ,
+ [ sh:path u:Invoice_ReceiptDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] ,
+ [ sh:path u:Invoice_StatementDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] ,
+ [ sh:path u:Invoice_OriginatorDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] ,
+ [ sh:path u:Invoice_ContractDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] ,
+ [ sh:path u:Invoice_AdditionalDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] ,
+ [ sh:path u:Invoice_AccountingSupplierParty ; sh:class u:SupplierParty ; sh:minCount 1 ; sh:maxCount 1 ] ,
+ [ sh:path u:Invoice_AccountingCustomerParty ; sh:class u:CustomerParty ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Invoice_PayeeParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Invoice_BuyerCustomerParty ; sh:class u:CustomerParty ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Invoice_SellerSupplierParty ; sh:class u:SupplierParty ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Invoice_TaxRepresentativeParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Invoice_Delivery ; sh:class u:Delivery ; sh:minCount 0 ] ,
+ [ sh:path u:Invoice_PaymentMeans ; sh:class u:PaymentMeans ; sh:minCount 0 ] ,
+ [ sh:path u:Invoice_PaymentTerms ; sh:class u:PaymentTerms ; sh:minCount 0 ] ,
+ [ sh:path u:Invoice_AllowanceCharge ; sh:class u:AllowanceCharge ; sh:minCount 0 ] ,
+ [ sh:path u:Invoice_TaxTotal ; sh:class u:TaxTotal ; sh:minCount 0 ] ,
+ [ sh:path u:Invoice_WithholdingTaxTotal ; sh:class u:TaxTotal ; sh:minCount 0 ] ,
+ [ sh:path u:Invoice_LegalMonetaryTotal ; sh:class u:MonetaryTotal ; sh:minCount 1 ; sh:maxCount 1 ] ,
+ [ sh:path u:Invoice_InvoiceLine ; sh:class u:InvoiceLine ; sh:minCount 1 ] .
+
+u:DespatchAdviceShape a sh:NodeShape ; rdfs:label "DespatchAdvice aggregate roles" ; sh:targetClass u:DespatchAdvice ;
+ sh:property [ sh:path u:DespatchAdvice_OrderReference ; sh:class u:OrderReference ; sh:minCount 0 ] ,
+ [ sh:path u:DespatchAdvice_AdditionalDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] ,
+ [ sh:path u:DespatchAdvice_DespatchSupplierParty ; sh:class u:SupplierParty ; sh:minCount 1 ; sh:maxCount 1 ] ,
+ [ sh:path u:DespatchAdvice_DeliveryCustomerParty ; sh:class u:CustomerParty ; sh:minCount 1 ; sh:maxCount 1 ] ,
+ [ sh:path u:DespatchAdvice_BuyerCustomerParty ; sh:class u:CustomerParty ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:DespatchAdvice_SellerSupplierParty ; sh:class u:SupplierParty ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:DespatchAdvice_OriginatorCustomerParty ; sh:class u:CustomerParty ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:DespatchAdvice_Shipment ; sh:class u:Shipment ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:DespatchAdvice_DespatchLine ; sh:class u:DespatchLine ; sh:minCount 1 ] .
+
+u:ReceiptAdviceShape a sh:NodeShape ; rdfs:label "ReceiptAdvice aggregate roles" ; sh:targetClass u:ReceiptAdvice ;
+ sh:property [ sh:path u:ReceiptAdvice_OrderReference ; sh:class u:OrderReference ; sh:minCount 0 ] ,
+ [ sh:path u:ReceiptAdvice_DespatchDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] ,
+ [ sh:path u:ReceiptAdvice_AdditionalDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] ,
+ [ sh:path u:ReceiptAdvice_DeliveryCustomerParty ; sh:class u:CustomerParty ; sh:minCount 1 ; sh:maxCount 1 ] ,
+ [ sh:path u:ReceiptAdvice_DespatchSupplierParty ; sh:class u:SupplierParty ; sh:minCount 1 ; sh:maxCount 1 ] ,
+ [ sh:path u:ReceiptAdvice_BuyerCustomerParty ; sh:class u:CustomerParty ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:ReceiptAdvice_SellerSupplierParty ; sh:class u:SupplierParty ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:ReceiptAdvice_Shipment ; sh:class u:Shipment ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:ReceiptAdvice_ReceiptLine ; sh:class u:ReceiptLine ; sh:minCount 1 ] .
+
+u:CreditNoteShape a sh:NodeShape ; rdfs:label "CreditNote aggregate roles" ; sh:targetClass u:CreditNote ;
+ sh:property [ sh:path u:CreditNote_OrderReference ; sh:class u:OrderReference ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:CreditNote_BillingReference ; sh:class u:BillingReference ; sh:minCount 0 ] ,
+ [ sh:path u:CreditNote_DespatchDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] ,
+ [ sh:path u:CreditNote_ReceiptDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] ,
+ [ sh:path u:CreditNote_ContractDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] ,
+ [ sh:path u:CreditNote_AdditionalDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] ,
+ [ sh:path u:CreditNote_StatementDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] ,
+ [ sh:path u:CreditNote_OriginatorDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] ,
+ [ sh:path u:CreditNote_AccountingSupplierParty ; sh:class u:SupplierParty ; sh:minCount 1 ; sh:maxCount 1 ] ,
+ [ sh:path u:CreditNote_AccountingCustomerParty ; sh:class u:CustomerParty ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:CreditNote_PayeeParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:CreditNote_BuyerCustomerParty ; sh:class u:CustomerParty ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:CreditNote_SellerSupplierParty ; sh:class u:SupplierParty ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:CreditNote_TaxRepresentativeParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:CreditNote_Delivery ; sh:class u:Delivery ; sh:minCount 0 ] ,
+ [ sh:path u:CreditNote_PaymentMeans ; sh:class u:PaymentMeans ; sh:minCount 0 ] ,
+ [ sh:path u:CreditNote_PaymentTerms ; sh:class u:PaymentTerms ; sh:minCount 0 ] ,
+ [ sh:path u:CreditNote_AllowanceCharge ; sh:class u:AllowanceCharge ; sh:minCount 0 ] ,
+ [ sh:path u:CreditNote_TaxTotal ; sh:class u:TaxTotal ; sh:minCount 0 ] ,
+ [ sh:path u:CreditNote_WithholdingTaxTotal ; sh:class u:TaxTotal ; sh:minCount 0 ] ,
+ [ sh:path u:CreditNote_LegalMonetaryTotal ; sh:class u:MonetaryTotal ; sh:minCount 1 ; sh:maxCount 1 ] ,
+ [ sh:path u:CreditNote_CreditNoteLine ; sh:class u:CreditNoteLine ; sh:minCount 1 ] .
+
+u:PartyShape a sh:NodeShape ; rdfs:label "Party aggregate roles" ; sh:targetClass u:Party ;
+ sh:property [ sh:path u:Party_PostalAddress ; sh:class u:Address ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Party_PhysicalLocation ; sh:class u:Location ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Party_Contact ; sh:class u:Contact ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Party_Person ; sh:class u:Person ; sh:minCount 0 ] ,
+ [ sh:path u:Party_AgentParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Party_FinancialAccount ; sh:class u:FinancialAccount ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+u:CustomerPartyShape a sh:NodeShape ; rdfs:label "CustomerParty aggregate roles" ; sh:targetClass u:CustomerParty ;
+ sh:property [ sh:path u:CustomerParty_Party ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:CustomerParty_DeliveryContact ; sh:class u:Contact ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:CustomerParty_AccountingContact ; sh:class u:Contact ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:CustomerParty_BuyerContact ; sh:class u:Contact ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+u:SupplierPartyShape a sh:NodeShape ; rdfs:label "SupplierParty aggregate roles" ; sh:targetClass u:SupplierParty ;
+ sh:property [ sh:path u:SupplierParty_Party ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:SupplierParty_DespatchContact ; sh:class u:Contact ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:SupplierParty_AccountingContact ; sh:class u:Contact ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:SupplierParty_SellerContact ; sh:class u:Contact ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+u:PersonShape a sh:NodeShape ; rdfs:label "Person aggregate roles" ; sh:targetClass u:Person ;
+ sh:property [ sh:path u:Person_BirthplaceLocation ; sh:class u:Location ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Person_CitizenshipCountry ; sh:class u:Country ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Person_Contact ; sh:class u:Contact ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Person_FinancialAccount ; sh:class u:FinancialAccount ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Person_IdentityDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] ,
+ [ sh:path u:Person_ResidenceAddress ; sh:class u:Address ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+u:ContactShape a sh:NodeShape ; rdfs:label "Contact aggregate roles" ; sh:targetClass u:Contact .
+
+u:AddressShape a sh:NodeShape ; rdfs:label "Address aggregate roles" ; sh:targetClass u:Address ;
+ sh:property [ sh:path u:Address_Country ; sh:class u:Country ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+u:LocationShape a sh:NodeShape ; rdfs:label "Location aggregate roles" ; sh:targetClass u:Location ;
+ sh:property [ sh:path u:Location_Address ; sh:class u:Address ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Location_SubsidiaryLocation ; sh:class u:Location ; sh:minCount 0 ] .
+
+u:CountryShape a sh:NodeShape ; rdfs:label "Country aggregate roles" ; sh:targetClass u:Country .
+
+u:ItemShape a sh:NodeShape ; rdfs:label "Item aggregate roles" ; sh:targetClass u:Item ;
+ sh:property [ sh:path u:Item_CatalogueDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Item_ItemSpecificationDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] ,
+ [ sh:path u:Item_OriginCountry ; sh:class u:Country ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Item_CommodityClassification ; sh:class u:CommodityClassification ; sh:minCount 0 ] ,
+ [ sh:path u:Item_ClassifiedTaxCategory ; sh:class u:TaxCategory ; sh:minCount 0 ] ,
+ [ sh:path u:Item_ManufacturerParty ; sh:class u:Party ; sh:minCount 0 ] ,
+ [ sh:path u:Item_InformationContentProviderParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Item_OriginAddress ; sh:class u:Address ; sh:minCount 0 ] .
+
+u:CommodityClassificationShape a sh:NodeShape ; rdfs:label "CommodityClassification aggregate roles" ; sh:targetClass u:CommodityClassification .
+
+u:OrderLineShape a sh:NodeShape ; rdfs:label "OrderLine aggregate roles" ; sh:targetClass u:OrderLine ;
+ sh:property [ sh:path u:OrderLine_LineItem ; sh:class u:LineItem ; sh:minCount 1 ; sh:maxCount 1 ] ,
+ [ sh:path u:OrderLine_SellerProposedSubstituteLineItem ; sh:class u:LineItem ; sh:minCount 0 ] ,
+ [ sh:path u:OrderLine_SellerSubstitutedLineItem ; sh:class u:LineItem ; sh:minCount 0 ] ,
+ [ sh:path u:OrderLine_BuyerProposedSubstituteLineItem ; sh:class u:LineItem ; sh:minCount 0 ] ,
+ [ sh:path u:OrderLine_DocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] .
+
+u:LineItemShape a sh:NodeShape ; rdfs:label "LineItem aggregate roles" ; sh:targetClass u:LineItem ;
+ sh:property [ sh:path u:LineItem_Delivery ; sh:class u:Delivery ; sh:minCount 0 ] ,
+ [ sh:path u:LineItem_OriginatorParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:LineItem_AllowanceCharge ; sh:class u:AllowanceCharge ; sh:minCount 0 ] ,
+ [ sh:path u:LineItem_Price ; sh:class u:Price ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:LineItem_Item ; sh:class u:Item ; sh:minCount 1 ; sh:maxCount 1 ] ,
+ [ sh:path u:LineItem_SubLineItem ; sh:class u:LineItem ; sh:minCount 0 ] ,
+ [ sh:path u:LineItem_WarrantyParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:LineItem_TaxTotal ; sh:class u:TaxTotal ; sh:minCount 0 ] .
+
+u:DeliveryShape a sh:NodeShape ; rdfs:label "Delivery aggregate roles" ; sh:targetClass u:Delivery ;
+ sh:property [ sh:path u:Delivery_DeliveryAddress ; sh:class u:Address ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Delivery_DeliveryLocation ; sh:class u:Location ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Delivery_AlternativeDeliveryLocation ; sh:class u:Location ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Delivery_CarrierParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Delivery_DeliveryParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Delivery_NotifyParty ; sh:class u:Party ; sh:minCount 0 ] ,
+ [ sh:path u:Delivery_Shipment ; sh:class u:Shipment ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+u:ShipmentShape a sh:NodeShape ; rdfs:label "Shipment aggregate roles" ; sh:targetClass u:Shipment ;
+ sh:property [ sh:path u:Shipment_Consignment ; sh:class u:Consignment ; sh:minCount 0 ] ,
+ [ sh:path u:Shipment_GoodsItem ; sh:class u:GoodsItem ; sh:minCount 0 ] ,
+ [ sh:path u:Shipment_Delivery ; sh:class u:Delivery ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Shipment_TransportHandlingUnit ; sh:class u:TransportHandlingUnit ; sh:minCount 0 ] ,
+ [ sh:path u:Shipment_ReturnAddress ; sh:class u:Address ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Shipment_OriginAddress ; sh:class u:Address ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Shipment_FirstArrivalPortLocation ; sh:class u:Location ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Shipment_LastExitPortLocation ; sh:class u:Location ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Shipment_ExportCountry ; sh:class u:Country ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Shipment_FreightAllowanceCharge ; sh:class u:AllowanceCharge ; sh:minCount 0 ] .
+
+u:ConsignmentShape a sh:NodeShape ; rdfs:label "Consignment aggregate roles" ; sh:targetClass u:Consignment ;
+ sh:property [ sh:path u:Consignment_ConsolidatedShipment ; sh:class u:Shipment ; sh:minCount 0 ] ,
+ [ sh:path u:Consignment_ChildConsignment ; sh:class u:Consignment ; sh:minCount 0 ] ,
+ [ sh:path u:Consignment_ConsigneeParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_ExporterParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_ConsignorParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_ImporterParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_CarrierParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_FreightForwarderParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_NotifyParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_OriginalDespatchParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_FinalDeliveryParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_PerformingCarrierParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_SubstituteCarrierParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_LogisticsOperatorParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_TransportAdvisorParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_HazardousItemNotificationParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_InsuranceParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_MortgageHolderParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_BillOfLadingHolderParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_OriginalDepartureCountry ; sh:class u:Country ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_FinalDestinationCountry ; sh:class u:Country ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_TransitCountry ; sh:class u:Country ; sh:minCount 0 ] ,
+ [ sh:path u:Consignment_TransportContract ; sh:class u:Contract ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_OriginalDespatchTransportationService ; sh:class u:TransportationService ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_FinalDeliveryTransportationService ; sh:class u:TransportationService ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_PaymentTerms ; sh:class u:PaymentTerms ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_CollectPaymentTerms ; sh:class u:PaymentTerms ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_DisbursementPaymentTerms ; sh:class u:PaymentTerms ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_PrepaidPaymentTerms ; sh:class u:PaymentTerms ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_FreightAllowanceCharge ; sh:class u:AllowanceCharge ; sh:minCount 0 ] ,
+ [ sh:path u:Consignment_ExtraAllowanceCharge ; sh:class u:AllowanceCharge ; sh:minCount 0 ] ,
+ [ sh:path u:Consignment_TransportHandlingUnit ; sh:class u:TransportHandlingUnit ; sh:minCount 0 ] ,
+ [ sh:path u:Consignment_FirstArrivalPortLocation ; sh:class u:Location ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_LastExitPortLocation ; sh:class u:Location ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_OfficeOfEntryLocation ; sh:class u:Location ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_OfficeOfSubSequentiallyEntryLocation ; sh:class u:Location ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_OfficeOfExitLocation ; sh:class u:Location ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_OfficeOfDepartureLocation ; sh:class u:Location ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_OfficeOfDestinationLocation ; sh:class u:Location ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_OfficeOfImportLocation ; sh:class u:Location ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_OfficeOfExportLocation ; sh:class u:Location ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Consignment_DocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] .
+
+u:TransportHandlingUnitShape a sh:NodeShape ; rdfs:label "TransportHandlingUnit aggregate roles" ; sh:targetClass u:TransportHandlingUnit ;
+ sh:property [ sh:path u:TransportHandlingUnit_HandlingUnitDespatchLine ; sh:class u:DespatchLine ; sh:minCount 0 ] ,
+ [ sh:path u:TransportHandlingUnit_ReceivedHandlingUnitReceiptLine ; sh:class u:ReceiptLine ; sh:minCount 0 ] ,
+ [ sh:path u:TransportHandlingUnit_TransportEquipment ; sh:class u:TransportEquipment ; sh:minCount 0 ] ,
+ [ sh:path u:TransportHandlingUnit_TransportMeans ; sh:class u:TransportMeans ; sh:minCount 0 ] ,
+ [ sh:path u:TransportHandlingUnit_GoodsItem ; sh:class u:GoodsItem ; sh:minCount 0 ] ,
+ [ sh:path u:TransportHandlingUnit_ShipmentDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] ,
+ [ sh:path u:TransportHandlingUnit_ReferencedShipment ; sh:class u:Shipment ; sh:minCount 0 ] .
+
+u:TransportEquipmentShape a sh:NodeShape ; rdfs:label "TransportEquipment aggregate roles" ; sh:targetClass u:TransportEquipment ;
+ sh:property [ sh:path u:TransportEquipment_ProviderParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:TransportEquipment_LoadingProofParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:TransportEquipment_SupplierParty ; sh:class u:SupplierParty ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:TransportEquipment_OwnerParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:TransportEquipment_OperatingParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:TransportEquipment_LoadingLocation ; sh:class u:Location ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:TransportEquipment_UnloadingLocation ; sh:class u:Location ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:TransportEquipment_StorageLocation ; sh:class u:Location ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:TransportEquipment_ApplicableTransportMeans ; sh:class u:TransportMeans ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:TransportEquipment_PackagedTransportHandlingUnit ; sh:class u:TransportHandlingUnit ; sh:minCount 0 ] ,
+ [ sh:path u:TransportEquipment_ServiceAllowanceCharge ; sh:class u:AllowanceCharge ; sh:minCount 0 ] ,
+ [ sh:path u:TransportEquipment_FreightAllowanceCharge ; sh:class u:AllowanceCharge ; sh:minCount 0 ] ,
+ [ sh:path u:TransportEquipment_AttachedTransportEquipment ; sh:class u:TransportEquipment ; sh:minCount 0 ] ,
+ [ sh:path u:TransportEquipment_Delivery ; sh:class u:Delivery ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:TransportEquipment_ShipmentDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] ,
+ [ sh:path u:TransportEquipment_ContainedInTransportEquipment ; sh:class u:TransportEquipment ; sh:minCount 0 ] ,
+ [ sh:path u:TransportEquipment_GoodsItem ; sh:class u:GoodsItem ; sh:minCount 0 ] .
+
+u:GoodsItemShape a sh:NodeShape ; rdfs:label "GoodsItem aggregate roles" ; sh:targetClass u:GoodsItem ;
+ sh:property [ sh:path u:GoodsItem_Item ; sh:class u:Item ; sh:minCount 0 ] ,
+ [ sh:path u:GoodsItem_FreightAllowanceCharge ; sh:class u:AllowanceCharge ; sh:minCount 0 ] ,
+ [ sh:path u:GoodsItem_InvoiceLine ; sh:class u:InvoiceLine ; sh:minCount 0 ] ,
+ [ sh:path u:GoodsItem_ContainedGoodsItem ; sh:class u:GoodsItem ; sh:minCount 0 ] ,
+ [ sh:path u:GoodsItem_OriginAddress ; sh:class u:Address ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:GoodsItem_Delivery ; sh:class u:Delivery ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:GoodsItem_ShipmentDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+u:InvoiceLineShape a sh:NodeShape ; rdfs:label "InvoiceLine aggregate roles" ; sh:targetClass u:InvoiceLine ;
+ sh:property [ sh:path u:InvoiceLine_BillingReference ; sh:class u:BillingReference ; sh:minCount 0 ] ,
+ [ sh:path u:InvoiceLine_DocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] ,
+ [ sh:path u:InvoiceLine_OriginatorParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:InvoiceLine_Delivery ; sh:class u:Delivery ; sh:minCount 0 ] ,
+ [ sh:path u:InvoiceLine_PaymentTerms ; sh:class u:PaymentTerms ; sh:minCount 0 ] ,
+ [ sh:path u:InvoiceLine_AllowanceCharge ; sh:class u:AllowanceCharge ; sh:minCount 0 ] ,
+ [ sh:path u:InvoiceLine_TaxTotal ; sh:class u:TaxTotal ; sh:minCount 0 ] ,
+ [ sh:path u:InvoiceLine_WithholdingTaxTotal ; sh:class u:TaxTotal ; sh:minCount 0 ] ,
+ [ sh:path u:InvoiceLine_Item ; sh:class u:Item ; sh:minCount 1 ; sh:maxCount 1 ] ,
+ [ sh:path u:InvoiceLine_Price ; sh:class u:Price ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:InvoiceLine_SubInvoiceLine ; sh:class u:InvoiceLine ; sh:minCount 0 ] .
+
+u:CreditNoteLineShape a sh:NodeShape ; rdfs:label "CreditNoteLine aggregate roles" ; sh:targetClass u:CreditNoteLine ;
+ sh:property [ sh:path u:CreditNoteLine_BillingReference ; sh:class u:BillingReference ; sh:minCount 0 ] ,
+ [ sh:path u:CreditNoteLine_DocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] ,
+ [ sh:path u:CreditNoteLine_OriginatorParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:CreditNoteLine_Delivery ; sh:class u:Delivery ; sh:minCount 0 ] ,
+ [ sh:path u:CreditNoteLine_PaymentTerms ; sh:class u:PaymentTerms ; sh:minCount 0 ] ,
+ [ sh:path u:CreditNoteLine_TaxTotal ; sh:class u:TaxTotal ; sh:minCount 0 ] ,
+ [ sh:path u:CreditNoteLine_AllowanceCharge ; sh:class u:AllowanceCharge ; sh:minCount 0 ] ,
+ [ sh:path u:CreditNoteLine_Item ; sh:class u:Item ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:CreditNoteLine_Price ; sh:class u:Price ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:CreditNoteLine_SubCreditNoteLine ; sh:class u:CreditNoteLine ; sh:minCount 0 ] .
+
+u:PaymentMeansShape a sh:NodeShape ; rdfs:label "PaymentMeans aggregate roles" ; sh:targetClass u:PaymentMeans ;
+ sh:property [ sh:path u:PaymentMeans_PayerFinancialAccount ; sh:class u:FinancialAccount ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:PaymentMeans_PayeeFinancialAccount ; sh:class u:FinancialAccount ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+u:PaymentTermsShape a sh:NodeShape ; rdfs:label "PaymentTerms aggregate roles" ; sh:targetClass u:PaymentTerms .
+
+u:FinancialAccountShape a sh:NodeShape ; rdfs:label "FinancialAccount aggregate roles" ; sh:targetClass u:FinancialAccount ;
+ sh:property [ sh:path u:FinancialAccount_FinancialInstitutionBranch ; sh:class u:Branch ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:FinancialAccount_Country ; sh:class u:Country ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+u:FinancialInstitutionShape a sh:NodeShape ; rdfs:label "FinancialInstitution aggregate roles" ; sh:targetClass u:FinancialInstitution ;
+ sh:property [ sh:path u:FinancialInstitution_Address ; sh:class u:Address ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+u:BranchShape a sh:NodeShape ; rdfs:label "Branch aggregate roles" ; sh:targetClass u:Branch ;
+ sh:property [ sh:path u:Branch_FinancialInstitution ; sh:class u:FinancialInstitution ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:Branch_Address ; sh:class u:Address ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+u:TaxTotalShape a sh:NodeShape ; rdfs:label "TaxTotal aggregate roles" ; sh:targetClass u:TaxTotal ;
+ sh:property [ sh:path u:TaxTotal_TaxSubtotal ; sh:class u:TaxSubtotal ; sh:minCount 0 ] .
+
+u:TaxSubtotalShape a sh:NodeShape ; rdfs:label "TaxSubtotal aggregate roles" ; sh:targetClass u:TaxSubtotal ;
+ sh:property [ sh:path u:TaxSubtotal_TaxCategory ; sh:class u:TaxCategory ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+u:TaxCategoryShape a sh:NodeShape ; rdfs:label "TaxCategory aggregate roles" ; sh:targetClass u:TaxCategory ;
+ sh:property [ sh:path u:TaxCategory_TaxScheme ; sh:class u:TaxScheme ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+u:TaxSchemeShape a sh:NodeShape ; rdfs:label "TaxScheme aggregate roles" ; sh:targetClass u:TaxScheme ;
+ sh:property [ sh:path u:TaxScheme_JurisdictionRegionAddress ; sh:class u:Address ; sh:minCount 0 ] .
+
+u:PriceShape a sh:NodeShape ; rdfs:label "Price aggregate roles" ; sh:targetClass u:Price ;
+ sh:property [ sh:path u:Price_AllowanceCharge ; sh:class u:AllowanceCharge ; sh:minCount 0 ] ,
+ [ sh:path u:Price_AlternativeCurrencyPrice ; sh:class u:Price ; sh:minCount 0 ] .
+
+u:AllowanceChargeShape a sh:NodeShape ; rdfs:label "AllowanceCharge aggregate roles" ; sh:targetClass u:AllowanceCharge ;
+ sh:property [ sh:path u:AllowanceCharge_TaxCategory ; sh:class u:TaxCategory ; sh:minCount 0 ] ,
+ [ sh:path u:AllowanceCharge_TaxTotal ; sh:class u:TaxTotal ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:AllowanceCharge_PaymentMeans ; sh:class u:PaymentMeans ; sh:minCount 0 ] .
+
+u:ContractShape a sh:NodeShape ; rdfs:label "Contract aggregate roles" ; sh:targetClass u:Contract ;
+ sh:property [ sh:path u:Contract_ContractDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] ,
+ [ sh:path u:Contract_ContractualDelivery ; sh:class u:Delivery ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+u:DocumentReferenceShape a sh:NodeShape ; rdfs:label "DocumentReference aggregate roles" ; sh:targetClass u:DocumentReference ;
+ sh:property [ sh:path u:DocumentReference_IssuerParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+u:ReceiptLineShape a sh:NodeShape ; rdfs:label "ReceiptLine aggregate roles" ; sh:targetClass u:ReceiptLine ;
+ sh:property [ sh:path u:ReceiptLine_DocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] ,
+ [ sh:path u:ReceiptLine_Item ; sh:class u:Item ; sh:minCount 0 ] ,
+ [ sh:path u:ReceiptLine_Shipment ; sh:class u:Shipment ; sh:minCount 0 ] .
+
+u:DespatchLineShape a sh:NodeShape ; rdfs:label "DespatchLine aggregate roles" ; sh:targetClass u:DespatchLine ;
+ sh:property [ sh:path u:DespatchLine_DocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ] ,
+ [ sh:path u:DespatchLine_Item ; sh:class u:Item ; sh:minCount 1 ; sh:maxCount 1 ] ,
+ [ sh:path u:DespatchLine_Shipment ; sh:class u:Shipment ; sh:minCount 0 ] ,
+ [ sh:path u:DespatchLine_SubDespatchLine ; sh:class u:DespatchLine ; sh:minCount 0 ] .
+
+u:TransportationServiceShape a sh:NodeShape ; rdfs:label "TransportationService aggregate roles" ; sh:targetClass u:TransportationService ;
+ sh:property [ sh:path u:TransportationService_TransportEquipment ; sh:class u:TransportEquipment ; sh:minCount 0 ] ,
+ [ sh:path u:TransportationService_SupportedTransportEquipment ; sh:class u:TransportEquipment ; sh:minCount 0 ] ,
+ [ sh:path u:TransportationService_UnsupportedTransportEquipment ; sh:class u:TransportEquipment ; sh:minCount 0 ] ,
+ [ sh:path u:TransportationService_CommodityClassification ; sh:class u:CommodityClassification ; sh:minCount 0 ] ,
+ [ sh:path u:TransportationService_SupportedCommodityClassification ; sh:class u:CommodityClassification ; sh:minCount 0 ] ,
+ [ sh:path u:TransportationService_UnsupportedCommodityClassification ; sh:class u:CommodityClassification ; sh:minCount 0 ] ,
+ [ sh:path u:TransportationService_ResponsibleTransportServiceProviderParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+u:TransportMeansShape a sh:NodeShape ; rdfs:label "TransportMeans aggregate roles" ; sh:targetClass u:TransportMeans ;
+ sh:property [ sh:path u:TransportMeans_OwnerParty ; sh:class u:Party ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+u:OrderReferenceShape a sh:NodeShape ; rdfs:label "OrderReference aggregate roles" ; sh:targetClass u:OrderReference ;
+ sh:property [ sh:path u:OrderReference_DocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+u:BillingReferenceShape a sh:NodeShape ; rdfs:label "BillingReference aggregate roles" ; sh:targetClass u:BillingReference ;
+ sh:property [ sh:path u:BillingReference_InvoiceDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:BillingReference_SelfBilledInvoiceDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:BillingReference_CreditNoteDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:BillingReference_SelfBilledCreditNoteDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:BillingReference_DebitNoteDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:BillingReference_ReminderDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ; sh:maxCount 1 ] ,
+ [ sh:path u:BillingReference_AdditionalDocumentReference ; sh:class u:DocumentReference ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+u:MonetaryTotalShape a sh:NodeShape ; rdfs:label "MonetaryTotal aggregate roles" ; sh:targetClass u:MonetaryTotal .

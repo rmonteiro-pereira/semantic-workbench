@@ -1,0 +1,81 @@
+import{chromium,expect}from'@playwright/test';import{createStore}from'../server/store';import{inspect}from'../src/model';import{readFile}from'node:fs/promises';
+const store=createStore(':memory:');const files=['ubl.ontology.yaml','ubl.owl.ttl','ubl.odcs.yaml','ubl.semantic.yaml','ubl.shacl.ttl','commerce.owl'];const asset=(filename:string)=>'public/examples/'+(filename==='commerce.owl'?'commerce/':'ubl/')+filename;for(const filename of files)store.save(filename,await Bun.file(asset(filename)).text());
+const browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1600,height:1000},acceptDownloads:true});const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));let passed=0;
+async function check(name:string,run:()=>Promise<void>){await run();passed++;console.log('PASS',name)}
+await page.route('**/api/documents',async route=>{try{if(route.request().method()==='GET')return route.fulfill({json:store.list()});const b=route.request().postDataJSON();return route.fulfill({json:store.save(b.filename,b.source,b.id,b.revision)});}catch(e){return route.fulfill({status:400,json:{error:(e as Error).message}})}});
+if(process.env.UI_MUTATION==='clear-nodes')await page.route('**/src/main.tsx*',async route=>{
+ const response=await route.fetch();const source=await response.text();const anchor='setSource(loaded[0].source);';
+ if(!source.includes(anchor))throw Error('UI mutation anchor missing');
+ console.log('INJECTED_CLEAR_NODES_MUTATION');
+ await route.fulfill({response,body:source.replace(anchor,anchor+'setNodes([]);')});
+});
+try{
+await page.goto('http://127.0.0.1:5173/');
+await check('existing example opens repeatedly without clearing graph',async()=>{for(let i=0;i<3;i++){await page.getByRole('button',{name:/Load UBL business model/}).click();await expect(page.locator('footer')).toContainText('45 entities · 277 relationships');await expect(page.locator('.react-flow__node').first()).toBeVisible();}await page.waitForTimeout(300);await page.screenshot({path:'/tmp/workbench-ui-focus.png'});});
+await check('canvas is calm and graph controls remain visible',async()=>{await page.mouse.move(250,100);await expect(page.locator('.react-flow__node')).toHaveCount(8);await expect(page.locator('.react-flow__edge-text')).toHaveCount(0);await expect(page.getByRole('button',{name:/Load UBL business model/})).toBeInViewport();await expect(page.getByRole('button',{name:'Auto align',exact:true})).toBeInViewport();});
+await check('grouped connection exposes all original relationships',async()=>{const edge=page.locator('.react-flow__edge').first();await page.waitForTimeout(350);const point=await edge.locator('.react-flow__edge-interaction').evaluate((path:any)=>{const group=path.closest('.react-flow__edge');const t=path.getScreenCTM();for(let i=1;i<100;i++){const p=path.getPointAtLength(path.getTotalLength()*i/100);const x=t.a*p.x+t.c*p.y+t.e,y=t.b*p.x+t.d*p.y+t.f;if(document.elementFromPoint(x,y)?.closest('.react-flow__edge')===group)return{x,y};}return null;});if(!point)throw Error('No unobstructed point on relationship hit area');await page.mouse.click(point.x,point.y);await expect(page.locator('.inspector h2')).toBeVisible();const combo=page.getByLabel('Connection relationship');if(await combo.count()){const options=await combo.locator('option').allTextContents();if(options.length<2)throw Error('Grouping lost relationships');await combo.selectOption({index:1});await expect(page.locator('.inspector h2')).toHaveText(options[1]);}});
+await check('every UBL export downloads original bytes and round-trips',async()=>{for(const filename of files){await page.getByRole('button',{name:filename,exact:true}).click();await expect(page.locator('.react-flow__node').first()).toBeVisible();const [download]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'Export',exact:true}).click()]);if(download.suggestedFilename()!==filename)throw Error('Wrong filename');const path=await download.path();if(!path)throw Error('No downloaded file');const bytes=await readFile(path);const original=await Bun.file(asset(filename)).text();if(bytes.toString()!==original)throw Error('Export changed source');inspect(bytes.toString(),filename);}});
+await check('source edit exports unsaved text and reimport persists to SQLite',async()=>{await page.getByRole('button',{name:'ubl.ontology.yaml',exact:true}).click();await page.getByRole('button',{name:'Source',exact:true}).click();const source=await page.getByLabel('Definition source').inputValue();const edited=source+'\n# unsaved export regression\n';await page.getByLabel('Definition source').fill(edited);const[download]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'Export',exact:true}).click()]);const path=await download.path();if(!path||(await readFile(path,'utf8'))!==edited)throw Error('Unsaved source was not exported');page.once('dialog',d=>d.accept());await page.locator('input[type=file]').setInputFiles({name:'roundtrip.ontology.yaml',mimeType:'application/yaml',buffer:Buffer.from(edited)});await expect(page.getByRole('button',{name:'roundtrip.ontology.yaml',exact:true})).toBeVisible();const saved=store.list().find((d:any)=>d.filename==='roundtrip.ontology.yaml')as any;if(saved?.source!==edited)throw Error('Reimport did not persist exact bytes');await expect(page.locator('.react-flow__node').first()).toBeVisible();});
+await check('switching documents and loading example after import rebuilds the graph',async()=>{await page.getByRole('button',{name:/Load UBL business model/}).click();await expect(page.locator('.react-flow__node')).toHaveCount(8);await page.getByPlaceholder('Find an entity…').fill('Invoice');await expect(page.locator('.react-flow__node').first()).toBeVisible();await page.getByRole('button',{name:'Auto align',exact:true}).click();await expect(page.getByRole('button',{name:'Auto align',exact:true})).toBeEnabled();});
+await check('full model shows all entities and every matrix count opens real relationships',async()=>{
+ await page.getByRole('button',{name:'ubl.ontology.yaml',exact:true}).click();
+ await page.locator('.tabs').getByRole('button',{name:'Overview',exact:true}).click();
+ await expect(page.locator('.area-entities button')).toHaveCount(45);
+ await expect(page.locator('.business-area')).toHaveCount(8);
+ await expect(page.locator('.inspector')).toHaveCount(0);
+ await expect(page.locator('.model-overview .react-flow__edge')).toHaveCount(0);
+ await page.locator('[data-entity-id="ontology/0"]').click();
+ await expect(page.locator('.inspector h2')).toHaveText('Order');
+ await expect(page.locator('.area-entities .connected')).not.toHaveCount(0);
+ await page.getByRole('button',{name:'Close details',exact:true}).click();
+ await expect(page.locator('.inspector')).toHaveCount(0);
+ await expect(page.locator('.area-entities button')).toHaveCount(45);
+ await page.getByRole('button',{name:'Relationship matrix',exact:true}).click();
+ const counts=await page.locator('.matrix-view td button').allTextContents();
+ if(counts.reduce((n,v)=>n+Number(v),0)!==277)throw Error('Matrix does not account for every relationship');
+ await page.getByRole('button',{name:/Business documents to Trading parties:/}).click();
+ const row=page.locator('.connection-list>button').first();
+ const name=await row.locator('strong').innerText();await row.click();
+ await expect(page.locator('.inspector h2')).toHaveText(name);
+ await page.screenshot({path:'/tmp/workbench-ui-matrix.png'});
+ await page.getByRole('button',{name:'Close relationship list',exact:true}).click();
+ await page.getByRole('button',{name:'Business areas',exact:true}).click();
+ await page.getByPlaceholder('Find an entity…').fill('Shipment');
+ await expect(page.locator('.area-entities button')).toHaveCount(1);
+ await page.getByPlaceholder('Find an entity…').fill('');
+ await expect(page.locator('.area-entities button')).toHaveCount(45);
+ await page.screenshot({path:'/tmp/workbench-ui-overview.png'});
+ await page.getByRole('button',{name:'Neighborhood',exact:true}).click();
+ await expect(page.locator('.react-flow__node')).toHaveCount(8);
+});
+await check('actual graph retains all entities, routes connections and keeps overview accessible',async()=>{
+ await page.getByRole('button',{name:'ubl.ontology.yaml',exact:true}).click();
+ await page.locator('.tabs').getByRole('button',{name:'Graph',exact:true}).click();
+ await expect(page.locator('.full-graph-loading')).toHaveCount(0,{timeout:60000});
+ await page.getByRole('button',{name:'Fit model',exact:true}).click();await page.waitForTimeout(400);
+ await expect(page.locator('.full-graph-status')).toHaveAttribute('data-entity-count','45');
+ await expect(page.locator('.full-graph-status')).toHaveAttribute('data-relationship-count','277');
+ await expect(page.locator('.react-flow__node-entity')).toHaveCount(45);
+ await expect(page.locator('.react-flow__edge')).toHaveCount(183);
+ await page.getByLabel('Zoom to business area').selectOption('documents');await page.waitForTimeout(500);
+ await expect(page.locator('.full-graph-status')).toContainText('background worker',{timeout:30000});
+ await page.locator('.react-flow__node[data-id="ontology/0"] .full-entity').click();
+ await expect(page.locator('.inspector h2')).toHaveText('Order');
+ await page.getByRole('button',{name:'Close details',exact:true}).click();
+ await page.locator('.tabs').getByRole('button',{name:'Overview',exact:true}).click();
+ await expect(page.locator('.area-entities button')).toHaveCount(45);
+ await page.getByRole('button',{name:'Neighborhood',exact:true}).click();
+ await expect(page.locator('.react-flow__node')).toHaveCount(8);
+});
+await check('JSON upload and export retain JSON syntax and filename',async()=>{
+ const source=JSON.stringify({name:'JSON round trip',ontology:[{concept:'Customer',type:'EntityType',description:'Kept as JSON'}]},null,2);
+ await page.locator('input[type=file]').setInputFiles({name:'roundtrip.json',mimeType:'application/json',buffer:Buffer.from(source)});
+ await expect(page.getByRole('button',{name:'roundtrip.json',exact:true})).toBeVisible();
+ const[download]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'Export',exact:true}).click()]);
+ if(download.suggestedFilename()!=='roundtrip.json')throw Error('JSON export filename changed');
+ const path=await download.path();if(!path)throw Error('No JSON download');
+ const exported=await readFile(path,'utf8');if(exported!==source||JSON.parse(exported).ontology[0].description!=='Kept as JSON')throw Error('JSON export changed');
+});
+await check('no browser runtime errors',async()=>{if(errors.length)throw Error(errors.join('\n'))});
+console.log(`${passed} UI checks passed`);
+}finally{await browser.close();store.db.close();}

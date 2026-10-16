@@ -1,0 +1,10 @@
+import{chromium,expect}from'@playwright/test';
+const browser=await chromium.launch();const page=await browser.newPage({viewport:{width:1905,height:1000}});const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')console.log('CONSOLE',m.text())});
+await page.goto('http://127.0.0.1:5173/');await page.getByRole('button',{name:'ubl.ontology.yaml',exact:true}).click();await page.locator('.tabs').getByRole('button',{name:'Graph',exact:true}).click();
+await expect(page.locator('.full-graph-loading')).toHaveCount(0,{timeout:60000});await page.waitForTimeout(2500);await page.getByRole('button',{name:'Fit model',exact:true}).click();await page.waitForTimeout(500);
+await expect(page.locator('.full-graph-status')).toHaveAttribute('data-entity-count','45');await expect(page.locator('.full-graph-status')).toHaveAttribute('data-relationship-count','277');
+console.log('GRAPH',await page.locator('.full-graph-status').innerText(),'nodes',await page.locator('.react-flow__node-entity').count(),'edges',await page.locator('.react-flow__edge').count());
+await page.screenshot({path:'/tmp/real-graph-network.png'});
+await page.getByLabel('Zoom to business area').selectOption('documents');await page.waitForTimeout(400);await page.locator('.react-flow__node[data-id="ontology/0"] .full-entity').click();await expect(page.locator('.full-graph-status')).toContainText('background worker',{timeout:30000});await page.waitForTimeout(300);await page.screenshot({path:'/tmp/real-graph-documents.png'});
+await page.getByLabel('Graph layout').selectOption('layered');await expect(page.locator('.full-graph-loading')).toHaveCount(0,{timeout:60000});await page.waitForTimeout(1800);await page.screenshot({path:'/tmp/real-graph-layered.png'});
+if(errors.length)throw Error(errors.join('\n'));console.log('PASS actual graph, area zoom, layered layout',errors);await browser.close();

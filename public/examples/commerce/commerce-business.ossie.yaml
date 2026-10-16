@@ -1,0 +1,78 @@
+name: Commerce business ontology
+description: Business concepts independent of storage. OWL counterpart uses the same IRIs.
+ontology:
+  - concept: Customer
+    type: EntityType
+    iri: https://example.org/commerce#Customer
+    description: Customer in the order-to-cash process.
+    relationships:
+      - name: places
+        roles:
+          - concept: Order
+        verbalizes:
+          - "{Customer} places {Order}"
+  - concept: Order
+    type: EntityType
+    iri: https://example.org/commerce#Order
+    description: Order in the order-to-cash process.
+    relationships:
+      - name: contains
+        roles:
+          - concept: OrderLine
+        verbalizes:
+          - "{Order} contains {OrderLine}"
+      - name: shipment
+        roles:
+          - concept: Shipment
+        verbalizes:
+          - "{Order} shipment {Shipment}"
+      - name: invoice
+        roles:
+          - concept: Invoice
+        verbalizes:
+          - "{Order} invoice {Invoice}"
+  - concept: OrderLine
+    type: EntityType
+    iri: https://example.org/commerce#OrderLine
+    description: OrderLine in the order-to-cash process.
+    relationships:
+      - name: product
+        roles:
+          - concept: Product
+        verbalizes:
+          - "{OrderLine} product {Product}"
+  - concept: Product
+    type: EntityType
+    iri: https://example.org/commerce#Product
+    description: Product in the order-to-cash process.
+    relationships: []
+  - concept: Shipment
+    type: EntityType
+    iri: https://example.org/commerce#Shipment
+    description: Shipment in the order-to-cash process.
+    relationships:
+      - name: warehouse
+        roles:
+          - concept: Warehouse
+        verbalizes:
+          - "{Shipment} warehouse {Warehouse}"
+  - concept: Invoice
+    type: EntityType
+    iri: https://example.org/commerce#Invoice
+    description: Invoice in the order-to-cash process.
+    relationships:
+      - name: payment
+        roles:
+          - concept: Payment
+        verbalizes:
+          - "{Invoice} payment {Payment}"
+  - concept: Payment
+    type: EntityType
+    iri: https://example.org/commerce#Payment
+    description: Payment in the order-to-cash process.
+    relationships: []
+  - concept: Warehouse
+    type: EntityType
+    iri: https://example.org/commerce#Warehouse
+    description: Warehouse in the order-to-cash process.
+    relationships: []

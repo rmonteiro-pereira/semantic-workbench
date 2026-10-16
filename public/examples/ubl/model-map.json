@@ -1,0 +1,5486 @@
+{
+  "name": "UBL 2.3 procurement-to-payment",
+  "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/",
+  "entities": [
+    {
+      "name": "Order",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/maindoc/UBL-Order-2.3.xsd#OrderType",
+      "fields": [
+        {
+          "name": "UBLVersionID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:UBLVersionID"
+        },
+        {
+          "name": "CustomizationID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CustomizationID"
+        },
+        {
+          "name": "ProfileID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ProfileID"
+        },
+        {
+          "name": "ProfileExecutionID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ProfileExecutionID"
+        },
+        {
+          "name": "ID",
+          "min": 1,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "SalesOrderID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:SalesOrderID"
+        },
+        {
+          "name": "CopyIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CopyIndicator"
+        },
+        {
+          "name": "UUID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:UUID"
+        },
+        {
+          "name": "IssueDate",
+          "min": 1,
+          "max": "1",
+          "ref": "cbc:IssueDate"
+        },
+        {
+          "name": "IssueTime",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:IssueTime"
+        },
+        {
+          "name": "OrderTypeCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:OrderTypeCode"
+        },
+        {
+          "name": "Note",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:Note"
+        },
+        {
+          "name": "RequestedInvoiceCurrencyCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:RequestedInvoiceCurrencyCode"
+        },
+        {
+          "name": "DocumentCurrencyCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:DocumentCurrencyCode"
+        },
+        {
+          "name": "PricingCurrencyCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PricingCurrencyCode"
+        },
+        {
+          "name": "TaxCurrencyCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TaxCurrencyCode"
+        },
+        {
+          "name": "CustomerReference",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CustomerReference"
+        },
+        {
+          "name": "AccountingCostCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:AccountingCostCode"
+        },
+        {
+          "name": "AccountingCost",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:AccountingCost"
+        },
+        {
+          "name": "LineCountNumeric",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:LineCountNumeric"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "QuotationDocumentReference",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:QuotationDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "OrderDocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:OrderDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "OriginatorDocumentReference",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:OriginatorDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "AdditionalDocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:AdditionalDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "Contract",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:Contract",
+          "target": "Contract"
+        },
+        {
+          "name": "BuyerCustomerParty",
+          "min": 1,
+          "max": "1",
+          "ref": "cac:BuyerCustomerParty",
+          "target": "CustomerParty"
+        },
+        {
+          "name": "SellerSupplierParty",
+          "min": 1,
+          "max": "1",
+          "ref": "cac:SellerSupplierParty",
+          "target": "SupplierParty"
+        },
+        {
+          "name": "OriginatorCustomerParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:OriginatorCustomerParty",
+          "target": "CustomerParty"
+        },
+        {
+          "name": "FreightForwarderParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:FreightForwarderParty",
+          "target": "Party"
+        },
+        {
+          "name": "AccountingCustomerParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:AccountingCustomerParty",
+          "target": "CustomerParty"
+        },
+        {
+          "name": "Delivery",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:Delivery",
+          "target": "Delivery"
+        },
+        {
+          "name": "PaymentMeans",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:PaymentMeans",
+          "target": "PaymentMeans"
+        },
+        {
+          "name": "PaymentTerms",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:PaymentTerms",
+          "target": "PaymentTerms"
+        },
+        {
+          "name": "AllowanceCharge",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:AllowanceCharge",
+          "target": "AllowanceCharge"
+        },
+        {
+          "name": "DestinationCountry",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:DestinationCountry",
+          "target": "Country"
+        },
+        {
+          "name": "TaxTotal",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:TaxTotal",
+          "target": "TaxTotal"
+        },
+        {
+          "name": "AnticipatedMonetaryTotal",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:AnticipatedMonetaryTotal",
+          "target": "MonetaryTotal"
+        },
+        {
+          "name": "OrderLine",
+          "min": 1,
+          "max": "unbounded",
+          "ref": "cac:OrderLine",
+          "target": "OrderLine"
+        }
+      ]
+    },
+    {
+      "name": "Invoice",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/maindoc/UBL-Invoice-2.3.xsd#InvoiceType",
+      "fields": [
+        {
+          "name": "UBLVersionID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:UBLVersionID"
+        },
+        {
+          "name": "CustomizationID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CustomizationID"
+        },
+        {
+          "name": "ProfileID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ProfileID"
+        },
+        {
+          "name": "ProfileExecutionID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ProfileExecutionID"
+        },
+        {
+          "name": "ID",
+          "min": 1,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "CopyIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CopyIndicator"
+        },
+        {
+          "name": "UUID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:UUID"
+        },
+        {
+          "name": "IssueDate",
+          "min": 1,
+          "max": "1",
+          "ref": "cbc:IssueDate"
+        },
+        {
+          "name": "IssueTime",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:IssueTime"
+        },
+        {
+          "name": "DueDate",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:DueDate"
+        },
+        {
+          "name": "InvoiceTypeCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:InvoiceTypeCode"
+        },
+        {
+          "name": "Note",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:Note"
+        },
+        {
+          "name": "TaxPointDate",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TaxPointDate"
+        },
+        {
+          "name": "DocumentCurrencyCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:DocumentCurrencyCode"
+        },
+        {
+          "name": "TaxCurrencyCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TaxCurrencyCode"
+        },
+        {
+          "name": "PricingCurrencyCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PricingCurrencyCode"
+        },
+        {
+          "name": "PaymentCurrencyCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PaymentCurrencyCode"
+        },
+        {
+          "name": "PaymentAlternativeCurrencyCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PaymentAlternativeCurrencyCode"
+        },
+        {
+          "name": "AccountingCostCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:AccountingCostCode"
+        },
+        {
+          "name": "AccountingCost",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:AccountingCost"
+        },
+        {
+          "name": "LineCountNumeric",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:LineCountNumeric"
+        },
+        {
+          "name": "BuyerReference",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:BuyerReference"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "OrderReference",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:OrderReference",
+          "target": "OrderReference"
+        },
+        {
+          "name": "BillingReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:BillingReference",
+          "target": "BillingReference"
+        },
+        {
+          "name": "DespatchDocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:DespatchDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "ReceiptDocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:ReceiptDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "StatementDocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:StatementDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "OriginatorDocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:OriginatorDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "ContractDocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:ContractDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "AdditionalDocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:AdditionalDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "AccountingSupplierParty",
+          "min": 1,
+          "max": "1",
+          "ref": "cac:AccountingSupplierParty",
+          "target": "SupplierParty"
+        },
+        {
+          "name": "AccountingCustomerParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:AccountingCustomerParty",
+          "target": "CustomerParty"
+        },
+        {
+          "name": "PayeeParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:PayeeParty",
+          "target": "Party"
+        },
+        {
+          "name": "BuyerCustomerParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:BuyerCustomerParty",
+          "target": "CustomerParty"
+        },
+        {
+          "name": "SellerSupplierParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:SellerSupplierParty",
+          "target": "SupplierParty"
+        },
+        {
+          "name": "TaxRepresentativeParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:TaxRepresentativeParty",
+          "target": "Party"
+        },
+        {
+          "name": "Delivery",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:Delivery",
+          "target": "Delivery"
+        },
+        {
+          "name": "PaymentMeans",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:PaymentMeans",
+          "target": "PaymentMeans"
+        },
+        {
+          "name": "PaymentTerms",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:PaymentTerms",
+          "target": "PaymentTerms"
+        },
+        {
+          "name": "AllowanceCharge",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:AllowanceCharge",
+          "target": "AllowanceCharge"
+        },
+        {
+          "name": "TaxTotal",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:TaxTotal",
+          "target": "TaxTotal"
+        },
+        {
+          "name": "WithholdingTaxTotal",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:WithholdingTaxTotal",
+          "target": "TaxTotal"
+        },
+        {
+          "name": "LegalMonetaryTotal",
+          "min": 1,
+          "max": "1",
+          "ref": "cac:LegalMonetaryTotal",
+          "target": "MonetaryTotal"
+        },
+        {
+          "name": "InvoiceLine",
+          "min": 1,
+          "max": "unbounded",
+          "ref": "cac:InvoiceLine",
+          "target": "InvoiceLine"
+        }
+      ]
+    },
+    {
+      "name": "DespatchAdvice",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/maindoc/UBL-DespatchAdvice-2.3.xsd#DespatchAdviceType",
+      "fields": [
+        {
+          "name": "UBLVersionID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:UBLVersionID"
+        },
+        {
+          "name": "CustomizationID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CustomizationID"
+        },
+        {
+          "name": "ProfileID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ProfileID"
+        },
+        {
+          "name": "ProfileExecutionID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ProfileExecutionID"
+        },
+        {
+          "name": "ID",
+          "min": 1,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "CopyIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CopyIndicator"
+        },
+        {
+          "name": "UUID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:UUID"
+        },
+        {
+          "name": "IssueDate",
+          "min": 1,
+          "max": "1",
+          "ref": "cbc:IssueDate"
+        },
+        {
+          "name": "IssueTime",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:IssueTime"
+        },
+        {
+          "name": "DocumentStatusCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:DocumentStatusCode"
+        },
+        {
+          "name": "DespatchAdviceTypeCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:DespatchAdviceTypeCode"
+        },
+        {
+          "name": "Note",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:Note"
+        },
+        {
+          "name": "LineCountNumeric",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:LineCountNumeric"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "OrderReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:OrderReference",
+          "target": "OrderReference"
+        },
+        {
+          "name": "AdditionalDocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:AdditionalDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "DespatchSupplierParty",
+          "min": 1,
+          "max": "1",
+          "ref": "cac:DespatchSupplierParty",
+          "target": "SupplierParty"
+        },
+        {
+          "name": "DeliveryCustomerParty",
+          "min": 1,
+          "max": "1",
+          "ref": "cac:DeliveryCustomerParty",
+          "target": "CustomerParty"
+        },
+        {
+          "name": "BuyerCustomerParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:BuyerCustomerParty",
+          "target": "CustomerParty"
+        },
+        {
+          "name": "SellerSupplierParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:SellerSupplierParty",
+          "target": "SupplierParty"
+        },
+        {
+          "name": "OriginatorCustomerParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:OriginatorCustomerParty",
+          "target": "CustomerParty"
+        },
+        {
+          "name": "Shipment",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:Shipment",
+          "target": "Shipment"
+        },
+        {
+          "name": "DespatchLine",
+          "min": 1,
+          "max": "unbounded",
+          "ref": "cac:DespatchLine",
+          "target": "DespatchLine"
+        }
+      ]
+    },
+    {
+      "name": "ReceiptAdvice",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/maindoc/UBL-ReceiptAdvice-2.3.xsd#ReceiptAdviceType",
+      "fields": [
+        {
+          "name": "UBLVersionID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:UBLVersionID"
+        },
+        {
+          "name": "CustomizationID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CustomizationID"
+        },
+        {
+          "name": "ProfileID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ProfileID"
+        },
+        {
+          "name": "ProfileExecutionID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ProfileExecutionID"
+        },
+        {
+          "name": "ID",
+          "min": 1,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "CopyIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CopyIndicator"
+        },
+        {
+          "name": "UUID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:UUID"
+        },
+        {
+          "name": "IssueDate",
+          "min": 1,
+          "max": "1",
+          "ref": "cbc:IssueDate"
+        },
+        {
+          "name": "IssueTime",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:IssueTime"
+        },
+        {
+          "name": "DocumentStatusCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:DocumentStatusCode"
+        },
+        {
+          "name": "ReceiptAdviceTypeCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ReceiptAdviceTypeCode"
+        },
+        {
+          "name": "Note",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:Note"
+        },
+        {
+          "name": "LineCountNumeric",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:LineCountNumeric"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "OrderReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:OrderReference",
+          "target": "OrderReference"
+        },
+        {
+          "name": "DespatchDocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:DespatchDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "AdditionalDocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:AdditionalDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "DeliveryCustomerParty",
+          "min": 1,
+          "max": "1",
+          "ref": "cac:DeliveryCustomerParty",
+          "target": "CustomerParty"
+        },
+        {
+          "name": "DespatchSupplierParty",
+          "min": 1,
+          "max": "1",
+          "ref": "cac:DespatchSupplierParty",
+          "target": "SupplierParty"
+        },
+        {
+          "name": "BuyerCustomerParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:BuyerCustomerParty",
+          "target": "CustomerParty"
+        },
+        {
+          "name": "SellerSupplierParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:SellerSupplierParty",
+          "target": "SupplierParty"
+        },
+        {
+          "name": "Shipment",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:Shipment",
+          "target": "Shipment"
+        },
+        {
+          "name": "ReceiptLine",
+          "min": 1,
+          "max": "unbounded",
+          "ref": "cac:ReceiptLine",
+          "target": "ReceiptLine"
+        }
+      ]
+    },
+    {
+      "name": "CreditNote",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/maindoc/UBL-CreditNote-2.3.xsd#CreditNoteType",
+      "fields": [
+        {
+          "name": "UBLVersionID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:UBLVersionID"
+        },
+        {
+          "name": "CustomizationID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CustomizationID"
+        },
+        {
+          "name": "ProfileID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ProfileID"
+        },
+        {
+          "name": "ProfileExecutionID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ProfileExecutionID"
+        },
+        {
+          "name": "ID",
+          "min": 1,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "CopyIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CopyIndicator"
+        },
+        {
+          "name": "UUID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:UUID"
+        },
+        {
+          "name": "IssueDate",
+          "min": 1,
+          "max": "1",
+          "ref": "cbc:IssueDate"
+        },
+        {
+          "name": "IssueTime",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:IssueTime"
+        },
+        {
+          "name": "DueDate",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:DueDate"
+        },
+        {
+          "name": "TaxPointDate",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TaxPointDate"
+        },
+        {
+          "name": "CreditNoteTypeCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CreditNoteTypeCode"
+        },
+        {
+          "name": "Note",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:Note"
+        },
+        {
+          "name": "DocumentCurrencyCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:DocumentCurrencyCode"
+        },
+        {
+          "name": "TaxCurrencyCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TaxCurrencyCode"
+        },
+        {
+          "name": "PricingCurrencyCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PricingCurrencyCode"
+        },
+        {
+          "name": "PaymentCurrencyCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PaymentCurrencyCode"
+        },
+        {
+          "name": "PaymentAlternativeCurrencyCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PaymentAlternativeCurrencyCode"
+        },
+        {
+          "name": "AccountingCostCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:AccountingCostCode"
+        },
+        {
+          "name": "AccountingCost",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:AccountingCost"
+        },
+        {
+          "name": "LineCountNumeric",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:LineCountNumeric"
+        },
+        {
+          "name": "BuyerReference",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:BuyerReference"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "OrderReference",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:OrderReference",
+          "target": "OrderReference"
+        },
+        {
+          "name": "BillingReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:BillingReference",
+          "target": "BillingReference"
+        },
+        {
+          "name": "DespatchDocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:DespatchDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "ReceiptDocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:ReceiptDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "ContractDocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:ContractDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "AdditionalDocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:AdditionalDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "StatementDocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:StatementDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "OriginatorDocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:OriginatorDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "AccountingSupplierParty",
+          "min": 1,
+          "max": "1",
+          "ref": "cac:AccountingSupplierParty",
+          "target": "SupplierParty"
+        },
+        {
+          "name": "AccountingCustomerParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:AccountingCustomerParty",
+          "target": "CustomerParty"
+        },
+        {
+          "name": "PayeeParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:PayeeParty",
+          "target": "Party"
+        },
+        {
+          "name": "BuyerCustomerParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:BuyerCustomerParty",
+          "target": "CustomerParty"
+        },
+        {
+          "name": "SellerSupplierParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:SellerSupplierParty",
+          "target": "SupplierParty"
+        },
+        {
+          "name": "TaxRepresentativeParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:TaxRepresentativeParty",
+          "target": "Party"
+        },
+        {
+          "name": "Delivery",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:Delivery",
+          "target": "Delivery"
+        },
+        {
+          "name": "PaymentMeans",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:PaymentMeans",
+          "target": "PaymentMeans"
+        },
+        {
+          "name": "PaymentTerms",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:PaymentTerms",
+          "target": "PaymentTerms"
+        },
+        {
+          "name": "AllowanceCharge",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:AllowanceCharge",
+          "target": "AllowanceCharge"
+        },
+        {
+          "name": "TaxTotal",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:TaxTotal",
+          "target": "TaxTotal"
+        },
+        {
+          "name": "WithholdingTaxTotal",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:WithholdingTaxTotal",
+          "target": "TaxTotal"
+        },
+        {
+          "name": "LegalMonetaryTotal",
+          "min": 1,
+          "max": "1",
+          "ref": "cac:LegalMonetaryTotal",
+          "target": "MonetaryTotal"
+        },
+        {
+          "name": "CreditNoteLine",
+          "min": 1,
+          "max": "unbounded",
+          "ref": "cac:CreditNoteLine",
+          "target": "CreditNoteLine"
+        }
+      ]
+    },
+    {
+      "name": "Party",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#PartyType",
+      "fields": [
+        {
+          "name": "MarkCareIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:MarkCareIndicator"
+        },
+        {
+          "name": "MarkAttentionIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:MarkAttentionIndicator"
+        },
+        {
+          "name": "WebsiteURI",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:WebsiteURI"
+        },
+        {
+          "name": "LogoReferenceID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:LogoReferenceID"
+        },
+        {
+          "name": "EndpointID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:EndpointID"
+        },
+        {
+          "name": "IndustryClassificationCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:IndustryClassificationCode"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "PostalAddress",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:PostalAddress",
+          "target": "Address"
+        },
+        {
+          "name": "PhysicalLocation",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:PhysicalLocation",
+          "target": "Location"
+        },
+        {
+          "name": "Contact",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:Contact",
+          "target": "Contact"
+        },
+        {
+          "name": "Person",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:Person",
+          "target": "Person"
+        },
+        {
+          "name": "AgentParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:AgentParty",
+          "target": "Party"
+        },
+        {
+          "name": "FinancialAccount",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:FinancialAccount",
+          "target": "FinancialAccount"
+        }
+      ]
+    },
+    {
+      "name": "CustomerParty",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#CustomerPartyType",
+      "fields": [
+        {
+          "name": "CustomerAssignedAccountID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CustomerAssignedAccountID"
+        },
+        {
+          "name": "SupplierAssignedAccountID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:SupplierAssignedAccountID"
+        },
+        {
+          "name": "AdditionalAccountID",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:AdditionalAccountID"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "Party",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:Party",
+          "target": "Party"
+        },
+        {
+          "name": "DeliveryContact",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:DeliveryContact",
+          "target": "Contact"
+        },
+        {
+          "name": "AccountingContact",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:AccountingContact",
+          "target": "Contact"
+        },
+        {
+          "name": "BuyerContact",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:BuyerContact",
+          "target": "Contact"
+        }
+      ]
+    },
+    {
+      "name": "SupplierParty",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#SupplierPartyType",
+      "fields": [
+        {
+          "name": "CustomerAssignedAccountID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CustomerAssignedAccountID"
+        },
+        {
+          "name": "AdditionalAccountID",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:AdditionalAccountID"
+        },
+        {
+          "name": "DataSendingCapability",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:DataSendingCapability"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "Party",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:Party",
+          "target": "Party"
+        },
+        {
+          "name": "DespatchContact",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:DespatchContact",
+          "target": "Contact"
+        },
+        {
+          "name": "AccountingContact",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:AccountingContact",
+          "target": "Contact"
+        },
+        {
+          "name": "SellerContact",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:SellerContact",
+          "target": "Contact"
+        }
+      ]
+    },
+    {
+      "name": "Person",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#PersonType",
+      "fields": [
+        {
+          "name": "ID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "FirstName",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:FirstName"
+        },
+        {
+          "name": "FamilyName",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:FamilyName"
+        },
+        {
+          "name": "Title",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:Title"
+        },
+        {
+          "name": "MiddleName",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:MiddleName"
+        },
+        {
+          "name": "OtherName",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:OtherName"
+        },
+        {
+          "name": "NameSuffix",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:NameSuffix"
+        },
+        {
+          "name": "JobTitle",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:JobTitle"
+        },
+        {
+          "name": "NationalityID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:NationalityID"
+        },
+        {
+          "name": "GenderCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:GenderCode"
+        },
+        {
+          "name": "BirthDate",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:BirthDate"
+        },
+        {
+          "name": "BirthplaceName",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:BirthplaceName"
+        },
+        {
+          "name": "OrganizationDepartment",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:OrganizationDepartment"
+        },
+        {
+          "name": "RoleCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:RoleCode"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "BirthplaceLocation",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:BirthplaceLocation",
+          "target": "Location"
+        },
+        {
+          "name": "CitizenshipCountry",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:CitizenshipCountry",
+          "target": "Country"
+        },
+        {
+          "name": "Contact",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:Contact",
+          "target": "Contact"
+        },
+        {
+          "name": "FinancialAccount",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:FinancialAccount",
+          "target": "FinancialAccount"
+        },
+        {
+          "name": "IdentityDocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:IdentityDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "ResidenceAddress",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:ResidenceAddress",
+          "target": "Address"
+        }
+      ]
+    },
+    {
+      "name": "Contact",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#ContactType",
+      "fields": [
+        {
+          "name": "ID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "Name",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:Name"
+        },
+        {
+          "name": "JobTitle",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:JobTitle"
+        },
+        {
+          "name": "Department",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:Department"
+        },
+        {
+          "name": "Telephone",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:Telephone"
+        },
+        {
+          "name": "Telefax",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:Telefax"
+        },
+        {
+          "name": "ElectronicMail",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ElectronicMail"
+        },
+        {
+          "name": "Note",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:Note"
+        }
+      ],
+      "relationships": []
+    },
+    {
+      "name": "Address",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#AddressType",
+      "fields": [
+        {
+          "name": "ID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "AddressTypeCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:AddressTypeCode"
+        },
+        {
+          "name": "AddressFormatCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:AddressFormatCode"
+        },
+        {
+          "name": "Postbox",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:Postbox"
+        },
+        {
+          "name": "Floor",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:Floor"
+        },
+        {
+          "name": "Room",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:Room"
+        },
+        {
+          "name": "StreetName",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:StreetName"
+        },
+        {
+          "name": "AdditionalStreetName",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:AdditionalStreetName"
+        },
+        {
+          "name": "BlockName",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:BlockName"
+        },
+        {
+          "name": "BuildingName",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:BuildingName"
+        },
+        {
+          "name": "BuildingNumber",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:BuildingNumber"
+        },
+        {
+          "name": "Description",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:Description"
+        },
+        {
+          "name": "InhouseMail",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:InhouseMail"
+        },
+        {
+          "name": "Department",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:Department"
+        },
+        {
+          "name": "MarkAttention",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:MarkAttention"
+        },
+        {
+          "name": "MarkCare",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:MarkCare"
+        },
+        {
+          "name": "PlotIdentification",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PlotIdentification"
+        },
+        {
+          "name": "CitySubdivisionName",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CitySubdivisionName"
+        },
+        {
+          "name": "CityName",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CityName"
+        },
+        {
+          "name": "PostalZone",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PostalZone"
+        },
+        {
+          "name": "CountrySubentity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CountrySubentity"
+        },
+        {
+          "name": "CountrySubentityCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CountrySubentityCode"
+        },
+        {
+          "name": "Region",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:Region"
+        },
+        {
+          "name": "District",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:District"
+        },
+        {
+          "name": "TimezoneOffset",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TimezoneOffset"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "Country",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:Country",
+          "target": "Country"
+        }
+      ]
+    },
+    {
+      "name": "Location",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#LocationType",
+      "fields": [
+        {
+          "name": "ID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "Description",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:Description"
+        },
+        {
+          "name": "Conditions",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:Conditions"
+        },
+        {
+          "name": "CountrySubentity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CountrySubentity"
+        },
+        {
+          "name": "CountrySubentityCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CountrySubentityCode"
+        },
+        {
+          "name": "LocationTypeCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:LocationTypeCode"
+        },
+        {
+          "name": "InformationURI",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:InformationURI"
+        },
+        {
+          "name": "Name",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:Name"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "Address",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:Address",
+          "target": "Address"
+        },
+        {
+          "name": "SubsidiaryLocation",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:SubsidiaryLocation",
+          "target": "Location"
+        }
+      ]
+    },
+    {
+      "name": "Country",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#CountryType",
+      "fields": [
+        {
+          "name": "IdentificationCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:IdentificationCode"
+        },
+        {
+          "name": "Name",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:Name"
+        }
+      ],
+      "relationships": []
+    },
+    {
+      "name": "Item",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#ItemType",
+      "fields": [
+        {
+          "name": "Description",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:Description"
+        },
+        {
+          "name": "PackQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PackQuantity"
+        },
+        {
+          "name": "PackSizeNumeric",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PackSizeNumeric"
+        },
+        {
+          "name": "CatalogueIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CatalogueIndicator"
+        },
+        {
+          "name": "Name",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:Name"
+        },
+        {
+          "name": "HazardousRiskIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:HazardousRiskIndicator"
+        },
+        {
+          "name": "AdditionalInformation",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:AdditionalInformation"
+        },
+        {
+          "name": "Keyword",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:Keyword"
+        },
+        {
+          "name": "BrandName",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:BrandName"
+        },
+        {
+          "name": "ModelName",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:ModelName"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "CatalogueDocumentReference",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:CatalogueDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "ItemSpecificationDocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:ItemSpecificationDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "OriginCountry",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:OriginCountry",
+          "target": "Country"
+        },
+        {
+          "name": "CommodityClassification",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:CommodityClassification",
+          "target": "CommodityClassification"
+        },
+        {
+          "name": "ClassifiedTaxCategory",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:ClassifiedTaxCategory",
+          "target": "TaxCategory"
+        },
+        {
+          "name": "ManufacturerParty",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:ManufacturerParty",
+          "target": "Party"
+        },
+        {
+          "name": "InformationContentProviderParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:InformationContentProviderParty",
+          "target": "Party"
+        },
+        {
+          "name": "OriginAddress",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:OriginAddress",
+          "target": "Address"
+        }
+      ]
+    },
+    {
+      "name": "CommodityClassification",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#CommodityClassificationType",
+      "fields": [
+        {
+          "name": "NatureCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:NatureCode"
+        },
+        {
+          "name": "CargoTypeCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CargoTypeCode"
+        },
+        {
+          "name": "CommodityCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CommodityCode"
+        },
+        {
+          "name": "ItemClassificationCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ItemClassificationCode"
+        }
+      ],
+      "relationships": []
+    },
+    {
+      "name": "OrderLine",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#OrderLineType",
+      "fields": [
+        {
+          "name": "SubstitutionStatusCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:SubstitutionStatusCode"
+        },
+        {
+          "name": "Note",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:Note"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "LineItem",
+          "min": 1,
+          "max": "1",
+          "ref": "cac:LineItem",
+          "target": "LineItem"
+        },
+        {
+          "name": "SellerProposedSubstituteLineItem",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:SellerProposedSubstituteLineItem",
+          "target": "LineItem"
+        },
+        {
+          "name": "SellerSubstitutedLineItem",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:SellerSubstitutedLineItem",
+          "target": "LineItem"
+        },
+        {
+          "name": "BuyerProposedSubstituteLineItem",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:BuyerProposedSubstituteLineItem",
+          "target": "LineItem"
+        },
+        {
+          "name": "DocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:DocumentReference",
+          "target": "DocumentReference"
+        }
+      ]
+    },
+    {
+      "name": "LineItem",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#LineItemType",
+      "fields": [
+        {
+          "name": "ID",
+          "min": 1,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "SalesOrderID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:SalesOrderID"
+        },
+        {
+          "name": "UUID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:UUID"
+        },
+        {
+          "name": "Note",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:Note"
+        },
+        {
+          "name": "LineStatusCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:LineStatusCode"
+        },
+        {
+          "name": "Quantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:Quantity"
+        },
+        {
+          "name": "LineExtensionAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:LineExtensionAmount"
+        },
+        {
+          "name": "TaxInclusiveLineExtensionAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TaxInclusiveLineExtensionAmount"
+        },
+        {
+          "name": "TotalTaxAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TotalTaxAmount"
+        },
+        {
+          "name": "MinimumQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:MinimumQuantity"
+        },
+        {
+          "name": "MaximumQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:MaximumQuantity"
+        },
+        {
+          "name": "MinimumBackorderQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:MinimumBackorderQuantity"
+        },
+        {
+          "name": "MaximumBackorderQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:MaximumBackorderQuantity"
+        },
+        {
+          "name": "InspectionMethodCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:InspectionMethodCode"
+        },
+        {
+          "name": "PartialDeliveryIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PartialDeliveryIndicator"
+        },
+        {
+          "name": "BackOrderAllowedIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:BackOrderAllowedIndicator"
+        },
+        {
+          "name": "AccountingCostCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:AccountingCostCode"
+        },
+        {
+          "name": "AccountingCost",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:AccountingCost"
+        },
+        {
+          "name": "WarrantyInformation",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:WarrantyInformation"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "Delivery",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:Delivery",
+          "target": "Delivery"
+        },
+        {
+          "name": "OriginatorParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:OriginatorParty",
+          "target": "Party"
+        },
+        {
+          "name": "AllowanceCharge",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:AllowanceCharge",
+          "target": "AllowanceCharge"
+        },
+        {
+          "name": "Price",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:Price",
+          "target": "Price"
+        },
+        {
+          "name": "Item",
+          "min": 1,
+          "max": "1",
+          "ref": "cac:Item",
+          "target": "Item"
+        },
+        {
+          "name": "SubLineItem",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:SubLineItem",
+          "target": "LineItem"
+        },
+        {
+          "name": "WarrantyParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:WarrantyParty",
+          "target": "Party"
+        },
+        {
+          "name": "TaxTotal",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:TaxTotal",
+          "target": "TaxTotal"
+        }
+      ]
+    },
+    {
+      "name": "Delivery",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#DeliveryType",
+      "fields": [
+        {
+          "name": "ID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "Quantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:Quantity"
+        },
+        {
+          "name": "MinimumQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:MinimumQuantity"
+        },
+        {
+          "name": "MaximumQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:MaximumQuantity"
+        },
+        {
+          "name": "ActualDeliveryDate",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ActualDeliveryDate"
+        },
+        {
+          "name": "ActualDeliveryTime",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ActualDeliveryTime"
+        },
+        {
+          "name": "LatestDeliveryDate",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:LatestDeliveryDate"
+        },
+        {
+          "name": "LatestDeliveryTime",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:LatestDeliveryTime"
+        },
+        {
+          "name": "ReleaseID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ReleaseID"
+        },
+        {
+          "name": "TrackingID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TrackingID"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "DeliveryAddress",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:DeliveryAddress",
+          "target": "Address"
+        },
+        {
+          "name": "DeliveryLocation",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:DeliveryLocation",
+          "target": "Location"
+        },
+        {
+          "name": "AlternativeDeliveryLocation",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:AlternativeDeliveryLocation",
+          "target": "Location"
+        },
+        {
+          "name": "CarrierParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:CarrierParty",
+          "target": "Party"
+        },
+        {
+          "name": "DeliveryParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:DeliveryParty",
+          "target": "Party"
+        },
+        {
+          "name": "NotifyParty",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:NotifyParty",
+          "target": "Party"
+        },
+        {
+          "name": "Shipment",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:Shipment",
+          "target": "Shipment"
+        }
+      ]
+    },
+    {
+      "name": "Shipment",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#ShipmentType",
+      "fields": [
+        {
+          "name": "ID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "ShippingPriorityLevelCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ShippingPriorityLevelCode"
+        },
+        {
+          "name": "HandlingCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:HandlingCode"
+        },
+        {
+          "name": "HandlingInstructions",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:HandlingInstructions"
+        },
+        {
+          "name": "Information",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:Information"
+        },
+        {
+          "name": "GrossWeightMeasure",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:GrossWeightMeasure"
+        },
+        {
+          "name": "NetWeightMeasure",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:NetWeightMeasure"
+        },
+        {
+          "name": "NetNetWeightMeasure",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:NetNetWeightMeasure"
+        },
+        {
+          "name": "GrossVolumeMeasure",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:GrossVolumeMeasure"
+        },
+        {
+          "name": "NetVolumeMeasure",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:NetVolumeMeasure"
+        },
+        {
+          "name": "TotalGoodsItemQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TotalGoodsItemQuantity"
+        },
+        {
+          "name": "TotalTransportHandlingUnitQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TotalTransportHandlingUnitQuantity"
+        },
+        {
+          "name": "InsuranceValueAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:InsuranceValueAmount"
+        },
+        {
+          "name": "DeclaredCustomsValueAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:DeclaredCustomsValueAmount"
+        },
+        {
+          "name": "DeclaredForCarriageValueAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:DeclaredForCarriageValueAmount"
+        },
+        {
+          "name": "DeclaredStatisticsValueAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:DeclaredStatisticsValueAmount"
+        },
+        {
+          "name": "FreeOnBoardValueAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:FreeOnBoardValueAmount"
+        },
+        {
+          "name": "SpecialInstructions",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:SpecialInstructions"
+        },
+        {
+          "name": "DeliveryInstructions",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:DeliveryInstructions"
+        },
+        {
+          "name": "SplitConsignmentIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:SplitConsignmentIndicator"
+        },
+        {
+          "name": "ConsignmentQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ConsignmentQuantity"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "Consignment",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:Consignment",
+          "target": "Consignment"
+        },
+        {
+          "name": "GoodsItem",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:GoodsItem",
+          "target": "GoodsItem"
+        },
+        {
+          "name": "Delivery",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:Delivery",
+          "target": "Delivery"
+        },
+        {
+          "name": "TransportHandlingUnit",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:TransportHandlingUnit",
+          "target": "TransportHandlingUnit"
+        },
+        {
+          "name": "ReturnAddress",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:ReturnAddress",
+          "target": "Address"
+        },
+        {
+          "name": "OriginAddress",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:OriginAddress",
+          "target": "Address"
+        },
+        {
+          "name": "FirstArrivalPortLocation",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:FirstArrivalPortLocation",
+          "target": "Location"
+        },
+        {
+          "name": "LastExitPortLocation",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:LastExitPortLocation",
+          "target": "Location"
+        },
+        {
+          "name": "ExportCountry",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:ExportCountry",
+          "target": "Country"
+        },
+        {
+          "name": "FreightAllowanceCharge",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:FreightAllowanceCharge",
+          "target": "AllowanceCharge"
+        }
+      ]
+    },
+    {
+      "name": "Consignment",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#ConsignmentType",
+      "fields": [
+        {
+          "name": "ID",
+          "min": 1,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "CarrierAssignedID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CarrierAssignedID"
+        },
+        {
+          "name": "ConsigneeAssignedID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ConsigneeAssignedID"
+        },
+        {
+          "name": "ConsignorAssignedID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ConsignorAssignedID"
+        },
+        {
+          "name": "FreightForwarderAssignedID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:FreightForwarderAssignedID"
+        },
+        {
+          "name": "BrokerAssignedID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:BrokerAssignedID"
+        },
+        {
+          "name": "ContractedCarrierAssignedID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ContractedCarrierAssignedID"
+        },
+        {
+          "name": "PerformingCarrierAssignedID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PerformingCarrierAssignedID"
+        },
+        {
+          "name": "SummaryDescription",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:SummaryDescription"
+        },
+        {
+          "name": "TotalInvoiceAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TotalInvoiceAmount"
+        },
+        {
+          "name": "DeclaredCustomsValueAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:DeclaredCustomsValueAmount"
+        },
+        {
+          "name": "TariffDescription",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:TariffDescription"
+        },
+        {
+          "name": "TariffCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TariffCode"
+        },
+        {
+          "name": "InsurancePremiumAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:InsurancePremiumAmount"
+        },
+        {
+          "name": "GrossWeightMeasure",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:GrossWeightMeasure"
+        },
+        {
+          "name": "NetWeightMeasure",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:NetWeightMeasure"
+        },
+        {
+          "name": "NetNetWeightMeasure",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:NetNetWeightMeasure"
+        },
+        {
+          "name": "ChargeableWeightMeasure",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ChargeableWeightMeasure"
+        },
+        {
+          "name": "GrossVolumeMeasure",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:GrossVolumeMeasure"
+        },
+        {
+          "name": "NetVolumeMeasure",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:NetVolumeMeasure"
+        },
+        {
+          "name": "LoadingLengthMeasure",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:LoadingLengthMeasure"
+        },
+        {
+          "name": "Remarks",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:Remarks"
+        },
+        {
+          "name": "HazardousRiskIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:HazardousRiskIndicator"
+        },
+        {
+          "name": "AnimalFoodIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:AnimalFoodIndicator"
+        },
+        {
+          "name": "HumanFoodIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:HumanFoodIndicator"
+        },
+        {
+          "name": "LivestockIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:LivestockIndicator"
+        },
+        {
+          "name": "BulkCargoIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:BulkCargoIndicator"
+        },
+        {
+          "name": "ContainerizedIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ContainerizedIndicator"
+        },
+        {
+          "name": "GeneralCargoIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:GeneralCargoIndicator"
+        },
+        {
+          "name": "SpecialSecurityIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:SpecialSecurityIndicator"
+        },
+        {
+          "name": "ThirdPartyPayerIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ThirdPartyPayerIndicator"
+        },
+        {
+          "name": "CarrierServiceInstructions",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:CarrierServiceInstructions"
+        },
+        {
+          "name": "CustomsClearanceServiceInstructions",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:CustomsClearanceServiceInstructions"
+        },
+        {
+          "name": "ForwarderServiceInstructions",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:ForwarderServiceInstructions"
+        },
+        {
+          "name": "SpecialServiceInstructions",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:SpecialServiceInstructions"
+        },
+        {
+          "name": "SequenceID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:SequenceID"
+        },
+        {
+          "name": "ShippingPriorityLevelCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ShippingPriorityLevelCode"
+        },
+        {
+          "name": "HandlingCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:HandlingCode"
+        },
+        {
+          "name": "HandlingInstructions",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:HandlingInstructions"
+        },
+        {
+          "name": "Information",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:Information"
+        },
+        {
+          "name": "TotalGoodsItemQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TotalGoodsItemQuantity"
+        },
+        {
+          "name": "TotalTransportHandlingUnitQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TotalTransportHandlingUnitQuantity"
+        },
+        {
+          "name": "InsuranceValueAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:InsuranceValueAmount"
+        },
+        {
+          "name": "DeclaredForCarriageValueAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:DeclaredForCarriageValueAmount"
+        },
+        {
+          "name": "DeclaredStatisticsValueAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:DeclaredStatisticsValueAmount"
+        },
+        {
+          "name": "FreeOnBoardValueAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:FreeOnBoardValueAmount"
+        },
+        {
+          "name": "SpecialInstructions",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:SpecialInstructions"
+        },
+        {
+          "name": "SplitConsignmentIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:SplitConsignmentIndicator"
+        },
+        {
+          "name": "DeliveryInstructions",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:DeliveryInstructions"
+        },
+        {
+          "name": "ConsignmentQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ConsignmentQuantity"
+        },
+        {
+          "name": "ConsolidatableIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ConsolidatableIndicator"
+        },
+        {
+          "name": "HaulageInstructions",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:HaulageInstructions"
+        },
+        {
+          "name": "LoadingSequenceID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:LoadingSequenceID"
+        },
+        {
+          "name": "ChildConsignmentQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ChildConsignmentQuantity"
+        },
+        {
+          "name": "TotalPackagesQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TotalPackagesQuantity"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "ConsolidatedShipment",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:ConsolidatedShipment",
+          "target": "Shipment"
+        },
+        {
+          "name": "ChildConsignment",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:ChildConsignment",
+          "target": "Consignment"
+        },
+        {
+          "name": "ConsigneeParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:ConsigneeParty",
+          "target": "Party"
+        },
+        {
+          "name": "ExporterParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:ExporterParty",
+          "target": "Party"
+        },
+        {
+          "name": "ConsignorParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:ConsignorParty",
+          "target": "Party"
+        },
+        {
+          "name": "ImporterParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:ImporterParty",
+          "target": "Party"
+        },
+        {
+          "name": "CarrierParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:CarrierParty",
+          "target": "Party"
+        },
+        {
+          "name": "FreightForwarderParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:FreightForwarderParty",
+          "target": "Party"
+        },
+        {
+          "name": "NotifyParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:NotifyParty",
+          "target": "Party"
+        },
+        {
+          "name": "OriginalDespatchParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:OriginalDespatchParty",
+          "target": "Party"
+        },
+        {
+          "name": "FinalDeliveryParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:FinalDeliveryParty",
+          "target": "Party"
+        },
+        {
+          "name": "PerformingCarrierParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:PerformingCarrierParty",
+          "target": "Party"
+        },
+        {
+          "name": "SubstituteCarrierParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:SubstituteCarrierParty",
+          "target": "Party"
+        },
+        {
+          "name": "LogisticsOperatorParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:LogisticsOperatorParty",
+          "target": "Party"
+        },
+        {
+          "name": "TransportAdvisorParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:TransportAdvisorParty",
+          "target": "Party"
+        },
+        {
+          "name": "HazardousItemNotificationParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:HazardousItemNotificationParty",
+          "target": "Party"
+        },
+        {
+          "name": "InsuranceParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:InsuranceParty",
+          "target": "Party"
+        },
+        {
+          "name": "MortgageHolderParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:MortgageHolderParty",
+          "target": "Party"
+        },
+        {
+          "name": "BillOfLadingHolderParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:BillOfLadingHolderParty",
+          "target": "Party"
+        },
+        {
+          "name": "OriginalDepartureCountry",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:OriginalDepartureCountry",
+          "target": "Country"
+        },
+        {
+          "name": "FinalDestinationCountry",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:FinalDestinationCountry",
+          "target": "Country"
+        },
+        {
+          "name": "TransitCountry",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:TransitCountry",
+          "target": "Country"
+        },
+        {
+          "name": "TransportContract",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:TransportContract",
+          "target": "Contract"
+        },
+        {
+          "name": "OriginalDespatchTransportationService",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:OriginalDespatchTransportationService",
+          "target": "TransportationService"
+        },
+        {
+          "name": "FinalDeliveryTransportationService",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:FinalDeliveryTransportationService",
+          "target": "TransportationService"
+        },
+        {
+          "name": "PaymentTerms",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:PaymentTerms",
+          "target": "PaymentTerms"
+        },
+        {
+          "name": "CollectPaymentTerms",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:CollectPaymentTerms",
+          "target": "PaymentTerms"
+        },
+        {
+          "name": "DisbursementPaymentTerms",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:DisbursementPaymentTerms",
+          "target": "PaymentTerms"
+        },
+        {
+          "name": "PrepaidPaymentTerms",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:PrepaidPaymentTerms",
+          "target": "PaymentTerms"
+        },
+        {
+          "name": "FreightAllowanceCharge",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:FreightAllowanceCharge",
+          "target": "AllowanceCharge"
+        },
+        {
+          "name": "ExtraAllowanceCharge",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:ExtraAllowanceCharge",
+          "target": "AllowanceCharge"
+        },
+        {
+          "name": "TransportHandlingUnit",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:TransportHandlingUnit",
+          "target": "TransportHandlingUnit"
+        },
+        {
+          "name": "FirstArrivalPortLocation",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:FirstArrivalPortLocation",
+          "target": "Location"
+        },
+        {
+          "name": "LastExitPortLocation",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:LastExitPortLocation",
+          "target": "Location"
+        },
+        {
+          "name": "OfficeOfEntryLocation",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:OfficeOfEntryLocation",
+          "target": "Location"
+        },
+        {
+          "name": "OfficeOfSubSequentiallyEntryLocation",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:OfficeOfSubSequentiallyEntryLocation",
+          "target": "Location"
+        },
+        {
+          "name": "OfficeOfExitLocation",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:OfficeOfExitLocation",
+          "target": "Location"
+        },
+        {
+          "name": "OfficeOfDepartureLocation",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:OfficeOfDepartureLocation",
+          "target": "Location"
+        },
+        {
+          "name": "OfficeOfDestinationLocation",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:OfficeOfDestinationLocation",
+          "target": "Location"
+        },
+        {
+          "name": "OfficeOfImportLocation",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:OfficeOfImportLocation",
+          "target": "Location"
+        },
+        {
+          "name": "OfficeOfExportLocation",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:OfficeOfExportLocation",
+          "target": "Location"
+        },
+        {
+          "name": "DocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:DocumentReference",
+          "target": "DocumentReference"
+        }
+      ]
+    },
+    {
+      "name": "TransportHandlingUnit",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#TransportHandlingUnitType",
+      "fields": [
+        {
+          "name": "ID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "TransportHandlingUnitTypeCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TransportHandlingUnitTypeCode"
+        },
+        {
+          "name": "HandlingCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:HandlingCode"
+        },
+        {
+          "name": "HandlingInstructions",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:HandlingInstructions"
+        },
+        {
+          "name": "HazardousRiskIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:HazardousRiskIndicator"
+        },
+        {
+          "name": "TotalGoodsItemQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TotalGoodsItemQuantity"
+        },
+        {
+          "name": "TotalPackageQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TotalPackageQuantity"
+        },
+        {
+          "name": "DamageRemarks",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:DamageRemarks"
+        },
+        {
+          "name": "ShippingMarks",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:ShippingMarks"
+        },
+        {
+          "name": "TraceID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TraceID"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "HandlingUnitDespatchLine",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:HandlingUnitDespatchLine",
+          "target": "DespatchLine"
+        },
+        {
+          "name": "ReceivedHandlingUnitReceiptLine",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:ReceivedHandlingUnitReceiptLine",
+          "target": "ReceiptLine"
+        },
+        {
+          "name": "TransportEquipment",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:TransportEquipment",
+          "target": "TransportEquipment"
+        },
+        {
+          "name": "TransportMeans",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:TransportMeans",
+          "target": "TransportMeans"
+        },
+        {
+          "name": "GoodsItem",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:GoodsItem",
+          "target": "GoodsItem"
+        },
+        {
+          "name": "ShipmentDocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:ShipmentDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "ReferencedShipment",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:ReferencedShipment",
+          "target": "Shipment"
+        }
+      ]
+    },
+    {
+      "name": "TransportEquipment",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#TransportEquipmentType",
+      "fields": [
+        {
+          "name": "ID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "ReferencedConsignmentID",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:ReferencedConsignmentID"
+        },
+        {
+          "name": "TransportEquipmentTypeCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TransportEquipmentTypeCode"
+        },
+        {
+          "name": "ProviderTypeCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ProviderTypeCode"
+        },
+        {
+          "name": "OwnerTypeCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:OwnerTypeCode"
+        },
+        {
+          "name": "SizeTypeCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:SizeTypeCode"
+        },
+        {
+          "name": "DispositionCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:DispositionCode"
+        },
+        {
+          "name": "FullnessIndicationCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:FullnessIndicationCode"
+        },
+        {
+          "name": "RefrigerationOnIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:RefrigerationOnIndicator"
+        },
+        {
+          "name": "Information",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:Information"
+        },
+        {
+          "name": "ReturnabilityIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ReturnabilityIndicator"
+        },
+        {
+          "name": "LegalStatusIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:LegalStatusIndicator"
+        },
+        {
+          "name": "AirFlowPercent",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:AirFlowPercent"
+        },
+        {
+          "name": "HumidityPercent",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:HumidityPercent"
+        },
+        {
+          "name": "AnimalFoodApprovedIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:AnimalFoodApprovedIndicator"
+        },
+        {
+          "name": "HumanFoodApprovedIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:HumanFoodApprovedIndicator"
+        },
+        {
+          "name": "DangerousGoodsApprovedIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:DangerousGoodsApprovedIndicator"
+        },
+        {
+          "name": "RefrigeratedIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:RefrigeratedIndicator"
+        },
+        {
+          "name": "Characteristics",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:Characteristics"
+        },
+        {
+          "name": "DamageRemarks",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:DamageRemarks"
+        },
+        {
+          "name": "Description",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:Description"
+        },
+        {
+          "name": "SpecialTransportRequirements",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:SpecialTransportRequirements"
+        },
+        {
+          "name": "GrossWeightMeasure",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:GrossWeightMeasure"
+        },
+        {
+          "name": "GrossVolumeMeasure",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:GrossVolumeMeasure"
+        },
+        {
+          "name": "TareWeightMeasure",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TareWeightMeasure"
+        },
+        {
+          "name": "TrackingDeviceCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TrackingDeviceCode"
+        },
+        {
+          "name": "PowerIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PowerIndicator"
+        },
+        {
+          "name": "TraceID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TraceID"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "ProviderParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:ProviderParty",
+          "target": "Party"
+        },
+        {
+          "name": "LoadingProofParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:LoadingProofParty",
+          "target": "Party"
+        },
+        {
+          "name": "SupplierParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:SupplierParty",
+          "target": "SupplierParty"
+        },
+        {
+          "name": "OwnerParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:OwnerParty",
+          "target": "Party"
+        },
+        {
+          "name": "OperatingParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:OperatingParty",
+          "target": "Party"
+        },
+        {
+          "name": "LoadingLocation",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:LoadingLocation",
+          "target": "Location"
+        },
+        {
+          "name": "UnloadingLocation",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:UnloadingLocation",
+          "target": "Location"
+        },
+        {
+          "name": "StorageLocation",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:StorageLocation",
+          "target": "Location"
+        },
+        {
+          "name": "ApplicableTransportMeans",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:ApplicableTransportMeans",
+          "target": "TransportMeans"
+        },
+        {
+          "name": "PackagedTransportHandlingUnit",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:PackagedTransportHandlingUnit",
+          "target": "TransportHandlingUnit"
+        },
+        {
+          "name": "ServiceAllowanceCharge",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:ServiceAllowanceCharge",
+          "target": "AllowanceCharge"
+        },
+        {
+          "name": "FreightAllowanceCharge",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:FreightAllowanceCharge",
+          "target": "AllowanceCharge"
+        },
+        {
+          "name": "AttachedTransportEquipment",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:AttachedTransportEquipment",
+          "target": "TransportEquipment"
+        },
+        {
+          "name": "Delivery",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:Delivery",
+          "target": "Delivery"
+        },
+        {
+          "name": "ShipmentDocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:ShipmentDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "ContainedInTransportEquipment",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:ContainedInTransportEquipment",
+          "target": "TransportEquipment"
+        },
+        {
+          "name": "GoodsItem",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:GoodsItem",
+          "target": "GoodsItem"
+        }
+      ]
+    },
+    {
+      "name": "GoodsItem",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#GoodsItemType",
+      "fields": [
+        {
+          "name": "ID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "SequenceNumberID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:SequenceNumberID"
+        },
+        {
+          "name": "Description",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:Description"
+        },
+        {
+          "name": "HazardousRiskIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:HazardousRiskIndicator"
+        },
+        {
+          "name": "DeclaredCustomsValueAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:DeclaredCustomsValueAmount"
+        },
+        {
+          "name": "DeclaredForCarriageValueAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:DeclaredForCarriageValueAmount"
+        },
+        {
+          "name": "DeclaredStatisticsValueAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:DeclaredStatisticsValueAmount"
+        },
+        {
+          "name": "FreeOnBoardValueAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:FreeOnBoardValueAmount"
+        },
+        {
+          "name": "InsuranceValueAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:InsuranceValueAmount"
+        },
+        {
+          "name": "ValueAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ValueAmount"
+        },
+        {
+          "name": "GrossWeightMeasure",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:GrossWeightMeasure"
+        },
+        {
+          "name": "NetWeightMeasure",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:NetWeightMeasure"
+        },
+        {
+          "name": "NetNetWeightMeasure",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:NetNetWeightMeasure"
+        },
+        {
+          "name": "ChargeableWeightMeasure",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ChargeableWeightMeasure"
+        },
+        {
+          "name": "GrossVolumeMeasure",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:GrossVolumeMeasure"
+        },
+        {
+          "name": "NetVolumeMeasure",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:NetVolumeMeasure"
+        },
+        {
+          "name": "Quantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:Quantity"
+        },
+        {
+          "name": "PreferenceCriterionCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PreferenceCriterionCode"
+        },
+        {
+          "name": "RequiredCustomsID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:RequiredCustomsID"
+        },
+        {
+          "name": "CustomsStatusCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CustomsStatusCode"
+        },
+        {
+          "name": "CustomsProcedureCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CustomsProcedureCode"
+        },
+        {
+          "name": "CustomsTariffQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CustomsTariffQuantity"
+        },
+        {
+          "name": "CustomsImportClassifiedIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CustomsImportClassifiedIndicator"
+        },
+        {
+          "name": "ChargeableQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ChargeableQuantity"
+        },
+        {
+          "name": "ReturnableQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ReturnableQuantity"
+        },
+        {
+          "name": "TraceID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TraceID"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "Item",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:Item",
+          "target": "Item"
+        },
+        {
+          "name": "FreightAllowanceCharge",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:FreightAllowanceCharge",
+          "target": "AllowanceCharge"
+        },
+        {
+          "name": "InvoiceLine",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:InvoiceLine",
+          "target": "InvoiceLine"
+        },
+        {
+          "name": "ContainedGoodsItem",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:ContainedGoodsItem",
+          "target": "GoodsItem"
+        },
+        {
+          "name": "OriginAddress",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:OriginAddress",
+          "target": "Address"
+        },
+        {
+          "name": "Delivery",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:Delivery",
+          "target": "Delivery"
+        },
+        {
+          "name": "ShipmentDocumentReference",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:ShipmentDocumentReference",
+          "target": "DocumentReference"
+        }
+      ]
+    },
+    {
+      "name": "InvoiceLine",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#InvoiceLineType",
+      "fields": [
+        {
+          "name": "ID",
+          "min": 1,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "UUID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:UUID"
+        },
+        {
+          "name": "Note",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:Note"
+        },
+        {
+          "name": "InvoicedQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:InvoicedQuantity"
+        },
+        {
+          "name": "LineExtensionAmount",
+          "min": 1,
+          "max": "1",
+          "ref": "cbc:LineExtensionAmount"
+        },
+        {
+          "name": "TaxInclusiveLineExtensionAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TaxInclusiveLineExtensionAmount"
+        },
+        {
+          "name": "TaxPointDate",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TaxPointDate"
+        },
+        {
+          "name": "AccountingCostCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:AccountingCostCode"
+        },
+        {
+          "name": "AccountingCost",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:AccountingCost"
+        },
+        {
+          "name": "PaymentPurposeCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PaymentPurposeCode"
+        },
+        {
+          "name": "FreeOfChargeIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:FreeOfChargeIndicator"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "BillingReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:BillingReference",
+          "target": "BillingReference"
+        },
+        {
+          "name": "DocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:DocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "OriginatorParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:OriginatorParty",
+          "target": "Party"
+        },
+        {
+          "name": "Delivery",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:Delivery",
+          "target": "Delivery"
+        },
+        {
+          "name": "PaymentTerms",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:PaymentTerms",
+          "target": "PaymentTerms"
+        },
+        {
+          "name": "AllowanceCharge",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:AllowanceCharge",
+          "target": "AllowanceCharge"
+        },
+        {
+          "name": "TaxTotal",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:TaxTotal",
+          "target": "TaxTotal"
+        },
+        {
+          "name": "WithholdingTaxTotal",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:WithholdingTaxTotal",
+          "target": "TaxTotal"
+        },
+        {
+          "name": "Item",
+          "min": 1,
+          "max": "1",
+          "ref": "cac:Item",
+          "target": "Item"
+        },
+        {
+          "name": "Price",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:Price",
+          "target": "Price"
+        },
+        {
+          "name": "SubInvoiceLine",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:SubInvoiceLine",
+          "target": "InvoiceLine"
+        }
+      ]
+    },
+    {
+      "name": "CreditNoteLine",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#CreditNoteLineType",
+      "fields": [
+        {
+          "name": "ID",
+          "min": 1,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "UUID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:UUID"
+        },
+        {
+          "name": "Note",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:Note"
+        },
+        {
+          "name": "CreditedQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CreditedQuantity"
+        },
+        {
+          "name": "LineExtensionAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:LineExtensionAmount"
+        },
+        {
+          "name": "TaxInclusiveLineExtensionAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TaxInclusiveLineExtensionAmount"
+        },
+        {
+          "name": "TaxPointDate",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TaxPointDate"
+        },
+        {
+          "name": "AccountingCostCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:AccountingCostCode"
+        },
+        {
+          "name": "AccountingCost",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:AccountingCost"
+        },
+        {
+          "name": "PaymentPurposeCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PaymentPurposeCode"
+        },
+        {
+          "name": "FreeOfChargeIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:FreeOfChargeIndicator"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "BillingReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:BillingReference",
+          "target": "BillingReference"
+        },
+        {
+          "name": "DocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:DocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "OriginatorParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:OriginatorParty",
+          "target": "Party"
+        },
+        {
+          "name": "Delivery",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:Delivery",
+          "target": "Delivery"
+        },
+        {
+          "name": "PaymentTerms",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:PaymentTerms",
+          "target": "PaymentTerms"
+        },
+        {
+          "name": "TaxTotal",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:TaxTotal",
+          "target": "TaxTotal"
+        },
+        {
+          "name": "AllowanceCharge",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:AllowanceCharge",
+          "target": "AllowanceCharge"
+        },
+        {
+          "name": "Item",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:Item",
+          "target": "Item"
+        },
+        {
+          "name": "Price",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:Price",
+          "target": "Price"
+        },
+        {
+          "name": "SubCreditNoteLine",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:SubCreditNoteLine",
+          "target": "CreditNoteLine"
+        }
+      ]
+    },
+    {
+      "name": "PaymentMeans",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#PaymentMeansType",
+      "fields": [
+        {
+          "name": "ID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "PaymentMeansCode",
+          "min": 1,
+          "max": "1",
+          "ref": "cbc:PaymentMeansCode"
+        },
+        {
+          "name": "PaymentDueDate",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PaymentDueDate"
+        },
+        {
+          "name": "PaymentChannelCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PaymentChannelCode"
+        },
+        {
+          "name": "InstructionID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:InstructionID"
+        },
+        {
+          "name": "InstructionNote",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:InstructionNote"
+        },
+        {
+          "name": "PaymentID",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:PaymentID"
+        },
+        {
+          "name": "ChargeBearerCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ChargeBearerCode"
+        },
+        {
+          "name": "ServiceLevelCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ServiceLevelCode"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "PayerFinancialAccount",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:PayerFinancialAccount",
+          "target": "FinancialAccount"
+        },
+        {
+          "name": "PayeeFinancialAccount",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:PayeeFinancialAccount",
+          "target": "FinancialAccount"
+        }
+      ]
+    },
+    {
+      "name": "PaymentTerms",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#PaymentTermsType",
+      "fields": [
+        {
+          "name": "ID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "PaymentMeansID",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:PaymentMeansID"
+        },
+        {
+          "name": "PrepaidPaymentReferenceID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PrepaidPaymentReferenceID"
+        },
+        {
+          "name": "Note",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:Note"
+        },
+        {
+          "name": "ReferenceEventCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ReferenceEventCode"
+        },
+        {
+          "name": "SettlementDiscountPercent",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:SettlementDiscountPercent"
+        },
+        {
+          "name": "PenaltySurchargePercent",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PenaltySurchargePercent"
+        },
+        {
+          "name": "PaymentPercent",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PaymentPercent"
+        },
+        {
+          "name": "Amount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:Amount"
+        },
+        {
+          "name": "SettlementDiscountAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:SettlementDiscountAmount"
+        },
+        {
+          "name": "PenaltyAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PenaltyAmount"
+        },
+        {
+          "name": "PaymentTermsDetailsURI",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PaymentTermsDetailsURI"
+        },
+        {
+          "name": "PaymentDueDate",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PaymentDueDate"
+        },
+        {
+          "name": "InstallmentDueDate",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:InstallmentDueDate"
+        },
+        {
+          "name": "InvoicingPartyReference",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:InvoicingPartyReference"
+        }
+      ],
+      "relationships": []
+    },
+    {
+      "name": "FinancialAccount",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#FinancialAccountType",
+      "fields": [
+        {
+          "name": "ID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "Name",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:Name"
+        },
+        {
+          "name": "AliasName",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:AliasName"
+        },
+        {
+          "name": "AccountTypeCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:AccountTypeCode"
+        },
+        {
+          "name": "AccountFormatCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:AccountFormatCode"
+        },
+        {
+          "name": "CurrencyCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CurrencyCode"
+        },
+        {
+          "name": "PaymentNote",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:PaymentNote"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "FinancialInstitutionBranch",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:FinancialInstitutionBranch",
+          "target": "Branch"
+        },
+        {
+          "name": "Country",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:Country",
+          "target": "Country"
+        }
+      ]
+    },
+    {
+      "name": "FinancialInstitution",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#FinancialInstitutionType",
+      "fields": [
+        {
+          "name": "ID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "Name",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:Name"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "Address",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:Address",
+          "target": "Address"
+        }
+      ]
+    },
+    {
+      "name": "Branch",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#BranchType",
+      "fields": [
+        {
+          "name": "ID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "Name",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:Name"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "FinancialInstitution",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:FinancialInstitution",
+          "target": "FinancialInstitution"
+        },
+        {
+          "name": "Address",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:Address",
+          "target": "Address"
+        }
+      ]
+    },
+    {
+      "name": "TaxTotal",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#TaxTotalType",
+      "fields": [
+        {
+          "name": "TaxAmount",
+          "min": 1,
+          "max": "1",
+          "ref": "cbc:TaxAmount"
+        },
+        {
+          "name": "CalculationSequenceNumeric",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CalculationSequenceNumeric"
+        },
+        {
+          "name": "RoundingAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:RoundingAmount"
+        },
+        {
+          "name": "TaxEvidenceIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TaxEvidenceIndicator"
+        },
+        {
+          "name": "TaxIncludedIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TaxIncludedIndicator"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "TaxSubtotal",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:TaxSubtotal",
+          "target": "TaxSubtotal"
+        }
+      ]
+    },
+    {
+      "name": "TaxSubtotal",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#TaxSubtotalType",
+      "fields": [
+        {
+          "name": "TaxableAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TaxableAmount"
+        },
+        {
+          "name": "TaxAmount",
+          "min": 1,
+          "max": "1",
+          "ref": "cbc:TaxAmount"
+        },
+        {
+          "name": "CalculationSequenceNumeric",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CalculationSequenceNumeric"
+        },
+        {
+          "name": "TransactionCurrencyTaxAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TransactionCurrencyTaxAmount"
+        },
+        {
+          "name": "Percent",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:Percent"
+        },
+        {
+          "name": "BaseUnitMeasure",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:BaseUnitMeasure"
+        },
+        {
+          "name": "PerUnitAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PerUnitAmount"
+        },
+        {
+          "name": "TierRange",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TierRange"
+        },
+        {
+          "name": "TierRatePercent",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TierRatePercent"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "TaxCategory",
+          "min": 1,
+          "max": "1",
+          "ref": "cac:TaxCategory",
+          "target": "TaxCategory"
+        }
+      ]
+    },
+    {
+      "name": "TaxCategory",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#TaxCategoryType",
+      "fields": [
+        {
+          "name": "ID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "Name",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:Name"
+        },
+        {
+          "name": "Percent",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:Percent"
+        },
+        {
+          "name": "BaseUnitMeasure",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:BaseUnitMeasure"
+        },
+        {
+          "name": "PerUnitAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PerUnitAmount"
+        },
+        {
+          "name": "TaxExemptionReasonCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TaxExemptionReasonCode"
+        },
+        {
+          "name": "TaxExemptionReason",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:TaxExemptionReason"
+        },
+        {
+          "name": "TierRange",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TierRange"
+        },
+        {
+          "name": "TierRatePercent",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TierRatePercent"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "TaxScheme",
+          "min": 1,
+          "max": "1",
+          "ref": "cac:TaxScheme",
+          "target": "TaxScheme"
+        }
+      ]
+    },
+    {
+      "name": "TaxScheme",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#TaxSchemeType",
+      "fields": [
+        {
+          "name": "ID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "Name",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:Name"
+        },
+        {
+          "name": "TaxTypeCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TaxTypeCode"
+        },
+        {
+          "name": "CurrencyCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CurrencyCode"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "JurisdictionRegionAddress",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:JurisdictionRegionAddress",
+          "target": "Address"
+        }
+      ]
+    },
+    {
+      "name": "Price",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#PriceType",
+      "fields": [
+        {
+          "name": "PriceAmount",
+          "min": 1,
+          "max": "1",
+          "ref": "cbc:PriceAmount"
+        },
+        {
+          "name": "BaseQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:BaseQuantity"
+        },
+        {
+          "name": "PriceChangeReason",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:PriceChangeReason"
+        },
+        {
+          "name": "PriceTypeCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PriceTypeCode"
+        },
+        {
+          "name": "PriceType",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PriceType"
+        },
+        {
+          "name": "OrderableUnitFactorRate",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:OrderableUnitFactorRate"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "AllowanceCharge",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:AllowanceCharge",
+          "target": "AllowanceCharge"
+        },
+        {
+          "name": "AlternativeCurrencyPrice",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:AlternativeCurrencyPrice",
+          "target": "Price"
+        }
+      ]
+    },
+    {
+      "name": "AllowanceCharge",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#AllowanceChargeType",
+      "fields": [
+        {
+          "name": "ID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "ChargeIndicator",
+          "min": 1,
+          "max": "1",
+          "ref": "cbc:ChargeIndicator"
+        },
+        {
+          "name": "AllowanceChargeReasonCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:AllowanceChargeReasonCode"
+        },
+        {
+          "name": "AllowanceChargeReason",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:AllowanceChargeReason"
+        },
+        {
+          "name": "MultiplierFactorNumeric",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:MultiplierFactorNumeric"
+        },
+        {
+          "name": "PrepaidIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PrepaidIndicator"
+        },
+        {
+          "name": "SequenceNumeric",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:SequenceNumeric"
+        },
+        {
+          "name": "Amount",
+          "min": 1,
+          "max": "1",
+          "ref": "cbc:Amount"
+        },
+        {
+          "name": "BaseAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:BaseAmount"
+        },
+        {
+          "name": "AccountingCostCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:AccountingCostCode"
+        },
+        {
+          "name": "AccountingCost",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:AccountingCost"
+        },
+        {
+          "name": "PerUnitAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PerUnitAmount"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "TaxCategory",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:TaxCategory",
+          "target": "TaxCategory"
+        },
+        {
+          "name": "TaxTotal",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:TaxTotal",
+          "target": "TaxTotal"
+        },
+        {
+          "name": "PaymentMeans",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:PaymentMeans",
+          "target": "PaymentMeans"
+        }
+      ]
+    },
+    {
+      "name": "Contract",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#ContractType",
+      "fields": [
+        {
+          "name": "ID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "IssueDate",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:IssueDate"
+        },
+        {
+          "name": "IssueTime",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:IssueTime"
+        },
+        {
+          "name": "NominationDate",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:NominationDate"
+        },
+        {
+          "name": "NominationTime",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:NominationTime"
+        },
+        {
+          "name": "ContractTypeCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ContractTypeCode"
+        },
+        {
+          "name": "ContractType",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ContractType"
+        },
+        {
+          "name": "Note",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:Note"
+        },
+        {
+          "name": "VersionID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:VersionID"
+        },
+        {
+          "name": "ModificationReasonCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ModificationReasonCode"
+        },
+        {
+          "name": "ModificationReasonDescription",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:ModificationReasonDescription"
+        },
+        {
+          "name": "Description",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:Description"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "ContractDocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:ContractDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "ContractualDelivery",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:ContractualDelivery",
+          "target": "Delivery"
+        }
+      ]
+    },
+    {
+      "name": "DocumentReference",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#DocumentReferenceType",
+      "fields": [
+        {
+          "name": "ID",
+          "min": 1,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "CopyIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CopyIndicator"
+        },
+        {
+          "name": "UUID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:UUID"
+        },
+        {
+          "name": "IssueDate",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:IssueDate"
+        },
+        {
+          "name": "IssueTime",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:IssueTime"
+        },
+        {
+          "name": "DocumentTypeCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:DocumentTypeCode"
+        },
+        {
+          "name": "DocumentType",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:DocumentType"
+        },
+        {
+          "name": "XPath",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:XPath"
+        },
+        {
+          "name": "ReferencedDocumentInternalAddress",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ReferencedDocumentInternalAddress"
+        },
+        {
+          "name": "LanguageID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:LanguageID"
+        },
+        {
+          "name": "LocaleCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:LocaleCode"
+        },
+        {
+          "name": "VersionID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:VersionID"
+        },
+        {
+          "name": "DocumentStatusCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:DocumentStatusCode"
+        },
+        {
+          "name": "DocumentDescription",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:DocumentDescription"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "IssuerParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:IssuerParty",
+          "target": "Party"
+        }
+      ]
+    },
+    {
+      "name": "ReceiptLine",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#ReceiptLineType",
+      "fields": [
+        {
+          "name": "ID",
+          "min": 1,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "UUID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:UUID"
+        },
+        {
+          "name": "Note",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:Note"
+        },
+        {
+          "name": "ReceivedQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ReceivedQuantity"
+        },
+        {
+          "name": "ShortQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ShortQuantity"
+        },
+        {
+          "name": "ShortageActionCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ShortageActionCode"
+        },
+        {
+          "name": "RejectedQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:RejectedQuantity"
+        },
+        {
+          "name": "RejectReasonCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:RejectReasonCode"
+        },
+        {
+          "name": "RejectReason",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:RejectReason"
+        },
+        {
+          "name": "RejectActionCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:RejectActionCode"
+        },
+        {
+          "name": "QuantityDiscrepancyCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:QuantityDiscrepancyCode"
+        },
+        {
+          "name": "OversupplyQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:OversupplyQuantity"
+        },
+        {
+          "name": "ReceivedDate",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ReceivedDate"
+        },
+        {
+          "name": "TimingComplaintCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TimingComplaintCode"
+        },
+        {
+          "name": "TimingComplaint",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TimingComplaint"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "DocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:DocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "Item",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:Item",
+          "target": "Item"
+        },
+        {
+          "name": "Shipment",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:Shipment",
+          "target": "Shipment"
+        }
+      ]
+    },
+    {
+      "name": "DespatchLine",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#DespatchLineType",
+      "fields": [
+        {
+          "name": "ID",
+          "min": 1,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "UUID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:UUID"
+        },
+        {
+          "name": "Note",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:Note"
+        },
+        {
+          "name": "LineStatusCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:LineStatusCode"
+        },
+        {
+          "name": "DeliveredQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:DeliveredQuantity"
+        },
+        {
+          "name": "BackorderQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:BackorderQuantity"
+        },
+        {
+          "name": "BackorderReason",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:BackorderReason"
+        },
+        {
+          "name": "OutstandingQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:OutstandingQuantity"
+        },
+        {
+          "name": "OutstandingReason",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:OutstandingReason"
+        },
+        {
+          "name": "OversupplyQuantity",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:OversupplyQuantity"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "DocumentReference",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:DocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "Item",
+          "min": 1,
+          "max": "1",
+          "ref": "cac:Item",
+          "target": "Item"
+        },
+        {
+          "name": "Shipment",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:Shipment",
+          "target": "Shipment"
+        },
+        {
+          "name": "SubDespatchLine",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:SubDespatchLine",
+          "target": "DespatchLine"
+        }
+      ]
+    },
+    {
+      "name": "TransportationService",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#TransportationServiceType",
+      "fields": [
+        {
+          "name": "TransportServiceCode",
+          "min": 1,
+          "max": "1",
+          "ref": "cbc:TransportServiceCode"
+        },
+        {
+          "name": "TariffClassCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TariffClassCode"
+        },
+        {
+          "name": "Priority",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:Priority"
+        },
+        {
+          "name": "FreightRateClassCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:FreightRateClassCode"
+        },
+        {
+          "name": "TransportationServiceDescription",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:TransportationServiceDescription"
+        },
+        {
+          "name": "TransportationServiceDetailsURI",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TransportationServiceDetailsURI"
+        },
+        {
+          "name": "NominationDate",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:NominationDate"
+        },
+        {
+          "name": "NominationTime",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:NominationTime"
+        },
+        {
+          "name": "Name",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:Name"
+        },
+        {
+          "name": "SequenceNumeric",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:SequenceNumeric"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "TransportEquipment",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:TransportEquipment",
+          "target": "TransportEquipment"
+        },
+        {
+          "name": "SupportedTransportEquipment",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:SupportedTransportEquipment",
+          "target": "TransportEquipment"
+        },
+        {
+          "name": "UnsupportedTransportEquipment",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:UnsupportedTransportEquipment",
+          "target": "TransportEquipment"
+        },
+        {
+          "name": "CommodityClassification",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:CommodityClassification",
+          "target": "CommodityClassification"
+        },
+        {
+          "name": "SupportedCommodityClassification",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:SupportedCommodityClassification",
+          "target": "CommodityClassification"
+        },
+        {
+          "name": "UnsupportedCommodityClassification",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cac:UnsupportedCommodityClassification",
+          "target": "CommodityClassification"
+        },
+        {
+          "name": "ResponsibleTransportServiceProviderParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:ResponsibleTransportServiceProviderParty",
+          "target": "Party"
+        }
+      ]
+    },
+    {
+      "name": "TransportMeans",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#TransportMeansType",
+      "fields": [
+        {
+          "name": "JourneyID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:JourneyID"
+        },
+        {
+          "name": "RegistrationNationalityID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:RegistrationNationalityID"
+        },
+        {
+          "name": "RegistrationNationality",
+          "min": 0,
+          "max": "unbounded",
+          "ref": "cbc:RegistrationNationality"
+        },
+        {
+          "name": "DirectionCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:DirectionCode"
+        },
+        {
+          "name": "TransportMeansTypeCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TransportMeansTypeCode"
+        },
+        {
+          "name": "TradeServiceCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TradeServiceCode"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "OwnerParty",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:OwnerParty",
+          "target": "Party"
+        }
+      ]
+    },
+    {
+      "name": "OrderReference",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#OrderReferenceType",
+      "fields": [
+        {
+          "name": "ID",
+          "min": 1,
+          "max": "1",
+          "ref": "cbc:ID"
+        },
+        {
+          "name": "SalesOrderID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:SalesOrderID"
+        },
+        {
+          "name": "CopyIndicator",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CopyIndicator"
+        },
+        {
+          "name": "UUID",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:UUID"
+        },
+        {
+          "name": "IssueDate",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:IssueDate"
+        },
+        {
+          "name": "IssueTime",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:IssueTime"
+        },
+        {
+          "name": "CustomerReference",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:CustomerReference"
+        },
+        {
+          "name": "OrderTypeCode",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:OrderTypeCode"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "DocumentReference",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:DocumentReference",
+          "target": "DocumentReference"
+        }
+      ]
+    },
+    {
+      "name": "BillingReference",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#BillingReferenceType",
+      "fields": [],
+      "relationships": [
+        {
+          "name": "InvoiceDocumentReference",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:InvoiceDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "SelfBilledInvoiceDocumentReference",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:SelfBilledInvoiceDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "CreditNoteDocumentReference",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:CreditNoteDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "SelfBilledCreditNoteDocumentReference",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:SelfBilledCreditNoteDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "DebitNoteDocumentReference",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:DebitNoteDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "ReminderDocumentReference",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:ReminderDocumentReference",
+          "target": "DocumentReference"
+        },
+        {
+          "name": "AdditionalDocumentReference",
+          "min": 0,
+          "max": "1",
+          "ref": "cac:AdditionalDocumentReference",
+          "target": "DocumentReference"
+        }
+      ]
+    },
+    {
+      "name": "MonetaryTotal",
+      "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/common/UBL-CommonAggregateComponents-2.3.xsd#MonetaryTotalType",
+      "fields": [
+        {
+          "name": "LineExtensionAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:LineExtensionAmount"
+        },
+        {
+          "name": "TaxExclusiveAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TaxExclusiveAmount"
+        },
+        {
+          "name": "TaxInclusiveAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:TaxInclusiveAmount"
+        },
+        {
+          "name": "AllowanceTotalAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:AllowanceTotalAmount"
+        },
+        {
+          "name": "ChargeTotalAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:ChargeTotalAmount"
+        },
+        {
+          "name": "WithholdingTaxTotalAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:WithholdingTaxTotalAmount"
+        },
+        {
+          "name": "PrepaidAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PrepaidAmount"
+        },
+        {
+          "name": "PayableRoundingAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PayableRoundingAmount"
+        },
+        {
+          "name": "PayableAmount",
+          "min": 1,
+          "max": "1",
+          "ref": "cbc:PayableAmount"
+        },
+        {
+          "name": "PayableAlternativeAmount",
+          "min": 0,
+          "max": "1",
+          "ref": "cbc:PayableAlternativeAmount"
+        }
+      ],
+      "relationships": []
+    }
+  ],
+  "omitted": "Focused projection: UBL components outside the 45 selected types are not expanded. Complete original definitions remain at source URLs."
+}

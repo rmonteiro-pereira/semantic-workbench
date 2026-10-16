@@ -1,0 +1,7 @@
+{
+  "businessEntities": 45,
+  "businessRelationships": 277,
+  "analyticalDatasets": 169,
+  "analyticalJoins": 401,
+  "source": "https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/"
+}

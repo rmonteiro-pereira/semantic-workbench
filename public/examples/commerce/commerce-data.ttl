@@ -1,0 +1,15 @@
+@prefix c: <https://example.org/commerce#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+c:customer_alex a c:Customer ; rdfs:label "Alex Morgan" ; c:email "alex@example.org" ; c:places c:order_1042 .
+c:order_1042 a c:Order ; rdfs:label "Order 1042" ; c:amount "79.00"^^xsd:decimal ; c:contains c:line_1042_1 ; c:shipment c:shipment_1042 ; c:invoice c:invoice_1042 .
+c:line_1042_1 a c:OrderLine ; rdfs:label "Order 1042 · desk lamp" ; c:product c:desk_lamp .
+c:desk_lamp a c:Product ; rdfs:label "Adjustable desk lamp" .
+c:shipment_1042 a c:Shipment ; rdfs:label "Shipment 1042" ; c:warehouse c:warehouse_east .
+c:warehouse_east a c:Warehouse ; rdfs:label "East fulfillment center" .
+c:invoice_1042 a c:Invoice ; rdfs:label "Invoice 1042" ; c:payment c:payment_1042 .
+c:payment_1042 a c:Payment ; rdfs:label "Card payment · USD 79" .

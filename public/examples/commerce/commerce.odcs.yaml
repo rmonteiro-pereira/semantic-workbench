@@ -1,0 +1,123 @@
+apiVersion: v3.1.0
+kind: DataContract
+id: 9d1b6ac0-73cf-4c1a-8435-70c90322d542
+name: Commerce warehouse contract
+version: 1.0.0
+status: active
+domain: Commerce
+dataProduct: Sales analytics
+description:
+  purpose: Governed customer and order data for daily revenue reporting.
+  limitations: Synthetic demonstration data. USD only. No real personal information.
+schema:
+  - name: customers
+    physicalName: analytics.commerce.customers
+    physicalType: table
+    logicalType: object
+    description: Registered customers. One row per customer.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/commerce#Customer
+    properties:
+      - name: customer_id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Customer customer id.
+      - name: name
+        logicalType: string
+        required: true
+        description: Customer name.
+      - name: email
+        logicalType: string
+        required: true
+        description: Customer email.
+  - name: orders
+    physicalName: analytics.commerce.orders
+    physicalType: table
+    logicalType: object
+    description: Placed orders. Cancelled orders are retained; totals are in USD.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/commerce#Order
+    properties:
+      - name: order_id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Order order id.
+      - name: customer_id
+        logicalType: integer
+        required: true
+        description: Order customer id.
+      - name: order_date
+        logicalType: date
+        required: true
+        description: Order order date.
+      - name: amount
+        logicalType: number
+        required: true
+        description: Order amount.
+      - name: status
+        logicalType: string
+        required: true
+        description: Order status.
+  - name: order_lines
+    physicalName: analytics.commerce.order_lines
+    physicalType: table
+    logicalType: object
+    description: One row per product line in an order.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/commerce#OrderLine
+    properties:
+      - name: line_id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: OrderLine line id.
+      - name: order_id
+        logicalType: integer
+        required: true
+        description: OrderLine order id.
+      - name: product_id
+        logicalType: integer
+        required: true
+        description: OrderLine product id.
+      - name: quantity
+        logicalType: integer
+        required: true
+        description: OrderLine quantity.
+      - name: line_amount
+        logicalType: number
+        required: true
+        description: OrderLine line amount.
+  - name: products
+    physicalName: analytics.commerce.products
+    physicalType: table
+    logicalType: object
+    description: Sellable product catalog.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/commerce#Product
+    properties:
+      - name: product_id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Product product id.
+      - name: name
+        logicalType: string
+        required: true
+        description: Product name.
+      - name: unit_price
+        logicalType: number
+        required: true
+        description: Product unit price.
+team:
+  - username: commerce-data
+    role: owner

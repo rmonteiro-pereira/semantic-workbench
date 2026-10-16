@@ -1,0 +1,169 @@
+version: 0.2.0.dev0
+name: Commerce sales
+description: Revenue and order metrics over contracted warehouse tables.
+datasets:
+  - name: customers
+    source: analytics.commerce.customers
+    description: Registered customers. One row per customer.
+    primary_key:
+      - customer_id
+    fields:
+      - name: customer_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: customer_id
+        datatype: Integer
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+        datatype: String
+      - name: email
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: email
+        datatype: String
+  - name: orders
+    source: analytics.commerce.orders
+    description: Placed orders. Cancelled orders are retained; totals are in USD.
+    primary_key:
+      - order_id
+    fields:
+      - name: order_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: order_id
+        datatype: Integer
+      - name: customer_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: customer_id
+        datatype: Integer
+      - name: order_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: order_date
+        datatype: Date
+        dimension:
+          is_time: true
+      - name: amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amount
+        datatype: Decimal
+      - name: status
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: status
+        datatype: String
+  - name: order_lines
+    source: analytics.commerce.order_lines
+    description: One row per product line in an order.
+    primary_key:
+      - line_id
+    fields:
+      - name: line_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: line_id
+        datatype: Integer
+      - name: order_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: order_id
+        datatype: Integer
+      - name: product_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: product_id
+        datatype: Integer
+      - name: quantity
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: quantity
+        datatype: Integer
+      - name: line_amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: line_amount
+        datatype: Decimal
+  - name: products
+    source: analytics.commerce.products
+    description: Sellable product catalog.
+    primary_key:
+      - product_id
+    fields:
+      - name: product_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: product_id
+        datatype: Integer
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+        datatype: String
+      - name: unit_price
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: unit_price
+        datatype: Decimal
+relationships:
+  - name: orders_customer
+    from: orders
+    to: customers
+    from_columns:
+      - customer_id
+    to_columns:
+      - customer_id
+  - name: lines_order
+    from: order_lines
+    to: orders
+    from_columns:
+      - order_id
+    to_columns:
+      - order_id
+  - name: lines_product
+    from: order_lines
+    to: products
+    from_columns:
+      - product_id
+    to_columns:
+      - product_id
+metrics:
+  - name: gross_revenue
+    description: Order amount before refunds. Aggregate orders only to avoid
+      multiplying totals by lines.
+    datatype: Decimal
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(orders.amount)
+  - name: order_count
+    datatype: Integer
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: COUNT(DISTINCT orders.order_id)
+  - name: average_order_value
+    datatype: Decimal
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(orders.amount) / NULLIF(COUNT(DISTINCT orders.order_id), 0)

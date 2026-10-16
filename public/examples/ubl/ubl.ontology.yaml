@@ -1,0 +1,2159 @@
+name: UBL 2.3 procurement-to-payment · 45 business entities
+description: A schema-derived, focused business model spanning procurement,
+  fulfillment, invoicing, tax and settlement. Application projection, not an
+  official OASIS ontology.
+ontology:
+  - concept: Order
+    type: EntityType
+    iri: https://example.org/ubl-workbench#Order
+    description: UBL 2.3 Order component, projected from its published XSD. Roles
+      retain source min/max occurrence counts.
+    relationships:
+      - name: QuotationDocumentReference
+        description: UBL role cac:QuotationDocumentReference; source occurrences 0..1.
+        roles:
+          - concept: DocumentReference
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Order} has QuotationDocumentReference {DocumentReference}"
+      - name: OrderDocumentReference
+        description: UBL role cac:OrderDocumentReference; source occurrences 0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{Order} has OrderDocumentReference {DocumentReference}"
+      - name: OriginatorDocumentReference
+        description: UBL role cac:OriginatorDocumentReference; source occurrences 0..1.
+        roles:
+          - concept: DocumentReference
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Order} has OriginatorDocumentReference {DocumentReference}"
+      - name: AdditionalDocumentReference
+        description: UBL role cac:AdditionalDocumentReference; source occurrences
+          0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{Order} has AdditionalDocumentReference {DocumentReference}"
+      - name: Contract
+        description: UBL role cac:Contract; source occurrences 0..unbounded.
+        roles:
+          - concept: Contract
+        verbalizes:
+          - "{Order} has Contract {Contract}"
+      - name: BuyerCustomerParty
+        description: UBL role cac:BuyerCustomerParty; source occurrences 1..1.
+        roles:
+          - concept: CustomerParty
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Order} has BuyerCustomerParty {CustomerParty}"
+      - name: SellerSupplierParty
+        description: UBL role cac:SellerSupplierParty; source occurrences 1..1.
+        roles:
+          - concept: SupplierParty
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Order} has SellerSupplierParty {SupplierParty}"
+      - name: OriginatorCustomerParty
+        description: UBL role cac:OriginatorCustomerParty; source occurrences 0..1.
+        roles:
+          - concept: CustomerParty
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Order} has OriginatorCustomerParty {CustomerParty}"
+      - name: FreightForwarderParty
+        description: UBL role cac:FreightForwarderParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Order} has FreightForwarderParty {Party}"
+      - name: AccountingCustomerParty
+        description: UBL role cac:AccountingCustomerParty; source occurrences 0..1.
+        roles:
+          - concept: CustomerParty
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Order} has AccountingCustomerParty {CustomerParty}"
+      - name: Delivery
+        description: UBL role cac:Delivery; source occurrences 0..unbounded.
+        roles:
+          - concept: Delivery
+        verbalizes:
+          - "{Order} has Delivery {Delivery}"
+      - name: PaymentMeans
+        description: UBL role cac:PaymentMeans; source occurrences 0..unbounded.
+        roles:
+          - concept: PaymentMeans
+        verbalizes:
+          - "{Order} has PaymentMeans {PaymentMeans}"
+      - name: PaymentTerms
+        description: UBL role cac:PaymentTerms; source occurrences 0..unbounded.
+        roles:
+          - concept: PaymentTerms
+        verbalizes:
+          - "{Order} has PaymentTerms {PaymentTerms}"
+      - name: AllowanceCharge
+        description: UBL role cac:AllowanceCharge; source occurrences 0..unbounded.
+        roles:
+          - concept: AllowanceCharge
+        verbalizes:
+          - "{Order} has AllowanceCharge {AllowanceCharge}"
+      - name: DestinationCountry
+        description: UBL role cac:DestinationCountry; source occurrences 0..1.
+        roles:
+          - concept: Country
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Order} has DestinationCountry {Country}"
+      - name: TaxTotal
+        description: UBL role cac:TaxTotal; source occurrences 0..unbounded.
+        roles:
+          - concept: TaxTotal
+        verbalizes:
+          - "{Order} has TaxTotal {TaxTotal}"
+      - name: AnticipatedMonetaryTotal
+        description: UBL role cac:AnticipatedMonetaryTotal; source occurrences 0..1.
+        roles:
+          - concept: MonetaryTotal
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Order} has AnticipatedMonetaryTotal {MonetaryTotal}"
+      - name: OrderLine
+        description: UBL role cac:OrderLine; source occurrences 1..unbounded.
+        roles:
+          - concept: OrderLine
+        verbalizes:
+          - "{Order} has OrderLine {OrderLine}"
+  - concept: Invoice
+    type: EntityType
+    iri: https://example.org/ubl-workbench#Invoice
+    description: UBL 2.3 Invoice component, projected from its published XSD. Roles
+      retain source min/max occurrence counts.
+    relationships:
+      - name: OrderReference
+        description: UBL role cac:OrderReference; source occurrences 0..1.
+        roles:
+          - concept: OrderReference
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Invoice} has OrderReference {OrderReference}"
+      - name: BillingReference
+        description: UBL role cac:BillingReference; source occurrences 0..unbounded.
+        roles:
+          - concept: BillingReference
+        verbalizes:
+          - "{Invoice} has BillingReference {BillingReference}"
+      - name: DespatchDocumentReference
+        description: UBL role cac:DespatchDocumentReference; source occurrences
+          0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{Invoice} has DespatchDocumentReference {DocumentReference}"
+      - name: ReceiptDocumentReference
+        description: UBL role cac:ReceiptDocumentReference; source occurrences 0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{Invoice} has ReceiptDocumentReference {DocumentReference}"
+      - name: StatementDocumentReference
+        description: UBL role cac:StatementDocumentReference; source occurrences
+          0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{Invoice} has StatementDocumentReference {DocumentReference}"
+      - name: OriginatorDocumentReference
+        description: UBL role cac:OriginatorDocumentReference; source occurrences
+          0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{Invoice} has OriginatorDocumentReference {DocumentReference}"
+      - name: ContractDocumentReference
+        description: UBL role cac:ContractDocumentReference; source occurrences
+          0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{Invoice} has ContractDocumentReference {DocumentReference}"
+      - name: AdditionalDocumentReference
+        description: UBL role cac:AdditionalDocumentReference; source occurrences
+          0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{Invoice} has AdditionalDocumentReference {DocumentReference}"
+      - name: AccountingSupplierParty
+        description: UBL role cac:AccountingSupplierParty; source occurrences 1..1.
+        roles:
+          - concept: SupplierParty
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Invoice} has AccountingSupplierParty {SupplierParty}"
+      - name: AccountingCustomerParty
+        description: UBL role cac:AccountingCustomerParty; source occurrences 0..1.
+        roles:
+          - concept: CustomerParty
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Invoice} has AccountingCustomerParty {CustomerParty}"
+      - name: PayeeParty
+        description: UBL role cac:PayeeParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Invoice} has PayeeParty {Party}"
+      - name: BuyerCustomerParty
+        description: UBL role cac:BuyerCustomerParty; source occurrences 0..1.
+        roles:
+          - concept: CustomerParty
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Invoice} has BuyerCustomerParty {CustomerParty}"
+      - name: SellerSupplierParty
+        description: UBL role cac:SellerSupplierParty; source occurrences 0..1.
+        roles:
+          - concept: SupplierParty
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Invoice} has SellerSupplierParty {SupplierParty}"
+      - name: TaxRepresentativeParty
+        description: UBL role cac:TaxRepresentativeParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Invoice} has TaxRepresentativeParty {Party}"
+      - name: Delivery
+        description: UBL role cac:Delivery; source occurrences 0..unbounded.
+        roles:
+          - concept: Delivery
+        verbalizes:
+          - "{Invoice} has Delivery {Delivery}"
+      - name: PaymentMeans
+        description: UBL role cac:PaymentMeans; source occurrences 0..unbounded.
+        roles:
+          - concept: PaymentMeans
+        verbalizes:
+          - "{Invoice} has PaymentMeans {PaymentMeans}"
+      - name: PaymentTerms
+        description: UBL role cac:PaymentTerms; source occurrences 0..unbounded.
+        roles:
+          - concept: PaymentTerms
+        verbalizes:
+          - "{Invoice} has PaymentTerms {PaymentTerms}"
+      - name: AllowanceCharge
+        description: UBL role cac:AllowanceCharge; source occurrences 0..unbounded.
+        roles:
+          - concept: AllowanceCharge
+        verbalizes:
+          - "{Invoice} has AllowanceCharge {AllowanceCharge}"
+      - name: TaxTotal
+        description: UBL role cac:TaxTotal; source occurrences 0..unbounded.
+        roles:
+          - concept: TaxTotal
+        verbalizes:
+          - "{Invoice} has TaxTotal {TaxTotal}"
+      - name: WithholdingTaxTotal
+        description: UBL role cac:WithholdingTaxTotal; source occurrences 0..unbounded.
+        roles:
+          - concept: TaxTotal
+        verbalizes:
+          - "{Invoice} has WithholdingTaxTotal {TaxTotal}"
+      - name: LegalMonetaryTotal
+        description: UBL role cac:LegalMonetaryTotal; source occurrences 1..1.
+        roles:
+          - concept: MonetaryTotal
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Invoice} has LegalMonetaryTotal {MonetaryTotal}"
+      - name: InvoiceLine
+        description: UBL role cac:InvoiceLine; source occurrences 1..unbounded.
+        roles:
+          - concept: InvoiceLine
+        verbalizes:
+          - "{Invoice} has InvoiceLine {InvoiceLine}"
+  - concept: DespatchAdvice
+    type: EntityType
+    iri: https://example.org/ubl-workbench#DespatchAdvice
+    description: UBL 2.3 DespatchAdvice component, projected from its published XSD.
+      Roles retain source min/max occurrence counts.
+    relationships:
+      - name: OrderReference
+        description: UBL role cac:OrderReference; source occurrences 0..unbounded.
+        roles:
+          - concept: OrderReference
+        verbalizes:
+          - "{DespatchAdvice} has OrderReference {OrderReference}"
+      - name: AdditionalDocumentReference
+        description: UBL role cac:AdditionalDocumentReference; source occurrences
+          0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{DespatchAdvice} has AdditionalDocumentReference
+            {DocumentReference}"
+      - name: DespatchSupplierParty
+        description: UBL role cac:DespatchSupplierParty; source occurrences 1..1.
+        roles:
+          - concept: SupplierParty
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{DespatchAdvice} has DespatchSupplierParty {SupplierParty}"
+      - name: DeliveryCustomerParty
+        description: UBL role cac:DeliveryCustomerParty; source occurrences 1..1.
+        roles:
+          - concept: CustomerParty
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{DespatchAdvice} has DeliveryCustomerParty {CustomerParty}"
+      - name: BuyerCustomerParty
+        description: UBL role cac:BuyerCustomerParty; source occurrences 0..1.
+        roles:
+          - concept: CustomerParty
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{DespatchAdvice} has BuyerCustomerParty {CustomerParty}"
+      - name: SellerSupplierParty
+        description: UBL role cac:SellerSupplierParty; source occurrences 0..1.
+        roles:
+          - concept: SupplierParty
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{DespatchAdvice} has SellerSupplierParty {SupplierParty}"
+      - name: OriginatorCustomerParty
+        description: UBL role cac:OriginatorCustomerParty; source occurrences 0..1.
+        roles:
+          - concept: CustomerParty
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{DespatchAdvice} has OriginatorCustomerParty {CustomerParty}"
+      - name: Shipment
+        description: UBL role cac:Shipment; source occurrences 0..1.
+        roles:
+          - concept: Shipment
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{DespatchAdvice} has Shipment {Shipment}"
+      - name: DespatchLine
+        description: UBL role cac:DespatchLine; source occurrences 1..unbounded.
+        roles:
+          - concept: DespatchLine
+        verbalizes:
+          - "{DespatchAdvice} has DespatchLine {DespatchLine}"
+  - concept: ReceiptAdvice
+    type: EntityType
+    iri: https://example.org/ubl-workbench#ReceiptAdvice
+    description: UBL 2.3 ReceiptAdvice component, projected from its published XSD.
+      Roles retain source min/max occurrence counts.
+    relationships:
+      - name: OrderReference
+        description: UBL role cac:OrderReference; source occurrences 0..unbounded.
+        roles:
+          - concept: OrderReference
+        verbalizes:
+          - "{ReceiptAdvice} has OrderReference {OrderReference}"
+      - name: DespatchDocumentReference
+        description: UBL role cac:DespatchDocumentReference; source occurrences
+          0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{ReceiptAdvice} has DespatchDocumentReference {DocumentReference}"
+      - name: AdditionalDocumentReference
+        description: UBL role cac:AdditionalDocumentReference; source occurrences
+          0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{ReceiptAdvice} has AdditionalDocumentReference {DocumentReference}"
+      - name: DeliveryCustomerParty
+        description: UBL role cac:DeliveryCustomerParty; source occurrences 1..1.
+        roles:
+          - concept: CustomerParty
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ReceiptAdvice} has DeliveryCustomerParty {CustomerParty}"
+      - name: DespatchSupplierParty
+        description: UBL role cac:DespatchSupplierParty; source occurrences 1..1.
+        roles:
+          - concept: SupplierParty
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ReceiptAdvice} has DespatchSupplierParty {SupplierParty}"
+      - name: BuyerCustomerParty
+        description: UBL role cac:BuyerCustomerParty; source occurrences 0..1.
+        roles:
+          - concept: CustomerParty
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ReceiptAdvice} has BuyerCustomerParty {CustomerParty}"
+      - name: SellerSupplierParty
+        description: UBL role cac:SellerSupplierParty; source occurrences 0..1.
+        roles:
+          - concept: SupplierParty
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ReceiptAdvice} has SellerSupplierParty {SupplierParty}"
+      - name: Shipment
+        description: UBL role cac:Shipment; source occurrences 0..1.
+        roles:
+          - concept: Shipment
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ReceiptAdvice} has Shipment {Shipment}"
+      - name: ReceiptLine
+        description: UBL role cac:ReceiptLine; source occurrences 1..unbounded.
+        roles:
+          - concept: ReceiptLine
+        verbalizes:
+          - "{ReceiptAdvice} has ReceiptLine {ReceiptLine}"
+  - concept: CreditNote
+    type: EntityType
+    iri: https://example.org/ubl-workbench#CreditNote
+    description: UBL 2.3 CreditNote component, projected from its published XSD.
+      Roles retain source min/max occurrence counts.
+    relationships:
+      - name: OrderReference
+        description: UBL role cac:OrderReference; source occurrences 0..1.
+        roles:
+          - concept: OrderReference
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CreditNote} has OrderReference {OrderReference}"
+      - name: BillingReference
+        description: UBL role cac:BillingReference; source occurrences 0..unbounded.
+        roles:
+          - concept: BillingReference
+        verbalizes:
+          - "{CreditNote} has BillingReference {BillingReference}"
+      - name: DespatchDocumentReference
+        description: UBL role cac:DespatchDocumentReference; source occurrences
+          0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{CreditNote} has DespatchDocumentReference {DocumentReference}"
+      - name: ReceiptDocumentReference
+        description: UBL role cac:ReceiptDocumentReference; source occurrences 0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{CreditNote} has ReceiptDocumentReference {DocumentReference}"
+      - name: ContractDocumentReference
+        description: UBL role cac:ContractDocumentReference; source occurrences
+          0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{CreditNote} has ContractDocumentReference {DocumentReference}"
+      - name: AdditionalDocumentReference
+        description: UBL role cac:AdditionalDocumentReference; source occurrences
+          0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{CreditNote} has AdditionalDocumentReference {DocumentReference}"
+      - name: StatementDocumentReference
+        description: UBL role cac:StatementDocumentReference; source occurrences
+          0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{CreditNote} has StatementDocumentReference {DocumentReference}"
+      - name: OriginatorDocumentReference
+        description: UBL role cac:OriginatorDocumentReference; source occurrences
+          0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{CreditNote} has OriginatorDocumentReference {DocumentReference}"
+      - name: AccountingSupplierParty
+        description: UBL role cac:AccountingSupplierParty; source occurrences 1..1.
+        roles:
+          - concept: SupplierParty
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CreditNote} has AccountingSupplierParty {SupplierParty}"
+      - name: AccountingCustomerParty
+        description: UBL role cac:AccountingCustomerParty; source occurrences 0..1.
+        roles:
+          - concept: CustomerParty
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CreditNote} has AccountingCustomerParty {CustomerParty}"
+      - name: PayeeParty
+        description: UBL role cac:PayeeParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CreditNote} has PayeeParty {Party}"
+      - name: BuyerCustomerParty
+        description: UBL role cac:BuyerCustomerParty; source occurrences 0..1.
+        roles:
+          - concept: CustomerParty
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CreditNote} has BuyerCustomerParty {CustomerParty}"
+      - name: SellerSupplierParty
+        description: UBL role cac:SellerSupplierParty; source occurrences 0..1.
+        roles:
+          - concept: SupplierParty
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CreditNote} has SellerSupplierParty {SupplierParty}"
+      - name: TaxRepresentativeParty
+        description: UBL role cac:TaxRepresentativeParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CreditNote} has TaxRepresentativeParty {Party}"
+      - name: Delivery
+        description: UBL role cac:Delivery; source occurrences 0..unbounded.
+        roles:
+          - concept: Delivery
+        verbalizes:
+          - "{CreditNote} has Delivery {Delivery}"
+      - name: PaymentMeans
+        description: UBL role cac:PaymentMeans; source occurrences 0..unbounded.
+        roles:
+          - concept: PaymentMeans
+        verbalizes:
+          - "{CreditNote} has PaymentMeans {PaymentMeans}"
+      - name: PaymentTerms
+        description: UBL role cac:PaymentTerms; source occurrences 0..unbounded.
+        roles:
+          - concept: PaymentTerms
+        verbalizes:
+          - "{CreditNote} has PaymentTerms {PaymentTerms}"
+      - name: AllowanceCharge
+        description: UBL role cac:AllowanceCharge; source occurrences 0..unbounded.
+        roles:
+          - concept: AllowanceCharge
+        verbalizes:
+          - "{CreditNote} has AllowanceCharge {AllowanceCharge}"
+      - name: TaxTotal
+        description: UBL role cac:TaxTotal; source occurrences 0..unbounded.
+        roles:
+          - concept: TaxTotal
+        verbalizes:
+          - "{CreditNote} has TaxTotal {TaxTotal}"
+      - name: WithholdingTaxTotal
+        description: UBL role cac:WithholdingTaxTotal; source occurrences 0..unbounded.
+        roles:
+          - concept: TaxTotal
+        verbalizes:
+          - "{CreditNote} has WithholdingTaxTotal {TaxTotal}"
+      - name: LegalMonetaryTotal
+        description: UBL role cac:LegalMonetaryTotal; source occurrences 1..1.
+        roles:
+          - concept: MonetaryTotal
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CreditNote} has LegalMonetaryTotal {MonetaryTotal}"
+      - name: CreditNoteLine
+        description: UBL role cac:CreditNoteLine; source occurrences 1..unbounded.
+        roles:
+          - concept: CreditNoteLine
+        verbalizes:
+          - "{CreditNote} has CreditNoteLine {CreditNoteLine}"
+  - concept: Party
+    type: EntityType
+    iri: https://example.org/ubl-workbench#Party
+    description: UBL 2.3 Party component, projected from its published XSD. Roles
+      retain source min/max occurrence counts.
+    relationships:
+      - name: PostalAddress
+        description: UBL role cac:PostalAddress; source occurrences 0..1.
+        roles:
+          - concept: Address
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Party} has PostalAddress {Address}"
+      - name: PhysicalLocation
+        description: UBL role cac:PhysicalLocation; source occurrences 0..1.
+        roles:
+          - concept: Location
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Party} has PhysicalLocation {Location}"
+      - name: Contact
+        description: UBL role cac:Contact; source occurrences 0..1.
+        roles:
+          - concept: Contact
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Party} has Contact {Contact}"
+      - name: Person
+        description: UBL role cac:Person; source occurrences 0..unbounded.
+        roles:
+          - concept: Person
+        verbalizes:
+          - "{Party} has Person {Person}"
+      - name: AgentParty
+        description: UBL role cac:AgentParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+            name: related
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Party} has AgentParty {Party:related}"
+      - name: FinancialAccount
+        description: UBL role cac:FinancialAccount; source occurrences 0..1.
+        roles:
+          - concept: FinancialAccount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Party} has FinancialAccount {FinancialAccount}"
+  - concept: CustomerParty
+    type: EntityType
+    iri: https://example.org/ubl-workbench#CustomerParty
+    description: UBL 2.3 CustomerParty component, projected from its published XSD.
+      Roles retain source min/max occurrence counts.
+    relationships:
+      - name: Party
+        description: UBL role cac:Party; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CustomerParty} has Party {Party}"
+      - name: DeliveryContact
+        description: UBL role cac:DeliveryContact; source occurrences 0..1.
+        roles:
+          - concept: Contact
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CustomerParty} has DeliveryContact {Contact}"
+      - name: AccountingContact
+        description: UBL role cac:AccountingContact; source occurrences 0..1.
+        roles:
+          - concept: Contact
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CustomerParty} has AccountingContact {Contact}"
+      - name: BuyerContact
+        description: UBL role cac:BuyerContact; source occurrences 0..1.
+        roles:
+          - concept: Contact
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CustomerParty} has BuyerContact {Contact}"
+  - concept: SupplierParty
+    type: EntityType
+    iri: https://example.org/ubl-workbench#SupplierParty
+    description: UBL 2.3 SupplierParty component, projected from its published XSD.
+      Roles retain source min/max occurrence counts.
+    relationships:
+      - name: Party
+        description: UBL role cac:Party; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierParty} has Party {Party}"
+      - name: DespatchContact
+        description: UBL role cac:DespatchContact; source occurrences 0..1.
+        roles:
+          - concept: Contact
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierParty} has DespatchContact {Contact}"
+      - name: AccountingContact
+        description: UBL role cac:AccountingContact; source occurrences 0..1.
+        roles:
+          - concept: Contact
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierParty} has AccountingContact {Contact}"
+      - name: SellerContact
+        description: UBL role cac:SellerContact; source occurrences 0..1.
+        roles:
+          - concept: Contact
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierParty} has SellerContact {Contact}"
+  - concept: Person
+    type: EntityType
+    iri: https://example.org/ubl-workbench#Person
+    description: UBL 2.3 Person component, projected from its published XSD. Roles
+      retain source min/max occurrence counts.
+    relationships:
+      - name: BirthplaceLocation
+        description: UBL role cac:BirthplaceLocation; source occurrences 0..1.
+        roles:
+          - concept: Location
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Person} has BirthplaceLocation {Location}"
+      - name: CitizenshipCountry
+        description: UBL role cac:CitizenshipCountry; source occurrences 0..1.
+        roles:
+          - concept: Country
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Person} has CitizenshipCountry {Country}"
+      - name: Contact
+        description: UBL role cac:Contact; source occurrences 0..1.
+        roles:
+          - concept: Contact
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Person} has Contact {Contact}"
+      - name: FinancialAccount
+        description: UBL role cac:FinancialAccount; source occurrences 0..1.
+        roles:
+          - concept: FinancialAccount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Person} has FinancialAccount {FinancialAccount}"
+      - name: IdentityDocumentReference
+        description: UBL role cac:IdentityDocumentReference; source occurrences
+          0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{Person} has IdentityDocumentReference {DocumentReference}"
+      - name: ResidenceAddress
+        description: UBL role cac:ResidenceAddress; source occurrences 0..1.
+        roles:
+          - concept: Address
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Person} has ResidenceAddress {Address}"
+  - concept: Contact
+    type: EntityType
+    iri: https://example.org/ubl-workbench#Contact
+    description: UBL 2.3 Contact component, projected from its published XSD. Roles
+      retain source min/max occurrence counts.
+    relationships: []
+  - concept: Address
+    type: EntityType
+    iri: https://example.org/ubl-workbench#Address
+    description: UBL 2.3 Address component, projected from its published XSD. Roles
+      retain source min/max occurrence counts.
+    relationships:
+      - name: Country
+        description: UBL role cac:Country; source occurrences 0..1.
+        roles:
+          - concept: Country
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Address} has Country {Country}"
+  - concept: Location
+    type: EntityType
+    iri: https://example.org/ubl-workbench#Location
+    description: UBL 2.3 Location component, projected from its published XSD. Roles
+      retain source min/max occurrence counts.
+    relationships:
+      - name: Address
+        description: UBL role cac:Address; source occurrences 0..1.
+        roles:
+          - concept: Address
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Location} has Address {Address}"
+      - name: SubsidiaryLocation
+        description: UBL role cac:SubsidiaryLocation; source occurrences 0..unbounded.
+        roles:
+          - concept: Location
+            name: related
+        verbalizes:
+          - "{Location} has SubsidiaryLocation {Location:related}"
+  - concept: Country
+    type: EntityType
+    iri: https://example.org/ubl-workbench#Country
+    description: UBL 2.3 Country component, projected from its published XSD. Roles
+      retain source min/max occurrence counts.
+    relationships: []
+  - concept: Item
+    type: EntityType
+    iri: https://example.org/ubl-workbench#Item
+    description: UBL 2.3 Item component, projected from its published XSD. Roles
+      retain source min/max occurrence counts.
+    relationships:
+      - name: CatalogueDocumentReference
+        description: UBL role cac:CatalogueDocumentReference; source occurrences 0..1.
+        roles:
+          - concept: DocumentReference
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Item} has CatalogueDocumentReference {DocumentReference}"
+      - name: ItemSpecificationDocumentReference
+        description: UBL role cac:ItemSpecificationDocumentReference; source occurrences
+          0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{Item} has ItemSpecificationDocumentReference {DocumentReference}"
+      - name: OriginCountry
+        description: UBL role cac:OriginCountry; source occurrences 0..1.
+        roles:
+          - concept: Country
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Item} has OriginCountry {Country}"
+      - name: CommodityClassification
+        description: UBL role cac:CommodityClassification; source occurrences 0..unbounded.
+        roles:
+          - concept: CommodityClassification
+        verbalizes:
+          - "{Item} has CommodityClassification {CommodityClassification}"
+      - name: ClassifiedTaxCategory
+        description: UBL role cac:ClassifiedTaxCategory; source occurrences 0..unbounded.
+        roles:
+          - concept: TaxCategory
+        verbalizes:
+          - "{Item} has ClassifiedTaxCategory {TaxCategory}"
+      - name: ManufacturerParty
+        description: UBL role cac:ManufacturerParty; source occurrences 0..unbounded.
+        roles:
+          - concept: Party
+        verbalizes:
+          - "{Item} has ManufacturerParty {Party}"
+      - name: InformationContentProviderParty
+        description: UBL role cac:InformationContentProviderParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Item} has InformationContentProviderParty {Party}"
+      - name: OriginAddress
+        description: UBL role cac:OriginAddress; source occurrences 0..unbounded.
+        roles:
+          - concept: Address
+        verbalizes:
+          - "{Item} has OriginAddress {Address}"
+  - concept: CommodityClassification
+    type: EntityType
+    iri: https://example.org/ubl-workbench#CommodityClassification
+    description: UBL 2.3 CommodityClassification component, projected from its
+      published XSD. Roles retain source min/max occurrence counts.
+    relationships: []
+  - concept: OrderLine
+    type: EntityType
+    iri: https://example.org/ubl-workbench#OrderLine
+    description: UBL 2.3 OrderLine component, projected from its published XSD.
+      Roles retain source min/max occurrence counts.
+    relationships:
+      - name: LineItem
+        description: UBL role cac:LineItem; source occurrences 1..1.
+        roles:
+          - concept: LineItem
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OrderLine} has LineItem {LineItem}"
+      - name: SellerProposedSubstituteLineItem
+        description: UBL role cac:SellerProposedSubstituteLineItem; source occurrences
+          0..unbounded.
+        roles:
+          - concept: LineItem
+        verbalizes:
+          - "{OrderLine} has SellerProposedSubstituteLineItem {LineItem}"
+      - name: SellerSubstitutedLineItem
+        description: UBL role cac:SellerSubstitutedLineItem; source occurrences
+          0..unbounded.
+        roles:
+          - concept: LineItem
+        verbalizes:
+          - "{OrderLine} has SellerSubstitutedLineItem {LineItem}"
+      - name: BuyerProposedSubstituteLineItem
+        description: UBL role cac:BuyerProposedSubstituteLineItem; source occurrences
+          0..unbounded.
+        roles:
+          - concept: LineItem
+        verbalizes:
+          - "{OrderLine} has BuyerProposedSubstituteLineItem {LineItem}"
+      - name: DocumentReference
+        description: UBL role cac:DocumentReference; source occurrences 0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{OrderLine} has DocumentReference {DocumentReference}"
+  - concept: LineItem
+    type: EntityType
+    iri: https://example.org/ubl-workbench#LineItem
+    description: UBL 2.3 LineItem component, projected from its published XSD. Roles
+      retain source min/max occurrence counts.
+    relationships:
+      - name: Delivery
+        description: UBL role cac:Delivery; source occurrences 0..unbounded.
+        roles:
+          - concept: Delivery
+        verbalizes:
+          - "{LineItem} has Delivery {Delivery}"
+      - name: OriginatorParty
+        description: UBL role cac:OriginatorParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LineItem} has OriginatorParty {Party}"
+      - name: AllowanceCharge
+        description: UBL role cac:AllowanceCharge; source occurrences 0..unbounded.
+        roles:
+          - concept: AllowanceCharge
+        verbalizes:
+          - "{LineItem} has AllowanceCharge {AllowanceCharge}"
+      - name: Price
+        description: UBL role cac:Price; source occurrences 0..1.
+        roles:
+          - concept: Price
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LineItem} has Price {Price}"
+      - name: Item
+        description: UBL role cac:Item; source occurrences 1..1.
+        roles:
+          - concept: Item
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LineItem} has Item {Item}"
+      - name: SubLineItem
+        description: UBL role cac:SubLineItem; source occurrences 0..unbounded.
+        roles:
+          - concept: LineItem
+            name: related
+        verbalizes:
+          - "{LineItem} has SubLineItem {LineItem:related}"
+      - name: WarrantyParty
+        description: UBL role cac:WarrantyParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LineItem} has WarrantyParty {Party}"
+      - name: TaxTotal
+        description: UBL role cac:TaxTotal; source occurrences 0..unbounded.
+        roles:
+          - concept: TaxTotal
+        verbalizes:
+          - "{LineItem} has TaxTotal {TaxTotal}"
+  - concept: Delivery
+    type: EntityType
+    iri: https://example.org/ubl-workbench#Delivery
+    description: UBL 2.3 Delivery component, projected from its published XSD. Roles
+      retain source min/max occurrence counts.
+    relationships:
+      - name: DeliveryAddress
+        description: UBL role cac:DeliveryAddress; source occurrences 0..1.
+        roles:
+          - concept: Address
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Delivery} has DeliveryAddress {Address}"
+      - name: DeliveryLocation
+        description: UBL role cac:DeliveryLocation; source occurrences 0..1.
+        roles:
+          - concept: Location
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Delivery} has DeliveryLocation {Location}"
+      - name: AlternativeDeliveryLocation
+        description: UBL role cac:AlternativeDeliveryLocation; source occurrences 0..1.
+        roles:
+          - concept: Location
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Delivery} has AlternativeDeliveryLocation {Location}"
+      - name: CarrierParty
+        description: UBL role cac:CarrierParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Delivery} has CarrierParty {Party}"
+      - name: DeliveryParty
+        description: UBL role cac:DeliveryParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Delivery} has DeliveryParty {Party}"
+      - name: NotifyParty
+        description: UBL role cac:NotifyParty; source occurrences 0..unbounded.
+        roles:
+          - concept: Party
+        verbalizes:
+          - "{Delivery} has NotifyParty {Party}"
+      - name: Shipment
+        description: UBL role cac:Shipment; source occurrences 0..1.
+        roles:
+          - concept: Shipment
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Delivery} has Shipment {Shipment}"
+  - concept: Shipment
+    type: EntityType
+    iri: https://example.org/ubl-workbench#Shipment
+    description: UBL 2.3 Shipment component, projected from its published XSD. Roles
+      retain source min/max occurrence counts.
+    relationships:
+      - name: Consignment
+        description: UBL role cac:Consignment; source occurrences 0..unbounded.
+        roles:
+          - concept: Consignment
+        verbalizes:
+          - "{Shipment} has Consignment {Consignment}"
+      - name: GoodsItem
+        description: UBL role cac:GoodsItem; source occurrences 0..unbounded.
+        roles:
+          - concept: GoodsItem
+        verbalizes:
+          - "{Shipment} has GoodsItem {GoodsItem}"
+      - name: Delivery
+        description: UBL role cac:Delivery; source occurrences 0..1.
+        roles:
+          - concept: Delivery
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Shipment} has Delivery {Delivery}"
+      - name: TransportHandlingUnit
+        description: UBL role cac:TransportHandlingUnit; source occurrences 0..unbounded.
+        roles:
+          - concept: TransportHandlingUnit
+        verbalizes:
+          - "{Shipment} has TransportHandlingUnit {TransportHandlingUnit}"
+      - name: ReturnAddress
+        description: UBL role cac:ReturnAddress; source occurrences 0..1.
+        roles:
+          - concept: Address
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Shipment} has ReturnAddress {Address}"
+      - name: OriginAddress
+        description: UBL role cac:OriginAddress; source occurrences 0..1.
+        roles:
+          - concept: Address
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Shipment} has OriginAddress {Address}"
+      - name: FirstArrivalPortLocation
+        description: UBL role cac:FirstArrivalPortLocation; source occurrences 0..1.
+        roles:
+          - concept: Location
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Shipment} has FirstArrivalPortLocation {Location}"
+      - name: LastExitPortLocation
+        description: UBL role cac:LastExitPortLocation; source occurrences 0..1.
+        roles:
+          - concept: Location
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Shipment} has LastExitPortLocation {Location}"
+      - name: ExportCountry
+        description: UBL role cac:ExportCountry; source occurrences 0..1.
+        roles:
+          - concept: Country
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Shipment} has ExportCountry {Country}"
+      - name: FreightAllowanceCharge
+        description: UBL role cac:FreightAllowanceCharge; source occurrences 0..unbounded.
+        roles:
+          - concept: AllowanceCharge
+        verbalizes:
+          - "{Shipment} has FreightAllowanceCharge {AllowanceCharge}"
+  - concept: Consignment
+    type: EntityType
+    iri: https://example.org/ubl-workbench#Consignment
+    description: UBL 2.3 Consignment component, projected from its published XSD.
+      Roles retain source min/max occurrence counts.
+    relationships:
+      - name: ConsolidatedShipment
+        description: UBL role cac:ConsolidatedShipment; source occurrences 0..unbounded.
+        roles:
+          - concept: Shipment
+        verbalizes:
+          - "{Consignment} has ConsolidatedShipment {Shipment}"
+      - name: ChildConsignment
+        description: UBL role cac:ChildConsignment; source occurrences 0..unbounded.
+        roles:
+          - concept: Consignment
+            name: related
+        verbalizes:
+          - "{Consignment} has ChildConsignment {Consignment:related}"
+      - name: ConsigneeParty
+        description: UBL role cac:ConsigneeParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has ConsigneeParty {Party}"
+      - name: ExporterParty
+        description: UBL role cac:ExporterParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has ExporterParty {Party}"
+      - name: ConsignorParty
+        description: UBL role cac:ConsignorParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has ConsignorParty {Party}"
+      - name: ImporterParty
+        description: UBL role cac:ImporterParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has ImporterParty {Party}"
+      - name: CarrierParty
+        description: UBL role cac:CarrierParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has CarrierParty {Party}"
+      - name: FreightForwarderParty
+        description: UBL role cac:FreightForwarderParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has FreightForwarderParty {Party}"
+      - name: NotifyParty
+        description: UBL role cac:NotifyParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has NotifyParty {Party}"
+      - name: OriginalDespatchParty
+        description: UBL role cac:OriginalDespatchParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has OriginalDespatchParty {Party}"
+      - name: FinalDeliveryParty
+        description: UBL role cac:FinalDeliveryParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has FinalDeliveryParty {Party}"
+      - name: PerformingCarrierParty
+        description: UBL role cac:PerformingCarrierParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has PerformingCarrierParty {Party}"
+      - name: SubstituteCarrierParty
+        description: UBL role cac:SubstituteCarrierParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has SubstituteCarrierParty {Party}"
+      - name: LogisticsOperatorParty
+        description: UBL role cac:LogisticsOperatorParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has LogisticsOperatorParty {Party}"
+      - name: TransportAdvisorParty
+        description: UBL role cac:TransportAdvisorParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has TransportAdvisorParty {Party}"
+      - name: HazardousItemNotificationParty
+        description: UBL role cac:HazardousItemNotificationParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has HazardousItemNotificationParty {Party}"
+      - name: InsuranceParty
+        description: UBL role cac:InsuranceParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has InsuranceParty {Party}"
+      - name: MortgageHolderParty
+        description: UBL role cac:MortgageHolderParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has MortgageHolderParty {Party}"
+      - name: BillOfLadingHolderParty
+        description: UBL role cac:BillOfLadingHolderParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has BillOfLadingHolderParty {Party}"
+      - name: OriginalDepartureCountry
+        description: UBL role cac:OriginalDepartureCountry; source occurrences 0..1.
+        roles:
+          - concept: Country
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has OriginalDepartureCountry {Country}"
+      - name: FinalDestinationCountry
+        description: UBL role cac:FinalDestinationCountry; source occurrences 0..1.
+        roles:
+          - concept: Country
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has FinalDestinationCountry {Country}"
+      - name: TransitCountry
+        description: UBL role cac:TransitCountry; source occurrences 0..unbounded.
+        roles:
+          - concept: Country
+        verbalizes:
+          - "{Consignment} has TransitCountry {Country}"
+      - name: TransportContract
+        description: UBL role cac:TransportContract; source occurrences 0..1.
+        roles:
+          - concept: Contract
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has TransportContract {Contract}"
+      - name: OriginalDespatchTransportationService
+        description: UBL role cac:OriginalDespatchTransportationService; source
+          occurrences 0..1.
+        roles:
+          - concept: TransportationService
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has OriginalDespatchTransportationService
+            {TransportationService}"
+      - name: FinalDeliveryTransportationService
+        description: UBL role cac:FinalDeliveryTransportationService; source occurrences
+          0..1.
+        roles:
+          - concept: TransportationService
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has FinalDeliveryTransportationService
+            {TransportationService}"
+      - name: PaymentTerms
+        description: UBL role cac:PaymentTerms; source occurrences 0..1.
+        roles:
+          - concept: PaymentTerms
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has PaymentTerms {PaymentTerms}"
+      - name: CollectPaymentTerms
+        description: UBL role cac:CollectPaymentTerms; source occurrences 0..1.
+        roles:
+          - concept: PaymentTerms
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has CollectPaymentTerms {PaymentTerms}"
+      - name: DisbursementPaymentTerms
+        description: UBL role cac:DisbursementPaymentTerms; source occurrences 0..1.
+        roles:
+          - concept: PaymentTerms
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has DisbursementPaymentTerms {PaymentTerms}"
+      - name: PrepaidPaymentTerms
+        description: UBL role cac:PrepaidPaymentTerms; source occurrences 0..1.
+        roles:
+          - concept: PaymentTerms
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has PrepaidPaymentTerms {PaymentTerms}"
+      - name: FreightAllowanceCharge
+        description: UBL role cac:FreightAllowanceCharge; source occurrences 0..unbounded.
+        roles:
+          - concept: AllowanceCharge
+        verbalizes:
+          - "{Consignment} has FreightAllowanceCharge {AllowanceCharge}"
+      - name: ExtraAllowanceCharge
+        description: UBL role cac:ExtraAllowanceCharge; source occurrences 0..unbounded.
+        roles:
+          - concept: AllowanceCharge
+        verbalizes:
+          - "{Consignment} has ExtraAllowanceCharge {AllowanceCharge}"
+      - name: TransportHandlingUnit
+        description: UBL role cac:TransportHandlingUnit; source occurrences 0..unbounded.
+        roles:
+          - concept: TransportHandlingUnit
+        verbalizes:
+          - "{Consignment} has TransportHandlingUnit {TransportHandlingUnit}"
+      - name: FirstArrivalPortLocation
+        description: UBL role cac:FirstArrivalPortLocation; source occurrences 0..1.
+        roles:
+          - concept: Location
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has FirstArrivalPortLocation {Location}"
+      - name: LastExitPortLocation
+        description: UBL role cac:LastExitPortLocation; source occurrences 0..1.
+        roles:
+          - concept: Location
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has LastExitPortLocation {Location}"
+      - name: OfficeOfEntryLocation
+        description: UBL role cac:OfficeOfEntryLocation; source occurrences 0..1.
+        roles:
+          - concept: Location
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has OfficeOfEntryLocation {Location}"
+      - name: OfficeOfSubSequentiallyEntryLocation
+        description: UBL role cac:OfficeOfSubSequentiallyEntryLocation; source
+          occurrences 0..1.
+        roles:
+          - concept: Location
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has OfficeOfSubSequentiallyEntryLocation {Location}"
+      - name: OfficeOfExitLocation
+        description: UBL role cac:OfficeOfExitLocation; source occurrences 0..1.
+        roles:
+          - concept: Location
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has OfficeOfExitLocation {Location}"
+      - name: OfficeOfDepartureLocation
+        description: UBL role cac:OfficeOfDepartureLocation; source occurrences 0..1.
+        roles:
+          - concept: Location
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has OfficeOfDepartureLocation {Location}"
+      - name: OfficeOfDestinationLocation
+        description: UBL role cac:OfficeOfDestinationLocation; source occurrences 0..1.
+        roles:
+          - concept: Location
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has OfficeOfDestinationLocation {Location}"
+      - name: OfficeOfImportLocation
+        description: UBL role cac:OfficeOfImportLocation; source occurrences 0..1.
+        roles:
+          - concept: Location
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has OfficeOfImportLocation {Location}"
+      - name: OfficeOfExportLocation
+        description: UBL role cac:OfficeOfExportLocation; source occurrences 0..1.
+        roles:
+          - concept: Location
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Consignment} has OfficeOfExportLocation {Location}"
+      - name: DocumentReference
+        description: UBL role cac:DocumentReference; source occurrences 0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{Consignment} has DocumentReference {DocumentReference}"
+  - concept: TransportHandlingUnit
+    type: EntityType
+    iri: https://example.org/ubl-workbench#TransportHandlingUnit
+    description: UBL 2.3 TransportHandlingUnit component, projected from its
+      published XSD. Roles retain source min/max occurrence counts.
+    relationships:
+      - name: HandlingUnitDespatchLine
+        description: UBL role cac:HandlingUnitDespatchLine; source occurrences 0..unbounded.
+        roles:
+          - concept: DespatchLine
+        verbalizes:
+          - "{TransportHandlingUnit} has HandlingUnitDespatchLine {DespatchLine}"
+      - name: ReceivedHandlingUnitReceiptLine
+        description: UBL role cac:ReceivedHandlingUnitReceiptLine; source occurrences
+          0..unbounded.
+        roles:
+          - concept: ReceiptLine
+        verbalizes:
+          - "{TransportHandlingUnit} has ReceivedHandlingUnitReceiptLine
+            {ReceiptLine}"
+      - name: TransportEquipment
+        description: UBL role cac:TransportEquipment; source occurrences 0..unbounded.
+        roles:
+          - concept: TransportEquipment
+        verbalizes:
+          - "{TransportHandlingUnit} has TransportEquipment {TransportEquipment}"
+      - name: TransportMeans
+        description: UBL role cac:TransportMeans; source occurrences 0..unbounded.
+        roles:
+          - concept: TransportMeans
+        verbalizes:
+          - "{TransportHandlingUnit} has TransportMeans {TransportMeans}"
+      - name: GoodsItem
+        description: UBL role cac:GoodsItem; source occurrences 0..unbounded.
+        roles:
+          - concept: GoodsItem
+        verbalizes:
+          - "{TransportHandlingUnit} has GoodsItem {GoodsItem}"
+      - name: ShipmentDocumentReference
+        description: UBL role cac:ShipmentDocumentReference; source occurrences
+          0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{TransportHandlingUnit} has ShipmentDocumentReference
+            {DocumentReference}"
+      - name: ReferencedShipment
+        description: UBL role cac:ReferencedShipment; source occurrences 0..unbounded.
+        roles:
+          - concept: Shipment
+        verbalizes:
+          - "{TransportHandlingUnit} has ReferencedShipment {Shipment}"
+  - concept: TransportEquipment
+    type: EntityType
+    iri: https://example.org/ubl-workbench#TransportEquipment
+    description: UBL 2.3 TransportEquipment component, projected from its published
+      XSD. Roles retain source min/max occurrence counts.
+    relationships:
+      - name: ProviderParty
+        description: UBL role cac:ProviderParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TransportEquipment} has ProviderParty {Party}"
+      - name: LoadingProofParty
+        description: UBL role cac:LoadingProofParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TransportEquipment} has LoadingProofParty {Party}"
+      - name: SupplierParty
+        description: UBL role cac:SupplierParty; source occurrences 0..1.
+        roles:
+          - concept: SupplierParty
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TransportEquipment} has SupplierParty {SupplierParty}"
+      - name: OwnerParty
+        description: UBL role cac:OwnerParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TransportEquipment} has OwnerParty {Party}"
+      - name: OperatingParty
+        description: UBL role cac:OperatingParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TransportEquipment} has OperatingParty {Party}"
+      - name: LoadingLocation
+        description: UBL role cac:LoadingLocation; source occurrences 0..1.
+        roles:
+          - concept: Location
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TransportEquipment} has LoadingLocation {Location}"
+      - name: UnloadingLocation
+        description: UBL role cac:UnloadingLocation; source occurrences 0..1.
+        roles:
+          - concept: Location
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TransportEquipment} has UnloadingLocation {Location}"
+      - name: StorageLocation
+        description: UBL role cac:StorageLocation; source occurrences 0..1.
+        roles:
+          - concept: Location
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TransportEquipment} has StorageLocation {Location}"
+      - name: ApplicableTransportMeans
+        description: UBL role cac:ApplicableTransportMeans; source occurrences 0..1.
+        roles:
+          - concept: TransportMeans
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TransportEquipment} has ApplicableTransportMeans {TransportMeans}"
+      - name: PackagedTransportHandlingUnit
+        description: UBL role cac:PackagedTransportHandlingUnit; source occurrences
+          0..unbounded.
+        roles:
+          - concept: TransportHandlingUnit
+        verbalizes:
+          - "{TransportEquipment} has PackagedTransportHandlingUnit
+            {TransportHandlingUnit}"
+      - name: ServiceAllowanceCharge
+        description: UBL role cac:ServiceAllowanceCharge; source occurrences 0..unbounded.
+        roles:
+          - concept: AllowanceCharge
+        verbalizes:
+          - "{TransportEquipment} has ServiceAllowanceCharge {AllowanceCharge}"
+      - name: FreightAllowanceCharge
+        description: UBL role cac:FreightAllowanceCharge; source occurrences 0..unbounded.
+        roles:
+          - concept: AllowanceCharge
+        verbalizes:
+          - "{TransportEquipment} has FreightAllowanceCharge {AllowanceCharge}"
+      - name: AttachedTransportEquipment
+        description: UBL role cac:AttachedTransportEquipment; source occurrences
+          0..unbounded.
+        roles:
+          - concept: TransportEquipment
+            name: related
+        verbalizes:
+          - "{TransportEquipment} has AttachedTransportEquipment
+            {TransportEquipment:related}"
+      - name: Delivery
+        description: UBL role cac:Delivery; source occurrences 0..1.
+        roles:
+          - concept: Delivery
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TransportEquipment} has Delivery {Delivery}"
+      - name: ShipmentDocumentReference
+        description: UBL role cac:ShipmentDocumentReference; source occurrences
+          0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{TransportEquipment} has ShipmentDocumentReference
+            {DocumentReference}"
+      - name: ContainedInTransportEquipment
+        description: UBL role cac:ContainedInTransportEquipment; source occurrences
+          0..unbounded.
+        roles:
+          - concept: TransportEquipment
+            name: related
+        verbalizes:
+          - "{TransportEquipment} has ContainedInTransportEquipment
+            {TransportEquipment:related}"
+      - name: GoodsItem
+        description: UBL role cac:GoodsItem; source occurrences 0..unbounded.
+        roles:
+          - concept: GoodsItem
+        verbalizes:
+          - "{TransportEquipment} has GoodsItem {GoodsItem}"
+  - concept: GoodsItem
+    type: EntityType
+    iri: https://example.org/ubl-workbench#GoodsItem
+    description: UBL 2.3 GoodsItem component, projected from its published XSD.
+      Roles retain source min/max occurrence counts.
+    relationships:
+      - name: Item
+        description: UBL role cac:Item; source occurrences 0..unbounded.
+        roles:
+          - concept: Item
+        verbalizes:
+          - "{GoodsItem} has Item {Item}"
+      - name: FreightAllowanceCharge
+        description: UBL role cac:FreightAllowanceCharge; source occurrences 0..unbounded.
+        roles:
+          - concept: AllowanceCharge
+        verbalizes:
+          - "{GoodsItem} has FreightAllowanceCharge {AllowanceCharge}"
+      - name: InvoiceLine
+        description: UBL role cac:InvoiceLine; source occurrences 0..unbounded.
+        roles:
+          - concept: InvoiceLine
+        verbalizes:
+          - "{GoodsItem} has InvoiceLine {InvoiceLine}"
+      - name: ContainedGoodsItem
+        description: UBL role cac:ContainedGoodsItem; source occurrences 0..unbounded.
+        roles:
+          - concept: GoodsItem
+            name: related
+        verbalizes:
+          - "{GoodsItem} has ContainedGoodsItem {GoodsItem:related}"
+      - name: OriginAddress
+        description: UBL role cac:OriginAddress; source occurrences 0..1.
+        roles:
+          - concept: Address
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{GoodsItem} has OriginAddress {Address}"
+      - name: Delivery
+        description: UBL role cac:Delivery; source occurrences 0..1.
+        roles:
+          - concept: Delivery
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{GoodsItem} has Delivery {Delivery}"
+      - name: ShipmentDocumentReference
+        description: UBL role cac:ShipmentDocumentReference; source occurrences 0..1.
+        roles:
+          - concept: DocumentReference
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{GoodsItem} has ShipmentDocumentReference {DocumentReference}"
+  - concept: InvoiceLine
+    type: EntityType
+    iri: https://example.org/ubl-workbench#InvoiceLine
+    description: UBL 2.3 InvoiceLine component, projected from its published XSD.
+      Roles retain source min/max occurrence counts.
+    relationships:
+      - name: BillingReference
+        description: UBL role cac:BillingReference; source occurrences 0..unbounded.
+        roles:
+          - concept: BillingReference
+        verbalizes:
+          - "{InvoiceLine} has BillingReference {BillingReference}"
+      - name: DocumentReference
+        description: UBL role cac:DocumentReference; source occurrences 0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{InvoiceLine} has DocumentReference {DocumentReference}"
+      - name: OriginatorParty
+        description: UBL role cac:OriginatorParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{InvoiceLine} has OriginatorParty {Party}"
+      - name: Delivery
+        description: UBL role cac:Delivery; source occurrences 0..unbounded.
+        roles:
+          - concept: Delivery
+        verbalizes:
+          - "{InvoiceLine} has Delivery {Delivery}"
+      - name: PaymentTerms
+        description: UBL role cac:PaymentTerms; source occurrences 0..unbounded.
+        roles:
+          - concept: PaymentTerms
+        verbalizes:
+          - "{InvoiceLine} has PaymentTerms {PaymentTerms}"
+      - name: AllowanceCharge
+        description: UBL role cac:AllowanceCharge; source occurrences 0..unbounded.
+        roles:
+          - concept: AllowanceCharge
+        verbalizes:
+          - "{InvoiceLine} has AllowanceCharge {AllowanceCharge}"
+      - name: TaxTotal
+        description: UBL role cac:TaxTotal; source occurrences 0..unbounded.
+        roles:
+          - concept: TaxTotal
+        verbalizes:
+          - "{InvoiceLine} has TaxTotal {TaxTotal}"
+      - name: WithholdingTaxTotal
+        description: UBL role cac:WithholdingTaxTotal; source occurrences 0..unbounded.
+        roles:
+          - concept: TaxTotal
+        verbalizes:
+          - "{InvoiceLine} has WithholdingTaxTotal {TaxTotal}"
+      - name: Item
+        description: UBL role cac:Item; source occurrences 1..1.
+        roles:
+          - concept: Item
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{InvoiceLine} has Item {Item}"
+      - name: Price
+        description: UBL role cac:Price; source occurrences 0..1.
+        roles:
+          - concept: Price
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{InvoiceLine} has Price {Price}"
+      - name: SubInvoiceLine
+        description: UBL role cac:SubInvoiceLine; source occurrences 0..unbounded.
+        roles:
+          - concept: InvoiceLine
+            name: related
+        verbalizes:
+          - "{InvoiceLine} has SubInvoiceLine {InvoiceLine:related}"
+  - concept: CreditNoteLine
+    type: EntityType
+    iri: https://example.org/ubl-workbench#CreditNoteLine
+    description: UBL 2.3 CreditNoteLine component, projected from its published XSD.
+      Roles retain source min/max occurrence counts.
+    relationships:
+      - name: BillingReference
+        description: UBL role cac:BillingReference; source occurrences 0..unbounded.
+        roles:
+          - concept: BillingReference
+        verbalizes:
+          - "{CreditNoteLine} has BillingReference {BillingReference}"
+      - name: DocumentReference
+        description: UBL role cac:DocumentReference; source occurrences 0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{CreditNoteLine} has DocumentReference {DocumentReference}"
+      - name: OriginatorParty
+        description: UBL role cac:OriginatorParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CreditNoteLine} has OriginatorParty {Party}"
+      - name: Delivery
+        description: UBL role cac:Delivery; source occurrences 0..unbounded.
+        roles:
+          - concept: Delivery
+        verbalizes:
+          - "{CreditNoteLine} has Delivery {Delivery}"
+      - name: PaymentTerms
+        description: UBL role cac:PaymentTerms; source occurrences 0..unbounded.
+        roles:
+          - concept: PaymentTerms
+        verbalizes:
+          - "{CreditNoteLine} has PaymentTerms {PaymentTerms}"
+      - name: TaxTotal
+        description: UBL role cac:TaxTotal; source occurrences 0..unbounded.
+        roles:
+          - concept: TaxTotal
+        verbalizes:
+          - "{CreditNoteLine} has TaxTotal {TaxTotal}"
+      - name: AllowanceCharge
+        description: UBL role cac:AllowanceCharge; source occurrences 0..unbounded.
+        roles:
+          - concept: AllowanceCharge
+        verbalizes:
+          - "{CreditNoteLine} has AllowanceCharge {AllowanceCharge}"
+      - name: Item
+        description: UBL role cac:Item; source occurrences 0..1.
+        roles:
+          - concept: Item
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CreditNoteLine} has Item {Item}"
+      - name: Price
+        description: UBL role cac:Price; source occurrences 0..1.
+        roles:
+          - concept: Price
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CreditNoteLine} has Price {Price}"
+      - name: SubCreditNoteLine
+        description: UBL role cac:SubCreditNoteLine; source occurrences 0..unbounded.
+        roles:
+          - concept: CreditNoteLine
+            name: related
+        verbalizes:
+          - "{CreditNoteLine} has SubCreditNoteLine {CreditNoteLine:related}"
+  - concept: PaymentMeans
+    type: EntityType
+    iri: https://example.org/ubl-workbench#PaymentMeans
+    description: UBL 2.3 PaymentMeans component, projected from its published XSD.
+      Roles retain source min/max occurrence counts.
+    relationships:
+      - name: PayerFinancialAccount
+        description: UBL role cac:PayerFinancialAccount; source occurrences 0..1.
+        roles:
+          - concept: FinancialAccount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PaymentMeans} has PayerFinancialAccount {FinancialAccount}"
+      - name: PayeeFinancialAccount
+        description: UBL role cac:PayeeFinancialAccount; source occurrences 0..1.
+        roles:
+          - concept: FinancialAccount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PaymentMeans} has PayeeFinancialAccount {FinancialAccount}"
+  - concept: PaymentTerms
+    type: EntityType
+    iri: https://example.org/ubl-workbench#PaymentTerms
+    description: UBL 2.3 PaymentTerms component, projected from its published XSD.
+      Roles retain source min/max occurrence counts.
+    relationships: []
+  - concept: FinancialAccount
+    type: EntityType
+    iri: https://example.org/ubl-workbench#FinancialAccount
+    description: UBL 2.3 FinancialAccount component, projected from its published
+      XSD. Roles retain source min/max occurrence counts.
+    relationships:
+      - name: FinancialInstitutionBranch
+        description: UBL role cac:FinancialInstitutionBranch; source occurrences 0..1.
+        roles:
+          - concept: Branch
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{FinancialAccount} has FinancialInstitutionBranch {Branch}"
+      - name: Country
+        description: UBL role cac:Country; source occurrences 0..1.
+        roles:
+          - concept: Country
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{FinancialAccount} has Country {Country}"
+  - concept: FinancialInstitution
+    type: EntityType
+    iri: https://example.org/ubl-workbench#FinancialInstitution
+    description: UBL 2.3 FinancialInstitution component, projected from its
+      published XSD. Roles retain source min/max occurrence counts.
+    relationships:
+      - name: Address
+        description: UBL role cac:Address; source occurrences 0..1.
+        roles:
+          - concept: Address
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{FinancialInstitution} has Address {Address}"
+  - concept: Branch
+    type: EntityType
+    iri: https://example.org/ubl-workbench#Branch
+    description: UBL 2.3 Branch component, projected from its published XSD. Roles
+      retain source min/max occurrence counts.
+    relationships:
+      - name: FinancialInstitution
+        description: UBL role cac:FinancialInstitution; source occurrences 0..1.
+        roles:
+          - concept: FinancialInstitution
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Branch} has FinancialInstitution {FinancialInstitution}"
+      - name: Address
+        description: UBL role cac:Address; source occurrences 0..1.
+        roles:
+          - concept: Address
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Branch} has Address {Address}"
+  - concept: TaxTotal
+    type: EntityType
+    iri: https://example.org/ubl-workbench#TaxTotal
+    description: UBL 2.3 TaxTotal component, projected from its published XSD. Roles
+      retain source min/max occurrence counts.
+    relationships:
+      - name: TaxSubtotal
+        description: UBL role cac:TaxSubtotal; source occurrences 0..unbounded.
+        roles:
+          - concept: TaxSubtotal
+        verbalizes:
+          - "{TaxTotal} has TaxSubtotal {TaxSubtotal}"
+  - concept: TaxSubtotal
+    type: EntityType
+    iri: https://example.org/ubl-workbench#TaxSubtotal
+    description: UBL 2.3 TaxSubtotal component, projected from its published XSD.
+      Roles retain source min/max occurrence counts.
+    relationships:
+      - name: TaxCategory
+        description: UBL role cac:TaxCategory; source occurrences 1..1.
+        roles:
+          - concept: TaxCategory
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TaxSubtotal} has TaxCategory {TaxCategory}"
+  - concept: TaxCategory
+    type: EntityType
+    iri: https://example.org/ubl-workbench#TaxCategory
+    description: UBL 2.3 TaxCategory component, projected from its published XSD.
+      Roles retain source min/max occurrence counts.
+    relationships:
+      - name: TaxScheme
+        description: UBL role cac:TaxScheme; source occurrences 1..1.
+        roles:
+          - concept: TaxScheme
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TaxCategory} has TaxScheme {TaxScheme}"
+  - concept: TaxScheme
+    type: EntityType
+    iri: https://example.org/ubl-workbench#TaxScheme
+    description: UBL 2.3 TaxScheme component, projected from its published XSD.
+      Roles retain source min/max occurrence counts.
+    relationships:
+      - name: JurisdictionRegionAddress
+        description: UBL role cac:JurisdictionRegionAddress; source occurrences
+          0..unbounded.
+        roles:
+          - concept: Address
+        verbalizes:
+          - "{TaxScheme} has JurisdictionRegionAddress {Address}"
+  - concept: Price
+    type: EntityType
+    iri: https://example.org/ubl-workbench#Price
+    description: UBL 2.3 Price component, projected from its published XSD. Roles
+      retain source min/max occurrence counts.
+    relationships:
+      - name: AllowanceCharge
+        description: UBL role cac:AllowanceCharge; source occurrences 0..unbounded.
+        roles:
+          - concept: AllowanceCharge
+        verbalizes:
+          - "{Price} has AllowanceCharge {AllowanceCharge}"
+      - name: AlternativeCurrencyPrice
+        description: UBL role cac:AlternativeCurrencyPrice; source occurrences 0..unbounded.
+        roles:
+          - concept: Price
+            name: related
+        verbalizes:
+          - "{Price} has AlternativeCurrencyPrice {Price:related}"
+  - concept: AllowanceCharge
+    type: EntityType
+    iri: https://example.org/ubl-workbench#AllowanceCharge
+    description: UBL 2.3 AllowanceCharge component, projected from its published
+      XSD. Roles retain source min/max occurrence counts.
+    relationships:
+      - name: TaxCategory
+        description: UBL role cac:TaxCategory; source occurrences 0..unbounded.
+        roles:
+          - concept: TaxCategory
+        verbalizes:
+          - "{AllowanceCharge} has TaxCategory {TaxCategory}"
+      - name: TaxTotal
+        description: UBL role cac:TaxTotal; source occurrences 0..1.
+        roles:
+          - concept: TaxTotal
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{AllowanceCharge} has TaxTotal {TaxTotal}"
+      - name: PaymentMeans
+        description: UBL role cac:PaymentMeans; source occurrences 0..unbounded.
+        roles:
+          - concept: PaymentMeans
+        verbalizes:
+          - "{AllowanceCharge} has PaymentMeans {PaymentMeans}"
+  - concept: Contract
+    type: EntityType
+    iri: https://example.org/ubl-workbench#Contract
+    description: UBL 2.3 Contract component, projected from its published XSD. Roles
+      retain source min/max occurrence counts.
+    relationships:
+      - name: ContractDocumentReference
+        description: UBL role cac:ContractDocumentReference; source occurrences
+          0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{Contract} has ContractDocumentReference {DocumentReference}"
+      - name: ContractualDelivery
+        description: UBL role cac:ContractualDelivery; source occurrences 0..1.
+        roles:
+          - concept: Delivery
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Contract} has ContractualDelivery {Delivery}"
+  - concept: DocumentReference
+    type: EntityType
+    iri: https://example.org/ubl-workbench#DocumentReference
+    description: UBL 2.3 DocumentReference component, projected from its published
+      XSD. Roles retain source min/max occurrence counts.
+    relationships:
+      - name: IssuerParty
+        description: UBL role cac:IssuerParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{DocumentReference} has IssuerParty {Party}"
+  - concept: ReceiptLine
+    type: EntityType
+    iri: https://example.org/ubl-workbench#ReceiptLine
+    description: UBL 2.3 ReceiptLine component, projected from its published XSD.
+      Roles retain source min/max occurrence counts.
+    relationships:
+      - name: DocumentReference
+        description: UBL role cac:DocumentReference; source occurrences 0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{ReceiptLine} has DocumentReference {DocumentReference}"
+      - name: Item
+        description: UBL role cac:Item; source occurrences 0..unbounded.
+        roles:
+          - concept: Item
+        verbalizes:
+          - "{ReceiptLine} has Item {Item}"
+      - name: Shipment
+        description: UBL role cac:Shipment; source occurrences 0..unbounded.
+        roles:
+          - concept: Shipment
+        verbalizes:
+          - "{ReceiptLine} has Shipment {Shipment}"
+  - concept: DespatchLine
+    type: EntityType
+    iri: https://example.org/ubl-workbench#DespatchLine
+    description: UBL 2.3 DespatchLine component, projected from its published XSD.
+      Roles retain source min/max occurrence counts.
+    relationships:
+      - name: DocumentReference
+        description: UBL role cac:DocumentReference; source occurrences 0..unbounded.
+        roles:
+          - concept: DocumentReference
+        verbalizes:
+          - "{DespatchLine} has DocumentReference {DocumentReference}"
+      - name: Item
+        description: UBL role cac:Item; source occurrences 1..1.
+        roles:
+          - concept: Item
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{DespatchLine} has Item {Item}"
+      - name: Shipment
+        description: UBL role cac:Shipment; source occurrences 0..unbounded.
+        roles:
+          - concept: Shipment
+        verbalizes:
+          - "{DespatchLine} has Shipment {Shipment}"
+      - name: SubDespatchLine
+        description: UBL role cac:SubDespatchLine; source occurrences 0..unbounded.
+        roles:
+          - concept: DespatchLine
+            name: related
+        verbalizes:
+          - "{DespatchLine} has SubDespatchLine {DespatchLine:related}"
+  - concept: TransportationService
+    type: EntityType
+    iri: https://example.org/ubl-workbench#TransportationService
+    description: UBL 2.3 TransportationService component, projected from its
+      published XSD. Roles retain source min/max occurrence counts.
+    relationships:
+      - name: TransportEquipment
+        description: UBL role cac:TransportEquipment; source occurrences 0..unbounded.
+        roles:
+          - concept: TransportEquipment
+        verbalizes:
+          - "{TransportationService} has TransportEquipment {TransportEquipment}"
+      - name: SupportedTransportEquipment
+        description: UBL role cac:SupportedTransportEquipment; source occurrences
+          0..unbounded.
+        roles:
+          - concept: TransportEquipment
+        verbalizes:
+          - "{TransportationService} has SupportedTransportEquipment
+            {TransportEquipment}"
+      - name: UnsupportedTransportEquipment
+        description: UBL role cac:UnsupportedTransportEquipment; source occurrences
+          0..unbounded.
+        roles:
+          - concept: TransportEquipment
+        verbalizes:
+          - "{TransportationService} has UnsupportedTransportEquipment
+            {TransportEquipment}"
+      - name: CommodityClassification
+        description: UBL role cac:CommodityClassification; source occurrences 0..unbounded.
+        roles:
+          - concept: CommodityClassification
+        verbalizes:
+          - "{TransportationService} has CommodityClassification
+            {CommodityClassification}"
+      - name: SupportedCommodityClassification
+        description: UBL role cac:SupportedCommodityClassification; source occurrences
+          0..unbounded.
+        roles:
+          - concept: CommodityClassification
+        verbalizes:
+          - "{TransportationService} has SupportedCommodityClassification
+            {CommodityClassification}"
+      - name: UnsupportedCommodityClassification
+        description: UBL role cac:UnsupportedCommodityClassification; source occurrences
+          0..unbounded.
+        roles:
+          - concept: CommodityClassification
+        verbalizes:
+          - "{TransportationService} has UnsupportedCommodityClassification
+            {CommodityClassification}"
+      - name: ResponsibleTransportServiceProviderParty
+        description: UBL role cac:ResponsibleTransportServiceProviderParty; source
+          occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TransportationService} has
+            ResponsibleTransportServiceProviderParty {Party}"
+  - concept: TransportMeans
+    type: EntityType
+    iri: https://example.org/ubl-workbench#TransportMeans
+    description: UBL 2.3 TransportMeans component, projected from its published XSD.
+      Roles retain source min/max occurrence counts.
+    relationships:
+      - name: OwnerParty
+        description: UBL role cac:OwnerParty; source occurrences 0..1.
+        roles:
+          - concept: Party
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TransportMeans} has OwnerParty {Party}"
+  - concept: OrderReference
+    type: EntityType
+    iri: https://example.org/ubl-workbench#OrderReference
+    description: UBL 2.3 OrderReference component, projected from its published XSD.
+      Roles retain source min/max occurrence counts.
+    relationships:
+      - name: DocumentReference
+        description: UBL role cac:DocumentReference; source occurrences 0..1.
+        roles:
+          - concept: DocumentReference
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OrderReference} has DocumentReference {DocumentReference}"
+  - concept: BillingReference
+    type: EntityType
+    iri: https://example.org/ubl-workbench#BillingReference
+    description: UBL 2.3 BillingReference component, projected from its published
+      XSD. Roles retain source min/max occurrence counts.
+    relationships:
+      - name: InvoiceDocumentReference
+        description: UBL role cac:InvoiceDocumentReference; source occurrences 0..1.
+        roles:
+          - concept: DocumentReference
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BillingReference} has InvoiceDocumentReference {DocumentReference}"
+      - name: SelfBilledInvoiceDocumentReference
+        description: UBL role cac:SelfBilledInvoiceDocumentReference; source occurrences
+          0..1.
+        roles:
+          - concept: DocumentReference
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BillingReference} has SelfBilledInvoiceDocumentReference
+            {DocumentReference}"
+      - name: CreditNoteDocumentReference
+        description: UBL role cac:CreditNoteDocumentReference; source occurrences 0..1.
+        roles:
+          - concept: DocumentReference
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BillingReference} has CreditNoteDocumentReference
+            {DocumentReference}"
+      - name: SelfBilledCreditNoteDocumentReference
+        description: UBL role cac:SelfBilledCreditNoteDocumentReference; source
+          occurrences 0..1.
+        roles:
+          - concept: DocumentReference
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BillingReference} has SelfBilledCreditNoteDocumentReference
+            {DocumentReference}"
+      - name: DebitNoteDocumentReference
+        description: UBL role cac:DebitNoteDocumentReference; source occurrences 0..1.
+        roles:
+          - concept: DocumentReference
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BillingReference} has DebitNoteDocumentReference
+            {DocumentReference}"
+      - name: ReminderDocumentReference
+        description: UBL role cac:ReminderDocumentReference; source occurrences 0..1.
+        roles:
+          - concept: DocumentReference
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BillingReference} has ReminderDocumentReference
+            {DocumentReference}"
+      - name: AdditionalDocumentReference
+        description: UBL role cac:AdditionalDocumentReference; source occurrences 0..1.
+        roles:
+          - concept: DocumentReference
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BillingReference} has AdditionalDocumentReference
+            {DocumentReference}"
+  - concept: MonetaryTotal
+    type: EntityType
+    iri: https://example.org/ubl-workbench#MonetaryTotal
+    description: UBL 2.3 MonetaryTotal component, projected from its published XSD.
+      Roles retain source min/max occurrence counts.
+    relationships: []

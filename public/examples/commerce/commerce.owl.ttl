@@ -1,0 +1,27 @@
+@prefix c: <https://example.org/commerce#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+<https://example.org/commerce> a owl:Ontology ; rdfs:label "Commerce OWL ontology" ; owl:versionInfo "1.0.0" .
+c:Customer a owl:Class ; rdfs:label "Customer" ; rdfs:comment "Customer in the order-to-cash process." .
+c:Order a owl:Class ; rdfs:label "Order" ; rdfs:comment "Order in the order-to-cash process." .
+c:OrderLine a owl:Class ; rdfs:label "OrderLine" ; rdfs:comment "OrderLine in the order-to-cash process." .
+c:Product a owl:Class ; rdfs:label "Product" ; rdfs:comment "Product in the order-to-cash process." .
+c:Shipment a owl:Class ; rdfs:label "Shipment" ; rdfs:comment "Shipment in the order-to-cash process." .
+c:Invoice a owl:Class ; rdfs:label "Invoice" ; rdfs:comment "Invoice in the order-to-cash process." .
+c:Payment a owl:Class ; rdfs:label "Payment" ; rdfs:comment "Payment in the order-to-cash process." .
+c:Warehouse a owl:Class ; rdfs:label "Warehouse" ; rdfs:comment "Warehouse in the order-to-cash process." .
+c:places a owl:ObjectProperty ; rdfs:label "places" ; rdfs:domain c:Customer ; rdfs:range c:Order .
+c:contains a owl:ObjectProperty ; rdfs:label "contains" ; rdfs:domain c:Order ; rdfs:range c:OrderLine .
+c:product a owl:ObjectProperty ; rdfs:label "product" ; rdfs:domain c:OrderLine ; rdfs:range c:Product .
+c:shipment a owl:ObjectProperty ; rdfs:label "shipment" ; rdfs:domain c:Order ; rdfs:range c:Shipment .
+c:invoice a owl:ObjectProperty ; rdfs:label "invoice" ; rdfs:domain c:Order ; rdfs:range c:Invoice .
+c:payment a owl:ObjectProperty ; rdfs:label "payment" ; rdfs:domain c:Invoice ; rdfs:range c:Payment .
+c:warehouse a owl:ObjectProperty ; rdfs:label "warehouse" ; rdfs:domain c:Shipment ; rdfs:range c:Warehouse .
+c:email a owl:DatatypeProperty ; rdfs:domain c:Customer ; rdfs:range xsd:string .
+c:amount a owl:DatatypeProperty ; rdfs:domain c:Order ; rdfs:range xsd:decimal .
+c:placedBy a owl:ObjectProperty ; owl:inverseOf c:places ; rdfs:domain c:Order ; rdfs:range c:Customer .
+c:PaidOrder a owl:Class ; rdfs:subClassOf c:Order, [ a owl:Restriction ; owl:onProperty c:invoice ; owl:someValuesFrom c:Invoice ] .

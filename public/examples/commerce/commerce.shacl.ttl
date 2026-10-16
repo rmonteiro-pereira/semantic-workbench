@@ -1,0 +1,12 @@
+@prefix c: <https://example.org/commerce#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+c:CustomerShape a sh:NodeShape ; rdfs:label "Customer requirements" ; sh:targetClass c:Customer ;
+ sh:property [ sh:path c:email ; sh:name "Email" ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ; sh:pattern "^[^@]+@[^@]+[.][^@]+$" ] .
+c:OrderShape a sh:NodeShape ; rdfs:label "Order requirements" ; sh:targetClass c:Order ;
+ sh:property [ sh:path c:amount ; sh:name "Order amount" ; sh:datatype xsd:decimal ; sh:minInclusive 0 ; sh:minCount 1 ; sh:maxCount 1 ] ;
+ sh:property [ sh:path c:contains ; sh:name "Order lines" ; sh:class c:OrderLine ; sh:minCount 1 ] .
