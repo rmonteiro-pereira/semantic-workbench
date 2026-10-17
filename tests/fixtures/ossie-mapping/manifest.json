@@ -1,0 +1,31 @@
+{
+  "repository": "apache/ossie",
+  "commit": "64a1ae44035f5360dcd53401a29bcd900fdce349",
+  "files": [
+    {
+      "filename": "flights.mapping.yaml",
+      "sha256": "dd62e2614097d0fa3f457fdb15a4ac431cfbbc088fa0a46148d2671ca6b1215c",
+      "url": "https://raw.githubusercontent.com/apache/ossie/64a1ae44035f5360dcd53401a29bcd900fdce349/examples/flights.mapping.yaml"
+    },
+    {
+      "filename": "flights.ontology.yaml",
+      "sha256": "4035aa22494a1dfc739f5fe6689ffa74d07338497ef67a7acab69c568eae00fd",
+      "url": "https://raw.githubusercontent.com/apache/ossie/64a1ae44035f5360dcd53401a29bcd900fdce349/examples/flights.ontology.yaml"
+    },
+    {
+      "filename": "flights.semantic_model.yaml",
+      "sha256": "e0652e489c1bbf69066c9c17109175721e7d9e7e27d302a5cae9747cabbac75e",
+      "url": "https://raw.githubusercontent.com/apache/ossie/64a1ae44035f5360dcd53401a29bcd900fdce349/examples/flights.semantic_model.yaml"
+    },
+    {
+      "filename": "flights.yaml",
+      "sha256": "1d716be212d952422885fd74997583b466d267c78f5add3a71fd357f84012130",
+      "url": "https://raw.githubusercontent.com/apache/ossie/64a1ae44035f5360dcd53401a29bcd900fdce349/examples/flights.yaml"
+    },
+    {
+      "filename": "tpcds_semantic_model.yaml",
+      "sha256": "b339481f80c1c41d65396061f5d3104f339e4263bd759a2c4c92c0b9f4436af0",
+      "url": "https://raw.githubusercontent.com/apache/ossie/64a1ae44035f5360dcd53401a29bcd900fdce349/examples/tpcds_semantic_model.yaml"
+    }
+  ]
+}

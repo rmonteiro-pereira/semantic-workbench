@@ -1,5 +1,8 @@
-import{mkdtemp,rm}from'node:fs/promises';import{resolve,dirname}from'node:path';
+import{mkdtemp,rm,symlink}from'node:fs/promises';import{resolve,dirname}from'node:path';
 const root=process.cwd(),temp=await mkdtemp('/tmp/workbench-mutations-');
+// Candidate modules live outside the project; give their bare package imports
+// the same dependency tree as the real sources, without relying on Bun caches.
+await symlink(resolve(root,'node_modules'),resolve(temp,'node_modules'),'dir');
 const mutants:[string,string,string,string][]=[
  ['agent','server/agent/runtime.ts','physical.parentheses=true','physical.parentheses=false'],
  ['agent','server/agent/runtime.ts','if(!fieldMap.has(id))throw','if(false)throw'],

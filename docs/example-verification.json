@@ -1,0 +1,1565 @@
+{
+  "upstreamCommit": "64a1ae44035f5360dcd53401a29bcd900fdce349",
+  "imports": [
+    {
+      "file": "flights.mapping.yaml",
+      "kind": "Ossie mappings",
+      "entities": 11,
+      "relationships": 0,
+      "warnings": []
+    },
+    {
+      "file": "flights.ontology.yaml",
+      "kind": "Ossie ontology",
+      "entities": 49,
+      "relationships": 90,
+      "warnings": []
+    },
+    {
+      "file": "flights.semantic_model.yaml",
+      "kind": "Ossie semantic",
+      "entities": 6,
+      "relationships": 0,
+      "warnings": []
+    },
+    {
+      "file": "flights.yaml",
+      "kind": "Ossie ontology",
+      "entities": 49,
+      "relationships": 90,
+      "warnings": []
+    },
+    {
+      "file": "tpcds_semantic_model.yaml",
+      "kind": "Ossie semantic",
+      "entities": 13,
+      "relationships": 17,
+      "warnings": [
+        {
+          "severity": "warning",
+          "code": "coverage",
+          "path": "/datasets/0/primary_key/1",
+          "message": "Key column \"ss_ticket_number\" is not exposed as a logical field. Its physical binding cannot be checked from this catalog.",
+          "line": 34,
+          "column": 31
+        }
+      ]
+    }
+  ],
+  "generated": {
+    "businessEntities": 36,
+    "datasets": 36,
+    "joins": 46,
+    "bindings": 119,
+    "governedMetrics": 4
+  },
+  "sqlExecutions": [
+    {
+      "example": "upstream Flights standalone",
+      "sql": "SELECT\n  \"AIRPORT\".name AS \"dimension_1\"\nFROM \"DATABASE\".\"SCHEMA\".\"AIRPORTS\" AS \"AIRPORT\";",
+      "testAdapter": "DATABASE.SCHEMA → flights (synthetic SQLite fixture only)",
+      "result": [
+        "Boston",
+        "Denver",
+        "Seattle"
+      ]
+    },
+    {
+      "example": "upstream Flights embedded",
+      "sql": "SELECT\n  \"AIRPORT\".name AS \"dimension_1\"\nFROM \"DATABASE\".\"SCHEMA\".\"AIRPORTS\" AS \"AIRPORT\";",
+      "testAdapter": "DATABASE.SCHEMA → flights (synthetic SQLite fixture only)",
+      "result": [
+        "Boston",
+        "Denver",
+        "Seattle"
+      ]
+    },
+    {
+      "example": "generated subscription billing",
+      "metric": "net_revenue",
+      "dimension": null,
+      "result": {
+        "total": 2090
+      }
+    },
+    {
+      "example": "generated subscription billing",
+      "metric": "net_revenue",
+      "dimension": [
+        "plans",
+        "tier"
+      ],
+      "result": {
+        "unmatched": 80,
+        "Enterprise": 1350,
+        "Growth": 560,
+        "Usage": 100
+      }
+    },
+    {
+      "example": "generated subscription billing",
+      "metric": "net_revenue",
+      "dimension": [
+        "product_families",
+        "name"
+      ],
+      "result": {
+        "unmatched": 80,
+        "Platform": 1910,
+        "Usage": 100
+      }
+    },
+    {
+      "example": "generated subscription billing",
+      "metric": "net_revenue",
+      "dimension": [
+        "currencies",
+        "code"
+      ],
+      "result": {
+        "USD": 2090
+      }
+    },
+    {
+      "example": "generated subscription billing",
+      "metric": "recurring_revenue",
+      "dimension": null,
+      "result": {
+        "total": 1990
+      }
+    },
+    {
+      "example": "generated subscription billing",
+      "metric": "recurring_revenue",
+      "dimension": [
+        "plans",
+        "tier"
+      ],
+      "result": {
+        "unmatched": 80,
+        "Enterprise": 1350,
+        "Growth": 560,
+        "Usage": 0
+      }
+    },
+    {
+      "example": "generated subscription billing",
+      "metric": "recurring_revenue",
+      "dimension": [
+        "product_families",
+        "name"
+      ],
+      "result": {
+        "unmatched": 80,
+        "Platform": 1910,
+        "Usage": 0
+      }
+    },
+    {
+      "example": "generated subscription billing",
+      "metric": "recurring_revenue",
+      "dimension": [
+        "currencies",
+        "code"
+      ],
+      "result": {
+        "USD": 1990
+      }
+    },
+    {
+      "example": "generated subscription billing",
+      "metric": "invoice_count",
+      "dimension": null,
+      "result": {
+        "total": 6
+      }
+    },
+    {
+      "example": "generated subscription billing",
+      "metric": "invoice_count",
+      "dimension": [
+        "plans",
+        "tier"
+      ],
+      "result": {
+        "unmatched": 1,
+        "Enterprise": 2,
+        "Growth": 3,
+        "Usage": 2
+      }
+    },
+    {
+      "example": "generated subscription billing",
+      "metric": "invoice_count",
+      "dimension": [
+        "product_families",
+        "name"
+      ],
+      "result": {
+        "unmatched": 1,
+        "Platform": 5,
+        "Usage": 2
+      }
+    },
+    {
+      "example": "generated subscription billing",
+      "metric": "invoice_count",
+      "dimension": [
+        "currencies",
+        "code"
+      ],
+      "result": {
+        "USD": 6
+      }
+    },
+    {
+      "example": "generated subscription billing",
+      "metric": "revenue_per_invoice",
+      "dimension": null,
+      "result": {
+        "total": 348.3333333333333
+      }
+    },
+    {
+      "example": "generated subscription billing",
+      "metric": "revenue_per_invoice",
+      "dimension": [
+        "plans",
+        "tier"
+      ],
+      "result": {
+        "unmatched": 80,
+        "Enterprise": 675,
+        "Growth": 186.66666666666666,
+        "Usage": 50
+      }
+    },
+    {
+      "example": "generated subscription billing",
+      "metric": "revenue_per_invoice",
+      "dimension": [
+        "product_families",
+        "name"
+      ],
+      "result": {
+        "unmatched": 80,
+        "Platform": 382,
+        "Usage": 50
+      }
+    },
+    {
+      "example": "generated subscription billing",
+      "metric": "revenue_per_invoice",
+      "dimension": [
+        "currencies",
+        "code"
+      ],
+      "result": {
+        "USD": 348.3333333333333
+      }
+    },
+    {
+      "example": "generated subscription billing",
+      "metric": "mixed revenue/count/ratio",
+      "dimension": [
+        "plans",
+        "tier"
+      ],
+      "result": [
+        {
+          "dimension_1": null,
+          "metric_1": 80,
+          "metric_2": 1,
+          "metric_3": 80
+        },
+        {
+          "dimension_1": "Enterprise",
+          "metric_1": 1350,
+          "metric_2": 2,
+          "metric_3": 675
+        },
+        {
+          "dimension_1": "Growth",
+          "metric_1": 560,
+          "metric_2": 3,
+          "metric_3": 186.66666666666666
+        },
+        {
+          "dimension_1": "Usage",
+          "metric_1": 100,
+          "metric_2": 2,
+          "metric_3": 50
+        }
+      ]
+    },
+    {
+      "example": "generated subscription billing",
+      "metric": "net_revenue",
+      "dimension": [
+        "plan tier",
+        "product family"
+      ],
+      "result": [
+        {
+          "dimension_1": null,
+          "dimension_2": null,
+          "metric_1": 80
+        },
+        {
+          "dimension_1": "Enterprise",
+          "dimension_2": "Platform",
+          "metric_1": 1350
+        },
+        {
+          "dimension_1": "Growth",
+          "dimension_2": "Platform",
+          "metric_1": 560
+        },
+        {
+          "dimension_1": "Usage",
+          "dimension_2": "Usage",
+          "metric_1": 100
+        }
+      ]
+    }
+  ],
+  "blockedCases": [
+    "Flights conditional population mapping needs explicit interpretation",
+    "BillingCycle has billed-cycle and subscribed-cycle paths; no role was guessed"
+  ],
+  "governedDefinitionsUnchanged": true,
+  "plans": [
+    {
+      "sql": "SELECT\n  SUM((\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount)) AS \"metric_1\"\nFROM \"billing\".\"invoice_lines\" AS \"invoice_lines\";",
+      "metrics": [
+        {
+          "alias": "metric_1",
+          "sql": "SUM((\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount))",
+          "metricId": "net_revenue",
+          "governedExpression": {
+            "dialects": [
+              {
+                "dialect": "ANSI_SQL",
+                "expression": "SUM(invoice_lines.net_amount)"
+              }
+            ]
+          },
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "metrics",
+              0
+            ]
+          }
+        }
+      ],
+      "dimensions": [],
+      "joins": [],
+      "documents": [
+        {
+          "documentId": "billing-0",
+          "filename": "billing.mapping.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-1",
+          "filename": "billing.ontology.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-2",
+          "filename": "billing.semantic.yaml",
+          "revision": 1,
+          "path": []
+        }
+      ]
+    },
+    {
+      "sql": "SELECT\n  \"plans\".tier AS \"dimension_1\",\n  SUM((\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount)) AS \"metric_1\"\nFROM \"billing\".\"invoice_lines\" AS \"invoice_lines\"\nLEFT JOIN \"billing\".\"subscription_items\" AS \"subscription_items\" ON \"invoice_lines\".subscription_item_id = \"subscription_items\".id\nLEFT JOIN \"billing\".\"plans\" AS \"plans\" ON \"subscription_items\".plan_id = \"plans\".id\nGROUP BY \"plans\".tier;",
+      "metrics": [
+        {
+          "alias": "metric_1",
+          "sql": "SUM((\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount))",
+          "metricId": "net_revenue",
+          "governedExpression": {
+            "dialects": [
+              {
+                "dialect": "ANSI_SQL",
+                "expression": "SUM(invoice_lines.net_amount)"
+              }
+            ]
+          },
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "metrics",
+              0
+            ]
+          }
+        }
+      ],
+      "dimensions": [
+        {
+          "alias": "dimension_1",
+          "sql": "\"plans\".tier",
+          "fieldId": "[\"plans\",\"tier\"]",
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "datasets",
+              12,
+              "fields",
+              3
+            ]
+          }
+        }
+      ],
+      "joins": [
+        "invoice_lines_subscription_item",
+        "subscription_items_plan"
+      ],
+      "documents": [
+        {
+          "documentId": "billing-0",
+          "filename": "billing.mapping.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-1",
+          "filename": "billing.ontology.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-2",
+          "filename": "billing.semantic.yaml",
+          "revision": 1,
+          "path": []
+        }
+      ]
+    },
+    {
+      "sql": "SELECT\n  \"product_families\".name AS \"dimension_1\",\n  SUM((\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount)) AS \"metric_1\"\nFROM \"billing\".\"invoice_lines\" AS \"invoice_lines\"\nLEFT JOIN \"billing\".\"subscription_items\" AS \"subscription_items\" ON \"invoice_lines\".subscription_item_id = \"subscription_items\".id\nLEFT JOIN \"billing\".\"plans\" AS \"plans\" ON \"subscription_items\".plan_id = \"plans\".id\nLEFT JOIN \"billing\".\"products\" AS \"products\" ON \"plans\".product_id = \"products\".id\nLEFT JOIN \"billing\".\"product_families\" AS \"product_families\" ON \"products\".family_id = \"product_families\".id\nGROUP BY \"product_families\".name;",
+      "metrics": [
+        {
+          "alias": "metric_1",
+          "sql": "SUM((\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount))",
+          "metricId": "net_revenue",
+          "governedExpression": {
+            "dialects": [
+              {
+                "dialect": "ANSI_SQL",
+                "expression": "SUM(invoice_lines.net_amount)"
+              }
+            ]
+          },
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "metrics",
+              0
+            ]
+          }
+        }
+      ],
+      "dimensions": [
+        {
+          "alias": "dimension_1",
+          "sql": "\"product_families\".name",
+          "fieldId": "[\"product_families\",\"name\"]",
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "datasets",
+              14,
+              "fields",
+              1
+            ]
+          }
+        }
+      ],
+      "joins": [
+        "invoice_lines_subscription_item",
+        "subscription_items_plan",
+        "plans_product",
+        "products_family"
+      ],
+      "documents": [
+        {
+          "documentId": "billing-0",
+          "filename": "billing.mapping.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-1",
+          "filename": "billing.ontology.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-2",
+          "filename": "billing.semantic.yaml",
+          "revision": 1,
+          "path": []
+        }
+      ]
+    },
+    {
+      "sql": "SELECT\n  \"currencies\".code AS \"dimension_1\",\n  SUM((\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount)) AS \"metric_1\"\nFROM \"billing\".\"invoice_lines\" AS \"invoice_lines\"\nLEFT JOIN \"billing\".\"invoices\" AS \"invoices\" ON \"invoice_lines\".invoice_id = \"invoices\".id\nLEFT JOIN \"billing\".\"currencies\" AS \"currencies\" ON \"invoices\".currency_id = \"currencies\".id\nGROUP BY \"currencies\".code;",
+      "metrics": [
+        {
+          "alias": "metric_1",
+          "sql": "SUM((\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount))",
+          "metricId": "net_revenue",
+          "governedExpression": {
+            "dialects": [
+              {
+                "dialect": "ANSI_SQL",
+                "expression": "SUM(invoice_lines.net_amount)"
+              }
+            ]
+          },
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "metrics",
+              0
+            ]
+          }
+        }
+      ],
+      "dimensions": [
+        {
+          "alias": "dimension_1",
+          "sql": "\"currencies\".code",
+          "fieldId": "[\"currencies\",\"code\"]",
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "datasets",
+              31,
+              "fields",
+              2
+            ]
+          }
+        }
+      ],
+      "joins": [
+        "invoice_lines_invoice",
+        "invoices_currency"
+      ],
+      "documents": [
+        {
+          "documentId": "billing-0",
+          "filename": "billing.mapping.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-1",
+          "filename": "billing.ontology.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-2",
+          "filename": "billing.semantic.yaml",
+          "revision": 1,
+          "path": []
+        }
+      ]
+    },
+    {
+      "sql": "SELECT\n  SUM(CASE WHEN \"invoice_lines\".is_recurring = 1 THEN (\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount) ELSE 0 END) AS \"metric_1\"\nFROM \"billing\".\"invoice_lines\" AS \"invoice_lines\";",
+      "metrics": [
+        {
+          "alias": "metric_1",
+          "sql": "SUM(CASE WHEN \"invoice_lines\".is_recurring = 1 THEN (\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount) ELSE 0 END)",
+          "metricId": "recurring_revenue",
+          "governedExpression": {
+            "dialects": [
+              {
+                "dialect": "ANSI_SQL",
+                "expression": "SUM(CASE WHEN invoice_lines.is_recurring = 1 THEN invoice_lines.net_amount ELSE 0 END)"
+              }
+            ]
+          },
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "metrics",
+              1
+            ]
+          }
+        }
+      ],
+      "dimensions": [],
+      "joins": [],
+      "documents": [
+        {
+          "documentId": "billing-0",
+          "filename": "billing.mapping.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-1",
+          "filename": "billing.ontology.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-2",
+          "filename": "billing.semantic.yaml",
+          "revision": 1,
+          "path": []
+        }
+      ]
+    },
+    {
+      "sql": "SELECT\n  \"plans\".tier AS \"dimension_1\",\n  SUM(CASE WHEN \"invoice_lines\".is_recurring = 1 THEN (\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount) ELSE 0 END) AS \"metric_1\"\nFROM \"billing\".\"invoice_lines\" AS \"invoice_lines\"\nLEFT JOIN \"billing\".\"subscription_items\" AS \"subscription_items\" ON \"invoice_lines\".subscription_item_id = \"subscription_items\".id\nLEFT JOIN \"billing\".\"plans\" AS \"plans\" ON \"subscription_items\".plan_id = \"plans\".id\nGROUP BY \"plans\".tier;",
+      "metrics": [
+        {
+          "alias": "metric_1",
+          "sql": "SUM(CASE WHEN \"invoice_lines\".is_recurring = 1 THEN (\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount) ELSE 0 END)",
+          "metricId": "recurring_revenue",
+          "governedExpression": {
+            "dialects": [
+              {
+                "dialect": "ANSI_SQL",
+                "expression": "SUM(CASE WHEN invoice_lines.is_recurring = 1 THEN invoice_lines.net_amount ELSE 0 END)"
+              }
+            ]
+          },
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "metrics",
+              1
+            ]
+          }
+        }
+      ],
+      "dimensions": [
+        {
+          "alias": "dimension_1",
+          "sql": "\"plans\".tier",
+          "fieldId": "[\"plans\",\"tier\"]",
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "datasets",
+              12,
+              "fields",
+              3
+            ]
+          }
+        }
+      ],
+      "joins": [
+        "invoice_lines_subscription_item",
+        "subscription_items_plan"
+      ],
+      "documents": [
+        {
+          "documentId": "billing-0",
+          "filename": "billing.mapping.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-1",
+          "filename": "billing.ontology.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-2",
+          "filename": "billing.semantic.yaml",
+          "revision": 1,
+          "path": []
+        }
+      ]
+    },
+    {
+      "sql": "SELECT\n  \"product_families\".name AS \"dimension_1\",\n  SUM(CASE WHEN \"invoice_lines\".is_recurring = 1 THEN (\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount) ELSE 0 END) AS \"metric_1\"\nFROM \"billing\".\"invoice_lines\" AS \"invoice_lines\"\nLEFT JOIN \"billing\".\"subscription_items\" AS \"subscription_items\" ON \"invoice_lines\".subscription_item_id = \"subscription_items\".id\nLEFT JOIN \"billing\".\"plans\" AS \"plans\" ON \"subscription_items\".plan_id = \"plans\".id\nLEFT JOIN \"billing\".\"products\" AS \"products\" ON \"plans\".product_id = \"products\".id\nLEFT JOIN \"billing\".\"product_families\" AS \"product_families\" ON \"products\".family_id = \"product_families\".id\nGROUP BY \"product_families\".name;",
+      "metrics": [
+        {
+          "alias": "metric_1",
+          "sql": "SUM(CASE WHEN \"invoice_lines\".is_recurring = 1 THEN (\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount) ELSE 0 END)",
+          "metricId": "recurring_revenue",
+          "governedExpression": {
+            "dialects": [
+              {
+                "dialect": "ANSI_SQL",
+                "expression": "SUM(CASE WHEN invoice_lines.is_recurring = 1 THEN invoice_lines.net_amount ELSE 0 END)"
+              }
+            ]
+          },
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "metrics",
+              1
+            ]
+          }
+        }
+      ],
+      "dimensions": [
+        {
+          "alias": "dimension_1",
+          "sql": "\"product_families\".name",
+          "fieldId": "[\"product_families\",\"name\"]",
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "datasets",
+              14,
+              "fields",
+              1
+            ]
+          }
+        }
+      ],
+      "joins": [
+        "invoice_lines_subscription_item",
+        "subscription_items_plan",
+        "plans_product",
+        "products_family"
+      ],
+      "documents": [
+        {
+          "documentId": "billing-0",
+          "filename": "billing.mapping.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-1",
+          "filename": "billing.ontology.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-2",
+          "filename": "billing.semantic.yaml",
+          "revision": 1,
+          "path": []
+        }
+      ]
+    },
+    {
+      "sql": "SELECT\n  \"currencies\".code AS \"dimension_1\",\n  SUM(CASE WHEN \"invoice_lines\".is_recurring = 1 THEN (\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount) ELSE 0 END) AS \"metric_1\"\nFROM \"billing\".\"invoice_lines\" AS \"invoice_lines\"\nLEFT JOIN \"billing\".\"invoices\" AS \"invoices\" ON \"invoice_lines\".invoice_id = \"invoices\".id\nLEFT JOIN \"billing\".\"currencies\" AS \"currencies\" ON \"invoices\".currency_id = \"currencies\".id\nGROUP BY \"currencies\".code;",
+      "metrics": [
+        {
+          "alias": "metric_1",
+          "sql": "SUM(CASE WHEN \"invoice_lines\".is_recurring = 1 THEN (\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount) ELSE 0 END)",
+          "metricId": "recurring_revenue",
+          "governedExpression": {
+            "dialects": [
+              {
+                "dialect": "ANSI_SQL",
+                "expression": "SUM(CASE WHEN invoice_lines.is_recurring = 1 THEN invoice_lines.net_amount ELSE 0 END)"
+              }
+            ]
+          },
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "metrics",
+              1
+            ]
+          }
+        }
+      ],
+      "dimensions": [
+        {
+          "alias": "dimension_1",
+          "sql": "\"currencies\".code",
+          "fieldId": "[\"currencies\",\"code\"]",
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "datasets",
+              31,
+              "fields",
+              2
+            ]
+          }
+        }
+      ],
+      "joins": [
+        "invoice_lines_invoice",
+        "invoices_currency"
+      ],
+      "documents": [
+        {
+          "documentId": "billing-0",
+          "filename": "billing.mapping.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-1",
+          "filename": "billing.ontology.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-2",
+          "filename": "billing.semantic.yaml",
+          "revision": 1,
+          "path": []
+        }
+      ]
+    },
+    {
+      "sql": "SELECT\n  COUNT(DISTINCT \"invoice_lines\".invoice_id) AS \"metric_1\"\nFROM \"billing\".\"invoice_lines\" AS \"invoice_lines\";",
+      "metrics": [
+        {
+          "alias": "metric_1",
+          "sql": "COUNT(DISTINCT \"invoice_lines\".invoice_id)",
+          "metricId": "invoice_count",
+          "governedExpression": {
+            "dialects": [
+              {
+                "dialect": "ANSI_SQL",
+                "expression": "COUNT(DISTINCT invoice_lines.invoice_id)"
+              }
+            ]
+          },
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "metrics",
+              2
+            ]
+          }
+        }
+      ],
+      "dimensions": [],
+      "joins": [],
+      "documents": [
+        {
+          "documentId": "billing-0",
+          "filename": "billing.mapping.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-1",
+          "filename": "billing.ontology.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-2",
+          "filename": "billing.semantic.yaml",
+          "revision": 1,
+          "path": []
+        }
+      ]
+    },
+    {
+      "sql": "SELECT\n  \"plans\".tier AS \"dimension_1\",\n  COUNT(DISTINCT \"invoice_lines\".invoice_id) AS \"metric_1\"\nFROM \"billing\".\"invoice_lines\" AS \"invoice_lines\"\nLEFT JOIN \"billing\".\"subscription_items\" AS \"subscription_items\" ON \"invoice_lines\".subscription_item_id = \"subscription_items\".id\nLEFT JOIN \"billing\".\"plans\" AS \"plans\" ON \"subscription_items\".plan_id = \"plans\".id\nGROUP BY \"plans\".tier;",
+      "metrics": [
+        {
+          "alias": "metric_1",
+          "sql": "COUNT(DISTINCT \"invoice_lines\".invoice_id)",
+          "metricId": "invoice_count",
+          "governedExpression": {
+            "dialects": [
+              {
+                "dialect": "ANSI_SQL",
+                "expression": "COUNT(DISTINCT invoice_lines.invoice_id)"
+              }
+            ]
+          },
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "metrics",
+              2
+            ]
+          }
+        }
+      ],
+      "dimensions": [
+        {
+          "alias": "dimension_1",
+          "sql": "\"plans\".tier",
+          "fieldId": "[\"plans\",\"tier\"]",
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "datasets",
+              12,
+              "fields",
+              3
+            ]
+          }
+        }
+      ],
+      "joins": [
+        "invoice_lines_subscription_item",
+        "subscription_items_plan"
+      ],
+      "documents": [
+        {
+          "documentId": "billing-0",
+          "filename": "billing.mapping.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-1",
+          "filename": "billing.ontology.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-2",
+          "filename": "billing.semantic.yaml",
+          "revision": 1,
+          "path": []
+        }
+      ]
+    },
+    {
+      "sql": "SELECT\n  \"product_families\".name AS \"dimension_1\",\n  COUNT(DISTINCT \"invoice_lines\".invoice_id) AS \"metric_1\"\nFROM \"billing\".\"invoice_lines\" AS \"invoice_lines\"\nLEFT JOIN \"billing\".\"subscription_items\" AS \"subscription_items\" ON \"invoice_lines\".subscription_item_id = \"subscription_items\".id\nLEFT JOIN \"billing\".\"plans\" AS \"plans\" ON \"subscription_items\".plan_id = \"plans\".id\nLEFT JOIN \"billing\".\"products\" AS \"products\" ON \"plans\".product_id = \"products\".id\nLEFT JOIN \"billing\".\"product_families\" AS \"product_families\" ON \"products\".family_id = \"product_families\".id\nGROUP BY \"product_families\".name;",
+      "metrics": [
+        {
+          "alias": "metric_1",
+          "sql": "COUNT(DISTINCT \"invoice_lines\".invoice_id)",
+          "metricId": "invoice_count",
+          "governedExpression": {
+            "dialects": [
+              {
+                "dialect": "ANSI_SQL",
+                "expression": "COUNT(DISTINCT invoice_lines.invoice_id)"
+              }
+            ]
+          },
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "metrics",
+              2
+            ]
+          }
+        }
+      ],
+      "dimensions": [
+        {
+          "alias": "dimension_1",
+          "sql": "\"product_families\".name",
+          "fieldId": "[\"product_families\",\"name\"]",
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "datasets",
+              14,
+              "fields",
+              1
+            ]
+          }
+        }
+      ],
+      "joins": [
+        "invoice_lines_subscription_item",
+        "subscription_items_plan",
+        "plans_product",
+        "products_family"
+      ],
+      "documents": [
+        {
+          "documentId": "billing-0",
+          "filename": "billing.mapping.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-1",
+          "filename": "billing.ontology.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-2",
+          "filename": "billing.semantic.yaml",
+          "revision": 1,
+          "path": []
+        }
+      ]
+    },
+    {
+      "sql": "SELECT\n  \"currencies\".code AS \"dimension_1\",\n  COUNT(DISTINCT \"invoice_lines\".invoice_id) AS \"metric_1\"\nFROM \"billing\".\"invoice_lines\" AS \"invoice_lines\"\nLEFT JOIN \"billing\".\"invoices\" AS \"invoices\" ON \"invoice_lines\".invoice_id = \"invoices\".id\nLEFT JOIN \"billing\".\"currencies\" AS \"currencies\" ON \"invoices\".currency_id = \"currencies\".id\nGROUP BY \"currencies\".code;",
+      "metrics": [
+        {
+          "alias": "metric_1",
+          "sql": "COUNT(DISTINCT \"invoice_lines\".invoice_id)",
+          "metricId": "invoice_count",
+          "governedExpression": {
+            "dialects": [
+              {
+                "dialect": "ANSI_SQL",
+                "expression": "COUNT(DISTINCT invoice_lines.invoice_id)"
+              }
+            ]
+          },
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "metrics",
+              2
+            ]
+          }
+        }
+      ],
+      "dimensions": [
+        {
+          "alias": "dimension_1",
+          "sql": "\"currencies\".code",
+          "fieldId": "[\"currencies\",\"code\"]",
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "datasets",
+              31,
+              "fields",
+              2
+            ]
+          }
+        }
+      ],
+      "joins": [
+        "invoice_lines_invoice",
+        "invoices_currency"
+      ],
+      "documents": [
+        {
+          "documentId": "billing-0",
+          "filename": "billing.mapping.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-1",
+          "filename": "billing.ontology.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-2",
+          "filename": "billing.semantic.yaml",
+          "revision": 1,
+          "path": []
+        }
+      ]
+    },
+    {
+      "sql": "SELECT\n  SUM((\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount)) / NULLIF(COUNT(DISTINCT \"invoice_lines\".invoice_id), 0) AS \"metric_1\"\nFROM \"billing\".\"invoice_lines\" AS \"invoice_lines\";",
+      "metrics": [
+        {
+          "alias": "metric_1",
+          "sql": "SUM((\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount)) / NULLIF(COUNT(DISTINCT \"invoice_lines\".invoice_id), 0)",
+          "metricId": "revenue_per_invoice",
+          "governedExpression": {
+            "dialects": [
+              {
+                "dialect": "ANSI_SQL",
+                "expression": "net_revenue / NULLIF(invoice_count, 0)"
+              }
+            ]
+          },
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "metrics",
+              3
+            ]
+          }
+        }
+      ],
+      "dimensions": [],
+      "joins": [],
+      "documents": [
+        {
+          "documentId": "billing-0",
+          "filename": "billing.mapping.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-1",
+          "filename": "billing.ontology.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-2",
+          "filename": "billing.semantic.yaml",
+          "revision": 1,
+          "path": []
+        }
+      ]
+    },
+    {
+      "sql": "SELECT\n  \"plans\".tier AS \"dimension_1\",\n  SUM((\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount)) / NULLIF(COUNT(DISTINCT \"invoice_lines\".invoice_id), 0) AS \"metric_1\"\nFROM \"billing\".\"invoice_lines\" AS \"invoice_lines\"\nLEFT JOIN \"billing\".\"subscription_items\" AS \"subscription_items\" ON \"invoice_lines\".subscription_item_id = \"subscription_items\".id\nLEFT JOIN \"billing\".\"plans\" AS \"plans\" ON \"subscription_items\".plan_id = \"plans\".id\nGROUP BY \"plans\".tier;",
+      "metrics": [
+        {
+          "alias": "metric_1",
+          "sql": "SUM((\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount)) / NULLIF(COUNT(DISTINCT \"invoice_lines\".invoice_id), 0)",
+          "metricId": "revenue_per_invoice",
+          "governedExpression": {
+            "dialects": [
+              {
+                "dialect": "ANSI_SQL",
+                "expression": "net_revenue / NULLIF(invoice_count, 0)"
+              }
+            ]
+          },
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "metrics",
+              3
+            ]
+          }
+        }
+      ],
+      "dimensions": [
+        {
+          "alias": "dimension_1",
+          "sql": "\"plans\".tier",
+          "fieldId": "[\"plans\",\"tier\"]",
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "datasets",
+              12,
+              "fields",
+              3
+            ]
+          }
+        }
+      ],
+      "joins": [
+        "invoice_lines_subscription_item",
+        "subscription_items_plan"
+      ],
+      "documents": [
+        {
+          "documentId": "billing-0",
+          "filename": "billing.mapping.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-1",
+          "filename": "billing.ontology.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-2",
+          "filename": "billing.semantic.yaml",
+          "revision": 1,
+          "path": []
+        }
+      ]
+    },
+    {
+      "sql": "SELECT\n  \"product_families\".name AS \"dimension_1\",\n  SUM((\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount)) / NULLIF(COUNT(DISTINCT \"invoice_lines\".invoice_id), 0) AS \"metric_1\"\nFROM \"billing\".\"invoice_lines\" AS \"invoice_lines\"\nLEFT JOIN \"billing\".\"subscription_items\" AS \"subscription_items\" ON \"invoice_lines\".subscription_item_id = \"subscription_items\".id\nLEFT JOIN \"billing\".\"plans\" AS \"plans\" ON \"subscription_items\".plan_id = \"plans\".id\nLEFT JOIN \"billing\".\"products\" AS \"products\" ON \"plans\".product_id = \"products\".id\nLEFT JOIN \"billing\".\"product_families\" AS \"product_families\" ON \"products\".family_id = \"product_families\".id\nGROUP BY \"product_families\".name;",
+      "metrics": [
+        {
+          "alias": "metric_1",
+          "sql": "SUM((\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount)) / NULLIF(COUNT(DISTINCT \"invoice_lines\".invoice_id), 0)",
+          "metricId": "revenue_per_invoice",
+          "governedExpression": {
+            "dialects": [
+              {
+                "dialect": "ANSI_SQL",
+                "expression": "net_revenue / NULLIF(invoice_count, 0)"
+              }
+            ]
+          },
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "metrics",
+              3
+            ]
+          }
+        }
+      ],
+      "dimensions": [
+        {
+          "alias": "dimension_1",
+          "sql": "\"product_families\".name",
+          "fieldId": "[\"product_families\",\"name\"]",
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "datasets",
+              14,
+              "fields",
+              1
+            ]
+          }
+        }
+      ],
+      "joins": [
+        "invoice_lines_subscription_item",
+        "subscription_items_plan",
+        "plans_product",
+        "products_family"
+      ],
+      "documents": [
+        {
+          "documentId": "billing-0",
+          "filename": "billing.mapping.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-1",
+          "filename": "billing.ontology.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-2",
+          "filename": "billing.semantic.yaml",
+          "revision": 1,
+          "path": []
+        }
+      ]
+    },
+    {
+      "sql": "SELECT\n  \"currencies\".code AS \"dimension_1\",\n  SUM((\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount)) / NULLIF(COUNT(DISTINCT \"invoice_lines\".invoice_id), 0) AS \"metric_1\"\nFROM \"billing\".\"invoice_lines\" AS \"invoice_lines\"\nLEFT JOIN \"billing\".\"invoices\" AS \"invoices\" ON \"invoice_lines\".invoice_id = \"invoices\".id\nLEFT JOIN \"billing\".\"currencies\" AS \"currencies\" ON \"invoices\".currency_id = \"currencies\".id\nGROUP BY \"currencies\".code;",
+      "metrics": [
+        {
+          "alias": "metric_1",
+          "sql": "SUM((\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount)) / NULLIF(COUNT(DISTINCT \"invoice_lines\".invoice_id), 0)",
+          "metricId": "revenue_per_invoice",
+          "governedExpression": {
+            "dialects": [
+              {
+                "dialect": "ANSI_SQL",
+                "expression": "net_revenue / NULLIF(invoice_count, 0)"
+              }
+            ]
+          },
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "metrics",
+              3
+            ]
+          }
+        }
+      ],
+      "dimensions": [
+        {
+          "alias": "dimension_1",
+          "sql": "\"currencies\".code",
+          "fieldId": "[\"currencies\",\"code\"]",
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "datasets",
+              31,
+              "fields",
+              2
+            ]
+          }
+        }
+      ],
+      "joins": [
+        "invoice_lines_invoice",
+        "invoices_currency"
+      ],
+      "documents": [
+        {
+          "documentId": "billing-0",
+          "filename": "billing.mapping.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-1",
+          "filename": "billing.ontology.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-2",
+          "filename": "billing.semantic.yaml",
+          "revision": 1,
+          "path": []
+        }
+      ]
+    },
+    {
+      "sql": "SELECT\n  \"plans\".tier AS \"dimension_1\",\n  SUM((\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount)) AS \"metric_1\",\n  COUNT(DISTINCT \"invoice_lines\".invoice_id) AS \"metric_2\",\n  SUM((\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount)) / NULLIF(COUNT(DISTINCT \"invoice_lines\".invoice_id), 0) AS \"metric_3\"\nFROM \"billing\".\"invoice_lines\" AS \"invoice_lines\"\nLEFT JOIN \"billing\".\"subscription_items\" AS \"subscription_items\" ON \"invoice_lines\".subscription_item_id = \"subscription_items\".id\nLEFT JOIN \"billing\".\"plans\" AS \"plans\" ON \"subscription_items\".plan_id = \"plans\".id\nGROUP BY \"plans\".tier;",
+      "metrics": [
+        {
+          "alias": "metric_1",
+          "sql": "SUM((\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount))",
+          "metricId": "net_revenue",
+          "governedExpression": {
+            "dialects": [
+              {
+                "dialect": "ANSI_SQL",
+                "expression": "SUM(invoice_lines.net_amount)"
+              }
+            ]
+          },
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "metrics",
+              0
+            ]
+          }
+        },
+        {
+          "alias": "metric_2",
+          "sql": "COUNT(DISTINCT \"invoice_lines\".invoice_id)",
+          "metricId": "invoice_count",
+          "governedExpression": {
+            "dialects": [
+              {
+                "dialect": "ANSI_SQL",
+                "expression": "COUNT(DISTINCT invoice_lines.invoice_id)"
+              }
+            ]
+          },
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "metrics",
+              2
+            ]
+          }
+        },
+        {
+          "alias": "metric_3",
+          "sql": "SUM((\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount)) / NULLIF(COUNT(DISTINCT \"invoice_lines\".invoice_id), 0)",
+          "metricId": "revenue_per_invoice",
+          "governedExpression": {
+            "dialects": [
+              {
+                "dialect": "ANSI_SQL",
+                "expression": "net_revenue / NULLIF(invoice_count, 0)"
+              }
+            ]
+          },
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "metrics",
+              3
+            ]
+          }
+        }
+      ],
+      "dimensions": [
+        {
+          "alias": "dimension_1",
+          "sql": "\"plans\".tier",
+          "fieldId": "[\"plans\",\"tier\"]",
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "datasets",
+              12,
+              "fields",
+              3
+            ]
+          }
+        }
+      ],
+      "joins": [
+        "invoice_lines_subscription_item",
+        "subscription_items_plan"
+      ],
+      "documents": [
+        {
+          "documentId": "billing-0",
+          "filename": "billing.mapping.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-1",
+          "filename": "billing.ontology.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-2",
+          "filename": "billing.semantic.yaml",
+          "revision": 1,
+          "path": []
+        }
+      ]
+    },
+    {
+      "sql": "SELECT\n  \"plans\".tier AS \"dimension_1\",\n  \"product_families\".name AS \"dimension_2\",\n  SUM((\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount)) AS \"metric_1\"\nFROM \"billing\".\"invoice_lines\" AS \"invoice_lines\"\nLEFT JOIN \"billing\".\"subscription_items\" AS \"subscription_items\" ON \"invoice_lines\".subscription_item_id = \"subscription_items\".id\nLEFT JOIN \"billing\".\"plans\" AS \"plans\" ON \"subscription_items\".plan_id = \"plans\".id\nLEFT JOIN \"billing\".\"products\" AS \"products\" ON \"plans\".product_id = \"products\".id\nLEFT JOIN \"billing\".\"product_families\" AS \"product_families\" ON \"products\".family_id = \"product_families\".id\nGROUP BY \"plans\".tier, \"product_families\".name;",
+      "metrics": [
+        {
+          "alias": "metric_1",
+          "sql": "SUM((\"invoice_lines\".quantity * \"invoice_lines\".unit_price - \"invoice_lines\".discount_amount))",
+          "metricId": "net_revenue",
+          "governedExpression": {
+            "dialects": [
+              {
+                "dialect": "ANSI_SQL",
+                "expression": "SUM(invoice_lines.net_amount)"
+              }
+            ]
+          },
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "metrics",
+              0
+            ]
+          }
+        }
+      ],
+      "dimensions": [
+        {
+          "alias": "dimension_1",
+          "sql": "\"plans\".tier",
+          "fieldId": "[\"plans\",\"tier\"]",
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "datasets",
+              12,
+              "fields",
+              3
+            ]
+          }
+        },
+        {
+          "alias": "dimension_2",
+          "sql": "\"product_families\".name",
+          "fieldId": "[\"product_families\",\"name\"]",
+          "evidence": {
+            "documentId": "billing-2",
+            "filename": "billing.semantic.yaml",
+            "revision": 1,
+            "path": [
+              "datasets",
+              14,
+              "fields",
+              1
+            ]
+          }
+        }
+      ],
+      "joins": [
+        "invoice_lines_subscription_item",
+        "subscription_items_plan",
+        "plans_product",
+        "products_family"
+      ],
+      "documents": [
+        {
+          "documentId": "billing-0",
+          "filename": "billing.mapping.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-1",
+          "filename": "billing.ontology.yaml",
+          "revision": 1,
+          "path": []
+        },
+        {
+          "documentId": "billing-2",
+          "filename": "billing.semantic.yaml",
+          "revision": 1,
+          "path": []
+        }
+      ]
+    }
+  ]
+}

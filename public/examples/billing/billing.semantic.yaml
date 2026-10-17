@@ -1,0 +1,1174 @@
+version: 0.2.0.dev0
+name: Subscription billing semantic model
+description: One row per business entity; invoice_lines is the monetary fact grain.
+ai_context:
+  instructions: Primary keys describe unique dimension rows. Multiple account and
+    billing-cycle roles are distinct. Credits, taxes and refunds have separate
+    grains and are excluded from net_revenue.
+datasets:
+  - name: accounts
+    source: billing.accounts
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: industry_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: industry_id
+      - name: segment_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: segment_id
+      - name: territory_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: territory_id
+      - name: success_manager_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: success_manager_id
+  - name: account_contacts
+    source: billing.account_contacts
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: account_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: account_id
+  - name: account_addresses
+    source: billing.account_addresses
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: account_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: account_id
+  - name: legal_entities
+    source: billing.legal_entities
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+  - name: industries
+    source: billing.industries
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+  - name: sales_territories
+    source: billing.sales_territories
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+  - name: customer_segments
+    source: billing.customer_segments
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+  - name: success_managers
+    source: billing.success_managers
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+  - name: contracts
+    source: billing.contracts
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: account_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: account_id
+      - name: legal_entity_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: legal_entity_id
+  - name: contract_amendments
+    source: billing.contract_amendments
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: contract_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: contract_id
+  - name: subscriptions
+    source: billing.subscriptions
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: account_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: account_id
+      - name: contract_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: contract_id
+      - name: billing_cycle_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: billing_cycle_id
+  - name: subscription_items
+    source: billing.subscription_items
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: subscription_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: subscription_id
+      - name: plan_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: plan_id
+  - name: plans
+    source: billing.plans
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: product_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: product_id
+      - name: tier
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: tier
+  - name: products
+    source: billing.products
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: family_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: family_id
+  - name: product_families
+    source: billing.product_families
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+  - name: features
+    source: billing.features
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: product_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: product_id
+  - name: entitlements
+    source: billing.entitlements
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: subscription_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: subscription_id
+      - name: feature_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: feature_id
+  - name: usage_events
+    source: billing.usage_events
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: subscription_item_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: subscription_item_id
+      - name: meter_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: meter_id
+  - name: usage_meters
+    source: billing.usage_meters
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: product_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: product_id
+  - name: pricing_tiers
+    source: billing.pricing_tiers
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: plan_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: plan_id
+  - name: invoices
+    source: billing.invoices
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: account_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: account_id
+      - name: billing_cycle_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: billing_cycle_id
+      - name: currency_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: currency_id
+      - name: legal_entity_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: legal_entity_id
+      - name: invoice_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: invoice_date
+  - name: invoice_lines
+    source: billing.invoice_lines
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: invoice_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: invoice_id
+      - name: subscription_item_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: subscription_item_id
+      - name: tax_rate_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: tax_rate_id
+      - name: quantity
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: quantity
+      - name: unit_price
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: unit_price
+      - name: discount_amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: discount_amount
+      - name: tax_amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: tax_amount
+      - name: is_recurring
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: is_recurring
+      - name: net_amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: quantity * unit_price - discount_amount
+  - name: tax_rates
+    source: billing.tax_rates
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+  - name: credit_notes
+    source: billing.credit_notes
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: invoice_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: invoice_id
+  - name: credit_note_lines
+    source: billing.credit_note_lines
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: credit_note_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: credit_note_id
+      - name: invoice_line_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: invoice_line_id
+  - name: payments
+    source: billing.payments
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: account_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: account_id
+      - name: method_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: method_id
+      - name: currency_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: currency_id
+  - name: payment_allocations
+    source: billing.payment_allocations
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: payment_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: payment_id
+      - name: invoice_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: invoice_id
+  - name: refunds
+    source: billing.refunds
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: payment_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: payment_id
+      - name: credit_note_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: credit_note_id
+  - name: dunning_cases
+    source: billing.dunning_cases
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: invoice_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: invoice_id
+  - name: collection_actions
+    source: billing.collection_actions
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: case_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: case_id
+  - name: billing_cycles
+    source: billing.billing_cycles
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+  - name: currencies
+    source: billing.currencies
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: code
+  - name: payment_methods
+    source: billing.payment_methods
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+  - name: recognition_schedules
+    source: billing.recognition_schedules
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: invoice_line_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: invoice_line_id
+  - name: journal_entries
+    source: billing.journal_entries
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: legal_entity_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: legal_entity_id
+  - name: journal_lines
+    source: billing.journal_lines
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: entry_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: entry_id
+      - name: recognition_schedule_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: recognition_schedule_id
+relationships:
+  - name: accounts_industry
+    from: accounts
+    to: industries
+    from_columns:
+      - industry_id
+    to_columns:
+      - id
+  - name: accounts_segment
+    from: accounts
+    to: customer_segments
+    from_columns:
+      - segment_id
+    to_columns:
+      - id
+  - name: accounts_territory
+    from: accounts
+    to: sales_territories
+    from_columns:
+      - territory_id
+    to_columns:
+      - id
+  - name: accounts_success_manager
+    from: accounts
+    to: success_managers
+    from_columns:
+      - success_manager_id
+    to_columns:
+      - id
+  - name: account_contacts_account
+    from: account_contacts
+    to: accounts
+    from_columns:
+      - account_id
+    to_columns:
+      - id
+  - name: account_addresses_account
+    from: account_addresses
+    to: accounts
+    from_columns:
+      - account_id
+    to_columns:
+      - id
+  - name: contracts_account
+    from: contracts
+    to: accounts
+    from_columns:
+      - account_id
+    to_columns:
+      - id
+  - name: contracts_legal_entity
+    from: contracts
+    to: legal_entities
+    from_columns:
+      - legal_entity_id
+    to_columns:
+      - id
+  - name: contract_amendments_contract
+    from: contract_amendments
+    to: contracts
+    from_columns:
+      - contract_id
+    to_columns:
+      - id
+  - name: subscriptions_account
+    from: subscriptions
+    to: accounts
+    from_columns:
+      - account_id
+    to_columns:
+      - id
+  - name: subscriptions_contract
+    from: subscriptions
+    to: contracts
+    from_columns:
+      - contract_id
+    to_columns:
+      - id
+  - name: subscriptions_billing_cycle
+    from: subscriptions
+    to: billing_cycles
+    from_columns:
+      - billing_cycle_id
+    to_columns:
+      - id
+  - name: subscription_items_subscription
+    from: subscription_items
+    to: subscriptions
+    from_columns:
+      - subscription_id
+    to_columns:
+      - id
+  - name: subscription_items_plan
+    from: subscription_items
+    to: plans
+    from_columns:
+      - plan_id
+    to_columns:
+      - id
+  - name: plans_product
+    from: plans
+    to: products
+    from_columns:
+      - product_id
+    to_columns:
+      - id
+  - name: products_family
+    from: products
+    to: product_families
+    from_columns:
+      - family_id
+    to_columns:
+      - id
+  - name: features_product
+    from: features
+    to: products
+    from_columns:
+      - product_id
+    to_columns:
+      - id
+  - name: entitlements_subscription
+    from: entitlements
+    to: subscriptions
+    from_columns:
+      - subscription_id
+    to_columns:
+      - id
+  - name: entitlements_feature
+    from: entitlements
+    to: features
+    from_columns:
+      - feature_id
+    to_columns:
+      - id
+  - name: usage_events_subscription_item
+    from: usage_events
+    to: subscription_items
+    from_columns:
+      - subscription_item_id
+    to_columns:
+      - id
+  - name: usage_events_meter
+    from: usage_events
+    to: usage_meters
+    from_columns:
+      - meter_id
+    to_columns:
+      - id
+  - name: usage_meters_product
+    from: usage_meters
+    to: products
+    from_columns:
+      - product_id
+    to_columns:
+      - id
+  - name: pricing_tiers_plan
+    from: pricing_tiers
+    to: plans
+    from_columns:
+      - plan_id
+    to_columns:
+      - id
+  - name: invoices_account
+    from: invoices
+    to: accounts
+    from_columns:
+      - account_id
+    to_columns:
+      - id
+  - name: invoices_billing_cycle
+    from: invoices
+    to: billing_cycles
+    from_columns:
+      - billing_cycle_id
+    to_columns:
+      - id
+  - name: invoices_currency
+    from: invoices
+    to: currencies
+    from_columns:
+      - currency_id
+    to_columns:
+      - id
+  - name: invoices_issuer
+    from: invoices
+    to: legal_entities
+    from_columns:
+      - legal_entity_id
+    to_columns:
+      - id
+  - name: invoice_lines_invoice
+    from: invoice_lines
+    to: invoices
+    from_columns:
+      - invoice_id
+    to_columns:
+      - id
+  - name: invoice_lines_subscription_item
+    from: invoice_lines
+    to: subscription_items
+    from_columns:
+      - subscription_item_id
+    to_columns:
+      - id
+  - name: invoice_lines_tax_rate
+    from: invoice_lines
+    to: tax_rates
+    from_columns:
+      - tax_rate_id
+    to_columns:
+      - id
+  - name: credit_notes_invoice
+    from: credit_notes
+    to: invoices
+    from_columns:
+      - invoice_id
+    to_columns:
+      - id
+  - name: credit_note_lines_credit_note
+    from: credit_note_lines
+    to: credit_notes
+    from_columns:
+      - credit_note_id
+    to_columns:
+      - id
+  - name: credit_note_lines_invoice_line
+    from: credit_note_lines
+    to: invoice_lines
+    from_columns:
+      - invoice_line_id
+    to_columns:
+      - id
+  - name: payments_account
+    from: payments
+    to: accounts
+    from_columns:
+      - account_id
+    to_columns:
+      - id
+  - name: payments_method
+    from: payments
+    to: payment_methods
+    from_columns:
+      - method_id
+    to_columns:
+      - id
+  - name: payments_currency
+    from: payments
+    to: currencies
+    from_columns:
+      - currency_id
+    to_columns:
+      - id
+  - name: payment_allocations_payment
+    from: payment_allocations
+    to: payments
+    from_columns:
+      - payment_id
+    to_columns:
+      - id
+  - name: payment_allocations_invoice
+    from: payment_allocations
+    to: invoices
+    from_columns:
+      - invoice_id
+    to_columns:
+      - id
+  - name: refunds_payment
+    from: refunds
+    to: payments
+    from_columns:
+      - payment_id
+    to_columns:
+      - id
+  - name: refunds_credit_note
+    from: refunds
+    to: credit_notes
+    from_columns:
+      - credit_note_id
+    to_columns:
+      - id
+  - name: dunning_cases_invoice
+    from: dunning_cases
+    to: invoices
+    from_columns:
+      - invoice_id
+    to_columns:
+      - id
+  - name: collection_actions_case
+    from: collection_actions
+    to: dunning_cases
+    from_columns:
+      - case_id
+    to_columns:
+      - id
+  - name: recognition_schedules_invoice_line
+    from: recognition_schedules
+    to: invoice_lines
+    from_columns:
+      - invoice_line_id
+    to_columns:
+      - id
+  - name: journal_entries_legal_entity
+    from: journal_entries
+    to: legal_entities
+    from_columns:
+      - legal_entity_id
+    to_columns:
+      - id
+  - name: journal_lines_entry
+    from: journal_lines
+    to: journal_entries
+    from_columns:
+      - entry_id
+    to_columns:
+      - id
+  - name: journal_lines_recognition_schedule
+    from: journal_lines
+    to: recognition_schedules
+    from_columns:
+      - recognition_schedule_id
+    to_columns:
+      - id
+metrics:
+  - name: net_revenue
+    description: Invoice-line quantity × unit price minus line discount, excluding
+      tax and credits.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(invoice_lines.net_amount)
+  - name: recurring_revenue
+    description: Only recurring invoice lines; usage-only lines are excluded.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(CASE WHEN invoice_lines.is_recurring = 1 THEN
+            invoice_lines.net_amount ELSE 0 END)
+  - name: invoice_count
+    description: Distinct invoices represented by the selected lines. Not additive
+      across product or plan groups.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: COUNT(DISTINCT invoice_lines.invoice_id)
+  - name: revenue_per_invoice
+    description: Governed net revenue divided by distinct represented invoices.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: net_revenue / NULLIF(invoice_count, 0)

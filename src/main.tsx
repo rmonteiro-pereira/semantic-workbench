@@ -109,23 +109,24 @@ function App() {
     const related=selected && (e.source===selected||e.target===selected);
     return {...e,type:"relationship",data:{...e.data,routeTop},label:showLabels||active||e.id===hoveredEdge?(e.data.relationships.length>1?`${e.data.relationships.length} relationships`:e.label):undefined,selected:active,interactionWidth:28,style:{stroke:active||related?'#237c68':'#8bafa5',strokeOpacity:selected&&!related?0.14:0.6,strokeWidth:active?2.5:1.4}};
   }), [groupedEdges,selectedEdge,selected,hoveredEdge,showLabels,routeTop]);
-  async function loadExamples(scale:boolean|'ubl'|'mapped'=false) {
+  async function loadExamples(scale:boolean|'ubl'|'mapped'|'billing'=false) {
     if(current && source !== current.source && !confirm('Discard unsaved changes and open examples?'))return;
     setBusy(true);setMessage('Loading example documents…');
     try {
+      const billing=scale==='billing';
       const mapped=scale==='mapped';
       const ubl=scale==='ubl';
-      const files=mapped?['commerce.mapping.yaml','commerce.mapped-ontology.yaml','commerce.mapped-semantic.yaml']:ubl?['ubl.ontology.yaml','ubl.owl.ttl','ubl.odcs.yaml','ubl.semantic.yaml','ubl.shacl.ttl']:scale?['commerce-scale.ttl']:['commerce.odcs.yaml','sales.ossie.yaml','commerce-business.ossie.yaml','commerce.owl.ttl','commerce.owl','commerce.shacl.ttl','commerce-data.ttl'];
+      const files=billing?['billing.mapping.yaml','billing.ontology.yaml','billing.semantic.yaml']:mapped?['commerce.mapping.yaml','commerce.mapped-ontology.yaml','commerce.mapped-semantic.yaml']:ubl?['ubl.ontology.yaml','ubl.owl.ttl','ubl.odcs.yaml','ubl.semantic.yaml','ubl.shacl.ttl']:scale?['commerce-scale.ttl']:['commerce.odcs.yaml','sales.ossie.yaml','commerce-business.ossie.yaml','commerce.owl.ttl','commerce.owl','commerce.shacl.ttl','commerce-data.ttl'];
       const loaded:Doc[]=[];
       for(const filename of files){
         const existing=docs.find(d=>d.filename===filename);if(existing){loaded.push(existing);continue;}
-        const response=await fetch(`/examples/${ubl?'ubl':'commerce'}/${filename}`);if(!response.ok)throw Error(`Cannot load ${filename}`);
+        const response=await fetch(`/examples/${billing?'billing':ubl?'ubl':'commerce'}/${filename}`);if(!response.ok)throw Error(`Cannot load ${filename}`);
         const source=await response.text();
         const saved=await fetch('/api/documents',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filename,source})});
         const doc=await saved.json();if(!saved.ok)throw Error(doc.error);loaded.push(doc);setDocs(old=>[doc,...old]);
       }
-      setCurrent(loaded[0]);setSource(loaded[0].source);setSelected('');setSelectedEdge('');setSearch('');setShowAll(false);setTab(mapped?'mappings':'graph');
-      setMessage(mapped?'Loaded mapped commerce: ontology, semantic model, governed metrics, and explicit mappings.':ubl?'Loaded UBL: 45 business entities, 277 roles; OWL, SHACL, ODCS, and semantic datasets.':scale?'Loaded 1,000 business resources and 5,000 links. Showing a neighborhood; search to explore.':'Loaded commerce contracts, semantic model, ontology, OWL, SHACL, and RDF data. Select a document in the sidebar.');
+      setCurrent(loaded[0]);setSource(loaded[0].source);setSelected('');setSelectedEdge('');setSearch('');setShowAll(false);setTab(mapped||billing?'mappings':'graph');
+      setMessage(billing?'Loaded subscription billing: 36 business entities, 46 joins, 119 bindings, and 4 governed metrics.':mapped?'Loaded mapped commerce: ontology, semantic model, governed metrics, and explicit mappings.':ubl?'Loaded UBL: 45 business entities, 277 roles; OWL, SHACL, ODCS, and semantic datasets.':scale?'Loaded 1,000 business resources and 5,000 links. Showing a neighborhood; search to explore.':'Loaded commerce contracts, semantic model, ontology, OWL, SHACL, and RDF data. Select a document in the sidebar.');
     }catch(e){setMessage((e as Error).message)}finally{setBusy(false)}
   }
   useEffect(() => {
@@ -253,6 +254,7 @@ function App() {
         <button className="scale-example" onClick={()=>loadExamples()} disabled={busy}><Layers size={16}/><span>Load commerce workspace<small>ODCS · Ossie · OWL · SHACL · RDF</small></span></button>
         <button className="scale-example" onClick={()=>loadExamples(true)} disabled={busy}><Network size={16}/><span>Load commerce scale data<small>1,000 entities · 5,000 relationships</small></span></button>
         <button className="scale-example" onClick={()=>loadExamples('mapped')} disabled={busy}><Layers size={16}/><span>Load mapped commerce<small>Ontology → mappings → governed queries</small></span></button>
+        <button className="scale-example" onClick={()=>loadExamples('billing')} disabled={busy}><Layers size={16}/><span>Load subscription billing<small>36 business entities · 4 governed metrics</small></span></button>
         <label className="import">
           <Upload size={16} /> Import definitions
           <input

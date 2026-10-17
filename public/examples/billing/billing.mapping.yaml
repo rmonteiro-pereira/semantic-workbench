@@ -1,0 +1,667 @@
+version: 0.2.0.dev0
+name: Subscription billing mappings
+ontology_ref:
+  name: Subscription billing ontology
+  iri: ./billing.ontology.yaml
+semantic_model_ref:
+  name: Subscription billing semantic model
+  iri: ./billing.semantic.yaml
+concept_mappings:
+  - concept: Account
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: accounts.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: accounts.id
+        children:
+          - relationship: industry
+            object_mapping:
+              concept: Industry
+              referent_mappings:
+                - relationship: id
+                  expression: accounts.industry_id
+          - relationship: segment
+            object_mapping:
+              concept: CustomerSegment
+              referent_mappings:
+                - relationship: id
+                  expression: accounts.segment_id
+          - relationship: territory
+            object_mapping:
+              concept: SalesTerritory
+              referent_mappings:
+                - relationship: id
+                  expression: accounts.territory_id
+          - relationship: success_manager
+            object_mapping:
+              concept: CustomerSuccessManager
+              referent_mappings:
+                - relationship: id
+                  expression: accounts.success_manager_id
+  - concept: AccountContact
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: account_contacts.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: account_contacts.id
+        children:
+          - relationship: account
+            object_mapping:
+              concept: Account
+              referent_mappings:
+                - relationship: id
+                  expression: account_contacts.account_id
+  - concept: AccountAddress
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: account_addresses.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: account_addresses.id
+        children:
+          - relationship: account
+            object_mapping:
+              concept: Account
+              referent_mappings:
+                - relationship: id
+                  expression: account_addresses.account_id
+  - concept: LegalEntity
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: legal_entities.id
+  - concept: Industry
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: industries.id
+  - concept: SalesTerritory
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: sales_territories.id
+  - concept: CustomerSegment
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: customer_segments.id
+  - concept: CustomerSuccessManager
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: success_managers.id
+  - concept: Contract
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: contracts.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: contracts.id
+        children:
+          - relationship: account
+            object_mapping:
+              concept: Account
+              referent_mappings:
+                - relationship: id
+                  expression: contracts.account_id
+          - relationship: legal_entity
+            object_mapping:
+              concept: LegalEntity
+              referent_mappings:
+                - relationship: id
+                  expression: contracts.legal_entity_id
+  - concept: ContractAmendment
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: contract_amendments.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: contract_amendments.id
+        children:
+          - relationship: contract
+            object_mapping:
+              concept: Contract
+              referent_mappings:
+                - relationship: id
+                  expression: contract_amendments.contract_id
+  - concept: Subscription
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: subscriptions.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: subscriptions.id
+        children:
+          - relationship: account
+            object_mapping:
+              concept: Account
+              referent_mappings:
+                - relationship: id
+                  expression: subscriptions.account_id
+          - relationship: contract
+            object_mapping:
+              concept: Contract
+              referent_mappings:
+                - relationship: id
+                  expression: subscriptions.contract_id
+          - relationship: billing_cycle
+            object_mapping:
+              concept: BillingCycle
+              referent_mappings:
+                - relationship: id
+                  expression: subscriptions.billing_cycle_id
+  - concept: SubscriptionItem
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: subscription_items.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: subscription_items.id
+        children:
+          - relationship: subscription
+            object_mapping:
+              concept: Subscription
+              referent_mappings:
+                - relationship: id
+                  expression: subscription_items.subscription_id
+          - relationship: plan
+            object_mapping:
+              concept: Plan
+              referent_mappings:
+                - relationship: id
+                  expression: subscription_items.plan_id
+  - concept: Plan
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: plans.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: plans.id
+        children:
+          - relationship: product
+            object_mapping:
+              concept: Product
+              referent_mappings:
+                - relationship: id
+                  expression: plans.product_id
+          - relationship: reporting_value
+            object_mapping:
+              concept: Text
+              expression: plans.tier
+  - concept: Product
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: products.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: products.id
+        children:
+          - relationship: family
+            object_mapping:
+              concept: ProductFamily
+              referent_mappings:
+                - relationship: id
+                  expression: products.family_id
+  - concept: ProductFamily
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: product_families.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: product_families.id
+        children:
+          - relationship: reporting_value
+            object_mapping:
+              concept: Text
+              expression: product_families.name
+  - concept: Feature
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: features.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: features.id
+        children:
+          - relationship: product
+            object_mapping:
+              concept: Product
+              referent_mappings:
+                - relationship: id
+                  expression: features.product_id
+  - concept: Entitlement
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: entitlements.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: entitlements.id
+        children:
+          - relationship: subscription
+            object_mapping:
+              concept: Subscription
+              referent_mappings:
+                - relationship: id
+                  expression: entitlements.subscription_id
+          - relationship: feature
+            object_mapping:
+              concept: Feature
+              referent_mappings:
+                - relationship: id
+                  expression: entitlements.feature_id
+  - concept: UsageEvent
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: usage_events.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: usage_events.id
+        children:
+          - relationship: subscription_item
+            object_mapping:
+              concept: SubscriptionItem
+              referent_mappings:
+                - relationship: id
+                  expression: usage_events.subscription_item_id
+          - relationship: meter
+            object_mapping:
+              concept: UsageMeter
+              referent_mappings:
+                - relationship: id
+                  expression: usage_events.meter_id
+  - concept: UsageMeter
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: usage_meters.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: usage_meters.id
+        children:
+          - relationship: product
+            object_mapping:
+              concept: Product
+              referent_mappings:
+                - relationship: id
+                  expression: usage_meters.product_id
+  - concept: PricingTier
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: pricing_tiers.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: pricing_tiers.id
+        children:
+          - relationship: plan
+            object_mapping:
+              concept: Plan
+              referent_mappings:
+                - relationship: id
+                  expression: pricing_tiers.plan_id
+  - concept: Invoice
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: invoices.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: invoices.id
+        children:
+          - relationship: account
+            object_mapping:
+              concept: Account
+              referent_mappings:
+                - relationship: id
+                  expression: invoices.account_id
+          - relationship: billing_cycle
+            object_mapping:
+              concept: BillingCycle
+              referent_mappings:
+                - relationship: id
+                  expression: invoices.billing_cycle_id
+          - relationship: currency
+            object_mapping:
+              concept: Currency
+              referent_mappings:
+                - relationship: id
+                  expression: invoices.currency_id
+          - relationship: issuer
+            object_mapping:
+              concept: LegalEntity
+              referent_mappings:
+                - relationship: id
+                  expression: invoices.legal_entity_id
+  - concept: InvoiceLine
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: invoice_lines.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: invoice_lines.id
+        children:
+          - relationship: invoice
+            object_mapping:
+              concept: Invoice
+              referent_mappings:
+                - relationship: id
+                  expression: invoice_lines.invoice_id
+          - relationship: subscription_item
+            object_mapping:
+              concept: SubscriptionItem
+              referent_mappings:
+                - relationship: id
+                  expression: invoice_lines.subscription_item_id
+          - relationship: tax_rate
+            object_mapping:
+              concept: TaxRate
+              referent_mappings:
+                - relationship: id
+                  expression: invoice_lines.tax_rate_id
+  - concept: TaxRate
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: tax_rates.id
+  - concept: CreditNote
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: credit_notes.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: credit_notes.id
+        children:
+          - relationship: invoice
+            object_mapping:
+              concept: Invoice
+              referent_mappings:
+                - relationship: id
+                  expression: credit_notes.invoice_id
+  - concept: CreditNoteLine
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: credit_note_lines.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: credit_note_lines.id
+        children:
+          - relationship: credit_note
+            object_mapping:
+              concept: CreditNote
+              referent_mappings:
+                - relationship: id
+                  expression: credit_note_lines.credit_note_id
+          - relationship: invoice_line
+            object_mapping:
+              concept: InvoiceLine
+              referent_mappings:
+                - relationship: id
+                  expression: credit_note_lines.invoice_line_id
+  - concept: Payment
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: payments.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: payments.id
+        children:
+          - relationship: account
+            object_mapping:
+              concept: Account
+              referent_mappings:
+                - relationship: id
+                  expression: payments.account_id
+          - relationship: method
+            object_mapping:
+              concept: PaymentMethod
+              referent_mappings:
+                - relationship: id
+                  expression: payments.method_id
+          - relationship: currency
+            object_mapping:
+              concept: Currency
+              referent_mappings:
+                - relationship: id
+                  expression: payments.currency_id
+  - concept: PaymentAllocation
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: payment_allocations.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: payment_allocations.id
+        children:
+          - relationship: payment
+            object_mapping:
+              concept: Payment
+              referent_mappings:
+                - relationship: id
+                  expression: payment_allocations.payment_id
+          - relationship: invoice
+            object_mapping:
+              concept: Invoice
+              referent_mappings:
+                - relationship: id
+                  expression: payment_allocations.invoice_id
+  - concept: Refund
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: refunds.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: refunds.id
+        children:
+          - relationship: payment
+            object_mapping:
+              concept: Payment
+              referent_mappings:
+                - relationship: id
+                  expression: refunds.payment_id
+          - relationship: credit_note
+            object_mapping:
+              concept: CreditNote
+              referent_mappings:
+                - relationship: id
+                  expression: refunds.credit_note_id
+  - concept: DunningCase
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: dunning_cases.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: dunning_cases.id
+        children:
+          - relationship: invoice
+            object_mapping:
+              concept: Invoice
+              referent_mappings:
+                - relationship: id
+                  expression: dunning_cases.invoice_id
+  - concept: CollectionAction
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: collection_actions.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: collection_actions.id
+        children:
+          - relationship: case
+            object_mapping:
+              concept: DunningCase
+              referent_mappings:
+                - relationship: id
+                  expression: collection_actions.case_id
+  - concept: BillingCycle
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: billing_cycles.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: billing_cycles.id
+        children:
+          - relationship: reporting_value
+            object_mapping:
+              concept: Text
+              expression: billing_cycles.name
+  - concept: Currency
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: currencies.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: currencies.id
+        children:
+          - relationship: reporting_value
+            object_mapping:
+              concept: Text
+              expression: currencies.code
+  - concept: PaymentMethod
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: payment_methods.id
+  - concept: RevenueRecognitionSchedule
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: recognition_schedules.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: recognition_schedules.id
+        children:
+          - relationship: invoice_line
+            object_mapping:
+              concept: InvoiceLine
+              referent_mappings:
+                - relationship: id
+                  expression: recognition_schedules.invoice_line_id
+  - concept: JournalEntry
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: journal_entries.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: journal_entries.id
+        children:
+          - relationship: legal_entity
+            object_mapping:
+              concept: LegalEntity
+              referent_mappings:
+                - relationship: id
+                  expression: journal_entries.legal_entity_id
+  - concept: JournalLine
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: journal_lines.id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: journal_lines.id
+        children:
+          - relationship: entry
+            object_mapping:
+              concept: JournalEntry
+              referent_mappings:
+                - relationship: id
+                  expression: journal_lines.entry_id
+          - relationship: recognition_schedule
+            object_mapping:
+              concept: RevenueRecognitionSchedule
+              referent_mappings:
+                - relationship: id
+                  expression: journal_lines.recognition_schedule_id
+  - concept: NetRevenue
+    object_mappings:
+      - expression: net_revenue
+  - concept: RecurringRevenue
+    object_mappings:
+      - expression: recurring_revenue
+  - concept: InvoiceCount
+    object_mappings:
+      - expression: invoice_count
+  - concept: RevenuePerInvoice
+    object_mappings:
+      - expression: revenue_per_invoice

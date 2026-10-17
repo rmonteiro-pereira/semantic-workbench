@@ -1,0 +1,768 @@
+version: 0.2.0.dev0
+name: Subscription billing ontology
+description: "Fictional subscription-to-cash model: account governance,
+  contracts, entitlements, usage, invoicing, collections and revenue
+  recognition."
+ai_context:
+  instructions: InvoiceLine is the revenue grain. NetRevenue excludes tax and
+    credits. RecurringRevenue excludes usage-only lines. This fixture is
+    USD-only; do not combine currencies in production without governed
+    conversion. Account can mean billed or subscribed account; do not infer that
+    those roles are equivalent.
+ontology:
+  - concept: Account
+    type: EntityType
+    identify_by:
+      - id
+    description: Account in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Account} has identifier {Identifier}"
+      - name: industry
+        roles:
+          - concept: Industry
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Account} has industry {Industry}"
+      - name: segment
+        roles:
+          - concept: CustomerSegment
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Account} has segment {CustomerSegment}"
+      - name: territory
+        roles:
+          - concept: SalesTerritory
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Account} has territory {SalesTerritory}"
+      - name: success_manager
+        roles:
+          - concept: CustomerSuccessManager
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Account} has success_manager {CustomerSuccessManager}"
+  - concept: AccountContact
+    type: EntityType
+    identify_by:
+      - id
+    description: AccountContact in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{AccountContact} has identifier {Identifier}"
+      - name: account
+        roles:
+          - concept: Account
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{AccountContact} has account {Account}"
+  - concept: AccountAddress
+    type: EntityType
+    identify_by:
+      - id
+    description: AccountAddress in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{AccountAddress} has identifier {Identifier}"
+      - name: account
+        roles:
+          - concept: Account
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{AccountAddress} has account {Account}"
+  - concept: LegalEntity
+    type: EntityType
+    identify_by:
+      - id
+    description: LegalEntity in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LegalEntity} has identifier {Identifier}"
+  - concept: Industry
+    type: EntityType
+    identify_by:
+      - id
+    description: Industry in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Industry} has identifier {Identifier}"
+  - concept: SalesTerritory
+    type: EntityType
+    identify_by:
+      - id
+    description: SalesTerritory in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SalesTerritory} has identifier {Identifier}"
+  - concept: CustomerSegment
+    type: EntityType
+    identify_by:
+      - id
+    description: CustomerSegment in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CustomerSegment} has identifier {Identifier}"
+  - concept: CustomerSuccessManager
+    type: EntityType
+    identify_by:
+      - id
+    description: CustomerSuccessManager in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CustomerSuccessManager} has identifier {Identifier}"
+  - concept: Contract
+    type: EntityType
+    identify_by:
+      - id
+    description: Contract in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Contract} has identifier {Identifier}"
+      - name: account
+        roles:
+          - concept: Account
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Contract} has account {Account}"
+      - name: legal_entity
+        roles:
+          - concept: LegalEntity
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Contract} has legal_entity {LegalEntity}"
+  - concept: ContractAmendment
+    type: EntityType
+    identify_by:
+      - id
+    description: ContractAmendment in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractAmendment} has identifier {Identifier}"
+      - name: contract
+        roles:
+          - concept: Contract
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractAmendment} has contract {Contract}"
+  - concept: Subscription
+    type: EntityType
+    identify_by:
+      - id
+    description: Subscription in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Subscription} has identifier {Identifier}"
+      - name: account
+        roles:
+          - concept: Account
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Subscription} has account {Account}"
+      - name: contract
+        roles:
+          - concept: Contract
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Subscription} has contract {Contract}"
+      - name: billing_cycle
+        roles:
+          - concept: BillingCycle
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Subscription} has billing_cycle {BillingCycle}"
+  - concept: SubscriptionItem
+    type: EntityType
+    identify_by:
+      - id
+    description: SubscriptionItem in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SubscriptionItem} has identifier {Identifier}"
+      - name: subscription
+        roles:
+          - concept: Subscription
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SubscriptionItem} has subscription {Subscription}"
+      - name: plan
+        roles:
+          - concept: Plan
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SubscriptionItem} has plan {Plan}"
+  - concept: Plan
+    type: EntityType
+    identify_by:
+      - id
+    description: Plan in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Plan} has identifier {Identifier}"
+      - name: product
+        roles:
+          - concept: Product
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Plan} has product {Product}"
+      - name: reporting_value
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Plan} has reporting value {Text}"
+  - concept: Product
+    type: EntityType
+    identify_by:
+      - id
+    description: Product in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Product} has identifier {Identifier}"
+      - name: family
+        roles:
+          - concept: ProductFamily
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Product} has family {ProductFamily}"
+  - concept: ProductFamily
+    type: EntityType
+    identify_by:
+      - id
+    description: ProductFamily in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ProductFamily} has identifier {Identifier}"
+      - name: reporting_value
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ProductFamily} has reporting value {Text}"
+  - concept: Feature
+    type: EntityType
+    identify_by:
+      - id
+    description: Feature in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Feature} has identifier {Identifier}"
+      - name: product
+        roles:
+          - concept: Product
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Feature} has product {Product}"
+  - concept: Entitlement
+    type: EntityType
+    identify_by:
+      - id
+    description: Entitlement in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Entitlement} has identifier {Identifier}"
+      - name: subscription
+        roles:
+          - concept: Subscription
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Entitlement} has subscription {Subscription}"
+      - name: feature
+        roles:
+          - concept: Feature
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Entitlement} has feature {Feature}"
+  - concept: UsageEvent
+    type: EntityType
+    identify_by:
+      - id
+    description: UsageEvent in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{UsageEvent} has identifier {Identifier}"
+      - name: subscription_item
+        roles:
+          - concept: SubscriptionItem
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{UsageEvent} has subscription_item {SubscriptionItem}"
+      - name: meter
+        roles:
+          - concept: UsageMeter
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{UsageEvent} has meter {UsageMeter}"
+  - concept: UsageMeter
+    type: EntityType
+    identify_by:
+      - id
+    description: UsageMeter in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{UsageMeter} has identifier {Identifier}"
+      - name: product
+        roles:
+          - concept: Product
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{UsageMeter} has product {Product}"
+  - concept: PricingTier
+    type: EntityType
+    identify_by:
+      - id
+    description: PricingTier in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PricingTier} has identifier {Identifier}"
+      - name: plan
+        roles:
+          - concept: Plan
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PricingTier} has plan {Plan}"
+  - concept: Invoice
+    type: EntityType
+    identify_by:
+      - id
+    description: Invoice in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Invoice} has identifier {Identifier}"
+      - name: account
+        roles:
+          - concept: Account
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Invoice} has account {Account}"
+      - name: billing_cycle
+        roles:
+          - concept: BillingCycle
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Invoice} has billing_cycle {BillingCycle}"
+      - name: currency
+        roles:
+          - concept: Currency
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Invoice} has currency {Currency}"
+      - name: issuer
+        roles:
+          - concept: LegalEntity
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Invoice} has issuer {LegalEntity}"
+  - concept: InvoiceLine
+    type: EntityType
+    identify_by:
+      - id
+    description: InvoiceLine in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{InvoiceLine} has identifier {Identifier}"
+      - name: invoice
+        roles:
+          - concept: Invoice
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{InvoiceLine} has invoice {Invoice}"
+      - name: subscription_item
+        roles:
+          - concept: SubscriptionItem
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{InvoiceLine} has subscription_item {SubscriptionItem}"
+      - name: tax_rate
+        roles:
+          - concept: TaxRate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{InvoiceLine} has tax_rate {TaxRate}"
+  - concept: TaxRate
+    type: EntityType
+    identify_by:
+      - id
+    description: TaxRate in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TaxRate} has identifier {Identifier}"
+  - concept: CreditNote
+    type: EntityType
+    identify_by:
+      - id
+    description: CreditNote in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CreditNote} has identifier {Identifier}"
+      - name: invoice
+        roles:
+          - concept: Invoice
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CreditNote} has invoice {Invoice}"
+  - concept: CreditNoteLine
+    type: EntityType
+    identify_by:
+      - id
+    description: CreditNoteLine in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CreditNoteLine} has identifier {Identifier}"
+      - name: credit_note
+        roles:
+          - concept: CreditNote
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CreditNoteLine} has credit_note {CreditNote}"
+      - name: invoice_line
+        roles:
+          - concept: InvoiceLine
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CreditNoteLine} has invoice_line {InvoiceLine}"
+  - concept: Payment
+    type: EntityType
+    identify_by:
+      - id
+    description: Payment in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Payment} has identifier {Identifier}"
+      - name: account
+        roles:
+          - concept: Account
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Payment} has account {Account}"
+      - name: method
+        roles:
+          - concept: PaymentMethod
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Payment} has method {PaymentMethod}"
+      - name: currency
+        roles:
+          - concept: Currency
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Payment} has currency {Currency}"
+  - concept: PaymentAllocation
+    type: EntityType
+    identify_by:
+      - id
+    description: PaymentAllocation in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PaymentAllocation} has identifier {Identifier}"
+      - name: payment
+        roles:
+          - concept: Payment
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PaymentAllocation} has payment {Payment}"
+      - name: invoice
+        roles:
+          - concept: Invoice
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PaymentAllocation} has invoice {Invoice}"
+  - concept: Refund
+    type: EntityType
+    identify_by:
+      - id
+    description: Refund in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Refund} has identifier {Identifier}"
+      - name: payment
+        roles:
+          - concept: Payment
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Refund} has payment {Payment}"
+      - name: credit_note
+        roles:
+          - concept: CreditNote
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Refund} has credit_note {CreditNote}"
+  - concept: DunningCase
+    type: EntityType
+    identify_by:
+      - id
+    description: DunningCase in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{DunningCase} has identifier {Identifier}"
+      - name: invoice
+        roles:
+          - concept: Invoice
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{DunningCase} has invoice {Invoice}"
+  - concept: CollectionAction
+    type: EntityType
+    identify_by:
+      - id
+    description: CollectionAction in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CollectionAction} has identifier {Identifier}"
+      - name: case
+        roles:
+          - concept: DunningCase
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CollectionAction} has case {DunningCase}"
+  - concept: BillingCycle
+    type: EntityType
+    identify_by:
+      - id
+    description: BillingCycle in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BillingCycle} has identifier {Identifier}"
+      - name: reporting_value
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BillingCycle} has reporting value {Text}"
+  - concept: Currency
+    type: EntityType
+    identify_by:
+      - id
+    description: Currency in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Currency} has identifier {Identifier}"
+      - name: reporting_value
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Currency} has reporting value {Text}"
+  - concept: PaymentMethod
+    type: EntityType
+    identify_by:
+      - id
+    description: PaymentMethod in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PaymentMethod} has identifier {Identifier}"
+  - concept: RevenueRecognitionSchedule
+    type: EntityType
+    identify_by:
+      - id
+    description: RevenueRecognitionSchedule in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{RevenueRecognitionSchedule} has identifier {Identifier}"
+      - name: invoice_line
+        roles:
+          - concept: InvoiceLine
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{RevenueRecognitionSchedule} has invoice_line {InvoiceLine}"
+  - concept: JournalEntry
+    type: EntityType
+    identify_by:
+      - id
+    description: JournalEntry in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{JournalEntry} has identifier {Identifier}"
+      - name: legal_entity
+        roles:
+          - concept: LegalEntity
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{JournalEntry} has legal_entity {LegalEntity}"
+  - concept: JournalLine
+    type: EntityType
+    identify_by:
+      - id
+    description: JournalLine in the subscription-to-cash lifecycle.
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{JournalLine} has identifier {Identifier}"
+      - name: entry
+        roles:
+          - concept: JournalEntry
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{JournalLine} has entry {JournalEntry}"
+      - name: recognition_schedule
+        roles:
+          - concept: RevenueRecognitionSchedule
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{JournalLine} has recognition_schedule {RevenueRecognitionSchedule}"
+  - concept: Identifier
+    type: ValueType
+    extends:
+      - Integer
+  - concept: Text
+    type: ValueType
+    extends:
+      - String
+  - concept: NetRevenue
+    type: ValueType
+    extends:
+      - Decimal
+  - concept: RecurringRevenue
+    type: ValueType
+    extends:
+      - Decimal
+  - concept: InvoiceCount
+    type: ValueType
+    extends:
+      - Integer
+  - concept: RevenuePerInvoice
+    type: ValueType
+    extends:
+      - Decimal

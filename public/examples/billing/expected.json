@@ -1,0 +1,20 @@
+{
+  "resolvedBindings": 119,
+  "businessEntities": 36,
+  "datasets": 36,
+  "joins": 46,
+  "netRevenue": 2090,
+  "recurringRevenue": 1990,
+  "invoiceCount": 6,
+  "byPlan": {
+    "Growth": 560,
+    "Enterprise": 1350,
+    "Usage": 100,
+    "unmatched": 80
+  },
+  "byFamily": {
+    "Platform": 1910,
+    "Usage": 100,
+    "unmatched": 80
+  }
+}

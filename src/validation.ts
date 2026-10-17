@@ -76,7 +76,7 @@ export function validateStructured(data:any, applyPinnedSchema=true): Issue[] {
     models.forEach((m,mi)=>{const p=data.semantic_model!==undefined?`/semantic_model/${mi}`:'';if(!obj(m,p||'/'))return;str(m.name,p+'/name');
       const ds=arr(m.datasets,p+'/datasets',true), names=named(ds,p+'/datasets'), fieldNames=new Map<string,Set<string>>();
       ds.forEach((d,i)=>{if(!object(d))return;const q=`${p}/datasets/${i}`;str(d.source,q+'/source');fieldNames.set(d.name,fields(d,q,'fields'));if(d.fields===undefined)warn(q+'/fields','Fields are not declared; primary-key and join-field existence cannot be checked.');
-        arr(d.primary_key,q+'/primary_key').forEach((k,j)=>{if(str(k,`${q}/primary_key/${j}`)&&d.fields!==undefined&&!fieldNames.get(d.name)!.has(k))fail(`${q}/primary_key/${j}`,`Unknown primary-key field "${k}".`,'reference');});
+        arr(d.primary_key,q+'/primary_key').forEach((k,j)=>{if(str(k,`${q}/primary_key/${j}`)&&d.fields!==undefined&&!fieldNames.get(d.name)!.has(k))warn(`${q}/primary_key/${j}`,`Key column "${k}" is not exposed as a logical field. Its physical binding cannot be checked from this catalog.`,'coverage');});
       });
       const rs=arr(m.relationships,p+'/relationships');named(rs,p+'/relationships');
       rs.forEach((r,i)=>{if(!object(r))return;const q=`${p}/relationships/${i}`;
