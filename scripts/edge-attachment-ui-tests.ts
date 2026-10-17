@@ -1,0 +1,38 @@
+import {chromium,expect,type Page} from '@playwright/test';
+import {createHandler} from '../server/handler';
+import {createStore} from '../server/store';
+import {inspect} from '../src/model';
+import {groupRelationships} from '../src/graph-view';
+const filename='flights.ontology.yaml', source=await Bun.file('public/examples/ossie/'+filename).text();
+const store=createStore(':memory:');store.save(filename,source);const handler=createHandler(store);
+const links=groupRelationships(inspect(source,filename).edges).map(e=>({id:e.id,source:e.source,target:e.target}));
+const browser=await chromium.launch();const page=await browser.newPage({viewport:{width:1600,height:1000}});const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));let passed=0;
+await page.route('**/api/**',async route=>{const r=route.request();const response=await handler(new Request(r.url(),{method:r.method(),...(r.method()==='POST'?{body:r.postData()}:{} )}));await route.fulfill({status:response.status,body:await response.text(),contentType:'application/json'});});
+async function check(name:string,run:()=>Promise<void>){await run();console.log('PASS',name);passed++;}
+async function distances(){return page.evaluate(links=>{
+ const borderDistance=(p:{x:number;y:number},r:DOMRect)=>{
+  const outsideX=Math.max(r.left-p.x,0,p.x-r.right),outsideY=Math.max(r.top-p.y,0,p.y-r.bottom);
+  return outsideX||outsideY?Math.hypot(outsideX,outsideY):Math.min(p.x-r.left,r.right-p.x,p.y-r.top,r.bottom-p.y);
+ };
+ const result:{id:string;source:number;target:number}[]=[];
+ for(const link of links){const edge=[...document.querySelectorAll('.react-flow__edge')].find(e=>e.getAttribute('data-id')===link.id);const path=edge?.querySelector('.react-flow__edge-path')as SVGPathElement|null;const node=(id:string)=>[...document.querySelectorAll('.react-flow__node')].find(n=>n.getAttribute('data-id')===id)?.querySelector('.full-entity');const a=node(link.source),b=node(link.target);if(!path||!a||!b)continue;
+ const m=path.getScreenCTM();if(!m)continue;const point=(t:number)=>{const p=path.getPointAtLength(t);return{x:m.a*p.x+m.c*p.y+m.e,y:m.b*p.x+m.d*p.y+m.f}};
+ result.push({id:link.id,source:borderDistance(point(0),a.getBoundingClientRect()),target:borderDistance(point(path.getTotalLength()),b.getBoundingClientRect())});
+ }return result;
+},links)}
+async function attached(label:string){
+ await expect.poll(async()=>{const measurements=await distances();return measurements.length;},{timeout:15000}).toBeGreaterThan(5);
+ try{await expect.poll(async()=>Math.max(...(await distances()).flatMap(m=>[m.source,m.target])),{timeout:15000,message:label+' SVG endpoints remain on actual rendered entity borders'}).toBeLessThanOrEqual(4.5);}catch(error){console.log('DETACHED_ENDPOINTS',JSON.stringify((await distances()).filter(m=>m.source>4.5||m.target>4.5)));await page.screenshot({path:'/tmp/edge-attachment-failure.png'});throw error;}
+}
+async function targetSelector(selector:string){const candidates=page.locator(selector);for(let i=0;i<await candidates.count();i++){const candidate=candidates.nth(i);if(await candidate.evaluate(n=>{const r=n.getBoundingClientRect(),x=r.x+Math.min(r.width/2,60),y=r.y+Math.min(r.height/2,18);return document.elementFromPoint(x,y)?.closest('.react-flow__node')===n.closest('.react-flow__node');}))return candidate;}throw Error('No clickable node/area');}
+async function drag(page:Page,selector:string,dx:number,dy:number){const target=await targetSelector(selector);await expect(target).toBeVisible();const r=await target.boundingBox();if(!r)throw Error('Missing drag bounds');const x=r.x+Math.min(r.width/2,60),y=r.y+Math.min(r.height/2,18);await page.mouse.move(x,y);await page.mouse.down();try{for(let step=1;step<=8;step++){await page.mouse.move(x+dx*step/8,y+dy*step/8);await page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));const metrics=await distances();const worst=Math.max(...metrics.flatMap(m=>[m.source,m.target]));if(worst>4.5){console.log('DURING_DRAG_DETACHED',step,JSON.stringify(metrics.filter(m=>m.source>4.5||m.target>4.5)));await page.screenshot({path:'/tmp/edge-attachment-failure.png'});}expect(worst,'Every drag frame endpoint attaches to live entity border').toBeLessThanOrEqual(4.5);if(step===7&&selector.includes('businessArea'))await page.screenshot({path:'/tmp/edge-attachment-parent-drag-fixed.png'});}}finally{await page.mouse.up()}const moved=await target.boundingBox();expect(Math.hypot(moved!.x-r.x,moved!.y-r.y),'Real drag moved the entity/area').toBeGreaterThan(8);}
+
+try{
+ await page.goto('http://127.0.0.1:5173/');await expect(page.locator('h1')).toContainText('Flights');await expect(page.locator('.full-graph-loading')).toHaveCount(0,{timeout:60000});
+ await check('network graph path endpoints attach to actual entity borders',async()=>{await page.waitForTimeout(450);await attached('initial network');});
+ await check('zoomed worker routes attach after hover and selection',async()=>{await page.getByLabel('Zoom to business area').selectOption({index:1});await expect(page.locator('.full-graph-status')).toContainText('background worker',{timeout:30000});await attached('zoomed network');await page.getByRole('button',{name:'Fit model',exact:true}).click();await attached('fit before hover');const node=await targetSelector('.react-flow__node-entity .full-entity');await node.hover();await attached('hover');await node.click();await expect(page.locator('.inspector h2')).toBeVisible();await attached('selected');await page.getByRole('button',{name:'Close details',exact:true}).click();await attached('closed inspector');});
+ await check('individual entity dragging preserves endpoints',async()=>{await drag(page,'.react-flow__node-entity .full-entity',96,48);await attached('entity drag');});
+ await check('parent area dragging preserves child edge attachment',async()=>{await drag(page,'.react-flow__node-businessArea .full-area-title',96,48);await attached('area drag');});
+ await check('layered and network layout changes preserve attachment',async()=>{for(const layout of ['layered','network']){await page.getByLabel('Graph layout').selectOption(layout);await expect(page.locator('.full-graph-loading')).toHaveCount(0,{timeout:60000});await attached(layout);}});
+ await page.screenshot({path:'/tmp/edge-attachment-network.png'});await check('browser has no runtime errors',async()=>expect(errors).toEqual([]));console.log(`${passed} edge attachment UI checks passed`);
+}finally{await browser.close()}

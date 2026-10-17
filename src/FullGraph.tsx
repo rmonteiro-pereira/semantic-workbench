@@ -1,6 +1,7 @@
+import{RoutedEdge}from'./RoutedEdge';
 import{memo,useCallback,useEffect,useMemo,useRef,useState}from'react';
 import{ReactFlow,Background,Controls,MiniMap,Handle,Position,NodeToolbar,BaseEdge,BezierEdge,useNodesState,MarkerType,type NodeProps,type EdgeProps,type ReactFlowInstance}from'@xyflow/react';
-import{SmartEdgeProvider,createSmartEdge,type SmartEdgeMetrics}from'@tisoap/react-flow-smart-edge';
+import{SmartEdgeProvider,type SmartEdgeMetrics}from'@tisoap/react-flow-smart-edge';
 import ELK from'elkjs/lib/elk-api.js';import elkWorkerUrl from'elkjs/lib/elk-worker.min.js?url';
 import{Layers,Maximize,RefreshCw,Focus}from'lucide-react';import{modelOverview}from'./overview';import{groupRelationships}from'./graph-view';import{collapseAreas}from'./collapse';
 import{layoutFullGraph,packNetwork}from'./full-layout';import type{Entity,Relationship}from'./model';
@@ -11,13 +12,10 @@ const EntityNode=memo(({data}:NodeProps)=><div className={`full-entity ${data.fo
  <span className="entity-color"/><strong>{String(data.name).replace(/([a-z])([A-Z])/g,'$1 $2').replaceAll('_',' ')}</strong>{!!data.collapsedArea&&<small>{String(data.internalCount??0)} internal relationships · click to expand</small>}
 </div>);
 const AreaNode=memo(({data}:NodeProps)=><div className="full-area-title"><span style={{background:String(data.color)}}/><strong>{String(data.name)}</strong><small>{String(data.count)} entities</small></div>);
-const Routed=createSmartEdge('smoothstep',{nodePadding:10,gridRatio:10,hops:{borderRadius:5}});
-const NetworkRouted=createSmartEdge('bezier',{nodePadding:10,gridRatio:10,floating:true});
 const GraphEdge=memo((props:EdgeProps)=>{
  if(props.source===props.target){const{sourceX:x,sourceY:y,targetX:tx,targetY:ty}=props;return <BaseEdge id={props.id} path={`M ${x},${y} C ${x+70},${y-75} ${tx+70},${ty+75} ${tx},${ty}`} markerEnd={props.markerEnd} style={props.style} interactionWidth={24} label={props.label} labelX={x+55} labelY={y-35}/>;}
  if(!props.data?.routeDetailed)return <BezierEdge {...props}/>;
- const Component=props.data?.algorithm==='network'?NetworkRouted:Routed;
- return <Component {...props} data={props.data??{}} type={props.type??'routed'}/>;
+ return <RoutedEdge {...props}/>;
 });
 const nodeTypes={entity:EntityNode,businessArea:AreaNode};const edgeTypes={routed:GraphEdge};
 const routingOptions={nodePadding:10,gridRatio:10};
@@ -60,12 +58,13 @@ export function FullGraph(props:Props){
  const connected=useMemo(()=>{const ids=new Set<string>();if(focus){ids.add(focus);for(const e of display.edges)if(e.source===focus||e.target===focus){ids.add(e.source);ids.add(e.target)}}return ids;},[display,focus]);
  const renderedNodes=useMemo(()=>nodes.map(n=>n.type==='entity'?{...n,selected:n.id===props.selected,data:{...n.data,focused:connected.has(n.id),tooltip:n.id===hover||n.id===props.selected},style:{...n.style,opacity:focus&&!connected.has(n.id) ? .32 : 1}}:n),[nodes,connected,focus,props.selected,hover]);
  const positions=useMemo(()=>{const byId=new Map(nodes.map(n=>[n.id,n]));return new Map(nodes.filter(n=>n.type==='entity').map(n=>{const p=byId.get(n.parentId);return[n.id,{x:n.position.x+(p?.position.x??0),y:n.position.y+(p?.position.y??0),width:184,height:60}]}));},[nodes]);
+ const dragging=nodes.some(n=>n.dragging);
  const edges=useMemo(()=>connections.map(e=>{const a=positions.get(e.source),b=positions.get(e.target);let source='e',target='w';if(a&&b){const dx=b.x-a.x,dy=b.y-a.y;if(Math.abs(dx)>Math.abs(dy)){source=dx>=0?'e':'w';target=dx>=0?'w':'e';}else{source=dy>=0?'s':'n';target=dy>=0?'n':'s';}}if(e.source===e.target){source='e';target='s';}
  const active=e.data.relationships.some(r=>r.id===props.selectedEdge);const adjacent=e.source===focus||e.target===focus;
  const visible=(p:any)=>p&&p.x*viewport.zoom+viewport.x>-220*viewport.zoom&&p.x*viewport.zoom+viewport.x<size.width+30&&p.y*viewport.zoom+viewport.y>-90*viewport.zoom&&p.y*viewport.zoom+viewport.y<size.height+30;
- const routeDetailed=e.source!==e.target&&(active||adjacent||(viewport.zoom>=.35&&visible(a)&&visible(b)));
+ const routeDetailed=!dragging&&e.source!==e.target&&(active||adjacent||(viewport.zoom>=.35&&visible(a)&&visible(b)));
  return{...e,data:{...e.data,algorithm,routeDetailed},type:'routed',sourceHandle:'source-'+source,targetHandle:'target-'+target,selected:active,label:labels||active||hoverEdge===e.id?(e.data.relationships.length>1?`${e.data.relationships.length} relationships`:e.label):undefined,markerEnd:{type:MarkerType.ArrowClosed,color:active||adjacent?'#247d65':'#8ca49b',width:13,height:13},zIndex:active?4:1,interactionWidth:24,style:{stroke:active||adjacent?'#247d65':'#98aaa3',strokeWidth:active?2:1.2,strokeOpacity:active||adjacent ? .95 : focus ? .07 : .48}};
- }),[connections,positions,props.selectedEdge,focus,labels,hoverEdge,algorithm,viewport,size]);
+ }),[connections,positions,props.selectedEdge,focus,labels,hoverEdge,algorithm,viewport,size,dragging]);
  useEffect(()=>{if(!props.search||busy)return;const match=overview.entities.find(e=>e.name.toLowerCase().includes(props.search.toLowerCase())||e.id.toLowerCase().includes(props.search.toLowerCase()));if(!match)return;const timer=setTimeout(()=>{void flow.current?.fitView({nodes:[{id:match.id}],padding:.8,maxZoom:1,duration:300})},250);return()=>clearTimeout(timer);},[props.search,busy,overview]);
  const selectedConnection=collapsed.size?connections.find(e=>e.data.relationships.some(r=>r.id===props.selectedEdge)):undefined;
  const originalById=useMemo(()=>new Map(props.edges.map(e=>[e.id,e])),[props.edges]);

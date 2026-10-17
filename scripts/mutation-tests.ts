@@ -31,6 +31,8 @@ const mutants:[string,string,string,string][]=[
  ['overview','src/overview.ts','JSON.stringify([groupOf.get(edge.source),groupOf.get(edge.target)])','JSON.stringify([groupOf.get(edge.target),groupOf.get(edge.source)])'],
  ['layout','src/layout.ts','*330','*0'],
  ['layout','src/layout.ts','row%maxRows','row'],
+ ['edge-path','src/edge-path.ts','Math.abs(coordinates[0]-sourceX)<=tolerance','true'],
+ ['edge-path','src/edge-path.ts','Math.abs(coordinates[last]-targetX)<=tolerance','true'],
  ['graph','src/graph-view.ts','limit=8','limit=800'],
  ['graph','src/graph-view.ts','entities.find(e=>e.id===focusId)?.id','undefined'],
  ['graph','src/graph-view.ts','&&(e.source===focus||e.target===focus)',''],

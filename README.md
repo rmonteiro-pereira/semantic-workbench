@@ -86,6 +86,7 @@ With the dev server running:
 ```sh
 bun run test:ui
 bun run test:responsive
+bun run test:edges
 bun run test:mutation
 bun scripts/live-inspect.ts
 ```
@@ -94,7 +95,9 @@ The UI suite uses real browser downloads and an isolated in-memory SQLite store.
 
 The responsive suite checks six viewports from 390×844 through 2560×1440, including 1280×720 and 1366×768 desktops. It verifies canvas space, contained controls, workspace drawer keyboard access, selection-centered neighborhoods, relationship details, repeated view changes and resizing. Screenshots go to `/tmp/workbench-responsive-*.png`. The compact header and collapsible workspace preserve canvas space; details appear only when selected.
 
-The mutation suite is **targeted**, not a whole-project mutation score. It checks 37 deliberate logic faults in validation, RDF definitions, size limits, layout, neighborhood filtering, grouping, exports, form edits and SQLite validation/revision checks, plus a browser-injected empty neighborhood node projection. Unmodified module baselines must pass, and every mutant must be detected. It writes temporary candidate modules under `/tmp`, never changes application sources, and removes temporary files afterward.
+`bun run test:edges` measures Flights SVG endpoints against rendered entity borders during entity and business-area dragging, zooming, selection, and both layout modes. Worker routes render only when their endpoints match the current React Flow handles; live curves keep connections attached while dragging or waiting for a fresh route.
+
+The mutation suite is **targeted**, not a whole-project mutation score. It checks 39 deliberate logic faults in validation, RDF definitions, size limits, layout, neighborhood filtering, grouping, exports, form edits and SQLite validation/revision checks, plus a browser-injected empty neighborhood node projection. Unmodified module baselines must pass, and every mutant must be detected. It writes temporary candidate modules under `/tmp`, never changes application sources, and removes temporary files afterward.
 
 Graph connections group parallel relationships; the inspector exposes each original definition. Names appear on hover or selection, with a Labels toggle for inspecting all labels. Selecting an entity lists all its relationships. Long edges route above intervening columns. The sidebar scrolls documents independently and keeps example/import controls visible. API hot reloads no longer restart the frontend; the dev launcher owns both process groups and uses a strict frontend port.
 
