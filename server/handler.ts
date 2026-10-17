@@ -1,3 +1,5 @@
+import {agentCatalog,buildContext,selectContext,planQuery,type StoredDocument} from './agent/runtime';
+import {readJson} from './request';
 import type { createStore } from './store';
 import {InputError,MAX_INPUT_BYTES} from '../src/diagnostics';
 export function createHandler(store:ReturnType<typeof createStore>) {
@@ -6,6 +8,19 @@ export function createHandler(store:ReturnType<typeof createStore>) {
   const origin=req.headers.get('origin');
   if(origin&&!['http://127.0.0.1:5173','http://localhost:5173','http://127.0.0.1:4310'].includes(origin))return new Response('Forbidden',{status:403});
   try{
+   if(url.pathname==='/api/agent/catalog'&&req.method==='GET')return Response.json(agentCatalog(store.list() as StoredDocument[]));
+   if(url.pathname==='/api/agent/context'&&req.method==='GET'){
+    const mappingId=url.searchParams.get('mappingId');if(!mappingId)throw Error('mappingId is required. List mappings at /api/agent/catalog.');
+    let context=buildContext(store.list() as StoredDocument[],mappingId);
+    const concepts=url.searchParams.getAll('concept');if(concepts.length)context=selectContext(context,concepts);
+    return Response.json(context);
+   }
+   if(url.pathname==='/api/agent/plan'&&req.method==='POST'){
+    const body=await readJson(req,64_000);
+    if(!body||Array.isArray(body)||Object.keys(body).some(k=>!['mappingId','concepts','metrics','dimensions'].includes(k))||typeof body.mappingId!=='string')throw Error('Expected mappingId, optional concepts, metrics and dimensions. Expressions and metric overrides are not accepted.');
+    for(const key of ['concepts','metrics','dimensions'])if((key!=='concepts'||body[key]!==undefined)&&(!Array.isArray(body[key])||body[key].length>100||body[key].some((id:any)=>typeof id!=='string'||!id.trim()||id.length>4096)))throw Error(`${key} must be an array of at most 100 non-empty ids.`);
+    return Response.json(planQuery(buildContext(store.list() as StoredDocument[],body.mappingId),body));
+   }
    if(url.pathname==='/api/documents'&&req.method==='GET')return Response.json(store.list());
    if(url.pathname==='/api/documents'&&req.method==='POST'){
     // Bound the request stream before parsing; JSON escaping can expand a 2 MB source.

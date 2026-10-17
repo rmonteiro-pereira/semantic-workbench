@@ -1,6 +1,13 @@
 import{mkdtemp,rm}from'node:fs/promises';import{resolve,dirname}from'node:path';
 const root=process.cwd(),temp=await mkdtemp('/tmp/workbench-mutations-');
 const mutants:[string,string,string,string][]=[
+ ['agent','server/agent/runtime.ts','physical.parentheses=true','physical.parentheses=false'],
+ ['agent','server/agent/runtime.ts','if(!fieldMap.has(id))throw','if(false)throw'],
+ ['agent','server/agent/runtime.ts','context.bindings.filter(b=>names.size===0||names.has(b.rootConcept)||names.has(b.concept))','context.bindings.filter(()=>true)'],
+ ['agent','server/agent/runtime.ts','if(metricDatasets.size>1)throw','if(false)throw'],
+ ['agent','server/agent/runtime.ts','if(reachableWithout(join.name,target))throw','if(false)throw'],
+ ['agent','server/agent/runtime.ts','if(!uniqueKeys.some','if(false&&!uniqueKeys.some'],
+ ['agent','server/agent/runtime.ts','const sql=`SELECT',"const sql='SELECT 1;'||`SELECT"],
  ['validation','src/validation.ts',"if(names.has(x[key]))fail", "if(false)fail"],
  ['validation','src/validation.ts','if(cycle.length)fail','if(false)fail'],
  ['validation','src/validation.ts',"!names.has(role.concept)","false"],

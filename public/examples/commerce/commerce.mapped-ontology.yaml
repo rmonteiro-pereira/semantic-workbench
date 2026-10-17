@@ -1,0 +1,53 @@
+version: 0.2.0.dev0
+name: Mapped commerce ontology
+description: Order-to-cash concepts independent of tables and governed formulas.
+ai_context:
+  instructions: Interpret sales questions using Revenue and Customer.region. Reuse mapped governed metrics; do not redefine revenue.
+  examples: [Show revenue by customer region]
+ontology:
+  - concept: Identifier
+    type: ValueType
+    extends: [String]
+  - concept: Region
+    type: ValueType
+    extends: [String]
+    description: Geographic reporting region of a customer.
+  - concept: Money
+    type: ValueType
+    extends: [Decimal]
+  - concept: Customer
+    type: EntityType
+    identify_by: [id]
+    relationships:
+      - name: id
+        roles: [{concept: Identifier}]
+        multiplicity: ManyToOne
+        verbalizes: ['{Customer} has identifier {Identifier}']
+      - name: region
+        roles: [{concept: Region}]
+        multiplicity: ManyToOne
+        verbalizes: ['{Customer} belongs to {Region}']
+  - concept: Order
+    type: EntityType
+    identify_by: [id]
+    relationships:
+      - name: id
+        roles: [{concept: Identifier}]
+        multiplicity: ManyToOne
+        verbalizes: ['{Order} has identifier {Identifier}']
+      - name: customer
+        roles: [{concept: Customer}]
+        multiplicity: ManyToOne
+        verbalizes: ['{Customer} places {Order}']
+      - name: amount
+        roles: [{concept: Money}]
+        multiplicity: ManyToOne
+        verbalizes: ['{Order} has amount {Money}']
+  - concept: Revenue
+    type: ValueType
+    extends: [Decimal]
+    description: Governed gross revenue from orders, before refunds; use the metric reached through the mapping.
+  - concept: OrderCount
+    type: ValueType
+    extends: [Integer]
+    description: Governed count of distinct orders.

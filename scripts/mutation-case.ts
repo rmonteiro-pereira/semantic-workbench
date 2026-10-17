@@ -51,3 +51,20 @@ if(category==='rdf-validation'){
  assert.throws(()=>check('ex:S a sh:PropertyShape .'));
  assert.throws(()=>check('ex:R a owl:Restriction; owl:someValuesFrom ex:C .'));
 }
+
+if(category==='agent'){
+ const {parse,stringify}=await import('yaml');
+ const docs=await Promise.all(['commerce.mapping.yaml','commerce.mapped-ontology.yaml','commerce.mapped-semantic.yaml'].map(async(filename,i)=>({id:String(i),filename,revision:1,source:await Bun.file('public/examples/commerce/'+filename).text()})));
+ const change=(index:number,edit:(data:any)=>void)=>{const clone=structuredClone(docs);const data=parse(clone[index].source);edit(data);clone[index].source=stringify(data);return clone;};
+ const context=m.buildContext(docs,'0');assert.equal(context.findings.length,0);
+ const request={mappingId:'0',metrics:['gross_revenue'],dimensions:['["customers","region"]']};
+ const plan=(source=docs,overrides={})=>m.planQuery(m.buildContext(source,'0'),{...request,...overrides});
+ const arithmetic=change(2,d=>{d.datasets[0].fields[2].expression.dialects[0].expression='amount + fee';d.metrics[0].expression.dialects[0].expression='SUM(orders.amount * 2)';});
+ assert(plan(arithmetic).sql.includes('(\"orders\".amount + \"orders\".fee) * 2'));
+ assert(plan().sql.includes('SUM('));assert(plan().sql.includes('GROUP BY'));
+ assert(m.selectContext(context,['Revenue']).bindings.every((b:any)=>b.rootConcept==='Revenue'||b.concept==='Revenue'));
+ assert(m.buildContext(change(0,d=>d.concept_mappings[0].object_mappings[0].referent_mappings[0].expression='customers.missing'),'0').findings.some((f:any)=>f.severity==='error'));
+ assert.throws(()=>plan(change(2,d=>d.metrics[1].expression.dialects[0].expression='SUM(customers.customer_id)'),{metrics:['gross_revenue','order_count']}));
+ assert.throws(()=>plan(change(2,d=>d.relationships.push({...d.relationships[0],name:'parallel'}))));
+ assert.throws(()=>plan(change(2,d=>delete d.datasets[1].primary_key)));
+}

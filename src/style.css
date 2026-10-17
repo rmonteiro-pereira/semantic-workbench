@@ -513,3 +513,25 @@ footer span {
 dialog.validation-backdrop { border: 0; margin: 0; width: 100vw; height: 100vh; max-width: none; max-height: none; background: transparent; }
 dialog.validation-backdrop::backdrop { background: #142f3655; }
 dialog.validation-backdrop:not([open]) { display: none; }
+
+.mapping-explorer { height: 100%; overflow: auto; padding: 26px; background: #f8fbfa; font-size: 13px; }
+.mapping-heading { display: flex; justify-content: space-between; align-items: start; gap: 20px; }
+.mapping-heading small { color: #5d8d81; letter-spacing: 2px; font-size: 10px; }
+.mapping-heading h2 { margin: 8px 0; }.mapping-heading p { color: #718881; }
+.mapping-explorer select,.mapping-explorer input:not([type=checkbox]) { border: 1px solid #dbe3e4; background: white; padding: 9px; border-radius: 6px; width: 100%; margin: 5px 0; }
+.mapping-layer-chain { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin: 18px 0; }
+.mapping-layer-chain span { padding: 15px; border: 1px solid #dbe3e4; border-radius: 8px; background: white; color: #6f8881; }
+.mapping-layer-chain strong { display: block; color: #284d43; margin-top: 7px; overflow-wrap: anywhere; }
+.mapping-columns { display: grid; grid-template-columns: 210px minmax(0,1fr); gap: 22px; }
+.mapping-concepts button { display: flex; width: 100%; justify-content: space-between; text-align: left; margin: 5px 0; padding: 10px; }
+.mapping-concepts button[aria-pressed=true] { background: #e3f2ec; border-color: #66a793; }.mapping-concepts small { color: #6f8881; }
+.mapping-binding,.mapping-query { padding: 16px; border: 1px solid #dbe3e4; border-radius: 8px; background: white; margin: 12px 0; overflow-wrap: anywhere; }
+.mapping-binding>code { display: block; margin: 8px 0; color: #26745e; }.mapping-binding>small { color: #81958f; }
+.mapping-explorer pre { overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; background: #f0f5f3; padding: 12px; font-size: 11px; }
+.mapping-explorer details { margin-top: 12px; }.mapping-explorer summary { cursor: pointer; }
+.mapping-notice { padding: 10px; background: #fff8e8; color: #826227; border-radius: 5px; }
+.mapping-error { padding: 10px; background: #fff0ed; color: #a34032; border-radius: 5px; }
+.mapping-query fieldset { border: 1px solid #e1e9e5; border-radius: 6px; margin: 12px 0; padding: 10px; }
+.mapping-query label { display: flex; align-items: center; gap: 8px; margin: 9px 0; }
+.mapping-query code { font-size: 11px; color: #587a6f; }
+@media(max-width: 950px) { .mapping-columns { grid-template-columns: 1fr; }.mapping-layer-chain { grid-template-columns: 1fr 1fr; } }

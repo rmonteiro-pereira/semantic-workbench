@@ -1,0 +1,38 @@
+version: 0.2.0.dev0
+name: Mapped commerce semantic model
+description: Governed logical fields and metrics over the commerce warehouse.
+ai_context:
+  instructions: The orders dataset has one row per order. The customers dataset has one row per customer. Joins must preserve order grain.
+datasets:
+  - name: orders
+    source: analytics.commerce.orders
+    primary_key: [order_id]
+    fields:
+      - name: order_id
+        expression: {dialects: [{dialect: ANSI_SQL, expression: order_id}]}
+      - name: customer_id
+        expression: {dialects: [{dialect: ANSI_SQL, expression: customer_id}]}
+      - name: amount
+        expression: {dialects: [{dialect: ANSI_SQL, expression: amount}]}
+        datatype: Decimal
+  - name: customers
+    source: analytics.commerce.customers
+    primary_key: [customer_id]
+    fields:
+      - name: customer_id
+        expression: {dialects: [{dialect: ANSI_SQL, expression: customer_id}]}
+      - name: region
+        expression: {dialects: [{dialect: ANSI_SQL, expression: region}]}
+relationships:
+  - name: orders_customer
+    from: orders
+    to: customers
+    from_columns: [customer_id]
+    to_columns: [customer_id]
+metrics:
+  - name: gross_revenue
+    datatype: Decimal
+    expression: {dialects: [{dialect: ANSI_SQL, expression: 'SUM(orders.amount)'}]}
+  - name: order_count
+    datatype: Integer
+    expression: {dialects: [{dialect: ANSI_SQL, expression: 'COUNT(DISTINCT orders.order_id)'}]}

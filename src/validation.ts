@@ -1,9 +1,11 @@
+import {OSSIE_BUILTINS} from './ossie-builtins';
+import {isMapping,mappingSchemaIssues} from './mapping-schema';
 import Ajv2019 from 'ajv/dist/2019';
 import Ajv2020 from 'ajv/dist/2020';
 import formats from 'ajv-formats';
 import odcs from '../schemas/odcs-v3.1.0.json';
 import ossie from '../schemas/ossie-0.2.0.dev0.json';
-import { type Issue, rejectIssues } from './diagnostics';
+import { type Issue, rejectIssues, InputError } from './diagnostics';
 const a = new Ajv2019({strict:false,allErrors:true}), b = new Ajv2020({strict:false,allErrors:true});
 formats(a); formats(b);
 const contract = a.compile(odcs), semantic = b.compile(ossie);
@@ -20,7 +22,7 @@ export function inheritanceCycle(nodes: string[], parents: Map<string,string[]>)
   }
   return nodes.filter(n => degree.get(n)! > 0);
 }
-export function validateStructured(data:any): Issue[] {
+export function validateStructured(data:any, applyPinnedSchema=true): Issue[] {
   const issues: Issue[] = [];
   const fail = (path:string, message:string, code='structure') => issues.push({severity:'error',code,path,message});
   const warn = (path:string,message:string,code='coverage') => issues.push({severity:'warning',code,path,message});
@@ -36,9 +38,10 @@ export function validateStructured(data:any): Issue[] {
   if(data.name!==undefined)str(data.name,'/name');
   // Cyclic YAML aliases and non-JSON scalar types cannot be persisted consistently.
   try {JSON.stringify(data);} catch {fail('/','Cyclic aliases or non-JSON scalar values are unsupported.','serialization');rejectIssues(issues);}
-  const families = [data.kind==='DataContract'||data.apiVersion!==undefined||data.schema!==undefined, data.ontology!==undefined, data.datasets!==undefined||data.semantic_model!==undefined].filter(Boolean).length;
-  if(families!==1){fail('/','Provide exactly one ODCS contract, Ossie ontology, or Ossie semantic model.','format');rejectIssues(issues);return issues;}
-  if(data.kind==='DataContract'||data.apiVersion!==undefined||data.schema!==undefined){
+  const families = [data.kind==='DataContract'||data.apiVersion!==undefined||data.schema!==undefined, data.ontology!==undefined, data.datasets!==undefined||data.semantic_model!==undefined, isMapping(data)].filter(Boolean).length;
+  if(families!==1){fail('/','Provide exactly one ODCS contract, Ossie ontology, mapping document, or Ossie semantic model.','format');rejectIssues(issues);return issues;}
+  if(isMapping(data)){issues.push(...mappingSchemaIssues(data));}
+  else if(data.kind==='DataContract'||data.apiVersion!==undefined||data.schema!==undefined){
     if(data.kind!=='DataContract')fail('/kind','ODCS kind must be DataContract.');
     for(const k of ['apiVersion','id','version'])str(data[k],'/'+k);
     if(data.apiVersion!=='v3.1.0')warn('/apiVersion',`No pinned schema for ${String(data.apiVersion)}; only structural checks apply.`);
@@ -53,15 +56,20 @@ export function validateStructured(data:any): Issue[] {
       if(x.iri!==undefined&&str(x.iri,p+'/iri')){if(!/^[a-z][a-z0-9+.-]*:/i.test(x.iri))fail(p+'/iri','Expected an absolute IRI.');if(iris.has(x.iri))fail(p+'/iri','Duplicate concept IRI.','duplicate');iris.add(x.iri);}
       for(const key of ['properties','fields'])if(x[key]!==undefined)fields(x,p,key);
       const ps=arr(x.extends,p+'/extends');parents.set(x.concept,ps.filter(text));
-      ps.forEach((parent,j)=>{if(str(parent,`${p}/extends/${j}`)&&!names.has(parent))fail(`${p}/extends/${j}`,`Unknown parent concept "${parent}".`,'reference');});
+      ps.forEach((parent,j)=>{if(str(parent,`${p}/extends/${j}`)&&!names.has(parent)&&!OSSIE_BUILTINS.has(parent))fail(`${p}/extends/${j}`,`Unknown parent concept "${parent}".`,'reference');});
       const rs=arr(x.relationships,p+'/relationships');named(rs,p+'/relationships');
       rs.forEach((r,j)=>{if(!object(r))return;const q=`${p}/relationships/${j}`;
-        arr(r.roles,q+'/roles',true).forEach((role,k)=>{if(obj(role,`${q}/roles/${k}`)&&str(role.concept,`${q}/roles/${k}/concept`)&&!names.has(role.concept))fail(`${q}/roles/${k}/concept`,`Unknown concept "${role.concept}". Define it before importing.`,'reference');});
+        arr(r.roles,q+'/roles',data.version!=='0.2.0.dev0').forEach((role,k)=>{if(obj(role,`${q}/roles/${k}`)&&str(role.concept,`${q}/roles/${k}/concept`)&&!names.has(role.concept)&&!OSSIE_BUILTINS.has(role.concept))fail(`${q}/roles/${k}/concept`,`Unknown concept "${role.concept}". Define it before importing.`,'reference');});
         arr(r.verbalizes,q+'/verbalizes').forEach((v,k)=>str(v,`${q}/verbalizes/${k}`));
       });
     });
     const cycle=inheritanceCycle([...names],parents);if(cycle.length)fail('/ontology',`Cyclic inheritance detected near: ${cycle.slice(0,8).join(', ')}. Remove an extends link to break the cycle.`,'inheritance-cycle');
-    warn('/ontology','Ontology compatibility profile checked; no pinned Apache ontology schema is available.');
+    if(data.version==='0.2.0.dev0')issues.push(...mappingSchemaIssues(data,'ontology'));
+    else warn('/ontology','Ontology compatibility profile checked; the pinned Apache ontology schema applies to version 0.2.0.dev0.');
+    arr(data.ontology_mappings,'/ontology_mappings').forEach((m,i)=>{
+      const prefix=`/ontology_mappings/${i}`,schemaIssues=mappingSchemaIssues(m,'embedded',prefix);issues.push(...schemaIssues);
+      if(!schemaIssues.length)try{issues.push(...validateStructured(m.semantic_model,false).map(issue=>({...issue,path:prefix+'/semantic_model'+issue.path})));}catch(e){if(e instanceof InputError)issues.push(...e.issues.map(issue=>({...issue,path:prefix+'/semantic_model'+issue.path})));else throw e;}
+    });
   }else{
     const models=data.semantic_model!==undefined?arr(data.semantic_model,'/semantic_model',true):[data];
     if(data.semantic_model!==undefined)warn('/semantic_model','Legacy multi-model wrapper checked structurally; the pinned Ossie schema describes one model per document.');
@@ -88,7 +96,7 @@ export function validateStructured(data:any): Issue[] {
     });
     if(data.version!=='0.2.0.dev0')warn('/version',`No pinned Ossie schema for ${String(data.version??'unspecified version')}; only structural checks apply.`);
   }
-  const validator=data.kind==='DataContract'&&data.apiVersion==='v3.1.0'?contract:data.version==='0.2.0.dev0'&&data.datasets!==undefined?semantic:null;
+  const validator=!applyPinnedSchema?null:data.kind==='DataContract'&&data.apiVersion==='v3.1.0'?contract:data.version==='0.2.0.dev0'&&data.datasets!==undefined?semantic:null;
   if(validator&&!validator(data))for(const e of validator.errors??[])issues.push({severity:'error',code:'schema',path:(e.instancePath||'')+(e.keyword==='required'?'/'+e.params.missingProperty:e.keyword==='additionalProperties'?'/'+e.params.additionalProperty:'' )||'/',message:e.message??'Schema violation.'});
   rejectIssues(issues);return issues;
 }

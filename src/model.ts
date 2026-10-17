@@ -1,3 +1,5 @@
+import {OSSIE_BUILTINS,builtinConcept} from './ossie-builtins';
+import {isMapping} from './mapping-schema';
 import { parseDocument } from "yaml";
 import {inspectRdf,rdfSyntax} from "./rdf";
 import {validateStructured} from "./validation";
@@ -53,7 +55,10 @@ export function inspect(source: string, filename='definition.yaml') {
     return id;
   };
   let kind: string;
-  if (data.kind === "DataContract") {
+  if(isMapping(data)){
+    kind='Ossie mappings';
+    data.concept_mappings.forEach((m:any,i:number)=>add(m,['concept_mappings',i],'Concept mapping'));
+  } else if (data.kind === "DataContract") {
     kind = "ODCS";
     if (!data.apiVersion || !data.id || !data.version)
       throw Error("ODCS requires apiVersion, id and version");
@@ -62,6 +67,8 @@ export function inspect(source: string, filename='definition.yaml') {
   } else if (Array.isArray(data.ontology)) {
     kind = "Ossie ontology";
     data.ontology.forEach((x: any, i: number) => add(x, ["ontology", i], x.type ?? "Concept"));
+    const referenced=new Set<string>(data.ontology.flatMap((c:any)=>[...(c.extends??[]),...(c.relationships??[]).flatMap((r:any)=>(r.roles??[]).map((role:any)=>role.concept))]));
+    for(const name of referenced)if(OSSIE_BUILTINS.has(name)&&!entities.some(e=>e.name===name))entities.push({id:`builtin/${name}`,name,kind:'Built-in concept',path:[],description:builtinConcept(name).description,fields:[],definition:builtinConcept(name),readOnlyForm:true});
     const byName = new Map(entities.map(e => [e.name, e]));
     data.ontology.forEach((x: any, i: number) => {
       for (const [ri, r] of (x.relationships ?? []).entries())
@@ -116,7 +123,7 @@ export function inspect(source: string, filename='definition.yaml') {
       }
     });
   }
-  return { kind, name: data.name ?? data.semantic_model?.[0]?.name ?? "Untitled", entities, edges, issues };
+  return { kind, name: data.name ?? data.semantic_model?.[0]?.name ?? "Untitled", entities, edges, issues, document:data };
 }
 export function editEntity(source: string, path: (string | number)[], description: string) {
   const doc = parseDocument(source);

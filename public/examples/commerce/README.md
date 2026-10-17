@@ -11,3 +11,9 @@ Fictional order-to-cash domain. These are illustrative models, not production or
 - commerce-scale.ttl: 1,000 synthetic business resources, 5,000 explicit business links, plus type and label triples. It is a navigation benchmark, not a claim of validated business rules.
 
 Contract-to-semantic links are physical source names. Ontology links are shared IRIs. The app preserves these definitions; it does not automatically infer cross-document equivalence or execute OWL reasoning / SHACL validation.
+
+## Explicit mapping and agent example
+
+**Load mapped commerce** imports three additional, independent documents: `commerce.mapped-ontology.yaml`, `commerce.mapped-semantic.yaml`, and `commerce.mapping.yaml`. The mapping references the other two by logical name and local filename. Nested object/referent/link mappings connect Customer and Order to fields; Revenue and OrderCount point to existing governed metrics. Metric formulas occur only in the semantic model. Ontology business meaning and ontology-level AI instructions remain in the ontology.
+
+In Mappings, choose all concepts, select `gross_revenue` and `customers.region`, and preview a newly composed revenue-by-region query. This is not a predefined query; the runtime follows mappings and uses the declared many-to-one join and primary key. See [agent runtime](../../../docs/agent-runtime.md) for HTTP tools, provenance, supported query composition and limits.

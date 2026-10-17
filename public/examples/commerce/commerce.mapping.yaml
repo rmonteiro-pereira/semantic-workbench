@@ -1,0 +1,51 @@
+version: 0.2.0.dev0
+name: Commerce ontology mapping
+ontology_ref:
+  name: Mapped commerce ontology
+  iri: ./commerce.mapped-ontology.yaml
+semantic_model_ref:
+  name: Mapped commerce semantic model
+  iri: ./commerce.mapped-semantic.yaml
+concept_mappings:
+  - concept: Customer
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: customers.customer_id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: customers.customer_id
+        children:
+          - relationship: region
+            object_mapping:
+              concept: Region
+              expression: customers.region
+  - concept: Order
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: orders.order_id
+    link_mappings:
+      - object_mapping:
+          referent_mappings:
+            - relationship: id
+              expression: orders.order_id
+        children:
+          - relationship: amount
+            object_mapping:
+              concept: Money
+              expression: orders.amount
+          - relationship: customer
+            object_mapping:
+              concept: Customer
+              referent_mappings:
+                - relationship: id
+                  expression: orders.customer_id
+  - concept: Revenue
+    object_mappings:
+      - expression: gross_revenue
+  - concept: OrderCount
+    object_mappings:
+      - expression: order_count

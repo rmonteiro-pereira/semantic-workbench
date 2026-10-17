@@ -3,8 +3,9 @@ import{chromium,expect}from'@playwright/test';import{createStore}from'../server/
 const store=createStore(':memory:');const files=['ubl.ontology.yaml','ubl.owl.ttl','ubl.odcs.yaml','ubl.semantic.yaml','ubl.shacl.ttl','commerce.owl'];const asset=(filename:string)=>'public/examples/'+(filename==='commerce.owl'?'commerce/':'ubl/')+filename;for(const filename of files)store.save(filename,await Bun.file(asset(filename)).text());
 const browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1600,height:1000},acceptDownloads:true});const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));let passed=0;
 async function check(name:string,run:()=>Promise<void>){await run();passed++;console.log('PASS',name)}
-const handler=createHandler(store);let failNextSave=false;
+const handler=createHandler(store);let failNextSave=false;let holdPlan=false;let releasePlan:(()=>void)|null=null;
 await page.route('**/api/documents',async route=>{const r=route.request();if(failNextSave&&r.method()==='POST'){failNextSave=false;await route.fulfill({status:503,json:{error:'Temporary API failure'}});return;}const response=await handler(new Request(r.url(),{method:r.method(),...(r.method()==='POST'?{body:r.postData()}:{} )}));await route.fulfill({status:response.status,body:await response.text(),contentType:'application/json'});});
+await page.route('**/api/agent/**',async route=>{const r=route.request();if(holdPlan&&r.method()==='POST'){holdPlan=false;await new Promise<void>(resolve=>{releasePlan=resolve});}const response=await handler(new Request(r.url(),{method:r.method(),...(r.method()==='POST'?{body:r.postData()}:{} )}));await route.fulfill({status:response.status,body:await response.text(),contentType:'application/json'});});
 if(process.env.UI_MUTATION==='clear-nodes')await page.route('**/src/main.tsx*',async route=>{
  const response=await route.fetch();const source=await response.text();const anchor='setSource(loaded[0].source);';
  if(!source.includes(anchor))throw Error('UI mutation anchor missing');
@@ -158,6 +159,64 @@ await check('API failure retains repaired draft and permits retry',async()=>{
  await expect(page.locator('h1')).toHaveText(heading);if(store.list().length!==before)throw Error('Failed save changed SQLite');
  await dialog.getByRole('button',{name:'Import repaired files'}).click();await expect(dialog).toHaveCount(0);
  await expect(page.getByRole('button',{name:'retry.ttl',exact:true})).toBeVisible();if(store.list().length!==before+1)throw Error('Retry failed');
+});
+await check('mapped commerce exposes separate layers and composes governed revenue by region',async()=>{
+ await page.getByRole('button',{name:/Load mapped commerce/}).click();
+ await expect(page.locator('.mapping-layer-chain')).toContainText('Mapped commerce ontology');
+ await expect(page.locator('.mapping-layer-chain')).toContainText('Mapped commerce semantic model');
+ await expect(page.locator('.mapping-binding')).toHaveCount(9);
+ await page.locator('.mapping-concepts').getByRole('button',{name:/^Revenue/}).click();
+ await expect(page.locator('.mapping-binding')).toHaveCount(1);await expect(page.locator('.mapping-binding')).toContainText('gross_revenue');
+ await page.getByRole('button',{name:'All mapped concepts',exact:true}).click();
+ await page.getByRole('checkbox',{name:'Metric gross_revenue',exact:true}).check();
+ await page.getByRole('checkbox',{name:'Dimension customers.region',exact:true}).check();
+ await page.getByRole('button',{name:'Preview governed query',exact:true}).click();
+ await expect(page.getByLabel('Governed SQL preview')).toContainText('SUM("orders".amount)');
+ await expect(page.getByLabel('Governed SQL preview')).toContainText('GROUP BY "customers".region');
+ await expect(page.getByLabel('Governed SQL preview')).toContainText('LEFT JOIN');
+ await page.getByLabel('Governed SQL preview').scrollIntoViewIfNeeded();await page.screenshot({path:'/tmp/workbench-mapping-query.png'});
+});
+await check('agent context download retains mapping provenance and governed formulas',async()=>{
+ const [download]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'Export agent context',exact:true}).click()]);
+ if(download.suggestedFilename()!=='agent-context.json')throw Error('Wrong context filename');
+ const path=await download.path();if(!path)throw Error('Missing context download');const context=JSON.parse(await readFile(path,'utf8'));
+ if(context.bindings.length!==9||context.aiContext.length!==2||context.documents.length!==3)throw Error('Context layers missing');
+ if(context.metrics.find((m:any)=>m.name==='gross_revenue')?.definition.expression.dialects[0].expression!=='SUM(orders.amount)')throw Error('Governed formula changed');
+ if(!context.bindings.every((b:any)=>b.evidence.documentId&&b.evidence.path.length&&b.evidence.revision))throw Error('Provenance lost');
+ await page.locator('.mapping-explorer').evaluate(el=>el.scrollTop=0);await page.screenshot({path:'/tmp/workbench-mapping-layers.png'});
+});
+await check('mapping runtime reports missing targets and refreshes on repaired saved references',async()=>{
+ await page.getByRole('button',{name:'commerce.mapping.yaml',exact:true}).click();
+ await page.locator('.tabs').getByRole('button',{name:'Source',exact:true}).click();const editor=page.getByLabel('Definition source');const original=await editor.inputValue();
+ await editor.fill(original.replace('Mapped commerce ontology','Missing ontology'));
+ await page.locator('.tabs').getByRole('button',{name:'Mappings',exact:true}).click();await expect(page.locator('.mapping-explorer')).toContainText('uses saved document revisions');
+ await page.locator('.tabs').getByRole('button',{name:'Source',exact:true}).click();await page.getByRole('button',{name:'Save changes',exact:true}).click();
+ await expect(page.getByRole('status')).toContainText('Saved to SQLite');
+ await page.locator('.tabs').getByRole('button',{name:'Mappings',exact:true}).click();await expect(page.locator('.mapping-findings')).toContainText('0 local documents');
+ await expect(page.getByRole('button',{name:'Preview governed query',exact:true})).toBeDisabled();
+ await page.screenshot({path:'/tmp/workbench-mapping-unresolved.png'});
+ await page.locator('.tabs').getByRole('button',{name:'Source',exact:true}).click();await editor.fill(original);await page.getByRole('button',{name:'Save changes',exact:true}).click();await expect(page.getByRole('status')).toContainText('Saved to SQLite');
+ await page.locator('.tabs').getByRole('button',{name:'Mappings',exact:true}).click();await expect(page.locator('.mapping-binding')).toHaveCount(9);await expect(page.locator('.mapping-findings')).toHaveCount(0);
+ await page.getByRole('button',{name:'ubl.ontology.yaml',exact:true}).click();await page.locator('.tabs').getByRole('button',{name:'Graph',exact:true}).click();
+ await expect(page.locator('.full-graph-loading')).toHaveCount(0,{timeout:60000});await expect(page.locator('.full-graph-status')).toHaveAttribute('data-entity-count','45');
+});
+await check('changing mapping documents selects the requested mapping rather than a previous context',async()=>{
+ const original=(store.list().find((d:any)=>d.filename==='commerce.mapping.yaml')as any).source;
+ store.save('commerce.second.mapping.yaml',original.replace('name: Commerce ontology mapping','name: Second commerce mapping'));
+ await page.reload();await expect(page.locator('.mapping-layer-chain')).toContainText('Second commerce mapping');
+ await page.getByRole('button',{name:'commerce.mapping.yaml',exact:true}).click();
+ await expect(page.getByLabel('Mapping document').locator('option:checked')).toHaveText('Commerce ontology mapping');
+ await expect(page.locator('.mapping-layer-chain')).not.toContainText('Second commerce mapping');
+});
+await check('late query responses cannot overwrite a changed concept selection',async()=>{
+ await expect(page.getByRole('checkbox',{name:'Metric gross_revenue',exact:true})).toBeVisible();
+ await page.getByRole('checkbox',{name:'Metric gross_revenue',exact:true}).check();
+ holdPlan=true;releasePlan=null;await page.getByRole('button',{name:'Preview governed query',exact:true}).click();
+ await expect.poll(()=>releasePlan!==null).toBe(true);
+ await page.locator('.mapping-concepts').getByRole('button',{name:/^Customer/}).click();
+ releasePlan!();await page.waitForTimeout(200);
+ await expect(page.getByLabel('Governed SQL preview')).toHaveCount(0);
+ await expect(page.locator('.mapping-detail>h3')).toHaveText('Customer');
 });
 await check('no browser runtime errors',async()=>{if(errors.length)throw Error(errors.join('\n'))});
 console.log(`${passed} UI checks passed`);
