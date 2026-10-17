@@ -32,6 +32,7 @@ const mutants:[string,string,string,string][]=[
  ['layout','src/layout.ts','*330','*0'],
  ['layout','src/layout.ts','row%maxRows','row'],
  ['graph','src/graph-view.ts','limit=8','limit=800'],
+ ['graph','src/graph-view.ts','entities.find(e=>e.id===focusId)?.id','undefined'],
  ['graph','src/graph-view.ts','&&(e.source===focus||e.target===focus)',''],
  ['graph','src/graph-view.ts','includes(query.toLowerCase())',"includes('')"],
  ['graph','src/graph-view.ts','JSON.stringify([edge.source,edge.target])','edge.source'],
@@ -48,8 +49,8 @@ try{
  for(const [i,[category,file,before,after]]of mutants.entries()){const source=await Bun.file(file).text();if(!source.includes(before))throw Error(`Mutation anchor missing: ${before}`);const result=await run(category,file,source.replaceAll(before,after),'mutant-'+i);if(result.code===0)throw Error(`Surviving mutant ${i}: ${before} → ${after}`);if(/Cannot find|SyntaxError|ModuleNotFound/.test(result.error))throw Error(`Invalid mutation ${i}: ${result.error}`);killed++;console.log(`KILLED ${category}: ${before} → ${after}`);}
  const ui=Bun.spawn([process.execPath,resolve(root,'scripts/ui-tests.ts')],{env:{...process.env,UI_MUTATION:'clear-nodes'},stdout:'pipe',stderr:'pipe'});
  const code=await ui.exited;const output=await new Response(ui.stdout).text();const error=await new Response(ui.stderr).text();
- if(code===0)throw Error('Surviving UI mutant: clear nodes when reopening an existing example');
+ if(code===0)throw Error('Surviving UI mutant: empty neighborhood node projection');
  if(!output.includes('INJECTED_CLEAR_NODES_MUTATION')||!error.includes('react-flow__node'))throw Error('Invalid UI mutant: '+output+error);
- killed++;console.log('KILLED UI: clear nodes when reopening an existing example');
+ killed++;console.log('KILLED UI: empty neighborhood node projection');
  console.log(`${killed}/${mutants.length+1} targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.`);
 }finally{await rm(temp,{recursive:true,force:true});}

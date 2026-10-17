@@ -6,11 +6,11 @@ async function check(name:string,run:()=>Promise<void>){await run();passed++;con
 const handler=createHandler(store);let failNextSave=false;let holdPlan=false;let releasePlan:(()=>void)|null=null;
 await page.route('**/api/documents',async route=>{const r=route.request();if(failNextSave&&r.method()==='POST'){failNextSave=false;await route.fulfill({status:503,json:{error:'Temporary API failure'}});return;}const response=await handler(new Request(r.url(),{method:r.method(),...(r.method()==='POST'?{body:r.postData()}:{} )}));await route.fulfill({status:response.status,body:await response.text(),contentType:'application/json'});});
 await page.route('**/api/agent/**',async route=>{const r=route.request();if(holdPlan&&r.method()==='POST'){holdPlan=false;await new Promise<void>(resolve=>{releasePlan=resolve});}const response=await handler(new Request(r.url(),{method:r.method(),...(r.method()==='POST'?{body:r.postData()}:{} )}));await route.fulfill({status:response.status,body:await response.text(),contentType:'application/json'});});
-if(process.env.UI_MUTATION==='clear-nodes')await page.route('**/src/main.tsx*',async route=>{
- const response=await route.fetch();const source=await response.text();const anchor='setSource(loaded[0].source);';
+if(process.env.UI_MUTATION==='clear-nodes')await page.route('**/src/NeighborhoodGraph.tsx*',async route=>{
+ const response=await route.fetch();const source=await response.text();const anchor='return view.entities.map';
  if(!source.includes(anchor))throw Error('UI mutation anchor missing');
  console.log('INJECTED_CLEAR_NODES_MUTATION');
- await route.fulfill({response,body:source.replace(anchor,anchor+'setNodes([]);')});
+ await route.fulfill({response,body:source.replace(anchor,'return [].map')});
 });
 try{
 await page.goto('http://127.0.0.1:5173/');
@@ -48,7 +48,7 @@ await check('full model shows all entities and every matrix count opens real rel
  await page.getByPlaceholder('Find an entity…').fill('');
  await expect(page.locator('.area-entities button')).toHaveCount(45);
  await page.screenshot({path:'/tmp/workbench-ui-overview.png'});
- await page.getByRole('button',{name:'Neighborhood',exact:true}).click();
+ await page.locator('.tabs').getByRole('button',{name:'Neighborhood',exact:true}).click();
  await expect(page.locator('.react-flow__node')).toHaveCount(8);
 });
 await check('actual graph retains all entities, routes connections and keeps overview accessible',async()=>{
@@ -67,7 +67,7 @@ await check('actual graph retains all entities, routes connections and keeps ove
  await page.getByRole('button',{name:'Close details',exact:true}).click();
  await page.locator('.tabs').getByRole('button',{name:'Overview',exact:true}).click();
  await expect(page.locator('.area-entities button')).toHaveCount(45);
- await page.getByRole('button',{name:'Neighborhood',exact:true}).click();
+ await page.locator('.tabs').getByRole('button',{name:'Neighborhood',exact:true}).click();
  await expect(page.locator('.react-flow__node')).toHaveCount(8);
 });
 await check('JSON upload and export retain JSON syntax and filename',async()=>{

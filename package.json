@@ -11,7 +11,8 @@
     "test:mutation": "bun scripts/mutation-tests.ts",
     "examples:generate": "bun scripts/billing-example.ts",
     "test:examples": "bun scripts/verify-examples.ts",
-    "test:examples:ui": "bun scripts/examples-ui-tests.ts"
+    "test:examples:ui": "bun scripts/examples-ui-tests.ts",
+    "test:responsive": "bun scripts/responsive-ui-tests.ts"
   },
   "dependencies": {
     "@tisoap/react-flow-smart-edge": "^5.0.0",

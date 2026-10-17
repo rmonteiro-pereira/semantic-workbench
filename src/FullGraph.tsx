@@ -48,6 +48,13 @@ export function FullGraph(props:Props){
   }else{elk=new ELK({algorithms:['layered','sporeOverlap'],workerFactory:()=>new Worker(elkWorkerUrl)});layoutFullGraph(display.entities,display.edges,props.name,elk).then(apply).catch(e=>{if(!cancelled){setError(e.message);setBusy(false)}}).finally(()=>elk?.terminateWorker());}
   return()=>{cancelled=true;worker?.terminate();elk?.terminateWorker()};
  },[overview,display,algorithm,version]);
+ // Refit after the remaining canvas changes size (panels, monitor, wrapped controls).
+ useEffect(()=>{
+  const el=container.current?.querySelector('.react-flow');if(busy||!el)return;
+  let timer:ReturnType<typeof setTimeout>;
+  const observer=new ResizeObserver(()=>{clearTimeout(timer);timer=setTimeout(fit,100)});
+  observer.observe(el);return()=>{observer.disconnect();clearTimeout(timer)};
+ },[busy,fit]);
  const selectedGroup=overview.groupOf.get(props.selected);
  const focus=hover||(selectedGroup&&collapsed.has(selectedGroup)?'collapsed:'+selectedGroup:props.selected);
  const connected=useMemo(()=>{const ids=new Set<string>();if(focus){ids.add(focus);for(const e of display.edges)if(e.source===focus||e.target===focus){ids.add(e.source);ids.add(e.target)}}return ids;},[display,focus]);

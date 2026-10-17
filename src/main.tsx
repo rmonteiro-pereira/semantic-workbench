@@ -1,9 +1,8 @@
+import {NeighborhoodGraph} from './NeighborhoodGraph';
 import {MappingExplorer} from './MappingExplorer';
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import { createRoot } from "react-dom/client";
-import { ReactFlow, Background, Controls, MiniMap, useNodesState, Position, MarkerType, type ReactFlowInstance } from "@xyflow/react";
 import {
-  AlignHorizontalJustifyStart,
   Layers,
   Upload,
   Download,
@@ -13,14 +12,13 @@ import {
   FileCode,
   Box,
   CheckCircle2,
+  Menu, X, Focus,
 } from "lucide-react";
 import {validateInput} from "./input";
 import {ValidationPanel, ImportRepair, type ImportDraft} from "./ValidationPanel";
 import { editEntity } from "./model";
-import {graphView,groupRelationships} from "./graph-view";
-import {layoutGraph} from "./layout";
+import {groupRelationships} from "./graph-view";
 import {exportDocument} from "./export";
-import {relationshipEdgeTypes} from "./RelationshipEdge";
 import {ModelOverview} from "./ModelOverview";
 import {FullGraph} from "./FullGraph";
 import "@xyflow/react/dist/style.css";
@@ -40,33 +38,20 @@ function App() {
   const [pendingImport,setPendingImport]=useState<ImportDraft[]|null>(null);
   const [showValidation,setShowValidation]=useState(false);
   const sourceEditor=useRef<HTMLTextAreaElement|null>(null);
-  const nodeDocument=useRef<string|null>(null);
-  const [hoveredEdge,setHoveredEdge]=useState("");
-  const [showLabels,setShowLabels]=useState(false);
-  const [nodes, setNodes, onNodesChange] = useNodesState([] as any[]);
-  const flow = useRef<Pick<ReactFlowInstance, "fitView"> | null>(null);
-  const layoutWorker = useRef<Worker | null>(null);
-  const [aligning, setAligning] = useState(false);
-  function align() {
-    if (!model) return;
-    layoutWorker.current?.terminate();
-    const worker = new Worker(new URL('./layout.worker.ts', import.meta.url), {type: 'module'});
-    layoutWorker.current = worker;
-    setAligning(true);
-    worker.onmessage = ({data}) => {
-      const positions = new Map<string, {x:number;y:number}>(data.map((n:any) => [n.id, n.position]));
-      setNodes(old => old.map(n => ({...n, position:positions.get(n.id) ?? n.position})));
-      setAligning(false);
-      worker.terminate();
-      requestAnimationFrame(() => requestAnimationFrame(() => { void flow.current?.fitView({duration:300, maxZoom:1}); }));
-    };
-    worker.onerror = () => { setMessage('Unable to align this graph'); setAligning(false); worker.terminate(); };
-    worker.postMessage({ids:view.entities.map(e=>e.id),edges:view.edges});
-  }
-  useEffect(() => () => layoutWorker.current?.terminate(), []);
-  useEffect(() => {
-    layoutWorker.current?.terminate(); setAligning(false);
-  }, [current?.id]);
+  const [neighborhoodFocus,setNeighborhoodFocus]=useState('');
+  const [compact,setCompact]=useState(()=>window.innerWidth<1100);
+  const [sidebarOpen,setSidebarOpen]=useState(()=>window.innerWidth>=1100);
+  const sidebarRef=useRef<HTMLElement|null>(null),workspaceToggle=useRef<HTMLButtonElement|null>(null);
+  useEffect(()=>{const media=window.matchMedia('(max-width: 1099px)');const change=()=>{setCompact(media.matches);setSidebarOpen(!media.matches);};media.addEventListener('change',change);return()=>media.removeEventListener('change',change)},[]);
+  function closeWorkspace(){setSidebarOpen(false);requestAnimationFrame(()=>workspaceToggle.current?.focus());}
+  useEffect(()=>{
+    if(!compact||!sidebarOpen)return;
+    const el=sidebarRef.current;if(!el)return;
+    const focusable=()=>Array.from(el.querySelectorAll<HTMLElement>('button:not([disabled]),input:not([disabled]),select:not([disabled]),[tabindex="0"]')).filter(node=>node.getClientRects().length>0);
+    focusable()[0]?.focus();
+    const keyboard=(event:KeyboardEvent)=>{if(event.key==='Escape'){event.preventDefault();closeWorkspace();}else if(event.key==='Tab'){const nodes=focusable(),first=nodes[0],last=nodes.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}};
+    el.addEventListener('keydown',keyboard);return()=>el.removeEventListener('keydown',keyboard);
+  },[compact,sidebarOpen]);
   useEffect(() => {
     fetch("/api/documents")
       .then((r) => r.json())
@@ -77,10 +62,11 @@ function App() {
       .catch(() => setMessage("Cannot reach local API"));
   }, []);
   function open(d: Doc) {
-    if(current?.id===d.id)return;
+    if(current?.id===d.id){if(compact)closeWorkspace();return;}
     if (current && source !== current.source && !confirm("Discard unsaved changes?")) return;
     setCurrent(d);
     setSource(d.source);
+    setNeighborhoodFocus('');if(compact)closeWorkspace();
     setSelected("");
     setSelectedEdge("");
     setSearch("");setShowAll(false);
@@ -90,7 +76,6 @@ function App() {
   const result = {model:validation.model,error:(source||current)&&!validation.valid?validation.issues.filter(i=>i.severity==='error').map(i=>i.message).join('\n'):''};
   const model = result.model;
   const [showAll,setShowAll]=useState(false);
-  const view=useMemo(()=>graphView(model?.entities??[],model?.edges??[],search,false),[model,search]);
   const entity = model?.entities.find((e) => e.id === selected);
   const relatedDocuments=useMemo(()=>{
     if(!entity?.definition)return [];
@@ -100,15 +85,10 @@ function App() {
     return docs.filter(d=>d.id!==current?.id&&keys.some((key:string)=>d.source.includes(key)));
   },[entity,docs,current?.id]);
   const relationship = model?.edges.find(e => e.id === selectedEdge);
-  const groupedEdges=useMemo(()=>groupRelationships(view.edges),[view]);
   const globalGroups=useMemo(()=>groupRelationships(model?.edges??[]),[model]);
   const activeGroup=globalGroups.find(e=>e.data.relationships.some(r=>r.id===selectedEdge));
-  const routeTop=useMemo(()=>nodes.reduce((top,n)=>Math.min(top,n.position.y),0)-35,[nodes]);
-  const graphEdges = useMemo(() => groupedEdges.map(e => {
-    const active=e.data.relationships.some(r=>r.id===selectedEdge);
-    const related=selected && (e.source===selected||e.target===selected);
-    return {...e,type:"relationship",data:{...e.data,routeTop},label:showLabels||active||e.id===hoveredEdge?(e.data.relationships.length>1?`${e.data.relationships.length} relationships`:e.label):undefined,selected:active,interactionWidth:28,style:{stroke:active||related?'#237c68':'#8bafa5',strokeOpacity:selected&&!related?0.14:0.6,strokeWidth:active?2.5:1.4}};
-  }), [groupedEdges,selectedEdge,selected,hoveredEdge,showLabels,routeTop]);
+  function showNeighborhood(id=selected||relationship?.source||neighborhoodFocus){setNeighborhoodFocus(id);setSearch('');setTab('graph');setShowAll(false);}
+  function selectEntity(id:string){setSelected(id);setSelectedEdge('');if(tab==='graph'&&!showAll){setNeighborhoodFocus(id);setSearch('');}}
   async function loadExamples(scale:boolean|'ubl'|'mapped'|'billing'=false) {
     if(current && source !== current.source && !confirm('Discard unsaved changes and open examples?'))return;
     setBusy(true);setMessage('Loading example documents…');
@@ -125,44 +105,10 @@ function App() {
         const saved=await fetch('/api/documents',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filename,source})});
         const doc=await saved.json();if(!saved.ok)throw Error(doc.error);loaded.push(doc);setDocs(old=>[doc,...old]);
       }
-      setCurrent(loaded[0]);setSource(loaded[0].source);setSelected('');setSelectedEdge('');setSearch('');setShowAll(false);setTab(mapped||billing?'mappings':'graph');
+      setCurrent(loaded[0]);setSource(loaded[0].source);setNeighborhoodFocus('');if(compact)closeWorkspace();setSelected('');setSelectedEdge('');setSearch('');setShowAll(false);setTab(mapped||billing?'mappings':'graph');
       setMessage(billing?'Loaded subscription billing: 36 business entities, 46 joins, 119 bindings, and 4 governed metrics.':mapped?'Loaded mapped commerce: ontology, semantic model, governed metrics, and explicit mappings.':ubl?'Loaded UBL: 45 business entities, 277 roles; OWL, SHACL, ODCS, and semantic datasets.':scale?'Loaded 1,000 business resources and 5,000 links. Showing a neighborhood; search to explore.':'Loaded commerce contracts, semantic model, ontology, OWL, SHACL, and RDF data. Select a document in the sidebar.');
     }catch(e){setMessage((e as Error).message)}finally{setBusy(false)}
   }
-  useEffect(() => {
-    setNodes((old) => {
-      const sameDocument=nodeDocument.current===current?.id;
-      const positions = new Map((sameDocument?old:[]).map(n => [n.id, n.position]));
-      nodeDocument.current=current?.id??null;
-      const arranged=new Map(layoutGraph(view.entities.map(e=>e.id),view.edges).map(n=>[n.id,n.position]));
-      return view.entities.map((e, i) => ({
-          id: e.id,
-          sourcePosition: Position.Right,
-          targetPosition: Position.Left,
-          position: positions.get(e.id) ?? arranged.get(e.id) ?? {
-            x: (i % 3) * 290,
-            y: Math.floor(i / 3) * 180,
-          },
-          data: {
-            name: e.name,
-            label: (
-              <div className="node">
-                <small>{e.kind}</small>
-                <strong>{e.name}</strong>
-                <span>
-                  {e.fields.length
-                    ? `${e.fields.length} ${e.fields.length===1 ? "field" : "fields"}`
-                    : e.description || "Select to inspect"}
-                </span>
-              </div>
-            ),
-          },
-          style: { borderColor: e.id === selected ? "#50cbb0" : "#dbe3e4" },
-        })) ?? [];
-    });
-  }, [view, selected,current?.id]);
-  useEffect(() => { layoutWorker.current?.terminate(); setAligning(false); }, [model]);
-  useEffect(()=>{const timer=setTimeout(()=>{void flow.current?.fitView({duration:200,maxZoom:1,padding:0.2})},100);return ()=>clearTimeout(timer)},[view,current?.id,tab]);
   async function save(
     text = source,
     filename = current?.filename ?? "ontology.ossie.yaml",
@@ -196,10 +142,11 @@ function App() {
   }
   async function commitImports(drafts:ImportDraft[]) {
     for(const draft of drafts)if(!await save(draft.source,draft.filename,true))throw Error(`Could not save ${draft.filename}. Previously imported files remain in Documents; retry only the failed files.`);
-    setPendingImport(null);setSelected('');setSelectedEdge('');setSearch('');setShowAll(false);setTab('graph');
+    setPendingImport(null);setNeighborhoodFocus('');if(compact)closeWorkspace();setSelected('');setSelectedEdge('');setSearch('');setShowAll(false);setTab('graph');
   }
   async function importFiles(files: File[]) {
     if (!files.length) return;
+    if(compact)closeWorkspace();
     if (current && source !== current.source && !confirm("Discard unsaved changes and import?"))return;
     try{
       const drafts=await Promise.all(files.map(async file=>({filename:file.name,source:await file.text()})));
@@ -217,9 +164,11 @@ function App() {
     setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
   return (
-    <div className="shell">
+    <div className={`shell ${sidebarOpen?'workspace-open':'workspace-closed'}`}>
       {pendingImport&&<ImportRepair initial={pendingImport} onCancel={()=>setPendingImport(null)} onImport={commitImports}/>}
-      <aside className="sidebar">
+      {compact&&sidebarOpen&&<button className="workspace-scrim" aria-label="Dismiss workspace drawer" tabIndex={-1} onClick={closeWorkspace}/>}
+      <aside id="workspace-sidebar" className="sidebar workspace-sidebar" ref={sidebarRef} inert={!sidebarOpen} role={compact&&sidebarOpen?'dialog':undefined} aria-modal={compact&&sidebarOpen?true:undefined} aria-label="Workspace documents">
+        <button className="workspace-close" aria-label="Close workspace drawer" onClick={closeWorkspace}><X size={18}/></button>
         <div className="brand">
           <Layers size={26} />
           <span>
@@ -229,10 +178,10 @@ function App() {
         <div className="workspace-label">
           LOCAL WORKSPACE <span className="dot" />
         </div>
-        <button className="nav active" onClick={() => setTab("graph")}>
+        <button className="nav active" onClick={() => {showNeighborhood();if(compact)closeWorkspace();}}>
           <Network size={18} /> Model explorer
         </button>
-        <button className="nav" onClick={() => setTab("source")}>
+        <button className="nav" onClick={() => {setTab("source");if(compact)closeWorkspace();}}>
           <FileCode size={18} /> Source editor
         </button>
         <div className="section-label">
@@ -255,7 +204,7 @@ function App() {
         <button className="scale-example" onClick={()=>loadExamples(true)} disabled={busy}><Network size={16}/><span>Load commerce scale data<small>1,000 entities · 5,000 relationships</small></span></button>
         <button className="scale-example" onClick={()=>loadExamples('mapped')} disabled={busy}><Layers size={16}/><span>Load mapped commerce<small>Ontology → mappings → governed queries</small></span></button>
         <button className="scale-example" onClick={()=>loadExamples('billing')} disabled={busy}><Layers size={16}/><span>Load subscription billing<small>36 business entities · 4 governed metrics</small></span></button>
-        <label className="import">
+        <label className="import" tabIndex={0} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.currentTarget.querySelector('input')?.click();}}}>
           <Upload size={16} /> Import definitions
           <input
             type="file"
@@ -272,49 +221,39 @@ function App() {
           <small>Your definitions stay local.</small>
         </div>
       </aside>
-      <main>
-        <header>
-          <div className="breadcrumb">
-            Workspace <span>/</span> Model explorer
-          </div>
+      <main inert={compact&&sidebarOpen}>
+        <header className="workspace-header">
+          <button ref={workspaceToggle} className="workspace-toggle" aria-label={sidebarOpen?'Close workspace':'Open workspace'} aria-expanded={sidebarOpen} aria-controls="workspace-sidebar" onClick={()=>setSidebarOpen(v=>!v)}>{sidebarOpen?<X size={18}/>:<Menu size={18}/>}</button>
+          <div className="workspace-title"><h1 title={model?.name??current?.filename??'Semantic Workbench'}>{model?.name??current?.filename??'Semantic Workbench'}</h1><span className="badge"><span className="dot"/>{model?.kind??'ODCS + Apache Ossie'}</span></div>
           <div className="header-actions">
-            <button onClick={download} disabled={!source}>
-              <Download size={15} /> Export
+            <button aria-label="Export" onClick={download} disabled={!source}>
+              <Download size={15} /> <span className="action-label">Export</span>
             </button>
             <button
               className="primary"
+              aria-label={busy?"Saving…":"Save changes"}
               onClick={() => save()}
               disabled={!source || !!result.error || busy}
             >
               <Save size={15} />
-              {busy ? "Saving…" : "Save changes"}
+              <span className="action-label">{busy ? "Saving…" : "Save changes"}</span>
             </button>
           </div>
         </header>
-        <div className="heading">
-          <div>
-            <div className="eyebrow">CONNECTED DEFINITIONS</div>
-            <h1>{model?.name ?? "Your semantic workspace"}</h1>
-            <p>Explore the structure. Connect the meaning.</p>
-          </div>
-          <div className="badge">
-            <span className="dot" />
-            {model?.kind ?? "ODCS + Apache Ossie"}
-          </div>
-        </div>
         <div className="toolbar">
           <div className="tabs">
             <button className={showAll && tab==='graph'?'selected':''} onClick={()=>{setTab('graph');setShowAll(true);setSearch('')}}><Layers size={16}/> Overview</button>
-            <button className={!showAll && (tab === "graph" || tab==='fullgraph') ? "selected" : ""} onClick={() => {setTab("fullgraph");setShowAll(false);setSearch('')}}>
+            <button className={tab==='fullgraph' ? "selected" : ""} onClick={() => {setTab("fullgraph");setShowAll(false);setSearch('')}}>
               <Network size={16} /> Graph
             </button>
+            <button className={tab==='graph'&&!showAll?'selected':''} onClick={()=>showNeighborhood()}><Focus size={16}/> Neighborhood</button>
             <button
               className={tab === "catalog" ? "selected" : ""}
               onClick={() => setTab("catalog")}
             >
               <Box size={16} /> Catalog
             </button>
-            <button className={tab === "source" ? "selected" : ""} onClick={() => setTab("source")}>
+            <button className={tab === "source" ? "selected" : ""} onClick={() => {setTab("source");if(compact)closeWorkspace();}}>
               <FileCode size={16} /> Source
             </button>
             <button className={tab==='mappings'?'selected':''} onClick={()=>setTab('mappings')}><Layers size={16}/> Mappings</button>
@@ -363,42 +302,18 @@ function App() {
                 {model?.entities
                   .filter((e) => e.name.toLowerCase().includes(search.toLowerCase()))
                   .map((e) => (
-                    <button key={e.id} onClick={() => {setSelected(e.id);setSelectedEdge("");}}>
+                    <button key={e.id} onClick={() => selectEntity(e.id)}>
                       <small>{e.kind}</small>
                       <strong>{e.name}</strong>
                       <p>{e.description || "No description yet"}</p>
                     </button>
                   ))}
               </div>
-            ) : tab==='fullgraph' && model ? <FullGraph key={current?.id} name={model.name} entities={model.entities} edges={model.edges} selected={selected} selectedEdge={selectedEdge} search={search} onSelectEntity={id=>{setSelected(id);setSelectedEdge('')}} onSelectEdge={id=>{setSelectedEdge(id);setSelected('')}} onOverview={()=>{setTab('graph');setShowAll(true);setSearch('')}} onNeighborhood={()=>{setTab('graph');setShowAll(false)}}/> : (
-              showAll && model ? <ModelOverview key={current?.id} name={model.name} entities={model.entities} edges={model.edges} search={search} selected={selected} onSelectEntity={id=>{setSelected(id);setSelectedEdge('')}} onSelectRelationship={id=>{setSelectedEdge(id);setSelected('')}} onClose={()=>setShowAll(false)} onOpenGraph={()=>{setShowAll(false);setTab('fullgraph')}}/> : <><div className="graph-actions">          <button onClick={align} disabled={!model || aligning} title="Arrange entities from left to right by their relationships">
-            <AlignHorizontalJustifyStart size={16}/>{aligning ? 'Aligning…' : 'Auto align'}
-          </button>
-<button onClick={()=>setShowLabels(v=>!v)} aria-pressed={showLabels}>Labels {showLabels?'on':'off'}</button><button onClick={()=>{setSearch('');setShowAll(true)}}>Model overview</button><button onClick={()=>{setSearch('');setShowAll(false);setTab('fullgraph')}}>Full graph</button>
-</div><div className="graph-summary">Showing {view.entities.length} of {model?.entities.length} entities · {groupedEdges.length} connections{!showAll && (model?.entities.length??0)>8 ? ' · Search to explore neighborhoods' : ''}</div><ReactFlow
-                nodes={nodes}
-                edges={graphEdges}
-                edgeTypes={relationshipEdgeTypes}
-                defaultEdgeOptions={{type:'default', markerEnd:{type:MarkerType.ArrowClosed, color:'#7c9d90'}, style:{stroke:'#7c9d90'}}}
-                onInit={instance => {flow.current = instance}}
-                onlyRenderVisibleElements
-                minZoom={0.01}
-                nodesConnectable={false}
-                onNodesChange={onNodesChange}
-                onNodeClick={(_, n) => {setSelected(n.id);setSelectedEdge("");}}
-                onEdgeMouseEnter={(_,e)=>setHoveredEdge(e.id)}
-                onEdgeMouseLeave={()=>setHoveredEdge('')}
-                onPaneClick={()=>{setSelected('');setSelectedEdge('')}}
-                onEdgeClick={(_, e) => {setSelectedEdge(e.id);setSelected("");}}
-                fitView
-              >
-                <Background gap={22} size={1} />
-                <Controls />
-                <MiniMap nodeColor="#b8e6db" />
-              </ReactFlow></>
+            ) : tab==='fullgraph' && model ? <FullGraph key={current?.id} name={model.name} entities={model.entities} edges={model.edges} selected={selected} selectedEdge={selectedEdge} search={search} onSelectEntity={selectEntity} onSelectEdge={id=>{setSelectedEdge(id);setSelected('')}} onOverview={()=>{setTab('graph');setShowAll(true);setSearch('')}} onNeighborhood={()=>showNeighborhood()}/> : (
+              showAll && model ? <ModelOverview key={current?.id} name={model.name} entities={model.entities} edges={model.edges} search={search} selected={selected} onSelectEntity={selectEntity} onSelectRelationship={id=>{setSelectedEdge(id);setSelected('')}} onClose={()=>showNeighborhood()} onOpenGraph={()=>{setShowAll(false);setTab('fullgraph')}}/> : <NeighborhoodGraph key={current?.id} entities={model?.entities??[]} edges={model?.edges??[]} search={search} focusId={neighborhoodFocus} selected={selected} selectedEdge={selectedEdge} onFocus={id=>{setNeighborhoodFocus(id);setSearch('')}} onSelectEntity={selectEntity} onSelectEdge={id=>{setSelectedEdge(id);setSelected('')}} onOverview={()=>{setSearch('');setTab('graph');setShowAll(true)}} onFullGraph={()=>{setSearch('');setShowAll(false);setTab('fullgraph')}}/>
             )}
           </section>
-          {tab!=='mappings'&&(!(showAll || tab==='fullgraph') || entity || relationship) && <aside className="inspector">
+          {tab!=='mappings'&&(entity || relationship) && <aside className="inspector" aria-label="Definition details">
             <div className="section-label">DEFINITION DETAILS{(entity||relationship)&&<button className="inspector-close" aria-label="Close details" onClick={()=>{setSelected('');setSelectedEdge('')}}>×</button>}</div>
             {relationship ? (
               <>
@@ -424,6 +339,7 @@ function App() {
                   <Box />
                 </div>
                 <h2>{entity.name}</h2>
+                <button className="inspect-neighborhood" onClick={()=>showNeighborhood(entity.id)}><Focus size={14}/>Explore neighborhood</button>
                 <div className="badge">{entity.kind}</div>
                 {entity.readOnlyForm ? <p className="hint">{entity.description || 'Edit this RDF resource in Source. Original serialization is preserved.'}</p> : <label>
                   Description
