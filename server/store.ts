@@ -5,8 +5,11 @@ export function createStore(path: string) {
   db.exec(
     "PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; CREATE TABLE IF NOT EXISTS documents(id TEXT PRIMARY KEY,filename TEXT NOT NULL,source TEXT NOT NULL,revision INTEGER NOT NULL DEFAULT 1,updated TEXT NOT NULL); CREATE TABLE IF NOT EXISTS entities(document_id TEXT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,id TEXT NOT NULL,name TEXT NOT NULL,kind TEXT NOT NULL,PRIMARY KEY(document_id,id));",
   );
+  db.exec("CREATE TABLE IF NOT EXISTS document_views(document_id TEXT PRIMARY KEY REFERENCES documents(id) ON DELETE CASCADE,grouping TEXT NOT NULL)");
   return {
     db,
+    grouping: (id:string) => {const row=db.query('SELECT grouping FROM document_views WHERE document_id=?').get(id)as {grouping:string}|null;return row?JSON.parse(row.grouping):{};},
+    saveGrouping: (id:string,grouping:unknown) => {if(!db.query('SELECT id FROM documents WHERE id=?').get(id))throw Error('Document not found.');db.query('INSERT INTO document_views VALUES(?,?) ON CONFLICT(document_id) DO UPDATE SET grouping=excluded.grouping').run(id,JSON.stringify(grouping));return grouping;},
     list: () => db.query("SELECT * FROM documents ORDER BY updated DESC").all(),
     save: (filename: string, source: string, id = crypto.randomUUID(), revision?: number) => {
       const model = inspect(source, filename);

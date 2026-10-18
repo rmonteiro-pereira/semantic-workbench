@@ -1,8 +1,9 @@
+import type{GroupingOptions}from'./overview';
 import{useMemo,useState}from'react';import{ArrowLeft,ArrowRight,Grid2X2,Layers,Search,X,Network}from'lucide-react';import{modelOverview}from'./overview';import type{Entity,Relationship}from'./model';
-type Props={name:string;entities:Entity[];edges:Relationship[];search:string;selected:string;onSelectEntity:(id:string)=>void;onSelectRelationship:(id:string)=>void;onClose:()=>void;onOpenGraph:()=>void};
+type Props={grouping?:GroupingOptions;onGroupingChange?:(value:GroupingOptions)=>void;groupingError?:string;name:string;entities:Entity[];edges:Relationship[];search:string;selected:string;onSelectEntity:(id:string)=>void;onSelectRelationship:(id:string)=>void;onClose:()=>void;onOpenGraph:()=>void};
 export function ModelOverview(props:Props){
  const[mode,setMode]=useState<'areas'|'matrix'>('areas');const[technical,setTechnical]=useState(false);const[pair,setPair]=useState<[string,string]|null>(null);const[hover,setHover]=useState('');
- const overview=useMemo(()=>modelOverview(props.entities,props.edges,props.name,technical),[props.entities,props.edges,props.name,technical]);
+ const overview=useMemo(()=>modelOverview(props.entities,props.edges,props.name,technical,props.grouping),[props.entities,props.edges,props.name,technical,props.grouping]);
  const byId=useMemo(()=>new Map(props.entities.map(e=>[e.id,e])),[props.entities]);
  const focus=overview.degree.has(hover||props.selected)?hover||props.selected:'';
  const connected=useMemo(()=>{const ids=new Set<string>();if(focus){ids.add(focus);for(const edge of overview.links)if(edge.source===focus||edge.target===focus){ids.add(edge.source);ids.add(edge.target);}}return ids;},[overview,focus]);
@@ -10,8 +11,8 @@ export function ModelOverview(props:Props){
  const groupName=(id:string)=>id==='*'?'Other areas':overview.groups.find(g=>g.id===id)?.name??id;
  const matches=(e:Entity)=>!props.search||e.name.toLowerCase().includes(props.search.toLowerCase())||e.id.toLowerCase().includes(props.search.toLowerCase());
  return <div className="model-overview">
-  <div className="overview-top"><div><div className="overview-eyebrow">FULL MODEL</div><h2>One model. {overview.groups.length} connected areas.</h2><p>{overview.entities.length} entities · {overview.links.length} relationships. Select an entity to trace its connections.</p></div><div className="overview-view-actions"><button onClick={props.onOpenGraph}><Network size={14}/> Graph</button><button onClick={props.onClose}><ArrowLeft size={14}/> Neighborhood</button></div></div>
-  <div className="overview-options"><div className="overview-switch"><button className={mode==='areas'?'active':''} onClick={()=>setMode('areas')}><Layers size={14}/> Business areas</button><button className={mode==='matrix'?'active':''} onClick={()=>setMode('matrix')}><Grid2X2 size={14}/> Relationship matrix</button></div><div className="overview-legend"><span/> Connected to selection{props.entities.some(e=>e.kind==='OWL class')&&<button onClick={()=>setTechnical(v=>!v)}>{technical?'Business classes':`Include ${overview.technicalCount} technical definitions`}</button>}</div></div>
+  <div className="overview-top"><div><div className="overview-eyebrow">FULL MODEL</div><h2>One model. {overview.groups.length} groups.</h2><p>{overview.entities.length} entities · {overview.links.length} relationships. Select an entity to trace its connections.</p></div><div className="overview-view-actions"><button onClick={props.onOpenGraph}><Network size={14}/> Graph</button><button onClick={props.onClose}><ArrowLeft size={14}/> Neighborhood</button></div></div>
+  <div className="overview-options"><div className="overview-switch"><button className={mode==='areas'?'active':''} onClick={()=>setMode('areas')}><Layers size={14}/> {overview.mode==='example'?'Business areas':overview.groupingLabel}</button><button className={mode==='matrix'?'active':''} onClick={()=>setMode('matrix')}><Grid2X2 size={14}/> Relationship matrix</button></div><div className="overview-legend"><span/> Connected to selection{props.entities.some(e=>e.kind==='OWL class')&&<button onClick={()=>setTechnical(v=>!v)}>{technical?'Business classes':`Include ${overview.technicalCount} technical definitions`}</button>}</div></div>
   <div className="overview-scroll">
    {mode==='areas'?<div className="area-grid">{overview.groups.map(group=>{
     const entities=group.entities.filter(matches);if(!entities.length)return null;

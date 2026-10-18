@@ -21,6 +21,17 @@ export function createHandler(store:ReturnType<typeof createStore>) {
     for(const key of ['concepts','metrics','dimensions'])if((key!=='concepts'||body[key]!==undefined)&&(!Array.isArray(body[key])||body[key].length>100||body[key].some((id:any)=>typeof id!=='string'||!id.trim()||id.length>4096)))throw Error(`${key} must be an array of at most 100 non-empty ids.`);
     return Response.json(planQuery(buildContext(store.list() as StoredDocument[],body.mappingId),body));
    }
+   const groupingPath=url.pathname.match(/^\/api\/documents\/([^/]+)\/grouping$/);
+   if(groupingPath){
+    const id=decodeURIComponent(groupingPath[1]);
+    if(req.method==='GET')return Response.json(store.grouping(id));
+    if(req.method==='PUT'){
+     const value=await readJson(req,256_000);
+     if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).some(k=>!['mode','assignments','names'].includes(k))||!['auto','declared','suggested','types','example'].includes(value.mode??'auto'))throw Error('Invalid grouping view.');
+     for(const key of ['assignments','names'])if(value[key]!==undefined&&(typeof value[key]!=='object'||!value[key]||Array.isArray(value[key])||Object.keys(value[key]).length>10000||Object.entries(value[key]).some(([k,v])=>k.length>4096||typeof v!=='string'||!v.trim()||v.length>4096)))throw Error('Invalid grouping corrections.');
+     return Response.json(store.saveGrouping(id,value));
+    }
+   }
    if(url.pathname==='/api/documents'&&req.method==='GET')return Response.json(store.list());
    if(url.pathname==='/api/documents'&&req.method==='POST'){
     // Bound the request stream before parsing; JSON escaping can expand a 2 MB source.

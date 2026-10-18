@@ -1,0 +1,18 @@
+.source-editor { position:relative; width:100%; height:100%; min-height:0; overflow:hidden; background:#f6faf8; padding:0; }
+.source-editor-input,.source-editor-highlights { font:12px/22px ui-monospace,SFMono-Regular,Consolas,monospace; tab-size:2; letter-spacing:normal; }
+.source-editor .source-editor-input { position:relative; z-index:1; display:block; width:100%; height:100%; margin:0; padding:12px 14px 12px 60px; border:0; border-radius:0; outline:none; resize:none; white-space:pre; background:transparent; color:#315044; }
+.source-editor-input:focus-visible { box-shadow:inset 0 0 0 2px #67a590; }
+.source-editor-highlights { position:absolute; inset:0; overflow:hidden; pointer-events:none; padding:12px 0; color:transparent; }
+.source-editor-line { position:relative; min-height:22px; width:max-content; min-width:100%; padding-left:60px; padding-right:14px; white-space:pre; }
+.source-editor-line.line-error { background:#fbe0dc; box-shadow:inset 3px 0 #b74436; }
+.source-editor-line.line-warning { background:#fff0cb; box-shadow:inset 3px 0 #b48a25; }
+.source-editor-number { position:absolute; left:0; width:49px; text-align:right; color:#84978b; font-size:10px; user-select:none; }
+.line-error .source-editor-number { color:#aa3529; font-weight:700; }.line-warning .source-editor-number { color:#8d6411; }
+.source-editor-description { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+.repair-columns label > .source-editor { height:330px; border:1px solid #dbe3e4; border-radius:5px; }
+.repair-columns .source-editor textarea { height:100%; padding:12px 14px 12px 60px; font:12px/22px ui-monospace,SFMono-Regular,Consolas,monospace; }
+.validation-report .validation-feature { font-weight:600; color:#6b3e35; }.validation-report .validation-location { font-size:11px; color:#6d7e75; overflow-wrap:anywhere; }
+.validation-report .validation-feature-label { font-size:10px; text-transform:uppercase; letter-spacing:.7px; color:#916c60; margin-top:8px; }
+.validation-report .validation-fix { color:#4b6758; margin:6px 0; }
+.validation-report li button { font-size:11px; padding:5px 8px; margin-top:4px; }
+.source-editor.code { padding:0; background:#f6faf8; }

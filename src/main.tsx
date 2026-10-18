@@ -1,3 +1,7 @@
+import{GroupingControls}from'./GroupingControls';
+import{modelOverview}from'./overview';
+import{useGrouping}from'./useGrouping';
+import{SourceEditor,locateSourceIssue}from'./SourceEditor';
 import {NeighborhoodGraph} from './NeighborhoodGraph';
 import {MappingExplorer} from './MappingExplorer';
 import React, { useEffect, useMemo, useState, useRef } from "react";
@@ -37,6 +41,7 @@ function App() {
     [busy, setBusy] = useState(false);
   const [pendingImport,setPendingImport]=useState<ImportDraft[]|null>(null);
   const [showValidation,setShowValidation]=useState(false);
+  const grouping=useGrouping(current?.id);
   const sourceEditor=useRef<HTMLTextAreaElement|null>(null);
   const [neighborhoodFocus,setNeighborhoodFocus]=useState('');
   const [compact,setCompact]=useState(()=>window.innerWidth<1100);
@@ -76,6 +81,7 @@ function App() {
   const result = {model:validation.model,error:(source||current)&&!validation.valid?validation.issues.filter(i=>i.severity==='error').map(i=>i.message).join('\n'):''};
   const model = result.model;
   const [showAll,setShowAll]=useState(false);
+  const groupingOverview=useMemo(()=>model?modelOverview(model.entities,model.edges,model.name,false,grouping.value):null,[model,grouping.value]);
   const entity = model?.entities.find((e) => e.id === selected);
   const relatedDocuments=useMemo(()=>{
     if(!entity?.definition)return [];
@@ -260,6 +266,7 @@ function App() {
             </button>
             <button className={tab==='mappings'?'selected':''} onClick={()=>setTab('mappings')}><Layers size={16}/> Mappings</button>
           </div>
+          {groupingOverview&&(tab==='fullgraph'||(tab==='graph'&&showAll))&&<GroupingControls overview={groupingOverview} value={grouping.value} onChange={grouping.change} example={model!.name.includes('UBL')} error={grouping.error}/>}
           <label className="search">
             <Search size={16} />
             <input
@@ -269,7 +276,7 @@ function App() {
             />
           </label>
         </div>
-        {(source||current)&&(showValidation||!!result.error)&&<details className="validation-details" open><summary onClick={e=>{e.preventDefault();setShowValidation(false);}}>Validation findings</summary><ValidationPanel issues={validation.issues} onLocate={issue=>{setTab('source');setTimeout(()=>{const editor=sourceEditor.current;if(!editor)return;const offset=source.split('\n').slice(0,(issue.line??1)-1).reduce((n,s)=>n+s.length+1,0);editor.focus();editor.setSelectionRange(offset,offset);},0);}}/></details>}
+        {(source||current)&&(showValidation||!!result.error)&&<details className="validation-details" open><summary onClick={e=>{e.preventDefault();setShowValidation(false);}}>Validation findings</summary><ValidationPanel source={source} issues={validation.issues} onLocate={issue=>{setTab('source');setTimeout(()=>{const editor=sourceEditor.current;if(!editor)return;locateSourceIssue(editor,issue);},0);}}/></details>}
         <div className="canvas-row">
           <section className="canvas">
             {tab==='mappings' ? <MappingExplorer currentId={current?.id} revisionKey={docs.map(d=>d.id+':'+d.revision).join('|')} dirty={!!current&&source!==current.source}/> : !source && !current ? (
@@ -291,7 +298,8 @@ function App() {
                 </button>
               </div>
             ) : tab === "source" ? (
-              <textarea
+              <SourceEditor
+                issues={validation.issues}
                 ref={sourceEditor}
                 aria-label="Definition source"
                 className="code"
@@ -311,8 +319,8 @@ function App() {
                     </button>
                   ))}
               </div>
-            ) : tab==='fullgraph' && model ? <FullGraph key={current?.id} name={model.name} entities={model.entities} edges={model.edges} selected={selected} selectedEdge={selectedEdge} search={search} onSelectEntity={selectEntity} onSelectEdge={id=>{setSelectedEdge(id);setSelected('')}} onOverview={()=>{setTab('graph');setShowAll(true);setSearch('')}} onNeighborhood={()=>showNeighborhood()}/> : (
-              showAll && model ? <ModelOverview key={current?.id} name={model.name} entities={model.entities} edges={model.edges} search={search} selected={selected} onSelectEntity={selectEntity} onSelectRelationship={id=>{setSelectedEdge(id);setSelected('')}} onClose={()=>showNeighborhood()} onOpenGraph={()=>{setShowAll(false);setTab('fullgraph')}}/> : <NeighborhoodGraph key={current?.id} entities={model?.entities??[]} edges={model?.edges??[]} search={search} focusId={neighborhoodFocus} selected={selected} selectedEdge={selectedEdge} onFocus={id=>{setNeighborhoodFocus(id);setSearch('')}} onSelectEntity={selectEntity} onSelectEdge={id=>{setSelectedEdge(id);setSelected('')}} onOverview={()=>{setSearch('');setTab('graph');setShowAll(true)}} onFullGraph={()=>{setSearch('');setShowAll(false);setTab('fullgraph')}}/>
+            ) : tab==='fullgraph' && model ? <FullGraph grouping={grouping.value} onGroupingChange={grouping.change} groupingError={grouping.error} key={current?.id} name={model.name} entities={model.entities} edges={model.edges} selected={selected} selectedEdge={selectedEdge} search={search} onSelectEntity={selectEntity} onSelectEdge={id=>{setSelectedEdge(id);setSelected('')}} onOverview={()=>{setTab('graph');setShowAll(true);setSearch('')}} onNeighborhood={()=>showNeighborhood()}/> : (
+              showAll && model ? <ModelOverview grouping={grouping.value} onGroupingChange={grouping.change} groupingError={grouping.error} key={current?.id} name={model.name} entities={model.entities} edges={model.edges} search={search} selected={selected} onSelectEntity={selectEntity} onSelectRelationship={id=>{setSelectedEdge(id);setSelected('')}} onClose={()=>showNeighborhood()} onOpenGraph={()=>{setShowAll(false);setTab('fullgraph')}}/> : <NeighborhoodGraph key={current?.id} entities={model?.entities??[]} edges={model?.edges??[]} search={search} focusId={neighborhoodFocus} selected={selected} selectedEdge={selectedEdge} onFocus={id=>{setNeighborhoodFocus(id);setSearch('')}} onSelectEntity={selectEntity} onSelectEdge={id=>{setSelectedEdge(id);setSelected('')}} onOverview={()=>{setSearch('');setTab('graph');setShowAll(true)}} onFullGraph={()=>{setSearch('');setShowAll(false);setTab('fullgraph')}}/>
             )}
           </section>
           {tab!=='mappings'&&(entity || relationship) && <aside className="inspector" aria-label="Definition details">

@@ -87,6 +87,7 @@ With the dev server running:
 bun run test:ui
 bun run test:responsive
 bun run test:edges
+bun run test:grouping-validation
 bun run test:mutation
 bun scripts/live-inspect.ts
 ```
@@ -97,7 +98,7 @@ The responsive suite checks six viewports from 390×844 through 2560×1440, incl
 
 `bun run test:edges` measures Flights SVG endpoints against rendered entity borders during entity and business-area dragging, zooming, selection, and both layout modes. Worker routes render only when their endpoints match the current React Flow handles; live curves keep connections attached while dragging or waiting for a fresh route.
 
-The mutation suite is **targeted**, not a whole-project mutation score. It checks 39 deliberate logic faults in validation, RDF definitions, size limits, layout, neighborhood filtering, grouping, exports, form edits and SQLite validation/revision checks, plus a browser-injected empty neighborhood node projection. Unmodified module baselines must pass, and every mutant must be detected. It writes temporary candidate modules under `/tmp`, never changes application sources, and removes temporary files afterward.
+The mutation suite is **targeted**, not a whole-project mutation score. It checks 41 deliberate logic faults in validation, RDF definitions, size limits, layout, neighborhood filtering, grouping, exports, form edits and SQLite validation/revision checks, plus a browser-injected empty neighborhood node projection. Unmodified module baselines must pass, and every mutant must be detected. It writes temporary candidate modules under `/tmp`, never changes application sources, and removes temporary files afterward.
 
 Graph connections group parallel relationships; the inspector exposes each original definition. Names appear on hover or selection, with a Labels toggle for inspecting all labels. Selecting an entity lists all its relationships. Long edges route above intervening columns. The sidebar scrolls documents independently and keeps example/import controls visible. API hot reloads no longer restart the frontend; the dev launcher owns both process groups and uses a strict frontend port.
 
@@ -155,3 +156,9 @@ bun run test:examples:ui
 ```
 
 All five [official Apache Ossie examples](tests/fixtures/ossie-mapping/README.md) are pinned and hash-checked without modifications. Use **Load Ossie Flights** in the workspace sidebar to open the official ontology graph and load its semantic model plus standalone and embedded mappings. Both mapping forms resolve and are tested through the UI. TPC-DS imports with a warning for an unexposed physical primary-key column; window expressions remain preserved rather than being executed by the current planner. [Verification results and SQL](docs/example-verification.json) record 20 actual synthetic-fixture SQL executions. Browser screenshots are saved under `/tmp/`.
+
+## Grouping and validation navigation
+
+The graph and overview share a grouping selector: declared domains, suggested communities, definition types, and the explicitly curated UBL example areas. Flights has no declared domains: its suggested communities derive from a deterministic, bounded modularity pass over business relationships. Inheritance, direction, duplicate links and primitive hubs do not influence those suggestions. Shared values remain separate; every relationship stays available. Grouping details explain the basis and offer per-entity corrections saved in SQLite as document view settings. Original definitions and exports are unchanged. ODCS contract-level domain declarations are retained.
+
+Source and import-repair editors show numbered lines, red error highlights and amber warning highlights. Findings include named feature paths, offending source snippets and correction guidance. Go to line selects and scrolls to the affected line. Findings without a reliable location remain explicitly document-level. `bun run test:grouping-validation` verifies mode changes, persisted corrections, byte-exact exports, line highlighting and safe repair cancellation in an isolated browser workspace.

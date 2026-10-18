@@ -13,6 +13,7 @@ export type Entity = {
   fields: string[];
   definition?: any;
   readOnlyForm?: boolean;
+  declaredDomains?: string[];
 };
 export type Relationship={id:string;source:string;target:string;label:string;data:{path:(string|number)[];definition:any;kind:string;readOnlyForm?:boolean}};
 export function inspect(source: string, filename='definition.yaml') {
@@ -46,6 +47,7 @@ export function inspect(source: string, filename='definition.yaml') {
     entities.push({
       id,
       definition:item,
+      ...(data.kind==='DataContract'&&typeof data.domain==='string'?{declaredDomains:[data.domain]}:{}),
       name,
       kind,
       path,

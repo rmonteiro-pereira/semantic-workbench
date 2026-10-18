@@ -60,7 +60,7 @@ await check('actual graph retains all entities, routes connections and keeps ove
  await expect(page.locator('.full-graph-status')).toHaveAttribute('data-relationship-count','277');
  await expect(page.locator('.react-flow__node-entity')).toHaveCount(45);
  await expect(page.locator('.react-flow__edge')).toHaveCount(183);
- await page.getByLabel('Zoom to business area').selectOption('documents');await page.waitForTimeout(500);
+ await page.getByLabel('Zoom to group').selectOption('documents');await page.waitForTimeout(500);
  await expect(page.locator('.full-graph-status')).toContainText('background worker',{timeout:30000});
  await page.locator('.react-flow__node[data-id="ontology/0"] .full-entity').click();
  await expect(page.locator('.inspector h2')).toHaveText('Order');

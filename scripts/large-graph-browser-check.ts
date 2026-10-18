@@ -13,7 +13,7 @@ try{
  await expect(page.locator('.full-graph-loading')).toHaveCount(0,{timeout:120000});
  await page.getByRole('button',{name:'Fit model',exact:true}).click();await page.waitForTimeout(500);
  await expect(page.locator('.react-flow__node-entity')).toHaveCount(107,{timeout:10000});
- await page.getByLabel('Zoom to business area').selectOption('Customer');await page.waitForTimeout(400);
+ await page.getByLabel('Zoom to group').selectOption('Customer');await page.waitForTimeout(400);
  await page.screenshot({path:'/tmp/real-graph-1000.png'});
  if(process.env.EXPAND_ALL==='1'){
   const allStart=performance.now();await page.getByRole('button',{name:'Expand all',exact:true}).click();

@@ -13,7 +13,8 @@
     "test:examples": "bun scripts/verify-examples.ts",
     "test:examples:ui": "bun scripts/examples-ui-tests.ts",
     "test:responsive": "bun scripts/responsive-ui-tests.ts",
-    "test:edges": "bun scripts/edge-attachment-ui-tests.ts"
+    "test:edges": "bun scripts/edge-attachment-ui-tests.ts",
+    "test:grouping-validation": "bun scripts/grouping-validation-ui-tests.ts"
   },
   "dependencies": {
     "@tisoap/react-flow-smart-edge": "^5.0.0",

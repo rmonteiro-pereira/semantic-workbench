@@ -27,6 +27,8 @@ const mutants:[string,string,string,string][]=[
  ['full-layout','src/full-layout.ts','result.nodes.map((n:any)=>n.group?','result.nodes.filter((n:any)=>n.group).map((n:any)=>n.group?'],
  ['overview','src/overview.ts','group.push(edge);','if(groupOf.get(edge.source)!==groupOf.get(edge.target))group.push(edge);'],
  ['overview','src/overview.ts','hasClasses&&!technical','false'],
+ ['overview','src/overview.ts','if(correction){','if(false){'],
+ ['overview','src/overview.ts',"suggested.membership.size>=2&&suggested.backboneEdges>0",'false'],
  ['overview','src/overview.ts','groups.get(group.id)!.entities.push(entity);','groups.get(group.id)!.entities.push(entity,entity);'],
  ['overview','src/overview.ts','JSON.stringify([groupOf.get(edge.source),groupOf.get(edge.target)])','JSON.stringify([groupOf.get(edge.target),groupOf.get(edge.source)])'],
  ['layout','src/layout.ts','*330','*0'],

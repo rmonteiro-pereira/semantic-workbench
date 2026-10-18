@@ -10,6 +10,7 @@ if(category==='store'){const s=m.createStore(':memory:');const source='name: Sam
 if(category==='overview'){
  const {inspect}=await import('../src/model');
  const input=inspect(await Bun.file('public/examples/ubl/ubl.ontology.yaml').text());const o=m.modelOverview(input.entities,input.edges,input.name);
+ const flights=inspect(await Bun.file('public/examples/ossie/flights.ontology.yaml').text());assert.equal(m.modelOverview(flights.entities,flights.edges,flights.name).mode,'suggested');const corrected=m.modelOverview(flights.entities,flights.edges,flights.name,false,{mode:'types',assignments:{[flights.entities[0].id]:'custom:Review'},names:{'custom:Review':'Review'}});assert.equal(corrected.groupOf.get(flights.entities[0].id),'custom:Review');
  assert.equal(o.groups.length,8);assert.equal(o.groups.flatMap((g:any)=>g.entities).length,45);
  assert.equal([...o.matrix.values()].flat().length,277);
  for(const [key,links]of o.matrix){const[from,to]=JSON.parse(key);assert(links.every((e:any)=>o.groupOf.get(e.source)===from&&o.groupOf.get(e.target)===to));}

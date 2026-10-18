@@ -1,7 +1,8 @@
+import type{GroupingOptions}from'./overview';
 import cytoscape from'cytoscape';import fcose from'cytoscape-fcose';import{modelOverview}from'./overview';import{groupRelationships}from'./graph-view';import type{Entity,Relationship}from'./model';
 cytoscape.use(fcose);
-export function layoutNetwork(entities:Entity[],edges:Relationship[],name:string,options:Record<string,unknown>={}){
- const o=modelOverview(entities,edges,name);const connections=groupRelationships(o.links);
+export function layoutNetwork(entities:Entity[],edges:Relationship[],name:string,options:Record<string,unknown>={},grouping?:GroupingOptions){
+ const o=modelOverview(entities,edges,name,false,grouping);const connections=groupRelationships(o.links);
  const cy=cytoscape({headless:true,styleEnabled:true,elements:[...o.groups.map(g=>({data:{id:'area:'+g.id}})),...o.entities.map(e=>({data:{id:e.id,parent:'area:'+o.groupOf.get(e.id)}})),...connections.map(e=>({data:{id:'edge:'+e.id,source:e.source,target:e.target}}))],style:[{selector:'node',style:{width:184,height:60,'border-width':0,padding:'0px'}},{selector:':parent',style:{padding:'38px','compound-sizing-wrt-labels':'exclude','border-width':0}}]});
  cy.layout({name:'fcose',quality:'proof',randomize:true,animate:false,fit:false,nodeRepulsion:()=>4500,idealEdgeLength:()=>65,edgeElasticity:()=>.25,numIter:entities.length>200?1000:2500,gravity:.15,gravityCompound:1.5,nodeSeparation:30,packComponents:true,...options}as any).run();
  const groupBounds=new Map(o.groups.map(g=>[g.id,cy.getElementById('area:'+g.id).boundingBox({includeLabels:false,includeOverlays:false})]));
