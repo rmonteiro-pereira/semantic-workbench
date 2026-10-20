@@ -1,6 +1,6 @@
 import type {Entity,Relationship}from'./model';
-import {isInheritance,suggestCommunities} from './communities';
-export type GroupingMode='auto'|'declared'|'suggested'|'types'|'example';
+import {isBusinessEntity,isInheritance,suggestCommunities} from './communities';
+export type GroupingMode='auto'|'declared'|'namespaces'|'suggested'|'types'|'example';
 export type GroupingOptions={mode?:GroupingMode;assignments?:Record<string,string>;names?:Record<string,string>};
 const areas=[
  {id:'documents',name:'Business documents',description:'Procurement, invoicing and evidence',color:'#417fa8',names:['Order','Invoice','DespatchAdvice','ReceiptAdvice','CreditNote','OrderReference','BillingReference','DocumentReference','Contract']},
@@ -22,7 +22,8 @@ export function modelOverview(entities:Entity[],edges:Relationship[],name:string
  const suggested=suggestCommunities(visible,links);
  const declared=(entity:Entity)=>[...new Set([...(entity.declaredDomains??[]),entity.definition?.domain,...(Array.isArray(entity.definition?.domains)?entity.definition.domains:[])].filter((v):v is string=>typeof v==='string'&&v.trim().length>0).map(v=>v.trim()))];
  const requested=grouping.mode??'auto';
- const mode:Exclude<GroupingMode,'auto'>=requested==='auto'?(visible.some(e=>declared(e).length)?'declared':name.includes('UBL')?'example':suggested.membership.size>=2&&suggested.backboneEdges>0?'suggested':'types'):requested;
+ const namespaces=new Set(visible.filter(isBusinessEntity).flatMap(e=>e.namespace?.prefix!==undefined?[e.namespace.iri]:[]));
+ const mode:Exclude<GroupingMode,'auto'>=requested==='auto'?(visible.some(e=>declared(e).length)?'declared':name.includes('UBL')?'example':namespaces.size>=2?'namespaces':suggested.membership.size>=2&&suggested.backboneEdges>0?'suggested':'types'):requested;
  const groups=new Map<string,{id:string;name:string;description:string;color:string;entities:Entity[];provenance:string}>();
  const memberships=new Map<string,string[]>();
  const counts={declared:0,suggested:0,corrected:0,unassigned:0};
@@ -39,6 +40,11 @@ export function modelOverview(entities:Entity[],edges:Relationship[],name:string
    const domains=declared(entity);memberships.set(entity.id,domains.map(d=>'domain:'+d));
    if(domains.length){counts.declared++;group={id:'domain:'+domains[0],name:domains[0],description:domains.length>1?'Primary declared domain; additional affiliations retained':'Declared in this entity definition',color:groupColor('domain:'+domains[0]),provenance:'Declared domain'};}
    else{counts.unassigned++;group={id:'unassigned',name:'Unassigned',description:'No domain declared in this entity definition',color:'#85958e',provenance:'No declaration'};}
+  }else if(mode==='namespaces'){
+   const ns=entity.namespace;
+   if(ns){const id='namespace:'+ns.iri;group={id,name:ns.prefix!==undefined?(ns.prefix||'(default)')+':':ns.iri,description:ns.iri,color:groupColor(id),provenance:ns.prefix!==undefined?'Declared prefix':'IRI namespace'};}
+   else if(entity.kind==='Built-in concept')group={id:'builtins',name:'Built-in concepts',description:'Standard primitive concepts',color:'#85958e',provenance:'Definition type'};
+   else{counts.unassigned++;group={id:'no-namespace',name:'No IRI',description:'No global identifier declared on this definition',color:'#85958e',provenance:'No declaration'};}
   }else if(mode==='suggested'){
    let anchor=suggested.membership.get(entity.id);
    if(!anchor&&entity.kind==='ValueType'){
@@ -63,7 +69,7 @@ export function modelOverview(entities:Entity[],edges:Relationship[],name:string
  const degree=new Map(visible.map(e=>[e.id,0]));
  const matrix=new Map<string,Relationship[]>();
  for(const edge of links){degree.set(edge.source,degree.get(edge.source)!+1);if(edge.target!==edge.source)degree.set(edge.target,degree.get(edge.target)!+1);const key=JSON.stringify([groupOf.get(edge.source),groupOf.get(edge.target)]);const group=matrix.get(key)??[];group.push(edge);matrix.set(key,group);}
- const groupingLabel={example:'Curated example areas',declared:'Declared domains',suggested:'Suggested communities',types:'Definition types'}[mode];
- const explanation={example:'Curated UBL example display areas; these are not source-declared domains.',declared:'Uses only domain/domains declarations. Multiple affiliations are retained; the first determines placement.',suggested:'Deterministic suggestions from undirected business relationships, excluding inheritance and primitive hubs. Review and correct these groups.',types:'Groups by definition type without inferring business domains.'}[mode];
+ const groupingLabel={example:'Curated example areas',declared:'Declared domains',namespaces:'IRI namespaces',suggested:'Suggested communities',types:'Definition types'}[mode];
+ const explanation={example:'Curated UBL example display areas; these are not source-declared domains.',declared:'Uses only domain/domains declarations. Multiple affiliations are retained; the first determines placement.',suggested:'Deterministic suggestions from undirected business relationships, excluding inheritance and primitive hubs. Review and correct these groups.',types:'Groups by definition type without inferring business domains.',namespaces:'Groups by the namespace of each definition IRI, using the declared prefix with the longest matching namespace. Definitions without an IRI are listed separately.'}[mode];
  return {mode,groupingLabel,explanation,provenance:{kind:mode,counts,algorithm:mode==='suggested'?'bounded modularity local moving':undefined},memberships,groups:ordered,entities:visible,links,matrix,degree,groupOf,technicalCount:entities.length-visible.length};
 }
