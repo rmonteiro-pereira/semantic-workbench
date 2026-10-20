@@ -11,6 +11,7 @@ if(category==='overview'){
  const {inspect}=await import('../src/model');
  const input=inspect(await Bun.file('public/examples/ubl/ubl.ontology.yaml').text());const o=m.modelOverview(input.entities,input.edges,input.name);
  const flights=inspect(await Bun.file('public/examples/ossie/flights.ontology.yaml').text());assert.equal(m.modelOverview(flights.entities,flights.edges,flights.name).mode,'suggested');const corrected=m.modelOverview(flights.entities,flights.edges,flights.name,false,{mode:'types',assignments:{[flights.entities[0].id]:'custom:Review'},names:{'custom:Review':'Review'}});assert.equal(corrected.groupOf.get(flights.entities[0].id),'custom:Review');
+ const ns=inspect('name: N\nprefixes: {a: "https://a.example/", b: "https://b.example/"}\nontology: [{concept: X, type: EntityType, iri: "a:X"}, {concept: Y, type: EntityType, iri: "b:Y"}, {concept: Z, type: EntityType}]\n');const nso=m.modelOverview(ns.entities,ns.edges,ns.name);assert.equal(nso.mode,'namespaces');assert.deepEqual(nso.groups.map((g:any)=>g.name),['a:','b:','No IRI']);
  assert.equal(o.groups.length,8);assert.equal(o.groups.flatMap((g:any)=>g.entities).length,45);
  assert.equal([...o.matrix.values()].flat().length,277);
  for(const [key,links]of o.matrix){const[from,to]=JSON.parse(key);assert(links.every((e:any)=>o.groupOf.get(e.source)===from&&o.groupOf.get(e.target)===to));}
@@ -36,6 +37,10 @@ if(category==='validation'){
  const unknown=structuredClone(join);unknown.relationships[0].from_columns=['missing'];invalids.push(unknown);
  const lengths=structuredClone(join);lengths.relationships[0].from_columns=['id','id'];invalids.push(lengths);
  invalids.push({kind:'DataContract',apiVersion:'v3.1.0',id:'x',version:'1',schema:[{name:'x'}]});
+ const iri={version:'0.2.0.dev0',name:'I',prefixes:{ex:'https://example.org/'},ontology:[{concept:'A',type:'EntityType',iri:'ex:A'},{concept:'B',type:'EntityType',iri:'https://example.org/B'}]};
+ assert.doesNotThrow(()=>m.validateStructured(iri));
+ d=structuredClone(iri);(d as any).ontology[0].iri='zz:A';invalids.push(d);
+ d=structuredClone(iri);(d as any).ontology[1].iri='https://example.org/A';invalids.push(d);
  for(const input of invalids)assert.throws(()=>m.validateStructured(input));
 }
 if(category==='diagnostics'){
@@ -55,6 +60,8 @@ if(category==='rdf-validation'){
 }
 
 if(category==='agent'){
+ const legacy=[{id:'0',filename:'m.yaml',revision:1,source:'version: 0.2.0.dev0\nname: m\nontology_ref: {name: O}\nsemantic_model_ref: {name: s}\nconcept_mappings:\n  - concept: A\n    object_mappings: [{referent_mappings: [{relationship: id, expression: t.id}]}]\n'},{id:'1',filename:'o.yaml',revision:1,source:'version: 0.2.0.dev0\nname: O\nontology:\n  - {concept: Id, type: ValueType, extends: [String]}\n  - concept: A\n    type: EntityType\n    identify_by: [id]\n    relationships: [{name: id, roles: [{concept: Id}], multiplicity: OneToOne, verbalizes: ["{A} has {Id}"]}]\n'},{id:'2',filename:'s.yaml',revision:1,source:'version: 0.2.0.dev0\nsemantic_model:\n  - name: s\n    datasets: [{name: t, source: t, fields: [{name: id, expression: {dialects: [{dialect: ANSI_SQL, expression: id}]}}]}]\n'}];
+ const resolved=m.buildContext(legacy,'0');assert.equal(resolved.findings.length,0);assert.deepEqual(resolved.fields[0].evidence.path,['semantic_model',0,'datasets',0,'fields',0]);
  const {parse,stringify}=await import('yaml');
  const docs=await Promise.all(['commerce.mapping.yaml','commerce.mapped-ontology.yaml','commerce.mapped-semantic.yaml'].map(async(filename,i)=>({id:String(i),filename,revision:1,source:await Bun.file('public/examples/commerce/'+filename).text()})));
  const change=(index:number,edit:(data:any)=>void)=>{const clone=structuredClone(docs);const data=parse(clone[index].source);edit(data);clone[index].source=stringify(data);return clone;};
@@ -70,3 +77,4 @@ if(category==='agent'){
  assert.throws(()=>plan(change(2,d=>d.relationships.push({...d.relationships[0],name:'parallel'}))));
  assert.throws(()=>plan(change(2,d=>delete d.datasets[1].primary_key)));
 }
+if(category==='iri'){assert.deepEqual(m.expandIri('ex:A',{ex:'https://example.org/'}),{iri:'https://example.org/A',prefix:'ex'});assert('error'in m.expandIri('zz:A',{ex:'https://example.org/'}));assert.deepEqual(m.expandIri('https://x.example/A'),{iri:'https://x.example/A'});}

@@ -1,0 +1,16 @@
+version: 0.2.0.dev0
+name: Sales
+ontology:
+  - concept: OrderId
+    type: ValueType
+    extends: [String]
+  - concept: Order
+    type: EntityType
+    identify_by: [id]
+    relationships:
+      - name: id
+        roles:
+          - concept: OrderId
+        multiplicity: OneToOne
+        verbalizes:
+          - '{Order} is identified by {OrderId}'

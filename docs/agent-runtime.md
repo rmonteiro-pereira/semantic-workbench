@@ -23,7 +23,28 @@ All endpoints use the loopback API (`http://127.0.0.1:4310`) or Vite's `/api` pr
 | Limit concept traversal | Add repeated `&concept=Revenue&concept=Customer` | Select matching roots and target concepts; include referenced metrics and their dependency formulas/fields. Full datasets/joins remain available for intermediate join traversal. |
 | Compose a governed query | `POST /api/agent/plan` | `{mappingId, concepts?, metrics: [metricId], dimensions: [fieldId]}` → SQL preview, original governed expressions, join plan, sources, bindings and revision provenance |
 
-Mapping IDs come from the catalog. Field IDs are opaque identifiers returned by context; clients must not fabricate them from physical column names. Metric IDs are scoped to the referenced semantic model. Each document reference's `name` must match the target's logical name. Relative `iri` values are checked against the imported filename in the flat local catalog. Absolute locations are never fetched: a uniquely named local target can resolve the identity, with an explicit location-resolution warning. Duplicates are reported rather than selected arbitrarily.
+Mapping IDs come from the catalog. Field IDs are opaque identifiers returned by context; clients must not fabricate them from physical column names. Metric IDs are scoped to the referenced semantic model.
+
+### Standalone mapping header and reference identity
+
+A standalone mapping document requires `version`, `name`, `ontology_ref`, `semantic_model_ref` and `concept_mappings` (Apache Ossie `ontology/mapping.json`). A document missing any of these fails the import schema check instead of failing later at resolution.
+
+```yaml
+version: 0.2.0.dev0
+name: sales-mapping
+ontology_ref: {name: Sales, iri: ./sales.ontology.yaml}
+semantic_model_ref: {name: sales, iri: ./sales.semantic_model.yaml}
+concept_mappings: [...]
+```
+
+Each reference's `name` is its identity and must equal the target's logical name:
+
+| Reference | Matches |
+| --- | --- |
+| `ontology_ref.name` | The ontology document's top-level `name` |
+| `semantic_model_ref.name` | A flat semantic model's top-level `name`, or the `name` of one model inside a legacy `semantic_model: [...]` wrapper |
+
+File names never establish identity. Relative `iri` values are checked against the imported filename in the flat local catalog. Absolute locations are never fetched: a uniquely named local target can resolve the identity, with an explicit location-resolution warning. Duplicates are reported rather than selected arbitrarily. An unresolved reference lists every ontology or semantic model identity found in the workspace, with its file and path, so a naming mismatch is visible immediately.
 
 ### Suggested tool protocol for an agent
 

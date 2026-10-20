@@ -15,6 +15,15 @@ const evidence=(d:StoredDocument,path:(string|number)[]=[]):Evidence=>({document
 const key=(dataset:string,field:string)=>JSON.stringify([dataset,field]);
 function parseDocuments(documents:StoredDocument[]){return documents.map(doc=>{try{if(rdfSyntax(doc.source,doc.filename))return {doc,data:null};const model=inspect(doc.source,doc.filename);return {doc,data:'document'in model?model.document:null};}catch{return {doc,data:null};}});}
 type Parsed=ReturnType<typeof parseDocuments>[number];
+type Target={doc:StoredDocument;data:any;path:(string|number)[]};
+// Reference targets by logical name: flat semantic models, each model of a legacy semantic_model wrapper, and ontologies.
+function targets(parsed:Parsed[],kind:'ontology'|'semantic'):Target[]{return parsed.flatMap(p=>{
+ if(!p.data||isMapping(p.data))return [];
+ if(kind==='ontology')return Array.isArray(p.data.ontology)?[{doc:p.doc,data:p.data,path:[]}]:[];
+ if(Array.isArray(p.data.datasets))return [{doc:p.doc,data:p.data,path:[]}];
+ return Array.isArray(p.data.semantic_model)?p.data.semantic_model.flatMap((m:any,i:number)=>m&&Array.isArray(m.datasets)?[{doc:p.doc,data:m,path:['semantic_model',i]}]:[]):[];
+});}
+const identity=(t:Target)=>`"${t.data.name??'(unnamed)'}" in ${t.doc.filename}${t.path.length?'#/'+t.path.join('/'):''}`;
 function mappingEntries(parsed:Parsed[]){return parsed.flatMap(p=>{
  if(isMapping(p.data))return [{id:p.doc.id,doc:p.doc,data:p.data,ontology:null as Parsed|null,path:[]as(string|number)[]}];
  return (p.data?.ontology_mappings??[]).map((m:any,i:number)=>({id:`${p.doc.id}#ontology_mappings/${i}`,doc:p.doc,data:m,ontology:p,path:['ontology_mappings',i]as(string|number)[]}));
@@ -24,20 +33,21 @@ export function buildContext(documents:StoredDocument[],mappingId:string):Runtim
  const parsed=parseDocuments(documents),entry=mappingEntries(parsed).find(m=>m.id===mappingId);if(!entry)throw Error('Mapping not found. Import a standalone mapping or an ontology with embedded mappings.');
  const findings:Finding[]=[];
  const problem=(code:string,message:string,path:(string|number)[]=entry.path)=>findings.push({severity:'error',code,message,evidence:evidence(entry.doc,path)});
- const resolve=(ref:any,kind:'ontology'|'semantic'):Parsed|null=>{
-  let candidates=parsed.filter(p=>p.data?.name===ref.name&&(kind==='ontology'?Array.isArray(p.data.ontology):Array.isArray(p.data.datasets)));
+ const resolve=(ref:any,kind:'ontology'|'semantic'):Target|null=>{
+  const all=targets(parsed,kind),label=kind==='ontology'?'ontology':'semantic model';
+  let candidates=all.filter(t=>t.data.name===ref.name);
   if(ref.iri&&!/^[a-z][a-z\d+.-]*:/i.test(ref.iri)){
    const local=ref.iri.replace(/^\.\//,'');
    if(local.includes('/')||local.includes('\\')||local==='..'){problem('reference',`Cannot resolve relative location ${ref.iri} in the flat local catalog. Import the target with a matching filename and update the reference.`);return null;}
-   candidates=candidates.filter(p=>p.doc.filename===local);
+   candidates=candidates.filter(t=>t.doc.filename===local);
   }
-  if(candidates.length!==1){problem('reference',`${kind} reference "${ref.name}" resolves to ${candidates.length} local documents. Import the missing document or remove duplicate identities; no target was guessed.`);return null;}
+  if(candidates.length!==1){problem('reference',`${label} reference "${ref.name}"${ref.iri?` at ${ref.iri}`:''} resolves to ${candidates.length} local documents. Import the missing document or remove duplicate identities; no target was guessed. ${all.length?`Local ${label} identities: ${all.map(identity).join(', ')}.`:`No ${label} documents are loaded.`}`);return null;}
   if(ref.iri&&/^[a-z][a-z\d+.-]*:/i.test(ref.iri))findings.push({severity:'warning',code:'local-resolution',message:`Resolved ${ref.name} by its unique logical name in the local catalog. Remote location ${ref.iri} was not fetched.`,evidence:evidence(entry.doc)});
   return candidates[0];
  };
- const ont=entry.ontology??resolve(entry.data.ontology_ref,'ontology');
- const sem:Parsed|null=entry.ontology?{doc:entry.doc,data:entry.data.semantic_model}:resolve(entry.data.semantic_model_ref,'semantic');
- const semanticPrefix=entry.ontology?[...entry.path,'semantic_model']:[];
+ const ont=entry.ontology?{doc:entry.ontology.doc,data:entry.ontology.data,path:[]}:resolve(entry.data.ontology_ref,'ontology');
+ const sem:Target|null=entry.ontology?{doc:entry.doc,data:entry.data.semantic_model,path:[...entry.path,'semantic_model']}:resolve(entry.data.semantic_model_ref,'semantic');
+ const semanticPrefix=sem?.path??[];
  const ontology=ont?.data??{},model=sem?.data??{};
  const context:RuntimeContext={mappingId:entry.id,name:entry.data.name??entry.doc.filename,documents:[evidence(entry.doc,entry.path),...(ont?[evidence(ont.doc)]:[]),...(sem?[evidence(sem.doc,semanticPrefix)]:[])],mapping:{conceptMappings:entry.data.concept_mappings,ontologyRef:entry.data.ontology_ref,semanticModelRef:entry.data.semantic_model_ref,description:entry.data.description,customExtensions:entry.data.custom_extensions,embedded:!!entry.ontology,evidence:evidence(entry.doc,entry.path)},ontology:{name:ontology.name,description:ontology.description,requires:ontology.requires,prefixes:ontology.prefixes},semanticModel:{name:model.name,description:model.description,version:model.version},concepts:[...(ontology.ontology??[]),...[...OSSIE_BUILTINS].filter(n=>!(ontology.ontology??[]).some((c:any)=>c.concept===n)).map(builtinConcept)],bindings:[],fields:[],metrics:[],datasets:model.datasets??[],joins:model.relationships??[],aiContext:[],findings,policy};
  if(!ont||!sem)return context;

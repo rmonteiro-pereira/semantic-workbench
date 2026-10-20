@@ -1,5 +1,6 @@
 import {OSSIE_BUILTINS,builtinConcept} from './ossie-builtins';
 import {isMapping} from './mapping-schema';
+import {expandIri,namespaceOf,prefixMap,type Namespace} from './iri';
 import { parseDocument } from "yaml";
 import {inspectRdf,rdfSyntax} from "./rdf";
 import {validateStructured} from "./validation";
@@ -14,6 +15,7 @@ export type Entity = {
   definition?: any;
   readOnlyForm?: boolean;
   declaredDomains?: string[];
+  namespace?: Namespace;
 };
 export type Relationship={id:string;source:string;target:string;label:string;data:{path:(string|number)[];definition:any;kind:string;readOnlyForm?:boolean}};
 export function inspect(source: string, filename='definition.yaml') {
@@ -69,6 +71,8 @@ export function inspect(source: string, filename='definition.yaml') {
   } else if (Array.isArray(data.ontology)) {
     kind = "Ossie ontology";
     data.ontology.forEach((x: any, i: number) => add(x, ["ontology", i], x.type ?? "Concept"));
+    const prefixes=prefixMap(data.prefixes);
+    for(const e of entities){const iri=typeof e.definition?.iri==='string'?expandIri(e.definition.iri,prefixes):null;if(iri&&'iri'in iri)e.namespace=namespaceOf(iri.iri,prefixes);}
     const referenced=new Set<string>(data.ontology.flatMap((c:any)=>[...(c.extends??[]),...(c.relationships??[]).flatMap((r:any)=>(r.roles??[]).map((role:any)=>role.concept))]));
     for(const name of referenced)if(OSSIE_BUILTINS.has(name)&&!entities.some(e=>e.name===name))entities.push({id:`builtin/${name}`,name,kind:'Built-in concept',path:[],description:builtinConcept(name).description,fields:[],definition:builtinConcept(name),readOnlyForm:true});
     const byName = new Map(entities.map(e => [e.name, e]));

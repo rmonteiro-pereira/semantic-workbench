@@ -4,6 +4,7 @@ import {validateRdf} from './rdf-validation';
 import {InputError} from './diagnostics';
 import {graph, parse} from 'rdflib';
 import type {Entity, Relationship} from './model';
+import {namespaceOf,prefixMap} from './iri';
 const RDF='http://www.w3.org/1999/02/22-rdf-syntax-ns#', RDFS='http://www.w3.org/2000/01/rdf-schema#', OWL='http://www.w3.org/2002/07/owl#', SH='http://www.w3.org/ns/shacl#';
 export function rdfSyntax(source:string,filename='') {
  const ext=filename.split('.').pop()?.toLowerCase();
@@ -29,6 +30,7 @@ export function inspectRdf(source:string,filename:string,syntax:string){
   for(const st of statements.get(id)??[]){const key=st.predicate.value; (def[key]??=[]).push({value:st.object.value,type:st.object.termType,datatype:st.object.datatype?.value,language:st.object.language||undefined});}
   return {id,name:get(id,RDFS+'label')[0]?.value??get(id,SH+'name')[0]?.value??(types(id).includes(OWL+'Restriction')?'Restriction: '+short(get(id,OWL+'onProperty')[0]?.value??id):short(id)),kind:ts.includes(OWL+'Class')||ts.includes(RDFS+'Class')?'OWL class':ts.includes(OWL+'ObjectProperty')?'Object property':ts.includes(OWL+'DatatypeProperty')?'Datatype property':ts.includes(SH+'NodeShape')?'Node shape':ts.includes(SH+'PropertyShape')?'Property shape':subjects.get(id)?.termType==='BlankNode'?'Blank node':ts.length?short(ts[0]):'RDF resource',description:get(id,RDFS+'comment')[0]?.value??get(id,SH+'description')[0]?.value??'',path:[],fields:(statements.get(id)??[]).filter(s=>s.object.termType==='Literal').map(s=>`${short(s.predicate.value)}: ${s.object.value}`),definition:def,readOnlyForm:true};
  });
+ const prefixes=prefixMap((store as any).namespaces);for(const e of entities)if(subjects.get(e.id)?.termType==='NamedNode')e.namespace=namespaceOf(e.id,prefixes);
  const ids=new Set(entities.map(e=>e.id));const edges:Relationship[]=[];
  for(const st of store.statements)if(st.object.termType!=='Literal'&&ids.has(st.subject.value)&&ids.has(st.object.value))edges.push({id:`triple-${edges.length}`,source:st.subject.value,target:st.object.value,label:short(st.predicate.value),data:{path:[],definition:{subject:st.subject.value,predicate:st.predicate.value,object:st.object.value,graph:st.why?.value},kind:'RDF statement',readOnlyForm:true}});
  // Object properties describe links between domain and range classes.

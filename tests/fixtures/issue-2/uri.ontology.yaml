@@ -1,0 +1,21 @@
+version: 0.2.0.dev0
+name: uri_repro
+prefixes:
+  ex: https://example.org/ns#
+ontology:
+  - concept: Code
+    type: ValueType
+    extends: [String]
+    uri: ex:Code
+  - concept: Thing
+    type: EntityType
+    identify_by: [code]
+    uri: ex:Thing
+    relationships:
+      - name: code
+        roles:
+          - concept: Code
+        multiplicity: OneToOne
+        verbalizes:
+          - '{Thing} is identified by {Code}'
+        uri: ex:thingCode

@@ -1,0 +1,12 @@
+version: 0.2.0.dev0
+semantic_model:
+  - name: sales
+    datasets:
+      - name: orders
+        source: orders
+        fields:
+          - name: order_id
+            expression:
+              dialects:
+                - dialect: ANSI_SQL
+                  expression: order_id

@@ -1,5 +1,6 @@
 import {OSSIE_BUILTINS} from './ossie-builtins';
 import {isMapping,mappingSchemaIssues} from './mapping-schema';
+import {expandIri,prefixMap} from './iri';
 import Ajv2019 from 'ajv/dist/2019';
 import Ajv2020 from 'ajv/dist/2020';
 import formats from 'ajv-formats';
@@ -50,15 +51,20 @@ export function validateStructured(data:any, applyPinnedSchema=true): Issue[] {
     while(stack.length){const {x,p,depth}=stack.pop()!;if(depth>64){fail(p,'Nested properties exceed the supported depth of 64.');continue;}if(x.fields!==undefined)fields(x,p,'fields');const children=arr(x.properties,p+'/properties');named(children,p+'/properties');children.forEach((child,i)=>{if(object(child))stack.push({x:child,p:`${p}/properties/${i}`,depth:depth+1});});}
   }else if(data.ontology!==undefined){
     const xs=arr(data.ontology,'/ontology',true), names=named(xs,'/ontology','concept'), parents=new Map<string,string[]>();
-    const iris=new Set<string>();
+    const iris=new Map<string,string>(),prefixes=prefixMap(data.prefixes);
+    if(data.prefixes!==undefined&&obj(data.prefixes,'/prefixes'))for(const [prefix,base]of Object.entries(data.prefixes)){const q=`/prefixes/${prefix.replace(/~/g,'~0').replace(/\//g,'~1')}`;if(str(base,q)&&!/^[a-z][a-z\d+.-]*:[^\s]+$/i.test(base as string))fail(q,`Prefix "${prefix}" must map to an absolute IRI.`);}
+    const identifier=(value:unknown,q:string)=>{if(!str(value,q))return;const r=expandIri(value as string,prefixes);if('error'in r){fail(q,r.error);return;}return r.iri;};
+    const legacyUri=(x:any,q:string)=>{if(x.uri!==undefined&&data.version!=='0.2.0.dev0')warn(q+'/uri','"uri" is not an Ossie ontology field and is ignored. Global identifiers use "iri".');};
     xs.forEach((x,i)=>{if(!object(x))return;const p=`/ontology/${i}`;
       if(x.type!==undefined)str(x.type,p+'/type');
-      if(x.iri!==undefined&&str(x.iri,p+'/iri')){if(!/^[a-z][a-z0-9+.-]*:/i.test(x.iri))fail(p+'/iri','Expected an absolute IRI.');if(iris.has(x.iri))fail(p+'/iri','Duplicate concept IRI.','duplicate');iris.add(x.iri);}
+      legacyUri(x,p);
+      if(x.iri!==undefined){const iri=identifier(x.iri,p+'/iri');if(iri){if(iris.has(iri))fail(p+'/iri',`Duplicate concept IRI ${iri} (also on ${iris.get(iri)}).`,'duplicate');else iris.set(iri,x.concept);}}
       for(const key of ['properties','fields'])if(x[key]!==undefined)fields(x,p,key);
       const ps=arr(x.extends,p+'/extends');parents.set(x.concept,ps.filter(text));
       ps.forEach((parent,j)=>{if(str(parent,`${p}/extends/${j}`)&&!names.has(parent)&&!OSSIE_BUILTINS.has(parent))fail(`${p}/extends/${j}`,`Unknown parent concept "${parent}".`,'reference');});
       const rs=arr(x.relationships,p+'/relationships');named(rs,p+'/relationships');
       rs.forEach((r,j)=>{if(!object(r))return;const q=`${p}/relationships/${j}`;
+        legacyUri(r,q);if(r.iri!==undefined)identifier(r.iri,q+'/iri');
         arr(r.roles,q+'/roles',data.version!=='0.2.0.dev0').forEach((role,k)=>{if(obj(role,`${q}/roles/${k}`)&&str(role.concept,`${q}/roles/${k}/concept`)&&!names.has(role.concept)&&!OSSIE_BUILTINS.has(role.concept))fail(`${q}/roles/${k}/concept`,`Unknown concept "${role.concept}". Define it before importing.`,'reference');});
         arr(r.verbalizes,q+'/verbalizes').forEach((v,k)=>str(v,`${q}/verbalizes/${k}`));
       });
