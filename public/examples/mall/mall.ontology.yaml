@@ -1,0 +1,4689 @@
+version: 0.2.0.dev0
+name: Shopping center administration ontology
+description: "Fictional reference model for administering shopping centers and other retail real estate: assets and space, tenants and brands, the leasing pipeline, leases and their clauses, service charges and operations, billing and collections, accounting and investor distributions, and performance facts. Each module has its own namespace."
+ai_context:
+  instructions: Gross leasable area (GLA, Portuguese ABL) counts only leasable units. Occupancy is measured on area, not unit count, from month-end snapshots; never sum area across months. Minimum rent and percentage rent are separate charges; percentage rent is billed only when rate × gross sales exceeds minimum rent. A thirteenth minimum rent may be billed in December. Service charges recover shared operating costs; the marketing fund is a separate tenant contribution. Key money or right-of-use fees are not rent. A charge has a contracted tenant (through its lease) and a billed tenant (through its invoice); do not treat these roles as interchangeable. Lease permitted use is the tenant-mix category of record. All fixture amounts are in Brazilian reais (BRL).
+  synonyms:
+    - shopping mall
+    - shopping center administration
+    - retail real estate
+    - property management
+    - ABL
+    - condomínio
+    - fundo de promoção
+prefixes:
+  core: https://example.org/mall/core#
+  asset: https://example.org/mall/asset#
+  party: https://example.org/mall/party#
+  lease: https://example.org/mall/lease#
+  ops: https://example.org/mall/ops#
+  fin: https://example.org/mall/fin#
+  perf: https://example.org/mall/perf#
+  kpi: https://example.org/mall/kpi#
+ontology:
+  - concept: Party
+    type: EntityType
+    iri: core:Party
+    description: "Abstract legal or natural person that holds rights or obligations in property administration: tenants, investors, providers, brokers, guarantors and staff."
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: core:partyId
+        description: Identifier of the Party.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Party} is identified by {Identifier}"
+      - name: name
+        iri: core:partyName
+        description: Name used in day-to-day administration.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Party} has name {Name}"
+      - name: legal_name
+        iri: core:partyLegalName
+        description: Registered legal name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Party} has legal name {Name}"
+      - name: tax_id
+        iri: core:partyTaxId
+        description: Tax registration number.
+        roles:
+          - concept: TaxId
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Party} has tax id {TaxId}"
+      - name: email
+        iri: core:partyEmail
+        description: Main email address.
+        roles:
+          - concept: EmailAddress
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Party} has email {EmailAddress}"
+      - name: phone
+        iri: core:partyPhone
+        description: Main phone number.
+        roles:
+          - concept: PhoneNumber
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Party} has phone {PhoneNumber}"
+      - name: address
+        iri: core:partyAddress
+        description: Registered or correspondence address.
+        roles:
+          - concept: Address
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Party} is located at {Address}"
+  - concept: Organization
+    type: EntityType
+    iri: core:Organization
+    description: Legal entity such as a company, fund, bank, insurer, public authority or condominium association that is not otherwise specialised.
+    extends:
+      - Party
+    relationships:
+      - name: organization_type
+        iri: core:organizationOrganizationType
+        description: Kind of organization, for example bank, insurer, appraiser, authority or law firm.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Organization} has organization type {Code}"
+      - name: parent_organization
+        iri: core:organizationParentOrganization
+        description: Economic group or parent company.
+        roles:
+          - concept: Organization
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Organization} belongs to group another {Organization}"
+  - concept: Person
+    type: EntityType
+    iri: core:Person
+    description: Natural person, such as a tenant contact, property manager or individual guarantor.
+    extends:
+      - Party
+    relationships:
+      - name: job_title
+        iri: core:personJobTitle
+        description: Job title or role description.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Person} has job title {Text}"
+  - concept: Address
+    type: EntityType
+    iri: core:Address
+    description: Postal address of a property or party.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: core:addressId
+        description: Identifier of the Address.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Address} is identified by {Identifier}"
+      - name: street
+        iri: core:addressStreet
+        description: Street name.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Address} has street {Text}"
+      - name: street_number
+        iri: core:addressStreetNumber
+        description: Street number.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Address} has street number {Code}"
+      - name: complement
+        iri: core:addressComplement
+        description: Additional address detail.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Address} has complement {Text}"
+      - name: district
+        iri: core:addressDistrict
+        description: District or neighbourhood.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Address} has district {Name}"
+      - name: postal_code
+        iri: core:addressPostalCode
+        description: Postal code.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Address} has postal code {Code}"
+      - name: city
+        iri: core:addressCity
+        description: City of the address.
+        roles:
+          - concept: City
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Address} is in {City}"
+  - concept: City
+    type: EntityType
+    iri: core:City
+    description: Municipality.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: core:cityId
+        description: Identifier of the City.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{City} is identified by {Identifier}"
+      - name: name
+        iri: core:cityName
+        description: City name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{City} has name {Name}"
+      - name: state
+        iri: core:cityState
+        description: State or province of the city.
+        roles:
+          - concept: StateProvince
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{City} is in {StateProvince}"
+  - concept: StateProvince
+    type: EntityType
+    iri: core:StateProvince
+    description: State, province or other first-level administrative region.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: core:stateProvinceId
+        description: Identifier of the StateProvince.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{StateProvince} is identified by {Identifier}"
+      - name: name
+        iri: core:stateProvinceName
+        description: State name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{StateProvince} has name {Name}"
+      - name: code
+        iri: core:stateProvinceCode
+        description: Abbreviation.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{StateProvince} has code {Code}"
+      - name: country
+        iri: core:stateProvinceCountry
+        description: Country of the region.
+        roles:
+          - concept: Country
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{StateProvince} is in {Country}"
+  - concept: Country
+    type: EntityType
+    iri: core:Country
+    description: Country.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: core:countryId
+        description: Identifier of the Country.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Country} is identified by {Identifier}"
+      - name: name
+        iri: core:countryName
+        description: Country name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Country} has name {Name}"
+      - name: iso_code
+        iri: core:countryIsoCode
+        description: ISO 3166-1 alpha-2 code.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Country} has iso code {Code}"
+  - concept: Currency
+    type: EntityType
+    iri: core:Currency
+    description: Currency in which leases, invoices and accounts are denominated.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: core:currencyId
+        description: Identifier of the Currency.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Currency} is identified by {Identifier}"
+      - name: name
+        iri: core:currencyName
+        description: Currency name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Currency} has name {Name}"
+      - name: iso_code
+        iri: core:currencyIsoCode
+        description: ISO 4217 code.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Currency} has iso code {Code}"
+  - concept: CalendarMonth
+    type: EntityType
+    iri: core:CalendarMonth
+    description: Reporting and billing period. Charges, sales reports, occupancy snapshots and ledger entries are stated per month.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: core:calendarMonthId
+        description: Identifier of the CalendarMonth.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{CalendarMonth} is identified by {Identifier}"
+      - name: year_month
+        iri: core:calendarMonthYearMonth
+        description: Month in YYYY-MM form.
+        roles:
+          - concept: YearMonth
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CalendarMonth} has year month {YearMonth}"
+      - name: year
+        iri: core:calendarMonthYear
+        description: Calendar year.
+        roles:
+          - concept: Year
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CalendarMonth} has year {Year}"
+      - name: month_number
+        iri: core:calendarMonthMonthNumber
+        description: Month of the year, 1 to 12.
+        roles:
+          - concept: Count
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CalendarMonth} has month number {Count}"
+      - name: quarter
+        iri: core:calendarMonthQuarter
+        description: Calendar quarter, for example 2026-Q3.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CalendarMonth} has quarter {Code}"
+  - concept: PriceIndex
+    type: EntityType
+    iri: core:PriceIndex
+    description: Inflation index used to adjust rents, such as IGP-M or IPCA in Brazil or a consumer price index elsewhere.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: core:priceIndexId
+        description: Identifier of the PriceIndex.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{PriceIndex} is identified by {Identifier}"
+      - name: name
+        iri: core:priceIndexName
+        description: Index name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PriceIndex} has name {Name}"
+      - name: code
+        iri: core:priceIndexCode
+        description: Index code.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PriceIndex} has code {Code}"
+      - name: publisher
+        iri: core:priceIndexPublisher
+        description: Publishing institution.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PriceIndex} has publisher {Name}"
+  - concept: PriceIndexValue
+    type: EntityType
+    iri: core:PriceIndexValue
+    description: Published level and monthly change of a price index.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: core:priceIndexValueId
+        description: Identifier of the PriceIndexValue.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{PriceIndexValue} is identified by {Identifier}"
+      - name: index_level
+        iri: core:priceIndexValueIndexLevel
+        description: Index level for the month.
+        roles:
+          - concept: IndexNumber
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PriceIndexValue} has index level {IndexNumber}"
+      - name: monthly_change
+        iri: core:priceIndexValueMonthlyChange
+        description: Change against the previous month as a fraction.
+        roles:
+          - concept: Rate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PriceIndexValue} has monthly change {Rate}"
+      - name: price_index
+        iri: core:priceIndexValuePriceIndex
+        description: Index being published.
+        roles:
+          - concept: PriceIndex
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PriceIndexValue} is a value of {PriceIndex}"
+      - name: month
+        iri: core:priceIndexValueMonth
+        description: Reference month.
+        roles:
+          - concept: CalendarMonth
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PriceIndexValue} is published for {CalendarMonth}"
+  - concept: Portfolio
+    type: EntityType
+    iri: asset:Portfolio
+    description: Group of properties managed under one strategy or fund.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: asset:portfolioId
+        description: Identifier of the Portfolio.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Portfolio} is identified by {Identifier}"
+      - name: name
+        iri: asset:portfolioName
+        description: Portfolio name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Portfolio} has name {Name}"
+      - name: strategy
+        iri: asset:portfolioStrategy
+        description: Investment or management strategy.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Portfolio} has strategy {Text}"
+      - name: asset_manager
+        iri: asset:portfolioAssetManager
+        description: Asset manager responsible for the portfolio.
+        roles:
+          - concept: Organization
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Portfolio} is managed by {Organization}"
+  - concept: Property
+    type: EntityType
+    iri: asset:Property
+    description: Shopping center or other managed real-estate asset. Gross leasable area (GLA, in Portuguese ABL) is the area available for lease to tenants.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: asset:propertyId
+        description: Identifier of the Property.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Property} is identified by {Identifier}"
+      - name: code
+        iri: asset:propertyCode
+        description: Property code.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Property} has code {Code}"
+      - name: name
+        iri: asset:propertyName
+        description: Property name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Property} has name {Name}"
+      - name: property_format
+        iri: asset:propertyPropertyFormat
+        description: Format, for example regional, super-regional, community, outlet, lifestyle or power center.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Property} has property format {Code}"
+      - name: opening_date
+        iri: asset:propertyOpeningDate
+        description: Date the property opened to the public.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Property} has opening date {CalendarDate}"
+      - name: total_gla_m2
+        iri: asset:propertyTotalGlaM2
+        description: Gross leasable area.
+        roles:
+          - concept: AreaM2
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Property} has total gla m2 {AreaM2}"
+      - name: gross_built_area_m2
+        iri: asset:propertyGrossBuiltAreaM2
+        description: Total built area.
+        roles:
+          - concept: AreaM2
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Property} has gross built area m2 {AreaM2}"
+      - name: parking_spaces
+        iri: asset:propertyParkingSpaces
+        description: Number of parking spaces.
+        roles:
+          - concept: Count
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Property} has parking spaces {Count}"
+      - name: portfolio
+        iri: asset:propertyPortfolio
+        description: Portfolio of the property.
+        roles:
+          - concept: Portfolio
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Property} belongs to {Portfolio}"
+      - name: address
+        iri: asset:propertyAddress
+        description: Address of the property.
+        roles:
+          - concept: Address
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Property} is located at {Address}"
+      - name: currency
+        iri: asset:propertyCurrency
+        description: Currency of leases and accounts.
+        roles:
+          - concept: Currency
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Property} is administered in {Currency}"
+      - name: administrator
+        iri: asset:propertyAdministrator
+        description: Company contracted to administer the property.
+        roles:
+          - concept: Organization
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Property} is administered by {Organization}"
+      - name: general_manager
+        iri: asset:propertyGeneralManager
+        description: General manager of the property.
+        roles:
+          - concept: Person
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Property} is run by {Person}"
+  - concept: Building
+    type: EntityType
+    iri: asset:Building
+    description: Structure within a property, such as the mall, an office tower or a parking building.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: asset:buildingId
+        description: Identifier of the Building.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Building} is identified by {Identifier}"
+      - name: code
+        iri: asset:buildingCode
+        description: Building code.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Building} has code {Code}"
+      - name: name
+        iri: asset:buildingName
+        description: Building name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Building} has name {Name}"
+      - name: built_year
+        iri: asset:buildingBuiltYear
+        description: Year of completion.
+        roles:
+          - concept: Year
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Building} has built year {Year}"
+      - name: property
+        iri: asset:buildingProperty
+        description: Property containing the building.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Building} is part of {Property}"
+  - concept: Floor
+    type: EntityType
+    iri: asset:Floor
+    description: Floor or level of a building.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: asset:floorId
+        description: Identifier of the Floor.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Floor} is identified by {Identifier}"
+      - name: code
+        iri: asset:floorCode
+        description: Floor code, for example L1.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Floor} has code {Code}"
+      - name: name
+        iri: asset:floorName
+        description: Floor name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Floor} has name {Name}"
+      - name: level_number
+        iri: asset:floorLevelNumber
+        description: Level number; negative below ground.
+        roles:
+          - concept: LevelNumber
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Floor} has level number {LevelNumber}"
+      - name: building
+        iri: asset:floorBuilding
+        description: Building of the floor.
+        roles:
+          - concept: Building
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Floor} is in {Building}"
+  - concept: Zone
+    type: EntityType
+    iri: asset:Zone
+    description: Wing, corridor or sector of a floor used to locate units and plan the tenant mix.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: asset:zoneId
+        description: Identifier of the Zone.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Zone} is identified by {Identifier}"
+      - name: code
+        iri: asset:zoneCode
+        description: Zone code.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Zone} has code {Code}"
+      - name: name
+        iri: asset:zoneName
+        description: Zone name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Zone} has name {Name}"
+      - name: floor
+        iri: asset:zoneFloor
+        description: Floor of the zone.
+        roles:
+          - concept: Floor
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Zone} is on {Floor}"
+  - concept: Space
+    type: EntityType
+    iri: asset:Space
+    description: "Abstract measured area of a property: leasable units, common areas or parking facilities."
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: asset:spaceId
+        description: Identifier of the Space.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Space} is identified by {Identifier}"
+      - name: code
+        iri: asset:spaceCode
+        description: Space code, for example a store number.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Space} has code {Code}"
+      - name: name
+        iri: asset:spaceName
+        description: Space name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Space} has name {Name}"
+      - name: area_m2
+        iri: asset:spaceAreaM2
+        description: Measured area.
+        roles:
+          - concept: AreaM2
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Space} has area m2 {AreaM2}"
+  - concept: LeasableUnit
+    type: EntityType
+    iri: asset:LeasableUnit
+    description: Store, kiosk or other unit that counts towards gross leasable area and can be leased to a tenant.
+    extends:
+      - Space
+    relationships:
+      - name: frontage_m
+        iri: asset:leasableUnitFrontageM
+        description: Shop-front length.
+        roles:
+          - concept: LengthM
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeasableUnit} has frontage m {LengthM}"
+      - name: has_mezzanine
+        iri: asset:leasableUnitHasMezzanine
+        description: Whether the unit has a mezzanine.
+        roles:
+          - concept: Flag
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeasableUnit} has has mezzanine {Flag}"
+      - name: zone
+        iri: asset:leasableUnitZone
+        description: Zone of the unit.
+        roles:
+          - concept: Zone
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeasableUnit} is located in {Zone}"
+      - name: unit_type
+        iri: asset:leasableUnitUnitType
+        description: Unit type.
+        roles:
+          - concept: UnitType
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeasableUnit} is classified as {UnitType}"
+  - concept: UnitType
+    type: EntityType
+    iri: asset:UnitType
+    description: "Classification of units: anchor, mega-store, inline store, kiosk, food court, restaurant, entertainment, services, office or storage."
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: asset:unitTypeId
+        description: Identifier of the UnitType.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{UnitType} is identified by {Identifier}"
+      - name: code
+        iri: asset:unitTypeCode
+        description: Unit type code.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{UnitType} has code {Code}"
+      - name: name
+        iri: asset:unitTypeName
+        description: Unit type name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{UnitType} has name {Name}"
+      - name: counts_as_gla
+        iri: asset:unitTypeCountsAsGla
+        description: Whether units of this type count towards gross leasable area.
+        roles:
+          - concept: Flag
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{UnitType} has counts as gla {Flag}"
+  - concept: CommonArea
+    type: EntityType
+    iri: asset:CommonArea
+    description: "Shared area operated by the property: corridors, food-court seating, restrooms, loading docks and technical areas. Its costs are recovered through service charges."
+    extends:
+      - Space
+    relationships:
+      - name: area_kind
+        iri: asset:commonAreaAreaKind
+        description: Kind of common area.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CommonArea} has area kind {Code}"
+      - name: floor
+        iri: asset:commonAreaFloor
+        description: Floor of the common area.
+        roles:
+          - concept: Floor
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CommonArea} is on {Floor}"
+  - concept: ParkingFacility
+    type: EntityType
+    iri: asset:ParkingFacility
+    description: Parking area of a property.
+    extends:
+      - Space
+    relationships:
+      - name: capacity
+        iri: asset:parkingFacilityCapacity
+        description: Number of parking spaces.
+        roles:
+          - concept: Count
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ParkingFacility} has capacity {Count}"
+      - name: is_paid
+        iri: asset:parkingFacilityIsPaid
+        description: Whether visitors pay for parking.
+        roles:
+          - concept: Flag
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ParkingFacility} has is paid {Flag}"
+      - name: property
+        iri: asset:parkingFacilityProperty
+        description: Property served by the facility.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ParkingFacility} serves {Property}"
+  - concept: Entrance
+    type: EntityType
+    iri: asset:Entrance
+    description: Visitor entrance where footfall is counted.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: asset:entranceId
+        description: Identifier of the Entrance.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Entrance} is identified by {Identifier}"
+      - name: code
+        iri: asset:entranceCode
+        description: Entrance code.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Entrance} has code {Code}"
+      - name: name
+        iri: asset:entranceName
+        description: Entrance name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Entrance} has name {Name}"
+      - name: entrance_kind
+        iri: asset:entranceEntranceKind
+        description: Pedestrian, parking, public transport or service.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Entrance} has entrance kind {Code}"
+      - name: property
+        iri: asset:entranceProperty
+        description: Property of the entrance.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Entrance} gives access to {Property}"
+  - concept: AreaMeasurement
+    type: EntityType
+    iri: asset:AreaMeasurement
+    description: Certified measurement of a unit area under a stated method.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: asset:areaMeasurementId
+        description: Identifier of the AreaMeasurement.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{AreaMeasurement} is identified by {Identifier}"
+      - name: measurement_date
+        iri: asset:areaMeasurementMeasurementDate
+        description: Measurement date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{AreaMeasurement} has measurement date {CalendarDate}"
+      - name: measured_area_m2
+        iri: asset:areaMeasurementMeasuredAreaM2
+        description: Measured area.
+        roles:
+          - concept: AreaM2
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{AreaMeasurement} has measured area m2 {AreaM2}"
+      - name: method
+        iri: asset:areaMeasurementMethod
+        description: Measurement standard.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{AreaMeasurement} has method {Code}"
+      - name: unit
+        iri: asset:areaMeasurementUnit
+        description: Unit measured.
+        roles:
+          - concept: LeasableUnit
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{AreaMeasurement} measures {LeasableUnit}"
+      - name: surveyor
+        iri: asset:areaMeasurementSurveyor
+        description: Surveyor.
+        roles:
+          - concept: Organization
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{AreaMeasurement} is certified by {Organization}"
+  - concept: OwnershipStake
+    type: EntityType
+    iri: asset:OwnershipStake
+    description: Fractional ownership of a property by an investor. Shopping centers are often held in undivided shares by several investors.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: asset:ownershipStakeId
+        description: Identifier of the OwnershipStake.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{OwnershipStake} is identified by {Identifier}"
+      - name: share
+        iri: asset:ownershipStakeShare
+        description: Ownership fraction.
+        roles:
+          - concept: Rate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OwnershipStake} has share {Rate}"
+      - name: start_date
+        iri: asset:ownershipStakeStartDate
+        description: Start of ownership.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OwnershipStake} has start date {CalendarDate}"
+      - name: end_date
+        iri: asset:ownershipStakeEndDate
+        description: End of ownership.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OwnershipStake} has end date {CalendarDate}"
+      - name: investor
+        iri: asset:ownershipStakeInvestor
+        description: Owner of the stake.
+        roles:
+          - concept: Investor
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OwnershipStake} is held by {Investor}"
+      - name: property
+        iri: asset:ownershipStakeProperty
+        description: Property owned.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OwnershipStake} is a share of {Property}"
+  - concept: Valuation
+    type: EntityType
+    iri: asset:Valuation
+    description: Appraisal of the market value of a property.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: asset:valuationId
+        description: Identifier of the Valuation.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Valuation} is identified by {Identifier}"
+      - name: valuation_date
+        iri: asset:valuationValuationDate
+        description: Valuation date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Valuation} has valuation date {CalendarDate}"
+      - name: market_value
+        iri: asset:valuationMarketValue
+        description: Appraised market value.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Valuation} has market value {MoneyAmount}"
+      - name: capitalization_rate
+        iri: asset:valuationCapitalizationRate
+        description: Capitalization rate applied.
+        roles:
+          - concept: Rate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Valuation} has capitalization rate {Rate}"
+      - name: discount_rate
+        iri: asset:valuationDiscountRate
+        description: Discount rate applied.
+        roles:
+          - concept: Rate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Valuation} has discount rate {Rate}"
+      - name: property
+        iri: asset:valuationProperty
+        description: Property valued.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Valuation} values {Property}"
+      - name: appraiser
+        iri: asset:valuationAppraiser
+        description: Appraiser.
+        roles:
+          - concept: Organization
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Valuation} is prepared by {Organization}"
+  - concept: Permit
+    type: EntityType
+    iri: asset:Permit
+    description: Licence or certificate required to operate the property, such as an occupancy certificate, fire safety certificate or operating licence.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: asset:permitId
+        description: Identifier of the Permit.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Permit} is identified by {Identifier}"
+      - name: permit_number
+        iri: asset:permitPermitNumber
+        description: Permit number.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Permit} has permit number {Code}"
+      - name: permit_type
+        iri: asset:permitPermitType
+        description: Permit type.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Permit} has permit type {Code}"
+      - name: issue_date
+        iri: asset:permitIssueDate
+        description: Issue date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Permit} has issue date {CalendarDate}"
+      - name: expiry_date
+        iri: asset:permitExpiryDate
+        description: Expiry date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Permit} has expiry date {CalendarDate}"
+      - name: property
+        iri: asset:permitProperty
+        description: Property covered.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Permit} authorises {Property}"
+      - name: issuer
+        iri: asset:permitIssuer
+        description: Issuing authority.
+        roles:
+          - concept: Organization
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Permit} is issued by {Organization}"
+  - concept: Equipment
+    type: EntityType
+    iri: asset:Equipment
+    description: Maintained building equipment such as escalators, elevators, chillers, generators and fire pumps.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: asset:equipmentId
+        description: Identifier of the Equipment.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Equipment} is identified by {Identifier}"
+      - name: tag
+        iri: asset:equipmentTag
+        description: Asset tag.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Equipment} has tag {Code}"
+      - name: name
+        iri: asset:equipmentName
+        description: Equipment name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Equipment} has name {Name}"
+      - name: equipment_type
+        iri: asset:equipmentEquipmentType
+        description: Equipment type.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Equipment} has equipment type {Code}"
+      - name: install_date
+        iri: asset:equipmentInstallDate
+        description: Installation date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Equipment} has install date {CalendarDate}"
+      - name: manufacturer
+        iri: asset:equipmentManufacturer
+        description: Manufacturer.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Equipment} has manufacturer {Name}"
+      - name: property
+        iri: asset:equipmentProperty
+        description: Property of the equipment.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Equipment} is installed at {Property}"
+  - concept: Tenant
+    type: EntityType
+    iri: party:Tenant
+    description: Retailer, restaurant or service operator that leases space in a property.
+    extends:
+      - Organization
+    relationships:
+      - name: trade_name
+        iri: party:tenantTradeName
+        description: Trading name used at the store.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Tenant} has trade name {Name}"
+  - concept: Investor
+    type: EntityType
+    iri: party:Investor
+    description: Owner of an ownership stake, such as a pension fund, real-estate fund or developer.
+    extends:
+      - Organization
+    relationships:
+      - name: investor_type
+        iri: party:investorInvestorType
+        description: Pension fund, real-estate fund, developer or private investor.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Investor} has investor type {Code}"
+  - concept: ServiceProvider
+    type: EntityType
+    iri: party:ServiceProvider
+    description: "Supplier of services to the property: cleaning, security, maintenance, parking operation or marketing."
+    extends:
+      - Organization
+    relationships:
+      - name: service_category
+        iri: party:serviceProviderServiceCategory
+        description: Main service supplied.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ServiceProvider} has service category {Code}"
+  - concept: Broker
+    type: EntityType
+    iri: party:Broker
+    description: Leasing broker or agency that introduces tenants.
+    extends:
+      - Organization
+    relationships:
+      - name: license_number
+        iri: party:brokerLicenseNumber
+        description: Broker licence number.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Broker} has license number {Code}"
+  - concept: Brand
+    type: EntityType
+    iri: party:Brand
+    description: Commercial brand operated in a store. One tenant can operate several brands.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: party:brandId
+        description: Identifier of the Brand.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Brand} is identified by {Identifier}"
+      - name: name
+        iri: party:brandName
+        description: Brand name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Brand} has name {Name}"
+      - name: owner
+        iri: party:brandOwner
+        description: Tenant owning the brand.
+        roles:
+          - concept: Tenant
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Brand} is owned by {Tenant}"
+  - concept: MerchandiseCategory
+    type: EntityType
+    iri: party:MerchandiseCategory
+    description: Tenant-mix category, such as apparel, footwear, food court, services or entertainment. Categories form a hierarchy.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: party:merchandiseCategoryId
+        description: Identifier of the MerchandiseCategory.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{MerchandiseCategory} is identified by {Identifier}"
+      - name: code
+        iri: party:merchandiseCategoryCode
+        description: Category code.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{MerchandiseCategory} has code {Code}"
+      - name: name
+        iri: party:merchandiseCategoryName
+        description: Category name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{MerchandiseCategory} has name {Name}"
+      - name: parent_category
+        iri: party:merchandiseCategoryParentCategory
+        description: Broader category.
+        roles:
+          - concept: MerchandiseCategory
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{MerchandiseCategory} is a subcategory of another {MerchandiseCategory}"
+  - concept: TenantContact
+    type: EntityType
+    iri: party:TenantContact
+    description: Person a tenant designates for a responsibility, such as store manager, finance or legal.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: party:tenantContactId
+        description: Identifier of the TenantContact.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{TenantContact} is identified by {Identifier}"
+      - name: role
+        iri: party:tenantContactRole
+        description: Responsibility.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TenantContact} has role {Code}"
+      - name: is_primary
+        iri: party:tenantContactIsPrimary
+        description: Whether this is the primary contact.
+        roles:
+          - concept: Flag
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TenantContact} has is primary {Flag}"
+      - name: person
+        iri: party:tenantContactPerson
+        description: Contact person.
+        roles:
+          - concept: Person
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TenantContact} is filled by {Person}"
+      - name: tenant
+        iri: party:tenantContactTenant
+        description: Tenant represented.
+        roles:
+          - concept: Tenant
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TenantContact} is a contact of {Tenant}"
+  - concept: LeasingProspect
+    type: EntityType
+    iri: lease:LeasingProspect
+    description: Potential tenant in the leasing pipeline.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: lease:leasingProspectId
+        description: Identifier of the LeasingProspect.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{LeasingProspect} is identified by {Identifier}"
+      - name: name
+        iri: lease:leasingProspectName
+        description: Prospect name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeasingProspect} has name {Name}"
+      - name: first_contact_date
+        iri: lease:leasingProspectFirstContactDate
+        description: First contact.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeasingProspect} has first contact date {CalendarDate}"
+      - name: brand
+        iri: lease:leasingProspectBrand
+        description: Brand proposed.
+        roles:
+          - concept: Brand
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeasingProspect} intends to operate {Brand}"
+      - name: category
+        iri: lease:leasingProspectCategory
+        description: Intended category.
+        roles:
+          - concept: MerchandiseCategory
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeasingProspect} is classified as {MerchandiseCategory}"
+      - name: broker
+        iri: lease:leasingProspectBroker
+        description: Introducing broker.
+        roles:
+          - concept: Broker
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeasingProspect} is introduced by {Broker}"
+  - concept: LeasingProposal
+    type: EntityType
+    iri: lease:LeasingProposal
+    description: Commercial offer or letter of intent for a unit.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: lease:leasingProposalId
+        description: Identifier of the LeasingProposal.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{LeasingProposal} is identified by {Identifier}"
+      - name: proposal_number
+        iri: lease:leasingProposalProposalNumber
+        description: Proposal number.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeasingProposal} has proposal number {Code}"
+      - name: proposal_date
+        iri: lease:leasingProposalProposalDate
+        description: Proposal date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeasingProposal} has proposal date {CalendarDate}"
+      - name: proposed_minimum_rent
+        iri: lease:leasingProposalProposedMinimumRent
+        description: Monthly minimum rent offered.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeasingProposal} has proposed minimum rent {MoneyAmount}"
+      - name: proposed_term_months
+        iri: lease:leasingProposalProposedTermMonths
+        description: Lease term offered.
+        roles:
+          - concept: Count
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeasingProposal} has proposed term months {Count}"
+      - name: status
+        iri: lease:leasingProposalStatus
+        description: Draft, sent, accepted, rejected or withdrawn.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeasingProposal} has status {Code}"
+      - name: prospect
+        iri: lease:leasingProposalProspect
+        description: Prospect.
+        roles:
+          - concept: LeasingProspect
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeasingProposal} is made to {LeasingProspect}"
+      - name: unit
+        iri: lease:leasingProposalUnit
+        description: Unit offered.
+        roles:
+          - concept: LeasableUnit
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeasingProposal} offers {LeasableUnit}"
+      - name: resulting_lease
+        iri: lease:leasingProposalResultingLease
+        description: Lease signed after the proposal was accepted.
+        roles:
+          - concept: Lease
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeasingProposal} results in {Lease}"
+  - concept: LeaseStatus
+    type: EntityType
+    iri: lease:LeaseStatus
+    description: "Lifecycle state of a lease: pending signature, fit-out, active, holdover, in renewal proceedings, terminated or expired."
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: lease:leaseStatusId
+        description: Identifier of the LeaseStatus.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{LeaseStatus} is identified by {Identifier}"
+      - name: code
+        iri: lease:leaseStatusCode
+        description: Status code.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeaseStatus} has code {Code}"
+      - name: name
+        iri: lease:leaseStatusName
+        description: Status name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeaseStatus} has name {Name}"
+  - concept: Lease
+    type: EntityType
+    iri: lease:Lease
+    description: Commercial lease of one or more units to a tenant. Shopping-center leases usually combine a monthly minimum rent with a percentage rent on gross sales, plus service charges and a marketing fund contribution.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: lease:leaseId
+        description: Identifier of the Lease.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Lease} is identified by {Identifier}"
+      - name: lease_number
+        iri: lease:leaseLeaseNumber
+        description: Lease number.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Lease} has lease number {Code}"
+      - name: signing_date
+        iri: lease:leaseSigningDate
+        description: Signing date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Lease} has signing date {CalendarDate}"
+      - name: start_date
+        iri: lease:leaseStartDate
+        description: Start of the lease term.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Lease} has start date {CalendarDate}"
+      - name: end_date
+        iri: lease:leaseEndDate
+        description: End of the lease term.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Lease} has end date {CalendarDate}"
+      - name: term_months
+        iri: lease:leaseTermMonths
+        description: Lease term.
+        roles:
+          - concept: Count
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Lease} has term months {Count}"
+      - name: store_opening_date
+        iri: lease:leaseStoreOpeningDate
+        description: Date the store opened.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Lease} has store opening date {CalendarDate}"
+      - name: monthly_minimum_rent
+        iri: lease:leaseMonthlyMinimumRent
+        description: Current monthly minimum rent.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Lease} has monthly minimum rent {MoneyAmount}"
+      - name: has_thirteenth_rent
+        iri: lease:leaseHasThirteenthRent
+        description: Whether a thirteenth minimum rent is billed in December.
+        roles:
+          - concept: Flag
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Lease} has has thirteenth rent {Flag}"
+      - name: tenant
+        iri: lease:leaseTenant
+        description: Contracting tenant.
+        roles:
+          - concept: Tenant
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Lease} is signed by {Tenant}"
+      - name: brand
+        iri: lease:leaseBrand
+        description: Brand operated.
+        roles:
+          - concept: Brand
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Lease} is operated under {Brand}"
+      - name: status
+        iri: lease:leaseStatus
+        description: Lifecycle status.
+        roles:
+          - concept: LeaseStatus
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Lease} is in {LeaseStatus}"
+      - name: permitted_use
+        iri: lease:leasePermittedUse
+        description: Permitted use, which is the tenant-mix category of record.
+        roles:
+          - concept: MerchandiseCategory
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Lease} permits use as {MerchandiseCategory}"
+      - name: currency
+        iri: lease:leaseCurrency
+        description: Lease currency.
+        roles:
+          - concept: Currency
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Lease} is denominated in {Currency}"
+      - name: broker
+        iri: lease:leaseBroker
+        description: Leasing broker.
+        roles:
+          - concept: Broker
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Lease} is brokered by {Broker}"
+  - concept: LeasedUnit
+    type: EntityType
+    iri: lease:LeasedUnit
+    description: Unit covered by a lease for a period. A lease can cover several units and a unit is leased successively.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: lease:leasedUnitId
+        description: Identifier of the LeasedUnit.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{LeasedUnit} is identified by {Identifier}"
+      - name: start_date
+        iri: lease:leasedUnitStartDate
+        description: Start of coverage.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeasedUnit} has start date {CalendarDate}"
+      - name: end_date
+        iri: lease:leasedUnitEndDate
+        description: End of coverage.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeasedUnit} has end date {CalendarDate}"
+      - name: leased_area_m2
+        iri: lease:leasedUnitLeasedAreaM2
+        description: Area leased.
+        roles:
+          - concept: AreaM2
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeasedUnit} has leased area m2 {AreaM2}"
+      - name: lease
+        iri: lease:leasedUnitLease
+        description: Lease.
+        roles:
+          - concept: Lease
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeasedUnit} is covered by {Lease}"
+      - name: unit
+        iri: lease:leasedUnitUnit
+        description: Unit.
+        roles:
+          - concept: LeasableUnit
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeasedUnit} covers {LeasableUnit}"
+  - concept: LeaseAmendment
+    type: EntityType
+    iri: lease:LeaseAmendment
+    description: "Signed change to a lease: rent revision, extension, unit change or assignment."
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: lease:leaseAmendmentId
+        description: Identifier of the LeaseAmendment.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{LeaseAmendment} is identified by {Identifier}"
+      - name: amendment_number
+        iri: lease:leaseAmendmentAmendmentNumber
+        description: Amendment number.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeaseAmendment} has amendment number {Code}"
+      - name: effective_date
+        iri: lease:leaseAmendmentEffectiveDate
+        description: Effective date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeaseAmendment} has effective date {CalendarDate}"
+      - name: amendment_type
+        iri: lease:leaseAmendmentAmendmentType
+        description: Kind of change.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeaseAmendment} has amendment type {Code}"
+      - name: summary
+        iri: lease:leaseAmendmentSummary
+        description: Summary of the change.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeaseAmendment} has summary {Text}"
+      - name: lease
+        iri: lease:leaseAmendmentLease
+        description: Lease amended.
+        roles:
+          - concept: Lease
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeaseAmendment} amends {Lease}"
+  - concept: RentStep
+    type: EntityType
+    iri: lease:RentStep
+    description: Step of the minimum-rent schedule, such as a discounted first year followed by full rent.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: lease:rentStepId
+        description: Identifier of the RentStep.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{RentStep} is identified by {Identifier}"
+      - name: effective_from
+        iri: lease:rentStepEffectiveFrom
+        description: First day of the step.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{RentStep} has effective from {CalendarDate}"
+      - name: effective_to
+        iri: lease:rentStepEffectiveTo
+        description: Last day of the step.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{RentStep} has effective to {CalendarDate}"
+      - name: monthly_amount
+        iri: lease:rentStepMonthlyAmount
+        description: Monthly minimum rent during the step.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{RentStep} has monthly amount {MoneyAmount}"
+      - name: lease
+        iri: lease:rentStepLease
+        description: Lease.
+        roles:
+          - concept: Lease
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{RentStep} schedules rent of {Lease}"
+  - concept: LeaseClause
+    type: EntityType
+    iri: lease:LeaseClause
+    description: Abstract contractual clause of a lease.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: lease:leaseClauseId
+        description: Identifier of the LeaseClause.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{LeaseClause} is identified by {Identifier}"
+      - name: clause_reference
+        iri: lease:leaseClauseClauseReference
+        description: Clause number in the signed lease.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeaseClause} has clause reference {Code}"
+      - name: effective_from
+        iri: lease:leaseClauseEffectiveFrom
+        description: Start of effect.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeaseClause} has effective from {CalendarDate}"
+      - name: effective_to
+        iri: lease:leaseClauseEffectiveTo
+        description: End of effect.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeaseClause} has effective to {CalendarDate}"
+      - name: notes
+        iri: lease:leaseClauseNotes
+        description: Clause notes.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeaseClause} has notes {Text}"
+      - name: lease
+        iri: lease:leaseClauseLease
+        description: Lease containing the clause.
+        roles:
+          - concept: Lease
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeaseClause} is a clause of {Lease}"
+  - concept: PercentageRentClause
+    type: EntityType
+    iri: lease:PercentageRentClause
+    description: "Percentage rent: when the rate times monthly gross sales exceeds the minimum rent, the tenant pays the difference as overage rent."
+    extends:
+      - LeaseClause
+    relationships:
+      - name: rate
+        iri: lease:percentageRentClauseRate
+        description: Percentage of gross sales.
+        roles:
+          - concept: Rate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PercentageRentClause} has rate {Rate}"
+      - name: excludes_thirteenth_rent
+        iri: lease:percentageRentClauseExcludesThirteenthRent
+        description: Whether the December thirteenth rent is excluded from the comparison.
+        roles:
+          - concept: Flag
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PercentageRentClause} has excludes thirteenth rent {Flag}"
+  - concept: IndexationClause
+    type: EntityType
+    iri: lease:IndexationClause
+    description: Periodic adjustment of rent by a price index.
+    extends:
+      - LeaseClause
+    relationships:
+      - name: anniversary_month
+        iri: lease:indexationClauseAnniversaryMonth
+        description: Month of the year in which the adjustment applies.
+        roles:
+          - concept: Count
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{IndexationClause} has anniversary month {Count}"
+      - name: frequency_months
+        iri: lease:indexationClauseFrequencyMonths
+        description: Months between adjustments.
+        roles:
+          - concept: Count
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{IndexationClause} has frequency months {Count}"
+      - name: price_index
+        iri: lease:indexationClausePriceIndex
+        description: Index applied.
+        roles:
+          - concept: PriceIndex
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{IndexationClause} is adjusted by {PriceIndex}"
+  - concept: ExclusivityClause
+    type: EntityType
+    iri: lease:ExclusivityClause
+    description: Commitment by the landlord not to lease to competitors in a protected category.
+    extends:
+      - LeaseClause
+    relationships:
+      - name: protected_category
+        iri: lease:exclusivityClauseProtectedCategory
+        description: Protected category.
+        roles:
+          - concept: MerchandiseCategory
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ExclusivityClause} protects {MerchandiseCategory}"
+  - concept: RadiusClause
+    type: EntityType
+    iri: lease:RadiusClause
+    description: Restriction on the tenant opening another store within a radius of the property.
+    extends:
+      - LeaseClause
+    relationships:
+      - name: radius_km
+        iri: lease:radiusClauseRadiusKm
+        description: Restricted radius.
+        roles:
+          - concept: DistanceKm
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{RadiusClause} has radius km {DistanceKm}"
+  - concept: CoTenancyClause
+    type: EntityType
+    iri: lease:CoTenancyClause
+    description: Rent relief if required anchors close or occupancy falls below a threshold.
+    extends:
+      - LeaseClause
+    relationships:
+      - name: required_occupancy_rate
+        iri: lease:coTenancyClauseRequiredOccupancyRate
+        description: Occupancy threshold.
+        roles:
+          - concept: Rate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CoTenancyClause} has required occupancy rate {Rate}"
+      - name: remedy_rent_rate
+        iri: lease:coTenancyClauseRemedyRentRate
+        description: Fraction of rent payable while the condition is unmet.
+        roles:
+          - concept: Rate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CoTenancyClause} has remedy rent rate {Rate}"
+  - concept: RenewalOption
+    type: EntityType
+    iri: lease:RenewalOption
+    description: Tenant option to renew the lease.
+    extends:
+      - LeaseClause
+    relationships:
+      - name: notice_months
+        iri: lease:renewalOptionNoticeMonths
+        description: Notice required before exercise.
+        roles:
+          - concept: Count
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{RenewalOption} has notice months {Count}"
+      - name: renewal_term_months
+        iri: lease:renewalOptionRenewalTermMonths
+        description: Term of the renewal.
+        roles:
+          - concept: Count
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{RenewalOption} has renewal term months {Count}"
+  - concept: EarlyTerminationOption
+    type: EntityType
+    iri: lease:EarlyTerminationOption
+    description: Right to end the lease early against a penalty.
+    extends:
+      - LeaseClause
+    relationships:
+      - name: earliest_exercise_date
+        iri: lease:earlyTerminationOptionEarliestExerciseDate
+        description: First date the option can be exercised.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{EarlyTerminationOption} has earliest exercise date {CalendarDate}"
+      - name: penalty_months_of_rent
+        iri: lease:earlyTerminationOptionPenaltyMonthsOfRent
+        description: Penalty in months of minimum rent.
+        roles:
+          - concept: Quantity
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{EarlyTerminationOption} has penalty months of rent {Quantity}"
+  - concept: GuaranteeType
+    type: EntityType
+    iri: lease:GuaranteeType
+    description: "Kind of lease guarantee: surety bond, bank guarantee, security deposit, personal guarantor or rent-guarantee insurance."
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: lease:guaranteeTypeId
+        description: Identifier of the GuaranteeType.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{GuaranteeType} is identified by {Identifier}"
+      - name: code
+        iri: lease:guaranteeTypeCode
+        description: Type code.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{GuaranteeType} has code {Code}"
+      - name: name
+        iri: lease:guaranteeTypeName
+        description: Type name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{GuaranteeType} has name {Name}"
+  - concept: Guarantee
+    type: EntityType
+    iri: lease:Guarantee
+    description: Security provided for the obligations of a lease.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: lease:guaranteeId
+        description: Identifier of the Guarantee.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Guarantee} is identified by {Identifier}"
+      - name: amount
+        iri: lease:guaranteeAmount
+        description: Guaranteed amount.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Guarantee} has amount {MoneyAmount}"
+      - name: start_date
+        iri: lease:guaranteeStartDate
+        description: Start of cover.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Guarantee} has start date {CalendarDate}"
+      - name: end_date
+        iri: lease:guaranteeEndDate
+        description: End of cover.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Guarantee} has end date {CalendarDate}"
+      - name: lease
+        iri: lease:guaranteeLease
+        description: Lease secured.
+        roles:
+          - concept: Lease
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Guarantee} secures {Lease}"
+      - name: guarantee_type
+        iri: lease:guaranteeGuaranteeType
+        description: Guarantee type.
+        roles:
+          - concept: GuaranteeType
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Guarantee} is of type {GuaranteeType}"
+      - name: guarantor
+        iri: lease:guaranteeGuarantor
+        description: Bank, insurer or guarantor company.
+        roles:
+          - concept: Organization
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Guarantee} is provided by {Organization}"
+  - concept: KeyMoneyAgreement
+    type: EntityType
+    iri: lease:KeyMoneyAgreement
+    description: "One-off fee for the right to use a location: a right-of-use fee (res sperata) in a new development or key money (luvas) for an existing location. It is not rent."
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: lease:keyMoneyAgreementId
+        description: Identifier of the KeyMoneyAgreement.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{KeyMoneyAgreement} is identified by {Identifier}"
+      - name: total_amount
+        iri: lease:keyMoneyAgreementTotalAmount
+        description: Total fee.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{KeyMoneyAgreement} has total amount {MoneyAmount}"
+      - name: installments
+        iri: lease:keyMoneyAgreementInstallments
+        description: Number of instalments.
+        roles:
+          - concept: Count
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{KeyMoneyAgreement} has installments {Count}"
+      - name: agreement_date
+        iri: lease:keyMoneyAgreementAgreementDate
+        description: Agreement date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{KeyMoneyAgreement} has agreement date {CalendarDate}"
+      - name: lease
+        iri: lease:keyMoneyAgreementLease
+        description: Lease.
+        roles:
+          - concept: Lease
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{KeyMoneyAgreement} is agreed for {Lease}"
+  - concept: RentConcession
+    type: EntityType
+    iri: lease:RentConcession
+    description: Rent-free period, discount or deferral granted on a lease.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: lease:rentConcessionId
+        description: Identifier of the RentConcession.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{RentConcession} is identified by {Identifier}"
+      - name: concession_type
+        iri: lease:rentConcessionConcessionType
+        description: Rent-free, discount or deferral.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{RentConcession} has concession type {Code}"
+      - name: start_date
+        iri: lease:rentConcessionStartDate
+        description: Start of the concession.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{RentConcession} has start date {CalendarDate}"
+      - name: end_date
+        iri: lease:rentConcessionEndDate
+        description: End of the concession.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{RentConcession} has end date {CalendarDate}"
+      - name: discount_rate
+        iri: lease:rentConcessionDiscountRate
+        description: Fraction of rent waived.
+        roles:
+          - concept: Rate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{RentConcession} has discount rate {Rate}"
+      - name: reason
+        iri: lease:rentConcessionReason
+        description: Reason for the concession.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{RentConcession} has reason {Text}"
+      - name: lease
+        iri: lease:rentConcessionLease
+        description: Lease.
+        roles:
+          - concept: Lease
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{RentConcession} is granted on {Lease}"
+  - concept: TenantAllowance
+    type: EntityType
+    iri: lease:TenantAllowance
+    description: Contribution by the landlord towards the tenant fit-out.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: lease:tenantAllowanceId
+        description: Identifier of the TenantAllowance.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{TenantAllowance} is identified by {Identifier}"
+      - name: amount
+        iri: lease:tenantAllowanceAmount
+        description: Allowance amount.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TenantAllowance} has amount {MoneyAmount}"
+      - name: purpose
+        iri: lease:tenantAllowancePurpose
+        description: Purpose.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TenantAllowance} has purpose {Text}"
+      - name: lease
+        iri: lease:tenantAllowanceLease
+        description: Lease.
+        roles:
+          - concept: Lease
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TenantAllowance} is granted under {Lease}"
+  - concept: FitOutProject
+    type: EntityType
+    iri: lease:FitOutProject
+    description: Construction of the store by the tenant between handover and opening, subject to the landlord design approval.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: lease:fitOutProjectId
+        description: Identifier of the FitOutProject.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{FitOutProject} is identified by {Identifier}"
+      - name: handover_date
+        iri: lease:fitOutProjectHandoverDate
+        description: Unit handover date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{FitOutProject} has handover date {CalendarDate}"
+      - name: planned_opening_date
+        iri: lease:fitOutProjectPlannedOpeningDate
+        description: Planned opening.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{FitOutProject} has planned opening date {CalendarDate}"
+      - name: actual_opening_date
+        iri: lease:fitOutProjectActualOpeningDate
+        description: Actual opening.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{FitOutProject} has actual opening date {CalendarDate}"
+      - name: design_approved
+        iri: lease:fitOutProjectDesignApproved
+        description: Whether the store design is approved.
+        roles:
+          - concept: Flag
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{FitOutProject} has design approved {Flag}"
+      - name: status
+        iri: lease:fitOutProjectStatus
+        description: Project status.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{FitOutProject} has status {Code}"
+      - name: lease
+        iri: lease:fitOutProjectLease
+        description: Lease.
+        roles:
+          - concept: Lease
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{FitOutProject} prepares the store of {Lease}"
+      - name: unit
+        iri: lease:fitOutProjectUnit
+        description: Unit.
+        roles:
+          - concept: LeasableUnit
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{FitOutProject} fits out {LeasableUnit}"
+  - concept: LeaseTermination
+    type: EntityType
+    iri: lease:LeaseTermination
+    description: End of a lease before or at expiry.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: lease:leaseTerminationId
+        description: Identifier of the LeaseTermination.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{LeaseTermination} is identified by {Identifier}"
+      - name: termination_date
+        iri: lease:leaseTerminationTerminationDate
+        description: Termination date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeaseTermination} has termination date {CalendarDate}"
+      - name: reason
+        iri: lease:leaseTerminationReason
+        description: Expiry, mutual agreement, early termination option, eviction or default.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeaseTermination} has reason {Code}"
+      - name: penalty_amount
+        iri: lease:leaseTerminationPenaltyAmount
+        description: Penalty charged.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeaseTermination} has penalty amount {MoneyAmount}"
+      - name: lease
+        iri: lease:leaseTerminationLease
+        description: Lease.
+        roles:
+          - concept: Lease
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeaseTermination} terminates {Lease}"
+  - concept: ExpenseCategory
+    type: EntityType
+    iri: ops:ExpenseCategory
+    description: Category of operating cost, such as cleaning, security, maintenance, utilities, insurance or administration fees.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: ops:expenseCategoryId
+        description: Identifier of the ExpenseCategory.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{ExpenseCategory} is identified by {Identifier}"
+      - name: code
+        iri: ops:expenseCategoryCode
+        description: Category code.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ExpenseCategory} has code {Code}"
+      - name: name
+        iri: ops:expenseCategoryName
+        description: Category name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ExpenseCategory} has name {Name}"
+      - name: recoverable
+        iri: ops:expenseCategoryRecoverable
+        description: Whether the cost is recoverable from tenants through service charges.
+        roles:
+          - concept: Flag
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ExpenseCategory} has recoverable {Flag}"
+      - name: parent_category
+        iri: ops:expenseCategoryParentCategory
+        description: Broader category.
+        roles:
+          - concept: ExpenseCategory
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ExpenseCategory} is a subcategory of another {ExpenseCategory}"
+  - concept: ServiceChargeBudget
+    type: EntityType
+    iri: ops:ServiceChargeBudget
+    description: Annual budget of shared operating costs recovered from tenants (in Brazil, the condominium budget).
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: ops:serviceChargeBudgetId
+        description: Identifier of the ServiceChargeBudget.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{ServiceChargeBudget} is identified by {Identifier}"
+      - name: year
+        iri: ops:serviceChargeBudgetYear
+        description: Budget year.
+        roles:
+          - concept: Year
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ServiceChargeBudget} has year {Year}"
+      - name: approved_date
+        iri: ops:serviceChargeBudgetApprovedDate
+        description: Approval date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ServiceChargeBudget} has approved date {CalendarDate}"
+      - name: total_amount
+        iri: ops:serviceChargeBudgetTotalAmount
+        description: Budget total.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ServiceChargeBudget} has total amount {MoneyAmount}"
+      - name: property
+        iri: ops:serviceChargeBudgetProperty
+        description: Property.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ServiceChargeBudget} budgets costs of {Property}"
+  - concept: ServiceChargeBudgetLine
+    type: EntityType
+    iri: ops:ServiceChargeBudgetLine
+    description: Budgeted amount for one expense category.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: ops:serviceChargeBudgetLineId
+        description: Identifier of the ServiceChargeBudgetLine.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{ServiceChargeBudgetLine} is identified by {Identifier}"
+      - name: amount
+        iri: ops:serviceChargeBudgetLineAmount
+        description: Budgeted amount.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ServiceChargeBudgetLine} has amount {MoneyAmount}"
+      - name: budget
+        iri: ops:serviceChargeBudgetLineBudget
+        description: Budget.
+        roles:
+          - concept: ServiceChargeBudget
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ServiceChargeBudgetLine} is a line of {ServiceChargeBudget}"
+      - name: category
+        iri: ops:serviceChargeBudgetLineCategory
+        description: Expense category.
+        roles:
+          - concept: ExpenseCategory
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ServiceChargeBudgetLine} budgets {ExpenseCategory}"
+  - concept: AllocationKey
+    type: EntityType
+    iri: ops:AllocationKey
+    description: Rule to apportion recoverable costs among units, by area, ideal fraction, metered consumption or fixed share.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: ops:allocationKeyId
+        description: Identifier of the AllocationKey.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{AllocationKey} is identified by {Identifier}"
+      - name: code
+        iri: ops:allocationKeyCode
+        description: Key code.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{AllocationKey} has code {Code}"
+      - name: name
+        iri: ops:allocationKeyName
+        description: Key name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{AllocationKey} has name {Name}"
+      - name: basis
+        iri: ops:allocationKeyBasis
+        description: Area, ideal fraction, metered or fixed.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{AllocationKey} has basis {Code}"
+      - name: property
+        iri: ops:allocationKeyProperty
+        description: Property.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{AllocationKey} apportions costs of {Property}"
+  - concept: AllocationShare
+    type: EntityType
+    iri: ops:AllocationShare
+    description: Share of a unit under an allocation key.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: ops:allocationShareId
+        description: Identifier of the AllocationShare.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{AllocationShare} is identified by {Identifier}"
+      - name: share
+        iri: ops:allocationShareShare
+        description: Fraction allocated to the unit.
+        roles:
+          - concept: Rate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{AllocationShare} has share {Rate}"
+      - name: allocation_key
+        iri: ops:allocationShareAllocationKey
+        description: Allocation key.
+        roles:
+          - concept: AllocationKey
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{AllocationShare} is a share under {AllocationKey}"
+      - name: unit
+        iri: ops:allocationShareUnit
+        description: Unit.
+        roles:
+          - concept: LeasableUnit
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{AllocationShare} is allocated to {LeasableUnit}"
+  - concept: ServiceContract
+    type: EntityType
+    iri: ops:ServiceContract
+    description: Contract with a provider for recurring services at a property.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: ops:serviceContractId
+        description: Identifier of the ServiceContract.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{ServiceContract} is identified by {Identifier}"
+      - name: contract_number
+        iri: ops:serviceContractContractNumber
+        description: Contract number.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ServiceContract} has contract number {Code}"
+      - name: start_date
+        iri: ops:serviceContractStartDate
+        description: Start date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ServiceContract} has start date {CalendarDate}"
+      - name: end_date
+        iri: ops:serviceContractEndDate
+        description: End date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ServiceContract} has end date {CalendarDate}"
+      - name: monthly_amount
+        iri: ops:serviceContractMonthlyAmount
+        description: Monthly fee.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ServiceContract} has monthly amount {MoneyAmount}"
+      - name: provider
+        iri: ops:serviceContractProvider
+        description: Provider.
+        roles:
+          - concept: ServiceProvider
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ServiceContract} is supplied by {ServiceProvider}"
+      - name: property
+        iri: ops:serviceContractProperty
+        description: Property served.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ServiceContract} serves {Property}"
+      - name: category
+        iri: ops:serviceContractCategory
+        description: Expense category.
+        roles:
+          - concept: ExpenseCategory
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ServiceContract} is classified as {ExpenseCategory}"
+  - concept: OperatingExpense
+    type: EntityType
+    iri: ops:OperatingExpense
+    description: Actual operating cost incurred by a property in a month.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: ops:operatingExpenseId
+        description: Identifier of the OperatingExpense.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{OperatingExpense} is identified by {Identifier}"
+      - name: summary
+        iri: ops:operatingExpenseSummary
+        description: Expense description.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OperatingExpense} has summary {Text}"
+      - name: amount
+        iri: ops:operatingExpenseAmount
+        description: Amount incurred.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OperatingExpense} has amount {MoneyAmount}"
+      - name: recoverable
+        iri: ops:operatingExpenseRecoverable
+        description: Whether the expense is recoverable from tenants.
+        roles:
+          - concept: Flag
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OperatingExpense} has recoverable {Flag}"
+      - name: property
+        iri: ops:operatingExpenseProperty
+        description: Property.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OperatingExpense} is incurred by {Property}"
+      - name: category
+        iri: ops:operatingExpenseCategory
+        description: Expense category.
+        roles:
+          - concept: ExpenseCategory
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OperatingExpense} is classified as {ExpenseCategory}"
+      - name: month
+        iri: ops:operatingExpenseMonth
+        description: Month.
+        roles:
+          - concept: CalendarMonth
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OperatingExpense} is incurred in {CalendarMonth}"
+      - name: provider
+        iri: ops:operatingExpenseProvider
+        description: Provider.
+        roles:
+          - concept: ServiceProvider
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OperatingExpense} is invoiced by {ServiceProvider}"
+  - concept: WorkOrder
+    type: EntityType
+    iri: ops:WorkOrder
+    description: "Maintenance request or task: corrective, preventive or requested by a tenant."
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: ops:workOrderId
+        description: Identifier of the WorkOrder.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{WorkOrder} is identified by {Identifier}"
+      - name: work_order_number
+        iri: ops:workOrderWorkOrderNumber
+        description: Work order number.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{WorkOrder} has work order number {Code}"
+      - name: opened_date
+        iri: ops:workOrderOpenedDate
+        description: Opened.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{WorkOrder} has opened date {CalendarDate}"
+      - name: closed_date
+        iri: ops:workOrderClosedDate
+        description: Closed.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{WorkOrder} has closed date {CalendarDate}"
+      - name: priority
+        iri: ops:workOrderPriority
+        description: Priority.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{WorkOrder} has priority {Code}"
+      - name: work_type
+        iri: ops:workOrderWorkType
+        description: Corrective, preventive or tenant request.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{WorkOrder} has work type {Code}"
+      - name: cost
+        iri: ops:workOrderCost
+        description: Cost.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{WorkOrder} has cost {MoneyAmount}"
+      - name: property
+        iri: ops:workOrderProperty
+        description: Property.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{WorkOrder} is raised at {Property}"
+      - name: equipment
+        iri: ops:workOrderEquipment
+        description: Equipment concerned.
+        roles:
+          - concept: Equipment
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{WorkOrder} repairs {Equipment}"
+      - name: unit
+        iri: ops:workOrderUnit
+        description: Unit concerned.
+        roles:
+          - concept: LeasableUnit
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{WorkOrder} is carried out in {LeasableUnit}"
+      - name: provider
+        iri: ops:workOrderProvider
+        description: Provider assigned.
+        roles:
+          - concept: ServiceProvider
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{WorkOrder} is assigned to {ServiceProvider}"
+  - concept: UtilityType
+    type: EntityType
+    iri: ops:UtilityType
+    description: "Metered utility: electricity, water, gas or chilled water."
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: ops:utilityTypeId
+        description: Identifier of the UtilityType.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{UtilityType} is identified by {Identifier}"
+      - name: code
+        iri: ops:utilityTypeCode
+        description: Utility code.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{UtilityType} has code {Code}"
+      - name: name
+        iri: ops:utilityTypeName
+        description: Utility name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{UtilityType} has name {Name}"
+      - name: unit_of_measure
+        iri: ops:utilityTypeUnitOfMeasure
+        description: Unit of measure.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{UtilityType} has unit of measure {Code}"
+  - concept: UtilityMeter
+    type: EntityType
+    iri: ops:UtilityMeter
+    description: Meter measuring consumption of a utility by a unit or common installation.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: ops:utilityMeterId
+        description: Identifier of the UtilityMeter.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{UtilityMeter} is identified by {Identifier}"
+      - name: code
+        iri: ops:utilityMeterCode
+        description: Meter code.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{UtilityMeter} has code {Code}"
+      - name: utility_type
+        iri: ops:utilityMeterUtilityType
+        description: Utility measured.
+        roles:
+          - concept: UtilityType
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{UtilityMeter} measures {UtilityType}"
+      - name: property
+        iri: ops:utilityMeterProperty
+        description: Property.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{UtilityMeter} is installed at {Property}"
+      - name: unit
+        iri: ops:utilityMeterUnit
+        description: Unit metered; empty for common installations.
+        roles:
+          - concept: LeasableUnit
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{UtilityMeter} measures consumption of {LeasableUnit}"
+  - concept: MeterReading
+    type: EntityType
+    iri: ops:MeterReading
+    description: Reading of a meter, the basis for recharging consumption to tenants.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: ops:meterReadingId
+        description: Identifier of the MeterReading.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{MeterReading} is identified by {Identifier}"
+      - name: reading_date
+        iri: ops:meterReadingReadingDate
+        description: Reading date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{MeterReading} has reading date {CalendarDate}"
+      - name: reading_value
+        iri: ops:meterReadingReadingValue
+        description: Cumulative reading.
+        roles:
+          - concept: Quantity
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{MeterReading} has reading value {Quantity}"
+      - name: consumption
+        iri: ops:meterReadingConsumption
+        description: Consumption since the previous reading.
+        roles:
+          - concept: Quantity
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{MeterReading} has consumption {Quantity}"
+      - name: meter
+        iri: ops:meterReadingMeter
+        description: Meter.
+        roles:
+          - concept: UtilityMeter
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{MeterReading} is read from {UtilityMeter}"
+      - name: month
+        iri: ops:meterReadingMonth
+        description: Billing month.
+        roles:
+          - concept: CalendarMonth
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{MeterReading} is billed in {CalendarMonth}"
+  - concept: InsurancePolicy
+    type: EntityType
+    iri: ops:InsurancePolicy
+    description: Insurance covering the property, such as property damage, loss of rent or civil liability.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: ops:insurancePolicyId
+        description: Identifier of the InsurancePolicy.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{InsurancePolicy} is identified by {Identifier}"
+      - name: policy_number
+        iri: ops:insurancePolicyPolicyNumber
+        description: Policy number.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{InsurancePolicy} has policy number {Code}"
+      - name: coverage_type
+        iri: ops:insurancePolicyCoverageType
+        description: Coverage.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{InsurancePolicy} has coverage type {Code}"
+      - name: insured_amount
+        iri: ops:insurancePolicyInsuredAmount
+        description: Insured amount.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{InsurancePolicy} has insured amount {MoneyAmount}"
+      - name: premium
+        iri: ops:insurancePolicyPremium
+        description: Premium.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{InsurancePolicy} has premium {MoneyAmount}"
+      - name: start_date
+        iri: ops:insurancePolicyStartDate
+        description: Start.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{InsurancePolicy} has start date {CalendarDate}"
+      - name: end_date
+        iri: ops:insurancePolicyEndDate
+        description: End.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{InsurancePolicy} has end date {CalendarDate}"
+      - name: property
+        iri: ops:insurancePolicyProperty
+        description: Property.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{InsurancePolicy} insures {Property}"
+      - name: insurer
+        iri: ops:insurancePolicyInsurer
+        description: Insurer.
+        roles:
+          - concept: Organization
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{InsurancePolicy} is underwritten by {Organization}"
+  - concept: Incident
+    type: EntityType
+    iri: ops:Incident
+    description: Safety, security or operational incident at a property.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: ops:incidentId
+        description: Identifier of the Incident.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Incident} is identified by {Identifier}"
+      - name: occurred_on
+        iri: ops:incidentOccurredOn
+        description: Date of the incident.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Incident} has occurred on {CalendarDate}"
+      - name: incident_type
+        iri: ops:incidentIncidentType
+        description: Incident type.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Incident} has incident type {Code}"
+      - name: severity
+        iri: ops:incidentSeverity
+        description: Severity.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Incident} has severity {Code}"
+      - name: summary
+        iri: ops:incidentSummary
+        description: Summary.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Incident} has summary {Text}"
+      - name: property
+        iri: ops:incidentProperty
+        description: Property.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Incident} occurred at {Property}"
+  - concept: MarketingFund
+    type: EntityType
+    iri: ops:MarketingFund
+    description: Annual promotion and advertising fund financed by tenant contributions, usually a fraction of minimum rent.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: ops:marketingFundId
+        description: Identifier of the MarketingFund.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{MarketingFund} is identified by {Identifier}"
+      - name: year
+        iri: ops:marketingFundYear
+        description: Fund year.
+        roles:
+          - concept: Year
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{MarketingFund} has year {Year}"
+      - name: contribution_rate
+        iri: ops:marketingFundContributionRate
+        description: Contribution as a fraction of minimum rent.
+        roles:
+          - concept: Rate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{MarketingFund} has contribution rate {Rate}"
+      - name: budget_amount
+        iri: ops:marketingFundBudgetAmount
+        description: Budget.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{MarketingFund} has budget amount {MoneyAmount}"
+      - name: property
+        iri: ops:marketingFundProperty
+        description: Property.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{MarketingFund} promotes {Property}"
+  - concept: MarketingCampaign
+    type: EntityType
+    iri: ops:MarketingCampaign
+    description: Campaign financed by the marketing fund.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: ops:marketingCampaignId
+        description: Identifier of the MarketingCampaign.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{MarketingCampaign} is identified by {Identifier}"
+      - name: name
+        iri: ops:marketingCampaignName
+        description: Campaign name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{MarketingCampaign} has name {Name}"
+      - name: start_date
+        iri: ops:marketingCampaignStartDate
+        description: Start.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{MarketingCampaign} has start date {CalendarDate}"
+      - name: end_date
+        iri: ops:marketingCampaignEndDate
+        description: End.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{MarketingCampaign} has end date {CalendarDate}"
+      - name: budget
+        iri: ops:marketingCampaignBudget
+        description: Budget.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{MarketingCampaign} has budget {MoneyAmount}"
+      - name: fund
+        iri: ops:marketingCampaignFund
+        description: Marketing fund.
+        roles:
+          - concept: MarketingFund
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{MarketingCampaign} is financed by {MarketingFund}"
+  - concept: MallEvent
+    type: EntityType
+    iri: ops:MallEvent
+    description: Event held at a property to attract visitors.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: ops:mallEventId
+        description: Identifier of the MallEvent.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{MallEvent} is identified by {Identifier}"
+      - name: name
+        iri: ops:mallEventName
+        description: Event name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{MallEvent} has name {Name}"
+      - name: event_date
+        iri: ops:mallEventEventDate
+        description: Event date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{MallEvent} has event date {CalendarDate}"
+      - name: expected_visitors
+        iri: ops:mallEventExpectedVisitors
+        description: Expected visitors.
+        roles:
+          - concept: Count
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{MallEvent} has expected visitors {Count}"
+      - name: property
+        iri: ops:mallEventProperty
+        description: Property.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{MallEvent} is held at {Property}"
+      - name: campaign
+        iri: ops:mallEventCampaign
+        description: Campaign.
+        roles:
+          - concept: MarketingCampaign
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{MallEvent} is part of {MarketingCampaign}"
+  - concept: ChargeType
+    type: EntityType
+    iri: fin:ChargeType
+    description: "Kind of billed item: minimum rent, percentage (overage) rent, thirteenth rent, service charge, marketing fund, utility recharge, key-money instalment or late fee."
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: fin:chargeTypeId
+        description: Identifier of the ChargeType.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{ChargeType} is identified by {Identifier}"
+      - name: code
+        iri: fin:chargeTypeCode
+        description: Charge code.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ChargeType} has code {Code}"
+      - name: name
+        iri: fin:chargeTypeName
+        description: Charge name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ChargeType} has name {Name}"
+      - name: revenue_class
+        iri: fin:chargeTypeRevenueClass
+        description: Rent, recoveries, marketing or other.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ChargeType} has revenue class {Code}"
+  - concept: Invoice
+    type: EntityType
+    iri: fin:Invoice
+    description: Billing document issued by a property to a tenant, payable by bank slip, transfer or instant payment.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: fin:invoiceId
+        description: Identifier of the Invoice.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Invoice} is identified by {Identifier}"
+      - name: invoice_number
+        iri: fin:invoiceInvoiceNumber
+        description: Invoice number.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Invoice} has invoice number {Code}"
+      - name: issue_date
+        iri: fin:invoiceIssueDate
+        description: Issue date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Invoice} has issue date {CalendarDate}"
+      - name: due_date
+        iri: fin:invoiceDueDate
+        description: Due date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Invoice} has due date {CalendarDate}"
+      - name: status
+        iri: fin:invoiceStatus
+        description: Open, paid, partially paid or cancelled.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Invoice} has status {Code}"
+      - name: property
+        iri: fin:invoiceProperty
+        description: Issuing property.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Invoice} is issued by {Property}"
+      - name: billed_tenant
+        iri: fin:invoiceBilledTenant
+        description: Tenant billed.
+        roles:
+          - concept: Tenant
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Invoice} is billed to {Tenant}"
+  - concept: Charge
+    type: EntityType
+    iri: fin:Charge
+    description: Billed amount of one charge type for a lease and competence month. paid_amount holds the allocated payments at the reporting date.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: fin:chargeId
+        description: Identifier of the Charge.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Charge} is identified by {Identifier}"
+      - name: summary
+        iri: fin:chargeSummary
+        description: Charge description.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Charge} has summary {Text}"
+      - name: amount
+        iri: fin:chargeAmount
+        description: Billed amount; negative for credits.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Charge} has amount {MoneyAmount}"
+      - name: paid_amount
+        iri: fin:chargePaidAmount
+        description: Payments allocated at the reporting date.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Charge} has paid amount {MoneyAmount}"
+      - name: due_date
+        iri: fin:chargeDueDate
+        description: Due date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Charge} has due date {CalendarDate}"
+      - name: invoice
+        iri: fin:chargeInvoice
+        description: Invoice.
+        roles:
+          - concept: Invoice
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Charge} is billed on {Invoice}"
+      - name: lease
+        iri: fin:chargeLease
+        description: Lease.
+        roles:
+          - concept: Lease
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Charge} is due under {Lease}"
+      - name: charge_type
+        iri: fin:chargeChargeType
+        description: Charge type.
+        roles:
+          - concept: ChargeType
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Charge} is of type {ChargeType}"
+      - name: month
+        iri: fin:chargeMonth
+        description: Competence month.
+        roles:
+          - concept: CalendarMonth
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Charge} is the competence of {CalendarMonth}"
+  - concept: BankAccount
+    type: EntityType
+    iri: fin:BankAccount
+    description: Bank account of a property used for collections and distributions.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: fin:bankAccountId
+        description: Identifier of the BankAccount.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{BankAccount} is identified by {Identifier}"
+      - name: bank_name
+        iri: fin:bankAccountBankName
+        description: Bank.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BankAccount} has bank name {Name}"
+      - name: branch_code
+        iri: fin:bankAccountBranchCode
+        description: Branch.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BankAccount} has branch code {Code}"
+      - name: account_number
+        iri: fin:bankAccountAccountNumber
+        description: Account number.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BankAccount} has account number {Code}"
+      - name: property
+        iri: fin:bankAccountProperty
+        description: Property.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BankAccount} is held for {Property}"
+  - concept: Payment
+    type: EntityType
+    iri: fin:Payment
+    description: Payment received from a tenant.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: fin:paymentId
+        description: Identifier of the Payment.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Payment} is identified by {Identifier}"
+      - name: payment_date
+        iri: fin:paymentPaymentDate
+        description: Payment date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Payment} has payment date {CalendarDate}"
+      - name: amount
+        iri: fin:paymentAmount
+        description: Amount received.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Payment} has amount {MoneyAmount}"
+      - name: payment_method
+        iri: fin:paymentPaymentMethod
+        description: Bank slip, transfer or instant payment.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Payment} has payment method {Code}"
+      - name: payer
+        iri: fin:paymentPayer
+        description: Paying tenant.
+        roles:
+          - concept: Tenant
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Payment} is paid by {Tenant}"
+      - name: bank_account
+        iri: fin:paymentBankAccount
+        description: Receiving account.
+        roles:
+          - concept: BankAccount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Payment} is received into {BankAccount}"
+  - concept: PaymentAllocation
+    type: EntityType
+    iri: fin:PaymentAllocation
+    description: Part of a payment applied to a charge.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: fin:paymentAllocationId
+        description: Identifier of the PaymentAllocation.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{PaymentAllocation} is identified by {Identifier}"
+      - name: amount
+        iri: fin:paymentAllocationAmount
+        description: Amount applied.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PaymentAllocation} has amount {MoneyAmount}"
+      - name: payment
+        iri: fin:paymentAllocationPayment
+        description: Payment.
+        roles:
+          - concept: Payment
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PaymentAllocation} applies {Payment}"
+      - name: charge
+        iri: fin:paymentAllocationCharge
+        description: Charge.
+        roles:
+          - concept: Charge
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PaymentAllocation} settles {Charge}"
+  - concept: ArrearsCase
+    type: EntityType
+    iri: fin:ArrearsCase
+    description: Delinquency case opened when a lease has overdue charges.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: fin:arrearsCaseId
+        description: Identifier of the ArrearsCase.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{ArrearsCase} is identified by {Identifier}"
+      - name: opened_date
+        iri: fin:arrearsCaseOpenedDate
+        description: Opened.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ArrearsCase} has opened date {CalendarDate}"
+      - name: closed_date
+        iri: fin:arrearsCaseClosedDate
+        description: Closed.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ArrearsCase} has closed date {CalendarDate}"
+      - name: status
+        iri: fin:arrearsCaseStatus
+        description: Open, in agreement, in litigation or closed.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ArrearsCase} has status {Code}"
+      - name: amount_overdue
+        iri: fin:arrearsCaseAmountOverdue
+        description: Overdue amount when opened.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ArrearsCase} has amount overdue {MoneyAmount}"
+      - name: lease
+        iri: fin:arrearsCaseLease
+        description: Lease in arrears.
+        roles:
+          - concept: Lease
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ArrearsCase} concerns {Lease}"
+  - concept: CollectionAction
+    type: EntityType
+    iri: fin:CollectionAction
+    description: "Step taken to collect overdue amounts: reminder, formal notice, protest, agreement or lawsuit."
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: fin:collectionActionId
+        description: Identifier of the CollectionAction.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{CollectionAction} is identified by {Identifier}"
+      - name: action_date
+        iri: fin:collectionActionActionDate
+        description: Action date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CollectionAction} has action date {CalendarDate}"
+      - name: action_type
+        iri: fin:collectionActionActionType
+        description: Action type.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CollectionAction} has action type {Code}"
+      - name: outcome
+        iri: fin:collectionActionOutcome
+        description: Outcome.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CollectionAction} has outcome {Text}"
+      - name: arrears_case
+        iri: fin:collectionActionArrearsCase
+        description: Arrears case.
+        roles:
+          - concept: ArrearsCase
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CollectionAction} is taken in {ArrearsCase}"
+  - concept: PaymentAgreement
+    type: EntityType
+    iri: fin:PaymentAgreement
+    description: Agreement to settle overdue amounts in instalments.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: fin:paymentAgreementId
+        description: Identifier of the PaymentAgreement.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{PaymentAgreement} is identified by {Identifier}"
+      - name: agreement_date
+        iri: fin:paymentAgreementAgreementDate
+        description: Agreement date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PaymentAgreement} has agreement date {CalendarDate}"
+      - name: total_amount
+        iri: fin:paymentAgreementTotalAmount
+        description: Amount agreed.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PaymentAgreement} has total amount {MoneyAmount}"
+      - name: installments
+        iri: fin:paymentAgreementInstallments
+        description: Number of instalments.
+        roles:
+          - concept: Count
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PaymentAgreement} has installments {Count}"
+      - name: arrears_case
+        iri: fin:paymentAgreementArrearsCase
+        description: Arrears case.
+        roles:
+          - concept: ArrearsCase
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PaymentAgreement} settles {ArrearsCase}"
+  - concept: LegalProceeding
+    type: EntityType
+    iri: fin:LegalProceeding
+    description: "Lawsuit concerning a lease: eviction, rent review, lease renewal or collection."
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: fin:legalProceedingId
+        description: Identifier of the LegalProceeding.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{LegalProceeding} is identified by {Identifier}"
+      - name: case_number
+        iri: fin:legalProceedingCaseNumber
+        description: Case number.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LegalProceeding} has case number {Code}"
+      - name: proceeding_type
+        iri: fin:legalProceedingProceedingType
+        description: Eviction, rent review, renewal or collection.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LegalProceeding} has proceeding type {Code}"
+      - name: filing_date
+        iri: fin:legalProceedingFilingDate
+        description: Filing date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LegalProceeding} has filing date {CalendarDate}"
+      - name: status
+        iri: fin:legalProceedingStatus
+        description: Status.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LegalProceeding} has status {Code}"
+      - name: amount_claimed
+        iri: fin:legalProceedingAmountClaimed
+        description: Amount claimed.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LegalProceeding} has amount claimed {MoneyAmount}"
+      - name: lease
+        iri: fin:legalProceedingLease
+        description: Lease.
+        roles:
+          - concept: Lease
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LegalProceeding} concerns {Lease}"
+      - name: law_firm
+        iri: fin:legalProceedingLawFirm
+        description: Law firm.
+        roles:
+          - concept: Organization
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LegalProceeding} is handled by {Organization}"
+  - concept: LedgerAccount
+    type: EntityType
+    iri: fin:LedgerAccount
+    description: Account of the property chart of accounts.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: fin:ledgerAccountId
+        description: Identifier of the LedgerAccount.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{LedgerAccount} is identified by {Identifier}"
+      - name: code
+        iri: fin:ledgerAccountCode
+        description: Account code.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LedgerAccount} has code {Code}"
+      - name: name
+        iri: fin:ledgerAccountName
+        description: Account name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LedgerAccount} has name {Name}"
+      - name: account_class
+        iri: fin:ledgerAccountAccountClass
+        description: Revenue, operating expense, non-operating, asset, liability or equity.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LedgerAccount} has account class {Code}"
+      - name: parent_account
+        iri: fin:ledgerAccountParentAccount
+        description: Parent account.
+        roles:
+          - concept: LedgerAccount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LedgerAccount} rolls up to another {LedgerAccount}"
+  - concept: JournalEntry
+    type: EntityType
+    iri: fin:JournalEntry
+    description: Accounting entry of a property for a month.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: fin:journalEntryId
+        description: Identifier of the JournalEntry.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{JournalEntry} is identified by {Identifier}"
+      - name: entry_date
+        iri: fin:journalEntryEntryDate
+        description: Posting date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{JournalEntry} has entry date {CalendarDate}"
+      - name: summary
+        iri: fin:journalEntrySummary
+        description: Entry description.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{JournalEntry} has summary {Text}"
+      - name: property
+        iri: fin:journalEntryProperty
+        description: Property.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{JournalEntry} is posted by {Property}"
+      - name: month
+        iri: fin:journalEntryMonth
+        description: Accounting month.
+        roles:
+          - concept: CalendarMonth
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{JournalEntry} is posted in {CalendarMonth}"
+  - concept: JournalLine
+    type: EntityType
+    iri: fin:JournalLine
+    description: "Signed amount posted to a ledger account: income is positive and expense negative. noi_class is fixed at posting from the account: revenue, opex or excluded."
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: fin:journalLineId
+        description: Identifier of the JournalLine.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{JournalLine} is identified by {Identifier}"
+      - name: amount
+        iri: fin:journalLineAmount
+        description: Signed amount.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{JournalLine} has amount {MoneyAmount}"
+      - name: noi_class
+        iri: fin:journalLineNoiClass
+        description: "Contribution to net operating income: revenue, opex or excluded."
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{JournalLine} has noi class {Code}"
+      - name: memo
+        iri: fin:journalLineMemo
+        description: Line memo.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{JournalLine} has memo {Text}"
+      - name: entry
+        iri: fin:journalLineEntry
+        description: Journal entry.
+        roles:
+          - concept: JournalEntry
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{JournalLine} is a line of {JournalEntry}"
+      - name: account
+        iri: fin:journalLineAccount
+        description: Ledger account.
+        roles:
+          - concept: LedgerAccount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{JournalLine} is posted to {LedgerAccount}"
+  - concept: OwnerDistribution
+    type: EntityType
+    iri: fin:OwnerDistribution
+    description: Cash distributed to an investor for its ownership stake.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: fin:ownerDistributionId
+        description: Identifier of the OwnerDistribution.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{OwnerDistribution} is identified by {Identifier}"
+      - name: distribution_date
+        iri: fin:ownerDistributionDistributionDate
+        description: Distribution date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OwnerDistribution} has distribution date {CalendarDate}"
+      - name: amount
+        iri: fin:ownerDistributionAmount
+        description: Amount distributed.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OwnerDistribution} has amount {MoneyAmount}"
+      - name: stake
+        iri: fin:ownerDistributionStake
+        description: Ownership stake.
+        roles:
+          - concept: OwnershipStake
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OwnerDistribution} is paid on {OwnershipStake}"
+      - name: month
+        iri: fin:ownerDistributionMonth
+        description: Result month.
+        roles:
+          - concept: CalendarMonth
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OwnerDistribution} distributes results of {CalendarMonth}"
+  - concept: CapitalProject
+    type: EntityType
+    iri: fin:CapitalProject
+    description: "Capital expenditure on a property: expansion, renovation, retrofit or sustainability works."
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: fin:capitalProjectId
+        description: Identifier of the CapitalProject.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{CapitalProject} is identified by {Identifier}"
+      - name: name
+        iri: fin:capitalProjectName
+        description: Project name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CapitalProject} has name {Name}"
+      - name: project_type
+        iri: fin:capitalProjectProjectType
+        description: Project type.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CapitalProject} has project type {Code}"
+      - name: budget
+        iri: fin:capitalProjectBudget
+        description: Approved budget.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CapitalProject} has budget {MoneyAmount}"
+      - name: start_date
+        iri: fin:capitalProjectStartDate
+        description: Start.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CapitalProject} has start date {CalendarDate}"
+      - name: completion_date
+        iri: fin:capitalProjectCompletionDate
+        description: Completion.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CapitalProject} has completion date {CalendarDate}"
+      - name: added_gla_m2
+        iri: fin:capitalProjectAddedGlaM2
+        description: Gross leasable area added.
+        roles:
+          - concept: AreaM2
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CapitalProject} has added gla m2 {AreaM2}"
+      - name: property
+        iri: fin:capitalProjectProperty
+        description: Property.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CapitalProject} invests in {Property}"
+  - concept: OccupancySnapshot
+    type: EntityType
+    iri: perf:OccupancySnapshot
+    description: "State of a unit at month end: its gross leasable area, the area occupied under a lease and the contracted minimum rent. One row per unit and month."
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: perf:occupancySnapshotId
+        description: Identifier of the OccupancySnapshot.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{OccupancySnapshot} is identified by {Identifier}"
+      - name: gla_m2
+        iri: perf:occupancySnapshotGlaM2
+        description: Gross leasable area of the unit.
+        roles:
+          - concept: AreaM2
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OccupancySnapshot} has gla m2 {AreaM2}"
+      - name: occupied_gla_m2
+        iri: perf:occupancySnapshotOccupiedGlaM2
+        description: Area under an active lease at month end.
+        roles:
+          - concept: AreaM2
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OccupancySnapshot} has occupied gla m2 {AreaM2}"
+      - name: contracted_minimum_rent
+        iri: perf:occupancySnapshotContractedMinimumRent
+        description: Monthly minimum rent in force at month end.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OccupancySnapshot} has contracted minimum rent {MoneyAmount}"
+      - name: unit
+        iri: perf:occupancySnapshotUnit
+        description: Unit.
+        roles:
+          - concept: LeasableUnit
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OccupancySnapshot} describes {LeasableUnit}"
+      - name: month
+        iri: perf:occupancySnapshotMonth
+        description: Month.
+        roles:
+          - concept: CalendarMonth
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OccupancySnapshot} is taken at the end of {CalendarMonth}"
+      - name: lease
+        iri: perf:occupancySnapshotLease
+        description: Lease in force; empty when vacant.
+        roles:
+          - concept: Lease
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OccupancySnapshot} is occupied under {Lease}"
+  - concept: SalesReport
+    type: EntityType
+    iri: perf:SalesReport
+    description: Monthly gross sales declared by a tenant, the basis for percentage rent. occupancy_cost is the rent, service charge and marketing fund billed for the same month.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: perf:salesReportId
+        description: Identifier of the SalesReport.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{SalesReport} is identified by {Identifier}"
+      - name: gross_sales
+        iri: perf:salesReportGrossSales
+        description: Declared gross sales.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SalesReport} has gross sales {MoneyAmount}"
+      - name: reported_gla_m2
+        iri: perf:salesReportReportedGlaM2
+        description: Area of the leased units.
+        roles:
+          - concept: AreaM2
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SalesReport} has reported gla m2 {AreaM2}"
+      - name: occupancy_cost
+        iri: perf:salesReportOccupancyCost
+        description: Occupancy cost billed for the month.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SalesReport} has occupancy cost {MoneyAmount}"
+      - name: submitted_date
+        iri: perf:salesReportSubmittedDate
+        description: Submission date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SalesReport} has submitted date {CalendarDate}"
+      - name: is_audited
+        iri: perf:salesReportIsAudited
+        description: Whether the report was audited.
+        roles:
+          - concept: Flag
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SalesReport} has is audited {Flag}"
+      - name: lease
+        iri: perf:salesReportLease
+        description: Lease.
+        roles:
+          - concept: Lease
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SalesReport} is declared under {Lease}"
+      - name: property
+        iri: perf:salesReportProperty
+        description: Property.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SalesReport} is reported at {Property}"
+      - name: month
+        iri: perf:salesReportMonth
+        description: Sales month.
+        roles:
+          - concept: CalendarMonth
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SalesReport} reports sales of {CalendarMonth}"
+  - concept: SalesAudit
+    type: EntityType
+    iri: perf:SalesAudit
+    description: Audit of declared sales against tenant records.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: perf:salesAuditId
+        description: Identifier of the SalesAudit.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{SalesAudit} is identified by {Identifier}"
+      - name: audit_date
+        iri: perf:salesAuditAuditDate
+        description: Audit date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SalesAudit} has audit date {CalendarDate}"
+      - name: audited_sales
+        iri: perf:salesAuditAuditedSales
+        description: Sales established by the audit.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SalesAudit} has audited sales {MoneyAmount}"
+      - name: variance_amount
+        iri: perf:salesAuditVarianceAmount
+        description: Audited minus declared sales.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SalesAudit} has variance amount {MoneyAmount}"
+      - name: sales_report
+        iri: perf:salesAuditSalesReport
+        description: Sales report.
+        roles:
+          - concept: SalesReport
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SalesAudit} audits {SalesReport}"
+      - name: auditor
+        iri: perf:salesAuditAuditor
+        description: Auditor.
+        roles:
+          - concept: Organization
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SalesAudit} is performed by {Organization}"
+  - concept: FootfallCount
+    type: EntityType
+    iri: perf:FootfallCount
+    description: Visitors counted at an entrance over a counting period.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: perf:footfallCountId
+        description: Identifier of the FootfallCount.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{FootfallCount} is identified by {Identifier}"
+      - name: period_start
+        iri: perf:footfallCountPeriodStart
+        description: First day counted.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{FootfallCount} has period start {CalendarDate}"
+      - name: period_end
+        iri: perf:footfallCountPeriodEnd
+        description: Last day counted.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{FootfallCount} has period end {CalendarDate}"
+      - name: visitors
+        iri: perf:footfallCountVisitors
+        description: Visitors counted.
+        roles:
+          - concept: Count
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{FootfallCount} has visitors {Count}"
+      - name: entrance
+        iri: perf:footfallCountEntrance
+        description: Entrance.
+        roles:
+          - concept: Entrance
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{FootfallCount} is counted at {Entrance}"
+      - name: month
+        iri: perf:footfallCountMonth
+        description: Reporting month.
+        roles:
+          - concept: CalendarMonth
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{FootfallCount} is reported in {CalendarMonth}"
+  - concept: ParkingActivity
+    type: EntityType
+    iri: perf:ParkingActivity
+    description: Tickets and revenue of a parking facility in a month.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: perf:parkingActivityId
+        description: Identifier of the ParkingActivity.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{ParkingActivity} is identified by {Identifier}"
+      - name: tickets
+        iri: perf:parkingActivityTickets
+        description: Tickets issued.
+        roles:
+          - concept: Count
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ParkingActivity} has tickets {Count}"
+      - name: revenue
+        iri: perf:parkingActivityRevenue
+        description: Parking revenue.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ParkingActivity} has revenue {MoneyAmount}"
+      - name: facility
+        iri: perf:parkingActivityFacility
+        description: Parking facility.
+        roles:
+          - concept: ParkingFacility
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ParkingActivity} is recorded at {ParkingFacility}"
+      - name: month
+        iri: perf:parkingActivityMonth
+        description: Month.
+        roles:
+          - concept: CalendarMonth
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ParkingActivity} is recorded in {CalendarMonth}"
+  - concept: Identifier
+    type: ValueType
+    iri: core:Identifier
+    extends:
+      - Integer
+    description: Surrogate key of a business record.
+  - concept: Name
+    type: ValueType
+    iri: core:Name
+    extends:
+      - String
+    description: Human-readable name.
+  - concept: Code
+    type: ValueType
+    iri: core:Code
+    extends:
+      - String
+    description: Business code or controlled-vocabulary value.
+  - concept: Text
+    type: ValueType
+    iri: core:Text
+    extends:
+      - String
+    description: Free text.
+  - concept: TaxId
+    type: ValueType
+    iri: core:TaxId
+    extends:
+      - String
+    description: Tax registration number, such as a Brazilian CNPJ for companies or CPF for individuals.
+  - concept: EmailAddress
+    type: ValueType
+    iri: core:EmailAddress
+    extends:
+      - String
+    description: Email address.
+  - concept: PhoneNumber
+    type: ValueType
+    iri: core:PhoneNumber
+    extends:
+      - String
+    description: Telephone number in international format.
+  - concept: CalendarDate
+    type: ValueType
+    iri: core:CalendarDate
+    extends:
+      - Date
+    description: Calendar date.
+  - concept: YearMonth
+    type: ValueType
+    iri: core:YearMonth
+    extends:
+      - String
+    description: Calendar month in YYYY-MM form.
+  - concept: Year
+    type: ValueType
+    iri: core:Year
+    extends:
+      - Integer
+    description: Calendar or fiscal year.
+  - concept: Count
+    type: ValueType
+    iri: core:Count
+    extends:
+      - Integer
+    description: Whole-number count.
+  - concept: LevelNumber
+    type: ValueType
+    iri: core:LevelNumber
+    extends:
+      - Integer
+    description: Floor level; negative values are below ground.
+  - concept: Flag
+    type: ValueType
+    iri: core:Flag
+    extends:
+      - Boolean
+    description: True or false indicator.
+  - concept: AreaM2
+    type: ValueType
+    iri: core:AreaM2
+    extends:
+      - Decimal
+    description: Area in square metres.
+  - concept: LengthM
+    type: ValueType
+    iri: core:LengthM
+    extends:
+      - Decimal
+    description: Length in metres.
+  - concept: DistanceKm
+    type: ValueType
+    iri: core:DistanceKm
+    extends:
+      - Decimal
+    description: Distance in kilometres.
+  - concept: Quantity
+    type: ValueType
+    iri: core:Quantity
+    extends:
+      - Decimal
+    description: Measured quantity in the unit of the related meter or clause.
+  - concept: MoneyAmount
+    type: ValueType
+    iri: core:MoneyAmount
+    extends:
+      - Decimal
+    description: Monetary amount in the currency of the property or lease.
+  - concept: Rate
+    type: ValueType
+    iri: core:Rate
+    extends:
+      - Decimal
+    description: Fraction where 1 means 100 percent.
+  - concept: IndexNumber
+    type: ValueType
+    iri: core:IndexNumber
+    extends:
+      - Decimal
+    description: Published price-index level.
+  - concept: TotalGla
+    type: ValueType
+    iri: kpi:TotalGla
+    extends:
+      - Decimal
+    description: Gross leasable area of the selected units (m²). Sum over one month only; summing months multiplies area.
+  - concept: OccupiedGla
+    type: ValueType
+    iri: kpi:OccupiedGla
+    extends:
+      - Decimal
+    description: Gross leasable area under an active lease at month end (m²).
+  - concept: VacantGla
+    type: ValueType
+    iri: kpi:VacantGla
+    extends:
+      - Decimal
+    description: Gross leasable area without an active lease at month end (m²).
+  - concept: OccupancyRate
+    type: ValueType
+    iri: kpi:OccupancyRate
+    extends:
+      - Decimal
+    description: Occupied over total gross leasable area.
+  - concept: ContractedMinimumRent
+    type: ValueType
+    iri: kpi:ContractedMinimumRent
+    extends:
+      - Decimal
+    description: Monthly minimum rent in force at month end.
+  - concept: MinimumRentPerM2
+    type: ValueType
+    iri: kpi:MinimumRentPerM2
+    extends:
+      - Decimal
+    description: Contracted minimum rent per occupied square metre per month.
+  - concept: BilledAmount
+    type: ValueType
+    iri: kpi:BilledAmount
+    extends:
+      - Decimal
+    description: Charges billed for the competence month, all charge types.
+  - concept: CollectedAmount
+    type: ValueType
+    iri: kpi:CollectedAmount
+    extends:
+      - Decimal
+    description: Payments allocated to the selected charges at the reporting date.
+  - concept: OpenAmount
+    type: ValueType
+    iri: kpi:OpenAmount
+    extends:
+      - Decimal
+    description: Billed minus collected at the reporting date.
+  - concept: DelinquencyRate
+    type: ValueType
+    iri: kpi:DelinquencyRate
+    extends:
+      - Decimal
+    description: Open over billed amount at the reporting date.
+  - concept: TenantSales
+    type: ValueType
+    iri: kpi:TenantSales
+    extends:
+      - Decimal
+    description: Gross sales declared by tenants.
+  - concept: ReportingArea
+    type: ValueType
+    iri: kpi:ReportingArea
+    extends:
+      - Decimal
+    description: Area of the units whose sales are reported (m²). Sum over one month only.
+  - concept: SalesPerM2
+    type: ValueType
+    iri: kpi:SalesPerM2
+    extends:
+      - Decimal
+    description: Monthly tenant sales per reporting square metre.
+  - concept: OccupancyCost
+    type: ValueType
+    iri: kpi:OccupancyCost
+    extends:
+      - Decimal
+    description: Rent, service charge and marketing fund billed to reporting tenants.
+  - concept: OccupancyCostRatio
+    type: ValueType
+    iri: kpi:OccupancyCostRatio
+    extends:
+      - Decimal
+    description: Occupancy cost over tenant sales; the main affordability indicator for tenants.
+  - concept: Visitors
+    type: ValueType
+    iri: kpi:Visitors
+    extends:
+      - Decimal
+    description: Visitors counted at entrances.
+  - concept: OperatingRevenue
+    type: ValueType
+    iri: kpi:OperatingRevenue
+    extends:
+      - Decimal
+    description: Ledger income classified as operating revenue.
+  - concept: OperatingExpenseTotal
+    type: ValueType
+    iri: kpi:OperatingExpenseTotal
+    extends:
+      - Decimal
+    description: Ledger operating expenses as a positive amount.
+  - concept: NetOperatingIncome
+    type: ValueType
+    iri: kpi:NetOperatingIncome
+    extends:
+      - Decimal
+    description: Operating revenue minus operating expenses. Depreciation, financing and other excluded lines do not count.
+  - concept: NoiMargin
+    type: ValueType
+    iri: kpi:NoiMargin
+    extends:
+      - Decimal
+    description: Net operating income over operating revenue.
+  - concept: ParkingRevenue
+    type: ValueType
+    iri: kpi:ParkingRevenue
+    extends:
+      - Decimal
+    description: Parking revenue.

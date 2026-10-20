@@ -53,6 +53,291 @@
     "bindings": 119,
     "governedMetrics": 4
   },
+  "shoppingCenter": {
+    "counts": {
+      "entityTypes": 92,
+      "concreteEntityTypes": 89,
+      "abstractEntityTypes": 3,
+      "valueTypes": 20,
+      "kpiConcepts": 21,
+      "datasets": 89,
+      "joins": 143,
+      "metrics": 21,
+      "modules": 8,
+      "bindings": 669
+    },
+    "imports": [
+      {
+        "file": "mall.mapping.yaml",
+        "kind": "Ossie mappings",
+        "entities": 110,
+        "relationships": 0
+      },
+      {
+        "file": "mall.ontology.yaml",
+        "kind": "Ossie ontology",
+        "entities": 138,
+        "relationships": 529
+      },
+      {
+        "file": "mall.semantic.yaml",
+        "kind": "Ossie semantic",
+        "entities": 110,
+        "relationships": 157
+      },
+      {
+        "file": "mall.odcs.yaml",
+        "kind": "ODCS",
+        "entities": 89,
+        "relationships": 0
+      },
+      {
+        "file": "mall.owl.ttl",
+        "kind": "OWL",
+        "entities": 592,
+        "relationships": 968
+      },
+      {
+        "file": "mall.shacl.ttl",
+        "kind": "SHACL",
+        "entities": 488,
+        "relationships": 396
+      },
+      {
+        "file": "mall-data.ttl",
+        "kind": "RDF",
+        "entities": 206,
+        "relationships": 456
+      }
+    ],
+    "sqlExecutions": [
+      {
+        "metric": "occupancy_rate",
+        "dimensions": [
+          [
+            "calendar_months",
+            "year_month"
+          ],
+          [
+            "properties",
+            "name"
+          ]
+        ],
+        "joins": [
+          "occupancy_snapshots_month",
+          "occupancy_snapshots_unit",
+          "units_zone",
+          "zones_floor",
+          "floors_building",
+          "buildings_property"
+        ],
+        "result": {
+          "2026-08|Aurora Shopping": 0.9213217938630999,
+          "2026-08|Brisa Outlet": 0.5454545454545454,
+          "2026-09|Aurora Shopping": 0.9213217938630999,
+          "2026-09|Brisa Outlet": 1
+        }
+      },
+      {
+        "metric": "vacant_gla",
+        "dimensions": [
+          [
+            "calendar_months",
+            "year_month"
+          ]
+        ],
+        "joins": [
+          "occupancy_snapshots_month"
+        ],
+        "result": {
+          "2026-08": 450,
+          "2026-09": 200
+        }
+      },
+      {
+        "metric": "minimum_rent_per_m2",
+        "dimensions": [
+          [
+            "calendar_months",
+            "year_month"
+          ]
+        ],
+        "joins": [
+          "occupancy_snapshots_month"
+        ],
+        "result": {
+          "2026-08": 48.9780469341408,
+          "2026-09": 50.79529737206086
+        }
+      },
+      {
+        "metric": "billed_amount",
+        "dimensions": [
+          [
+            "charge_types",
+            "name"
+          ]
+        ],
+        "joins": [
+          "charges_charge_type"
+        ],
+        "result": {
+          "Marketing fund": 27630,
+          "Minimum rent": 276300,
+          "Percentage rent": 12300,
+          "Service charge": 166020
+        }
+      },
+      {
+        "metric": "delinquency_rate",
+        "dimensions": [
+          [
+            "calendar_months",
+            "year_month"
+          ]
+        ],
+        "joins": [
+          "charges_month"
+        ],
+        "result": {
+          "2026-08": 0,
+          "2026-09": 0.08681510164569216
+        }
+      },
+      {
+        "metric": "open_amount",
+        "dimensions": [
+          [
+            "calendar_months",
+            "year_month"
+          ]
+        ],
+        "joins": [
+          "charges_month"
+        ],
+        "result": {
+          "2026-08": 0,
+          "2026-09": 22420
+        }
+      },
+      {
+        "metric": "sales_per_m2",
+        "dimensions": [
+          [
+            "calendar_months",
+            "year_month"
+          ],
+          [
+            "merchandise_categories",
+            "name"
+          ]
+        ],
+        "joins": [
+          "sales_reports_lease",
+          "sales_reports_month",
+          "leases_permitted_use"
+        ],
+        "result": {
+          "2026-08|Apparel": 1266.6666666666667,
+          "2026-08|Department store": 800,
+          "2026-08|Food court": 3000,
+          "2026-08|Footwear": 1250,
+          "2026-08|Services": 2500,
+          "2026-09|Apparel": 1577.7777777777778,
+          "2026-09|Department store": 950,
+          "2026-09|Food court": 2916.6666666666665,
+          "2026-09|Footwear": 1333.3333333333333,
+          "2026-09|Services": 4333.333333333333,
+          "2026-09|Sports": 840
+        }
+      },
+      {
+        "metric": "occupancy_cost_ratio",
+        "dimensions": [
+          [
+            "properties",
+            "name"
+          ]
+        ],
+        "joins": [
+          "sales_reports_property"
+        ],
+        "result": {
+          "Aurora Shopping": 0.08094642484886387,
+          "Brisa Outlet": 0.0999468085106383
+        }
+      },
+      {
+        "metric": "visitors",
+        "dimensions": [
+          [
+            "calendar_months",
+            "year_month"
+          ],
+          [
+            "properties",
+            "name"
+          ]
+        ],
+        "joins": [
+          "footfall_counts_entrance",
+          "footfall_counts_month",
+          "entrances_property"
+        ],
+        "result": {
+          "2026-08|Aurora Shopping": 530000,
+          "2026-08|Brisa Outlet": 95000,
+          "2026-09|Aurora Shopping": 586000,
+          "2026-09|Brisa Outlet": 118000
+        }
+      },
+      {
+        "metric": "net_operating_income",
+        "dimensions": [
+          [
+            "calendar_months",
+            "year_month"
+          ],
+          [
+            "properties",
+            "name"
+          ]
+        ],
+        "joins": [
+          "journal_lines_entry",
+          "journal_entries_month",
+          "journal_entries_property"
+        ],
+        "result": {
+          "2026-08|Aurora Shopping": 141800,
+          "2026-08|Brisa Outlet": 12000,
+          "2026-09|Aurora Shopping": 149300,
+          "2026-09|Brisa Outlet": 32000
+        }
+      },
+      {
+        "metric": "noi_margin",
+        "dimensions": [
+          [
+            "properties",
+            "name"
+          ]
+        ],
+        "joins": [
+          "journal_lines_entry",
+          "journal_entries_property"
+        ],
+        "result": {
+          "Aurora Shopping": 0.8244123477768338,
+          "Brisa Outlet": 0.704
+        }
+      }
+    ],
+    "blockedCases": [
+      "Tenant by charge: contracted and billed tenant roles are both declared; no role was guessed",
+      "Occupancy and sales metrics have different grains and are not combined in one query"
+    ]
+  },
   "sqlExecutions": [
     {
       "example": "upstream Flights standalone",

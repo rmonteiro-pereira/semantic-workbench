@@ -1,0 +1,645 @@
+@prefix core: <https://example.org/mall/core#> .
+@prefix asset: <https://example.org/mall/asset#> .
+@prefix party: <https://example.org/mall/party#> .
+@prefix lease: <https://example.org/mall/lease#> .
+@prefix ops: <https://example.org/mall/ops#> .
+@prefix fin: <https://example.org/mall/fin#> .
+@prefix perf: <https://example.org/mall/perf#> .
+@prefix kpi: <https://example.org/mall/kpi#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix schema: <https://schema.org/> .
+<https://example.org/mall/ontology> a owl:Ontology ; rdfs:label "Shopping center administration OWL ontology" ; rdfs:comment "Fictional reference model for administering shopping centers and other retail real estate: assets and space, tenants and brands, the leasing pipeline, leases and their clauses, service charges and operations, billing and collections, accounting and investor distributions, and performance facts. Each module has its own namespace." ; owl:versionInfo "1.0.0" .
+
+# core: Shared parties, places, calendar and currencies
+# asset: Properties, buildings, floors and spaces
+# party: Tenants, brands, investors and providers
+# lease: Leasing pipeline, leases and clauses
+# ops: Service charges, maintenance, utilities and marketing
+# fin: Billing, collections, ledger and capital projects
+# perf: Occupancy, tenant sales, footfall and parking facts
+# kpi: Governed performance indicators
+
+core:Party a owl:Class ; rdfs:label "Party" ; rdfs:comment "Abstract legal or natural person that holds rights or obligations in property administration: tenants, investors, providers, brokers, guarantors and staff." .
+core:Organization a owl:Class ; rdfs:label "Organization" ; rdfs:comment "Legal entity such as a company, fund, bank, insurer, public authority or condominium association that is not otherwise specialised." ;
+  rdfs:subClassOf core:Party ;
+  skos:closeMatch schema:Organization .
+core:Person a owl:Class ; rdfs:label "Person" ; rdfs:comment "Natural person, such as a tenant contact, property manager or individual guarantor." ;
+  rdfs:subClassOf core:Party ;
+  skos:closeMatch schema:Person .
+core:Address a owl:Class ; rdfs:label "Address" ; rdfs:comment "Postal address of a property or party." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty core:addressCity ; owl:someValuesFrom core:City ] ;
+  skos:closeMatch schema:PostalAddress .
+core:City a owl:Class ; rdfs:label "City" ; rdfs:comment "Municipality." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty core:cityState ; owl:someValuesFrom core:StateProvince ] ;
+  skos:closeMatch schema:City .
+core:StateProvince a owl:Class ; rdfs:label "State Province" ; rdfs:comment "State, province or other first-level administrative region." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty core:stateProvinceCountry ; owl:someValuesFrom core:Country ] .
+core:Country a owl:Class ; rdfs:label "Country" ; rdfs:comment "Country." ;
+  skos:closeMatch schema:Country .
+core:Currency a owl:Class ; rdfs:label "Currency" ; rdfs:comment "Currency in which leases, invoices and accounts are denominated." .
+core:CalendarMonth a owl:Class ; rdfs:label "Calendar Month" ; rdfs:comment "Reporting and billing period. Charges, sales reports, occupancy snapshots and ledger entries are stated per month." .
+core:PriceIndex a owl:Class ; rdfs:label "Price Index" ; rdfs:comment "Inflation index used to adjust rents, such as IGP-M or IPCA in Brazil or a consumer price index elsewhere." .
+core:PriceIndexValue a owl:Class ; rdfs:label "Price Index Value" ; rdfs:comment "Published level and monthly change of a price index." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty core:priceIndexValuePriceIndex ; owl:someValuesFrom core:PriceIndex ] ,
+    [ a owl:Restriction ; owl:onProperty core:priceIndexValueMonth ; owl:someValuesFrom core:CalendarMonth ] .
+asset:Portfolio a owl:Class ; rdfs:label "Portfolio" ; rdfs:comment "Group of properties managed under one strategy or fund." .
+asset:Property a owl:Class ; rdfs:label "Property" ; rdfs:comment "Shopping center or other managed real-estate asset. Gross leasable area (GLA, in Portuguese ABL) is the area available for lease to tenants." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty asset:propertyPortfolio ; owl:someValuesFrom asset:Portfolio ] ,
+    [ a owl:Restriction ; owl:onProperty asset:propertyAddress ; owl:someValuesFrom core:Address ] ,
+    [ a owl:Restriction ; owl:onProperty asset:propertyCurrency ; owl:someValuesFrom core:Currency ] ;
+  skos:closeMatch schema:ShoppingCenter .
+asset:Building a owl:Class ; rdfs:label "Building" ; rdfs:comment "Structure within a property, such as the mall, an office tower or a parking building." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty asset:buildingProperty ; owl:someValuesFrom asset:Property ] .
+asset:Floor a owl:Class ; rdfs:label "Floor" ; rdfs:comment "Floor or level of a building." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty asset:floorBuilding ; owl:someValuesFrom asset:Building ] .
+asset:Zone a owl:Class ; rdfs:label "Zone" ; rdfs:comment "Wing, corridor or sector of a floor used to locate units and plan the tenant mix." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty asset:zoneFloor ; owl:someValuesFrom asset:Floor ] .
+asset:Space a owl:Class ; rdfs:label "Space" ; rdfs:comment "Abstract measured area of a property: leasable units, common areas or parking facilities." .
+asset:LeasableUnit a owl:Class ; rdfs:label "Leasable Unit" ; rdfs:comment "Store, kiosk or other unit that counts towards gross leasable area and can be leased to a tenant." ;
+  rdfs:subClassOf asset:Space ,
+    [ a owl:Restriction ; owl:onProperty asset:leasableUnitZone ; owl:someValuesFrom asset:Zone ] ,
+    [ a owl:Restriction ; owl:onProperty asset:leasableUnitUnitType ; owl:someValuesFrom asset:UnitType ] .
+asset:UnitType a owl:Class ; rdfs:label "Unit Type" ; rdfs:comment "Classification of units: anchor, mega-store, inline store, kiosk, food court, restaurant, entertainment, services, office or storage." .
+asset:CommonArea a owl:Class ; rdfs:label "Common Area" ; rdfs:comment "Shared area operated by the property: corridors, food-court seating, restrooms, loading docks and technical areas. Its costs are recovered through service charges." ;
+  rdfs:subClassOf asset:Space ,
+    [ a owl:Restriction ; owl:onProperty asset:commonAreaFloor ; owl:someValuesFrom asset:Floor ] .
+asset:ParkingFacility a owl:Class ; rdfs:label "Parking Facility" ; rdfs:comment "Parking area of a property." ;
+  rdfs:subClassOf asset:Space ,
+    [ a owl:Restriction ; owl:onProperty asset:parkingFacilityProperty ; owl:someValuesFrom asset:Property ] .
+asset:Entrance a owl:Class ; rdfs:label "Entrance" ; rdfs:comment "Visitor entrance where footfall is counted." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty asset:entranceProperty ; owl:someValuesFrom asset:Property ] .
+asset:AreaMeasurement a owl:Class ; rdfs:label "Area Measurement" ; rdfs:comment "Certified measurement of a unit area under a stated method." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty asset:areaMeasurementUnit ; owl:someValuesFrom asset:LeasableUnit ] .
+asset:OwnershipStake a owl:Class ; rdfs:label "Ownership Stake" ; rdfs:comment "Fractional ownership of a property by an investor. Shopping centers are often held in undivided shares by several investors." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty asset:ownershipStakeInvestor ; owl:someValuesFrom party:Investor ] ,
+    [ a owl:Restriction ; owl:onProperty asset:ownershipStakeProperty ; owl:someValuesFrom asset:Property ] .
+asset:Valuation a owl:Class ; rdfs:label "Valuation" ; rdfs:comment "Appraisal of the market value of a property." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty asset:valuationProperty ; owl:someValuesFrom asset:Property ] .
+asset:Permit a owl:Class ; rdfs:label "Permit" ; rdfs:comment "Licence or certificate required to operate the property, such as an occupancy certificate, fire safety certificate or operating licence." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty asset:permitProperty ; owl:someValuesFrom asset:Property ] .
+asset:Equipment a owl:Class ; rdfs:label "Equipment" ; rdfs:comment "Maintained building equipment such as escalators, elevators, chillers, generators and fire pumps." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty asset:equipmentProperty ; owl:someValuesFrom asset:Property ] .
+party:Tenant a owl:Class ; rdfs:label "Tenant" ; rdfs:comment "Retailer, restaurant or service operator that leases space in a property." ;
+  rdfs:subClassOf core:Organization .
+party:Investor a owl:Class ; rdfs:label "Investor" ; rdfs:comment "Owner of an ownership stake, such as a pension fund, real-estate fund or developer." ;
+  rdfs:subClassOf core:Organization .
+party:ServiceProvider a owl:Class ; rdfs:label "Service Provider" ; rdfs:comment "Supplier of services to the property: cleaning, security, maintenance, parking operation or marketing." ;
+  rdfs:subClassOf core:Organization .
+party:Broker a owl:Class ; rdfs:label "Broker" ; rdfs:comment "Leasing broker or agency that introduces tenants." ;
+  rdfs:subClassOf core:Organization .
+party:Brand a owl:Class ; rdfs:label "Brand" ; rdfs:comment "Commercial brand operated in a store. One tenant can operate several brands." ;
+  skos:closeMatch schema:Brand .
+party:MerchandiseCategory a owl:Class ; rdfs:label "Merchandise Category" ; rdfs:comment "Tenant-mix category, such as apparel, footwear, food court, services or entertainment. Categories form a hierarchy." .
+party:TenantContact a owl:Class ; rdfs:label "Tenant Contact" ; rdfs:comment "Person a tenant designates for a responsibility, such as store manager, finance or legal." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty party:tenantContactPerson ; owl:someValuesFrom core:Person ] ,
+    [ a owl:Restriction ; owl:onProperty party:tenantContactTenant ; owl:someValuesFrom party:Tenant ] .
+lease:LeasingProspect a owl:Class ; rdfs:label "Leasing Prospect" ; rdfs:comment "Potential tenant in the leasing pipeline." .
+lease:LeasingProposal a owl:Class ; rdfs:label "Leasing Proposal" ; rdfs:comment "Commercial offer or letter of intent for a unit." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty lease:leasingProposalProspect ; owl:someValuesFrom lease:LeasingProspect ] ,
+    [ a owl:Restriction ; owl:onProperty lease:leasingProposalUnit ; owl:someValuesFrom asset:LeasableUnit ] .
+lease:LeaseStatus a owl:Class ; rdfs:label "Lease Status" ; rdfs:comment "Lifecycle state of a lease: pending signature, fit-out, active, holdover, in renewal proceedings, terminated or expired." .
+lease:Lease a owl:Class ; rdfs:label "Lease" ; rdfs:comment "Commercial lease of one or more units to a tenant. Shopping-center leases usually combine a monthly minimum rent with a percentage rent on gross sales, plus service charges and a marketing fund contribution." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty lease:leaseTenant ; owl:someValuesFrom party:Tenant ] ,
+    [ a owl:Restriction ; owl:onProperty lease:leaseBrand ; owl:someValuesFrom party:Brand ] ,
+    [ a owl:Restriction ; owl:onProperty lease:leaseStatus ; owl:someValuesFrom lease:LeaseStatus ] ,
+    [ a owl:Restriction ; owl:onProperty lease:leasePermittedUse ; owl:someValuesFrom party:MerchandiseCategory ] ,
+    [ a owl:Restriction ; owl:onProperty lease:leaseCurrency ; owl:someValuesFrom core:Currency ] ;
+  skos:closeMatch schema:RentAction .
+lease:LeasedUnit a owl:Class ; rdfs:label "Leased Unit" ; rdfs:comment "Unit covered by a lease for a period. A lease can cover several units and a unit is leased successively." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty lease:leasedUnitLease ; owl:someValuesFrom lease:Lease ] ,
+    [ a owl:Restriction ; owl:onProperty lease:leasedUnitUnit ; owl:someValuesFrom asset:LeasableUnit ] .
+lease:LeaseAmendment a owl:Class ; rdfs:label "Lease Amendment" ; rdfs:comment "Signed change to a lease: rent revision, extension, unit change or assignment." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty lease:leaseAmendmentLease ; owl:someValuesFrom lease:Lease ] .
+lease:RentStep a owl:Class ; rdfs:label "Rent Step" ; rdfs:comment "Step of the minimum-rent schedule, such as a discounted first year followed by full rent." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty lease:rentStepLease ; owl:someValuesFrom lease:Lease ] .
+lease:LeaseClause a owl:Class ; rdfs:label "Lease Clause" ; rdfs:comment "Abstract contractual clause of a lease." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty lease:leaseClauseLease ; owl:someValuesFrom lease:Lease ] .
+lease:PercentageRentClause a owl:Class ; rdfs:label "Percentage Rent Clause" ; rdfs:comment "Percentage rent: when the rate times monthly gross sales exceeds the minimum rent, the tenant pays the difference as overage rent." ;
+  rdfs:subClassOf lease:LeaseClause .
+lease:IndexationClause a owl:Class ; rdfs:label "Indexation Clause" ; rdfs:comment "Periodic adjustment of rent by a price index." ;
+  rdfs:subClassOf lease:LeaseClause ,
+    [ a owl:Restriction ; owl:onProperty lease:indexationClausePriceIndex ; owl:someValuesFrom core:PriceIndex ] .
+lease:ExclusivityClause a owl:Class ; rdfs:label "Exclusivity Clause" ; rdfs:comment "Commitment by the landlord not to lease to competitors in a protected category." ;
+  rdfs:subClassOf lease:LeaseClause ,
+    [ a owl:Restriction ; owl:onProperty lease:exclusivityClauseProtectedCategory ; owl:someValuesFrom party:MerchandiseCategory ] .
+lease:RadiusClause a owl:Class ; rdfs:label "Radius Clause" ; rdfs:comment "Restriction on the tenant opening another store within a radius of the property." ;
+  rdfs:subClassOf lease:LeaseClause .
+lease:CoTenancyClause a owl:Class ; rdfs:label "Co Tenancy Clause" ; rdfs:comment "Rent relief if required anchors close or occupancy falls below a threshold." ;
+  rdfs:subClassOf lease:LeaseClause .
+lease:RenewalOption a owl:Class ; rdfs:label "Renewal Option" ; rdfs:comment "Tenant option to renew the lease." ;
+  rdfs:subClassOf lease:LeaseClause .
+lease:EarlyTerminationOption a owl:Class ; rdfs:label "Early Termination Option" ; rdfs:comment "Right to end the lease early against a penalty." ;
+  rdfs:subClassOf lease:LeaseClause .
+lease:GuaranteeType a owl:Class ; rdfs:label "Guarantee Type" ; rdfs:comment "Kind of lease guarantee: surety bond, bank guarantee, security deposit, personal guarantor or rent-guarantee insurance." .
+lease:Guarantee a owl:Class ; rdfs:label "Guarantee" ; rdfs:comment "Security provided for the obligations of a lease." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty lease:guaranteeLease ; owl:someValuesFrom lease:Lease ] ,
+    [ a owl:Restriction ; owl:onProperty lease:guaranteeGuaranteeType ; owl:someValuesFrom lease:GuaranteeType ] .
+lease:KeyMoneyAgreement a owl:Class ; rdfs:label "Key Money Agreement" ; rdfs:comment "One-off fee for the right to use a location: a right-of-use fee (res sperata) in a new development or key money (luvas) for an existing location. It is not rent." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty lease:keyMoneyAgreementLease ; owl:someValuesFrom lease:Lease ] .
+lease:RentConcession a owl:Class ; rdfs:label "Rent Concession" ; rdfs:comment "Rent-free period, discount or deferral granted on a lease." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty lease:rentConcessionLease ; owl:someValuesFrom lease:Lease ] .
+lease:TenantAllowance a owl:Class ; rdfs:label "Tenant Allowance" ; rdfs:comment "Contribution by the landlord towards the tenant fit-out." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty lease:tenantAllowanceLease ; owl:someValuesFrom lease:Lease ] .
+lease:FitOutProject a owl:Class ; rdfs:label "Fit Out Project" ; rdfs:comment "Construction of the store by the tenant between handover and opening, subject to the landlord design approval." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty lease:fitOutProjectLease ; owl:someValuesFrom lease:Lease ] ,
+    [ a owl:Restriction ; owl:onProperty lease:fitOutProjectUnit ; owl:someValuesFrom asset:LeasableUnit ] .
+lease:LeaseTermination a owl:Class ; rdfs:label "Lease Termination" ; rdfs:comment "End of a lease before or at expiry." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty lease:leaseTerminationLease ; owl:someValuesFrom lease:Lease ] .
+ops:ExpenseCategory a owl:Class ; rdfs:label "Expense Category" ; rdfs:comment "Category of operating cost, such as cleaning, security, maintenance, utilities, insurance or administration fees." .
+ops:ServiceChargeBudget a owl:Class ; rdfs:label "Service Charge Budget" ; rdfs:comment "Annual budget of shared operating costs recovered from tenants (in Brazil, the condominium budget)." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty ops:serviceChargeBudgetProperty ; owl:someValuesFrom asset:Property ] .
+ops:ServiceChargeBudgetLine a owl:Class ; rdfs:label "Service Charge Budget Line" ; rdfs:comment "Budgeted amount for one expense category." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty ops:serviceChargeBudgetLineBudget ; owl:someValuesFrom ops:ServiceChargeBudget ] ,
+    [ a owl:Restriction ; owl:onProperty ops:serviceChargeBudgetLineCategory ; owl:someValuesFrom ops:ExpenseCategory ] .
+ops:AllocationKey a owl:Class ; rdfs:label "Allocation Key" ; rdfs:comment "Rule to apportion recoverable costs among units, by area, ideal fraction, metered consumption or fixed share." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty ops:allocationKeyProperty ; owl:someValuesFrom asset:Property ] .
+ops:AllocationShare a owl:Class ; rdfs:label "Allocation Share" ; rdfs:comment "Share of a unit under an allocation key." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty ops:allocationShareAllocationKey ; owl:someValuesFrom ops:AllocationKey ] ,
+    [ a owl:Restriction ; owl:onProperty ops:allocationShareUnit ; owl:someValuesFrom asset:LeasableUnit ] .
+ops:ServiceContract a owl:Class ; rdfs:label "Service Contract" ; rdfs:comment "Contract with a provider for recurring services at a property." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty ops:serviceContractProvider ; owl:someValuesFrom party:ServiceProvider ] ,
+    [ a owl:Restriction ; owl:onProperty ops:serviceContractProperty ; owl:someValuesFrom asset:Property ] ,
+    [ a owl:Restriction ; owl:onProperty ops:serviceContractCategory ; owl:someValuesFrom ops:ExpenseCategory ] .
+ops:OperatingExpense a owl:Class ; rdfs:label "Operating Expense" ; rdfs:comment "Actual operating cost incurred by a property in a month." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty ops:operatingExpenseProperty ; owl:someValuesFrom asset:Property ] ,
+    [ a owl:Restriction ; owl:onProperty ops:operatingExpenseCategory ; owl:someValuesFrom ops:ExpenseCategory ] ,
+    [ a owl:Restriction ; owl:onProperty ops:operatingExpenseMonth ; owl:someValuesFrom core:CalendarMonth ] .
+ops:WorkOrder a owl:Class ; rdfs:label "Work Order" ; rdfs:comment "Maintenance request or task: corrective, preventive or requested by a tenant." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty ops:workOrderProperty ; owl:someValuesFrom asset:Property ] .
+ops:UtilityType a owl:Class ; rdfs:label "Utility Type" ; rdfs:comment "Metered utility: electricity, water, gas or chilled water." .
+ops:UtilityMeter a owl:Class ; rdfs:label "Utility Meter" ; rdfs:comment "Meter measuring consumption of a utility by a unit or common installation." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty ops:utilityMeterUtilityType ; owl:someValuesFrom ops:UtilityType ] ,
+    [ a owl:Restriction ; owl:onProperty ops:utilityMeterProperty ; owl:someValuesFrom asset:Property ] .
+ops:MeterReading a owl:Class ; rdfs:label "Meter Reading" ; rdfs:comment "Reading of a meter, the basis for recharging consumption to tenants." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty ops:meterReadingMeter ; owl:someValuesFrom ops:UtilityMeter ] ,
+    [ a owl:Restriction ; owl:onProperty ops:meterReadingMonth ; owl:someValuesFrom core:CalendarMonth ] .
+ops:InsurancePolicy a owl:Class ; rdfs:label "Insurance Policy" ; rdfs:comment "Insurance covering the property, such as property damage, loss of rent or civil liability." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty ops:insurancePolicyProperty ; owl:someValuesFrom asset:Property ] ,
+    [ a owl:Restriction ; owl:onProperty ops:insurancePolicyInsurer ; owl:someValuesFrom core:Organization ] .
+ops:Incident a owl:Class ; rdfs:label "Incident" ; rdfs:comment "Safety, security or operational incident at a property." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty ops:incidentProperty ; owl:someValuesFrom asset:Property ] .
+ops:MarketingFund a owl:Class ; rdfs:label "Marketing Fund" ; rdfs:comment "Annual promotion and advertising fund financed by tenant contributions, usually a fraction of minimum rent." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty ops:marketingFundProperty ; owl:someValuesFrom asset:Property ] .
+ops:MarketingCampaign a owl:Class ; rdfs:label "Marketing Campaign" ; rdfs:comment "Campaign financed by the marketing fund." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty ops:marketingCampaignFund ; owl:someValuesFrom ops:MarketingFund ] .
+ops:MallEvent a owl:Class ; rdfs:label "Mall Event" ; rdfs:comment "Event held at a property to attract visitors." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty ops:mallEventProperty ; owl:someValuesFrom asset:Property ] ;
+  skos:closeMatch schema:Event .
+fin:ChargeType a owl:Class ; rdfs:label "Charge Type" ; rdfs:comment "Kind of billed item: minimum rent, percentage (overage) rent, thirteenth rent, service charge, marketing fund, utility recharge, key-money instalment or late fee." .
+fin:Invoice a owl:Class ; rdfs:label "Invoice" ; rdfs:comment "Billing document issued by a property to a tenant, payable by bank slip, transfer or instant payment." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty fin:invoiceProperty ; owl:someValuesFrom asset:Property ] ,
+    [ a owl:Restriction ; owl:onProperty fin:invoiceBilledTenant ; owl:someValuesFrom party:Tenant ] ;
+  skos:closeMatch schema:Invoice .
+fin:Charge a owl:Class ; rdfs:label "Charge" ; rdfs:comment "Billed amount of one charge type for a lease and competence month. paid_amount holds the allocated payments at the reporting date." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty fin:chargeInvoice ; owl:someValuesFrom fin:Invoice ] ,
+    [ a owl:Restriction ; owl:onProperty fin:chargeLease ; owl:someValuesFrom lease:Lease ] ,
+    [ a owl:Restriction ; owl:onProperty fin:chargeChargeType ; owl:someValuesFrom fin:ChargeType ] ,
+    [ a owl:Restriction ; owl:onProperty fin:chargeMonth ; owl:someValuesFrom core:CalendarMonth ] .
+fin:BankAccount a owl:Class ; rdfs:label "Bank Account" ; rdfs:comment "Bank account of a property used for collections and distributions." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty fin:bankAccountProperty ; owl:someValuesFrom asset:Property ] .
+fin:Payment a owl:Class ; rdfs:label "Payment" ; rdfs:comment "Payment received from a tenant." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty fin:paymentPayer ; owl:someValuesFrom party:Tenant ] ;
+  skos:closeMatch schema:PayAction .
+fin:PaymentAllocation a owl:Class ; rdfs:label "Payment Allocation" ; rdfs:comment "Part of a payment applied to a charge." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty fin:paymentAllocationPayment ; owl:someValuesFrom fin:Payment ] ,
+    [ a owl:Restriction ; owl:onProperty fin:paymentAllocationCharge ; owl:someValuesFrom fin:Charge ] .
+fin:ArrearsCase a owl:Class ; rdfs:label "Arrears Case" ; rdfs:comment "Delinquency case opened when a lease has overdue charges." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty fin:arrearsCaseLease ; owl:someValuesFrom lease:Lease ] .
+fin:CollectionAction a owl:Class ; rdfs:label "Collection Action" ; rdfs:comment "Step taken to collect overdue amounts: reminder, formal notice, protest, agreement or lawsuit." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty fin:collectionActionArrearsCase ; owl:someValuesFrom fin:ArrearsCase ] .
+fin:PaymentAgreement a owl:Class ; rdfs:label "Payment Agreement" ; rdfs:comment "Agreement to settle overdue amounts in instalments." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty fin:paymentAgreementArrearsCase ; owl:someValuesFrom fin:ArrearsCase ] .
+fin:LegalProceeding a owl:Class ; rdfs:label "Legal Proceeding" ; rdfs:comment "Lawsuit concerning a lease: eviction, rent review, lease renewal or collection." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty fin:legalProceedingLease ; owl:someValuesFrom lease:Lease ] .
+fin:LedgerAccount a owl:Class ; rdfs:label "Ledger Account" ; rdfs:comment "Account of the property chart of accounts." .
+fin:JournalEntry a owl:Class ; rdfs:label "Journal Entry" ; rdfs:comment "Accounting entry of a property for a month." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty fin:journalEntryProperty ; owl:someValuesFrom asset:Property ] ,
+    [ a owl:Restriction ; owl:onProperty fin:journalEntryMonth ; owl:someValuesFrom core:CalendarMonth ] .
+fin:JournalLine a owl:Class ; rdfs:label "Journal Line" ; rdfs:comment "Signed amount posted to a ledger account: income is positive and expense negative. noi_class is fixed at posting from the account: revenue, opex or excluded." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty fin:journalLineEntry ; owl:someValuesFrom fin:JournalEntry ] ,
+    [ a owl:Restriction ; owl:onProperty fin:journalLineAccount ; owl:someValuesFrom fin:LedgerAccount ] .
+fin:OwnerDistribution a owl:Class ; rdfs:label "Owner Distribution" ; rdfs:comment "Cash distributed to an investor for its ownership stake." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty fin:ownerDistributionStake ; owl:someValuesFrom asset:OwnershipStake ] ,
+    [ a owl:Restriction ; owl:onProperty fin:ownerDistributionMonth ; owl:someValuesFrom core:CalendarMonth ] .
+fin:CapitalProject a owl:Class ; rdfs:label "Capital Project" ; rdfs:comment "Capital expenditure on a property: expansion, renovation, retrofit or sustainability works." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty fin:capitalProjectProperty ; owl:someValuesFrom asset:Property ] .
+perf:OccupancySnapshot a owl:Class ; rdfs:label "Occupancy Snapshot" ; rdfs:comment "State of a unit at month end: its gross leasable area, the area occupied under a lease and the contracted minimum rent. One row per unit and month." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty perf:occupancySnapshotUnit ; owl:someValuesFrom asset:LeasableUnit ] ,
+    [ a owl:Restriction ; owl:onProperty perf:occupancySnapshotMonth ; owl:someValuesFrom core:CalendarMonth ] .
+perf:SalesReport a owl:Class ; rdfs:label "Sales Report" ; rdfs:comment "Monthly gross sales declared by a tenant, the basis for percentage rent. occupancy_cost is the rent, service charge and marketing fund billed for the same month." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty perf:salesReportLease ; owl:someValuesFrom lease:Lease ] ,
+    [ a owl:Restriction ; owl:onProperty perf:salesReportProperty ; owl:someValuesFrom asset:Property ] ,
+    [ a owl:Restriction ; owl:onProperty perf:salesReportMonth ; owl:someValuesFrom core:CalendarMonth ] .
+perf:SalesAudit a owl:Class ; rdfs:label "Sales Audit" ; rdfs:comment "Audit of declared sales against tenant records." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty perf:salesAuditSalesReport ; owl:someValuesFrom perf:SalesReport ] .
+perf:FootfallCount a owl:Class ; rdfs:label "Footfall Count" ; rdfs:comment "Visitors counted at an entrance over a counting period." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty perf:footfallCountEntrance ; owl:someValuesFrom asset:Entrance ] ,
+    [ a owl:Restriction ; owl:onProperty perf:footfallCountMonth ; owl:someValuesFrom core:CalendarMonth ] .
+perf:ParkingActivity a owl:Class ; rdfs:label "Parking Activity" ; rdfs:comment "Tickets and revenue of a parking facility in a month." ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty perf:parkingActivityFacility ; owl:someValuesFrom asset:ParkingFacility ] ,
+    [ a owl:Restriction ; owl:onProperty perf:parkingActivityMonth ; owl:someValuesFrom core:CalendarMonth ] .
+[] a owl:AllDisjointClasses ; owl:members ( core:Organization core:Person ) .
+[] a owl:AllDisjointClasses ; owl:members ( asset:LeasableUnit asset:CommonArea asset:ParkingFacility ) .
+[] a owl:AllDisjointClasses ; owl:members ( party:Tenant party:Investor party:ServiceProvider party:Broker ) .
+[] a owl:AllDisjointClasses ; owl:members ( lease:PercentageRentClause lease:IndexationClause lease:ExclusivityClause lease:RadiusClause lease:CoTenancyClause lease:RenewalOption lease:EarlyTerminationOption ) .
+
+core:partyAddress a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "address" ; rdfs:comment "Registered or correspondence address." ; rdfs:domain core:Party ; rdfs:range core:Address .
+core:partyName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "Name used in day-to-day administration." ; rdfs:domain core:Party ; rdfs:range xsd:string .
+core:partyLegalName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "legal name" ; rdfs:comment "Registered legal name." ; rdfs:domain core:Party ; rdfs:range xsd:string .
+core:partyTaxId a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "tax id" ; rdfs:comment "Tax registration number." ; rdfs:domain core:Party ; rdfs:range xsd:string .
+core:partyEmail a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "email" ; rdfs:comment "Main email address." ; rdfs:domain core:Party ; rdfs:range xsd:string .
+core:partyPhone a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "phone" ; rdfs:comment "Main phone number." ; rdfs:domain core:Party ; rdfs:range xsd:string .
+core:organizationParentOrganization a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "parent organization" ; rdfs:comment "Economic group or parent company." ; rdfs:domain core:Organization ; rdfs:range core:Organization .
+core:organizationOrganizationType a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "organization type" ; rdfs:comment "Kind of organization, for example bank, insurer, appraiser, authority or law firm." ; rdfs:domain core:Organization ; rdfs:range xsd:string .
+core:personJobTitle a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "job title" ; rdfs:comment "Job title or role description." ; rdfs:domain core:Person ; rdfs:range xsd:string .
+core:addressCity a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "city" ; rdfs:comment "City of the address." ; rdfs:domain core:Address ; rdfs:range core:City .
+core:addressStreet a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "street" ; rdfs:comment "Street name." ; rdfs:domain core:Address ; rdfs:range xsd:string .
+core:addressStreetNumber a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "street number" ; rdfs:comment "Street number." ; rdfs:domain core:Address ; rdfs:range xsd:string .
+core:addressComplement a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "complement" ; rdfs:comment "Additional address detail." ; rdfs:domain core:Address ; rdfs:range xsd:string .
+core:addressDistrict a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "district" ; rdfs:comment "District or neighbourhood." ; rdfs:domain core:Address ; rdfs:range xsd:string .
+core:addressPostalCode a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "postal code" ; rdfs:comment "Postal code." ; rdfs:domain core:Address ; rdfs:range xsd:string .
+core:cityState a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "state" ; rdfs:comment "State or province of the city." ; rdfs:domain core:City ; rdfs:range core:StateProvince .
+core:cityName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "City name." ; rdfs:domain core:City ; rdfs:range xsd:string .
+core:stateProvinceCountry a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "country" ; rdfs:comment "Country of the region." ; rdfs:domain core:StateProvince ; rdfs:range core:Country .
+core:stateProvinceName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "State name." ; rdfs:domain core:StateProvince ; rdfs:range xsd:string .
+core:stateProvinceCode a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "code" ; rdfs:comment "Abbreviation." ; rdfs:domain core:StateProvince ; rdfs:range xsd:string .
+core:countryName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "Country name." ; rdfs:domain core:Country ; rdfs:range xsd:string .
+core:countryIsoCode a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "iso code" ; rdfs:comment "ISO 3166-1 alpha-2 code." ; rdfs:domain core:Country ; rdfs:range xsd:string .
+core:currencyName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "Currency name." ; rdfs:domain core:Currency ; rdfs:range xsd:string .
+core:currencyIsoCode a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "iso code" ; rdfs:comment "ISO 4217 code." ; rdfs:domain core:Currency ; rdfs:range xsd:string .
+core:calendarMonthYearMonth a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "year month" ; rdfs:comment "Month in YYYY-MM form." ; rdfs:domain core:CalendarMonth ; rdfs:range xsd:gYearMonth .
+core:calendarMonthYear a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "year" ; rdfs:comment "Calendar year." ; rdfs:domain core:CalendarMonth ; rdfs:range xsd:integer .
+core:calendarMonthMonthNumber a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "month number" ; rdfs:comment "Month of the year, 1 to 12." ; rdfs:domain core:CalendarMonth ; rdfs:range xsd:integer .
+core:calendarMonthQuarter a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "quarter" ; rdfs:comment "Calendar quarter, for example 2026-Q3." ; rdfs:domain core:CalendarMonth ; rdfs:range xsd:string .
+core:priceIndexName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "Index name." ; rdfs:domain core:PriceIndex ; rdfs:range xsd:string .
+core:priceIndexCode a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "code" ; rdfs:comment "Index code." ; rdfs:domain core:PriceIndex ; rdfs:range xsd:string .
+core:priceIndexPublisher a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "publisher" ; rdfs:comment "Publishing institution." ; rdfs:domain core:PriceIndex ; rdfs:range xsd:string .
+core:priceIndexValuePriceIndex a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "price index" ; rdfs:comment "Index being published." ; rdfs:domain core:PriceIndexValue ; rdfs:range core:PriceIndex .
+core:priceIndexValueMonth a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "month" ; rdfs:comment "Reference month." ; rdfs:domain core:PriceIndexValue ; rdfs:range core:CalendarMonth .
+core:priceIndexValueIndexLevel a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "index level" ; rdfs:comment "Index level for the month." ; rdfs:domain core:PriceIndexValue ; rdfs:range xsd:decimal .
+core:priceIndexValueMonthlyChange a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "monthly change" ; rdfs:comment "Change against the previous month as a fraction." ; rdfs:domain core:PriceIndexValue ; rdfs:range xsd:decimal .
+asset:portfolioAssetManager a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "asset manager" ; rdfs:comment "Asset manager responsible for the portfolio." ; rdfs:domain asset:Portfolio ; rdfs:range core:Organization .
+asset:portfolioName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "Portfolio name." ; rdfs:domain asset:Portfolio ; rdfs:range xsd:string .
+asset:portfolioStrategy a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "strategy" ; rdfs:comment "Investment or management strategy." ; rdfs:domain asset:Portfolio ; rdfs:range xsd:string .
+asset:propertyPortfolio a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "portfolio" ; rdfs:comment "Portfolio of the property." ; rdfs:domain asset:Property ; rdfs:range asset:Portfolio .
+asset:propertyAddress a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "address" ; rdfs:comment "Address of the property." ; rdfs:domain asset:Property ; rdfs:range core:Address .
+asset:propertyCurrency a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "currency" ; rdfs:comment "Currency of leases and accounts." ; rdfs:domain asset:Property ; rdfs:range core:Currency .
+asset:propertyAdministrator a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "administrator" ; rdfs:comment "Company contracted to administer the property." ; rdfs:domain asset:Property ; rdfs:range core:Organization .
+asset:propertyGeneralManager a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "general manager" ; rdfs:comment "General manager of the property." ; rdfs:domain asset:Property ; rdfs:range core:Person .
+asset:propertyCode a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "code" ; rdfs:comment "Property code." ; rdfs:domain asset:Property ; rdfs:range xsd:string .
+asset:propertyName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "Property name." ; rdfs:domain asset:Property ; rdfs:range xsd:string .
+asset:propertyPropertyFormat a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "property format" ; rdfs:comment "Format, for example regional, super-regional, community, outlet, lifestyle or power center." ; rdfs:domain asset:Property ; rdfs:range xsd:string .
+asset:propertyOpeningDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "opening date" ; rdfs:comment "Date the property opened to the public." ; rdfs:domain asset:Property ; rdfs:range xsd:date .
+asset:propertyTotalGlaM2 a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "total gla m2" ; rdfs:comment "Gross leasable area." ; rdfs:domain asset:Property ; rdfs:range xsd:decimal .
+asset:propertyGrossBuiltAreaM2 a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "gross built area m2" ; rdfs:comment "Total built area." ; rdfs:domain asset:Property ; rdfs:range xsd:decimal .
+asset:propertyParkingSpaces a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "parking spaces" ; rdfs:comment "Number of parking spaces." ; rdfs:domain asset:Property ; rdfs:range xsd:integer .
+asset:buildingProperty a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "property" ; rdfs:comment "Property containing the building." ; rdfs:domain asset:Building ; rdfs:range asset:Property .
+asset:buildingCode a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "code" ; rdfs:comment "Building code." ; rdfs:domain asset:Building ; rdfs:range xsd:string .
+asset:buildingName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "Building name." ; rdfs:domain asset:Building ; rdfs:range xsd:string .
+asset:buildingBuiltYear a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "built year" ; rdfs:comment "Year of completion." ; rdfs:domain asset:Building ; rdfs:range xsd:integer .
+asset:floorBuilding a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "building" ; rdfs:comment "Building of the floor." ; rdfs:domain asset:Floor ; rdfs:range asset:Building .
+asset:floorCode a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "code" ; rdfs:comment "Floor code, for example L1." ; rdfs:domain asset:Floor ; rdfs:range xsd:string .
+asset:floorName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "Floor name." ; rdfs:domain asset:Floor ; rdfs:range xsd:string .
+asset:floorLevelNumber a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "level number" ; rdfs:comment "Level number; negative below ground." ; rdfs:domain asset:Floor ; rdfs:range xsd:integer .
+asset:zoneFloor a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "floor" ; rdfs:comment "Floor of the zone." ; rdfs:domain asset:Zone ; rdfs:range asset:Floor .
+asset:zoneCode a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "code" ; rdfs:comment "Zone code." ; rdfs:domain asset:Zone ; rdfs:range xsd:string .
+asset:zoneName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "Zone name." ; rdfs:domain asset:Zone ; rdfs:range xsd:string .
+asset:spaceCode a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "code" ; rdfs:comment "Space code, for example a store number." ; rdfs:domain asset:Space ; rdfs:range xsd:string .
+asset:spaceName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "Space name." ; rdfs:domain asset:Space ; rdfs:range xsd:string .
+asset:spaceAreaM2 a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "area m2" ; rdfs:comment "Measured area." ; rdfs:domain asset:Space ; rdfs:range xsd:decimal .
+asset:leasableUnitZone a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "zone" ; rdfs:comment "Zone of the unit." ; rdfs:domain asset:LeasableUnit ; rdfs:range asset:Zone .
+asset:leasableUnitUnitType a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "unit type" ; rdfs:comment "Unit type." ; rdfs:domain asset:LeasableUnit ; rdfs:range asset:UnitType .
+asset:leasableUnitFrontageM a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "frontage m" ; rdfs:comment "Shop-front length." ; rdfs:domain asset:LeasableUnit ; rdfs:range xsd:decimal .
+asset:leasableUnitHasMezzanine a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "has mezzanine" ; rdfs:comment "Whether the unit has a mezzanine." ; rdfs:domain asset:LeasableUnit ; rdfs:range xsd:boolean .
+asset:unitTypeCode a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "code" ; rdfs:comment "Unit type code." ; rdfs:domain asset:UnitType ; rdfs:range xsd:string .
+asset:unitTypeName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "Unit type name." ; rdfs:domain asset:UnitType ; rdfs:range xsd:string .
+asset:unitTypeCountsAsGla a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "counts as gla" ; rdfs:comment "Whether units of this type count towards gross leasable area." ; rdfs:domain asset:UnitType ; rdfs:range xsd:boolean .
+asset:commonAreaFloor a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "floor" ; rdfs:comment "Floor of the common area." ; rdfs:domain asset:CommonArea ; rdfs:range asset:Floor .
+asset:commonAreaAreaKind a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "area kind" ; rdfs:comment "Kind of common area." ; rdfs:domain asset:CommonArea ; rdfs:range xsd:string .
+asset:parkingFacilityProperty a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "property" ; rdfs:comment "Property served by the facility." ; rdfs:domain asset:ParkingFacility ; rdfs:range asset:Property .
+asset:parkingFacilityCapacity a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "capacity" ; rdfs:comment "Number of parking spaces." ; rdfs:domain asset:ParkingFacility ; rdfs:range xsd:integer .
+asset:parkingFacilityIsPaid a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "is paid" ; rdfs:comment "Whether visitors pay for parking." ; rdfs:domain asset:ParkingFacility ; rdfs:range xsd:boolean .
+asset:entranceProperty a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "property" ; rdfs:comment "Property of the entrance." ; rdfs:domain asset:Entrance ; rdfs:range asset:Property .
+asset:entranceCode a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "code" ; rdfs:comment "Entrance code." ; rdfs:domain asset:Entrance ; rdfs:range xsd:string .
+asset:entranceName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "Entrance name." ; rdfs:domain asset:Entrance ; rdfs:range xsd:string .
+asset:entranceEntranceKind a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "entrance kind" ; rdfs:comment "Pedestrian, parking, public transport or service." ; rdfs:domain asset:Entrance ; rdfs:range xsd:string .
+asset:areaMeasurementUnit a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "unit" ; rdfs:comment "Unit measured." ; rdfs:domain asset:AreaMeasurement ; rdfs:range asset:LeasableUnit .
+asset:areaMeasurementSurveyor a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "surveyor" ; rdfs:comment "Surveyor." ; rdfs:domain asset:AreaMeasurement ; rdfs:range core:Organization .
+asset:areaMeasurementMeasurementDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "measurement date" ; rdfs:comment "Measurement date." ; rdfs:domain asset:AreaMeasurement ; rdfs:range xsd:date .
+asset:areaMeasurementMeasuredAreaM2 a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "measured area m2" ; rdfs:comment "Measured area." ; rdfs:domain asset:AreaMeasurement ; rdfs:range xsd:decimal .
+asset:areaMeasurementMethod a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "method" ; rdfs:comment "Measurement standard." ; rdfs:domain asset:AreaMeasurement ; rdfs:range xsd:string .
+asset:ownershipStakeInvestor a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "investor" ; rdfs:comment "Owner of the stake." ; rdfs:domain asset:OwnershipStake ; rdfs:range party:Investor .
+asset:ownershipStakeProperty a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "property" ; rdfs:comment "Property owned." ; rdfs:domain asset:OwnershipStake ; rdfs:range asset:Property .
+asset:ownershipStakeShare a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "share" ; rdfs:comment "Ownership fraction." ; rdfs:domain asset:OwnershipStake ; rdfs:range xsd:decimal .
+asset:ownershipStakeStartDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "start date" ; rdfs:comment "Start of ownership." ; rdfs:domain asset:OwnershipStake ; rdfs:range xsd:date .
+asset:ownershipStakeEndDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "end date" ; rdfs:comment "End of ownership." ; rdfs:domain asset:OwnershipStake ; rdfs:range xsd:date .
+asset:valuationProperty a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "property" ; rdfs:comment "Property valued." ; rdfs:domain asset:Valuation ; rdfs:range asset:Property .
+asset:valuationAppraiser a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "appraiser" ; rdfs:comment "Appraiser." ; rdfs:domain asset:Valuation ; rdfs:range core:Organization .
+asset:valuationValuationDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "valuation date" ; rdfs:comment "Valuation date." ; rdfs:domain asset:Valuation ; rdfs:range xsd:date .
+asset:valuationMarketValue a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "market value" ; rdfs:comment "Appraised market value." ; rdfs:domain asset:Valuation ; rdfs:range xsd:decimal .
+asset:valuationCapitalizationRate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "capitalization rate" ; rdfs:comment "Capitalization rate applied." ; rdfs:domain asset:Valuation ; rdfs:range xsd:decimal .
+asset:valuationDiscountRate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "discount rate" ; rdfs:comment "Discount rate applied." ; rdfs:domain asset:Valuation ; rdfs:range xsd:decimal .
+asset:permitProperty a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "property" ; rdfs:comment "Property covered." ; rdfs:domain asset:Permit ; rdfs:range asset:Property .
+asset:permitIssuer a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "issuer" ; rdfs:comment "Issuing authority." ; rdfs:domain asset:Permit ; rdfs:range core:Organization .
+asset:permitPermitNumber a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "permit number" ; rdfs:comment "Permit number." ; rdfs:domain asset:Permit ; rdfs:range xsd:string .
+asset:permitPermitType a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "permit type" ; rdfs:comment "Permit type." ; rdfs:domain asset:Permit ; rdfs:range xsd:string .
+asset:permitIssueDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "issue date" ; rdfs:comment "Issue date." ; rdfs:domain asset:Permit ; rdfs:range xsd:date .
+asset:permitExpiryDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "expiry date" ; rdfs:comment "Expiry date." ; rdfs:domain asset:Permit ; rdfs:range xsd:date .
+asset:equipmentProperty a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "property" ; rdfs:comment "Property of the equipment." ; rdfs:domain asset:Equipment ; rdfs:range asset:Property .
+asset:equipmentTag a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "tag" ; rdfs:comment "Asset tag." ; rdfs:domain asset:Equipment ; rdfs:range xsd:string .
+asset:equipmentName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "Equipment name." ; rdfs:domain asset:Equipment ; rdfs:range xsd:string .
+asset:equipmentEquipmentType a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "equipment type" ; rdfs:comment "Equipment type." ; rdfs:domain asset:Equipment ; rdfs:range xsd:string .
+asset:equipmentInstallDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "install date" ; rdfs:comment "Installation date." ; rdfs:domain asset:Equipment ; rdfs:range xsd:date .
+asset:equipmentManufacturer a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "manufacturer" ; rdfs:comment "Manufacturer." ; rdfs:domain asset:Equipment ; rdfs:range xsd:string .
+party:tenantTradeName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "trade name" ; rdfs:comment "Trading name used at the store." ; rdfs:domain party:Tenant ; rdfs:range xsd:string .
+party:investorInvestorType a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "investor type" ; rdfs:comment "Pension fund, real-estate fund, developer or private investor." ; rdfs:domain party:Investor ; rdfs:range xsd:string .
+party:serviceProviderServiceCategory a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "service category" ; rdfs:comment "Main service supplied." ; rdfs:domain party:ServiceProvider ; rdfs:range xsd:string .
+party:brokerLicenseNumber a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "license number" ; rdfs:comment "Broker licence number." ; rdfs:domain party:Broker ; rdfs:range xsd:string .
+party:brandOwner a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "owner" ; rdfs:comment "Tenant owning the brand." ; rdfs:domain party:Brand ; rdfs:range party:Tenant .
+party:brandName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "Brand name." ; rdfs:domain party:Brand ; rdfs:range xsd:string .
+party:merchandiseCategoryParentCategory a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "parent category" ; rdfs:comment "Broader category." ; rdfs:domain party:MerchandiseCategory ; rdfs:range party:MerchandiseCategory .
+party:merchandiseCategoryCode a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "code" ; rdfs:comment "Category code." ; rdfs:domain party:MerchandiseCategory ; rdfs:range xsd:string .
+party:merchandiseCategoryName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "Category name." ; rdfs:domain party:MerchandiseCategory ; rdfs:range xsd:string .
+party:tenantContactPerson a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "person" ; rdfs:comment "Contact person." ; rdfs:domain party:TenantContact ; rdfs:range core:Person .
+party:tenantContactTenant a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "tenant" ; rdfs:comment "Tenant represented." ; rdfs:domain party:TenantContact ; rdfs:range party:Tenant .
+party:tenantContactRole a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "role" ; rdfs:comment "Responsibility." ; rdfs:domain party:TenantContact ; rdfs:range xsd:string .
+party:tenantContactIsPrimary a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "is primary" ; rdfs:comment "Whether this is the primary contact." ; rdfs:domain party:TenantContact ; rdfs:range xsd:boolean .
+lease:leasingProspectBrand a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "brand" ; rdfs:comment "Brand proposed." ; rdfs:domain lease:LeasingProspect ; rdfs:range party:Brand .
+lease:leasingProspectCategory a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "category" ; rdfs:comment "Intended category." ; rdfs:domain lease:LeasingProspect ; rdfs:range party:MerchandiseCategory .
+lease:leasingProspectBroker a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "broker" ; rdfs:comment "Introducing broker." ; rdfs:domain lease:LeasingProspect ; rdfs:range party:Broker .
+lease:leasingProspectName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "Prospect name." ; rdfs:domain lease:LeasingProspect ; rdfs:range xsd:string .
+lease:leasingProspectFirstContactDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "first contact date" ; rdfs:comment "First contact." ; rdfs:domain lease:LeasingProspect ; rdfs:range xsd:date .
+lease:leasingProposalProspect a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "prospect" ; rdfs:comment "Prospect." ; rdfs:domain lease:LeasingProposal ; rdfs:range lease:LeasingProspect .
+lease:leasingProposalUnit a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "unit" ; rdfs:comment "Unit offered." ; rdfs:domain lease:LeasingProposal ; rdfs:range asset:LeasableUnit .
+lease:leasingProposalResultingLease a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "resulting lease" ; rdfs:comment "Lease signed after the proposal was accepted." ; rdfs:domain lease:LeasingProposal ; rdfs:range lease:Lease .
+lease:leasingProposalProposalNumber a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "proposal number" ; rdfs:comment "Proposal number." ; rdfs:domain lease:LeasingProposal ; rdfs:range xsd:string .
+lease:leasingProposalProposalDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "proposal date" ; rdfs:comment "Proposal date." ; rdfs:domain lease:LeasingProposal ; rdfs:range xsd:date .
+lease:leasingProposalProposedMinimumRent a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "proposed minimum rent" ; rdfs:comment "Monthly minimum rent offered." ; rdfs:domain lease:LeasingProposal ; rdfs:range xsd:decimal .
+lease:leasingProposalProposedTermMonths a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "proposed term months" ; rdfs:comment "Lease term offered." ; rdfs:domain lease:LeasingProposal ; rdfs:range xsd:integer .
+lease:leasingProposalStatus a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "status" ; rdfs:comment "Draft, sent, accepted, rejected or withdrawn." ; rdfs:domain lease:LeasingProposal ; rdfs:range xsd:string .
+lease:leaseStatusCode a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "code" ; rdfs:comment "Status code." ; rdfs:domain lease:LeaseStatus ; rdfs:range xsd:string .
+lease:leaseStatusName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "Status name." ; rdfs:domain lease:LeaseStatus ; rdfs:range xsd:string .
+lease:leaseTenant a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "tenant" ; rdfs:comment "Contracting tenant." ; rdfs:domain lease:Lease ; rdfs:range party:Tenant .
+lease:leaseBrand a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "brand" ; rdfs:comment "Brand operated." ; rdfs:domain lease:Lease ; rdfs:range party:Brand .
+lease:leaseStatus a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "status" ; rdfs:comment "Lifecycle status." ; rdfs:domain lease:Lease ; rdfs:range lease:LeaseStatus .
+lease:leasePermittedUse a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "permitted use" ; rdfs:comment "Permitted use, which is the tenant-mix category of record." ; rdfs:domain lease:Lease ; rdfs:range party:MerchandiseCategory .
+lease:leaseCurrency a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "currency" ; rdfs:comment "Lease currency." ; rdfs:domain lease:Lease ; rdfs:range core:Currency .
+lease:leaseBroker a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "broker" ; rdfs:comment "Leasing broker." ; rdfs:domain lease:Lease ; rdfs:range party:Broker .
+lease:leaseLeaseNumber a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "lease number" ; rdfs:comment "Lease number." ; rdfs:domain lease:Lease ; rdfs:range xsd:string .
+lease:leaseSigningDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "signing date" ; rdfs:comment "Signing date." ; rdfs:domain lease:Lease ; rdfs:range xsd:date .
+lease:leaseStartDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "start date" ; rdfs:comment "Start of the lease term." ; rdfs:domain lease:Lease ; rdfs:range xsd:date .
+lease:leaseEndDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "end date" ; rdfs:comment "End of the lease term." ; rdfs:domain lease:Lease ; rdfs:range xsd:date .
+lease:leaseTermMonths a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "term months" ; rdfs:comment "Lease term." ; rdfs:domain lease:Lease ; rdfs:range xsd:integer .
+lease:leaseStoreOpeningDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "store opening date" ; rdfs:comment "Date the store opened." ; rdfs:domain lease:Lease ; rdfs:range xsd:date .
+lease:leaseMonthlyMinimumRent a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "monthly minimum rent" ; rdfs:comment "Current monthly minimum rent." ; rdfs:domain lease:Lease ; rdfs:range xsd:decimal .
+lease:leaseHasThirteenthRent a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "has thirteenth rent" ; rdfs:comment "Whether a thirteenth minimum rent is billed in December." ; rdfs:domain lease:Lease ; rdfs:range xsd:boolean .
+lease:leasedUnitLease a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "lease" ; rdfs:comment "Lease." ; rdfs:domain lease:LeasedUnit ; rdfs:range lease:Lease .
+lease:leasedUnitUnit a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "unit" ; rdfs:comment "Unit." ; rdfs:domain lease:LeasedUnit ; rdfs:range asset:LeasableUnit .
+lease:leasedUnitStartDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "start date" ; rdfs:comment "Start of coverage." ; rdfs:domain lease:LeasedUnit ; rdfs:range xsd:date .
+lease:leasedUnitEndDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "end date" ; rdfs:comment "End of coverage." ; rdfs:domain lease:LeasedUnit ; rdfs:range xsd:date .
+lease:leasedUnitLeasedAreaM2 a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "leased area m2" ; rdfs:comment "Area leased." ; rdfs:domain lease:LeasedUnit ; rdfs:range xsd:decimal .
+lease:leaseAmendmentLease a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "lease" ; rdfs:comment "Lease amended." ; rdfs:domain lease:LeaseAmendment ; rdfs:range lease:Lease .
+lease:leaseAmendmentAmendmentNumber a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "amendment number" ; rdfs:comment "Amendment number." ; rdfs:domain lease:LeaseAmendment ; rdfs:range xsd:string .
+lease:leaseAmendmentEffectiveDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "effective date" ; rdfs:comment "Effective date." ; rdfs:domain lease:LeaseAmendment ; rdfs:range xsd:date .
+lease:leaseAmendmentAmendmentType a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "amendment type" ; rdfs:comment "Kind of change." ; rdfs:domain lease:LeaseAmendment ; rdfs:range xsd:string .
+lease:leaseAmendmentSummary a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "summary" ; rdfs:comment "Summary of the change." ; rdfs:domain lease:LeaseAmendment ; rdfs:range xsd:string .
+lease:rentStepLease a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "lease" ; rdfs:comment "Lease." ; rdfs:domain lease:RentStep ; rdfs:range lease:Lease .
+lease:rentStepEffectiveFrom a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "effective from" ; rdfs:comment "First day of the step." ; rdfs:domain lease:RentStep ; rdfs:range xsd:date .
+lease:rentStepEffectiveTo a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "effective to" ; rdfs:comment "Last day of the step." ; rdfs:domain lease:RentStep ; rdfs:range xsd:date .
+lease:rentStepMonthlyAmount a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "monthly amount" ; rdfs:comment "Monthly minimum rent during the step." ; rdfs:domain lease:RentStep ; rdfs:range xsd:decimal .
+lease:leaseClauseLease a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "lease" ; rdfs:comment "Lease containing the clause." ; rdfs:domain lease:LeaseClause ; rdfs:range lease:Lease .
+lease:leaseClauseClauseReference a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "clause reference" ; rdfs:comment "Clause number in the signed lease." ; rdfs:domain lease:LeaseClause ; rdfs:range xsd:string .
+lease:leaseClauseEffectiveFrom a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "effective from" ; rdfs:comment "Start of effect." ; rdfs:domain lease:LeaseClause ; rdfs:range xsd:date .
+lease:leaseClauseEffectiveTo a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "effective to" ; rdfs:comment "End of effect." ; rdfs:domain lease:LeaseClause ; rdfs:range xsd:date .
+lease:leaseClauseNotes a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "notes" ; rdfs:comment "Clause notes." ; rdfs:domain lease:LeaseClause ; rdfs:range xsd:string .
+lease:percentageRentClauseRate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "rate" ; rdfs:comment "Percentage of gross sales." ; rdfs:domain lease:PercentageRentClause ; rdfs:range xsd:decimal .
+lease:percentageRentClauseExcludesThirteenthRent a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "excludes thirteenth rent" ; rdfs:comment "Whether the December thirteenth rent is excluded from the comparison." ; rdfs:domain lease:PercentageRentClause ; rdfs:range xsd:boolean .
+lease:indexationClausePriceIndex a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "price index" ; rdfs:comment "Index applied." ; rdfs:domain lease:IndexationClause ; rdfs:range core:PriceIndex .
+lease:indexationClauseAnniversaryMonth a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "anniversary month" ; rdfs:comment "Month of the year in which the adjustment applies." ; rdfs:domain lease:IndexationClause ; rdfs:range xsd:integer .
+lease:indexationClauseFrequencyMonths a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "frequency months" ; rdfs:comment "Months between adjustments." ; rdfs:domain lease:IndexationClause ; rdfs:range xsd:integer .
+lease:exclusivityClauseProtectedCategory a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "protected category" ; rdfs:comment "Protected category." ; rdfs:domain lease:ExclusivityClause ; rdfs:range party:MerchandiseCategory .
+lease:radiusClauseRadiusKm a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "radius km" ; rdfs:comment "Restricted radius." ; rdfs:domain lease:RadiusClause ; rdfs:range xsd:decimal .
+lease:coTenancyClauseRequiredOccupancyRate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "required occupancy rate" ; rdfs:comment "Occupancy threshold." ; rdfs:domain lease:CoTenancyClause ; rdfs:range xsd:decimal .
+lease:coTenancyClauseRemedyRentRate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "remedy rent rate" ; rdfs:comment "Fraction of rent payable while the condition is unmet." ; rdfs:domain lease:CoTenancyClause ; rdfs:range xsd:decimal .
+lease:renewalOptionNoticeMonths a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "notice months" ; rdfs:comment "Notice required before exercise." ; rdfs:domain lease:RenewalOption ; rdfs:range xsd:integer .
+lease:renewalOptionRenewalTermMonths a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "renewal term months" ; rdfs:comment "Term of the renewal." ; rdfs:domain lease:RenewalOption ; rdfs:range xsd:integer .
+lease:earlyTerminationOptionEarliestExerciseDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "earliest exercise date" ; rdfs:comment "First date the option can be exercised." ; rdfs:domain lease:EarlyTerminationOption ; rdfs:range xsd:date .
+lease:earlyTerminationOptionPenaltyMonthsOfRent a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "penalty months of rent" ; rdfs:comment "Penalty in months of minimum rent." ; rdfs:domain lease:EarlyTerminationOption ; rdfs:range xsd:decimal .
+lease:guaranteeTypeCode a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "code" ; rdfs:comment "Type code." ; rdfs:domain lease:GuaranteeType ; rdfs:range xsd:string .
+lease:guaranteeTypeName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "Type name." ; rdfs:domain lease:GuaranteeType ; rdfs:range xsd:string .
+lease:guaranteeLease a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "lease" ; rdfs:comment "Lease secured." ; rdfs:domain lease:Guarantee ; rdfs:range lease:Lease .
+lease:guaranteeGuaranteeType a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "guarantee type" ; rdfs:comment "Guarantee type." ; rdfs:domain lease:Guarantee ; rdfs:range lease:GuaranteeType .
+lease:guaranteeGuarantor a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "guarantor" ; rdfs:comment "Bank, insurer or guarantor company." ; rdfs:domain lease:Guarantee ; rdfs:range core:Organization .
+lease:guaranteeAmount a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "amount" ; rdfs:comment "Guaranteed amount." ; rdfs:domain lease:Guarantee ; rdfs:range xsd:decimal .
+lease:guaranteeStartDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "start date" ; rdfs:comment "Start of cover." ; rdfs:domain lease:Guarantee ; rdfs:range xsd:date .
+lease:guaranteeEndDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "end date" ; rdfs:comment "End of cover." ; rdfs:domain lease:Guarantee ; rdfs:range xsd:date .
+lease:keyMoneyAgreementLease a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "lease" ; rdfs:comment "Lease." ; rdfs:domain lease:KeyMoneyAgreement ; rdfs:range lease:Lease .
+lease:keyMoneyAgreementTotalAmount a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "total amount" ; rdfs:comment "Total fee." ; rdfs:domain lease:KeyMoneyAgreement ; rdfs:range xsd:decimal .
+lease:keyMoneyAgreementInstallments a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "installments" ; rdfs:comment "Number of instalments." ; rdfs:domain lease:KeyMoneyAgreement ; rdfs:range xsd:integer .
+lease:keyMoneyAgreementAgreementDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "agreement date" ; rdfs:comment "Agreement date." ; rdfs:domain lease:KeyMoneyAgreement ; rdfs:range xsd:date .
+lease:rentConcessionLease a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "lease" ; rdfs:comment "Lease." ; rdfs:domain lease:RentConcession ; rdfs:range lease:Lease .
+lease:rentConcessionConcessionType a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "concession type" ; rdfs:comment "Rent-free, discount or deferral." ; rdfs:domain lease:RentConcession ; rdfs:range xsd:string .
+lease:rentConcessionStartDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "start date" ; rdfs:comment "Start of the concession." ; rdfs:domain lease:RentConcession ; rdfs:range xsd:date .
+lease:rentConcessionEndDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "end date" ; rdfs:comment "End of the concession." ; rdfs:domain lease:RentConcession ; rdfs:range xsd:date .
+lease:rentConcessionDiscountRate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "discount rate" ; rdfs:comment "Fraction of rent waived." ; rdfs:domain lease:RentConcession ; rdfs:range xsd:decimal .
+lease:rentConcessionReason a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "reason" ; rdfs:comment "Reason for the concession." ; rdfs:domain lease:RentConcession ; rdfs:range xsd:string .
+lease:tenantAllowanceLease a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "lease" ; rdfs:comment "Lease." ; rdfs:domain lease:TenantAllowance ; rdfs:range lease:Lease .
+lease:tenantAllowanceAmount a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "amount" ; rdfs:comment "Allowance amount." ; rdfs:domain lease:TenantAllowance ; rdfs:range xsd:decimal .
+lease:tenantAllowancePurpose a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "purpose" ; rdfs:comment "Purpose." ; rdfs:domain lease:TenantAllowance ; rdfs:range xsd:string .
+lease:fitOutProjectLease a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "lease" ; rdfs:comment "Lease." ; rdfs:domain lease:FitOutProject ; rdfs:range lease:Lease .
+lease:fitOutProjectUnit a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "unit" ; rdfs:comment "Unit." ; rdfs:domain lease:FitOutProject ; rdfs:range asset:LeasableUnit .
+lease:fitOutProjectHandoverDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "handover date" ; rdfs:comment "Unit handover date." ; rdfs:domain lease:FitOutProject ; rdfs:range xsd:date .
+lease:fitOutProjectPlannedOpeningDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "planned opening date" ; rdfs:comment "Planned opening." ; rdfs:domain lease:FitOutProject ; rdfs:range xsd:date .
+lease:fitOutProjectActualOpeningDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "actual opening date" ; rdfs:comment "Actual opening." ; rdfs:domain lease:FitOutProject ; rdfs:range xsd:date .
+lease:fitOutProjectDesignApproved a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "design approved" ; rdfs:comment "Whether the store design is approved." ; rdfs:domain lease:FitOutProject ; rdfs:range xsd:boolean .
+lease:fitOutProjectStatus a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "status" ; rdfs:comment "Project status." ; rdfs:domain lease:FitOutProject ; rdfs:range xsd:string .
+lease:leaseTerminationLease a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "lease" ; rdfs:comment "Lease." ; rdfs:domain lease:LeaseTermination ; rdfs:range lease:Lease .
+lease:leaseTerminationTerminationDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "termination date" ; rdfs:comment "Termination date." ; rdfs:domain lease:LeaseTermination ; rdfs:range xsd:date .
+lease:leaseTerminationReason a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "reason" ; rdfs:comment "Expiry, mutual agreement, early termination option, eviction or default." ; rdfs:domain lease:LeaseTermination ; rdfs:range xsd:string .
+lease:leaseTerminationPenaltyAmount a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "penalty amount" ; rdfs:comment "Penalty charged." ; rdfs:domain lease:LeaseTermination ; rdfs:range xsd:decimal .
+ops:expenseCategoryParentCategory a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "parent category" ; rdfs:comment "Broader category." ; rdfs:domain ops:ExpenseCategory ; rdfs:range ops:ExpenseCategory .
+ops:expenseCategoryCode a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "code" ; rdfs:comment "Category code." ; rdfs:domain ops:ExpenseCategory ; rdfs:range xsd:string .
+ops:expenseCategoryName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "Category name." ; rdfs:domain ops:ExpenseCategory ; rdfs:range xsd:string .
+ops:expenseCategoryRecoverable a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "recoverable" ; rdfs:comment "Whether the cost is recoverable from tenants through service charges." ; rdfs:domain ops:ExpenseCategory ; rdfs:range xsd:boolean .
+ops:serviceChargeBudgetProperty a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "property" ; rdfs:comment "Property." ; rdfs:domain ops:ServiceChargeBudget ; rdfs:range asset:Property .
+ops:serviceChargeBudgetYear a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "year" ; rdfs:comment "Budget year." ; rdfs:domain ops:ServiceChargeBudget ; rdfs:range xsd:integer .
+ops:serviceChargeBudgetApprovedDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "approved date" ; rdfs:comment "Approval date." ; rdfs:domain ops:ServiceChargeBudget ; rdfs:range xsd:date .
+ops:serviceChargeBudgetTotalAmount a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "total amount" ; rdfs:comment "Budget total." ; rdfs:domain ops:ServiceChargeBudget ; rdfs:range xsd:decimal .
+ops:serviceChargeBudgetLineBudget a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "budget" ; rdfs:comment "Budget." ; rdfs:domain ops:ServiceChargeBudgetLine ; rdfs:range ops:ServiceChargeBudget .
+ops:serviceChargeBudgetLineCategory a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "category" ; rdfs:comment "Expense category." ; rdfs:domain ops:ServiceChargeBudgetLine ; rdfs:range ops:ExpenseCategory .
+ops:serviceChargeBudgetLineAmount a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "amount" ; rdfs:comment "Budgeted amount." ; rdfs:domain ops:ServiceChargeBudgetLine ; rdfs:range xsd:decimal .
+ops:allocationKeyProperty a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "property" ; rdfs:comment "Property." ; rdfs:domain ops:AllocationKey ; rdfs:range asset:Property .
+ops:allocationKeyCode a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "code" ; rdfs:comment "Key code." ; rdfs:domain ops:AllocationKey ; rdfs:range xsd:string .
+ops:allocationKeyName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "Key name." ; rdfs:domain ops:AllocationKey ; rdfs:range xsd:string .
+ops:allocationKeyBasis a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "basis" ; rdfs:comment "Area, ideal fraction, metered or fixed." ; rdfs:domain ops:AllocationKey ; rdfs:range xsd:string .
+ops:allocationShareAllocationKey a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "allocation key" ; rdfs:comment "Allocation key." ; rdfs:domain ops:AllocationShare ; rdfs:range ops:AllocationKey .
+ops:allocationShareUnit a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "unit" ; rdfs:comment "Unit." ; rdfs:domain ops:AllocationShare ; rdfs:range asset:LeasableUnit .
+ops:allocationShareShare a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "share" ; rdfs:comment "Fraction allocated to the unit." ; rdfs:domain ops:AllocationShare ; rdfs:range xsd:decimal .
+ops:serviceContractProvider a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "provider" ; rdfs:comment "Provider." ; rdfs:domain ops:ServiceContract ; rdfs:range party:ServiceProvider .
+ops:serviceContractProperty a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "property" ; rdfs:comment "Property served." ; rdfs:domain ops:ServiceContract ; rdfs:range asset:Property .
+ops:serviceContractCategory a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "category" ; rdfs:comment "Expense category." ; rdfs:domain ops:ServiceContract ; rdfs:range ops:ExpenseCategory .
+ops:serviceContractContractNumber a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "contract number" ; rdfs:comment "Contract number." ; rdfs:domain ops:ServiceContract ; rdfs:range xsd:string .
+ops:serviceContractStartDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "start date" ; rdfs:comment "Start date." ; rdfs:domain ops:ServiceContract ; rdfs:range xsd:date .
+ops:serviceContractEndDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "end date" ; rdfs:comment "End date." ; rdfs:domain ops:ServiceContract ; rdfs:range xsd:date .
+ops:serviceContractMonthlyAmount a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "monthly amount" ; rdfs:comment "Monthly fee." ; rdfs:domain ops:ServiceContract ; rdfs:range xsd:decimal .
+ops:operatingExpenseProperty a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "property" ; rdfs:comment "Property." ; rdfs:domain ops:OperatingExpense ; rdfs:range asset:Property .
+ops:operatingExpenseCategory a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "category" ; rdfs:comment "Expense category." ; rdfs:domain ops:OperatingExpense ; rdfs:range ops:ExpenseCategory .
+ops:operatingExpenseMonth a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "month" ; rdfs:comment "Month." ; rdfs:domain ops:OperatingExpense ; rdfs:range core:CalendarMonth .
+ops:operatingExpenseProvider a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "provider" ; rdfs:comment "Provider." ; rdfs:domain ops:OperatingExpense ; rdfs:range party:ServiceProvider .
+ops:operatingExpenseSummary a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "summary" ; rdfs:comment "Expense description." ; rdfs:domain ops:OperatingExpense ; rdfs:range xsd:string .
+ops:operatingExpenseAmount a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "amount" ; rdfs:comment "Amount incurred." ; rdfs:domain ops:OperatingExpense ; rdfs:range xsd:decimal .
+ops:operatingExpenseRecoverable a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "recoverable" ; rdfs:comment "Whether the expense is recoverable from tenants." ; rdfs:domain ops:OperatingExpense ; rdfs:range xsd:boolean .
+ops:workOrderProperty a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "property" ; rdfs:comment "Property." ; rdfs:domain ops:WorkOrder ; rdfs:range asset:Property .
+ops:workOrderEquipment a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "equipment" ; rdfs:comment "Equipment concerned." ; rdfs:domain ops:WorkOrder ; rdfs:range asset:Equipment .
+ops:workOrderUnit a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "unit" ; rdfs:comment "Unit concerned." ; rdfs:domain ops:WorkOrder ; rdfs:range asset:LeasableUnit .
+ops:workOrderProvider a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "provider" ; rdfs:comment "Provider assigned." ; rdfs:domain ops:WorkOrder ; rdfs:range party:ServiceProvider .
+ops:workOrderWorkOrderNumber a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "work order number" ; rdfs:comment "Work order number." ; rdfs:domain ops:WorkOrder ; rdfs:range xsd:string .
+ops:workOrderOpenedDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "opened date" ; rdfs:comment "Opened." ; rdfs:domain ops:WorkOrder ; rdfs:range xsd:date .
+ops:workOrderClosedDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "closed date" ; rdfs:comment "Closed." ; rdfs:domain ops:WorkOrder ; rdfs:range xsd:date .
+ops:workOrderPriority a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "priority" ; rdfs:comment "Priority." ; rdfs:domain ops:WorkOrder ; rdfs:range xsd:string .
+ops:workOrderWorkType a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "work type" ; rdfs:comment "Corrective, preventive or tenant request." ; rdfs:domain ops:WorkOrder ; rdfs:range xsd:string .
+ops:workOrderCost a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "cost" ; rdfs:comment "Cost." ; rdfs:domain ops:WorkOrder ; rdfs:range xsd:decimal .
+ops:utilityTypeCode a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "code" ; rdfs:comment "Utility code." ; rdfs:domain ops:UtilityType ; rdfs:range xsd:string .
+ops:utilityTypeName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "Utility name." ; rdfs:domain ops:UtilityType ; rdfs:range xsd:string .
+ops:utilityTypeUnitOfMeasure a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "unit of measure" ; rdfs:comment "Unit of measure." ; rdfs:domain ops:UtilityType ; rdfs:range xsd:string .
+ops:utilityMeterUtilityType a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "utility type" ; rdfs:comment "Utility measured." ; rdfs:domain ops:UtilityMeter ; rdfs:range ops:UtilityType .
+ops:utilityMeterProperty a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "property" ; rdfs:comment "Property." ; rdfs:domain ops:UtilityMeter ; rdfs:range asset:Property .
+ops:utilityMeterUnit a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "unit" ; rdfs:comment "Unit metered; empty for common installations." ; rdfs:domain ops:UtilityMeter ; rdfs:range asset:LeasableUnit .
+ops:utilityMeterCode a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "code" ; rdfs:comment "Meter code." ; rdfs:domain ops:UtilityMeter ; rdfs:range xsd:string .
+ops:meterReadingMeter a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "meter" ; rdfs:comment "Meter." ; rdfs:domain ops:MeterReading ; rdfs:range ops:UtilityMeter .
+ops:meterReadingMonth a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "month" ; rdfs:comment "Billing month." ; rdfs:domain ops:MeterReading ; rdfs:range core:CalendarMonth .
+ops:meterReadingReadingDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "reading date" ; rdfs:comment "Reading date." ; rdfs:domain ops:MeterReading ; rdfs:range xsd:date .
+ops:meterReadingReadingValue a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "reading value" ; rdfs:comment "Cumulative reading." ; rdfs:domain ops:MeterReading ; rdfs:range xsd:decimal .
+ops:meterReadingConsumption a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "consumption" ; rdfs:comment "Consumption since the previous reading." ; rdfs:domain ops:MeterReading ; rdfs:range xsd:decimal .
+ops:insurancePolicyProperty a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "property" ; rdfs:comment "Property." ; rdfs:domain ops:InsurancePolicy ; rdfs:range asset:Property .
+ops:insurancePolicyInsurer a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "insurer" ; rdfs:comment "Insurer." ; rdfs:domain ops:InsurancePolicy ; rdfs:range core:Organization .
+ops:insurancePolicyPolicyNumber a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "policy number" ; rdfs:comment "Policy number." ; rdfs:domain ops:InsurancePolicy ; rdfs:range xsd:string .
+ops:insurancePolicyCoverageType a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "coverage type" ; rdfs:comment "Coverage." ; rdfs:domain ops:InsurancePolicy ; rdfs:range xsd:string .
+ops:insurancePolicyInsuredAmount a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "insured amount" ; rdfs:comment "Insured amount." ; rdfs:domain ops:InsurancePolicy ; rdfs:range xsd:decimal .
+ops:insurancePolicyPremium a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "premium" ; rdfs:comment "Premium." ; rdfs:domain ops:InsurancePolicy ; rdfs:range xsd:decimal .
+ops:insurancePolicyStartDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "start date" ; rdfs:comment "Start." ; rdfs:domain ops:InsurancePolicy ; rdfs:range xsd:date .
+ops:insurancePolicyEndDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "end date" ; rdfs:comment "End." ; rdfs:domain ops:InsurancePolicy ; rdfs:range xsd:date .
+ops:incidentProperty a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "property" ; rdfs:comment "Property." ; rdfs:domain ops:Incident ; rdfs:range asset:Property .
+ops:incidentOccurredOn a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "occurred on" ; rdfs:comment "Date of the incident." ; rdfs:domain ops:Incident ; rdfs:range xsd:date .
+ops:incidentIncidentType a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "incident type" ; rdfs:comment "Incident type." ; rdfs:domain ops:Incident ; rdfs:range xsd:string .
+ops:incidentSeverity a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "severity" ; rdfs:comment "Severity." ; rdfs:domain ops:Incident ; rdfs:range xsd:string .
+ops:incidentSummary a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "summary" ; rdfs:comment "Summary." ; rdfs:domain ops:Incident ; rdfs:range xsd:string .
+ops:marketingFundProperty a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "property" ; rdfs:comment "Property." ; rdfs:domain ops:MarketingFund ; rdfs:range asset:Property .
+ops:marketingFundYear a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "year" ; rdfs:comment "Fund year." ; rdfs:domain ops:MarketingFund ; rdfs:range xsd:integer .
+ops:marketingFundContributionRate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "contribution rate" ; rdfs:comment "Contribution as a fraction of minimum rent." ; rdfs:domain ops:MarketingFund ; rdfs:range xsd:decimal .
+ops:marketingFundBudgetAmount a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "budget amount" ; rdfs:comment "Budget." ; rdfs:domain ops:MarketingFund ; rdfs:range xsd:decimal .
+ops:marketingCampaignFund a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "fund" ; rdfs:comment "Marketing fund." ; rdfs:domain ops:MarketingCampaign ; rdfs:range ops:MarketingFund .
+ops:marketingCampaignName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "Campaign name." ; rdfs:domain ops:MarketingCampaign ; rdfs:range xsd:string .
+ops:marketingCampaignStartDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "start date" ; rdfs:comment "Start." ; rdfs:domain ops:MarketingCampaign ; rdfs:range xsd:date .
+ops:marketingCampaignEndDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "end date" ; rdfs:comment "End." ; rdfs:domain ops:MarketingCampaign ; rdfs:range xsd:date .
+ops:marketingCampaignBudget a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "budget" ; rdfs:comment "Budget." ; rdfs:domain ops:MarketingCampaign ; rdfs:range xsd:decimal .
+ops:mallEventProperty a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "property" ; rdfs:comment "Property." ; rdfs:domain ops:MallEvent ; rdfs:range asset:Property .
+ops:mallEventCampaign a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "campaign" ; rdfs:comment "Campaign." ; rdfs:domain ops:MallEvent ; rdfs:range ops:MarketingCampaign .
+ops:mallEventName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "Event name." ; rdfs:domain ops:MallEvent ; rdfs:range xsd:string .
+ops:mallEventEventDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "event date" ; rdfs:comment "Event date." ; rdfs:domain ops:MallEvent ; rdfs:range xsd:date .
+ops:mallEventExpectedVisitors a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "expected visitors" ; rdfs:comment "Expected visitors." ; rdfs:domain ops:MallEvent ; rdfs:range xsd:integer .
+fin:chargeTypeCode a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "code" ; rdfs:comment "Charge code." ; rdfs:domain fin:ChargeType ; rdfs:range xsd:string .
+fin:chargeTypeName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "Charge name." ; rdfs:domain fin:ChargeType ; rdfs:range xsd:string .
+fin:chargeTypeRevenueClass a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "revenue class" ; rdfs:comment "Rent, recoveries, marketing or other." ; rdfs:domain fin:ChargeType ; rdfs:range xsd:string .
+fin:invoiceProperty a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "property" ; rdfs:comment "Issuing property." ; rdfs:domain fin:Invoice ; rdfs:range asset:Property .
+fin:invoiceBilledTenant a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "billed tenant" ; rdfs:comment "Tenant billed." ; rdfs:domain fin:Invoice ; rdfs:range party:Tenant .
+fin:invoiceInvoiceNumber a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "invoice number" ; rdfs:comment "Invoice number." ; rdfs:domain fin:Invoice ; rdfs:range xsd:string .
+fin:invoiceIssueDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "issue date" ; rdfs:comment "Issue date." ; rdfs:domain fin:Invoice ; rdfs:range xsd:date .
+fin:invoiceDueDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "due date" ; rdfs:comment "Due date." ; rdfs:domain fin:Invoice ; rdfs:range xsd:date .
+fin:invoiceStatus a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "status" ; rdfs:comment "Open, paid, partially paid or cancelled." ; rdfs:domain fin:Invoice ; rdfs:range xsd:string .
+fin:chargeInvoice a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "invoice" ; rdfs:comment "Invoice." ; rdfs:domain fin:Charge ; rdfs:range fin:Invoice .
+fin:chargeLease a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "lease" ; rdfs:comment "Lease." ; rdfs:domain fin:Charge ; rdfs:range lease:Lease .
+fin:chargeChargeType a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "charge type" ; rdfs:comment "Charge type." ; rdfs:domain fin:Charge ; rdfs:range fin:ChargeType .
+fin:chargeMonth a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "month" ; rdfs:comment "Competence month." ; rdfs:domain fin:Charge ; rdfs:range core:CalendarMonth .
+fin:chargeSummary a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "summary" ; rdfs:comment "Charge description." ; rdfs:domain fin:Charge ; rdfs:range xsd:string .
+fin:chargeAmount a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "amount" ; rdfs:comment "Billed amount; negative for credits." ; rdfs:domain fin:Charge ; rdfs:range xsd:decimal .
+fin:chargePaidAmount a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "paid amount" ; rdfs:comment "Payments allocated at the reporting date." ; rdfs:domain fin:Charge ; rdfs:range xsd:decimal .
+fin:chargeDueDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "due date" ; rdfs:comment "Due date." ; rdfs:domain fin:Charge ; rdfs:range xsd:date .
+fin:bankAccountProperty a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "property" ; rdfs:comment "Property." ; rdfs:domain fin:BankAccount ; rdfs:range asset:Property .
+fin:bankAccountBankName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "bank name" ; rdfs:comment "Bank." ; rdfs:domain fin:BankAccount ; rdfs:range xsd:string .
+fin:bankAccountBranchCode a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "branch code" ; rdfs:comment "Branch." ; rdfs:domain fin:BankAccount ; rdfs:range xsd:string .
+fin:bankAccountAccountNumber a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "account number" ; rdfs:comment "Account number." ; rdfs:domain fin:BankAccount ; rdfs:range xsd:string .
+fin:paymentPayer a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "payer" ; rdfs:comment "Paying tenant." ; rdfs:domain fin:Payment ; rdfs:range party:Tenant .
+fin:paymentBankAccount a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "bank account" ; rdfs:comment "Receiving account." ; rdfs:domain fin:Payment ; rdfs:range fin:BankAccount .
+fin:paymentPaymentDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "payment date" ; rdfs:comment "Payment date." ; rdfs:domain fin:Payment ; rdfs:range xsd:date .
+fin:paymentAmount a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "amount" ; rdfs:comment "Amount received." ; rdfs:domain fin:Payment ; rdfs:range xsd:decimal .
+fin:paymentPaymentMethod a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "payment method" ; rdfs:comment "Bank slip, transfer or instant payment." ; rdfs:domain fin:Payment ; rdfs:range xsd:string .
+fin:paymentAllocationPayment a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "payment" ; rdfs:comment "Payment." ; rdfs:domain fin:PaymentAllocation ; rdfs:range fin:Payment .
+fin:paymentAllocationCharge a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "charge" ; rdfs:comment "Charge." ; rdfs:domain fin:PaymentAllocation ; rdfs:range fin:Charge .
+fin:paymentAllocationAmount a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "amount" ; rdfs:comment "Amount applied." ; rdfs:domain fin:PaymentAllocation ; rdfs:range xsd:decimal .
+fin:arrearsCaseLease a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "lease" ; rdfs:comment "Lease in arrears." ; rdfs:domain fin:ArrearsCase ; rdfs:range lease:Lease .
+fin:arrearsCaseOpenedDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "opened date" ; rdfs:comment "Opened." ; rdfs:domain fin:ArrearsCase ; rdfs:range xsd:date .
+fin:arrearsCaseClosedDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "closed date" ; rdfs:comment "Closed." ; rdfs:domain fin:ArrearsCase ; rdfs:range xsd:date .
+fin:arrearsCaseStatus a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "status" ; rdfs:comment "Open, in agreement, in litigation or closed." ; rdfs:domain fin:ArrearsCase ; rdfs:range xsd:string .
+fin:arrearsCaseAmountOverdue a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "amount overdue" ; rdfs:comment "Overdue amount when opened." ; rdfs:domain fin:ArrearsCase ; rdfs:range xsd:decimal .
+fin:collectionActionArrearsCase a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "arrears case" ; rdfs:comment "Arrears case." ; rdfs:domain fin:CollectionAction ; rdfs:range fin:ArrearsCase .
+fin:collectionActionActionDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "action date" ; rdfs:comment "Action date." ; rdfs:domain fin:CollectionAction ; rdfs:range xsd:date .
+fin:collectionActionActionType a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "action type" ; rdfs:comment "Action type." ; rdfs:domain fin:CollectionAction ; rdfs:range xsd:string .
+fin:collectionActionOutcome a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "outcome" ; rdfs:comment "Outcome." ; rdfs:domain fin:CollectionAction ; rdfs:range xsd:string .
+fin:paymentAgreementArrearsCase a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "arrears case" ; rdfs:comment "Arrears case." ; rdfs:domain fin:PaymentAgreement ; rdfs:range fin:ArrearsCase .
+fin:paymentAgreementAgreementDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "agreement date" ; rdfs:comment "Agreement date." ; rdfs:domain fin:PaymentAgreement ; rdfs:range xsd:date .
+fin:paymentAgreementTotalAmount a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "total amount" ; rdfs:comment "Amount agreed." ; rdfs:domain fin:PaymentAgreement ; rdfs:range xsd:decimal .
+fin:paymentAgreementInstallments a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "installments" ; rdfs:comment "Number of instalments." ; rdfs:domain fin:PaymentAgreement ; rdfs:range xsd:integer .
+fin:legalProceedingLease a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "lease" ; rdfs:comment "Lease." ; rdfs:domain fin:LegalProceeding ; rdfs:range lease:Lease .
+fin:legalProceedingLawFirm a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "law firm" ; rdfs:comment "Law firm." ; rdfs:domain fin:LegalProceeding ; rdfs:range core:Organization .
+fin:legalProceedingCaseNumber a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "case number" ; rdfs:comment "Case number." ; rdfs:domain fin:LegalProceeding ; rdfs:range xsd:string .
+fin:legalProceedingProceedingType a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "proceeding type" ; rdfs:comment "Eviction, rent review, renewal or collection." ; rdfs:domain fin:LegalProceeding ; rdfs:range xsd:string .
+fin:legalProceedingFilingDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "filing date" ; rdfs:comment "Filing date." ; rdfs:domain fin:LegalProceeding ; rdfs:range xsd:date .
+fin:legalProceedingStatus a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "status" ; rdfs:comment "Status." ; rdfs:domain fin:LegalProceeding ; rdfs:range xsd:string .
+fin:legalProceedingAmountClaimed a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "amount claimed" ; rdfs:comment "Amount claimed." ; rdfs:domain fin:LegalProceeding ; rdfs:range xsd:decimal .
+fin:ledgerAccountParentAccount a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "parent account" ; rdfs:comment "Parent account." ; rdfs:domain fin:LedgerAccount ; rdfs:range fin:LedgerAccount .
+fin:ledgerAccountCode a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "code" ; rdfs:comment "Account code." ; rdfs:domain fin:LedgerAccount ; rdfs:range xsd:string .
+fin:ledgerAccountName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "Account name." ; rdfs:domain fin:LedgerAccount ; rdfs:range xsd:string .
+fin:ledgerAccountAccountClass a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "account class" ; rdfs:comment "Revenue, operating expense, non-operating, asset, liability or equity." ; rdfs:domain fin:LedgerAccount ; rdfs:range xsd:string .
+fin:journalEntryProperty a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "property" ; rdfs:comment "Property." ; rdfs:domain fin:JournalEntry ; rdfs:range asset:Property .
+fin:journalEntryMonth a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "month" ; rdfs:comment "Accounting month." ; rdfs:domain fin:JournalEntry ; rdfs:range core:CalendarMonth .
+fin:journalEntryEntryDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "entry date" ; rdfs:comment "Posting date." ; rdfs:domain fin:JournalEntry ; rdfs:range xsd:date .
+fin:journalEntrySummary a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "summary" ; rdfs:comment "Entry description." ; rdfs:domain fin:JournalEntry ; rdfs:range xsd:string .
+fin:journalLineEntry a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "entry" ; rdfs:comment "Journal entry." ; rdfs:domain fin:JournalLine ; rdfs:range fin:JournalEntry .
+fin:journalLineAccount a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "account" ; rdfs:comment "Ledger account." ; rdfs:domain fin:JournalLine ; rdfs:range fin:LedgerAccount .
+fin:journalLineAmount a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "amount" ; rdfs:comment "Signed amount." ; rdfs:domain fin:JournalLine ; rdfs:range xsd:decimal .
+fin:journalLineNoiClass a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "noi class" ; rdfs:comment "Contribution to net operating income: revenue, opex or excluded." ; rdfs:domain fin:JournalLine ; rdfs:range xsd:string .
+fin:journalLineMemo a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "memo" ; rdfs:comment "Line memo." ; rdfs:domain fin:JournalLine ; rdfs:range xsd:string .
+fin:ownerDistributionStake a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "stake" ; rdfs:comment "Ownership stake." ; rdfs:domain fin:OwnerDistribution ; rdfs:range asset:OwnershipStake .
+fin:ownerDistributionMonth a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "month" ; rdfs:comment "Result month." ; rdfs:domain fin:OwnerDistribution ; rdfs:range core:CalendarMonth .
+fin:ownerDistributionDistributionDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "distribution date" ; rdfs:comment "Distribution date." ; rdfs:domain fin:OwnerDistribution ; rdfs:range xsd:date .
+fin:ownerDistributionAmount a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "amount" ; rdfs:comment "Amount distributed." ; rdfs:domain fin:OwnerDistribution ; rdfs:range xsd:decimal .
+fin:capitalProjectProperty a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "property" ; rdfs:comment "Property." ; rdfs:domain fin:CapitalProject ; rdfs:range asset:Property .
+fin:capitalProjectName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "Project name." ; rdfs:domain fin:CapitalProject ; rdfs:range xsd:string .
+fin:capitalProjectProjectType a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "project type" ; rdfs:comment "Project type." ; rdfs:domain fin:CapitalProject ; rdfs:range xsd:string .
+fin:capitalProjectBudget a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "budget" ; rdfs:comment "Approved budget." ; rdfs:domain fin:CapitalProject ; rdfs:range xsd:decimal .
+fin:capitalProjectStartDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "start date" ; rdfs:comment "Start." ; rdfs:domain fin:CapitalProject ; rdfs:range xsd:date .
+fin:capitalProjectCompletionDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "completion date" ; rdfs:comment "Completion." ; rdfs:domain fin:CapitalProject ; rdfs:range xsd:date .
+fin:capitalProjectAddedGlaM2 a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "added gla m2" ; rdfs:comment "Gross leasable area added." ; rdfs:domain fin:CapitalProject ; rdfs:range xsd:decimal .
+perf:occupancySnapshotUnit a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "unit" ; rdfs:comment "Unit." ; rdfs:domain perf:OccupancySnapshot ; rdfs:range asset:LeasableUnit .
+perf:occupancySnapshotMonth a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "month" ; rdfs:comment "Month." ; rdfs:domain perf:OccupancySnapshot ; rdfs:range core:CalendarMonth .
+perf:occupancySnapshotLease a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "lease" ; rdfs:comment "Lease in force; empty when vacant." ; rdfs:domain perf:OccupancySnapshot ; rdfs:range lease:Lease .
+perf:occupancySnapshotGlaM2 a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "gla m2" ; rdfs:comment "Gross leasable area of the unit." ; rdfs:domain perf:OccupancySnapshot ; rdfs:range xsd:decimal .
+perf:occupancySnapshotOccupiedGlaM2 a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "occupied gla m2" ; rdfs:comment "Area under an active lease at month end." ; rdfs:domain perf:OccupancySnapshot ; rdfs:range xsd:decimal .
+perf:occupancySnapshotContractedMinimumRent a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "contracted minimum rent" ; rdfs:comment "Monthly minimum rent in force at month end." ; rdfs:domain perf:OccupancySnapshot ; rdfs:range xsd:decimal .
+perf:salesReportLease a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "lease" ; rdfs:comment "Lease." ; rdfs:domain perf:SalesReport ; rdfs:range lease:Lease .
+perf:salesReportProperty a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "property" ; rdfs:comment "Property." ; rdfs:domain perf:SalesReport ; rdfs:range asset:Property .
+perf:salesReportMonth a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "month" ; rdfs:comment "Sales month." ; rdfs:domain perf:SalesReport ; rdfs:range core:CalendarMonth .
+perf:salesReportGrossSales a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "gross sales" ; rdfs:comment "Declared gross sales." ; rdfs:domain perf:SalesReport ; rdfs:range xsd:decimal .
+perf:salesReportReportedGlaM2 a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "reported gla m2" ; rdfs:comment "Area of the leased units." ; rdfs:domain perf:SalesReport ; rdfs:range xsd:decimal .
+perf:salesReportOccupancyCost a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "occupancy cost" ; rdfs:comment "Occupancy cost billed for the month." ; rdfs:domain perf:SalesReport ; rdfs:range xsd:decimal .
+perf:salesReportSubmittedDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "submitted date" ; rdfs:comment "Submission date." ; rdfs:domain perf:SalesReport ; rdfs:range xsd:date .
+perf:salesReportIsAudited a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "is audited" ; rdfs:comment "Whether the report was audited." ; rdfs:domain perf:SalesReport ; rdfs:range xsd:boolean .
+perf:salesAuditSalesReport a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "sales report" ; rdfs:comment "Sales report." ; rdfs:domain perf:SalesAudit ; rdfs:range perf:SalesReport .
+perf:salesAuditAuditor a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "auditor" ; rdfs:comment "Auditor." ; rdfs:domain perf:SalesAudit ; rdfs:range core:Organization .
+perf:salesAuditAuditDate a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "audit date" ; rdfs:comment "Audit date." ; rdfs:domain perf:SalesAudit ; rdfs:range xsd:date .
+perf:salesAuditAuditedSales a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "audited sales" ; rdfs:comment "Sales established by the audit." ; rdfs:domain perf:SalesAudit ; rdfs:range xsd:decimal .
+perf:salesAuditVarianceAmount a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "variance amount" ; rdfs:comment "Audited minus declared sales." ; rdfs:domain perf:SalesAudit ; rdfs:range xsd:decimal .
+perf:footfallCountEntrance a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "entrance" ; rdfs:comment "Entrance." ; rdfs:domain perf:FootfallCount ; rdfs:range asset:Entrance .
+perf:footfallCountMonth a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "month" ; rdfs:comment "Reporting month." ; rdfs:domain perf:FootfallCount ; rdfs:range core:CalendarMonth .
+perf:footfallCountPeriodStart a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "period start" ; rdfs:comment "First day counted." ; rdfs:domain perf:FootfallCount ; rdfs:range xsd:date .
+perf:footfallCountPeriodEnd a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "period end" ; rdfs:comment "Last day counted." ; rdfs:domain perf:FootfallCount ; rdfs:range xsd:date .
+perf:footfallCountVisitors a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "visitors" ; rdfs:comment "Visitors counted." ; rdfs:domain perf:FootfallCount ; rdfs:range xsd:integer .
+perf:parkingActivityFacility a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "facility" ; rdfs:comment "Parking facility." ; rdfs:domain perf:ParkingActivity ; rdfs:range asset:ParkingFacility .
+perf:parkingActivityMonth a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label "month" ; rdfs:comment "Month." ; rdfs:domain perf:ParkingActivity ; rdfs:range core:CalendarMonth .
+perf:parkingActivityTickets a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "tickets" ; rdfs:comment "Tickets issued." ; rdfs:domain perf:ParkingActivity ; rdfs:range xsd:integer .
+perf:parkingActivityRevenue a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "revenue" ; rdfs:comment "Parking revenue." ; rdfs:domain perf:ParkingActivity ; rdfs:range xsd:decimal .

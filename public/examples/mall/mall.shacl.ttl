@@ -1,0 +1,501 @@
+@prefix core: <https://example.org/mall/core#> .
+@prefix asset: <https://example.org/mall/asset#> .
+@prefix party: <https://example.org/mall/party#> .
+@prefix lease: <https://example.org/mall/lease#> .
+@prefix ops: <https://example.org/mall/ops#> .
+@prefix fin: <https://example.org/mall/fin#> .
+@prefix perf: <https://example.org/mall/perf#> .
+@prefix kpi: <https://example.org/mall/kpi#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+core:PartyShape a sh:NodeShape ; rdfs:label "Party requirements" ; sh:targetClass core:Party ;
+  sh:property [ sh:path core:partyName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path core:partyLegalName ; sh:name "legal name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path core:partyTaxId ; sh:name "tax id" ; sh:datatype xsd:string ; sh:maxCount 1 ] ,
+    [ sh:path core:partyEmail ; sh:name "email" ; sh:datatype xsd:string ; sh:maxCount 1 ] ,
+    [ sh:path core:partyPhone ; sh:name "phone" ; sh:datatype xsd:string ; sh:maxCount 1 ] ,
+    [ sh:path core:partyAddress ; sh:name "address" ; sh:class core:Address ; sh:maxCount 1 ] .
+core:OrganizationShape a sh:NodeShape ; rdfs:label "Organization requirements" ; sh:targetClass core:Organization ;
+  sh:property [ sh:path core:organizationOrganizationType ; sh:name "organization type" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path core:organizationParentOrganization ; sh:name "parent organization" ; sh:class core:Organization ; sh:maxCount 1 ] .
+core:PersonShape a sh:NodeShape ; rdfs:label "Person requirements" ; sh:targetClass core:Person ;
+  sh:property [ sh:path core:personJobTitle ; sh:name "job title" ; sh:datatype xsd:string ; sh:maxCount 1 ] .
+core:AddressShape a sh:NodeShape ; rdfs:label "Address requirements" ; sh:targetClass core:Address ;
+  sh:property [ sh:path core:addressStreet ; sh:name "street" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path core:addressStreetNumber ; sh:name "street number" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path core:addressComplement ; sh:name "complement" ; sh:datatype xsd:string ; sh:maxCount 1 ] ,
+    [ sh:path core:addressDistrict ; sh:name "district" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path core:addressPostalCode ; sh:name "postal code" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path core:addressCity ; sh:name "city" ; sh:class core:City ; sh:maxCount 1 ; sh:minCount 1 ] .
+core:CityShape a sh:NodeShape ; rdfs:label "City requirements" ; sh:targetClass core:City ;
+  sh:property [ sh:path core:cityName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path core:cityState ; sh:name "state" ; sh:class core:StateProvince ; sh:maxCount 1 ; sh:minCount 1 ] .
+core:StateProvinceShape a sh:NodeShape ; rdfs:label "State Province requirements" ; sh:targetClass core:StateProvince ;
+  sh:property [ sh:path core:stateProvinceName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path core:stateProvinceCode ; sh:name "code" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path core:stateProvinceCountry ; sh:name "country" ; sh:class core:Country ; sh:maxCount 1 ; sh:minCount 1 ] .
+core:CountryShape a sh:NodeShape ; rdfs:label "Country requirements" ; sh:targetClass core:Country ;
+  sh:property [ sh:path core:countryName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path core:countryIsoCode ; sh:name "iso code" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] .
+core:CurrencyShape a sh:NodeShape ; rdfs:label "Currency requirements" ; sh:targetClass core:Currency ;
+  sh:property [ sh:path core:currencyName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path core:currencyIsoCode ; sh:name "iso code" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] .
+core:CalendarMonthShape a sh:NodeShape ; rdfs:label "Calendar Month requirements" ; sh:targetClass core:CalendarMonth ;
+  sh:property [ sh:path core:calendarMonthYearMonth ; sh:name "year month" ; sh:datatype xsd:gYearMonth ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path core:calendarMonthYear ; sh:name "year" ; sh:datatype xsd:integer ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path core:calendarMonthMonthNumber ; sh:name "month number" ; sh:datatype xsd:integer ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path core:calendarMonthQuarter ; sh:name "quarter" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] .
+core:PriceIndexShape a sh:NodeShape ; rdfs:label "Price Index requirements" ; sh:targetClass core:PriceIndex ;
+  sh:property [ sh:path core:priceIndexName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path core:priceIndexCode ; sh:name "code" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path core:priceIndexPublisher ; sh:name "publisher" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] .
+core:PriceIndexValueShape a sh:NodeShape ; rdfs:label "Price Index Value requirements" ; sh:targetClass core:PriceIndexValue ;
+  sh:property [ sh:path core:priceIndexValueIndexLevel ; sh:name "index level" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path core:priceIndexValueMonthlyChange ; sh:name "monthly change" ; sh:datatype xsd:decimal ; sh:maxCount 1 ] ,
+    [ sh:path core:priceIndexValuePriceIndex ; sh:name "price index" ; sh:class core:PriceIndex ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path core:priceIndexValueMonth ; sh:name "month" ; sh:class core:CalendarMonth ; sh:maxCount 1 ; sh:minCount 1 ] .
+asset:PortfolioShape a sh:NodeShape ; rdfs:label "Portfolio requirements" ; sh:targetClass asset:Portfolio ;
+  sh:property [ sh:path asset:portfolioName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path asset:portfolioStrategy ; sh:name "strategy" ; sh:datatype xsd:string ; sh:maxCount 1 ] ,
+    [ sh:path asset:portfolioAssetManager ; sh:name "asset manager" ; sh:class core:Organization ; sh:maxCount 1 ] .
+asset:PropertyShape a sh:NodeShape ; rdfs:label "Property requirements" ; sh:targetClass asset:Property ;
+  sh:property [ sh:path asset:propertyCode ; sh:name "code" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path asset:propertyName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path asset:propertyPropertyFormat ; sh:name "property format" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path asset:propertyOpeningDate ; sh:name "opening date" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path asset:propertyTotalGlaM2 ; sh:name "total gla m2" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path asset:propertyGrossBuiltAreaM2 ; sh:name "gross built area m2" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path asset:propertyParkingSpaces ; sh:name "parking spaces" ; sh:datatype xsd:integer ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path asset:propertyPortfolio ; sh:name "portfolio" ; sh:class asset:Portfolio ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path asset:propertyAddress ; sh:name "address" ; sh:class core:Address ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path asset:propertyCurrency ; sh:name "currency" ; sh:class core:Currency ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path asset:propertyAdministrator ; sh:name "administrator" ; sh:class core:Organization ; sh:maxCount 1 ] ,
+    [ sh:path asset:propertyGeneralManager ; sh:name "general manager" ; sh:class core:Person ; sh:maxCount 1 ] .
+asset:BuildingShape a sh:NodeShape ; rdfs:label "Building requirements" ; sh:targetClass asset:Building ;
+  sh:property [ sh:path asset:buildingCode ; sh:name "code" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path asset:buildingName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path asset:buildingBuiltYear ; sh:name "built year" ; sh:datatype xsd:integer ; sh:maxCount 1 ] ,
+    [ sh:path asset:buildingProperty ; sh:name "property" ; sh:class asset:Property ; sh:maxCount 1 ; sh:minCount 1 ] .
+asset:FloorShape a sh:NodeShape ; rdfs:label "Floor requirements" ; sh:targetClass asset:Floor ;
+  sh:property [ sh:path asset:floorCode ; sh:name "code" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path asset:floorName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path asset:floorLevelNumber ; sh:name "level number" ; sh:datatype xsd:integer ; sh:maxCount 1 ] ,
+    [ sh:path asset:floorBuilding ; sh:name "building" ; sh:class asset:Building ; sh:maxCount 1 ; sh:minCount 1 ] .
+asset:ZoneShape a sh:NodeShape ; rdfs:label "Zone requirements" ; sh:targetClass asset:Zone ;
+  sh:property [ sh:path asset:zoneCode ; sh:name "code" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path asset:zoneName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path asset:zoneFloor ; sh:name "floor" ; sh:class asset:Floor ; sh:maxCount 1 ; sh:minCount 1 ] .
+asset:SpaceShape a sh:NodeShape ; rdfs:label "Space requirements" ; sh:targetClass asset:Space ;
+  sh:property [ sh:path asset:spaceCode ; sh:name "code" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path asset:spaceName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path asset:spaceAreaM2 ; sh:name "area m2" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ] .
+asset:LeasableUnitShape a sh:NodeShape ; rdfs:label "Leasable Unit requirements" ; sh:targetClass asset:LeasableUnit ;
+  sh:property [ sh:path asset:leasableUnitFrontageM ; sh:name "frontage m" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path asset:leasableUnitHasMezzanine ; sh:name "has mezzanine" ; sh:datatype xsd:boolean ; sh:maxCount 1 ] ,
+    [ sh:path asset:leasableUnitZone ; sh:name "zone" ; sh:class asset:Zone ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path asset:leasableUnitUnitType ; sh:name "unit type" ; sh:class asset:UnitType ; sh:maxCount 1 ; sh:minCount 1 ] .
+asset:UnitTypeShape a sh:NodeShape ; rdfs:label "Unit Type requirements" ; sh:targetClass asset:UnitType ;
+  sh:property [ sh:path asset:unitTypeCode ; sh:name "code" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path asset:unitTypeName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path asset:unitTypeCountsAsGla ; sh:name "counts as gla" ; sh:datatype xsd:boolean ; sh:maxCount 1 ; sh:minCount 1 ] .
+asset:CommonAreaShape a sh:NodeShape ; rdfs:label "Common Area requirements" ; sh:targetClass asset:CommonArea ;
+  sh:property [ sh:path asset:commonAreaAreaKind ; sh:name "area kind" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path asset:commonAreaFloor ; sh:name "floor" ; sh:class asset:Floor ; sh:maxCount 1 ; sh:minCount 1 ] .
+asset:ParkingFacilityShape a sh:NodeShape ; rdfs:label "Parking Facility requirements" ; sh:targetClass asset:ParkingFacility ;
+  sh:property [ sh:path asset:parkingFacilityCapacity ; sh:name "capacity" ; sh:datatype xsd:integer ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path asset:parkingFacilityIsPaid ; sh:name "is paid" ; sh:datatype xsd:boolean ; sh:maxCount 1 ] ,
+    [ sh:path asset:parkingFacilityProperty ; sh:name "property" ; sh:class asset:Property ; sh:maxCount 1 ; sh:minCount 1 ] .
+asset:EntranceShape a sh:NodeShape ; rdfs:label "Entrance requirements" ; sh:targetClass asset:Entrance ;
+  sh:property [ sh:path asset:entranceCode ; sh:name "code" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path asset:entranceName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path asset:entranceEntranceKind ; sh:name "entrance kind" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path asset:entranceProperty ; sh:name "property" ; sh:class asset:Property ; sh:maxCount 1 ; sh:minCount 1 ] .
+asset:AreaMeasurementShape a sh:NodeShape ; rdfs:label "Area Measurement requirements" ; sh:targetClass asset:AreaMeasurement ;
+  sh:property [ sh:path asset:areaMeasurementMeasurementDate ; sh:name "measurement date" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path asset:areaMeasurementMeasuredAreaM2 ; sh:name "measured area m2" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path asset:areaMeasurementMethod ; sh:name "method" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path asset:areaMeasurementUnit ; sh:name "unit" ; sh:class asset:LeasableUnit ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path asset:areaMeasurementSurveyor ; sh:name "surveyor" ; sh:class core:Organization ; sh:maxCount 1 ] .
+asset:OwnershipStakeShape a sh:NodeShape ; rdfs:label "Ownership Stake requirements" ; sh:targetClass asset:OwnershipStake ;
+  sh:property [ sh:path asset:ownershipStakeShare ; sh:name "share" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ; sh:maxInclusive 1 ] ,
+    [ sh:path asset:ownershipStakeStartDate ; sh:name "start date" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ; sh:lessThanOrEquals asset:ownershipStakeEndDate ] ,
+    [ sh:path asset:ownershipStakeEndDate ; sh:name "end date" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path asset:ownershipStakeInvestor ; sh:name "investor" ; sh:class party:Investor ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path asset:ownershipStakeProperty ; sh:name "property" ; sh:class asset:Property ; sh:maxCount 1 ; sh:minCount 1 ] .
+asset:ValuationShape a sh:NodeShape ; rdfs:label "Valuation requirements" ; sh:targetClass asset:Valuation ;
+  sh:property [ sh:path asset:valuationValuationDate ; sh:name "valuation date" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path asset:valuationMarketValue ; sh:name "market value" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path asset:valuationCapitalizationRate ; sh:name "capitalization rate" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ; sh:maxInclusive 1 ] ,
+    [ sh:path asset:valuationDiscountRate ; sh:name "discount rate" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ; sh:maxInclusive 1 ] ,
+    [ sh:path asset:valuationProperty ; sh:name "property" ; sh:class asset:Property ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path asset:valuationAppraiser ; sh:name "appraiser" ; sh:class core:Organization ; sh:maxCount 1 ] .
+asset:PermitShape a sh:NodeShape ; rdfs:label "Permit requirements" ; sh:targetClass asset:Permit ;
+  sh:property [ sh:path asset:permitPermitNumber ; sh:name "permit number" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path asset:permitPermitType ; sh:name "permit type" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path asset:permitIssueDate ; sh:name "issue date" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path asset:permitExpiryDate ; sh:name "expiry date" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path asset:permitProperty ; sh:name "property" ; sh:class asset:Property ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path asset:permitIssuer ; sh:name "issuer" ; sh:class core:Organization ; sh:maxCount 1 ] .
+asset:EquipmentShape a sh:NodeShape ; rdfs:label "Equipment requirements" ; sh:targetClass asset:Equipment ;
+  sh:property [ sh:path asset:equipmentTag ; sh:name "tag" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path asset:equipmentName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path asset:equipmentEquipmentType ; sh:name "equipment type" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path asset:equipmentInstallDate ; sh:name "install date" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path asset:equipmentManufacturer ; sh:name "manufacturer" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path asset:equipmentProperty ; sh:name "property" ; sh:class asset:Property ; sh:maxCount 1 ; sh:minCount 1 ] .
+party:TenantShape a sh:NodeShape ; rdfs:label "Tenant requirements" ; sh:targetClass party:Tenant ;
+  sh:property [ sh:path party:tenantTradeName ; sh:name "trade name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] .
+party:InvestorShape a sh:NodeShape ; rdfs:label "Investor requirements" ; sh:targetClass party:Investor ;
+  sh:property [ sh:path party:investorInvestorType ; sh:name "investor type" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] .
+party:ServiceProviderShape a sh:NodeShape ; rdfs:label "Service Provider requirements" ; sh:targetClass party:ServiceProvider ;
+  sh:property [ sh:path party:serviceProviderServiceCategory ; sh:name "service category" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] .
+party:BrokerShape a sh:NodeShape ; rdfs:label "Broker requirements" ; sh:targetClass party:Broker ;
+  sh:property [ sh:path party:brokerLicenseNumber ; sh:name "license number" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] .
+party:BrandShape a sh:NodeShape ; rdfs:label "Brand requirements" ; sh:targetClass party:Brand ;
+  sh:property [ sh:path party:brandName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path party:brandOwner ; sh:name "owner" ; sh:class party:Tenant ; sh:maxCount 1 ] .
+party:MerchandiseCategoryShape a sh:NodeShape ; rdfs:label "Merchandise Category requirements" ; sh:targetClass party:MerchandiseCategory ;
+  sh:property [ sh:path party:merchandiseCategoryCode ; sh:name "code" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path party:merchandiseCategoryName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path party:merchandiseCategoryParentCategory ; sh:name "parent category" ; sh:class party:MerchandiseCategory ; sh:maxCount 1 ] .
+party:TenantContactShape a sh:NodeShape ; rdfs:label "Tenant Contact requirements" ; sh:targetClass party:TenantContact ;
+  sh:property [ sh:path party:tenantContactRole ; sh:name "role" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path party:tenantContactIsPrimary ; sh:name "is primary" ; sh:datatype xsd:boolean ; sh:maxCount 1 ] ,
+    [ sh:path party:tenantContactPerson ; sh:name "person" ; sh:class core:Person ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path party:tenantContactTenant ; sh:name "tenant" ; sh:class party:Tenant ; sh:maxCount 1 ; sh:minCount 1 ] .
+lease:LeasingProspectShape a sh:NodeShape ; rdfs:label "Leasing Prospect requirements" ; sh:targetClass lease:LeasingProspect ;
+  sh:property [ sh:path lease:leasingProspectName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path lease:leasingProspectFirstContactDate ; sh:name "first contact date" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path lease:leasingProspectBrand ; sh:name "brand" ; sh:class party:Brand ; sh:maxCount 1 ] ,
+    [ sh:path lease:leasingProspectCategory ; sh:name "category" ; sh:class party:MerchandiseCategory ; sh:maxCount 1 ] ,
+    [ sh:path lease:leasingProspectBroker ; sh:name "broker" ; sh:class party:Broker ; sh:maxCount 1 ] .
+lease:LeasingProposalShape a sh:NodeShape ; rdfs:label "Leasing Proposal requirements" ; sh:targetClass lease:LeasingProposal ;
+  sh:property [ sh:path lease:leasingProposalProposalNumber ; sh:name "proposal number" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path lease:leasingProposalProposalDate ; sh:name "proposal date" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path lease:leasingProposalProposedMinimumRent ; sh:name "proposed minimum rent" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path lease:leasingProposalProposedTermMonths ; sh:name "proposed term months" ; sh:datatype xsd:integer ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path lease:leasingProposalStatus ; sh:name "status" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path lease:leasingProposalProspect ; sh:name "prospect" ; sh:class lease:LeasingProspect ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path lease:leasingProposalUnit ; sh:name "unit" ; sh:class asset:LeasableUnit ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path lease:leasingProposalResultingLease ; sh:name "resulting lease" ; sh:class lease:Lease ; sh:maxCount 1 ] .
+lease:LeaseStatusShape a sh:NodeShape ; rdfs:label "Lease Status requirements" ; sh:targetClass lease:LeaseStatus ;
+  sh:property [ sh:path lease:leaseStatusCode ; sh:name "code" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path lease:leaseStatusName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] .
+lease:LeaseShape a sh:NodeShape ; rdfs:label "Lease requirements" ; sh:targetClass lease:Lease ;
+  sh:property [ sh:path lease:leaseLeaseNumber ; sh:name "lease number" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path lease:leaseSigningDate ; sh:name "signing date" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path lease:leaseStartDate ; sh:name "start date" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ; sh:lessThanOrEquals lease:leaseEndDate ] ,
+    [ sh:path lease:leaseEndDate ; sh:name "end date" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path lease:leaseTermMonths ; sh:name "term months" ; sh:datatype xsd:integer ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path lease:leaseStoreOpeningDate ; sh:name "store opening date" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path lease:leaseMonthlyMinimumRent ; sh:name "monthly minimum rent" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path lease:leaseHasThirteenthRent ; sh:name "has thirteenth rent" ; sh:datatype xsd:boolean ; sh:maxCount 1 ] ,
+    [ sh:path lease:leaseTenant ; sh:name "tenant" ; sh:class party:Tenant ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path lease:leaseBrand ; sh:name "brand" ; sh:class party:Brand ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path lease:leaseStatus ; sh:name "status" ; sh:class lease:LeaseStatus ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path lease:leasePermittedUse ; sh:name "permitted use" ; sh:class party:MerchandiseCategory ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path lease:leaseCurrency ; sh:name "currency" ; sh:class core:Currency ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path lease:leaseBroker ; sh:name "broker" ; sh:class party:Broker ; sh:maxCount 1 ] .
+lease:LeasedUnitShape a sh:NodeShape ; rdfs:label "Leased Unit requirements" ; sh:targetClass lease:LeasedUnit ;
+  sh:property [ sh:path lease:leasedUnitStartDate ; sh:name "start date" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ; sh:lessThanOrEquals lease:leasedUnitEndDate ] ,
+    [ sh:path lease:leasedUnitEndDate ; sh:name "end date" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path lease:leasedUnitLeasedAreaM2 ; sh:name "leased area m2" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path lease:leasedUnitLease ; sh:name "lease" ; sh:class lease:Lease ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path lease:leasedUnitUnit ; sh:name "unit" ; sh:class asset:LeasableUnit ; sh:maxCount 1 ; sh:minCount 1 ] .
+lease:LeaseAmendmentShape a sh:NodeShape ; rdfs:label "Lease Amendment requirements" ; sh:targetClass lease:LeaseAmendment ;
+  sh:property [ sh:path lease:leaseAmendmentAmendmentNumber ; sh:name "amendment number" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path lease:leaseAmendmentEffectiveDate ; sh:name "effective date" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path lease:leaseAmendmentAmendmentType ; sh:name "amendment type" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path lease:leaseAmendmentSummary ; sh:name "summary" ; sh:datatype xsd:string ; sh:maxCount 1 ] ,
+    [ sh:path lease:leaseAmendmentLease ; sh:name "lease" ; sh:class lease:Lease ; sh:maxCount 1 ; sh:minCount 1 ] .
+lease:RentStepShape a sh:NodeShape ; rdfs:label "Rent Step requirements" ; sh:targetClass lease:RentStep ;
+  sh:property [ sh:path lease:rentStepEffectiveFrom ; sh:name "effective from" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ; sh:lessThanOrEquals lease:rentStepEffectiveTo ] ,
+    [ sh:path lease:rentStepEffectiveTo ; sh:name "effective to" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path lease:rentStepMonthlyAmount ; sh:name "monthly amount" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path lease:rentStepLease ; sh:name "lease" ; sh:class lease:Lease ; sh:maxCount 1 ; sh:minCount 1 ] .
+lease:LeaseClauseShape a sh:NodeShape ; rdfs:label "Lease Clause requirements" ; sh:targetClass lease:LeaseClause ;
+  sh:property [ sh:path lease:leaseClauseClauseReference ; sh:name "clause reference" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path lease:leaseClauseEffectiveFrom ; sh:name "effective from" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:lessThanOrEquals lease:leaseClauseEffectiveTo ] ,
+    [ sh:path lease:leaseClauseEffectiveTo ; sh:name "effective to" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path lease:leaseClauseNotes ; sh:name "notes" ; sh:datatype xsd:string ; sh:maxCount 1 ] ,
+    [ sh:path lease:leaseClauseLease ; sh:name "lease" ; sh:class lease:Lease ; sh:maxCount 1 ; sh:minCount 1 ] .
+lease:PercentageRentClauseShape a sh:NodeShape ; rdfs:label "Percentage Rent Clause requirements" ; sh:targetClass lease:PercentageRentClause ;
+  sh:property [ sh:path lease:percentageRentClauseRate ; sh:name "rate" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ; sh:maxInclusive 1 ] ,
+    [ sh:path lease:percentageRentClauseExcludesThirteenthRent ; sh:name "excludes thirteenth rent" ; sh:datatype xsd:boolean ; sh:maxCount 1 ] .
+lease:IndexationClauseShape a sh:NodeShape ; rdfs:label "Indexation Clause requirements" ; sh:targetClass lease:IndexationClause ;
+  sh:property [ sh:path lease:indexationClauseAnniversaryMonth ; sh:name "anniversary month" ; sh:datatype xsd:integer ; sh:maxCount 1 ] ,
+    [ sh:path lease:indexationClauseFrequencyMonths ; sh:name "frequency months" ; sh:datatype xsd:integer ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path lease:indexationClausePriceIndex ; sh:name "price index" ; sh:class core:PriceIndex ; sh:maxCount 1 ; sh:minCount 1 ] .
+lease:ExclusivityClauseShape a sh:NodeShape ; rdfs:label "Exclusivity Clause requirements" ; sh:targetClass lease:ExclusivityClause ;
+  sh:property [ sh:path lease:exclusivityClauseProtectedCategory ; sh:name "protected category" ; sh:class party:MerchandiseCategory ; sh:maxCount 1 ; sh:minCount 1 ] .
+lease:RadiusClauseShape a sh:NodeShape ; rdfs:label "Radius Clause requirements" ; sh:targetClass lease:RadiusClause ;
+  sh:property [ sh:path lease:radiusClauseRadiusKm ; sh:name "radius km" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ] .
+lease:CoTenancyClauseShape a sh:NodeShape ; rdfs:label "Co Tenancy Clause requirements" ; sh:targetClass lease:CoTenancyClause ;
+  sh:property [ sh:path lease:coTenancyClauseRequiredOccupancyRate ; sh:name "required occupancy rate" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ; sh:maxInclusive 1 ] ,
+    [ sh:path lease:coTenancyClauseRemedyRentRate ; sh:name "remedy rent rate" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ; sh:maxInclusive 1 ] .
+lease:RenewalOptionShape a sh:NodeShape ; rdfs:label "Renewal Option requirements" ; sh:targetClass lease:RenewalOption ;
+  sh:property [ sh:path lease:renewalOptionNoticeMonths ; sh:name "notice months" ; sh:datatype xsd:integer ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path lease:renewalOptionRenewalTermMonths ; sh:name "renewal term months" ; sh:datatype xsd:integer ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ] .
+lease:EarlyTerminationOptionShape a sh:NodeShape ; rdfs:label "Early Termination Option requirements" ; sh:targetClass lease:EarlyTerminationOption ;
+  sh:property [ sh:path lease:earlyTerminationOptionEarliestExerciseDate ; sh:name "earliest exercise date" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path lease:earlyTerminationOptionPenaltyMonthsOfRent ; sh:name "penalty months of rent" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ] .
+lease:GuaranteeTypeShape a sh:NodeShape ; rdfs:label "Guarantee Type requirements" ; sh:targetClass lease:GuaranteeType ;
+  sh:property [ sh:path lease:guaranteeTypeCode ; sh:name "code" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path lease:guaranteeTypeName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] .
+lease:GuaranteeShape a sh:NodeShape ; rdfs:label "Guarantee requirements" ; sh:targetClass lease:Guarantee ;
+  sh:property [ sh:path lease:guaranteeAmount ; sh:name "amount" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path lease:guaranteeStartDate ; sh:name "start date" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:lessThanOrEquals lease:guaranteeEndDate ] ,
+    [ sh:path lease:guaranteeEndDate ; sh:name "end date" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path lease:guaranteeLease ; sh:name "lease" ; sh:class lease:Lease ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path lease:guaranteeGuaranteeType ; sh:name "guarantee type" ; sh:class lease:GuaranteeType ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path lease:guaranteeGuarantor ; sh:name "guarantor" ; sh:class core:Organization ; sh:maxCount 1 ] .
+lease:KeyMoneyAgreementShape a sh:NodeShape ; rdfs:label "Key Money Agreement requirements" ; sh:targetClass lease:KeyMoneyAgreement ;
+  sh:property [ sh:path lease:keyMoneyAgreementTotalAmount ; sh:name "total amount" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path lease:keyMoneyAgreementInstallments ; sh:name "installments" ; sh:datatype xsd:integer ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path lease:keyMoneyAgreementAgreementDate ; sh:name "agreement date" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path lease:keyMoneyAgreementLease ; sh:name "lease" ; sh:class lease:Lease ; sh:maxCount 1 ; sh:minCount 1 ] .
+lease:RentConcessionShape a sh:NodeShape ; rdfs:label "Rent Concession requirements" ; sh:targetClass lease:RentConcession ;
+  sh:property [ sh:path lease:rentConcessionConcessionType ; sh:name "concession type" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path lease:rentConcessionStartDate ; sh:name "start date" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ; sh:lessThanOrEquals lease:rentConcessionEndDate ] ,
+    [ sh:path lease:rentConcessionEndDate ; sh:name "end date" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path lease:rentConcessionDiscountRate ; sh:name "discount rate" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ; sh:maxInclusive 1 ] ,
+    [ sh:path lease:rentConcessionReason ; sh:name "reason" ; sh:datatype xsd:string ; sh:maxCount 1 ] ,
+    [ sh:path lease:rentConcessionLease ; sh:name "lease" ; sh:class lease:Lease ; sh:maxCount 1 ; sh:minCount 1 ] .
+lease:TenantAllowanceShape a sh:NodeShape ; rdfs:label "Tenant Allowance requirements" ; sh:targetClass lease:TenantAllowance ;
+  sh:property [ sh:path lease:tenantAllowanceAmount ; sh:name "amount" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path lease:tenantAllowancePurpose ; sh:name "purpose" ; sh:datatype xsd:string ; sh:maxCount 1 ] ,
+    [ sh:path lease:tenantAllowanceLease ; sh:name "lease" ; sh:class lease:Lease ; sh:maxCount 1 ; sh:minCount 1 ] .
+lease:FitOutProjectShape a sh:NodeShape ; rdfs:label "Fit Out Project requirements" ; sh:targetClass lease:FitOutProject ;
+  sh:property [ sh:path lease:fitOutProjectHandoverDate ; sh:name "handover date" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path lease:fitOutProjectPlannedOpeningDate ; sh:name "planned opening date" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path lease:fitOutProjectActualOpeningDate ; sh:name "actual opening date" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path lease:fitOutProjectDesignApproved ; sh:name "design approved" ; sh:datatype xsd:boolean ; sh:maxCount 1 ] ,
+    [ sh:path lease:fitOutProjectStatus ; sh:name "status" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path lease:fitOutProjectLease ; sh:name "lease" ; sh:class lease:Lease ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path lease:fitOutProjectUnit ; sh:name "unit" ; sh:class asset:LeasableUnit ; sh:maxCount 1 ; sh:minCount 1 ] .
+lease:LeaseTerminationShape a sh:NodeShape ; rdfs:label "Lease Termination requirements" ; sh:targetClass lease:LeaseTermination ;
+  sh:property [ sh:path lease:leaseTerminationTerminationDate ; sh:name "termination date" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path lease:leaseTerminationReason ; sh:name "reason" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path lease:leaseTerminationPenaltyAmount ; sh:name "penalty amount" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path lease:leaseTerminationLease ; sh:name "lease" ; sh:class lease:Lease ; sh:maxCount 1 ; sh:minCount 1 ] .
+ops:ExpenseCategoryShape a sh:NodeShape ; rdfs:label "Expense Category requirements" ; sh:targetClass ops:ExpenseCategory ;
+  sh:property [ sh:path ops:expenseCategoryCode ; sh:name "code" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path ops:expenseCategoryName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path ops:expenseCategoryRecoverable ; sh:name "recoverable" ; sh:datatype xsd:boolean ; sh:maxCount 1 ] ,
+    [ sh:path ops:expenseCategoryParentCategory ; sh:name "parent category" ; sh:class ops:ExpenseCategory ; sh:maxCount 1 ] .
+ops:ServiceChargeBudgetShape a sh:NodeShape ; rdfs:label "Service Charge Budget requirements" ; sh:targetClass ops:ServiceChargeBudget ;
+  sh:property [ sh:path ops:serviceChargeBudgetYear ; sh:name "year" ; sh:datatype xsd:integer ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path ops:serviceChargeBudgetApprovedDate ; sh:name "approved date" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path ops:serviceChargeBudgetTotalAmount ; sh:name "total amount" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path ops:serviceChargeBudgetProperty ; sh:name "property" ; sh:class asset:Property ; sh:maxCount 1 ; sh:minCount 1 ] .
+ops:ServiceChargeBudgetLineShape a sh:NodeShape ; rdfs:label "Service Charge Budget Line requirements" ; sh:targetClass ops:ServiceChargeBudgetLine ;
+  sh:property [ sh:path ops:serviceChargeBudgetLineAmount ; sh:name "amount" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path ops:serviceChargeBudgetLineBudget ; sh:name "budget" ; sh:class ops:ServiceChargeBudget ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path ops:serviceChargeBudgetLineCategory ; sh:name "category" ; sh:class ops:ExpenseCategory ; sh:maxCount 1 ; sh:minCount 1 ] .
+ops:AllocationKeyShape a sh:NodeShape ; rdfs:label "Allocation Key requirements" ; sh:targetClass ops:AllocationKey ;
+  sh:property [ sh:path ops:allocationKeyCode ; sh:name "code" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path ops:allocationKeyName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path ops:allocationKeyBasis ; sh:name "basis" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path ops:allocationKeyProperty ; sh:name "property" ; sh:class asset:Property ; sh:maxCount 1 ; sh:minCount 1 ] .
+ops:AllocationShareShape a sh:NodeShape ; rdfs:label "Allocation Share requirements" ; sh:targetClass ops:AllocationShare ;
+  sh:property [ sh:path ops:allocationShareShare ; sh:name "share" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ; sh:maxInclusive 1 ] ,
+    [ sh:path ops:allocationShareAllocationKey ; sh:name "allocation key" ; sh:class ops:AllocationKey ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path ops:allocationShareUnit ; sh:name "unit" ; sh:class asset:LeasableUnit ; sh:maxCount 1 ; sh:minCount 1 ] .
+ops:ServiceContractShape a sh:NodeShape ; rdfs:label "Service Contract requirements" ; sh:targetClass ops:ServiceContract ;
+  sh:property [ sh:path ops:serviceContractContractNumber ; sh:name "contract number" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path ops:serviceContractStartDate ; sh:name "start date" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ; sh:lessThanOrEquals ops:serviceContractEndDate ] ,
+    [ sh:path ops:serviceContractEndDate ; sh:name "end date" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path ops:serviceContractMonthlyAmount ; sh:name "monthly amount" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path ops:serviceContractProvider ; sh:name "provider" ; sh:class party:ServiceProvider ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path ops:serviceContractProperty ; sh:name "property" ; sh:class asset:Property ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path ops:serviceContractCategory ; sh:name "category" ; sh:class ops:ExpenseCategory ; sh:maxCount 1 ; sh:minCount 1 ] .
+ops:OperatingExpenseShape a sh:NodeShape ; rdfs:label "Operating Expense requirements" ; sh:targetClass ops:OperatingExpense ;
+  sh:property [ sh:path ops:operatingExpenseSummary ; sh:name "summary" ; sh:datatype xsd:string ; sh:maxCount 1 ] ,
+    [ sh:path ops:operatingExpenseAmount ; sh:name "amount" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path ops:operatingExpenseRecoverable ; sh:name "recoverable" ; sh:datatype xsd:boolean ; sh:maxCount 1 ] ,
+    [ sh:path ops:operatingExpenseProperty ; sh:name "property" ; sh:class asset:Property ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path ops:operatingExpenseCategory ; sh:name "category" ; sh:class ops:ExpenseCategory ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path ops:operatingExpenseMonth ; sh:name "month" ; sh:class core:CalendarMonth ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path ops:operatingExpenseProvider ; sh:name "provider" ; sh:class party:ServiceProvider ; sh:maxCount 1 ] .
+ops:WorkOrderShape a sh:NodeShape ; rdfs:label "Work Order requirements" ; sh:targetClass ops:WorkOrder ;
+  sh:property [ sh:path ops:workOrderWorkOrderNumber ; sh:name "work order number" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path ops:workOrderOpenedDate ; sh:name "opened date" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ; sh:lessThanOrEquals ops:workOrderClosedDate ] ,
+    [ sh:path ops:workOrderClosedDate ; sh:name "closed date" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path ops:workOrderPriority ; sh:name "priority" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path ops:workOrderWorkType ; sh:name "work type" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path ops:workOrderCost ; sh:name "cost" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path ops:workOrderProperty ; sh:name "property" ; sh:class asset:Property ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path ops:workOrderEquipment ; sh:name "equipment" ; sh:class asset:Equipment ; sh:maxCount 1 ] ,
+    [ sh:path ops:workOrderUnit ; sh:name "unit" ; sh:class asset:LeasableUnit ; sh:maxCount 1 ] ,
+    [ sh:path ops:workOrderProvider ; sh:name "provider" ; sh:class party:ServiceProvider ; sh:maxCount 1 ] .
+ops:UtilityTypeShape a sh:NodeShape ; rdfs:label "Utility Type requirements" ; sh:targetClass ops:UtilityType ;
+  sh:property [ sh:path ops:utilityTypeCode ; sh:name "code" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path ops:utilityTypeName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path ops:utilityTypeUnitOfMeasure ; sh:name "unit of measure" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] .
+ops:UtilityMeterShape a sh:NodeShape ; rdfs:label "Utility Meter requirements" ; sh:targetClass ops:UtilityMeter ;
+  sh:property [ sh:path ops:utilityMeterCode ; sh:name "code" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path ops:utilityMeterUtilityType ; sh:name "utility type" ; sh:class ops:UtilityType ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path ops:utilityMeterProperty ; sh:name "property" ; sh:class asset:Property ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path ops:utilityMeterUnit ; sh:name "unit" ; sh:class asset:LeasableUnit ; sh:maxCount 1 ] .
+ops:MeterReadingShape a sh:NodeShape ; rdfs:label "Meter Reading requirements" ; sh:targetClass ops:MeterReading ;
+  sh:property [ sh:path ops:meterReadingReadingDate ; sh:name "reading date" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path ops:meterReadingReadingValue ; sh:name "reading value" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path ops:meterReadingConsumption ; sh:name "consumption" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path ops:meterReadingMeter ; sh:name "meter" ; sh:class ops:UtilityMeter ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path ops:meterReadingMonth ; sh:name "month" ; sh:class core:CalendarMonth ; sh:maxCount 1 ; sh:minCount 1 ] .
+ops:InsurancePolicyShape a sh:NodeShape ; rdfs:label "Insurance Policy requirements" ; sh:targetClass ops:InsurancePolicy ;
+  sh:property [ sh:path ops:insurancePolicyPolicyNumber ; sh:name "policy number" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path ops:insurancePolicyCoverageType ; sh:name "coverage type" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path ops:insurancePolicyInsuredAmount ; sh:name "insured amount" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path ops:insurancePolicyPremium ; sh:name "premium" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path ops:insurancePolicyStartDate ; sh:name "start date" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ; sh:lessThanOrEquals ops:insurancePolicyEndDate ] ,
+    [ sh:path ops:insurancePolicyEndDate ; sh:name "end date" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path ops:insurancePolicyProperty ; sh:name "property" ; sh:class asset:Property ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path ops:insurancePolicyInsurer ; sh:name "insurer" ; sh:class core:Organization ; sh:maxCount 1 ; sh:minCount 1 ] .
+ops:IncidentShape a sh:NodeShape ; rdfs:label "Incident requirements" ; sh:targetClass ops:Incident ;
+  sh:property [ sh:path ops:incidentOccurredOn ; sh:name "occurred on" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path ops:incidentIncidentType ; sh:name "incident type" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path ops:incidentSeverity ; sh:name "severity" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path ops:incidentSummary ; sh:name "summary" ; sh:datatype xsd:string ; sh:maxCount 1 ] ,
+    [ sh:path ops:incidentProperty ; sh:name "property" ; sh:class asset:Property ; sh:maxCount 1 ; sh:minCount 1 ] .
+ops:MarketingFundShape a sh:NodeShape ; rdfs:label "Marketing Fund requirements" ; sh:targetClass ops:MarketingFund ;
+  sh:property [ sh:path ops:marketingFundYear ; sh:name "year" ; sh:datatype xsd:integer ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path ops:marketingFundContributionRate ; sh:name "contribution rate" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ; sh:maxInclusive 1 ] ,
+    [ sh:path ops:marketingFundBudgetAmount ; sh:name "budget amount" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path ops:marketingFundProperty ; sh:name "property" ; sh:class asset:Property ; sh:maxCount 1 ; sh:minCount 1 ] .
+ops:MarketingCampaignShape a sh:NodeShape ; rdfs:label "Marketing Campaign requirements" ; sh:targetClass ops:MarketingCampaign ;
+  sh:property [ sh:path ops:marketingCampaignName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path ops:marketingCampaignStartDate ; sh:name "start date" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ; sh:lessThanOrEquals ops:marketingCampaignEndDate ] ,
+    [ sh:path ops:marketingCampaignEndDate ; sh:name "end date" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path ops:marketingCampaignBudget ; sh:name "budget" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path ops:marketingCampaignFund ; sh:name "fund" ; sh:class ops:MarketingFund ; sh:maxCount 1 ; sh:minCount 1 ] .
+ops:MallEventShape a sh:NodeShape ; rdfs:label "Mall Event requirements" ; sh:targetClass ops:MallEvent ;
+  sh:property [ sh:path ops:mallEventName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path ops:mallEventEventDate ; sh:name "event date" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path ops:mallEventExpectedVisitors ; sh:name "expected visitors" ; sh:datatype xsd:integer ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path ops:mallEventProperty ; sh:name "property" ; sh:class asset:Property ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path ops:mallEventCampaign ; sh:name "campaign" ; sh:class ops:MarketingCampaign ; sh:maxCount 1 ] .
+fin:ChargeTypeShape a sh:NodeShape ; rdfs:label "Charge Type requirements" ; sh:targetClass fin:ChargeType ;
+  sh:property [ sh:path fin:chargeTypeCode ; sh:name "code" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path fin:chargeTypeName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path fin:chargeTypeRevenueClass ; sh:name "revenue class" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] .
+fin:InvoiceShape a sh:NodeShape ; rdfs:label "Invoice requirements" ; sh:targetClass fin:Invoice ;
+  sh:property [ sh:path fin:invoiceInvoiceNumber ; sh:name "invoice number" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path fin:invoiceIssueDate ; sh:name "issue date" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ; sh:lessThanOrEquals fin:invoiceDueDate ] ,
+    [ sh:path fin:invoiceDueDate ; sh:name "due date" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path fin:invoiceStatus ; sh:name "status" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path fin:invoiceProperty ; sh:name "property" ; sh:class asset:Property ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path fin:invoiceBilledTenant ; sh:name "billed tenant" ; sh:class party:Tenant ; sh:maxCount 1 ; sh:minCount 1 ] .
+fin:ChargeShape a sh:NodeShape ; rdfs:label "Charge requirements" ; sh:targetClass fin:Charge ;
+  sh:property [ sh:path fin:chargeSummary ; sh:name "summary" ; sh:datatype xsd:string ; sh:maxCount 1 ] ,
+    [ sh:path fin:chargeAmount ; sh:name "amount" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path fin:chargePaidAmount ; sh:name "paid amount" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path fin:chargeDueDate ; sh:name "due date" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path fin:chargeInvoice ; sh:name "invoice" ; sh:class fin:Invoice ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path fin:chargeLease ; sh:name "lease" ; sh:class lease:Lease ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path fin:chargeChargeType ; sh:name "charge type" ; sh:class fin:ChargeType ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path fin:chargeMonth ; sh:name "month" ; sh:class core:CalendarMonth ; sh:maxCount 1 ; sh:minCount 1 ] .
+fin:BankAccountShape a sh:NodeShape ; rdfs:label "Bank Account requirements" ; sh:targetClass fin:BankAccount ;
+  sh:property [ sh:path fin:bankAccountBankName ; sh:name "bank name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path fin:bankAccountBranchCode ; sh:name "branch code" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path fin:bankAccountAccountNumber ; sh:name "account number" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path fin:bankAccountProperty ; sh:name "property" ; sh:class asset:Property ; sh:maxCount 1 ; sh:minCount 1 ] .
+fin:PaymentShape a sh:NodeShape ; rdfs:label "Payment requirements" ; sh:targetClass fin:Payment ;
+  sh:property [ sh:path fin:paymentPaymentDate ; sh:name "payment date" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path fin:paymentAmount ; sh:name "amount" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path fin:paymentPaymentMethod ; sh:name "payment method" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path fin:paymentPayer ; sh:name "payer" ; sh:class party:Tenant ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path fin:paymentBankAccount ; sh:name "bank account" ; sh:class fin:BankAccount ; sh:maxCount 1 ] .
+fin:PaymentAllocationShape a sh:NodeShape ; rdfs:label "Payment Allocation requirements" ; sh:targetClass fin:PaymentAllocation ;
+  sh:property [ sh:path fin:paymentAllocationAmount ; sh:name "amount" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path fin:paymentAllocationPayment ; sh:name "payment" ; sh:class fin:Payment ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path fin:paymentAllocationCharge ; sh:name "charge" ; sh:class fin:Charge ; sh:maxCount 1 ; sh:minCount 1 ] .
+fin:ArrearsCaseShape a sh:NodeShape ; rdfs:label "Arrears Case requirements" ; sh:targetClass fin:ArrearsCase ;
+  sh:property [ sh:path fin:arrearsCaseOpenedDate ; sh:name "opened date" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ; sh:lessThanOrEquals fin:arrearsCaseClosedDate ] ,
+    [ sh:path fin:arrearsCaseClosedDate ; sh:name "closed date" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path fin:arrearsCaseStatus ; sh:name "status" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path fin:arrearsCaseAmountOverdue ; sh:name "amount overdue" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path fin:arrearsCaseLease ; sh:name "lease" ; sh:class lease:Lease ; sh:maxCount 1 ; sh:minCount 1 ] .
+fin:CollectionActionShape a sh:NodeShape ; rdfs:label "Collection Action requirements" ; sh:targetClass fin:CollectionAction ;
+  sh:property [ sh:path fin:collectionActionActionDate ; sh:name "action date" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path fin:collectionActionActionType ; sh:name "action type" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path fin:collectionActionOutcome ; sh:name "outcome" ; sh:datatype xsd:string ; sh:maxCount 1 ] ,
+    [ sh:path fin:collectionActionArrearsCase ; sh:name "arrears case" ; sh:class fin:ArrearsCase ; sh:maxCount 1 ; sh:minCount 1 ] .
+fin:PaymentAgreementShape a sh:NodeShape ; rdfs:label "Payment Agreement requirements" ; sh:targetClass fin:PaymentAgreement ;
+  sh:property [ sh:path fin:paymentAgreementAgreementDate ; sh:name "agreement date" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path fin:paymentAgreementTotalAmount ; sh:name "total amount" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path fin:paymentAgreementInstallments ; sh:name "installments" ; sh:datatype xsd:integer ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path fin:paymentAgreementArrearsCase ; sh:name "arrears case" ; sh:class fin:ArrearsCase ; sh:maxCount 1 ; sh:minCount 1 ] .
+fin:LegalProceedingShape a sh:NodeShape ; rdfs:label "Legal Proceeding requirements" ; sh:targetClass fin:LegalProceeding ;
+  sh:property [ sh:path fin:legalProceedingCaseNumber ; sh:name "case number" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path fin:legalProceedingProceedingType ; sh:name "proceeding type" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path fin:legalProceedingFilingDate ; sh:name "filing date" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path fin:legalProceedingStatus ; sh:name "status" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path fin:legalProceedingAmountClaimed ; sh:name "amount claimed" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path fin:legalProceedingLease ; sh:name "lease" ; sh:class lease:Lease ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path fin:legalProceedingLawFirm ; sh:name "law firm" ; sh:class core:Organization ; sh:maxCount 1 ] .
+fin:LedgerAccountShape a sh:NodeShape ; rdfs:label "Ledger Account requirements" ; sh:targetClass fin:LedgerAccount ;
+  sh:property [ sh:path fin:ledgerAccountCode ; sh:name "code" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path fin:ledgerAccountName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path fin:ledgerAccountAccountClass ; sh:name "account class" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path fin:ledgerAccountParentAccount ; sh:name "parent account" ; sh:class fin:LedgerAccount ; sh:maxCount 1 ] .
+fin:JournalEntryShape a sh:NodeShape ; rdfs:label "Journal Entry requirements" ; sh:targetClass fin:JournalEntry ;
+  sh:property [ sh:path fin:journalEntryEntryDate ; sh:name "entry date" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path fin:journalEntrySummary ; sh:name "summary" ; sh:datatype xsd:string ; sh:maxCount 1 ] ,
+    [ sh:path fin:journalEntryProperty ; sh:name "property" ; sh:class asset:Property ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path fin:journalEntryMonth ; sh:name "month" ; sh:class core:CalendarMonth ; sh:maxCount 1 ; sh:minCount 1 ] .
+fin:JournalLineShape a sh:NodeShape ; rdfs:label "Journal Line requirements" ; sh:targetClass fin:JournalLine ;
+  sh:property [ sh:path fin:journalLineAmount ; sh:name "amount" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path fin:journalLineNoiClass ; sh:name "noi class" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path fin:journalLineMemo ; sh:name "memo" ; sh:datatype xsd:string ; sh:maxCount 1 ] ,
+    [ sh:path fin:journalLineEntry ; sh:name "entry" ; sh:class fin:JournalEntry ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path fin:journalLineAccount ; sh:name "account" ; sh:class fin:LedgerAccount ; sh:maxCount 1 ; sh:minCount 1 ] .
+fin:OwnerDistributionShape a sh:NodeShape ; rdfs:label "Owner Distribution requirements" ; sh:targetClass fin:OwnerDistribution ;
+  sh:property [ sh:path fin:ownerDistributionDistributionDate ; sh:name "distribution date" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path fin:ownerDistributionAmount ; sh:name "amount" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path fin:ownerDistributionStake ; sh:name "stake" ; sh:class asset:OwnershipStake ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path fin:ownerDistributionMonth ; sh:name "month" ; sh:class core:CalendarMonth ; sh:maxCount 1 ; sh:minCount 1 ] .
+fin:CapitalProjectShape a sh:NodeShape ; rdfs:label "Capital Project requirements" ; sh:targetClass fin:CapitalProject ;
+  sh:property [ sh:path fin:capitalProjectName ; sh:name "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minCount 1 ; sh:minLength 1 ] ,
+    [ sh:path fin:capitalProjectProjectType ; sh:name "project type" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 ] ,
+    [ sh:path fin:capitalProjectBudget ; sh:name "budget" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path fin:capitalProjectStartDate ; sh:name "start date" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path fin:capitalProjectCompletionDate ; sh:name "completion date" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path fin:capitalProjectAddedGlaM2 ; sh:name "added gla m2" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path fin:capitalProjectProperty ; sh:name "property" ; sh:class asset:Property ; sh:maxCount 1 ; sh:minCount 1 ] .
+perf:OccupancySnapshotShape a sh:NodeShape ; rdfs:label "Occupancy Snapshot requirements" ; sh:targetClass perf:OccupancySnapshot ;
+  sh:property [ sh:path perf:occupancySnapshotGlaM2 ; sh:name "gla m2" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path perf:occupancySnapshotOccupiedGlaM2 ; sh:name "occupied gla m2" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path perf:occupancySnapshotContractedMinimumRent ; sh:name "contracted minimum rent" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path perf:occupancySnapshotUnit ; sh:name "unit" ; sh:class asset:LeasableUnit ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path perf:occupancySnapshotMonth ; sh:name "month" ; sh:class core:CalendarMonth ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path perf:occupancySnapshotLease ; sh:name "lease" ; sh:class lease:Lease ; sh:maxCount 1 ] .
+perf:SalesReportShape a sh:NodeShape ; rdfs:label "Sales Report requirements" ; sh:targetClass perf:SalesReport ;
+  sh:property [ sh:path perf:salesReportGrossSales ; sh:name "gross sales" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path perf:salesReportReportedGlaM2 ; sh:name "reported gla m2" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path perf:salesReportOccupancyCost ; sh:name "occupancy cost" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path perf:salesReportSubmittedDate ; sh:name "submitted date" ; sh:datatype xsd:date ; sh:maxCount 1 ] ,
+    [ sh:path perf:salesReportIsAudited ; sh:name "is audited" ; sh:datatype xsd:boolean ; sh:maxCount 1 ] ,
+    [ sh:path perf:salesReportLease ; sh:name "lease" ; sh:class lease:Lease ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path perf:salesReportProperty ; sh:name "property" ; sh:class asset:Property ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path perf:salesReportMonth ; sh:name "month" ; sh:class core:CalendarMonth ; sh:maxCount 1 ; sh:minCount 1 ] .
+perf:SalesAuditShape a sh:NodeShape ; rdfs:label "Sales Audit requirements" ; sh:targetClass perf:SalesAudit ;
+  sh:property [ sh:path perf:salesAuditAuditDate ; sh:name "audit date" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path perf:salesAuditAuditedSales ; sh:name "audited sales" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path perf:salesAuditVarianceAmount ; sh:name "variance amount" ; sh:datatype xsd:decimal ; sh:maxCount 1 ] ,
+    [ sh:path perf:salesAuditSalesReport ; sh:name "sales report" ; sh:class perf:SalesReport ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path perf:salesAuditAuditor ; sh:name "auditor" ; sh:class core:Organization ; sh:maxCount 1 ] .
+perf:FootfallCountShape a sh:NodeShape ; rdfs:label "Footfall Count requirements" ; sh:targetClass perf:FootfallCount ;
+  sh:property [ sh:path perf:footfallCountPeriodStart ; sh:name "period start" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ; sh:lessThanOrEquals perf:footfallCountPeriodEnd ] ,
+    [ sh:path perf:footfallCountPeriodEnd ; sh:name "period end" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path perf:footfallCountVisitors ; sh:name "visitors" ; sh:datatype xsd:integer ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path perf:footfallCountEntrance ; sh:name "entrance" ; sh:class asset:Entrance ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path perf:footfallCountMonth ; sh:name "month" ; sh:class core:CalendarMonth ; sh:maxCount 1 ; sh:minCount 1 ] .
+perf:ParkingActivityShape a sh:NodeShape ; rdfs:label "Parking Activity requirements" ; sh:targetClass perf:ParkingActivity ;
+  sh:property [ sh:path perf:parkingActivityTickets ; sh:name "tickets" ; sh:datatype xsd:integer ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path perf:parkingActivityRevenue ; sh:name "revenue" ; sh:datatype xsd:decimal ; sh:maxCount 1 ; sh:minCount 1 ; sh:minInclusive 0 ] ,
+    [ sh:path perf:parkingActivityFacility ; sh:name "facility" ; sh:class asset:ParkingFacility ; sh:maxCount 1 ; sh:minCount 1 ] ,
+    [ sh:path perf:parkingActivityMonth ; sh:name "month" ; sh:class core:CalendarMonth ; sh:maxCount 1 ; sh:minCount 1 ] .
