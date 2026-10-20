@@ -15,84 +15,111 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix data: <https://example.org/mall/data/> .
 data:organizations-1 a core:Organization ;
+  rdfs:label "Aurora Asset Management" ;
   core:partyName "Aurora Asset Management" ;
   core:organizationOrganizationType "asset manager" .
 data:organizations-2 a core:Organization ;
+  rdfs:label "Aurora Administradora" ;
   core:partyName "Aurora Administradora" ;
   core:organizationOrganizationType "property administrator" .
 data:organizations-3 a core:Organization ;
+  rdfs:label "Aurora Shopping SPE" ;
   core:partyName "Aurora Shopping SPE" ;
   core:organizationOrganizationType "company" ;
   core:organizationParentOrganization data:organizations-1 .
 data:organizations-4 a core:Organization ;
+  rdfs:label "Brisa Outlet SPE" ;
   core:partyName "Brisa Outlet SPE" ;
   core:organizationOrganizationType "company" ;
   core:organizationParentOrganization data:organizations-1 .
 data:organizations-5 a core:Organization ;
+  rdfs:label "Magazine Norte" ;
   core:partyName "Magazine Norte" .
 data:organizations-6 a core:Organization ;
+  rdfs:label "Linha Moda" ;
   core:partyName "Linha Moda" .
 data:organizations-7 a core:Organization ;
+  rdfs:label "Passo Calçados" ;
   core:partyName "Passo Calçados" .
 data:organizations-8 a core:Organization ;
+  rdfs:label "Sabor Grill" ;
   core:partyName "Sabor Grill" .
 data:organizations-9 a core:Organization ;
+  rdfs:label "Conserta Já" ;
   core:partyName "Conserta Já" .
 data:organizations-10 a core:Organization ;
+  rdfs:label "Ventura Esportes" ;
   core:partyName "Ventura Esportes" .
 data:organizations-11 a core:Organization ;
+  rdfs:label "Limpa Bem Serviços" ;
   core:partyName "Limpa Bem Serviços" ;
   core:organizationOrganizationType "company" .
 data:organizations-12 a core:Organization ;
+  rdfs:label "Guarda Forte Segurança" ;
   core:partyName "Guarda Forte Segurança" ;
   core:organizationOrganizationType "company" .
 data:people-1 a core:Person ;
+  rdfs:label "Ana Prado" ;
   core:partyName "Ana Prado" .
 data:people-2 a core:Person ;
+  rdfs:label "Bruno Lima" ;
   core:partyName "Bruno Lima" .
 data:people-3 a core:Person ;
+  rdfs:label "Carla Reis" ;
   core:partyName "Carla Reis" .
 data:people-4 a core:Person ;
+  rdfs:label "Diego Souza" ;
   core:partyName "Diego Souza" .
 data:addresses-1 a core:Address ;
+  rdfs:label "1000" ;
   core:addressStreet "Avenida das Palmeiras" ;
   core:addressStreetNumber "1000" ;
   core:addressCity data:cities-1 .
 data:addresses-2 a core:Address ;
+  rdfs:label "km 12" ;
   core:addressStreet "Rodovia do Litoral" ;
   core:addressStreetNumber "km 12" ;
   core:addressCity data:cities-2 .
 data:cities-1 a core:City ;
+  rdfs:label "Campinas" ;
   core:cityName "Campinas" ;
   core:cityState data:state_provinces-1 .
 data:cities-2 a core:City ;
+  rdfs:label "Sorocaba" ;
   core:cityName "Sorocaba" ;
   core:cityState data:state_provinces-1 .
 data:state_provinces-1 a core:StateProvince ;
+  rdfs:label "São Paulo" ;
   core:stateProvinceName "São Paulo" ;
   core:stateProvinceCode "SP" ;
   core:stateProvinceCountry data:countries-1 .
 data:countries-1 a core:Country ;
+  rdfs:label "Brazil" ;
   core:countryName "Brazil" ;
   core:countryIsoCode "BR" .
 data:currencies-1 a core:Currency ;
+  rdfs:label "Brazilian real" ;
   core:currencyName "Brazilian real" ;
   core:currencyIsoCode "BRL" .
 data:calendar_months-1 a core:CalendarMonth ;
+  rdfs:label "2026-Q3" ;
   core:calendarMonthYearMonth "2026-08"^^xsd:gYearMonth ;
   core:calendarMonthYear "2026"^^xsd:integer ;
   core:calendarMonthMonthNumber "8"^^xsd:integer ;
   core:calendarMonthQuarter "2026-Q3" .
 data:calendar_months-2 a core:CalendarMonth ;
+  rdfs:label "2026-Q3" ;
   core:calendarMonthYearMonth "2026-09"^^xsd:gYearMonth ;
   core:calendarMonthYear "2026"^^xsd:integer ;
   core:calendarMonthMonthNumber "9"^^xsd:integer ;
   core:calendarMonthQuarter "2026-Q3" .
 data:portfolios-1 a asset:Portfolio ;
+  rdfs:label "Aurora Retail Portfolio" ;
   asset:portfolioName "Aurora Retail Portfolio" ;
   asset:portfolioStrategy "Core regional malls" ;
   asset:portfolioAssetManager data:organizations-1 .
 data:properties-1 a asset:Property ;
+  rdfs:label "AUR" ;
   asset:propertyCode "AUR" ;
   asset:propertyName "Aurora Shopping" ;
   asset:propertyPropertyFormat "regional" ;
@@ -104,6 +131,7 @@ data:properties-1 a asset:Property ;
   asset:propertyCurrency data:currencies-1 ;
   asset:propertyAdministrator data:organizations-2 .
 data:properties-2 a asset:Property ;
+  rdfs:label "BRS" ;
   asset:propertyCode "BRS" ;
   asset:propertyName "Brisa Outlet" ;
   asset:propertyPropertyFormat "outlet" ;
@@ -115,98 +143,119 @@ data:properties-2 a asset:Property ;
   asset:propertyCurrency data:currencies-1 ;
   asset:propertyAdministrator data:organizations-2 .
 data:buildings-1 a asset:Building ;
+  rdfs:label "AUR-M" ;
   asset:buildingCode "AUR-M" ;
   asset:buildingName "Aurora mall" ;
   asset:buildingProperty data:properties-1 .
 data:buildings-2 a asset:Building ;
+  rdfs:label "BRS-M" ;
   asset:buildingCode "BRS-M" ;
   asset:buildingName "Brisa mall" ;
   asset:buildingProperty data:properties-2 .
 data:floors-1 a asset:Floor ;
+  rdfs:label "L1" ;
   asset:floorCode "L1" ;
   asset:floorName "Ground level" ;
   asset:floorLevelNumber "1"^^xsd:integer ;
   asset:floorBuilding data:buildings-1 .
 data:floors-2 a asset:Floor ;
+  rdfs:label "L2" ;
   asset:floorCode "L2" ;
   asset:floorName "Upper level" ;
   asset:floorLevelNumber "2"^^xsd:integer ;
   asset:floorBuilding data:buildings-1 .
 data:floors-3 a asset:Floor ;
+  rdfs:label "L1" ;
   asset:floorCode "L1" ;
   asset:floorName "Outlet level" ;
   asset:floorLevelNumber "1"^^xsd:integer ;
   asset:floorBuilding data:buildings-2 .
 data:zones-1 a asset:Zone ;
+  rdfs:label "L1-A" ;
   asset:zoneCode "L1-A" ;
   asset:zoneName "Main avenue" ;
   asset:zoneFloor data:floors-1 .
 data:zones-2 a asset:Zone ;
+  rdfs:label "L2-A" ;
   asset:zoneCode "L2-A" ;
   asset:zoneName "Food and leisure" ;
   asset:zoneFloor data:floors-2 .
 data:zones-3 a asset:Zone ;
+  rdfs:label "O-A" ;
   asset:zoneCode "O-A" ;
   asset:zoneName "Outlet street" ;
   asset:zoneFloor data:floors-3 .
 data:units-1 a asset:LeasableUnit ;
+  rdfs:label "AUR-101" ;
   asset:spaceCode "AUR-101" ;
   asset:spaceName "Anchor north" ;
   asset:spaceAreaM2 "2000"^^xsd:decimal ;
   asset:leasableUnitZone data:zones-1 ;
   asset:leasableUnitUnitType data:unit_types-1 .
 data:units-2 a asset:LeasableUnit ;
+  rdfs:label "AUR-110" ;
   asset:spaceCode "AUR-110" ;
   asset:spaceAreaM2 "150"^^xsd:decimal ;
   asset:leasableUnitZone data:zones-1 ;
   asset:leasableUnitUnitType data:unit_types-2 .
 data:units-3 a asset:LeasableUnit ;
+  rdfs:label "AUR-112" ;
   asset:spaceCode "AUR-112" ;
   asset:spaceAreaM2 "120"^^xsd:decimal ;
   asset:leasableUnitZone data:zones-1 ;
   asset:leasableUnitUnitType data:unit_types-2 .
 data:units-4 a asset:LeasableUnit ;
+  rdfs:label "AUR-205" ;
   asset:spaceCode "AUR-205" ;
   asset:spaceAreaM2 "60"^^xsd:decimal ;
   asset:leasableUnitZone data:zones-2 ;
   asset:leasableUnitUnitType data:unit_types-3 .
 data:units-5 a asset:LeasableUnit ;
+  rdfs:label "AUR-K01" ;
   asset:spaceCode "AUR-K01" ;
   asset:spaceAreaM2 "12"^^xsd:decimal ;
   asset:leasableUnitZone data:zones-2 ;
   asset:leasableUnitUnitType data:unit_types-4 .
 data:units-6 a asset:LeasableUnit ;
+  rdfs:label "AUR-220" ;
   asset:spaceCode "AUR-220" ;
   asset:spaceAreaM2 "200"^^xsd:decimal ;
   asset:leasableUnitZone data:zones-2 ;
   asset:leasableUnitUnitType data:unit_types-2 .
 data:units-7 a asset:LeasableUnit ;
+  rdfs:label "BRS-01" ;
   asset:spaceCode "BRS-01" ;
   asset:spaceAreaM2 "300"^^xsd:decimal ;
   asset:leasableUnitZone data:zones-3 ;
   asset:leasableUnitUnitType data:unit_types-2 .
 data:units-8 a asset:LeasableUnit ;
+  rdfs:label "BRS-02" ;
   asset:spaceCode "BRS-02" ;
   asset:spaceAreaM2 "250"^^xsd:decimal ;
   asset:leasableUnitZone data:zones-3 ;
   asset:leasableUnitUnitType data:unit_types-2 .
 data:unit_types-1 a asset:UnitType ;
+  rdfs:label "ANC" ;
   asset:unitTypeCode "ANC" ;
   asset:unitTypeName "Anchor" ;
   asset:unitTypeCountsAsGla true .
 data:unit_types-2 a asset:UnitType ;
+  rdfs:label "INL" ;
   asset:unitTypeCode "INL" ;
   asset:unitTypeName "Inline store" ;
   asset:unitTypeCountsAsGla true .
 data:unit_types-3 a asset:UnitType ;
+  rdfs:label "FC" ;
   asset:unitTypeCode "FC" ;
   asset:unitTypeName "Food court" ;
   asset:unitTypeCountsAsGla true .
 data:unit_types-4 a asset:UnitType ;
+  rdfs:label "KSK" ;
   asset:unitTypeCode "KSK" ;
   asset:unitTypeName "Kiosk" ;
   asset:unitTypeCountsAsGla true .
 data:parking_facilities-1 a asset:ParkingFacility ;
+  rdfs:label "AUR-P" ;
   asset:spaceCode "AUR-P" ;
   asset:spaceName "Aurora parking" ;
   asset:spaceAreaM2 "22000"^^xsd:decimal ;
@@ -214,6 +263,7 @@ data:parking_facilities-1 a asset:ParkingFacility ;
   asset:parkingFacilityIsPaid true ;
   asset:parkingFacilityProperty data:properties-1 .
 data:parking_facilities-2 a asset:ParkingFacility ;
+  rdfs:label "BRS-P" ;
   asset:spaceCode "BRS-P" ;
   asset:spaceName "Brisa parking" ;
   asset:spaceAreaM2 "7500"^^xsd:decimal ;
@@ -221,91 +271,117 @@ data:parking_facilities-2 a asset:ParkingFacility ;
   asset:parkingFacilityIsPaid false ;
   asset:parkingFacilityProperty data:properties-2 .
 data:entrances-1 a asset:Entrance ;
+  rdfs:label "AUR-E1" ;
   asset:entranceCode "AUR-E1" ;
   asset:entranceName "Main entrance" ;
   asset:entranceEntranceKind "pedestrian" ;
   asset:entranceProperty data:properties-1 .
 data:entrances-2 a asset:Entrance ;
+  rdfs:label "AUR-E2" ;
   asset:entranceCode "AUR-E2" ;
   asset:entranceName "Parking entrance" ;
   asset:entranceEntranceKind "parking" ;
   asset:entranceProperty data:properties-1 .
 data:entrances-3 a asset:Entrance ;
+  rdfs:label "BRS-E1" ;
   asset:entranceCode "BRS-E1" ;
   asset:entranceName "Outlet entrance" ;
   asset:entranceEntranceKind "pedestrian" ;
   asset:entranceProperty data:properties-2 .
 data:tenants-1 a party:Tenant ;
+  rdfs:label "Norte" ;
   party:tenantTradeName "Norte" ;
   party:tenantOrganization data:organizations-5 .
 data:tenants-2 a party:Tenant ;
+  rdfs:label "Linha" ;
   party:tenantTradeName "Linha" ;
   party:tenantOrganization data:organizations-6 .
 data:tenants-3 a party:Tenant ;
+  rdfs:label "Passo" ;
   party:tenantTradeName "Passo" ;
   party:tenantOrganization data:organizations-7 .
 data:tenants-4 a party:Tenant ;
+  rdfs:label "Sabor Grill" ;
   party:tenantTradeName "Sabor Grill" ;
   party:tenantOrganization data:organizations-8 .
 data:tenants-5 a party:Tenant ;
+  rdfs:label "Conserta Já" ;
   party:tenantTradeName "Conserta Já" ;
   party:tenantOrganization data:organizations-9 .
 data:tenants-6 a party:Tenant ;
+  rdfs:label "Ventura" ;
   party:tenantTradeName "Ventura" ;
   party:tenantOrganization data:organizations-10 .
 data:brands-1 a party:Brand ;
+  rdfs:label "Norte" ;
   party:brandName "Norte" ;
   party:brandOwner data:tenants-1 .
 data:brands-2 a party:Brand ;
+  rdfs:label "Linha" ;
   party:brandName "Linha" ;
   party:brandOwner data:tenants-2 .
 data:brands-3 a party:Brand ;
+  rdfs:label "Passo" ;
   party:brandName "Passo" ;
   party:brandOwner data:tenants-3 .
 data:brands-4 a party:Brand ;
+  rdfs:label "Sabor Grill" ;
   party:brandName "Sabor Grill" ;
   party:brandOwner data:tenants-4 .
 data:brands-5 a party:Brand ;
+  rdfs:label "Conserta Já" ;
   party:brandName "Conserta Já" ;
   party:brandOwner data:tenants-5 .
 data:brands-6 a party:Brand ;
+  rdfs:label "Linha Outlet" ;
   party:brandName "Linha Outlet" ;
   party:brandOwner data:tenants-2 .
 data:brands-7 a party:Brand ;
+  rdfs:label "Ventura" ;
   party:brandName "Ventura" ;
   party:brandOwner data:tenants-6 .
 data:merchandise_categories-1 a party:MerchandiseCategory ;
+  rdfs:label "RET" ;
   party:merchandiseCategoryCode "RET" ;
   party:merchandiseCategoryName "Retail" .
 data:merchandise_categories-2 a party:MerchandiseCategory ;
+  rdfs:label "DEP" ;
   party:merchandiseCategoryCode "DEP" ;
   party:merchandiseCategoryName "Department store" ;
   party:merchandiseCategoryParentCategory data:merchandise_categories-1 .
 data:merchandise_categories-3 a party:MerchandiseCategory ;
+  rdfs:label "APP" ;
   party:merchandiseCategoryCode "APP" ;
   party:merchandiseCategoryName "Apparel" ;
   party:merchandiseCategoryParentCategory data:merchandise_categories-1 .
 data:merchandise_categories-4 a party:MerchandiseCategory ;
+  rdfs:label "FTW" ;
   party:merchandiseCategoryCode "FTW" ;
   party:merchandiseCategoryName "Footwear" ;
   party:merchandiseCategoryParentCategory data:merchandise_categories-1 .
 data:merchandise_categories-5 a party:MerchandiseCategory ;
+  rdfs:label "FOOD" ;
   party:merchandiseCategoryCode "FOOD" ;
   party:merchandiseCategoryName "Food court" .
 data:merchandise_categories-6 a party:MerchandiseCategory ;
+  rdfs:label "SRV" ;
   party:merchandiseCategoryCode "SRV" ;
   party:merchandiseCategoryName "Services" .
 data:merchandise_categories-7 a party:MerchandiseCategory ;
+  rdfs:label "SPT" ;
   party:merchandiseCategoryCode "SPT" ;
   party:merchandiseCategoryName "Sports" ;
   party:merchandiseCategoryParentCategory data:merchandise_categories-1 .
 data:lease_statuses-1 a lease:LeaseStatus ;
+  rdfs:label "ACT" ;
   lease:leaseStatusCode "ACT" ;
   lease:leaseStatusName "Active" .
 data:lease_statuses-2 a lease:LeaseStatus ;
+  rdfs:label "FIT" ;
   lease:leaseStatusCode "FIT" ;
   lease:leaseStatusName "Fit-out" .
 data:leases-1 a lease:Lease ;
+  rdfs:label "Lease 1" ;
   lease:leaseTermMonths "60"^^xsd:integer ;
   lease:leaseMonthlyMinimumRent "60000"^^xsd:decimal ;
   lease:leaseHasThirteenthRent true ;
@@ -315,6 +391,7 @@ data:leases-1 a lease:Lease ;
   lease:leaseStatus data:lease_statuses-1 ;
   lease:leasePermittedUse data:merchandise_categories-2 .
 data:leases-2 a lease:Lease ;
+  rdfs:label "Lease 2" ;
   lease:leaseTermMonths "60"^^xsd:integer ;
   lease:leaseMonthlyMinimumRent "18000"^^xsd:decimal ;
   lease:leaseHasThirteenthRent true ;
@@ -324,6 +401,7 @@ data:leases-2 a lease:Lease ;
   lease:leaseStatus data:lease_statuses-1 ;
   lease:leasePermittedUse data:merchandise_categories-3 .
 data:leases-3 a lease:Lease ;
+  rdfs:label "Lease 3" ;
   lease:leaseTermMonths "60"^^xsd:integer ;
   lease:leaseMonthlyMinimumRent "14400"^^xsd:decimal ;
   lease:leaseHasThirteenthRent true ;
@@ -333,6 +411,7 @@ data:leases-3 a lease:Lease ;
   lease:leaseStatus data:lease_statuses-1 ;
   lease:leasePermittedUse data:merchandise_categories-4 .
 data:leases-4 a lease:Lease ;
+  rdfs:label "Lease 4" ;
   lease:leaseTermMonths "60"^^xsd:integer ;
   lease:leaseMonthlyMinimumRent "12000"^^xsd:decimal ;
   lease:leaseHasThirteenthRent true ;
@@ -342,6 +421,7 @@ data:leases-4 a lease:Lease ;
   lease:leaseStatus data:lease_statuses-1 ;
   lease:leasePermittedUse data:merchandise_categories-5 .
 data:leases-5 a lease:Lease ;
+  rdfs:label "Lease 5" ;
   lease:leaseTermMonths "60"^^xsd:integer ;
   lease:leaseMonthlyMinimumRent "4000"^^xsd:decimal ;
   lease:leaseHasThirteenthRent true ;
@@ -351,6 +431,7 @@ data:leases-5 a lease:Lease ;
   lease:leaseStatus data:lease_statuses-1 ;
   lease:leasePermittedUse data:merchandise_categories-6 .
 data:leases-6 a lease:Lease ;
+  rdfs:label "Lease 6" ;
   lease:leaseTermMonths "60"^^xsd:integer ;
   lease:leaseMonthlyMinimumRent "21000"^^xsd:decimal ;
   lease:leaseHasThirteenthRent true ;
@@ -360,6 +441,7 @@ data:leases-6 a lease:Lease ;
   lease:leaseStatus data:lease_statuses-1 ;
   lease:leasePermittedUse data:merchandise_categories-3 .
 data:leases-7 a lease:Lease ;
+  rdfs:label "Lease 7" ;
   lease:leaseTermMonths "60"^^xsd:integer ;
   lease:leaseMonthlyMinimumRent "17500"^^xsd:decimal ;
   lease:leaseHasThirteenthRent true ;
@@ -369,111 +451,133 @@ data:leases-7 a lease:Lease ;
   lease:leaseStatus data:lease_statuses-1 ;
   lease:leasePermittedUse data:merchandise_categories-7 .
 data:leased_units-1 a lease:LeasedUnit ;
+  rdfs:label "Leased Unit 1" ;
   lease:leasedUnitStartDate "2020-01-01"^^xsd:date ;
   lease:leasedUnitLeasedAreaM2 "2000"^^xsd:decimal ;
   lease:leasedUnitLease data:leases-1 ;
   lease:leasedUnitUnit data:units-1 .
 data:leased_units-2 a lease:LeasedUnit ;
+  rdfs:label "Leased Unit 2" ;
   lease:leasedUnitStartDate "2021-03-01"^^xsd:date ;
   lease:leasedUnitLeasedAreaM2 "150"^^xsd:decimal ;
   lease:leasedUnitLease data:leases-2 ;
   lease:leasedUnitUnit data:units-2 .
 data:leased_units-3 a lease:LeasedUnit ;
+  rdfs:label "Leased Unit 3" ;
   lease:leasedUnitStartDate "2022-06-01"^^xsd:date ;
   lease:leasedUnitLeasedAreaM2 "120"^^xsd:decimal ;
   lease:leasedUnitLease data:leases-3 ;
   lease:leasedUnitUnit data:units-3 .
 data:leased_units-4 a lease:LeasedUnit ;
+  rdfs:label "Leased Unit 4" ;
   lease:leasedUnitStartDate "2023-02-01"^^xsd:date ;
   lease:leasedUnitLeasedAreaM2 "60"^^xsd:decimal ;
   lease:leasedUnitLease data:leases-4 ;
   lease:leasedUnitUnit data:units-4 .
 data:leased_units-5 a lease:LeasedUnit ;
+  rdfs:label "Leased Unit 5" ;
   lease:leasedUnitStartDate "2024-05-01"^^xsd:date ;
   lease:leasedUnitLeasedAreaM2 "12"^^xsd:decimal ;
   lease:leasedUnitLease data:leases-5 ;
   lease:leasedUnitUnit data:units-5 .
 data:leased_units-6 a lease:LeasedUnit ;
+  rdfs:label "Leased Unit 6" ;
   lease:leasedUnitStartDate "2022-09-01"^^xsd:date ;
   lease:leasedUnitLeasedAreaM2 "300"^^xsd:decimal ;
   lease:leasedUnitLease data:leases-6 ;
   lease:leasedUnitUnit data:units-7 .
 data:leased_units-7 a lease:LeasedUnit ;
+  rdfs:label "Leased Unit 7" ;
   lease:leasedUnitStartDate "2026-09-01"^^xsd:date ;
   lease:leasedUnitLeasedAreaM2 "250"^^xsd:decimal ;
   lease:leasedUnitLease data:leases-7 ;
   lease:leasedUnitUnit data:units-8 .
 data:percentage_rent_clauses-1 a lease:PercentageRentClause ;
+  rdfs:label "5.2" ;
   lease:leaseClauseClauseReference "5.2" ;
   lease:leaseClauseEffectiveFrom "2020-01-01"^^xsd:date ;
   lease:percentageRentClauseRate "0.02"^^xsd:decimal ;
   lease:percentageRentClauseExcludesThirteenthRent true ;
   lease:leaseClauseLease data:leases-1 .
 data:percentage_rent_clauses-2 a lease:PercentageRentClause ;
+  rdfs:label "5.2" ;
   lease:leaseClauseClauseReference "5.2" ;
   lease:leaseClauseEffectiveFrom "2021-03-01"^^xsd:date ;
   lease:percentageRentClauseRate "0.07"^^xsd:decimal ;
   lease:percentageRentClauseExcludesThirteenthRent true ;
   lease:leaseClauseLease data:leases-2 .
 data:percentage_rent_clauses-3 a lease:PercentageRentClause ;
+  rdfs:label "5.2" ;
   lease:leaseClauseClauseReference "5.2" ;
   lease:leaseClauseEffectiveFrom "2022-06-01"^^xsd:date ;
   lease:percentageRentClauseRate "0.06"^^xsd:decimal ;
   lease:percentageRentClauseExcludesThirteenthRent true ;
   lease:leaseClauseLease data:leases-3 .
 data:percentage_rent_clauses-4 a lease:PercentageRentClause ;
+  rdfs:label "5.2" ;
   lease:leaseClauseClauseReference "5.2" ;
   lease:leaseClauseEffectiveFrom "2023-02-01"^^xsd:date ;
   lease:percentageRentClauseRate "0.08"^^xsd:decimal ;
   lease:percentageRentClauseExcludesThirteenthRent true ;
   lease:leaseClauseLease data:leases-4 .
 data:percentage_rent_clauses-5 a lease:PercentageRentClause ;
+  rdfs:label "5.2" ;
   lease:leaseClauseClauseReference "5.2" ;
   lease:leaseClauseEffectiveFrom "2024-05-01"^^xsd:date ;
   lease:percentageRentClauseRate "0.1"^^xsd:decimal ;
   lease:percentageRentClauseExcludesThirteenthRent true ;
   lease:leaseClauseLease data:leases-5 .
 data:percentage_rent_clauses-6 a lease:PercentageRentClause ;
+  rdfs:label "5.2" ;
   lease:leaseClauseClauseReference "5.2" ;
   lease:leaseClauseEffectiveFrom "2022-09-01"^^xsd:date ;
   lease:percentageRentClauseRate "0.06"^^xsd:decimal ;
   lease:percentageRentClauseExcludesThirteenthRent true ;
   lease:leaseClauseLease data:leases-6 .
 data:percentage_rent_clauses-7 a lease:PercentageRentClause ;
+  rdfs:label "5.2" ;
   lease:leaseClauseClauseReference "5.2" ;
   lease:leaseClauseEffectiveFrom "2026-09-01"^^xsd:date ;
   lease:percentageRentClauseRate "0.06"^^xsd:decimal ;
   lease:percentageRentClauseExcludesThirteenthRent true ;
   lease:leaseClauseLease data:leases-7 .
 data:legal_entities-1 a legal:LegalEntity ;
+  rdfs:label "SPE-0001" ;
   legal:legalEntityRegistrationNumber "SPE-0001" ;
   legal:legalEntityEntityType "special-purpose company" ;
   legal:legalEntityOrganization data:organizations-3 .
 data:legal_entities-2 a legal:LegalEntity ;
+  rdfs:label "SPE-0002" ;
   legal:legalEntityRegistrationNumber "SPE-0002" ;
   legal:legalEntityEntityType "special-purpose company" ;
   legal:legalEntityOrganization data:organizations-4 .
 data:legal_entities-3 a legal:LegalEntity ;
+  rdfs:label "ADM-0001" ;
   legal:legalEntityRegistrationNumber "ADM-0001" ;
   legal:legalEntityEntityType "administrator" ;
   legal:legalEntityOrganization data:organizations-2 .
 data:contract_types-1 a legal:ContractType ;
+  rdfs:label "LEASE" ;
   legal:contractTypeCode "LEASE" ;
   legal:contractTypeName "Lease" ;
   legal:contractTypeRequiresLegalReview true .
 data:contract_types-2 a legal:ContractType ;
+  rdfs:label "SERVICE" ;
   legal:contractTypeCode "SERVICE" ;
   legal:contractTypeName "Service" ;
   legal:contractTypeRequiresLegalReview false .
 data:contract_types-3 a legal:ContractType ;
+  rdfs:label "EMPLOY" ;
   legal:contractTypeCode "EMPLOY" ;
   legal:contractTypeName "Employment" ;
   legal:contractTypeRequiresLegalReview false .
 data:contract_types-4 a legal:ContractType ;
+  rdfs:label "SUPPLY" ;
   legal:contractTypeCode "SUPPLY" ;
   legal:contractTypeName "Supply framework" ;
   legal:contractTypeRequiresLegalReview true .
 data:contracts-1 a legal:Contract ;
+  rdfs:label "L-0001" ;
   legal:contractContractNumber "L-0001" ;
   legal:contractTitle "Lease of AUR-101 to Norte" ;
   legal:contractStartDate "2020-01-01"^^xsd:date ;
@@ -484,6 +588,7 @@ data:contracts-1 a legal:Contract ;
   legal:contractContractingEntity data:legal_entities-1 ;
   legal:contractCurrency data:currencies-1 .
 data:contracts-2 a legal:Contract ;
+  rdfs:label "L-0002" ;
   legal:contractContractNumber "L-0002" ;
   legal:contractTitle "Lease of AUR-110 to Linha" ;
   legal:contractStartDate "2021-03-01"^^xsd:date ;
@@ -494,6 +599,7 @@ data:contracts-2 a legal:Contract ;
   legal:contractContractingEntity data:legal_entities-1 ;
   legal:contractCurrency data:currencies-1 .
 data:contracts-3 a legal:Contract ;
+  rdfs:label "L-0003" ;
   legal:contractContractNumber "L-0003" ;
   legal:contractTitle "Lease of AUR-112 to Passo" ;
   legal:contractStartDate "2022-06-01"^^xsd:date ;
@@ -504,6 +610,7 @@ data:contracts-3 a legal:Contract ;
   legal:contractContractingEntity data:legal_entities-1 ;
   legal:contractCurrency data:currencies-1 .
 data:contracts-4 a legal:Contract ;
+  rdfs:label "L-0004" ;
   legal:contractContractNumber "L-0004" ;
   legal:contractTitle "Lease of AUR-205 to Sabor Grill" ;
   legal:contractStartDate "2023-02-01"^^xsd:date ;
@@ -514,6 +621,7 @@ data:contracts-4 a legal:Contract ;
   legal:contractContractingEntity data:legal_entities-1 ;
   legal:contractCurrency data:currencies-1 .
 data:contracts-5 a legal:Contract ;
+  rdfs:label "L-0005" ;
   legal:contractContractNumber "L-0005" ;
   legal:contractTitle "Lease of AUR-K01 to Conserta Já" ;
   legal:contractStartDate "2024-05-01"^^xsd:date ;
@@ -524,6 +632,7 @@ data:contracts-5 a legal:Contract ;
   legal:contractContractingEntity data:legal_entities-1 ;
   legal:contractCurrency data:currencies-1 .
 data:contracts-6 a legal:Contract ;
+  rdfs:label "L-0006" ;
   legal:contractContractNumber "L-0006" ;
   legal:contractTitle "Lease of BRS-01 to Linha" ;
   legal:contractStartDate "2022-09-01"^^xsd:date ;
@@ -534,6 +643,7 @@ data:contracts-6 a legal:Contract ;
   legal:contractContractingEntity data:legal_entities-2 ;
   legal:contractCurrency data:currencies-1 .
 data:contracts-7 a legal:Contract ;
+  rdfs:label "L-0007" ;
   legal:contractContractNumber "L-0007" ;
   legal:contractTitle "Lease of BRS-02 to Ventura" ;
   legal:contractStartDate "2026-09-01"^^xsd:date ;
@@ -544,37 +654,45 @@ data:contracts-7 a legal:Contract ;
   legal:contractContractingEntity data:legal_entities-2 ;
   legal:contractCurrency data:currencies-1 .
 data:departments-1 a hr:Department ;
+  rdfs:label "OPS" ;
   hr:departmentCode "OPS" ;
   hr:departmentName "Property operations" ;
   hr:departmentLegalEntity data:legal_entities-3 ;
   hr:departmentCostCenter data:cost_centers-1 .
 data:departments-2 a hr:Department ;
+  rdfs:label "FIN" ;
   hr:departmentCode "FIN" ;
   hr:departmentName "Finance" ;
   hr:departmentLegalEntity data:legal_entities-3 ;
   hr:departmentCostCenter data:cost_centers-3 .
 data:departments-3 a hr:Department ;
+  rdfs:label "LEA" ;
   hr:departmentCode "LEA" ;
   hr:departmentName "Leasing" ;
   hr:departmentLegalEntity data:legal_entities-3 ;
   hr:departmentCostCenter data:cost_centers-3 .
 data:positions-1 a hr:Position ;
+  rdfs:label "GM" ;
   hr:positionCode "GM" ;
   hr:positionTitle "General manager" ;
   hr:positionDepartment data:departments-1 .
 data:positions-2 a hr:Position ;
+  rdfs:label "MT" ;
   hr:positionCode "MT" ;
   hr:positionTitle "Maintenance technician" ;
   hr:positionDepartment data:departments-1 .
 data:positions-3 a hr:Position ;
+  rdfs:label "AP" ;
   hr:positionCode "AP" ;
   hr:positionTitle "Accounts payable analyst" ;
   hr:positionDepartment data:departments-2 .
 data:positions-4 a hr:Position ;
+  rdfs:label "LM" ;
   hr:positionCode "LM" ;
   hr:positionTitle "Leasing manager" ;
   hr:positionDepartment data:departments-3 .
 data:employees-1 a hr:Employee ;
+  rdfs:label "E001" ;
   hr:employeeEmployeeNumber "E001" ;
   hr:employeeHireDate "2019-02-01"^^xsd:date ;
   hr:employeePerson data:people-1 ;
@@ -582,6 +700,7 @@ data:employees-1 a hr:Employee ;
   hr:employeeEmployer data:legal_entities-3 ;
   hr:employeeWorkSite data:properties-1 .
 data:employees-2 a hr:Employee ;
+  rdfs:label "E002" ;
   hr:employeeEmployeeNumber "E002" ;
   hr:employeeHireDate "2021-07-12"^^xsd:date ;
   hr:employeePerson data:people-2 ;
@@ -590,170 +709,199 @@ data:employees-2 a hr:Employee ;
   hr:employeeManager data:employees-1 ;
   hr:employeeWorkSite data:properties-1 .
 data:employees-3 a hr:Employee ;
+  rdfs:label "E003" ;
   hr:employeeEmployeeNumber "E003" ;
   hr:employeeHireDate "2022-03-01"^^xsd:date ;
   hr:employeePerson data:people-3 ;
   hr:employeePosition data:positions-3 ;
   hr:employeeEmployer data:legal_entities-3 .
 data:employees-4 a hr:Employee ;
+  rdfs:label "E004" ;
   hr:employeeEmployeeNumber "E004" ;
   hr:employeeHireDate "2026-09-01"^^xsd:date ;
   hr:employeePerson data:people-4 ;
   hr:employeePosition data:positions-4 ;
   hr:employeeEmployer data:legal_entities-3 .
 data:payroll_runs-1 a hr:PayrollRun ;
+  rdfs:label "paid" ;
   hr:payrollRunPaymentDate "2026-08-29"^^xsd:date ;
   hr:payrollRunStatus "paid" ;
   hr:payrollRunLegalEntity data:legal_entities-3 ;
   hr:payrollRunMonth data:calendar_months-1 .
 data:payroll_runs-2 a hr:PayrollRun ;
+  rdfs:label "paid" ;
   hr:payrollRunPaymentDate "2026-09-30"^^xsd:date ;
   hr:payrollRunStatus "paid" ;
   hr:payrollRunLegalEntity data:legal_entities-3 ;
   hr:payrollRunMonth data:calendar_months-2 .
 data:payroll_lines-1 a hr:PayrollLine ;
+  rdfs:label "base salary" ;
   hr:payrollLineComponent "base salary" ;
   hr:payrollLineAmount "25000"^^xsd:decimal ;
   hr:payrollLineEmployerCost true ;
   hr:payrollLinePayrollRun data:payroll_runs-1 ;
   hr:payrollLineEmployee data:employees-1 .
 data:payroll_lines-2 a hr:PayrollLine ;
+  rdfs:label "employer social charge" ;
   hr:payrollLineComponent "employer social charge" ;
   hr:payrollLineAmount "5000"^^xsd:decimal ;
   hr:payrollLineEmployerCost true ;
   hr:payrollLinePayrollRun data:payroll_runs-1 ;
   hr:payrollLineEmployee data:employees-1 .
 data:payroll_lines-3 a hr:PayrollLine ;
+  rdfs:label "employee social security" ;
   hr:payrollLineComponent "employee social security" ;
   hr:payrollLineAmount "2750"^^xsd:decimal ;
   hr:payrollLineEmployerCost false ;
   hr:payrollLinePayrollRun data:payroll_runs-1 ;
   hr:payrollLineEmployee data:employees-1 .
 data:payroll_lines-4 a hr:PayrollLine ;
+  rdfs:label "base salary" ;
   hr:payrollLineComponent "base salary" ;
   hr:payrollLineAmount "6000"^^xsd:decimal ;
   hr:payrollLineEmployerCost true ;
   hr:payrollLinePayrollRun data:payroll_runs-1 ;
   hr:payrollLineEmployee data:employees-2 .
 data:payroll_lines-5 a hr:PayrollLine ;
+  rdfs:label "employer social charge" ;
   hr:payrollLineComponent "employer social charge" ;
   hr:payrollLineAmount "1200"^^xsd:decimal ;
   hr:payrollLineEmployerCost true ;
   hr:payrollLinePayrollRun data:payroll_runs-1 ;
   hr:payrollLineEmployee data:employees-2 .
 data:payroll_lines-6 a hr:PayrollLine ;
+  rdfs:label "employee social security" ;
   hr:payrollLineComponent "employee social security" ;
   hr:payrollLineAmount "660"^^xsd:decimal ;
   hr:payrollLineEmployerCost false ;
   hr:payrollLinePayrollRun data:payroll_runs-1 ;
   hr:payrollLineEmployee data:employees-2 .
 data:payroll_lines-7 a hr:PayrollLine ;
+  rdfs:label "base salary" ;
   hr:payrollLineComponent "base salary" ;
   hr:payrollLineAmount "7500"^^xsd:decimal ;
   hr:payrollLineEmployerCost true ;
   hr:payrollLinePayrollRun data:payroll_runs-1 ;
   hr:payrollLineEmployee data:employees-3 .
 data:payroll_lines-8 a hr:PayrollLine ;
+  rdfs:label "employer social charge" ;
   hr:payrollLineComponent "employer social charge" ;
   hr:payrollLineAmount "1500"^^xsd:decimal ;
   hr:payrollLineEmployerCost true ;
   hr:payrollLinePayrollRun data:payroll_runs-1 ;
   hr:payrollLineEmployee data:employees-3 .
 data:payroll_lines-9 a hr:PayrollLine ;
+  rdfs:label "employee social security" ;
   hr:payrollLineComponent "employee social security" ;
   hr:payrollLineAmount "825"^^xsd:decimal ;
   hr:payrollLineEmployerCost false ;
   hr:payrollLinePayrollRun data:payroll_runs-1 ;
   hr:payrollLineEmployee data:employees-3 .
 data:payroll_lines-10 a hr:PayrollLine ;
+  rdfs:label "base salary" ;
   hr:payrollLineComponent "base salary" ;
   hr:payrollLineAmount "25000"^^xsd:decimal ;
   hr:payrollLineEmployerCost true ;
   hr:payrollLinePayrollRun data:payroll_runs-2 ;
   hr:payrollLineEmployee data:employees-1 .
 data:payroll_lines-11 a hr:PayrollLine ;
+  rdfs:label "employer social charge" ;
   hr:payrollLineComponent "employer social charge" ;
   hr:payrollLineAmount "5000"^^xsd:decimal ;
   hr:payrollLineEmployerCost true ;
   hr:payrollLinePayrollRun data:payroll_runs-2 ;
   hr:payrollLineEmployee data:employees-1 .
 data:payroll_lines-12 a hr:PayrollLine ;
+  rdfs:label "employee social security" ;
   hr:payrollLineComponent "employee social security" ;
   hr:payrollLineAmount "2750"^^xsd:decimal ;
   hr:payrollLineEmployerCost false ;
   hr:payrollLinePayrollRun data:payroll_runs-2 ;
   hr:payrollLineEmployee data:employees-1 .
 data:payroll_lines-13 a hr:PayrollLine ;
+  rdfs:label "base salary" ;
   hr:payrollLineComponent "base salary" ;
   hr:payrollLineAmount "6000"^^xsd:decimal ;
   hr:payrollLineEmployerCost true ;
   hr:payrollLinePayrollRun data:payroll_runs-2 ;
   hr:payrollLineEmployee data:employees-2 .
 data:payroll_lines-14 a hr:PayrollLine ;
+  rdfs:label "employer social charge" ;
   hr:payrollLineComponent "employer social charge" ;
   hr:payrollLineAmount "1200"^^xsd:decimal ;
   hr:payrollLineEmployerCost true ;
   hr:payrollLinePayrollRun data:payroll_runs-2 ;
   hr:payrollLineEmployee data:employees-2 .
 data:payroll_lines-15 a hr:PayrollLine ;
+  rdfs:label "employee social security" ;
   hr:payrollLineComponent "employee social security" ;
   hr:payrollLineAmount "660"^^xsd:decimal ;
   hr:payrollLineEmployerCost false ;
   hr:payrollLinePayrollRun data:payroll_runs-2 ;
   hr:payrollLineEmployee data:employees-2 .
 data:payroll_lines-16 a hr:PayrollLine ;
+  rdfs:label "overtime" ;
   hr:payrollLineComponent "overtime" ;
   hr:payrollLineAmount "900"^^xsd:decimal ;
   hr:payrollLineEmployerCost true ;
   hr:payrollLinePayrollRun data:payroll_runs-2 ;
   hr:payrollLineEmployee data:employees-2 .
 data:payroll_lines-17 a hr:PayrollLine ;
+  rdfs:label "base salary" ;
   hr:payrollLineComponent "base salary" ;
   hr:payrollLineAmount "7500"^^xsd:decimal ;
   hr:payrollLineEmployerCost true ;
   hr:payrollLinePayrollRun data:payroll_runs-2 ;
   hr:payrollLineEmployee data:employees-3 .
 data:payroll_lines-18 a hr:PayrollLine ;
+  rdfs:label "employer social charge" ;
   hr:payrollLineComponent "employer social charge" ;
   hr:payrollLineAmount "1500"^^xsd:decimal ;
   hr:payrollLineEmployerCost true ;
   hr:payrollLinePayrollRun data:payroll_runs-2 ;
   hr:payrollLineEmployee data:employees-3 .
 data:payroll_lines-19 a hr:PayrollLine ;
+  rdfs:label "employee social security" ;
   hr:payrollLineComponent "employee social security" ;
   hr:payrollLineAmount "825"^^xsd:decimal ;
   hr:payrollLineEmployerCost false ;
   hr:payrollLinePayrollRun data:payroll_runs-2 ;
   hr:payrollLineEmployee data:employees-3 .
 data:payroll_lines-20 a hr:PayrollLine ;
+  rdfs:label "base salary" ;
   hr:payrollLineComponent "base salary" ;
   hr:payrollLineAmount "14000"^^xsd:decimal ;
   hr:payrollLineEmployerCost true ;
   hr:payrollLinePayrollRun data:payroll_runs-2 ;
   hr:payrollLineEmployee data:employees-4 .
 data:payroll_lines-21 a hr:PayrollLine ;
+  rdfs:label "employer social charge" ;
   hr:payrollLineComponent "employer social charge" ;
   hr:payrollLineAmount "2800"^^xsd:decimal ;
   hr:payrollLineEmployerCost true ;
   hr:payrollLinePayrollRun data:payroll_runs-2 ;
   hr:payrollLineEmployee data:employees-4 .
 data:payroll_lines-22 a hr:PayrollLine ;
+  rdfs:label "employee social security" ;
   hr:payrollLineComponent "employee social security" ;
   hr:payrollLineAmount "1540"^^xsd:decimal ;
   hr:payrollLineEmployerCost false ;
   hr:payrollLinePayrollRun data:payroll_runs-2 ;
   hr:payrollLineEmployee data:employees-4 .
 data:suppliers-1 a proc:Supplier ;
+  rdfs:label "cleaning" ;
   proc:supplierSupplierCategory "cleaning" ;
   proc:supplierPaymentTermsDays "30"^^xsd:integer ;
   proc:supplierIsApproved true ;
   proc:supplierOrganization data:organizations-11 .
 data:suppliers-2 a proc:Supplier ;
+  rdfs:label "security" ;
   proc:supplierSupplierCategory "security" ;
   proc:supplierPaymentTermsDays "30"^^xsd:integer ;
   proc:supplierIsApproved true ;
   proc:supplierOrganization data:organizations-12 .
 data:purchase_orders-1 a proc:PurchaseOrder ;
+  rdfs:label "PO-1001" ;
   proc:purchaseOrderPoNumber "PO-1001" ;
   proc:purchaseOrderOrderDate "2026-08-02"^^xsd:date ;
   proc:purchaseOrderStatus "invoiced" ;
@@ -761,6 +909,7 @@ data:purchase_orders-1 a proc:PurchaseOrder ;
   proc:purchaseOrderProperty data:properties-1 ;
   proc:purchaseOrderBuyer data:employees-3 .
 data:purchase_orders-2 a proc:PurchaseOrder ;
+  rdfs:label "PO-1002" ;
   proc:purchaseOrderPoNumber "PO-1002" ;
   proc:purchaseOrderOrderDate "2026-09-01"^^xsd:date ;
   proc:purchaseOrderStatus "invoiced" ;
@@ -768,6 +917,7 @@ data:purchase_orders-2 a proc:PurchaseOrder ;
   proc:purchaseOrderProperty data:properties-1 ;
   proc:purchaseOrderBuyer data:employees-3 .
 data:purchase_orders-3 a proc:PurchaseOrder ;
+  rdfs:label "PO-1003" ;
   proc:purchaseOrderPoNumber "PO-1003" ;
   proc:purchaseOrderOrderDate "2026-09-03"^^xsd:date ;
   proc:purchaseOrderStatus "invoiced" ;
@@ -775,30 +925,35 @@ data:purchase_orders-3 a proc:PurchaseOrder ;
   proc:purchaseOrderProperty data:properties-2 ;
   proc:purchaseOrderBuyer data:employees-3 .
 data:purchase_order_lines-1 a proc:PurchaseOrderLine ;
+  rdfs:label "Purchase Order Line 1" ;
   proc:purchaseOrderLineSummary "Common-area cleaning, August" ;
   proc:purchaseOrderLineQuantity "1"^^xsd:decimal ;
   proc:purchaseOrderLineUnitPrice "18000"^^xsd:decimal ;
   proc:purchaseOrderLinePurchaseOrder data:purchase_orders-1 ;
   proc:purchaseOrderLineCategory data:expense_categories-1 .
 data:purchase_order_lines-2 a proc:PurchaseOrderLine ;
+  rdfs:label "Purchase Order Line 2" ;
   proc:purchaseOrderLineSummary "Floor polishing" ;
   proc:purchaseOrderLineQuantity "4"^^xsd:decimal ;
   proc:purchaseOrderLineUnitPrice "750"^^xsd:decimal ;
   proc:purchaseOrderLinePurchaseOrder data:purchase_orders-1 ;
   proc:purchaseOrderLineCategory data:expense_categories-3 .
 data:purchase_order_lines-3 a proc:PurchaseOrderLine ;
+  rdfs:label "Purchase Order Line 3" ;
   proc:purchaseOrderLineSummary "Security guards, September" ;
   proc:purchaseOrderLineQuantity "6"^^xsd:decimal ;
   proc:purchaseOrderLineUnitPrice "4200"^^xsd:decimal ;
   proc:purchaseOrderLinePurchaseOrder data:purchase_orders-2 ;
   proc:purchaseOrderLineCategory data:expense_categories-2 .
 data:purchase_order_lines-4 a proc:PurchaseOrderLine ;
+  rdfs:label "Purchase Order Line 4" ;
   proc:purchaseOrderLineSummary "Outlet cleaning, September" ;
   proc:purchaseOrderLineQuantity "1"^^xsd:decimal ;
   proc:purchaseOrderLineUnitPrice "7000"^^xsd:decimal ;
   proc:purchaseOrderLinePurchaseOrder data:purchase_orders-3 ;
   proc:purchaseOrderLineCategory data:expense_categories-1 .
 data:supplier_invoices-1 a proc:SupplierInvoice ;
+  rdfs:label "NF-5001" ;
   proc:supplierInvoiceInvoiceNumber "NF-5001" ;
   proc:supplierInvoiceIssueDate "2026-08-02"^^xsd:date ;
   proc:supplierInvoiceDueDate "2026-08-02"^^xsd:date ;
@@ -811,6 +966,7 @@ data:supplier_invoices-1 a proc:SupplierInvoice ;
   proc:supplierInvoicePurchaseOrder data:purchase_orders-1 ;
   proc:supplierInvoiceMonth data:calendar_months-1 .
 data:supplier_invoices-2 a proc:SupplierInvoice ;
+  rdfs:label "NF-5002" ;
   proc:supplierInvoiceInvoiceNumber "NF-5002" ;
   proc:supplierInvoiceIssueDate "2026-09-01"^^xsd:date ;
   proc:supplierInvoiceDueDate "2026-09-01"^^xsd:date ;
@@ -823,6 +979,7 @@ data:supplier_invoices-2 a proc:SupplierInvoice ;
   proc:supplierInvoicePurchaseOrder data:purchase_orders-2 ;
   proc:supplierInvoiceMonth data:calendar_months-2 .
 data:supplier_invoices-3 a proc:SupplierInvoice ;
+  rdfs:label "NF-5003" ;
   proc:supplierInvoiceInvoiceNumber "NF-5003" ;
   proc:supplierInvoiceIssueDate "2026-09-03"^^xsd:date ;
   proc:supplierInvoiceDueDate "2026-09-03"^^xsd:date ;
@@ -835,112 +992,133 @@ data:supplier_invoices-3 a proc:SupplierInvoice ;
   proc:supplierInvoicePurchaseOrder data:purchase_orders-3 ;
   proc:supplierInvoiceMonth data:calendar_months-2 .
 data:expense_categories-1 a ops:ExpenseCategory ;
+  rdfs:label "CLN" ;
   ops:expenseCategoryCode "CLN" ;
   ops:expenseCategoryName "Cleaning" ;
   ops:expenseCategoryRecoverable true .
 data:expense_categories-2 a ops:ExpenseCategory ;
+  rdfs:label "SEC" ;
   ops:expenseCategoryCode "SEC" ;
   ops:expenseCategoryName "Security" ;
   ops:expenseCategoryRecoverable true .
 data:expense_categories-3 a ops:ExpenseCategory ;
+  rdfs:label "MNT" ;
   ops:expenseCategoryCode "MNT" ;
   ops:expenseCategoryName "Maintenance" ;
   ops:expenseCategoryRecoverable true .
 data:charge_types-1 a fin:ChargeType ;
+  rdfs:label "MIN" ;
   fin:chargeTypeCode "MIN" ;
   fin:chargeTypeName "Minimum rent" ;
   fin:chargeTypeRevenueClass "rent" .
 data:charge_types-2 a fin:ChargeType ;
+  rdfs:label "PCT" ;
   fin:chargeTypeCode "PCT" ;
   fin:chargeTypeName "Percentage rent" ;
   fin:chargeTypeRevenueClass "rent" .
 data:charge_types-3 a fin:ChargeType ;
+  rdfs:label "SVC" ;
   fin:chargeTypeCode "SVC" ;
   fin:chargeTypeName "Service charge" ;
   fin:chargeTypeRevenueClass "recoveries" .
 data:charge_types-4 a fin:ChargeType ;
+  rdfs:label "MKT" ;
   fin:chargeTypeCode "MKT" ;
   fin:chargeTypeName "Marketing fund" ;
   fin:chargeTypeRevenueClass "marketing" .
 data:invoices-1 a fin:Invoice ;
+  rdfs:label "2026-08-0001" ;
   fin:invoiceInvoiceNumber "2026-08-0001" ;
   fin:invoiceIssueDate "2026-08-31"^^xsd:date ;
   fin:invoiceDueDate "2026-08-31"^^xsd:date ;
   fin:invoiceProperty data:properties-1 ;
   fin:invoiceBilledTenant data:tenants-1 .
 data:invoices-2 a fin:Invoice ;
+  rdfs:label "2026-08-0002" ;
   fin:invoiceInvoiceNumber "2026-08-0002" ;
   fin:invoiceIssueDate "2026-08-31"^^xsd:date ;
   fin:invoiceDueDate "2026-08-31"^^xsd:date ;
   fin:invoiceProperty data:properties-1 ;
   fin:invoiceBilledTenant data:tenants-2 .
 data:invoices-3 a fin:Invoice ;
+  rdfs:label "2026-08-0003" ;
   fin:invoiceInvoiceNumber "2026-08-0003" ;
   fin:invoiceIssueDate "2026-08-31"^^xsd:date ;
   fin:invoiceDueDate "2026-08-31"^^xsd:date ;
   fin:invoiceProperty data:properties-1 ;
   fin:invoiceBilledTenant data:tenants-3 .
 data:invoices-4 a fin:Invoice ;
+  rdfs:label "2026-08-0004" ;
   fin:invoiceInvoiceNumber "2026-08-0004" ;
   fin:invoiceIssueDate "2026-08-31"^^xsd:date ;
   fin:invoiceDueDate "2026-08-31"^^xsd:date ;
   fin:invoiceProperty data:properties-1 ;
   fin:invoiceBilledTenant data:tenants-4 .
 data:invoices-5 a fin:Invoice ;
+  rdfs:label "2026-08-0005" ;
   fin:invoiceInvoiceNumber "2026-08-0005" ;
   fin:invoiceIssueDate "2026-08-31"^^xsd:date ;
   fin:invoiceDueDate "2026-08-31"^^xsd:date ;
   fin:invoiceProperty data:properties-1 ;
   fin:invoiceBilledTenant data:tenants-5 .
 data:invoices-6 a fin:Invoice ;
+  rdfs:label "2026-08-0006" ;
   fin:invoiceInvoiceNumber "2026-08-0006" ;
   fin:invoiceIssueDate "2026-08-31"^^xsd:date ;
   fin:invoiceDueDate "2026-08-31"^^xsd:date ;
   fin:invoiceProperty data:properties-2 ;
   fin:invoiceBilledTenant data:tenants-2 .
 data:invoices-7 a fin:Invoice ;
+  rdfs:label "2026-09-0001" ;
   fin:invoiceInvoiceNumber "2026-09-0001" ;
   fin:invoiceIssueDate "2026-09-30"^^xsd:date ;
   fin:invoiceDueDate "2026-09-30"^^xsd:date ;
   fin:invoiceProperty data:properties-1 ;
   fin:invoiceBilledTenant data:tenants-1 .
 data:invoices-8 a fin:Invoice ;
+  rdfs:label "2026-09-0002" ;
   fin:invoiceInvoiceNumber "2026-09-0002" ;
   fin:invoiceIssueDate "2026-09-30"^^xsd:date ;
   fin:invoiceDueDate "2026-09-30"^^xsd:date ;
   fin:invoiceProperty data:properties-1 ;
   fin:invoiceBilledTenant data:tenants-2 .
 data:invoices-9 a fin:Invoice ;
+  rdfs:label "2026-09-0003" ;
   fin:invoiceInvoiceNumber "2026-09-0003" ;
   fin:invoiceIssueDate "2026-09-30"^^xsd:date ;
   fin:invoiceDueDate "2026-09-30"^^xsd:date ;
   fin:invoiceProperty data:properties-1 ;
   fin:invoiceBilledTenant data:tenants-3 .
 data:invoices-10 a fin:Invoice ;
+  rdfs:label "2026-09-0004" ;
   fin:invoiceInvoiceNumber "2026-09-0004" ;
   fin:invoiceIssueDate "2026-09-30"^^xsd:date ;
   fin:invoiceDueDate "2026-09-30"^^xsd:date ;
   fin:invoiceProperty data:properties-1 ;
   fin:invoiceBilledTenant data:tenants-4 .
 data:invoices-11 a fin:Invoice ;
+  rdfs:label "2026-09-0005" ;
   fin:invoiceInvoiceNumber "2026-09-0005" ;
   fin:invoiceIssueDate "2026-09-30"^^xsd:date ;
   fin:invoiceDueDate "2026-09-30"^^xsd:date ;
   fin:invoiceProperty data:properties-1 ;
   fin:invoiceBilledTenant data:tenants-5 .
 data:invoices-12 a fin:Invoice ;
+  rdfs:label "2026-09-0006" ;
   fin:invoiceInvoiceNumber "2026-09-0006" ;
   fin:invoiceIssueDate "2026-09-30"^^xsd:date ;
   fin:invoiceDueDate "2026-09-30"^^xsd:date ;
   fin:invoiceProperty data:properties-2 ;
   fin:invoiceBilledTenant data:tenants-2 .
 data:invoices-13 a fin:Invoice ;
+  rdfs:label "2026-09-0007" ;
   fin:invoiceInvoiceNumber "2026-09-0007" ;
   fin:invoiceIssueDate "2026-09-30"^^xsd:date ;
   fin:invoiceDueDate "2026-09-30"^^xsd:date ;
   fin:invoiceProperty data:properties-2 ;
   fin:invoiceBilledTenant data:tenants-6 .
 data:charges-1 a fin:Charge ;
+  rdfs:label "Charge 1" ;
   fin:chargeAmount "60000"^^xsd:decimal ;
   fin:chargePaidAmount "60000"^^xsd:decimal ;
   fin:chargeDueDate "2026-08-31"^^xsd:date ;
@@ -949,6 +1127,7 @@ data:charges-1 a fin:Charge ;
   fin:chargeChargeType data:charge_types-1 ;
   fin:chargeMonth data:calendar_months-1 .
 data:charges-2 a fin:Charge ;
+  rdfs:label "Charge 2" ;
   fin:chargeAmount "60000"^^xsd:decimal ;
   fin:chargePaidAmount "60000"^^xsd:decimal ;
   fin:chargeDueDate "2026-08-31"^^xsd:date ;
@@ -957,6 +1136,7 @@ data:charges-2 a fin:Charge ;
   fin:chargeChargeType data:charge_types-3 ;
   fin:chargeMonth data:calendar_months-1 .
 data:charges-3 a fin:Charge ;
+  rdfs:label "Charge 3" ;
   fin:chargeAmount "6000"^^xsd:decimal ;
   fin:chargePaidAmount "6000"^^xsd:decimal ;
   fin:chargeDueDate "2026-08-31"^^xsd:date ;
@@ -965,6 +1145,7 @@ data:charges-3 a fin:Charge ;
   fin:chargeChargeType data:charge_types-4 ;
   fin:chargeMonth data:calendar_months-1 .
 data:charges-4 a fin:Charge ;
+  rdfs:label "Charge 4" ;
   fin:chargeAmount "18000"^^xsd:decimal ;
   fin:chargePaidAmount "18000"^^xsd:decimal ;
   fin:chargeDueDate "2026-08-31"^^xsd:date ;
@@ -973,6 +1154,7 @@ data:charges-4 a fin:Charge ;
   fin:chargeChargeType data:charge_types-1 ;
   fin:chargeMonth data:calendar_months-1 .
 data:charges-5 a fin:Charge ;
+  rdfs:label "Charge 5" ;
   fin:chargeAmount "4500"^^xsd:decimal ;
   fin:chargePaidAmount "4500"^^xsd:decimal ;
   fin:chargeDueDate "2026-08-31"^^xsd:date ;
@@ -981,6 +1163,7 @@ data:charges-5 a fin:Charge ;
   fin:chargeChargeType data:charge_types-3 ;
   fin:chargeMonth data:calendar_months-1 .
 data:charges-6 a fin:Charge ;
+  rdfs:label "Charge 6" ;
   fin:chargeAmount "1800"^^xsd:decimal ;
   fin:chargePaidAmount "1800"^^xsd:decimal ;
   fin:chargeDueDate "2026-08-31"^^xsd:date ;
@@ -989,6 +1172,7 @@ data:charges-6 a fin:Charge ;
   fin:chargeChargeType data:charge_types-4 ;
   fin:chargeMonth data:calendar_months-1 .
 data:charges-7 a fin:Charge ;
+  rdfs:label "Charge 7" ;
   fin:chargeAmount "14400"^^xsd:decimal ;
   fin:chargePaidAmount "14400"^^xsd:decimal ;
   fin:chargeDueDate "2026-08-31"^^xsd:date ;
@@ -997,6 +1181,7 @@ data:charges-7 a fin:Charge ;
   fin:chargeChargeType data:charge_types-1 ;
   fin:chargeMonth data:calendar_months-1 .
 data:charges-8 a fin:Charge ;
+  rdfs:label "Charge 8" ;
   fin:chargeAmount "3600"^^xsd:decimal ;
   fin:chargePaidAmount "3600"^^xsd:decimal ;
   fin:chargeDueDate "2026-08-31"^^xsd:date ;
@@ -1005,6 +1190,7 @@ data:charges-8 a fin:Charge ;
   fin:chargeChargeType data:charge_types-3 ;
   fin:chargeMonth data:calendar_months-1 .
 data:charges-9 a fin:Charge ;
+  rdfs:label "Charge 9" ;
   fin:chargeAmount "1440"^^xsd:decimal ;
   fin:chargePaidAmount "1440"^^xsd:decimal ;
   fin:chargeDueDate "2026-08-31"^^xsd:date ;
@@ -1013,6 +1199,7 @@ data:charges-9 a fin:Charge ;
   fin:chargeChargeType data:charge_types-4 ;
   fin:chargeMonth data:calendar_months-1 .
 data:charges-10 a fin:Charge ;
+  rdfs:label "Charge 10" ;
   fin:chargeAmount "12000"^^xsd:decimal ;
   fin:chargePaidAmount "12000"^^xsd:decimal ;
   fin:chargeDueDate "2026-08-31"^^xsd:date ;
@@ -1021,6 +1208,7 @@ data:charges-10 a fin:Charge ;
   fin:chargeChargeType data:charge_types-1 ;
   fin:chargeMonth data:calendar_months-1 .
 data:charges-11 a fin:Charge ;
+  rdfs:label "Charge 11" ;
   fin:chargeAmount "2400"^^xsd:decimal ;
   fin:chargePaidAmount "2400"^^xsd:decimal ;
   fin:chargeDueDate "2026-08-31"^^xsd:date ;
@@ -1029,6 +1217,7 @@ data:charges-11 a fin:Charge ;
   fin:chargeChargeType data:charge_types-2 ;
   fin:chargeMonth data:calendar_months-1 .
 data:charges-12 a fin:Charge ;
+  rdfs:label "Charge 12" ;
   fin:chargeAmount "1800"^^xsd:decimal ;
   fin:chargePaidAmount "1800"^^xsd:decimal ;
   fin:chargeDueDate "2026-08-31"^^xsd:date ;
@@ -1037,6 +1226,7 @@ data:charges-12 a fin:Charge ;
   fin:chargeChargeType data:charge_types-3 ;
   fin:chargeMonth data:calendar_months-1 .
 data:charges-13 a fin:Charge ;
+  rdfs:label "Charge 13" ;
   fin:chargeAmount "1200"^^xsd:decimal ;
   fin:chargePaidAmount "1200"^^xsd:decimal ;
   fin:chargeDueDate "2026-08-31"^^xsd:date ;
@@ -1045,6 +1235,7 @@ data:charges-13 a fin:Charge ;
   fin:chargeChargeType data:charge_types-4 ;
   fin:chargeMonth data:calendar_months-1 .
 data:charges-14 a fin:Charge ;
+  rdfs:label "Charge 14" ;
   fin:chargeAmount "4000"^^xsd:decimal ;
   fin:chargePaidAmount "4000"^^xsd:decimal ;
   fin:chargeDueDate "2026-08-31"^^xsd:date ;
@@ -1053,6 +1244,7 @@ data:charges-14 a fin:Charge ;
   fin:chargeChargeType data:charge_types-1 ;
   fin:chargeMonth data:calendar_months-1 .
 data:charges-15 a fin:Charge ;
+  rdfs:label "Charge 15" ;
   fin:chargeAmount "360"^^xsd:decimal ;
   fin:chargePaidAmount "360"^^xsd:decimal ;
   fin:chargeDueDate "2026-08-31"^^xsd:date ;
@@ -1061,6 +1253,7 @@ data:charges-15 a fin:Charge ;
   fin:chargeChargeType data:charge_types-3 ;
   fin:chargeMonth data:calendar_months-1 .
 data:charges-16 a fin:Charge ;
+  rdfs:label "Charge 16" ;
   fin:chargeAmount "400"^^xsd:decimal ;
   fin:chargePaidAmount "400"^^xsd:decimal ;
   fin:chargeDueDate "2026-08-31"^^xsd:date ;
@@ -1069,6 +1262,7 @@ data:charges-16 a fin:Charge ;
   fin:chargeChargeType data:charge_types-4 ;
   fin:chargeMonth data:calendar_months-1 .
 data:charges-17 a fin:Charge ;
+  rdfs:label "Charge 17" ;
   fin:chargeAmount "21000"^^xsd:decimal ;
   fin:chargePaidAmount "21000"^^xsd:decimal ;
   fin:chargeDueDate "2026-08-31"^^xsd:date ;
@@ -1077,6 +1271,7 @@ data:charges-17 a fin:Charge ;
   fin:chargeChargeType data:charge_types-1 ;
   fin:chargeMonth data:calendar_months-1 .
 data:charges-18 a fin:Charge ;
+  rdfs:label "Charge 18" ;
   fin:chargeAmount "9000"^^xsd:decimal ;
   fin:chargePaidAmount "9000"^^xsd:decimal ;
   fin:chargeDueDate "2026-08-31"^^xsd:date ;
@@ -1085,6 +1280,7 @@ data:charges-18 a fin:Charge ;
   fin:chargeChargeType data:charge_types-3 ;
   fin:chargeMonth data:calendar_months-1 .
 data:charges-19 a fin:Charge ;
+  rdfs:label "Charge 19" ;
   fin:chargeAmount "2100"^^xsd:decimal ;
   fin:chargePaidAmount "2100"^^xsd:decimal ;
   fin:chargeDueDate "2026-08-31"^^xsd:date ;
@@ -1093,6 +1289,7 @@ data:charges-19 a fin:Charge ;
   fin:chargeChargeType data:charge_types-4 ;
   fin:chargeMonth data:calendar_months-1 .
 data:charges-20 a fin:Charge ;
+  rdfs:label "Charge 20" ;
   fin:chargeAmount "60000"^^xsd:decimal ;
   fin:chargePaidAmount "60000"^^xsd:decimal ;
   fin:chargeDueDate "2026-09-30"^^xsd:date ;
@@ -1101,6 +1298,7 @@ data:charges-20 a fin:Charge ;
   fin:chargeChargeType data:charge_types-1 ;
   fin:chargeMonth data:calendar_months-2 .
 data:charges-21 a fin:Charge ;
+  rdfs:label "Charge 21" ;
   fin:chargeAmount "60000"^^xsd:decimal ;
   fin:chargePaidAmount "60000"^^xsd:decimal ;
   fin:chargeDueDate "2026-09-30"^^xsd:date ;
@@ -1109,6 +1307,7 @@ data:charges-21 a fin:Charge ;
   fin:chargeChargeType data:charge_types-3 ;
   fin:chargeMonth data:calendar_months-2 .
 data:charges-22 a fin:Charge ;
+  rdfs:label "Charge 22" ;
   fin:chargeAmount "6000"^^xsd:decimal ;
   fin:chargePaidAmount "6000"^^xsd:decimal ;
   fin:chargeDueDate "2026-09-30"^^xsd:date ;
@@ -1117,6 +1316,7 @@ data:charges-22 a fin:Charge ;
   fin:chargeChargeType data:charge_types-4 ;
   fin:chargeMonth data:calendar_months-2 .
 data:charges-23 a fin:Charge ;
+  rdfs:label "Charge 23" ;
   fin:chargeAmount "18000"^^xsd:decimal ;
   fin:chargePaidAmount "18000"^^xsd:decimal ;
   fin:chargeDueDate "2026-09-30"^^xsd:date ;
@@ -1125,6 +1325,7 @@ data:charges-23 a fin:Charge ;
   fin:chargeChargeType data:charge_types-1 ;
   fin:chargeMonth data:calendar_months-2 .
 data:charges-24 a fin:Charge ;
+  rdfs:label "Charge 24" ;
   fin:chargeAmount "3700"^^xsd:decimal ;
   fin:chargePaidAmount "3700"^^xsd:decimal ;
   fin:chargeDueDate "2026-09-30"^^xsd:date ;
@@ -1133,6 +1334,7 @@ data:charges-24 a fin:Charge ;
   fin:chargeChargeType data:charge_types-2 ;
   fin:chargeMonth data:calendar_months-2 .
 data:charges-25 a fin:Charge ;
+  rdfs:label "Charge 25" ;
   fin:chargeAmount "4500"^^xsd:decimal ;
   fin:chargePaidAmount "4500"^^xsd:decimal ;
   fin:chargeDueDate "2026-09-30"^^xsd:date ;
@@ -1141,6 +1343,7 @@ data:charges-25 a fin:Charge ;
   fin:chargeChargeType data:charge_types-3 ;
   fin:chargeMonth data:calendar_months-2 .
 data:charges-26 a fin:Charge ;
+  rdfs:label "Charge 26" ;
   fin:chargeAmount "1800"^^xsd:decimal ;
   fin:chargePaidAmount "1800"^^xsd:decimal ;
   fin:chargeDueDate "2026-09-30"^^xsd:date ;
@@ -1149,6 +1352,7 @@ data:charges-26 a fin:Charge ;
   fin:chargeChargeType data:charge_types-4 ;
   fin:chargeMonth data:calendar_months-2 .
 data:charges-27 a fin:Charge ;
+  rdfs:label "Charge 27" ;
   fin:chargeAmount "14400"^^xsd:decimal ;
   fin:chargePaidAmount "0"^^xsd:decimal ;
   fin:chargeDueDate "2026-09-30"^^xsd:date ;
@@ -1157,6 +1361,7 @@ data:charges-27 a fin:Charge ;
   fin:chargeChargeType data:charge_types-1 ;
   fin:chargeMonth data:calendar_months-2 .
 data:charges-28 a fin:Charge ;
+  rdfs:label "Charge 28" ;
   fin:chargeAmount "3600"^^xsd:decimal ;
   fin:chargePaidAmount "0"^^xsd:decimal ;
   fin:chargeDueDate "2026-09-30"^^xsd:date ;
@@ -1165,6 +1370,7 @@ data:charges-28 a fin:Charge ;
   fin:chargeChargeType data:charge_types-3 ;
   fin:chargeMonth data:calendar_months-2 .
 data:charges-29 a fin:Charge ;
+  rdfs:label "Charge 29" ;
   fin:chargeAmount "1440"^^xsd:decimal ;
   fin:chargePaidAmount "0"^^xsd:decimal ;
   fin:chargeDueDate "2026-09-30"^^xsd:date ;
@@ -1173,6 +1379,7 @@ data:charges-29 a fin:Charge ;
   fin:chargeChargeType data:charge_types-4 ;
   fin:chargeMonth data:calendar_months-2 .
 data:charges-30 a fin:Charge ;
+  rdfs:label "Charge 30" ;
   fin:chargeAmount "12000"^^xsd:decimal ;
   fin:chargePaidAmount "12000"^^xsd:decimal ;
   fin:chargeDueDate "2026-09-30"^^xsd:date ;
@@ -1181,6 +1388,7 @@ data:charges-30 a fin:Charge ;
   fin:chargeChargeType data:charge_types-1 ;
   fin:chargeMonth data:calendar_months-2 .
 data:charges-31 a fin:Charge ;
+  rdfs:label "Charge 31" ;
   fin:chargeAmount "2000"^^xsd:decimal ;
   fin:chargePaidAmount "2000"^^xsd:decimal ;
   fin:chargeDueDate "2026-09-30"^^xsd:date ;
@@ -1189,6 +1397,7 @@ data:charges-31 a fin:Charge ;
   fin:chargeChargeType data:charge_types-2 ;
   fin:chargeMonth data:calendar_months-2 .
 data:charges-32 a fin:Charge ;
+  rdfs:label "Charge 32" ;
   fin:chargeAmount "1800"^^xsd:decimal ;
   fin:chargePaidAmount "1800"^^xsd:decimal ;
   fin:chargeDueDate "2026-09-30"^^xsd:date ;
@@ -1197,6 +1406,7 @@ data:charges-32 a fin:Charge ;
   fin:chargeChargeType data:charge_types-3 ;
   fin:chargeMonth data:calendar_months-2 .
 data:charges-33 a fin:Charge ;
+  rdfs:label "Charge 33" ;
   fin:chargeAmount "1200"^^xsd:decimal ;
   fin:chargePaidAmount "1200"^^xsd:decimal ;
   fin:chargeDueDate "2026-09-30"^^xsd:date ;
@@ -1205,6 +1415,7 @@ data:charges-33 a fin:Charge ;
   fin:chargeChargeType data:charge_types-4 ;
   fin:chargeMonth data:calendar_months-2 .
 data:charges-34 a fin:Charge ;
+  rdfs:label "Charge 34" ;
   fin:chargeAmount "4000"^^xsd:decimal ;
   fin:chargePaidAmount "2000"^^xsd:decimal ;
   fin:chargeDueDate "2026-09-30"^^xsd:date ;
@@ -1213,6 +1424,7 @@ data:charges-34 a fin:Charge ;
   fin:chargeChargeType data:charge_types-1 ;
   fin:chargeMonth data:calendar_months-2 .
 data:charges-35 a fin:Charge ;
+  rdfs:label "Charge 35" ;
   fin:chargeAmount "1200"^^xsd:decimal ;
   fin:chargePaidAmount "600"^^xsd:decimal ;
   fin:chargeDueDate "2026-09-30"^^xsd:date ;
@@ -1221,6 +1433,7 @@ data:charges-35 a fin:Charge ;
   fin:chargeChargeType data:charge_types-2 ;
   fin:chargeMonth data:calendar_months-2 .
 data:charges-36 a fin:Charge ;
+  rdfs:label "Charge 36" ;
   fin:chargeAmount "360"^^xsd:decimal ;
   fin:chargePaidAmount "180"^^xsd:decimal ;
   fin:chargeDueDate "2026-09-30"^^xsd:date ;
@@ -1229,6 +1442,7 @@ data:charges-36 a fin:Charge ;
   fin:chargeChargeType data:charge_types-3 ;
   fin:chargeMonth data:calendar_months-2 .
 data:charges-37 a fin:Charge ;
+  rdfs:label "Charge 37" ;
   fin:chargeAmount "400"^^xsd:decimal ;
   fin:chargePaidAmount "200"^^xsd:decimal ;
   fin:chargeDueDate "2026-09-30"^^xsd:date ;
@@ -1237,6 +1451,7 @@ data:charges-37 a fin:Charge ;
   fin:chargeChargeType data:charge_types-4 ;
   fin:chargeMonth data:calendar_months-2 .
 data:charges-38 a fin:Charge ;
+  rdfs:label "Charge 38" ;
   fin:chargeAmount "21000"^^xsd:decimal ;
   fin:chargePaidAmount "21000"^^xsd:decimal ;
   fin:chargeDueDate "2026-09-30"^^xsd:date ;
@@ -1245,6 +1460,7 @@ data:charges-38 a fin:Charge ;
   fin:chargeChargeType data:charge_types-1 ;
   fin:chargeMonth data:calendar_months-2 .
 data:charges-39 a fin:Charge ;
+  rdfs:label "Charge 39" ;
   fin:chargeAmount "3000"^^xsd:decimal ;
   fin:chargePaidAmount "3000"^^xsd:decimal ;
   fin:chargeDueDate "2026-09-30"^^xsd:date ;
@@ -1253,6 +1469,7 @@ data:charges-39 a fin:Charge ;
   fin:chargeChargeType data:charge_types-2 ;
   fin:chargeMonth data:calendar_months-2 .
 data:charges-40 a fin:Charge ;
+  rdfs:label "Charge 40" ;
   fin:chargeAmount "9000"^^xsd:decimal ;
   fin:chargePaidAmount "9000"^^xsd:decimal ;
   fin:chargeDueDate "2026-09-30"^^xsd:date ;
@@ -1261,6 +1478,7 @@ data:charges-40 a fin:Charge ;
   fin:chargeChargeType data:charge_types-3 ;
   fin:chargeMonth data:calendar_months-2 .
 data:charges-41 a fin:Charge ;
+  rdfs:label "Charge 41" ;
   fin:chargeAmount "2100"^^xsd:decimal ;
   fin:chargePaidAmount "2100"^^xsd:decimal ;
   fin:chargeDueDate "2026-09-30"^^xsd:date ;
@@ -1269,6 +1487,7 @@ data:charges-41 a fin:Charge ;
   fin:chargeChargeType data:charge_types-4 ;
   fin:chargeMonth data:calendar_months-2 .
 data:charges-42 a fin:Charge ;
+  rdfs:label "Charge 42" ;
   fin:chargeAmount "17500"^^xsd:decimal ;
   fin:chargePaidAmount "17500"^^xsd:decimal ;
   fin:chargeDueDate "2026-09-30"^^xsd:date ;
@@ -1277,6 +1496,7 @@ data:charges-42 a fin:Charge ;
   fin:chargeChargeType data:charge_types-1 ;
   fin:chargeMonth data:calendar_months-2 .
 data:charges-43 a fin:Charge ;
+  rdfs:label "Charge 43" ;
   fin:chargeAmount "7500"^^xsd:decimal ;
   fin:chargePaidAmount "7500"^^xsd:decimal ;
   fin:chargeDueDate "2026-09-30"^^xsd:date ;
@@ -1285,6 +1505,7 @@ data:charges-43 a fin:Charge ;
   fin:chargeChargeType data:charge_types-3 ;
   fin:chargeMonth data:calendar_months-2 .
 data:charges-44 a fin:Charge ;
+  rdfs:label "Charge 44" ;
   fin:chargeAmount "1750"^^xsd:decimal ;
   fin:chargePaidAmount "1750"^^xsd:decimal ;
   fin:chargeDueDate "2026-09-30"^^xsd:date ;
@@ -1293,149 +1514,177 @@ data:charges-44 a fin:Charge ;
   fin:chargeChargeType data:charge_types-4 ;
   fin:chargeMonth data:calendar_months-2 .
 data:ledger_accounts-1 a fin:LedgerAccount ;
+  rdfs:label "4.1" ;
   fin:ledgerAccountCode "4.1" ;
   fin:ledgerAccountName "Rental income" ;
   fin:ledgerAccountAccountClass "revenue" .
 data:ledger_accounts-2 a fin:LedgerAccount ;
+  rdfs:label "4.2" ;
   fin:ledgerAccountCode "4.2" ;
   fin:ledgerAccountName "Parking income" ;
   fin:ledgerAccountAccountClass "revenue" .
 data:ledger_accounts-3 a fin:LedgerAccount ;
+  rdfs:label "5.1" ;
   fin:ledgerAccountCode "5.1" ;
   fin:ledgerAccountName "Non-recoverable operating expenses" ;
   fin:ledgerAccountAccountClass "operating expense" .
 data:ledger_accounts-4 a fin:LedgerAccount ;
+  rdfs:label "6.1" ;
   fin:ledgerAccountCode "6.1" ;
   fin:ledgerAccountName "Depreciation" ;
   fin:ledgerAccountAccountClass "non-operating" .
 data:journal_entries-1 a fin:JournalEntry ;
+  rdfs:label "Journal Entry 1" ;
   fin:journalEntryEntryDate "2026-08-31"^^xsd:date ;
   fin:journalEntrySummary "Month-end close 2026-08" ;
   fin:journalEntryLegalEntity data:legal_entities-1 ;
   fin:journalEntryMonth data:calendar_months-1 .
 data:journal_entries-2 a fin:JournalEntry ;
+  rdfs:label "Journal Entry 2" ;
   fin:journalEntryEntryDate "2026-08-31"^^xsd:date ;
   fin:journalEntrySummary "Month-end close 2026-08" ;
   fin:journalEntryLegalEntity data:legal_entities-2 ;
   fin:journalEntryMonth data:calendar_months-1 .
 data:journal_entries-3 a fin:JournalEntry ;
+  rdfs:label "Journal Entry 3" ;
   fin:journalEntryEntryDate "2026-09-30"^^xsd:date ;
   fin:journalEntrySummary "Month-end close 2026-09" ;
   fin:journalEntryLegalEntity data:legal_entities-1 ;
   fin:journalEntryMonth data:calendar_months-2 .
 data:journal_entries-4 a fin:JournalEntry ;
+  rdfs:label "Journal Entry 4" ;
   fin:journalEntryEntryDate "2026-09-30"^^xsd:date ;
   fin:journalEntrySummary "Month-end close 2026-09" ;
   fin:journalEntryLegalEntity data:legal_entities-2 ;
   fin:journalEntryMonth data:calendar_months-2 .
 data:journal_lines-1 a fin:JournalLine ;
+  rdfs:label "revenue" ;
   fin:journalLineAmount "110800"^^xsd:decimal ;
   fin:journalLineNoiClass "revenue" ;
   fin:journalLineEntry data:journal_entries-1 ;
   fin:journalLineAccount data:ledger_accounts-1 ;
   fin:journalLineCostCenter data:cost_centers-1 .
 data:journal_lines-2 a fin:JournalLine ;
+  rdfs:label "revenue" ;
   fin:journalLineAmount "61000"^^xsd:decimal ;
   fin:journalLineNoiClass "revenue" ;
   fin:journalLineEntry data:journal_entries-1 ;
   fin:journalLineAccount data:ledger_accounts-2 ;
   fin:journalLineCostCenter data:cost_centers-1 .
 data:journal_lines-3 a fin:JournalLine ;
+  rdfs:label "opex" ;
   fin:journalLineAmount "-30000"^^xsd:decimal ;
   fin:journalLineNoiClass "opex" ;
   fin:journalLineEntry data:journal_entries-1 ;
   fin:journalLineAccount data:ledger_accounts-3 ;
   fin:journalLineCostCenter data:cost_centers-1 .
 data:journal_lines-4 a fin:JournalLine ;
+  rdfs:label "excluded" ;
   fin:journalLineAmount "-45000"^^xsd:decimal ;
   fin:journalLineNoiClass "excluded" ;
   fin:journalLineEntry data:journal_entries-1 ;
   fin:journalLineAccount data:ledger_accounts-4 ;
   fin:journalLineCostCenter data:cost_centers-1 .
 data:journal_lines-5 a fin:JournalLine ;
+  rdfs:label "revenue" ;
   fin:journalLineAmount "21000"^^xsd:decimal ;
   fin:journalLineNoiClass "revenue" ;
   fin:journalLineEntry data:journal_entries-2 ;
   fin:journalLineAccount data:ledger_accounts-1 ;
   fin:journalLineCostCenter data:cost_centers-2 .
 data:journal_lines-6 a fin:JournalLine ;
+  rdfs:label "revenue" ;
   fin:journalLineAmount "0"^^xsd:decimal ;
   fin:journalLineNoiClass "revenue" ;
   fin:journalLineEntry data:journal_entries-2 ;
   fin:journalLineAccount data:ledger_accounts-2 ;
   fin:journalLineCostCenter data:cost_centers-2 .
 data:journal_lines-7 a fin:JournalLine ;
+  rdfs:label "opex" ;
   fin:journalLineAmount "-9000"^^xsd:decimal ;
   fin:journalLineNoiClass "opex" ;
   fin:journalLineEntry data:journal_entries-2 ;
   fin:journalLineAccount data:ledger_accounts-3 ;
   fin:journalLineCostCenter data:cost_centers-2 .
 data:journal_lines-8 a fin:JournalLine ;
+  rdfs:label "excluded" ;
   fin:journalLineAmount "-12000"^^xsd:decimal ;
   fin:journalLineNoiClass "excluded" ;
   fin:journalLineEntry data:journal_entries-2 ;
   fin:journalLineAccount data:ledger_accounts-4 ;
   fin:journalLineCostCenter data:cost_centers-2 .
 data:journal_lines-9 a fin:JournalLine ;
+  rdfs:label "revenue" ;
   fin:journalLineAmount "115300"^^xsd:decimal ;
   fin:journalLineNoiClass "revenue" ;
   fin:journalLineEntry data:journal_entries-3 ;
   fin:journalLineAccount data:ledger_accounts-1 ;
   fin:journalLineCostCenter data:cost_centers-1 .
 data:journal_lines-10 a fin:JournalLine ;
+  rdfs:label "revenue" ;
   fin:journalLineAmount "66000"^^xsd:decimal ;
   fin:journalLineNoiClass "revenue" ;
   fin:journalLineEntry data:journal_entries-3 ;
   fin:journalLineAccount data:ledger_accounts-2 ;
   fin:journalLineCostCenter data:cost_centers-1 .
 data:journal_lines-11 a fin:JournalLine ;
+  rdfs:label "opex" ;
   fin:journalLineAmount "-32000"^^xsd:decimal ;
   fin:journalLineNoiClass "opex" ;
   fin:journalLineEntry data:journal_entries-3 ;
   fin:journalLineAccount data:ledger_accounts-3 ;
   fin:journalLineCostCenter data:cost_centers-1 .
 data:journal_lines-12 a fin:JournalLine ;
+  rdfs:label "excluded" ;
   fin:journalLineAmount "-45000"^^xsd:decimal ;
   fin:journalLineNoiClass "excluded" ;
   fin:journalLineEntry data:journal_entries-3 ;
   fin:journalLineAccount data:ledger_accounts-4 ;
   fin:journalLineCostCenter data:cost_centers-1 .
 data:journal_lines-13 a fin:JournalLine ;
+  rdfs:label "revenue" ;
   fin:journalLineAmount "41500"^^xsd:decimal ;
   fin:journalLineNoiClass "revenue" ;
   fin:journalLineEntry data:journal_entries-4 ;
   fin:journalLineAccount data:ledger_accounts-1 ;
   fin:journalLineCostCenter data:cost_centers-2 .
 data:journal_lines-14 a fin:JournalLine ;
+  rdfs:label "revenue" ;
   fin:journalLineAmount "0"^^xsd:decimal ;
   fin:journalLineNoiClass "revenue" ;
   fin:journalLineEntry data:journal_entries-4 ;
   fin:journalLineAccount data:ledger_accounts-2 ;
   fin:journalLineCostCenter data:cost_centers-2 .
 data:journal_lines-15 a fin:JournalLine ;
+  rdfs:label "opex" ;
   fin:journalLineAmount "-9500"^^xsd:decimal ;
   fin:journalLineNoiClass "opex" ;
   fin:journalLineEntry data:journal_entries-4 ;
   fin:journalLineAccount data:ledger_accounts-3 ;
   fin:journalLineCostCenter data:cost_centers-2 .
 data:journal_lines-16 a fin:JournalLine ;
+  rdfs:label "excluded" ;
   fin:journalLineAmount "-12000"^^xsd:decimal ;
   fin:journalLineNoiClass "excluded" ;
   fin:journalLineEntry data:journal_entries-4 ;
   fin:journalLineAccount data:ledger_accounts-4 ;
   fin:journalLineCostCenter data:cost_centers-2 .
 data:cost_centers-1 a fin:CostCenter ;
+  rdfs:label "CC-AUR" ;
   fin:costCenterCode "CC-AUR" ;
   fin:costCenterName "Aurora Shopping" ;
   fin:costCenterProperty data:properties-1 .
 data:cost_centers-2 a fin:CostCenter ;
+  rdfs:label "CC-BRS" ;
   fin:costCenterCode "CC-BRS" ;
   fin:costCenterName "Brisa Outlet" ;
   fin:costCenterProperty data:properties-2 .
 data:cost_centers-3 a fin:CostCenter ;
+  rdfs:label "CC-CORP" ;
   fin:costCenterCode "CC-CORP" ;
   fin:costCenterName "Corporate" .
 data:occupancy_snapshots-1 a perf:OccupancySnapshot ;
+  rdfs:label "Occupancy Snapshot 1" ;
   perf:occupancySnapshotGlaM2 "2000"^^xsd:decimal ;
   perf:occupancySnapshotOccupiedGlaM2 "2000"^^xsd:decimal ;
   perf:occupancySnapshotContractedMinimumRent "60000"^^xsd:decimal ;
@@ -1443,6 +1692,7 @@ data:occupancy_snapshots-1 a perf:OccupancySnapshot ;
   perf:occupancySnapshotMonth data:calendar_months-1 ;
   perf:occupancySnapshotLease data:leases-1 .
 data:occupancy_snapshots-2 a perf:OccupancySnapshot ;
+  rdfs:label "Occupancy Snapshot 2" ;
   perf:occupancySnapshotGlaM2 "150"^^xsd:decimal ;
   perf:occupancySnapshotOccupiedGlaM2 "150"^^xsd:decimal ;
   perf:occupancySnapshotContractedMinimumRent "18000"^^xsd:decimal ;
@@ -1450,6 +1700,7 @@ data:occupancy_snapshots-2 a perf:OccupancySnapshot ;
   perf:occupancySnapshotMonth data:calendar_months-1 ;
   perf:occupancySnapshotLease data:leases-2 .
 data:occupancy_snapshots-3 a perf:OccupancySnapshot ;
+  rdfs:label "Occupancy Snapshot 3" ;
   perf:occupancySnapshotGlaM2 "120"^^xsd:decimal ;
   perf:occupancySnapshotOccupiedGlaM2 "120"^^xsd:decimal ;
   perf:occupancySnapshotContractedMinimumRent "14400"^^xsd:decimal ;
@@ -1457,6 +1708,7 @@ data:occupancy_snapshots-3 a perf:OccupancySnapshot ;
   perf:occupancySnapshotMonth data:calendar_months-1 ;
   perf:occupancySnapshotLease data:leases-3 .
 data:occupancy_snapshots-4 a perf:OccupancySnapshot ;
+  rdfs:label "Occupancy Snapshot 4" ;
   perf:occupancySnapshotGlaM2 "60"^^xsd:decimal ;
   perf:occupancySnapshotOccupiedGlaM2 "60"^^xsd:decimal ;
   perf:occupancySnapshotContractedMinimumRent "12000"^^xsd:decimal ;
@@ -1464,6 +1716,7 @@ data:occupancy_snapshots-4 a perf:OccupancySnapshot ;
   perf:occupancySnapshotMonth data:calendar_months-1 ;
   perf:occupancySnapshotLease data:leases-4 .
 data:occupancy_snapshots-5 a perf:OccupancySnapshot ;
+  rdfs:label "Occupancy Snapshot 5" ;
   perf:occupancySnapshotGlaM2 "12"^^xsd:decimal ;
   perf:occupancySnapshotOccupiedGlaM2 "12"^^xsd:decimal ;
   perf:occupancySnapshotContractedMinimumRent "4000"^^xsd:decimal ;
@@ -1471,12 +1724,14 @@ data:occupancy_snapshots-5 a perf:OccupancySnapshot ;
   perf:occupancySnapshotMonth data:calendar_months-1 ;
   perf:occupancySnapshotLease data:leases-5 .
 data:occupancy_snapshots-6 a perf:OccupancySnapshot ;
+  rdfs:label "Occupancy Snapshot 6" ;
   perf:occupancySnapshotGlaM2 "200"^^xsd:decimal ;
   perf:occupancySnapshotOccupiedGlaM2 "0"^^xsd:decimal ;
   perf:occupancySnapshotContractedMinimumRent "0"^^xsd:decimal ;
   perf:occupancySnapshotUnit data:units-6 ;
   perf:occupancySnapshotMonth data:calendar_months-1 .
 data:occupancy_snapshots-7 a perf:OccupancySnapshot ;
+  rdfs:label "Occupancy Snapshot 7" ;
   perf:occupancySnapshotGlaM2 "300"^^xsd:decimal ;
   perf:occupancySnapshotOccupiedGlaM2 "300"^^xsd:decimal ;
   perf:occupancySnapshotContractedMinimumRent "21000"^^xsd:decimal ;
@@ -1484,12 +1739,14 @@ data:occupancy_snapshots-7 a perf:OccupancySnapshot ;
   perf:occupancySnapshotMonth data:calendar_months-1 ;
   perf:occupancySnapshotLease data:leases-6 .
 data:occupancy_snapshots-8 a perf:OccupancySnapshot ;
+  rdfs:label "Occupancy Snapshot 8" ;
   perf:occupancySnapshotGlaM2 "250"^^xsd:decimal ;
   perf:occupancySnapshotOccupiedGlaM2 "0"^^xsd:decimal ;
   perf:occupancySnapshotContractedMinimumRent "0"^^xsd:decimal ;
   perf:occupancySnapshotUnit data:units-8 ;
   perf:occupancySnapshotMonth data:calendar_months-1 .
 data:occupancy_snapshots-9 a perf:OccupancySnapshot ;
+  rdfs:label "Occupancy Snapshot 9" ;
   perf:occupancySnapshotGlaM2 "2000"^^xsd:decimal ;
   perf:occupancySnapshotOccupiedGlaM2 "2000"^^xsd:decimal ;
   perf:occupancySnapshotContractedMinimumRent "60000"^^xsd:decimal ;
@@ -1497,6 +1754,7 @@ data:occupancy_snapshots-9 a perf:OccupancySnapshot ;
   perf:occupancySnapshotMonth data:calendar_months-2 ;
   perf:occupancySnapshotLease data:leases-1 .
 data:occupancy_snapshots-10 a perf:OccupancySnapshot ;
+  rdfs:label "Occupancy Snapshot 10" ;
   perf:occupancySnapshotGlaM2 "150"^^xsd:decimal ;
   perf:occupancySnapshotOccupiedGlaM2 "150"^^xsd:decimal ;
   perf:occupancySnapshotContractedMinimumRent "18000"^^xsd:decimal ;
@@ -1504,6 +1762,7 @@ data:occupancy_snapshots-10 a perf:OccupancySnapshot ;
   perf:occupancySnapshotMonth data:calendar_months-2 ;
   perf:occupancySnapshotLease data:leases-2 .
 data:occupancy_snapshots-11 a perf:OccupancySnapshot ;
+  rdfs:label "Occupancy Snapshot 11" ;
   perf:occupancySnapshotGlaM2 "120"^^xsd:decimal ;
   perf:occupancySnapshotOccupiedGlaM2 "120"^^xsd:decimal ;
   perf:occupancySnapshotContractedMinimumRent "14400"^^xsd:decimal ;
@@ -1511,6 +1770,7 @@ data:occupancy_snapshots-11 a perf:OccupancySnapshot ;
   perf:occupancySnapshotMonth data:calendar_months-2 ;
   perf:occupancySnapshotLease data:leases-3 .
 data:occupancy_snapshots-12 a perf:OccupancySnapshot ;
+  rdfs:label "Occupancy Snapshot 12" ;
   perf:occupancySnapshotGlaM2 "60"^^xsd:decimal ;
   perf:occupancySnapshotOccupiedGlaM2 "60"^^xsd:decimal ;
   perf:occupancySnapshotContractedMinimumRent "12000"^^xsd:decimal ;
@@ -1518,6 +1778,7 @@ data:occupancy_snapshots-12 a perf:OccupancySnapshot ;
   perf:occupancySnapshotMonth data:calendar_months-2 ;
   perf:occupancySnapshotLease data:leases-4 .
 data:occupancy_snapshots-13 a perf:OccupancySnapshot ;
+  rdfs:label "Occupancy Snapshot 13" ;
   perf:occupancySnapshotGlaM2 "12"^^xsd:decimal ;
   perf:occupancySnapshotOccupiedGlaM2 "12"^^xsd:decimal ;
   perf:occupancySnapshotContractedMinimumRent "4000"^^xsd:decimal ;
@@ -1525,12 +1786,14 @@ data:occupancy_snapshots-13 a perf:OccupancySnapshot ;
   perf:occupancySnapshotMonth data:calendar_months-2 ;
   perf:occupancySnapshotLease data:leases-5 .
 data:occupancy_snapshots-14 a perf:OccupancySnapshot ;
+  rdfs:label "Occupancy Snapshot 14" ;
   perf:occupancySnapshotGlaM2 "200"^^xsd:decimal ;
   perf:occupancySnapshotOccupiedGlaM2 "0"^^xsd:decimal ;
   perf:occupancySnapshotContractedMinimumRent "0"^^xsd:decimal ;
   perf:occupancySnapshotUnit data:units-6 ;
   perf:occupancySnapshotMonth data:calendar_months-2 .
 data:occupancy_snapshots-15 a perf:OccupancySnapshot ;
+  rdfs:label "Occupancy Snapshot 15" ;
   perf:occupancySnapshotGlaM2 "300"^^xsd:decimal ;
   perf:occupancySnapshotOccupiedGlaM2 "300"^^xsd:decimal ;
   perf:occupancySnapshotContractedMinimumRent "21000"^^xsd:decimal ;
@@ -1538,6 +1801,7 @@ data:occupancy_snapshots-15 a perf:OccupancySnapshot ;
   perf:occupancySnapshotMonth data:calendar_months-2 ;
   perf:occupancySnapshotLease data:leases-6 .
 data:occupancy_snapshots-16 a perf:OccupancySnapshot ;
+  rdfs:label "Occupancy Snapshot 16" ;
   perf:occupancySnapshotGlaM2 "250"^^xsd:decimal ;
   perf:occupancySnapshotOccupiedGlaM2 "250"^^xsd:decimal ;
   perf:occupancySnapshotContractedMinimumRent "17500"^^xsd:decimal ;
@@ -1545,6 +1809,7 @@ data:occupancy_snapshots-16 a perf:OccupancySnapshot ;
   perf:occupancySnapshotMonth data:calendar_months-2 ;
   perf:occupancySnapshotLease data:leases-7 .
 data:sales_reports-1 a perf:SalesReport ;
+  rdfs:label "Sales Report 1" ;
   perf:salesReportGrossSales "1600000"^^xsd:decimal ;
   perf:salesReportReportedGlaM2 "2000"^^xsd:decimal ;
   perf:salesReportOccupancyCost "126000"^^xsd:decimal ;
@@ -1554,6 +1819,7 @@ data:sales_reports-1 a perf:SalesReport ;
   perf:salesReportProperty data:properties-1 ;
   perf:salesReportMonth data:calendar_months-1 .
 data:sales_reports-2 a perf:SalesReport ;
+  rdfs:label "Sales Report 2" ;
   perf:salesReportGrossSales "240000"^^xsd:decimal ;
   perf:salesReportReportedGlaM2 "150"^^xsd:decimal ;
   perf:salesReportOccupancyCost "24300"^^xsd:decimal ;
@@ -1563,6 +1829,7 @@ data:sales_reports-2 a perf:SalesReport ;
   perf:salesReportProperty data:properties-1 ;
   perf:salesReportMonth data:calendar_months-1 .
 data:sales_reports-3 a perf:SalesReport ;
+  rdfs:label "Sales Report 3" ;
   perf:salesReportGrossSales "150000"^^xsd:decimal ;
   perf:salesReportReportedGlaM2 "120"^^xsd:decimal ;
   perf:salesReportOccupancyCost "19440"^^xsd:decimal ;
@@ -1572,6 +1839,7 @@ data:sales_reports-3 a perf:SalesReport ;
   perf:salesReportProperty data:properties-1 ;
   perf:salesReportMonth data:calendar_months-1 .
 data:sales_reports-4 a perf:SalesReport ;
+  rdfs:label "Sales Report 4" ;
   perf:salesReportGrossSales "180000"^^xsd:decimal ;
   perf:salesReportReportedGlaM2 "60"^^xsd:decimal ;
   perf:salesReportOccupancyCost "17400"^^xsd:decimal ;
@@ -1581,6 +1849,7 @@ data:sales_reports-4 a perf:SalesReport ;
   perf:salesReportProperty data:properties-1 ;
   perf:salesReportMonth data:calendar_months-1 .
 data:sales_reports-5 a perf:SalesReport ;
+  rdfs:label "Sales Report 5" ;
   perf:salesReportGrossSales "30000"^^xsd:decimal ;
   perf:salesReportReportedGlaM2 "12"^^xsd:decimal ;
   perf:salesReportOccupancyCost "4760"^^xsd:decimal ;
@@ -1590,6 +1859,7 @@ data:sales_reports-5 a perf:SalesReport ;
   perf:salesReportProperty data:properties-1 ;
   perf:salesReportMonth data:calendar_months-1 .
 data:sales_reports-6 a perf:SalesReport ;
+  rdfs:label "Sales Report 6" ;
   perf:salesReportGrossSales "330000"^^xsd:decimal ;
   perf:salesReportReportedGlaM2 "300"^^xsd:decimal ;
   perf:salesReportOccupancyCost "32100"^^xsd:decimal ;
@@ -1599,6 +1869,7 @@ data:sales_reports-6 a perf:SalesReport ;
   perf:salesReportProperty data:properties-2 ;
   perf:salesReportMonth data:calendar_months-1 .
 data:sales_reports-7 a perf:SalesReport ;
+  rdfs:label "Sales Report 7" ;
   perf:salesReportGrossSales "1900000"^^xsd:decimal ;
   perf:salesReportReportedGlaM2 "2000"^^xsd:decimal ;
   perf:salesReportOccupancyCost "126000"^^xsd:decimal ;
@@ -1608,6 +1879,7 @@ data:sales_reports-7 a perf:SalesReport ;
   perf:salesReportProperty data:properties-1 ;
   perf:salesReportMonth data:calendar_months-2 .
 data:sales_reports-8 a perf:SalesReport ;
+  rdfs:label "Sales Report 8" ;
   perf:salesReportGrossSales "310000"^^xsd:decimal ;
   perf:salesReportReportedGlaM2 "150"^^xsd:decimal ;
   perf:salesReportOccupancyCost "28000"^^xsd:decimal ;
@@ -1617,6 +1889,7 @@ data:sales_reports-8 a perf:SalesReport ;
   perf:salesReportProperty data:properties-1 ;
   perf:salesReportMonth data:calendar_months-2 .
 data:sales_reports-9 a perf:SalesReport ;
+  rdfs:label "Sales Report 9" ;
   perf:salesReportGrossSales "160000"^^xsd:decimal ;
   perf:salesReportReportedGlaM2 "120"^^xsd:decimal ;
   perf:salesReportOccupancyCost "19440"^^xsd:decimal ;
@@ -1626,6 +1899,7 @@ data:sales_reports-9 a perf:SalesReport ;
   perf:salesReportProperty data:properties-1 ;
   perf:salesReportMonth data:calendar_months-2 .
 data:sales_reports-10 a perf:SalesReport ;
+  rdfs:label "Sales Report 10" ;
   perf:salesReportGrossSales "175000"^^xsd:decimal ;
   perf:salesReportReportedGlaM2 "60"^^xsd:decimal ;
   perf:salesReportOccupancyCost "17000"^^xsd:decimal ;
@@ -1635,6 +1909,7 @@ data:sales_reports-10 a perf:SalesReport ;
   perf:salesReportProperty data:properties-1 ;
   perf:salesReportMonth data:calendar_months-2 .
 data:sales_reports-11 a perf:SalesReport ;
+  rdfs:label "Sales Report 11" ;
   perf:salesReportGrossSales "52000"^^xsd:decimal ;
   perf:salesReportReportedGlaM2 "12"^^xsd:decimal ;
   perf:salesReportOccupancyCost "5960"^^xsd:decimal ;
@@ -1644,6 +1919,7 @@ data:sales_reports-11 a perf:SalesReport ;
   perf:salesReportProperty data:properties-1 ;
   perf:salesReportMonth data:calendar_months-2 .
 data:sales_reports-12 a perf:SalesReport ;
+  rdfs:label "Sales Report 12" ;
   perf:salesReportGrossSales "400000"^^xsd:decimal ;
   perf:salesReportReportedGlaM2 "300"^^xsd:decimal ;
   perf:salesReportOccupancyCost "35100"^^xsd:decimal ;
@@ -1653,6 +1929,7 @@ data:sales_reports-12 a perf:SalesReport ;
   perf:salesReportProperty data:properties-2 ;
   perf:salesReportMonth data:calendar_months-2 .
 data:sales_reports-13 a perf:SalesReport ;
+  rdfs:label "Sales Report 13" ;
   perf:salesReportGrossSales "210000"^^xsd:decimal ;
   perf:salesReportReportedGlaM2 "250"^^xsd:decimal ;
   perf:salesReportOccupancyCost "26750"^^xsd:decimal ;
@@ -1662,57 +1939,67 @@ data:sales_reports-13 a perf:SalesReport ;
   perf:salesReportProperty data:properties-2 ;
   perf:salesReportMonth data:calendar_months-2 .
 data:footfall_counts-1 a perf:FootfallCount ;
+  rdfs:label "Footfall Count 1" ;
   perf:footfallCountPeriodStart "2026-08-01"^^xsd:date ;
   perf:footfallCountPeriodEnd "2026-08-31"^^xsd:date ;
   perf:footfallCountVisitors "410000"^^xsd:integer ;
   perf:footfallCountEntrance data:entrances-1 ;
   perf:footfallCountMonth data:calendar_months-1 .
 data:footfall_counts-2 a perf:FootfallCount ;
+  rdfs:label "Footfall Count 2" ;
   perf:footfallCountPeriodStart "2026-08-01"^^xsd:date ;
   perf:footfallCountPeriodEnd "2026-08-31"^^xsd:date ;
   perf:footfallCountVisitors "120000"^^xsd:integer ;
   perf:footfallCountEntrance data:entrances-2 ;
   perf:footfallCountMonth data:calendar_months-1 .
 data:footfall_counts-3 a perf:FootfallCount ;
+  rdfs:label "Footfall Count 3" ;
   perf:footfallCountPeriodStart "2026-08-01"^^xsd:date ;
   perf:footfallCountPeriodEnd "2026-08-31"^^xsd:date ;
   perf:footfallCountVisitors "95000"^^xsd:integer ;
   perf:footfallCountEntrance data:entrances-3 ;
   perf:footfallCountMonth data:calendar_months-1 .
 data:footfall_counts-4 a perf:FootfallCount ;
+  rdfs:label "Footfall Count 4" ;
   perf:footfallCountPeriodStart "2026-09-01"^^xsd:date ;
   perf:footfallCountPeriodEnd "2026-09-30"^^xsd:date ;
   perf:footfallCountVisitors "455000"^^xsd:integer ;
   perf:footfallCountEntrance data:entrances-1 ;
   perf:footfallCountMonth data:calendar_months-2 .
 data:footfall_counts-5 a perf:FootfallCount ;
+  rdfs:label "Footfall Count 5" ;
   perf:footfallCountPeriodStart "2026-09-01"^^xsd:date ;
   perf:footfallCountPeriodEnd "2026-09-30"^^xsd:date ;
   perf:footfallCountVisitors "131000"^^xsd:integer ;
   perf:footfallCountEntrance data:entrances-2 ;
   perf:footfallCountMonth data:calendar_months-2 .
 data:footfall_counts-6 a perf:FootfallCount ;
+  rdfs:label "Footfall Count 6" ;
   perf:footfallCountPeriodStart "2026-09-01"^^xsd:date ;
   perf:footfallCountPeriodEnd "2026-09-30"^^xsd:date ;
   perf:footfallCountVisitors "118000"^^xsd:integer ;
   perf:footfallCountEntrance data:entrances-3 ;
   perf:footfallCountMonth data:calendar_months-2 .
 data:parking_activity-1 a perf:ParkingActivity ;
+  rdfs:label "Parking Activity 1" ;
   perf:parkingActivityTickets "6100"^^xsd:integer ;
   perf:parkingActivityRevenue "61000"^^xsd:decimal ;
   perf:parkingActivityFacility data:parking_facilities-1 ;
   perf:parkingActivityMonth data:calendar_months-1 .
 data:parking_activity-2 a perf:ParkingActivity ;
+  rdfs:label "Parking Activity 2" ;
   perf:parkingActivityTickets "14000"^^xsd:integer ;
   perf:parkingActivityRevenue "0"^^xsd:decimal ;
   perf:parkingActivityFacility data:parking_facilities-2 ;
   perf:parkingActivityMonth data:calendar_months-1 .
 data:parking_activity-3 a perf:ParkingActivity ;
+  rdfs:label "Parking Activity 3" ;
   perf:parkingActivityTickets "6600"^^xsd:integer ;
   perf:parkingActivityRevenue "66000"^^xsd:decimal ;
   perf:parkingActivityFacility data:parking_facilities-1 ;
   perf:parkingActivityMonth data:calendar_months-2 .
 data:parking_activity-4 a perf:ParkingActivity ;
+  rdfs:label "Parking Activity 4" ;
   perf:parkingActivityTickets "16500"^^xsd:integer ;
   perf:parkingActivityRevenue "0"^^xsd:decimal ;
   perf:parkingActivityFacility data:parking_facilities-2 ;

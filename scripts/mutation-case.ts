@@ -78,3 +78,5 @@ if(category==='agent'){
  assert.throws(()=>plan(change(2,d=>delete d.datasets[1].primary_key)));
 }
 if(category==='iri'){assert.deepEqual(m.expandIri('ex:A',{ex:'https://example.org/'}),{iri:'https://example.org/A',prefix:'ex'});assert('error'in m.expandIri('zz:A',{ex:'https://example.org/'}));assert.deepEqual(m.expandIri('https://x.example/A'),{iri:'https://x.example/A'});}
+if(category==='odcs'){const data={schema:[{name:'a',properties:[{name:'id'}]},{name:'b',properties:[{name:'a_id',relationships:[{to:'a.id'}]},{name:'x_id',relationships:[{to:'x.id'}]}]}]};assert.equal(m.odcsForeignKeys(data).length,1);assert.equal(m.odcsReferenceIssues(data).length,1);}
+if(category==='references'){const entity={id:'ontology/0',name:'P',kind:'EntityType',path:[],description:'',fields:[],definition:{iri:'core:P'}};assert(m.entityKeys(entity,{entities:[entity],document:{prefixes:{core:'https://example.org/core#'}}}).includes('https://example.org/core#P'));}

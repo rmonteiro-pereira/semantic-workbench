@@ -1,6 +1,7 @@
 import {OSSIE_BUILTINS,builtinConcept} from './ossie-builtins';
 import {isMapping} from './mapping-schema';
 import {expandIri,namespaceOf,prefixMap,type Namespace} from './iri';
+import {odcsForeignKeys} from './odcs';
 import { parseDocument } from "yaml";
 import {inspectRdf,rdfSyntax} from "./rdf";
 import {validateStructured} from "./validation";
@@ -68,6 +69,7 @@ export function inspect(source: string, filename='definition.yaml') {
       throw Error("ODCS requires apiVersion, id and version");
     if (!Array.isArray(data.schema)) throw Error("ODCS requires a schema array");
     data.schema.forEach((x: any, i: number) => add(x, ["schema", i], "Object"));
+    for(const fk of odcsForeignKeys(data))edges.push({id:`fk-${edges.length}`,source:`schema/${fk.from}`,target:`schema/${fk.to}`,label:fk.label,data:{path:fk.path,definition:fk.definition,kind:'Foreign key'}});
   } else if (Array.isArray(data.ontology)) {
     kind = "Ossie ontology";
     data.ontology.forEach((x: any, i: number) => add(x, ["ontology", i], x.type ?? "Concept"));

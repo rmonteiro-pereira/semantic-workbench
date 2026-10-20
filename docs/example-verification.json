@@ -89,7 +89,7 @@
         "file": "mall.odcs.yaml",
         "kind": "ODCS",
         "entities": 142,
-        "relationships": 0
+        "relationships": 259
       },
       {
         "file": "mall.owl.ttl",
