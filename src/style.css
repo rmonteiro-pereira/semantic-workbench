@@ -597,3 +597,4 @@ main > .status { position: absolute; bottom: 40px; left: 20px; right: 20px; widt
 .grouping-controls>label>select{width:145px}.grouping-controls>.grouping-details>summary{padding:5px 7px}.grouping-controls>.grouping-details>summary::after{content:none}
 .toolbar .tabs{flex:1 1 420px}.toolbar .search{flex-basis:150px}
 @media(min-width:1100px) and (max-width:1450px){.toolbar{gap:6px}.toolbar .tabs button{padding-left:6px;padding-right:6px;font-size:11px}.grouping-controls>label{font-size:0;gap:0}.grouping-controls>label>select{width:140px}.toolbar .search{flex-basis:135px}}
+.node strong{overflow-wrap:anywhere}
