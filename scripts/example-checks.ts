@@ -8,6 +8,7 @@ import {validateInput} from '../src/input';
 import {exportDocument} from '../src/export';
 import {agentCatalog,buildContext,planQuery,type StoredDocument} from '../server/agent/runtime';
 import manifest from '../tests/fixtures/ossie-mapping/manifest.json';
+import {checkMall} from './mall-checks';
 export async function checkExamples(){
  const upstream:StoredDocument[]=[];const imports:any[]=[];const sqlExecutions:any[]=[];const plans:any[]=[];
  const store=createStore(':memory:');
@@ -62,6 +63,7 @@ export async function checkExamples(){
    // represent different roles. A shortest path must not choose their meaning.
    assert.throws(()=>planQuery(context,{mappingId:context.mappingId,metrics:['net_revenue'],dimensions:['["billing_cycles","name"]']}),/Ambiguous join paths/);
   }finally{db.close();}
-  return {upstreamCommit:manifest.commit,imports,generated:{businessEntities:36,datasets:36,joins:46,bindings:119,governedMetrics:4},sqlExecutions,blockedCases:['Flights conditional population mapping needs explicit interpretation','BillingCycle has billed-cycle and subscribed-cycle paths; no role was guessed'],governedDefinitionsUnchanged:true,plans:plans.map(p=>({sql:p.sql,metrics:p.metrics,dimensions:p.dimensions,joins:p.joins.map((j:any)=>j.name),documents:p.documents}))};
+  const mall=await checkMall();
+  return {upstreamCommit:manifest.commit,imports,generated:{businessEntities:36,datasets:36,joins:46,bindings:119,governedMetrics:4},shoppingCenter:{counts:mall.counts,imports:mall.imports,sqlExecutions:mall.executions,blockedCases:mall.blockedCases},sqlExecutions,blockedCases:['Flights conditional population mapping needs explicit interpretation','BillingCycle has billed-cycle and subscribed-cycle paths; no role was guessed'],governedDefinitionsUnchanged:true,plans:plans.map(p=>({sql:p.sql,metrics:p.metrics,dimensions:p.dimensions,joins:p.joins.map((j:any)=>j.name),documents:p.documents}))};
  }finally{store.db.close();}
 }

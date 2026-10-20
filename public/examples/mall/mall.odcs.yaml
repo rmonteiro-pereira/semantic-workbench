@@ -1,0 +1,5130 @@
+apiVersion: v3.1.0
+kind: DataContract
+id: 5f0b8a3e-2c41-4d7a-9b6e-8a1c3e5d7f20
+name: Shopping center administration contract
+version: 1.0.0
+status: active
+domain: Shopping center administration
+dataProduct: Retail real estate operations
+description:
+  purpose: Governed tables for leasing, billing, operations and performance reporting of shopping centers.
+  limitations: Fictional demonstration data in BRL. No real tenants, people or properties.
+schema:
+  - name: organizations
+    physicalName: mall.organizations
+    physicalType: table
+    logicalType: object
+    description: Legal entity such as a company, fund, bank, insurer, public authority, court, law firm or condominium association.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/core#Organization
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Organization.
+      - name: name
+        logicalType: string
+        required: true
+        description: Name used in day-to-day administration.
+      - name: legal_name
+        logicalType: string
+        required: false
+        description: Registered legal name.
+      - name: tax_id
+        logicalType: string
+        required: false
+        description: Tax registration number.
+      - name: email
+        logicalType: string
+        required: false
+        description: Main email address.
+      - name: phone
+        logicalType: string
+        required: false
+        description: Main phone number.
+      - name: organization_type
+        logicalType: string
+        required: false
+        description: Kind of organization, for example company, fund, bank, insurer, authority, court or law firm.
+      - name: legal_form
+        logicalType: string
+        required: false
+        description: Legal form, for example limited company, corporation, investment fund or association.
+      - name: address_id
+        logicalType: integer
+        required: false
+        description: "Reference to Address: Registered or correspondence address."
+      - name: parent_organization_id
+        logicalType: integer
+        required: false
+        description: "Reference to Organization: Economic group or parent company."
+  - name: people
+    physicalName: mall.people
+    physicalType: table
+    logicalType: object
+    description: "Natural person: employee, tenant contact, attorney, candidate, guarantor or individual investor. Personal data is subject to data-protection law."
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/core#Person
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Person.
+      - name: name
+        logicalType: string
+        required: true
+        description: Name used in day-to-day administration.
+      - name: legal_name
+        logicalType: string
+        required: false
+        description: Registered legal name.
+      - name: tax_id
+        logicalType: string
+        required: false
+        description: Tax registration number.
+      - name: email
+        logicalType: string
+        required: false
+        description: Main email address.
+      - name: phone
+        logicalType: string
+        required: false
+        description: Main phone number.
+      - name: birth_date
+        logicalType: date
+        required: false
+        description: Date of birth.
+      - name: nationality
+        logicalType: string
+        required: false
+        description: Nationality.
+      - name: address_id
+        logicalType: integer
+        required: false
+        description: "Reference to Address: Registered or correspondence address."
+  - name: addresses
+    physicalName: mall.addresses
+    physicalType: table
+    logicalType: object
+    description: Postal address of a property or party.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/core#Address
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Address.
+      - name: street
+        logicalType: string
+        required: true
+        description: Street name.
+      - name: street_number
+        logicalType: string
+        required: false
+        description: Street number.
+      - name: complement
+        logicalType: string
+        required: false
+        description: Additional address detail.
+      - name: district
+        logicalType: string
+        required: false
+        description: District or neighbourhood.
+      - name: postal_code
+        logicalType: string
+        required: false
+        description: Postal code.
+      - name: city_id
+        logicalType: integer
+        required: true
+        description: "Reference to City: City of the address."
+  - name: cities
+    physicalName: mall.cities
+    physicalType: table
+    logicalType: object
+    description: Municipality.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/core#City
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the City.
+      - name: name
+        logicalType: string
+        required: true
+        description: City name.
+      - name: state_id
+        logicalType: integer
+        required: true
+        description: "Reference to StateProvince: State or province of the city."
+  - name: state_provinces
+    physicalName: mall.state_provinces
+    physicalType: table
+    logicalType: object
+    description: State, province or other first-level administrative region.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/core#StateProvince
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the StateProvince.
+      - name: name
+        logicalType: string
+        required: true
+        description: State name.
+      - name: code
+        logicalType: string
+        required: false
+        description: Abbreviation.
+      - name: country_id
+        logicalType: integer
+        required: true
+        description: "Reference to Country: Country of the region."
+  - name: countries
+    physicalName: mall.countries
+    physicalType: table
+    logicalType: object
+    description: Country.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/core#Country
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Country.
+      - name: name
+        logicalType: string
+        required: true
+        description: Country name.
+      - name: iso_code
+        logicalType: string
+        required: true
+        description: ISO 3166-1 alpha-2 code.
+  - name: currencies
+    physicalName: mall.currencies
+    physicalType: table
+    logicalType: object
+    description: Currency in which leases, invoices and accounts are denominated.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/core#Currency
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Currency.
+      - name: name
+        logicalType: string
+        required: true
+        description: Currency name.
+      - name: iso_code
+        logicalType: string
+        required: true
+        description: ISO 4217 code.
+  - name: calendar_months
+    physicalName: mall.calendar_months
+    physicalType: table
+    logicalType: object
+    description: Reporting and billing period. Charges, sales reports, occupancy snapshots and ledger entries are stated per month.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/core#CalendarMonth
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the CalendarMonth.
+      - name: year_month
+        logicalType: string
+        required: true
+        description: Month in YYYY-MM form.
+      - name: year
+        logicalType: integer
+        required: true
+        description: Calendar year.
+      - name: month_number
+        logicalType: integer
+        required: true
+        description: Month of the year, 1 to 12.
+      - name: quarter
+        logicalType: string
+        required: false
+        description: Calendar quarter, for example 2026-Q3.
+  - name: price_indices
+    physicalName: mall.price_indices
+    physicalType: table
+    logicalType: object
+    description: Inflation index used to adjust rents, such as IGP-M or IPCA in Brazil or a consumer price index elsewhere.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/core#PriceIndex
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the PriceIndex.
+      - name: name
+        logicalType: string
+        required: true
+        description: Index name.
+      - name: code
+        logicalType: string
+        required: true
+        description: Index code.
+      - name: publisher
+        logicalType: string
+        required: false
+        description: Publishing institution.
+  - name: price_index_values
+    physicalName: mall.price_index_values
+    physicalType: table
+    logicalType: object
+    description: Published level and monthly change of a price index.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/core#PriceIndexValue
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the PriceIndexValue.
+      - name: index_level
+        logicalType: number
+        required: true
+        description: Index level for the month.
+      - name: monthly_change
+        logicalType: number
+        required: false
+        description: Change against the previous month as a fraction.
+      - name: price_index_id
+        logicalType: integer
+        required: true
+        description: "Reference to PriceIndex: Index being published."
+      - name: month_id
+        logicalType: integer
+        required: true
+        description: "Reference to CalendarMonth: Reference month."
+  - name: portfolios
+    physicalName: mall.portfolios
+    physicalType: table
+    logicalType: object
+    description: Group of properties managed under one strategy or fund.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/asset#Portfolio
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Portfolio.
+      - name: name
+        logicalType: string
+        required: true
+        description: Portfolio name.
+      - name: strategy
+        logicalType: string
+        required: false
+        description: Investment or management strategy.
+      - name: asset_manager_id
+        logicalType: integer
+        required: false
+        description: "Reference to Organization: Asset manager responsible for the portfolio."
+  - name: properties
+    physicalName: mall.properties
+    physicalType: table
+    logicalType: object
+    description: Shopping center or other managed real-estate asset. Gross leasable area (GLA, in Portuguese ABL) is the area available for lease to tenants.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/asset#Property
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Property.
+      - name: code
+        logicalType: string
+        required: true
+        description: Property code.
+      - name: name
+        logicalType: string
+        required: true
+        description: Property name.
+      - name: property_format
+        logicalType: string
+        required: false
+        description: Format, for example regional, super-regional, community, outlet, lifestyle or power center.
+      - name: opening_date
+        logicalType: date
+        required: false
+        description: Date the property opened to the public.
+      - name: total_gla_m2
+        logicalType: number
+        required: true
+        description: Gross leasable area.
+      - name: gross_built_area_m2
+        logicalType: number
+        required: false
+        description: Total built area.
+      - name: parking_spaces
+        logicalType: integer
+        required: false
+        description: Number of parking spaces.
+      - name: portfolio_id
+        logicalType: integer
+        required: true
+        description: "Reference to Portfolio: Portfolio of the property."
+      - name: address_id
+        logicalType: integer
+        required: true
+        description: "Reference to Address: Address of the property."
+      - name: currency_id
+        logicalType: integer
+        required: true
+        description: "Reference to Currency: Currency of leases and accounts."
+      - name: administrator_id
+        logicalType: integer
+        required: false
+        description: "Reference to Organization: Company contracted to administer the property."
+      - name: general_manager_id
+        logicalType: integer
+        required: false
+        description: "Reference to Person: General manager of the property."
+  - name: buildings
+    physicalName: mall.buildings
+    physicalType: table
+    logicalType: object
+    description: Structure within a property, such as the mall, an office tower or a parking building.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/asset#Building
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Building.
+      - name: code
+        logicalType: string
+        required: true
+        description: Building code.
+      - name: name
+        logicalType: string
+        required: false
+        description: Building name.
+      - name: built_year
+        logicalType: integer
+        required: false
+        description: Year of completion.
+      - name: property_id
+        logicalType: integer
+        required: true
+        description: "Reference to Property: Property containing the building."
+  - name: floors
+    physicalName: mall.floors
+    physicalType: table
+    logicalType: object
+    description: Floor or level of a building.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/asset#Floor
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Floor.
+      - name: code
+        logicalType: string
+        required: true
+        description: Floor code, for example L1.
+      - name: name
+        logicalType: string
+        required: false
+        description: Floor name.
+      - name: level_number
+        logicalType: integer
+        required: false
+        description: Level number; negative below ground.
+      - name: building_id
+        logicalType: integer
+        required: true
+        description: "Reference to Building: Building of the floor."
+  - name: zones
+    physicalName: mall.zones
+    physicalType: table
+    logicalType: object
+    description: Wing, corridor or sector of a floor used to locate units and plan the tenant mix.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/asset#Zone
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Zone.
+      - name: code
+        logicalType: string
+        required: true
+        description: Zone code.
+      - name: name
+        logicalType: string
+        required: false
+        description: Zone name.
+      - name: floor_id
+        logicalType: integer
+        required: true
+        description: "Reference to Floor: Floor of the zone."
+  - name: units
+    physicalName: mall.units
+    physicalType: table
+    logicalType: object
+    description: Store, kiosk or other unit that counts towards gross leasable area and can be leased to a tenant.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/asset#LeasableUnit
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the LeasableUnit.
+      - name: code
+        logicalType: string
+        required: true
+        description: Space code, for example a store number.
+      - name: name
+        logicalType: string
+        required: false
+        description: Space name.
+      - name: area_m2
+        logicalType: number
+        required: true
+        description: Measured area.
+      - name: frontage_m
+        logicalType: number
+        required: false
+        description: Shop-front length.
+      - name: has_mezzanine
+        logicalType: boolean
+        required: false
+        description: Whether the unit has a mezzanine.
+      - name: zone_id
+        logicalType: integer
+        required: true
+        description: "Reference to Zone: Zone of the unit."
+      - name: unit_type_id
+        logicalType: integer
+        required: true
+        description: "Reference to UnitType: Unit type."
+  - name: unit_types
+    physicalName: mall.unit_types
+    physicalType: table
+    logicalType: object
+    description: "Classification of units: anchor, mega-store, inline store, kiosk, food court, restaurant, entertainment, services, office or storage."
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/asset#UnitType
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the UnitType.
+      - name: code
+        logicalType: string
+        required: true
+        description: Unit type code.
+      - name: name
+        logicalType: string
+        required: true
+        description: Unit type name.
+      - name: counts_as_gla
+        logicalType: boolean
+        required: true
+        description: Whether units of this type count towards gross leasable area.
+  - name: common_areas
+    physicalName: mall.common_areas
+    physicalType: table
+    logicalType: object
+    description: "Shared area operated by the property: corridors, food-court seating, restrooms, loading docks and technical areas. Its costs are recovered through service charges."
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/asset#CommonArea
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the CommonArea.
+      - name: code
+        logicalType: string
+        required: true
+        description: Space code, for example a store number.
+      - name: name
+        logicalType: string
+        required: false
+        description: Space name.
+      - name: area_m2
+        logicalType: number
+        required: true
+        description: Measured area.
+      - name: area_kind
+        logicalType: string
+        required: false
+        description: Kind of common area.
+      - name: floor_id
+        logicalType: integer
+        required: true
+        description: "Reference to Floor: Floor of the common area."
+  - name: parking_facilities
+    physicalName: mall.parking_facilities
+    physicalType: table
+    logicalType: object
+    description: Parking area of a property.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/asset#ParkingFacility
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the ParkingFacility.
+      - name: code
+        logicalType: string
+        required: true
+        description: Space code, for example a store number.
+      - name: name
+        logicalType: string
+        required: false
+        description: Space name.
+      - name: area_m2
+        logicalType: number
+        required: true
+        description: Measured area.
+      - name: capacity
+        logicalType: integer
+        required: true
+        description: Number of parking spaces.
+      - name: is_paid
+        logicalType: boolean
+        required: false
+        description: Whether visitors pay for parking.
+      - name: property_id
+        logicalType: integer
+        required: true
+        description: "Reference to Property: Property served by the facility."
+  - name: entrances
+    physicalName: mall.entrances
+    physicalType: table
+    logicalType: object
+    description: Visitor entrance where footfall is counted.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/asset#Entrance
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Entrance.
+      - name: code
+        logicalType: string
+        required: true
+        description: Entrance code.
+      - name: name
+        logicalType: string
+        required: false
+        description: Entrance name.
+      - name: entrance_kind
+        logicalType: string
+        required: false
+        description: Pedestrian, parking, public transport or service.
+      - name: property_id
+        logicalType: integer
+        required: true
+        description: "Reference to Property: Property of the entrance."
+  - name: area_measurements
+    physicalName: mall.area_measurements
+    physicalType: table
+    logicalType: object
+    description: Certified measurement of a unit area under a stated method.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/asset#AreaMeasurement
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the AreaMeasurement.
+      - name: measurement_date
+        logicalType: date
+        required: true
+        description: Measurement date.
+      - name: measured_area_m2
+        logicalType: number
+        required: true
+        description: Measured area.
+      - name: method
+        logicalType: string
+        required: false
+        description: Measurement standard.
+      - name: unit_id
+        logicalType: integer
+        required: true
+        description: "Reference to LeasableUnit: Unit measured."
+      - name: surveyor_id
+        logicalType: integer
+        required: false
+        description: "Reference to Organization: Surveyor."
+  - name: ownership_stakes
+    physicalName: mall.ownership_stakes
+    physicalType: table
+    logicalType: object
+    description: Fractional ownership of a property by an investor. Shopping centers are often held in undivided shares by several investors.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/asset#OwnershipStake
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the OwnershipStake.
+      - name: share
+        logicalType: number
+        required: true
+        description: Ownership fraction.
+      - name: start_date
+        logicalType: date
+        required: true
+        description: Start of ownership.
+      - name: end_date
+        logicalType: date
+        required: false
+        description: End of ownership.
+      - name: investor_id
+        logicalType: integer
+        required: true
+        description: "Reference to Investor: Owner of the stake."
+      - name: property_id
+        logicalType: integer
+        required: true
+        description: "Reference to Property: Property owned."
+  - name: valuations
+    physicalName: mall.valuations
+    physicalType: table
+    logicalType: object
+    description: Appraisal of the market value of a property.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/asset#Valuation
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Valuation.
+      - name: valuation_date
+        logicalType: date
+        required: true
+        description: Valuation date.
+      - name: market_value
+        logicalType: number
+        required: true
+        description: Appraised market value.
+      - name: capitalization_rate
+        logicalType: number
+        required: false
+        description: Capitalization rate applied.
+      - name: discount_rate
+        logicalType: number
+        required: false
+        description: Discount rate applied.
+      - name: property_id
+        logicalType: integer
+        required: true
+        description: "Reference to Property: Property valued."
+      - name: appraiser_id
+        logicalType: integer
+        required: false
+        description: "Reference to Organization: Appraiser."
+  - name: permits
+    physicalName: mall.permits
+    physicalType: table
+    logicalType: object
+    description: Licence or certificate required to operate the property, such as an occupancy certificate, fire safety certificate or operating licence.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/asset#Permit
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Permit.
+      - name: permit_number
+        logicalType: string
+        required: true
+        description: Permit number.
+      - name: permit_type
+        logicalType: string
+        required: true
+        description: Permit type.
+      - name: issue_date
+        logicalType: date
+        required: false
+        description: Issue date.
+      - name: expiry_date
+        logicalType: date
+        required: false
+        description: Expiry date.
+      - name: property_id
+        logicalType: integer
+        required: true
+        description: "Reference to Property: Property covered."
+      - name: issuer_id
+        logicalType: integer
+        required: false
+        description: "Reference to Organization: Issuing authority."
+  - name: equipment
+    physicalName: mall.equipment
+    physicalType: table
+    logicalType: object
+    description: Maintained building equipment such as escalators, elevators, chillers, generators and fire pumps.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/asset#Equipment
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Equipment.
+      - name: tag
+        logicalType: string
+        required: true
+        description: Asset tag.
+      - name: name
+        logicalType: string
+        required: true
+        description: Equipment name.
+      - name: equipment_type
+        logicalType: string
+        required: true
+        description: Equipment type.
+      - name: install_date
+        logicalType: date
+        required: false
+        description: Installation date.
+      - name: manufacturer
+        logicalType: string
+        required: false
+        description: Manufacturer.
+      - name: property_id
+        logicalType: integer
+        required: true
+        description: "Reference to Property: Property of the equipment."
+      - name: fixed_asset_id
+        logicalType: integer
+        required: false
+        description: "Reference to FixedAsset: Fixed-asset record."
+  - name: tenants
+    physicalName: mall.tenants
+    physicalType: table
+    logicalType: object
+    description: "Role of an organization that leases space in a property: retailer, restaurant or service operator."
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/party#Tenant
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Tenant.
+      - name: trade_name
+        logicalType: string
+        required: true
+        description: Trading name used at the store.
+      - name: since_date
+        logicalType: date
+        required: false
+        description: First lease start in the portfolio.
+      - name: organization_id
+        logicalType: integer
+        required: true
+        description: "Reference to Organization: Organization acting as tenant."
+  - name: investors
+    physicalName: mall.investors
+    physicalType: table
+    logicalType: object
+    description: Role of an organization or person that owns ownership stakes, such as a pension fund, real-estate fund, developer or individual.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/party#Investor
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Investor.
+      - name: investor_type
+        logicalType: string
+        required: false
+        description: Pension fund, real-estate fund, developer or private investor.
+      - name: organization_id
+        logicalType: integer
+        required: false
+        description: "Reference to Organization: Investing organization."
+      - name: person_id
+        logicalType: integer
+        required: false
+        description: "Reference to Person: Individual investor."
+  - name: brokers
+    physicalName: mall.brokers
+    physicalType: table
+    logicalType: object
+    description: Role of a leasing broker or agency that introduces tenants.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/party#Broker
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Broker.
+      - name: license_number
+        logicalType: string
+        required: false
+        description: Broker licence number.
+      - name: commission_rate
+        logicalType: number
+        required: false
+        description: Standard commission as a fraction of the first-year rent.
+      - name: organization_id
+        logicalType: integer
+        required: true
+        description: "Reference to Organization: Brokerage organization."
+  - name: brands
+    physicalName: mall.brands
+    physicalType: table
+    logicalType: object
+    description: Commercial brand operated in a store. One tenant can operate several brands.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/party#Brand
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Brand.
+      - name: name
+        logicalType: string
+        required: true
+        description: Brand name.
+      - name: owner_id
+        logicalType: integer
+        required: false
+        description: "Reference to Tenant: Tenant owning the brand."
+  - name: merchandise_categories
+    physicalName: mall.merchandise_categories
+    physicalType: table
+    logicalType: object
+    description: Tenant-mix category, such as apparel, footwear, food court, services or entertainment. Categories form a hierarchy.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/party#MerchandiseCategory
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the MerchandiseCategory.
+      - name: code
+        logicalType: string
+        required: true
+        description: Category code.
+      - name: name
+        logicalType: string
+        required: true
+        description: Category name.
+      - name: parent_category_id
+        logicalType: integer
+        required: false
+        description: "Reference to MerchandiseCategory: Broader category."
+  - name: tenant_contacts
+    physicalName: mall.tenant_contacts
+    physicalType: table
+    logicalType: object
+    description: Person a tenant designates for a responsibility, such as store manager, finance or legal.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/party#TenantContact
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the TenantContact.
+      - name: role
+        logicalType: string
+        required: true
+        description: Responsibility.
+      - name: is_primary
+        logicalType: boolean
+        required: false
+        description: Whether this is the primary contact.
+      - name: person_id
+        logicalType: integer
+        required: true
+        description: "Reference to Person: Contact person."
+      - name: tenant_id
+        logicalType: integer
+        required: true
+        description: "Reference to Tenant: Tenant represented."
+  - name: leasing_prospects
+    physicalName: mall.leasing_prospects
+    physicalType: table
+    logicalType: object
+    description: Potential tenant in the leasing pipeline.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/lease#LeasingProspect
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the LeasingProspect.
+      - name: name
+        logicalType: string
+        required: true
+        description: Prospect name.
+      - name: first_contact_date
+        logicalType: date
+        required: false
+        description: First contact.
+      - name: brand_id
+        logicalType: integer
+        required: false
+        description: "Reference to Brand: Brand proposed."
+      - name: category_id
+        logicalType: integer
+        required: false
+        description: "Reference to MerchandiseCategory: Intended category."
+      - name: broker_id
+        logicalType: integer
+        required: false
+        description: "Reference to Broker: Introducing broker."
+  - name: leasing_proposals
+    physicalName: mall.leasing_proposals
+    physicalType: table
+    logicalType: object
+    description: Commercial offer or letter of intent for a unit.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/lease#LeasingProposal
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the LeasingProposal.
+      - name: proposal_number
+        logicalType: string
+        required: true
+        description: Proposal number.
+      - name: proposal_date
+        logicalType: date
+        required: true
+        description: Proposal date.
+      - name: proposed_minimum_rent
+        logicalType: number
+        required: false
+        description: Monthly minimum rent offered.
+      - name: proposed_term_months
+        logicalType: integer
+        required: false
+        description: Lease term offered.
+      - name: status
+        logicalType: string
+        required: false
+        description: Draft, sent, accepted, rejected or withdrawn.
+      - name: prospect_id
+        logicalType: integer
+        required: true
+        description: "Reference to LeasingProspect: Prospect."
+      - name: unit_id
+        logicalType: integer
+        required: true
+        description: "Reference to LeasableUnit: Unit offered."
+      - name: resulting_lease_id
+        logicalType: integer
+        required: false
+        description: "Reference to Lease: Lease signed after the proposal was accepted."
+  - name: lease_statuses
+    physicalName: mall.lease_statuses
+    physicalType: table
+    logicalType: object
+    description: "Lifecycle state of a lease: pending signature, fit-out, active, holdover, in renewal proceedings, terminated or expired."
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/lease#LeaseStatus
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the LeaseStatus.
+      - name: code
+        logicalType: string
+        required: true
+        description: Status code.
+      - name: name
+        logicalType: string
+        required: true
+        description: Status name.
+  - name: leases
+    physicalName: mall.leases
+    physicalType: table
+    logicalType: object
+    description: Commercial lease of one or more units to a tenant, registered as a contract. Shopping-center leases usually combine a monthly minimum rent with a percentage rent on gross sales, plus service charges and a marketing fund contribution.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/lease#Lease
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Lease.
+      - name: term_months
+        logicalType: integer
+        required: false
+        description: Lease term.
+      - name: store_opening_date
+        logicalType: date
+        required: false
+        description: Date the store opened.
+      - name: monthly_minimum_rent
+        logicalType: number
+        required: false
+        description: Current monthly minimum rent.
+      - name: has_thirteenth_rent
+        logicalType: boolean
+        required: false
+        description: Whether a thirteenth minimum rent is billed in December.
+      - name: contract_id
+        logicalType: integer
+        required: true
+        description: "Reference to Contract: Contract register entry with number, dates, parties and documents."
+      - name: tenant_id
+        logicalType: integer
+        required: true
+        description: "Reference to Tenant: Contracting tenant."
+      - name: brand_id
+        logicalType: integer
+        required: true
+        description: "Reference to Brand: Brand operated."
+      - name: status_id
+        logicalType: integer
+        required: true
+        description: "Reference to LeaseStatus: Operational lifecycle status."
+      - name: permitted_use_id
+        logicalType: integer
+        required: true
+        description: "Reference to MerchandiseCategory: Permitted use, which is the tenant-mix category of record."
+      - name: broker_id
+        logicalType: integer
+        required: false
+        description: "Reference to Broker: Leasing broker."
+  - name: leased_units
+    physicalName: mall.leased_units
+    physicalType: table
+    logicalType: object
+    description: Unit covered by a lease for a period. A lease can cover several units and a unit is leased successively.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/lease#LeasedUnit
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the LeasedUnit.
+      - name: start_date
+        logicalType: date
+        required: true
+        description: Start of coverage.
+      - name: end_date
+        logicalType: date
+        required: false
+        description: End of coverage.
+      - name: leased_area_m2
+        logicalType: number
+        required: false
+        description: Area leased.
+      - name: lease_id
+        logicalType: integer
+        required: true
+        description: "Reference to Lease: Lease."
+      - name: unit_id
+        logicalType: integer
+        required: true
+        description: "Reference to LeasableUnit: Unit."
+  - name: rent_steps
+    physicalName: mall.rent_steps
+    physicalType: table
+    logicalType: object
+    description: Step of the minimum-rent schedule, such as a discounted first year followed by full rent.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/lease#RentStep
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the RentStep.
+      - name: effective_from
+        logicalType: date
+        required: true
+        description: First day of the step.
+      - name: effective_to
+        logicalType: date
+        required: false
+        description: Last day of the step.
+      - name: monthly_amount
+        logicalType: number
+        required: true
+        description: Monthly minimum rent during the step.
+      - name: lease_id
+        logicalType: integer
+        required: true
+        description: "Reference to Lease: Lease."
+  - name: percentage_rent_clauses
+    physicalName: mall.percentage_rent_clauses
+    physicalType: table
+    logicalType: object
+    description: "Percentage rent: when the rate times monthly gross sales exceeds the minimum rent, the tenant pays the difference as overage rent."
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/lease#PercentageRentClause
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the PercentageRentClause.
+      - name: clause_reference
+        logicalType: string
+        required: false
+        description: Clause number in the signed lease.
+      - name: effective_from
+        logicalType: date
+        required: false
+        description: Start of effect.
+      - name: effective_to
+        logicalType: date
+        required: false
+        description: End of effect.
+      - name: notes
+        logicalType: string
+        required: false
+        description: Clause notes.
+      - name: rate
+        logicalType: number
+        required: true
+        description: Percentage of gross sales.
+      - name: excludes_thirteenth_rent
+        logicalType: boolean
+        required: false
+        description: Whether the December thirteenth rent is excluded from the comparison.
+      - name: lease_id
+        logicalType: integer
+        required: true
+        description: "Reference to Lease: Lease containing the clause."
+  - name: indexation_clauses
+    physicalName: mall.indexation_clauses
+    physicalType: table
+    logicalType: object
+    description: Periodic adjustment of rent by a price index.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/lease#IndexationClause
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the IndexationClause.
+      - name: clause_reference
+        logicalType: string
+        required: false
+        description: Clause number in the signed lease.
+      - name: effective_from
+        logicalType: date
+        required: false
+        description: Start of effect.
+      - name: effective_to
+        logicalType: date
+        required: false
+        description: End of effect.
+      - name: notes
+        logicalType: string
+        required: false
+        description: Clause notes.
+      - name: anniversary_month
+        logicalType: integer
+        required: false
+        description: Month of the year in which the adjustment applies.
+      - name: frequency_months
+        logicalType: integer
+        required: false
+        description: Months between adjustments.
+      - name: lease_id
+        logicalType: integer
+        required: true
+        description: "Reference to Lease: Lease containing the clause."
+      - name: price_index_id
+        logicalType: integer
+        required: true
+        description: "Reference to PriceIndex: Index applied."
+  - name: exclusivity_clauses
+    physicalName: mall.exclusivity_clauses
+    physicalType: table
+    logicalType: object
+    description: Commitment by the landlord not to lease to competitors in a protected category.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/lease#ExclusivityClause
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the ExclusivityClause.
+      - name: clause_reference
+        logicalType: string
+        required: false
+        description: Clause number in the signed lease.
+      - name: effective_from
+        logicalType: date
+        required: false
+        description: Start of effect.
+      - name: effective_to
+        logicalType: date
+        required: false
+        description: End of effect.
+      - name: notes
+        logicalType: string
+        required: false
+        description: Clause notes.
+      - name: lease_id
+        logicalType: integer
+        required: true
+        description: "Reference to Lease: Lease containing the clause."
+      - name: protected_category_id
+        logicalType: integer
+        required: true
+        description: "Reference to MerchandiseCategory: Protected category."
+  - name: radius_clauses
+    physicalName: mall.radius_clauses
+    physicalType: table
+    logicalType: object
+    description: Restriction on the tenant opening another store within a radius of the property.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/lease#RadiusClause
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the RadiusClause.
+      - name: clause_reference
+        logicalType: string
+        required: false
+        description: Clause number in the signed lease.
+      - name: effective_from
+        logicalType: date
+        required: false
+        description: Start of effect.
+      - name: effective_to
+        logicalType: date
+        required: false
+        description: End of effect.
+      - name: notes
+        logicalType: string
+        required: false
+        description: Clause notes.
+      - name: radius_km
+        logicalType: number
+        required: true
+        description: Restricted radius.
+      - name: lease_id
+        logicalType: integer
+        required: true
+        description: "Reference to Lease: Lease containing the clause."
+  - name: co_tenancy_clauses
+    physicalName: mall.co_tenancy_clauses
+    physicalType: table
+    logicalType: object
+    description: Rent relief if required anchors close or occupancy falls below a threshold.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/lease#CoTenancyClause
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the CoTenancyClause.
+      - name: clause_reference
+        logicalType: string
+        required: false
+        description: Clause number in the signed lease.
+      - name: effective_from
+        logicalType: date
+        required: false
+        description: Start of effect.
+      - name: effective_to
+        logicalType: date
+        required: false
+        description: End of effect.
+      - name: notes
+        logicalType: string
+        required: false
+        description: Clause notes.
+      - name: required_occupancy_rate
+        logicalType: number
+        required: false
+        description: Occupancy threshold.
+      - name: remedy_rent_rate
+        logicalType: number
+        required: false
+        description: Fraction of rent payable while the condition is unmet.
+      - name: lease_id
+        logicalType: integer
+        required: true
+        description: "Reference to Lease: Lease containing the clause."
+  - name: renewal_options
+    physicalName: mall.renewal_options
+    physicalType: table
+    logicalType: object
+    description: Tenant option to renew the lease.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/lease#RenewalOption
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the RenewalOption.
+      - name: clause_reference
+        logicalType: string
+        required: false
+        description: Clause number in the signed lease.
+      - name: effective_from
+        logicalType: date
+        required: false
+        description: Start of effect.
+      - name: effective_to
+        logicalType: date
+        required: false
+        description: End of effect.
+      - name: notes
+        logicalType: string
+        required: false
+        description: Clause notes.
+      - name: notice_months
+        logicalType: integer
+        required: false
+        description: Notice required before exercise.
+      - name: renewal_term_months
+        logicalType: integer
+        required: true
+        description: Term of the renewal.
+      - name: lease_id
+        logicalType: integer
+        required: true
+        description: "Reference to Lease: Lease containing the clause."
+  - name: early_termination_options
+    physicalName: mall.early_termination_options
+    physicalType: table
+    logicalType: object
+    description: Right to end the lease early against a penalty.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/lease#EarlyTerminationOption
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the EarlyTerminationOption.
+      - name: clause_reference
+        logicalType: string
+        required: false
+        description: Clause number in the signed lease.
+      - name: effective_from
+        logicalType: date
+        required: false
+        description: Start of effect.
+      - name: effective_to
+        logicalType: date
+        required: false
+        description: End of effect.
+      - name: notes
+        logicalType: string
+        required: false
+        description: Clause notes.
+      - name: earliest_exercise_date
+        logicalType: date
+        required: false
+        description: First date the option can be exercised.
+      - name: penalty_months_of_rent
+        logicalType: number
+        required: false
+        description: Penalty in months of minimum rent.
+      - name: lease_id
+        logicalType: integer
+        required: true
+        description: "Reference to Lease: Lease containing the clause."
+  - name: guarantee_types
+    physicalName: mall.guarantee_types
+    physicalType: table
+    logicalType: object
+    description: "Kind of lease guarantee: surety bond, bank guarantee, security deposit, personal guarantor or rent-guarantee insurance."
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/lease#GuaranteeType
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the GuaranteeType.
+      - name: code
+        logicalType: string
+        required: true
+        description: Type code.
+      - name: name
+        logicalType: string
+        required: true
+        description: Type name.
+  - name: guarantees
+    physicalName: mall.guarantees
+    physicalType: table
+    logicalType: object
+    description: Security provided for the obligations of a lease.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/lease#Guarantee
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Guarantee.
+      - name: amount
+        logicalType: number
+        required: false
+        description: Guaranteed amount.
+      - name: start_date
+        logicalType: date
+        required: false
+        description: Start of cover.
+      - name: end_date
+        logicalType: date
+        required: false
+        description: End of cover.
+      - name: lease_id
+        logicalType: integer
+        required: true
+        description: "Reference to Lease: Lease secured."
+      - name: guarantee_type_id
+        logicalType: integer
+        required: true
+        description: "Reference to GuaranteeType: Guarantee type."
+      - name: guarantor_id
+        logicalType: integer
+        required: false
+        description: "Reference to Organization: Bank, insurer or guarantor company."
+  - name: key_money_agreements
+    physicalName: mall.key_money_agreements
+    physicalType: table
+    logicalType: object
+    description: "One-off fee for the right to use a location: a right-of-use fee (res sperata) in a new development or key money (luvas) for an existing location. It is not rent."
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/lease#KeyMoneyAgreement
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the KeyMoneyAgreement.
+      - name: total_amount
+        logicalType: number
+        required: true
+        description: Total fee.
+      - name: installments
+        logicalType: integer
+        required: false
+        description: Number of instalments.
+      - name: agreement_date
+        logicalType: date
+        required: false
+        description: Agreement date.
+      - name: lease_id
+        logicalType: integer
+        required: true
+        description: "Reference to Lease: Lease."
+  - name: rent_concessions
+    physicalName: mall.rent_concessions
+    physicalType: table
+    logicalType: object
+    description: Rent-free period, discount or deferral granted on a lease.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/lease#RentConcession
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the RentConcession.
+      - name: concession_type
+        logicalType: string
+        required: true
+        description: Rent-free, discount or deferral.
+      - name: start_date
+        logicalType: date
+        required: true
+        description: Start of the concession.
+      - name: end_date
+        logicalType: date
+        required: false
+        description: End of the concession.
+      - name: discount_rate
+        logicalType: number
+        required: false
+        description: Fraction of rent waived.
+      - name: reason
+        logicalType: string
+        required: false
+        description: Reason for the concession.
+      - name: lease_id
+        logicalType: integer
+        required: true
+        description: "Reference to Lease: Lease."
+  - name: tenant_allowances
+    physicalName: mall.tenant_allowances
+    physicalType: table
+    logicalType: object
+    description: Contribution by the landlord towards the tenant fit-out.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/lease#TenantAllowance
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the TenantAllowance.
+      - name: amount
+        logicalType: number
+        required: true
+        description: Allowance amount.
+      - name: purpose
+        logicalType: string
+        required: false
+        description: Purpose.
+      - name: lease_id
+        logicalType: integer
+        required: true
+        description: "Reference to Lease: Lease."
+  - name: fit_out_projects
+    physicalName: mall.fit_out_projects
+    physicalType: table
+    logicalType: object
+    description: Construction of the store by the tenant between handover and opening, subject to the landlord design approval.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/lease#FitOutProject
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the FitOutProject.
+      - name: handover_date
+        logicalType: date
+        required: false
+        description: Unit handover date.
+      - name: planned_opening_date
+        logicalType: date
+        required: false
+        description: Planned opening.
+      - name: actual_opening_date
+        logicalType: date
+        required: false
+        description: Actual opening.
+      - name: design_approved
+        logicalType: boolean
+        required: false
+        description: Whether the store design is approved.
+      - name: status
+        logicalType: string
+        required: false
+        description: Project status.
+      - name: lease_id
+        logicalType: integer
+        required: true
+        description: "Reference to Lease: Lease."
+      - name: unit_id
+        logicalType: integer
+        required: true
+        description: "Reference to LeasableUnit: Unit."
+  - name: lease_terminations
+    physicalName: mall.lease_terminations
+    physicalType: table
+    logicalType: object
+    description: End of a lease before or at expiry.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/lease#LeaseTermination
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the LeaseTermination.
+      - name: termination_date
+        logicalType: date
+        required: true
+        description: Termination date.
+      - name: reason
+        logicalType: string
+        required: true
+        description: Expiry, mutual agreement, early termination option, eviction or default.
+      - name: penalty_amount
+        logicalType: number
+        required: false
+        description: Penalty charged.
+      - name: lease_id
+        logicalType: integer
+        required: true
+        description: "Reference to Lease: Lease."
+  - name: legal_entities
+    physicalName: mall.legal_entities
+    physicalType: table
+    logicalType: object
+    description: "Role of an organization in the group that signs contracts, keeps books and employs staff: property-owning special-purpose company, fund, administrator or condominium."
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/legal#LegalEntity
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the LegalEntity.
+      - name: registration_number
+        logicalType: string
+        required: true
+        description: Company registration number.
+      - name: entity_type
+        logicalType: string
+        required: true
+        description: Special-purpose company, fund, administrator, holding or condominium.
+      - name: incorporation_date
+        logicalType: date
+        required: false
+        description: Incorporation date.
+      - name: fiscal_regime
+        logicalType: string
+        required: false
+        description: Tax regime, for example actual profit or presumed profit.
+      - name: organization_id
+        logicalType: integer
+        required: true
+        description: "Reference to Organization: Organization registered as the legal entity."
+  - name: contract_types
+    physicalName: mall.contract_types
+    physicalType: table
+    logicalType: object
+    description: "Kind of contract in the register: lease, service, supply framework, employment, loan, construction, insurance, brokerage, confidentiality or other."
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/legal#ContractType
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the ContractType.
+      - name: code
+        logicalType: string
+        required: true
+        description: Type code.
+      - name: name
+        logicalType: string
+        required: true
+        description: Type name.
+      - name: requires_legal_review
+        logicalType: boolean
+        required: false
+        description: Whether legal review is mandatory before signature.
+  - name: contracts
+    physicalName: mall.contracts
+    physicalType: table
+    logicalType: object
+    description: Entry of the contract register. Every lease, service contract, supply agreement, employment contract, loan or construction contract is registered here with its number, term, value, parties, documents, obligations and approvals.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/legal#Contract
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Contract.
+      - name: contract_number
+        logicalType: string
+        required: true
+        description: Contract number.
+      - name: title
+        logicalType: string
+        required: true
+        description: Contract title.
+      - name: signing_date
+        logicalType: date
+        required: false
+        description: Signing date.
+      - name: start_date
+        logicalType: date
+        required: true
+        description: Start of the term.
+      - name: end_date
+        logicalType: date
+        required: false
+        description: End of the term; empty when indefinite.
+      - name: status
+        logicalType: string
+        required: false
+        description: Draft, under review, signed, active, expired or terminated.
+      - name: total_value
+        logicalType: number
+        required: false
+        description: Total contract value.
+      - name: auto_renewal
+        logicalType: boolean
+        required: false
+        description: Whether the contract renews automatically.
+      - name: notice_period_days
+        logicalType: integer
+        required: false
+        description: Notice required to terminate or not renew.
+      - name: governing_law
+        logicalType: string
+        required: false
+        description: Governing law and jurisdiction.
+      - name: contract_type_id
+        logicalType: integer
+        required: true
+        description: "Reference to ContractType: Contract type."
+      - name: contracting_entity_id
+        logicalType: integer
+        required: true
+        description: "Reference to LegalEntity: Group legal entity bound by the contract."
+      - name: currency_id
+        logicalType: integer
+        required: false
+        description: "Reference to Currency: Contract currency."
+  - name: contract_parties
+    physicalName: mall.contract_parties
+    physicalType: table
+    logicalType: object
+    description: "Party to a contract other than the contracting entity: counterparty, guarantor, intervening party or witness."
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/legal#ContractParty
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the ContractParty.
+      - name: party_role
+        logicalType: string
+        required: true
+        description: Counterparty, guarantor, intervening party or witness.
+      - name: contract_id
+        logicalType: integer
+        required: true
+        description: "Reference to Contract: Contract."
+      - name: organization_id
+        logicalType: integer
+        required: false
+        description: "Reference to Organization: Organization acting as party."
+      - name: person_id
+        logicalType: integer
+        required: false
+        description: "Reference to Person: Person acting as party."
+  - name: contract_documents
+    physicalName: mall.contract_documents
+    physicalType: table
+    logicalType: object
+    description: Signed instrument or annex of a contract.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/legal#ContractDocument
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the ContractDocument.
+      - name: document_type
+        logicalType: string
+        required: true
+        description: Original, amendment, annex, notice or termination.
+      - name: reference
+        logicalType: string
+        required: false
+        description: Document repository reference.
+      - name: signed_date
+        logicalType: date
+        required: false
+        description: Signature date.
+      - name: signature_method
+        logicalType: string
+        required: false
+        description: Handwritten, electronic or qualified digital certificate.
+      - name: contract_id
+        logicalType: integer
+        required: true
+        description: "Reference to Contract: Contract."
+  - name: contract_amendments
+    physicalName: mall.contract_amendments
+    physicalType: table
+    logicalType: object
+    description: "Signed change to a contract: price revision, extension, scope change, assignment or party change."
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/legal#ContractAmendment
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the ContractAmendment.
+      - name: amendment_number
+        logicalType: string
+        required: true
+        description: Amendment number.
+      - name: effective_date
+        logicalType: date
+        required: true
+        description: Effective date.
+      - name: amendment_type
+        logicalType: string
+        required: false
+        description: Kind of change.
+      - name: summary
+        logicalType: string
+        required: false
+        description: Summary of the change.
+      - name: value_change
+        logicalType: number
+        required: false
+        description: Change in total contract value.
+      - name: contract_id
+        logicalType: integer
+        required: true
+        description: "Reference to Contract: Contract amended."
+  - name: contract_obligations
+    physicalName: mall.contract_obligations
+    physicalType: table
+    logicalType: object
+    description: Obligation to monitor under a contract, such as payments, sales reporting, insurance certificates, opening hours, maintenance or renewal notices.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/legal#ContractObligation
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the ContractObligation.
+      - name: summary
+        logicalType: string
+        required: true
+        description: Obligation.
+      - name: obligation_type
+        logicalType: string
+        required: false
+        description: Payment, reporting, insurance, operation, maintenance or notice.
+      - name: due_date
+        logicalType: date
+        required: false
+        description: Next due date.
+      - name: frequency
+        logicalType: string
+        required: false
+        description: One-off, monthly, quarterly or annual.
+      - name: status
+        logicalType: string
+        required: false
+        description: Pending, fulfilled, overdue or waived.
+      - name: contract_id
+        logicalType: integer
+        required: true
+        description: "Reference to Contract: Contract."
+      - name: responsible_id
+        logicalType: integer
+        required: false
+        description: "Reference to Employee: Employee responsible."
+  - name: contract_approvals
+    physicalName: mall.contract_approvals
+    physicalType: table
+    logicalType: object
+    description: Approval step of a contract under the delegation-of-authority matrix.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/legal#ContractApproval
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the ContractApproval.
+      - name: approval_level
+        logicalType: string
+        required: true
+        description: Approval level, for example manager, director, legal or board.
+      - name: decision
+        logicalType: string
+        required: false
+        description: Approved, rejected or returned.
+      - name: decision_date
+        logicalType: date
+        required: false
+        description: Decision date.
+      - name: contract_id
+        logicalType: integer
+        required: true
+        description: "Reference to Contract: Contract."
+      - name: approver_id
+        logicalType: integer
+        required: true
+        description: "Reference to Employee: Approver."
+  - name: powers_of_attorney
+    physicalName: mall.powers_of_attorney
+    physicalType: table
+    logicalType: object
+    description: Authority granted by a legal entity to a person to sign or act on its behalf.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/legal#PowerOfAttorney
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the PowerOfAttorney.
+      - name: scope
+        logicalType: string
+        required: true
+        description: Powers granted.
+      - name: granted_date
+        logicalType: date
+        required: true
+        description: Grant date.
+      - name: valid_until
+        logicalType: date
+        required: false
+        description: Expiry date.
+      - name: grantor_id
+        logicalType: integer
+        required: true
+        description: "Reference to LegalEntity: Granting legal entity."
+      - name: attorney_id
+        logicalType: integer
+        required: true
+        description: "Reference to Person: Attorney-in-fact."
+  - name: governance_meetings
+    physicalName: mall.governance_meetings
+    physicalType: table
+    logicalType: object
+    description: Meeting of shareholders, board, investors, condominium assembly or tenants association.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/legal#GovernanceMeeting
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the GovernanceMeeting.
+      - name: meeting_type
+        logicalType: string
+        required: true
+        description: Shareholders, board, investors, condominium assembly or tenants association.
+      - name: meeting_date
+        logicalType: date
+        required: true
+        description: Meeting date.
+      - name: quorum
+        logicalType: number
+        required: false
+        description: Fraction of votes present.
+      - name: legal_entity_id
+        logicalType: integer
+        required: true
+        description: "Reference to LegalEntity: Entity whose body meets."
+  - name: resolutions
+    physicalName: mall.resolutions
+    physicalType: table
+    logicalType: object
+    description: Decision taken at a governance meeting, for example approving a budget, a capital project or a distribution.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/legal#Resolution
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Resolution.
+      - name: summary
+        logicalType: string
+        required: true
+        description: Decision.
+      - name: outcome
+        logicalType: string
+        required: false
+        description: Approved, rejected or deferred.
+      - name: votes_in_favour
+        logicalType: number
+        required: false
+        description: Fraction of votes in favour.
+      - name: meeting_id
+        logicalType: integer
+        required: true
+        description: "Reference to GovernanceMeeting: Meeting."
+  - name: legal_proceedings
+    physicalName: mall.legal_proceedings
+    physicalType: table
+    logicalType: object
+    description: "Lawsuit or administrative proceeding: eviction, lease renewal, rent review, collection, labour, tax or civil liability."
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/legal#LegalProceeding
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the LegalProceeding.
+      - name: case_number
+        logicalType: string
+        required: true
+        description: Case number.
+      - name: proceeding_type
+        logicalType: string
+        required: true
+        description: Eviction, renewal, rent review, collection, labour, tax or civil liability.
+      - name: court
+        logicalType: string
+        required: false
+        description: Court or authority.
+      - name: filing_date
+        logicalType: date
+        required: false
+        description: Filing date.
+      - name: status
+        logicalType: string
+        required: false
+        description: Status.
+      - name: amount_claimed
+        logicalType: number
+        required: false
+        description: Amount claimed.
+      - name: is_plaintiff
+        logicalType: boolean
+        required: false
+        description: Whether the group is the plaintiff.
+      - name: legal_entity_id
+        logicalType: integer
+        required: true
+        description: "Reference to LegalEntity: Group legal entity involved."
+      - name: contract_id
+        logicalType: integer
+        required: false
+        description: "Reference to Contract: Contract in dispute."
+      - name: property_id
+        logicalType: integer
+        required: false
+        description: "Reference to Property: Property concerned."
+      - name: opposing_party_id
+        logicalType: integer
+        required: false
+        description: "Reference to Organization: Opposing organization."
+      - name: opposing_person_id
+        logicalType: integer
+        required: false
+        description: "Reference to Person: Opposing person, for example in a labour claim."
+      - name: law_firm_id
+        logicalType: integer
+        required: false
+        description: "Reference to Organization: Law firm."
+  - name: litigation_provisions
+    physicalName: mall.litigation_provisions
+    physicalType: table
+    logicalType: object
+    description: Assessment of the loss probability of a proceeding and the amount provisioned in the accounts.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/legal#LitigationProvision
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the LitigationProvision.
+      - name: assessment_date
+        logicalType: date
+        required: true
+        description: Assessment date.
+      - name: loss_probability
+        logicalType: string
+        required: true
+        description: Probable, possible or remote.
+      - name: estimated_loss
+        logicalType: number
+        required: false
+        description: Estimated loss.
+      - name: provision_amount
+        logicalType: number
+        required: false
+        description: Amount provisioned.
+      - name: proceeding_id
+        logicalType: integer
+        required: true
+        description: "Reference to LegalProceeding: Proceeding."
+  - name: compliance_requirements
+    physicalName: mall.compliance_requirements
+    physicalType: table
+    logicalType: object
+    description: "Recurring legal or regulatory requirement: fire safety, accessibility, environmental, sanitary, data protection or labour safety."
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/legal#ComplianceRequirement
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the ComplianceRequirement.
+      - name: name
+        logicalType: string
+        required: true
+        description: Requirement.
+      - name: regulation
+        logicalType: string
+        required: false
+        description: Regulation or standard.
+      - name: frequency
+        logicalType: string
+        required: false
+        description: Check frequency.
+  - name: compliance_checks
+    physicalName: mall.compliance_checks
+    physicalType: table
+    logicalType: object
+    description: Verification of a requirement at a property.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/legal#ComplianceCheck
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the ComplianceCheck.
+      - name: check_date
+        logicalType: date
+        required: true
+        description: Check date.
+      - name: result
+        logicalType: string
+        required: true
+        description: Compliant, non-compliant or partially compliant.
+      - name: findings
+        logicalType: string
+        required: false
+        description: Findings.
+      - name: remediation_due
+        logicalType: date
+        required: false
+        description: Deadline for remediation.
+      - name: requirement_id
+        logicalType: integer
+        required: true
+        description: "Reference to ComplianceRequirement: Requirement."
+      - name: property_id
+        logicalType: integer
+        required: true
+        description: "Reference to Property: Property."
+      - name: inspector_id
+        logicalType: integer
+        required: false
+        description: "Reference to Employee: Employee responsible."
+  - name: data_subject_requests
+    physicalName: mall.data_subject_requests
+    physicalType: table
+    logicalType: object
+    description: Request by a person to access, correct, delete or port their personal data under data-protection law.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/legal#DataSubjectRequest
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the DataSubjectRequest.
+      - name: request_date
+        logicalType: date
+        required: true
+        description: Request date.
+      - name: request_type
+        logicalType: string
+        required: true
+        description: Access, correction, deletion, portability or objection.
+      - name: due_date
+        logicalType: date
+        required: false
+        description: Legal response deadline.
+      - name: completed_date
+        logicalType: date
+        required: false
+        description: Completion date.
+      - name: status
+        logicalType: string
+        required: false
+        description: Open, completed or rejected.
+      - name: data_subject_id
+        logicalType: integer
+        required: true
+        description: "Reference to Person: Person exercising the right."
+      - name: controller_id
+        logicalType: integer
+        required: true
+        description: "Reference to LegalEntity: Controller."
+  - name: departments
+    physicalName: mall.departments
+    physicalType: table
+    logicalType: object
+    description: Organizational unit such as property operations, leasing, marketing, finance, legal or human resources.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/hr#Department
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Department.
+      - name: code
+        logicalType: string
+        required: true
+        description: Department code.
+      - name: name
+        logicalType: string
+        required: true
+        description: Department name.
+      - name: parent_department_id
+        logicalType: integer
+        required: false
+        description: "Reference to Department: Parent department."
+      - name: legal_entity_id
+        logicalType: integer
+        required: true
+        description: "Reference to LegalEntity: Employing legal entity."
+      - name: cost_center_id
+        logicalType: integer
+        required: false
+        description: "Reference to CostCenter: Default cost center."
+  - name: positions
+    physicalName: mall.positions
+    physicalType: table
+    logicalType: object
+    description: Job position, such as general manager, leasing manager, maintenance technician or accounts payable analyst.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/hr#Position
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Position.
+      - name: code
+        logicalType: string
+        required: true
+        description: Position code.
+      - name: title
+        logicalType: string
+        required: true
+        description: Job title.
+      - name: grade
+        logicalType: string
+        required: false
+        description: Salary grade.
+      - name: occupation_code
+        logicalType: string
+        required: false
+        description: Official occupation classification code.
+      - name: department_id
+        logicalType: integer
+        required: true
+        description: "Reference to Department: Department."
+  - name: employees
+    physicalName: mall.employees
+    physicalType: table
+    logicalType: object
+    description: Role of a person employed by a group legal entity.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/hr#Employee
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Employee.
+      - name: employee_number
+        logicalType: string
+        required: true
+        description: Employee number.
+      - name: hire_date
+        logicalType: date
+        required: true
+        description: Hire date.
+      - name: termination_date
+        logicalType: date
+        required: false
+        description: Termination date.
+      - name: employment_type
+        logicalType: string
+        required: false
+        description: Employee, intern, apprentice or temporary.
+      - name: work_schedule
+        logicalType: string
+        required: false
+        description: Working-time arrangement.
+      - name: person_id
+        logicalType: integer
+        required: true
+        description: "Reference to Person: Employed person."
+      - name: position_id
+        logicalType: integer
+        required: true
+        description: "Reference to Position: Position."
+      - name: employer_id
+        logicalType: integer
+        required: true
+        description: "Reference to LegalEntity: Employing legal entity."
+      - name: manager_id
+        logicalType: integer
+        required: false
+        description: "Reference to Employee: Line manager."
+      - name: work_site_id
+        logicalType: integer
+        required: false
+        description: "Reference to Property: Property where the employee works."
+  - name: employment_contracts
+    physicalName: mall.employment_contracts
+    physicalType: table
+    logicalType: object
+    description: Employment terms of an employee, registered as a contract.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/hr#EmploymentContract
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the EmploymentContract.
+      - name: base_salary
+        logicalType: number
+        required: true
+        description: Monthly base salary.
+      - name: weekly_hours
+        logicalType: number
+        required: false
+        description: Contracted weekly hours.
+      - name: probation_end_date
+        logicalType: date
+        required: false
+        description: End of probation.
+      - name: employee_id
+        logicalType: integer
+        required: true
+        description: "Reference to Employee: Employee."
+      - name: contract_id
+        logicalType: integer
+        required: true
+        description: "Reference to Contract: Contract register entry."
+  - name: compensation_changes
+    physicalName: mall.compensation_changes
+    physicalType: table
+    logicalType: object
+    description: Change of base salary by promotion, merit, collective agreement or correction.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/hr#CompensationChange
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the CompensationChange.
+      - name: effective_date
+        logicalType: date
+        required: true
+        description: Effective date.
+      - name: new_base_salary
+        logicalType: number
+        required: true
+        description: New monthly base salary.
+      - name: reason
+        logicalType: string
+        required: false
+        description: Promotion, merit, collective agreement or correction.
+      - name: employee_id
+        logicalType: integer
+        required: true
+        description: "Reference to Employee: Employee."
+  - name: payroll_runs
+    physicalName: mall.payroll_runs
+    physicalType: table
+    logicalType: object
+    description: Monthly payroll of a legal entity, including the thirteenth salary when due.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/hr#PayrollRun
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the PayrollRun.
+      - name: payment_date
+        logicalType: date
+        required: false
+        description: Payment date.
+      - name: status
+        logicalType: string
+        required: false
+        description: Calculated, approved or paid.
+      - name: legal_entity_id
+        logicalType: integer
+        required: true
+        description: "Reference to LegalEntity: Employer."
+      - name: month_id
+        logicalType: integer
+        required: true
+        description: "Reference to CalendarMonth: Payroll month."
+  - name: payroll_lines
+    physicalName: mall.payroll_lines
+    physicalType: table
+    logicalType: object
+    description: Amount of one pay component for an employee in a payroll run. employer_cost is true for amounts borne by the employer (salary, overtime, benefits, employer social charges) and false for deductions withheld from the employee.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/hr#PayrollLine
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the PayrollLine.
+      - name: component
+        logicalType: string
+        required: true
+        description: Base salary, overtime, night premium, vacation, thirteenth salary, benefit, employer social charge, employee social security or income tax withholding.
+      - name: amount
+        logicalType: number
+        required: true
+        description: Amount.
+      - name: employer_cost
+        logicalType: boolean
+        required: true
+        description: Whether the amount is a cost to the employer.
+      - name: payroll_run_id
+        logicalType: integer
+        required: true
+        description: "Reference to PayrollRun: Payroll run."
+      - name: employee_id
+        logicalType: integer
+        required: true
+        description: "Reference to Employee: Employee."
+      - name: cost_center_id
+        logicalType: integer
+        required: false
+        description: "Reference to CostCenter: Cost center charged."
+  - name: time_entries
+    physicalName: mall.time_entries
+    physicalType: table
+    logicalType: object
+    description: Hours recorded by an employee on a working day.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/hr#TimeEntry
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the TimeEntry.
+      - name: work_date
+        logicalType: date
+        required: true
+        description: Working day.
+      - name: hours_worked
+        logicalType: number
+        required: true
+        description: Hours worked.
+      - name: overtime_hours
+        logicalType: number
+        required: false
+        description: Overtime hours.
+      - name: night_hours
+        logicalType: number
+        required: false
+        description: Night-shift hours.
+      - name: employee_id
+        logicalType: integer
+        required: true
+        description: "Reference to Employee: Employee."
+  - name: leave_requests
+    physicalName: mall.leave_requests
+    physicalType: table
+    logicalType: object
+    description: Vacation, sick leave, parental leave or other absence.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/hr#LeaveRequest
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the LeaveRequest.
+      - name: leave_type
+        logicalType: string
+        required: true
+        description: Vacation, sick, parental, bereavement or unpaid.
+      - name: start_date
+        logicalType: date
+        required: true
+        description: First day.
+      - name: end_date
+        logicalType: date
+        required: true
+        description: Last day.
+      - name: status
+        logicalType: string
+        required: false
+        description: Requested, approved or rejected.
+      - name: employee_id
+        logicalType: integer
+        required: true
+        description: "Reference to Employee: Employee."
+      - name: approver_id
+        logicalType: integer
+        required: false
+        description: "Reference to Employee: Approver."
+  - name: benefits
+    physicalName: mall.benefits
+    physicalType: table
+    logicalType: object
+    description: Employee benefit such as health plan, dental plan, meal voucher, transport voucher or life insurance.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/hr#Benefit
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Benefit.
+      - name: name
+        logicalType: string
+        required: true
+        description: Benefit name.
+      - name: benefit_type
+        logicalType: string
+        required: true
+        description: Benefit type.
+      - name: monthly_cost
+        logicalType: number
+        required: false
+        description: Employer cost per enrolled employee.
+      - name: provider_id
+        logicalType: integer
+        required: false
+        description: "Reference to Supplier: Benefit supplier."
+  - name: benefit_enrollments
+    physicalName: mall.benefit_enrollments
+    physicalType: table
+    logicalType: object
+    description: Enrollment of an employee in a benefit.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/hr#BenefitEnrollment
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the BenefitEnrollment.
+      - name: start_date
+        logicalType: date
+        required: true
+        description: Start.
+      - name: end_date
+        logicalType: date
+        required: false
+        description: End.
+      - name: employee_contribution
+        logicalType: number
+        required: false
+        description: Monthly employee contribution.
+      - name: employee_id
+        logicalType: integer
+        required: true
+        description: "Reference to Employee: Employee."
+      - name: benefit_id
+        logicalType: integer
+        required: true
+        description: "Reference to Benefit: Benefit."
+  - name: training_courses
+    physicalName: mall.training_courses
+    physicalType: table
+    logicalType: object
+    description: Training course, including mandatory safety training such as work at height, fire brigade or electrical safety.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/hr#TrainingCourse
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the TrainingCourse.
+      - name: name
+        logicalType: string
+        required: true
+        description: Course name.
+      - name: is_mandatory
+        logicalType: boolean
+        required: false
+        description: Whether the course is legally mandatory for some positions.
+      - name: validity_months
+        logicalType: integer
+        required: false
+        description: Months before recertification.
+  - name: training_records
+    physicalName: mall.training_records
+    physicalType: table
+    logicalType: object
+    description: Completion of a course by an employee.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/hr#TrainingRecord
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the TrainingRecord.
+      - name: completion_date
+        logicalType: date
+        required: true
+        description: Completion date.
+      - name: expiry_date
+        logicalType: date
+        required: false
+        description: Certification expiry.
+      - name: passed
+        logicalType: boolean
+        required: false
+        description: Whether the employee passed.
+      - name: employee_id
+        logicalType: integer
+        required: true
+        description: "Reference to Employee: Employee."
+      - name: course_id
+        logicalType: integer
+        required: true
+        description: "Reference to TrainingCourse: Course."
+  - name: performance_reviews
+    physicalName: mall.performance_reviews
+    physicalType: table
+    logicalType: object
+    description: Periodic performance evaluation.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/hr#PerformanceReview
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the PerformanceReview.
+      - name: review_date
+        logicalType: date
+        required: true
+        description: Review date.
+      - name: rating
+        logicalType: string
+        required: false
+        description: Rating.
+      - name: summary
+        logicalType: string
+        required: false
+        description: Summary.
+      - name: employee_id
+        logicalType: integer
+        required: true
+        description: "Reference to Employee: Employee reviewed."
+      - name: reviewer_id
+        logicalType: integer
+        required: false
+        description: "Reference to Employee: Reviewer."
+  - name: job_openings
+    physicalName: mall.job_openings
+    physicalType: table
+    logicalType: object
+    description: Vacancy being recruited for a position.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/hr#JobOpening
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the JobOpening.
+      - name: opened_date
+        logicalType: date
+        required: true
+        description: Opened.
+      - name: closed_date
+        logicalType: date
+        required: false
+        description: Closed.
+      - name: status
+        logicalType: string
+        required: false
+        description: Open, filled or cancelled.
+      - name: position_id
+        logicalType: integer
+        required: true
+        description: "Reference to Position: Position."
+      - name: hiring_manager_id
+        logicalType: integer
+        required: false
+        description: "Reference to Employee: Hiring manager."
+  - name: job_applications
+    physicalName: mall.job_applications
+    physicalType: table
+    logicalType: object
+    description: Application of a candidate to an opening.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/hr#JobApplication
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the JobApplication.
+      - name: applied_date
+        logicalType: date
+        required: true
+        description: Application date.
+      - name: stage
+        logicalType: string
+        required: false
+        description: Screening, interview, offer, hired or rejected.
+      - name: job_opening_id
+        logicalType: integer
+        required: true
+        description: "Reference to JobOpening: Opening."
+      - name: candidate_id
+        logicalType: integer
+        required: true
+        description: "Reference to Person: Candidate."
+  - name: suppliers
+    physicalName: mall.suppliers
+    physicalType: table
+    logicalType: object
+    description: "Role of an organization that supplies goods or services: cleaning, security, maintenance, utilities, marketing, construction or professional services."
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/proc#Supplier
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Supplier.
+      - name: supplier_category
+        logicalType: string
+        required: false
+        description: Main category supplied.
+      - name: payment_terms_days
+        logicalType: integer
+        required: false
+        description: Standard payment term in days.
+      - name: is_approved
+        logicalType: boolean
+        required: false
+        description: Whether the supplier is approved for purchasing.
+      - name: organization_id
+        logicalType: integer
+        required: true
+        description: "Reference to Organization: Supplying organization."
+  - name: supplier_qualifications
+    physicalName: mall.supplier_qualifications
+    physicalType: table
+    logicalType: object
+    description: "Onboarding check of a supplier: tax and labour certificates, insurance, references and compliance declarations."
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/proc#SupplierQualification
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the SupplierQualification.
+      - name: qualification_date
+        logicalType: date
+        required: true
+        description: Qualification date.
+      - name: status
+        logicalType: string
+        required: true
+        description: Approved, conditional or rejected.
+      - name: valid_until
+        logicalType: date
+        required: false
+        description: Expiry of the qualification.
+      - name: supplier_id
+        logicalType: integer
+        required: true
+        description: "Reference to Supplier: Supplier."
+      - name: reviewer_id
+        logicalType: integer
+        required: false
+        description: "Reference to Employee: Reviewer."
+  - name: supplier_evaluations
+    physicalName: mall.supplier_evaluations
+    physicalType: table
+    logicalType: object
+    description: Periodic evaluation of supplier quality, timeliness and compliance.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/proc#SupplierEvaluation
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the SupplierEvaluation.
+      - name: evaluation_date
+        logicalType: date
+        required: true
+        description: Evaluation date.
+      - name: score
+        logicalType: number
+        required: true
+        description: Score as a fraction of the maximum.
+      - name: comments
+        logicalType: string
+        required: false
+        description: Comments.
+      - name: supplier_id
+        logicalType: integer
+        required: true
+        description: "Reference to Supplier: Supplier."
+      - name: evaluator_id
+        logicalType: integer
+        required: false
+        description: "Reference to Employee: Evaluator."
+  - name: supplier_agreements
+    physicalName: mall.supplier_agreements
+    physicalType: table
+    logicalType: object
+    description: Framework supply agreement with agreed prices and conditions, registered as a contract.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/proc#SupplierAgreement
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the SupplierAgreement.
+      - name: price_adjustment_month
+        logicalType: integer
+        required: false
+        description: Month of the year in which prices are adjusted.
+      - name: spend_cap
+        logicalType: number
+        required: false
+        description: Maximum spend under the agreement.
+      - name: contract_id
+        logicalType: integer
+        required: true
+        description: "Reference to Contract: Contract register entry."
+      - name: supplier_id
+        logicalType: integer
+        required: true
+        description: "Reference to Supplier: Supplier."
+      - name: price_index_id
+        logicalType: integer
+        required: false
+        description: "Reference to PriceIndex: Price index applied."
+  - name: purchase_requisitions
+    physicalName: mall.purchase_requisitions
+    physicalType: table
+    logicalType: object
+    description: Internal request to buy goods or services.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/proc#PurchaseRequisition
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the PurchaseRequisition.
+      - name: requisition_number
+        logicalType: string
+        required: true
+        description: Requisition number.
+      - name: request_date
+        logicalType: date
+        required: true
+        description: Request date.
+      - name: justification
+        logicalType: string
+        required: false
+        description: Business justification.
+      - name: estimated_amount
+        logicalType: number
+        required: false
+        description: Estimated amount.
+      - name: status
+        logicalType: string
+        required: false
+        description: Draft, approved, rejected or ordered.
+      - name: requester_id
+        logicalType: integer
+        required: true
+        description: "Reference to Employee: Requesting employee."
+      - name: property_id
+        logicalType: integer
+        required: false
+        description: "Reference to Property: Property concerned."
+  - name: requests_for_quotation
+    physicalName: mall.requests_for_quotation
+    physicalType: table
+    logicalType: object
+    description: Invitation to suppliers to quote for a requisition.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/proc#RequestForQuotation
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the RequestForQuotation.
+      - name: rfq_number
+        logicalType: string
+        required: true
+        description: Request number.
+      - name: issue_date
+        logicalType: date
+        required: true
+        description: Issue date.
+      - name: closing_date
+        logicalType: date
+        required: false
+        description: Deadline for quotes.
+      - name: requisition_id
+        logicalType: integer
+        required: true
+        description: "Reference to PurchaseRequisition: Requisition."
+  - name: supplier_quotes
+    physicalName: mall.supplier_quotes
+    physicalType: table
+    logicalType: object
+    description: Quote submitted by a supplier.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/proc#SupplierQuote
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the SupplierQuote.
+      - name: quote_date
+        logicalType: date
+        required: true
+        description: Quote date.
+      - name: amount
+        logicalType: number
+        required: true
+        description: Quoted amount.
+      - name: delivery_days
+        logicalType: integer
+        required: false
+        description: Delivery or mobilisation time in days.
+      - name: is_selected
+        logicalType: boolean
+        required: false
+        description: Whether the quote was selected.
+      - name: rfq_id
+        logicalType: integer
+        required: true
+        description: "Reference to RequestForQuotation: Request for quotation."
+      - name: supplier_id
+        logicalType: integer
+        required: true
+        description: "Reference to Supplier: Supplier."
+  - name: purchase_orders
+    physicalName: mall.purchase_orders
+    physicalType: table
+    logicalType: object
+    description: Order placed with a supplier.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/proc#PurchaseOrder
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the PurchaseOrder.
+      - name: po_number
+        logicalType: string
+        required: true
+        description: Order number.
+      - name: order_date
+        logicalType: date
+        required: true
+        description: Order date.
+      - name: status
+        logicalType: string
+        required: false
+        description: Open, received, invoiced, closed or cancelled.
+      - name: supplier_id
+        logicalType: integer
+        required: true
+        description: "Reference to Supplier: Supplier."
+      - name: property_id
+        logicalType: integer
+        required: false
+        description: "Reference to Property: Delivery property."
+      - name: requisition_id
+        logicalType: integer
+        required: false
+        description: "Reference to PurchaseRequisition: Requisition."
+      - name: agreement_id
+        logicalType: integer
+        required: false
+        description: "Reference to SupplierAgreement: Framework agreement."
+      - name: buyer_id
+        logicalType: integer
+        required: false
+        description: "Reference to Employee: Buyer."
+  - name: purchase_order_lines
+    physicalName: mall.purchase_order_lines
+    physicalType: table
+    logicalType: object
+    description: Item or service ordered.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/proc#PurchaseOrderLine
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the PurchaseOrderLine.
+      - name: summary
+        logicalType: string
+        required: true
+        description: Item or service.
+      - name: quantity
+        logicalType: number
+        required: true
+        description: Quantity ordered.
+      - name: unit_price
+        logicalType: number
+        required: true
+        description: Unit price.
+      - name: purchase_order_id
+        logicalType: integer
+        required: true
+        description: "Reference to PurchaseOrder: Purchase order."
+      - name: category_id
+        logicalType: integer
+        required: true
+        description: "Reference to ExpenseCategory: Expense category."
+  - name: goods_receipts
+    physicalName: mall.goods_receipts
+    physicalType: table
+    logicalType: object
+    description: Receipt of goods or acceptance of services delivered under an order.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/proc#GoodsReceipt
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the GoodsReceipt.
+      - name: receipt_date
+        logicalType: date
+        required: true
+        description: Receipt date.
+      - name: is_accepted
+        logicalType: boolean
+        required: false
+        description: Whether the delivery was accepted.
+      - name: notes
+        logicalType: string
+        required: false
+        description: Notes.
+      - name: purchase_order_id
+        logicalType: integer
+        required: true
+        description: "Reference to PurchaseOrder: Purchase order."
+      - name: received_by_id
+        logicalType: integer
+        required: false
+        description: "Reference to Employee: Receiving employee."
+  - name: supplier_invoices
+    physicalName: mall.supplier_invoices
+    physicalType: table
+    logicalType: object
+    description: Supplier invoice payable, in Brazil an electronic fiscal document (NF-e or NFS-e). paid_amount holds payments at the reporting date.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/proc#SupplierInvoice
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the SupplierInvoice.
+      - name: invoice_number
+        logicalType: string
+        required: true
+        description: Invoice number.
+      - name: fiscal_document_key
+        logicalType: string
+        required: false
+        description: Electronic fiscal document access key.
+      - name: issue_date
+        logicalType: date
+        required: true
+        description: Issue date.
+      - name: due_date
+        logicalType: date
+        required: true
+        description: Due date.
+      - name: gross_amount
+        logicalType: number
+        required: true
+        description: Invoice total.
+      - name: withheld_taxes
+        logicalType: number
+        required: false
+        description: Taxes withheld at payment.
+      - name: paid_amount
+        logicalType: number
+        required: false
+        description: Paid at the reporting date.
+      - name: status
+        logicalType: string
+        required: false
+        description: Received, approved, paid or disputed.
+      - name: supplier_id
+        logicalType: integer
+        required: true
+        description: "Reference to Supplier: Supplier."
+      - name: payer_id
+        logicalType: integer
+        required: true
+        description: "Reference to LegalEntity: Paying legal entity."
+      - name: purchase_order_id
+        logicalType: integer
+        required: false
+        description: "Reference to PurchaseOrder: Purchase order."
+      - name: month_id
+        logicalType: integer
+        required: true
+        description: "Reference to CalendarMonth: Competence month."
+  - name: supplier_payments
+    physicalName: mall.supplier_payments
+    physicalType: table
+    logicalType: object
+    description: Payment of a supplier invoice.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/proc#SupplierPayment
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the SupplierPayment.
+      - name: payment_date
+        logicalType: date
+        required: true
+        description: Payment date.
+      - name: amount
+        logicalType: number
+        required: true
+        description: Amount paid.
+      - name: payment_method
+        logicalType: string
+        required: false
+        description: Transfer, bank slip or instant payment.
+      - name: supplier_invoice_id
+        logicalType: integer
+        required: true
+        description: "Reference to SupplierInvoice: Supplier invoice."
+      - name: bank_account_id
+        logicalType: integer
+        required: false
+        description: "Reference to BankAccount: Paying account."
+  - name: expense_categories
+    physicalName: mall.expense_categories
+    physicalType: table
+    logicalType: object
+    description: Category of operating cost, such as cleaning, security, maintenance, utilities, insurance or administration fees.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/ops#ExpenseCategory
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the ExpenseCategory.
+      - name: code
+        logicalType: string
+        required: true
+        description: Category code.
+      - name: name
+        logicalType: string
+        required: true
+        description: Category name.
+      - name: recoverable
+        logicalType: boolean
+        required: false
+        description: Whether the cost is recoverable from tenants through service charges.
+      - name: parent_category_id
+        logicalType: integer
+        required: false
+        description: "Reference to ExpenseCategory: Broader category."
+  - name: service_charge_budgets
+    physicalName: mall.service_charge_budgets
+    physicalType: table
+    logicalType: object
+    description: Annual budget of shared operating costs recovered from tenants (in Brazil, the condominium budget).
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/ops#ServiceChargeBudget
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the ServiceChargeBudget.
+      - name: year
+        logicalType: integer
+        required: true
+        description: Budget year.
+      - name: approved_date
+        logicalType: date
+        required: false
+        description: Approval date.
+      - name: total_amount
+        logicalType: number
+        required: false
+        description: Budget total.
+      - name: property_id
+        logicalType: integer
+        required: true
+        description: "Reference to Property: Property."
+  - name: service_charge_budget_lines
+    physicalName: mall.service_charge_budget_lines
+    physicalType: table
+    logicalType: object
+    description: Budgeted amount for one expense category.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/ops#ServiceChargeBudgetLine
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the ServiceChargeBudgetLine.
+      - name: amount
+        logicalType: number
+        required: true
+        description: Budgeted amount.
+      - name: budget_id
+        logicalType: integer
+        required: true
+        description: "Reference to ServiceChargeBudget: Budget."
+      - name: category_id
+        logicalType: integer
+        required: true
+        description: "Reference to ExpenseCategory: Expense category."
+  - name: allocation_keys
+    physicalName: mall.allocation_keys
+    physicalType: table
+    logicalType: object
+    description: Rule to apportion recoverable costs among units, by area, ideal fraction, metered consumption or fixed share.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/ops#AllocationKey
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the AllocationKey.
+      - name: code
+        logicalType: string
+        required: true
+        description: Key code.
+      - name: name
+        logicalType: string
+        required: true
+        description: Key name.
+      - name: basis
+        logicalType: string
+        required: true
+        description: Area, ideal fraction, metered or fixed.
+      - name: property_id
+        logicalType: integer
+        required: true
+        description: "Reference to Property: Property."
+  - name: allocation_shares
+    physicalName: mall.allocation_shares
+    physicalType: table
+    logicalType: object
+    description: Share of a unit under an allocation key.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/ops#AllocationShare
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the AllocationShare.
+      - name: share
+        logicalType: number
+        required: true
+        description: Fraction allocated to the unit.
+      - name: allocation_key_id
+        logicalType: integer
+        required: true
+        description: "Reference to AllocationKey: Allocation key."
+      - name: unit_id
+        logicalType: integer
+        required: true
+        description: "Reference to LeasableUnit: Unit."
+  - name: service_contracts
+    physicalName: mall.service_contracts
+    physicalType: table
+    logicalType: object
+    description: Recurring service contract at a property, such as cleaning, security, maintenance, parking operation or landscaping, registered as a contract.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/ops#ServiceContract
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the ServiceContract.
+      - name: scope
+        logicalType: string
+        required: false
+        description: Scope of services.
+      - name: monthly_amount
+        logicalType: number
+        required: false
+        description: Monthly fee.
+      - name: service_level
+        logicalType: string
+        required: false
+        description: Agreed service levels.
+      - name: contract_id
+        logicalType: integer
+        required: true
+        description: "Reference to Contract: Contract register entry."
+      - name: supplier_id
+        logicalType: integer
+        required: true
+        description: "Reference to Supplier: Supplier."
+      - name: property_id
+        logicalType: integer
+        required: true
+        description: "Reference to Property: Property served."
+      - name: category_id
+        logicalType: integer
+        required: true
+        description: "Reference to ExpenseCategory: Expense category."
+  - name: operating_expenses
+    physicalName: mall.operating_expenses
+    physicalType: table
+    logicalType: object
+    description: Actual operating cost incurred by a property in a month.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/ops#OperatingExpense
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the OperatingExpense.
+      - name: summary
+        logicalType: string
+        required: false
+        description: Expense description.
+      - name: amount
+        logicalType: number
+        required: true
+        description: Amount incurred.
+      - name: recoverable
+        logicalType: boolean
+        required: false
+        description: Whether the expense is recoverable from tenants.
+      - name: property_id
+        logicalType: integer
+        required: true
+        description: "Reference to Property: Property."
+      - name: category_id
+        logicalType: integer
+        required: true
+        description: "Reference to ExpenseCategory: Expense category."
+      - name: month_id
+        logicalType: integer
+        required: true
+        description: "Reference to CalendarMonth: Month."
+      - name: supplier_id
+        logicalType: integer
+        required: false
+        description: "Reference to Supplier: Supplier."
+  - name: work_orders
+    physicalName: mall.work_orders
+    physicalType: table
+    logicalType: object
+    description: "Maintenance request or task: corrective, preventive or requested by a tenant."
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/ops#WorkOrder
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the WorkOrder.
+      - name: work_order_number
+        logicalType: string
+        required: true
+        description: Work order number.
+      - name: opened_date
+        logicalType: date
+        required: true
+        description: Opened.
+      - name: closed_date
+        logicalType: date
+        required: false
+        description: Closed.
+      - name: priority
+        logicalType: string
+        required: false
+        description: Priority.
+      - name: work_type
+        logicalType: string
+        required: false
+        description: Corrective, preventive or tenant request.
+      - name: cost
+        logicalType: number
+        required: false
+        description: Cost.
+      - name: property_id
+        logicalType: integer
+        required: true
+        description: "Reference to Property: Property."
+      - name: equipment_id
+        logicalType: integer
+        required: false
+        description: "Reference to Equipment: Equipment concerned."
+      - name: unit_id
+        logicalType: integer
+        required: false
+        description: "Reference to LeasableUnit: Unit concerned."
+      - name: supplier_id
+        logicalType: integer
+        required: false
+        description: "Reference to Supplier: Supplier assigned."
+      - name: requested_by_id
+        logicalType: integer
+        required: false
+        description: "Reference to Employee: Employee who opened the work order."
+  - name: utility_types
+    physicalName: mall.utility_types
+    physicalType: table
+    logicalType: object
+    description: "Metered utility: electricity, water, gas or chilled water."
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/ops#UtilityType
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the UtilityType.
+      - name: code
+        logicalType: string
+        required: true
+        description: Utility code.
+      - name: name
+        logicalType: string
+        required: true
+        description: Utility name.
+      - name: unit_of_measure
+        logicalType: string
+        required: false
+        description: Unit of measure.
+  - name: utility_meters
+    physicalName: mall.utility_meters
+    physicalType: table
+    logicalType: object
+    description: Meter measuring consumption of a utility by a unit or common installation.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/ops#UtilityMeter
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the UtilityMeter.
+      - name: code
+        logicalType: string
+        required: true
+        description: Meter code.
+      - name: utility_type_id
+        logicalType: integer
+        required: true
+        description: "Reference to UtilityType: Utility measured."
+      - name: property_id
+        logicalType: integer
+        required: true
+        description: "Reference to Property: Property."
+      - name: unit_id
+        logicalType: integer
+        required: false
+        description: "Reference to LeasableUnit: Unit metered; empty for common installations."
+  - name: meter_readings
+    physicalName: mall.meter_readings
+    physicalType: table
+    logicalType: object
+    description: Reading of a meter, the basis for recharging consumption to tenants.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/ops#MeterReading
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the MeterReading.
+      - name: reading_date
+        logicalType: date
+        required: true
+        description: Reading date.
+      - name: reading_value
+        logicalType: number
+        required: true
+        description: Cumulative reading.
+      - name: consumption
+        logicalType: number
+        required: false
+        description: Consumption since the previous reading.
+      - name: meter_id
+        logicalType: integer
+        required: true
+        description: "Reference to UtilityMeter: Meter."
+      - name: month_id
+        logicalType: integer
+        required: true
+        description: "Reference to CalendarMonth: Billing month."
+  - name: insurance_policies
+    physicalName: mall.insurance_policies
+    physicalType: table
+    logicalType: object
+    description: Insurance covering the property, such as property damage, loss of rent or civil liability.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/ops#InsurancePolicy
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the InsurancePolicy.
+      - name: policy_number
+        logicalType: string
+        required: true
+        description: Policy number.
+      - name: coverage_type
+        logicalType: string
+        required: false
+        description: Coverage.
+      - name: insured_amount
+        logicalType: number
+        required: false
+        description: Insured amount.
+      - name: premium
+        logicalType: number
+        required: false
+        description: Premium.
+      - name: start_date
+        logicalType: date
+        required: true
+        description: Start.
+      - name: end_date
+        logicalType: date
+        required: false
+        description: End.
+      - name: property_id
+        logicalType: integer
+        required: true
+        description: "Reference to Property: Property."
+      - name: insurer_id
+        logicalType: integer
+        required: true
+        description: "Reference to Organization: Insurer."
+      - name: contract_id
+        logicalType: integer
+        required: false
+        description: "Reference to Contract: Contract register entry."
+  - name: incidents
+    physicalName: mall.incidents
+    physicalType: table
+    logicalType: object
+    description: Safety, security or operational incident at a property.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/ops#Incident
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Incident.
+      - name: occurred_on
+        logicalType: date
+        required: true
+        description: Date of the incident.
+      - name: incident_type
+        logicalType: string
+        required: false
+        description: Incident type.
+      - name: severity
+        logicalType: string
+        required: false
+        description: Severity.
+      - name: summary
+        logicalType: string
+        required: false
+        description: Summary.
+      - name: property_id
+        logicalType: integer
+        required: true
+        description: "Reference to Property: Property."
+  - name: marketing_funds
+    physicalName: mall.marketing_funds
+    physicalType: table
+    logicalType: object
+    description: Annual promotion and advertising fund financed by tenant contributions, usually a fraction of minimum rent.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/ops#MarketingFund
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the MarketingFund.
+      - name: year
+        logicalType: integer
+        required: true
+        description: Fund year.
+      - name: contribution_rate
+        logicalType: number
+        required: false
+        description: Contribution as a fraction of minimum rent.
+      - name: budget_amount
+        logicalType: number
+        required: false
+        description: Budget.
+      - name: property_id
+        logicalType: integer
+        required: true
+        description: "Reference to Property: Property."
+  - name: marketing_campaigns
+    physicalName: mall.marketing_campaigns
+    physicalType: table
+    logicalType: object
+    description: Campaign financed by the marketing fund.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/ops#MarketingCampaign
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the MarketingCampaign.
+      - name: name
+        logicalType: string
+        required: true
+        description: Campaign name.
+      - name: start_date
+        logicalType: date
+        required: true
+        description: Start.
+      - name: end_date
+        logicalType: date
+        required: false
+        description: End.
+      - name: budget
+        logicalType: number
+        required: false
+        description: Budget.
+      - name: fund_id
+        logicalType: integer
+        required: true
+        description: "Reference to MarketingFund: Marketing fund."
+  - name: mall_events
+    physicalName: mall.mall_events
+    physicalType: table
+    logicalType: object
+    description: Event held at a property to attract visitors.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/ops#MallEvent
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the MallEvent.
+      - name: name
+        logicalType: string
+        required: true
+        description: Event name.
+      - name: event_date
+        logicalType: date
+        required: true
+        description: Event date.
+      - name: expected_visitors
+        logicalType: integer
+        required: false
+        description: Expected visitors.
+      - name: property_id
+        logicalType: integer
+        required: true
+        description: "Reference to Property: Property."
+      - name: campaign_id
+        logicalType: integer
+        required: false
+        description: "Reference to MarketingCampaign: Campaign."
+  - name: charge_types
+    physicalName: mall.charge_types
+    physicalType: table
+    logicalType: object
+    description: "Kind of billed item: minimum rent, percentage (overage) rent, thirteenth rent, service charge, marketing fund, utility recharge, key-money instalment or late fee."
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/fin#ChargeType
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the ChargeType.
+      - name: code
+        logicalType: string
+        required: true
+        description: Charge code.
+      - name: name
+        logicalType: string
+        required: true
+        description: Charge name.
+      - name: revenue_class
+        logicalType: string
+        required: true
+        description: Rent, recoveries, marketing or other.
+  - name: invoices
+    physicalName: mall.invoices
+    physicalType: table
+    logicalType: object
+    description: Billing document issued by a property to a tenant, payable by bank slip, transfer or instant payment.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/fin#Invoice
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Invoice.
+      - name: invoice_number
+        logicalType: string
+        required: true
+        description: Invoice number.
+      - name: issue_date
+        logicalType: date
+        required: true
+        description: Issue date.
+      - name: due_date
+        logicalType: date
+        required: true
+        description: Due date.
+      - name: status
+        logicalType: string
+        required: false
+        description: Open, paid, partially paid or cancelled.
+      - name: property_id
+        logicalType: integer
+        required: true
+        description: "Reference to Property: Issuing property."
+      - name: billed_tenant_id
+        logicalType: integer
+        required: true
+        description: "Reference to Tenant: Tenant billed."
+  - name: charges
+    physicalName: mall.charges
+    physicalType: table
+    logicalType: object
+    description: Billed amount of one charge type for a lease and competence month. paid_amount holds the allocated payments at the reporting date.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/fin#Charge
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Charge.
+      - name: summary
+        logicalType: string
+        required: false
+        description: Charge description.
+      - name: amount
+        logicalType: number
+        required: true
+        description: Billed amount; negative for credits.
+      - name: paid_amount
+        logicalType: number
+        required: false
+        description: Payments allocated at the reporting date.
+      - name: due_date
+        logicalType: date
+        required: false
+        description: Due date.
+      - name: invoice_id
+        logicalType: integer
+        required: true
+        description: "Reference to Invoice: Invoice."
+      - name: lease_id
+        logicalType: integer
+        required: true
+        description: "Reference to Lease: Lease."
+      - name: charge_type_id
+        logicalType: integer
+        required: true
+        description: "Reference to ChargeType: Charge type."
+      - name: month_id
+        logicalType: integer
+        required: true
+        description: "Reference to CalendarMonth: Competence month."
+  - name: bank_accounts
+    physicalName: mall.bank_accounts
+    physicalType: table
+    logicalType: object
+    description: Bank account used for collections, supplier payments, payroll and distributions.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/fin#BankAccount
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the BankAccount.
+      - name: bank_name
+        logicalType: string
+        required: true
+        description: Bank.
+      - name: branch_code
+        logicalType: string
+        required: false
+        description: Branch.
+      - name: account_number
+        logicalType: string
+        required: true
+        description: Account number.
+      - name: holder_id
+        logicalType: integer
+        required: true
+        description: "Reference to LegalEntity: Account holder."
+      - name: bank_id
+        logicalType: integer
+        required: false
+        description: "Reference to Organization: Bank."
+  - name: payments
+    physicalName: mall.payments
+    physicalType: table
+    logicalType: object
+    description: Payment received from a tenant.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/fin#Payment
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the Payment.
+      - name: payment_date
+        logicalType: date
+        required: true
+        description: Payment date.
+      - name: amount
+        logicalType: number
+        required: true
+        description: Amount received.
+      - name: payment_method
+        logicalType: string
+        required: false
+        description: Bank slip, transfer or instant payment.
+      - name: payer_id
+        logicalType: integer
+        required: true
+        description: "Reference to Tenant: Paying tenant."
+      - name: bank_account_id
+        logicalType: integer
+        required: false
+        description: "Reference to BankAccount: Receiving account."
+  - name: payment_allocations
+    physicalName: mall.payment_allocations
+    physicalType: table
+    logicalType: object
+    description: Part of a payment applied to a charge.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/fin#PaymentAllocation
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the PaymentAllocation.
+      - name: amount
+        logicalType: number
+        required: true
+        description: Amount applied.
+      - name: payment_id
+        logicalType: integer
+        required: true
+        description: "Reference to Payment: Payment."
+      - name: charge_id
+        logicalType: integer
+        required: true
+        description: "Reference to Charge: Charge."
+  - name: arrears_cases
+    physicalName: mall.arrears_cases
+    physicalType: table
+    logicalType: object
+    description: Delinquency case opened when a lease has overdue charges.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/fin#ArrearsCase
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the ArrearsCase.
+      - name: opened_date
+        logicalType: date
+        required: true
+        description: Opened.
+      - name: closed_date
+        logicalType: date
+        required: false
+        description: Closed.
+      - name: status
+        logicalType: string
+        required: false
+        description: Open, in agreement, in litigation or closed.
+      - name: amount_overdue
+        logicalType: number
+        required: false
+        description: Overdue amount when opened.
+      - name: lease_id
+        logicalType: integer
+        required: true
+        description: "Reference to Lease: Lease in arrears."
+  - name: collection_actions
+    physicalName: mall.collection_actions
+    physicalType: table
+    logicalType: object
+    description: "Step taken to collect overdue amounts: reminder, formal notice, protest, agreement or lawsuit."
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/fin#CollectionAction
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the CollectionAction.
+      - name: action_date
+        logicalType: date
+        required: true
+        description: Action date.
+      - name: action_type
+        logicalType: string
+        required: true
+        description: Action type.
+      - name: outcome
+        logicalType: string
+        required: false
+        description: Outcome.
+      - name: arrears_case_id
+        logicalType: integer
+        required: true
+        description: "Reference to ArrearsCase: Arrears case."
+  - name: payment_agreements
+    physicalName: mall.payment_agreements
+    physicalType: table
+    logicalType: object
+    description: Agreement to settle overdue amounts in instalments.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/fin#PaymentAgreement
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the PaymentAgreement.
+      - name: agreement_date
+        logicalType: date
+        required: true
+        description: Agreement date.
+      - name: total_amount
+        logicalType: number
+        required: true
+        description: Amount agreed.
+      - name: installments
+        logicalType: integer
+        required: false
+        description: Number of instalments.
+      - name: arrears_case_id
+        logicalType: integer
+        required: true
+        description: "Reference to ArrearsCase: Arrears case."
+  - name: ledger_accounts
+    physicalName: mall.ledger_accounts
+    physicalType: table
+    logicalType: object
+    description: Account of the property chart of accounts.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/fin#LedgerAccount
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the LedgerAccount.
+      - name: code
+        logicalType: string
+        required: true
+        description: Account code.
+      - name: name
+        logicalType: string
+        required: true
+        description: Account name.
+      - name: account_class
+        logicalType: string
+        required: true
+        description: Revenue, operating expense, non-operating, asset, liability or equity.
+      - name: parent_account_id
+        logicalType: integer
+        required: false
+        description: "Reference to LedgerAccount: Parent account."
+  - name: journal_entries
+    physicalName: mall.journal_entries
+    physicalType: table
+    logicalType: object
+    description: Accounting entry of a legal entity for a month.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/fin#JournalEntry
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the JournalEntry.
+      - name: entry_date
+        logicalType: date
+        required: true
+        description: Posting date.
+      - name: summary
+        logicalType: string
+        required: false
+        description: Entry description.
+      - name: source_system
+        logicalType: string
+        required: false
+        description: "Originating process: billing, payables, payroll, depreciation or manual."
+      - name: legal_entity_id
+        logicalType: integer
+        required: true
+        description: "Reference to LegalEntity: Legal entity keeping the books."
+      - name: month_id
+        logicalType: integer
+        required: true
+        description: "Reference to CalendarMonth: Accounting month."
+  - name: journal_lines
+    physicalName: mall.journal_lines
+    physicalType: table
+    logicalType: object
+    description: "Signed amount posted to a ledger account and cost center: income is positive and expense negative. noi_class is fixed at posting from the account: revenue, opex or excluded."
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/fin#JournalLine
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the JournalLine.
+      - name: amount
+        logicalType: number
+        required: true
+        description: Signed amount.
+      - name: noi_class
+        logicalType: string
+        required: true
+        description: "Contribution to net operating income: revenue, opex or excluded."
+      - name: memo
+        logicalType: string
+        required: false
+        description: Line memo.
+      - name: entry_id
+        logicalType: integer
+        required: true
+        description: "Reference to JournalEntry: Journal entry."
+      - name: account_id
+        logicalType: integer
+        required: true
+        description: "Reference to LedgerAccount: Ledger account."
+      - name: cost_center_id
+        logicalType: integer
+        required: true
+        description: "Reference to CostCenter: Cost center; property cost centers attribute results to a property."
+  - name: owner_distributions
+    physicalName: mall.owner_distributions
+    physicalType: table
+    logicalType: object
+    description: Cash distributed to an investor for its ownership stake.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/fin#OwnerDistribution
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the OwnerDistribution.
+      - name: distribution_date
+        logicalType: date
+        required: true
+        description: Distribution date.
+      - name: amount
+        logicalType: number
+        required: true
+        description: Amount distributed.
+      - name: stake_id
+        logicalType: integer
+        required: true
+        description: "Reference to OwnershipStake: Ownership stake."
+      - name: month_id
+        logicalType: integer
+        required: true
+        description: "Reference to CalendarMonth: Result month."
+  - name: capital_projects
+    physicalName: mall.capital_projects
+    physicalType: table
+    logicalType: object
+    description: "Capital expenditure on a property: expansion, renovation, retrofit or sustainability works."
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/fin#CapitalProject
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the CapitalProject.
+      - name: name
+        logicalType: string
+        required: true
+        description: Project name.
+      - name: project_type
+        logicalType: string
+        required: false
+        description: Project type.
+      - name: budget
+        logicalType: number
+        required: false
+        description: Approved budget.
+      - name: start_date
+        logicalType: date
+        required: false
+        description: Start.
+      - name: completion_date
+        logicalType: date
+        required: false
+        description: Completion.
+      - name: added_gla_m2
+        logicalType: number
+        required: false
+        description: Gross leasable area added.
+      - name: property_id
+        logicalType: integer
+        required: true
+        description: "Reference to Property: Property."
+      - name: construction_contract_id
+        logicalType: integer
+        required: false
+        description: "Reference to Contract: Construction contract."
+  - name: cost_centers
+    physicalName: mall.cost_centers
+    physicalType: table
+    logicalType: object
+    description: "Unit of cost and result responsibility: a property, a department or a corporate function."
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/fin#CostCenter
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the CostCenter.
+      - name: code
+        logicalType: string
+        required: true
+        description: Cost center code.
+      - name: name
+        logicalType: string
+        required: true
+        description: Cost center name.
+      - name: property_id
+        logicalType: integer
+        required: false
+        description: "Reference to Property: Property whose results the cost center carries."
+      - name: parent_cost_center_id
+        logicalType: integer
+        required: false
+        description: "Reference to CostCenter: Parent cost center."
+  - name: operating_budgets
+    physicalName: mall.operating_budgets
+    physicalType: table
+    logicalType: object
+    description: Approved annual budget of a legal entity, by version.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/fin#OperatingBudget
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the OperatingBudget.
+      - name: year
+        logicalType: integer
+        required: true
+        description: Budget year.
+      - name: version
+        logicalType: string
+        required: true
+        description: Original, reforecast or final.
+      - name: approved_date
+        logicalType: date
+        required: false
+        description: Approval date.
+      - name: legal_entity_id
+        logicalType: integer
+        required: true
+        description: "Reference to LegalEntity: Legal entity."
+      - name: approval_id
+        logicalType: integer
+        required: false
+        description: "Reference to Resolution: Resolution approving the budget."
+  - name: budget_lines
+    physicalName: mall.budget_lines
+    physicalType: table
+    logicalType: object
+    description: Budgeted amount for an account, cost center and month.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/fin#BudgetLine
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the BudgetLine.
+      - name: amount
+        logicalType: number
+        required: true
+        description: Signed budgeted amount.
+      - name: budget_id
+        logicalType: integer
+        required: true
+        description: "Reference to OperatingBudget: Budget."
+      - name: account_id
+        logicalType: integer
+        required: true
+        description: "Reference to LedgerAccount: Ledger account."
+      - name: cost_center_id
+        logicalType: integer
+        required: true
+        description: "Reference to CostCenter: Cost center."
+      - name: month_id
+        logicalType: integer
+        required: true
+        description: "Reference to CalendarMonth: Month."
+  - name: tax_types
+    physicalName: mall.tax_types
+    physicalType: table
+    logicalType: object
+    description: Tax or levy, such as property tax (IPTU), services tax (ISS), PIS, COFINS, income taxes or social security.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/fin#TaxType
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the TaxType.
+      - name: code
+        logicalType: string
+        required: true
+        description: Tax code.
+      - name: name
+        logicalType: string
+        required: true
+        description: Tax name.
+      - name: jurisdiction_level
+        logicalType: string
+        required: false
+        description: Federal, state or municipal.
+  - name: tax_obligations
+    physicalName: mall.tax_obligations
+    physicalType: table
+    logicalType: object
+    description: Tax assessed or declared for a period, such as annual property tax instalments or monthly taxes on revenue.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/fin#TaxObligation
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the TaxObligation.
+      - name: amount
+        logicalType: number
+        required: true
+        description: Amount due.
+      - name: due_date
+        logicalType: date
+        required: true
+        description: Due date.
+      - name: paid_date
+        logicalType: date
+        required: false
+        description: Payment date.
+      - name: is_recoverable
+        logicalType: boolean
+        required: false
+        description: Whether it is recharged to tenants through service charges.
+      - name: tax_type_id
+        logicalType: integer
+        required: true
+        description: "Reference to TaxType: Tax."
+      - name: legal_entity_id
+        logicalType: integer
+        required: true
+        description: "Reference to LegalEntity: Taxpayer."
+      - name: property_id
+        logicalType: integer
+        required: false
+        description: "Reference to Property: Property taxed."
+      - name: month_id
+        logicalType: integer
+        required: true
+        description: "Reference to CalendarMonth: Period."
+  - name: tax_withholdings
+    physicalName: mall.tax_withholdings
+    physicalType: table
+    logicalType: object
+    description: Tax withheld from a supplier invoice and paid to the authority on the supplier behalf.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/fin#TaxWithholding
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the TaxWithholding.
+      - name: rate
+        logicalType: number
+        required: true
+        description: Withholding rate.
+      - name: amount
+        logicalType: number
+        required: true
+        description: Amount withheld.
+      - name: supplier_invoice_id
+        logicalType: integer
+        required: true
+        description: "Reference to SupplierInvoice: Supplier invoice."
+      - name: tax_type_id
+        logicalType: integer
+        required: true
+        description: "Reference to TaxType: Tax."
+  - name: fixed_assets
+    physicalName: mall.fixed_assets
+    physicalType: table
+    logicalType: object
+    description: "Capitalised asset: building, improvement, equipment or furniture."
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/fin#FixedAsset
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the FixedAsset.
+      - name: asset_number
+        logicalType: string
+        required: true
+        description: Asset number.
+      - name: summary
+        logicalType: string
+        required: false
+        description: Asset description.
+      - name: acquisition_date
+        logicalType: date
+        required: true
+        description: Acquisition or completion date.
+      - name: acquisition_cost
+        logicalType: number
+        required: true
+        description: Cost capitalised.
+      - name: useful_life_months
+        logicalType: integer
+        required: false
+        description: Useful life.
+      - name: property_id
+        logicalType: integer
+        required: true
+        description: "Reference to Property: Property."
+      - name: ledger_account_id
+        logicalType: integer
+        required: false
+        description: "Reference to LedgerAccount: Asset account."
+      - name: capital_project_id
+        logicalType: integer
+        required: false
+        description: "Reference to CapitalProject: Capital project."
+  - name: depreciation_entries
+    physicalName: mall.depreciation_entries
+    physicalType: table
+    logicalType: object
+    description: Monthly depreciation of a fixed asset.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/fin#DepreciationEntry
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the DepreciationEntry.
+      - name: amount
+        logicalType: number
+        required: true
+        description: Depreciation for the month.
+      - name: fixed_asset_id
+        logicalType: integer
+        required: true
+        description: "Reference to FixedAsset: Asset."
+      - name: month_id
+        logicalType: integer
+        required: true
+        description: "Reference to CalendarMonth: Month."
+  - name: loan_agreements
+    physicalName: mall.loan_agreements
+    physicalType: table
+    logicalType: object
+    description: Debt financing, such as a bank loan or real-estate receivables securitisation, registered as a contract.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/fin#LoanAgreement
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the LoanAgreement.
+      - name: principal
+        logicalType: number
+        required: true
+        description: Principal.
+      - name: interest_rate
+        logicalType: number
+        required: false
+        description: Annual interest rate or spread.
+      - name: maturity_date
+        logicalType: date
+        required: false
+        description: Maturity.
+      - name: contract_id
+        logicalType: integer
+        required: true
+        description: "Reference to Contract: Contract register entry."
+      - name: lender_id
+        logicalType: integer
+        required: true
+        description: "Reference to Organization: Lender."
+      - name: borrower_id
+        logicalType: integer
+        required: true
+        description: "Reference to LegalEntity: Borrowing legal entity."
+      - name: collateral_id
+        logicalType: integer
+        required: false
+        description: "Reference to Property: Property given as collateral."
+      - name: rate_index_id
+        logicalType: integer
+        required: false
+        description: "Reference to PriceIndex: Index applied to the debt."
+  - name: debt_service_payments
+    physicalName: mall.debt_service_payments
+    physicalType: table
+    logicalType: object
+    description: Scheduled or paid instalment of principal and interest.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/fin#DebtServicePayment
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the DebtServicePayment.
+      - name: payment_date
+        logicalType: date
+        required: true
+        description: Payment date.
+      - name: principal_amount
+        logicalType: number
+        required: false
+        description: Principal repaid.
+      - name: interest_amount
+        logicalType: number
+        required: false
+        description: Interest paid.
+      - name: loan_id
+        logicalType: integer
+        required: true
+        description: "Reference to LoanAgreement: Loan."
+  - name: bank_transactions
+    physicalName: mall.bank_transactions
+    physicalType: table
+    logicalType: object
+    description: Statement line of a bank account, reconciled against receipts and payments.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/fin#BankTransaction
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the BankTransaction.
+      - name: transaction_date
+        logicalType: date
+        required: true
+        description: Value date.
+      - name: amount
+        logicalType: number
+        required: true
+        description: Signed amount.
+      - name: summary
+        logicalType: string
+        required: false
+        description: Statement description.
+      - name: is_reconciled
+        logicalType: boolean
+        required: false
+        description: Whether the line is reconciled.
+      - name: bank_account_id
+        logicalType: integer
+        required: true
+        description: "Reference to BankAccount: Bank account."
+  - name: insurance_claims
+    physicalName: mall.insurance_claims
+    physicalType: table
+    logicalType: object
+    description: Claim under an insurance policy.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/fin#InsuranceClaim
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the InsuranceClaim.
+      - name: claim_date
+        logicalType: date
+        required: true
+        description: Claim date.
+      - name: amount_claimed
+        logicalType: number
+        required: false
+        description: Amount claimed.
+      - name: amount_paid
+        logicalType: number
+        required: false
+        description: Amount paid by the insurer.
+      - name: status
+        logicalType: string
+        required: false
+        description: Open, accepted, rejected or paid.
+      - name: policy_id
+        logicalType: integer
+        required: true
+        description: "Reference to InsurancePolicy: Policy."
+      - name: incident_id
+        logicalType: integer
+        required: false
+        description: "Reference to Incident: Incident."
+  - name: occupancy_snapshots
+    physicalName: mall.occupancy_snapshots
+    physicalType: table
+    logicalType: object
+    description: "State of a unit at month end: its gross leasable area, the area occupied under a lease and the contracted minimum rent. One row per unit and month."
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/perf#OccupancySnapshot
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the OccupancySnapshot.
+      - name: gla_m2
+        logicalType: number
+        required: true
+        description: Gross leasable area of the unit.
+      - name: occupied_gla_m2
+        logicalType: number
+        required: true
+        description: Area under an active lease at month end.
+      - name: contracted_minimum_rent
+        logicalType: number
+        required: false
+        description: Monthly minimum rent in force at month end.
+      - name: unit_id
+        logicalType: integer
+        required: true
+        description: "Reference to LeasableUnit: Unit."
+      - name: month_id
+        logicalType: integer
+        required: true
+        description: "Reference to CalendarMonth: Month."
+      - name: lease_id
+        logicalType: integer
+        required: false
+        description: "Reference to Lease: Lease in force; empty when vacant."
+  - name: sales_reports
+    physicalName: mall.sales_reports
+    physicalType: table
+    logicalType: object
+    description: Monthly gross sales declared by a tenant, the basis for percentage rent. occupancy_cost is the rent, service charge and marketing fund billed for the same month.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/perf#SalesReport
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the SalesReport.
+      - name: gross_sales
+        logicalType: number
+        required: true
+        description: Declared gross sales.
+      - name: reported_gla_m2
+        logicalType: number
+        required: true
+        description: Area of the leased units.
+      - name: occupancy_cost
+        logicalType: number
+        required: false
+        description: Occupancy cost billed for the month.
+      - name: submitted_date
+        logicalType: date
+        required: false
+        description: Submission date.
+      - name: is_audited
+        logicalType: boolean
+        required: false
+        description: Whether the report was audited.
+      - name: lease_id
+        logicalType: integer
+        required: true
+        description: "Reference to Lease: Lease."
+      - name: property_id
+        logicalType: integer
+        required: true
+        description: "Reference to Property: Property."
+      - name: month_id
+        logicalType: integer
+        required: true
+        description: "Reference to CalendarMonth: Sales month."
+  - name: sales_audits
+    physicalName: mall.sales_audits
+    physicalType: table
+    logicalType: object
+    description: Audit of declared sales against tenant records.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/perf#SalesAudit
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the SalesAudit.
+      - name: audit_date
+        logicalType: date
+        required: true
+        description: Audit date.
+      - name: audited_sales
+        logicalType: number
+        required: false
+        description: Sales established by the audit.
+      - name: variance_amount
+        logicalType: number
+        required: false
+        description: Audited minus declared sales.
+      - name: sales_report_id
+        logicalType: integer
+        required: true
+        description: "Reference to SalesReport: Sales report."
+      - name: auditor_id
+        logicalType: integer
+        required: false
+        description: "Reference to Organization: Auditor."
+  - name: footfall_counts
+    physicalName: mall.footfall_counts
+    physicalType: table
+    logicalType: object
+    description: Visitors counted at an entrance over a counting period.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/perf#FootfallCount
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the FootfallCount.
+      - name: period_start
+        logicalType: date
+        required: true
+        description: First day counted.
+      - name: period_end
+        logicalType: date
+        required: true
+        description: Last day counted.
+      - name: visitors
+        logicalType: integer
+        required: true
+        description: Visitors counted.
+      - name: entrance_id
+        logicalType: integer
+        required: true
+        description: "Reference to Entrance: Entrance."
+      - name: month_id
+        logicalType: integer
+        required: true
+        description: "Reference to CalendarMonth: Reporting month."
+  - name: parking_activity
+    physicalName: mall.parking_activity
+    physicalType: table
+    logicalType: object
+    description: Tickets and revenue of a parking facility in a month.
+    authoritativeDefinitions:
+      - type: businessDefinition
+        url: https://example.org/mall/perf#ParkingActivity
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Identifier of the ParkingActivity.
+      - name: tickets
+        logicalType: integer
+        required: true
+        description: Tickets issued.
+      - name: revenue
+        logicalType: number
+        required: true
+        description: Parking revenue.
+      - name: facility_id
+        logicalType: integer
+        required: true
+        description: "Reference to ParkingFacility: Parking facility."
+      - name: month_id
+        logicalType: integer
+        required: true
+        description: "Reference to CalendarMonth: Month."

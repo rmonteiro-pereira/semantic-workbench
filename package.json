@@ -9,7 +9,7 @@
     "check": "tsc --noEmit",
     "test:ui": "bun scripts/ui-tests.ts",
     "test:mutation": "bun scripts/mutation-tests.ts",
-    "examples:generate": "bun scripts/billing-example.ts",
+    "examples:generate": "bun scripts/billing-example.ts && bun scripts/mall-example.ts",
     "test:examples": "bun scripts/verify-examples.ts",
     "test:examples:ui": "bun scripts/examples-ui-tests.ts",
     "test:responsive": "bun scripts/responsive-ui-tests.ts",
