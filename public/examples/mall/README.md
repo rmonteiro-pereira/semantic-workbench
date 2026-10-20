@@ -20,10 +20,10 @@ Every concept and relationship has a description and a global identifier (`iri`)
 | `mall.ontology.yaml` | Apache Ossie ontology: concepts, inheritance, identifiers, typed attributes, links, verbalizations and AI context |
 | `mall.semantic.yaml` | Ossie semantic model: one dataset per concrete concept, declared many-to-one joins and governed metrics |
 | `mall.mapping.yaml` | Standalone mapping of every concept, attribute and link to its dataset and of every KPI concept to its metric |
-| `mall.odcs.yaml` | ODCS 3.1.0 data contract for all tables, with business-definition links to the concept IRIs |
+| `mall.odcs.yaml` | ODCS 3.1.0 data contract for all tables, with foreign keys and business-definition links to the concept IRIs |
 | `mall.owl.ttl` | OWL ontology: classes per module, subclass axioms, required-link restrictions, disjointness, functional properties, and `skos:closeMatch` alignment hints to schema.org |
-| `mall.shacl.ttl` | SHACL shapes: datatypes, cardinalities, non-negative amounts and areas, fractions between 0 and 1, date ordering |
-| `mall-data.ttl` | The fixture rows as RDF instance data typed by the OWL classes |
+| `mall.shacl.ttl` | SHACL node shapes and named property shapes: datatypes, cardinalities, non-negative amounts and areas, fractions between 0 and 1, date ordering |
+| `mall-data.ttl` | The fixture rows as labelled RDF instance data typed by the OWL classes |
 | `fixture.sql` | Isolated synthetic SQLite database for the KPI checks; not a warehouse migration |
 | `expected.json` | KPI values computed from the fixture rows, independently of SQL |
 

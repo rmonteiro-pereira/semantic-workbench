@@ -1,6 +1,7 @@
 import {OSSIE_BUILTINS} from './ossie-builtins';
 import {isMapping,mappingSchemaIssues} from './mapping-schema';
 import {expandIri,prefixMap} from './iri';
+import {odcsReferenceIssues} from './odcs';
 import Ajv2019 from 'ajv/dist/2019';
 import Ajv2020 from 'ajv/dist/2020';
 import formats from 'ajv-formats';
@@ -49,6 +50,7 @@ export function validateStructured(data:any, applyPinnedSchema=true): Issue[] {
     const xs=arr(data.schema,'/schema',true);named(xs,'/schema');
     const stack=xs.filter(object).map((x,i)=>({x,p:`/schema/${i}`,depth:0}));
     while(stack.length){const {x,p,depth}=stack.pop()!;if(depth>64){fail(p,'Nested properties exceed the supported depth of 64.');continue;}if(x.fields!==undefined)fields(x,p,'fields');const children=arr(x.properties,p+'/properties');named(children,p+'/properties');children.forEach((child,i)=>{if(object(child))stack.push({x:child,p:`${p}/properties/${i}`,depth:depth+1});});}
+    for(const issue of odcsReferenceIssues(data))fail(issue.path,issue.message,'reference');
   }else if(data.ontology!==undefined){
     const xs=arr(data.ontology,'/ontology',true), names=named(xs,'/ontology','concept'), parents=new Map<string,string[]>();
     const iris=new Map<string,string>(),prefixes=prefixMap(data.prefixes);
