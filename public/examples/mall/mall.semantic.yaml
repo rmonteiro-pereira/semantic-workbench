@@ -1,0 +1,7292 @@
+version: 0.2.0.dev0
+name: Shopping center administration semantic model
+description: "One dataset per concrete business concept. Facts: occupancy_snapshots (unit-month), charges (lease-charge type-month), sales_reports (lease-month), footfall_counts (entrance-period), journal_lines (ledger line) and parking_activity (facility-month)."
+ai_context:
+  instructions: "Use governed metrics by name. Area metrics are month-end stocks: filter or group by month. A charge reaches tenants through its lease (contracted tenant) and through its invoice (billed tenant); choose the role explicitly. Properties are reached from occupancy through unit, zone, floor and building."
+datasets:
+  - name: organizations
+    source: mall.organizations
+    description: Legal entity such as a company, fund, bank, insurer, public authority, court, law firm or condominium association.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: legal_name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: legal_name
+      - name: tax_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: tax_id
+      - name: email
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: email
+      - name: phone
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: phone
+      - name: organization_type
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: organization_type
+      - name: legal_form
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: legal_form
+      - name: address_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: address_id
+      - name: parent_organization_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: parent_organization_id
+  - name: people
+    source: mall.people
+    description: "Natural person: employee, tenant contact, attorney, candidate, guarantor or individual investor. Personal data is subject to data-protection law."
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: legal_name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: legal_name
+      - name: tax_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: tax_id
+      - name: email
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: email
+      - name: phone
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: phone
+      - name: birth_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: birth_date
+      - name: nationality
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: nationality
+      - name: address_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: address_id
+  - name: addresses
+    source: mall.addresses
+    description: Postal address of a property or party.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: street
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: street
+      - name: street_number
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: street_number
+      - name: complement
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: complement
+      - name: district
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: district
+      - name: postal_code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: postal_code
+      - name: city_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: city_id
+  - name: cities
+    source: mall.cities
+    description: Municipality.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: state_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: state_id
+  - name: state_provinces
+    source: mall.state_provinces
+    description: State, province or other first-level administrative region.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: code
+      - name: country_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: country_id
+  - name: countries
+    source: mall.countries
+    description: Country.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: iso_code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: iso_code
+  - name: currencies
+    source: mall.currencies
+    description: Currency in which leases, invoices and accounts are denominated.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: iso_code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: iso_code
+  - name: calendar_months
+    source: mall.calendar_months
+    description: Reporting and billing period. Charges, sales reports, occupancy snapshots and ledger entries are stated per month.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: year_month
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: year_month
+      - name: year
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: year
+      - name: month_number
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: month_number
+      - name: quarter
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: quarter
+  - name: price_indices
+    source: mall.price_indices
+    description: Inflation index used to adjust rents, such as IGP-M or IPCA in Brazil or a consumer price index elsewhere.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: code
+      - name: publisher
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: publisher
+  - name: price_index_values
+    source: mall.price_index_values
+    description: Published level and monthly change of a price index.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: index_level
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: index_level
+      - name: monthly_change
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: monthly_change
+      - name: price_index_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: price_index_id
+      - name: month_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: month_id
+  - name: portfolios
+    source: mall.portfolios
+    description: Group of properties managed under one strategy or fund.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: strategy
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: strategy
+      - name: asset_manager_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: asset_manager_id
+  - name: properties
+    source: mall.properties
+    description: Shopping center or other managed real-estate asset. Gross leasable area (GLA, in Portuguese ABL) is the area available for lease to tenants.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: code
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: property_format
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_format
+      - name: opening_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: opening_date
+      - name: total_gla_m2
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: total_gla_m2
+      - name: gross_built_area_m2
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: gross_built_area_m2
+      - name: parking_spaces
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: parking_spaces
+      - name: portfolio_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: portfolio_id
+      - name: address_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: address_id
+      - name: currency_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: currency_id
+      - name: administrator_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: administrator_id
+      - name: general_manager_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: general_manager_id
+  - name: buildings
+    source: mall.buildings
+    description: Structure within a property, such as the mall, an office tower or a parking building.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: code
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: built_year
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: built_year
+      - name: property_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_id
+  - name: floors
+    source: mall.floors
+    description: Floor or level of a building.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: code
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: level_number
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: level_number
+      - name: building_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: building_id
+  - name: zones
+    source: mall.zones
+    description: Wing, corridor or sector of a floor used to locate units and plan the tenant mix.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: code
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: floor_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: floor_id
+  - name: units
+    source: mall.units
+    description: Store, kiosk or other unit that counts towards gross leasable area and can be leased to a tenant.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: code
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: area_m2
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: area_m2
+      - name: frontage_m
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: frontage_m
+      - name: has_mezzanine
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: has_mezzanine
+      - name: zone_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: zone_id
+      - name: unit_type_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: unit_type_id
+  - name: unit_types
+    source: mall.unit_types
+    description: "Classification of units: anchor, mega-store, inline store, kiosk, food court, restaurant, entertainment, services, office or storage."
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: code
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: counts_as_gla
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: counts_as_gla
+  - name: common_areas
+    source: mall.common_areas
+    description: "Shared area operated by the property: corridors, food-court seating, restrooms, loading docks and technical areas. Its costs are recovered through service charges."
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: code
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: area_m2
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: area_m2
+      - name: area_kind
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: area_kind
+      - name: floor_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: floor_id
+  - name: parking_facilities
+    source: mall.parking_facilities
+    description: Parking area of a property.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: code
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: area_m2
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: area_m2
+      - name: capacity
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: capacity
+      - name: is_paid
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: is_paid
+      - name: property_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_id
+  - name: entrances
+    source: mall.entrances
+    description: Visitor entrance where footfall is counted.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: code
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: entrance_kind
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: entrance_kind
+      - name: property_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_id
+  - name: area_measurements
+    source: mall.area_measurements
+    description: Certified measurement of a unit area under a stated method.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: measurement_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: measurement_date
+      - name: measured_area_m2
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: measured_area_m2
+      - name: method
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: method
+      - name: unit_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: unit_id
+      - name: surveyor_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: surveyor_id
+  - name: ownership_stakes
+    source: mall.ownership_stakes
+    description: Fractional ownership of a property by an investor. Shopping centers are often held in undivided shares by several investors.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: share
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: share
+      - name: start_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: start_date
+      - name: end_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: end_date
+      - name: investor_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: investor_id
+      - name: property_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_id
+  - name: valuations
+    source: mall.valuations
+    description: Appraisal of the market value of a property.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: valuation_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: valuation_date
+      - name: market_value
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: market_value
+      - name: capitalization_rate
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: capitalization_rate
+      - name: discount_rate
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: discount_rate
+      - name: property_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_id
+      - name: appraiser_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: appraiser_id
+  - name: permits
+    source: mall.permits
+    description: Licence or certificate required to operate the property, such as an occupancy certificate, fire safety certificate or operating licence.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: permit_number
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: permit_number
+      - name: permit_type
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: permit_type
+      - name: issue_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: issue_date
+      - name: expiry_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: expiry_date
+      - name: property_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_id
+      - name: issuer_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: issuer_id
+  - name: equipment
+    source: mall.equipment
+    description: Maintained building equipment such as escalators, elevators, chillers, generators and fire pumps.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: tag
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: tag
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: equipment_type
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: equipment_type
+      - name: install_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: install_date
+      - name: manufacturer
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: manufacturer
+      - name: property_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_id
+      - name: fixed_asset_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: fixed_asset_id
+  - name: tenants
+    source: mall.tenants
+    description: "Role of an organization that leases space in a property: retailer, restaurant or service operator."
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: trade_name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: trade_name
+      - name: since_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: since_date
+      - name: organization_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: organization_id
+  - name: investors
+    source: mall.investors
+    description: Role of an organization or person that owns ownership stakes, such as a pension fund, real-estate fund, developer or individual.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: investor_type
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: investor_type
+      - name: organization_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: organization_id
+      - name: person_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: person_id
+  - name: brokers
+    source: mall.brokers
+    description: Role of a leasing broker or agency that introduces tenants.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: license_number
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: license_number
+      - name: commission_rate
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: commission_rate
+      - name: organization_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: organization_id
+  - name: brands
+    source: mall.brands
+    description: Commercial brand operated in a store. One tenant can operate several brands.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: owner_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: owner_id
+  - name: merchandise_categories
+    source: mall.merchandise_categories
+    description: Tenant-mix category, such as apparel, footwear, food court, services or entertainment. Categories form a hierarchy.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: code
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: parent_category_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: parent_category_id
+  - name: tenant_contacts
+    source: mall.tenant_contacts
+    description: Person a tenant designates for a responsibility, such as store manager, finance or legal.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: role
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: role
+      - name: is_primary
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: is_primary
+      - name: person_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: person_id
+      - name: tenant_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: tenant_id
+  - name: leasing_prospects
+    source: mall.leasing_prospects
+    description: Potential tenant in the leasing pipeline.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: first_contact_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: first_contact_date
+      - name: brand_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: brand_id
+      - name: category_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: category_id
+      - name: broker_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: broker_id
+  - name: leasing_proposals
+    source: mall.leasing_proposals
+    description: Commercial offer or letter of intent for a unit.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: proposal_number
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: proposal_number
+      - name: proposal_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: proposal_date
+      - name: proposed_minimum_rent
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: proposed_minimum_rent
+      - name: proposed_term_months
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: proposed_term_months
+      - name: status
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: status
+      - name: prospect_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: prospect_id
+      - name: unit_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: unit_id
+      - name: resulting_lease_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: resulting_lease_id
+  - name: lease_statuses
+    source: mall.lease_statuses
+    description: "Lifecycle state of a lease: pending signature, fit-out, active, holdover, in renewal proceedings, terminated or expired."
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: code
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+  - name: leases
+    source: mall.leases
+    description: Commercial lease of one or more units to a tenant, registered as a contract. Shopping-center leases usually combine a monthly minimum rent with a percentage rent on gross sales, plus service charges and a marketing fund contribution.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: term_months
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: term_months
+      - name: store_opening_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: store_opening_date
+      - name: monthly_minimum_rent
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: monthly_minimum_rent
+      - name: has_thirteenth_rent
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: has_thirteenth_rent
+      - name: contract_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: contract_id
+      - name: tenant_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: tenant_id
+      - name: brand_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: brand_id
+      - name: status_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: status_id
+      - name: permitted_use_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: permitted_use_id
+      - name: broker_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: broker_id
+  - name: leased_units
+    source: mall.leased_units
+    description: Unit covered by a lease for a period. A lease can cover several units and a unit is leased successively.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: start_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: start_date
+      - name: end_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: end_date
+      - name: leased_area_m2
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: leased_area_m2
+      - name: lease_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: lease_id
+      - name: unit_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: unit_id
+  - name: rent_steps
+    source: mall.rent_steps
+    description: Step of the minimum-rent schedule, such as a discounted first year followed by full rent.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: effective_from
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: effective_from
+      - name: effective_to
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: effective_to
+      - name: monthly_amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: monthly_amount
+      - name: lease_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: lease_id
+  - name: percentage_rent_clauses
+    source: mall.percentage_rent_clauses
+    description: "Percentage rent: when the rate times monthly gross sales exceeds the minimum rent, the tenant pays the difference as overage rent."
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: clause_reference
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: clause_reference
+      - name: effective_from
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: effective_from
+      - name: effective_to
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: effective_to
+      - name: notes
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: notes
+      - name: rate
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: rate
+      - name: excludes_thirteenth_rent
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: excludes_thirteenth_rent
+      - name: lease_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: lease_id
+  - name: indexation_clauses
+    source: mall.indexation_clauses
+    description: Periodic adjustment of rent by a price index.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: clause_reference
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: clause_reference
+      - name: effective_from
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: effective_from
+      - name: effective_to
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: effective_to
+      - name: notes
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: notes
+      - name: anniversary_month
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: anniversary_month
+      - name: frequency_months
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: frequency_months
+      - name: lease_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: lease_id
+      - name: price_index_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: price_index_id
+  - name: exclusivity_clauses
+    source: mall.exclusivity_clauses
+    description: Commitment by the landlord not to lease to competitors in a protected category.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: clause_reference
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: clause_reference
+      - name: effective_from
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: effective_from
+      - name: effective_to
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: effective_to
+      - name: notes
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: notes
+      - name: lease_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: lease_id
+      - name: protected_category_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: protected_category_id
+  - name: radius_clauses
+    source: mall.radius_clauses
+    description: Restriction on the tenant opening another store within a radius of the property.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: clause_reference
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: clause_reference
+      - name: effective_from
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: effective_from
+      - name: effective_to
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: effective_to
+      - name: notes
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: notes
+      - name: radius_km
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: radius_km
+      - name: lease_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: lease_id
+  - name: co_tenancy_clauses
+    source: mall.co_tenancy_clauses
+    description: Rent relief if required anchors close or occupancy falls below a threshold.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: clause_reference
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: clause_reference
+      - name: effective_from
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: effective_from
+      - name: effective_to
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: effective_to
+      - name: notes
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: notes
+      - name: required_occupancy_rate
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: required_occupancy_rate
+      - name: remedy_rent_rate
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: remedy_rent_rate
+      - name: lease_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: lease_id
+  - name: renewal_options
+    source: mall.renewal_options
+    description: Tenant option to renew the lease.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: clause_reference
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: clause_reference
+      - name: effective_from
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: effective_from
+      - name: effective_to
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: effective_to
+      - name: notes
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: notes
+      - name: notice_months
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: notice_months
+      - name: renewal_term_months
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: renewal_term_months
+      - name: lease_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: lease_id
+  - name: early_termination_options
+    source: mall.early_termination_options
+    description: Right to end the lease early against a penalty.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: clause_reference
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: clause_reference
+      - name: effective_from
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: effective_from
+      - name: effective_to
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: effective_to
+      - name: notes
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: notes
+      - name: earliest_exercise_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: earliest_exercise_date
+      - name: penalty_months_of_rent
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: penalty_months_of_rent
+      - name: lease_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: lease_id
+  - name: guarantee_types
+    source: mall.guarantee_types
+    description: "Kind of lease guarantee: surety bond, bank guarantee, security deposit, personal guarantor or rent-guarantee insurance."
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: code
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+  - name: guarantees
+    source: mall.guarantees
+    description: Security provided for the obligations of a lease.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amount
+      - name: start_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: start_date
+      - name: end_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: end_date
+      - name: lease_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: lease_id
+      - name: guarantee_type_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: guarantee_type_id
+      - name: guarantor_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: guarantor_id
+  - name: key_money_agreements
+    source: mall.key_money_agreements
+    description: "One-off fee for the right to use a location: a right-of-use fee (res sperata) in a new development or key money (luvas) for an existing location. It is not rent."
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: total_amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: total_amount
+      - name: installments
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: installments
+      - name: agreement_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: agreement_date
+      - name: lease_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: lease_id
+  - name: rent_concessions
+    source: mall.rent_concessions
+    description: Rent-free period, discount or deferral granted on a lease.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: concession_type
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: concession_type
+      - name: start_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: start_date
+      - name: end_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: end_date
+      - name: discount_rate
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: discount_rate
+      - name: reason
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: reason
+      - name: lease_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: lease_id
+  - name: tenant_allowances
+    source: mall.tenant_allowances
+    description: Contribution by the landlord towards the tenant fit-out.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amount
+      - name: purpose
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: purpose
+      - name: lease_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: lease_id
+  - name: fit_out_projects
+    source: mall.fit_out_projects
+    description: Construction of the store by the tenant between handover and opening, subject to the landlord design approval.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: handover_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: handover_date
+      - name: planned_opening_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: planned_opening_date
+      - name: actual_opening_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: actual_opening_date
+      - name: design_approved
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: design_approved
+      - name: status
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: status
+      - name: lease_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: lease_id
+      - name: unit_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: unit_id
+  - name: lease_terminations
+    source: mall.lease_terminations
+    description: End of a lease before or at expiry.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: termination_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: termination_date
+      - name: reason
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: reason
+      - name: penalty_amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: penalty_amount
+      - name: lease_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: lease_id
+  - name: legal_entities
+    source: mall.legal_entities
+    description: "Role of an organization in the group that signs contracts, keeps books and employs staff: property-owning special-purpose company, fund, administrator or condominium."
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: registration_number
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: registration_number
+      - name: entity_type
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: entity_type
+      - name: incorporation_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: incorporation_date
+      - name: fiscal_regime
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: fiscal_regime
+      - name: organization_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: organization_id
+  - name: contract_types
+    source: mall.contract_types
+    description: "Kind of contract in the register: lease, service, supply framework, employment, loan, construction, insurance, brokerage, confidentiality or other."
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: code
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: requires_legal_review
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: requires_legal_review
+  - name: contracts
+    source: mall.contracts
+    description: Entry of the contract register. Every lease, service contract, supply agreement, employment contract, loan or construction contract is registered here with its number, term, value, parties, documents, obligations and approvals.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: contract_number
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: contract_number
+      - name: title
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: title
+      - name: signing_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: signing_date
+      - name: start_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: start_date
+      - name: end_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: end_date
+      - name: status
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: status
+      - name: total_value
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: total_value
+      - name: auto_renewal
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: auto_renewal
+      - name: notice_period_days
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: notice_period_days
+      - name: governing_law
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: governing_law
+      - name: contract_type_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: contract_type_id
+      - name: contracting_entity_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: contracting_entity_id
+      - name: currency_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: currency_id
+  - name: contract_parties
+    source: mall.contract_parties
+    description: "Party to a contract other than the contracting entity: counterparty, guarantor, intervening party or witness."
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: party_role
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: party_role
+      - name: contract_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: contract_id
+      - name: organization_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: organization_id
+      - name: person_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: person_id
+  - name: contract_documents
+    source: mall.contract_documents
+    description: Signed instrument or annex of a contract.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: document_type
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: document_type
+      - name: reference
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: reference
+      - name: signed_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: signed_date
+      - name: signature_method
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: signature_method
+      - name: contract_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: contract_id
+  - name: contract_amendments
+    source: mall.contract_amendments
+    description: "Signed change to a contract: price revision, extension, scope change, assignment or party change."
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: amendment_number
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amendment_number
+      - name: effective_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: effective_date
+      - name: amendment_type
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amendment_type
+      - name: summary
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: summary
+      - name: value_change
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: value_change
+      - name: contract_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: contract_id
+  - name: contract_obligations
+    source: mall.contract_obligations
+    description: Obligation to monitor under a contract, such as payments, sales reporting, insurance certificates, opening hours, maintenance or renewal notices.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: summary
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: summary
+      - name: obligation_type
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: obligation_type
+      - name: due_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: due_date
+      - name: frequency
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: frequency
+      - name: status
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: status
+      - name: contract_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: contract_id
+      - name: responsible_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: responsible_id
+  - name: contract_approvals
+    source: mall.contract_approvals
+    description: Approval step of a contract under the delegation-of-authority matrix.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: approval_level
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: approval_level
+      - name: decision
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: decision
+      - name: decision_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: decision_date
+      - name: contract_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: contract_id
+      - name: approver_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: approver_id
+  - name: powers_of_attorney
+    source: mall.powers_of_attorney
+    description: Authority granted by a legal entity to a person to sign or act on its behalf.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: scope
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: scope
+      - name: granted_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: granted_date
+      - name: valid_until
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: valid_until
+      - name: grantor_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: grantor_id
+      - name: attorney_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: attorney_id
+  - name: governance_meetings
+    source: mall.governance_meetings
+    description: Meeting of shareholders, board, investors, condominium assembly or tenants association.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: meeting_type
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: meeting_type
+      - name: meeting_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: meeting_date
+      - name: quorum
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: quorum
+      - name: legal_entity_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: legal_entity_id
+  - name: resolutions
+    source: mall.resolutions
+    description: Decision taken at a governance meeting, for example approving a budget, a capital project or a distribution.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: summary
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: summary
+      - name: outcome
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: outcome
+      - name: votes_in_favour
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: votes_in_favour
+      - name: meeting_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: meeting_id
+  - name: legal_proceedings
+    source: mall.legal_proceedings
+    description: "Lawsuit or administrative proceeding: eviction, lease renewal, rent review, collection, labour, tax or civil liability."
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: case_number
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: case_number
+      - name: proceeding_type
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: proceeding_type
+      - name: court
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: court
+      - name: filing_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: filing_date
+      - name: status
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: status
+      - name: amount_claimed
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amount_claimed
+      - name: is_plaintiff
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: is_plaintiff
+      - name: legal_entity_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: legal_entity_id
+      - name: contract_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: contract_id
+      - name: property_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_id
+      - name: opposing_party_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: opposing_party_id
+      - name: opposing_person_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: opposing_person_id
+      - name: law_firm_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: law_firm_id
+  - name: litigation_provisions
+    source: mall.litigation_provisions
+    description: Assessment of the loss probability of a proceeding and the amount provisioned in the accounts.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: assessment_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: assessment_date
+      - name: loss_probability
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: loss_probability
+      - name: estimated_loss
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: estimated_loss
+      - name: provision_amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: provision_amount
+      - name: proceeding_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: proceeding_id
+  - name: compliance_requirements
+    source: mall.compliance_requirements
+    description: "Recurring legal or regulatory requirement: fire safety, accessibility, environmental, sanitary, data protection or labour safety."
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: regulation
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: regulation
+      - name: frequency
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: frequency
+  - name: compliance_checks
+    source: mall.compliance_checks
+    description: Verification of a requirement at a property.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: check_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: check_date
+      - name: result
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: result
+      - name: findings
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: findings
+      - name: remediation_due
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: remediation_due
+      - name: requirement_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: requirement_id
+      - name: property_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_id
+      - name: inspector_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: inspector_id
+  - name: data_subject_requests
+    source: mall.data_subject_requests
+    description: Request by a person to access, correct, delete or port their personal data under data-protection law.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: request_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: request_date
+      - name: request_type
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: request_type
+      - name: due_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: due_date
+      - name: completed_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: completed_date
+      - name: status
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: status
+      - name: data_subject_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: data_subject_id
+      - name: controller_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: controller_id
+  - name: departments
+    source: mall.departments
+    description: Organizational unit such as property operations, leasing, marketing, finance, legal or human resources.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: code
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: parent_department_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: parent_department_id
+      - name: legal_entity_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: legal_entity_id
+      - name: cost_center_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: cost_center_id
+  - name: positions
+    source: mall.positions
+    description: Job position, such as general manager, leasing manager, maintenance technician or accounts payable analyst.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: code
+      - name: title
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: title
+      - name: grade
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: grade
+      - name: occupation_code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: occupation_code
+      - name: department_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: department_id
+  - name: employees
+    source: mall.employees
+    description: Role of a person employed by a group legal entity.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: employee_number
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: employee_number
+      - name: hire_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: hire_date
+      - name: termination_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: termination_date
+      - name: employment_type
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: employment_type
+      - name: work_schedule
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: work_schedule
+      - name: person_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: person_id
+      - name: position_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: position_id
+      - name: employer_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: employer_id
+      - name: manager_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: manager_id
+      - name: work_site_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: work_site_id
+  - name: employment_contracts
+    source: mall.employment_contracts
+    description: Employment terms of an employee, registered as a contract.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: base_salary
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: base_salary
+      - name: weekly_hours
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: weekly_hours
+      - name: probation_end_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: probation_end_date
+      - name: employee_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: employee_id
+      - name: contract_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: contract_id
+  - name: compensation_changes
+    source: mall.compensation_changes
+    description: Change of base salary by promotion, merit, collective agreement or correction.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: effective_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: effective_date
+      - name: new_base_salary
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: new_base_salary
+      - name: reason
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: reason
+      - name: employee_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: employee_id
+  - name: payroll_runs
+    source: mall.payroll_runs
+    description: Monthly payroll of a legal entity, including the thirteenth salary when due.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: payment_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: payment_date
+      - name: status
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: status
+      - name: legal_entity_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: legal_entity_id
+      - name: month_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: month_id
+  - name: payroll_lines
+    source: mall.payroll_lines
+    description: Amount of one pay component for an employee in a payroll run. employer_cost is true for amounts borne by the employer (salary, overtime, benefits, employer social charges) and false for deductions withheld from the employee.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: component
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: component
+      - name: amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amount
+      - name: employer_cost
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: employer_cost
+      - name: payroll_run_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: payroll_run_id
+      - name: employee_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: employee_id
+      - name: cost_center_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: cost_center_id
+  - name: time_entries
+    source: mall.time_entries
+    description: Hours recorded by an employee on a working day.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: work_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: work_date
+      - name: hours_worked
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: hours_worked
+      - name: overtime_hours
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: overtime_hours
+      - name: night_hours
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: night_hours
+      - name: employee_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: employee_id
+  - name: leave_requests
+    source: mall.leave_requests
+    description: Vacation, sick leave, parental leave or other absence.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: leave_type
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: leave_type
+      - name: start_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: start_date
+      - name: end_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: end_date
+      - name: status
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: status
+      - name: employee_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: employee_id
+      - name: approver_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: approver_id
+  - name: benefits
+    source: mall.benefits
+    description: Employee benefit such as health plan, dental plan, meal voucher, transport voucher or life insurance.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: benefit_type
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: benefit_type
+      - name: monthly_cost
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: monthly_cost
+      - name: provider_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: provider_id
+  - name: benefit_enrollments
+    source: mall.benefit_enrollments
+    description: Enrollment of an employee in a benefit.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: start_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: start_date
+      - name: end_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: end_date
+      - name: employee_contribution
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: employee_contribution
+      - name: employee_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: employee_id
+      - name: benefit_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: benefit_id
+  - name: training_courses
+    source: mall.training_courses
+    description: Training course, including mandatory safety training such as work at height, fire brigade or electrical safety.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: is_mandatory
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: is_mandatory
+      - name: validity_months
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: validity_months
+  - name: training_records
+    source: mall.training_records
+    description: Completion of a course by an employee.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: completion_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: completion_date
+      - name: expiry_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: expiry_date
+      - name: passed
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: passed
+      - name: employee_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: employee_id
+      - name: course_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: course_id
+  - name: performance_reviews
+    source: mall.performance_reviews
+    description: Periodic performance evaluation.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: review_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: review_date
+      - name: rating
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: rating
+      - name: summary
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: summary
+      - name: employee_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: employee_id
+      - name: reviewer_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: reviewer_id
+  - name: job_openings
+    source: mall.job_openings
+    description: Vacancy being recruited for a position.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: opened_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: opened_date
+      - name: closed_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: closed_date
+      - name: status
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: status
+      - name: position_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: position_id
+      - name: hiring_manager_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: hiring_manager_id
+  - name: job_applications
+    source: mall.job_applications
+    description: Application of a candidate to an opening.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: applied_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: applied_date
+      - name: stage
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: stage
+      - name: job_opening_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: job_opening_id
+      - name: candidate_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: candidate_id
+  - name: suppliers
+    source: mall.suppliers
+    description: "Role of an organization that supplies goods or services: cleaning, security, maintenance, utilities, marketing, construction or professional services."
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: supplier_category
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: supplier_category
+      - name: payment_terms_days
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: payment_terms_days
+      - name: is_approved
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: is_approved
+      - name: organization_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: organization_id
+  - name: supplier_qualifications
+    source: mall.supplier_qualifications
+    description: "Onboarding check of a supplier: tax and labour certificates, insurance, references and compliance declarations."
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: qualification_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: qualification_date
+      - name: status
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: status
+      - name: valid_until
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: valid_until
+      - name: supplier_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: supplier_id
+      - name: reviewer_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: reviewer_id
+  - name: supplier_evaluations
+    source: mall.supplier_evaluations
+    description: Periodic evaluation of supplier quality, timeliness and compliance.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: evaluation_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: evaluation_date
+      - name: score
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: score
+      - name: comments
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: comments
+      - name: supplier_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: supplier_id
+      - name: evaluator_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: evaluator_id
+  - name: supplier_agreements
+    source: mall.supplier_agreements
+    description: Framework supply agreement with agreed prices and conditions, registered as a contract.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: price_adjustment_month
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: price_adjustment_month
+      - name: spend_cap
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: spend_cap
+      - name: contract_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: contract_id
+      - name: supplier_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: supplier_id
+      - name: price_index_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: price_index_id
+  - name: purchase_requisitions
+    source: mall.purchase_requisitions
+    description: Internal request to buy goods or services.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: requisition_number
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: requisition_number
+      - name: request_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: request_date
+      - name: justification
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: justification
+      - name: estimated_amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: estimated_amount
+      - name: status
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: status
+      - name: requester_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: requester_id
+      - name: property_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_id
+  - name: requests_for_quotation
+    source: mall.requests_for_quotation
+    description: Invitation to suppliers to quote for a requisition.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: rfq_number
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: rfq_number
+      - name: issue_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: issue_date
+      - name: closing_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: closing_date
+      - name: requisition_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: requisition_id
+  - name: supplier_quotes
+    source: mall.supplier_quotes
+    description: Quote submitted by a supplier.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: quote_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: quote_date
+      - name: amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amount
+      - name: delivery_days
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: delivery_days
+      - name: is_selected
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: is_selected
+      - name: rfq_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: rfq_id
+      - name: supplier_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: supplier_id
+  - name: purchase_orders
+    source: mall.purchase_orders
+    description: Order placed with a supplier.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: po_number
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: po_number
+      - name: order_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: order_date
+      - name: status
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: status
+      - name: supplier_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: supplier_id
+      - name: property_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_id
+      - name: requisition_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: requisition_id
+      - name: agreement_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: agreement_id
+      - name: buyer_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: buyer_id
+  - name: purchase_order_lines
+    source: mall.purchase_order_lines
+    description: Item or service ordered.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: summary
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: summary
+      - name: quantity
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: quantity
+      - name: unit_price
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: unit_price
+      - name: purchase_order_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: purchase_order_id
+      - name: category_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: category_id
+      - name: line_amount
+        description: Ordered amount.
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: quantity * unit_price
+  - name: goods_receipts
+    source: mall.goods_receipts
+    description: Receipt of goods or acceptance of services delivered under an order.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: receipt_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: receipt_date
+      - name: is_accepted
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: is_accepted
+      - name: notes
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: notes
+      - name: purchase_order_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: purchase_order_id
+      - name: received_by_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: received_by_id
+  - name: supplier_invoices
+    source: mall.supplier_invoices
+    description: Supplier invoice payable, in Brazil an electronic fiscal document (NF-e or NFS-e). paid_amount holds payments at the reporting date.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: invoice_number
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: invoice_number
+      - name: fiscal_document_key
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: fiscal_document_key
+      - name: issue_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: issue_date
+      - name: due_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: due_date
+      - name: gross_amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: gross_amount
+      - name: withheld_taxes
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: withheld_taxes
+      - name: paid_amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: paid_amount
+      - name: status
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: status
+      - name: supplier_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: supplier_id
+      - name: payer_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: payer_id
+      - name: purchase_order_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: purchase_order_id
+      - name: month_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: month_id
+      - name: open_amount
+        description: Amount still payable to the supplier.
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: gross_amount - withheld_taxes - paid_amount
+  - name: supplier_payments
+    source: mall.supplier_payments
+    description: Payment of a supplier invoice.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: payment_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: payment_date
+      - name: amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amount
+      - name: payment_method
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: payment_method
+      - name: supplier_invoice_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: supplier_invoice_id
+      - name: bank_account_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: bank_account_id
+  - name: expense_categories
+    source: mall.expense_categories
+    description: Category of operating cost, such as cleaning, security, maintenance, utilities, insurance or administration fees.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: code
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: recoverable
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: recoverable
+      - name: parent_category_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: parent_category_id
+  - name: service_charge_budgets
+    source: mall.service_charge_budgets
+    description: Annual budget of shared operating costs recovered from tenants (in Brazil, the condominium budget).
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: year
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: year
+      - name: approved_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: approved_date
+      - name: total_amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: total_amount
+      - name: property_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_id
+  - name: service_charge_budget_lines
+    source: mall.service_charge_budget_lines
+    description: Budgeted amount for one expense category.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amount
+      - name: budget_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: budget_id
+      - name: category_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: category_id
+  - name: allocation_keys
+    source: mall.allocation_keys
+    description: Rule to apportion recoverable costs among units, by area, ideal fraction, metered consumption or fixed share.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: code
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: basis
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: basis
+      - name: property_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_id
+  - name: allocation_shares
+    source: mall.allocation_shares
+    description: Share of a unit under an allocation key.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: share
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: share
+      - name: allocation_key_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: allocation_key_id
+      - name: unit_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: unit_id
+  - name: service_contracts
+    source: mall.service_contracts
+    description: Recurring service contract at a property, such as cleaning, security, maintenance, parking operation or landscaping, registered as a contract.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: scope
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: scope
+      - name: monthly_amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: monthly_amount
+      - name: service_level
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: service_level
+      - name: contract_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: contract_id
+      - name: supplier_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: supplier_id
+      - name: property_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_id
+      - name: category_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: category_id
+  - name: operating_expenses
+    source: mall.operating_expenses
+    description: Actual operating cost incurred by a property in a month.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: summary
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: summary
+      - name: amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amount
+      - name: recoverable
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: recoverable
+      - name: property_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_id
+      - name: category_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: category_id
+      - name: month_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: month_id
+      - name: supplier_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: supplier_id
+  - name: work_orders
+    source: mall.work_orders
+    description: "Maintenance request or task: corrective, preventive or requested by a tenant."
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: work_order_number
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: work_order_number
+      - name: opened_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: opened_date
+      - name: closed_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: closed_date
+      - name: priority
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: priority
+      - name: work_type
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: work_type
+      - name: cost
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: cost
+      - name: property_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_id
+      - name: equipment_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: equipment_id
+      - name: unit_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: unit_id
+      - name: supplier_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: supplier_id
+      - name: requested_by_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: requested_by_id
+  - name: utility_types
+    source: mall.utility_types
+    description: "Metered utility: electricity, water, gas or chilled water."
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: code
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: unit_of_measure
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: unit_of_measure
+  - name: utility_meters
+    source: mall.utility_meters
+    description: Meter measuring consumption of a utility by a unit or common installation.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: code
+      - name: utility_type_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: utility_type_id
+      - name: property_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_id
+      - name: unit_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: unit_id
+  - name: meter_readings
+    source: mall.meter_readings
+    description: Reading of a meter, the basis for recharging consumption to tenants.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: reading_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: reading_date
+      - name: reading_value
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: reading_value
+      - name: consumption
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: consumption
+      - name: meter_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: meter_id
+      - name: month_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: month_id
+  - name: insurance_policies
+    source: mall.insurance_policies
+    description: Insurance covering the property, such as property damage, loss of rent or civil liability.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: policy_number
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: policy_number
+      - name: coverage_type
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: coverage_type
+      - name: insured_amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: insured_amount
+      - name: premium
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: premium
+      - name: start_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: start_date
+      - name: end_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: end_date
+      - name: property_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_id
+      - name: insurer_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: insurer_id
+      - name: contract_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: contract_id
+  - name: incidents
+    source: mall.incidents
+    description: Safety, security or operational incident at a property.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: occurred_on
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: occurred_on
+      - name: incident_type
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: incident_type
+      - name: severity
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: severity
+      - name: summary
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: summary
+      - name: property_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_id
+  - name: marketing_funds
+    source: mall.marketing_funds
+    description: Annual promotion and advertising fund financed by tenant contributions, usually a fraction of minimum rent.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: year
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: year
+      - name: contribution_rate
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: contribution_rate
+      - name: budget_amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: budget_amount
+      - name: property_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_id
+  - name: marketing_campaigns
+    source: mall.marketing_campaigns
+    description: Campaign financed by the marketing fund.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: start_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: start_date
+      - name: end_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: end_date
+      - name: budget
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: budget
+      - name: fund_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: fund_id
+  - name: mall_events
+    source: mall.mall_events
+    description: Event held at a property to attract visitors.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: event_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: event_date
+      - name: expected_visitors
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: expected_visitors
+      - name: property_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_id
+      - name: campaign_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: campaign_id
+  - name: charge_types
+    source: mall.charge_types
+    description: "Kind of billed item: minimum rent, percentage (overage) rent, thirteenth rent, service charge, marketing fund, utility recharge, key-money instalment or late fee."
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: code
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: revenue_class
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: revenue_class
+  - name: invoices
+    source: mall.invoices
+    description: Billing document issued by a property to a tenant, payable by bank slip, transfer or instant payment.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: invoice_number
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: invoice_number
+      - name: issue_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: issue_date
+      - name: due_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: due_date
+      - name: status
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: status
+      - name: property_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_id
+      - name: billed_tenant_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: billed_tenant_id
+  - name: charges
+    source: mall.charges
+    description: Billed amount of one charge type for a lease and competence month. paid_amount holds the allocated payments at the reporting date.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: summary
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: summary
+      - name: amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amount
+      - name: paid_amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: paid_amount
+      - name: due_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: due_date
+      - name: invoice_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: invoice_id
+      - name: lease_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: lease_id
+      - name: charge_type_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: charge_type_id
+      - name: month_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: month_id
+      - name: open_amount
+        description: Billed amount not yet collected.
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amount - paid_amount
+  - name: bank_accounts
+    source: mall.bank_accounts
+    description: Bank account used for collections, supplier payments, payroll and distributions.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: bank_name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: bank_name
+      - name: branch_code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: branch_code
+      - name: account_number
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: account_number
+      - name: holder_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: holder_id
+      - name: bank_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: bank_id
+  - name: payments
+    source: mall.payments
+    description: Payment received from a tenant.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: payment_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: payment_date
+      - name: amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amount
+      - name: payment_method
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: payment_method
+      - name: payer_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: payer_id
+      - name: bank_account_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: bank_account_id
+  - name: payment_allocations
+    source: mall.payment_allocations
+    description: Part of a payment applied to a charge.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amount
+      - name: payment_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: payment_id
+      - name: charge_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: charge_id
+  - name: arrears_cases
+    source: mall.arrears_cases
+    description: Delinquency case opened when a lease has overdue charges.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: opened_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: opened_date
+      - name: closed_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: closed_date
+      - name: status
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: status
+      - name: amount_overdue
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amount_overdue
+      - name: lease_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: lease_id
+  - name: collection_actions
+    source: mall.collection_actions
+    description: "Step taken to collect overdue amounts: reminder, formal notice, protest, agreement or lawsuit."
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: action_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: action_date
+      - name: action_type
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: action_type
+      - name: outcome
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: outcome
+      - name: arrears_case_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: arrears_case_id
+  - name: payment_agreements
+    source: mall.payment_agreements
+    description: Agreement to settle overdue amounts in instalments.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: agreement_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: agreement_date
+      - name: total_amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: total_amount
+      - name: installments
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: installments
+      - name: arrears_case_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: arrears_case_id
+  - name: ledger_accounts
+    source: mall.ledger_accounts
+    description: Account of the property chart of accounts.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: code
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: account_class
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: account_class
+      - name: parent_account_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: parent_account_id
+  - name: journal_entries
+    source: mall.journal_entries
+    description: Accounting entry of a legal entity for a month.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: entry_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: entry_date
+      - name: summary
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: summary
+      - name: source_system
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: source_system
+      - name: legal_entity_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: legal_entity_id
+      - name: month_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: month_id
+  - name: journal_lines
+    source: mall.journal_lines
+    description: "Signed amount posted to a ledger account and cost center: income is positive and expense negative. noi_class is fixed at posting from the account: revenue, opex or excluded."
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amount
+      - name: noi_class
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: noi_class
+      - name: memo
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: memo
+      - name: entry_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: entry_id
+      - name: account_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: account_id
+      - name: cost_center_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: cost_center_id
+  - name: owner_distributions
+    source: mall.owner_distributions
+    description: Cash distributed to an investor for its ownership stake.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: distribution_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: distribution_date
+      - name: amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amount
+      - name: stake_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: stake_id
+      - name: month_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: month_id
+  - name: capital_projects
+    source: mall.capital_projects
+    description: "Capital expenditure on a property: expansion, renovation, retrofit or sustainability works."
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: project_type
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: project_type
+      - name: budget
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: budget
+      - name: start_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: start_date
+      - name: completion_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: completion_date
+      - name: added_gla_m2
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: added_gla_m2
+      - name: property_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_id
+      - name: construction_contract_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: construction_contract_id
+  - name: cost_centers
+    source: mall.cost_centers
+    description: "Unit of cost and result responsibility: a property, a department or a corporate function."
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: code
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: property_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_id
+      - name: parent_cost_center_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: parent_cost_center_id
+  - name: operating_budgets
+    source: mall.operating_budgets
+    description: Approved annual budget of a legal entity, by version.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: year
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: year
+      - name: version
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: version
+      - name: approved_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: approved_date
+      - name: legal_entity_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: legal_entity_id
+      - name: approval_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: approval_id
+  - name: budget_lines
+    source: mall.budget_lines
+    description: Budgeted amount for an account, cost center and month.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amount
+      - name: budget_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: budget_id
+      - name: account_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: account_id
+      - name: cost_center_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: cost_center_id
+      - name: month_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: month_id
+  - name: tax_types
+    source: mall.tax_types
+    description: Tax or levy, such as property tax (IPTU), services tax (ISS), PIS, COFINS, income taxes or social security.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: code
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: code
+      - name: name
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: name
+      - name: jurisdiction_level
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: jurisdiction_level
+  - name: tax_obligations
+    source: mall.tax_obligations
+    description: Tax assessed or declared for a period, such as annual property tax instalments or monthly taxes on revenue.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amount
+      - name: due_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: due_date
+      - name: paid_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: paid_date
+      - name: is_recoverable
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: is_recoverable
+      - name: tax_type_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: tax_type_id
+      - name: legal_entity_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: legal_entity_id
+      - name: property_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_id
+      - name: month_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: month_id
+  - name: tax_withholdings
+    source: mall.tax_withholdings
+    description: Tax withheld from a supplier invoice and paid to the authority on the supplier behalf.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: rate
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: rate
+      - name: amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amount
+      - name: supplier_invoice_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: supplier_invoice_id
+      - name: tax_type_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: tax_type_id
+  - name: fixed_assets
+    source: mall.fixed_assets
+    description: "Capitalised asset: building, improvement, equipment or furniture."
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: asset_number
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: asset_number
+      - name: summary
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: summary
+      - name: acquisition_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: acquisition_date
+      - name: acquisition_cost
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: acquisition_cost
+      - name: useful_life_months
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: useful_life_months
+      - name: property_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_id
+      - name: ledger_account_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: ledger_account_id
+      - name: capital_project_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: capital_project_id
+  - name: depreciation_entries
+    source: mall.depreciation_entries
+    description: Monthly depreciation of a fixed asset.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amount
+      - name: fixed_asset_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: fixed_asset_id
+      - name: month_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: month_id
+  - name: loan_agreements
+    source: mall.loan_agreements
+    description: Debt financing, such as a bank loan or real-estate receivables securitisation, registered as a contract.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: principal
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: principal
+      - name: interest_rate
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: interest_rate
+      - name: maturity_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: maturity_date
+      - name: contract_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: contract_id
+      - name: lender_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: lender_id
+      - name: borrower_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: borrower_id
+      - name: collateral_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: collateral_id
+      - name: rate_index_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: rate_index_id
+  - name: debt_service_payments
+    source: mall.debt_service_payments
+    description: Scheduled or paid instalment of principal and interest.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: payment_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: payment_date
+      - name: principal_amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: principal_amount
+      - name: interest_amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: interest_amount
+      - name: loan_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: loan_id
+  - name: bank_transactions
+    source: mall.bank_transactions
+    description: Statement line of a bank account, reconciled against receipts and payments.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: transaction_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: transaction_date
+      - name: amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amount
+      - name: summary
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: summary
+      - name: is_reconciled
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: is_reconciled
+      - name: bank_account_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: bank_account_id
+  - name: insurance_claims
+    source: mall.insurance_claims
+    description: Claim under an insurance policy.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: claim_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: claim_date
+      - name: amount_claimed
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amount_claimed
+      - name: amount_paid
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amount_paid
+      - name: status
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: status
+      - name: policy_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: policy_id
+      - name: incident_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: incident_id
+  - name: occupancy_snapshots
+    source: mall.occupancy_snapshots
+    description: "State of a unit at month end: its gross leasable area, the area occupied under a lease and the contracted minimum rent. One row per unit and month."
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: gla_m2
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: gla_m2
+      - name: occupied_gla_m2
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: occupied_gla_m2
+      - name: contracted_minimum_rent
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: contracted_minimum_rent
+      - name: unit_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: unit_id
+      - name: month_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: month_id
+      - name: lease_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: lease_id
+      - name: vacant_gla_m2
+        description: Gross leasable area without an active lease.
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: gla_m2 - occupied_gla_m2
+  - name: sales_reports
+    source: mall.sales_reports
+    description: Monthly gross sales declared by a tenant, the basis for percentage rent. occupancy_cost is the rent, service charge and marketing fund billed for the same month.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: gross_sales
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: gross_sales
+      - name: reported_gla_m2
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: reported_gla_m2
+      - name: occupancy_cost
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: occupancy_cost
+      - name: submitted_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: submitted_date
+      - name: is_audited
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: is_audited
+      - name: lease_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: lease_id
+      - name: property_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: property_id
+      - name: month_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: month_id
+  - name: sales_audits
+    source: mall.sales_audits
+    description: Audit of declared sales against tenant records.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: audit_date
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: audit_date
+      - name: audited_sales
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: audited_sales
+      - name: variance_amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: variance_amount
+      - name: sales_report_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: sales_report_id
+      - name: auditor_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: auditor_id
+  - name: footfall_counts
+    source: mall.footfall_counts
+    description: Visitors counted at an entrance over a counting period.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: period_start
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: period_start
+      - name: period_end
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: period_end
+      - name: visitors
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: visitors
+      - name: entrance_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: entrance_id
+      - name: month_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: month_id
+  - name: parking_activity
+    source: mall.parking_activity
+    description: Tickets and revenue of a parking facility in a month.
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: id
+      - name: tickets
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: tickets
+      - name: revenue
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: revenue
+      - name: facility_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: facility_id
+      - name: month_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: month_id
+relationships:
+  - name: organizations_address
+    from: organizations
+    to: addresses
+    from_columns:
+      - address_id
+    to_columns:
+      - id
+  - name: organizations_parent_organization
+    from: organizations
+    to: organizations
+    from_columns:
+      - parent_organization_id
+    to_columns:
+      - id
+  - name: people_address
+    from: people
+    to: addresses
+    from_columns:
+      - address_id
+    to_columns:
+      - id
+  - name: addresses_city
+    from: addresses
+    to: cities
+    from_columns:
+      - city_id
+    to_columns:
+      - id
+  - name: cities_state
+    from: cities
+    to: state_provinces
+    from_columns:
+      - state_id
+    to_columns:
+      - id
+  - name: state_provinces_country
+    from: state_provinces
+    to: countries
+    from_columns:
+      - country_id
+    to_columns:
+      - id
+  - name: price_index_values_price_index
+    from: price_index_values
+    to: price_indices
+    from_columns:
+      - price_index_id
+    to_columns:
+      - id
+  - name: price_index_values_month
+    from: price_index_values
+    to: calendar_months
+    from_columns:
+      - month_id
+    to_columns:
+      - id
+  - name: portfolios_asset_manager
+    from: portfolios
+    to: organizations
+    from_columns:
+      - asset_manager_id
+    to_columns:
+      - id
+  - name: properties_portfolio
+    from: properties
+    to: portfolios
+    from_columns:
+      - portfolio_id
+    to_columns:
+      - id
+  - name: properties_address
+    from: properties
+    to: addresses
+    from_columns:
+      - address_id
+    to_columns:
+      - id
+  - name: properties_currency
+    from: properties
+    to: currencies
+    from_columns:
+      - currency_id
+    to_columns:
+      - id
+  - name: properties_administrator
+    from: properties
+    to: organizations
+    from_columns:
+      - administrator_id
+    to_columns:
+      - id
+  - name: properties_general_manager
+    from: properties
+    to: people
+    from_columns:
+      - general_manager_id
+    to_columns:
+      - id
+  - name: buildings_property
+    from: buildings
+    to: properties
+    from_columns:
+      - property_id
+    to_columns:
+      - id
+  - name: floors_building
+    from: floors
+    to: buildings
+    from_columns:
+      - building_id
+    to_columns:
+      - id
+  - name: zones_floor
+    from: zones
+    to: floors
+    from_columns:
+      - floor_id
+    to_columns:
+      - id
+  - name: units_zone
+    from: units
+    to: zones
+    from_columns:
+      - zone_id
+    to_columns:
+      - id
+  - name: units_unit_type
+    from: units
+    to: unit_types
+    from_columns:
+      - unit_type_id
+    to_columns:
+      - id
+  - name: common_areas_floor
+    from: common_areas
+    to: floors
+    from_columns:
+      - floor_id
+    to_columns:
+      - id
+  - name: parking_facilities_property
+    from: parking_facilities
+    to: properties
+    from_columns:
+      - property_id
+    to_columns:
+      - id
+  - name: entrances_property
+    from: entrances
+    to: properties
+    from_columns:
+      - property_id
+    to_columns:
+      - id
+  - name: area_measurements_unit
+    from: area_measurements
+    to: units
+    from_columns:
+      - unit_id
+    to_columns:
+      - id
+  - name: area_measurements_surveyor
+    from: area_measurements
+    to: organizations
+    from_columns:
+      - surveyor_id
+    to_columns:
+      - id
+  - name: ownership_stakes_investor
+    from: ownership_stakes
+    to: investors
+    from_columns:
+      - investor_id
+    to_columns:
+      - id
+  - name: ownership_stakes_property
+    from: ownership_stakes
+    to: properties
+    from_columns:
+      - property_id
+    to_columns:
+      - id
+  - name: valuations_property
+    from: valuations
+    to: properties
+    from_columns:
+      - property_id
+    to_columns:
+      - id
+  - name: valuations_appraiser
+    from: valuations
+    to: organizations
+    from_columns:
+      - appraiser_id
+    to_columns:
+      - id
+  - name: permits_property
+    from: permits
+    to: properties
+    from_columns:
+      - property_id
+    to_columns:
+      - id
+  - name: permits_issuer
+    from: permits
+    to: organizations
+    from_columns:
+      - issuer_id
+    to_columns:
+      - id
+  - name: equipment_property
+    from: equipment
+    to: properties
+    from_columns:
+      - property_id
+    to_columns:
+      - id
+  - name: equipment_fixed_asset
+    from: equipment
+    to: fixed_assets
+    from_columns:
+      - fixed_asset_id
+    to_columns:
+      - id
+  - name: tenants_organization
+    from: tenants
+    to: organizations
+    from_columns:
+      - organization_id
+    to_columns:
+      - id
+  - name: investors_organization
+    from: investors
+    to: organizations
+    from_columns:
+      - organization_id
+    to_columns:
+      - id
+  - name: investors_person
+    from: investors
+    to: people
+    from_columns:
+      - person_id
+    to_columns:
+      - id
+  - name: brokers_organization
+    from: brokers
+    to: organizations
+    from_columns:
+      - organization_id
+    to_columns:
+      - id
+  - name: brands_owner
+    from: brands
+    to: tenants
+    from_columns:
+      - owner_id
+    to_columns:
+      - id
+  - name: merchandise_categories_parent_category
+    from: merchandise_categories
+    to: merchandise_categories
+    from_columns:
+      - parent_category_id
+    to_columns:
+      - id
+  - name: tenant_contacts_person
+    from: tenant_contacts
+    to: people
+    from_columns:
+      - person_id
+    to_columns:
+      - id
+  - name: tenant_contacts_tenant
+    from: tenant_contacts
+    to: tenants
+    from_columns:
+      - tenant_id
+    to_columns:
+      - id
+  - name: leasing_prospects_brand
+    from: leasing_prospects
+    to: brands
+    from_columns:
+      - brand_id
+    to_columns:
+      - id
+  - name: leasing_prospects_category
+    from: leasing_prospects
+    to: merchandise_categories
+    from_columns:
+      - category_id
+    to_columns:
+      - id
+  - name: leasing_prospects_broker
+    from: leasing_prospects
+    to: brokers
+    from_columns:
+      - broker_id
+    to_columns:
+      - id
+  - name: leasing_proposals_prospect
+    from: leasing_proposals
+    to: leasing_prospects
+    from_columns:
+      - prospect_id
+    to_columns:
+      - id
+  - name: leasing_proposals_unit
+    from: leasing_proposals
+    to: units
+    from_columns:
+      - unit_id
+    to_columns:
+      - id
+  - name: leasing_proposals_resulting_lease
+    from: leasing_proposals
+    to: leases
+    from_columns:
+      - resulting_lease_id
+    to_columns:
+      - id
+  - name: leases_contract
+    from: leases
+    to: contracts
+    from_columns:
+      - contract_id
+    to_columns:
+      - id
+  - name: leases_tenant
+    from: leases
+    to: tenants
+    from_columns:
+      - tenant_id
+    to_columns:
+      - id
+  - name: leases_brand
+    from: leases
+    to: brands
+    from_columns:
+      - brand_id
+    to_columns:
+      - id
+  - name: leases_status
+    from: leases
+    to: lease_statuses
+    from_columns:
+      - status_id
+    to_columns:
+      - id
+  - name: leases_permitted_use
+    from: leases
+    to: merchandise_categories
+    from_columns:
+      - permitted_use_id
+    to_columns:
+      - id
+  - name: leases_broker
+    from: leases
+    to: brokers
+    from_columns:
+      - broker_id
+    to_columns:
+      - id
+  - name: leased_units_lease
+    from: leased_units
+    to: leases
+    from_columns:
+      - lease_id
+    to_columns:
+      - id
+  - name: leased_units_unit
+    from: leased_units
+    to: units
+    from_columns:
+      - unit_id
+    to_columns:
+      - id
+  - name: rent_steps_lease
+    from: rent_steps
+    to: leases
+    from_columns:
+      - lease_id
+    to_columns:
+      - id
+  - name: percentage_rent_clauses_lease
+    from: percentage_rent_clauses
+    to: leases
+    from_columns:
+      - lease_id
+    to_columns:
+      - id
+  - name: indexation_clauses_lease
+    from: indexation_clauses
+    to: leases
+    from_columns:
+      - lease_id
+    to_columns:
+      - id
+  - name: indexation_clauses_price_index
+    from: indexation_clauses
+    to: price_indices
+    from_columns:
+      - price_index_id
+    to_columns:
+      - id
+  - name: exclusivity_clauses_lease
+    from: exclusivity_clauses
+    to: leases
+    from_columns:
+      - lease_id
+    to_columns:
+      - id
+  - name: exclusivity_clauses_protected_category
+    from: exclusivity_clauses
+    to: merchandise_categories
+    from_columns:
+      - protected_category_id
+    to_columns:
+      - id
+  - name: radius_clauses_lease
+    from: radius_clauses
+    to: leases
+    from_columns:
+      - lease_id
+    to_columns:
+      - id
+  - name: co_tenancy_clauses_lease
+    from: co_tenancy_clauses
+    to: leases
+    from_columns:
+      - lease_id
+    to_columns:
+      - id
+  - name: renewal_options_lease
+    from: renewal_options
+    to: leases
+    from_columns:
+      - lease_id
+    to_columns:
+      - id
+  - name: early_termination_options_lease
+    from: early_termination_options
+    to: leases
+    from_columns:
+      - lease_id
+    to_columns:
+      - id
+  - name: guarantees_lease
+    from: guarantees
+    to: leases
+    from_columns:
+      - lease_id
+    to_columns:
+      - id
+  - name: guarantees_guarantee_type
+    from: guarantees
+    to: guarantee_types
+    from_columns:
+      - guarantee_type_id
+    to_columns:
+      - id
+  - name: guarantees_guarantor
+    from: guarantees
+    to: organizations
+    from_columns:
+      - guarantor_id
+    to_columns:
+      - id
+  - name: key_money_agreements_lease
+    from: key_money_agreements
+    to: leases
+    from_columns:
+      - lease_id
+    to_columns:
+      - id
+  - name: rent_concessions_lease
+    from: rent_concessions
+    to: leases
+    from_columns:
+      - lease_id
+    to_columns:
+      - id
+  - name: tenant_allowances_lease
+    from: tenant_allowances
+    to: leases
+    from_columns:
+      - lease_id
+    to_columns:
+      - id
+  - name: fit_out_projects_lease
+    from: fit_out_projects
+    to: leases
+    from_columns:
+      - lease_id
+    to_columns:
+      - id
+  - name: fit_out_projects_unit
+    from: fit_out_projects
+    to: units
+    from_columns:
+      - unit_id
+    to_columns:
+      - id
+  - name: lease_terminations_lease
+    from: lease_terminations
+    to: leases
+    from_columns:
+      - lease_id
+    to_columns:
+      - id
+  - name: legal_entities_organization
+    from: legal_entities
+    to: organizations
+    from_columns:
+      - organization_id
+    to_columns:
+      - id
+  - name: contracts_contract_type
+    from: contracts
+    to: contract_types
+    from_columns:
+      - contract_type_id
+    to_columns:
+      - id
+  - name: contracts_contracting_entity
+    from: contracts
+    to: legal_entities
+    from_columns:
+      - contracting_entity_id
+    to_columns:
+      - id
+  - name: contracts_currency
+    from: contracts
+    to: currencies
+    from_columns:
+      - currency_id
+    to_columns:
+      - id
+  - name: contract_parties_contract
+    from: contract_parties
+    to: contracts
+    from_columns:
+      - contract_id
+    to_columns:
+      - id
+  - name: contract_parties_organization
+    from: contract_parties
+    to: organizations
+    from_columns:
+      - organization_id
+    to_columns:
+      - id
+  - name: contract_parties_person
+    from: contract_parties
+    to: people
+    from_columns:
+      - person_id
+    to_columns:
+      - id
+  - name: contract_documents_contract
+    from: contract_documents
+    to: contracts
+    from_columns:
+      - contract_id
+    to_columns:
+      - id
+  - name: contract_amendments_contract
+    from: contract_amendments
+    to: contracts
+    from_columns:
+      - contract_id
+    to_columns:
+      - id
+  - name: contract_obligations_contract
+    from: contract_obligations
+    to: contracts
+    from_columns:
+      - contract_id
+    to_columns:
+      - id
+  - name: contract_obligations_responsible
+    from: contract_obligations
+    to: employees
+    from_columns:
+      - responsible_id
+    to_columns:
+      - id
+  - name: contract_approvals_contract
+    from: contract_approvals
+    to: contracts
+    from_columns:
+      - contract_id
+    to_columns:
+      - id
+  - name: contract_approvals_approver
+    from: contract_approvals
+    to: employees
+    from_columns:
+      - approver_id
+    to_columns:
+      - id
+  - name: powers_of_attorney_grantor
+    from: powers_of_attorney
+    to: legal_entities
+    from_columns:
+      - grantor_id
+    to_columns:
+      - id
+  - name: powers_of_attorney_attorney
+    from: powers_of_attorney
+    to: people
+    from_columns:
+      - attorney_id
+    to_columns:
+      - id
+  - name: governance_meetings_legal_entity
+    from: governance_meetings
+    to: legal_entities
+    from_columns:
+      - legal_entity_id
+    to_columns:
+      - id
+  - name: resolutions_meeting
+    from: resolutions
+    to: governance_meetings
+    from_columns:
+      - meeting_id
+    to_columns:
+      - id
+  - name: legal_proceedings_legal_entity
+    from: legal_proceedings
+    to: legal_entities
+    from_columns:
+      - legal_entity_id
+    to_columns:
+      - id
+  - name: legal_proceedings_contract
+    from: legal_proceedings
+    to: contracts
+    from_columns:
+      - contract_id
+    to_columns:
+      - id
+  - name: legal_proceedings_property
+    from: legal_proceedings
+    to: properties
+    from_columns:
+      - property_id
+    to_columns:
+      - id
+  - name: legal_proceedings_opposing_party
+    from: legal_proceedings
+    to: organizations
+    from_columns:
+      - opposing_party_id
+    to_columns:
+      - id
+  - name: legal_proceedings_opposing_person
+    from: legal_proceedings
+    to: people
+    from_columns:
+      - opposing_person_id
+    to_columns:
+      - id
+  - name: legal_proceedings_law_firm
+    from: legal_proceedings
+    to: organizations
+    from_columns:
+      - law_firm_id
+    to_columns:
+      - id
+  - name: litigation_provisions_proceeding
+    from: litigation_provisions
+    to: legal_proceedings
+    from_columns:
+      - proceeding_id
+    to_columns:
+      - id
+  - name: compliance_checks_requirement
+    from: compliance_checks
+    to: compliance_requirements
+    from_columns:
+      - requirement_id
+    to_columns:
+      - id
+  - name: compliance_checks_property
+    from: compliance_checks
+    to: properties
+    from_columns:
+      - property_id
+    to_columns:
+      - id
+  - name: compliance_checks_inspector
+    from: compliance_checks
+    to: employees
+    from_columns:
+      - inspector_id
+    to_columns:
+      - id
+  - name: data_subject_requests_data_subject
+    from: data_subject_requests
+    to: people
+    from_columns:
+      - data_subject_id
+    to_columns:
+      - id
+  - name: data_subject_requests_controller
+    from: data_subject_requests
+    to: legal_entities
+    from_columns:
+      - controller_id
+    to_columns:
+      - id
+  - name: departments_parent_department
+    from: departments
+    to: departments
+    from_columns:
+      - parent_department_id
+    to_columns:
+      - id
+  - name: departments_legal_entity
+    from: departments
+    to: legal_entities
+    from_columns:
+      - legal_entity_id
+    to_columns:
+      - id
+  - name: departments_cost_center
+    from: departments
+    to: cost_centers
+    from_columns:
+      - cost_center_id
+    to_columns:
+      - id
+  - name: positions_department
+    from: positions
+    to: departments
+    from_columns:
+      - department_id
+    to_columns:
+      - id
+  - name: employees_person
+    from: employees
+    to: people
+    from_columns:
+      - person_id
+    to_columns:
+      - id
+  - name: employees_position
+    from: employees
+    to: positions
+    from_columns:
+      - position_id
+    to_columns:
+      - id
+  - name: employees_employer
+    from: employees
+    to: legal_entities
+    from_columns:
+      - employer_id
+    to_columns:
+      - id
+  - name: employees_manager
+    from: employees
+    to: employees
+    from_columns:
+      - manager_id
+    to_columns:
+      - id
+  - name: employees_work_site
+    from: employees
+    to: properties
+    from_columns:
+      - work_site_id
+    to_columns:
+      - id
+  - name: employment_contracts_employee
+    from: employment_contracts
+    to: employees
+    from_columns:
+      - employee_id
+    to_columns:
+      - id
+  - name: employment_contracts_contract
+    from: employment_contracts
+    to: contracts
+    from_columns:
+      - contract_id
+    to_columns:
+      - id
+  - name: compensation_changes_employee
+    from: compensation_changes
+    to: employees
+    from_columns:
+      - employee_id
+    to_columns:
+      - id
+  - name: payroll_runs_legal_entity
+    from: payroll_runs
+    to: legal_entities
+    from_columns:
+      - legal_entity_id
+    to_columns:
+      - id
+  - name: payroll_runs_month
+    from: payroll_runs
+    to: calendar_months
+    from_columns:
+      - month_id
+    to_columns:
+      - id
+  - name: payroll_lines_payroll_run
+    from: payroll_lines
+    to: payroll_runs
+    from_columns:
+      - payroll_run_id
+    to_columns:
+      - id
+  - name: payroll_lines_employee
+    from: payroll_lines
+    to: employees
+    from_columns:
+      - employee_id
+    to_columns:
+      - id
+  - name: payroll_lines_cost_center
+    from: payroll_lines
+    to: cost_centers
+    from_columns:
+      - cost_center_id
+    to_columns:
+      - id
+  - name: time_entries_employee
+    from: time_entries
+    to: employees
+    from_columns:
+      - employee_id
+    to_columns:
+      - id
+  - name: leave_requests_employee
+    from: leave_requests
+    to: employees
+    from_columns:
+      - employee_id
+    to_columns:
+      - id
+  - name: leave_requests_approver
+    from: leave_requests
+    to: employees
+    from_columns:
+      - approver_id
+    to_columns:
+      - id
+  - name: benefits_provider
+    from: benefits
+    to: suppliers
+    from_columns:
+      - provider_id
+    to_columns:
+      - id
+  - name: benefit_enrollments_employee
+    from: benefit_enrollments
+    to: employees
+    from_columns:
+      - employee_id
+    to_columns:
+      - id
+  - name: benefit_enrollments_benefit
+    from: benefit_enrollments
+    to: benefits
+    from_columns:
+      - benefit_id
+    to_columns:
+      - id
+  - name: training_records_employee
+    from: training_records
+    to: employees
+    from_columns:
+      - employee_id
+    to_columns:
+      - id
+  - name: training_records_course
+    from: training_records
+    to: training_courses
+    from_columns:
+      - course_id
+    to_columns:
+      - id
+  - name: performance_reviews_employee
+    from: performance_reviews
+    to: employees
+    from_columns:
+      - employee_id
+    to_columns:
+      - id
+  - name: performance_reviews_reviewer
+    from: performance_reviews
+    to: employees
+    from_columns:
+      - reviewer_id
+    to_columns:
+      - id
+  - name: job_openings_position
+    from: job_openings
+    to: positions
+    from_columns:
+      - position_id
+    to_columns:
+      - id
+  - name: job_openings_hiring_manager
+    from: job_openings
+    to: employees
+    from_columns:
+      - hiring_manager_id
+    to_columns:
+      - id
+  - name: job_applications_job_opening
+    from: job_applications
+    to: job_openings
+    from_columns:
+      - job_opening_id
+    to_columns:
+      - id
+  - name: job_applications_candidate
+    from: job_applications
+    to: people
+    from_columns:
+      - candidate_id
+    to_columns:
+      - id
+  - name: suppliers_organization
+    from: suppliers
+    to: organizations
+    from_columns:
+      - organization_id
+    to_columns:
+      - id
+  - name: supplier_qualifications_supplier
+    from: supplier_qualifications
+    to: suppliers
+    from_columns:
+      - supplier_id
+    to_columns:
+      - id
+  - name: supplier_qualifications_reviewer
+    from: supplier_qualifications
+    to: employees
+    from_columns:
+      - reviewer_id
+    to_columns:
+      - id
+  - name: supplier_evaluations_supplier
+    from: supplier_evaluations
+    to: suppliers
+    from_columns:
+      - supplier_id
+    to_columns:
+      - id
+  - name: supplier_evaluations_evaluator
+    from: supplier_evaluations
+    to: employees
+    from_columns:
+      - evaluator_id
+    to_columns:
+      - id
+  - name: supplier_agreements_contract
+    from: supplier_agreements
+    to: contracts
+    from_columns:
+      - contract_id
+    to_columns:
+      - id
+  - name: supplier_agreements_supplier
+    from: supplier_agreements
+    to: suppliers
+    from_columns:
+      - supplier_id
+    to_columns:
+      - id
+  - name: supplier_agreements_price_index
+    from: supplier_agreements
+    to: price_indices
+    from_columns:
+      - price_index_id
+    to_columns:
+      - id
+  - name: purchase_requisitions_requester
+    from: purchase_requisitions
+    to: employees
+    from_columns:
+      - requester_id
+    to_columns:
+      - id
+  - name: purchase_requisitions_property
+    from: purchase_requisitions
+    to: properties
+    from_columns:
+      - property_id
+    to_columns:
+      - id
+  - name: requests_for_quotation_requisition
+    from: requests_for_quotation
+    to: purchase_requisitions
+    from_columns:
+      - requisition_id
+    to_columns:
+      - id
+  - name: supplier_quotes_rfq
+    from: supplier_quotes
+    to: requests_for_quotation
+    from_columns:
+      - rfq_id
+    to_columns:
+      - id
+  - name: supplier_quotes_supplier
+    from: supplier_quotes
+    to: suppliers
+    from_columns:
+      - supplier_id
+    to_columns:
+      - id
+  - name: purchase_orders_supplier
+    from: purchase_orders
+    to: suppliers
+    from_columns:
+      - supplier_id
+    to_columns:
+      - id
+  - name: purchase_orders_property
+    from: purchase_orders
+    to: properties
+    from_columns:
+      - property_id
+    to_columns:
+      - id
+  - name: purchase_orders_requisition
+    from: purchase_orders
+    to: purchase_requisitions
+    from_columns:
+      - requisition_id
+    to_columns:
+      - id
+  - name: purchase_orders_agreement
+    from: purchase_orders
+    to: supplier_agreements
+    from_columns:
+      - agreement_id
+    to_columns:
+      - id
+  - name: purchase_orders_buyer
+    from: purchase_orders
+    to: employees
+    from_columns:
+      - buyer_id
+    to_columns:
+      - id
+  - name: purchase_order_lines_purchase_order
+    from: purchase_order_lines
+    to: purchase_orders
+    from_columns:
+      - purchase_order_id
+    to_columns:
+      - id
+  - name: purchase_order_lines_category
+    from: purchase_order_lines
+    to: expense_categories
+    from_columns:
+      - category_id
+    to_columns:
+      - id
+  - name: goods_receipts_purchase_order
+    from: goods_receipts
+    to: purchase_orders
+    from_columns:
+      - purchase_order_id
+    to_columns:
+      - id
+  - name: goods_receipts_received_by
+    from: goods_receipts
+    to: employees
+    from_columns:
+      - received_by_id
+    to_columns:
+      - id
+  - name: supplier_invoices_supplier
+    from: supplier_invoices
+    to: suppliers
+    from_columns:
+      - supplier_id
+    to_columns:
+      - id
+  - name: supplier_invoices_payer
+    from: supplier_invoices
+    to: legal_entities
+    from_columns:
+      - payer_id
+    to_columns:
+      - id
+  - name: supplier_invoices_purchase_order
+    from: supplier_invoices
+    to: purchase_orders
+    from_columns:
+      - purchase_order_id
+    to_columns:
+      - id
+  - name: supplier_invoices_month
+    from: supplier_invoices
+    to: calendar_months
+    from_columns:
+      - month_id
+    to_columns:
+      - id
+  - name: supplier_payments_supplier_invoice
+    from: supplier_payments
+    to: supplier_invoices
+    from_columns:
+      - supplier_invoice_id
+    to_columns:
+      - id
+  - name: supplier_payments_bank_account
+    from: supplier_payments
+    to: bank_accounts
+    from_columns:
+      - bank_account_id
+    to_columns:
+      - id
+  - name: expense_categories_parent_category
+    from: expense_categories
+    to: expense_categories
+    from_columns:
+      - parent_category_id
+    to_columns:
+      - id
+  - name: service_charge_budgets_property
+    from: service_charge_budgets
+    to: properties
+    from_columns:
+      - property_id
+    to_columns:
+      - id
+  - name: service_charge_budget_lines_budget
+    from: service_charge_budget_lines
+    to: service_charge_budgets
+    from_columns:
+      - budget_id
+    to_columns:
+      - id
+  - name: service_charge_budget_lines_category
+    from: service_charge_budget_lines
+    to: expense_categories
+    from_columns:
+      - category_id
+    to_columns:
+      - id
+  - name: allocation_keys_property
+    from: allocation_keys
+    to: properties
+    from_columns:
+      - property_id
+    to_columns:
+      - id
+  - name: allocation_shares_allocation_key
+    from: allocation_shares
+    to: allocation_keys
+    from_columns:
+      - allocation_key_id
+    to_columns:
+      - id
+  - name: allocation_shares_unit
+    from: allocation_shares
+    to: units
+    from_columns:
+      - unit_id
+    to_columns:
+      - id
+  - name: service_contracts_contract
+    from: service_contracts
+    to: contracts
+    from_columns:
+      - contract_id
+    to_columns:
+      - id
+  - name: service_contracts_supplier
+    from: service_contracts
+    to: suppliers
+    from_columns:
+      - supplier_id
+    to_columns:
+      - id
+  - name: service_contracts_property
+    from: service_contracts
+    to: properties
+    from_columns:
+      - property_id
+    to_columns:
+      - id
+  - name: service_contracts_category
+    from: service_contracts
+    to: expense_categories
+    from_columns:
+      - category_id
+    to_columns:
+      - id
+  - name: operating_expenses_property
+    from: operating_expenses
+    to: properties
+    from_columns:
+      - property_id
+    to_columns:
+      - id
+  - name: operating_expenses_category
+    from: operating_expenses
+    to: expense_categories
+    from_columns:
+      - category_id
+    to_columns:
+      - id
+  - name: operating_expenses_month
+    from: operating_expenses
+    to: calendar_months
+    from_columns:
+      - month_id
+    to_columns:
+      - id
+  - name: operating_expenses_supplier
+    from: operating_expenses
+    to: suppliers
+    from_columns:
+      - supplier_id
+    to_columns:
+      - id
+  - name: work_orders_property
+    from: work_orders
+    to: properties
+    from_columns:
+      - property_id
+    to_columns:
+      - id
+  - name: work_orders_equipment
+    from: work_orders
+    to: equipment
+    from_columns:
+      - equipment_id
+    to_columns:
+      - id
+  - name: work_orders_unit
+    from: work_orders
+    to: units
+    from_columns:
+      - unit_id
+    to_columns:
+      - id
+  - name: work_orders_supplier
+    from: work_orders
+    to: suppliers
+    from_columns:
+      - supplier_id
+    to_columns:
+      - id
+  - name: work_orders_requested_by
+    from: work_orders
+    to: employees
+    from_columns:
+      - requested_by_id
+    to_columns:
+      - id
+  - name: utility_meters_utility_type
+    from: utility_meters
+    to: utility_types
+    from_columns:
+      - utility_type_id
+    to_columns:
+      - id
+  - name: utility_meters_property
+    from: utility_meters
+    to: properties
+    from_columns:
+      - property_id
+    to_columns:
+      - id
+  - name: utility_meters_unit
+    from: utility_meters
+    to: units
+    from_columns:
+      - unit_id
+    to_columns:
+      - id
+  - name: meter_readings_meter
+    from: meter_readings
+    to: utility_meters
+    from_columns:
+      - meter_id
+    to_columns:
+      - id
+  - name: meter_readings_month
+    from: meter_readings
+    to: calendar_months
+    from_columns:
+      - month_id
+    to_columns:
+      - id
+  - name: insurance_policies_property
+    from: insurance_policies
+    to: properties
+    from_columns:
+      - property_id
+    to_columns:
+      - id
+  - name: insurance_policies_insurer
+    from: insurance_policies
+    to: organizations
+    from_columns:
+      - insurer_id
+    to_columns:
+      - id
+  - name: insurance_policies_contract
+    from: insurance_policies
+    to: contracts
+    from_columns:
+      - contract_id
+    to_columns:
+      - id
+  - name: incidents_property
+    from: incidents
+    to: properties
+    from_columns:
+      - property_id
+    to_columns:
+      - id
+  - name: marketing_funds_property
+    from: marketing_funds
+    to: properties
+    from_columns:
+      - property_id
+    to_columns:
+      - id
+  - name: marketing_campaigns_fund
+    from: marketing_campaigns
+    to: marketing_funds
+    from_columns:
+      - fund_id
+    to_columns:
+      - id
+  - name: mall_events_property
+    from: mall_events
+    to: properties
+    from_columns:
+      - property_id
+    to_columns:
+      - id
+  - name: mall_events_campaign
+    from: mall_events
+    to: marketing_campaigns
+    from_columns:
+      - campaign_id
+    to_columns:
+      - id
+  - name: invoices_property
+    from: invoices
+    to: properties
+    from_columns:
+      - property_id
+    to_columns:
+      - id
+  - name: invoices_billed_tenant
+    from: invoices
+    to: tenants
+    from_columns:
+      - billed_tenant_id
+    to_columns:
+      - id
+  - name: charges_invoice
+    from: charges
+    to: invoices
+    from_columns:
+      - invoice_id
+    to_columns:
+      - id
+  - name: charges_lease
+    from: charges
+    to: leases
+    from_columns:
+      - lease_id
+    to_columns:
+      - id
+  - name: charges_charge_type
+    from: charges
+    to: charge_types
+    from_columns:
+      - charge_type_id
+    to_columns:
+      - id
+  - name: charges_month
+    from: charges
+    to: calendar_months
+    from_columns:
+      - month_id
+    to_columns:
+      - id
+  - name: bank_accounts_holder
+    from: bank_accounts
+    to: legal_entities
+    from_columns:
+      - holder_id
+    to_columns:
+      - id
+  - name: bank_accounts_bank
+    from: bank_accounts
+    to: organizations
+    from_columns:
+      - bank_id
+    to_columns:
+      - id
+  - name: payments_payer
+    from: payments
+    to: tenants
+    from_columns:
+      - payer_id
+    to_columns:
+      - id
+  - name: payments_bank_account
+    from: payments
+    to: bank_accounts
+    from_columns:
+      - bank_account_id
+    to_columns:
+      - id
+  - name: payment_allocations_payment
+    from: payment_allocations
+    to: payments
+    from_columns:
+      - payment_id
+    to_columns:
+      - id
+  - name: payment_allocations_charge
+    from: payment_allocations
+    to: charges
+    from_columns:
+      - charge_id
+    to_columns:
+      - id
+  - name: arrears_cases_lease
+    from: arrears_cases
+    to: leases
+    from_columns:
+      - lease_id
+    to_columns:
+      - id
+  - name: collection_actions_arrears_case
+    from: collection_actions
+    to: arrears_cases
+    from_columns:
+      - arrears_case_id
+    to_columns:
+      - id
+  - name: payment_agreements_arrears_case
+    from: payment_agreements
+    to: arrears_cases
+    from_columns:
+      - arrears_case_id
+    to_columns:
+      - id
+  - name: ledger_accounts_parent_account
+    from: ledger_accounts
+    to: ledger_accounts
+    from_columns:
+      - parent_account_id
+    to_columns:
+      - id
+  - name: journal_entries_legal_entity
+    from: journal_entries
+    to: legal_entities
+    from_columns:
+      - legal_entity_id
+    to_columns:
+      - id
+  - name: journal_entries_month
+    from: journal_entries
+    to: calendar_months
+    from_columns:
+      - month_id
+    to_columns:
+      - id
+  - name: journal_lines_entry
+    from: journal_lines
+    to: journal_entries
+    from_columns:
+      - entry_id
+    to_columns:
+      - id
+  - name: journal_lines_account
+    from: journal_lines
+    to: ledger_accounts
+    from_columns:
+      - account_id
+    to_columns:
+      - id
+  - name: journal_lines_cost_center
+    from: journal_lines
+    to: cost_centers
+    from_columns:
+      - cost_center_id
+    to_columns:
+      - id
+  - name: owner_distributions_stake
+    from: owner_distributions
+    to: ownership_stakes
+    from_columns:
+      - stake_id
+    to_columns:
+      - id
+  - name: owner_distributions_month
+    from: owner_distributions
+    to: calendar_months
+    from_columns:
+      - month_id
+    to_columns:
+      - id
+  - name: capital_projects_property
+    from: capital_projects
+    to: properties
+    from_columns:
+      - property_id
+    to_columns:
+      - id
+  - name: capital_projects_construction_contract
+    from: capital_projects
+    to: contracts
+    from_columns:
+      - construction_contract_id
+    to_columns:
+      - id
+  - name: cost_centers_property
+    from: cost_centers
+    to: properties
+    from_columns:
+      - property_id
+    to_columns:
+      - id
+  - name: cost_centers_parent_cost_center
+    from: cost_centers
+    to: cost_centers
+    from_columns:
+      - parent_cost_center_id
+    to_columns:
+      - id
+  - name: operating_budgets_legal_entity
+    from: operating_budgets
+    to: legal_entities
+    from_columns:
+      - legal_entity_id
+    to_columns:
+      - id
+  - name: operating_budgets_approval
+    from: operating_budgets
+    to: resolutions
+    from_columns:
+      - approval_id
+    to_columns:
+      - id
+  - name: budget_lines_budget
+    from: budget_lines
+    to: operating_budgets
+    from_columns:
+      - budget_id
+    to_columns:
+      - id
+  - name: budget_lines_account
+    from: budget_lines
+    to: ledger_accounts
+    from_columns:
+      - account_id
+    to_columns:
+      - id
+  - name: budget_lines_cost_center
+    from: budget_lines
+    to: cost_centers
+    from_columns:
+      - cost_center_id
+    to_columns:
+      - id
+  - name: budget_lines_month
+    from: budget_lines
+    to: calendar_months
+    from_columns:
+      - month_id
+    to_columns:
+      - id
+  - name: tax_obligations_tax_type
+    from: tax_obligations
+    to: tax_types
+    from_columns:
+      - tax_type_id
+    to_columns:
+      - id
+  - name: tax_obligations_legal_entity
+    from: tax_obligations
+    to: legal_entities
+    from_columns:
+      - legal_entity_id
+    to_columns:
+      - id
+  - name: tax_obligations_property
+    from: tax_obligations
+    to: properties
+    from_columns:
+      - property_id
+    to_columns:
+      - id
+  - name: tax_obligations_month
+    from: tax_obligations
+    to: calendar_months
+    from_columns:
+      - month_id
+    to_columns:
+      - id
+  - name: tax_withholdings_supplier_invoice
+    from: tax_withholdings
+    to: supplier_invoices
+    from_columns:
+      - supplier_invoice_id
+    to_columns:
+      - id
+  - name: tax_withholdings_tax_type
+    from: tax_withholdings
+    to: tax_types
+    from_columns:
+      - tax_type_id
+    to_columns:
+      - id
+  - name: fixed_assets_property
+    from: fixed_assets
+    to: properties
+    from_columns:
+      - property_id
+    to_columns:
+      - id
+  - name: fixed_assets_ledger_account
+    from: fixed_assets
+    to: ledger_accounts
+    from_columns:
+      - ledger_account_id
+    to_columns:
+      - id
+  - name: fixed_assets_capital_project
+    from: fixed_assets
+    to: capital_projects
+    from_columns:
+      - capital_project_id
+    to_columns:
+      - id
+  - name: depreciation_entries_fixed_asset
+    from: depreciation_entries
+    to: fixed_assets
+    from_columns:
+      - fixed_asset_id
+    to_columns:
+      - id
+  - name: depreciation_entries_month
+    from: depreciation_entries
+    to: calendar_months
+    from_columns:
+      - month_id
+    to_columns:
+      - id
+  - name: loan_agreements_contract
+    from: loan_agreements
+    to: contracts
+    from_columns:
+      - contract_id
+    to_columns:
+      - id
+  - name: loan_agreements_lender
+    from: loan_agreements
+    to: organizations
+    from_columns:
+      - lender_id
+    to_columns:
+      - id
+  - name: loan_agreements_borrower
+    from: loan_agreements
+    to: legal_entities
+    from_columns:
+      - borrower_id
+    to_columns:
+      - id
+  - name: loan_agreements_collateral
+    from: loan_agreements
+    to: properties
+    from_columns:
+      - collateral_id
+    to_columns:
+      - id
+  - name: loan_agreements_rate_index
+    from: loan_agreements
+    to: price_indices
+    from_columns:
+      - rate_index_id
+    to_columns:
+      - id
+  - name: debt_service_payments_loan
+    from: debt_service_payments
+    to: loan_agreements
+    from_columns:
+      - loan_id
+    to_columns:
+      - id
+  - name: bank_transactions_bank_account
+    from: bank_transactions
+    to: bank_accounts
+    from_columns:
+      - bank_account_id
+    to_columns:
+      - id
+  - name: insurance_claims_policy
+    from: insurance_claims
+    to: insurance_policies
+    from_columns:
+      - policy_id
+    to_columns:
+      - id
+  - name: insurance_claims_incident
+    from: insurance_claims
+    to: incidents
+    from_columns:
+      - incident_id
+    to_columns:
+      - id
+  - name: occupancy_snapshots_unit
+    from: occupancy_snapshots
+    to: units
+    from_columns:
+      - unit_id
+    to_columns:
+      - id
+  - name: occupancy_snapshots_month
+    from: occupancy_snapshots
+    to: calendar_months
+    from_columns:
+      - month_id
+    to_columns:
+      - id
+  - name: occupancy_snapshots_lease
+    from: occupancy_snapshots
+    to: leases
+    from_columns:
+      - lease_id
+    to_columns:
+      - id
+  - name: sales_reports_lease
+    from: sales_reports
+    to: leases
+    from_columns:
+      - lease_id
+    to_columns:
+      - id
+  - name: sales_reports_property
+    from: sales_reports
+    to: properties
+    from_columns:
+      - property_id
+    to_columns:
+      - id
+  - name: sales_reports_month
+    from: sales_reports
+    to: calendar_months
+    from_columns:
+      - month_id
+    to_columns:
+      - id
+  - name: sales_audits_sales_report
+    from: sales_audits
+    to: sales_reports
+    from_columns:
+      - sales_report_id
+    to_columns:
+      - id
+  - name: sales_audits_auditor
+    from: sales_audits
+    to: organizations
+    from_columns:
+      - auditor_id
+    to_columns:
+      - id
+  - name: footfall_counts_entrance
+    from: footfall_counts
+    to: entrances
+    from_columns:
+      - entrance_id
+    to_columns:
+      - id
+  - name: footfall_counts_month
+    from: footfall_counts
+    to: calendar_months
+    from_columns:
+      - month_id
+    to_columns:
+      - id
+  - name: parking_activity_facility
+    from: parking_activity
+    to: parking_facilities
+    from_columns:
+      - facility_id
+    to_columns:
+      - id
+  - name: parking_activity_month
+    from: parking_activity
+    to: calendar_months
+    from_columns:
+      - month_id
+    to_columns:
+      - id
+metrics:
+  - name: total_gla
+    description: Gross leasable area of the selected units (m²). Sum over one month only; summing months multiplies area.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(occupancy_snapshots.gla_m2)
+  - name: occupied_gla
+    description: Gross leasable area under an active lease at month end (m²).
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(occupancy_snapshots.occupied_gla_m2)
+  - name: vacant_gla
+    description: Gross leasable area without an active lease at month end (m²).
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(occupancy_snapshots.vacant_gla_m2)
+  - name: occupancy_rate
+    description: Occupied over total gross leasable area.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: occupied_gla / NULLIF(total_gla, 0)
+  - name: contracted_minimum_rent
+    description: Monthly minimum rent in force at month end.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(occupancy_snapshots.contracted_minimum_rent)
+  - name: minimum_rent_per_m2
+    description: Contracted minimum rent per occupied square metre per month.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: contracted_minimum_rent / NULLIF(occupied_gla, 0)
+  - name: billed_amount
+    description: Charges billed for the competence month, all charge types.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(charges.amount)
+  - name: collected_amount
+    description: Payments allocated to the selected charges at the reporting date.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(charges.paid_amount)
+  - name: open_amount
+    description: Billed minus collected at the reporting date.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(charges.open_amount)
+  - name: delinquency_rate
+    description: Open over billed amount at the reporting date.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: open_amount / NULLIF(billed_amount, 0)
+  - name: tenant_sales
+    description: Gross sales declared by tenants.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(sales_reports.gross_sales)
+  - name: reporting_area
+    description: Area of the units whose sales are reported (m²). Sum over one month only.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(sales_reports.reported_gla_m2)
+  - name: sales_per_m2
+    description: Monthly tenant sales per reporting square metre.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: tenant_sales / NULLIF(reporting_area, 0)
+  - name: occupancy_cost
+    description: Rent, service charge and marketing fund billed to reporting tenants.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(sales_reports.occupancy_cost)
+  - name: occupancy_cost_ratio
+    description: Occupancy cost over tenant sales; the main affordability indicator for tenants.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: occupancy_cost / NULLIF(tenant_sales, 0)
+  - name: visitors
+    description: Visitors counted at entrances.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(footfall_counts.visitors)
+  - name: operating_revenue
+    description: Ledger income classified as operating revenue.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(CASE WHEN journal_lines.noi_class = 'revenue' THEN journal_lines.amount ELSE 0 END)
+  - name: operating_expense_total
+    description: Ledger operating expenses as a positive amount.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(CASE WHEN journal_lines.noi_class = 'opex' THEN -journal_lines.amount ELSE 0 END)
+  - name: net_operating_income
+    description: Operating revenue minus operating expenses. Depreciation, financing and other excluded lines do not count.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: operating_revenue - operating_expense_total
+  - name: noi_margin
+    description: Net operating income over operating revenue.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: net_operating_income / NULLIF(operating_revenue, 0)
+  - name: parking_revenue
+    description: Parking revenue.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(parking_activity.revenue)
+  - name: payroll_cost
+    description: "Payroll amounts borne by the employer: salary, overtime, benefits and employer social charges. Employee deductions are excluded."
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(CASE WHEN payroll_lines.employer_cost = 1 THEN payroll_lines.amount ELSE 0 END)
+  - name: headcount
+    description: Distinct employees paid. Not additive across months or departments that share employees.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: COUNT(DISTINCT payroll_lines.employee_id)
+  - name: purchase_spend
+    description: Ordered quantity times unit price on purchase-order lines.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(purchase_order_lines.line_amount)
+  - name: payables_outstanding
+    description: Supplier invoice amounts not yet paid at the reporting date, net of withheld taxes.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(supplier_invoices.open_amount)

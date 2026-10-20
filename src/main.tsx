@@ -95,25 +95,26 @@ function App() {
   const activeGroup=globalGroups.find(e=>e.data.relationships.some(r=>r.id===selectedEdge));
   function showNeighborhood(id=selected||relationship?.source||neighborhoodFocus){setNeighborhoodFocus(id);setSearch('');setTab('graph');setShowAll(false);}
   function selectEntity(id:string){setSelected(id);setSelectedEdge('');if(tab==='graph'&&!showAll){setNeighborhoodFocus(id);setSearch('');}}
-  async function loadExamples(scale:boolean|'ubl'|'mapped'|'billing'|'flights'=false) {
+  async function loadExamples(scale:boolean|'ubl'|'mapped'|'billing'|'flights'|'mall'=false) {
     if(current && source !== current.source && !confirm('Discard unsaved changes and open examples?'))return;
     setBusy(true);setMessage('Loading example documents…');
     try {
       const flights=scale==='flights';
       const billing=scale==='billing';
+      const mall=scale==='mall';
       const mapped=scale==='mapped';
       const ubl=scale==='ubl';
-      const files=flights?['flights.ontology.yaml','flights.semantic_model.yaml','flights.mapping.yaml','flights.yaml']:billing?['billing.mapping.yaml','billing.ontology.yaml','billing.semantic.yaml']:mapped?['commerce.mapping.yaml','commerce.mapped-ontology.yaml','commerce.mapped-semantic.yaml']:ubl?['ubl.ontology.yaml','ubl.owl.ttl','ubl.odcs.yaml','ubl.semantic.yaml','ubl.shacl.ttl']:scale?['commerce-scale.ttl']:['commerce.odcs.yaml','sales.ossie.yaml','commerce-business.ossie.yaml','commerce.owl.ttl','commerce.owl','commerce.shacl.ttl','commerce-data.ttl'];
+      const files=mall?['mall.ontology.yaml','mall.semantic.yaml','mall.mapping.yaml','mall.odcs.yaml','mall.owl.ttl','mall.shacl.ttl','mall-data.ttl']:flights?['flights.ontology.yaml','flights.semantic_model.yaml','flights.mapping.yaml','flights.yaml']:billing?['billing.mapping.yaml','billing.ontology.yaml','billing.semantic.yaml']:mapped?['commerce.mapping.yaml','commerce.mapped-ontology.yaml','commerce.mapped-semantic.yaml']:ubl?['ubl.ontology.yaml','ubl.owl.ttl','ubl.odcs.yaml','ubl.semantic.yaml','ubl.shacl.ttl']:scale?['commerce-scale.ttl']:['commerce.odcs.yaml','sales.ossie.yaml','commerce-business.ossie.yaml','commerce.owl.ttl','commerce.owl','commerce.shacl.ttl','commerce-data.ttl'];
       const loaded:Doc[]=[];
       for(const filename of files){
         const existing=docs.find(d=>d.filename===filename);if(existing){loaded.push(existing);continue;}
-        const response=await fetch(`/examples/${flights?'ossie':billing?'billing':ubl?'ubl':'commerce'}/${filename}`);if(!response.ok)throw Error(`Cannot load ${filename}`);
+        const response=await fetch(`/examples/${mall?'mall':flights?'ossie':billing?'billing':ubl?'ubl':'commerce'}/${filename}`);if(!response.ok)throw Error(`Cannot load ${filename}`);
         const source=await response.text();
         const saved=await fetch('/api/documents',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filename,source})});
         const doc=await saved.json();if(!saved.ok)throw Error(doc.error);loaded.push(doc);setDocs(old=>[doc,...old]);
       }
       setCurrent(loaded[0]);setSource(loaded[0].source);setNeighborhoodFocus('');if(compact)closeWorkspace();setSelected('');setSelectedEdge('');setSearch('');setShowAll(false);setTab(flights?'fullgraph':mapped||billing?'mappings':'graph');
-      setMessage(flights?'Loaded official Apache Ossie Flights: ontology, semantic model, standalone and embedded mappings.':billing?'Loaded subscription billing: 36 business entities, 46 joins, 119 bindings, and 4 governed metrics.':mapped?'Loaded mapped commerce: ontology, semantic model, governed metrics, and explicit mappings.':ubl?'Loaded UBL: 45 business entities, 277 roles; OWL, SHACL, ODCS, and semantic datasets.':scale?'Loaded 1,000 business resources and 5,000 links. Showing a neighborhood; search to explore.':'Loaded commerce contracts, semantic model, ontology, OWL, SHACL, and RDF data. Select a document in the sidebar.');
+      setMessage(mall?'Loaded shopping center administration: 145 entity types in 11 namespaces, 259 joins, 1,056 bindings and 25 governed KPIs, with OWL, SHACL, ODCS and RDF data.':flights?'Loaded official Apache Ossie Flights: ontology, semantic model, standalone and embedded mappings.':billing?'Loaded subscription billing: 36 business entities, 46 joins, 119 bindings, and 4 governed metrics.':mapped?'Loaded mapped commerce: ontology, semantic model, governed metrics, and explicit mappings.':ubl?'Loaded UBL: 45 business entities, 277 roles; OWL, SHACL, ODCS, and semantic datasets.':scale?'Loaded 1,000 business resources and 5,000 links. Showing a neighborhood; search to explore.':'Loaded commerce contracts, semantic model, ontology, OWL, SHACL, and RDF data. Select a document in the sidebar.');
     }catch(e){setMessage((e as Error).message)}finally{setBusy(false)}
   }
   async function save(
@@ -212,6 +213,7 @@ function App() {
         <button className="scale-example" onClick={()=>loadExamples('mapped')} disabled={busy}><Layers size={16}/><span>Load mapped commerce<small>Ontology → mappings → governed queries</small></span></button>
         <button className="scale-example" onClick={()=>loadExamples('flights')} disabled={busy}><Network size={16}/><span>Load Ossie Flights<small>Official ontology · semantic model · mappings</small></span></button>
         <button className="scale-example" onClick={()=>loadExamples('billing')} disabled={busy}><Layers size={16}/><span>Load subscription billing<small>36 business entities · 4 governed metrics</small></span></button>
+        <button className="scale-example" onClick={()=>loadExamples('mall')} disabled={busy}><Layers size={16}/><span>Load shopping center administration<small>145 entity types · 11 namespaces · 25 KPIs</small></span></button>
         <label className="import" tabIndex={0} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.currentTarget.querySelector('input')?.click();}}}>
           <Upload size={16} /> Import definitions
           <input

@@ -1,0 +1,4869 @@
+version: 0.2.0.dev0
+name: Shopping center administration mappings
+description: Maps every concrete concept, attribute and link to its dataset and every KPI concept to its governed metric.
+ontology_ref:
+  name: Shopping center administration ontology
+  iri: ./mall.ontology.yaml
+semantic_model_ref:
+  name: Shopping center administration semantic model
+  iri: ./mall.semantic.yaml
+concept_mappings:
+  - concept: Organization
+    object_mappings:
+      - &a1
+        referent_mappings:
+          - relationship: id
+            expression: organizations.id
+    link_mappings:
+      - object_mapping: *a1
+        children:
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: organizations.name
+          - relationship: legal_name
+            object_mapping:
+              concept: Name
+              expression: organizations.legal_name
+          - relationship: tax_id
+            object_mapping:
+              concept: TaxId
+              expression: organizations.tax_id
+          - relationship: email
+            object_mapping:
+              concept: EmailAddress
+              expression: organizations.email
+          - relationship: phone
+            object_mapping:
+              concept: PhoneNumber
+              expression: organizations.phone
+          - relationship: organization_type
+            object_mapping:
+              concept: Code
+              expression: organizations.organization_type
+          - relationship: legal_form
+            object_mapping:
+              concept: Code
+              expression: organizations.legal_form
+          - relationship: address
+            object_mapping:
+              concept: Address
+              referent_mappings:
+                - relationship: id
+                  expression: organizations.address_id
+          - relationship: parent_organization
+            object_mapping:
+              concept: Organization
+              referent_mappings:
+                - relationship: id
+                  expression: organizations.parent_organization_id
+  - concept: Person
+    object_mappings:
+      - &a2
+        referent_mappings:
+          - relationship: id
+            expression: people.id
+    link_mappings:
+      - object_mapping: *a2
+        children:
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: people.name
+          - relationship: legal_name
+            object_mapping:
+              concept: Name
+              expression: people.legal_name
+          - relationship: tax_id
+            object_mapping:
+              concept: TaxId
+              expression: people.tax_id
+          - relationship: email
+            object_mapping:
+              concept: EmailAddress
+              expression: people.email
+          - relationship: phone
+            object_mapping:
+              concept: PhoneNumber
+              expression: people.phone
+          - relationship: birth_date
+            object_mapping:
+              concept: CalendarDate
+              expression: people.birth_date
+          - relationship: nationality
+            object_mapping:
+              concept: Code
+              expression: people.nationality
+          - relationship: address
+            object_mapping:
+              concept: Address
+              referent_mappings:
+                - relationship: id
+                  expression: people.address_id
+  - concept: Address
+    object_mappings:
+      - &a3
+        referent_mappings:
+          - relationship: id
+            expression: addresses.id
+    link_mappings:
+      - object_mapping: *a3
+        children:
+          - relationship: street
+            object_mapping:
+              concept: Text
+              expression: addresses.street
+          - relationship: street_number
+            object_mapping:
+              concept: Code
+              expression: addresses.street_number
+          - relationship: complement
+            object_mapping:
+              concept: Text
+              expression: addresses.complement
+          - relationship: district
+            object_mapping:
+              concept: Name
+              expression: addresses.district
+          - relationship: postal_code
+            object_mapping:
+              concept: Code
+              expression: addresses.postal_code
+          - relationship: city
+            object_mapping:
+              concept: City
+              referent_mappings:
+                - relationship: id
+                  expression: addresses.city_id
+  - concept: City
+    object_mappings:
+      - &a4
+        referent_mappings:
+          - relationship: id
+            expression: cities.id
+    link_mappings:
+      - object_mapping: *a4
+        children:
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: cities.name
+          - relationship: state
+            object_mapping:
+              concept: StateProvince
+              referent_mappings:
+                - relationship: id
+                  expression: cities.state_id
+  - concept: StateProvince
+    object_mappings:
+      - &a5
+        referent_mappings:
+          - relationship: id
+            expression: state_provinces.id
+    link_mappings:
+      - object_mapping: *a5
+        children:
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: state_provinces.name
+          - relationship: code
+            object_mapping:
+              concept: Code
+              expression: state_provinces.code
+          - relationship: country
+            object_mapping:
+              concept: Country
+              referent_mappings:
+                - relationship: id
+                  expression: state_provinces.country_id
+  - concept: Country
+    object_mappings:
+      - &a6
+        referent_mappings:
+          - relationship: id
+            expression: countries.id
+    link_mappings:
+      - object_mapping: *a6
+        children:
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: countries.name
+          - relationship: iso_code
+            object_mapping:
+              concept: Code
+              expression: countries.iso_code
+  - concept: Currency
+    object_mappings:
+      - &a7
+        referent_mappings:
+          - relationship: id
+            expression: currencies.id
+    link_mappings:
+      - object_mapping: *a7
+        children:
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: currencies.name
+          - relationship: iso_code
+            object_mapping:
+              concept: Code
+              expression: currencies.iso_code
+  - concept: CalendarMonth
+    object_mappings:
+      - &a8
+        referent_mappings:
+          - relationship: id
+            expression: calendar_months.id
+    link_mappings:
+      - object_mapping: *a8
+        children:
+          - relationship: year_month
+            object_mapping:
+              concept: YearMonth
+              expression: calendar_months.year_month
+          - relationship: year
+            object_mapping:
+              concept: Year
+              expression: calendar_months.year
+          - relationship: month_number
+            object_mapping:
+              concept: Count
+              expression: calendar_months.month_number
+          - relationship: quarter
+            object_mapping:
+              concept: Code
+              expression: calendar_months.quarter
+  - concept: PriceIndex
+    object_mappings:
+      - &a9
+        referent_mappings:
+          - relationship: id
+            expression: price_indices.id
+    link_mappings:
+      - object_mapping: *a9
+        children:
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: price_indices.name
+          - relationship: code
+            object_mapping:
+              concept: Code
+              expression: price_indices.code
+          - relationship: publisher
+            object_mapping:
+              concept: Name
+              expression: price_indices.publisher
+  - concept: PriceIndexValue
+    object_mappings:
+      - &a10
+        referent_mappings:
+          - relationship: id
+            expression: price_index_values.id
+    link_mappings:
+      - object_mapping: *a10
+        children:
+          - relationship: index_level
+            object_mapping:
+              concept: IndexNumber
+              expression: price_index_values.index_level
+          - relationship: monthly_change
+            object_mapping:
+              concept: Rate
+              expression: price_index_values.monthly_change
+          - relationship: price_index
+            object_mapping:
+              concept: PriceIndex
+              referent_mappings:
+                - relationship: id
+                  expression: price_index_values.price_index_id
+          - relationship: month
+            object_mapping:
+              concept: CalendarMonth
+              referent_mappings:
+                - relationship: id
+                  expression: price_index_values.month_id
+  - concept: Portfolio
+    object_mappings:
+      - &a11
+        referent_mappings:
+          - relationship: id
+            expression: portfolios.id
+    link_mappings:
+      - object_mapping: *a11
+        children:
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: portfolios.name
+          - relationship: strategy
+            object_mapping:
+              concept: Text
+              expression: portfolios.strategy
+          - relationship: asset_manager
+            object_mapping:
+              concept: Organization
+              referent_mappings:
+                - relationship: id
+                  expression: portfolios.asset_manager_id
+  - concept: Property
+    object_mappings:
+      - &a12
+        referent_mappings:
+          - relationship: id
+            expression: properties.id
+    link_mappings:
+      - object_mapping: *a12
+        children:
+          - relationship: code
+            object_mapping:
+              concept: Code
+              expression: properties.code
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: properties.name
+          - relationship: property_format
+            object_mapping:
+              concept: Code
+              expression: properties.property_format
+          - relationship: opening_date
+            object_mapping:
+              concept: CalendarDate
+              expression: properties.opening_date
+          - relationship: total_gla_m2
+            object_mapping:
+              concept: AreaM2
+              expression: properties.total_gla_m2
+          - relationship: gross_built_area_m2
+            object_mapping:
+              concept: AreaM2
+              expression: properties.gross_built_area_m2
+          - relationship: parking_spaces
+            object_mapping:
+              concept: Count
+              expression: properties.parking_spaces
+          - relationship: portfolio
+            object_mapping:
+              concept: Portfolio
+              referent_mappings:
+                - relationship: id
+                  expression: properties.portfolio_id
+          - relationship: address
+            object_mapping:
+              concept: Address
+              referent_mappings:
+                - relationship: id
+                  expression: properties.address_id
+          - relationship: currency
+            object_mapping:
+              concept: Currency
+              referent_mappings:
+                - relationship: id
+                  expression: properties.currency_id
+          - relationship: administrator
+            object_mapping:
+              concept: Organization
+              referent_mappings:
+                - relationship: id
+                  expression: properties.administrator_id
+          - relationship: general_manager
+            object_mapping:
+              concept: Person
+              referent_mappings:
+                - relationship: id
+                  expression: properties.general_manager_id
+  - concept: Building
+    object_mappings:
+      - &a13
+        referent_mappings:
+          - relationship: id
+            expression: buildings.id
+    link_mappings:
+      - object_mapping: *a13
+        children:
+          - relationship: code
+            object_mapping:
+              concept: Code
+              expression: buildings.code
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: buildings.name
+          - relationship: built_year
+            object_mapping:
+              concept: Year
+              expression: buildings.built_year
+          - relationship: property
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: buildings.property_id
+  - concept: Floor
+    object_mappings:
+      - &a14
+        referent_mappings:
+          - relationship: id
+            expression: floors.id
+    link_mappings:
+      - object_mapping: *a14
+        children:
+          - relationship: code
+            object_mapping:
+              concept: Code
+              expression: floors.code
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: floors.name
+          - relationship: level_number
+            object_mapping:
+              concept: LevelNumber
+              expression: floors.level_number
+          - relationship: building
+            object_mapping:
+              concept: Building
+              referent_mappings:
+                - relationship: id
+                  expression: floors.building_id
+  - concept: Zone
+    object_mappings:
+      - &a15
+        referent_mappings:
+          - relationship: id
+            expression: zones.id
+    link_mappings:
+      - object_mapping: *a15
+        children:
+          - relationship: code
+            object_mapping:
+              concept: Code
+              expression: zones.code
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: zones.name
+          - relationship: floor
+            object_mapping:
+              concept: Floor
+              referent_mappings:
+                - relationship: id
+                  expression: zones.floor_id
+  - concept: LeasableUnit
+    object_mappings:
+      - &a16
+        referent_mappings:
+          - relationship: id
+            expression: units.id
+    link_mappings:
+      - object_mapping: *a16
+        children:
+          - relationship: code
+            object_mapping:
+              concept: Code
+              expression: units.code
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: units.name
+          - relationship: area_m2
+            object_mapping:
+              concept: AreaM2
+              expression: units.area_m2
+          - relationship: frontage_m
+            object_mapping:
+              concept: LengthM
+              expression: units.frontage_m
+          - relationship: has_mezzanine
+            object_mapping:
+              concept: Flag
+              expression: units.has_mezzanine
+          - relationship: zone
+            object_mapping:
+              concept: Zone
+              referent_mappings:
+                - relationship: id
+                  expression: units.zone_id
+          - relationship: unit_type
+            object_mapping:
+              concept: UnitType
+              referent_mappings:
+                - relationship: id
+                  expression: units.unit_type_id
+  - concept: UnitType
+    object_mappings:
+      - &a17
+        referent_mappings:
+          - relationship: id
+            expression: unit_types.id
+    link_mappings:
+      - object_mapping: *a17
+        children:
+          - relationship: code
+            object_mapping:
+              concept: Code
+              expression: unit_types.code
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: unit_types.name
+          - relationship: counts_as_gla
+            object_mapping:
+              concept: Flag
+              expression: unit_types.counts_as_gla
+  - concept: CommonArea
+    object_mappings:
+      - &a18
+        referent_mappings:
+          - relationship: id
+            expression: common_areas.id
+    link_mappings:
+      - object_mapping: *a18
+        children:
+          - relationship: code
+            object_mapping:
+              concept: Code
+              expression: common_areas.code
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: common_areas.name
+          - relationship: area_m2
+            object_mapping:
+              concept: AreaM2
+              expression: common_areas.area_m2
+          - relationship: area_kind
+            object_mapping:
+              concept: Code
+              expression: common_areas.area_kind
+          - relationship: floor
+            object_mapping:
+              concept: Floor
+              referent_mappings:
+                - relationship: id
+                  expression: common_areas.floor_id
+  - concept: ParkingFacility
+    object_mappings:
+      - &a19
+        referent_mappings:
+          - relationship: id
+            expression: parking_facilities.id
+    link_mappings:
+      - object_mapping: *a19
+        children:
+          - relationship: code
+            object_mapping:
+              concept: Code
+              expression: parking_facilities.code
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: parking_facilities.name
+          - relationship: area_m2
+            object_mapping:
+              concept: AreaM2
+              expression: parking_facilities.area_m2
+          - relationship: capacity
+            object_mapping:
+              concept: Count
+              expression: parking_facilities.capacity
+          - relationship: is_paid
+            object_mapping:
+              concept: Flag
+              expression: parking_facilities.is_paid
+          - relationship: property
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: parking_facilities.property_id
+  - concept: Entrance
+    object_mappings:
+      - &a20
+        referent_mappings:
+          - relationship: id
+            expression: entrances.id
+    link_mappings:
+      - object_mapping: *a20
+        children:
+          - relationship: code
+            object_mapping:
+              concept: Code
+              expression: entrances.code
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: entrances.name
+          - relationship: entrance_kind
+            object_mapping:
+              concept: Code
+              expression: entrances.entrance_kind
+          - relationship: property
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: entrances.property_id
+  - concept: AreaMeasurement
+    object_mappings:
+      - &a21
+        referent_mappings:
+          - relationship: id
+            expression: area_measurements.id
+    link_mappings:
+      - object_mapping: *a21
+        children:
+          - relationship: measurement_date
+            object_mapping:
+              concept: CalendarDate
+              expression: area_measurements.measurement_date
+          - relationship: measured_area_m2
+            object_mapping:
+              concept: AreaM2
+              expression: area_measurements.measured_area_m2
+          - relationship: method
+            object_mapping:
+              concept: Code
+              expression: area_measurements.method
+          - relationship: unit
+            object_mapping:
+              concept: LeasableUnit
+              referent_mappings:
+                - relationship: id
+                  expression: area_measurements.unit_id
+          - relationship: surveyor
+            object_mapping:
+              concept: Organization
+              referent_mappings:
+                - relationship: id
+                  expression: area_measurements.surveyor_id
+  - concept: OwnershipStake
+    object_mappings:
+      - &a22
+        referent_mappings:
+          - relationship: id
+            expression: ownership_stakes.id
+    link_mappings:
+      - object_mapping: *a22
+        children:
+          - relationship: share
+            object_mapping:
+              concept: Rate
+              expression: ownership_stakes.share
+          - relationship: start_date
+            object_mapping:
+              concept: CalendarDate
+              expression: ownership_stakes.start_date
+          - relationship: end_date
+            object_mapping:
+              concept: CalendarDate
+              expression: ownership_stakes.end_date
+          - relationship: investor
+            object_mapping:
+              concept: Investor
+              referent_mappings:
+                - relationship: id
+                  expression: ownership_stakes.investor_id
+          - relationship: property
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: ownership_stakes.property_id
+  - concept: Valuation
+    object_mappings:
+      - &a23
+        referent_mappings:
+          - relationship: id
+            expression: valuations.id
+    link_mappings:
+      - object_mapping: *a23
+        children:
+          - relationship: valuation_date
+            object_mapping:
+              concept: CalendarDate
+              expression: valuations.valuation_date
+          - relationship: market_value
+            object_mapping:
+              concept: MoneyAmount
+              expression: valuations.market_value
+          - relationship: capitalization_rate
+            object_mapping:
+              concept: Rate
+              expression: valuations.capitalization_rate
+          - relationship: discount_rate
+            object_mapping:
+              concept: Rate
+              expression: valuations.discount_rate
+          - relationship: property
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: valuations.property_id
+          - relationship: appraiser
+            object_mapping:
+              concept: Organization
+              referent_mappings:
+                - relationship: id
+                  expression: valuations.appraiser_id
+  - concept: Permit
+    object_mappings:
+      - &a24
+        referent_mappings:
+          - relationship: id
+            expression: permits.id
+    link_mappings:
+      - object_mapping: *a24
+        children:
+          - relationship: permit_number
+            object_mapping:
+              concept: Code
+              expression: permits.permit_number
+          - relationship: permit_type
+            object_mapping:
+              concept: Code
+              expression: permits.permit_type
+          - relationship: issue_date
+            object_mapping:
+              concept: CalendarDate
+              expression: permits.issue_date
+          - relationship: expiry_date
+            object_mapping:
+              concept: CalendarDate
+              expression: permits.expiry_date
+          - relationship: property
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: permits.property_id
+          - relationship: issuer
+            object_mapping:
+              concept: Organization
+              referent_mappings:
+                - relationship: id
+                  expression: permits.issuer_id
+  - concept: Equipment
+    object_mappings:
+      - &a25
+        referent_mappings:
+          - relationship: id
+            expression: equipment.id
+    link_mappings:
+      - object_mapping: *a25
+        children:
+          - relationship: tag
+            object_mapping:
+              concept: Code
+              expression: equipment.tag
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: equipment.name
+          - relationship: equipment_type
+            object_mapping:
+              concept: Code
+              expression: equipment.equipment_type
+          - relationship: install_date
+            object_mapping:
+              concept: CalendarDate
+              expression: equipment.install_date
+          - relationship: manufacturer
+            object_mapping:
+              concept: Name
+              expression: equipment.manufacturer
+          - relationship: property
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: equipment.property_id
+          - relationship: fixed_asset
+            object_mapping:
+              concept: FixedAsset
+              referent_mappings:
+                - relationship: id
+                  expression: equipment.fixed_asset_id
+  - concept: Tenant
+    object_mappings:
+      - &a26
+        referent_mappings:
+          - relationship: id
+            expression: tenants.id
+    link_mappings:
+      - object_mapping: *a26
+        children:
+          - relationship: trade_name
+            object_mapping:
+              concept: Name
+              expression: tenants.trade_name
+          - relationship: since_date
+            object_mapping:
+              concept: CalendarDate
+              expression: tenants.since_date
+          - relationship: organization
+            object_mapping:
+              concept: Organization
+              referent_mappings:
+                - relationship: id
+                  expression: tenants.organization_id
+  - concept: Investor
+    object_mappings:
+      - &a27
+        referent_mappings:
+          - relationship: id
+            expression: investors.id
+    link_mappings:
+      - object_mapping: *a27
+        children:
+          - relationship: investor_type
+            object_mapping:
+              concept: Code
+              expression: investors.investor_type
+          - relationship: organization
+            object_mapping:
+              concept: Organization
+              referent_mappings:
+                - relationship: id
+                  expression: investors.organization_id
+          - relationship: person
+            object_mapping:
+              concept: Person
+              referent_mappings:
+                - relationship: id
+                  expression: investors.person_id
+  - concept: Broker
+    object_mappings:
+      - &a28
+        referent_mappings:
+          - relationship: id
+            expression: brokers.id
+    link_mappings:
+      - object_mapping: *a28
+        children:
+          - relationship: license_number
+            object_mapping:
+              concept: Code
+              expression: brokers.license_number
+          - relationship: commission_rate
+            object_mapping:
+              concept: Rate
+              expression: brokers.commission_rate
+          - relationship: organization
+            object_mapping:
+              concept: Organization
+              referent_mappings:
+                - relationship: id
+                  expression: brokers.organization_id
+  - concept: Brand
+    object_mappings:
+      - &a29
+        referent_mappings:
+          - relationship: id
+            expression: brands.id
+    link_mappings:
+      - object_mapping: *a29
+        children:
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: brands.name
+          - relationship: owner
+            object_mapping:
+              concept: Tenant
+              referent_mappings:
+                - relationship: id
+                  expression: brands.owner_id
+  - concept: MerchandiseCategory
+    object_mappings:
+      - &a30
+        referent_mappings:
+          - relationship: id
+            expression: merchandise_categories.id
+    link_mappings:
+      - object_mapping: *a30
+        children:
+          - relationship: code
+            object_mapping:
+              concept: Code
+              expression: merchandise_categories.code
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: merchandise_categories.name
+          - relationship: parent_category
+            object_mapping:
+              concept: MerchandiseCategory
+              referent_mappings:
+                - relationship: id
+                  expression: merchandise_categories.parent_category_id
+  - concept: TenantContact
+    object_mappings:
+      - &a31
+        referent_mappings:
+          - relationship: id
+            expression: tenant_contacts.id
+    link_mappings:
+      - object_mapping: *a31
+        children:
+          - relationship: role
+            object_mapping:
+              concept: Code
+              expression: tenant_contacts.role
+          - relationship: is_primary
+            object_mapping:
+              concept: Flag
+              expression: tenant_contacts.is_primary
+          - relationship: person
+            object_mapping:
+              concept: Person
+              referent_mappings:
+                - relationship: id
+                  expression: tenant_contacts.person_id
+          - relationship: tenant
+            object_mapping:
+              concept: Tenant
+              referent_mappings:
+                - relationship: id
+                  expression: tenant_contacts.tenant_id
+  - concept: LeasingProspect
+    object_mappings:
+      - &a32
+        referent_mappings:
+          - relationship: id
+            expression: leasing_prospects.id
+    link_mappings:
+      - object_mapping: *a32
+        children:
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: leasing_prospects.name
+          - relationship: first_contact_date
+            object_mapping:
+              concept: CalendarDate
+              expression: leasing_prospects.first_contact_date
+          - relationship: brand
+            object_mapping:
+              concept: Brand
+              referent_mappings:
+                - relationship: id
+                  expression: leasing_prospects.brand_id
+          - relationship: category
+            object_mapping:
+              concept: MerchandiseCategory
+              referent_mappings:
+                - relationship: id
+                  expression: leasing_prospects.category_id
+          - relationship: broker
+            object_mapping:
+              concept: Broker
+              referent_mappings:
+                - relationship: id
+                  expression: leasing_prospects.broker_id
+  - concept: LeasingProposal
+    object_mappings:
+      - &a33
+        referent_mappings:
+          - relationship: id
+            expression: leasing_proposals.id
+    link_mappings:
+      - object_mapping: *a33
+        children:
+          - relationship: proposal_number
+            object_mapping:
+              concept: Code
+              expression: leasing_proposals.proposal_number
+          - relationship: proposal_date
+            object_mapping:
+              concept: CalendarDate
+              expression: leasing_proposals.proposal_date
+          - relationship: proposed_minimum_rent
+            object_mapping:
+              concept: MoneyAmount
+              expression: leasing_proposals.proposed_minimum_rent
+          - relationship: proposed_term_months
+            object_mapping:
+              concept: Count
+              expression: leasing_proposals.proposed_term_months
+          - relationship: status
+            object_mapping:
+              concept: Code
+              expression: leasing_proposals.status
+          - relationship: prospect
+            object_mapping:
+              concept: LeasingProspect
+              referent_mappings:
+                - relationship: id
+                  expression: leasing_proposals.prospect_id
+          - relationship: unit
+            object_mapping:
+              concept: LeasableUnit
+              referent_mappings:
+                - relationship: id
+                  expression: leasing_proposals.unit_id
+          - relationship: resulting_lease
+            object_mapping:
+              concept: Lease
+              referent_mappings:
+                - relationship: id
+                  expression: leasing_proposals.resulting_lease_id
+  - concept: LeaseStatus
+    object_mappings:
+      - &a34
+        referent_mappings:
+          - relationship: id
+            expression: lease_statuses.id
+    link_mappings:
+      - object_mapping: *a34
+        children:
+          - relationship: code
+            object_mapping:
+              concept: Code
+              expression: lease_statuses.code
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: lease_statuses.name
+  - concept: Lease
+    object_mappings:
+      - &a35
+        referent_mappings:
+          - relationship: id
+            expression: leases.id
+    link_mappings:
+      - object_mapping: *a35
+        children:
+          - relationship: term_months
+            object_mapping:
+              concept: Count
+              expression: leases.term_months
+          - relationship: store_opening_date
+            object_mapping:
+              concept: CalendarDate
+              expression: leases.store_opening_date
+          - relationship: monthly_minimum_rent
+            object_mapping:
+              concept: MoneyAmount
+              expression: leases.monthly_minimum_rent
+          - relationship: has_thirteenth_rent
+            object_mapping:
+              concept: Flag
+              expression: leases.has_thirteenth_rent
+          - relationship: contract
+            object_mapping:
+              concept: Contract
+              referent_mappings:
+                - relationship: id
+                  expression: leases.contract_id
+          - relationship: tenant
+            object_mapping:
+              concept: Tenant
+              referent_mappings:
+                - relationship: id
+                  expression: leases.tenant_id
+          - relationship: brand
+            object_mapping:
+              concept: Brand
+              referent_mappings:
+                - relationship: id
+                  expression: leases.brand_id
+          - relationship: status
+            object_mapping:
+              concept: LeaseStatus
+              referent_mappings:
+                - relationship: id
+                  expression: leases.status_id
+          - relationship: permitted_use
+            object_mapping:
+              concept: MerchandiseCategory
+              referent_mappings:
+                - relationship: id
+                  expression: leases.permitted_use_id
+          - relationship: broker
+            object_mapping:
+              concept: Broker
+              referent_mappings:
+                - relationship: id
+                  expression: leases.broker_id
+  - concept: LeasedUnit
+    object_mappings:
+      - &a36
+        referent_mappings:
+          - relationship: id
+            expression: leased_units.id
+    link_mappings:
+      - object_mapping: *a36
+        children:
+          - relationship: start_date
+            object_mapping:
+              concept: CalendarDate
+              expression: leased_units.start_date
+          - relationship: end_date
+            object_mapping:
+              concept: CalendarDate
+              expression: leased_units.end_date
+          - relationship: leased_area_m2
+            object_mapping:
+              concept: AreaM2
+              expression: leased_units.leased_area_m2
+          - relationship: lease
+            object_mapping:
+              concept: Lease
+              referent_mappings:
+                - relationship: id
+                  expression: leased_units.lease_id
+          - relationship: unit
+            object_mapping:
+              concept: LeasableUnit
+              referent_mappings:
+                - relationship: id
+                  expression: leased_units.unit_id
+  - concept: RentStep
+    object_mappings:
+      - &a37
+        referent_mappings:
+          - relationship: id
+            expression: rent_steps.id
+    link_mappings:
+      - object_mapping: *a37
+        children:
+          - relationship: effective_from
+            object_mapping:
+              concept: CalendarDate
+              expression: rent_steps.effective_from
+          - relationship: effective_to
+            object_mapping:
+              concept: CalendarDate
+              expression: rent_steps.effective_to
+          - relationship: monthly_amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: rent_steps.monthly_amount
+          - relationship: lease
+            object_mapping:
+              concept: Lease
+              referent_mappings:
+                - relationship: id
+                  expression: rent_steps.lease_id
+  - concept: PercentageRentClause
+    object_mappings:
+      - &a38
+        referent_mappings:
+          - relationship: id
+            expression: percentage_rent_clauses.id
+    link_mappings:
+      - object_mapping: *a38
+        children:
+          - relationship: clause_reference
+            object_mapping:
+              concept: Code
+              expression: percentage_rent_clauses.clause_reference
+          - relationship: effective_from
+            object_mapping:
+              concept: CalendarDate
+              expression: percentage_rent_clauses.effective_from
+          - relationship: effective_to
+            object_mapping:
+              concept: CalendarDate
+              expression: percentage_rent_clauses.effective_to
+          - relationship: notes
+            object_mapping:
+              concept: Text
+              expression: percentage_rent_clauses.notes
+          - relationship: rate
+            object_mapping:
+              concept: Rate
+              expression: percentage_rent_clauses.rate
+          - relationship: excludes_thirteenth_rent
+            object_mapping:
+              concept: Flag
+              expression: percentage_rent_clauses.excludes_thirteenth_rent
+          - relationship: lease
+            object_mapping:
+              concept: Lease
+              referent_mappings:
+                - relationship: id
+                  expression: percentage_rent_clauses.lease_id
+  - concept: IndexationClause
+    object_mappings:
+      - &a39
+        referent_mappings:
+          - relationship: id
+            expression: indexation_clauses.id
+    link_mappings:
+      - object_mapping: *a39
+        children:
+          - relationship: clause_reference
+            object_mapping:
+              concept: Code
+              expression: indexation_clauses.clause_reference
+          - relationship: effective_from
+            object_mapping:
+              concept: CalendarDate
+              expression: indexation_clauses.effective_from
+          - relationship: effective_to
+            object_mapping:
+              concept: CalendarDate
+              expression: indexation_clauses.effective_to
+          - relationship: notes
+            object_mapping:
+              concept: Text
+              expression: indexation_clauses.notes
+          - relationship: anniversary_month
+            object_mapping:
+              concept: Count
+              expression: indexation_clauses.anniversary_month
+          - relationship: frequency_months
+            object_mapping:
+              concept: Count
+              expression: indexation_clauses.frequency_months
+          - relationship: lease
+            object_mapping:
+              concept: Lease
+              referent_mappings:
+                - relationship: id
+                  expression: indexation_clauses.lease_id
+          - relationship: price_index
+            object_mapping:
+              concept: PriceIndex
+              referent_mappings:
+                - relationship: id
+                  expression: indexation_clauses.price_index_id
+  - concept: ExclusivityClause
+    object_mappings:
+      - &a40
+        referent_mappings:
+          - relationship: id
+            expression: exclusivity_clauses.id
+    link_mappings:
+      - object_mapping: *a40
+        children:
+          - relationship: clause_reference
+            object_mapping:
+              concept: Code
+              expression: exclusivity_clauses.clause_reference
+          - relationship: effective_from
+            object_mapping:
+              concept: CalendarDate
+              expression: exclusivity_clauses.effective_from
+          - relationship: effective_to
+            object_mapping:
+              concept: CalendarDate
+              expression: exclusivity_clauses.effective_to
+          - relationship: notes
+            object_mapping:
+              concept: Text
+              expression: exclusivity_clauses.notes
+          - relationship: lease
+            object_mapping:
+              concept: Lease
+              referent_mappings:
+                - relationship: id
+                  expression: exclusivity_clauses.lease_id
+          - relationship: protected_category
+            object_mapping:
+              concept: MerchandiseCategory
+              referent_mappings:
+                - relationship: id
+                  expression: exclusivity_clauses.protected_category_id
+  - concept: RadiusClause
+    object_mappings:
+      - &a41
+        referent_mappings:
+          - relationship: id
+            expression: radius_clauses.id
+    link_mappings:
+      - object_mapping: *a41
+        children:
+          - relationship: clause_reference
+            object_mapping:
+              concept: Code
+              expression: radius_clauses.clause_reference
+          - relationship: effective_from
+            object_mapping:
+              concept: CalendarDate
+              expression: radius_clauses.effective_from
+          - relationship: effective_to
+            object_mapping:
+              concept: CalendarDate
+              expression: radius_clauses.effective_to
+          - relationship: notes
+            object_mapping:
+              concept: Text
+              expression: radius_clauses.notes
+          - relationship: radius_km
+            object_mapping:
+              concept: DistanceKm
+              expression: radius_clauses.radius_km
+          - relationship: lease
+            object_mapping:
+              concept: Lease
+              referent_mappings:
+                - relationship: id
+                  expression: radius_clauses.lease_id
+  - concept: CoTenancyClause
+    object_mappings:
+      - &a42
+        referent_mappings:
+          - relationship: id
+            expression: co_tenancy_clauses.id
+    link_mappings:
+      - object_mapping: *a42
+        children:
+          - relationship: clause_reference
+            object_mapping:
+              concept: Code
+              expression: co_tenancy_clauses.clause_reference
+          - relationship: effective_from
+            object_mapping:
+              concept: CalendarDate
+              expression: co_tenancy_clauses.effective_from
+          - relationship: effective_to
+            object_mapping:
+              concept: CalendarDate
+              expression: co_tenancy_clauses.effective_to
+          - relationship: notes
+            object_mapping:
+              concept: Text
+              expression: co_tenancy_clauses.notes
+          - relationship: required_occupancy_rate
+            object_mapping:
+              concept: Rate
+              expression: co_tenancy_clauses.required_occupancy_rate
+          - relationship: remedy_rent_rate
+            object_mapping:
+              concept: Rate
+              expression: co_tenancy_clauses.remedy_rent_rate
+          - relationship: lease
+            object_mapping:
+              concept: Lease
+              referent_mappings:
+                - relationship: id
+                  expression: co_tenancy_clauses.lease_id
+  - concept: RenewalOption
+    object_mappings:
+      - &a43
+        referent_mappings:
+          - relationship: id
+            expression: renewal_options.id
+    link_mappings:
+      - object_mapping: *a43
+        children:
+          - relationship: clause_reference
+            object_mapping:
+              concept: Code
+              expression: renewal_options.clause_reference
+          - relationship: effective_from
+            object_mapping:
+              concept: CalendarDate
+              expression: renewal_options.effective_from
+          - relationship: effective_to
+            object_mapping:
+              concept: CalendarDate
+              expression: renewal_options.effective_to
+          - relationship: notes
+            object_mapping:
+              concept: Text
+              expression: renewal_options.notes
+          - relationship: notice_months
+            object_mapping:
+              concept: Count
+              expression: renewal_options.notice_months
+          - relationship: renewal_term_months
+            object_mapping:
+              concept: Count
+              expression: renewal_options.renewal_term_months
+          - relationship: lease
+            object_mapping:
+              concept: Lease
+              referent_mappings:
+                - relationship: id
+                  expression: renewal_options.lease_id
+  - concept: EarlyTerminationOption
+    object_mappings:
+      - &a44
+        referent_mappings:
+          - relationship: id
+            expression: early_termination_options.id
+    link_mappings:
+      - object_mapping: *a44
+        children:
+          - relationship: clause_reference
+            object_mapping:
+              concept: Code
+              expression: early_termination_options.clause_reference
+          - relationship: effective_from
+            object_mapping:
+              concept: CalendarDate
+              expression: early_termination_options.effective_from
+          - relationship: effective_to
+            object_mapping:
+              concept: CalendarDate
+              expression: early_termination_options.effective_to
+          - relationship: notes
+            object_mapping:
+              concept: Text
+              expression: early_termination_options.notes
+          - relationship: earliest_exercise_date
+            object_mapping:
+              concept: CalendarDate
+              expression: early_termination_options.earliest_exercise_date
+          - relationship: penalty_months_of_rent
+            object_mapping:
+              concept: Quantity
+              expression: early_termination_options.penalty_months_of_rent
+          - relationship: lease
+            object_mapping:
+              concept: Lease
+              referent_mappings:
+                - relationship: id
+                  expression: early_termination_options.lease_id
+  - concept: GuaranteeType
+    object_mappings:
+      - &a45
+        referent_mappings:
+          - relationship: id
+            expression: guarantee_types.id
+    link_mappings:
+      - object_mapping: *a45
+        children:
+          - relationship: code
+            object_mapping:
+              concept: Code
+              expression: guarantee_types.code
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: guarantee_types.name
+  - concept: Guarantee
+    object_mappings:
+      - &a46
+        referent_mappings:
+          - relationship: id
+            expression: guarantees.id
+    link_mappings:
+      - object_mapping: *a46
+        children:
+          - relationship: amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: guarantees.amount
+          - relationship: start_date
+            object_mapping:
+              concept: CalendarDate
+              expression: guarantees.start_date
+          - relationship: end_date
+            object_mapping:
+              concept: CalendarDate
+              expression: guarantees.end_date
+          - relationship: lease
+            object_mapping:
+              concept: Lease
+              referent_mappings:
+                - relationship: id
+                  expression: guarantees.lease_id
+          - relationship: guarantee_type
+            object_mapping:
+              concept: GuaranteeType
+              referent_mappings:
+                - relationship: id
+                  expression: guarantees.guarantee_type_id
+          - relationship: guarantor
+            object_mapping:
+              concept: Organization
+              referent_mappings:
+                - relationship: id
+                  expression: guarantees.guarantor_id
+  - concept: KeyMoneyAgreement
+    object_mappings:
+      - &a47
+        referent_mappings:
+          - relationship: id
+            expression: key_money_agreements.id
+    link_mappings:
+      - object_mapping: *a47
+        children:
+          - relationship: total_amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: key_money_agreements.total_amount
+          - relationship: installments
+            object_mapping:
+              concept: Count
+              expression: key_money_agreements.installments
+          - relationship: agreement_date
+            object_mapping:
+              concept: CalendarDate
+              expression: key_money_agreements.agreement_date
+          - relationship: lease
+            object_mapping:
+              concept: Lease
+              referent_mappings:
+                - relationship: id
+                  expression: key_money_agreements.lease_id
+  - concept: RentConcession
+    object_mappings:
+      - &a48
+        referent_mappings:
+          - relationship: id
+            expression: rent_concessions.id
+    link_mappings:
+      - object_mapping: *a48
+        children:
+          - relationship: concession_type
+            object_mapping:
+              concept: Code
+              expression: rent_concessions.concession_type
+          - relationship: start_date
+            object_mapping:
+              concept: CalendarDate
+              expression: rent_concessions.start_date
+          - relationship: end_date
+            object_mapping:
+              concept: CalendarDate
+              expression: rent_concessions.end_date
+          - relationship: discount_rate
+            object_mapping:
+              concept: Rate
+              expression: rent_concessions.discount_rate
+          - relationship: reason
+            object_mapping:
+              concept: Text
+              expression: rent_concessions.reason
+          - relationship: lease
+            object_mapping:
+              concept: Lease
+              referent_mappings:
+                - relationship: id
+                  expression: rent_concessions.lease_id
+  - concept: TenantAllowance
+    object_mappings:
+      - &a49
+        referent_mappings:
+          - relationship: id
+            expression: tenant_allowances.id
+    link_mappings:
+      - object_mapping: *a49
+        children:
+          - relationship: amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: tenant_allowances.amount
+          - relationship: purpose
+            object_mapping:
+              concept: Text
+              expression: tenant_allowances.purpose
+          - relationship: lease
+            object_mapping:
+              concept: Lease
+              referent_mappings:
+                - relationship: id
+                  expression: tenant_allowances.lease_id
+  - concept: FitOutProject
+    object_mappings:
+      - &a50
+        referent_mappings:
+          - relationship: id
+            expression: fit_out_projects.id
+    link_mappings:
+      - object_mapping: *a50
+        children:
+          - relationship: handover_date
+            object_mapping:
+              concept: CalendarDate
+              expression: fit_out_projects.handover_date
+          - relationship: planned_opening_date
+            object_mapping:
+              concept: CalendarDate
+              expression: fit_out_projects.planned_opening_date
+          - relationship: actual_opening_date
+            object_mapping:
+              concept: CalendarDate
+              expression: fit_out_projects.actual_opening_date
+          - relationship: design_approved
+            object_mapping:
+              concept: Flag
+              expression: fit_out_projects.design_approved
+          - relationship: status
+            object_mapping:
+              concept: Code
+              expression: fit_out_projects.status
+          - relationship: lease
+            object_mapping:
+              concept: Lease
+              referent_mappings:
+                - relationship: id
+                  expression: fit_out_projects.lease_id
+          - relationship: unit
+            object_mapping:
+              concept: LeasableUnit
+              referent_mappings:
+                - relationship: id
+                  expression: fit_out_projects.unit_id
+  - concept: LeaseTermination
+    object_mappings:
+      - &a51
+        referent_mappings:
+          - relationship: id
+            expression: lease_terminations.id
+    link_mappings:
+      - object_mapping: *a51
+        children:
+          - relationship: termination_date
+            object_mapping:
+              concept: CalendarDate
+              expression: lease_terminations.termination_date
+          - relationship: reason
+            object_mapping:
+              concept: Code
+              expression: lease_terminations.reason
+          - relationship: penalty_amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: lease_terminations.penalty_amount
+          - relationship: lease
+            object_mapping:
+              concept: Lease
+              referent_mappings:
+                - relationship: id
+                  expression: lease_terminations.lease_id
+  - concept: LegalEntity
+    object_mappings:
+      - &a52
+        referent_mappings:
+          - relationship: id
+            expression: legal_entities.id
+    link_mappings:
+      - object_mapping: *a52
+        children:
+          - relationship: registration_number
+            object_mapping:
+              concept: Code
+              expression: legal_entities.registration_number
+          - relationship: entity_type
+            object_mapping:
+              concept: Code
+              expression: legal_entities.entity_type
+          - relationship: incorporation_date
+            object_mapping:
+              concept: CalendarDate
+              expression: legal_entities.incorporation_date
+          - relationship: fiscal_regime
+            object_mapping:
+              concept: Code
+              expression: legal_entities.fiscal_regime
+          - relationship: organization
+            object_mapping:
+              concept: Organization
+              referent_mappings:
+                - relationship: id
+                  expression: legal_entities.organization_id
+  - concept: ContractType
+    object_mappings:
+      - &a53
+        referent_mappings:
+          - relationship: id
+            expression: contract_types.id
+    link_mappings:
+      - object_mapping: *a53
+        children:
+          - relationship: code
+            object_mapping:
+              concept: Code
+              expression: contract_types.code
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: contract_types.name
+          - relationship: requires_legal_review
+            object_mapping:
+              concept: Flag
+              expression: contract_types.requires_legal_review
+  - concept: Contract
+    object_mappings:
+      - &a54
+        referent_mappings:
+          - relationship: id
+            expression: contracts.id
+    link_mappings:
+      - object_mapping: *a54
+        children:
+          - relationship: contract_number
+            object_mapping:
+              concept: Code
+              expression: contracts.contract_number
+          - relationship: title
+            object_mapping:
+              concept: Text
+              expression: contracts.title
+          - relationship: signing_date
+            object_mapping:
+              concept: CalendarDate
+              expression: contracts.signing_date
+          - relationship: start_date
+            object_mapping:
+              concept: CalendarDate
+              expression: contracts.start_date
+          - relationship: end_date
+            object_mapping:
+              concept: CalendarDate
+              expression: contracts.end_date
+          - relationship: status
+            object_mapping:
+              concept: Code
+              expression: contracts.status
+          - relationship: total_value
+            object_mapping:
+              concept: MoneyAmount
+              expression: contracts.total_value
+          - relationship: auto_renewal
+            object_mapping:
+              concept: Flag
+              expression: contracts.auto_renewal
+          - relationship: notice_period_days
+            object_mapping:
+              concept: Count
+              expression: contracts.notice_period_days
+          - relationship: governing_law
+            object_mapping:
+              concept: Text
+              expression: contracts.governing_law
+          - relationship: contract_type
+            object_mapping:
+              concept: ContractType
+              referent_mappings:
+                - relationship: id
+                  expression: contracts.contract_type_id
+          - relationship: contracting_entity
+            object_mapping:
+              concept: LegalEntity
+              referent_mappings:
+                - relationship: id
+                  expression: contracts.contracting_entity_id
+          - relationship: currency
+            object_mapping:
+              concept: Currency
+              referent_mappings:
+                - relationship: id
+                  expression: contracts.currency_id
+  - concept: ContractParty
+    object_mappings:
+      - &a55
+        referent_mappings:
+          - relationship: id
+            expression: contract_parties.id
+    link_mappings:
+      - object_mapping: *a55
+        children:
+          - relationship: party_role
+            object_mapping:
+              concept: Code
+              expression: contract_parties.party_role
+          - relationship: contract
+            object_mapping:
+              concept: Contract
+              referent_mappings:
+                - relationship: id
+                  expression: contract_parties.contract_id
+          - relationship: organization
+            object_mapping:
+              concept: Organization
+              referent_mappings:
+                - relationship: id
+                  expression: contract_parties.organization_id
+          - relationship: person
+            object_mapping:
+              concept: Person
+              referent_mappings:
+                - relationship: id
+                  expression: contract_parties.person_id
+  - concept: ContractDocument
+    object_mappings:
+      - &a56
+        referent_mappings:
+          - relationship: id
+            expression: contract_documents.id
+    link_mappings:
+      - object_mapping: *a56
+        children:
+          - relationship: document_type
+            object_mapping:
+              concept: Code
+              expression: contract_documents.document_type
+          - relationship: reference
+            object_mapping:
+              concept: Text
+              expression: contract_documents.reference
+          - relationship: signed_date
+            object_mapping:
+              concept: CalendarDate
+              expression: contract_documents.signed_date
+          - relationship: signature_method
+            object_mapping:
+              concept: Code
+              expression: contract_documents.signature_method
+          - relationship: contract
+            object_mapping:
+              concept: Contract
+              referent_mappings:
+                - relationship: id
+                  expression: contract_documents.contract_id
+  - concept: ContractAmendment
+    object_mappings:
+      - &a57
+        referent_mappings:
+          - relationship: id
+            expression: contract_amendments.id
+    link_mappings:
+      - object_mapping: *a57
+        children:
+          - relationship: amendment_number
+            object_mapping:
+              concept: Code
+              expression: contract_amendments.amendment_number
+          - relationship: effective_date
+            object_mapping:
+              concept: CalendarDate
+              expression: contract_amendments.effective_date
+          - relationship: amendment_type
+            object_mapping:
+              concept: Code
+              expression: contract_amendments.amendment_type
+          - relationship: summary
+            object_mapping:
+              concept: Text
+              expression: contract_amendments.summary
+          - relationship: value_change
+            object_mapping:
+              concept: MoneyAmount
+              expression: contract_amendments.value_change
+          - relationship: contract
+            object_mapping:
+              concept: Contract
+              referent_mappings:
+                - relationship: id
+                  expression: contract_amendments.contract_id
+  - concept: ContractObligation
+    object_mappings:
+      - &a58
+        referent_mappings:
+          - relationship: id
+            expression: contract_obligations.id
+    link_mappings:
+      - object_mapping: *a58
+        children:
+          - relationship: summary
+            object_mapping:
+              concept: Text
+              expression: contract_obligations.summary
+          - relationship: obligation_type
+            object_mapping:
+              concept: Code
+              expression: contract_obligations.obligation_type
+          - relationship: due_date
+            object_mapping:
+              concept: CalendarDate
+              expression: contract_obligations.due_date
+          - relationship: frequency
+            object_mapping:
+              concept: Code
+              expression: contract_obligations.frequency
+          - relationship: status
+            object_mapping:
+              concept: Code
+              expression: contract_obligations.status
+          - relationship: contract
+            object_mapping:
+              concept: Contract
+              referent_mappings:
+                - relationship: id
+                  expression: contract_obligations.contract_id
+          - relationship: responsible
+            object_mapping:
+              concept: Employee
+              referent_mappings:
+                - relationship: id
+                  expression: contract_obligations.responsible_id
+  - concept: ContractApproval
+    object_mappings:
+      - &a59
+        referent_mappings:
+          - relationship: id
+            expression: contract_approvals.id
+    link_mappings:
+      - object_mapping: *a59
+        children:
+          - relationship: approval_level
+            object_mapping:
+              concept: Code
+              expression: contract_approvals.approval_level
+          - relationship: decision
+            object_mapping:
+              concept: Code
+              expression: contract_approvals.decision
+          - relationship: decision_date
+            object_mapping:
+              concept: CalendarDate
+              expression: contract_approvals.decision_date
+          - relationship: contract
+            object_mapping:
+              concept: Contract
+              referent_mappings:
+                - relationship: id
+                  expression: contract_approvals.contract_id
+          - relationship: approver
+            object_mapping:
+              concept: Employee
+              referent_mappings:
+                - relationship: id
+                  expression: contract_approvals.approver_id
+  - concept: PowerOfAttorney
+    object_mappings:
+      - &a60
+        referent_mappings:
+          - relationship: id
+            expression: powers_of_attorney.id
+    link_mappings:
+      - object_mapping: *a60
+        children:
+          - relationship: scope
+            object_mapping:
+              concept: Text
+              expression: powers_of_attorney.scope
+          - relationship: granted_date
+            object_mapping:
+              concept: CalendarDate
+              expression: powers_of_attorney.granted_date
+          - relationship: valid_until
+            object_mapping:
+              concept: CalendarDate
+              expression: powers_of_attorney.valid_until
+          - relationship: grantor
+            object_mapping:
+              concept: LegalEntity
+              referent_mappings:
+                - relationship: id
+                  expression: powers_of_attorney.grantor_id
+          - relationship: attorney
+            object_mapping:
+              concept: Person
+              referent_mappings:
+                - relationship: id
+                  expression: powers_of_attorney.attorney_id
+  - concept: GovernanceMeeting
+    object_mappings:
+      - &a61
+        referent_mappings:
+          - relationship: id
+            expression: governance_meetings.id
+    link_mappings:
+      - object_mapping: *a61
+        children:
+          - relationship: meeting_type
+            object_mapping:
+              concept: Code
+              expression: governance_meetings.meeting_type
+          - relationship: meeting_date
+            object_mapping:
+              concept: CalendarDate
+              expression: governance_meetings.meeting_date
+          - relationship: quorum
+            object_mapping:
+              concept: Rate
+              expression: governance_meetings.quorum
+          - relationship: legal_entity
+            object_mapping:
+              concept: LegalEntity
+              referent_mappings:
+                - relationship: id
+                  expression: governance_meetings.legal_entity_id
+  - concept: Resolution
+    object_mappings:
+      - &a62
+        referent_mappings:
+          - relationship: id
+            expression: resolutions.id
+    link_mappings:
+      - object_mapping: *a62
+        children:
+          - relationship: summary
+            object_mapping:
+              concept: Text
+              expression: resolutions.summary
+          - relationship: outcome
+            object_mapping:
+              concept: Code
+              expression: resolutions.outcome
+          - relationship: votes_in_favour
+            object_mapping:
+              concept: Rate
+              expression: resolutions.votes_in_favour
+          - relationship: meeting
+            object_mapping:
+              concept: GovernanceMeeting
+              referent_mappings:
+                - relationship: id
+                  expression: resolutions.meeting_id
+  - concept: LegalProceeding
+    object_mappings:
+      - &a63
+        referent_mappings:
+          - relationship: id
+            expression: legal_proceedings.id
+    link_mappings:
+      - object_mapping: *a63
+        children:
+          - relationship: case_number
+            object_mapping:
+              concept: Code
+              expression: legal_proceedings.case_number
+          - relationship: proceeding_type
+            object_mapping:
+              concept: Code
+              expression: legal_proceedings.proceeding_type
+          - relationship: court
+            object_mapping:
+              concept: Name
+              expression: legal_proceedings.court
+          - relationship: filing_date
+            object_mapping:
+              concept: CalendarDate
+              expression: legal_proceedings.filing_date
+          - relationship: status
+            object_mapping:
+              concept: Code
+              expression: legal_proceedings.status
+          - relationship: amount_claimed
+            object_mapping:
+              concept: MoneyAmount
+              expression: legal_proceedings.amount_claimed
+          - relationship: is_plaintiff
+            object_mapping:
+              concept: Flag
+              expression: legal_proceedings.is_plaintiff
+          - relationship: legal_entity
+            object_mapping:
+              concept: LegalEntity
+              referent_mappings:
+                - relationship: id
+                  expression: legal_proceedings.legal_entity_id
+          - relationship: contract
+            object_mapping:
+              concept: Contract
+              referent_mappings:
+                - relationship: id
+                  expression: legal_proceedings.contract_id
+          - relationship: property
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: legal_proceedings.property_id
+          - relationship: opposing_party
+            object_mapping:
+              concept: Organization
+              referent_mappings:
+                - relationship: id
+                  expression: legal_proceedings.opposing_party_id
+          - relationship: opposing_person
+            object_mapping:
+              concept: Person
+              referent_mappings:
+                - relationship: id
+                  expression: legal_proceedings.opposing_person_id
+          - relationship: law_firm
+            object_mapping:
+              concept: Organization
+              referent_mappings:
+                - relationship: id
+                  expression: legal_proceedings.law_firm_id
+  - concept: LitigationProvision
+    object_mappings:
+      - &a64
+        referent_mappings:
+          - relationship: id
+            expression: litigation_provisions.id
+    link_mappings:
+      - object_mapping: *a64
+        children:
+          - relationship: assessment_date
+            object_mapping:
+              concept: CalendarDate
+              expression: litigation_provisions.assessment_date
+          - relationship: loss_probability
+            object_mapping:
+              concept: Code
+              expression: litigation_provisions.loss_probability
+          - relationship: estimated_loss
+            object_mapping:
+              concept: MoneyAmount
+              expression: litigation_provisions.estimated_loss
+          - relationship: provision_amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: litigation_provisions.provision_amount
+          - relationship: proceeding
+            object_mapping:
+              concept: LegalProceeding
+              referent_mappings:
+                - relationship: id
+                  expression: litigation_provisions.proceeding_id
+  - concept: ComplianceRequirement
+    object_mappings:
+      - &a65
+        referent_mappings:
+          - relationship: id
+            expression: compliance_requirements.id
+    link_mappings:
+      - object_mapping: *a65
+        children:
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: compliance_requirements.name
+          - relationship: regulation
+            object_mapping:
+              concept: Text
+              expression: compliance_requirements.regulation
+          - relationship: frequency
+            object_mapping:
+              concept: Code
+              expression: compliance_requirements.frequency
+  - concept: ComplianceCheck
+    object_mappings:
+      - &a66
+        referent_mappings:
+          - relationship: id
+            expression: compliance_checks.id
+    link_mappings:
+      - object_mapping: *a66
+        children:
+          - relationship: check_date
+            object_mapping:
+              concept: CalendarDate
+              expression: compliance_checks.check_date
+          - relationship: result
+            object_mapping:
+              concept: Code
+              expression: compliance_checks.result
+          - relationship: findings
+            object_mapping:
+              concept: Text
+              expression: compliance_checks.findings
+          - relationship: remediation_due
+            object_mapping:
+              concept: CalendarDate
+              expression: compliance_checks.remediation_due
+          - relationship: requirement
+            object_mapping:
+              concept: ComplianceRequirement
+              referent_mappings:
+                - relationship: id
+                  expression: compliance_checks.requirement_id
+          - relationship: property
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: compliance_checks.property_id
+          - relationship: inspector
+            object_mapping:
+              concept: Employee
+              referent_mappings:
+                - relationship: id
+                  expression: compliance_checks.inspector_id
+  - concept: DataSubjectRequest
+    object_mappings:
+      - &a67
+        referent_mappings:
+          - relationship: id
+            expression: data_subject_requests.id
+    link_mappings:
+      - object_mapping: *a67
+        children:
+          - relationship: request_date
+            object_mapping:
+              concept: CalendarDate
+              expression: data_subject_requests.request_date
+          - relationship: request_type
+            object_mapping:
+              concept: Code
+              expression: data_subject_requests.request_type
+          - relationship: due_date
+            object_mapping:
+              concept: CalendarDate
+              expression: data_subject_requests.due_date
+          - relationship: completed_date
+            object_mapping:
+              concept: CalendarDate
+              expression: data_subject_requests.completed_date
+          - relationship: status
+            object_mapping:
+              concept: Code
+              expression: data_subject_requests.status
+          - relationship: data_subject
+            object_mapping:
+              concept: Person
+              referent_mappings:
+                - relationship: id
+                  expression: data_subject_requests.data_subject_id
+          - relationship: controller
+            object_mapping:
+              concept: LegalEntity
+              referent_mappings:
+                - relationship: id
+                  expression: data_subject_requests.controller_id
+  - concept: Department
+    object_mappings:
+      - &a68
+        referent_mappings:
+          - relationship: id
+            expression: departments.id
+    link_mappings:
+      - object_mapping: *a68
+        children:
+          - relationship: code
+            object_mapping:
+              concept: Code
+              expression: departments.code
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: departments.name
+          - relationship: parent_department
+            object_mapping:
+              concept: Department
+              referent_mappings:
+                - relationship: id
+                  expression: departments.parent_department_id
+          - relationship: legal_entity
+            object_mapping:
+              concept: LegalEntity
+              referent_mappings:
+                - relationship: id
+                  expression: departments.legal_entity_id
+          - relationship: cost_center
+            object_mapping:
+              concept: CostCenter
+              referent_mappings:
+                - relationship: id
+                  expression: departments.cost_center_id
+  - concept: Position
+    object_mappings:
+      - &a69
+        referent_mappings:
+          - relationship: id
+            expression: positions.id
+    link_mappings:
+      - object_mapping: *a69
+        children:
+          - relationship: code
+            object_mapping:
+              concept: Code
+              expression: positions.code
+          - relationship: title
+            object_mapping:
+              concept: Text
+              expression: positions.title
+          - relationship: grade
+            object_mapping:
+              concept: Code
+              expression: positions.grade
+          - relationship: occupation_code
+            object_mapping:
+              concept: Code
+              expression: positions.occupation_code
+          - relationship: department
+            object_mapping:
+              concept: Department
+              referent_mappings:
+                - relationship: id
+                  expression: positions.department_id
+  - concept: Employee
+    object_mappings:
+      - &a70
+        referent_mappings:
+          - relationship: id
+            expression: employees.id
+    link_mappings:
+      - object_mapping: *a70
+        children:
+          - relationship: employee_number
+            object_mapping:
+              concept: Code
+              expression: employees.employee_number
+          - relationship: hire_date
+            object_mapping:
+              concept: CalendarDate
+              expression: employees.hire_date
+          - relationship: termination_date
+            object_mapping:
+              concept: CalendarDate
+              expression: employees.termination_date
+          - relationship: employment_type
+            object_mapping:
+              concept: Code
+              expression: employees.employment_type
+          - relationship: work_schedule
+            object_mapping:
+              concept: Code
+              expression: employees.work_schedule
+          - relationship: person
+            object_mapping:
+              concept: Person
+              referent_mappings:
+                - relationship: id
+                  expression: employees.person_id
+          - relationship: position
+            object_mapping:
+              concept: Position
+              referent_mappings:
+                - relationship: id
+                  expression: employees.position_id
+          - relationship: employer
+            object_mapping:
+              concept: LegalEntity
+              referent_mappings:
+                - relationship: id
+                  expression: employees.employer_id
+          - relationship: manager
+            object_mapping:
+              concept: Employee
+              referent_mappings:
+                - relationship: id
+                  expression: employees.manager_id
+          - relationship: work_site
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: employees.work_site_id
+  - concept: EmploymentContract
+    object_mappings:
+      - &a71
+        referent_mappings:
+          - relationship: id
+            expression: employment_contracts.id
+    link_mappings:
+      - object_mapping: *a71
+        children:
+          - relationship: base_salary
+            object_mapping:
+              concept: MoneyAmount
+              expression: employment_contracts.base_salary
+          - relationship: weekly_hours
+            object_mapping:
+              concept: Quantity
+              expression: employment_contracts.weekly_hours
+          - relationship: probation_end_date
+            object_mapping:
+              concept: CalendarDate
+              expression: employment_contracts.probation_end_date
+          - relationship: employee
+            object_mapping:
+              concept: Employee
+              referent_mappings:
+                - relationship: id
+                  expression: employment_contracts.employee_id
+          - relationship: contract
+            object_mapping:
+              concept: Contract
+              referent_mappings:
+                - relationship: id
+                  expression: employment_contracts.contract_id
+  - concept: CompensationChange
+    object_mappings:
+      - &a72
+        referent_mappings:
+          - relationship: id
+            expression: compensation_changes.id
+    link_mappings:
+      - object_mapping: *a72
+        children:
+          - relationship: effective_date
+            object_mapping:
+              concept: CalendarDate
+              expression: compensation_changes.effective_date
+          - relationship: new_base_salary
+            object_mapping:
+              concept: MoneyAmount
+              expression: compensation_changes.new_base_salary
+          - relationship: reason
+            object_mapping:
+              concept: Code
+              expression: compensation_changes.reason
+          - relationship: employee
+            object_mapping:
+              concept: Employee
+              referent_mappings:
+                - relationship: id
+                  expression: compensation_changes.employee_id
+  - concept: PayrollRun
+    object_mappings:
+      - &a73
+        referent_mappings:
+          - relationship: id
+            expression: payroll_runs.id
+    link_mappings:
+      - object_mapping: *a73
+        children:
+          - relationship: payment_date
+            object_mapping:
+              concept: CalendarDate
+              expression: payroll_runs.payment_date
+          - relationship: status
+            object_mapping:
+              concept: Code
+              expression: payroll_runs.status
+          - relationship: legal_entity
+            object_mapping:
+              concept: LegalEntity
+              referent_mappings:
+                - relationship: id
+                  expression: payroll_runs.legal_entity_id
+          - relationship: month
+            object_mapping:
+              concept: CalendarMonth
+              referent_mappings:
+                - relationship: id
+                  expression: payroll_runs.month_id
+  - concept: PayrollLine
+    object_mappings:
+      - &a74
+        referent_mappings:
+          - relationship: id
+            expression: payroll_lines.id
+    link_mappings:
+      - object_mapping: *a74
+        children:
+          - relationship: component
+            object_mapping:
+              concept: Code
+              expression: payroll_lines.component
+          - relationship: amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: payroll_lines.amount
+          - relationship: employer_cost
+            object_mapping:
+              concept: Flag
+              expression: payroll_lines.employer_cost
+          - relationship: payroll_run
+            object_mapping:
+              concept: PayrollRun
+              referent_mappings:
+                - relationship: id
+                  expression: payroll_lines.payroll_run_id
+          - relationship: employee
+            object_mapping:
+              concept: Employee
+              referent_mappings:
+                - relationship: id
+                  expression: payroll_lines.employee_id
+          - relationship: cost_center
+            object_mapping:
+              concept: CostCenter
+              referent_mappings:
+                - relationship: id
+                  expression: payroll_lines.cost_center_id
+  - concept: TimeEntry
+    object_mappings:
+      - &a75
+        referent_mappings:
+          - relationship: id
+            expression: time_entries.id
+    link_mappings:
+      - object_mapping: *a75
+        children:
+          - relationship: work_date
+            object_mapping:
+              concept: CalendarDate
+              expression: time_entries.work_date
+          - relationship: hours_worked
+            object_mapping:
+              concept: Quantity
+              expression: time_entries.hours_worked
+          - relationship: overtime_hours
+            object_mapping:
+              concept: Quantity
+              expression: time_entries.overtime_hours
+          - relationship: night_hours
+            object_mapping:
+              concept: Quantity
+              expression: time_entries.night_hours
+          - relationship: employee
+            object_mapping:
+              concept: Employee
+              referent_mappings:
+                - relationship: id
+                  expression: time_entries.employee_id
+  - concept: LeaveRequest
+    object_mappings:
+      - &a76
+        referent_mappings:
+          - relationship: id
+            expression: leave_requests.id
+    link_mappings:
+      - object_mapping: *a76
+        children:
+          - relationship: leave_type
+            object_mapping:
+              concept: Code
+              expression: leave_requests.leave_type
+          - relationship: start_date
+            object_mapping:
+              concept: CalendarDate
+              expression: leave_requests.start_date
+          - relationship: end_date
+            object_mapping:
+              concept: CalendarDate
+              expression: leave_requests.end_date
+          - relationship: status
+            object_mapping:
+              concept: Code
+              expression: leave_requests.status
+          - relationship: employee
+            object_mapping:
+              concept: Employee
+              referent_mappings:
+                - relationship: id
+                  expression: leave_requests.employee_id
+          - relationship: approver
+            object_mapping:
+              concept: Employee
+              referent_mappings:
+                - relationship: id
+                  expression: leave_requests.approver_id
+  - concept: Benefit
+    object_mappings:
+      - &a77
+        referent_mappings:
+          - relationship: id
+            expression: benefits.id
+    link_mappings:
+      - object_mapping: *a77
+        children:
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: benefits.name
+          - relationship: benefit_type
+            object_mapping:
+              concept: Code
+              expression: benefits.benefit_type
+          - relationship: monthly_cost
+            object_mapping:
+              concept: MoneyAmount
+              expression: benefits.monthly_cost
+          - relationship: provider
+            object_mapping:
+              concept: Supplier
+              referent_mappings:
+                - relationship: id
+                  expression: benefits.provider_id
+  - concept: BenefitEnrollment
+    object_mappings:
+      - &a78
+        referent_mappings:
+          - relationship: id
+            expression: benefit_enrollments.id
+    link_mappings:
+      - object_mapping: *a78
+        children:
+          - relationship: start_date
+            object_mapping:
+              concept: CalendarDate
+              expression: benefit_enrollments.start_date
+          - relationship: end_date
+            object_mapping:
+              concept: CalendarDate
+              expression: benefit_enrollments.end_date
+          - relationship: employee_contribution
+            object_mapping:
+              concept: MoneyAmount
+              expression: benefit_enrollments.employee_contribution
+          - relationship: employee
+            object_mapping:
+              concept: Employee
+              referent_mappings:
+                - relationship: id
+                  expression: benefit_enrollments.employee_id
+          - relationship: benefit
+            object_mapping:
+              concept: Benefit
+              referent_mappings:
+                - relationship: id
+                  expression: benefit_enrollments.benefit_id
+  - concept: TrainingCourse
+    object_mappings:
+      - &a79
+        referent_mappings:
+          - relationship: id
+            expression: training_courses.id
+    link_mappings:
+      - object_mapping: *a79
+        children:
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: training_courses.name
+          - relationship: is_mandatory
+            object_mapping:
+              concept: Flag
+              expression: training_courses.is_mandatory
+          - relationship: validity_months
+            object_mapping:
+              concept: Count
+              expression: training_courses.validity_months
+  - concept: TrainingRecord
+    object_mappings:
+      - &a80
+        referent_mappings:
+          - relationship: id
+            expression: training_records.id
+    link_mappings:
+      - object_mapping: *a80
+        children:
+          - relationship: completion_date
+            object_mapping:
+              concept: CalendarDate
+              expression: training_records.completion_date
+          - relationship: expiry_date
+            object_mapping:
+              concept: CalendarDate
+              expression: training_records.expiry_date
+          - relationship: passed
+            object_mapping:
+              concept: Flag
+              expression: training_records.passed
+          - relationship: employee
+            object_mapping:
+              concept: Employee
+              referent_mappings:
+                - relationship: id
+                  expression: training_records.employee_id
+          - relationship: course
+            object_mapping:
+              concept: TrainingCourse
+              referent_mappings:
+                - relationship: id
+                  expression: training_records.course_id
+  - concept: PerformanceReview
+    object_mappings:
+      - &a81
+        referent_mappings:
+          - relationship: id
+            expression: performance_reviews.id
+    link_mappings:
+      - object_mapping: *a81
+        children:
+          - relationship: review_date
+            object_mapping:
+              concept: CalendarDate
+              expression: performance_reviews.review_date
+          - relationship: rating
+            object_mapping:
+              concept: Code
+              expression: performance_reviews.rating
+          - relationship: summary
+            object_mapping:
+              concept: Text
+              expression: performance_reviews.summary
+          - relationship: employee
+            object_mapping:
+              concept: Employee
+              referent_mappings:
+                - relationship: id
+                  expression: performance_reviews.employee_id
+          - relationship: reviewer
+            object_mapping:
+              concept: Employee
+              referent_mappings:
+                - relationship: id
+                  expression: performance_reviews.reviewer_id
+  - concept: JobOpening
+    object_mappings:
+      - &a82
+        referent_mappings:
+          - relationship: id
+            expression: job_openings.id
+    link_mappings:
+      - object_mapping: *a82
+        children:
+          - relationship: opened_date
+            object_mapping:
+              concept: CalendarDate
+              expression: job_openings.opened_date
+          - relationship: closed_date
+            object_mapping:
+              concept: CalendarDate
+              expression: job_openings.closed_date
+          - relationship: status
+            object_mapping:
+              concept: Code
+              expression: job_openings.status
+          - relationship: position
+            object_mapping:
+              concept: Position
+              referent_mappings:
+                - relationship: id
+                  expression: job_openings.position_id
+          - relationship: hiring_manager
+            object_mapping:
+              concept: Employee
+              referent_mappings:
+                - relationship: id
+                  expression: job_openings.hiring_manager_id
+  - concept: JobApplication
+    object_mappings:
+      - &a83
+        referent_mappings:
+          - relationship: id
+            expression: job_applications.id
+    link_mappings:
+      - object_mapping: *a83
+        children:
+          - relationship: applied_date
+            object_mapping:
+              concept: CalendarDate
+              expression: job_applications.applied_date
+          - relationship: stage
+            object_mapping:
+              concept: Code
+              expression: job_applications.stage
+          - relationship: job_opening
+            object_mapping:
+              concept: JobOpening
+              referent_mappings:
+                - relationship: id
+                  expression: job_applications.job_opening_id
+          - relationship: candidate
+            object_mapping:
+              concept: Person
+              referent_mappings:
+                - relationship: id
+                  expression: job_applications.candidate_id
+  - concept: Supplier
+    object_mappings:
+      - &a84
+        referent_mappings:
+          - relationship: id
+            expression: suppliers.id
+    link_mappings:
+      - object_mapping: *a84
+        children:
+          - relationship: supplier_category
+            object_mapping:
+              concept: Code
+              expression: suppliers.supplier_category
+          - relationship: payment_terms_days
+            object_mapping:
+              concept: Count
+              expression: suppliers.payment_terms_days
+          - relationship: is_approved
+            object_mapping:
+              concept: Flag
+              expression: suppliers.is_approved
+          - relationship: organization
+            object_mapping:
+              concept: Organization
+              referent_mappings:
+                - relationship: id
+                  expression: suppliers.organization_id
+  - concept: SupplierQualification
+    object_mappings:
+      - &a85
+        referent_mappings:
+          - relationship: id
+            expression: supplier_qualifications.id
+    link_mappings:
+      - object_mapping: *a85
+        children:
+          - relationship: qualification_date
+            object_mapping:
+              concept: CalendarDate
+              expression: supplier_qualifications.qualification_date
+          - relationship: status
+            object_mapping:
+              concept: Code
+              expression: supplier_qualifications.status
+          - relationship: valid_until
+            object_mapping:
+              concept: CalendarDate
+              expression: supplier_qualifications.valid_until
+          - relationship: supplier
+            object_mapping:
+              concept: Supplier
+              referent_mappings:
+                - relationship: id
+                  expression: supplier_qualifications.supplier_id
+          - relationship: reviewer
+            object_mapping:
+              concept: Employee
+              referent_mappings:
+                - relationship: id
+                  expression: supplier_qualifications.reviewer_id
+  - concept: SupplierEvaluation
+    object_mappings:
+      - &a86
+        referent_mappings:
+          - relationship: id
+            expression: supplier_evaluations.id
+    link_mappings:
+      - object_mapping: *a86
+        children:
+          - relationship: evaluation_date
+            object_mapping:
+              concept: CalendarDate
+              expression: supplier_evaluations.evaluation_date
+          - relationship: score
+            object_mapping:
+              concept: Rate
+              expression: supplier_evaluations.score
+          - relationship: comments
+            object_mapping:
+              concept: Text
+              expression: supplier_evaluations.comments
+          - relationship: supplier
+            object_mapping:
+              concept: Supplier
+              referent_mappings:
+                - relationship: id
+                  expression: supplier_evaluations.supplier_id
+          - relationship: evaluator
+            object_mapping:
+              concept: Employee
+              referent_mappings:
+                - relationship: id
+                  expression: supplier_evaluations.evaluator_id
+  - concept: SupplierAgreement
+    object_mappings:
+      - &a87
+        referent_mappings:
+          - relationship: id
+            expression: supplier_agreements.id
+    link_mappings:
+      - object_mapping: *a87
+        children:
+          - relationship: price_adjustment_month
+            object_mapping:
+              concept: Count
+              expression: supplier_agreements.price_adjustment_month
+          - relationship: spend_cap
+            object_mapping:
+              concept: MoneyAmount
+              expression: supplier_agreements.spend_cap
+          - relationship: contract
+            object_mapping:
+              concept: Contract
+              referent_mappings:
+                - relationship: id
+                  expression: supplier_agreements.contract_id
+          - relationship: supplier
+            object_mapping:
+              concept: Supplier
+              referent_mappings:
+                - relationship: id
+                  expression: supplier_agreements.supplier_id
+          - relationship: price_index
+            object_mapping:
+              concept: PriceIndex
+              referent_mappings:
+                - relationship: id
+                  expression: supplier_agreements.price_index_id
+  - concept: PurchaseRequisition
+    object_mappings:
+      - &a88
+        referent_mappings:
+          - relationship: id
+            expression: purchase_requisitions.id
+    link_mappings:
+      - object_mapping: *a88
+        children:
+          - relationship: requisition_number
+            object_mapping:
+              concept: Code
+              expression: purchase_requisitions.requisition_number
+          - relationship: request_date
+            object_mapping:
+              concept: CalendarDate
+              expression: purchase_requisitions.request_date
+          - relationship: justification
+            object_mapping:
+              concept: Text
+              expression: purchase_requisitions.justification
+          - relationship: estimated_amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: purchase_requisitions.estimated_amount
+          - relationship: status
+            object_mapping:
+              concept: Code
+              expression: purchase_requisitions.status
+          - relationship: requester
+            object_mapping:
+              concept: Employee
+              referent_mappings:
+                - relationship: id
+                  expression: purchase_requisitions.requester_id
+          - relationship: property
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: purchase_requisitions.property_id
+  - concept: RequestForQuotation
+    object_mappings:
+      - &a89
+        referent_mappings:
+          - relationship: id
+            expression: requests_for_quotation.id
+    link_mappings:
+      - object_mapping: *a89
+        children:
+          - relationship: rfq_number
+            object_mapping:
+              concept: Code
+              expression: requests_for_quotation.rfq_number
+          - relationship: issue_date
+            object_mapping:
+              concept: CalendarDate
+              expression: requests_for_quotation.issue_date
+          - relationship: closing_date
+            object_mapping:
+              concept: CalendarDate
+              expression: requests_for_quotation.closing_date
+          - relationship: requisition
+            object_mapping:
+              concept: PurchaseRequisition
+              referent_mappings:
+                - relationship: id
+                  expression: requests_for_quotation.requisition_id
+  - concept: SupplierQuote
+    object_mappings:
+      - &a90
+        referent_mappings:
+          - relationship: id
+            expression: supplier_quotes.id
+    link_mappings:
+      - object_mapping: *a90
+        children:
+          - relationship: quote_date
+            object_mapping:
+              concept: CalendarDate
+              expression: supplier_quotes.quote_date
+          - relationship: amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: supplier_quotes.amount
+          - relationship: delivery_days
+            object_mapping:
+              concept: Count
+              expression: supplier_quotes.delivery_days
+          - relationship: is_selected
+            object_mapping:
+              concept: Flag
+              expression: supplier_quotes.is_selected
+          - relationship: rfq
+            object_mapping:
+              concept: RequestForQuotation
+              referent_mappings:
+                - relationship: id
+                  expression: supplier_quotes.rfq_id
+          - relationship: supplier
+            object_mapping:
+              concept: Supplier
+              referent_mappings:
+                - relationship: id
+                  expression: supplier_quotes.supplier_id
+  - concept: PurchaseOrder
+    object_mappings:
+      - &a91
+        referent_mappings:
+          - relationship: id
+            expression: purchase_orders.id
+    link_mappings:
+      - object_mapping: *a91
+        children:
+          - relationship: po_number
+            object_mapping:
+              concept: Code
+              expression: purchase_orders.po_number
+          - relationship: order_date
+            object_mapping:
+              concept: CalendarDate
+              expression: purchase_orders.order_date
+          - relationship: status
+            object_mapping:
+              concept: Code
+              expression: purchase_orders.status
+          - relationship: supplier
+            object_mapping:
+              concept: Supplier
+              referent_mappings:
+                - relationship: id
+                  expression: purchase_orders.supplier_id
+          - relationship: property
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: purchase_orders.property_id
+          - relationship: requisition
+            object_mapping:
+              concept: PurchaseRequisition
+              referent_mappings:
+                - relationship: id
+                  expression: purchase_orders.requisition_id
+          - relationship: agreement
+            object_mapping:
+              concept: SupplierAgreement
+              referent_mappings:
+                - relationship: id
+                  expression: purchase_orders.agreement_id
+          - relationship: buyer
+            object_mapping:
+              concept: Employee
+              referent_mappings:
+                - relationship: id
+                  expression: purchase_orders.buyer_id
+  - concept: PurchaseOrderLine
+    object_mappings:
+      - &a92
+        referent_mappings:
+          - relationship: id
+            expression: purchase_order_lines.id
+    link_mappings:
+      - object_mapping: *a92
+        children:
+          - relationship: summary
+            object_mapping:
+              concept: Text
+              expression: purchase_order_lines.summary
+          - relationship: quantity
+            object_mapping:
+              concept: Quantity
+              expression: purchase_order_lines.quantity
+          - relationship: unit_price
+            object_mapping:
+              concept: MoneyAmount
+              expression: purchase_order_lines.unit_price
+          - relationship: purchase_order
+            object_mapping:
+              concept: PurchaseOrder
+              referent_mappings:
+                - relationship: id
+                  expression: purchase_order_lines.purchase_order_id
+          - relationship: category
+            object_mapping:
+              concept: ExpenseCategory
+              referent_mappings:
+                - relationship: id
+                  expression: purchase_order_lines.category_id
+  - concept: GoodsReceipt
+    object_mappings:
+      - &a93
+        referent_mappings:
+          - relationship: id
+            expression: goods_receipts.id
+    link_mappings:
+      - object_mapping: *a93
+        children:
+          - relationship: receipt_date
+            object_mapping:
+              concept: CalendarDate
+              expression: goods_receipts.receipt_date
+          - relationship: is_accepted
+            object_mapping:
+              concept: Flag
+              expression: goods_receipts.is_accepted
+          - relationship: notes
+            object_mapping:
+              concept: Text
+              expression: goods_receipts.notes
+          - relationship: purchase_order
+            object_mapping:
+              concept: PurchaseOrder
+              referent_mappings:
+                - relationship: id
+                  expression: goods_receipts.purchase_order_id
+          - relationship: received_by
+            object_mapping:
+              concept: Employee
+              referent_mappings:
+                - relationship: id
+                  expression: goods_receipts.received_by_id
+  - concept: SupplierInvoice
+    object_mappings:
+      - &a94
+        referent_mappings:
+          - relationship: id
+            expression: supplier_invoices.id
+    link_mappings:
+      - object_mapping: *a94
+        children:
+          - relationship: invoice_number
+            object_mapping:
+              concept: Code
+              expression: supplier_invoices.invoice_number
+          - relationship: fiscal_document_key
+            object_mapping:
+              concept: Code
+              expression: supplier_invoices.fiscal_document_key
+          - relationship: issue_date
+            object_mapping:
+              concept: CalendarDate
+              expression: supplier_invoices.issue_date
+          - relationship: due_date
+            object_mapping:
+              concept: CalendarDate
+              expression: supplier_invoices.due_date
+          - relationship: gross_amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: supplier_invoices.gross_amount
+          - relationship: withheld_taxes
+            object_mapping:
+              concept: MoneyAmount
+              expression: supplier_invoices.withheld_taxes
+          - relationship: paid_amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: supplier_invoices.paid_amount
+          - relationship: status
+            object_mapping:
+              concept: Code
+              expression: supplier_invoices.status
+          - relationship: supplier
+            object_mapping:
+              concept: Supplier
+              referent_mappings:
+                - relationship: id
+                  expression: supplier_invoices.supplier_id
+          - relationship: payer
+            object_mapping:
+              concept: LegalEntity
+              referent_mappings:
+                - relationship: id
+                  expression: supplier_invoices.payer_id
+          - relationship: purchase_order
+            object_mapping:
+              concept: PurchaseOrder
+              referent_mappings:
+                - relationship: id
+                  expression: supplier_invoices.purchase_order_id
+          - relationship: month
+            object_mapping:
+              concept: CalendarMonth
+              referent_mappings:
+                - relationship: id
+                  expression: supplier_invoices.month_id
+  - concept: SupplierPayment
+    object_mappings:
+      - &a95
+        referent_mappings:
+          - relationship: id
+            expression: supplier_payments.id
+    link_mappings:
+      - object_mapping: *a95
+        children:
+          - relationship: payment_date
+            object_mapping:
+              concept: CalendarDate
+              expression: supplier_payments.payment_date
+          - relationship: amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: supplier_payments.amount
+          - relationship: payment_method
+            object_mapping:
+              concept: Code
+              expression: supplier_payments.payment_method
+          - relationship: supplier_invoice
+            object_mapping:
+              concept: SupplierInvoice
+              referent_mappings:
+                - relationship: id
+                  expression: supplier_payments.supplier_invoice_id
+          - relationship: bank_account
+            object_mapping:
+              concept: BankAccount
+              referent_mappings:
+                - relationship: id
+                  expression: supplier_payments.bank_account_id
+  - concept: ExpenseCategory
+    object_mappings:
+      - &a96
+        referent_mappings:
+          - relationship: id
+            expression: expense_categories.id
+    link_mappings:
+      - object_mapping: *a96
+        children:
+          - relationship: code
+            object_mapping:
+              concept: Code
+              expression: expense_categories.code
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: expense_categories.name
+          - relationship: recoverable
+            object_mapping:
+              concept: Flag
+              expression: expense_categories.recoverable
+          - relationship: parent_category
+            object_mapping:
+              concept: ExpenseCategory
+              referent_mappings:
+                - relationship: id
+                  expression: expense_categories.parent_category_id
+  - concept: ServiceChargeBudget
+    object_mappings:
+      - &a97
+        referent_mappings:
+          - relationship: id
+            expression: service_charge_budgets.id
+    link_mappings:
+      - object_mapping: *a97
+        children:
+          - relationship: year
+            object_mapping:
+              concept: Year
+              expression: service_charge_budgets.year
+          - relationship: approved_date
+            object_mapping:
+              concept: CalendarDate
+              expression: service_charge_budgets.approved_date
+          - relationship: total_amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: service_charge_budgets.total_amount
+          - relationship: property
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: service_charge_budgets.property_id
+  - concept: ServiceChargeBudgetLine
+    object_mappings:
+      - &a98
+        referent_mappings:
+          - relationship: id
+            expression: service_charge_budget_lines.id
+    link_mappings:
+      - object_mapping: *a98
+        children:
+          - relationship: amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: service_charge_budget_lines.amount
+          - relationship: budget
+            object_mapping:
+              concept: ServiceChargeBudget
+              referent_mappings:
+                - relationship: id
+                  expression: service_charge_budget_lines.budget_id
+          - relationship: category
+            object_mapping:
+              concept: ExpenseCategory
+              referent_mappings:
+                - relationship: id
+                  expression: service_charge_budget_lines.category_id
+  - concept: AllocationKey
+    object_mappings:
+      - &a99
+        referent_mappings:
+          - relationship: id
+            expression: allocation_keys.id
+    link_mappings:
+      - object_mapping: *a99
+        children:
+          - relationship: code
+            object_mapping:
+              concept: Code
+              expression: allocation_keys.code
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: allocation_keys.name
+          - relationship: basis
+            object_mapping:
+              concept: Code
+              expression: allocation_keys.basis
+          - relationship: property
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: allocation_keys.property_id
+  - concept: AllocationShare
+    object_mappings:
+      - &a100
+        referent_mappings:
+          - relationship: id
+            expression: allocation_shares.id
+    link_mappings:
+      - object_mapping: *a100
+        children:
+          - relationship: share
+            object_mapping:
+              concept: Rate
+              expression: allocation_shares.share
+          - relationship: allocation_key
+            object_mapping:
+              concept: AllocationKey
+              referent_mappings:
+                - relationship: id
+                  expression: allocation_shares.allocation_key_id
+          - relationship: unit
+            object_mapping:
+              concept: LeasableUnit
+              referent_mappings:
+                - relationship: id
+                  expression: allocation_shares.unit_id
+  - concept: ServiceContract
+    object_mappings:
+      - &a101
+        referent_mappings:
+          - relationship: id
+            expression: service_contracts.id
+    link_mappings:
+      - object_mapping: *a101
+        children:
+          - relationship: scope
+            object_mapping:
+              concept: Text
+              expression: service_contracts.scope
+          - relationship: monthly_amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: service_contracts.monthly_amount
+          - relationship: service_level
+            object_mapping:
+              concept: Text
+              expression: service_contracts.service_level
+          - relationship: contract
+            object_mapping:
+              concept: Contract
+              referent_mappings:
+                - relationship: id
+                  expression: service_contracts.contract_id
+          - relationship: supplier
+            object_mapping:
+              concept: Supplier
+              referent_mappings:
+                - relationship: id
+                  expression: service_contracts.supplier_id
+          - relationship: property
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: service_contracts.property_id
+          - relationship: category
+            object_mapping:
+              concept: ExpenseCategory
+              referent_mappings:
+                - relationship: id
+                  expression: service_contracts.category_id
+  - concept: OperatingExpense
+    object_mappings:
+      - &a102
+        referent_mappings:
+          - relationship: id
+            expression: operating_expenses.id
+    link_mappings:
+      - object_mapping: *a102
+        children:
+          - relationship: summary
+            object_mapping:
+              concept: Text
+              expression: operating_expenses.summary
+          - relationship: amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: operating_expenses.amount
+          - relationship: recoverable
+            object_mapping:
+              concept: Flag
+              expression: operating_expenses.recoverable
+          - relationship: property
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: operating_expenses.property_id
+          - relationship: category
+            object_mapping:
+              concept: ExpenseCategory
+              referent_mappings:
+                - relationship: id
+                  expression: operating_expenses.category_id
+          - relationship: month
+            object_mapping:
+              concept: CalendarMonth
+              referent_mappings:
+                - relationship: id
+                  expression: operating_expenses.month_id
+          - relationship: supplier
+            object_mapping:
+              concept: Supplier
+              referent_mappings:
+                - relationship: id
+                  expression: operating_expenses.supplier_id
+  - concept: WorkOrder
+    object_mappings:
+      - &a103
+        referent_mappings:
+          - relationship: id
+            expression: work_orders.id
+    link_mappings:
+      - object_mapping: *a103
+        children:
+          - relationship: work_order_number
+            object_mapping:
+              concept: Code
+              expression: work_orders.work_order_number
+          - relationship: opened_date
+            object_mapping:
+              concept: CalendarDate
+              expression: work_orders.opened_date
+          - relationship: closed_date
+            object_mapping:
+              concept: CalendarDate
+              expression: work_orders.closed_date
+          - relationship: priority
+            object_mapping:
+              concept: Code
+              expression: work_orders.priority
+          - relationship: work_type
+            object_mapping:
+              concept: Code
+              expression: work_orders.work_type
+          - relationship: cost
+            object_mapping:
+              concept: MoneyAmount
+              expression: work_orders.cost
+          - relationship: property
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: work_orders.property_id
+          - relationship: equipment
+            object_mapping:
+              concept: Equipment
+              referent_mappings:
+                - relationship: id
+                  expression: work_orders.equipment_id
+          - relationship: unit
+            object_mapping:
+              concept: LeasableUnit
+              referent_mappings:
+                - relationship: id
+                  expression: work_orders.unit_id
+          - relationship: supplier
+            object_mapping:
+              concept: Supplier
+              referent_mappings:
+                - relationship: id
+                  expression: work_orders.supplier_id
+          - relationship: requested_by
+            object_mapping:
+              concept: Employee
+              referent_mappings:
+                - relationship: id
+                  expression: work_orders.requested_by_id
+  - concept: UtilityType
+    object_mappings:
+      - &a104
+        referent_mappings:
+          - relationship: id
+            expression: utility_types.id
+    link_mappings:
+      - object_mapping: *a104
+        children:
+          - relationship: code
+            object_mapping:
+              concept: Code
+              expression: utility_types.code
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: utility_types.name
+          - relationship: unit_of_measure
+            object_mapping:
+              concept: Code
+              expression: utility_types.unit_of_measure
+  - concept: UtilityMeter
+    object_mappings:
+      - &a105
+        referent_mappings:
+          - relationship: id
+            expression: utility_meters.id
+    link_mappings:
+      - object_mapping: *a105
+        children:
+          - relationship: code
+            object_mapping:
+              concept: Code
+              expression: utility_meters.code
+          - relationship: utility_type
+            object_mapping:
+              concept: UtilityType
+              referent_mappings:
+                - relationship: id
+                  expression: utility_meters.utility_type_id
+          - relationship: property
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: utility_meters.property_id
+          - relationship: unit
+            object_mapping:
+              concept: LeasableUnit
+              referent_mappings:
+                - relationship: id
+                  expression: utility_meters.unit_id
+  - concept: MeterReading
+    object_mappings:
+      - &a106
+        referent_mappings:
+          - relationship: id
+            expression: meter_readings.id
+    link_mappings:
+      - object_mapping: *a106
+        children:
+          - relationship: reading_date
+            object_mapping:
+              concept: CalendarDate
+              expression: meter_readings.reading_date
+          - relationship: reading_value
+            object_mapping:
+              concept: Quantity
+              expression: meter_readings.reading_value
+          - relationship: consumption
+            object_mapping:
+              concept: Quantity
+              expression: meter_readings.consumption
+          - relationship: meter
+            object_mapping:
+              concept: UtilityMeter
+              referent_mappings:
+                - relationship: id
+                  expression: meter_readings.meter_id
+          - relationship: month
+            object_mapping:
+              concept: CalendarMonth
+              referent_mappings:
+                - relationship: id
+                  expression: meter_readings.month_id
+  - concept: InsurancePolicy
+    object_mappings:
+      - &a107
+        referent_mappings:
+          - relationship: id
+            expression: insurance_policies.id
+    link_mappings:
+      - object_mapping: *a107
+        children:
+          - relationship: policy_number
+            object_mapping:
+              concept: Code
+              expression: insurance_policies.policy_number
+          - relationship: coverage_type
+            object_mapping:
+              concept: Code
+              expression: insurance_policies.coverage_type
+          - relationship: insured_amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: insurance_policies.insured_amount
+          - relationship: premium
+            object_mapping:
+              concept: MoneyAmount
+              expression: insurance_policies.premium
+          - relationship: start_date
+            object_mapping:
+              concept: CalendarDate
+              expression: insurance_policies.start_date
+          - relationship: end_date
+            object_mapping:
+              concept: CalendarDate
+              expression: insurance_policies.end_date
+          - relationship: property
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: insurance_policies.property_id
+          - relationship: insurer
+            object_mapping:
+              concept: Organization
+              referent_mappings:
+                - relationship: id
+                  expression: insurance_policies.insurer_id
+          - relationship: contract
+            object_mapping:
+              concept: Contract
+              referent_mappings:
+                - relationship: id
+                  expression: insurance_policies.contract_id
+  - concept: Incident
+    object_mappings:
+      - &a108
+        referent_mappings:
+          - relationship: id
+            expression: incidents.id
+    link_mappings:
+      - object_mapping: *a108
+        children:
+          - relationship: occurred_on
+            object_mapping:
+              concept: CalendarDate
+              expression: incidents.occurred_on
+          - relationship: incident_type
+            object_mapping:
+              concept: Code
+              expression: incidents.incident_type
+          - relationship: severity
+            object_mapping:
+              concept: Code
+              expression: incidents.severity
+          - relationship: summary
+            object_mapping:
+              concept: Text
+              expression: incidents.summary
+          - relationship: property
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: incidents.property_id
+  - concept: MarketingFund
+    object_mappings:
+      - &a109
+        referent_mappings:
+          - relationship: id
+            expression: marketing_funds.id
+    link_mappings:
+      - object_mapping: *a109
+        children:
+          - relationship: year
+            object_mapping:
+              concept: Year
+              expression: marketing_funds.year
+          - relationship: contribution_rate
+            object_mapping:
+              concept: Rate
+              expression: marketing_funds.contribution_rate
+          - relationship: budget_amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: marketing_funds.budget_amount
+          - relationship: property
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: marketing_funds.property_id
+  - concept: MarketingCampaign
+    object_mappings:
+      - &a110
+        referent_mappings:
+          - relationship: id
+            expression: marketing_campaigns.id
+    link_mappings:
+      - object_mapping: *a110
+        children:
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: marketing_campaigns.name
+          - relationship: start_date
+            object_mapping:
+              concept: CalendarDate
+              expression: marketing_campaigns.start_date
+          - relationship: end_date
+            object_mapping:
+              concept: CalendarDate
+              expression: marketing_campaigns.end_date
+          - relationship: budget
+            object_mapping:
+              concept: MoneyAmount
+              expression: marketing_campaigns.budget
+          - relationship: fund
+            object_mapping:
+              concept: MarketingFund
+              referent_mappings:
+                - relationship: id
+                  expression: marketing_campaigns.fund_id
+  - concept: MallEvent
+    object_mappings:
+      - &a111
+        referent_mappings:
+          - relationship: id
+            expression: mall_events.id
+    link_mappings:
+      - object_mapping: *a111
+        children:
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: mall_events.name
+          - relationship: event_date
+            object_mapping:
+              concept: CalendarDate
+              expression: mall_events.event_date
+          - relationship: expected_visitors
+            object_mapping:
+              concept: Count
+              expression: mall_events.expected_visitors
+          - relationship: property
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: mall_events.property_id
+          - relationship: campaign
+            object_mapping:
+              concept: MarketingCampaign
+              referent_mappings:
+                - relationship: id
+                  expression: mall_events.campaign_id
+  - concept: ChargeType
+    object_mappings:
+      - &a112
+        referent_mappings:
+          - relationship: id
+            expression: charge_types.id
+    link_mappings:
+      - object_mapping: *a112
+        children:
+          - relationship: code
+            object_mapping:
+              concept: Code
+              expression: charge_types.code
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: charge_types.name
+          - relationship: revenue_class
+            object_mapping:
+              concept: Code
+              expression: charge_types.revenue_class
+  - concept: Invoice
+    object_mappings:
+      - &a113
+        referent_mappings:
+          - relationship: id
+            expression: invoices.id
+    link_mappings:
+      - object_mapping: *a113
+        children:
+          - relationship: invoice_number
+            object_mapping:
+              concept: Code
+              expression: invoices.invoice_number
+          - relationship: issue_date
+            object_mapping:
+              concept: CalendarDate
+              expression: invoices.issue_date
+          - relationship: due_date
+            object_mapping:
+              concept: CalendarDate
+              expression: invoices.due_date
+          - relationship: status
+            object_mapping:
+              concept: Code
+              expression: invoices.status
+          - relationship: property
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: invoices.property_id
+          - relationship: billed_tenant
+            object_mapping:
+              concept: Tenant
+              referent_mappings:
+                - relationship: id
+                  expression: invoices.billed_tenant_id
+  - concept: Charge
+    object_mappings:
+      - &a114
+        referent_mappings:
+          - relationship: id
+            expression: charges.id
+    link_mappings:
+      - object_mapping: *a114
+        children:
+          - relationship: summary
+            object_mapping:
+              concept: Text
+              expression: charges.summary
+          - relationship: amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: charges.amount
+          - relationship: paid_amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: charges.paid_amount
+          - relationship: due_date
+            object_mapping:
+              concept: CalendarDate
+              expression: charges.due_date
+          - relationship: invoice
+            object_mapping:
+              concept: Invoice
+              referent_mappings:
+                - relationship: id
+                  expression: charges.invoice_id
+          - relationship: lease
+            object_mapping:
+              concept: Lease
+              referent_mappings:
+                - relationship: id
+                  expression: charges.lease_id
+          - relationship: charge_type
+            object_mapping:
+              concept: ChargeType
+              referent_mappings:
+                - relationship: id
+                  expression: charges.charge_type_id
+          - relationship: month
+            object_mapping:
+              concept: CalendarMonth
+              referent_mappings:
+                - relationship: id
+                  expression: charges.month_id
+  - concept: BankAccount
+    object_mappings:
+      - &a115
+        referent_mappings:
+          - relationship: id
+            expression: bank_accounts.id
+    link_mappings:
+      - object_mapping: *a115
+        children:
+          - relationship: bank_name
+            object_mapping:
+              concept: Name
+              expression: bank_accounts.bank_name
+          - relationship: branch_code
+            object_mapping:
+              concept: Code
+              expression: bank_accounts.branch_code
+          - relationship: account_number
+            object_mapping:
+              concept: Code
+              expression: bank_accounts.account_number
+          - relationship: holder
+            object_mapping:
+              concept: LegalEntity
+              referent_mappings:
+                - relationship: id
+                  expression: bank_accounts.holder_id
+          - relationship: bank
+            object_mapping:
+              concept: Organization
+              referent_mappings:
+                - relationship: id
+                  expression: bank_accounts.bank_id
+  - concept: Payment
+    object_mappings:
+      - &a116
+        referent_mappings:
+          - relationship: id
+            expression: payments.id
+    link_mappings:
+      - object_mapping: *a116
+        children:
+          - relationship: payment_date
+            object_mapping:
+              concept: CalendarDate
+              expression: payments.payment_date
+          - relationship: amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: payments.amount
+          - relationship: payment_method
+            object_mapping:
+              concept: Code
+              expression: payments.payment_method
+          - relationship: payer
+            object_mapping:
+              concept: Tenant
+              referent_mappings:
+                - relationship: id
+                  expression: payments.payer_id
+          - relationship: bank_account
+            object_mapping:
+              concept: BankAccount
+              referent_mappings:
+                - relationship: id
+                  expression: payments.bank_account_id
+  - concept: PaymentAllocation
+    object_mappings:
+      - &a117
+        referent_mappings:
+          - relationship: id
+            expression: payment_allocations.id
+    link_mappings:
+      - object_mapping: *a117
+        children:
+          - relationship: amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: payment_allocations.amount
+          - relationship: payment
+            object_mapping:
+              concept: Payment
+              referent_mappings:
+                - relationship: id
+                  expression: payment_allocations.payment_id
+          - relationship: charge
+            object_mapping:
+              concept: Charge
+              referent_mappings:
+                - relationship: id
+                  expression: payment_allocations.charge_id
+  - concept: ArrearsCase
+    object_mappings:
+      - &a118
+        referent_mappings:
+          - relationship: id
+            expression: arrears_cases.id
+    link_mappings:
+      - object_mapping: *a118
+        children:
+          - relationship: opened_date
+            object_mapping:
+              concept: CalendarDate
+              expression: arrears_cases.opened_date
+          - relationship: closed_date
+            object_mapping:
+              concept: CalendarDate
+              expression: arrears_cases.closed_date
+          - relationship: status
+            object_mapping:
+              concept: Code
+              expression: arrears_cases.status
+          - relationship: amount_overdue
+            object_mapping:
+              concept: MoneyAmount
+              expression: arrears_cases.amount_overdue
+          - relationship: lease
+            object_mapping:
+              concept: Lease
+              referent_mappings:
+                - relationship: id
+                  expression: arrears_cases.lease_id
+  - concept: CollectionAction
+    object_mappings:
+      - &a119
+        referent_mappings:
+          - relationship: id
+            expression: collection_actions.id
+    link_mappings:
+      - object_mapping: *a119
+        children:
+          - relationship: action_date
+            object_mapping:
+              concept: CalendarDate
+              expression: collection_actions.action_date
+          - relationship: action_type
+            object_mapping:
+              concept: Code
+              expression: collection_actions.action_type
+          - relationship: outcome
+            object_mapping:
+              concept: Text
+              expression: collection_actions.outcome
+          - relationship: arrears_case
+            object_mapping:
+              concept: ArrearsCase
+              referent_mappings:
+                - relationship: id
+                  expression: collection_actions.arrears_case_id
+  - concept: PaymentAgreement
+    object_mappings:
+      - &a120
+        referent_mappings:
+          - relationship: id
+            expression: payment_agreements.id
+    link_mappings:
+      - object_mapping: *a120
+        children:
+          - relationship: agreement_date
+            object_mapping:
+              concept: CalendarDate
+              expression: payment_agreements.agreement_date
+          - relationship: total_amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: payment_agreements.total_amount
+          - relationship: installments
+            object_mapping:
+              concept: Count
+              expression: payment_agreements.installments
+          - relationship: arrears_case
+            object_mapping:
+              concept: ArrearsCase
+              referent_mappings:
+                - relationship: id
+                  expression: payment_agreements.arrears_case_id
+  - concept: LedgerAccount
+    object_mappings:
+      - &a121
+        referent_mappings:
+          - relationship: id
+            expression: ledger_accounts.id
+    link_mappings:
+      - object_mapping: *a121
+        children:
+          - relationship: code
+            object_mapping:
+              concept: Code
+              expression: ledger_accounts.code
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: ledger_accounts.name
+          - relationship: account_class
+            object_mapping:
+              concept: Code
+              expression: ledger_accounts.account_class
+          - relationship: parent_account
+            object_mapping:
+              concept: LedgerAccount
+              referent_mappings:
+                - relationship: id
+                  expression: ledger_accounts.parent_account_id
+  - concept: JournalEntry
+    object_mappings:
+      - &a122
+        referent_mappings:
+          - relationship: id
+            expression: journal_entries.id
+    link_mappings:
+      - object_mapping: *a122
+        children:
+          - relationship: entry_date
+            object_mapping:
+              concept: CalendarDate
+              expression: journal_entries.entry_date
+          - relationship: summary
+            object_mapping:
+              concept: Text
+              expression: journal_entries.summary
+          - relationship: source_system
+            object_mapping:
+              concept: Code
+              expression: journal_entries.source_system
+          - relationship: legal_entity
+            object_mapping:
+              concept: LegalEntity
+              referent_mappings:
+                - relationship: id
+                  expression: journal_entries.legal_entity_id
+          - relationship: month
+            object_mapping:
+              concept: CalendarMonth
+              referent_mappings:
+                - relationship: id
+                  expression: journal_entries.month_id
+  - concept: JournalLine
+    object_mappings:
+      - &a123
+        referent_mappings:
+          - relationship: id
+            expression: journal_lines.id
+    link_mappings:
+      - object_mapping: *a123
+        children:
+          - relationship: amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: journal_lines.amount
+          - relationship: noi_class
+            object_mapping:
+              concept: Code
+              expression: journal_lines.noi_class
+          - relationship: memo
+            object_mapping:
+              concept: Text
+              expression: journal_lines.memo
+          - relationship: entry
+            object_mapping:
+              concept: JournalEntry
+              referent_mappings:
+                - relationship: id
+                  expression: journal_lines.entry_id
+          - relationship: account
+            object_mapping:
+              concept: LedgerAccount
+              referent_mappings:
+                - relationship: id
+                  expression: journal_lines.account_id
+          - relationship: cost_center
+            object_mapping:
+              concept: CostCenter
+              referent_mappings:
+                - relationship: id
+                  expression: journal_lines.cost_center_id
+  - concept: OwnerDistribution
+    object_mappings:
+      - &a124
+        referent_mappings:
+          - relationship: id
+            expression: owner_distributions.id
+    link_mappings:
+      - object_mapping: *a124
+        children:
+          - relationship: distribution_date
+            object_mapping:
+              concept: CalendarDate
+              expression: owner_distributions.distribution_date
+          - relationship: amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: owner_distributions.amount
+          - relationship: stake
+            object_mapping:
+              concept: OwnershipStake
+              referent_mappings:
+                - relationship: id
+                  expression: owner_distributions.stake_id
+          - relationship: month
+            object_mapping:
+              concept: CalendarMonth
+              referent_mappings:
+                - relationship: id
+                  expression: owner_distributions.month_id
+  - concept: CapitalProject
+    object_mappings:
+      - &a125
+        referent_mappings:
+          - relationship: id
+            expression: capital_projects.id
+    link_mappings:
+      - object_mapping: *a125
+        children:
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: capital_projects.name
+          - relationship: project_type
+            object_mapping:
+              concept: Code
+              expression: capital_projects.project_type
+          - relationship: budget
+            object_mapping:
+              concept: MoneyAmount
+              expression: capital_projects.budget
+          - relationship: start_date
+            object_mapping:
+              concept: CalendarDate
+              expression: capital_projects.start_date
+          - relationship: completion_date
+            object_mapping:
+              concept: CalendarDate
+              expression: capital_projects.completion_date
+          - relationship: added_gla_m2
+            object_mapping:
+              concept: AreaM2
+              expression: capital_projects.added_gla_m2
+          - relationship: property
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: capital_projects.property_id
+          - relationship: construction_contract
+            object_mapping:
+              concept: Contract
+              referent_mappings:
+                - relationship: id
+                  expression: capital_projects.construction_contract_id
+  - concept: CostCenter
+    object_mappings:
+      - &a126
+        referent_mappings:
+          - relationship: id
+            expression: cost_centers.id
+    link_mappings:
+      - object_mapping: *a126
+        children:
+          - relationship: code
+            object_mapping:
+              concept: Code
+              expression: cost_centers.code
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: cost_centers.name
+          - relationship: property
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: cost_centers.property_id
+          - relationship: parent_cost_center
+            object_mapping:
+              concept: CostCenter
+              referent_mappings:
+                - relationship: id
+                  expression: cost_centers.parent_cost_center_id
+  - concept: OperatingBudget
+    object_mappings:
+      - &a127
+        referent_mappings:
+          - relationship: id
+            expression: operating_budgets.id
+    link_mappings:
+      - object_mapping: *a127
+        children:
+          - relationship: year
+            object_mapping:
+              concept: Year
+              expression: operating_budgets.year
+          - relationship: version
+            object_mapping:
+              concept: Code
+              expression: operating_budgets.version
+          - relationship: approved_date
+            object_mapping:
+              concept: CalendarDate
+              expression: operating_budgets.approved_date
+          - relationship: legal_entity
+            object_mapping:
+              concept: LegalEntity
+              referent_mappings:
+                - relationship: id
+                  expression: operating_budgets.legal_entity_id
+          - relationship: approval
+            object_mapping:
+              concept: Resolution
+              referent_mappings:
+                - relationship: id
+                  expression: operating_budgets.approval_id
+  - concept: BudgetLine
+    object_mappings:
+      - &a128
+        referent_mappings:
+          - relationship: id
+            expression: budget_lines.id
+    link_mappings:
+      - object_mapping: *a128
+        children:
+          - relationship: amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: budget_lines.amount
+          - relationship: budget
+            object_mapping:
+              concept: OperatingBudget
+              referent_mappings:
+                - relationship: id
+                  expression: budget_lines.budget_id
+          - relationship: account
+            object_mapping:
+              concept: LedgerAccount
+              referent_mappings:
+                - relationship: id
+                  expression: budget_lines.account_id
+          - relationship: cost_center
+            object_mapping:
+              concept: CostCenter
+              referent_mappings:
+                - relationship: id
+                  expression: budget_lines.cost_center_id
+          - relationship: month
+            object_mapping:
+              concept: CalendarMonth
+              referent_mappings:
+                - relationship: id
+                  expression: budget_lines.month_id
+  - concept: TaxType
+    object_mappings:
+      - &a129
+        referent_mappings:
+          - relationship: id
+            expression: tax_types.id
+    link_mappings:
+      - object_mapping: *a129
+        children:
+          - relationship: code
+            object_mapping:
+              concept: Code
+              expression: tax_types.code
+          - relationship: name
+            object_mapping:
+              concept: Name
+              expression: tax_types.name
+          - relationship: jurisdiction_level
+            object_mapping:
+              concept: Code
+              expression: tax_types.jurisdiction_level
+  - concept: TaxObligation
+    object_mappings:
+      - &a130
+        referent_mappings:
+          - relationship: id
+            expression: tax_obligations.id
+    link_mappings:
+      - object_mapping: *a130
+        children:
+          - relationship: amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: tax_obligations.amount
+          - relationship: due_date
+            object_mapping:
+              concept: CalendarDate
+              expression: tax_obligations.due_date
+          - relationship: paid_date
+            object_mapping:
+              concept: CalendarDate
+              expression: tax_obligations.paid_date
+          - relationship: is_recoverable
+            object_mapping:
+              concept: Flag
+              expression: tax_obligations.is_recoverable
+          - relationship: tax_type
+            object_mapping:
+              concept: TaxType
+              referent_mappings:
+                - relationship: id
+                  expression: tax_obligations.tax_type_id
+          - relationship: legal_entity
+            object_mapping:
+              concept: LegalEntity
+              referent_mappings:
+                - relationship: id
+                  expression: tax_obligations.legal_entity_id
+          - relationship: property
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: tax_obligations.property_id
+          - relationship: month
+            object_mapping:
+              concept: CalendarMonth
+              referent_mappings:
+                - relationship: id
+                  expression: tax_obligations.month_id
+  - concept: TaxWithholding
+    object_mappings:
+      - &a131
+        referent_mappings:
+          - relationship: id
+            expression: tax_withholdings.id
+    link_mappings:
+      - object_mapping: *a131
+        children:
+          - relationship: rate
+            object_mapping:
+              concept: Rate
+              expression: tax_withholdings.rate
+          - relationship: amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: tax_withholdings.amount
+          - relationship: supplier_invoice
+            object_mapping:
+              concept: SupplierInvoice
+              referent_mappings:
+                - relationship: id
+                  expression: tax_withholdings.supplier_invoice_id
+          - relationship: tax_type
+            object_mapping:
+              concept: TaxType
+              referent_mappings:
+                - relationship: id
+                  expression: tax_withholdings.tax_type_id
+  - concept: FixedAsset
+    object_mappings:
+      - &a132
+        referent_mappings:
+          - relationship: id
+            expression: fixed_assets.id
+    link_mappings:
+      - object_mapping: *a132
+        children:
+          - relationship: asset_number
+            object_mapping:
+              concept: Code
+              expression: fixed_assets.asset_number
+          - relationship: summary
+            object_mapping:
+              concept: Text
+              expression: fixed_assets.summary
+          - relationship: acquisition_date
+            object_mapping:
+              concept: CalendarDate
+              expression: fixed_assets.acquisition_date
+          - relationship: acquisition_cost
+            object_mapping:
+              concept: MoneyAmount
+              expression: fixed_assets.acquisition_cost
+          - relationship: useful_life_months
+            object_mapping:
+              concept: Count
+              expression: fixed_assets.useful_life_months
+          - relationship: property
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: fixed_assets.property_id
+          - relationship: ledger_account
+            object_mapping:
+              concept: LedgerAccount
+              referent_mappings:
+                - relationship: id
+                  expression: fixed_assets.ledger_account_id
+          - relationship: capital_project
+            object_mapping:
+              concept: CapitalProject
+              referent_mappings:
+                - relationship: id
+                  expression: fixed_assets.capital_project_id
+  - concept: DepreciationEntry
+    object_mappings:
+      - &a133
+        referent_mappings:
+          - relationship: id
+            expression: depreciation_entries.id
+    link_mappings:
+      - object_mapping: *a133
+        children:
+          - relationship: amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: depreciation_entries.amount
+          - relationship: fixed_asset
+            object_mapping:
+              concept: FixedAsset
+              referent_mappings:
+                - relationship: id
+                  expression: depreciation_entries.fixed_asset_id
+          - relationship: month
+            object_mapping:
+              concept: CalendarMonth
+              referent_mappings:
+                - relationship: id
+                  expression: depreciation_entries.month_id
+  - concept: LoanAgreement
+    object_mappings:
+      - &a134
+        referent_mappings:
+          - relationship: id
+            expression: loan_agreements.id
+    link_mappings:
+      - object_mapping: *a134
+        children:
+          - relationship: principal
+            object_mapping:
+              concept: MoneyAmount
+              expression: loan_agreements.principal
+          - relationship: interest_rate
+            object_mapping:
+              concept: Rate
+              expression: loan_agreements.interest_rate
+          - relationship: maturity_date
+            object_mapping:
+              concept: CalendarDate
+              expression: loan_agreements.maturity_date
+          - relationship: contract
+            object_mapping:
+              concept: Contract
+              referent_mappings:
+                - relationship: id
+                  expression: loan_agreements.contract_id
+          - relationship: lender
+            object_mapping:
+              concept: Organization
+              referent_mappings:
+                - relationship: id
+                  expression: loan_agreements.lender_id
+          - relationship: borrower
+            object_mapping:
+              concept: LegalEntity
+              referent_mappings:
+                - relationship: id
+                  expression: loan_agreements.borrower_id
+          - relationship: collateral
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: loan_agreements.collateral_id
+          - relationship: rate_index
+            object_mapping:
+              concept: PriceIndex
+              referent_mappings:
+                - relationship: id
+                  expression: loan_agreements.rate_index_id
+  - concept: DebtServicePayment
+    object_mappings:
+      - &a135
+        referent_mappings:
+          - relationship: id
+            expression: debt_service_payments.id
+    link_mappings:
+      - object_mapping: *a135
+        children:
+          - relationship: payment_date
+            object_mapping:
+              concept: CalendarDate
+              expression: debt_service_payments.payment_date
+          - relationship: principal_amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: debt_service_payments.principal_amount
+          - relationship: interest_amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: debt_service_payments.interest_amount
+          - relationship: loan
+            object_mapping:
+              concept: LoanAgreement
+              referent_mappings:
+                - relationship: id
+                  expression: debt_service_payments.loan_id
+  - concept: BankTransaction
+    object_mappings:
+      - &a136
+        referent_mappings:
+          - relationship: id
+            expression: bank_transactions.id
+    link_mappings:
+      - object_mapping: *a136
+        children:
+          - relationship: transaction_date
+            object_mapping:
+              concept: CalendarDate
+              expression: bank_transactions.transaction_date
+          - relationship: amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: bank_transactions.amount
+          - relationship: summary
+            object_mapping:
+              concept: Text
+              expression: bank_transactions.summary
+          - relationship: is_reconciled
+            object_mapping:
+              concept: Flag
+              expression: bank_transactions.is_reconciled
+          - relationship: bank_account
+            object_mapping:
+              concept: BankAccount
+              referent_mappings:
+                - relationship: id
+                  expression: bank_transactions.bank_account_id
+  - concept: InsuranceClaim
+    object_mappings:
+      - &a137
+        referent_mappings:
+          - relationship: id
+            expression: insurance_claims.id
+    link_mappings:
+      - object_mapping: *a137
+        children:
+          - relationship: claim_date
+            object_mapping:
+              concept: CalendarDate
+              expression: insurance_claims.claim_date
+          - relationship: amount_claimed
+            object_mapping:
+              concept: MoneyAmount
+              expression: insurance_claims.amount_claimed
+          - relationship: amount_paid
+            object_mapping:
+              concept: MoneyAmount
+              expression: insurance_claims.amount_paid
+          - relationship: status
+            object_mapping:
+              concept: Code
+              expression: insurance_claims.status
+          - relationship: policy
+            object_mapping:
+              concept: InsurancePolicy
+              referent_mappings:
+                - relationship: id
+                  expression: insurance_claims.policy_id
+          - relationship: incident
+            object_mapping:
+              concept: Incident
+              referent_mappings:
+                - relationship: id
+                  expression: insurance_claims.incident_id
+  - concept: OccupancySnapshot
+    object_mappings:
+      - &a138
+        referent_mappings:
+          - relationship: id
+            expression: occupancy_snapshots.id
+    link_mappings:
+      - object_mapping: *a138
+        children:
+          - relationship: gla_m2
+            object_mapping:
+              concept: AreaM2
+              expression: occupancy_snapshots.gla_m2
+          - relationship: occupied_gla_m2
+            object_mapping:
+              concept: AreaM2
+              expression: occupancy_snapshots.occupied_gla_m2
+          - relationship: contracted_minimum_rent
+            object_mapping:
+              concept: MoneyAmount
+              expression: occupancy_snapshots.contracted_minimum_rent
+          - relationship: unit
+            object_mapping:
+              concept: LeasableUnit
+              referent_mappings:
+                - relationship: id
+                  expression: occupancy_snapshots.unit_id
+          - relationship: month
+            object_mapping:
+              concept: CalendarMonth
+              referent_mappings:
+                - relationship: id
+                  expression: occupancy_snapshots.month_id
+          - relationship: lease
+            object_mapping:
+              concept: Lease
+              referent_mappings:
+                - relationship: id
+                  expression: occupancy_snapshots.lease_id
+  - concept: SalesReport
+    object_mappings:
+      - &a139
+        referent_mappings:
+          - relationship: id
+            expression: sales_reports.id
+    link_mappings:
+      - object_mapping: *a139
+        children:
+          - relationship: gross_sales
+            object_mapping:
+              concept: MoneyAmount
+              expression: sales_reports.gross_sales
+          - relationship: reported_gla_m2
+            object_mapping:
+              concept: AreaM2
+              expression: sales_reports.reported_gla_m2
+          - relationship: occupancy_cost
+            object_mapping:
+              concept: MoneyAmount
+              expression: sales_reports.occupancy_cost
+          - relationship: submitted_date
+            object_mapping:
+              concept: CalendarDate
+              expression: sales_reports.submitted_date
+          - relationship: is_audited
+            object_mapping:
+              concept: Flag
+              expression: sales_reports.is_audited
+          - relationship: lease
+            object_mapping:
+              concept: Lease
+              referent_mappings:
+                - relationship: id
+                  expression: sales_reports.lease_id
+          - relationship: property
+            object_mapping:
+              concept: Property
+              referent_mappings:
+                - relationship: id
+                  expression: sales_reports.property_id
+          - relationship: month
+            object_mapping:
+              concept: CalendarMonth
+              referent_mappings:
+                - relationship: id
+                  expression: sales_reports.month_id
+  - concept: SalesAudit
+    object_mappings:
+      - &a140
+        referent_mappings:
+          - relationship: id
+            expression: sales_audits.id
+    link_mappings:
+      - object_mapping: *a140
+        children:
+          - relationship: audit_date
+            object_mapping:
+              concept: CalendarDate
+              expression: sales_audits.audit_date
+          - relationship: audited_sales
+            object_mapping:
+              concept: MoneyAmount
+              expression: sales_audits.audited_sales
+          - relationship: variance_amount
+            object_mapping:
+              concept: MoneyAmount
+              expression: sales_audits.variance_amount
+          - relationship: sales_report
+            object_mapping:
+              concept: SalesReport
+              referent_mappings:
+                - relationship: id
+                  expression: sales_audits.sales_report_id
+          - relationship: auditor
+            object_mapping:
+              concept: Organization
+              referent_mappings:
+                - relationship: id
+                  expression: sales_audits.auditor_id
+  - concept: FootfallCount
+    object_mappings:
+      - &a141
+        referent_mappings:
+          - relationship: id
+            expression: footfall_counts.id
+    link_mappings:
+      - object_mapping: *a141
+        children:
+          - relationship: period_start
+            object_mapping:
+              concept: CalendarDate
+              expression: footfall_counts.period_start
+          - relationship: period_end
+            object_mapping:
+              concept: CalendarDate
+              expression: footfall_counts.period_end
+          - relationship: visitors
+            object_mapping:
+              concept: Count
+              expression: footfall_counts.visitors
+          - relationship: entrance
+            object_mapping:
+              concept: Entrance
+              referent_mappings:
+                - relationship: id
+                  expression: footfall_counts.entrance_id
+          - relationship: month
+            object_mapping:
+              concept: CalendarMonth
+              referent_mappings:
+                - relationship: id
+                  expression: footfall_counts.month_id
+  - concept: ParkingActivity
+    object_mappings:
+      - &a142
+        referent_mappings:
+          - relationship: id
+            expression: parking_activity.id
+    link_mappings:
+      - object_mapping: *a142
+        children:
+          - relationship: tickets
+            object_mapping:
+              concept: Count
+              expression: parking_activity.tickets
+          - relationship: revenue
+            object_mapping:
+              concept: MoneyAmount
+              expression: parking_activity.revenue
+          - relationship: facility
+            object_mapping:
+              concept: ParkingFacility
+              referent_mappings:
+                - relationship: id
+                  expression: parking_activity.facility_id
+          - relationship: month
+            object_mapping:
+              concept: CalendarMonth
+              referent_mappings:
+                - relationship: id
+                  expression: parking_activity.month_id
+  - concept: TotalGla
+    object_mappings:
+      - expression: total_gla
+  - concept: OccupiedGla
+    object_mappings:
+      - expression: occupied_gla
+  - concept: VacantGla
+    object_mappings:
+      - expression: vacant_gla
+  - concept: OccupancyRate
+    object_mappings:
+      - expression: occupancy_rate
+  - concept: ContractedMinimumRent
+    object_mappings:
+      - expression: contracted_minimum_rent
+  - concept: MinimumRentPerM2
+    object_mappings:
+      - expression: minimum_rent_per_m2
+  - concept: BilledAmount
+    object_mappings:
+      - expression: billed_amount
+  - concept: CollectedAmount
+    object_mappings:
+      - expression: collected_amount
+  - concept: OpenAmount
+    object_mappings:
+      - expression: open_amount
+  - concept: DelinquencyRate
+    object_mappings:
+      - expression: delinquency_rate
+  - concept: TenantSales
+    object_mappings:
+      - expression: tenant_sales
+  - concept: ReportingArea
+    object_mappings:
+      - expression: reporting_area
+  - concept: SalesPerM2
+    object_mappings:
+      - expression: sales_per_m2
+  - concept: OccupancyCost
+    object_mappings:
+      - expression: occupancy_cost
+  - concept: OccupancyCostRatio
+    object_mappings:
+      - expression: occupancy_cost_ratio
+  - concept: Visitors
+    object_mappings:
+      - expression: visitors
+  - concept: OperatingRevenue
+    object_mappings:
+      - expression: operating_revenue
+  - concept: OperatingExpenseTotal
+    object_mappings:
+      - expression: operating_expense_total
+  - concept: NetOperatingIncome
+    object_mappings:
+      - expression: net_operating_income
+  - concept: NoiMargin
+    object_mappings:
+      - expression: noi_margin
+  - concept: ParkingRevenue
+    object_mappings:
+      - expression: parking_revenue
+  - concept: PayrollCost
+    object_mappings:
+      - expression: payroll_cost
+  - concept: Headcount
+    object_mappings:
+      - expression: headcount
+  - concept: PurchaseSpend
+    object_mappings:
+      - expression: purchase_spend
+  - concept: PayablesOutstanding
+    object_mappings:
+      - expression: payables_outstanding
