@@ -52,6 +52,9 @@ schema:
         logicalType: integer
         required: true
         description: Order customer id.
+        relationships:
+          - type: foreignKey
+            to: customers.customer_id
       - name: order_date
         logicalType: date
         required: true
@@ -83,10 +86,16 @@ schema:
         logicalType: integer
         required: true
         description: OrderLine order id.
+        relationships:
+          - type: foreignKey
+            to: orders.order_id
       - name: product_id
         logicalType: integer
         required: true
         description: OrderLine product id.
+        relationships:
+          - type: foreignKey
+            to: products.product_id
       - name: quantity
         logicalType: integer
         required: true
