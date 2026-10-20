@@ -2,6 +2,9 @@
 @prefix asset: <https://example.org/mall/asset#> .
 @prefix party: <https://example.org/mall/party#> .
 @prefix lease: <https://example.org/mall/lease#> .
+@prefix legal: <https://example.org/mall/legal#> .
+@prefix hr: <https://example.org/mall/hr#> .
+@prefix proc: <https://example.org/mall/proc#> .
 @prefix ops: <https://example.org/mall/ops#> .
 @prefix fin: <https://example.org/mall/fin#> .
 @prefix perf: <https://example.org/mall/perf#> .
@@ -17,6 +20,40 @@ data:organizations-1 a core:Organization ;
 data:organizations-2 a core:Organization ;
   core:partyName "Aurora Administradora" ;
   core:organizationOrganizationType "property administrator" .
+data:organizations-3 a core:Organization ;
+  core:partyName "Aurora Shopping SPE" ;
+  core:organizationOrganizationType "company" ;
+  core:organizationParentOrganization data:organizations-1 .
+data:organizations-4 a core:Organization ;
+  core:partyName "Brisa Outlet SPE" ;
+  core:organizationOrganizationType "company" ;
+  core:organizationParentOrganization data:organizations-1 .
+data:organizations-5 a core:Organization ;
+  core:partyName "Magazine Norte" .
+data:organizations-6 a core:Organization ;
+  core:partyName "Linha Moda" .
+data:organizations-7 a core:Organization ;
+  core:partyName "Passo Calçados" .
+data:organizations-8 a core:Organization ;
+  core:partyName "Sabor Grill" .
+data:organizations-9 a core:Organization ;
+  core:partyName "Conserta Já" .
+data:organizations-10 a core:Organization ;
+  core:partyName "Ventura Esportes" .
+data:organizations-11 a core:Organization ;
+  core:partyName "Limpa Bem Serviços" ;
+  core:organizationOrganizationType "company" .
+data:organizations-12 a core:Organization ;
+  core:partyName "Guarda Forte Segurança" ;
+  core:organizationOrganizationType "company" .
+data:people-1 a core:Person ;
+  core:partyName "Ana Prado" .
+data:people-2 a core:Person ;
+  core:partyName "Bruno Lima" .
+data:people-3 a core:Person ;
+  core:partyName "Carla Reis" .
+data:people-4 a core:Person ;
+  core:partyName "Diego Souza" .
 data:addresses-1 a core:Address ;
   core:addressStreet "Avenida das Palmeiras" ;
   core:addressStreetNumber "1000" ;
@@ -199,20 +236,23 @@ data:entrances-3 a asset:Entrance ;
   asset:entranceEntranceKind "pedestrian" ;
   asset:entranceProperty data:properties-2 .
 data:tenants-1 a party:Tenant ;
-  core:partyName "Magazine Norte" ;
-  party:tenantTradeName "Norte" .
+  party:tenantTradeName "Norte" ;
+  party:tenantOrganization data:organizations-5 .
 data:tenants-2 a party:Tenant ;
-  core:partyName "Linha Moda" ;
-  party:tenantTradeName "Linha" .
+  party:tenantTradeName "Linha" ;
+  party:tenantOrganization data:organizations-6 .
 data:tenants-3 a party:Tenant ;
-  core:partyName "Passo Calçados" ;
-  party:tenantTradeName "Passo" .
+  party:tenantTradeName "Passo" ;
+  party:tenantOrganization data:organizations-7 .
 data:tenants-4 a party:Tenant ;
-  core:partyName "Sabor Grill" .
+  party:tenantTradeName "Sabor Grill" ;
+  party:tenantOrganization data:organizations-8 .
 data:tenants-5 a party:Tenant ;
-  core:partyName "Conserta Já" .
+  party:tenantTradeName "Conserta Já" ;
+  party:tenantOrganization data:organizations-9 .
 data:tenants-6 a party:Tenant ;
-  core:partyName "Ventura Esportes" .
+  party:tenantTradeName "Ventura" ;
+  party:tenantOrganization data:organizations-10 .
 data:brands-1 a party:Brand ;
   party:brandName "Norte" ;
   party:brandOwner data:tenants-1 .
@@ -266,89 +306,68 @@ data:lease_statuses-2 a lease:LeaseStatus ;
   lease:leaseStatusCode "FIT" ;
   lease:leaseStatusName "Fit-out" .
 data:leases-1 a lease:Lease ;
-  lease:leaseLeaseNumber "L-0001" ;
-  lease:leaseStartDate "2020-01-01"^^xsd:date ;
-  lease:leaseEndDate "2025-01-01"^^xsd:date ;
   lease:leaseTermMonths "60"^^xsd:integer ;
   lease:leaseMonthlyMinimumRent "60000"^^xsd:decimal ;
   lease:leaseHasThirteenthRent true ;
+  lease:leaseContract data:contracts-1 ;
   lease:leaseTenant data:tenants-1 ;
   lease:leaseBrand data:brands-1 ;
   lease:leaseStatus data:lease_statuses-1 ;
-  lease:leasePermittedUse data:merchandise_categories-2 ;
-  lease:leaseCurrency data:currencies-1 .
+  lease:leasePermittedUse data:merchandise_categories-2 .
 data:leases-2 a lease:Lease ;
-  lease:leaseLeaseNumber "L-0002" ;
-  lease:leaseStartDate "2021-03-01"^^xsd:date ;
-  lease:leaseEndDate "2026-03-01"^^xsd:date ;
   lease:leaseTermMonths "60"^^xsd:integer ;
   lease:leaseMonthlyMinimumRent "18000"^^xsd:decimal ;
   lease:leaseHasThirteenthRent true ;
+  lease:leaseContract data:contracts-2 ;
   lease:leaseTenant data:tenants-2 ;
   lease:leaseBrand data:brands-2 ;
   lease:leaseStatus data:lease_statuses-1 ;
-  lease:leasePermittedUse data:merchandise_categories-3 ;
-  lease:leaseCurrency data:currencies-1 .
+  lease:leasePermittedUse data:merchandise_categories-3 .
 data:leases-3 a lease:Lease ;
-  lease:leaseLeaseNumber "L-0003" ;
-  lease:leaseStartDate "2022-06-01"^^xsd:date ;
-  lease:leaseEndDate "2027-06-01"^^xsd:date ;
   lease:leaseTermMonths "60"^^xsd:integer ;
   lease:leaseMonthlyMinimumRent "14400"^^xsd:decimal ;
   lease:leaseHasThirteenthRent true ;
+  lease:leaseContract data:contracts-3 ;
   lease:leaseTenant data:tenants-3 ;
   lease:leaseBrand data:brands-3 ;
   lease:leaseStatus data:lease_statuses-1 ;
-  lease:leasePermittedUse data:merchandise_categories-4 ;
-  lease:leaseCurrency data:currencies-1 .
+  lease:leasePermittedUse data:merchandise_categories-4 .
 data:leases-4 a lease:Lease ;
-  lease:leaseLeaseNumber "L-0004" ;
-  lease:leaseStartDate "2023-02-01"^^xsd:date ;
-  lease:leaseEndDate "2028-02-01"^^xsd:date ;
   lease:leaseTermMonths "60"^^xsd:integer ;
   lease:leaseMonthlyMinimumRent "12000"^^xsd:decimal ;
   lease:leaseHasThirteenthRent true ;
+  lease:leaseContract data:contracts-4 ;
   lease:leaseTenant data:tenants-4 ;
   lease:leaseBrand data:brands-4 ;
   lease:leaseStatus data:lease_statuses-1 ;
-  lease:leasePermittedUse data:merchandise_categories-5 ;
-  lease:leaseCurrency data:currencies-1 .
+  lease:leasePermittedUse data:merchandise_categories-5 .
 data:leases-5 a lease:Lease ;
-  lease:leaseLeaseNumber "L-0005" ;
-  lease:leaseStartDate "2024-05-01"^^xsd:date ;
-  lease:leaseEndDate "2029-05-01"^^xsd:date ;
   lease:leaseTermMonths "60"^^xsd:integer ;
   lease:leaseMonthlyMinimumRent "4000"^^xsd:decimal ;
   lease:leaseHasThirteenthRent true ;
+  lease:leaseContract data:contracts-5 ;
   lease:leaseTenant data:tenants-5 ;
   lease:leaseBrand data:brands-5 ;
   lease:leaseStatus data:lease_statuses-1 ;
-  lease:leasePermittedUse data:merchandise_categories-6 ;
-  lease:leaseCurrency data:currencies-1 .
+  lease:leasePermittedUse data:merchandise_categories-6 .
 data:leases-6 a lease:Lease ;
-  lease:leaseLeaseNumber "L-0006" ;
-  lease:leaseStartDate "2022-09-01"^^xsd:date ;
-  lease:leaseEndDate "2027-09-01"^^xsd:date ;
   lease:leaseTermMonths "60"^^xsd:integer ;
   lease:leaseMonthlyMinimumRent "21000"^^xsd:decimal ;
   lease:leaseHasThirteenthRent true ;
+  lease:leaseContract data:contracts-6 ;
   lease:leaseTenant data:tenants-2 ;
   lease:leaseBrand data:brands-6 ;
   lease:leaseStatus data:lease_statuses-1 ;
-  lease:leasePermittedUse data:merchandise_categories-3 ;
-  lease:leaseCurrency data:currencies-1 .
+  lease:leasePermittedUse data:merchandise_categories-3 .
 data:leases-7 a lease:Lease ;
-  lease:leaseLeaseNumber "L-0007" ;
-  lease:leaseStartDate "2026-09-01"^^xsd:date ;
-  lease:leaseEndDate "2031-09-01"^^xsd:date ;
   lease:leaseTermMonths "60"^^xsd:integer ;
   lease:leaseMonthlyMinimumRent "17500"^^xsd:decimal ;
   lease:leaseHasThirteenthRent true ;
+  lease:leaseContract data:contracts-7 ;
   lease:leaseTenant data:tenants-6 ;
   lease:leaseBrand data:brands-7 ;
   lease:leaseStatus data:lease_statuses-1 ;
-  lease:leasePermittedUse data:merchandise_categories-7 ;
-  lease:leaseCurrency data:currencies-1 .
+  lease:leasePermittedUse data:merchandise_categories-7 .
 data:leased_units-1 a lease:LeasedUnit ;
   lease:leasedUnitStartDate "2020-01-01"^^xsd:date ;
   lease:leasedUnitLeasedAreaM2 "2000"^^xsd:decimal ;
@@ -426,6 +445,407 @@ data:percentage_rent_clauses-7 a lease:PercentageRentClause ;
   lease:percentageRentClauseRate "0.06"^^xsd:decimal ;
   lease:percentageRentClauseExcludesThirteenthRent true ;
   lease:leaseClauseLease data:leases-7 .
+data:legal_entities-1 a legal:LegalEntity ;
+  legal:legalEntityRegistrationNumber "SPE-0001" ;
+  legal:legalEntityEntityType "special-purpose company" ;
+  legal:legalEntityOrganization data:organizations-3 .
+data:legal_entities-2 a legal:LegalEntity ;
+  legal:legalEntityRegistrationNumber "SPE-0002" ;
+  legal:legalEntityEntityType "special-purpose company" ;
+  legal:legalEntityOrganization data:organizations-4 .
+data:legal_entities-3 a legal:LegalEntity ;
+  legal:legalEntityRegistrationNumber "ADM-0001" ;
+  legal:legalEntityEntityType "administrator" ;
+  legal:legalEntityOrganization data:organizations-2 .
+data:contract_types-1 a legal:ContractType ;
+  legal:contractTypeCode "LEASE" ;
+  legal:contractTypeName "Lease" ;
+  legal:contractTypeRequiresLegalReview true .
+data:contract_types-2 a legal:ContractType ;
+  legal:contractTypeCode "SERVICE" ;
+  legal:contractTypeName "Service" ;
+  legal:contractTypeRequiresLegalReview false .
+data:contract_types-3 a legal:ContractType ;
+  legal:contractTypeCode "EMPLOY" ;
+  legal:contractTypeName "Employment" ;
+  legal:contractTypeRequiresLegalReview false .
+data:contract_types-4 a legal:ContractType ;
+  legal:contractTypeCode "SUPPLY" ;
+  legal:contractTypeName "Supply framework" ;
+  legal:contractTypeRequiresLegalReview true .
+data:contracts-1 a legal:Contract ;
+  legal:contractContractNumber "L-0001" ;
+  legal:contractTitle "Lease of AUR-101 to Norte" ;
+  legal:contractStartDate "2020-01-01"^^xsd:date ;
+  legal:contractEndDate "2025-01-01"^^xsd:date ;
+  legal:contractStatus "active" ;
+  legal:contractTotalValue "3600000"^^xsd:decimal ;
+  legal:contractContractType data:contract_types-1 ;
+  legal:contractContractingEntity data:legal_entities-1 ;
+  legal:contractCurrency data:currencies-1 .
+data:contracts-2 a legal:Contract ;
+  legal:contractContractNumber "L-0002" ;
+  legal:contractTitle "Lease of AUR-110 to Linha" ;
+  legal:contractStartDate "2021-03-01"^^xsd:date ;
+  legal:contractEndDate "2026-03-01"^^xsd:date ;
+  legal:contractStatus "active" ;
+  legal:contractTotalValue "1080000"^^xsd:decimal ;
+  legal:contractContractType data:contract_types-1 ;
+  legal:contractContractingEntity data:legal_entities-1 ;
+  legal:contractCurrency data:currencies-1 .
+data:contracts-3 a legal:Contract ;
+  legal:contractContractNumber "L-0003" ;
+  legal:contractTitle "Lease of AUR-112 to Passo" ;
+  legal:contractStartDate "2022-06-01"^^xsd:date ;
+  legal:contractEndDate "2027-06-01"^^xsd:date ;
+  legal:contractStatus "active" ;
+  legal:contractTotalValue "864000"^^xsd:decimal ;
+  legal:contractContractType data:contract_types-1 ;
+  legal:contractContractingEntity data:legal_entities-1 ;
+  legal:contractCurrency data:currencies-1 .
+data:contracts-4 a legal:Contract ;
+  legal:contractContractNumber "L-0004" ;
+  legal:contractTitle "Lease of AUR-205 to Sabor Grill" ;
+  legal:contractStartDate "2023-02-01"^^xsd:date ;
+  legal:contractEndDate "2028-02-01"^^xsd:date ;
+  legal:contractStatus "active" ;
+  legal:contractTotalValue "720000"^^xsd:decimal ;
+  legal:contractContractType data:contract_types-1 ;
+  legal:contractContractingEntity data:legal_entities-1 ;
+  legal:contractCurrency data:currencies-1 .
+data:contracts-5 a legal:Contract ;
+  legal:contractContractNumber "L-0005" ;
+  legal:contractTitle "Lease of AUR-K01 to Conserta Já" ;
+  legal:contractStartDate "2024-05-01"^^xsd:date ;
+  legal:contractEndDate "2029-05-01"^^xsd:date ;
+  legal:contractStatus "active" ;
+  legal:contractTotalValue "240000"^^xsd:decimal ;
+  legal:contractContractType data:contract_types-1 ;
+  legal:contractContractingEntity data:legal_entities-1 ;
+  legal:contractCurrency data:currencies-1 .
+data:contracts-6 a legal:Contract ;
+  legal:contractContractNumber "L-0006" ;
+  legal:contractTitle "Lease of BRS-01 to Linha" ;
+  legal:contractStartDate "2022-09-01"^^xsd:date ;
+  legal:contractEndDate "2027-09-01"^^xsd:date ;
+  legal:contractStatus "active" ;
+  legal:contractTotalValue "1260000"^^xsd:decimal ;
+  legal:contractContractType data:contract_types-1 ;
+  legal:contractContractingEntity data:legal_entities-2 ;
+  legal:contractCurrency data:currencies-1 .
+data:contracts-7 a legal:Contract ;
+  legal:contractContractNumber "L-0007" ;
+  legal:contractTitle "Lease of BRS-02 to Ventura" ;
+  legal:contractStartDate "2026-09-01"^^xsd:date ;
+  legal:contractEndDate "2031-09-01"^^xsd:date ;
+  legal:contractStatus "active" ;
+  legal:contractTotalValue "1050000"^^xsd:decimal ;
+  legal:contractContractType data:contract_types-1 ;
+  legal:contractContractingEntity data:legal_entities-2 ;
+  legal:contractCurrency data:currencies-1 .
+data:departments-1 a hr:Department ;
+  hr:departmentCode "OPS" ;
+  hr:departmentName "Property operations" ;
+  hr:departmentLegalEntity data:legal_entities-3 ;
+  hr:departmentCostCenter data:cost_centers-1 .
+data:departments-2 a hr:Department ;
+  hr:departmentCode "FIN" ;
+  hr:departmentName "Finance" ;
+  hr:departmentLegalEntity data:legal_entities-3 ;
+  hr:departmentCostCenter data:cost_centers-3 .
+data:departments-3 a hr:Department ;
+  hr:departmentCode "LEA" ;
+  hr:departmentName "Leasing" ;
+  hr:departmentLegalEntity data:legal_entities-3 ;
+  hr:departmentCostCenter data:cost_centers-3 .
+data:positions-1 a hr:Position ;
+  hr:positionCode "GM" ;
+  hr:positionTitle "General manager" ;
+  hr:positionDepartment data:departments-1 .
+data:positions-2 a hr:Position ;
+  hr:positionCode "MT" ;
+  hr:positionTitle "Maintenance technician" ;
+  hr:positionDepartment data:departments-1 .
+data:positions-3 a hr:Position ;
+  hr:positionCode "AP" ;
+  hr:positionTitle "Accounts payable analyst" ;
+  hr:positionDepartment data:departments-2 .
+data:positions-4 a hr:Position ;
+  hr:positionCode "LM" ;
+  hr:positionTitle "Leasing manager" ;
+  hr:positionDepartment data:departments-3 .
+data:employees-1 a hr:Employee ;
+  hr:employeeEmployeeNumber "E001" ;
+  hr:employeeHireDate "2019-02-01"^^xsd:date ;
+  hr:employeePerson data:people-1 ;
+  hr:employeePosition data:positions-1 ;
+  hr:employeeEmployer data:legal_entities-3 ;
+  hr:employeeWorkSite data:properties-1 .
+data:employees-2 a hr:Employee ;
+  hr:employeeEmployeeNumber "E002" ;
+  hr:employeeHireDate "2021-07-12"^^xsd:date ;
+  hr:employeePerson data:people-2 ;
+  hr:employeePosition data:positions-2 ;
+  hr:employeeEmployer data:legal_entities-3 ;
+  hr:employeeManager data:employees-1 ;
+  hr:employeeWorkSite data:properties-1 .
+data:employees-3 a hr:Employee ;
+  hr:employeeEmployeeNumber "E003" ;
+  hr:employeeHireDate "2022-03-01"^^xsd:date ;
+  hr:employeePerson data:people-3 ;
+  hr:employeePosition data:positions-3 ;
+  hr:employeeEmployer data:legal_entities-3 .
+data:employees-4 a hr:Employee ;
+  hr:employeeEmployeeNumber "E004" ;
+  hr:employeeHireDate "2026-09-01"^^xsd:date ;
+  hr:employeePerson data:people-4 ;
+  hr:employeePosition data:positions-4 ;
+  hr:employeeEmployer data:legal_entities-3 .
+data:payroll_runs-1 a hr:PayrollRun ;
+  hr:payrollRunPaymentDate "2026-08-29"^^xsd:date ;
+  hr:payrollRunStatus "paid" ;
+  hr:payrollRunLegalEntity data:legal_entities-3 ;
+  hr:payrollRunMonth data:calendar_months-1 .
+data:payroll_runs-2 a hr:PayrollRun ;
+  hr:payrollRunPaymentDate "2026-09-30"^^xsd:date ;
+  hr:payrollRunStatus "paid" ;
+  hr:payrollRunLegalEntity data:legal_entities-3 ;
+  hr:payrollRunMonth data:calendar_months-2 .
+data:payroll_lines-1 a hr:PayrollLine ;
+  hr:payrollLineComponent "base salary" ;
+  hr:payrollLineAmount "25000"^^xsd:decimal ;
+  hr:payrollLineEmployerCost true ;
+  hr:payrollLinePayrollRun data:payroll_runs-1 ;
+  hr:payrollLineEmployee data:employees-1 .
+data:payroll_lines-2 a hr:PayrollLine ;
+  hr:payrollLineComponent "employer social charge" ;
+  hr:payrollLineAmount "5000"^^xsd:decimal ;
+  hr:payrollLineEmployerCost true ;
+  hr:payrollLinePayrollRun data:payroll_runs-1 ;
+  hr:payrollLineEmployee data:employees-1 .
+data:payroll_lines-3 a hr:PayrollLine ;
+  hr:payrollLineComponent "employee social security" ;
+  hr:payrollLineAmount "2750"^^xsd:decimal ;
+  hr:payrollLineEmployerCost false ;
+  hr:payrollLinePayrollRun data:payroll_runs-1 ;
+  hr:payrollLineEmployee data:employees-1 .
+data:payroll_lines-4 a hr:PayrollLine ;
+  hr:payrollLineComponent "base salary" ;
+  hr:payrollLineAmount "6000"^^xsd:decimal ;
+  hr:payrollLineEmployerCost true ;
+  hr:payrollLinePayrollRun data:payroll_runs-1 ;
+  hr:payrollLineEmployee data:employees-2 .
+data:payroll_lines-5 a hr:PayrollLine ;
+  hr:payrollLineComponent "employer social charge" ;
+  hr:payrollLineAmount "1200"^^xsd:decimal ;
+  hr:payrollLineEmployerCost true ;
+  hr:payrollLinePayrollRun data:payroll_runs-1 ;
+  hr:payrollLineEmployee data:employees-2 .
+data:payroll_lines-6 a hr:PayrollLine ;
+  hr:payrollLineComponent "employee social security" ;
+  hr:payrollLineAmount "660"^^xsd:decimal ;
+  hr:payrollLineEmployerCost false ;
+  hr:payrollLinePayrollRun data:payroll_runs-1 ;
+  hr:payrollLineEmployee data:employees-2 .
+data:payroll_lines-7 a hr:PayrollLine ;
+  hr:payrollLineComponent "base salary" ;
+  hr:payrollLineAmount "7500"^^xsd:decimal ;
+  hr:payrollLineEmployerCost true ;
+  hr:payrollLinePayrollRun data:payroll_runs-1 ;
+  hr:payrollLineEmployee data:employees-3 .
+data:payroll_lines-8 a hr:PayrollLine ;
+  hr:payrollLineComponent "employer social charge" ;
+  hr:payrollLineAmount "1500"^^xsd:decimal ;
+  hr:payrollLineEmployerCost true ;
+  hr:payrollLinePayrollRun data:payroll_runs-1 ;
+  hr:payrollLineEmployee data:employees-3 .
+data:payroll_lines-9 a hr:PayrollLine ;
+  hr:payrollLineComponent "employee social security" ;
+  hr:payrollLineAmount "825"^^xsd:decimal ;
+  hr:payrollLineEmployerCost false ;
+  hr:payrollLinePayrollRun data:payroll_runs-1 ;
+  hr:payrollLineEmployee data:employees-3 .
+data:payroll_lines-10 a hr:PayrollLine ;
+  hr:payrollLineComponent "base salary" ;
+  hr:payrollLineAmount "25000"^^xsd:decimal ;
+  hr:payrollLineEmployerCost true ;
+  hr:payrollLinePayrollRun data:payroll_runs-2 ;
+  hr:payrollLineEmployee data:employees-1 .
+data:payroll_lines-11 a hr:PayrollLine ;
+  hr:payrollLineComponent "employer social charge" ;
+  hr:payrollLineAmount "5000"^^xsd:decimal ;
+  hr:payrollLineEmployerCost true ;
+  hr:payrollLinePayrollRun data:payroll_runs-2 ;
+  hr:payrollLineEmployee data:employees-1 .
+data:payroll_lines-12 a hr:PayrollLine ;
+  hr:payrollLineComponent "employee social security" ;
+  hr:payrollLineAmount "2750"^^xsd:decimal ;
+  hr:payrollLineEmployerCost false ;
+  hr:payrollLinePayrollRun data:payroll_runs-2 ;
+  hr:payrollLineEmployee data:employees-1 .
+data:payroll_lines-13 a hr:PayrollLine ;
+  hr:payrollLineComponent "base salary" ;
+  hr:payrollLineAmount "6000"^^xsd:decimal ;
+  hr:payrollLineEmployerCost true ;
+  hr:payrollLinePayrollRun data:payroll_runs-2 ;
+  hr:payrollLineEmployee data:employees-2 .
+data:payroll_lines-14 a hr:PayrollLine ;
+  hr:payrollLineComponent "employer social charge" ;
+  hr:payrollLineAmount "1200"^^xsd:decimal ;
+  hr:payrollLineEmployerCost true ;
+  hr:payrollLinePayrollRun data:payroll_runs-2 ;
+  hr:payrollLineEmployee data:employees-2 .
+data:payroll_lines-15 a hr:PayrollLine ;
+  hr:payrollLineComponent "employee social security" ;
+  hr:payrollLineAmount "660"^^xsd:decimal ;
+  hr:payrollLineEmployerCost false ;
+  hr:payrollLinePayrollRun data:payroll_runs-2 ;
+  hr:payrollLineEmployee data:employees-2 .
+data:payroll_lines-16 a hr:PayrollLine ;
+  hr:payrollLineComponent "overtime" ;
+  hr:payrollLineAmount "900"^^xsd:decimal ;
+  hr:payrollLineEmployerCost true ;
+  hr:payrollLinePayrollRun data:payroll_runs-2 ;
+  hr:payrollLineEmployee data:employees-2 .
+data:payroll_lines-17 a hr:PayrollLine ;
+  hr:payrollLineComponent "base salary" ;
+  hr:payrollLineAmount "7500"^^xsd:decimal ;
+  hr:payrollLineEmployerCost true ;
+  hr:payrollLinePayrollRun data:payroll_runs-2 ;
+  hr:payrollLineEmployee data:employees-3 .
+data:payroll_lines-18 a hr:PayrollLine ;
+  hr:payrollLineComponent "employer social charge" ;
+  hr:payrollLineAmount "1500"^^xsd:decimal ;
+  hr:payrollLineEmployerCost true ;
+  hr:payrollLinePayrollRun data:payroll_runs-2 ;
+  hr:payrollLineEmployee data:employees-3 .
+data:payroll_lines-19 a hr:PayrollLine ;
+  hr:payrollLineComponent "employee social security" ;
+  hr:payrollLineAmount "825"^^xsd:decimal ;
+  hr:payrollLineEmployerCost false ;
+  hr:payrollLinePayrollRun data:payroll_runs-2 ;
+  hr:payrollLineEmployee data:employees-3 .
+data:payroll_lines-20 a hr:PayrollLine ;
+  hr:payrollLineComponent "base salary" ;
+  hr:payrollLineAmount "14000"^^xsd:decimal ;
+  hr:payrollLineEmployerCost true ;
+  hr:payrollLinePayrollRun data:payroll_runs-2 ;
+  hr:payrollLineEmployee data:employees-4 .
+data:payroll_lines-21 a hr:PayrollLine ;
+  hr:payrollLineComponent "employer social charge" ;
+  hr:payrollLineAmount "2800"^^xsd:decimal ;
+  hr:payrollLineEmployerCost true ;
+  hr:payrollLinePayrollRun data:payroll_runs-2 ;
+  hr:payrollLineEmployee data:employees-4 .
+data:payroll_lines-22 a hr:PayrollLine ;
+  hr:payrollLineComponent "employee social security" ;
+  hr:payrollLineAmount "1540"^^xsd:decimal ;
+  hr:payrollLineEmployerCost false ;
+  hr:payrollLinePayrollRun data:payroll_runs-2 ;
+  hr:payrollLineEmployee data:employees-4 .
+data:suppliers-1 a proc:Supplier ;
+  proc:supplierSupplierCategory "cleaning" ;
+  proc:supplierPaymentTermsDays "30"^^xsd:integer ;
+  proc:supplierIsApproved true ;
+  proc:supplierOrganization data:organizations-11 .
+data:suppliers-2 a proc:Supplier ;
+  proc:supplierSupplierCategory "security" ;
+  proc:supplierPaymentTermsDays "30"^^xsd:integer ;
+  proc:supplierIsApproved true ;
+  proc:supplierOrganization data:organizations-12 .
+data:purchase_orders-1 a proc:PurchaseOrder ;
+  proc:purchaseOrderPoNumber "PO-1001" ;
+  proc:purchaseOrderOrderDate "2026-08-02"^^xsd:date ;
+  proc:purchaseOrderStatus "invoiced" ;
+  proc:purchaseOrderSupplier data:suppliers-1 ;
+  proc:purchaseOrderProperty data:properties-1 ;
+  proc:purchaseOrderBuyer data:employees-3 .
+data:purchase_orders-2 a proc:PurchaseOrder ;
+  proc:purchaseOrderPoNumber "PO-1002" ;
+  proc:purchaseOrderOrderDate "2026-09-01"^^xsd:date ;
+  proc:purchaseOrderStatus "invoiced" ;
+  proc:purchaseOrderSupplier data:suppliers-2 ;
+  proc:purchaseOrderProperty data:properties-1 ;
+  proc:purchaseOrderBuyer data:employees-3 .
+data:purchase_orders-3 a proc:PurchaseOrder ;
+  proc:purchaseOrderPoNumber "PO-1003" ;
+  proc:purchaseOrderOrderDate "2026-09-03"^^xsd:date ;
+  proc:purchaseOrderStatus "invoiced" ;
+  proc:purchaseOrderSupplier data:suppliers-1 ;
+  proc:purchaseOrderProperty data:properties-2 ;
+  proc:purchaseOrderBuyer data:employees-3 .
+data:purchase_order_lines-1 a proc:PurchaseOrderLine ;
+  proc:purchaseOrderLineSummary "Common-area cleaning, August" ;
+  proc:purchaseOrderLineQuantity "1"^^xsd:decimal ;
+  proc:purchaseOrderLineUnitPrice "18000"^^xsd:decimal ;
+  proc:purchaseOrderLinePurchaseOrder data:purchase_orders-1 ;
+  proc:purchaseOrderLineCategory data:expense_categories-1 .
+data:purchase_order_lines-2 a proc:PurchaseOrderLine ;
+  proc:purchaseOrderLineSummary "Floor polishing" ;
+  proc:purchaseOrderLineQuantity "4"^^xsd:decimal ;
+  proc:purchaseOrderLineUnitPrice "750"^^xsd:decimal ;
+  proc:purchaseOrderLinePurchaseOrder data:purchase_orders-1 ;
+  proc:purchaseOrderLineCategory data:expense_categories-3 .
+data:purchase_order_lines-3 a proc:PurchaseOrderLine ;
+  proc:purchaseOrderLineSummary "Security guards, September" ;
+  proc:purchaseOrderLineQuantity "6"^^xsd:decimal ;
+  proc:purchaseOrderLineUnitPrice "4200"^^xsd:decimal ;
+  proc:purchaseOrderLinePurchaseOrder data:purchase_orders-2 ;
+  proc:purchaseOrderLineCategory data:expense_categories-2 .
+data:purchase_order_lines-4 a proc:PurchaseOrderLine ;
+  proc:purchaseOrderLineSummary "Outlet cleaning, September" ;
+  proc:purchaseOrderLineQuantity "1"^^xsd:decimal ;
+  proc:purchaseOrderLineUnitPrice "7000"^^xsd:decimal ;
+  proc:purchaseOrderLinePurchaseOrder data:purchase_orders-3 ;
+  proc:purchaseOrderLineCategory data:expense_categories-1 .
+data:supplier_invoices-1 a proc:SupplierInvoice ;
+  proc:supplierInvoiceInvoiceNumber "NF-5001" ;
+  proc:supplierInvoiceIssueDate "2026-08-02"^^xsd:date ;
+  proc:supplierInvoiceDueDate "2026-08-02"^^xsd:date ;
+  proc:supplierInvoiceGrossAmount "21000"^^xsd:decimal ;
+  proc:supplierInvoiceWithheldTaxes "2310"^^xsd:decimal ;
+  proc:supplierInvoicePaidAmount "18690"^^xsd:decimal ;
+  proc:supplierInvoiceStatus "paid" ;
+  proc:supplierInvoiceSupplier data:suppliers-1 ;
+  proc:supplierInvoicePayer data:legal_entities-1 ;
+  proc:supplierInvoicePurchaseOrder data:purchase_orders-1 ;
+  proc:supplierInvoiceMonth data:calendar_months-1 .
+data:supplier_invoices-2 a proc:SupplierInvoice ;
+  proc:supplierInvoiceInvoiceNumber "NF-5002" ;
+  proc:supplierInvoiceIssueDate "2026-09-01"^^xsd:date ;
+  proc:supplierInvoiceDueDate "2026-09-01"^^xsd:date ;
+  proc:supplierInvoiceGrossAmount "25200"^^xsd:decimal ;
+  proc:supplierInvoiceWithheldTaxes "2772"^^xsd:decimal ;
+  proc:supplierInvoicePaidAmount "0"^^xsd:decimal ;
+  proc:supplierInvoiceStatus "approved" ;
+  proc:supplierInvoiceSupplier data:suppliers-2 ;
+  proc:supplierInvoicePayer data:legal_entities-1 ;
+  proc:supplierInvoicePurchaseOrder data:purchase_orders-2 ;
+  proc:supplierInvoiceMonth data:calendar_months-2 .
+data:supplier_invoices-3 a proc:SupplierInvoice ;
+  proc:supplierInvoiceInvoiceNumber "NF-5003" ;
+  proc:supplierInvoiceIssueDate "2026-09-03"^^xsd:date ;
+  proc:supplierInvoiceDueDate "2026-09-03"^^xsd:date ;
+  proc:supplierInvoiceGrossAmount "7000"^^xsd:decimal ;
+  proc:supplierInvoiceWithheldTaxes "770"^^xsd:decimal ;
+  proc:supplierInvoicePaidAmount "6230"^^xsd:decimal ;
+  proc:supplierInvoiceStatus "paid" ;
+  proc:supplierInvoiceSupplier data:suppliers-1 ;
+  proc:supplierInvoicePayer data:legal_entities-2 ;
+  proc:supplierInvoicePurchaseOrder data:purchase_orders-3 ;
+  proc:supplierInvoiceMonth data:calendar_months-2 .
+data:expense_categories-1 a ops:ExpenseCategory ;
+  ops:expenseCategoryCode "CLN" ;
+  ops:expenseCategoryName "Cleaning" ;
+  ops:expenseCategoryRecoverable true .
+data:expense_categories-2 a ops:ExpenseCategory ;
+  ops:expenseCategoryCode "SEC" ;
+  ops:expenseCategoryName "Security" ;
+  ops:expenseCategoryRecoverable true .
+data:expense_categories-3 a ops:ExpenseCategory ;
+  ops:expenseCategoryCode "MNT" ;
+  ops:expenseCategoryName "Maintenance" ;
+  ops:expenseCategoryRecoverable true .
 data:charge_types-1 a fin:ChargeType ;
   fin:chargeTypeCode "MIN" ;
   fin:chargeTypeName "Minimum rent" ;
@@ -891,103 +1311,130 @@ data:ledger_accounts-4 a fin:LedgerAccount ;
 data:journal_entries-1 a fin:JournalEntry ;
   fin:journalEntryEntryDate "2026-08-31"^^xsd:date ;
   fin:journalEntrySummary "Month-end close 2026-08" ;
-  fin:journalEntryProperty data:properties-1 ;
+  fin:journalEntryLegalEntity data:legal_entities-1 ;
   fin:journalEntryMonth data:calendar_months-1 .
 data:journal_entries-2 a fin:JournalEntry ;
   fin:journalEntryEntryDate "2026-08-31"^^xsd:date ;
   fin:journalEntrySummary "Month-end close 2026-08" ;
-  fin:journalEntryProperty data:properties-2 ;
+  fin:journalEntryLegalEntity data:legal_entities-2 ;
   fin:journalEntryMonth data:calendar_months-1 .
 data:journal_entries-3 a fin:JournalEntry ;
   fin:journalEntryEntryDate "2026-09-30"^^xsd:date ;
   fin:journalEntrySummary "Month-end close 2026-09" ;
-  fin:journalEntryProperty data:properties-1 ;
+  fin:journalEntryLegalEntity data:legal_entities-1 ;
   fin:journalEntryMonth data:calendar_months-2 .
 data:journal_entries-4 a fin:JournalEntry ;
   fin:journalEntryEntryDate "2026-09-30"^^xsd:date ;
   fin:journalEntrySummary "Month-end close 2026-09" ;
-  fin:journalEntryProperty data:properties-2 ;
+  fin:journalEntryLegalEntity data:legal_entities-2 ;
   fin:journalEntryMonth data:calendar_months-2 .
 data:journal_lines-1 a fin:JournalLine ;
   fin:journalLineAmount "110800"^^xsd:decimal ;
   fin:journalLineNoiClass "revenue" ;
   fin:journalLineEntry data:journal_entries-1 ;
-  fin:journalLineAccount data:ledger_accounts-1 .
+  fin:journalLineAccount data:ledger_accounts-1 ;
+  fin:journalLineCostCenter data:cost_centers-1 .
 data:journal_lines-2 a fin:JournalLine ;
   fin:journalLineAmount "61000"^^xsd:decimal ;
   fin:journalLineNoiClass "revenue" ;
   fin:journalLineEntry data:journal_entries-1 ;
-  fin:journalLineAccount data:ledger_accounts-2 .
+  fin:journalLineAccount data:ledger_accounts-2 ;
+  fin:journalLineCostCenter data:cost_centers-1 .
 data:journal_lines-3 a fin:JournalLine ;
   fin:journalLineAmount "-30000"^^xsd:decimal ;
   fin:journalLineNoiClass "opex" ;
   fin:journalLineEntry data:journal_entries-1 ;
-  fin:journalLineAccount data:ledger_accounts-3 .
+  fin:journalLineAccount data:ledger_accounts-3 ;
+  fin:journalLineCostCenter data:cost_centers-1 .
 data:journal_lines-4 a fin:JournalLine ;
   fin:journalLineAmount "-45000"^^xsd:decimal ;
   fin:journalLineNoiClass "excluded" ;
   fin:journalLineEntry data:journal_entries-1 ;
-  fin:journalLineAccount data:ledger_accounts-4 .
+  fin:journalLineAccount data:ledger_accounts-4 ;
+  fin:journalLineCostCenter data:cost_centers-1 .
 data:journal_lines-5 a fin:JournalLine ;
   fin:journalLineAmount "21000"^^xsd:decimal ;
   fin:journalLineNoiClass "revenue" ;
   fin:journalLineEntry data:journal_entries-2 ;
-  fin:journalLineAccount data:ledger_accounts-1 .
+  fin:journalLineAccount data:ledger_accounts-1 ;
+  fin:journalLineCostCenter data:cost_centers-2 .
 data:journal_lines-6 a fin:JournalLine ;
   fin:journalLineAmount "0"^^xsd:decimal ;
   fin:journalLineNoiClass "revenue" ;
   fin:journalLineEntry data:journal_entries-2 ;
-  fin:journalLineAccount data:ledger_accounts-2 .
+  fin:journalLineAccount data:ledger_accounts-2 ;
+  fin:journalLineCostCenter data:cost_centers-2 .
 data:journal_lines-7 a fin:JournalLine ;
   fin:journalLineAmount "-9000"^^xsd:decimal ;
   fin:journalLineNoiClass "opex" ;
   fin:journalLineEntry data:journal_entries-2 ;
-  fin:journalLineAccount data:ledger_accounts-3 .
+  fin:journalLineAccount data:ledger_accounts-3 ;
+  fin:journalLineCostCenter data:cost_centers-2 .
 data:journal_lines-8 a fin:JournalLine ;
   fin:journalLineAmount "-12000"^^xsd:decimal ;
   fin:journalLineNoiClass "excluded" ;
   fin:journalLineEntry data:journal_entries-2 ;
-  fin:journalLineAccount data:ledger_accounts-4 .
+  fin:journalLineAccount data:ledger_accounts-4 ;
+  fin:journalLineCostCenter data:cost_centers-2 .
 data:journal_lines-9 a fin:JournalLine ;
   fin:journalLineAmount "115300"^^xsd:decimal ;
   fin:journalLineNoiClass "revenue" ;
   fin:journalLineEntry data:journal_entries-3 ;
-  fin:journalLineAccount data:ledger_accounts-1 .
+  fin:journalLineAccount data:ledger_accounts-1 ;
+  fin:journalLineCostCenter data:cost_centers-1 .
 data:journal_lines-10 a fin:JournalLine ;
   fin:journalLineAmount "66000"^^xsd:decimal ;
   fin:journalLineNoiClass "revenue" ;
   fin:journalLineEntry data:journal_entries-3 ;
-  fin:journalLineAccount data:ledger_accounts-2 .
+  fin:journalLineAccount data:ledger_accounts-2 ;
+  fin:journalLineCostCenter data:cost_centers-1 .
 data:journal_lines-11 a fin:JournalLine ;
   fin:journalLineAmount "-32000"^^xsd:decimal ;
   fin:journalLineNoiClass "opex" ;
   fin:journalLineEntry data:journal_entries-3 ;
-  fin:journalLineAccount data:ledger_accounts-3 .
+  fin:journalLineAccount data:ledger_accounts-3 ;
+  fin:journalLineCostCenter data:cost_centers-1 .
 data:journal_lines-12 a fin:JournalLine ;
   fin:journalLineAmount "-45000"^^xsd:decimal ;
   fin:journalLineNoiClass "excluded" ;
   fin:journalLineEntry data:journal_entries-3 ;
-  fin:journalLineAccount data:ledger_accounts-4 .
+  fin:journalLineAccount data:ledger_accounts-4 ;
+  fin:journalLineCostCenter data:cost_centers-1 .
 data:journal_lines-13 a fin:JournalLine ;
   fin:journalLineAmount "41500"^^xsd:decimal ;
   fin:journalLineNoiClass "revenue" ;
   fin:journalLineEntry data:journal_entries-4 ;
-  fin:journalLineAccount data:ledger_accounts-1 .
+  fin:journalLineAccount data:ledger_accounts-1 ;
+  fin:journalLineCostCenter data:cost_centers-2 .
 data:journal_lines-14 a fin:JournalLine ;
   fin:journalLineAmount "0"^^xsd:decimal ;
   fin:journalLineNoiClass "revenue" ;
   fin:journalLineEntry data:journal_entries-4 ;
-  fin:journalLineAccount data:ledger_accounts-2 .
+  fin:journalLineAccount data:ledger_accounts-2 ;
+  fin:journalLineCostCenter data:cost_centers-2 .
 data:journal_lines-15 a fin:JournalLine ;
   fin:journalLineAmount "-9500"^^xsd:decimal ;
   fin:journalLineNoiClass "opex" ;
   fin:journalLineEntry data:journal_entries-4 ;
-  fin:journalLineAccount data:ledger_accounts-3 .
+  fin:journalLineAccount data:ledger_accounts-3 ;
+  fin:journalLineCostCenter data:cost_centers-2 .
 data:journal_lines-16 a fin:JournalLine ;
   fin:journalLineAmount "-12000"^^xsd:decimal ;
   fin:journalLineNoiClass "excluded" ;
   fin:journalLineEntry data:journal_entries-4 ;
-  fin:journalLineAccount data:ledger_accounts-4 .
+  fin:journalLineAccount data:ledger_accounts-4 ;
+  fin:journalLineCostCenter data:cost_centers-2 .
+data:cost_centers-1 a fin:CostCenter ;
+  fin:costCenterCode "CC-AUR" ;
+  fin:costCenterName "Aurora Shopping" ;
+  fin:costCenterProperty data:properties-1 .
+data:cost_centers-2 a fin:CostCenter ;
+  fin:costCenterCode "CC-BRS" ;
+  fin:costCenterName "Brisa Outlet" ;
+  fin:costCenterProperty data:properties-2 .
+data:cost_centers-3 a fin:CostCenter ;
+  fin:costCenterCode "CC-CORP" ;
+  fin:costCenterName "Corporate" .
 data:occupancy_snapshots-1 a perf:OccupancySnapshot ;
   perf:occupancySnapshotGlaM2 "2000"^^xsd:decimal ;
   perf:occupancySnapshotOccupiedGlaM2 "2000"^^xsd:decimal ;

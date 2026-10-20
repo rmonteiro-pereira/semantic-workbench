@@ -16,6 +16,9 @@ prefixes:
   asset: https://example.org/mall/asset#
   party: https://example.org/mall/party#
   lease: https://example.org/mall/lease#
+  legal: https://example.org/mall/legal#
+  hr: https://example.org/mall/hr#
+  proc: https://example.org/mall/proc#
   ops: https://example.org/mall/ops#
   fin: https://example.org/mall/fin#
   perf: https://example.org/mall/perf#
@@ -24,7 +27,7 @@ ontology:
   - concept: Party
     type: EntityType
     iri: core:Party
-    description: "Abstract legal or natural person that holds rights or obligations in property administration: tenants, investors, providers, brokers, guarantors and staff."
+    description: Abstract legal or natural person. The roles a party plays (tenant, investor, broker, supplier, employee, legal entity, contract counterparty) are separate concepts that refer to the party, so one company can be a supplier and a counterparty at the same time.
     identify_by:
       - id
     relationships:
@@ -87,18 +90,26 @@ ontology:
   - concept: Organization
     type: EntityType
     iri: core:Organization
-    description: Legal entity such as a company, fund, bank, insurer, public authority or condominium association that is not otherwise specialised.
+    description: Legal entity such as a company, fund, bank, insurer, public authority, court, law firm or condominium association.
     extends:
       - Party
     relationships:
       - name: organization_type
         iri: core:organizationOrganizationType
-        description: Kind of organization, for example bank, insurer, appraiser, authority or law firm.
+        description: Kind of organization, for example company, fund, bank, insurer, authority, court or law firm.
         roles:
           - concept: Code
         multiplicity: ManyToOne
         verbalizes:
           - "{Organization} has organization type {Code}"
+      - name: legal_form
+        iri: core:organizationLegalForm
+        description: Legal form, for example limited company, corporation, investment fund or association.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Organization} has legal form {Code}"
       - name: parent_organization
         iri: core:organizationParentOrganization
         description: Economic group or parent company.
@@ -110,18 +121,26 @@ ontology:
   - concept: Person
     type: EntityType
     iri: core:Person
-    description: Natural person, such as a tenant contact, property manager or individual guarantor.
+    description: "Natural person: employee, tenant contact, attorney, candidate, guarantor or individual investor. Personal data is subject to data-protection law."
     extends:
       - Party
     relationships:
-      - name: job_title
-        iri: core:personJobTitle
-        description: Job title or role description.
+      - name: birth_date
+        iri: core:personBirthDate
+        description: Date of birth.
         roles:
-          - concept: Text
+          - concept: CalendarDate
         multiplicity: ManyToOne
         verbalizes:
-          - "{Person} has job title {Text}"
+          - "{Person} has birth date {CalendarDate}"
+      - name: nationality
+        iri: core:personNationality
+        description: Nationality.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Person} has nationality {Code}"
   - concept: Address
     type: EntityType
     iri: core:Address
@@ -1250,13 +1269,29 @@ ontology:
         multiplicity: ManyToOne
         verbalizes:
           - "{Equipment} is installed at {Property}"
+      - name: fixed_asset
+        iri: asset:equipmentFixedAsset
+        description: Fixed-asset record.
+        roles:
+          - concept: FixedAsset
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Equipment} is capitalised as {FixedAsset}"
   - concept: Tenant
     type: EntityType
     iri: party:Tenant
-    description: Retailer, restaurant or service operator that leases space in a property.
-    extends:
-      - Organization
+    description: "Role of an organization that leases space in a property: retailer, restaurant or service operator."
+    identify_by:
+      - id
     relationships:
+      - name: id
+        iri: party:tenantId
+        description: Identifier of the Tenant.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Tenant} is identified by {Identifier}"
       - name: trade_name
         iri: party:tenantTradeName
         description: Trading name used at the store.
@@ -1265,13 +1300,37 @@ ontology:
         multiplicity: ManyToOne
         verbalizes:
           - "{Tenant} has trade name {Name}"
+      - name: since_date
+        iri: party:tenantSinceDate
+        description: First lease start in the portfolio.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Tenant} has since date {CalendarDate}"
+      - name: organization
+        iri: party:tenantOrganization
+        description: Organization acting as tenant.
+        roles:
+          - concept: Organization
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Tenant} is a role of {Organization}"
   - concept: Investor
     type: EntityType
     iri: party:Investor
-    description: Owner of an ownership stake, such as a pension fund, real-estate fund or developer.
-    extends:
-      - Organization
+    description: Role of an organization or person that owns ownership stakes, such as a pension fund, real-estate fund, developer or individual.
+    identify_by:
+      - id
     relationships:
+      - name: id
+        iri: party:investorId
+        description: Identifier of the Investor.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Investor} is identified by {Identifier}"
       - name: investor_type
         iri: party:investorInvestorType
         description: Pension fund, real-estate fund, developer or private investor.
@@ -1280,28 +1339,37 @@ ontology:
         multiplicity: ManyToOne
         verbalizes:
           - "{Investor} has investor type {Code}"
-  - concept: ServiceProvider
-    type: EntityType
-    iri: party:ServiceProvider
-    description: "Supplier of services to the property: cleaning, security, maintenance, parking operation or marketing."
-    extends:
-      - Organization
-    relationships:
-      - name: service_category
-        iri: party:serviceProviderServiceCategory
-        description: Main service supplied.
+      - name: organization
+        iri: party:investorOrganization
+        description: Investing organization.
         roles:
-          - concept: Code
+          - concept: Organization
         multiplicity: ManyToOne
         verbalizes:
-          - "{ServiceProvider} has service category {Code}"
+          - "{Investor} is a role of {Organization}"
+      - name: person
+        iri: party:investorPerson
+        description: Individual investor.
+        roles:
+          - concept: Person
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Investor} is a role of {Person}"
   - concept: Broker
     type: EntityType
     iri: party:Broker
-    description: Leasing broker or agency that introduces tenants.
-    extends:
-      - Organization
+    description: Role of a leasing broker or agency that introduces tenants.
+    identify_by:
+      - id
     relationships:
+      - name: id
+        iri: party:brokerId
+        description: Identifier of the Broker.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Broker} is identified by {Identifier}"
       - name: license_number
         iri: party:brokerLicenseNumber
         description: Broker licence number.
@@ -1310,6 +1378,22 @@ ontology:
         multiplicity: ManyToOne
         verbalizes:
           - "{Broker} has license number {Code}"
+      - name: commission_rate
+        iri: party:brokerCommissionRate
+        description: Standard commission as a fraction of the first-year rent.
+        roles:
+          - concept: Rate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Broker} has commission rate {Rate}"
+      - name: organization
+        iri: party:brokerOrganization
+        description: Brokerage organization.
+        roles:
+          - concept: Organization
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Broker} is a role of {Organization}"
   - concept: Brand
     type: EntityType
     iri: party:Brand
@@ -1595,7 +1679,7 @@ ontology:
   - concept: Lease
     type: EntityType
     iri: lease:Lease
-    description: Commercial lease of one or more units to a tenant. Shopping-center leases usually combine a monthly minimum rent with a percentage rent on gross sales, plus service charges and a marketing fund contribution.
+    description: Commercial lease of one or more units to a tenant, registered as a contract. Shopping-center leases usually combine a monthly minimum rent with a percentage rent on gross sales, plus service charges and a marketing fund contribution.
     identify_by:
       - id
     relationships:
@@ -1607,38 +1691,6 @@ ontology:
         multiplicity: OneToOne
         verbalizes:
           - "{Lease} is identified by {Identifier}"
-      - name: lease_number
-        iri: lease:leaseLeaseNumber
-        description: Lease number.
-        roles:
-          - concept: Code
-        multiplicity: ManyToOne
-        verbalizes:
-          - "{Lease} has lease number {Code}"
-      - name: signing_date
-        iri: lease:leaseSigningDate
-        description: Signing date.
-        roles:
-          - concept: CalendarDate
-        multiplicity: ManyToOne
-        verbalizes:
-          - "{Lease} has signing date {CalendarDate}"
-      - name: start_date
-        iri: lease:leaseStartDate
-        description: Start of the lease term.
-        roles:
-          - concept: CalendarDate
-        multiplicity: ManyToOne
-        verbalizes:
-          - "{Lease} has start date {CalendarDate}"
-      - name: end_date
-        iri: lease:leaseEndDate
-        description: End of the lease term.
-        roles:
-          - concept: CalendarDate
-        multiplicity: ManyToOne
-        verbalizes:
-          - "{Lease} has end date {CalendarDate}"
       - name: term_months
         iri: lease:leaseTermMonths
         description: Lease term.
@@ -1671,6 +1723,14 @@ ontology:
         multiplicity: ManyToOne
         verbalizes:
           - "{Lease} has has thirteenth rent {Flag}"
+      - name: contract
+        iri: lease:leaseContract
+        description: Contract register entry with number, dates, parties and documents.
+        roles:
+          - concept: Contract
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Lease} is registered as {Contract}"
       - name: tenant
         iri: lease:leaseTenant
         description: Contracting tenant.
@@ -1689,7 +1749,7 @@ ontology:
           - "{Lease} is operated under {Brand}"
       - name: status
         iri: lease:leaseStatus
-        description: Lifecycle status.
+        description: Operational lifecycle status.
         roles:
           - concept: LeaseStatus
         multiplicity: ManyToOne
@@ -1703,14 +1763,6 @@ ontology:
         multiplicity: ManyToOne
         verbalizes:
           - "{Lease} permits use as {MerchandiseCategory}"
-      - name: currency
-        iri: lease:leaseCurrency
-        description: Lease currency.
-        roles:
-          - concept: Currency
-        multiplicity: ManyToOne
-        verbalizes:
-          - "{Lease} is denominated in {Currency}"
       - name: broker
         iri: lease:leaseBroker
         description: Leasing broker.
@@ -1774,61 +1826,6 @@ ontology:
         multiplicity: ManyToOne
         verbalizes:
           - "{LeasedUnit} covers {LeasableUnit}"
-  - concept: LeaseAmendment
-    type: EntityType
-    iri: lease:LeaseAmendment
-    description: "Signed change to a lease: rent revision, extension, unit change or assignment."
-    identify_by:
-      - id
-    relationships:
-      - name: id
-        iri: lease:leaseAmendmentId
-        description: Identifier of the LeaseAmendment.
-        roles:
-          - concept: Identifier
-        multiplicity: OneToOne
-        verbalizes:
-          - "{LeaseAmendment} is identified by {Identifier}"
-      - name: amendment_number
-        iri: lease:leaseAmendmentAmendmentNumber
-        description: Amendment number.
-        roles:
-          - concept: Code
-        multiplicity: ManyToOne
-        verbalizes:
-          - "{LeaseAmendment} has amendment number {Code}"
-      - name: effective_date
-        iri: lease:leaseAmendmentEffectiveDate
-        description: Effective date.
-        roles:
-          - concept: CalendarDate
-        multiplicity: ManyToOne
-        verbalizes:
-          - "{LeaseAmendment} has effective date {CalendarDate}"
-      - name: amendment_type
-        iri: lease:leaseAmendmentAmendmentType
-        description: Kind of change.
-        roles:
-          - concept: Code
-        multiplicity: ManyToOne
-        verbalizes:
-          - "{LeaseAmendment} has amendment type {Code}"
-      - name: summary
-        iri: lease:leaseAmendmentSummary
-        description: Summary of the change.
-        roles:
-          - concept: Text
-        multiplicity: ManyToOne
-        verbalizes:
-          - "{LeaseAmendment} has summary {Text}"
-      - name: lease
-        iri: lease:leaseAmendmentLease
-        description: Lease amended.
-        roles:
-          - concept: Lease
-        multiplicity: ManyToOne
-        verbalizes:
-          - "{LeaseAmendment} amends {Lease}"
   - concept: RentStep
     type: EntityType
     iri: lease:RentStep
@@ -2445,6 +2442,2650 @@ ontology:
         multiplicity: ManyToOne
         verbalizes:
           - "{LeaseTermination} terminates {Lease}"
+  - concept: LegalEntity
+    type: EntityType
+    iri: legal:LegalEntity
+    description: "Role of an organization in the group that signs contracts, keeps books and employs staff: property-owning special-purpose company, fund, administrator or condominium."
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: legal:legalEntityId
+        description: Identifier of the LegalEntity.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{LegalEntity} is identified by {Identifier}"
+      - name: registration_number
+        iri: legal:legalEntityRegistrationNumber
+        description: Company registration number.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LegalEntity} has registration number {Code}"
+      - name: entity_type
+        iri: legal:legalEntityEntityType
+        description: Special-purpose company, fund, administrator, holding or condominium.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LegalEntity} has entity type {Code}"
+      - name: incorporation_date
+        iri: legal:legalEntityIncorporationDate
+        description: Incorporation date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LegalEntity} has incorporation date {CalendarDate}"
+      - name: fiscal_regime
+        iri: legal:legalEntityFiscalRegime
+        description: Tax regime, for example actual profit or presumed profit.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LegalEntity} has fiscal regime {Code}"
+      - name: organization
+        iri: legal:legalEntityOrganization
+        description: Organization registered as the legal entity.
+        roles:
+          - concept: Organization
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LegalEntity} is a role of {Organization}"
+  - concept: ContractType
+    type: EntityType
+    iri: legal:ContractType
+    description: "Kind of contract in the register: lease, service, supply framework, employment, loan, construction, insurance, brokerage, confidentiality or other."
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: legal:contractTypeId
+        description: Identifier of the ContractType.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{ContractType} is identified by {Identifier}"
+      - name: code
+        iri: legal:contractTypeCode
+        description: Type code.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractType} has code {Code}"
+      - name: name
+        iri: legal:contractTypeName
+        description: Type name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractType} has name {Name}"
+      - name: requires_legal_review
+        iri: legal:contractTypeRequiresLegalReview
+        description: Whether legal review is mandatory before signature.
+        roles:
+          - concept: Flag
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractType} has requires legal review {Flag}"
+  - concept: Contract
+    type: EntityType
+    iri: legal:Contract
+    description: Entry of the contract register. Every lease, service contract, supply agreement, employment contract, loan or construction contract is registered here with its number, term, value, parties, documents, obligations and approvals.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: legal:contractId
+        description: Identifier of the Contract.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Contract} is identified by {Identifier}"
+      - name: contract_number
+        iri: legal:contractContractNumber
+        description: Contract number.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Contract} has contract number {Code}"
+      - name: title
+        iri: legal:contractTitle
+        description: Contract title.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Contract} has title {Text}"
+      - name: signing_date
+        iri: legal:contractSigningDate
+        description: Signing date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Contract} has signing date {CalendarDate}"
+      - name: start_date
+        iri: legal:contractStartDate
+        description: Start of the term.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Contract} has start date {CalendarDate}"
+      - name: end_date
+        iri: legal:contractEndDate
+        description: End of the term; empty when indefinite.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Contract} has end date {CalendarDate}"
+      - name: status
+        iri: legal:contractStatus
+        description: Draft, under review, signed, active, expired or terminated.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Contract} has status {Code}"
+      - name: total_value
+        iri: legal:contractTotalValue
+        description: Total contract value.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Contract} has total value {MoneyAmount}"
+      - name: auto_renewal
+        iri: legal:contractAutoRenewal
+        description: Whether the contract renews automatically.
+        roles:
+          - concept: Flag
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Contract} has auto renewal {Flag}"
+      - name: notice_period_days
+        iri: legal:contractNoticePeriodDays
+        description: Notice required to terminate or not renew.
+        roles:
+          - concept: Count
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Contract} has notice period days {Count}"
+      - name: governing_law
+        iri: legal:contractGoverningLaw
+        description: Governing law and jurisdiction.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Contract} has governing law {Text}"
+      - name: contract_type
+        iri: legal:contractContractType
+        description: Contract type.
+        roles:
+          - concept: ContractType
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Contract} is of type {ContractType}"
+      - name: contracting_entity
+        iri: legal:contractContractingEntity
+        description: Group legal entity bound by the contract.
+        roles:
+          - concept: LegalEntity
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Contract} is entered into by {LegalEntity}"
+      - name: currency
+        iri: legal:contractCurrency
+        description: Contract currency.
+        roles:
+          - concept: Currency
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Contract} is denominated in {Currency}"
+  - concept: ContractParty
+    type: EntityType
+    iri: legal:ContractParty
+    description: "Party to a contract other than the contracting entity: counterparty, guarantor, intervening party or witness."
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: legal:contractPartyId
+        description: Identifier of the ContractParty.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{ContractParty} is identified by {Identifier}"
+      - name: party_role
+        iri: legal:contractPartyPartyRole
+        description: Counterparty, guarantor, intervening party or witness.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractParty} has party role {Code}"
+      - name: contract
+        iri: legal:contractPartyContract
+        description: Contract.
+        roles:
+          - concept: Contract
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractParty} is a party to {Contract}"
+      - name: organization
+        iri: legal:contractPartyOrganization
+        description: Organization acting as party.
+        roles:
+          - concept: Organization
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractParty} is the organization of {Organization}"
+      - name: person
+        iri: legal:contractPartyPerson
+        description: Person acting as party.
+        roles:
+          - concept: Person
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractParty} is the person of {Person}"
+  - concept: ContractDocument
+    type: EntityType
+    iri: legal:ContractDocument
+    description: Signed instrument or annex of a contract.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: legal:contractDocumentId
+        description: Identifier of the ContractDocument.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{ContractDocument} is identified by {Identifier}"
+      - name: document_type
+        iri: legal:contractDocumentDocumentType
+        description: Original, amendment, annex, notice or termination.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractDocument} has document type {Code}"
+      - name: reference
+        iri: legal:contractDocumentReference
+        description: Document repository reference.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractDocument} has reference {Text}"
+      - name: signed_date
+        iri: legal:contractDocumentSignedDate
+        description: Signature date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractDocument} has signed date {CalendarDate}"
+      - name: signature_method
+        iri: legal:contractDocumentSignatureMethod
+        description: Handwritten, electronic or qualified digital certificate.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractDocument} has signature method {Code}"
+      - name: contract
+        iri: legal:contractDocumentContract
+        description: Contract.
+        roles:
+          - concept: Contract
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractDocument} documents {Contract}"
+  - concept: ContractAmendment
+    type: EntityType
+    iri: legal:ContractAmendment
+    description: "Signed change to a contract: price revision, extension, scope change, assignment or party change."
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: legal:contractAmendmentId
+        description: Identifier of the ContractAmendment.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{ContractAmendment} is identified by {Identifier}"
+      - name: amendment_number
+        iri: legal:contractAmendmentAmendmentNumber
+        description: Amendment number.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractAmendment} has amendment number {Code}"
+      - name: effective_date
+        iri: legal:contractAmendmentEffectiveDate
+        description: Effective date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractAmendment} has effective date {CalendarDate}"
+      - name: amendment_type
+        iri: legal:contractAmendmentAmendmentType
+        description: Kind of change.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractAmendment} has amendment type {Code}"
+      - name: summary
+        iri: legal:contractAmendmentSummary
+        description: Summary of the change.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractAmendment} has summary {Text}"
+      - name: value_change
+        iri: legal:contractAmendmentValueChange
+        description: Change in total contract value.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractAmendment} has value change {MoneyAmount}"
+      - name: contract
+        iri: legal:contractAmendmentContract
+        description: Contract amended.
+        roles:
+          - concept: Contract
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractAmendment} amends {Contract}"
+  - concept: ContractObligation
+    type: EntityType
+    iri: legal:ContractObligation
+    description: Obligation to monitor under a contract, such as payments, sales reporting, insurance certificates, opening hours, maintenance or renewal notices.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: legal:contractObligationId
+        description: Identifier of the ContractObligation.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{ContractObligation} is identified by {Identifier}"
+      - name: summary
+        iri: legal:contractObligationSummary
+        description: Obligation.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractObligation} has summary {Text}"
+      - name: obligation_type
+        iri: legal:contractObligationObligationType
+        description: Payment, reporting, insurance, operation, maintenance or notice.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractObligation} has obligation type {Code}"
+      - name: due_date
+        iri: legal:contractObligationDueDate
+        description: Next due date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractObligation} has due date {CalendarDate}"
+      - name: frequency
+        iri: legal:contractObligationFrequency
+        description: One-off, monthly, quarterly or annual.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractObligation} has frequency {Code}"
+      - name: status
+        iri: legal:contractObligationStatus
+        description: Pending, fulfilled, overdue or waived.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractObligation} has status {Code}"
+      - name: contract
+        iri: legal:contractObligationContract
+        description: Contract.
+        roles:
+          - concept: Contract
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractObligation} is imposed by {Contract}"
+      - name: responsible
+        iri: legal:contractObligationResponsible
+        description: Employee responsible.
+        roles:
+          - concept: Employee
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractObligation} is monitored by {Employee}"
+  - concept: ContractApproval
+    type: EntityType
+    iri: legal:ContractApproval
+    description: Approval step of a contract under the delegation-of-authority matrix.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: legal:contractApprovalId
+        description: Identifier of the ContractApproval.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{ContractApproval} is identified by {Identifier}"
+      - name: approval_level
+        iri: legal:contractApprovalApprovalLevel
+        description: Approval level, for example manager, director, legal or board.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractApproval} has approval level {Code}"
+      - name: decision
+        iri: legal:contractApprovalDecision
+        description: Approved, rejected or returned.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractApproval} has decision {Code}"
+      - name: decision_date
+        iri: legal:contractApprovalDecisionDate
+        description: Decision date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractApproval} has decision date {CalendarDate}"
+      - name: contract
+        iri: legal:contractApprovalContract
+        description: Contract.
+        roles:
+          - concept: Contract
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractApproval} is approved through {Contract}"
+      - name: approver
+        iri: legal:contractApprovalApprover
+        description: Approver.
+        roles:
+          - concept: Employee
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ContractApproval} is decided by {Employee}"
+  - concept: PowerOfAttorney
+    type: EntityType
+    iri: legal:PowerOfAttorney
+    description: Authority granted by a legal entity to a person to sign or act on its behalf.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: legal:powerOfAttorneyId
+        description: Identifier of the PowerOfAttorney.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{PowerOfAttorney} is identified by {Identifier}"
+      - name: scope
+        iri: legal:powerOfAttorneyScope
+        description: Powers granted.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PowerOfAttorney} has scope {Text}"
+      - name: granted_date
+        iri: legal:powerOfAttorneyGrantedDate
+        description: Grant date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PowerOfAttorney} has granted date {CalendarDate}"
+      - name: valid_until
+        iri: legal:powerOfAttorneyValidUntil
+        description: Expiry date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PowerOfAttorney} has valid until {CalendarDate}"
+      - name: grantor
+        iri: legal:powerOfAttorneyGrantor
+        description: Granting legal entity.
+        roles:
+          - concept: LegalEntity
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PowerOfAttorney} is granted by {LegalEntity}"
+      - name: attorney
+        iri: legal:powerOfAttorneyAttorney
+        description: Attorney-in-fact.
+        roles:
+          - concept: Person
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PowerOfAttorney} is granted to {Person}"
+  - concept: GovernanceMeeting
+    type: EntityType
+    iri: legal:GovernanceMeeting
+    description: Meeting of shareholders, board, investors, condominium assembly or tenants association.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: legal:governanceMeetingId
+        description: Identifier of the GovernanceMeeting.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{GovernanceMeeting} is identified by {Identifier}"
+      - name: meeting_type
+        iri: legal:governanceMeetingMeetingType
+        description: Shareholders, board, investors, condominium assembly or tenants association.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{GovernanceMeeting} has meeting type {Code}"
+      - name: meeting_date
+        iri: legal:governanceMeetingMeetingDate
+        description: Meeting date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{GovernanceMeeting} has meeting date {CalendarDate}"
+      - name: quorum
+        iri: legal:governanceMeetingQuorum
+        description: Fraction of votes present.
+        roles:
+          - concept: Rate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{GovernanceMeeting} has quorum {Rate}"
+      - name: legal_entity
+        iri: legal:governanceMeetingLegalEntity
+        description: Entity whose body meets.
+        roles:
+          - concept: LegalEntity
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{GovernanceMeeting} is held by {LegalEntity}"
+  - concept: Resolution
+    type: EntityType
+    iri: legal:Resolution
+    description: Decision taken at a governance meeting, for example approving a budget, a capital project or a distribution.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: legal:resolutionId
+        description: Identifier of the Resolution.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Resolution} is identified by {Identifier}"
+      - name: summary
+        iri: legal:resolutionSummary
+        description: Decision.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Resolution} has summary {Text}"
+      - name: outcome
+        iri: legal:resolutionOutcome
+        description: Approved, rejected or deferred.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Resolution} has outcome {Code}"
+      - name: votes_in_favour
+        iri: legal:resolutionVotesInFavour
+        description: Fraction of votes in favour.
+        roles:
+          - concept: Rate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Resolution} has votes in favour {Rate}"
+      - name: meeting
+        iri: legal:resolutionMeeting
+        description: Meeting.
+        roles:
+          - concept: GovernanceMeeting
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Resolution} is passed at {GovernanceMeeting}"
+  - concept: LegalProceeding
+    type: EntityType
+    iri: legal:LegalProceeding
+    description: "Lawsuit or administrative proceeding: eviction, lease renewal, rent review, collection, labour, tax or civil liability."
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: legal:legalProceedingId
+        description: Identifier of the LegalProceeding.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{LegalProceeding} is identified by {Identifier}"
+      - name: case_number
+        iri: legal:legalProceedingCaseNumber
+        description: Case number.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LegalProceeding} has case number {Code}"
+      - name: proceeding_type
+        iri: legal:legalProceedingProceedingType
+        description: Eviction, renewal, rent review, collection, labour, tax or civil liability.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LegalProceeding} has proceeding type {Code}"
+      - name: court
+        iri: legal:legalProceedingCourt
+        description: Court or authority.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LegalProceeding} has court {Name}"
+      - name: filing_date
+        iri: legal:legalProceedingFilingDate
+        description: Filing date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LegalProceeding} has filing date {CalendarDate}"
+      - name: status
+        iri: legal:legalProceedingStatus
+        description: Status.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LegalProceeding} has status {Code}"
+      - name: amount_claimed
+        iri: legal:legalProceedingAmountClaimed
+        description: Amount claimed.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LegalProceeding} has amount claimed {MoneyAmount}"
+      - name: is_plaintiff
+        iri: legal:legalProceedingIsPlaintiff
+        description: Whether the group is the plaintiff.
+        roles:
+          - concept: Flag
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LegalProceeding} has is plaintiff {Flag}"
+      - name: legal_entity
+        iri: legal:legalProceedingLegalEntity
+        description: Group legal entity involved.
+        roles:
+          - concept: LegalEntity
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LegalProceeding} is a party to {LegalEntity}"
+      - name: contract
+        iri: legal:legalProceedingContract
+        description: Contract in dispute.
+        roles:
+          - concept: Contract
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LegalProceeding} concerns {Contract}"
+      - name: property
+        iri: legal:legalProceedingProperty
+        description: Property concerned.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LegalProceeding} concerns {Property}"
+      - name: opposing_party
+        iri: legal:legalProceedingOpposingParty
+        description: Opposing organization.
+        roles:
+          - concept: Organization
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LegalProceeding} is brought against {Organization}"
+      - name: opposing_person
+        iri: legal:legalProceedingOpposingPerson
+        description: Opposing person, for example in a labour claim.
+        roles:
+          - concept: Person
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LegalProceeding} is brought against {Person}"
+      - name: law_firm
+        iri: legal:legalProceedingLawFirm
+        description: Law firm.
+        roles:
+          - concept: Organization
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LegalProceeding} is handled by {Organization}"
+  - concept: LitigationProvision
+    type: EntityType
+    iri: legal:LitigationProvision
+    description: Assessment of the loss probability of a proceeding and the amount provisioned in the accounts.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: legal:litigationProvisionId
+        description: Identifier of the LitigationProvision.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{LitigationProvision} is identified by {Identifier}"
+      - name: assessment_date
+        iri: legal:litigationProvisionAssessmentDate
+        description: Assessment date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LitigationProvision} has assessment date {CalendarDate}"
+      - name: loss_probability
+        iri: legal:litigationProvisionLossProbability
+        description: Probable, possible or remote.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LitigationProvision} has loss probability {Code}"
+      - name: estimated_loss
+        iri: legal:litigationProvisionEstimatedLoss
+        description: Estimated loss.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LitigationProvision} has estimated loss {MoneyAmount}"
+      - name: provision_amount
+        iri: legal:litigationProvisionProvisionAmount
+        description: Amount provisioned.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LitigationProvision} has provision amount {MoneyAmount}"
+      - name: proceeding
+        iri: legal:litigationProvisionProceeding
+        description: Proceeding.
+        roles:
+          - concept: LegalProceeding
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LitigationProvision} assesses {LegalProceeding}"
+  - concept: ComplianceRequirement
+    type: EntityType
+    iri: legal:ComplianceRequirement
+    description: "Recurring legal or regulatory requirement: fire safety, accessibility, environmental, sanitary, data protection or labour safety."
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: legal:complianceRequirementId
+        description: Identifier of the ComplianceRequirement.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{ComplianceRequirement} is identified by {Identifier}"
+      - name: name
+        iri: legal:complianceRequirementName
+        description: Requirement.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ComplianceRequirement} has name {Name}"
+      - name: regulation
+        iri: legal:complianceRequirementRegulation
+        description: Regulation or standard.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ComplianceRequirement} has regulation {Text}"
+      - name: frequency
+        iri: legal:complianceRequirementFrequency
+        description: Check frequency.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ComplianceRequirement} has frequency {Code}"
+  - concept: ComplianceCheck
+    type: EntityType
+    iri: legal:ComplianceCheck
+    description: Verification of a requirement at a property.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: legal:complianceCheckId
+        description: Identifier of the ComplianceCheck.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{ComplianceCheck} is identified by {Identifier}"
+      - name: check_date
+        iri: legal:complianceCheckCheckDate
+        description: Check date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ComplianceCheck} has check date {CalendarDate}"
+      - name: result
+        iri: legal:complianceCheckResult
+        description: Compliant, non-compliant or partially compliant.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ComplianceCheck} has result {Code}"
+      - name: findings
+        iri: legal:complianceCheckFindings
+        description: Findings.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ComplianceCheck} has findings {Text}"
+      - name: remediation_due
+        iri: legal:complianceCheckRemediationDue
+        description: Deadline for remediation.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ComplianceCheck} has remediation due {CalendarDate}"
+      - name: requirement
+        iri: legal:complianceCheckRequirement
+        description: Requirement.
+        roles:
+          - concept: ComplianceRequirement
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ComplianceCheck} verifies {ComplianceRequirement}"
+      - name: property
+        iri: legal:complianceCheckProperty
+        description: Property.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ComplianceCheck} is performed at {Property}"
+      - name: inspector
+        iri: legal:complianceCheckInspector
+        description: Employee responsible.
+        roles:
+          - concept: Employee
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ComplianceCheck} is performed by {Employee}"
+  - concept: DataSubjectRequest
+    type: EntityType
+    iri: legal:DataSubjectRequest
+    description: Request by a person to access, correct, delete or port their personal data under data-protection law.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: legal:dataSubjectRequestId
+        description: Identifier of the DataSubjectRequest.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{DataSubjectRequest} is identified by {Identifier}"
+      - name: request_date
+        iri: legal:dataSubjectRequestRequestDate
+        description: Request date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{DataSubjectRequest} has request date {CalendarDate}"
+      - name: request_type
+        iri: legal:dataSubjectRequestRequestType
+        description: Access, correction, deletion, portability or objection.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{DataSubjectRequest} has request type {Code}"
+      - name: due_date
+        iri: legal:dataSubjectRequestDueDate
+        description: Legal response deadline.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{DataSubjectRequest} has due date {CalendarDate}"
+      - name: completed_date
+        iri: legal:dataSubjectRequestCompletedDate
+        description: Completion date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{DataSubjectRequest} has completed date {CalendarDate}"
+      - name: status
+        iri: legal:dataSubjectRequestStatus
+        description: Open, completed or rejected.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{DataSubjectRequest} has status {Code}"
+      - name: data_subject
+        iri: legal:dataSubjectRequestDataSubject
+        description: Person exercising the right.
+        roles:
+          - concept: Person
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{DataSubjectRequest} is made by {Person}"
+      - name: controller
+        iri: legal:dataSubjectRequestController
+        description: Controller.
+        roles:
+          - concept: LegalEntity
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{DataSubjectRequest} is addressed to {LegalEntity}"
+  - concept: Department
+    type: EntityType
+    iri: hr:Department
+    description: Organizational unit such as property operations, leasing, marketing, finance, legal or human resources.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: hr:departmentId
+        description: Identifier of the Department.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Department} is identified by {Identifier}"
+      - name: code
+        iri: hr:departmentCode
+        description: Department code.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Department} has code {Code}"
+      - name: name
+        iri: hr:departmentName
+        description: Department name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Department} has name {Name}"
+      - name: parent_department
+        iri: hr:departmentParentDepartment
+        description: Parent department.
+        roles:
+          - concept: Department
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Department} reports to another {Department}"
+      - name: legal_entity
+        iri: hr:departmentLegalEntity
+        description: Employing legal entity.
+        roles:
+          - concept: LegalEntity
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Department} belongs to {LegalEntity}"
+      - name: cost_center
+        iri: hr:departmentCostCenter
+        description: Default cost center.
+        roles:
+          - concept: CostCenter
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Department} is charged to {CostCenter}"
+  - concept: Position
+    type: EntityType
+    iri: hr:Position
+    description: Job position, such as general manager, leasing manager, maintenance technician or accounts payable analyst.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: hr:positionId
+        description: Identifier of the Position.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Position} is identified by {Identifier}"
+      - name: code
+        iri: hr:positionCode
+        description: Position code.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Position} has code {Code}"
+      - name: title
+        iri: hr:positionTitle
+        description: Job title.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Position} has title {Text}"
+      - name: grade
+        iri: hr:positionGrade
+        description: Salary grade.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Position} has grade {Code}"
+      - name: occupation_code
+        iri: hr:positionOccupationCode
+        description: Official occupation classification code.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Position} has occupation code {Code}"
+      - name: department
+        iri: hr:positionDepartment
+        description: Department.
+        roles:
+          - concept: Department
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Position} belongs to {Department}"
+  - concept: Employee
+    type: EntityType
+    iri: hr:Employee
+    description: Role of a person employed by a group legal entity.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: hr:employeeId
+        description: Identifier of the Employee.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Employee} is identified by {Identifier}"
+      - name: employee_number
+        iri: hr:employeeEmployeeNumber
+        description: Employee number.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Employee} has employee number {Code}"
+      - name: hire_date
+        iri: hr:employeeHireDate
+        description: Hire date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Employee} has hire date {CalendarDate}"
+      - name: termination_date
+        iri: hr:employeeTerminationDate
+        description: Termination date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Employee} has termination date {CalendarDate}"
+      - name: employment_type
+        iri: hr:employeeEmploymentType
+        description: Employee, intern, apprentice or temporary.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Employee} has employment type {Code}"
+      - name: work_schedule
+        iri: hr:employeeWorkSchedule
+        description: Working-time arrangement.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Employee} has work schedule {Code}"
+      - name: person
+        iri: hr:employeePerson
+        description: Employed person.
+        roles:
+          - concept: Person
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Employee} is a role of {Person}"
+      - name: position
+        iri: hr:employeePosition
+        description: Position.
+        roles:
+          - concept: Position
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Employee} holds {Position}"
+      - name: employer
+        iri: hr:employeeEmployer
+        description: Employing legal entity.
+        roles:
+          - concept: LegalEntity
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Employee} is employed by {LegalEntity}"
+      - name: manager
+        iri: hr:employeeManager
+        description: Line manager.
+        roles:
+          - concept: Employee
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Employee} reports to another {Employee}"
+      - name: work_site
+        iri: hr:employeeWorkSite
+        description: Property where the employee works.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Employee} works at {Property}"
+  - concept: EmploymentContract
+    type: EntityType
+    iri: hr:EmploymentContract
+    description: Employment terms of an employee, registered as a contract.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: hr:employmentContractId
+        description: Identifier of the EmploymentContract.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{EmploymentContract} is identified by {Identifier}"
+      - name: base_salary
+        iri: hr:employmentContractBaseSalary
+        description: Monthly base salary.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{EmploymentContract} has base salary {MoneyAmount}"
+      - name: weekly_hours
+        iri: hr:employmentContractWeeklyHours
+        description: Contracted weekly hours.
+        roles:
+          - concept: Quantity
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{EmploymentContract} has weekly hours {Quantity}"
+      - name: probation_end_date
+        iri: hr:employmentContractProbationEndDate
+        description: End of probation.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{EmploymentContract} has probation end date {CalendarDate}"
+      - name: employee
+        iri: hr:employmentContractEmployee
+        description: Employee.
+        roles:
+          - concept: Employee
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{EmploymentContract} employs {Employee}"
+      - name: contract
+        iri: hr:employmentContractContract
+        description: Contract register entry.
+        roles:
+          - concept: Contract
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{EmploymentContract} is registered as {Contract}"
+  - concept: CompensationChange
+    type: EntityType
+    iri: hr:CompensationChange
+    description: Change of base salary by promotion, merit, collective agreement or correction.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: hr:compensationChangeId
+        description: Identifier of the CompensationChange.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{CompensationChange} is identified by {Identifier}"
+      - name: effective_date
+        iri: hr:compensationChangeEffectiveDate
+        description: Effective date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CompensationChange} has effective date {CalendarDate}"
+      - name: new_base_salary
+        iri: hr:compensationChangeNewBaseSalary
+        description: New monthly base salary.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CompensationChange} has new base salary {MoneyAmount}"
+      - name: reason
+        iri: hr:compensationChangeReason
+        description: Promotion, merit, collective agreement or correction.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CompensationChange} has reason {Code}"
+      - name: employee
+        iri: hr:compensationChangeEmployee
+        description: Employee.
+        roles:
+          - concept: Employee
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CompensationChange} changes pay of {Employee}"
+  - concept: PayrollRun
+    type: EntityType
+    iri: hr:PayrollRun
+    description: Monthly payroll of a legal entity, including the thirteenth salary when due.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: hr:payrollRunId
+        description: Identifier of the PayrollRun.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{PayrollRun} is identified by {Identifier}"
+      - name: payment_date
+        iri: hr:payrollRunPaymentDate
+        description: Payment date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PayrollRun} has payment date {CalendarDate}"
+      - name: status
+        iri: hr:payrollRunStatus
+        description: Calculated, approved or paid.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PayrollRun} has status {Code}"
+      - name: legal_entity
+        iri: hr:payrollRunLegalEntity
+        description: Employer.
+        roles:
+          - concept: LegalEntity
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PayrollRun} pays {LegalEntity}"
+      - name: month
+        iri: hr:payrollRunMonth
+        description: Payroll month.
+        roles:
+          - concept: CalendarMonth
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PayrollRun} pays work of {CalendarMonth}"
+  - concept: PayrollLine
+    type: EntityType
+    iri: hr:PayrollLine
+    description: Amount of one pay component for an employee in a payroll run. employer_cost is true for amounts borne by the employer (salary, overtime, benefits, employer social charges) and false for deductions withheld from the employee.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: hr:payrollLineId
+        description: Identifier of the PayrollLine.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{PayrollLine} is identified by {Identifier}"
+      - name: component
+        iri: hr:payrollLineComponent
+        description: Base salary, overtime, night premium, vacation, thirteenth salary, benefit, employer social charge, employee social security or income tax withholding.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PayrollLine} has component {Code}"
+      - name: amount
+        iri: hr:payrollLineAmount
+        description: Amount.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PayrollLine} has amount {MoneyAmount}"
+      - name: employer_cost
+        iri: hr:payrollLineEmployerCost
+        description: Whether the amount is a cost to the employer.
+        roles:
+          - concept: Flag
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PayrollLine} has employer cost {Flag}"
+      - name: payroll_run
+        iri: hr:payrollLinePayrollRun
+        description: Payroll run.
+        roles:
+          - concept: PayrollRun
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PayrollLine} is part of {PayrollRun}"
+      - name: employee
+        iri: hr:payrollLineEmployee
+        description: Employee.
+        roles:
+          - concept: Employee
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PayrollLine} pays {Employee}"
+      - name: cost_center
+        iri: hr:payrollLineCostCenter
+        description: Cost center charged.
+        roles:
+          - concept: CostCenter
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PayrollLine} is charged to {CostCenter}"
+  - concept: TimeEntry
+    type: EntityType
+    iri: hr:TimeEntry
+    description: Hours recorded by an employee on a working day.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: hr:timeEntryId
+        description: Identifier of the TimeEntry.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{TimeEntry} is identified by {Identifier}"
+      - name: work_date
+        iri: hr:timeEntryWorkDate
+        description: Working day.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TimeEntry} has work date {CalendarDate}"
+      - name: hours_worked
+        iri: hr:timeEntryHoursWorked
+        description: Hours worked.
+        roles:
+          - concept: Quantity
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TimeEntry} has hours worked {Quantity}"
+      - name: overtime_hours
+        iri: hr:timeEntryOvertimeHours
+        description: Overtime hours.
+        roles:
+          - concept: Quantity
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TimeEntry} has overtime hours {Quantity}"
+      - name: night_hours
+        iri: hr:timeEntryNightHours
+        description: Night-shift hours.
+        roles:
+          - concept: Quantity
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TimeEntry} has night hours {Quantity}"
+      - name: employee
+        iri: hr:timeEntryEmployee
+        description: Employee.
+        roles:
+          - concept: Employee
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TimeEntry} is recorded by {Employee}"
+  - concept: LeaveRequest
+    type: EntityType
+    iri: hr:LeaveRequest
+    description: Vacation, sick leave, parental leave or other absence.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: hr:leaveRequestId
+        description: Identifier of the LeaveRequest.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{LeaveRequest} is identified by {Identifier}"
+      - name: leave_type
+        iri: hr:leaveRequestLeaveType
+        description: Vacation, sick, parental, bereavement or unpaid.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeaveRequest} has leave type {Code}"
+      - name: start_date
+        iri: hr:leaveRequestStartDate
+        description: First day.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeaveRequest} has start date {CalendarDate}"
+      - name: end_date
+        iri: hr:leaveRequestEndDate
+        description: Last day.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeaveRequest} has end date {CalendarDate}"
+      - name: status
+        iri: hr:leaveRequestStatus
+        description: Requested, approved or rejected.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeaveRequest} has status {Code}"
+      - name: employee
+        iri: hr:leaveRequestEmployee
+        description: Employee.
+        roles:
+          - concept: Employee
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeaveRequest} is requested by {Employee}"
+      - name: approver
+        iri: hr:leaveRequestApprover
+        description: Approver.
+        roles:
+          - concept: Employee
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LeaveRequest} is approved by {Employee}"
+  - concept: Benefit
+    type: EntityType
+    iri: hr:Benefit
+    description: Employee benefit such as health plan, dental plan, meal voucher, transport voucher or life insurance.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: hr:benefitId
+        description: Identifier of the Benefit.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Benefit} is identified by {Identifier}"
+      - name: name
+        iri: hr:benefitName
+        description: Benefit name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Benefit} has name {Name}"
+      - name: benefit_type
+        iri: hr:benefitBenefitType
+        description: Benefit type.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Benefit} has benefit type {Code}"
+      - name: monthly_cost
+        iri: hr:benefitMonthlyCost
+        description: Employer cost per enrolled employee.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Benefit} has monthly cost {MoneyAmount}"
+      - name: provider
+        iri: hr:benefitProvider
+        description: Benefit supplier.
+        roles:
+          - concept: Supplier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Benefit} is provided by {Supplier}"
+  - concept: BenefitEnrollment
+    type: EntityType
+    iri: hr:BenefitEnrollment
+    description: Enrollment of an employee in a benefit.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: hr:benefitEnrollmentId
+        description: Identifier of the BenefitEnrollment.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{BenefitEnrollment} is identified by {Identifier}"
+      - name: start_date
+        iri: hr:benefitEnrollmentStartDate
+        description: Start.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BenefitEnrollment} has start date {CalendarDate}"
+      - name: end_date
+        iri: hr:benefitEnrollmentEndDate
+        description: End.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BenefitEnrollment} has end date {CalendarDate}"
+      - name: employee_contribution
+        iri: hr:benefitEnrollmentEmployeeContribution
+        description: Monthly employee contribution.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BenefitEnrollment} has employee contribution {MoneyAmount}"
+      - name: employee
+        iri: hr:benefitEnrollmentEmployee
+        description: Employee.
+        roles:
+          - concept: Employee
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BenefitEnrollment} is enrolled by {Employee}"
+      - name: benefit
+        iri: hr:benefitEnrollmentBenefit
+        description: Benefit.
+        roles:
+          - concept: Benefit
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BenefitEnrollment} enrolls in {Benefit}"
+  - concept: TrainingCourse
+    type: EntityType
+    iri: hr:TrainingCourse
+    description: Training course, including mandatory safety training such as work at height, fire brigade or electrical safety.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: hr:trainingCourseId
+        description: Identifier of the TrainingCourse.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{TrainingCourse} is identified by {Identifier}"
+      - name: name
+        iri: hr:trainingCourseName
+        description: Course name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TrainingCourse} has name {Name}"
+      - name: is_mandatory
+        iri: hr:trainingCourseIsMandatory
+        description: Whether the course is legally mandatory for some positions.
+        roles:
+          - concept: Flag
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TrainingCourse} has is mandatory {Flag}"
+      - name: validity_months
+        iri: hr:trainingCourseValidityMonths
+        description: Months before recertification.
+        roles:
+          - concept: Count
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TrainingCourse} has validity months {Count}"
+  - concept: TrainingRecord
+    type: EntityType
+    iri: hr:TrainingRecord
+    description: Completion of a course by an employee.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: hr:trainingRecordId
+        description: Identifier of the TrainingRecord.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{TrainingRecord} is identified by {Identifier}"
+      - name: completion_date
+        iri: hr:trainingRecordCompletionDate
+        description: Completion date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TrainingRecord} has completion date {CalendarDate}"
+      - name: expiry_date
+        iri: hr:trainingRecordExpiryDate
+        description: Certification expiry.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TrainingRecord} has expiry date {CalendarDate}"
+      - name: passed
+        iri: hr:trainingRecordPassed
+        description: Whether the employee passed.
+        roles:
+          - concept: Flag
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TrainingRecord} has passed {Flag}"
+      - name: employee
+        iri: hr:trainingRecordEmployee
+        description: Employee.
+        roles:
+          - concept: Employee
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TrainingRecord} is completed by {Employee}"
+      - name: course
+        iri: hr:trainingRecordCourse
+        description: Course.
+        roles:
+          - concept: TrainingCourse
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TrainingRecord} completes {TrainingCourse}"
+  - concept: PerformanceReview
+    type: EntityType
+    iri: hr:PerformanceReview
+    description: Periodic performance evaluation.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: hr:performanceReviewId
+        description: Identifier of the PerformanceReview.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{PerformanceReview} is identified by {Identifier}"
+      - name: review_date
+        iri: hr:performanceReviewReviewDate
+        description: Review date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PerformanceReview} has review date {CalendarDate}"
+      - name: rating
+        iri: hr:performanceReviewRating
+        description: Rating.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PerformanceReview} has rating {Code}"
+      - name: summary
+        iri: hr:performanceReviewSummary
+        description: Summary.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PerformanceReview} has summary {Text}"
+      - name: employee
+        iri: hr:performanceReviewEmployee
+        description: Employee reviewed.
+        roles:
+          - concept: Employee
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PerformanceReview} evaluates {Employee}"
+      - name: reviewer
+        iri: hr:performanceReviewReviewer
+        description: Reviewer.
+        roles:
+          - concept: Employee
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PerformanceReview} is conducted by {Employee}"
+  - concept: JobOpening
+    type: EntityType
+    iri: hr:JobOpening
+    description: Vacancy being recruited for a position.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: hr:jobOpeningId
+        description: Identifier of the JobOpening.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{JobOpening} is identified by {Identifier}"
+      - name: opened_date
+        iri: hr:jobOpeningOpenedDate
+        description: Opened.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{JobOpening} has opened date {CalendarDate}"
+      - name: closed_date
+        iri: hr:jobOpeningClosedDate
+        description: Closed.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{JobOpening} has closed date {CalendarDate}"
+      - name: status
+        iri: hr:jobOpeningStatus
+        description: Open, filled or cancelled.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{JobOpening} has status {Code}"
+      - name: position
+        iri: hr:jobOpeningPosition
+        description: Position.
+        roles:
+          - concept: Position
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{JobOpening} recruits for {Position}"
+      - name: hiring_manager
+        iri: hr:jobOpeningHiringManager
+        description: Hiring manager.
+        roles:
+          - concept: Employee
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{JobOpening} is managed by {Employee}"
+  - concept: JobApplication
+    type: EntityType
+    iri: hr:JobApplication
+    description: Application of a candidate to an opening.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: hr:jobApplicationId
+        description: Identifier of the JobApplication.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{JobApplication} is identified by {Identifier}"
+      - name: applied_date
+        iri: hr:jobApplicationAppliedDate
+        description: Application date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{JobApplication} has applied date {CalendarDate}"
+      - name: stage
+        iri: hr:jobApplicationStage
+        description: Screening, interview, offer, hired or rejected.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{JobApplication} has stage {Code}"
+      - name: job_opening
+        iri: hr:jobApplicationJobOpening
+        description: Opening.
+        roles:
+          - concept: JobOpening
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{JobApplication} applies to {JobOpening}"
+      - name: candidate
+        iri: hr:jobApplicationCandidate
+        description: Candidate.
+        roles:
+          - concept: Person
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{JobApplication} is submitted by {Person}"
+  - concept: Supplier
+    type: EntityType
+    iri: proc:Supplier
+    description: "Role of an organization that supplies goods or services: cleaning, security, maintenance, utilities, marketing, construction or professional services."
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: proc:supplierId
+        description: Identifier of the Supplier.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Supplier} is identified by {Identifier}"
+      - name: supplier_category
+        iri: proc:supplierSupplierCategory
+        description: Main category supplied.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Supplier} has supplier category {Code}"
+      - name: payment_terms_days
+        iri: proc:supplierPaymentTermsDays
+        description: Standard payment term in days.
+        roles:
+          - concept: Count
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Supplier} has payment terms days {Count}"
+      - name: is_approved
+        iri: proc:supplierIsApproved
+        description: Whether the supplier is approved for purchasing.
+        roles:
+          - concept: Flag
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Supplier} has is approved {Flag}"
+      - name: organization
+        iri: proc:supplierOrganization
+        description: Supplying organization.
+        roles:
+          - concept: Organization
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Supplier} is a role of {Organization}"
+  - concept: SupplierQualification
+    type: EntityType
+    iri: proc:SupplierQualification
+    description: "Onboarding check of a supplier: tax and labour certificates, insurance, references and compliance declarations."
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: proc:supplierQualificationId
+        description: Identifier of the SupplierQualification.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{SupplierQualification} is identified by {Identifier}"
+      - name: qualification_date
+        iri: proc:supplierQualificationQualificationDate
+        description: Qualification date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierQualification} has qualification date {CalendarDate}"
+      - name: status
+        iri: proc:supplierQualificationStatus
+        description: Approved, conditional or rejected.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierQualification} has status {Code}"
+      - name: valid_until
+        iri: proc:supplierQualificationValidUntil
+        description: Expiry of the qualification.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierQualification} has valid until {CalendarDate}"
+      - name: supplier
+        iri: proc:supplierQualificationSupplier
+        description: Supplier.
+        roles:
+          - concept: Supplier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierQualification} qualifies {Supplier}"
+      - name: reviewer
+        iri: proc:supplierQualificationReviewer
+        description: Reviewer.
+        roles:
+          - concept: Employee
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierQualification} is reviewed by {Employee}"
+  - concept: SupplierEvaluation
+    type: EntityType
+    iri: proc:SupplierEvaluation
+    description: Periodic evaluation of supplier quality, timeliness and compliance.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: proc:supplierEvaluationId
+        description: Identifier of the SupplierEvaluation.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{SupplierEvaluation} is identified by {Identifier}"
+      - name: evaluation_date
+        iri: proc:supplierEvaluationEvaluationDate
+        description: Evaluation date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierEvaluation} has evaluation date {CalendarDate}"
+      - name: score
+        iri: proc:supplierEvaluationScore
+        description: Score as a fraction of the maximum.
+        roles:
+          - concept: Rate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierEvaluation} has score {Rate}"
+      - name: comments
+        iri: proc:supplierEvaluationComments
+        description: Comments.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierEvaluation} has comments {Text}"
+      - name: supplier
+        iri: proc:supplierEvaluationSupplier
+        description: Supplier.
+        roles:
+          - concept: Supplier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierEvaluation} evaluates {Supplier}"
+      - name: evaluator
+        iri: proc:supplierEvaluationEvaluator
+        description: Evaluator.
+        roles:
+          - concept: Employee
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierEvaluation} is performed by {Employee}"
+  - concept: SupplierAgreement
+    type: EntityType
+    iri: proc:SupplierAgreement
+    description: Framework supply agreement with agreed prices and conditions, registered as a contract.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: proc:supplierAgreementId
+        description: Identifier of the SupplierAgreement.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{SupplierAgreement} is identified by {Identifier}"
+      - name: price_adjustment_month
+        iri: proc:supplierAgreementPriceAdjustmentMonth
+        description: Month of the year in which prices are adjusted.
+        roles:
+          - concept: Count
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierAgreement} has price adjustment month {Count}"
+      - name: spend_cap
+        iri: proc:supplierAgreementSpendCap
+        description: Maximum spend under the agreement.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierAgreement} has spend cap {MoneyAmount}"
+      - name: contract
+        iri: proc:supplierAgreementContract
+        description: Contract register entry.
+        roles:
+          - concept: Contract
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierAgreement} is registered as {Contract}"
+      - name: supplier
+        iri: proc:supplierAgreementSupplier
+        description: Supplier.
+        roles:
+          - concept: Supplier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierAgreement} is agreed with {Supplier}"
+      - name: price_index
+        iri: proc:supplierAgreementPriceIndex
+        description: Price index applied.
+        roles:
+          - concept: PriceIndex
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierAgreement} is adjusted by {PriceIndex}"
+  - concept: PurchaseRequisition
+    type: EntityType
+    iri: proc:PurchaseRequisition
+    description: Internal request to buy goods or services.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: proc:purchaseRequisitionId
+        description: Identifier of the PurchaseRequisition.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{PurchaseRequisition} is identified by {Identifier}"
+      - name: requisition_number
+        iri: proc:purchaseRequisitionRequisitionNumber
+        description: Requisition number.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PurchaseRequisition} has requisition number {Code}"
+      - name: request_date
+        iri: proc:purchaseRequisitionRequestDate
+        description: Request date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PurchaseRequisition} has request date {CalendarDate}"
+      - name: justification
+        iri: proc:purchaseRequisitionJustification
+        description: Business justification.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PurchaseRequisition} has justification {Text}"
+      - name: estimated_amount
+        iri: proc:purchaseRequisitionEstimatedAmount
+        description: Estimated amount.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PurchaseRequisition} has estimated amount {MoneyAmount}"
+      - name: status
+        iri: proc:purchaseRequisitionStatus
+        description: Draft, approved, rejected or ordered.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PurchaseRequisition} has status {Code}"
+      - name: requester
+        iri: proc:purchaseRequisitionRequester
+        description: Requesting employee.
+        roles:
+          - concept: Employee
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PurchaseRequisition} is requested by {Employee}"
+      - name: property
+        iri: proc:purchaseRequisitionProperty
+        description: Property concerned.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PurchaseRequisition} is requested for {Property}"
+  - concept: RequestForQuotation
+    type: EntityType
+    iri: proc:RequestForQuotation
+    description: Invitation to suppliers to quote for a requisition.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: proc:requestForQuotationId
+        description: Identifier of the RequestForQuotation.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{RequestForQuotation} is identified by {Identifier}"
+      - name: rfq_number
+        iri: proc:requestForQuotationRfqNumber
+        description: Request number.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{RequestForQuotation} has rfq number {Code}"
+      - name: issue_date
+        iri: proc:requestForQuotationIssueDate
+        description: Issue date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{RequestForQuotation} has issue date {CalendarDate}"
+      - name: closing_date
+        iri: proc:requestForQuotationClosingDate
+        description: Deadline for quotes.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{RequestForQuotation} has closing date {CalendarDate}"
+      - name: requisition
+        iri: proc:requestForQuotationRequisition
+        description: Requisition.
+        roles:
+          - concept: PurchaseRequisition
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{RequestForQuotation} sources {PurchaseRequisition}"
+  - concept: SupplierQuote
+    type: EntityType
+    iri: proc:SupplierQuote
+    description: Quote submitted by a supplier.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: proc:supplierQuoteId
+        description: Identifier of the SupplierQuote.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{SupplierQuote} is identified by {Identifier}"
+      - name: quote_date
+        iri: proc:supplierQuoteQuoteDate
+        description: Quote date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierQuote} has quote date {CalendarDate}"
+      - name: amount
+        iri: proc:supplierQuoteAmount
+        description: Quoted amount.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierQuote} has amount {MoneyAmount}"
+      - name: delivery_days
+        iri: proc:supplierQuoteDeliveryDays
+        description: Delivery or mobilisation time in days.
+        roles:
+          - concept: Count
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierQuote} has delivery days {Count}"
+      - name: is_selected
+        iri: proc:supplierQuoteIsSelected
+        description: Whether the quote was selected.
+        roles:
+          - concept: Flag
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierQuote} has is selected {Flag}"
+      - name: rfq
+        iri: proc:supplierQuoteRfq
+        description: Request for quotation.
+        roles:
+          - concept: RequestForQuotation
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierQuote} answers {RequestForQuotation}"
+      - name: supplier
+        iri: proc:supplierQuoteSupplier
+        description: Supplier.
+        roles:
+          - concept: Supplier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierQuote} is submitted by {Supplier}"
+  - concept: PurchaseOrder
+    type: EntityType
+    iri: proc:PurchaseOrder
+    description: Order placed with a supplier.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: proc:purchaseOrderId
+        description: Identifier of the PurchaseOrder.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{PurchaseOrder} is identified by {Identifier}"
+      - name: po_number
+        iri: proc:purchaseOrderPoNumber
+        description: Order number.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PurchaseOrder} has po number {Code}"
+      - name: order_date
+        iri: proc:purchaseOrderOrderDate
+        description: Order date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PurchaseOrder} has order date {CalendarDate}"
+      - name: status
+        iri: proc:purchaseOrderStatus
+        description: Open, received, invoiced, closed or cancelled.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PurchaseOrder} has status {Code}"
+      - name: supplier
+        iri: proc:purchaseOrderSupplier
+        description: Supplier.
+        roles:
+          - concept: Supplier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PurchaseOrder} is placed with {Supplier}"
+      - name: property
+        iri: proc:purchaseOrderProperty
+        description: Delivery property.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PurchaseOrder} is delivered to {Property}"
+      - name: requisition
+        iri: proc:purchaseOrderRequisition
+        description: Requisition.
+        roles:
+          - concept: PurchaseRequisition
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PurchaseOrder} fulfils {PurchaseRequisition}"
+      - name: agreement
+        iri: proc:purchaseOrderAgreement
+        description: Framework agreement.
+        roles:
+          - concept: SupplierAgreement
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PurchaseOrder} is called off under {SupplierAgreement}"
+      - name: buyer
+        iri: proc:purchaseOrderBuyer
+        description: Buyer.
+        roles:
+          - concept: Employee
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PurchaseOrder} is issued by {Employee}"
+  - concept: PurchaseOrderLine
+    type: EntityType
+    iri: proc:PurchaseOrderLine
+    description: Item or service ordered.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: proc:purchaseOrderLineId
+        description: Identifier of the PurchaseOrderLine.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{PurchaseOrderLine} is identified by {Identifier}"
+      - name: summary
+        iri: proc:purchaseOrderLineSummary
+        description: Item or service.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PurchaseOrderLine} has summary {Text}"
+      - name: quantity
+        iri: proc:purchaseOrderLineQuantity
+        description: Quantity ordered.
+        roles:
+          - concept: Quantity
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PurchaseOrderLine} has quantity {Quantity}"
+      - name: unit_price
+        iri: proc:purchaseOrderLineUnitPrice
+        description: Unit price.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PurchaseOrderLine} has unit price {MoneyAmount}"
+      - name: purchase_order
+        iri: proc:purchaseOrderLinePurchaseOrder
+        description: Purchase order.
+        roles:
+          - concept: PurchaseOrder
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PurchaseOrderLine} is a line of {PurchaseOrder}"
+      - name: category
+        iri: proc:purchaseOrderLineCategory
+        description: Expense category.
+        roles:
+          - concept: ExpenseCategory
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{PurchaseOrderLine} is classified as {ExpenseCategory}"
+  - concept: GoodsReceipt
+    type: EntityType
+    iri: proc:GoodsReceipt
+    description: Receipt of goods or acceptance of services delivered under an order.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: proc:goodsReceiptId
+        description: Identifier of the GoodsReceipt.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{GoodsReceipt} is identified by {Identifier}"
+      - name: receipt_date
+        iri: proc:goodsReceiptReceiptDate
+        description: Receipt date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{GoodsReceipt} has receipt date {CalendarDate}"
+      - name: is_accepted
+        iri: proc:goodsReceiptIsAccepted
+        description: Whether the delivery was accepted.
+        roles:
+          - concept: Flag
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{GoodsReceipt} has is accepted {Flag}"
+      - name: notes
+        iri: proc:goodsReceiptNotes
+        description: Notes.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{GoodsReceipt} has notes {Text}"
+      - name: purchase_order
+        iri: proc:goodsReceiptPurchaseOrder
+        description: Purchase order.
+        roles:
+          - concept: PurchaseOrder
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{GoodsReceipt} receives {PurchaseOrder}"
+      - name: received_by
+        iri: proc:goodsReceiptReceivedBy
+        description: Receiving employee.
+        roles:
+          - concept: Employee
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{GoodsReceipt} is accepted by {Employee}"
+  - concept: SupplierInvoice
+    type: EntityType
+    iri: proc:SupplierInvoice
+    description: Supplier invoice payable, in Brazil an electronic fiscal document (NF-e or NFS-e). paid_amount holds payments at the reporting date.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: proc:supplierInvoiceId
+        description: Identifier of the SupplierInvoice.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{SupplierInvoice} is identified by {Identifier}"
+      - name: invoice_number
+        iri: proc:supplierInvoiceInvoiceNumber
+        description: Invoice number.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierInvoice} has invoice number {Code}"
+      - name: fiscal_document_key
+        iri: proc:supplierInvoiceFiscalDocumentKey
+        description: Electronic fiscal document access key.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierInvoice} has fiscal document key {Code}"
+      - name: issue_date
+        iri: proc:supplierInvoiceIssueDate
+        description: Issue date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierInvoice} has issue date {CalendarDate}"
+      - name: due_date
+        iri: proc:supplierInvoiceDueDate
+        description: Due date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierInvoice} has due date {CalendarDate}"
+      - name: gross_amount
+        iri: proc:supplierInvoiceGrossAmount
+        description: Invoice total.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierInvoice} has gross amount {MoneyAmount}"
+      - name: withheld_taxes
+        iri: proc:supplierInvoiceWithheldTaxes
+        description: Taxes withheld at payment.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierInvoice} has withheld taxes {MoneyAmount}"
+      - name: paid_amount
+        iri: proc:supplierInvoicePaidAmount
+        description: Paid at the reporting date.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierInvoice} has paid amount {MoneyAmount}"
+      - name: status
+        iri: proc:supplierInvoiceStatus
+        description: Received, approved, paid or disputed.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierInvoice} has status {Code}"
+      - name: supplier
+        iri: proc:supplierInvoiceSupplier
+        description: Supplier.
+        roles:
+          - concept: Supplier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierInvoice} is issued by {Supplier}"
+      - name: payer
+        iri: proc:supplierInvoicePayer
+        description: Paying legal entity.
+        roles:
+          - concept: LegalEntity
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierInvoice} is payable by {LegalEntity}"
+      - name: purchase_order
+        iri: proc:supplierInvoicePurchaseOrder
+        description: Purchase order.
+        roles:
+          - concept: PurchaseOrder
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierInvoice} invoices {PurchaseOrder}"
+      - name: month
+        iri: proc:supplierInvoiceMonth
+        description: Competence month.
+        roles:
+          - concept: CalendarMonth
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierInvoice} is accrued in {CalendarMonth}"
+  - concept: SupplierPayment
+    type: EntityType
+    iri: proc:SupplierPayment
+    description: Payment of a supplier invoice.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: proc:supplierPaymentId
+        description: Identifier of the SupplierPayment.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{SupplierPayment} is identified by {Identifier}"
+      - name: payment_date
+        iri: proc:supplierPaymentPaymentDate
+        description: Payment date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierPayment} has payment date {CalendarDate}"
+      - name: amount
+        iri: proc:supplierPaymentAmount
+        description: Amount paid.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierPayment} has amount {MoneyAmount}"
+      - name: payment_method
+        iri: proc:supplierPaymentPaymentMethod
+        description: Transfer, bank slip or instant payment.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierPayment} has payment method {Code}"
+      - name: supplier_invoice
+        iri: proc:supplierPaymentSupplierInvoice
+        description: Supplier invoice.
+        roles:
+          - concept: SupplierInvoice
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierPayment} pays {SupplierInvoice}"
+      - name: bank_account
+        iri: proc:supplierPaymentBankAccount
+        description: Paying account.
+        roles:
+          - concept: BankAccount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{SupplierPayment} is paid from {BankAccount}"
   - concept: ExpenseCategory
     type: EntityType
     iri: ops:ExpenseCategory
@@ -2667,7 +5308,7 @@ ontology:
   - concept: ServiceContract
     type: EntityType
     iri: ops:ServiceContract
-    description: Contract with a provider for recurring services at a property.
+    description: Recurring service contract at a property, such as cleaning, security, maintenance, parking operation or landscaping, registered as a contract.
     identify_by:
       - id
     relationships:
@@ -2679,30 +5320,14 @@ ontology:
         multiplicity: OneToOne
         verbalizes:
           - "{ServiceContract} is identified by {Identifier}"
-      - name: contract_number
-        iri: ops:serviceContractContractNumber
-        description: Contract number.
+      - name: scope
+        iri: ops:serviceContractScope
+        description: Scope of services.
         roles:
-          - concept: Code
+          - concept: Text
         multiplicity: ManyToOne
         verbalizes:
-          - "{ServiceContract} has contract number {Code}"
-      - name: start_date
-        iri: ops:serviceContractStartDate
-        description: Start date.
-        roles:
-          - concept: CalendarDate
-        multiplicity: ManyToOne
-        verbalizes:
-          - "{ServiceContract} has start date {CalendarDate}"
-      - name: end_date
-        iri: ops:serviceContractEndDate
-        description: End date.
-        roles:
-          - concept: CalendarDate
-        multiplicity: ManyToOne
-        verbalizes:
-          - "{ServiceContract} has end date {CalendarDate}"
+          - "{ServiceContract} has scope {Text}"
       - name: monthly_amount
         iri: ops:serviceContractMonthlyAmount
         description: Monthly fee.
@@ -2711,14 +5336,30 @@ ontology:
         multiplicity: ManyToOne
         verbalizes:
           - "{ServiceContract} has monthly amount {MoneyAmount}"
-      - name: provider
-        iri: ops:serviceContractProvider
-        description: Provider.
+      - name: service_level
+        iri: ops:serviceContractServiceLevel
+        description: Agreed service levels.
         roles:
-          - concept: ServiceProvider
+          - concept: Text
         multiplicity: ManyToOne
         verbalizes:
-          - "{ServiceContract} is supplied by {ServiceProvider}"
+          - "{ServiceContract} has service level {Text}"
+      - name: contract
+        iri: ops:serviceContractContract
+        description: Contract register entry.
+        roles:
+          - concept: Contract
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ServiceContract} is registered as {Contract}"
+      - name: supplier
+        iri: ops:serviceContractSupplier
+        description: Supplier.
+        roles:
+          - concept: Supplier
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{ServiceContract} is supplied by {Supplier}"
       - name: property
         iri: ops:serviceContractProperty
         description: Property served.
@@ -2798,14 +5439,14 @@ ontology:
         multiplicity: ManyToOne
         verbalizes:
           - "{OperatingExpense} is incurred in {CalendarMonth}"
-      - name: provider
-        iri: ops:operatingExpenseProvider
-        description: Provider.
+      - name: supplier
+        iri: ops:operatingExpenseSupplier
+        description: Supplier.
         roles:
-          - concept: ServiceProvider
+          - concept: Supplier
         multiplicity: ManyToOne
         verbalizes:
-          - "{OperatingExpense} is invoiced by {ServiceProvider}"
+          - "{OperatingExpense} is invoiced by {Supplier}"
   - concept: WorkOrder
     type: EntityType
     iri: ops:WorkOrder
@@ -2893,14 +5534,22 @@ ontology:
         multiplicity: ManyToOne
         verbalizes:
           - "{WorkOrder} is carried out in {LeasableUnit}"
-      - name: provider
-        iri: ops:workOrderProvider
-        description: Provider assigned.
+      - name: supplier
+        iri: ops:workOrderSupplier
+        description: Supplier assigned.
         roles:
-          - concept: ServiceProvider
+          - concept: Supplier
         multiplicity: ManyToOne
         verbalizes:
-          - "{WorkOrder} is assigned to {ServiceProvider}"
+          - "{WorkOrder} is assigned to {Supplier}"
+      - name: requested_by
+        iri: ops:workOrderRequestedBy
+        description: Employee who opened the work order.
+        roles:
+          - concept: Employee
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{WorkOrder} is requested by {Employee}"
   - concept: UtilityType
     type: EntityType
     iri: ops:UtilityType
@@ -3121,6 +5770,14 @@ ontology:
         multiplicity: ManyToOne
         verbalizes:
           - "{InsurancePolicy} is underwritten by {Organization}"
+      - name: contract
+        iri: ops:insurancePolicyContract
+        description: Contract register entry.
+        roles:
+          - concept: Contract
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{InsurancePolicy} is registered as {Contract}"
   - concept: Incident
     type: EntityType
     iri: ops:Incident
@@ -3517,7 +6174,7 @@ ontology:
   - concept: BankAccount
     type: EntityType
     iri: fin:BankAccount
-    description: Bank account of a property used for collections and distributions.
+    description: Bank account used for collections, supplier payments, payroll and distributions.
     identify_by:
       - id
     relationships:
@@ -3553,14 +6210,22 @@ ontology:
         multiplicity: ManyToOne
         verbalizes:
           - "{BankAccount} has account number {Code}"
-      - name: property
-        iri: fin:bankAccountProperty
-        description: Property.
+      - name: holder
+        iri: fin:bankAccountHolder
+        description: Account holder.
         roles:
-          - concept: Property
+          - concept: LegalEntity
         multiplicity: ManyToOne
         verbalizes:
-          - "{BankAccount} is held for {Property}"
+          - "{BankAccount} is held by {LegalEntity}"
+      - name: bank
+        iri: fin:bankAccountBank
+        description: Bank.
+        roles:
+          - concept: Organization
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BankAccount} is kept at {Organization}"
   - concept: Payment
     type: EntityType
     iri: fin:Payment
@@ -3804,77 +6469,6 @@ ontology:
         multiplicity: ManyToOne
         verbalizes:
           - "{PaymentAgreement} settles {ArrearsCase}"
-  - concept: LegalProceeding
-    type: EntityType
-    iri: fin:LegalProceeding
-    description: "Lawsuit concerning a lease: eviction, rent review, lease renewal or collection."
-    identify_by:
-      - id
-    relationships:
-      - name: id
-        iri: fin:legalProceedingId
-        description: Identifier of the LegalProceeding.
-        roles:
-          - concept: Identifier
-        multiplicity: OneToOne
-        verbalizes:
-          - "{LegalProceeding} is identified by {Identifier}"
-      - name: case_number
-        iri: fin:legalProceedingCaseNumber
-        description: Case number.
-        roles:
-          - concept: Code
-        multiplicity: ManyToOne
-        verbalizes:
-          - "{LegalProceeding} has case number {Code}"
-      - name: proceeding_type
-        iri: fin:legalProceedingProceedingType
-        description: Eviction, rent review, renewal or collection.
-        roles:
-          - concept: Code
-        multiplicity: ManyToOne
-        verbalizes:
-          - "{LegalProceeding} has proceeding type {Code}"
-      - name: filing_date
-        iri: fin:legalProceedingFilingDate
-        description: Filing date.
-        roles:
-          - concept: CalendarDate
-        multiplicity: ManyToOne
-        verbalizes:
-          - "{LegalProceeding} has filing date {CalendarDate}"
-      - name: status
-        iri: fin:legalProceedingStatus
-        description: Status.
-        roles:
-          - concept: Code
-        multiplicity: ManyToOne
-        verbalizes:
-          - "{LegalProceeding} has status {Code}"
-      - name: amount_claimed
-        iri: fin:legalProceedingAmountClaimed
-        description: Amount claimed.
-        roles:
-          - concept: MoneyAmount
-        multiplicity: ManyToOne
-        verbalizes:
-          - "{LegalProceeding} has amount claimed {MoneyAmount}"
-      - name: lease
-        iri: fin:legalProceedingLease
-        description: Lease.
-        roles:
-          - concept: Lease
-        multiplicity: ManyToOne
-        verbalizes:
-          - "{LegalProceeding} concerns {Lease}"
-      - name: law_firm
-        iri: fin:legalProceedingLawFirm
-        description: Law firm.
-        roles:
-          - concept: Organization
-        multiplicity: ManyToOne
-        verbalizes:
-          - "{LegalProceeding} is handled by {Organization}"
   - concept: LedgerAccount
     type: EntityType
     iri: fin:LedgerAccount
@@ -3925,7 +6519,7 @@ ontology:
   - concept: JournalEntry
     type: EntityType
     iri: fin:JournalEntry
-    description: Accounting entry of a property for a month.
+    description: Accounting entry of a legal entity for a month.
     identify_by:
       - id
     relationships:
@@ -3953,14 +6547,22 @@ ontology:
         multiplicity: ManyToOne
         verbalizes:
           - "{JournalEntry} has summary {Text}"
-      - name: property
-        iri: fin:journalEntryProperty
-        description: Property.
+      - name: source_system
+        iri: fin:journalEntrySourceSystem
+        description: "Originating process: billing, payables, payroll, depreciation or manual."
         roles:
-          - concept: Property
+          - concept: Code
         multiplicity: ManyToOne
         verbalizes:
-          - "{JournalEntry} is posted by {Property}"
+          - "{JournalEntry} has source system {Code}"
+      - name: legal_entity
+        iri: fin:journalEntryLegalEntity
+        description: Legal entity keeping the books.
+        roles:
+          - concept: LegalEntity
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{JournalEntry} is posted by {LegalEntity}"
       - name: month
         iri: fin:journalEntryMonth
         description: Accounting month.
@@ -3972,7 +6574,7 @@ ontology:
   - concept: JournalLine
     type: EntityType
     iri: fin:JournalLine
-    description: "Signed amount posted to a ledger account: income is positive and expense negative. noi_class is fixed at posting from the account: revenue, opex or excluded."
+    description: "Signed amount posted to a ledger account and cost center: income is positive and expense negative. noi_class is fixed at posting from the account: revenue, opex or excluded."
     identify_by:
       - id
     relationships:
@@ -4024,6 +6626,14 @@ ontology:
         multiplicity: ManyToOne
         verbalizes:
           - "{JournalLine} is posted to {LedgerAccount}"
+      - name: cost_center
+        iri: fin:journalLineCostCenter
+        description: Cost center; property cost centers attribute results to a property.
+        roles:
+          - concept: CostCenter
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{JournalLine} is charged to {CostCenter}"
   - concept: OwnerDistribution
     type: EntityType
     iri: fin:OwnerDistribution
@@ -4142,6 +6752,698 @@ ontology:
         multiplicity: ManyToOne
         verbalizes:
           - "{CapitalProject} invests in {Property}"
+      - name: construction_contract
+        iri: fin:capitalProjectConstructionContract
+        description: Construction contract.
+        roles:
+          - concept: Contract
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CapitalProject} is executed under {Contract}"
+  - concept: CostCenter
+    type: EntityType
+    iri: fin:CostCenter
+    description: "Unit of cost and result responsibility: a property, a department or a corporate function."
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: fin:costCenterId
+        description: Identifier of the CostCenter.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{CostCenter} is identified by {Identifier}"
+      - name: code
+        iri: fin:costCenterCode
+        description: Cost center code.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CostCenter} has code {Code}"
+      - name: name
+        iri: fin:costCenterName
+        description: Cost center name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CostCenter} has name {Name}"
+      - name: property
+        iri: fin:costCenterProperty
+        description: Property whose results the cost center carries.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CostCenter} accounts for {Property}"
+      - name: parent_cost_center
+        iri: fin:costCenterParentCostCenter
+        description: Parent cost center.
+        roles:
+          - concept: CostCenter
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CostCenter} rolls up to another {CostCenter}"
+  - concept: OperatingBudget
+    type: EntityType
+    iri: fin:OperatingBudget
+    description: Approved annual budget of a legal entity, by version.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: fin:operatingBudgetId
+        description: Identifier of the OperatingBudget.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{OperatingBudget} is identified by {Identifier}"
+      - name: year
+        iri: fin:operatingBudgetYear
+        description: Budget year.
+        roles:
+          - concept: Year
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OperatingBudget} has year {Year}"
+      - name: version
+        iri: fin:operatingBudgetVersion
+        description: Original, reforecast or final.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OperatingBudget} has version {Code}"
+      - name: approved_date
+        iri: fin:operatingBudgetApprovedDate
+        description: Approval date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OperatingBudget} has approved date {CalendarDate}"
+      - name: legal_entity
+        iri: fin:operatingBudgetLegalEntity
+        description: Legal entity.
+        roles:
+          - concept: LegalEntity
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OperatingBudget} budgets {LegalEntity}"
+      - name: approval
+        iri: fin:operatingBudgetApproval
+        description: Resolution approving the budget.
+        roles:
+          - concept: Resolution
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OperatingBudget} is approved by {Resolution}"
+  - concept: BudgetLine
+    type: EntityType
+    iri: fin:BudgetLine
+    description: Budgeted amount for an account, cost center and month.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: fin:budgetLineId
+        description: Identifier of the BudgetLine.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{BudgetLine} is identified by {Identifier}"
+      - name: amount
+        iri: fin:budgetLineAmount
+        description: Signed budgeted amount.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BudgetLine} has amount {MoneyAmount}"
+      - name: budget
+        iri: fin:budgetLineBudget
+        description: Budget.
+        roles:
+          - concept: OperatingBudget
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BudgetLine} is a line of {OperatingBudget}"
+      - name: account
+        iri: fin:budgetLineAccount
+        description: Ledger account.
+        roles:
+          - concept: LedgerAccount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BudgetLine} budgets {LedgerAccount}"
+      - name: cost_center
+        iri: fin:budgetLineCostCenter
+        description: Cost center.
+        roles:
+          - concept: CostCenter
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BudgetLine} is planned for {CostCenter}"
+      - name: month
+        iri: fin:budgetLineMonth
+        description: Month.
+        roles:
+          - concept: CalendarMonth
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BudgetLine} is planned in {CalendarMonth}"
+  - concept: TaxType
+    type: EntityType
+    iri: fin:TaxType
+    description: Tax or levy, such as property tax (IPTU), services tax (ISS), PIS, COFINS, income taxes or social security.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: fin:taxTypeId
+        description: Identifier of the TaxType.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{TaxType} is identified by {Identifier}"
+      - name: code
+        iri: fin:taxTypeCode
+        description: Tax code.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TaxType} has code {Code}"
+      - name: name
+        iri: fin:taxTypeName
+        description: Tax name.
+        roles:
+          - concept: Name
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TaxType} has name {Name}"
+      - name: jurisdiction_level
+        iri: fin:taxTypeJurisdictionLevel
+        description: Federal, state or municipal.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TaxType} has jurisdiction level {Code}"
+  - concept: TaxObligation
+    type: EntityType
+    iri: fin:TaxObligation
+    description: Tax assessed or declared for a period, such as annual property tax instalments or monthly taxes on revenue.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: fin:taxObligationId
+        description: Identifier of the TaxObligation.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{TaxObligation} is identified by {Identifier}"
+      - name: amount
+        iri: fin:taxObligationAmount
+        description: Amount due.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TaxObligation} has amount {MoneyAmount}"
+      - name: due_date
+        iri: fin:taxObligationDueDate
+        description: Due date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TaxObligation} has due date {CalendarDate}"
+      - name: paid_date
+        iri: fin:taxObligationPaidDate
+        description: Payment date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TaxObligation} has paid date {CalendarDate}"
+      - name: is_recoverable
+        iri: fin:taxObligationIsRecoverable
+        description: Whether it is recharged to tenants through service charges.
+        roles:
+          - concept: Flag
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TaxObligation} has is recoverable {Flag}"
+      - name: tax_type
+        iri: fin:taxObligationTaxType
+        description: Tax.
+        roles:
+          - concept: TaxType
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TaxObligation} is assessed as {TaxType}"
+      - name: legal_entity
+        iri: fin:taxObligationLegalEntity
+        description: Taxpayer.
+        roles:
+          - concept: LegalEntity
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TaxObligation} is owed by {LegalEntity}"
+      - name: property
+        iri: fin:taxObligationProperty
+        description: Property taxed.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TaxObligation} is assessed on {Property}"
+      - name: month
+        iri: fin:taxObligationMonth
+        description: Period.
+        roles:
+          - concept: CalendarMonth
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TaxObligation} is due for {CalendarMonth}"
+  - concept: TaxWithholding
+    type: EntityType
+    iri: fin:TaxWithholding
+    description: Tax withheld from a supplier invoice and paid to the authority on the supplier behalf.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: fin:taxWithholdingId
+        description: Identifier of the TaxWithholding.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{TaxWithholding} is identified by {Identifier}"
+      - name: rate
+        iri: fin:taxWithholdingRate
+        description: Withholding rate.
+        roles:
+          - concept: Rate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TaxWithholding} has rate {Rate}"
+      - name: amount
+        iri: fin:taxWithholdingAmount
+        description: Amount withheld.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TaxWithholding} has amount {MoneyAmount}"
+      - name: supplier_invoice
+        iri: fin:taxWithholdingSupplierInvoice
+        description: Supplier invoice.
+        roles:
+          - concept: SupplierInvoice
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TaxWithholding} is withheld from {SupplierInvoice}"
+      - name: tax_type
+        iri: fin:taxWithholdingTaxType
+        description: Tax.
+        roles:
+          - concept: TaxType
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{TaxWithholding} withholds {TaxType}"
+  - concept: FixedAsset
+    type: EntityType
+    iri: fin:FixedAsset
+    description: "Capitalised asset: building, improvement, equipment or furniture."
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: fin:fixedAssetId
+        description: Identifier of the FixedAsset.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{FixedAsset} is identified by {Identifier}"
+      - name: asset_number
+        iri: fin:fixedAssetAssetNumber
+        description: Asset number.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{FixedAsset} has asset number {Code}"
+      - name: summary
+        iri: fin:fixedAssetSummary
+        description: Asset description.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{FixedAsset} has summary {Text}"
+      - name: acquisition_date
+        iri: fin:fixedAssetAcquisitionDate
+        description: Acquisition or completion date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{FixedAsset} has acquisition date {CalendarDate}"
+      - name: acquisition_cost
+        iri: fin:fixedAssetAcquisitionCost
+        description: Cost capitalised.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{FixedAsset} has acquisition cost {MoneyAmount}"
+      - name: useful_life_months
+        iri: fin:fixedAssetUsefulLifeMonths
+        description: Useful life.
+        roles:
+          - concept: Count
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{FixedAsset} has useful life months {Count}"
+      - name: property
+        iri: fin:fixedAssetProperty
+        description: Property.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{FixedAsset} is located at {Property}"
+      - name: ledger_account
+        iri: fin:fixedAssetLedgerAccount
+        description: Asset account.
+        roles:
+          - concept: LedgerAccount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{FixedAsset} is recorded in {LedgerAccount}"
+      - name: capital_project
+        iri: fin:fixedAssetCapitalProject
+        description: Capital project.
+        roles:
+          - concept: CapitalProject
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{FixedAsset} results from {CapitalProject}"
+  - concept: DepreciationEntry
+    type: EntityType
+    iri: fin:DepreciationEntry
+    description: Monthly depreciation of a fixed asset.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: fin:depreciationEntryId
+        description: Identifier of the DepreciationEntry.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{DepreciationEntry} is identified by {Identifier}"
+      - name: amount
+        iri: fin:depreciationEntryAmount
+        description: Depreciation for the month.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{DepreciationEntry} has amount {MoneyAmount}"
+      - name: fixed_asset
+        iri: fin:depreciationEntryFixedAsset
+        description: Asset.
+        roles:
+          - concept: FixedAsset
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{DepreciationEntry} depreciates {FixedAsset}"
+      - name: month
+        iri: fin:depreciationEntryMonth
+        description: Month.
+        roles:
+          - concept: CalendarMonth
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{DepreciationEntry} is recorded in {CalendarMonth}"
+  - concept: LoanAgreement
+    type: EntityType
+    iri: fin:LoanAgreement
+    description: Debt financing, such as a bank loan or real-estate receivables securitisation, registered as a contract.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: fin:loanAgreementId
+        description: Identifier of the LoanAgreement.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{LoanAgreement} is identified by {Identifier}"
+      - name: principal
+        iri: fin:loanAgreementPrincipal
+        description: Principal.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LoanAgreement} has principal {MoneyAmount}"
+      - name: interest_rate
+        iri: fin:loanAgreementInterestRate
+        description: Annual interest rate or spread.
+        roles:
+          - concept: Rate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LoanAgreement} has interest rate {Rate}"
+      - name: maturity_date
+        iri: fin:loanAgreementMaturityDate
+        description: Maturity.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LoanAgreement} has maturity date {CalendarDate}"
+      - name: contract
+        iri: fin:loanAgreementContract
+        description: Contract register entry.
+        roles:
+          - concept: Contract
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LoanAgreement} is registered as {Contract}"
+      - name: lender
+        iri: fin:loanAgreementLender
+        description: Lender.
+        roles:
+          - concept: Organization
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LoanAgreement} is lent by {Organization}"
+      - name: borrower
+        iri: fin:loanAgreementBorrower
+        description: Borrowing legal entity.
+        roles:
+          - concept: LegalEntity
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LoanAgreement} is borrowed by {LegalEntity}"
+      - name: collateral
+        iri: fin:loanAgreementCollateral
+        description: Property given as collateral.
+        roles:
+          - concept: Property
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LoanAgreement} is secured by {Property}"
+      - name: rate_index
+        iri: fin:loanAgreementRateIndex
+        description: Index applied to the debt.
+        roles:
+          - concept: PriceIndex
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{LoanAgreement} is indexed to {PriceIndex}"
+  - concept: DebtServicePayment
+    type: EntityType
+    iri: fin:DebtServicePayment
+    description: Scheduled or paid instalment of principal and interest.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: fin:debtServicePaymentId
+        description: Identifier of the DebtServicePayment.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{DebtServicePayment} is identified by {Identifier}"
+      - name: payment_date
+        iri: fin:debtServicePaymentPaymentDate
+        description: Payment date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{DebtServicePayment} has payment date {CalendarDate}"
+      - name: principal_amount
+        iri: fin:debtServicePaymentPrincipalAmount
+        description: Principal repaid.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{DebtServicePayment} has principal amount {MoneyAmount}"
+      - name: interest_amount
+        iri: fin:debtServicePaymentInterestAmount
+        description: Interest paid.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{DebtServicePayment} has interest amount {MoneyAmount}"
+      - name: loan
+        iri: fin:debtServicePaymentLoan
+        description: Loan.
+        roles:
+          - concept: LoanAgreement
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{DebtServicePayment} services {LoanAgreement}"
+  - concept: BankTransaction
+    type: EntityType
+    iri: fin:BankTransaction
+    description: Statement line of a bank account, reconciled against receipts and payments.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: fin:bankTransactionId
+        description: Identifier of the BankTransaction.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{BankTransaction} is identified by {Identifier}"
+      - name: transaction_date
+        iri: fin:bankTransactionTransactionDate
+        description: Value date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BankTransaction} has transaction date {CalendarDate}"
+      - name: amount
+        iri: fin:bankTransactionAmount
+        description: Signed amount.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BankTransaction} has amount {MoneyAmount}"
+      - name: summary
+        iri: fin:bankTransactionSummary
+        description: Statement description.
+        roles:
+          - concept: Text
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BankTransaction} has summary {Text}"
+      - name: is_reconciled
+        iri: fin:bankTransactionIsReconciled
+        description: Whether the line is reconciled.
+        roles:
+          - concept: Flag
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BankTransaction} has is reconciled {Flag}"
+      - name: bank_account
+        iri: fin:bankTransactionBankAccount
+        description: Bank account.
+        roles:
+          - concept: BankAccount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{BankTransaction} appears on {BankAccount}"
+  - concept: InsuranceClaim
+    type: EntityType
+    iri: fin:InsuranceClaim
+    description: Claim under an insurance policy.
+    identify_by:
+      - id
+    relationships:
+      - name: id
+        iri: fin:insuranceClaimId
+        description: Identifier of the InsuranceClaim.
+        roles:
+          - concept: Identifier
+        multiplicity: OneToOne
+        verbalizes:
+          - "{InsuranceClaim} is identified by {Identifier}"
+      - name: claim_date
+        iri: fin:insuranceClaimClaimDate
+        description: Claim date.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{InsuranceClaim} has claim date {CalendarDate}"
+      - name: amount_claimed
+        iri: fin:insuranceClaimAmountClaimed
+        description: Amount claimed.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{InsuranceClaim} has amount claimed {MoneyAmount}"
+      - name: amount_paid
+        iri: fin:insuranceClaimAmountPaid
+        description: Amount paid by the insurer.
+        roles:
+          - concept: MoneyAmount
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{InsuranceClaim} has amount paid {MoneyAmount}"
+      - name: status
+        iri: fin:insuranceClaimStatus
+        description: Open, accepted, rejected or paid.
+        roles:
+          - concept: Code
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{InsuranceClaim} has status {Code}"
+      - name: policy
+        iri: fin:insuranceClaimPolicy
+        description: Policy.
+        roles:
+          - concept: InsurancePolicy
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{InsuranceClaim} is made under {InsurancePolicy}"
+      - name: incident
+        iri: fin:insuranceClaimIncident
+        description: Incident.
+        roles:
+          - concept: Incident
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{InsuranceClaim} results from {Incident}"
   - concept: OccupancySnapshot
     type: EntityType
     iri: perf:OccupancySnapshot
@@ -4687,3 +7989,27 @@ ontology:
     extends:
       - Decimal
     description: Parking revenue.
+  - concept: PayrollCost
+    type: ValueType
+    iri: kpi:PayrollCost
+    extends:
+      - Decimal
+    description: "Payroll amounts borne by the employer: salary, overtime, benefits and employer social charges. Employee deductions are excluded."
+  - concept: Headcount
+    type: ValueType
+    iri: kpi:Headcount
+    extends:
+      - Decimal
+    description: Distinct employees paid. Not additive across months or departments that share employees.
+  - concept: PurchaseSpend
+    type: ValueType
+    iri: kpi:PurchaseSpend
+    extends:
+      - Decimal
+    description: Ordered quantity times unit price on purchase-order lines.
+  - concept: PayablesOutstanding
+    type: ValueType
+    iri: kpi:PayablesOutstanding
+    extends:
+      - Decimal
+    description: Supplier invoice amounts not yet paid at the reporting date, net of withheld taxes.

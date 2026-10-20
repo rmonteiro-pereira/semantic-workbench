@@ -1,15 +1,15 @@
 {
   "counts": {
-    "entityTypes": 92,
-    "concreteEntityTypes": 89,
+    "entityTypes": 145,
+    "concreteEntityTypes": 142,
     "abstractEntityTypes": 3,
     "valueTypes": 20,
-    "kpiConcepts": 21,
-    "datasets": 89,
-    "joins": 143,
-    "metrics": 21,
-    "modules": 8,
-    "bindings": 669
+    "kpiConcepts": 25,
+    "datasets": 142,
+    "joins": 259,
+    "metrics": 25,
+    "modules": 11,
+    "bindings": 1056
   },
   "occupancyRateByMonthProperty": {
     "2026-08|Aurora Shopping": 0.9213217938630999,
@@ -71,5 +71,25 @@
   "noiMarginByProperty": {
     "Aurora Shopping": 0.8244123477768338,
     "Brisa Outlet": 0.704
+  },
+  "payrollCostByMonthDepartment": {
+    "2026-08|Property operations": 37200,
+    "2026-08|Finance": 9000,
+    "2026-09|Property operations": 38100,
+    "2026-09|Finance": 9000,
+    "2026-09|Leasing": 16800
+  },
+  "headcountByMonth": {
+    "2026-08": 3,
+    "2026-09": 4
+  },
+  "purchaseSpendByCategory": {
+    "Cleaning": 25000,
+    "Security": 25200,
+    "Maintenance": 3000
+  },
+  "payablesOutstandingByMonth": {
+    "2026-08": 0,
+    "2026-09": 22428
   }
 }

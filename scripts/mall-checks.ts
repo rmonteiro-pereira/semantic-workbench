@@ -35,8 +35,12 @@ export async function checkMall(){
   same(run('visitors',[month,property]),expected.visitorsByMonthProperty,'visitors');
   same(run('net_operating_income',[month,property]),expected.netOperatingIncomeByMonthProperty,'NOI');
   same(run('noi_margin',[property]),expected.noiMarginByProperty,'NOI margin');
+  same(run('payroll_cost',[month,['departments','name']]),expected.payrollCostByMonthDepartment,'payroll cost');
+  same(run('headcount',[month]),expected.headcountByMonth,'headcount');
+  same(run('purchase_spend',[['expense_categories','name']]),expected.purchaseSpendByCategory,'purchase spend');
+  same(run('payables_outstanding',[month]),expected.payablesOutstandingByMonth,'payables outstanding');
   // Contracted tenant (charge → lease → tenant) and billed tenant (charge → invoice → tenant) are distinct roles.
-  assert.throws(()=>planQuery(context,{mappingId:context.mappingId,metrics:['billed_amount'],dimensions:['["tenants","name"]']}),/Ambiguous join paths/);
+  assert.throws(()=>planQuery(context,{mappingId:context.mappingId,metrics:['billed_amount'],dimensions:['["tenants","trade_name"]']}),/Ambiguous join paths/);
   // Occupancy, sales and charges are different grains; combining them in one query is refused.
   assert.throws(()=>planQuery(context,{mappingId:context.mappingId,metrics:['occupancy_rate','tenant_sales'],dimensions:[JSON.stringify(month)]}));
  }finally{db.close();}

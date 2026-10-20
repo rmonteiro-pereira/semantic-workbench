@@ -55,59 +55,59 @@
   },
   "shoppingCenter": {
     "counts": {
-      "entityTypes": 92,
-      "concreteEntityTypes": 89,
+      "entityTypes": 145,
+      "concreteEntityTypes": 142,
       "abstractEntityTypes": 3,
       "valueTypes": 20,
-      "kpiConcepts": 21,
-      "datasets": 89,
-      "joins": 143,
-      "metrics": 21,
-      "modules": 8,
-      "bindings": 669
+      "kpiConcepts": 25,
+      "datasets": 142,
+      "joins": 259,
+      "metrics": 25,
+      "modules": 11,
+      "bindings": 1056
     },
     "imports": [
       {
         "file": "mall.mapping.yaml",
         "kind": "Ossie mappings",
-        "entities": 110,
+        "entities": 167,
         "relationships": 0
       },
       {
         "file": "mall.ontology.yaml",
         "kind": "Ossie ontology",
-        "entities": 138,
-        "relationships": 529
+        "entities": 195,
+        "relationships": 895
       },
       {
         "file": "mall.semantic.yaml",
         "kind": "Ossie semantic",
-        "entities": 110,
-        "relationships": 157
+        "entities": 167,
+        "relationships": 278
       },
       {
         "file": "mall.odcs.yaml",
         "kind": "ODCS",
-        "entities": 89,
+        "entities": 142,
         "relationships": 0
       },
       {
         "file": "mall.owl.ttl",
         "kind": "OWL",
-        "entities": 592,
-        "relationships": 968
+        "entities": 1032,
+        "relationships": 1758
       },
       {
         "file": "mall.shacl.ttl",
         "kind": "SHACL",
-        "entities": 488,
-        "relationships": 396
+        "entities": 850,
+        "relationships": 705
       },
       {
         "file": "mall-data.ttl",
         "kind": "RDF",
-        "entities": 206,
-        "relationships": 456
+        "entities": 287,
+        "relationships": 610
       }
     ],
     "sqlExecutions": [
@@ -304,9 +304,10 @@
           ]
         ],
         "joins": [
+          "journal_lines_cost_center",
           "journal_lines_entry",
-          "journal_entries_month",
-          "journal_entries_property"
+          "cost_centers_property",
+          "journal_entries_month"
         ],
         "result": {
           "2026-08|Aurora Shopping": 141800,
@@ -324,12 +325,89 @@
           ]
         ],
         "joins": [
-          "journal_lines_entry",
-          "journal_entries_property"
+          "journal_lines_cost_center",
+          "cost_centers_property"
         ],
         "result": {
           "Aurora Shopping": 0.8244123477768338,
           "Brisa Outlet": 0.704
+        }
+      },
+      {
+        "metric": "payroll_cost",
+        "dimensions": [
+          [
+            "calendar_months",
+            "year_month"
+          ],
+          [
+            "departments",
+            "name"
+          ]
+        ],
+        "joins": [
+          "payroll_lines_employee",
+          "payroll_lines_payroll_run",
+          "employees_position",
+          "payroll_runs_month",
+          "positions_department"
+        ],
+        "result": {
+          "2026-08|Finance": 9000,
+          "2026-08|Property operations": 37200,
+          "2026-09|Finance": 9000,
+          "2026-09|Leasing": 16800,
+          "2026-09|Property operations": 38100
+        }
+      },
+      {
+        "metric": "headcount",
+        "dimensions": [
+          [
+            "calendar_months",
+            "year_month"
+          ]
+        ],
+        "joins": [
+          "payroll_lines_payroll_run",
+          "payroll_runs_month"
+        ],
+        "result": {
+          "2026-08": 3,
+          "2026-09": 4
+        }
+      },
+      {
+        "metric": "purchase_spend",
+        "dimensions": [
+          [
+            "expense_categories",
+            "name"
+          ]
+        ],
+        "joins": [
+          "purchase_order_lines_category"
+        ],
+        "result": {
+          "Cleaning": 25000,
+          "Maintenance": 3000,
+          "Security": 25200
+        }
+      },
+      {
+        "metric": "payables_outstanding",
+        "dimensions": [
+          [
+            "calendar_months",
+            "year_month"
+          ]
+        ],
+        "joins": [
+          "supplier_invoices_month"
+        ],
+        "result": {
+          "2026-08": 0,
+          "2026-09": 22428
         }
       }
     ],

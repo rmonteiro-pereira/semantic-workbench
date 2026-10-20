@@ -114,7 +114,7 @@ function App() {
         const doc=await saved.json();if(!saved.ok)throw Error(doc.error);loaded.push(doc);setDocs(old=>[doc,...old]);
       }
       setCurrent(loaded[0]);setSource(loaded[0].source);setNeighborhoodFocus('');if(compact)closeWorkspace();setSelected('');setSelectedEdge('');setSearch('');setShowAll(false);setTab(flights?'fullgraph':mapped||billing?'mappings':'graph');
-      setMessage(mall?'Loaded shopping center administration: 92 entity types in 8 namespaces, 143 joins, 669 bindings and 21 governed KPIs, with OWL, SHACL, ODCS and RDF data.':flights?'Loaded official Apache Ossie Flights: ontology, semantic model, standalone and embedded mappings.':billing?'Loaded subscription billing: 36 business entities, 46 joins, 119 bindings, and 4 governed metrics.':mapped?'Loaded mapped commerce: ontology, semantic model, governed metrics, and explicit mappings.':ubl?'Loaded UBL: 45 business entities, 277 roles; OWL, SHACL, ODCS, and semantic datasets.':scale?'Loaded 1,000 business resources and 5,000 links. Showing a neighborhood; search to explore.':'Loaded commerce contracts, semantic model, ontology, OWL, SHACL, and RDF data. Select a document in the sidebar.');
+      setMessage(mall?'Loaded shopping center administration: 145 entity types in 11 namespaces, 259 joins, 1,056 bindings and 25 governed KPIs, with OWL, SHACL, ODCS and RDF data.':flights?'Loaded official Apache Ossie Flights: ontology, semantic model, standalone and embedded mappings.':billing?'Loaded subscription billing: 36 business entities, 46 joins, 119 bindings, and 4 governed metrics.':mapped?'Loaded mapped commerce: ontology, semantic model, governed metrics, and explicit mappings.':ubl?'Loaded UBL: 45 business entities, 277 roles; OWL, SHACL, ODCS, and semantic datasets.':scale?'Loaded 1,000 business resources and 5,000 links. Showing a neighborhood; search to explore.':'Loaded commerce contracts, semantic model, ontology, OWL, SHACL, and RDF data. Select a document in the sidebar.');
     }catch(e){setMessage((e as Error).message)}finally{setBusy(false)}
   }
   async function save(
@@ -213,7 +213,7 @@ function App() {
         <button className="scale-example" onClick={()=>loadExamples('mapped')} disabled={busy}><Layers size={16}/><span>Load mapped commerce<small>Ontology → mappings → governed queries</small></span></button>
         <button className="scale-example" onClick={()=>loadExamples('flights')} disabled={busy}><Network size={16}/><span>Load Ossie Flights<small>Official ontology · semantic model · mappings</small></span></button>
         <button className="scale-example" onClick={()=>loadExamples('billing')} disabled={busy}><Layers size={16}/><span>Load subscription billing<small>36 business entities · 4 governed metrics</small></span></button>
-        <button className="scale-example" onClick={()=>loadExamples('mall')} disabled={busy}><Layers size={16}/><span>Load shopping center administration<small>92 entity types · 8 namespaces · 21 KPIs</small></span></button>
+        <button className="scale-example" onClick={()=>loadExamples('mall')} disabled={busy}><Layers size={16}/><span>Load shopping center administration<small>145 entity types · 11 namespaces · 25 KPIs</small></span></button>
         <label className="import" tabIndex={0} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.currentTarget.querySelector('input')?.click();}}}>
           <Upload size={16} /> Import definitions
           <input
