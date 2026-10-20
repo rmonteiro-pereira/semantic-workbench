@@ -1,0 +1,14 @@
+version: 0.2.0.dev0
+name: sales-mapping
+ontology_ref:
+  name: Sales
+  iri: ./sales.ontology.yaml
+semantic_model_ref:
+  name: sales
+  iri: ./sales.semantic_model.yaml
+concept_mappings:
+  - concept: Order
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: orders.order_id
