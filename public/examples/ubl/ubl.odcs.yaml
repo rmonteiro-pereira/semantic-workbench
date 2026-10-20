@@ -27,9 +27,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: purchase_order.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: purchase_order__additional_document_reference
     logicalType: object
     physicalType: table
@@ -45,9 +51,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: purchase_order.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: purchase_order__contract
     logicalType: object
     physicalType: table
@@ -63,9 +75,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: purchase_order.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: contract.record_id
   - name: purchase_order__delivery
     logicalType: object
     physicalType: table
@@ -81,9 +99,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: purchase_order.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: delivery.record_id
   - name: purchase_order__payment_means
     logicalType: object
     physicalType: table
@@ -99,9 +123,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: purchase_order.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: payment_means.record_id
   - name: purchase_order__payment_terms
     logicalType: object
     physicalType: table
@@ -117,9 +147,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: purchase_order.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: payment_terms.record_id
   - name: purchase_order__allowance_charge
     logicalType: object
     physicalType: table
@@ -135,9 +171,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: purchase_order.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: allowance_charge.record_id
   - name: purchase_order__tax_total
     logicalType: object
     physicalType: table
@@ -153,9 +195,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: purchase_order.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: tax_total.record_id
   - name: purchase_order__order_line
     logicalType: object
     physicalType: table
@@ -171,9 +219,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: purchase_order.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: order_line.record_id
   - name: purchase_order
     logicalType: object
     physicalType: table
@@ -300,46 +354,73 @@ schema:
         required: false
         description: Analytical foreign key for UBL cac:QuotationDocumentReference,
           targeting DocumentReference.
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
       - name: originator_document_reference_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:OriginatorDocumentReference,
           targeting DocumentReference.
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
       - name: buyer_customer_party_id
         logicalType: string
         required: true
         description: Analytical foreign key for UBL cac:BuyerCustomerParty, targeting
           CustomerParty.
+        relationships:
+          - type: foreignKey
+            to: customer_party.record_id
       - name: seller_supplier_party_id
         logicalType: string
         required: true
         description: Analytical foreign key for UBL cac:SellerSupplierParty, targeting
           SupplierParty.
+        relationships:
+          - type: foreignKey
+            to: supplier_party.record_id
       - name: originator_customer_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:OriginatorCustomerParty,
           targeting CustomerParty.
+        relationships:
+          - type: foreignKey
+            to: customer_party.record_id
       - name: freight_forwarder_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:FreightForwarderParty, targeting
           Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: accounting_customer_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:AccountingCustomerParty,
           targeting CustomerParty.
+        relationships:
+          - type: foreignKey
+            to: customer_party.record_id
       - name: destination_country_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:DestinationCountry, targeting
           Country.
+        relationships:
+          - type: foreignKey
+            to: country.record_id
       - name: anticipated_monetary_total_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:AnticipatedMonetaryTotal,
           targeting MonetaryTotal.
+        relationships:
+          - type: foreignKey
+            to: monetary_total.record_id
   - name: invoice__billing_reference
     logicalType: object
     physicalType: table
@@ -355,9 +436,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: invoice.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: billing_reference.record_id
   - name: invoice__despatch_document_reference
     logicalType: object
     physicalType: table
@@ -373,9 +460,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: invoice.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: invoice__receipt_document_reference
     logicalType: object
     physicalType: table
@@ -391,9 +484,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: invoice.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: invoice__statement_document_reference
     logicalType: object
     physicalType: table
@@ -409,9 +508,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: invoice.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: invoice__originator_document_reference
     logicalType: object
     physicalType: table
@@ -427,9 +532,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: invoice.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: invoice__contract_document_reference
     logicalType: object
     physicalType: table
@@ -445,9 +556,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: invoice.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: invoice__additional_document_reference
     logicalType: object
     physicalType: table
@@ -463,9 +580,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: invoice.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: invoice__delivery
     logicalType: object
     physicalType: table
@@ -481,9 +604,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: invoice.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: delivery.record_id
   - name: invoice__payment_means
     logicalType: object
     physicalType: table
@@ -499,9 +628,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: invoice.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: payment_means.record_id
   - name: invoice__payment_terms
     logicalType: object
     physicalType: table
@@ -517,9 +652,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: invoice.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: payment_terms.record_id
   - name: invoice__allowance_charge
     logicalType: object
     physicalType: table
@@ -535,9 +676,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: invoice.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: allowance_charge.record_id
   - name: invoice__tax_total
     logicalType: object
     physicalType: table
@@ -553,9 +700,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: invoice.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: tax_total.record_id
   - name: invoice__withholding_tax_total
     logicalType: object
     physicalType: table
@@ -571,9 +724,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: invoice.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: tax_total.record_id
   - name: invoice__invoice_line
     logicalType: object
     physicalType: table
@@ -589,9 +748,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: invoice.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: invoice_line.record_id
   - name: invoice
     logicalType: object
     physicalType: table
@@ -728,40 +893,64 @@ schema:
         required: false
         description: Analytical foreign key for UBL cac:OrderReference, targeting
           OrderReference.
+        relationships:
+          - type: foreignKey
+            to: order_reference.record_id
       - name: accounting_supplier_party_id
         logicalType: string
         required: true
         description: Analytical foreign key for UBL cac:AccountingSupplierParty,
           targeting SupplierParty.
+        relationships:
+          - type: foreignKey
+            to: supplier_party.record_id
       - name: accounting_customer_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:AccountingCustomerParty,
           targeting CustomerParty.
+        relationships:
+          - type: foreignKey
+            to: customer_party.record_id
       - name: payee_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:PayeeParty, targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: buyer_customer_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:BuyerCustomerParty, targeting
           CustomerParty.
+        relationships:
+          - type: foreignKey
+            to: customer_party.record_id
       - name: seller_supplier_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:SellerSupplierParty, targeting
           SupplierParty.
+        relationships:
+          - type: foreignKey
+            to: supplier_party.record_id
       - name: tax_representative_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:TaxRepresentativeParty,
           targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: legal_monetary_total_id
         logicalType: string
         required: true
         description: Analytical foreign key for UBL cac:LegalMonetaryTotal, targeting
           MonetaryTotal.
+        relationships:
+          - type: foreignKey
+            to: monetary_total.record_id
   - name: despatch_advice__order_reference
     logicalType: object
     physicalType: table
@@ -777,9 +966,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: despatch_advice.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: order_reference.record_id
   - name: despatch_advice__additional_document_reference
     logicalType: object
     physicalType: table
@@ -796,9 +991,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: despatch_advice.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: despatch_advice__despatch_line
     logicalType: object
     physicalType: table
@@ -814,9 +1015,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: despatch_advice.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: despatch_line.record_id
   - name: despatch_advice
     logicalType: object
     physicalType: table
@@ -908,30 +1115,48 @@ schema:
         required: true
         description: Analytical foreign key for UBL cac:DespatchSupplierParty, targeting
           SupplierParty.
+        relationships:
+          - type: foreignKey
+            to: supplier_party.record_id
       - name: delivery_customer_party_id
         logicalType: string
         required: true
         description: Analytical foreign key for UBL cac:DeliveryCustomerParty, targeting
           CustomerParty.
+        relationships:
+          - type: foreignKey
+            to: customer_party.record_id
       - name: buyer_customer_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:BuyerCustomerParty, targeting
           CustomerParty.
+        relationships:
+          - type: foreignKey
+            to: customer_party.record_id
       - name: seller_supplier_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:SellerSupplierParty, targeting
           SupplierParty.
+        relationships:
+          - type: foreignKey
+            to: supplier_party.record_id
       - name: originator_customer_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:OriginatorCustomerParty,
           targeting CustomerParty.
+        relationships:
+          - type: foreignKey
+            to: customer_party.record_id
       - name: shipment_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:Shipment, targeting Shipment.
+        relationships:
+          - type: foreignKey
+            to: shipment.record_id
   - name: receipt_advice__order_reference
     logicalType: object
     physicalType: table
@@ -947,9 +1172,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: receipt_advice.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: order_reference.record_id
   - name: receipt_advice__despatch_document_reference
     logicalType: object
     physicalType: table
@@ -965,9 +1196,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: receipt_advice.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: receipt_advice__additional_document_reference
     logicalType: object
     physicalType: table
@@ -983,9 +1220,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: receipt_advice.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: receipt_advice__receipt_line
     logicalType: object
     physicalType: table
@@ -1001,9 +1244,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: receipt_advice.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: receipt_line.record_id
   - name: receipt_advice
     logicalType: object
     physicalType: table
@@ -1095,25 +1344,40 @@ schema:
         required: true
         description: Analytical foreign key for UBL cac:DeliveryCustomerParty, targeting
           CustomerParty.
+        relationships:
+          - type: foreignKey
+            to: customer_party.record_id
       - name: despatch_supplier_party_id
         logicalType: string
         required: true
         description: Analytical foreign key for UBL cac:DespatchSupplierParty, targeting
           SupplierParty.
+        relationships:
+          - type: foreignKey
+            to: supplier_party.record_id
       - name: buyer_customer_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:BuyerCustomerParty, targeting
           CustomerParty.
+        relationships:
+          - type: foreignKey
+            to: customer_party.record_id
       - name: seller_supplier_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:SellerSupplierParty, targeting
           SupplierParty.
+        relationships:
+          - type: foreignKey
+            to: supplier_party.record_id
       - name: shipment_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:Shipment, targeting Shipment.
+        relationships:
+          - type: foreignKey
+            to: shipment.record_id
   - name: credit_note__billing_reference
     logicalType: object
     physicalType: table
@@ -1129,9 +1393,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: credit_note.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: billing_reference.record_id
   - name: credit_note__despatch_document_reference
     logicalType: object
     physicalType: table
@@ -1147,9 +1417,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: credit_note.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: credit_note__receipt_document_reference
     logicalType: object
     physicalType: table
@@ -1165,9 +1441,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: credit_note.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: credit_note__contract_document_reference
     logicalType: object
     physicalType: table
@@ -1183,9 +1465,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: credit_note.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: credit_note__additional_document_reference
     logicalType: object
     physicalType: table
@@ -1201,9 +1489,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: credit_note.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: credit_note__statement_document_reference
     logicalType: object
     physicalType: table
@@ -1219,9 +1513,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: credit_note.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: credit_note__originator_document_reference
     logicalType: object
     physicalType: table
@@ -1237,9 +1537,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: credit_note.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: credit_note__delivery
     logicalType: object
     physicalType: table
@@ -1255,9 +1561,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: credit_note.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: delivery.record_id
   - name: credit_note__payment_means
     logicalType: object
     physicalType: table
@@ -1273,9 +1585,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: credit_note.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: payment_means.record_id
   - name: credit_note__payment_terms
     logicalType: object
     physicalType: table
@@ -1291,9 +1609,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: credit_note.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: payment_terms.record_id
   - name: credit_note__allowance_charge
     logicalType: object
     physicalType: table
@@ -1309,9 +1633,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: credit_note.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: allowance_charge.record_id
   - name: credit_note__tax_total
     logicalType: object
     physicalType: table
@@ -1327,9 +1657,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: credit_note.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: tax_total.record_id
   - name: credit_note__withholding_tax_total
     logicalType: object
     physicalType: table
@@ -1345,9 +1681,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: credit_note.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: tax_total.record_id
   - name: credit_note__credit_note_line
     logicalType: object
     physicalType: table
@@ -1363,9 +1705,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: credit_note.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: credit_note_line.record_id
   - name: credit_note
     logicalType: object
     physicalType: table
@@ -1502,40 +1850,64 @@ schema:
         required: false
         description: Analytical foreign key for UBL cac:OrderReference, targeting
           OrderReference.
+        relationships:
+          - type: foreignKey
+            to: order_reference.record_id
       - name: accounting_supplier_party_id
         logicalType: string
         required: true
         description: Analytical foreign key for UBL cac:AccountingSupplierParty,
           targeting SupplierParty.
+        relationships:
+          - type: foreignKey
+            to: supplier_party.record_id
       - name: accounting_customer_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:AccountingCustomerParty,
           targeting CustomerParty.
+        relationships:
+          - type: foreignKey
+            to: customer_party.record_id
       - name: payee_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:PayeeParty, targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: buyer_customer_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:BuyerCustomerParty, targeting
           CustomerParty.
+        relationships:
+          - type: foreignKey
+            to: customer_party.record_id
       - name: seller_supplier_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:SellerSupplierParty, targeting
           SupplierParty.
+        relationships:
+          - type: foreignKey
+            to: supplier_party.record_id
       - name: tax_representative_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:TaxRepresentativeParty,
           targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: legal_monetary_total_id
         logicalType: string
         required: true
         description: Analytical foreign key for UBL cac:LegalMonetaryTotal, targeting
           MonetaryTotal.
+        relationships:
+          - type: foreignKey
+            to: monetary_total.record_id
   - name: party__person
     logicalType: object
     physicalType: table
@@ -1551,9 +1923,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: person.record_id
   - name: party
     logicalType: object
     physicalType: table
@@ -1607,24 +1985,39 @@ schema:
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:PostalAddress, targeting Address.
+        relationships:
+          - type: foreignKey
+            to: address.record_id
       - name: physical_location_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:PhysicalLocation, targeting
           Location.
+        relationships:
+          - type: foreignKey
+            to: location.record_id
       - name: contact_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:Contact, targeting Contact.
+        relationships:
+          - type: foreignKey
+            to: contact.record_id
       - name: agent_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:AgentParty, targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: financial_account_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:FinancialAccount, targeting
           FinancialAccount.
+        relationships:
+          - type: foreignKey
+            to: financial_account.record_id
   - name: customer_party
     logicalType: object
     physicalType: table
@@ -1665,19 +2058,31 @@ schema:
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:Party, targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: delivery_contact_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:DeliveryContact, targeting Contact.
+        relationships:
+          - type: foreignKey
+            to: contact.record_id
       - name: accounting_contact_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:AccountingContact, targeting
           Contact.
+        relationships:
+          - type: foreignKey
+            to: contact.record_id
       - name: buyer_contact_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:BuyerContact, targeting Contact.
+        relationships:
+          - type: foreignKey
+            to: contact.record_id
   - name: supplier_party
     logicalType: object
     physicalType: table
@@ -1718,19 +2123,31 @@ schema:
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:Party, targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: despatch_contact_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:DespatchContact, targeting Contact.
+        relationships:
+          - type: foreignKey
+            to: contact.record_id
       - name: accounting_contact_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:AccountingContact, targeting
           Contact.
+        relationships:
+          - type: foreignKey
+            to: contact.record_id
       - name: seller_contact_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:SellerContact, targeting Contact.
+        relationships:
+          - type: foreignKey
+            to: contact.record_id
   - name: person__identity_document_reference
     logicalType: object
     physicalType: table
@@ -1746,9 +2163,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: person.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: person
     logicalType: object
     physicalType: table
@@ -1843,24 +2266,39 @@ schema:
         required: false
         description: Analytical foreign key for UBL cac:BirthplaceLocation, targeting
           Location.
+        relationships:
+          - type: foreignKey
+            to: location.record_id
       - name: citizenship_country_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:CitizenshipCountry, targeting
           Country.
+        relationships:
+          - type: foreignKey
+            to: country.record_id
       - name: contact_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:Contact, targeting Contact.
+        relationships:
+          - type: foreignKey
+            to: contact.record_id
       - name: financial_account_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:FinancialAccount, targeting
           FinancialAccount.
+        relationships:
+          - type: foreignKey
+            to: financial_account.record_id
       - name: residence_address_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:ResidenceAddress, targeting Address.
+        relationships:
+          - type: foreignKey
+            to: address.record_id
   - name: contact
     logicalType: object
     physicalType: table
@@ -2072,6 +2510,9 @@ schema:
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:Country, targeting Country.
+        relationships:
+          - type: foreignKey
+            to: country.record_id
   - name: location__subsidiary_location
     logicalType: object
     physicalType: table
@@ -2087,9 +2528,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: location.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: location.record_id
   - name: location
     logicalType: object
     physicalType: table
@@ -2157,6 +2604,9 @@ schema:
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:Address, targeting Address.
+        relationships:
+          - type: foreignKey
+            to: address.record_id
   - name: country
     logicalType: object
     physicalType: table
@@ -2201,9 +2651,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: item.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: item__commodity_classification
     logicalType: object
     physicalType: table
@@ -2219,9 +2675,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: item.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: commodity_classification.record_id
   - name: item__classified_tax_category
     logicalType: object
     physicalType: table
@@ -2237,9 +2699,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: item.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: tax_category.record_id
   - name: item__manufacturer_party
     logicalType: object
     physicalType: table
@@ -2255,9 +2723,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: item.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: party.record_id
   - name: item__origin_address
     logicalType: object
     physicalType: table
@@ -2273,9 +2747,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: item.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: address.record_id
   - name: item
     logicalType: object
     physicalType: table
@@ -2360,15 +2840,24 @@ schema:
         required: false
         description: Analytical foreign key for UBL cac:CatalogueDocumentReference,
           targeting DocumentReference.
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
       - name: origin_country_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:OriginCountry, targeting Country.
+        relationships:
+          - type: foreignKey
+            to: country.record_id
       - name: information_content_provider_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:InformationContentProviderParty,
           targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
   - name: commodity_classification
     logicalType: object
     physicalType: table
@@ -2424,9 +2913,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: order_line.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: line_item.record_id
   - name: order_line__seller_substituted_line_item
     logicalType: object
     physicalType: table
@@ -2442,9 +2937,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: order_line.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: line_item.record_id
   - name: order_line__buyer_proposed_substitute_line_item
     logicalType: object
     physicalType: table
@@ -2460,9 +2961,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: order_line.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: line_item.record_id
   - name: order_line__document_reference
     logicalType: object
     physicalType: table
@@ -2478,9 +2985,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: order_line.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: order_line
     logicalType: object
     physicalType: table
@@ -2516,6 +3029,9 @@ schema:
         logicalType: string
         required: true
         description: Analytical foreign key for UBL cac:LineItem, targeting LineItem.
+        relationships:
+          - type: foreignKey
+            to: line_item.record_id
   - name: line_item__delivery
     logicalType: object
     physicalType: table
@@ -2531,9 +3047,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: line_item.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: delivery.record_id
   - name: line_item__allowance_charge
     logicalType: object
     physicalType: table
@@ -2549,9 +3071,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: line_item.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: allowance_charge.record_id
   - name: line_item__sub_line_item
     logicalType: object
     physicalType: table
@@ -2567,9 +3095,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: line_item.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: line_item.record_id
   - name: line_item__tax_total
     logicalType: object
     physicalType: table
@@ -2585,9 +3119,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: line_item.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: tax_total.record_id
   - name: line_item
     logicalType: object
     physicalType: table
@@ -2710,18 +3250,30 @@ schema:
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:OriginatorParty, targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: price_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:Price, targeting Price.
+        relationships:
+          - type: foreignKey
+            to: price.record_id
       - name: item_id
         logicalType: string
         required: true
         description: Analytical foreign key for UBL cac:Item, targeting Item.
+        relationships:
+          - type: foreignKey
+            to: item.record_id
       - name: warranty_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:WarrantyParty, targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
   - name: delivery__notify_party
     logicalType: object
     physicalType: table
@@ -2737,9 +3289,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: delivery.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: party.record_id
   - name: delivery
     logicalType: object
     physicalType: table
@@ -2813,28 +3371,46 @@ schema:
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:DeliveryAddress, targeting Address.
+        relationships:
+          - type: foreignKey
+            to: address.record_id
       - name: delivery_location_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:DeliveryLocation, targeting
           Location.
+        relationships:
+          - type: foreignKey
+            to: location.record_id
       - name: alternative_delivery_location_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:AlternativeDeliveryLocation,
           targeting Location.
+        relationships:
+          - type: foreignKey
+            to: location.record_id
       - name: carrier_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:CarrierParty, targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: delivery_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:DeliveryParty, targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: shipment_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:Shipment, targeting Shipment.
+        relationships:
+          - type: foreignKey
+            to: shipment.record_id
   - name: shipment__consignment
     logicalType: object
     physicalType: table
@@ -2850,9 +3426,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: shipment.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: consignment.record_id
   - name: shipment__goods_item
     logicalType: object
     physicalType: table
@@ -2868,9 +3450,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: shipment.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: goods_item.record_id
   - name: shipment__transport_handling_unit
     logicalType: object
     physicalType: table
@@ -2886,9 +3474,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: shipment.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transport_handling_unit.record_id
   - name: shipment__freight_allowance_charge
     logicalType: object
     physicalType: table
@@ -2904,9 +3498,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: shipment.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: allowance_charge.record_id
   - name: shipment
     logicalType: object
     physicalType: table
@@ -3043,28 +3643,46 @@ schema:
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:Delivery, targeting Delivery.
+        relationships:
+          - type: foreignKey
+            to: delivery.record_id
       - name: return_address_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:ReturnAddress, targeting Address.
+        relationships:
+          - type: foreignKey
+            to: address.record_id
       - name: origin_address_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:OriginAddress, targeting Address.
+        relationships:
+          - type: foreignKey
+            to: address.record_id
       - name: first_arrival_port_location_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:FirstArrivalPortLocation,
           targeting Location.
+        relationships:
+          - type: foreignKey
+            to: location.record_id
       - name: last_exit_port_location_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:LastExitPortLocation, targeting
           Location.
+        relationships:
+          - type: foreignKey
+            to: location.record_id
       - name: export_country_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:ExportCountry, targeting Country.
+        relationships:
+          - type: foreignKey
+            to: country.record_id
   - name: consignment__consolidated_shipment
     logicalType: object
     physicalType: table
@@ -3080,9 +3698,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: consignment.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: shipment.record_id
   - name: consignment__child_consignment
     logicalType: object
     physicalType: table
@@ -3098,9 +3722,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: consignment.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: consignment.record_id
   - name: consignment__transit_country
     logicalType: object
     physicalType: table
@@ -3116,9 +3746,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: consignment.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: country.record_id
   - name: consignment__freight_allowance_charge
     logicalType: object
     physicalType: table
@@ -3134,9 +3770,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: consignment.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: allowance_charge.record_id
   - name: consignment__extra_allowance_charge
     logicalType: object
     physicalType: table
@@ -3152,9 +3794,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: consignment.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: allowance_charge.record_id
   - name: consignment__transport_handling_unit
     logicalType: object
     physicalType: table
@@ -3170,9 +3818,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: consignment.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transport_handling_unit.record_id
   - name: consignment__document_reference
     logicalType: object
     physicalType: table
@@ -3188,9 +3842,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: consignment.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: consignment
     logicalType: object
     physicalType: table
@@ -3514,171 +4174,276 @@ schema:
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:ConsigneeParty, targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: exporter_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:ExporterParty, targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: consignor_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:ConsignorParty, targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: importer_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:ImporterParty, targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: carrier_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:CarrierParty, targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: freight_forwarder_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:FreightForwarderParty, targeting
           Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: notify_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:NotifyParty, targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: original_despatch_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:OriginalDespatchParty, targeting
           Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: final_delivery_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:FinalDeliveryParty, targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: performing_carrier_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:PerformingCarrierParty,
           targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: substitute_carrier_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:SubstituteCarrierParty,
           targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: logistics_operator_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:LogisticsOperatorParty,
           targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: transport_advisor_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:TransportAdvisorParty, targeting
           Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: hazardous_item_notification_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:HazardousItemNotificationParty,
           targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: insurance_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:InsuranceParty, targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: mortgage_holder_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:MortgageHolderParty, targeting
           Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: bill_of_lading_holder_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:BillOfLadingHolderParty,
           targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: original_departure_country_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:OriginalDepartureCountry,
           targeting Country.
+        relationships:
+          - type: foreignKey
+            to: country.record_id
       - name: final_destination_country_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:FinalDestinationCountry,
           targeting Country.
+        relationships:
+          - type: foreignKey
+            to: country.record_id
       - name: transport_contract_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:TransportContract, targeting
           Contract.
+        relationships:
+          - type: foreignKey
+            to: contract.record_id
       - name: original_despatch_transportation_service_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL
           cac:OriginalDespatchTransportationService, targeting
           TransportationService.
+        relationships:
+          - type: foreignKey
+            to: transportation_service.record_id
       - name: final_delivery_transportation_service_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL
           cac:FinalDeliveryTransportationService, targeting
           TransportationService.
+        relationships:
+          - type: foreignKey
+            to: transportation_service.record_id
       - name: payment_terms_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:PaymentTerms, targeting
           PaymentTerms.
+        relationships:
+          - type: foreignKey
+            to: payment_terms.record_id
       - name: collect_payment_terms_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:CollectPaymentTerms, targeting
           PaymentTerms.
+        relationships:
+          - type: foreignKey
+            to: payment_terms.record_id
       - name: disbursement_payment_terms_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:DisbursementPaymentTerms,
           targeting PaymentTerms.
+        relationships:
+          - type: foreignKey
+            to: payment_terms.record_id
       - name: prepaid_payment_terms_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:PrepaidPaymentTerms, targeting
           PaymentTerms.
+        relationships:
+          - type: foreignKey
+            to: payment_terms.record_id
       - name: first_arrival_port_location_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:FirstArrivalPortLocation,
           targeting Location.
+        relationships:
+          - type: foreignKey
+            to: location.record_id
       - name: last_exit_port_location_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:LastExitPortLocation, targeting
           Location.
+        relationships:
+          - type: foreignKey
+            to: location.record_id
       - name: office_of_entry_location_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:OfficeOfEntryLocation, targeting
           Location.
+        relationships:
+          - type: foreignKey
+            to: location.record_id
       - name: office_of_sub_sequentially_entry_location_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL
           cac:OfficeOfSubSequentiallyEntryLocation, targeting Location.
+        relationships:
+          - type: foreignKey
+            to: location.record_id
       - name: office_of_exit_location_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:OfficeOfExitLocation, targeting
           Location.
+        relationships:
+          - type: foreignKey
+            to: location.record_id
       - name: office_of_departure_location_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:OfficeOfDepartureLocation,
           targeting Location.
+        relationships:
+          - type: foreignKey
+            to: location.record_id
       - name: office_of_destination_location_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:OfficeOfDestinationLocation,
           targeting Location.
+        relationships:
+          - type: foreignKey
+            to: location.record_id
       - name: office_of_import_location_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:OfficeOfImportLocation,
           targeting Location.
+        relationships:
+          - type: foreignKey
+            to: location.record_id
       - name: office_of_export_location_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:OfficeOfExportLocation,
           targeting Location.
+        relationships:
+          - type: foreignKey
+            to: location.record_id
   - name: transport_handling_unit__handling_unit_despatch_line
     logicalType: object
     physicalType: table
@@ -3695,9 +4460,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transport_handling_unit.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: despatch_line.record_id
   - name: transport_handling_unit__received_handling_unit_receipt_line
     logicalType: object
     physicalType: table
@@ -3714,9 +4485,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transport_handling_unit.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: receipt_line.record_id
   - name: transport_handling_unit__transport_equipment
     logicalType: object
     physicalType: table
@@ -3732,9 +4509,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transport_handling_unit.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transport_equipment.record_id
   - name: transport_handling_unit__transport_means
     logicalType: object
     physicalType: table
@@ -3750,9 +4533,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transport_handling_unit.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transport_means.record_id
   - name: transport_handling_unit__goods_item
     logicalType: object
     physicalType: table
@@ -3768,9 +4557,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transport_handling_unit.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: goods_item.record_id
   - name: transport_handling_unit__shipment_document_reference
     logicalType: object
     physicalType: table
@@ -3787,9 +4582,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transport_handling_unit.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: transport_handling_unit__referenced_shipment
     logicalType: object
     physicalType: table
@@ -3805,9 +4606,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transport_handling_unit.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: shipment.record_id
   - name: transport_handling_unit
     logicalType: object
     physicalType: table
@@ -3899,9 +4706,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transport_equipment.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transport_handling_unit.record_id
   - name: transport_equipment__service_allowance_charge
     logicalType: object
     physicalType: table
@@ -3917,9 +4730,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transport_equipment.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: allowance_charge.record_id
   - name: transport_equipment__freight_allowance_charge
     logicalType: object
     physicalType: table
@@ -3935,9 +4754,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transport_equipment.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: allowance_charge.record_id
   - name: transport_equipment__attached_transport_equipment
     logicalType: object
     physicalType: table
@@ -3954,9 +4779,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transport_equipment.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transport_equipment.record_id
   - name: transport_equipment__shipment_document_reference
     logicalType: object
     physicalType: table
@@ -3973,9 +4804,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transport_equipment.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: transport_equipment__contained_in_transport_equipment
     logicalType: object
     physicalType: table
@@ -3992,9 +4829,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transport_equipment.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transport_equipment.record_id
   - name: transport_equipment__goods_item
     logicalType: object
     physicalType: table
@@ -4010,9 +4853,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transport_equipment.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: goods_item.record_id
   - name: transport_equipment
     logicalType: object
     physicalType: table
@@ -4186,45 +5035,75 @@ schema:
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:ProviderParty, targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: loading_proof_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:LoadingProofParty, targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: supplier_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:SupplierParty, targeting
           SupplierParty.
+        relationships:
+          - type: foreignKey
+            to: supplier_party.record_id
       - name: owner_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:OwnerParty, targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: operating_party_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:OperatingParty, targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: loading_location_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:LoadingLocation, targeting Location.
+        relationships:
+          - type: foreignKey
+            to: location.record_id
       - name: unloading_location_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:UnloadingLocation, targeting
           Location.
+        relationships:
+          - type: foreignKey
+            to: location.record_id
       - name: storage_location_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:StorageLocation, targeting Location.
+        relationships:
+          - type: foreignKey
+            to: location.record_id
       - name: applicable_transport_means_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:ApplicableTransportMeans,
           targeting TransportMeans.
+        relationships:
+          - type: foreignKey
+            to: transport_means.record_id
       - name: delivery_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:Delivery, targeting Delivery.
+        relationships:
+          - type: foreignKey
+            to: delivery.record_id
   - name: goods_item__item
     logicalType: object
     physicalType: table
@@ -4240,9 +5119,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: goods_item.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: item.record_id
   - name: goods_item__freight_allowance_charge
     logicalType: object
     physicalType: table
@@ -4258,9 +5143,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: goods_item.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: allowance_charge.record_id
   - name: goods_item__invoice_line
     logicalType: object
     physicalType: table
@@ -4276,9 +5167,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: goods_item.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: invoice_line.record_id
   - name: goods_item__contained_goods_item
     logicalType: object
     physicalType: table
@@ -4294,9 +5191,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: goods_item.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: goods_item.record_id
   - name: goods_item
     logicalType: object
     physicalType: table
@@ -4452,15 +5355,24 @@ schema:
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:OriginAddress, targeting Address.
+        relationships:
+          - type: foreignKey
+            to: address.record_id
       - name: delivery_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:Delivery, targeting Delivery.
+        relationships:
+          - type: foreignKey
+            to: delivery.record_id
       - name: shipment_document_reference_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:ShipmentDocumentReference,
           targeting DocumentReference.
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: invoice_line__billing_reference
     logicalType: object
     physicalType: table
@@ -4476,9 +5388,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: invoice_line.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: billing_reference.record_id
   - name: invoice_line__document_reference
     logicalType: object
     physicalType: table
@@ -4494,9 +5412,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: invoice_line.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: invoice_line__delivery
     logicalType: object
     physicalType: table
@@ -4512,9 +5436,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: invoice_line.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: delivery.record_id
   - name: invoice_line__payment_terms
     logicalType: object
     physicalType: table
@@ -4530,9 +5460,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: invoice_line.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: payment_terms.record_id
   - name: invoice_line__allowance_charge
     logicalType: object
     physicalType: table
@@ -4548,9 +5484,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: invoice_line.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: allowance_charge.record_id
   - name: invoice_line__tax_total
     logicalType: object
     physicalType: table
@@ -4566,9 +5508,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: invoice_line.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: tax_total.record_id
   - name: invoice_line__withholding_tax_total
     logicalType: object
     physicalType: table
@@ -4584,9 +5532,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: invoice_line.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: tax_total.record_id
   - name: invoice_line__sub_invoice_line
     logicalType: object
     physicalType: table
@@ -4602,9 +5556,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: invoice_line.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: invoice_line.record_id
   - name: invoice_line
     logicalType: object
     physicalType: table
@@ -4685,14 +5645,23 @@ schema:
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:OriginatorParty, targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: item_id
         logicalType: string
         required: true
         description: Analytical foreign key for UBL cac:Item, targeting Item.
+        relationships:
+          - type: foreignKey
+            to: item.record_id
       - name: price_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:Price, targeting Price.
+        relationships:
+          - type: foreignKey
+            to: price.record_id
   - name: credit_note_line__billing_reference
     logicalType: object
     physicalType: table
@@ -4708,9 +5677,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: credit_note_line.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: billing_reference.record_id
   - name: credit_note_line__document_reference
     logicalType: object
     physicalType: table
@@ -4726,9 +5701,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: credit_note_line.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: credit_note_line__delivery
     logicalType: object
     physicalType: table
@@ -4744,9 +5725,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: credit_note_line.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: delivery.record_id
   - name: credit_note_line__payment_terms
     logicalType: object
     physicalType: table
@@ -4762,9 +5749,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: credit_note_line.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: payment_terms.record_id
   - name: credit_note_line__tax_total
     logicalType: object
     physicalType: table
@@ -4780,9 +5773,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: credit_note_line.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: tax_total.record_id
   - name: credit_note_line__allowance_charge
     logicalType: object
     physicalType: table
@@ -4798,9 +5797,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: credit_note_line.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: allowance_charge.record_id
   - name: credit_note_line__sub_credit_note_line
     logicalType: object
     physicalType: table
@@ -4816,9 +5821,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: credit_note_line.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: credit_note_line.record_id
   - name: credit_note_line
     logicalType: object
     physicalType: table
@@ -4899,14 +5910,23 @@ schema:
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:OriginatorParty, targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
       - name: item_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:Item, targeting Item.
+        relationships:
+          - type: foreignKey
+            to: item.record_id
       - name: price_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:Price, targeting Price.
+        relationships:
+          - type: foreignKey
+            to: price.record_id
   - name: payment_means
     logicalType: object
     physicalType: table
@@ -4980,11 +6000,17 @@ schema:
         required: false
         description: Analytical foreign key for UBL cac:PayerFinancialAccount, targeting
           FinancialAccount.
+        relationships:
+          - type: foreignKey
+            to: financial_account.record_id
       - name: payee_financial_account_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:PayeeFinancialAccount, targeting
           FinancialAccount.
+        relationships:
+          - type: foreignKey
+            to: financial_account.record_id
   - name: payment_terms
     logicalType: object
     physicalType: table
@@ -5144,10 +6170,16 @@ schema:
         required: false
         description: Analytical foreign key for UBL cac:FinancialInstitutionBranch,
           targeting Branch.
+        relationships:
+          - type: foreignKey
+            to: branch.record_id
       - name: country_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:Country, targeting Country.
+        relationships:
+          - type: foreignKey
+            to: country.record_id
   - name: financial_institution
     logicalType: object
     physicalType: table
@@ -5181,6 +6213,9 @@ schema:
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:Address, targeting Address.
+        relationships:
+          - type: foreignKey
+            to: address.record_id
   - name: branch
     logicalType: object
     physicalType: table
@@ -5215,10 +6250,16 @@ schema:
         required: false
         description: Analytical foreign key for UBL cac:FinancialInstitution, targeting
           FinancialInstitution.
+        relationships:
+          - type: foreignKey
+            to: financial_institution.record_id
       - name: address_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:Address, targeting Address.
+        relationships:
+          - type: foreignKey
+            to: address.record_id
   - name: tax_total__tax_subtotal
     logicalType: object
     physicalType: table
@@ -5234,9 +6275,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: tax_total.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: tax_subtotal.record_id
   - name: tax_total
     logicalType: object
     physicalType: table
@@ -5349,6 +6396,9 @@ schema:
         logicalType: string
         required: true
         description: Analytical foreign key for UBL cac:TaxCategory, targeting TaxCategory.
+        relationships:
+          - type: foreignKey
+            to: tax_category.record_id
   - name: tax_category
     logicalType: object
     physicalType: table
@@ -5419,6 +6469,9 @@ schema:
         logicalType: string
         required: true
         description: Analytical foreign key for UBL cac:TaxScheme, targeting TaxScheme.
+        relationships:
+          - type: foreignKey
+            to: tax_scheme.record_id
   - name: tax_scheme__jurisdiction_region_address
     logicalType: object
     physicalType: table
@@ -5434,9 +6487,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: tax_scheme.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: address.record_id
   - name: tax_scheme
     logicalType: object
     physicalType: table
@@ -5491,9 +6550,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: price.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: allowance_charge.record_id
   - name: price__alternative_currency_price
     logicalType: object
     physicalType: table
@@ -5509,9 +6574,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: price.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: price.record_id
   - name: price
     logicalType: object
     physicalType: table
@@ -5578,9 +6649,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: allowance_charge.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: tax_category.record_id
   - name: allowance_charge__payment_means
     logicalType: object
     physicalType: table
@@ -5596,9 +6673,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: allowance_charge.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: payment_means.record_id
   - name: allowance_charge
     logicalType: object
     physicalType: table
@@ -5684,6 +6767,9 @@ schema:
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:TaxTotal, targeting TaxTotal.
+        relationships:
+          - type: foreignKey
+            to: tax_total.record_id
   - name: contract__contract_document_reference
     logicalType: object
     physicalType: table
@@ -5699,9 +6785,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: contract.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: contract
     logicalType: object
     physicalType: table
@@ -5792,6 +6884,9 @@ schema:
         required: false
         description: Analytical foreign key for UBL cac:ContractualDelivery, targeting
           Delivery.
+        relationships:
+          - type: foreignKey
+            to: delivery.record_id
   - name: document_reference
     logicalType: object
     physicalType: table
@@ -5891,6 +6986,9 @@ schema:
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:IssuerParty, targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
   - name: receipt_line__document_reference
     logicalType: object
     physicalType: table
@@ -5906,9 +7004,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: receipt_line.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: receipt_line__item
     logicalType: object
     physicalType: table
@@ -5924,9 +7028,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: receipt_line.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: item.record_id
   - name: receipt_line__shipment
     logicalType: object
     physicalType: table
@@ -5942,9 +7052,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: receipt_line.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: shipment.record_id
   - name: receipt_line
     logicalType: object
     physicalType: table
@@ -6058,9 +7174,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: despatch_line.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: despatch_line__shipment
     logicalType: object
     physicalType: table
@@ -6076,9 +7198,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: despatch_line.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: shipment.record_id
   - name: despatch_line__sub_despatch_line
     logicalType: object
     physicalType: table
@@ -6094,9 +7222,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: despatch_line.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: despatch_line.record_id
   - name: despatch_line
     logicalType: object
     physicalType: table
@@ -6176,6 +7310,9 @@ schema:
         logicalType: string
         required: true
         description: Analytical foreign key for UBL cac:Item, targeting Item.
+        relationships:
+          - type: foreignKey
+            to: item.record_id
   - name: transportation_service__transport_equipment
     logicalType: object
     physicalType: table
@@ -6191,9 +7328,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transportation_service.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transport_equipment.record_id
   - name: transportation_service__supported_transport_equipment
     logicalType: object
     physicalType: table
@@ -6210,9 +7353,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transportation_service.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transport_equipment.record_id
   - name: transportation_service__unsupported_transport_equipment
     logicalType: object
     physicalType: table
@@ -6229,9 +7378,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transportation_service.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transport_equipment.record_id
   - name: transportation_service__commodity_classification
     logicalType: object
     physicalType: table
@@ -6248,9 +7403,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transportation_service.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: commodity_classification.record_id
   - name: transportation_service__supported_commodity_classification
     logicalType: object
     physicalType: table
@@ -6267,9 +7428,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transportation_service.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: commodity_classification.record_id
   - name: transportation_service__unsupported_commodity_classification
     logicalType: object
     physicalType: table
@@ -6286,9 +7453,15 @@ schema:
       - name: source_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: transportation_service.record_id
       - name: target_id
         logicalType: string
         required: true
+        relationships:
+          - type: foreignKey
+            to: commodity_classification.record_id
   - name: transportation_service
     logicalType: object
     physicalType: table
@@ -6366,6 +7539,9 @@ schema:
         required: false
         description: Analytical foreign key for UBL
           cac:ResponsibleTransportServiceProviderParty, targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
   - name: transport_means
     logicalType: object
     physicalType: table
@@ -6421,6 +7597,9 @@ schema:
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:OwnerParty, targeting Party.
+        relationships:
+          - type: foreignKey
+            to: party.record_id
   - name: order_reference
     logicalType: object
     physicalType: table
@@ -6485,6 +7664,9 @@ schema:
         required: false
         description: Analytical foreign key for UBL cac:DocumentReference, targeting
           DocumentReference.
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: billing_reference
     logicalType: object
     physicalType: table
@@ -6509,37 +7691,58 @@ schema:
         required: false
         description: Analytical foreign key for UBL cac:InvoiceDocumentReference,
           targeting DocumentReference.
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
       - name: self_billed_invoice_document_reference_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL
           cac:SelfBilledInvoiceDocumentReference, targeting DocumentReference.
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
       - name: credit_note_document_reference_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:CreditNoteDocumentReference,
           targeting DocumentReference.
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
       - name: self_billed_credit_note_document_reference_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL
           cac:SelfBilledCreditNoteDocumentReference, targeting
           DocumentReference.
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
       - name: debit_note_document_reference_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:DebitNoteDocumentReference,
           targeting DocumentReference.
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
       - name: reminder_document_reference_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:ReminderDocumentReference,
           targeting DocumentReference.
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
       - name: additional_document_reference_id
         logicalType: string
         required: false
         description: Analytical foreign key for UBL cac:AdditionalDocumentReference,
           targeting DocumentReference.
+        relationships:
+          - type: foreignKey
+            to: document_reference.record_id
   - name: monetary_total
     logicalType: object
     physicalType: table
