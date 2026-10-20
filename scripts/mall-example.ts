@@ -400,21 +400,24 @@ for(const d of defs){
 let shacl=header(['@prefix sh: <http://www.w3.org/ns/shacl#> .']);
 const dateOrder:[string,string][]=[['start_date','end_date'],['effective_from','effective_to'],['opened_date','closed_date'],['period_start','period_end'],['issue_date','due_date'],['issue_date','expiry_date']];
 for(const d of defs){
- const props:string[]=[];
+ const props:[string,string][]=[];
  for(const a of attrsOf(d)){
   const c=[`sh:path ${relIri(d.concept,a.name)}`,`sh:name ${q(words(a.name))}`,`sh:datatype ${datatype(a.type)}`,'sh:maxCount 1'];
   if(a.flags.includes('!'))c.push('sh:minCount 1');if(a.flags.includes('+'))c.push('sh:minInclusive 0');if(a.flags.includes('%'))c.push('sh:minInclusive 0','sh:maxInclusive 1');
   if(['Name','Code'].includes(a.type))c.push('sh:minLength 1');
   const later=dateOrder.find(([from])=>from===a.name)?.[1];if(later&&attrsOf(d).some(x=>x.name===later))c.push(`sh:lessThanOrEquals ${relIri(d.concept,later)}`);
-  props.push(`[ ${c.join(' ; ')} ]`);
+  props.push([a.name,c.join(' ; ')]);
  }
- for(const l of linksOf(d))props.push(`[ sh:path ${relIri(d.concept,l.name)} ; sh:name ${q(words(l.name))} ; sh:class ${byConcept.get(l.target)!.module}:${l.target} ; sh:maxCount 1${l.flags.includes('!')?' ; sh:minCount 1':''} ]`);
- if(props.length)shacl+=`${d.module}:${d.concept}Shape a sh:NodeShape ; rdfs:label ${q(label(d.concept)+' requirements')} ; sh:targetClass ${d.module}:${d.concept} ;\n  sh:property ${props.join(' ,\n    ')} .\n`;
+ for(const l of linksOf(d))props.push([l.name,`sh:path ${relIri(d.concept,l.name)} ; sh:name ${q(words(l.name))} ; sh:class ${byConcept.get(l.target)!.module}:${l.target} ; sh:maxCount 1${l.flags.includes('!')?' ; sh:minCount 1':''}`]);
+ // Named property shapes keep each constraint addressable and readable in graph views.
+ const shapeIri=(name:string)=>`${d.module}:${d.concept}_${camel(name)}Shape`;
+ if(props.length)shacl+=`${d.module}:${d.concept}Shape a sh:NodeShape ; rdfs:label ${q(label(d.concept)+' requirements')} ; sh:targetClass ${d.module}:${d.concept} ;\n  sh:property ${props.map(([name])=>shapeIri(name)).join(' ,\n    ')} .\n`+props.map(([name,body])=>`${shapeIri(name)} a sh:PropertyShape ; rdfs:label ${q(`${label(d.concept)}: ${words(name)}`)} ; ${body} .\n`).join('');
 }
 const literal=(type:string,value:any)=>{const dt=datatype(type);return dt==='xsd:boolean'?(value?'true':'false'):dt==='xsd:string'?q(String(value)):`${q(String(value))}^^${dt}`;};
 let data=header(['@prefix data: <https://example.org/mall/data/> .']);
 for(const d of concrete)for(const row of rows[d.table!]??[]){
- const parts=[`a ${d.module}:${d.concept}`];
+ const labelAttr=allAttrs(d).find(a=>['Name','Code'].includes(a.type)&&row[a.name]!=null);
+ const parts=[`a ${d.module}:${d.concept}`,`rdfs:label ${q(labelAttr?String(row[labelAttr.name]):`${label(d.concept)} ${row.id}`)}`];
  for(const a of allAttrs(d))if(row[a.name]!=null)parts.push(`${relIri(a.owner,a.name)} ${literal(a.type,row[a.name])}`);
  for(const l of allLinks(d))if(row[l.name+'_id']!=null)parts.push(`${relIri(l.owner,l.name)} data:${byConcept.get(l.target)!.table}-${row[l.name+'_id']}`);
  data+=`data:${d.table}-${row.id} ${parts.join(' ;\n  ')} .\n`;
@@ -426,7 +429,7 @@ const fieldType=(d:Def,column:string)=>column==='id'||column.endsWith('_id')&&al
 const contract:any={apiVersion:'v3.1.0',kind:'DataContract',id:'5f0b8a3e-2c41-4d7a-9b6e-8a1c3e5d7f20',name:'Shopping center administration contract',version:'1.0.0',status:'active',domain:'Shopping center administration',dataProduct:'Retail real estate operations',
  description:{purpose:'Governed tables for leasing, billing, operations and performance reporting of shopping centers.',limitations:'Fictional demonstration data in BRL. No real tenants, people or properties.'},schema:concrete.map(d=>({name:d.table,physicalName:`mall.${d.table}`,physicalType:'table',logicalType:'object',description:d.description,
  authoritativeDefinitions:[{type:'businessDefinition',url:`${prefixes[d.module]}${d.concept}`}],
- properties:columnsOf(d).map(column=>{const attr=allAttrs(d).find(a=>a.name===column),link=allLinks(d).find(l=>l.name+'_id'===column);return {name:column,logicalType:logical[fieldType(d,column)],required:column==='id'||!!(attr??link)?.flags.includes('!'),...(column==='id'?{primaryKey:true,unique:true}:{}),description:column==='id'?`Identifier of the ${words(d.concept)}.`:attr?attr.description:`Reference to ${words(link!.target)}: ${link!.description}`};})}))};
+ properties:columnsOf(d).map(column=>{const attr=allAttrs(d).find(a=>a.name===column),link=allLinks(d).find(l=>l.name+'_id'===column);return {name:column,logicalType:logical[fieldType(d,column)],required:column==='id'||!!(attr??link)?.flags.includes('!'),...(column==='id'?{primaryKey:true,unique:true}:{}),description:column==='id'?`Identifier of the ${words(d.concept)}.`:attr?attr.description:`Reference to ${words(link!.target)}: ${link!.description}`,...(link?{relationships:[{type:'foreignKey',to:`${byConcept.get(link.target)!.table}.id`}]}:{})};})}))};
 
 // ---------- SQLite fixture ----------
 const sqlLiteral=(value:any)=>value==null?'NULL':typeof value==='number'?String(value):"'"+String(value).replaceAll("'","''")+"'";

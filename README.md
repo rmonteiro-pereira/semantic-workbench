@@ -17,7 +17,7 @@ Open http://127.0.0.1:5173. API: http://127.0.0.1:4310. Both bind to loopback. O
 
 | Input | Serialization | Editing and validation |
 | --- | --- | --- |
-| ODCS | YAML / JSON | Form descriptions and full source; pinned official v3.1.0 schema validation |
+| ODCS | YAML / JSON | Form descriptions and full source; pinned official v3.1.0 schema validation; property- and schema-level foreign keys shown as relationships |
 | Ossie semantic model | YAML / JSON | Current flat model and legacy model arrays; official 0.2.0.dev0 schema validation for versioned flat models |
 | Ossie ontology | YAML / JSON | Concepts, roles, inheritance, built-in concepts; pinned 0.2.0.dev0 schema or unversioned compatibility checks |
 | Ossie mappings | YAML / JSON | Standalone and embedded object/referent/link mappings; pinned schemas, cross-document runtime resolution and query planning |
@@ -40,7 +40,7 @@ Click **Load commerce workspace** in the sidebar. It loads seven related documen
 - `commerce.shacl.ttl`: required customer email, nonnegative order amount and required order lines.
 - `commerce-data.ttl`: an eight-resource order-to-cash lifecycle.
 
-The example is fictional and illustrative. **Shared references** in an entity's inspector links other documents containing its exact physical source or IRI. This is explicit reference matching, not inferred equivalence or a cross-document query engine.
+The example is fictional and illustrative. **Shared references** in an entity's inspector links other documents containing its exact physical source or IRI; Ossie QName IRIs are expanded with the document `prefixes`, so `core:Party` matches `https://…/core#Party` in OWL, SHACL, RDF or ODCS business definitions. This is explicit reference matching, not inferred equivalence or a cross-document query engine.
 
 **Load commerce scale data** adds `commerce-scale.ttl`: exactly 1,000 synthetic business resources and 5,000 explicit business links, plus type and label triples. These are customers, orders, order lines, products, shipments, invoices, payments and warehouses, not thousands of invented ontology classes. This is a navigation benchmark, not a business-rule validated dataset. Regenerate examples with `bun scripts/commerce-example.ts`.
 
