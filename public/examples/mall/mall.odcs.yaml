@@ -57,10 +57,16 @@ schema:
         logicalType: integer
         required: false
         description: "Reference to Address: Registered or correspondence address."
+        relationships:
+          - type: foreignKey
+            to: addresses.id
       - name: parent_organization_id
         logicalType: integer
         required: false
         description: "Reference to Organization: Economic group or parent company."
+        relationships:
+          - type: foreignKey
+            to: organizations.id
   - name: people
     physicalName: mall.people
     physicalType: table
@@ -108,6 +114,9 @@ schema:
         logicalType: integer
         required: false
         description: "Reference to Address: Registered or correspondence address."
+        relationships:
+          - type: foreignKey
+            to: addresses.id
   - name: addresses
     physicalName: mall.addresses
     physicalType: table
@@ -147,6 +156,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to City: City of the address."
+        relationships:
+          - type: foreignKey
+            to: cities.id
   - name: cities
     physicalName: mall.cities
     physicalType: table
@@ -170,6 +182,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to StateProvince: State or province of the city."
+        relationships:
+          - type: foreignKey
+            to: state_provinces.id
   - name: state_provinces
     physicalName: mall.state_provinces
     physicalType: table
@@ -197,6 +212,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Country: Country of the region."
+        relationships:
+          - type: foreignKey
+            to: countries.id
   - name: countries
     physicalName: mall.countries
     physicalType: table
@@ -328,10 +346,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to PriceIndex: Index being published."
+        relationships:
+          - type: foreignKey
+            to: price_indices.id
       - name: month_id
         logicalType: integer
         required: true
         description: "Reference to CalendarMonth: Reference month."
+        relationships:
+          - type: foreignKey
+            to: calendar_months.id
   - name: portfolios
     physicalName: mall.portfolios
     physicalType: table
@@ -359,6 +383,9 @@ schema:
         logicalType: integer
         required: false
         description: "Reference to Organization: Asset manager responsible for the portfolio."
+        relationships:
+          - type: foreignKey
+            to: organizations.id
   - name: properties
     physicalName: mall.properties
     physicalType: table
@@ -406,22 +433,37 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Portfolio: Portfolio of the property."
+        relationships:
+          - type: foreignKey
+            to: portfolios.id
       - name: address_id
         logicalType: integer
         required: true
         description: "Reference to Address: Address of the property."
+        relationships:
+          - type: foreignKey
+            to: addresses.id
       - name: currency_id
         logicalType: integer
         required: true
         description: "Reference to Currency: Currency of leases and accounts."
+        relationships:
+          - type: foreignKey
+            to: currencies.id
       - name: administrator_id
         logicalType: integer
         required: false
         description: "Reference to Organization: Company contracted to administer the property."
+        relationships:
+          - type: foreignKey
+            to: organizations.id
       - name: general_manager_id
         logicalType: integer
         required: false
         description: "Reference to Person: General manager of the property."
+        relationships:
+          - type: foreignKey
+            to: people.id
   - name: buildings
     physicalName: mall.buildings
     physicalType: table
@@ -453,6 +495,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Property: Property containing the building."
+        relationships:
+          - type: foreignKey
+            to: properties.id
   - name: floors
     physicalName: mall.floors
     physicalType: table
@@ -484,6 +529,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Building: Building of the floor."
+        relationships:
+          - type: foreignKey
+            to: buildings.id
   - name: zones
     physicalName: mall.zones
     physicalType: table
@@ -511,6 +559,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Floor: Floor of the zone."
+        relationships:
+          - type: foreignKey
+            to: floors.id
   - name: units
     physicalName: mall.units
     physicalType: table
@@ -550,10 +601,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Zone: Zone of the unit."
+        relationships:
+          - type: foreignKey
+            to: zones.id
       - name: unit_type_id
         logicalType: integer
         required: true
         description: "Reference to UnitType: Unit type."
+        relationships:
+          - type: foreignKey
+            to: unit_types.id
   - name: unit_types
     physicalName: mall.unit_types
     physicalType: table
@@ -616,6 +673,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Floor: Floor of the common area."
+        relationships:
+          - type: foreignKey
+            to: floors.id
   - name: parking_facilities
     physicalName: mall.parking_facilities
     physicalType: table
@@ -655,6 +715,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Property: Property served by the facility."
+        relationships:
+          - type: foreignKey
+            to: properties.id
   - name: entrances
     physicalName: mall.entrances
     physicalType: table
@@ -686,6 +749,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Property: Property of the entrance."
+        relationships:
+          - type: foreignKey
+            to: properties.id
   - name: area_measurements
     physicalName: mall.area_measurements
     physicalType: table
@@ -717,10 +783,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to LeasableUnit: Unit measured."
+        relationships:
+          - type: foreignKey
+            to: units.id
       - name: surveyor_id
         logicalType: integer
         required: false
         description: "Reference to Organization: Surveyor."
+        relationships:
+          - type: foreignKey
+            to: organizations.id
   - name: ownership_stakes
     physicalName: mall.ownership_stakes
     physicalType: table
@@ -752,10 +824,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Investor: Owner of the stake."
+        relationships:
+          - type: foreignKey
+            to: investors.id
       - name: property_id
         logicalType: integer
         required: true
         description: "Reference to Property: Property owned."
+        relationships:
+          - type: foreignKey
+            to: properties.id
   - name: valuations
     physicalName: mall.valuations
     physicalType: table
@@ -791,10 +869,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Property: Property valued."
+        relationships:
+          - type: foreignKey
+            to: properties.id
       - name: appraiser_id
         logicalType: integer
         required: false
         description: "Reference to Organization: Appraiser."
+        relationships:
+          - type: foreignKey
+            to: organizations.id
   - name: permits
     physicalName: mall.permits
     physicalType: table
@@ -830,10 +914,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Property: Property covered."
+        relationships:
+          - type: foreignKey
+            to: properties.id
       - name: issuer_id
         logicalType: integer
         required: false
         description: "Reference to Organization: Issuing authority."
+        relationships:
+          - type: foreignKey
+            to: organizations.id
   - name: equipment
     physicalName: mall.equipment
     physicalType: table
@@ -873,10 +963,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Property: Property of the equipment."
+        relationships:
+          - type: foreignKey
+            to: properties.id
       - name: fixed_asset_id
         logicalType: integer
         required: false
         description: "Reference to FixedAsset: Fixed-asset record."
+        relationships:
+          - type: foreignKey
+            to: fixed_assets.id
   - name: tenants
     physicalName: mall.tenants
     physicalType: table
@@ -904,6 +1000,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Organization: Organization acting as tenant."
+        relationships:
+          - type: foreignKey
+            to: organizations.id
   - name: investors
     physicalName: mall.investors
     physicalType: table
@@ -927,10 +1026,16 @@ schema:
         logicalType: integer
         required: false
         description: "Reference to Organization: Investing organization."
+        relationships:
+          - type: foreignKey
+            to: organizations.id
       - name: person_id
         logicalType: integer
         required: false
         description: "Reference to Person: Individual investor."
+        relationships:
+          - type: foreignKey
+            to: people.id
   - name: brokers
     physicalName: mall.brokers
     physicalType: table
@@ -958,6 +1063,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Organization: Brokerage organization."
+        relationships:
+          - type: foreignKey
+            to: organizations.id
   - name: brands
     physicalName: mall.brands
     physicalType: table
@@ -981,6 +1089,9 @@ schema:
         logicalType: integer
         required: false
         description: "Reference to Tenant: Tenant owning the brand."
+        relationships:
+          - type: foreignKey
+            to: tenants.id
   - name: merchandise_categories
     physicalName: mall.merchandise_categories
     physicalType: table
@@ -1008,6 +1119,9 @@ schema:
         logicalType: integer
         required: false
         description: "Reference to MerchandiseCategory: Broader category."
+        relationships:
+          - type: foreignKey
+            to: merchandise_categories.id
   - name: tenant_contacts
     physicalName: mall.tenant_contacts
     physicalType: table
@@ -1035,10 +1149,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Person: Contact person."
+        relationships:
+          - type: foreignKey
+            to: people.id
       - name: tenant_id
         logicalType: integer
         required: true
         description: "Reference to Tenant: Tenant represented."
+        relationships:
+          - type: foreignKey
+            to: tenants.id
   - name: leasing_prospects
     physicalName: mall.leasing_prospects
     physicalType: table
@@ -1066,14 +1186,23 @@ schema:
         logicalType: integer
         required: false
         description: "Reference to Brand: Brand proposed."
+        relationships:
+          - type: foreignKey
+            to: brands.id
       - name: category_id
         logicalType: integer
         required: false
         description: "Reference to MerchandiseCategory: Intended category."
+        relationships:
+          - type: foreignKey
+            to: merchandise_categories.id
       - name: broker_id
         logicalType: integer
         required: false
         description: "Reference to Broker: Introducing broker."
+        relationships:
+          - type: foreignKey
+            to: brokers.id
   - name: leasing_proposals
     physicalName: mall.leasing_proposals
     physicalType: table
@@ -1113,14 +1242,23 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to LeasingProspect: Prospect."
+        relationships:
+          - type: foreignKey
+            to: leasing_prospects.id
       - name: unit_id
         logicalType: integer
         required: true
         description: "Reference to LeasableUnit: Unit offered."
+        relationships:
+          - type: foreignKey
+            to: units.id
       - name: resulting_lease_id
         logicalType: integer
         required: false
         description: "Reference to Lease: Lease signed after the proposal was accepted."
+        relationships:
+          - type: foreignKey
+            to: leases.id
   - name: lease_statuses
     physicalName: mall.lease_statuses
     physicalType: table
@@ -1179,26 +1317,44 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Contract: Contract register entry with number, dates, parties and documents."
+        relationships:
+          - type: foreignKey
+            to: contracts.id
       - name: tenant_id
         logicalType: integer
         required: true
         description: "Reference to Tenant: Contracting tenant."
+        relationships:
+          - type: foreignKey
+            to: tenants.id
       - name: brand_id
         logicalType: integer
         required: true
         description: "Reference to Brand: Brand operated."
+        relationships:
+          - type: foreignKey
+            to: brands.id
       - name: status_id
         logicalType: integer
         required: true
         description: "Reference to LeaseStatus: Operational lifecycle status."
+        relationships:
+          - type: foreignKey
+            to: lease_statuses.id
       - name: permitted_use_id
         logicalType: integer
         required: true
         description: "Reference to MerchandiseCategory: Permitted use, which is the tenant-mix category of record."
+        relationships:
+          - type: foreignKey
+            to: merchandise_categories.id
       - name: broker_id
         logicalType: integer
         required: false
         description: "Reference to Broker: Leasing broker."
+        relationships:
+          - type: foreignKey
+            to: brokers.id
   - name: leased_units
     physicalName: mall.leased_units
     physicalType: table
@@ -1230,10 +1386,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Lease: Lease."
+        relationships:
+          - type: foreignKey
+            to: leases.id
       - name: unit_id
         logicalType: integer
         required: true
         description: "Reference to LeasableUnit: Unit."
+        relationships:
+          - type: foreignKey
+            to: units.id
   - name: rent_steps
     physicalName: mall.rent_steps
     physicalType: table
@@ -1265,6 +1427,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Lease: Lease."
+        relationships:
+          - type: foreignKey
+            to: leases.id
   - name: percentage_rent_clauses
     physicalName: mall.percentage_rent_clauses
     physicalType: table
@@ -1308,6 +1473,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Lease: Lease containing the clause."
+        relationships:
+          - type: foreignKey
+            to: leases.id
   - name: indexation_clauses
     physicalName: mall.indexation_clauses
     physicalType: table
@@ -1351,10 +1519,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Lease: Lease containing the clause."
+        relationships:
+          - type: foreignKey
+            to: leases.id
       - name: price_index_id
         logicalType: integer
         required: true
         description: "Reference to PriceIndex: Index applied."
+        relationships:
+          - type: foreignKey
+            to: price_indices.id
   - name: exclusivity_clauses
     physicalName: mall.exclusivity_clauses
     physicalType: table
@@ -1390,10 +1564,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Lease: Lease containing the clause."
+        relationships:
+          - type: foreignKey
+            to: leases.id
       - name: protected_category_id
         logicalType: integer
         required: true
         description: "Reference to MerchandiseCategory: Protected category."
+        relationships:
+          - type: foreignKey
+            to: merchandise_categories.id
   - name: radius_clauses
     physicalName: mall.radius_clauses
     physicalType: table
@@ -1433,6 +1613,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Lease: Lease containing the clause."
+        relationships:
+          - type: foreignKey
+            to: leases.id
   - name: co_tenancy_clauses
     physicalName: mall.co_tenancy_clauses
     physicalType: table
@@ -1476,6 +1659,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Lease: Lease containing the clause."
+        relationships:
+          - type: foreignKey
+            to: leases.id
   - name: renewal_options
     physicalName: mall.renewal_options
     physicalType: table
@@ -1519,6 +1705,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Lease: Lease containing the clause."
+        relationships:
+          - type: foreignKey
+            to: leases.id
   - name: early_termination_options
     physicalName: mall.early_termination_options
     physicalType: table
@@ -1562,6 +1751,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Lease: Lease containing the clause."
+        relationships:
+          - type: foreignKey
+            to: leases.id
   - name: guarantee_types
     physicalName: mall.guarantee_types
     physicalType: table
@@ -1616,14 +1808,23 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Lease: Lease secured."
+        relationships:
+          - type: foreignKey
+            to: leases.id
       - name: guarantee_type_id
         logicalType: integer
         required: true
         description: "Reference to GuaranteeType: Guarantee type."
+        relationships:
+          - type: foreignKey
+            to: guarantee_types.id
       - name: guarantor_id
         logicalType: integer
         required: false
         description: "Reference to Organization: Bank, insurer or guarantor company."
+        relationships:
+          - type: foreignKey
+            to: organizations.id
   - name: key_money_agreements
     physicalName: mall.key_money_agreements
     physicalType: table
@@ -1655,6 +1856,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Lease: Lease."
+        relationships:
+          - type: foreignKey
+            to: leases.id
   - name: rent_concessions
     physicalName: mall.rent_concessions
     physicalType: table
@@ -1694,6 +1898,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Lease: Lease."
+        relationships:
+          - type: foreignKey
+            to: leases.id
   - name: tenant_allowances
     physicalName: mall.tenant_allowances
     physicalType: table
@@ -1721,6 +1928,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Lease: Lease."
+        relationships:
+          - type: foreignKey
+            to: leases.id
   - name: fit_out_projects
     physicalName: mall.fit_out_projects
     physicalType: table
@@ -1760,10 +1970,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Lease: Lease."
+        relationships:
+          - type: foreignKey
+            to: leases.id
       - name: unit_id
         logicalType: integer
         required: true
         description: "Reference to LeasableUnit: Unit."
+        relationships:
+          - type: foreignKey
+            to: units.id
   - name: lease_terminations
     physicalName: mall.lease_terminations
     physicalType: table
@@ -1795,6 +2011,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Lease: Lease."
+        relationships:
+          - type: foreignKey
+            to: leases.id
   - name: legal_entities
     physicalName: mall.legal_entities
     physicalType: table
@@ -1830,6 +2049,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Organization: Organization registered as the legal entity."
+        relationships:
+          - type: foreignKey
+            to: organizations.id
   - name: contract_types
     physicalName: mall.contract_types
     physicalType: table
@@ -1916,14 +2138,23 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to ContractType: Contract type."
+        relationships:
+          - type: foreignKey
+            to: contract_types.id
       - name: contracting_entity_id
         logicalType: integer
         required: true
         description: "Reference to LegalEntity: Group legal entity bound by the contract."
+        relationships:
+          - type: foreignKey
+            to: legal_entities.id
       - name: currency_id
         logicalType: integer
         required: false
         description: "Reference to Currency: Contract currency."
+        relationships:
+          - type: foreignKey
+            to: currencies.id
   - name: contract_parties
     physicalName: mall.contract_parties
     physicalType: table
@@ -1947,14 +2178,23 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Contract: Contract."
+        relationships:
+          - type: foreignKey
+            to: contracts.id
       - name: organization_id
         logicalType: integer
         required: false
         description: "Reference to Organization: Organization acting as party."
+        relationships:
+          - type: foreignKey
+            to: organizations.id
       - name: person_id
         logicalType: integer
         required: false
         description: "Reference to Person: Person acting as party."
+        relationships:
+          - type: foreignKey
+            to: people.id
   - name: contract_documents
     physicalName: mall.contract_documents
     physicalType: table
@@ -1990,6 +2230,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Contract: Contract."
+        relationships:
+          - type: foreignKey
+            to: contracts.id
   - name: contract_amendments
     physicalName: mall.contract_amendments
     physicalType: table
@@ -2029,6 +2272,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Contract: Contract amended."
+        relationships:
+          - type: foreignKey
+            to: contracts.id
   - name: contract_obligations
     physicalName: mall.contract_obligations
     physicalType: table
@@ -2068,10 +2314,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Contract: Contract."
+        relationships:
+          - type: foreignKey
+            to: contracts.id
       - name: responsible_id
         logicalType: integer
         required: false
         description: "Reference to Employee: Employee responsible."
+        relationships:
+          - type: foreignKey
+            to: employees.id
   - name: contract_approvals
     physicalName: mall.contract_approvals
     physicalType: table
@@ -2103,10 +2355,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Contract: Contract."
+        relationships:
+          - type: foreignKey
+            to: contracts.id
       - name: approver_id
         logicalType: integer
         required: true
         description: "Reference to Employee: Approver."
+        relationships:
+          - type: foreignKey
+            to: employees.id
   - name: powers_of_attorney
     physicalName: mall.powers_of_attorney
     physicalType: table
@@ -2138,10 +2396,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to LegalEntity: Granting legal entity."
+        relationships:
+          - type: foreignKey
+            to: legal_entities.id
       - name: attorney_id
         logicalType: integer
         required: true
         description: "Reference to Person: Attorney-in-fact."
+        relationships:
+          - type: foreignKey
+            to: people.id
   - name: governance_meetings
     physicalName: mall.governance_meetings
     physicalType: table
@@ -2173,6 +2437,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to LegalEntity: Entity whose body meets."
+        relationships:
+          - type: foreignKey
+            to: legal_entities.id
   - name: resolutions
     physicalName: mall.resolutions
     physicalType: table
@@ -2204,6 +2471,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to GovernanceMeeting: Meeting."
+        relationships:
+          - type: foreignKey
+            to: governance_meetings.id
   - name: legal_proceedings
     physicalName: mall.legal_proceedings
     physicalType: table
@@ -2251,26 +2521,44 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to LegalEntity: Group legal entity involved."
+        relationships:
+          - type: foreignKey
+            to: legal_entities.id
       - name: contract_id
         logicalType: integer
         required: false
         description: "Reference to Contract: Contract in dispute."
+        relationships:
+          - type: foreignKey
+            to: contracts.id
       - name: property_id
         logicalType: integer
         required: false
         description: "Reference to Property: Property concerned."
+        relationships:
+          - type: foreignKey
+            to: properties.id
       - name: opposing_party_id
         logicalType: integer
         required: false
         description: "Reference to Organization: Opposing organization."
+        relationships:
+          - type: foreignKey
+            to: organizations.id
       - name: opposing_person_id
         logicalType: integer
         required: false
         description: "Reference to Person: Opposing person, for example in a labour claim."
+        relationships:
+          - type: foreignKey
+            to: people.id
       - name: law_firm_id
         logicalType: integer
         required: false
         description: "Reference to Organization: Law firm."
+        relationships:
+          - type: foreignKey
+            to: organizations.id
   - name: litigation_provisions
     physicalName: mall.litigation_provisions
     physicalType: table
@@ -2306,6 +2594,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to LegalProceeding: Proceeding."
+        relationships:
+          - type: foreignKey
+            to: legal_proceedings.id
   - name: compliance_requirements
     physicalName: mall.compliance_requirements
     physicalType: table
@@ -2368,14 +2659,23 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to ComplianceRequirement: Requirement."
+        relationships:
+          - type: foreignKey
+            to: compliance_requirements.id
       - name: property_id
         logicalType: integer
         required: true
         description: "Reference to Property: Property."
+        relationships:
+          - type: foreignKey
+            to: properties.id
       - name: inspector_id
         logicalType: integer
         required: false
         description: "Reference to Employee: Employee responsible."
+        relationships:
+          - type: foreignKey
+            to: employees.id
   - name: data_subject_requests
     physicalName: mall.data_subject_requests
     physicalType: table
@@ -2415,10 +2715,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Person: Person exercising the right."
+        relationships:
+          - type: foreignKey
+            to: people.id
       - name: controller_id
         logicalType: integer
         required: true
         description: "Reference to LegalEntity: Controller."
+        relationships:
+          - type: foreignKey
+            to: legal_entities.id
   - name: departments
     physicalName: mall.departments
     physicalType: table
@@ -2446,14 +2752,23 @@ schema:
         logicalType: integer
         required: false
         description: "Reference to Department: Parent department."
+        relationships:
+          - type: foreignKey
+            to: departments.id
       - name: legal_entity_id
         logicalType: integer
         required: true
         description: "Reference to LegalEntity: Employing legal entity."
+        relationships:
+          - type: foreignKey
+            to: legal_entities.id
       - name: cost_center_id
         logicalType: integer
         required: false
         description: "Reference to CostCenter: Default cost center."
+        relationships:
+          - type: foreignKey
+            to: cost_centers.id
   - name: positions
     physicalName: mall.positions
     physicalType: table
@@ -2489,6 +2804,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Department: Department."
+        relationships:
+          - type: foreignKey
+            to: departments.id
   - name: employees
     physicalName: mall.employees
     physicalType: table
@@ -2528,22 +2846,37 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Person: Employed person."
+        relationships:
+          - type: foreignKey
+            to: people.id
       - name: position_id
         logicalType: integer
         required: true
         description: "Reference to Position: Position."
+        relationships:
+          - type: foreignKey
+            to: positions.id
       - name: employer_id
         logicalType: integer
         required: true
         description: "Reference to LegalEntity: Employing legal entity."
+        relationships:
+          - type: foreignKey
+            to: legal_entities.id
       - name: manager_id
         logicalType: integer
         required: false
         description: "Reference to Employee: Line manager."
+        relationships:
+          - type: foreignKey
+            to: employees.id
       - name: work_site_id
         logicalType: integer
         required: false
         description: "Reference to Property: Property where the employee works."
+        relationships:
+          - type: foreignKey
+            to: properties.id
   - name: employment_contracts
     physicalName: mall.employment_contracts
     physicalType: table
@@ -2575,10 +2908,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Employee: Employee."
+        relationships:
+          - type: foreignKey
+            to: employees.id
       - name: contract_id
         logicalType: integer
         required: true
         description: "Reference to Contract: Contract register entry."
+        relationships:
+          - type: foreignKey
+            to: contracts.id
   - name: compensation_changes
     physicalName: mall.compensation_changes
     physicalType: table
@@ -2610,6 +2949,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Employee: Employee."
+        relationships:
+          - type: foreignKey
+            to: employees.id
   - name: payroll_runs
     physicalName: mall.payroll_runs
     physicalType: table
@@ -2637,10 +2979,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to LegalEntity: Employer."
+        relationships:
+          - type: foreignKey
+            to: legal_entities.id
       - name: month_id
         logicalType: integer
         required: true
         description: "Reference to CalendarMonth: Payroll month."
+        relationships:
+          - type: foreignKey
+            to: calendar_months.id
   - name: payroll_lines
     physicalName: mall.payroll_lines
     physicalType: table
@@ -2672,14 +3020,23 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to PayrollRun: Payroll run."
+        relationships:
+          - type: foreignKey
+            to: payroll_runs.id
       - name: employee_id
         logicalType: integer
         required: true
         description: "Reference to Employee: Employee."
+        relationships:
+          - type: foreignKey
+            to: employees.id
       - name: cost_center_id
         logicalType: integer
         required: false
         description: "Reference to CostCenter: Cost center charged."
+        relationships:
+          - type: foreignKey
+            to: cost_centers.id
   - name: time_entries
     physicalName: mall.time_entries
     physicalType: table
@@ -2715,6 +3072,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Employee: Employee."
+        relationships:
+          - type: foreignKey
+            to: employees.id
   - name: leave_requests
     physicalName: mall.leave_requests
     physicalType: table
@@ -2750,10 +3110,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Employee: Employee."
+        relationships:
+          - type: foreignKey
+            to: employees.id
       - name: approver_id
         logicalType: integer
         required: false
         description: "Reference to Employee: Approver."
+        relationships:
+          - type: foreignKey
+            to: employees.id
   - name: benefits
     physicalName: mall.benefits
     physicalType: table
@@ -2785,6 +3151,9 @@ schema:
         logicalType: integer
         required: false
         description: "Reference to Supplier: Benefit supplier."
+        relationships:
+          - type: foreignKey
+            to: suppliers.id
   - name: benefit_enrollments
     physicalName: mall.benefit_enrollments
     physicalType: table
@@ -2816,10 +3185,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Employee: Employee."
+        relationships:
+          - type: foreignKey
+            to: employees.id
       - name: benefit_id
         logicalType: integer
         required: true
         description: "Reference to Benefit: Benefit."
+        relationships:
+          - type: foreignKey
+            to: benefits.id
   - name: training_courses
     physicalName: mall.training_courses
     physicalType: table
@@ -2878,10 +3253,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Employee: Employee."
+        relationships:
+          - type: foreignKey
+            to: employees.id
       - name: course_id
         logicalType: integer
         required: true
         description: "Reference to TrainingCourse: Course."
+        relationships:
+          - type: foreignKey
+            to: training_courses.id
   - name: performance_reviews
     physicalName: mall.performance_reviews
     physicalType: table
@@ -2913,10 +3294,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Employee: Employee reviewed."
+        relationships:
+          - type: foreignKey
+            to: employees.id
       - name: reviewer_id
         logicalType: integer
         required: false
         description: "Reference to Employee: Reviewer."
+        relationships:
+          - type: foreignKey
+            to: employees.id
   - name: job_openings
     physicalName: mall.job_openings
     physicalType: table
@@ -2948,10 +3335,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Position: Position."
+        relationships:
+          - type: foreignKey
+            to: positions.id
       - name: hiring_manager_id
         logicalType: integer
         required: false
         description: "Reference to Employee: Hiring manager."
+        relationships:
+          - type: foreignKey
+            to: employees.id
   - name: job_applications
     physicalName: mall.job_applications
     physicalType: table
@@ -2979,10 +3372,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to JobOpening: Opening."
+        relationships:
+          - type: foreignKey
+            to: job_openings.id
       - name: candidate_id
         logicalType: integer
         required: true
         description: "Reference to Person: Candidate."
+        relationships:
+          - type: foreignKey
+            to: people.id
   - name: suppliers
     physicalName: mall.suppliers
     physicalType: table
@@ -3014,6 +3413,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Organization: Supplying organization."
+        relationships:
+          - type: foreignKey
+            to: organizations.id
   - name: supplier_qualifications
     physicalName: mall.supplier_qualifications
     physicalType: table
@@ -3045,10 +3447,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Supplier: Supplier."
+        relationships:
+          - type: foreignKey
+            to: suppliers.id
       - name: reviewer_id
         logicalType: integer
         required: false
         description: "Reference to Employee: Reviewer."
+        relationships:
+          - type: foreignKey
+            to: employees.id
   - name: supplier_evaluations
     physicalName: mall.supplier_evaluations
     physicalType: table
@@ -3080,10 +3488,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Supplier: Supplier."
+        relationships:
+          - type: foreignKey
+            to: suppliers.id
       - name: evaluator_id
         logicalType: integer
         required: false
         description: "Reference to Employee: Evaluator."
+        relationships:
+          - type: foreignKey
+            to: employees.id
   - name: supplier_agreements
     physicalName: mall.supplier_agreements
     physicalType: table
@@ -3111,14 +3525,23 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Contract: Contract register entry."
+        relationships:
+          - type: foreignKey
+            to: contracts.id
       - name: supplier_id
         logicalType: integer
         required: true
         description: "Reference to Supplier: Supplier."
+        relationships:
+          - type: foreignKey
+            to: suppliers.id
       - name: price_index_id
         logicalType: integer
         required: false
         description: "Reference to PriceIndex: Price index applied."
+        relationships:
+          - type: foreignKey
+            to: price_indices.id
   - name: purchase_requisitions
     physicalName: mall.purchase_requisitions
     physicalType: table
@@ -3158,10 +3581,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Employee: Requesting employee."
+        relationships:
+          - type: foreignKey
+            to: employees.id
       - name: property_id
         logicalType: integer
         required: false
         description: "Reference to Property: Property concerned."
+        relationships:
+          - type: foreignKey
+            to: properties.id
   - name: requests_for_quotation
     physicalName: mall.requests_for_quotation
     physicalType: table
@@ -3193,6 +3622,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to PurchaseRequisition: Requisition."
+        relationships:
+          - type: foreignKey
+            to: purchase_requisitions.id
   - name: supplier_quotes
     physicalName: mall.supplier_quotes
     physicalType: table
@@ -3228,10 +3660,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to RequestForQuotation: Request for quotation."
+        relationships:
+          - type: foreignKey
+            to: requests_for_quotation.id
       - name: supplier_id
         logicalType: integer
         required: true
         description: "Reference to Supplier: Supplier."
+        relationships:
+          - type: foreignKey
+            to: suppliers.id
   - name: purchase_orders
     physicalName: mall.purchase_orders
     physicalType: table
@@ -3263,22 +3701,37 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Supplier: Supplier."
+        relationships:
+          - type: foreignKey
+            to: suppliers.id
       - name: property_id
         logicalType: integer
         required: false
         description: "Reference to Property: Delivery property."
+        relationships:
+          - type: foreignKey
+            to: properties.id
       - name: requisition_id
         logicalType: integer
         required: false
         description: "Reference to PurchaseRequisition: Requisition."
+        relationships:
+          - type: foreignKey
+            to: purchase_requisitions.id
       - name: agreement_id
         logicalType: integer
         required: false
         description: "Reference to SupplierAgreement: Framework agreement."
+        relationships:
+          - type: foreignKey
+            to: supplier_agreements.id
       - name: buyer_id
         logicalType: integer
         required: false
         description: "Reference to Employee: Buyer."
+        relationships:
+          - type: foreignKey
+            to: employees.id
   - name: purchase_order_lines
     physicalName: mall.purchase_order_lines
     physicalType: table
@@ -3310,10 +3763,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to PurchaseOrder: Purchase order."
+        relationships:
+          - type: foreignKey
+            to: purchase_orders.id
       - name: category_id
         logicalType: integer
         required: true
         description: "Reference to ExpenseCategory: Expense category."
+        relationships:
+          - type: foreignKey
+            to: expense_categories.id
   - name: goods_receipts
     physicalName: mall.goods_receipts
     physicalType: table
@@ -3345,10 +3804,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to PurchaseOrder: Purchase order."
+        relationships:
+          - type: foreignKey
+            to: purchase_orders.id
       - name: received_by_id
         logicalType: integer
         required: false
         description: "Reference to Employee: Receiving employee."
+        relationships:
+          - type: foreignKey
+            to: employees.id
   - name: supplier_invoices
     physicalName: mall.supplier_invoices
     physicalType: table
@@ -3400,18 +3865,30 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Supplier: Supplier."
+        relationships:
+          - type: foreignKey
+            to: suppliers.id
       - name: payer_id
         logicalType: integer
         required: true
         description: "Reference to LegalEntity: Paying legal entity."
+        relationships:
+          - type: foreignKey
+            to: legal_entities.id
       - name: purchase_order_id
         logicalType: integer
         required: false
         description: "Reference to PurchaseOrder: Purchase order."
+        relationships:
+          - type: foreignKey
+            to: purchase_orders.id
       - name: month_id
         logicalType: integer
         required: true
         description: "Reference to CalendarMonth: Competence month."
+        relationships:
+          - type: foreignKey
+            to: calendar_months.id
   - name: supplier_payments
     physicalName: mall.supplier_payments
     physicalType: table
@@ -3443,10 +3920,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to SupplierInvoice: Supplier invoice."
+        relationships:
+          - type: foreignKey
+            to: supplier_invoices.id
       - name: bank_account_id
         logicalType: integer
         required: false
         description: "Reference to BankAccount: Paying account."
+        relationships:
+          - type: foreignKey
+            to: bank_accounts.id
   - name: expense_categories
     physicalName: mall.expense_categories
     physicalType: table
@@ -3478,6 +3961,9 @@ schema:
         logicalType: integer
         required: false
         description: "Reference to ExpenseCategory: Broader category."
+        relationships:
+          - type: foreignKey
+            to: expense_categories.id
   - name: service_charge_budgets
     physicalName: mall.service_charge_budgets
     physicalType: table
@@ -3509,6 +3995,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Property: Property."
+        relationships:
+          - type: foreignKey
+            to: properties.id
   - name: service_charge_budget_lines
     physicalName: mall.service_charge_budget_lines
     physicalType: table
@@ -3532,10 +4021,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to ServiceChargeBudget: Budget."
+        relationships:
+          - type: foreignKey
+            to: service_charge_budgets.id
       - name: category_id
         logicalType: integer
         required: true
         description: "Reference to ExpenseCategory: Expense category."
+        relationships:
+          - type: foreignKey
+            to: expense_categories.id
   - name: allocation_keys
     physicalName: mall.allocation_keys
     physicalType: table
@@ -3567,6 +4062,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Property: Property."
+        relationships:
+          - type: foreignKey
+            to: properties.id
   - name: allocation_shares
     physicalName: mall.allocation_shares
     physicalType: table
@@ -3590,10 +4088,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to AllocationKey: Allocation key."
+        relationships:
+          - type: foreignKey
+            to: allocation_keys.id
       - name: unit_id
         logicalType: integer
         required: true
         description: "Reference to LeasableUnit: Unit."
+        relationships:
+          - type: foreignKey
+            to: units.id
   - name: service_contracts
     physicalName: mall.service_contracts
     physicalType: table
@@ -3625,18 +4129,30 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Contract: Contract register entry."
+        relationships:
+          - type: foreignKey
+            to: contracts.id
       - name: supplier_id
         logicalType: integer
         required: true
         description: "Reference to Supplier: Supplier."
+        relationships:
+          - type: foreignKey
+            to: suppliers.id
       - name: property_id
         logicalType: integer
         required: true
         description: "Reference to Property: Property served."
+        relationships:
+          - type: foreignKey
+            to: properties.id
       - name: category_id
         logicalType: integer
         required: true
         description: "Reference to ExpenseCategory: Expense category."
+        relationships:
+          - type: foreignKey
+            to: expense_categories.id
   - name: operating_expenses
     physicalName: mall.operating_expenses
     physicalType: table
@@ -3668,18 +4184,30 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Property: Property."
+        relationships:
+          - type: foreignKey
+            to: properties.id
       - name: category_id
         logicalType: integer
         required: true
         description: "Reference to ExpenseCategory: Expense category."
+        relationships:
+          - type: foreignKey
+            to: expense_categories.id
       - name: month_id
         logicalType: integer
         required: true
         description: "Reference to CalendarMonth: Month."
+        relationships:
+          - type: foreignKey
+            to: calendar_months.id
       - name: supplier_id
         logicalType: integer
         required: false
         description: "Reference to Supplier: Supplier."
+        relationships:
+          - type: foreignKey
+            to: suppliers.id
   - name: work_orders
     physicalName: mall.work_orders
     physicalType: table
@@ -3723,22 +4251,37 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Property: Property."
+        relationships:
+          - type: foreignKey
+            to: properties.id
       - name: equipment_id
         logicalType: integer
         required: false
         description: "Reference to Equipment: Equipment concerned."
+        relationships:
+          - type: foreignKey
+            to: equipment.id
       - name: unit_id
         logicalType: integer
         required: false
         description: "Reference to LeasableUnit: Unit concerned."
+        relationships:
+          - type: foreignKey
+            to: units.id
       - name: supplier_id
         logicalType: integer
         required: false
         description: "Reference to Supplier: Supplier assigned."
+        relationships:
+          - type: foreignKey
+            to: suppliers.id
       - name: requested_by_id
         logicalType: integer
         required: false
         description: "Reference to Employee: Employee who opened the work order."
+        relationships:
+          - type: foreignKey
+            to: employees.id
   - name: utility_types
     physicalName: mall.utility_types
     physicalType: table
@@ -3789,14 +4332,23 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to UtilityType: Utility measured."
+        relationships:
+          - type: foreignKey
+            to: utility_types.id
       - name: property_id
         logicalType: integer
         required: true
         description: "Reference to Property: Property."
+        relationships:
+          - type: foreignKey
+            to: properties.id
       - name: unit_id
         logicalType: integer
         required: false
         description: "Reference to LeasableUnit: Unit metered; empty for common installations."
+        relationships:
+          - type: foreignKey
+            to: units.id
   - name: meter_readings
     physicalName: mall.meter_readings
     physicalType: table
@@ -3828,10 +4380,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to UtilityMeter: Meter."
+        relationships:
+          - type: foreignKey
+            to: utility_meters.id
       - name: month_id
         logicalType: integer
         required: true
         description: "Reference to CalendarMonth: Billing month."
+        relationships:
+          - type: foreignKey
+            to: calendar_months.id
   - name: insurance_policies
     physicalName: mall.insurance_policies
     physicalType: table
@@ -3875,14 +4433,23 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Property: Property."
+        relationships:
+          - type: foreignKey
+            to: properties.id
       - name: insurer_id
         logicalType: integer
         required: true
         description: "Reference to Organization: Insurer."
+        relationships:
+          - type: foreignKey
+            to: organizations.id
       - name: contract_id
         logicalType: integer
         required: false
         description: "Reference to Contract: Contract register entry."
+        relationships:
+          - type: foreignKey
+            to: contracts.id
   - name: incidents
     physicalName: mall.incidents
     physicalType: table
@@ -3918,6 +4485,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Property: Property."
+        relationships:
+          - type: foreignKey
+            to: properties.id
   - name: marketing_funds
     physicalName: mall.marketing_funds
     physicalType: table
@@ -3949,6 +4519,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Property: Property."
+        relationships:
+          - type: foreignKey
+            to: properties.id
   - name: marketing_campaigns
     physicalName: mall.marketing_campaigns
     physicalType: table
@@ -3984,6 +4557,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to MarketingFund: Marketing fund."
+        relationships:
+          - type: foreignKey
+            to: marketing_funds.id
   - name: mall_events
     physicalName: mall.mall_events
     physicalType: table
@@ -4015,10 +4591,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Property: Property."
+        relationships:
+          - type: foreignKey
+            to: properties.id
       - name: campaign_id
         logicalType: integer
         required: false
         description: "Reference to MarketingCampaign: Campaign."
+        relationships:
+          - type: foreignKey
+            to: marketing_campaigns.id
   - name: charge_types
     physicalName: mall.charge_types
     physicalType: table
@@ -4081,10 +4663,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Property: Issuing property."
+        relationships:
+          - type: foreignKey
+            to: properties.id
       - name: billed_tenant_id
         logicalType: integer
         required: true
         description: "Reference to Tenant: Tenant billed."
+        relationships:
+          - type: foreignKey
+            to: tenants.id
   - name: charges
     physicalName: mall.charges
     physicalType: table
@@ -4120,18 +4708,30 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Invoice: Invoice."
+        relationships:
+          - type: foreignKey
+            to: invoices.id
       - name: lease_id
         logicalType: integer
         required: true
         description: "Reference to Lease: Lease."
+        relationships:
+          - type: foreignKey
+            to: leases.id
       - name: charge_type_id
         logicalType: integer
         required: true
         description: "Reference to ChargeType: Charge type."
+        relationships:
+          - type: foreignKey
+            to: charge_types.id
       - name: month_id
         logicalType: integer
         required: true
         description: "Reference to CalendarMonth: Competence month."
+        relationships:
+          - type: foreignKey
+            to: calendar_months.id
   - name: bank_accounts
     physicalName: mall.bank_accounts
     physicalType: table
@@ -4163,10 +4763,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to LegalEntity: Account holder."
+        relationships:
+          - type: foreignKey
+            to: legal_entities.id
       - name: bank_id
         logicalType: integer
         required: false
         description: "Reference to Organization: Bank."
+        relationships:
+          - type: foreignKey
+            to: organizations.id
   - name: payments
     physicalName: mall.payments
     physicalType: table
@@ -4198,10 +4804,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Tenant: Paying tenant."
+        relationships:
+          - type: foreignKey
+            to: tenants.id
       - name: bank_account_id
         logicalType: integer
         required: false
         description: "Reference to BankAccount: Receiving account."
+        relationships:
+          - type: foreignKey
+            to: bank_accounts.id
   - name: payment_allocations
     physicalName: mall.payment_allocations
     physicalType: table
@@ -4225,10 +4837,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Payment: Payment."
+        relationships:
+          - type: foreignKey
+            to: payments.id
       - name: charge_id
         logicalType: integer
         required: true
         description: "Reference to Charge: Charge."
+        relationships:
+          - type: foreignKey
+            to: charges.id
   - name: arrears_cases
     physicalName: mall.arrears_cases
     physicalType: table
@@ -4264,6 +4882,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Lease: Lease in arrears."
+        relationships:
+          - type: foreignKey
+            to: leases.id
   - name: collection_actions
     physicalName: mall.collection_actions
     physicalType: table
@@ -4295,6 +4916,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to ArrearsCase: Arrears case."
+        relationships:
+          - type: foreignKey
+            to: arrears_cases.id
   - name: payment_agreements
     physicalName: mall.payment_agreements
     physicalType: table
@@ -4326,6 +4950,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to ArrearsCase: Arrears case."
+        relationships:
+          - type: foreignKey
+            to: arrears_cases.id
   - name: ledger_accounts
     physicalName: mall.ledger_accounts
     physicalType: table
@@ -4357,6 +4984,9 @@ schema:
         logicalType: integer
         required: false
         description: "Reference to LedgerAccount: Parent account."
+        relationships:
+          - type: foreignKey
+            to: ledger_accounts.id
   - name: journal_entries
     physicalName: mall.journal_entries
     physicalType: table
@@ -4388,10 +5018,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to LegalEntity: Legal entity keeping the books."
+        relationships:
+          - type: foreignKey
+            to: legal_entities.id
       - name: month_id
         logicalType: integer
         required: true
         description: "Reference to CalendarMonth: Accounting month."
+        relationships:
+          - type: foreignKey
+            to: calendar_months.id
   - name: journal_lines
     physicalName: mall.journal_lines
     physicalType: table
@@ -4423,14 +5059,23 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to JournalEntry: Journal entry."
+        relationships:
+          - type: foreignKey
+            to: journal_entries.id
       - name: account_id
         logicalType: integer
         required: true
         description: "Reference to LedgerAccount: Ledger account."
+        relationships:
+          - type: foreignKey
+            to: ledger_accounts.id
       - name: cost_center_id
         logicalType: integer
         required: true
         description: "Reference to CostCenter: Cost center; property cost centers attribute results to a property."
+        relationships:
+          - type: foreignKey
+            to: cost_centers.id
   - name: owner_distributions
     physicalName: mall.owner_distributions
     physicalType: table
@@ -4458,10 +5103,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to OwnershipStake: Ownership stake."
+        relationships:
+          - type: foreignKey
+            to: ownership_stakes.id
       - name: month_id
         logicalType: integer
         required: true
         description: "Reference to CalendarMonth: Result month."
+        relationships:
+          - type: foreignKey
+            to: calendar_months.id
   - name: capital_projects
     physicalName: mall.capital_projects
     physicalType: table
@@ -4505,10 +5156,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Property: Property."
+        relationships:
+          - type: foreignKey
+            to: properties.id
       - name: construction_contract_id
         logicalType: integer
         required: false
         description: "Reference to Contract: Construction contract."
+        relationships:
+          - type: foreignKey
+            to: contracts.id
   - name: cost_centers
     physicalName: mall.cost_centers
     physicalType: table
@@ -4536,10 +5193,16 @@ schema:
         logicalType: integer
         required: false
         description: "Reference to Property: Property whose results the cost center carries."
+        relationships:
+          - type: foreignKey
+            to: properties.id
       - name: parent_cost_center_id
         logicalType: integer
         required: false
         description: "Reference to CostCenter: Parent cost center."
+        relationships:
+          - type: foreignKey
+            to: cost_centers.id
   - name: operating_budgets
     physicalName: mall.operating_budgets
     physicalType: table
@@ -4571,10 +5234,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to LegalEntity: Legal entity."
+        relationships:
+          - type: foreignKey
+            to: legal_entities.id
       - name: approval_id
         logicalType: integer
         required: false
         description: "Reference to Resolution: Resolution approving the budget."
+        relationships:
+          - type: foreignKey
+            to: resolutions.id
   - name: budget_lines
     physicalName: mall.budget_lines
     physicalType: table
@@ -4598,18 +5267,30 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to OperatingBudget: Budget."
+        relationships:
+          - type: foreignKey
+            to: operating_budgets.id
       - name: account_id
         logicalType: integer
         required: true
         description: "Reference to LedgerAccount: Ledger account."
+        relationships:
+          - type: foreignKey
+            to: ledger_accounts.id
       - name: cost_center_id
         logicalType: integer
         required: true
         description: "Reference to CostCenter: Cost center."
+        relationships:
+          - type: foreignKey
+            to: cost_centers.id
       - name: month_id
         logicalType: integer
         required: true
         description: "Reference to CalendarMonth: Month."
+        relationships:
+          - type: foreignKey
+            to: calendar_months.id
   - name: tax_types
     physicalName: mall.tax_types
     physicalType: table
@@ -4672,18 +5353,30 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to TaxType: Tax."
+        relationships:
+          - type: foreignKey
+            to: tax_types.id
       - name: legal_entity_id
         logicalType: integer
         required: true
         description: "Reference to LegalEntity: Taxpayer."
+        relationships:
+          - type: foreignKey
+            to: legal_entities.id
       - name: property_id
         logicalType: integer
         required: false
         description: "Reference to Property: Property taxed."
+        relationships:
+          - type: foreignKey
+            to: properties.id
       - name: month_id
         logicalType: integer
         required: true
         description: "Reference to CalendarMonth: Period."
+        relationships:
+          - type: foreignKey
+            to: calendar_months.id
   - name: tax_withholdings
     physicalName: mall.tax_withholdings
     physicalType: table
@@ -4711,10 +5404,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to SupplierInvoice: Supplier invoice."
+        relationships:
+          - type: foreignKey
+            to: supplier_invoices.id
       - name: tax_type_id
         logicalType: integer
         required: true
         description: "Reference to TaxType: Tax."
+        relationships:
+          - type: foreignKey
+            to: tax_types.id
   - name: fixed_assets
     physicalName: mall.fixed_assets
     physicalType: table
@@ -4754,14 +5453,23 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Property: Property."
+        relationships:
+          - type: foreignKey
+            to: properties.id
       - name: ledger_account_id
         logicalType: integer
         required: false
         description: "Reference to LedgerAccount: Asset account."
+        relationships:
+          - type: foreignKey
+            to: ledger_accounts.id
       - name: capital_project_id
         logicalType: integer
         required: false
         description: "Reference to CapitalProject: Capital project."
+        relationships:
+          - type: foreignKey
+            to: capital_projects.id
   - name: depreciation_entries
     physicalName: mall.depreciation_entries
     physicalType: table
@@ -4785,10 +5493,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to FixedAsset: Asset."
+        relationships:
+          - type: foreignKey
+            to: fixed_assets.id
       - name: month_id
         logicalType: integer
         required: true
         description: "Reference to CalendarMonth: Month."
+        relationships:
+          - type: foreignKey
+            to: calendar_months.id
   - name: loan_agreements
     physicalName: mall.loan_agreements
     physicalType: table
@@ -4820,22 +5534,37 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Contract: Contract register entry."
+        relationships:
+          - type: foreignKey
+            to: contracts.id
       - name: lender_id
         logicalType: integer
         required: true
         description: "Reference to Organization: Lender."
+        relationships:
+          - type: foreignKey
+            to: organizations.id
       - name: borrower_id
         logicalType: integer
         required: true
         description: "Reference to LegalEntity: Borrowing legal entity."
+        relationships:
+          - type: foreignKey
+            to: legal_entities.id
       - name: collateral_id
         logicalType: integer
         required: false
         description: "Reference to Property: Property given as collateral."
+        relationships:
+          - type: foreignKey
+            to: properties.id
       - name: rate_index_id
         logicalType: integer
         required: false
         description: "Reference to PriceIndex: Index applied to the debt."
+        relationships:
+          - type: foreignKey
+            to: price_indices.id
   - name: debt_service_payments
     physicalName: mall.debt_service_payments
     physicalType: table
@@ -4867,6 +5596,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to LoanAgreement: Loan."
+        relationships:
+          - type: foreignKey
+            to: loan_agreements.id
   - name: bank_transactions
     physicalName: mall.bank_transactions
     physicalType: table
@@ -4902,6 +5634,9 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to BankAccount: Bank account."
+        relationships:
+          - type: foreignKey
+            to: bank_accounts.id
   - name: insurance_claims
     physicalName: mall.insurance_claims
     physicalType: table
@@ -4937,10 +5672,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to InsurancePolicy: Policy."
+        relationships:
+          - type: foreignKey
+            to: insurance_policies.id
       - name: incident_id
         logicalType: integer
         required: false
         description: "Reference to Incident: Incident."
+        relationships:
+          - type: foreignKey
+            to: incidents.id
   - name: occupancy_snapshots
     physicalName: mall.occupancy_snapshots
     physicalType: table
@@ -4972,14 +5713,23 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to LeasableUnit: Unit."
+        relationships:
+          - type: foreignKey
+            to: units.id
       - name: month_id
         logicalType: integer
         required: true
         description: "Reference to CalendarMonth: Month."
+        relationships:
+          - type: foreignKey
+            to: calendar_months.id
       - name: lease_id
         logicalType: integer
         required: false
         description: "Reference to Lease: Lease in force; empty when vacant."
+        relationships:
+          - type: foreignKey
+            to: leases.id
   - name: sales_reports
     physicalName: mall.sales_reports
     physicalType: table
@@ -5019,14 +5769,23 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Lease: Lease."
+        relationships:
+          - type: foreignKey
+            to: leases.id
       - name: property_id
         logicalType: integer
         required: true
         description: "Reference to Property: Property."
+        relationships:
+          - type: foreignKey
+            to: properties.id
       - name: month_id
         logicalType: integer
         required: true
         description: "Reference to CalendarMonth: Sales month."
+        relationships:
+          - type: foreignKey
+            to: calendar_months.id
   - name: sales_audits
     physicalName: mall.sales_audits
     physicalType: table
@@ -5058,10 +5817,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to SalesReport: Sales report."
+        relationships:
+          - type: foreignKey
+            to: sales_reports.id
       - name: auditor_id
         logicalType: integer
         required: false
         description: "Reference to Organization: Auditor."
+        relationships:
+          - type: foreignKey
+            to: organizations.id
   - name: footfall_counts
     physicalName: mall.footfall_counts
     physicalType: table
@@ -5093,10 +5858,16 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to Entrance: Entrance."
+        relationships:
+          - type: foreignKey
+            to: entrances.id
       - name: month_id
         logicalType: integer
         required: true
         description: "Reference to CalendarMonth: Reporting month."
+        relationships:
+          - type: foreignKey
+            to: calendar_months.id
   - name: parking_activity
     physicalName: mall.parking_activity
     physicalType: table
@@ -5124,7 +5895,13 @@ schema:
         logicalType: integer
         required: true
         description: "Reference to ParkingFacility: Parking facility."
+        relationships:
+          - type: foreignKey
+            to: parking_facilities.id
       - name: month_id
         logicalType: integer
         required: true
         description: "Reference to CalendarMonth: Month."
+        relationships:
+          - type: foreignKey
+            to: calendar_months.id

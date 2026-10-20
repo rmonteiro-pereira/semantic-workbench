@@ -19,6 +19,7 @@ import {
   Menu, X, Focus,
 } from "lucide-react";
 import {validateInput} from "./input";
+import {documentKeys,entityKeys} from './references';
 import {ValidationPanel, ImportRepair, type ImportDraft} from "./ValidationPanel";
 import { editEntity } from "./model";
 import {groupRelationships} from "./graph-view";
@@ -83,13 +84,12 @@ function App() {
   const [showAll,setShowAll]=useState(false);
   const groupingOverview=useMemo(()=>model?modelOverview(model.entities,model.edges,model.name,false,grouping.value):null,[model,grouping.value]);
   const entity = model?.entities.find((e) => e.id === selected);
+  const documentIdentities=useMemo(()=>new Map(docs.map(d=>{let keys=new Set<string>();try{keys=documentKeys(validateInput(d.source,d.filename).model);}catch{}return [d.id,keys];})),[docs]);
   const relatedDocuments=useMemo(()=>{
     if(!entity?.definition)return [];
-    const definition=entity.definition;
-    const keys=[definition.iri,definition.source,definition.physicalName,...(definition.authoritativeDefinitions??[]).map((d:any)=>d.url)].filter((key:any)=>typeof key==='string'&&key.length>5);
-    if(entity.id.startsWith('http'))keys.push(entity.id);
-    return docs.filter(d=>d.id!==current?.id&&keys.some((key:string)=>d.source.includes(key)));
-  },[entity,docs,current?.id]);
+    const keys=entityKeys(entity,model);
+    return docs.filter(d=>d.id!==current?.id&&keys.some((key:string)=>documentIdentities.get(d.id)?.has(key)||d.source.includes(key)));
+  },[entity,model,docs,documentIdentities,current?.id]);
   const relationship = model?.edges.find(e => e.id === selectedEdge);
   const globalGroups=useMemo(()=>groupRelationships(model?.edges??[]),[model]);
   const activeGroup=globalGroups.find(e=>e.data.relationships.some(r=>r.id===selectedEdge));
