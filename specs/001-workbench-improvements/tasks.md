@@ -132,28 +132,28 @@ to concepts and ODCS.
 
 ### Tests
 
-- [ ] T054 [P] [US3] Layout tests in tests/ossie-layouts.test.ts: Flights split set and `flights.yaml` give identical concept, dataset, join, metric and 60 binding counts; embedded layout labelled deprecated; other single-file layouts rejected
-- [ ] T055 [P] [US1] Metric extension tests in tests/metric-extension.test.ts on generated copies of the 34 shipped metrics: parse, validate against schemas/semantic-workbench-metric-v1.json, locate errors to line/column; rules: "ratio requires numerator and denominator", "semi_additive requires non_additive_over and period_aggregation", "deprecated requires replaced_by or deprecation_reason"; workspace findings of FR-004 (inputs exist, no dependency cycles, grains allowed by the time dimension and ≥ `min_grain`, filters and dimensions refer to existing fields, declared type agrees with the expression)
-- [ ] T056 [P] [US1] KPI binding tests in tests/kpi-bindings.test.ts: mapping root extension; `metric` unique and present in the referenced semantic model; `measures` required and resolvable; `of` optional; consolidated file reads the embedded semantic_model root
-- [ ] T057 [P] [US1] Explanation tests in tests/explain.test.ts: composition trees for simple/ratio/derived; inputs down to ODCS properties; additivity refusal of sum-of-ratio and sum over time for semi-additive; division-by-zero detection; no execution path is invoked
-- [ ] T058 [P] [US1] Dependency tests in tests/metric-deps.test.ts: metric edges from the syntax-tree analysis (fixes baseline defect 20; `order.` must not match `suborder.x`)
+- [X] T054 [P] [US3] Layout tests in tests/ossie-layouts.test.ts: Flights split set and `flights.yaml` give identical concept, dataset, join, metric and 60 binding counts; embedded layout labelled deprecated; other single-file layouts rejected
+- [X] T055 [P] [US1] Metric extension tests in tests/metric-extension.test.ts on generated copies of the 34 shipped metrics: parse, validate against schemas/semantic-workbench-metric-v1.json, locate errors to line/column; rules: "ratio requires numerator and denominator", "semi_additive requires non_additive_over and period_aggregation", "deprecated requires replaced_by or deprecation_reason"; workspace findings of FR-004 (inputs exist, no dependency cycles, grains allowed by the time dimension and ≥ `min_grain`, filters and dimensions refer to existing fields, declared type agrees with the expression)
+- [X] T056 [P] [US1] KPI binding tests in tests/kpi-bindings.test.ts: mapping root extension; `metric` unique and present in the referenced semantic model; `measures` required and resolvable; `of` optional; consolidated file reads the embedded semantic_model root
+- [X] T057 [P] [US1] Explanation tests in tests/explain.test.ts: composition trees for simple/ratio/derived; inputs down to ODCS properties; additivity refusal of sum-of-ratio and sum over time for semi-additive; division-by-zero detection; no execution path is invoked
+- [X] T058 [P] [US1] Dependency tests in tests/metric-deps.test.ts: metric edges from the syntax-tree analysis (fixes baseline defect 20; `order.` must not match `suborder.x`)
 
 ### Implementation
 
-- [ ] T059 [P] [US1] Pin schemas/semantic-workbench-metric-v1.json and schemas/semantic-workbench-mapping-v1.json from contracts/, labelled as application schemas in schemas/README.md
-- [ ] T060 [US3] Include the embedded semantic model's datasets, joins and metrics and the layout label in src/model.ts (baseline defect 19)
-- [ ] T061 [US3] Resolve cross-file references project-first and report ambiguity with all candidates in server/agent/runtime.ts
-- [ ] T062 [P] [US1] Shared extension parse/validate/locate in src/metrics/extension.ts, called from src/validation.ts
-- [ ] T063 [P] [US1] Shared KPI binding parse/validate in src/metrics/bindings.ts
-- [ ] T064 [US1] Move metric dependency extraction into src/metrics/deps.ts, use it from server/agent/runtime.ts and src/model.ts (replacing the text match)
-- [ ] T065 [US1] KPI explanation and SQL preview (planner, refusal on additivity) in server/agent/explain.ts and `GET …/explain/:metric` in server/routes/explain.ts
-- [ ] T066 [US1] Metrics view (table Label, Type, Unit, Status, Owner, Concept; group and filter) in src/metrics/MetricsView.tsx and a "Metrics" tab in src/main.tsx
-- [ ] T067 [P] [US1] KPI detail and "How it is calculated" region (tree, inputs, rules, concepts, SQL "Preview · not executed") in src/metrics/KpiDetail.tsx and src/metrics/Explanation.tsx
-- [ ] T068 [P] [US1] Lineage to ODCS objects/properties with declared quality/SLA trust indicators in src/metrics/Lineage.tsx
-- [ ] T069 [US1] KPI node type with show/hide and concept KPI badges in src/FullGraph.tsx, src/NeighborhoodGraph.tsx and the catalog in src/main.tsx
-- [ ] T070 [US1] Browser check scripts/metrics-browser-check.ts: Metrics list, KPI detail, explanation, refused rollup, Flights in both layouts
-- [ ] T071 [US1] Add mutants: accept a ratio rollup; drop the extension schema check; lineage from text match; treat the embedded layout as ontology-only
-- [ ] T072 [US1] Update README.md and docs/agent-runtime.md ("explains, never executes"; layouts; extension storage)
+- [X] T059 [P] [US1] Pin schemas/semantic-workbench-metric-v1.json and schemas/semantic-workbench-mapping-v1.json from contracts/, labelled as application schemas in schemas/README.md
+- [X] T060 [US3] Include the embedded semantic model's datasets, joins and metrics and the layout label in src/model.ts (baseline defect 19)
+- [X] T061 [US3] Resolve cross-file references project-first and report ambiguity with all candidates in server/agent/runtime.ts
+- [X] T062 [P] [US1] Shared extension parse/validate/locate in src/metrics/extension.ts, called from src/validation.ts
+- [X] T063 [P] [US1] Shared KPI binding parse/validate in src/metrics/bindings.ts
+- [X] T064 [US1] Move metric dependency extraction into src/metrics/deps.ts, use it from server/agent/runtime.ts and src/model.ts (replacing the text match)
+- [X] T065 [US1] KPI explanation and SQL preview (planner, refusal on additivity) in server/agent/explain.ts and `GET …/explain/:metric` in server/routes/explain.ts
+- [X] T066 [US1] Metrics view (table Label, Type, Unit, Status, Owner, Concept; group and filter) in src/metrics/MetricsView.tsx and a "Metrics" tab in src/main.tsx
+- [X] T067 [P] [US1] KPI detail and "How it is calculated" region (tree, inputs, rules, concepts, SQL "Preview · not executed") in src/metrics/KpiDetail.tsx and src/metrics/Explanation.tsx
+- [X] T068 [P] [US1] Lineage to ODCS objects/properties with declared quality/SLA trust indicators in src/metrics/Lineage.tsx
+- [X] T069 [US1] KPI node type with show/hide and concept KPI badges in src/FullGraph.tsx, src/NeighborhoodGraph.tsx and the catalog in src/main.tsx
+- [X] T070 [US1] Browser check scripts/metrics-browser-check.ts: Metrics list, KPI detail, explanation, refused rollup, Flights in both layouts
+- [X] T071 [US1] Add mutants: accept a ratio rollup; drop the extension schema check; lineage from text match; treat the embedded layout as ontology-only
+- [X] T072 [US1] Update README.md and docs/agent-runtime.md ("explains, never executes"; layouts; extension storage)
 
 **Checkpoint**: Stories 3 and 1 (read side) complete.
 

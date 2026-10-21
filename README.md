@@ -126,6 +126,7 @@ bun run test:edges
 bun run test:grouping-validation
 bun run test:projects
 bun run test:trash
+bun run test:metrics
 bun run test:mutation
 bun scripts/live-inspect.ts
 ```
@@ -181,6 +182,20 @@ These are input and supported-definition validators. They do not certify full OW
 
 Standards references: [ODCS schema](https://github.com/bitol-io/open-data-contract-standard/blob/main/schema/odcs-json-schema-v3.1.0.json), [Ossie semantic specification](https://github.com/apache/ossie/blob/main/core-spec/spec.md), [W3C SHACL](https://www.w3.org/TR/shacl/).
 
+## Metrics: KPIs explained, never executed
+
+The **Metrics** tab lists every governed KPI of the open file's project: label, type, unit, status, owner and the ontology concept it measures, with search, grouping (owner, type, status, concept, file) and filters. Selecting a KPI opens its detail beside the list (in place of it on narrow screens):
+
+- **What it is**: description, type and additivity (declared, or read from the expression and marked *inferred*), status, unit, owner, the concept it measures and the entity it is about, its target, and any findings.
+- **How it is calculated**: the formula in words (for example *Occupied GLA ÷ Total GLA*) above the governed expression; the composition tree from the KPI through numerator, denominator or inputs down to dataset fields; the rules that govern it (time dimension and grains, breakdowns, filters, additivity, division by zero, missing values); and a SQL preview from the governed planner, labelled **Preview · not executed**. Choosing a grain, breakdowns or *Sum the KPI values* updates the preview, or refuses it with a reason when additivity or the declared grains forbid it: summing a ratio, or summing a month-end stock over a quarter.
+- **Where the data comes from**: each input metric, the fields it reads, the dataset and its physical source, and the ODCS object and properties that source is contracted as (matched by exact physical name), with the contract's declared quality rules and service levels. The workbench shows these declarations; it does not run them.
+
+The workbench never executes queries: the explanation and the SQL preview are computed from the definitions. Both official Ossie layouts are read: split files, and the consolidated file whose `ontology_mappings` embed the semantic model (deprecated upstream; labelled *consolidated* in the sidebar and the KPI detail). Other single-file mixes are rejected with a message naming the two layouts.
+
+KPI attributes are stored in the Ossie files themselves, so they travel with the model and diff cleanly: each metric carries a `custom_extensions` entry with `vendor_name: SEMANTIC_WORKBENCH` whose `data` is JSON validated against [schemas/semantic-workbench-metric-v1.json](schemas/semantic-workbench-metric-v1.json); the KPI-to-concept bindings (`measures`, optional `of`) are one line per KPI in the root extension of the standalone mapping document (or of the embedded semantic model in a consolidated file), validated against [schemas/semantic-workbench-mapping-v1.json](schemas/semantic-workbench-mapping-v1.json). Errors in these blocks are reported at the exact line and column. Without extensions, type and additivity are inferred, and concept mappings whose expression is a metric name are shown as evidence. The graph shows KPI nodes (with a *KPIs shown/hidden* toggle) and a KPI badge on concepts that KPIs measure or describe, also in the catalog. The shopping center example declares all of this for its 25 KPIs.
+
+API: `GET /api/projects/:slug/metrics` and `GET /api/projects/:slug/files/*path/explain/:metric?grain=&dimension=&rollup=sum` ([contract](specs/001-workbench-improvements/contracts/http-api.md)). `bun run test:metrics` checks the view in a browser on an isolated data root.
+
 ## Ontology mappings and agent tools
 
 **Load mapped commerce** demonstrates separate ontology, semantic model, and mapping documents. The **Mappings** tab resolves object/referent/link mappings, displays source evidence and physical sources, exposes governed metrics and AI metadata, exports agent context, and composes a new revenue-by-region SQL preview from selected building blocks. Missing or ambiguous document/field/concept references are reported. Existing Graph, Overview, Catalog, Source, import repair and byte-exact source export remain available.
@@ -208,4 +223,4 @@ Source and import-repair editors show numbered lines, red error highlights and a
 
 ## Shopping center administration example
 
-**Load shopping center administration** opens a reference model for retail real-estate administration: 145 entity types in eleven namespaced modules (core, asset, party, lease, legal, hr, proc, ops, fin, perf, kpi), 259 declared joins, 1,056 mapping bindings and 25 governed KPIs, including occupancy rate, minimum rent per m², delinquency rate, sales per m², occupancy cost ratio, footfall, net operating income, payroll cost, headcount, purchase spend and payables outstanding. Leasing, operations, legal, HR, procurement and finance share one contract register and one party model. The same specification produces Ossie, OWL, SHACL, ODCS and RDF instance data, plus a synthetic SQLite fixture whose KPI results are checked against independently computed values. See [the example README](public/examples/mall/README.md). Regenerate with `bun scripts/mall-example.ts`.
+**Load shopping center administration** opens a reference model for retail real-estate administration: 145 entity types in eleven namespaced modules (core, asset, party, lease, legal, hr, proc, ops, fin, perf, kpi), 259 declared joins, 1,057 mapping bindings and 25 governed KPIs, including occupancy rate, minimum rent per m², delinquency rate, sales per m², occupancy cost ratio, footfall, net operating income, payroll cost, headcount, purchase spend and payables outstanding. Leasing, operations, legal, HR, procurement and finance share one contract register and one party model. The same specification produces Ossie, OWL, SHACL, ODCS and RDF instance data, plus a synthetic SQLite fixture whose KPI results are checked against independently computed values. See [the example README](public/examples/mall/README.md). Regenerate with `bun scripts/mall-example.ts`.

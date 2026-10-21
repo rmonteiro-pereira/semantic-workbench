@@ -94,6 +94,8 @@ Click **Load shopping center administration** in the sidebar. The ontology opens
 
 ## Reproduce
 
+Every KPI carries Semantic Workbench attributes in its `custom_extensions` (label, type, additivity, unit, owner, status, time dimension `calendar_months.first_day`, breakdowns, targets), and `mall.mapping.yaml` binds each KPI to the concept it measures and the entity it is about. The ODCS contract declares a few quality rules and service levels. Open the **Metrics** tab to see how each KPI is calculated and where its data comes from.
+
 ```sh
 bun scripts/mall-example.ts      # regenerate all files
 bun test tests/mall.test.ts      # validate files and execute every KPI query
