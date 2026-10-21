@@ -8,6 +8,13 @@ export type Suggestion={id:string;file:{project:string;path:string;hash:string};
 export type Deleted={entryIds:string[];undoUntil:string;label:string};
 export type Doc={id:string;project:string;path:string;filename:string;source:string;hash:string};
 export type WorkspaceStatus={gitAvailable:boolean;identityConfigured:boolean;migration:null|{status:'completed'|'postponed'|'failed';reason?:string;backup?:string;projects:{slug:string;name:string;files:number}[];files:number;verified:number};recovery:{opId:string;kind:string;outcome:string;paths:string[]}[]};
+export type GitChange={path:string;orig?:string;index:string;worktree:string;conflicted:boolean;untracked:boolean;hidden:boolean;label?:string};
+export type GitStatus={branch:string;upstream:string;ahead:number;behind:number;gitAvailable:boolean;identityConfigured:boolean;merging:boolean;remotes:Record<string,string>;changes:GitChange[]};
+export type RemoteResult={ok:boolean;cancelled?:boolean;ahead:number;behind:number;conflicted:string[];altered:string[];stderr:string};
+export type GitDiff={path:string;from:string;to:string;before:string;after:string;binary:boolean;beforeExists:boolean;afterExists:boolean};
+export type GitCommit={commit:string;author:string;date:string;message:string};
+// 409 from pull, sync or switch: unsaved drafts or a dirty tree (FR-065).
+export class Blocked extends Error{constructor(public reason:'drafts'|'dirty',public paths:string[],message:string){super(message);}}
 export class StaleSave extends Error{constructor(public currentHash:string|null,public currentSource:string|null){super('This file changed since you opened it.');}}
 export const docId=(project:string,path:string)=>`${project}/${path}`;
 export const fileUrl=(project:string,path:string)=>`/api/projects/${encodeURIComponent(project)}/files/${path.split('/').map(encodeURIComponent).join('/')}`;
@@ -62,6 +69,28 @@ export const api={
  acceptSuggestion:(id:string)=>fetch(`/api/suggestions/${id}/accept`,send('POST')).then(r=>json<{project:string;path:string}>(r)),
  rejectSuggestion:(id:string)=>fetch(`/api/suggestions/${id}/reject`,send('POST')).then(r=>json<unknown>(r)),
  example:(id:string)=>fetch(`/api/examples/${encodeURIComponent(id)}`,send('POST')).then(r=>json<{slug:string;name:string;created:boolean}>(r)),
+};
+const gitUrl=(project:string,action:string)=>`/api/projects/${encodeURIComponent(project)}/${action}`;
+async function gitPost<T>(project:string,action:string,body?:unknown):Promise<T>{
+ const response=await fetch(gitUrl(project,action),send('POST',body));
+ if(response.status===409){const b=await response.json();throw new Blocked(b.error,b.paths??[],b.message??b.error);}
+ return json<T>(response);
+}
+export const scm={
+ status:(p:string)=>fetch(gitUrl(p,'git/status')).then(r=>json<GitStatus>(r)),
+ diff:(p:string,path:string,from='HEAD',to='worktree')=>fetch(gitUrl(p,'git/diff')+`?path=${encodeURIComponent(path)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`).then(r=>json<GitDiff>(r)),
+ stage:(p:string,paths:string[]|'all')=>gitPost<GitStatus>(p,'git/stage',paths==='all'?{all:true}:{paths}),
+ unstage:(p:string,paths:string[]|'all')=>gitPost<GitStatus>(p,'git/unstage',paths==='all'?{all:true}:{paths}),
+ commit:(p:string,message:string)=>gitPost<{commit:string;altered:string[]}>(p,'git/commit',{message}),
+ branches:(p:string)=>fetch(gitUrl(p,'git/branches')).then(r=>json<{current:string;local:string[];remote:string[]}>(r)),
+ switch:(p:string,branch:string,create=false)=>gitPost<{branch:string;altered:string[]}>(p,'git/switch',{branch,create}),
+ setRemote:(p:string,name:string,url:string)=>fetch(gitUrl(p,'git/remote'),send('PUT',{name,url})).then(r=>json<{name:string;url:string}>(r)),
+ remote:(p:string,action:'fetch'|'pull'|'push'|'sync')=>gitPost<RemoteResult>(p,'git/'+action),
+ cancel:(p:string)=>gitPost<{cancelled:boolean}>(p,'git/cancel'),
+ log:(p:string,path?:string,limit=50)=>fetch(gitUrl(p,'git/log')+`?limit=${limit}${path?'&path='+encodeURIComponent(path):''}`).then(r=>json<GitCommit[]>(r)),
+ ignore:(p:string,pattern:string)=>gitPost<{hash:string;added:boolean;tracked:string[]}>(p,'gitignore',{pattern}),
+ saveDraft:(p:string,path:string,baseHash:string|null,text:string)=>fetch(`/api/drafts/${encodeURIComponent(p)}/${path.split('/').map(encodeURIComponent).join('/')}`,send('PUT',{baseHash,text,patches:[]})),
+ deleteDraft:(p:string,path:string)=>fetch(`/api/drafts/${encodeURIComponent(p)}/${path.split('/').map(encodeURIComponent).join('/')}`,{method:'DELETE'}),
 };
 // Load every visible file of every project, reusing already loaded sources whose hash is unchanged.
 export async function loadWorkspace(previous:Map<string,Doc>){

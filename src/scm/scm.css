@@ -1,0 +1,66 @@
+/* Source Control (Phase 8): a changes column beside the diff, as in VS Code. */
+.scm{display:grid;grid-template-columns:minmax(280px,360px) minmax(0,1fr);gap:0;height:100%;min-height:0;background:white;border:1px solid #e3eae8;border-radius:10px;overflow:hidden}
+.scm-side{display:flex;flex-direction:column;gap:10px;padding:12px;border-right:1px solid #e8eeec;overflow:auto;min-width:0;background:#fbfcfc}
+.scm-main{display:flex;flex-direction:column;gap:8px;min-width:0;min-height:0;padding:10px;overflow:auto}
+.scm-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.scm-head>select{flex:1 1 100%;font-size:13px;padding:6px}
+.branch-picker{display:flex;align-items:center;gap:6px;flex:1 1 auto;min-width:0;flex-wrap:wrap}
+.branch-picker label{display:flex;align-items:center;gap:4px;min-width:0;flex:1 1 120px}
+.branch-picker select{min-width:0;flex:1;font-size:13px;padding:5px 6px;border:1px solid #dce4e2;border-radius:6px;background:white}
+.branch-picker button{font-size:12px;padding:5px 8px;gap:4px}
+.branch-create{display:flex;gap:4px;flex:1 1 100%}.branch-create input{flex:1;min-width:0;font-size:13px;padding:5px 7px;border:1px solid #cfdad6;border-radius:6px}
+.scm-sync{display:inline-flex;align-items:center;gap:2px;font-size:12px;color:#5a6f68;padding:3px 6px;background:#eef3f1;border-radius:10px}
+.scm-remote{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:12px}
+.scm-remote-url{flex:1 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#5a6f68;font-family:ui-monospace,monospace;font-size:11px}
+.scm-remote-actions{display:flex;gap:4px;flex:1 1 100%}.scm-remote-actions button{flex:1;font-size:12px;padding:6px 4px;gap:3px}
+.scm-remote-form{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end;width:100%}.scm-remote-form label{display:flex;flex-direction:column;gap:3px;flex:1 1 100%;font-weight:600;color:#3a5a50}
+.scm-remote-form input{font-size:12px;padding:6px 7px;border:1px solid #cfdad6;border-radius:6px;font-family:ui-monospace,monospace}
+.scm-remote-form button{font-size:12px;padding:6px 10px}
+.scm-note{display:flex;align-items:flex-start;gap:8px;font-size:12px;border-radius:7px;padding:8px 10px;margin:0;border:1px solid #d6e6de;background:#f2f9f5;color:#24503f}
+.scm-note.warning{border-color:#e3d6a4;background:#fbf6e2;color:#5a4a12}
+.scm-note.waiting{border-color:#c9dbe8;background:#eef5fb;color:#23465f;align-items:center}
+.scm-note>div{flex:1;min-width:0}.scm-note ul{margin:4px 0 0;padding-left:16px}.scm-note code{overflow-wrap:anywhere}
+.scm-note button{padding:3px 8px;font-size:12px;margin-left:auto}
+.spinner{width:12px;height:12px;border-radius:50%;border:2px solid #9cbad0;border-top-color:transparent;animation:scm-spin .8s linear infinite;flex:none}
+@keyframes scm-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spinner{animation:none}}
+.scm-error{margin:0;font:11px/1.45 ui-monospace,monospace;white-space:pre-wrap;color:#8a2c22;background:#fdf1ef;border:1px solid #efc9c2;border-radius:7px;padding:8px 10px;max-height:160px;overflow:auto}
+.scm-commit{display:flex;flex-direction:column;gap:6px}
+.scm-commit textarea{width:100%;box-sizing:border-box;resize:vertical;font-size:13px;padding:7px 8px;border:1px solid #cfdad6;border-radius:6px}
+.scm-commit button{font-size:13px;padding:7px}.scm-commit small{color:#8a5a12;font-size:11px}
+.scm-empty{color:#7d9188;font-size:12px;margin:8px 0}
+.scm-group h3{display:flex;align-items:center;gap:6px;margin:0 0 4px;font-size:11px;letter-spacing:.4px;text-transform:uppercase;color:#4d6660}
+.scm-group h3 small{background:#e3ecea;border-radius:9px;padding:0 6px;font-size:10px;color:#3a5a50}
+.scm-group h3 .link{margin-left:auto;text-transform:none;letter-spacing:0;font-size:11px}
+.scm-group ul,.scm-group ol{list-style:none;margin:0;padding:0}
+.scm-row{display:grid;grid-template-columns:minmax(0,1fr) auto 18px;align-items:center;gap:4px;border-radius:5px}
+.scm-row:hover,.scm-row.selected{background:#eaf3ef}
+.scm-file{justify-content:flex-start;border:0;background:none;padding:4px 6px;gap:6px;min-width:0;font-size:13px;text-align:left;flex-wrap:wrap}
+.scm-file:hover{background:none}
+.scm-name{font-weight:500;overflow-wrap:anywhere}.scm-file small{color:#7d9188;font-size:11px;overflow-wrap:anywhere}
+.scm-label{display:inline-flex;align-items:center;gap:3px;font-style:normal;font-size:10px;color:#6b5a1e;background:#f6efd6;border-radius:4px;padding:1px 5px}
+.hidden-file .scm-name{color:#5a6f68}
+.scm-actions{display:flex;gap:2px;opacity:.55}.scm-row:hover .scm-actions,.scm-row.selected .scm-actions,.scm-actions:focus-within{opacity:1}
+@media (hover:none){.scm-actions{opacity:1}}
+.scm-actions button{padding:4px;border:0;background:none;border-radius:4px;min-width:26px;min-height:26px}.scm-actions button:hover{background:#dcebe5}
+.scm-state{font:600 11px ui-monospace,monospace;text-align:center;color:#8a6d1a}
+.s-a,.s-u{color:#2c7a4b}.s-d{color:#a3392f}.s-r{color:#2a6c95}.s-\!{color:#b3261e}
+.scm-ignore{grid-column:1/-1;display:flex;flex-direction:column;gap:4px;font-size:12px;background:white;border:1px solid #dfe8e4;border-radius:6px;padding:8px;margin:2px 0 6px}
+.scm-ignore label{display:flex;align-items:center;gap:6px}.scm-ignore code{margin-left:auto;font-size:11px;color:#5a6f68;overflow-wrap:anywhere}
+.scm-ignore div{display:flex;gap:6px;justify-content:flex-end}.scm-ignore button{font-size:12px;padding:5px 9px}
+.scm-history ol{max-height:260px;overflow:auto}
+.scm-commit-row{display:flex;flex-direction:column;align-items:flex-start;gap:1px;width:100%;border:0;background:none;padding:5px 6px;text-align:left;font-size:12px}
+.scm-commit-row small{color:#7d9188;font-size:10.5px}.scm-commit-row:disabled{opacity:1;cursor:default}
+.scm-versions{display:flex;flex-wrap:wrap;gap:8px}.scm-versions label{display:flex;align-items:center;gap:6px;font-size:12px;min-width:0;flex:1 1 220px}
+.scm-versions select{min-width:0;flex:1;font-size:12px;padding:5px}
+.diff-view{margin:0;display:flex;flex-direction:column;min-height:0;flex:1 1 auto;border:1px solid #e1e8e6;border-radius:8px;overflow:hidden}
+.diff-labels{display:grid;grid-template-columns:1fr 1fr;font-size:11px;color:#4d6660;background:#f3f6f5;border-bottom:1px solid #e1e8e6}
+.diff-labels span{padding:5px 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.diff-host{min-height:0;flex:1 1 auto;overflow:auto;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+.diff-host .cm-mergeView{height:100%}.diff-host .cm-editor{height:auto}
+.diff-same{font-size:12px;color:#7d9188;margin:6px 10px}
+@media (max-width:900px){.scm{grid-template-columns:minmax(0,1fr);height:auto}.scm-side{border-right:0;border-bottom:1px solid #e8eeec}.scm-main{min-height:420px}}
+.nav-count{margin-left:auto;font-size:11px;font-weight:600;background:#dcebe5;color:#1e6a4f;border-radius:9px;padding:0 7px;min-width:20px;text-align:center}
+.stale-save .diff-view{max-height:52vh}
+.scm.scm-message{display:block;padding:16px;height:auto}
+.branch-picker label>span{font-size:12px;color:#4d6660}
