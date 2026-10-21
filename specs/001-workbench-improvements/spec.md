@@ -73,6 +73,15 @@ Control and file-based storage follow constitution 2.0.0, amended for this featu
 - Q: Are Git hooks and filters allowed in project repositories? → A: Yes. After every Git
   operation a hash check reports files whose bytes were altered (FR-096).
 - Q: Is the constitution amendment approved? → A: Yes; version 2.0.0 is applied.
+- Q: Are KPIs that combine metrics from two semantic models needed? → A: Not in this feature.
+  Every KPI is stored in its Ossie metric's extension; cross-model KPIs are out of scope.
+- Q: May push, pull and fetch open Git's credential window when credentials are missing? → A: Yes.
+  Git's configured credential helper (for example Git Credential Manager) may show its own
+  window; the workbench itself stores no credentials and never prompts for them (FR-063).
+- Q: Where is the link between a KPI and the ontology concepts stored? → A: In the project's Ossie
+  mapping document, as a `SEMANTIC_WORKBENCH` extension at the document root (one KPI binding per
+  line). Standard `concept_mappings` describe how datasets and fields populate concepts; they do
+  not define a metric target (FR-010).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -550,15 +559,15 @@ Source Control and Source, with and without the inspector.
 - **FR-001**: The system MUST support a metrics layer per project in which each KPI has: name,
   label, description, type (simple, ratio, derived, cumulative, filtered), inputs (Ossie base
   metrics or other KPIs), additivity, time dimension with minimum and allowed grains, allowed
-  dimensions, structured filters, unit and format, measured ontology concept and subject concept,
-  targets with direction and thresholds, owner and steward, and lifecycle status, as proposed in
-  metrics-proposal.md.
+  dimensions, structured filters, unit and format, targets with direction and thresholds, owner
+  and steward, and lifecycle status, stored in the metric's Ossie extension; and a binding to the
+  ontology concept it measures and the concept it is about, stored in the mapping document's
+  extension (research.md R1, R12).
 - **FR-002**: Formulas MUST remain Ossie metric expressions in the semantic model; metrics-layer
   attributes MUST reference metrics by name and MUST NOT duplicate formulas.
-- **FR-003**: Metrics-layer attributes MUST be stored in Ossie's extension mechanism unless it
-  fails the decision criteria in metrics-proposal.md, in which case they MUST be stored in a
-  separate `*.metrics.yaml` file. Either way the content MUST be validated against a pinned schema
-  by the same shared rules in browser, store and API.
+- **FR-003**: Metrics-layer attributes MUST be stored in Ossie's extension mechanism (metric-level
+  for KPI attributes, mapping-document root for KPI bindings); the content MUST be validated
+  against pinned application schemas by the same shared rules in browser, store and API.
 - **FR-004**: Cross-references MUST be checked as workspace findings: inputs exist, no dependency
   cycles, grains allowed by the time dimension, filters and dimensions refer to existing fields,
   concept IRIs exist in the project's ontology, and the declared type agrees with the expression.
@@ -574,8 +583,10 @@ Source Control and Source, with and without the inspector.
 - **FR-009**: The system MUST provide a guided creation workflow (concept → data → type and inputs
   → time and breakdowns → targets → governance → explanation and SQL preview → save) with
   validation at each step.
-- **FR-010**: Saving a KPI MUST write minimal edits to the semantic model (and to the metrics file
-  if the fallback storage is used) in one project save.
+- **FR-010**: Saving a KPI MUST write minimal edits to the semantic model (the metric and its
+  extension) and, when concepts are chosen, to the KPI binding in the mapping document's root
+  extension (creating a minimal standalone mapping document if the project has none, or using the
+  embedded semantic model's root extension in a consolidated file), in one journaled project save.
 - **FR-011**: For every KPI the system MUST show "How it is calculated": the composition tree down
   to base metrics, each base metric's expression with the datasets, fields and ODCS properties it
   reads, filters, time grain, allowed breakdowns, additivity rules in plain language, and the
@@ -732,8 +743,11 @@ Source Control and Source, with and without the inspector.
 - **FR-062**: Files committed to Git MUST be byte-identical to the files saved by the workbench;
   content arriving by pull or branch switch MUST pass through shared validation and be shown as
   invalid when it fails.
-- **FR-063**: The workbench MUST NOT store remote credentials; it uses the machine's Git
-  configuration. Remote operations are the only network use and occur only on explicit action.
+- **FR-063**: The workbench MUST NOT store, request or transmit remote credentials itself; it uses
+  the machine's Git configuration. Git's configured credential helper (for example Git Credential
+  Manager) MAY open its own window during an explicit fetch, pull, push or sync, and the UI shows
+  that the operation is waiting for credentials and can be cancelled. Remote operations are the
+  only network use and occur only on explicit action.
 - **FR-064**: A stale save (FR-081) MUST be rejected with the diff between the draft and the
   current file.
 - **FR-065**: Pull and branch switch MUST be blocked while unsaved drafts exist, and initially
@@ -851,9 +865,11 @@ Source Control and Source, with and without the inspector.
 - **Cache**: rebuildable index of hashes, entities, diagnostics and suggestions.
 - **Operation journal**: record of an in-progress multi-file operation, used for crash recovery.
 - **Legacy id mapping**: map from v0.1.0 document ids to (project, path).
-- **KPI / metric-layer entry**: governed business measure (attributes in FR-001), stored with
-  its Ossie metric (extension) or in the fallback metrics file, referencing Ossie metrics,
-  ontology concepts and, through lineage, ODCS properties.
+- **KPI / metric-layer entry**: governed business measure (attributes in FR-001), stored in its
+  Ossie metric's `SEMANTIC_WORKBENCH` extension, referencing Ossie metrics and, through lineage,
+  ODCS properties.
+- **KPI binding**: link from a KPI (metric name) to the ontology concept it measures and the
+  concept it is about, stored in the mapping document's root `SEMANTIC_WORKBENCH` extension.
 - **Base metric**: Ossie metric in a semantic model: name, expression per dialect, description,
   data type.
 - **KPI explanation**: derived view of a KPI: composition tree, expressions, inputs down to ODCS
@@ -942,7 +958,8 @@ Source Control and Source, with and without the inspector.
 - Out of scope: "AI Cookie Cutter" and "Skald → Prompt Lab" (unrelated topics); hosted LLM
   features; executing KPI, metric or SQL queries of any kind; SHACL data validation and OWL reasoning; JSON-LD, TriG
   and other serializations not already supported; multi-user collaboration; custom single-file
-  Ossie layouts; performance work beyond what FR-045 requires.
+  Ossie layouts; performance work beyond what FR-045 requires; KPIs that combine metrics from
+  more than one semantic model (deferred); a separate `*.metrics.yaml` file.
 
 ## Risks
 

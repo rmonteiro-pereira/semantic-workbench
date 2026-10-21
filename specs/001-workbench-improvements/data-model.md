@@ -108,7 +108,6 @@ metric supplies `name`, `expression`, `description`, `datatype`, `ai_context`.
 | `dimensions[]` | semantic field refs `dataset.field` | must exist |
 | `filters[]` | `{field, operator, value}` | operator ∈ equals, not_equals, in, not_in, gt, gte, lt, lte, between, is_null, is_not_null |
 | `unit`, `format` | strings | |
-| `concept`, `of` | IRI or declared QName | must resolve in the project ontology (warning if no ontology) |
 | `targets[]` | `{grain, period?, direction, value? \| range?, thresholds?}` | threshold operators use ODCS names |
 | `owner`, `steward` | strings | |
 | `status` | draft \| proposed \| approved \| deprecated | approved → any edit → proposed; deprecated requires `replaced_by` or `deprecation_reason` |
@@ -116,6 +115,16 @@ metric supplies `name`, `expression`, `description`, `datatype`, `ai_context`.
 
 Derived (never stored): dependency graph (syntax-tree analysis from the agent runtime), lineage
 (KPI → metrics → fields → datasets → ODCS objects/properties), explanation (spec FR-011–FR-014).
+
+### KPI binding (mapping document root extension, research R12)
+| Field | Type | Rules |
+| --- | --- | --- |
+| `metric` | metric name | must exist in the semantic model named by the mapping's `semantic_model_ref`; unique |
+| `measures` | concept name, IRI or declared QName | required; must resolve in the referenced ontology |
+| `of` | concept name, IRI or declared QName | optional; must resolve in the referenced ontology |
+
+Stored as `{"schema": "semantic-workbench/mapping/v1", "kpi_bindings": [...]}`, one binding per
+line, sorted by `metric`. In a consolidated file: the embedded `semantic_model` root extension.
 
 ### KPI explanation (derived)
 `{kpi, tree: Node, inputs: [{metric, expression, dialect, datasets, fields, odcs: [{contract,

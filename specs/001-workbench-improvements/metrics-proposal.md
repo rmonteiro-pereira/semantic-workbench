@@ -1,7 +1,7 @@
 # Metrics Layer Proposal
 
 **Feature**: [spec.md](./spec.md) (User Story 1 and FR-001 to FR-016)
-**Status**: Proposal; storage decided by the criteria below during planning
+**Status**: Decided in planning: Ossie extensions (see research.md R1 and R12); fallback file not adopted
 **Date**: 2026-10-20
 
 ## Recommendation in brief
@@ -10,9 +10,12 @@
    `name`, `expression` (per dialect), `description`, `datatype`, `ai_context`. Formulas live only
    there.
 2. **Metrics-layer attributes go into Ossie's extension mechanism first.** What Ossie 0.2.0.dev0
-   does not define (metric type, additivity, time grain, breakdowns, filters, unit, ontology
-   concepts, targets, ownership, status) is stored in a `custom_extensions` entry with
+   does not define (metric type, additivity, time grain, breakdowns, filters, unit, targets,
+   ownership, status) is stored in a `custom_extensions` entry with
    `vendor_name: SEMANTIC_WORKBENCH` on the metric itself, validated against a pinned schema.
+   The KPI's ontology concepts (what it measures, what it is about) are stored in the mapping
+   document's root `SEMANTIC_WORKBENCH` extension, one binding per line (decided in planning,
+   see research.md R12).
 3. **Fallback: a separate `*.metrics.yaml` file** with a pinned schema, referencing Ossie metrics
    by name, if the extension approach fails the decision criteria below.
 4. **Explain, never execute.** For each KPI the workbench shows how it is computed: composition
@@ -69,7 +72,7 @@ planner); ODCS operator names for thresholds.
 | `dimensions` | Allowed breakdowns (semantic field references), optionally named by ontology role |
 | `filters` | Structured conditions `{field, operator, value}`; no free SQL |
 | `unit`, `format` | e.g. `percent`, `currency:BRL`, `m2`; display format |
-| `concept`, `of` | IRI of the ontology concept the KPI measures, and of the concept it is about |
+| `measures`, `of` | Ontology concept the KPI measures, and the concept it is about. Stored as a KPI binding in the mapping document's root extension, not in the metric (research.md R12) |
 | `targets` | Per grain: `value` or `range`, `direction` (`higher_is_better`, `lower_is_better`, `in_range`), `thresholds` using ODCS operator names. Declarative only; nothing is evaluated |
 | `owner`, `steward` | Person or team |
 | `status`, `replaced_by` | `draft` → `proposed` → `approved` → `deprecated` |
@@ -138,8 +141,6 @@ metrics:
             "dimensions": ["units.floor", "units.segment"],
             "unit": "percent",
             "format": "0.0%",
-            "concept": "kpi:OccupancyRate",
-            "of": "asset:Unit",
             "targets": [{"grain": "month", "direction": "higher_is_better", "value": 0.95,
                          "thresholds": {"warning": {"mustBeLessThan": 0.92}, "critical": {"mustBeLessThan": 0.88}}}],
             "owner": "Leasing",
@@ -177,8 +178,9 @@ prototype of the extension schema and item editor. Any failed criterion selects 
   object and property. Other expressions are shown as computed, with their source columns.
 - **Semantic → metric**: dependencies come from the syntax-tree analysis already used by the agent
   runtime, not text search.
-- **Metric → ontology**: `concept` / `of` IRIs plus existing Ossie concept mappings whose bindings
-  reference the metric. Dimensions named by ontology roles are offered as breakdowns.
+- **Metric → ontology**: KPI bindings (`measures`, `of`) in the mapping document's extension, plus
+  existing concept mappings whose expressions name the metric (a workbench interpretation; the
+  Ossie mapping specification defines expressions over dataset fields). Dimensions named by ontology roles are offered as breakdowns.
 - **Quality and SLA**: ODCS quality rules and SLA properties on a KPI's inputs are shown as
   declared trust indicators; they are not evaluated.
 
@@ -206,7 +208,8 @@ expression, references, cycles, grains).
 1. **Find**: Metrics view lists KPIs grouped by ontology concept or owner; search by name, label
    or synonym; filter by status, unit or dataset. Concepts in graph views show KPI badges.
 2. **Create** (wizard, validated at each step):
-   1. What does it measure? Pick or create the ontology concept (`concept`, `of`).
+   1. What does it measure? Pick or create the ontology concepts (`measures`, `of`); saved as a
+      KPI binding in the mapping document.
    2. From which data? Pick ODCS properties or semantic fields; the wizard proposes the dataset.
    3. How? Choose the type; for `simple` choose an aggregation; for `ratio`, `derived`,
       `cumulative` or `filtered` pick input metrics. The Ossie expression is generated from these
@@ -216,8 +219,8 @@ expression, references, cycles, grains).
    5. Judging: unit, format, direction, target, thresholds.
    6. Governance: owner, steward, status `draft`.
    7. Review the explanation and the SQL preview.
-3. **Save**: minimal edits to the semantic model (metric and its extension entry, or the fallback
-   file); the changes appear in Source Control.
+3. **Save**: minimal edits to the semantic model (metric and its extension entry) and to the
+   mapping document's KPI bindings; the changes appear in Source Control.
 4. **Review**: status `proposed`; the reviewer reads the explanation and the diff, sets
    `approved`, commits.
 5. **Change and deprecate**: editing an approved KPI returns it to `proposed`; deprecation needs

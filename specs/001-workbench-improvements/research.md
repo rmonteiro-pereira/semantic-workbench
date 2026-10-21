@@ -11,8 +11,10 @@ requires (metrics storage); the rest settle the open technical choices of the pl
 
 **Decision**: Store metrics-layer attributes in Ossie `custom_extensions` on each metric
 (`vendor_name: SEMANTIC_WORKBENCH`, `data` as a YAML literal block holding pretty-printed JSON).
-The `*.metrics.yaml` fallback is not adopted now. It is reopened only if a KPI must combine
-metrics from two semantic models (criterion 6; see plan question PQ1).
+The `*.metrics.yaml` fallback is not adopted. KPIs that combine metrics from two semantic models
+(the one case the extension cannot express, criterion 6) are out of scope for this feature (owner
+decision PQ1). The KPI's ontology concepts are not stored in the metric extension but in the
+mapping document's extension (R12).
 
 **Evaluation**. The representation from [metrics-proposal.md](./metrics-proposal.md) was applied
 by source-range insertion to every metric of the four shipped semantic models that declare
@@ -66,6 +68,8 @@ Representative block (shopping center `occupancy_rate`, attributes inferred):
 - Schema: `schemas/semantic-workbench-metric-v1.json` (application schema, labelled as such;
   draft in [contracts/metric-extension.schema.json](./contracts/metric-extension.schema.json)).
 - The same applies to the semantic model embedded in a consolidated Ossie file.
+- The sample above predates R12: `concept`/`of` were removed from the metric extension and moved to
+  KPI bindings in the mapping document.
 
 **Alternatives considered**: `*.metrics.yaml` (equal on criteria 2–5 and 7, better only on
 criterion 6, at the cost of a second file per model and cross-file identity resolution);
@@ -145,10 +149,25 @@ load).
 **Decision**: Shell out to the installed `git` with `Bun.spawn([...args], {cwd, env, stdin,
 stdout:'pipe', stderr:'pipe'})`, one serialized queue per repository, and porcelain/`-z` output.
 
-- Environment: `GIT_TERMINAL_PROMPT=0`, `GCM_INTERACTIVE=never` (see plan question PQ2),
-  `LC_ALL=C`, `GIT_OPTIONAL_LOCKS=0` for read-only status calls.
-- Timeouts: 30 s for local commands, 180 s for fetch/pull/push; on timeout the process is killed
-  and stderr is shown.
+- Environment: the API's own environment is inherited (so `credential.helper`, `SSH_AUTH_SOCK`,
+  `DISPLAY` and WSL interop reach Git), plus `GIT_TERMINAL_PROMPT=0`, `LC_ALL=C`, and
+  `GIT_OPTIONAL_LOCKS=0` for read-only status calls; `stdin` is not a terminal.
+- Credentials (owner decision PQ2: the credential window is allowed). Mechanism:
+  `GIT_TERMINAL_PROMPT=0` only stops Git's own username/password prompt on a terminal, which a
+  background server process cannot answer and which would otherwise hang. It does not stop Git
+  from calling the configured `credential.helper`. Git Credential Manager is therefore free to
+  show its GUI window: the workbench does not set `GCM_INTERACTIVE=never` or
+  `GCM_GUI_PROMPT=false` (GCM's documentation: `GCM_INTERACTIVE` "Permit or disable GCM from
+  interacting with the user (showing GUI or TTY prompts)"; `GCM_GUI_PROMPT` "Permit or disable GCM
+  from presenting GUI prompts", enabled by default). GCM's text fallback is not available
+  because there is no terminal, so the GUI is the only prompt. For SSH remotes, an `ssh-agent` or
+  a configured `SSH_ASKPASS` program is used if present. If no helper is configured, the operation
+  fails with Git's message and the UI explains how to configure a helper or SSH key. Constitution
+  2.0.0 Principle I is respected: the window belongs to Git's helper; the workbench never stores,
+  prompts for or transmits credentials itself, and remote operations run only on explicit action.
+- Timeouts: 30 s for local commands. Fetch/pull/push/sync run up to 10 minutes so the user can
+  finish a credential window; the UI shows "Waiting for Git (credentials may be requested in a
+  separate window)" with Cancel, which kills the process. stderr is shown on failure.
 - Commands: `git init -b main`; `git config core.autocrlf false` (and `core.safecrlf false`) in
   managed repos; `git -c core.quotepath=off status --porcelain=v2 -z --branch`;
   `git ls-files -co --exclude-standard -z` for the scanner (so `.gitignore` is honoured by Git
@@ -236,6 +255,49 @@ share a path. Walk history is a reducer (`back`, `forward`, `push`) in the UI.
 canvas, routed edges and tests.
 
 ---
+
+## R12. KPI-to-concept bindings in the mapping document
+
+**Decision**: Store each KPI's ontology concepts (`measures`, optional `of`) as KPI bindings in a
+root-level `custom_extensions` entry (`vendor_name: SEMANTIC_WORKBENCH`) of the project's
+standalone Ossie mapping document, as a JSON block with one binding per line, sorted by metric
+name. The metric extension no longer carries `concept`/`of`. Schema draft:
+[contracts/mapping-extension.schema.json](./contracts/mapping-extension.schema.json).
+
+**Why standard concept mappings are not used**: The pinned Ossie ontology schema defines
+`ConceptMapping` as `{"concept": ..., "object_mappings": [ObjectMapping], "link_mappings":
+[LinkMapping]}` with `"additionalProperties": false`; `ObjectMapping` has `concept`,
+`referent_mappings` and `expression`, and `Expression` is `{"type": "string", "description":
+"ANSI SQL expression"}`. There is no metric target. The Ossie ontology specification describes
+mappings as "patterns of expressions that reference fields in a logical model" and an expression
+as a "SQL expression that computes a value from fields". Shipped examples that write a metric
+name as an object-mapping expression (for example `Revenue` → `gross_revenue`, and 25 KPI
+concepts in the shopping center mapping) rely on the workbench runtime's interpretation of
+standalone metric names; that interpretation stays readable as evidence but is not used as the
+storage for KPI bindings. Per-binding extensions are impossible: in the pinned mapping schema
+`custom_extensions` exists only at the document root (it references the core
+`SemanticModel/properties/custom_extensions`), not on `ConceptMapping`.
+
+**Where bindings go when there is no standalone mapping**: the wizard creates a minimal standalone
+mapping document (`concept_mappings: []` is valid; the schema sets no minimum) with the required
+`version`, `name`, `ontology_ref` and `semantic_model_ref`. For a consolidated file, `OntologyMap`
+allows no extensions, so bindings go in the root extension of its embedded `semantic_model`.
+
+**Evaluation on the shopping center mapping** (`mall.mapping.yaml`, 914 concept mappings, 1,056
+resolved bindings): a root extension with 23 KPI bindings was appended.
+- Validation: valid before and after, identical issue codes.
+- Byte preservation: the original bytes are an exact prefix of the new file (31 added lines);
+  the block reads back to the 23 bindings.
+- Diffs: changing one binding's `of` = 1 added, 1 deleted line; adding a binding in sorted position
+  = 1 added line. Appending after the last binding also changes the previous line (JSON comma),
+  so 2 added and 1 deleted line in that case.
+- Agent runtime: identical findings (0), bindings (1,056) and generated SQL for all 25 metrics.
+
+**Alternatives considered**: `concept`/`of` in the metric extension (works, but the mapping
+document is where the ontology–semantic link belongs and the owner asked for it there); writing
+new standard `concept_mappings` with metric-name expressions (not standard semantics, mixes
+population mappings with KPI identity); one extension entry per KPI (the schema allows only a
+root-level list, and several entries make diffs and validation messages harder to read).
 
 ## R11. Testing approach
 

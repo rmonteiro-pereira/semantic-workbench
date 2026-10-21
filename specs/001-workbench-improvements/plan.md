@@ -49,8 +49,7 @@ Git remote operations only on explicit action; 2,000,000-byte documents; no fold
 **Scale/Scope**: up to the shipped examples (1,000-entity / 5,000-link scale data; 145-entity,
 25-KPI shopping center; 169-object UBL contract); tens of projects; 96 functional requirements.
 
-No NEEDS CLARIFICATION remain; research resolved R1–R11. Three owner questions (PQ1–PQ3) affect
-defaults only and have recommended answers that the plan assumes.
+No NEEDS CLARIFICATION remain; research resolved R1–R12, and the owner answered PQ1–PQ3.
 
 ## Constitution Check (v2.0.0)
 
@@ -58,7 +57,7 @@ defaults only and have recommended answers that the plan assumes.
 
 | Principle | How the plan complies | Pre | Post |
 | --- | --- | --- | --- |
-| I. Local-Only Operation | API stays on `127.0.0.1` with the origin check on every new route, including `/api/events`. Files only under `DATA_DIR/projects/`; path validation rejects `..`, absolute paths and `.git/`. Git remote commands only from explicit fetch/pull/push/sync endpoints; `GIT_TERMINAL_PROMPT=0`, no stored credentials. No query execution: KPI explanation and SQL preview only; `/api/agent/plan` remains preview. CodeMirror is bundled, no CDN | ✅ | ✅ |
+| I. Local-Only Operation | API stays on `127.0.0.1` with the origin check on every new route, including `/api/events`. Files only under `DATA_DIR/projects/`; path validation rejects `..`, absolute paths and `.git/`. Git remote commands only from explicit fetch/pull/push/sync endpoints; `GIT_TERMINAL_PROMPT=0` (no terminal prompt), Git's credential helper window allowed (PQ2), no stored credentials; the workbench itself never prompts for or transmits credentials. No query execution: KPI explanation and SQL preview only; `/api/agent/plan` remains preview. CodeMirror is bundled, no CDN | ✅ | ✅ |
 | II. Byte-Exact Source Preservation | Editor never owns bytes: saves are source-range patches over the base bytes (CRLF/mixed endings tested, R2). Item edits patch only the item's range; RDF edits gated by graph-isomorphism check (FR-055). Metrics extension edits touch only that metric's `data` block (R1, criterion 4). Migration verifies SHA-256 per file | ✅ | ✅ |
 | III. One Validation Rule Set | `src/validation.ts`/`src/input.ts` remain the single rule set; the metric extension schema is pinned in `schemas/` and validated by the same module in browser (worker), API save and scanner. Files arriving via Git are validated on scan and shown invalid, never rewritten | ✅ | ✅ |
 | IV. Atomic, Hash-Checked File Persistence | Temp + fsync + rename for files and state; `baseHash` on every save (409 with diff); journal for multi-file operations (R7); cache rebuildable (SC-015); Git via argument arrays, per-repo queue, timeouts, `core.autocrlf=false`; deletes move to trash, never rewrite history; migration backs up and verifies | ✅ | ✅ |
@@ -87,7 +86,8 @@ specs/001-workbench-improvements/
 │   ├── http-api.md
 │   ├── sse-events.md
 │   ├── ui-contracts.md
-│   └── metric-extension.schema.json
+│   ├── metric-extension.schema.json
+│   └── mapping-extension.schema.json
 ├── metrics-proposal.md
 ├── constitution-amendment-proposal.md
 └── checklists/requirements.md
@@ -130,6 +130,7 @@ src/
 └── mappings/                     # MappingExplorer (relayout)
 
 schemas/semantic-workbench-metric-v1.json
+schemas/semantic-workbench-mapping-v1.json
 tests/                            # new: atomic, journal, scanner, trash, git, migration, events, patch, rdf-patch, extension, explain, graph-view
 scripts/                          # new browser checks per phase; mutation-tests.ts extended
 ```
@@ -169,10 +170,10 @@ pass. Their output goes through the same review, tests, browser checks and mutat
 | --- | --- | --- | --- |
 | 1 | atomic write crash simulation; base-hash 409; journal roll-forward/back; scanner honours `.gitignore` and hides unsupported types; cache rebuild equality; migration byte/hash verification and abort; SSE replay/resync; path traversal rejection; origin check on new routes | `projects-browser-check.ts`: sidebar tree, live update after external edit, two-tab stale save; existing suites via facade | drop base-hash check; skip fsync/rename (write in place); skip migration hash verify; accept `..` paths; omit origin check on `/api/events`; journal recovery always roll-forward |
 | 2 | delete-impact references; undo window boundary (10 s); restore never overwrites (409); Clear batch; suggestion evidence (no name similarity); rejected suggestions persist | `trash-browser-check.ts`: confirm → undo → trash → restore → purge; Clear; suggestions accept/reject | undo after expiry allowed; restore overwrites; suggestion from similar names; delete without confirm flag |
-| 3 | extension parse/validate/locate (34 shipped metrics); type-vs-expression finding; explanation trees; additivity refusal; lineage to ODCS; consolidated Ossie counts equal split (60 bindings); explain endpoint never calls an executor | `metrics-browser-check.ts`: Metrics list, KPI detail, explanation, refused rollup; Flights both layouts | accept ratio rollup; drop extension schema check; lineage from text match instead of AST; treat embedded layout as ontology-only |
+| 3 | extension parse/validate/locate (34 shipped metrics); mapping KPI bindings resolve to metrics and concepts; type-vs-expression finding; explanation trees; additivity refusal; lineage to ODCS; consolidated Ossie counts equal split (60 bindings); explain endpoint never calls an executor | `metrics-browser-check.ts`: Metrics list, KPI detail, explanation, refused rollup; Flights both layouts | accept ratio rollup; drop extension schema check; lineage from text match instead of AST; treat embedded layout as ontology-only |
 | 4 | projection independent of focus; lateral links toggle; hidden counts; deterministic ranking; walk reducer; edge offset uniqueness | extended `graph-browser-check.ts` + responsive: five-hop walk, no empty flash, no overlapping paths | star-only filter restored; neighbor cap without count; shared route line |
 | 5 | patch mapping with CRLF/mixed endings/tabs/trailing newline; lint range mapping; worker debounce | `editor-browser-check.ts`: colors per serialization, inline markers, Go to line, repair dialog | patch inserts LF in CRLF file; lint drops range; editor save sends full text |
-| 6 | YAML node patch (comments/anchors kept); JSON value patch (indentation kept); inserts in document style; dependents listing; wizard writes metric + extension only | `item-edit-browser-check.ts`: edit/add/delete per YAML/JSON type, wizard | JSON re-serialization; delete without dependents; wizard duplicates formula |
+| 6 | YAML node patch (comments/anchors kept); JSON value patch (indentation kept); inserts in document style; dependents listing; wizard writes metric + extension + one sorted binding line in the mapping (or creates a minimal mapping) | `item-edit-browser-check.ts`: edit/add/delete per YAML/JSON type, wizard | JSON re-serialization; delete without dependents; wizard duplicates formula |
 | 7 | per serialization: isomorphism gate, untouched text identical, refusal cases (collections, reification, N3 formulae) | `rdf-edit-browser-check.ts` | skip isomorphism check; rewrite whole document |
 | 8 | porcelain v2 parsing; argument arrays only; per-repo serialization; timeouts; dirty/draft blocking; conflict detection; hidden-file labels; Add to .gitignore pattern derivation; altered-bytes report; missing git/identity | `scm-browser-check.ts` against a local bare remote: commit, branch, switch, push, pull, conflict repair | allow pull with drafts; shell-string invocation; remote call outside explicit endpoint; commit without message |
 | 9 | ODCS property diff between commits; lineage depth | `odcs-browser-check.ts` | property diff ignores type changes |
@@ -190,24 +191,21 @@ pass. Their output goes through the same review, tests, browser checks and mutat
 | Watcher gaps (non-inotify file systems) | 60 s periodic rescan; manual Refresh |
 | Facade drift during transition | facade covered by existing suites until each is migrated; removed only when no check uses it |
 
-## Owner Questions (do not block Phase 1)
+## Owner Decisions on Planning Questions
 
-- **PQ1 — Do you need KPIs that combine metrics from two different semantic models?** The
-  extension stores a KPI on an Ossie metric, which can only reference metrics of its own model; the
-  shipped examples have none.
-  A: not now; keep extension-only and revisit when the first one appears (recommended).
-  B: yes; add the `*.metrics.yaml` fallback only for cross-model KPIs.
-  C: yes; move all KPIs to `*.metrics.yaml`.
-- **PQ2 — May a Git push or pull open a credential window (for example Git Credential Manager on
-  Windows) when credentials are missing?**
-  A: never; the operation fails with instructions to configure credentials in a terminal
-  (recommended; matches "never prompts").
-  B: allow the credential helper's own window.
-- **PQ3 — When the KPI wizard links a KPI to an ontology concept, should it also add a concept
-  mapping to the project's Ossie mapping document?**
-  A: no; store the concept only in the KPI extension and still read existing mappings
-  (recommended; keeps the mapping document untouched).
-  B: yes, always. C: ask in the wizard each time.
+- **PQ1 — cross-model KPIs**: not in this feature. Every KPI lives in its Ossie metric's extension;
+  KPIs combining metrics from two semantic models are out of scope (spec, Assumptions).
+- **PQ2 — credential window**: allowed. Git's configured credential helper (for example Git
+  Credential Manager) may show its own window during an explicit fetch, pull, push or sync;
+  `GIT_TERMINAL_PROMPT=0` still prevents a terminal prompt the server cannot answer; remote
+  operations wait up to 10 minutes with Cancel (research R5). Consistent with constitution 2.0.0
+  Principle I, which forbids the workbench itself from storing, prompting for or transmitting
+  credentials, not Git's helper.
+- **PQ3 — KPI-to-concept link**: stored in the mapping document's root `SEMANTIC_WORKBENCH`
+  extension as KPI bindings, because standard concept mappings have no metric target and the
+  mapping schema allows extensions only at the root (research R12). The wizard writes the binding
+  there; the metric extension no longer has `concept`/`of`. Phase 3 reads bindings; Phase 6
+  writes them.
 
 ## Complexity Tracking
 
