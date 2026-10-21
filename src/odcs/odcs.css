@@ -49,15 +49,10 @@ button.odcs-link:hover{background:none;color:#14513b}button.odcs-link.fk:hover{b
 .odcs-sort:hover{background:none;color:#243936}.odcs-sort .idle{opacity:.35}
 .col-name code{font-weight:600;color:#243936;font-size:12px}
 .col-description{min-width:200px;color:#4f655f}
-.odcs-yes{font-weight:600;color:#1e6a4f}
 .odcs-tag{display:inline-block;font-style:normal;font-size:11px;background:#eef3f1;border-radius:4px;padding:0 6px;margin:0 4px 2px 0}
 .odcs-note{margin:0;font-size:12px;color:#5d736c}
 .odcs-depth{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#3a5a50}
 .odcs-depth select{font-size:13px;padding:4px 6px;border:1px solid #dbe3e4;border-radius:6px;background:#fff}
-.odcs-legend{display:flex;flex-wrap:wrap;gap:4px 12px;margin:0;padding:0;list-style:none;font-size:11px;color:#4d6660}
-.odcs-legend li{display:flex;align-items:center;gap:4px}
-.odcs-legend .fk-line::before,.odcs-legend .flow-line::before{content:'';width:18px;border-top:2px solid #7d9c91}
-.odcs-legend .fk-line::before{border-top-style:dashed;border-color:#b07a2a}
 .odcs-lineage{border:1px solid #dbe3e4;border-radius:10px;background:#fbfdfc;overflow:auto;max-height:min(62vh,640px);padding:14px;min-height:80px}
 .lineage-canvas{position:relative}
 .lineage-canvas>svg{position:absolute;inset:0;overflow:visible}
@@ -67,7 +62,6 @@ button.odcs-link:hover{background:none;color:#14513b}button.odcs-link.fk:hover{b
 .lineage-node span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .lineage-node.k-object{border-left-color:#2a6c95}.lineage-node.k-dataset{border-left-color:#1e6a4f}.lineage-node.k-field{border-left-color:#8aa79c}.lineage-node.k-metric{border-left-color:#8a5ad1}.lineage-node.k-kpi{border-left-color:#c2410c;background:#fff8f3}
 .lineage-node.center{background:#2a6c95;color:#fff;border-color:#2a6c95;font-weight:600}
-.odcs-legend .k-object svg{color:#2a6c95}.odcs-legend .k-dataset svg{color:#1e6a4f}.odcs-legend .k-field svg{color:#8aa79c}.odcs-legend .k-metric svg{color:#8a5ad1}.odcs-legend .k-kpi svg{color:#c2410c}
 .odcs-chip{display:inline-block;font-size:11px;background:#eef3f1;border-radius:4px;padding:0 5px;margin:0 4px 2px 0}
 .odcs-chip.metric{background:#f1ebfb;color:#5b3a94}
 .odcs-compare{display:flex;flex-wrap:wrap;gap:8px 16px}

@@ -101,7 +101,7 @@ export function createGit(options:GitOptions){
   async treeIds(cwd:string,rev:string,paths:string[]){const out=new Map<string,string>();for(const c of chunks(paths)){if(!c.length)continue;const r=await read(cwd,['ls-tree','-r','-z',rev,'--',...c],true);for(const e of r.stdout.split('\0').filter(Boolean)){const tab=e.indexOf('\t');out.set(e.slice(tab+1),e.slice(0,tab).split(' ')[2]);}}return out;},
   async changedBetween(cwd:string,from:string|null,to:string){const r=from?await read(cwd,['diff','--no-ext-diff','--name-only','-z',from,to]):await read(cwd,['ls-tree','-r','-z','--name-only',to]);return r.stdout.split('\0').filter(Boolean);},
   async log(cwd:string,path?:string,limit=50){
-   const r=await read(cwd,['log','-z',`-n${Math.max(1,Math.min(500,limit))}`,'--format=%H%x1f%an%x1f%aI%x1f%s',...(path?['--follow','--',path]:[])],true);
+   const r=await read(cwd,['log','-z',`-n${Math.max(1,Math.min(500,limit))}`,'--format=%H%x1f%an%x1f%aI%x1f%s',...(path?[...(path.endsWith('/')?[]:['--follow']),'--',path]:[])],true);
    if(r.code!==0)return [];
    return r.stdout.split('\0').filter(Boolean).map(rec=>{const [commit,author,date,message]=rec.replace(/^\n/,'').split('\x1f');return {commit,author,date,message};});
   },

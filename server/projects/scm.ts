@@ -2,7 +2,7 @@ import {existsSync,readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {GitError,redactCredentials,type Git,type StatusEntry} from './git';
 import {decode,sha256} from './atomic';
-import {assertNoLinks,projectDir,projectPath,type DataLayout} from './paths';
+import {assertNoLinks,projectPath,projectPrefix,repoDir,type DataLayout} from './paths';
 import {serializationOf} from './scanner';
 // Source Control for one project folder (Story 9, FR-059–FR-065, FR-091–FR-096): status with
 // hidden-file labels, diff texts, stage/unstage, commit, branches, remote actions, history and the
@@ -20,16 +20,22 @@ const REV=/^(HEAD|[0-9a-f]{7,64})$/;
 export type ScmDeps={layout:DataLayout;git:Git;gitAvailable:boolean;identityConfigured:boolean;drafts:(slug:string)=>string[];rescan:(slug:string)=>Promise<unknown>;emit:(event:string,data:unknown)=>void;project:(slug:string)=>unknown};
 export function createScm(deps:ScmDeps){
  const {layout,git}=deps;
- function dir(slug:string){deps.project(slug);if(!deps.gitAvailable)throw new GitError('Git is not available on this machine. Install Git 2.40 or newer and restart the workbench.');return projectDir(layout,slug);}
- const paths=(list:unknown)=>{if(!Array.isArray(list)||!list.length||list.length>5000)throw Error('Expected 1–5000 paths.');return list.map(p=>projectPath(String(p)));};
+ // Git runs in the project's repository (research R10), so the per-repository queue in git.ts keeps
+ // two projects of one repository from interleaving; project paths gain the project's prefix.
+ function dir(slug:string){deps.project(slug);if(!deps.gitAvailable)throw new GitError('Git is not available on this machine. Install Git 2.40 or newer and restart the workbench.');return repoDir(layout,slug);}
+ const prefix=(slug:string)=>projectPrefix(layout,slug);
+ const paths=(slug:string,list:unknown)=>{if(!Array.isArray(list)||!list.length||list.length>5000)throw Error('Expected 1–5000 paths.');const pre=prefix(slug);return list.map(p=>pre+projectPath(String(p)));};
+ // Repository paths inside the project, relative to it; others stay repository-relative and are
+ // marked `outside` (the whole repository's changes are shown, FR-069).
+ const fromRepo=(slug:string,path:string)=>{const pre=prefix(slug);return !pre?{path}:path.startsWith(pre)?{path:path.slice(pre.length)}:{path,outside:true};};
  async function status(slug:string){
   if(!deps.gitAvailable)return {branch:'',upstream:'',ahead:0,behind:0,gitAvailable:false,identityConfigured:false,merging:false,remotes:{},changes:[]};
   const d=dir(slug),s=await git.status(d),merging=await git.merging(d);
-  const changes=s.entries.map(e=>({...e,hidden:serializationOf(e.path)==='unsupported',...(serializationOf(e.path)==='unsupported'?{label:HIDDEN_LABEL}:{})}));
+  const changes=s.entries.map(e=>({...e,...fromRepo(slug,e.path),hidden:serializationOf(e.path)==='unsupported',...(serializationOf(e.path)==='unsupported'?{label:HIDDEN_LABEL}:{})}));
   return {branch:s.branch,upstream:s.upstream,ahead:s.ahead,behind:s.behind,gitAvailable:true,identityConfigured:deps.identityConfigured,merging,remotes:Object.fromEntries([...await git.remotes(d)].map(([n,u])=>[n,redactCredentials(u)])),changes};
  }
  async function after(slug:string,altered:string[]=[]){
-  await deps.rescan(slug);const s=await git.status(projectDir(layout,slug));
+  await deps.rescan(slug);const s=await git.status(repoDir(layout,slug));
   deps.emit('git',{project:slug,branch:s.branch,ahead:s.ahead,behind:s.behind,changes:s.changes,altered});
   return s;
  }
@@ -82,11 +88,11 @@ export function createScm(deps:ScmDeps){
  return {
   status,
   async diff(slug:string,path:string,from='HEAD',to='worktree'){
-   const d=dir(slug),p=projectPath(path),[a,b]=await Promise.all([content(d,from,p),content(d,to,p)]),before=asText(a),after=asText(b);
+   const d=dir(slug),p=projectPath(path),[a,b]=await Promise.all([content(d,from,prefix(slug)+p),content(d,to,prefix(slug)+p)]),before=asText(a),after=asText(b);
    return {path:p,from,to,before:before.text,after:after.text,binary:before.binary||after.binary,beforeExists:!!a,afterExists:!!b};
   },
-  async stage(slug:string,list:unknown){const d=dir(slug);await git.stage(d,paths(list));await after(slug);return status(slug);},
-  async unstage(slug:string,list:unknown){const d=dir(slug);await git.unstage(d,paths(list));await after(slug);return status(slug);},
+  async stage(slug:string,list:unknown){const d=dir(slug);await git.stage(d,paths(slug,list));await after(slug);return status(slug);},
+  async unstage(slug:string,list:unknown){const d=dir(slug);await git.unstage(d,paths(slug,list));await after(slug);return status(slug);},
   async stageAll(slug:string,stage:boolean){const d=dir(slug),s=await git.status(d),list=s.entries.filter(e=>stage?e.worktree!=='.':e.index!=='.'&&!e.untracked).map(e=>e.path);if(list.length)await (stage?git.stage(d,list):git.unstage(d,list));await after(slug);return status(slug);},
   async commit(slug:string,message:unknown){
    if(typeof message!=='string'||!message.trim())throw new GitError('A commit message is required.');
@@ -135,16 +141,16 @@ export function createScm(deps:ScmDeps){
   push:(slug:string)=>remoteAction(slug,'push'),
   sync:(slug:string)=>remoteAction(slug,'sync'),
   cancel:(slug:string)=>({cancelled:git.cancel(dir(slug))}),
-  log:(slug:string,path?:string,limit?:number)=>git.log(dir(slug),path===undefined?undefined:projectPath(path),limit),
+  log:(slug:string,path?:string,limit?:number)=>git.log(dir(slug),path===undefined?(prefix(slug)||undefined):prefix(slug)+projectPath(path),limit),
   async show(slug:string,commit:string,path:string){
    if(!REV.test(commit))throw Error('commit must be a commit id.');
-   const bytes=await git.blob(dir(slug),commit,projectPath(path));if(!bytes)return {source:'',exists:false};
+   const bytes=await git.blob(dir(slug),commit,prefix(slug)+projectPath(path));if(!bytes)return {source:'',exists:false};
    return {source:decode(bytes),exists:true,hash:sha256(bytes)};
   },
   // A file's committed versions, newest first, with their text (ODCS History, FR-057). Binary or
   // missing versions are skipped.
   async versions(slug:string,path:string,limit=20){
-   const d=dir(slug),p=projectPath(path),log=await git.log(d,p,Math.max(1,Math.min(50,limit)));
+   const d=dir(slug),p=prefix(slug)+projectPath(path),log=await git.log(d,p,Math.max(1,Math.min(50,limit)));
    const out:{commit:string;author:string;date:string;message:string;source:string}[]=[];
    for(const c of log){const bytes=await git.blob(d,c.commit,p);if(!bytes)continue;try{out.push({...c,source:decode(bytes)});}catch{}}
    return out;

@@ -2,6 +2,7 @@ import React,{useDeferredValue,useMemo,useState} from 'react';
 import {FileCheck2,Search,Table2} from 'lucide-react';
 import {odcsForeignKeys} from '../odcs';
 import {flattenProperties} from './odcs-diff';
+import {Badge} from '../PropertyBadges';
 import './odcs.css';
 // ODCS contract overview (FR-056): identity and status, the contract-level sections that are present
 // (servers, team and roles, service levels, quality, support, pricing, custom properties) and a
@@ -53,7 +54,7 @@ export function ContractOverview({data,onOpen}:{data:any;onOpen:(name:string)=>v
     <tbody>{shown.map(f=><tr key={f.index}>
      <td><button className="odcs-link" aria-label={`Open ${f.name}`} onClick={()=>onOpen(f.name)}>{f.name}</button></td>
      <td className="nowrap"><code>{f.physicalName}</code></td><td className="nowrap">{f.type}</td><td className="num">{f.properties}</td>
-     <td className="nowrap">{[f.pk&&`${f.pk} PK`,f.fk&&`${f.fk} FK`].filter(Boolean).join(' · ')||<span className="muted">—</span>}</td>
+     <td className="nowrap">{f.pk||f.fk?<span className="prop-badges">{f.pk>0&&<Badge kind="pk" title={`${f.pk} primary key ${f.pk===1?'property':'properties'}`}>{f.pk} PK</Badge>}{f.fk>0&&<Badge kind="fk" title={`${f.fk} foreign ${f.fk===1?'key':'keys'}`}>{f.fk} FK</Badge>}</span>:<span className="muted">—</span>}</td>
      <td className="num">{f.rules||<span className="muted">0</span>}</td><td className="odcs-desc">{f.description}</td>
     </tr>)}</tbody>
    </table></div>

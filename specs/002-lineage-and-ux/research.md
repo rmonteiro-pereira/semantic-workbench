@@ -326,3 +326,40 @@ give the same visual language the owner asked for.
 per-document and runs on the main thread for every view); a new server endpoint (rejected: the
 agent context already carries everything except two additive fields).
 
+## R16. Implementation decisions taken in Phases 1–2 (setup and foundations)
+
+- **Branch.** `002-lineage-and-ux` on the remote still pointed at the last v0.2.0 commit; the
+  002 specification commits were on `main`, strictly ahead of it. The branch was fast-forwarded to
+  `main` before any work (no merge, no rewrite).
+- **Isolated dev server.** Browser checks route `/api` to their own isolated API; the dev server
+  used for them runs with `DATA_DIR` on a temporary root, so no check or manual look opens the
+  owner's `data/`.
+- **SQL fixtures** (T002) are complete, valid documents (the app validates them), so the broken
+  `CASE` line sits further down than in the spec's snippet; the tests record the hand-computed
+  position in the fixture as committed. The DAX case is its own Ossie fixture (`dax.ossie.yaml`);
+  the ODCS fixture declares a PostgreSQL server so its dialect is resolved from `servers[].type`.
+- **Foreign keys column to column** (T007): `fromColumns`/`toColumns` are property paths
+  (`parent.child` for nested targets); fully qualified references resolve property ids to names.
+  Unequal composite arity was not reported by anything before (the pinned ODCS schema only checks
+  types; its description says "matching lengths"), so it is now a reference finding at the `to`
+  pointer and the key pairs no columns. External references are listed by
+  `odcsExternalForeignKeys` for lineage stubs; `odcsForeignKeys` is unchanged for them.
+- **Shared legend and badges** (T008, T009): `LineageLegend` and `edge-styles.ts` hold the line
+  styles of every lineage and mapping edge kind; the Properties table's Required/Unique/Primary key
+  cells and the overview's PK/FK counts render the same `PropertyBadges` (the cell text is the
+  badge label instead of "Yes").
+- **Walk steps** (T010): `canvasAt(walk)` gives the current canvas (last re-centering step and the
+  expansion sets after it), so Back/Forward restore expansions exactly.
+- **Repository key** (T011): the workspace sets `layout.locate`, which resolves a slug through the
+  registry; Source Control runs Git in `repoDir` (so the per-directory Git queue is per
+  repository) and prefixes project paths with the project's folder inside the repository. Status
+  entries outside the project folder are kept and marked `outside` (FR-069 shows the whole
+  repository); `git log` of a folder omits `--follow`.
+- **Dialog conventions** (T012): `Modal` gains `size` (small/medium/large/full) and a `footer`
+  slot that stays visible while the body scrolls, and states `aria-modal`. Its test runs the real
+  component in Chromium from `bun test` (Playwright, bundled with `Bun.build`), since Escape and
+  focus return on a native `<dialog>` are browser behaviour.
+- **ODCS check race** (found while gating): `odcs-browser-check.ts` changed the logical type right
+  after the description's bytes appeared on disk, sometimes before the page had the save's new
+  hash, so the next save was correctly refused as stale (about one run in three). The check now
+  waits for the "Saved description of amount" status first; no assertion was removed.

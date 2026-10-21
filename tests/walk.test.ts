@@ -20,3 +20,23 @@ test('jump and reset; the trail is bounded',()=>{
  expect(run(w,{type:'reset',step:step('z')}).steps.map(s=>s.center)).toEqual(['z']);expect(run(w,{type:'reset'})).toEqual(emptyWalk);
  for(let i=0;i<MAX_STEPS+20;i++)w=walkReducer(w,{type:'push',step:step('s'+i)});expect(w.steps).toHaveLength(MAX_STEPS);expect(w.index).toBe(MAX_STEPS-1);
 });
+// v0.3.0: expansion steps (data-model WalkStep); steps without `kind` stay re-centering steps.
+import{canvasAt}from'../src/graph/walk';
+const expand=(center:string,set:string,name=set)=>({doc:'d',center,name,kind:'expand' as const,set});
+test('expansion steps keep the center and are pushed even when the center repeats',()=>{
+ let w=run(emptyWalk,{type:'push',step:step('a')},{type:'push',step:expand('a','s1','b')},{type:'push',step:expand('a','s2','c')});
+ expect(w.steps.map(s=>s.kind??'center')).toEqual(['center','expand','expand']);
+ expect(canvasAt(w)).toEqual({center:step('a'),sets:['s1','s2']});
+ expect(run(w,{type:'push',step:expand('a','s2','c')})).toBe(w);
+ w=run(w,{type:'back'});expect(canvasAt(w).sets).toEqual(['s1']);
+ w=run(w,{type:'back'});expect(canvasAt(w)).toEqual({center:step('a'),sets:[]});
+ w=run(w,{type:'forward'},{type:'forward'});expect(canvasAt(w).sets).toEqual(['s1','s2']);
+});
+test('re-centering starts a new canvas; v0.2.0 steps without kind still dedupe',()=>{
+ let w=run(emptyWalk,{type:'push',step:step('a')},{type:'push',step:expand('a','s1')},{type:'push',step:step('b')});
+ expect(canvasAt(w)).toEqual({center:step('b'),sets:[]});
+ expect(run(w,{type:'push',step:step('b')})).toBe(w);
+ w=run(w,{type:'back'});expect(canvasAt(w)).toEqual({center:step('a'),sets:['s1']});
+ expect(canvasAt(emptyWalk)).toEqual({center:undefined,sets:[]});
+ const legacy:Walk={steps:[{doc:'d',center:'x',name:'x'}],index:0};expect(canvasAt(legacy).center?.center).toBe('x');
+});
