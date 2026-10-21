@@ -606,3 +606,35 @@ agent context already carries everything except two additive fields).
 - **Gate note.** The first browser runs after the new dependencies were added failed in
   `test:graph` and `test:odcs` while the dev server re-optimized dependencies (page reloads mid
   check); with the dependency cache warm, both pass repeatedly, unchanged.
+
+## R23. Implementation decisions taken in Phase 9 (calmer main screen, dialogs)
+
+- **Drawer names.** The contract names the desktop toggle (`Hide sidebar` / `Show sidebar`) and
+  the drawer's close button; below 1100 px the header button keeps its v0.2.0 names (`Open
+  workspace` / `Close workspace`) because it opens and closes the drawer there.
+- **Examples.** Collapsed by default once projects exist; the user's toggle is kept for the
+  session, and loading an example from the open group keeps it open (so a second example is one
+  click away).
+- **Import.** The Import dialog chooses the destination; it opens the one file field of the page
+  (kept outside the dialog, so the page still has exactly one file input). Name conflicts and
+  repairs keep their own dialogs. The tree's "Import files into this project" opens the same
+  dialog with that project chosen.
+- **Validation.** Findings are no longer shown inline above the canvas; the Save state indicator
+  (and the status bar's Validation details) opens the dialog. The canvas keeps its "Repair in
+  Source" message for a file that cannot be shown.
+- **Dialogs.** The native modal dialog makes the page inert but lets Tab leave for the browser's
+  own controls; Modal now cycles Tab inside, and Escape stops at the dialog, so a dialog opened
+  from the drawer closes without closing the drawer.
+- **Toolbars.** With the 300 px sidebar the Graph toolbar would wrap at 1280×720 and cost the
+  canvas a row; on desktop it stays one row and scrolls sideways with the edge fade used on
+  smaller screens; the lineage search shrinks before the toolbar wraps.
+- **Test changes required by the spec (FR-060–FR-062).** Checks that clicked `Close workspace` on
+  desktop now use `Hide sidebar` / `Show sidebar` (responsive-ui-tests); checks that clicked
+  `Load …` with projects present open the Examples group first (helper
+  scripts/helpers/examples.ts); `Export` is reached through `More actions` and `Add item` through
+  `New` (helper scripts/helpers/header.ts); inline validation findings are read in the Validation
+  details dialog opened from Save state (ui-tests, grouping-validation, examples-ui); grouping
+  suggestions are read in their dialog (trash-browser-check); the project row's accessible name is
+  the project name as the contract says (projects-browser-check, previously "Shop, 3 files"); a
+  long file name at 390 px wraps to two lines with its title instead of ellipsizing on one line
+  (trash-browser-check). Each check keeps its behaviour; only how the control is reached changed.

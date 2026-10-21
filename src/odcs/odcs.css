@@ -90,7 +90,7 @@ textarea.odcs-edit.text{min-width:200px;line-height:1.4;font-family:inherit;resi
 .lineage-toolbar{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid #e3eaea;flex-wrap:wrap;background:#fff}
 .lineage-toolbar button{height:34px;min-width:34px;display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:6px 9px;border:1px solid #d6e1df;border-radius:7px;background:#fff;cursor:pointer}
 .lineage-toolbar-spacer{flex:1}
-.lineage-search{box-sizing:border-box;height:34px;position:relative;display:flex;align-items:center;gap:6px;border:1px solid #d6e1df;border-radius:7px;padding:0 8px;background:#fff;min-width:0;flex:0 1 300px}
+.lineage-search{box-sizing:border-box;height:34px;position:relative;display:flex;align-items:center;gap:6px;border:1px solid #d6e1df;border-radius:7px;padding:0 8px;background:#fff;min-width:0;flex:1 1 150px;max-width:300px}
 .lineage-search input{border:0;outline:0;font-size:13px;padding:7px 0;min-width:0;flex:1;background:transparent}
 .lineage-search ul{position:absolute;z-index:20;top:calc(100% + 4px);left:0;right:0;margin:0;padding:4px;list-style:none;background:#fff;border:1px solid #d6e1df;border-radius:8px;box-shadow:0 12px 32px #17323a24;max-height:320px;overflow:auto}
 .lineage-search li{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:12px}

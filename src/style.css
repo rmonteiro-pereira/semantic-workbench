@@ -499,9 +499,9 @@ dialog.validation-backdrop:not([open]) { display: none; }
 
 
 /* Viewport-sized workbench: keep model controls compact and the canvas flexible. */
-.shell { width: 100%; height: 100dvh; min-height: 0; overflow: hidden; }
+.shell { position: relative; width: 100%; height: 100dvh; min-height: 0; overflow: hidden; }
 .shell > main { position: relative; height: 100%; min-height: 0; overflow: hidden; }
-.workspace-sidebar { width: 245px; padding: 18px 14px; overflow-y: auto; overscroll-behavior: contain; }
+.workspace-sidebar { width: var(--sidebar-width, 300px); padding: 18px 14px; overflow-y: auto; overscroll-behavior: contain; }
 .workspace-closed > .workspace-sidebar { display: none; }
 .workspace-sidebar .brand { padding-right: 24px; position: relative; }
 .workspace-close { position: absolute; right: 10px; top: 15px; padding: 5px; z-index: 2; background: white; }
@@ -667,7 +667,7 @@ button.danger{background:#a3392f;color:white;border-color:#a3392f}button.danger:
 .trash-list{list-style:none;padding:0;margin:0}.trash-list li{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #eef2f1;flex-wrap:wrap}
 .trash-list li div{display:flex;flex-direction:column;min-width:0;font-size:12px;overflow-wrap:anywhere}.trash-list small{color:#7d9188}.trash-list li>span{display:flex;gap:6px;flex-wrap:wrap}.trash-list button{font-size:11px;padding:6px 9px}
 .trash-confirm{font-size:12px;align-items:center}
-.suggestions{flex-shrink:0;max-height:220px;overflow:auto}.suggestion{font-size:11px;border:1px solid #dfe9e4;border-radius:7px;padding:8px;margin:4px 0;background:#f7fbf9}
+.suggestion{font-size:11px;border:1px solid #dfe9e4;border-radius:7px;padding:8px;margin:4px 0;background:#f7fbf9}
 .suggestion p{margin:0 0 4px;overflow-wrap:anywhere}.suggestion ul{margin:0 0 6px;padding-left:16px;color:#5d7268;overflow-wrap:anywhere}.suggestion span{display:flex;gap:6px}.suggestion button{font-size:11px;padding:5px 8px}
 /* KPI nodes and KPI badges in the graphs and the catalog (Metrics feature). */
 .full-entity.kpi-node{border-color:#e3d6a4;background:#fffdf4}.full-entity .kpi-kind{position:absolute;top:5px;left:17px;display:flex;gap:3px;align-items:center;font:700 9px system-ui,sans-serif;letter-spacing:.6px;color:#8a6d12}.full-entity.kpi-node strong{margin-top:9px}.full-entity .node-kpi-badge{position:absolute;top:-9px;right:8px}
@@ -798,10 +798,6 @@ main > .status { position: static; flex: 0 0 auto; width: auto; max-width: none;
 .workspace-sidebar .local { margin-top: 6px; }
 .project-toggle { gap: 3px; padding-inline: 3px; }
 .project-toggle svg, .project-toggle small { flex-shrink: 0; }
-.suggestions { flex-shrink: 0; font-size: 10px; margin: 4px 0; }
-.suggestions > summary { cursor: pointer; white-space: nowrap; }
-.suggestions[open] { max-height: 180px; overflow: auto; }
-.suggestion li { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .walk-trail { max-width: 100%; }
 .walk-trail > button, .walk-trail li { flex-shrink: 0; }
 .walk-trail ol { flex: 1 1 0; }
@@ -839,3 +835,112 @@ main > .status { position: static; flex: 0 0 auto; width: auto; max-width: none;
 .pierce-direction button[aria-checked=true]{background:#e4efeb;font-weight:600}
 .pierce-banner{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:6px 12px;background:#f3f8f6;border-bottom:1px solid #dfe9e6;font-size:12px;color:#2f4b44}
 .pierce-banner button{font-size:12px;padding:4px 9px;border:1px solid #cfdcd8;border-radius:6px;background:#fff;cursor:pointer}
+
+/* Resizable desktop sidebar and two-line tree names (FR-061–FR-062). */
+.sidebar-separator { position: absolute; left: calc(var(--sidebar-width) - 4px); top: 0; bottom: 0; width: 8px; z-index: 40; cursor: col-resize; touch-action: none; }
+.sidebar-separator::after { content: ''; position: absolute; inset: 0 3px; background: transparent; }
+.sidebar-separator:hover::after, .sidebar-separator:focus-visible::after, .sidebar-resizing .sidebar-separator::after { background: #2f8a6c; }
+.sidebar-separator:focus-visible { outline: 2px solid #2f8a6c; outline-offset: -2px; }
+.sidebar-resizing, .sidebar-resizing * { user-select: none; cursor: col-resize !important; }
+.project-tree .tree-row { align-items: flex-start; }
+.project-tree .project-toggle, .project-tree .document { align-items: flex-start; }
+.project-tree .tree-row > .document span, .project-tree .project-toggle span { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; white-space: normal; text-overflow: clip; line-height: 16px; text-align: left; }
+.project-tree .row-action, .project-tree .item-menu { margin-top: 2px; }
+.examples { flex-shrink: 0; margin: 8px 0; }
+.examples > summary { cursor: pointer; padding: 7px; font-size: 12px; font-weight: 650; color: #28463d; }
+.examples > summary:focus-visible { outline: 2px solid #2f8a6c; outline-offset: -2px; border-radius: 6px; }
+.workspace-sidebar .examples .scale-example { width: 100%; }
+.workspace-sidebar .examples .scale-example > span { white-space: normal; overflow-wrap: anywhere; }
+.workspace-sidebar .examples .scale-example > svg { flex-shrink: 0; }
+@media (min-width: 1100px) {
+  .workspace-sidebar .brand { padding-right: 0; }
+}
+/* v0.3.0: with the wider sidebar (300 px default) the Graph toolbar stays one row on desktop and
+   scrolls sideways, with the same edge fade as on smaller screens, instead of wrapping. */
+@media (min-width: 1101px) {
+  .full-graph-tools { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-width: thin; scroll-padding-inline: 18px; gap: 5px;
+    mask-image: linear-gradient(to right, transparent, #000 var(--fade-start, 0px), #000 calc(100% - var(--fade-end, 0px)), transparent); }
+  .full-graph-tools > * { flex-shrink: 0; }
+}
+@media (min-width: 1101px) and (max-width: 1400px) {
+  .full-graph-tools select { max-width: 132px; }
+  .full-graph-tools button { padding: 6px 7px; }
+}
+
+/* v0.3.0 dialogs and menus (FR-060, Appendix B). */
+.import-input { display: none; }
+button.import { background: transparent; width: 100%; align-items: center; color: #28463d; }
+.menu-button { position: relative; display: inline-flex; }
+.menu-popup { position: absolute; top: calc(100% + 6px); z-index: 60; width: max-content; min-width: min(230px, calc(100vw - 24px)); max-width: min(340px, calc(100vw - 24px)); max-height: calc(100dvh - 120px); overflow: auto; padding: 5px; background: #fff; border: 1px solid #d6e1df; border-radius: 9px; box-shadow: 0 14px 36px #17323a2e; display: grid; gap: 2px; }
+.menu-popup.align-end { right: 0; }
+.menu-popup.align-start { left: 0; }
+.menu-popup [role=menuitem] { display: flex; align-items: flex-start; gap: 8px; width: 100%; text-align: left; border: 0; background: transparent; padding: 8px 10px; border-radius: 6px; font-size: 13px; color: #243936; cursor: pointer; }
+.menu-popup [role=menuitem] > span { display: grid; gap: 2px; min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+.menu-popup [role=menuitem] > svg { flex: none; margin-top: 2px; }
+.menu-popup [role=menuitem] small { font-size: 11px; color: #7a8c86; white-space: normal; }
+.menu-popup [role=menuitem]:hover:not([aria-disabled=true]), .menu-popup [role=menuitem]:focus-visible { background: #eef5f2; outline: none; }
+.menu-popup [role=menuitem][aria-disabled=true] { color: #9aaaa4; cursor: default; }
+.validation-banner { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0 16px 8px; padding: 8px 12px; border: 1px solid #f0c9c3; background: #fdf3f1; color: #8a2f25; border-radius: 8px; font-size: 12.5px; }
+.validation-banner button { font-size: 12px; padding: 4px 10px; }
+.view-definition { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 12px; }
+.definition-json { margin: 0; max-height: 60vh; overflow: auto; font-size: 12px; background: #f6f9f8; border: 1px solid #e1e9e6; border-radius: 8px; padding: 10px 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.suggestions-count { display: flex; align-items: center; gap: 7px; width: 100%; margin: 6px 0; padding: 7px 9px; font-size: 12px; color: #6a4b12; background: #fbf6ea; border: 1px solid #ecdcb5; border-radius: 7px; text-align: left; }
+.suggestions-dialog .suggestion { border: 1px solid #e3eaea; border-radius: 8px; padding: 10px 12px; margin-top: 10px; }
+.suggestions-dialog .suggestion p { margin: 0 0 6px; overflow-wrap: anywhere; }
+.suggestions-dialog .suggestion ul { margin: 0 0 8px; padding-left: 18px; font-size: 12px; color: #4f6560; }
+.suggestions-dialog .suggestion li { overflow-wrap: anywhere; white-space: normal; overflow: visible; text-overflow: clip; }
+.suggestions-dialog .suggestion > span { display: flex; gap: 8px; flex-wrap: wrap; }
+.import-dialog fieldset.import-target { border: 0; padding: 0; margin: 12px 0 0; display: grid; gap: 8px; }
+.import-dialog legend { font-size: 12px; font-weight: 650; color: #28463d; margin-bottom: 6px; }
+.import-dialog label.radio { display: flex; flex-direction: row; align-items: flex-start; gap: 10px; margin: 0; padding: 12px; border: 1px solid #e1e9e6; border-radius: 8px; cursor: pointer; }
+.import-dialog label.radio input { flex: none; width: 15px; height: 15px; margin: 2px 0 0; padding: 0; accent-color: #247c66; }
+.import-dialog label.radio:has(input:checked) { background: #edf7f2; border-color: #247c66; }
+.import-dialog label.radio:focus-within { outline: 2px solid #247c66; outline-offset: 2px; }
+.import-dialog label.radio:has(input:disabled) { opacity: .55; cursor: default; }
+.import-dialog label.radio span { display: grid; gap: 2px; }
+.import-dialog label.radio small { color: #6f8881; font-size: 12px; }
+.import-dialog .import-project { display: flex; flex-direction: row; align-items: center; gap: 8px; }
+.import-dialog .import-project select { flex: 1; min-width: 0; }
+
+/* T072: let status yield space to the title; keep controls in their reading order. */
+.workspace-header { min-height: 58px; gap: 10px; }
+.workspace-title { flex: 1 1 360px; flex-wrap: nowrap; gap: 8px; }
+.header-actions { flex: 0 1 auto; min-width: 0; align-items: center; }
+.header-actions > button, .header-actions > .menu-button { flex-shrink: 0; }
+.header-actions > button, .header-actions > .menu-button > button { height: 36px; }
+.header-actions .save-state { flex: 0 1 auto; min-width: 90px; max-width: 260px; }
+.workbench-dialog { max-height: min(88dvh, calc(100dvh - 48px)); }
+.workbench-dialog .dialog-body { overflow-wrap: anywhere; }
+.workbench-dialog .dialog-footer { color: #243936; }
+.workbench-dialog .repair-actions { gap: 8px; }
+.workbench-dialog .dialog-footer button,
+.workbench-dialog .repair-actions button,
+.suggestions-dialog .suggestion button {
+  min-height: 36px; padding: 7px 12px; font-size: 13px; line-height: 20px;
+  white-space: nowrap; gap: 6px;
+}
+.workbench-dialog .dialog-footer button:not(.primary):not(.danger),
+.workbench-dialog .repair-actions button:not(.primary):not(.danger),
+.suggestions-dialog .suggestion button:not(.primary):not(.danger) { color: #28463d; border-color: #baccc5; }
+.workbench-dialog .dialog-footer button svg,
+.suggestions-dialog .suggestion button svg { flex: none; }
+.definition-json { max-height: min(60dvh, calc(100dvh - 200px)); }
+@media (min-width: 700px) and (max-width: 1366px) {
+  .header-actions .save-state { max-width: 180px; }
+}
+@media (max-width: 699px) {
+  .workspace-header { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; align-items: center; padding: 7px 9px; gap: 6px; }
+  .workspace-title h1 { font-size: 14px; }
+  .header-actions { grid-column: auto; justify-content: flex-end; gap: 4px; }
+  .header-actions > button, .header-actions > .menu-button > button { height: 34px; min-width: 34px; padding: 0 8px; }
+  .header-actions .action-label { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .header-actions .save-state { min-width: 34px; }
+  .workbench-dialog { max-height: calc(100dvh - 20px); }
+  .workbench-dialog.has-footer > h2 { padding: 16px 16px 0; }
+  .workbench-dialog.has-footer > .dialog-body { padding: 0 16px 12px; }
+  .workbench-dialog > .dialog-footer { padding: 12px 16px; }
+  .workbench-dialog .dialog-footer button { flex: 1 0 auto; padding-inline: 8px; }
+}
+/* Phones: the title needs the room more than the kind badge (the kind is in the details panel and
+   the Source tab). */
+@media (max-width: 480px) { .workspace-title .badge { display: none; } }
