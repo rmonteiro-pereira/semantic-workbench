@@ -1,3 +1,4 @@
+// Checks item editing and dependent changes in an isolated browser workspace.
 import { chromium, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { parse } from 'yaml';
@@ -5,10 +6,8 @@ import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { projectDir, projectFile } from '../server/projects/paths';
 import { editorValue, fillEditor } from './helpers/code-editor';
 import { newItem } from './helpers/header';
-// Phase 6 browser check (T107; SC-002, SC-010 YAML/JSON): click-to-edit from the catalog, the graph
-// inspector and the Metrics view; Fields and Source; add and delete with dependents; rename
-// references; the metric wizard; status rules. After each save `git diff` is limited to the item.
-// Isolated data root; screenshots in /tmp/workbench-item-*.png.
+// Each saved item edit must limit the Git diff to that item and its dependent changes. Screenshots
+// use /tmp/workbench-item-*.png.
 const api = await startIsolatedApi();
 const commerce = await api.ws.loadExample('commerce');
 const mall = await api.ws.loadExample('mall');
@@ -288,7 +287,8 @@ try {
       await d.getByRole('textbox', { name: 'Name', exact: true }).fill('LineItem');
       const refs = d.getByRole('region', { name: 'References to the old name' });
       await expect(refs).toContainText('reference');
-      // Unticked, the relationship that names OrderLine no longer resolves: the finding blocks Save.
+      // Unticked, the relationship that names OrderLine no longer resolves: the finding blocks
+      // Save.
       await expect(d.getByLabel('Findings')).toContainText('OrderLine', { timeout: 5000 });
       await expect(d.getByRole('button', { name: 'Save to file', exact: true })).toBeDisabled();
       const boxes = refs.getByRole('checkbox');

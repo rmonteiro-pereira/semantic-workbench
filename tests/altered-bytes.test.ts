@@ -1,8 +1,9 @@
+// Tests reporting file bytes changed by Git hooks and filters.
 import { test, expect } from 'bun:test';
 import { chmodSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { call, ok, ontology, scmProject, sh } from './helpers/scm';
-// FR-096: hooks and filters run; afterwards the files whose bytes were changed are reported.
+
 test('a pre-commit hook that rewrites a staged file is reported after the commit', async () => {
   const p = await scmProject({ remote: false });
   try {

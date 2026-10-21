@@ -1,3 +1,4 @@
+// Tests resource identifiers and namespace resolution.
 import { test, expect } from 'bun:test';
 import { parse, stringify } from 'yaml';
 import { validateInput } from '../src/input';

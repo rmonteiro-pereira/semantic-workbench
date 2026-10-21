@@ -1,3 +1,4 @@
+// Tests metric endpoints and compatibility with their older aliases.
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -5,8 +6,8 @@ import { parse } from 'yaml';
 import { sha256 } from '../server/projects/atomic';
 import { extensionOf } from '../src/edit/item-model';
 import { testWorkspace } from './helpers/temp-data-dir';
-// Metrics endpoints (T050; FR-016, FR-017): GET lists every metric with `governed`; POST
-// `metrics` and `metrics/preview` behave exactly like the v0.2.0 `kpis` aliases.
+// Metrics endpoints: GET lists every metric with `governed`; POST `metrics` and `metrics/preview`
+// behave exactly like the `kpis` aliases.
 const api = (
   t: { handler: (r: Request) => Promise<Response> },
   method: string,
@@ -117,7 +118,7 @@ test('Add attributes: an existing metric without attributes gains only its exten
     while (a[p] === b[p]) p++;
     let s = 0;
     while (s < a.length - p && s < b.length - p && a[a.length - 1 - s] === b[b.length - 1 - s]) s++;
-    expect(a.length - p - s).toBe(0); // only added lines
+    expect(a.length - p - s).toBe(0); // Only added lines.
     const metric = parse(after).metrics.find((m: any) => m.name === target.name);
     expect(extensionOf(metric)!.value.owner).toBe('Sales');
     expect(parse(after).metrics.find((m: any) => m.name === target.name).expression).toEqual(
@@ -128,7 +129,7 @@ test('Add attributes: an existing metric without attributes gains only its exten
         (m: any) => m.name === target.name,
       ).governed,
     ).toBe(true);
-    // a second Add attributes is refused
+    // A second Add attributes is refused.
     const again = await api(t, 'POST', `/api/projects/${slug}/metrics`, {
       semanticPath: 'sales.ossie.yaml',
       existing: true,

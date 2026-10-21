@@ -1,3 +1,4 @@
+// Tests Git action refusals when workspace changes would be lost.
 import { test, expect } from 'bun:test';
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';

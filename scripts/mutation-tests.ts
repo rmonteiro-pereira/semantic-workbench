@@ -1,9 +1,10 @@
+// Introduces faults into temporary source copies and checks that the test suite detects them.
 import { mkdtemp, rm, symlink } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 const root = process.cwd();
 const temp = await mkdtemp('/tmp/workbench-mutations-');
-// Candidate modules live outside the project; give their bare package imports
-// the same dependency tree as the real sources, without relying on Bun caches.
+// Candidate modules live outside the project; give their bare package imports the same dependency
+// tree as the real sources, without relying on Bun caches.
 await symlink(resolve(root, 'node_modules'), resolve(temp, 'node_modules'), 'dir');
 const mutants: [string, string, string, string][] = [
   ['agent', 'server/agent/runtime.ts', 'physical.parentheses = true', 'physical.parentheses=false'],
@@ -545,7 +546,7 @@ try {
     throw Error('Invalid UI mutant: ' + output + error);
   killed++;
   console.log('KILLED UI: empty neighborhood node projection');
-  // Layout mutants (T161): each must fail the responsive checks that guard it.
+  // Layout mutants: each must fail the responsive checks that guard it.
   for (const [mutation, only, label] of [
     ['overlay', 'overlaps: Graph', 'status line drawn over the mini-map and zoom controls'],
     ['status-stays', 'status messages', 'status messages never dismiss'],

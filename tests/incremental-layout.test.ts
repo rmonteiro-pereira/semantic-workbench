@@ -1,6 +1,7 @@
+// Tests placement of new graph nodes without moving existing nodes.
 import { test, expect } from 'bun:test';
 import { placeNew, placeLayers, placeBoxes } from '../src/graph/incremental-layout';
-// Incremental placement (T040; SC-011).
+
 const g = { column: 360, row: 130 };
 test('placed nodes never move; new nodes go beside their origin, left for incoming and right for outgoing', () => {
   const before = new Map([
@@ -19,7 +20,7 @@ test('placed nodes never move; new nodes go beside their origin, left for incomi
   );
   for (const [id, p] of before) expect(after.get(id)).toEqual(p);
   expect(after.get('X')).toEqual({ x: 720, y: 0 });
-  // left of A is the centre's column, occupied at row 0: the nearest free row
+  // Left of A is the centre's column, occupied at row 0: the nearest free row.
   expect(after.get('P')!.x).toBe(0);
   expect(after.get('P')!.y).toBe(130);
   expect(before.has('X')).toBe(false);

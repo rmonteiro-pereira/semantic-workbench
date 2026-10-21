@@ -1,10 +1,11 @@
+// Checks project navigation, external changes and stale saves in an isolated browser workspace.
 import { chromium, expect } from '@playwright/test';
 import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expectEditorValue, fillEditor } from './helpers/code-editor';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
-// Phase 1 browser check (T035; SC-015, SC-017): project tree, live refresh after external edits,
-// two-tab stale save, cache deletion and restart. Runs against an isolated temporary data root.
+// Browser check: project tree, live refresh after external edits, two-tab stale save, cache
+// deletion and restart. Runs against an isolated temporary data root.
 const api = await startIsolatedApi();
 const shop =
   '# shop ontology\nname: Shop\nontology:\n  - concept: Customer\n    type: EntityType\n    description: A buyer.\n';
@@ -68,22 +69,19 @@ try {
     await a.locator('.tabs').getByRole('button', { name: 'Source', exact: true }).click();
     await expectEditorValue(sourceText(a), 'name: [unclosed');
   });
-  await check(
-    'an external edit appears in the open tab within 2 s without a reload (SC-017)',
-    async () => {
-      await fileButton(a, 'shop.yaml').click();
-      await expectEditorValue(sourceText(a), shop);
-      const started = Date.now();
-      appendFileSync(join(api.root, 'projects/shop/shop.yaml'), '# edited in a terminal\n');
-      await expectEditorValue(sourceText(a), shop + '# edited in a terminal\n', { timeout: 2000 });
-      console.log(`  external edit visible after ${Date.now() - started} ms`);
-      writeFileSync(
-        join(api.root, 'projects/shop/added.yaml'),
-        'name: Added\nontology: [{concept: Added}]\n',
-      );
-      await expect(fileButton(a, 'added.yaml')).toBeVisible({ timeout: 2000 });
-    },
-  );
+  await check('an external edit appears in the open tab within 2 s without a reload', async () => {
+    await fileButton(a, 'shop.yaml').click();
+    await expectEditorValue(sourceText(a), shop);
+    const started = Date.now();
+    appendFileSync(join(api.root, 'projects/shop/shop.yaml'), '# edited in a terminal\n');
+    await expectEditorValue(sourceText(a), shop + '# edited in a terminal\n', { timeout: 2000 });
+    console.log(`  external edit visible after ${Date.now() - started} ms`);
+    writeFileSync(
+      join(api.root, 'projects/shop/added.yaml'),
+      'name: Added\nontology: [{concept: Added}]\n',
+    );
+    await expect(fileButton(a, 'added.yaml')).toBeVisible({ timeout: 2000 });
+  });
   await check(
     'a save based on an older version is rejected with both versions shown (two tabs)',
     async () => {
@@ -92,7 +90,7 @@ try {
       await b.locator('.tabs').getByRole('button', { name: 'Source', exact: true }).click();
       const base = readFileSync(join(api.root, 'projects/shop/shop.yaml'), 'utf8');
       await expectEditorValue(sourceText(b), base);
-      // v0.3.0 saves automatically: tab B's save is held until tab A has saved, so B's save is based on
+      // Hold tab B's automatic save until tab A saves, so B submits a stale base version from
       // the older version and must be refused with both versions shown.
       let release: () => void = () => {};
       const held = new Promise<void>(r => {
@@ -170,7 +168,7 @@ try {
     },
   );
   await check(
-    'deleting the cache and restarting restores projects, files, view settings and drafts (SC-015)',
+    'deleting the cache and restarting restores projects, files, view settings and drafts',
     async () => {
       const id = 'shop/shop.yaml';
       const grouping = {

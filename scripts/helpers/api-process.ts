@@ -1,6 +1,5 @@
-// An isolated API in its own process (as the real app runs it), for checks that measure the
-// browser while the server works: an API inside the check's own process would stall Playwright's
-// input driver and be counted as typing latency. Prints its URL on stdout.
+// Runs an isolated API in a separate process so server work cannot stall the browser input driver.
+// The child prints its URL on stdout so browser checks can connect after startup.
 import { startIsolatedApi } from './isolated-api';
 if (import.meta.main) {
   const api = await startIsolatedApi({ root: process.argv[2] });
@@ -9,6 +8,7 @@ if (import.meta.main) {
     void api.stop().finally(() => process.exit(0));
   });
 }
+/** Starts an API for the supplied root in a child process and returns its URL and cleanup. */
 export async function startApiProcess(root: string) {
   const child = Bun.spawn([process.execPath, import.meta.path, root], {
     stdout: 'pipe',

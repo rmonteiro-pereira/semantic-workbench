@@ -1,8 +1,8 @@
+// Measures browser layout problems in screen coordinates so checks work at any zoom.
 import type { Page } from '@playwright/test';
-// Layout assertions shared by the responsive and polish checks (FR-067, FR-071): no horizontal
-// page scroll, no control cut off by the viewport or by a clipping ancestor (controls inside a
-// scrollable container count as reachable), and no overlap between floating overlays and the
-// controls they could cover. Each problem is a readable string, so failures say what and where.
+// Scrollable controls count as reachable, but clipped controls and overlapping overlays do not.
+// Failures identify the affected control and location.
+/** Returns visible control clipping, scrolling and overlay problems for the page. */
 export async function layoutProblems(
   page: Page,
   options: { overlays?: string[]; ignore?: string } = {},
@@ -30,8 +30,8 @@ export async function layoutProblems(
         const r = el.getBoundingClientRect();
         return r.width >= 1 && r.height >= 1;
       };
-      // Content of a closed <details> keeps layout boxes in Chromium but is not shown. The React Flow
-      // attribution link is a credit, not a working control, so an overlay may cover it.
+      // Content of a closed <details> keeps layout boxes in Chromium but is not shown. The React
+      // Flow attribution link is a credit, not a working control, so an overlay may cover it.
       const skip =
         'details:not([open]) > :not(summary),details:not([open]) > :not(summary) *,[inert] *,.react-flow__node *,.react-flow__node,.react-flow__edge,.react-flow__minimap *,.cm-editor *,[aria-hidden="true"] *,.sr-only,.react-flow__attribution a' +
         (ignore ? ',' + ignore : '');
@@ -147,10 +147,9 @@ export async function layoutProblems(
     { overlays: options.overlays ?? [], ignore: options.ignore ?? '' },
   );
 }
-// Lineage cards (T038, ui-contracts "Lineage canvas"): every header, row, badge and pager control
-// stays inside its card, row text is not cut (names may ellipsize only with a title), cards never
-// overlap each other, the toolbar's controls never overlap, and the canvas keeps a usable size
-// beside the path panel. Coordinates are on screen, so they hold at any zoom.
+// Rows and controls must fit their cards without overlaps. Truncated names need titles, and the
+// canvas must remain usable beside the path panel.
+/** Returns card, row and toolbar layout problems measured in screen coordinates. */
 export async function lineageProblems(page: Page): Promise<string[]> {
   return page.evaluate(() => {
     const out: string[] = [];
@@ -183,7 +182,7 @@ export async function lineageProblems(page: Page): Promise<string[]> {
         if (h.scrollWidth > h.clientWidth + 1 && getComputedStyle(h).textOverflow !== 'ellipsis')
           out.push(`${label}: "${h.textContent}" is cut without an ellipsis`);
       }
-      // badges in a row never overlap the column name
+      // Badges in a row never overlap the column name.
       for (const row of c.querySelectorAll('.lineage-row')) {
         const n = row.querySelector('.lineage-row-name')?.getBoundingClientRect();
         if (!n) continue;
@@ -194,7 +193,7 @@ export async function lineageProblems(page: Page): Promise<string[]> {
             );
       }
     }
-    // header marks (Unmapped badge, finding markers) never overlap the title or the actions
+    // Header marks (Unmapped badge, finding markers) never overlap the title or the actions.
     for (const c of cards) {
       const t = c.querySelector('.lineage-card-title strong')?.getBoundingClientRect();
       const m = c.querySelector('.lineage-card-marks')?.getBoundingClientRect();

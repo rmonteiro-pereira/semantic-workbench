@@ -1,12 +1,11 @@
+// Checks embedded SQL highlighting, warning locations and unchanged export bytes in the browser.
 import { chromium, expect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { projectFile } from '../server/projects/paths';
 import { exportFile } from './helpers/header';
-// SQL inside definitions (T063; FR-050–FR-055, SC-006): SQL colors in the Source editor (YAML and
-// JSON), a warning at the exact position within 500 ms of a typing pause, the JSON escape case, the
-// item editor's and the wizard's SQL fields, colored previews, and export bytes unchanged.
-// Isolated data root; screenshots in /tmp/workbench-sql-*.png.
+// SQL warnings must identify the exact source location within 500 ms of a typing pause.
+// Highlighting and previews must leave export bytes unchanged.
 const api = await startIsolatedApi();
 const fixture = (name: string) => readFileSync(`tests/fixtures/sql/${name}`, 'utf8');
 const names = [
@@ -109,7 +108,7 @@ try {
       await page.getByRole('spinbutton', { name: 'Go to line' }).fill('23');
       await page.getByRole('spinbutton', { name: 'Go to line' }).press('Enter');
       await page.keyboard.press('End');
-      await page.keyboard.press('ArrowLeft'); // before the ")" closing SUM(CASE …; then delete " END"
+      await page.keyboard.press('ArrowLeft'); // Before the ")" closing SUM(CASE …; then delete " END".
       const typed = Date.now();
       await page.keyboard.press('Backspace', { delay: 5 });
       await page.keyboard.press('Backspace');
@@ -160,7 +159,8 @@ try {
     async () => {
       await open('case-when-broken.ossie.yaml');
       await tab(/^Metrics/).click();
-      // The clean and the broken fixture both define occupancy_rate: group by file and pick the broken one.
+      // The clean and the broken fixture both define occupancy_rate: group by file and pick the
+      // broken one.
       await page.getByRole('combobox', { name: 'Group metrics by' }).selectOption('file');
       await page
         .locator('.metrics-table tbody')

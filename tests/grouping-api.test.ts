@@ -1,3 +1,4 @@
+// Tests grouping suggestions and project moves through the API.
 import { test, expect } from 'bun:test';
 import { testWorkspace } from './helpers/temp-data-dir';
 test('grouping corrections persist in view state files without changing source or hash', async () => {

@@ -1,3 +1,4 @@
+// Tests document validation and actionable findings.
 import { test, expect } from 'bun:test';
 import { validateInput } from '../src/input';
 import { inspect } from '../src/model';

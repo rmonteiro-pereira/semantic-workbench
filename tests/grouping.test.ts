@@ -1,3 +1,4 @@
+// Tests grouping related documents into projects.
 import { test, expect } from 'bun:test';
 import { inspect, type Entity, type Relationship } from '../src/model';
 import { modelOverview } from '../src/overview';

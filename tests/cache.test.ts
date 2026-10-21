@@ -1,9 +1,10 @@
+// Tests cached parsing and stable comparison of blank nodes.
 import { test, expect } from 'bun:test';
 import { Database } from 'bun:sqlite';
 import { rmSync, writeFileSync } from 'node:fs';
 import { CACHE_VERSION, createCache } from '../server/projects/cache';
 import { testWorkspace, example } from './helpers/temp-data-dir';
-// rdflib numbers blank nodes with a process-wide counter, so their labels differ between parses in
+// Rdflib numbers blank nodes with a process-wide counter, so their labels differ between parses in
 // one process (not between restarts); compare them by position only.
 const snapshot = (ws: Awaited<ReturnType<typeof testWorkspace>>['ws']) =>
   ws.cache.files().map(f => ({
@@ -14,7 +15,7 @@ const snapshot = (ws: Awaited<ReturnType<typeof testWorkspace>>['ws']) =>
       .map(e => (e.kind === 'Blank node' ? { ...e, id: '_:b', name: '_:b' } : e)),
     findings: ws.cache.findings(f.project, f.path),
   }));
-test('deleting cache.sqlite and reopening rebuilds identical files, entities and findings (SC-015)', async () => {
+test('deleting cache.sqlite and reopening rebuilds identical files, entities and findings', async () => {
   const t = await testWorkspace();
   try {
     await t.seed(

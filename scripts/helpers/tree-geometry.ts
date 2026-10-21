@@ -1,7 +1,8 @@
+// Measures project tree rows for clipped text, overlapping controls and usable hit areas.
 import type { Page } from '@playwright/test';
-// Geometry of the Projects tree rows: the name, the delete icon and the menu button sit side by
-// side inside the row and the sidebar, never overlap, the icons keep a ≥28px hit area, and the
-// visible filename text ends before the delete icon (it ellipsizes instead of running under it).
+// Row controls need at least 28 px hit areas. Filename text must ellipsize before reaching an
+// icon.
+/** Returns project row clipping, overlap and hit-area problems from the page. */
 export async function treeRowProblems(page: Page) {
   return page.evaluate(() => {
     const problems: string[] = [];

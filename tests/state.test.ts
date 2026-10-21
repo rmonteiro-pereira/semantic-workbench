@@ -1,3 +1,4 @@
+// Tests persisted workspace state, atomic replacement and format compatibility.
 import { test, expect } from 'bun:test';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';

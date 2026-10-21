@@ -1,11 +1,12 @@
+// Tests SQL warnings through the API without blocking saves.
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { sha256 } from '../server/projects/atomic';
 import { browserSqlFindings } from '../src/sql/browser';
 import { testWorkspace } from './helpers/temp-data-dir';
-// SQL findings through the API (T057; FR-052, FR-053): the file findings carry the same SQL
-// warnings as the browser module (per-dialect grammar builds), and they never block a save.
+// SQL findings through the API: the file findings carry the same SQL warnings as the browser
+// module (per-dialect grammar builds), and they never block a save.
 const api = (
   t: { handler: (r: Request) => Promise<Response> },
   method: string,

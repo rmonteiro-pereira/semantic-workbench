@@ -1,3 +1,4 @@
+// Checks source editing, byte-preserving saves and typing latency in an isolated browser workspace.
 import { chromium, expect, type Page } from '@playwright/test';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -5,15 +6,14 @@ import { join } from 'node:path';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { projectFile } from '../server/projects/paths';
 import { startApiProcess } from './helpers/api-process';
-// Phase 5 browser check (T092; SC-009, SC-010 Source part): syntax colors per serialization, inline
-// findings within 500 ms of a pause, Go to line, the import-repair editor, and a byte-exact save of
-// a CRLF/mixed-ending file sent as patches. Isolated data root; screenshots in /tmp/workbench-editor-*.png.
+// Findings must appear within 500 ms of a typing pause. Patch saves must preserve untouched bytes,
+// including mixed line endings.
 const api = await startIsolatedApi();
 await api.ws.loadExample('mall');
 await api.ws.loadExample('commerce');
 const crlf =
   'name: Line endings\r\nontology:\r\n  - concept: Customer\r\n    type: EntityType\r\n    description: Buyer\n  - concept: Order\r\n    type: EntityType\r\n    description: Tab\tinside a value\r\n';
-// About 1.9 MB of valid YAML, near the 2,000,000-byte limit (FR-045).
+// About 1.9 MB of valid YAML, near the 2,000,000-byte limit.
 const large =
   'name: Large\nontology:\n' +
   Array.from(
@@ -188,7 +188,8 @@ try {
       await page.locator('.cm-lintRange-error').first().hover();
       await expect(page.locator('.cm-tooltip-lint')).toContainText('Missing');
       await page.screenshot({ path: '/tmp/workbench-editor-lint.png' });
-      // Go to line selects the line; deleting it fixes the finding; undo brings it back, redo removes it.
+      // Go to line selects the line; deleting it fixes the finding; undo brings it back, redo
+      // removes it.
       await goTo(6);
       await page.keyboard.press('Backspace');
       await page.keyboard.press('Backspace');
@@ -204,7 +205,7 @@ try {
     async () => {
       await openSource('endings.yaml');
       await expect(page.locator('.code-editor-eol')).toContainText('Mixed line endings');
-      // v0.3.0: the valid edit is saved automatically after the pause.
+      // The valid edit is saved automatically after the pause.
       await goTo(5);
       await page.keyboard.press('End');
       await Promise.all([
@@ -285,7 +286,7 @@ try {
       await expect(page.getByRole('spinbutton', { name: 'Go to line' })).toBeFocused();
     },
   );
-  await check('typing in a 1.9 MB file stays responsive (FR-045)', async () => {
+  await check('typing in a 1.9 MB file stays responsive', async () => {
     await openSource('large.yaml');
     await goTo(3);
     await page.keyboard.press('End');
@@ -311,13 +312,10 @@ try {
       `  in the page: ${((keys.reduce((a, b) => a + b, 0) + (39 - keys.length) * 16) / 39).toFixed(1)} ms mean per key without a save running`,
     );
   });
-  // v0.3.0 (FR-043): automatic saving runs off the typing path. Pause so an autosave of the 1.9 MB
-  // file starts (diff, request, server validation), then type while it is in flight: same budget.
-  // v0.3.0 (FR-043): automatic saving runs off the typing path. Pause so an autosave of the 1.9 MB
-  // file starts (diff, request, server validation), then type while it is in flight: same budget.
-  // The API runs in its own process here, as in the app, so its work does not stall the input driver.
+  // Typing is measured while a large save is in flight to expose blocking work. The API runs in a
+  // separate process so its work cannot stall the input driver.
   await check(
-    'typing in a 1.9 MB file stays responsive while an automatic save runs (FR-043)',
+    'typing in a 1.9 MB file stays responsive to each keystroke while an automatic save runs',
     async () => {
       const root = mkdtempSync(join(tmpdir(), 'workbench-latency-'));
       const child = await startApiProcess(root);
@@ -344,9 +342,8 @@ try {
         await p.getByRole('spinbutton', { name: 'Go to line' }).fill('4');
         await p.keyboard.press('Enter');
         await p.keyboard.press('End');
-        // The page's own timing of each keystroke (Event Timing: key press to the next paint) and long
-        // tasks, measured first with no save running (the v0.2.0 condition) and then while an automatic
-        // save is in flight, in the same page, so load on the machine affects both alike.
+        // Compare keystroke-to-paint timing and long tasks before and during a save in the
+        // same page, so machine load affects both measurements alike.
         await p.evaluate(() => {
           const w = window as any;
           w.__keys = [];

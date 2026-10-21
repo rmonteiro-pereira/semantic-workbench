@@ -1,3 +1,4 @@
+// Tests collapsed graph groups and their connections.
 import { test, expect } from 'bun:test';
 import { inspect } from '../src/model';
 import { modelOverview } from '../src/overview';

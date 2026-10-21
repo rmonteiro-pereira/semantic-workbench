@@ -1,3 +1,4 @@
+// Tests references and drafts affected by deletion.
 import { test, expect } from 'bun:test';
 import { testWorkspace, example } from './helpers/temp-data-dir';
 const flights = async () =>

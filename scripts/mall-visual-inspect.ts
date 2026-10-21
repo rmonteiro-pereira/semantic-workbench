@@ -1,7 +1,8 @@
+// Captures every shopping center document view using an isolated temporary workspace.
 import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
-// Opens every shopping-center document in every applicable view against an
-// isolated temporary data root, records what renders, and saves screenshots.
+// Opens every shopping-center document in every applicable view against an isolated temporary data
+// root, records what renders, and saves screenshots.
 const out = process.argv[2] ?? '/tmp/mall-inspect';
 const api = await startIsolatedApi({ watch: false });
 const browser = await chromium.launch();

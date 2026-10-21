@@ -1,9 +1,8 @@
+// Checks dialog fit, focus trapping and dismissal across supported viewports.
 import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
-// Dialogs (T064; FR-060, spec Appendix B, ui-contracts "Dialogs"): every dialog opens from its
-// trigger, fits each of the six viewports (no part outside the window, no sideways scrolling inside),
-// keeps focus inside while tabbing, closes with Escape and returns focus to its trigger.
-// Isolated data root; screenshots in /tmp/workbench-dialog-*.png.
+// Dialogs must fit six viewports, trap focus and return focus to their trigger after Escape.
+// Screenshots use /tmp/workbench-dialog-*.png.
 const api = await startIsolatedApi();
 const mall = await api.ws.loadExample('mall');
 const commerce = await api.ws.loadExample('commerce');
@@ -147,7 +146,7 @@ try {
             await trigger.focus();
             await p.keyboard.press('Enter');
             if (!e.dialog) {
-              // a menu: Export lives in More actions
+              // A menu: Export lives in More actions.
               const menu = p.getByRole('menu');
               await expect(menu).toBeVisible();
               await expect(menu.getByRole('menuitem', { name: /^Export/ })).toBeVisible();

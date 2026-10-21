@@ -1,3 +1,4 @@
+// Tests workspace indexing and file format recognition.
 import { test, expect } from 'bun:test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';

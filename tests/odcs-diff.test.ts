@@ -1,3 +1,4 @@
+// Tests contract history comparisons, including property renames.
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { parse } from 'yaml';

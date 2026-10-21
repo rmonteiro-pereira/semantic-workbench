@@ -1,3 +1,4 @@
+// Creates temporary workspaces with an isolated Git identity and explicit cleanup.
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -10,9 +11,11 @@ import { createHandler } from '../../server/handler';
 // Isolated data roots for tests: never the owner's data/. Git gets its own global config with a
 // test identity, and the system config is ignored, for the whole test process.
 let gitHome: string | undefined;
+/** Configures a test Git identity without reading the user or system Git configuration. */
 export function isolateGit() {
   if (!gitHome) {
-    // One fixed folder per user, rewritten with the same content each time, so nothing accumulates.
+    // One fixed folder per user, rewritten with the same content each time, so nothing
+    // accumulates.
     gitHome = join(tmpdir(), `workbench-git-test-${process.getuid?.() ?? 'user'}`);
     mkdirSync(gitHome, { recursive: true });
     const config = join(gitHome, 'gitconfig');
@@ -25,11 +28,13 @@ export function isolateGit() {
   }
   return gitHome;
 }
+/** Creates a temporary data directory and returns a cleanup function. */
 export function tempDataDir(prefix = 'workbench-data-') {
   isolateGit();
   const root = mkdtempSync(join(tmpdir(), prefix));
   return { root, cleanup: () => rmSync(root, { recursive: true, force: true }) };
 }
+/** Opens a disposable workspace; cleanup removes its root, including a supplied root. */
 export async function testWorkspace(
   options: Omit<WorkspaceOptions, 'root'> & { root?: string } = {},
 ) {
@@ -54,5 +59,6 @@ export async function testWorkspace(
     },
   };
 }
+/** Reads a shipped example file as text. */
 export const example = (folder: string, filename: string) =>
   Bun.file(`public/examples/${folder}/${filename}`).text();

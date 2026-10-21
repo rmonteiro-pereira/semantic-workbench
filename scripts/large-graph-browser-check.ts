@@ -1,3 +1,4 @@
+// Checks large graph rendering and interactions in the browser.
 import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 const browser = await chromium.launch();

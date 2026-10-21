@@ -1,9 +1,11 @@
+// Generates a fictional SaaS billing model with explicit business relationships and analytic
+// grains.
 import { mkdir } from 'node:fs/promises';
 import { stringify } from 'yaml';
 import { inspect } from '../src/model';
 import { buildContext } from '../server/agent/runtime';
-// Fictional B2B SaaS billing model. Business relationships and analytic grain
-// are explicit; names are not multiplied to create a synthetic graph benchmark.
+// Fictional B2B SaaS billing model. Business relationships and analytic grain are explicit; names
+// are not multiplied to create a synthetic graph benchmark.
 const definitions: [string, string, [string, string, string][]][] = [
   [
     'Account',

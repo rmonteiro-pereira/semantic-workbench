@@ -1,10 +1,12 @@
+// Checks shopping center metrics against expected values computed directly from fixture rows.
 import assert from 'node:assert/strict';
 import { Database } from 'bun:sqlite';
 import { validateInput } from '../src/input';
 import { buildContext, planQuery, type StoredDocument } from '../server/agent/runtime';
-// Executes governed shopping-center KPIs on the synthetic fixture and compares
-// them with expected.json, which the generator computes from rows, not from SQL.
+// Executes governed shopping-center KPIs on the synthetic fixture and compares them with
+// expected.json, which the generator computes from rows, not from SQL.
 const dir = 'public/examples/mall/';
+/** Lists the shopping center files loaded together by example checks. */
 export const mallFiles = [
   'mall.mapping.yaml',
   'mall.ontology.yaml',
@@ -14,6 +16,7 @@ export const mallFiles = [
   'mall.shacl.ttl',
   'mall-data.ttl',
 ];
+/** Checks shopping center query results against independently calculated fixture values. */
 export async function checkMall() {
   const docs: StoredDocument[] = await Promise.all(
     mallFiles.map(async (filename, i) => ({
@@ -134,7 +137,8 @@ export async function checkMall() {
       expected.payablesOutstandingByMonth,
       'payables outstanding',
     );
-    // Contracted tenant (charge → lease → tenant) and billed tenant (charge → invoice → tenant) are distinct roles.
+    // Contracted tenant (charge → lease → tenant) and billed tenant (charge → invoice → tenant)
+    // are distinct roles.
     assert.throws(
       () =>
         planQuery(context, {

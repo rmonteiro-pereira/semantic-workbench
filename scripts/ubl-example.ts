@@ -1,3 +1,4 @@
+// Generates UBL model examples, declared foreign keys and analytical fixtures.
 import { stringify } from 'yaml';
 const mapping = await Bun.file('public/examples/ubl/model-map.json').json();
 const dir = 'public/examples/ubl/';

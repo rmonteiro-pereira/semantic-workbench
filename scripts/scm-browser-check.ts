@@ -1,3 +1,4 @@
+// Checks browser Source Control actions using isolated workspaces and local Git remotes.
 import { chromium, expect, type Page } from '@playwright/test';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -6,11 +7,8 @@ import { startIsolatedApi, routeApi, type IsolatedApi } from './helpers/isolated
 import { projectDir, projectFile } from '../server/projects/paths';
 import { editorValue, fillEditor } from './helpers/code-editor';
 import { example } from './helpers/examples';
-// Phase 8 browser check (T133; SC-012): commit, branch, switch, push, pull and conflict repair
-// entirely from the Source Control panel, against a local bare remote and a second clone (never a
-// network remote). Also: hidden-type files listed read-only, Add to .gitignore, .gitignore editing,
-// file history, the credential wait with Cancel, blocked pull with unsaved edits, and the missing-Git
-// banner. Isolated data roots; screenshots in /tmp/workbench-scm-*.png.
+// Local remotes and a second clone exercise conflicts and credential cancellation without network
+// access. Screenshots use /tmp/workbench-scm-*.png.
 const api = await startIsolatedApi();
 const commerce = await api.ws.loadExample('commerce');
 const dir = projectDir(api.ws.layout, commerce.slug);
@@ -81,7 +79,7 @@ async function editInSource(path: string, change: (text: string) => string) {
   await fillEditor(editor, change(await editorValue(editor)));
   return editor;
 }
-// v0.3.0: valid edits are saved automatically after a 1 s pause (FR-040).
+// Valid edits are saved automatically after a 1 s pause.
 async function saveSource() {
   await page.waitForResponse(r => r.request().method() === 'PUT' && r.url().includes('/files/'), {
     timeout: 5000,
@@ -236,8 +234,8 @@ try {
       await page.screenshot({ path: '/tmp/workbench-scm-pulled.png' });
     },
   );
-  // v0.3.0: valid edits are saved automatically, so the edit that stays unsaved is an invalid one (a
-  // server draft); the refusal lists it and offers Commit… (FR-048).
+  // Valid edits are saved automatically, so the edit that stays unsaved is an invalid one (a
+  // server draft); the refusal lists it and offers Commit….
   await check(
     'pull is refused while the open file has edits not saved to file; nothing is stashed; Commit… is offered',
     async () => {
@@ -258,7 +256,7 @@ try {
       const refusal = panel().getByRole('alert').filter({ hasText: 'not saved to file yet' });
       await expect(refusal).toContainText(file);
       await expect(refusal.getByRole('button', { name: 'Commit…' })).toBeVisible();
-      // The server refuses too, from the stored draft (FR-065).
+      // The server refuses too, from the stored draft.
       await expect.poll(() => api.ws.state.drafts().map(d => d.path)).toEqual([file]);
       const r = await api.handler(
         new Request(`http://127.0.0.1/api/projects/${commerce.slug}/git/pull`, { method: 'POST' }),

@@ -1,3 +1,4 @@
+// Checks grouping suggestions and validation dialogs in an isolated browser workspace.
 import { chromium, expect, type Locator } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
@@ -248,7 +249,7 @@ try {
         .locator('.cm-lintRange-error')
         .filter({ hasText: 'MissingSourceParent' });
       await expect(highlight).toHaveCount(1);
-      // v0.3.0 (FR-060): the findings open in the Validation details dialog from the Save state indicator.
+      // The findings open in the Validation details dialog from the Save state indicator.
       await page.getByRole('status', { name: 'Save state' }).click();
       const finding = page
         .getByRole('dialog', { name: 'Validation details' })

@@ -1,9 +1,8 @@
+// Checks metric details, explanations and graph navigation in an isolated browser workspace.
 import { chromium, expect, type Page } from '@playwright/test';
 import { parseDocument } from 'yaml';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
-// Phase 3 browser check (T070; SC-001, SC-003, SC-004, SC-007): the Metrics list, a metric's detail and
-// "How this metric is calculated", a refused rollup, lineage to ODCS, metric badges and nodes in the graphs, and
-// Flights in both official Ossie layouts. Runs against an isolated temporary data root.
+// Checks metric explanations, refused rollups and lineage in split and consolidated examples.
 const api = await startIsolatedApi();
 const file = (path: string) => Bun.file('public/examples/' + path).text();
 await api.ws.importBatch({
@@ -14,7 +13,8 @@ await api.ws.importBatch({
     ),
   ),
 });
-// Flights ships without metrics: the same metric is added to the split files and to the consolidated file.
+// Flights ships without metrics: the same metric is added to the split files and to the
+// consolidated file.
 const metric = {
   name: 'total_departure_delay',
   description: 'Departure delay summed over flights (minutes).',
@@ -87,7 +87,7 @@ await api.ws.importBatch({
     },
   ],
 });
-// v0.3.0 (FR-017): commerce's metrics have no workbench attributes; the last check adds them to one.
+// Commerce's metrics have no workbench attributes; the last check adds them to one.
 const commerce = await api.ws.loadExample('commerce');
 const hashes = async () =>
   JSON.stringify((await api.ws.listProjects()).map(p => p.files.map(f => f.path + ':' + f.hash)));
@@ -239,7 +239,8 @@ try {
     'graph: metric nodes can be hidden, and concepts measured by a metric carry a badge (graph and catalog)',
     async () => {
       await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
-      // v0.3.0 (FR-034): the consolidated Flights file opens on its mapping graph; the metric nodes are in its ontology graph.
+      // The consolidated Flights file opens on its mapping graph; the metric nodes are in its
+      // ontology graph.
       const views = page.getByRole('group', { name: 'Graph view' });
       const toggle = page.getByRole('button', { name: /^Metrics (shown|hidden)$/ });
       await expect(views.or(toggle).first()).toBeVisible();
@@ -357,7 +358,7 @@ try {
       while (j < a.length - i && j < b.length - i && a[a.length - 1 - j] === b[b.length - 1 - j])
         j++;
       expect(a.length - i - j).toBe(0);
-      expect(b.length - i - j).toBeGreaterThan(0); // only added lines
+      expect(b.length - i - j).toBeGreaterThan(0); // Only added lines.
       expect(after).toContain('SUM(orders.amount)');
       expect(after).toContain('"owner": "Sales"');
       await governed.check();

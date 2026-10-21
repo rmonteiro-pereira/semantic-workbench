@@ -1,3 +1,4 @@
+// Checks example loading, mappings and metric composition in the browser.
 import { chromium, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { Database } from 'bun:sqlite';
@@ -156,7 +157,8 @@ try {
       await page.screenshot({ path: '/tmp/ossie-flights-query.png' });
     },
   );
-  // T153 (FR-068–FR-070): each binding is a chain of separate, labelled steps; bindings are grouped by dataset with counts and collapse; the composer sits beside the evidence on desktop and below it on narrow screens; findings link to the item editor.
+  // Bindings remain separate labelled steps, grouped by dataset with counts and collapse. The
+  // composer moves below the evidence on narrow screens; findings open the item editor.
   const STEP_LABELS: Record<string, string> = {
     concept: 'Concept',
     relationship: 'Relationship',

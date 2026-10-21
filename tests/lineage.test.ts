@@ -1,11 +1,10 @@
+// Tests column lineage against independently derived edges and saved reference graphs.
 import { test, expect } from 'bun:test';
 import { readFileSync, readdirSync, existsSync, writeFileSync, mkdirSync } from 'node:fs';
 import { parse } from 'yaml';
 import { buildLineage, objectId, closure, around, type LineageGraph } from '../src/odcs/lineage';
-// Column-level lineage (T025, SC-002). Every expected edge is derived here by an independent,
-// deliberately plain reading of the files (regular expressions over the parsed YAML, not the
-// builder's modules) and compared both ways with the builder; the edge lists are also kept as
-// golden files in tests/fixtures/lineage/ so any change shows up in review.
+// Expected edges are derived independently from parsed YAML, without the lineage builder. Saved
+// reference graphs make edge changes visible in review.
 type Edge = [string, string, string];
 const load = (dir: string) =>
   readdirSync(`public/examples/${dir}`)
@@ -57,7 +56,8 @@ function oracle(files: { path: string; data: any }[], contract: string): Edge[] 
       for (const fd of d.fields ?? []) {
         fields.set(`${d.name}.${fd.name}`, `${ds}/${fd.name}`);
         const e = String(ansi(fd) ?? fd.name);
-        // Field expressions in the shipped examples are column names or arithmetic over column names.
+        // Field expressions in the shipped examples are column names or arithmetic over column
+        // names.
         expect(/^[A-Za-z0-9_\s*+\-/()]+$/.test(e)).toBe(true);
         for (const col of new Set(e.match(/[A-Za-z_]\w*/g) ?? [])) {
           const p = (o.properties ?? []).find((x: any) => (x.physicalName ?? x.name) === col);
@@ -118,7 +118,7 @@ for (const [dir, contract] of [
   ['mall', 'mall.odcs.yaml'],
   ['ubl', 'ubl.odcs.yaml'],
 ] as const) {
-  test(`${dir}: every drawn edge is expected and no expected edge is missing (SC-002)`, () => {
+  test(`${dir}: every drawn edge is expected and no expected edge is missing`, () => {
     const files = load(dir);
     const g = buildLineage(files, contract);
     const got = edgesOf(g);
@@ -126,7 +126,7 @@ for (const [dir, contract] of [
     expect(got.filter(e => !want.some(w => w.join() === e.join()))).toEqual([]);
     expect(want.filter(w => !got.some(e => e.join() === w.join()))).toEqual([]);
     golden(dir, got);
-    // a card appears once; every edge end is a known card or column
+    // A card appears once; every edge end is a known card or column.
     const nodes = new Set([
       ...g.cards.keys(),
       ...[...g.cards.values()].flatMap(c => c.columns.map(x => x.id)),
@@ -250,7 +250,7 @@ test('nested columns, composite keys, external stubs, declared transforms, cycle
     [a, `${b}/total`],
     ['external:raw_feed', `${b}/total`],
   ]);
-  // dataset source "a" is a's name and b's physical name: both lines, flagged ambiguous
+  // Dataset source "a" is a's name and b's physical name: both lines, flagged ambiguous.
   const reads = g.edges.filter(e => e.kind === 'reads');
   expect(reads.map(e => e.from).sort()).toEqual([`${a}/id`]);
   expect(reads.every(e => e.ambiguous)).toBe(true);
@@ -258,10 +258,10 @@ test('nested columns, composite keys, external stubs, declared transforms, cycle
     ['metric:s.yaml#/n', 'metric:s.yaml#/n2'],
   ]);
   expect(g.cards.has('metric:s.yaml#/orphan')).toBe(false);
-  // self-referencing foreign key: path highlighting terminates
+  // Self-referencing foreign key: path highlighting terminates.
   const c = closure(g, [`${a}/id`]);
   expect(c.nodes.has(`${a}/parent`)).toBe(true);
-  // a dataset reading nothing of this contract is counted, not drawn
+  // A dataset reading nothing of this contract is counted, not drawn.
   const g2 = buildLineage(
     [
       ...files,

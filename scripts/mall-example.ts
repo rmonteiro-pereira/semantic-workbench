@@ -1,10 +1,11 @@
+// Generates shopping center models and synthetic fixtures from shared business definitions.
 import { mkdir } from 'node:fs/promises';
 import { stringify } from 'yaml';
 import { inspect } from '../src/model';
 import { buildContext } from '../server/agent/runtime';
-// Fictional shopping-center and real-estate administration model. One domain
-// specification produces the Ossie ontology, OWL, SHACL, RDF data, ODCS contract,
-// semantic model, mapping and an isolated SQLite fixture with expected KPIs.
+// Fictional shopping-center and real-estate administration model. One domain specification
+// produces the Ossie ontology, OWL, SHACL, RDF data, ODCS contract, semantic model, mapping and an
+// isolated SQLite fixture with expected KPIs.
 const base = 'https://example.org/mall/';
 const modules = {
   core: 'Shared parties, places, calendar and currencies',
@@ -21,8 +22,9 @@ const modules = {
 } as const;
 type Module = keyof typeof modules;
 const prefixes = Object.fromEntries(Object.keys(modules).map(m => [m, `${base}${m}#`]));
-// Attribute: "field|ValueType|flags|description". Link: "relationship>Target|flags|verb phrase|description".
-// Flags: ! required, + nonnegative, % fraction between 0 and 1.
+// Attributes use "field|ValueType|flags|description".
+// Links use "relationship>Target|flags|verb phrase|description".
+// Flags mean required (!), nonnegative (+), or a fraction between zero and one (%).
 type Def = {
   concept: string;
   module: Module;
@@ -59,7 +61,7 @@ const valueTypes: [string, string, string][] = [
   ['IndexNumber', 'Decimal', 'Published price-index level.'],
 ];
 const defs: Def[] = [
-  // core
+  // Core.
   {
     concept: 'Party',
     module: 'core',
@@ -180,7 +182,7 @@ const defs: Def[] = [
       'month>CalendarMonth|!|is published for|Reference month.',
     ],
   },
-  // asset
+  // Asset.
   {
     concept: 'Portfolio',
     module: 'asset',
@@ -403,7 +405,7 @@ const defs: Def[] = [
       'fixed_asset>FixedAsset||is capitalised as|Fixed-asset record.',
     ],
   },
-  // party
+  // Party.
   {
     concept: 'Tenant',
     module: 'party',
@@ -468,7 +470,7 @@ const defs: Def[] = [
       'tenant>Tenant|!|is a contact of|Tenant represented.',
     ],
   },
-  // lease
+  // Lease.
   {
     concept: 'LeasingProspect',
     module: 'lease',
@@ -725,7 +727,7 @@ const defs: Def[] = [
     ],
     links: ['lease>Lease|!|terminates|Lease.'],
   },
-  // legal
+  // Legal.
   {
     concept: 'LegalEntity',
     module: 'legal',
@@ -979,7 +981,7 @@ const defs: Def[] = [
       'controller>LegalEntity|!|is addressed to|Controller.',
     ],
   },
-  // hr
+  // Human resources.
   {
     concept: 'Department',
     module: 'hr',
@@ -1213,7 +1215,7 @@ const defs: Def[] = [
       'candidate>Person|!|is submitted by|Candidate.',
     ],
   },
-  // proc
+  // Procurement.
   {
     concept: 'Supplier',
     module: 'proc',
@@ -1405,7 +1407,7 @@ const defs: Def[] = [
       'bank_account>BankAccount||is paid from|Paying account.',
     ],
   },
-  // ops
+  // Operations.
   {
     concept: 'ExpenseCategory',
     module: 'ops',
@@ -1635,7 +1637,7 @@ const defs: Def[] = [
       'campaign>MarketingCampaign||is part of|Campaign.',
     ],
   },
-  // fin
+  // Finance.
   {
     concept: 'ChargeType',
     module: 'fin',
@@ -2009,7 +2011,7 @@ const defs: Def[] = [
       'incident>Incident||results from|Incident.',
     ],
   },
-  // perf
+  // Performance.
   {
     concept: 'OccupancySnapshot',
     module: 'perf',
@@ -2248,8 +2250,8 @@ const metrics: { name: string; concept: string; description: string; expression:
     expression: 'SUM(supplier_invoices.open_amount)',
   },
 ];
-// KPI attributes stored as SEMANTIC_WORKBENCH extensions (research R1, R12): label, type, additivity,
-// unit, owner, status, time dimension and the concept each KPI is about (`of`, in the mapping).
+// KPI attributes stored as SEMANTIC_WORKBENCH extensions: label, type, additivity, unit, owner,
+// status, time dimension and the concept each KPI is about (`of`, in the mapping).
 const month = {
   dimension: 'calendar_months.first_day',
   min_grain: 'month',
@@ -2631,7 +2633,8 @@ const kpis: Record<string, { of: string; ext: any }> = {
     },
   },
 };
-// Metric extensions are pretty-printed JSON; KPI bindings are one binding per line, sorted by metric.
+// Metric extensions are pretty-printed JSON; KPI bindings are one binding per line, sorted by
+// metric.
 const extension = (data: string) => [{ vendor_name: 'SEMANTIC_WORKBENCH', data: data + '\n' }];
 const keyPerLine = (data: Record<string, unknown>) =>
   `{\n${Object.entries(data)
@@ -2654,7 +2657,7 @@ const computed: Record<string, [string, string, string]> = {
   ],
 };
 
-// ---------- spec parsing ----------
+// Shared definitions keep the generated formats consistent.
 type Attr = { name: string; type: string; flags: string; description: string; owner: string };
 type Link = {
   name: string;
@@ -2701,7 +2704,6 @@ for (const d of defs) {
     if (!valueBase.has(a.type)) throw Error(`${d.concept}.${a.name}: unknown value type ${a.type}`);
 }
 
-// ---------- Ossie ontology ----------
 const ontology: any = {
   version: '0.2.0.dev0',
   name: 'Shopping center administration ontology',
@@ -2786,7 +2788,6 @@ for (const m of metrics)
     description: m.description,
   });
 
-// ---------- semantic model ----------
 const expr = (expression: string) => ({ dialects: [{ dialect: 'ANSI_SQL', expression }] });
 const columnsOf = (d: Def) => [
   'id',
@@ -2834,7 +2835,6 @@ for (const d of concrete) {
     });
 }
 
-// ---------- mapping ----------
 const mapping: any = {
   version: '0.2.0.dev0',
   name: 'Shopping center administration mappings',
@@ -2881,7 +2881,6 @@ mapping.custom_extensions = extension(
   ),
 );
 
-// ---------- fixture rows ----------
 const months = [
   {
     id: 1,
@@ -3169,7 +3168,7 @@ const rows: Record<string, Record<string, any>[]> = {
     { id: 4, code: '6.1', name: 'Depreciation', account_class: 'non-operating' },
   ],
 };
-// Leases: [id, tenant, brand, unit, category, start, minimum rent, percentage rate]
+// Leases: [id, tenant, brand, unit, category, start, minimum rent, percentage rate].
 const leaseSpec: [number, number, number, number, number, string, number, number][] = [
   [1, 1, 1, 1, 2, '2020-01-01', 60000, 0.02],
   [2, 2, 2, 2, 3, '2021-03-01', 18000, 0.07],
@@ -3230,7 +3229,8 @@ const sales: Record<number, [number, number]> = {
   6: [330000, 400000],
   7: [0, 210000],
 };
-// Paid fraction of each lease's charges at the reporting date: lease 3 has not paid September; lease 5 paid half of September.
+// Paid fraction of each lease's charges at the reporting date: lease 3 has not paid September;
+// lease 5 paid half of September.
 const paidFraction = (lease: number, month: number) =>
   month === 2 && lease === 3 ? 0 : month === 2 && lease === 5 ? 0.5 : 1;
 const serviceChargePerM2 = 30;
@@ -3320,7 +3320,8 @@ rows.parking_activity = months.flatMap(m => [
   },
   { id: m.id * 2, tickets: m.id === 1 ? 14000 : 16500, revenue: 0, facility_id: 2, month_id: m.id },
 ]);
-// Ledger: rent income from minimum and percentage rent charges, parking income, non-recoverable expenses and depreciation.
+// Ledger: rent income from minimum and percentage rent charges, parking income, non-recoverable
+// expenses and depreciation.
 const opex: Record<number, [number, number]> = { 1: [30000, 32000], 2: [9000, 9500] };
 const depreciation: Record<number, number> = { 1: 45000, 2: 12000 };
 rows.journal_entries = [];
@@ -3361,7 +3362,8 @@ for (const m of months)
         cost_center_id: property,
       });
   }
-// Payroll of the administrator: base salary, employer social charges (20 %) and employee withholdings (not an employer cost).
+// Payroll of the administrator: base salary, employer social charges (20 %) and employee
+// withholdings (not an employer cost).
 const salary: Record<number, number> = { 1: 25000, 2: 6000, 3: 7500, 4: 14000 };
 rows.payroll_runs = months.map(m => ({
   id: m.id,
@@ -3474,7 +3476,7 @@ rows.supplier_invoices = rows.purchase_orders.map(po => {
   };
 });
 
-// ---------- expected KPIs, computed from the rows rather than from SQL ----------
+// Expected metric values come directly from rows to provide an independent check of SQL.
 const sum = <T>(xs: T[], f: (x: T) => number) => xs.reduce((s, x) => s + f(x), 0);
 const propertyOfUnit = (unit: number) => unitProperty(unit);
 const byMonthProperty = <T>(
@@ -3660,7 +3662,6 @@ const expected = {
   ),
 };
 
-// ---------- OWL, SHACL and RDF data ----------
 const xsd: Record<string, string> = {
   Integer: 'xsd:integer',
   Decimal: 'xsd:decimal',
@@ -3813,7 +3814,6 @@ for (const d of concrete)
     data += `data:${d.table}-${row.id} ${parts.join(' ;\n  ')} .\n`;
   }
 
-// ---------- ODCS contract ----------
 const logical: Record<string, string> = {
   Integer: 'integer',
   Decimal: 'number',
@@ -3874,8 +3874,8 @@ const contract: any = {
   })),
 };
 
-// Declared quality rules and service levels: trust indicators shown in KPI lineage. Declarations only;
-// the workbench never runs them.
+// Declared quality rules and service levels: trust indicators shown in KPI lineage. Declarations
+// only; the workbench never runs them.
 contract.slaProperties = [
   { property: 'latency', value: 1, unit: 'd', element: 'mall.charges.amount' },
   { property: 'frequency', value: 1, unit: 'd' },
@@ -3924,7 +3924,6 @@ quality('sales_reports', 'gross_sales', [
   },
 ]);
 
-// ---------- SQLite fixture ----------
 const sqlLiteral = (value: any) =>
   value == null
     ? 'NULL'
@@ -3949,7 +3948,6 @@ for (const d of concrete)
     for (const key of Object.keys(row))
       if (!columnsOf(d).includes(key)) throw Error(`${d.table}.${key} is not a column`);
 
-// ---------- write and verify ----------
 const dir = 'public/examples/mall';
 await mkdir(dir, { recursive: true });
 const outputs: [string, string][] = [

@@ -1,3 +1,4 @@
+// Tests compatibility of stored metric attributes and byte-preserving edits.
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { parse } from 'yaml';
@@ -5,15 +6,15 @@ import { validateInput } from '../src/input';
 import { valuePatches, edit } from '../src/edit/yaml-patch';
 import { extensionOf } from '../src/edit/item-model';
 import { readKpiBindings } from '../src/metrics/extension';
-// v0.2.0 files with metric attributes stay valid and byte-exact (T049; FR-015, SC-004): the
-// v0.3.0 vocabulary is UI only; stored keys (`kpi_bindings`, schema ids) do not change.
+// Stored metric attributes remain valid and byte-exact. UI vocabulary changes must not rename
+// stored keys such as `kpi_bindings` or schema identifiers.
 const files = ['mall/mall.semantic.yaml', 'mall/mall.mapping.yaml'].map(p => ({
   path: p,
   source: readFileSync(`public/examples/${p}`, 'utf8'),
 }));
 const errors = (source: string, name: string) =>
   validateInput(source, name).issues.filter(i => i.severity === 'error');
-test('every v0.2.0 example with metric attributes validates as shipped', () => {
+test('every legacy example with metric attributes validates as shipped', () => {
   for (const f of files) expect(errors(f.source, f.path.split('/')[1])).toEqual([]);
   const mapping = parse(files[1].source);
   expect(readKpiBindings(mapping).value.length).toBe(25);
@@ -41,11 +42,12 @@ test('editing one metric attribute changes only that metric extension block; eve
   while (a[p] === b[p]) p++;
   let s = 0;
   while (s < a.length - p && s < b.length - p && a[a.length - 1 - s] === b[b.length - 1 - s]) s++;
-  // the change is inside that one block scalar
+  // The change is inside that one block scalar.
   const changed = b.slice(p, b.length - s).join('\n');
   expect(changed).toContain('Centre management');
   expect(a.length - p - s).toBeLessThanOrEqual(3);
-  // the mapping, with its kpi_bindings key, is untouched by a metric edit and still reads the same bindings
+  // The mapping, with its kpi_bindings key, is untouched by a metric edit and still reads the same
+  // bindings.
   expect(readKpiBindings(parse(files[1].source)).value.map(b => b.metric)).toContain(
     data.metrics[i].name,
   );

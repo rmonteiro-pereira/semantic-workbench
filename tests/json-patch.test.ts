@@ -1,3 +1,4 @@
+// Tests JSON item edits that preserve surrounding formatting.
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { parse } from 'yaml';
@@ -6,7 +7,7 @@ import { valuePatches, insertPatches, removePatches, itemValue } from '../src/ed
 import { jsonTextPatches } from '../src/edit/json-patch';
 import { validateInput } from '../src/input';
 // JSON item edits change only the edited value's text and keep the document's indentation style
-// elsewhere; the file is never re-serialized (FR-053, baseline defect 22).
+// elsewhere; the file is never re-serialized.
 const contract = (indent: string | number) =>
   JSON.stringify(
     parse(readFileSync('public/examples/commerce/commerce.odcs.yaml', 'utf8')),

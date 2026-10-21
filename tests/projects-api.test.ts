@@ -1,3 +1,4 @@
+// Tests project management through the API.
 import { test, expect } from 'bun:test';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';

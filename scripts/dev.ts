@@ -1,3 +1,4 @@
+// Runs the API and frontend development servers and shuts them down together.
 import { spawn, type ChildProcess } from 'node:child_process';
 import process from 'node:process';
 

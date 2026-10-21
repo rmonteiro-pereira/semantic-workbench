@@ -1,3 +1,4 @@
+// Tests atomic saves of metrics and their concept bindings.
 import { test, expect } from 'bun:test';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -13,8 +14,8 @@ import {
 import { findReferences } from '../src/edit/references';
 import { readMetricExtension, VENDOR } from '../src/metrics/extension';
 import { itemValue } from '../src/edit/yaml-patch';
-// The KPI wizard's save (FR-009, FR-010, FR-015, research R12): metric and extension in the
-// semantic model, one sorted binding line in the mapping extension, one journaled project save.
+// A metric save updates the semantic model and inserts one sorted mapping binding in a single
+// journaled operation.
 const api = (
   t: { handler: (r: Request) => Promise<Response> },
   method: string,

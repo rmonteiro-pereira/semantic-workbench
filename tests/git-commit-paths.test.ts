@@ -1,11 +1,12 @@
+// Tests committing only selected paths while preserving other staged work.
 import { test, expect } from 'bun:test';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createGit } from '../server/projects/git';
 import { isolateGit } from './helpers/temp-data-dir';
-// commitPaths (T014, research R8): `git add` for untracked listed paths, then `git commit --only`,
-// so exactly the listed paths are committed and other staged or unstaged work is left alone.
+// Selected-path commits stage untracked files before using `git commit --only`.
+// Other staged and unstaged work must remain untouched.
 const sh = (cwd: string, args: string[]) => {
   const r = Bun.spawnSync(['git', ...args], { cwd });
   if (r.exitCode !== 0) throw Error(r.stderr.toString());
@@ -46,7 +47,7 @@ test('commits only the listed paths; untracked listed paths are added; other wor
     expect(
       sh(r.dir, ['show', '--name-only', '--format=', 'HEAD']).trim().split('\n').sort(),
     ).toEqual(['a.yaml', 'c.yaml']);
-    // b stays staged, d stays untracked
+    // File b stays staged and file d stays untracked.
     expect(sh(r.dir, ['status', '--porcelain']).split('\n').filter(Boolean).sort()).toEqual([
       '?? d.yaml',
       'M  b.yaml',
@@ -111,7 +112,7 @@ test('without a Git identity nothing is committed and the reason is given', asyn
     expect(
       Bun.spawnSync(['git', 'rev-parse', '-q', '--verify', 'HEAD'], { cwd: r.dir }).exitCode,
     ).not.toBe(0);
-    // a repository-local identity is seen at once (no restart)
+    // A repository-local identity is seen at once (no restart).
     sh(r.dir, ['config', 'user.name', 'Local Person']);
     sh(r.dir, ['config', 'user.email', 'local@example.invalid']);
     expect(await git.commitPaths(r.dir, ['a.yaml'], 'Import a.yaml')).toMatchObject({

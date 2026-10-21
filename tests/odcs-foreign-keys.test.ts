@@ -1,9 +1,10 @@
+// Tests foreign key column pairing and compatibility with existing fields.
 import { test, expect } from 'bun:test';
 import { parse } from 'yaml';
 import { readFileSync } from 'node:fs';
 import { odcsForeignKeys, odcsExternalForeignKeys, odcsReferenceIssues } from '../src/odcs';
-// Foreign keys column to column (research R2): fromColumns/toColumns are property paths of the
-// referencing and referenced objects, paired by position.
+// Foreign keys column to column: fromColumns/toColumns are property paths of the referencing and
+// referenced objects, paired by position.
 const table = (name: string, properties: any[], extra: any = {}) => ({
   name,
   id: name + '_obj',
@@ -33,7 +34,7 @@ test('property-level key: from is the property, to the referenced object.propert
   expect(pairs(data)).toEqual([
     { from: 1, to: 0, fromColumns: ['customer_id'], toColumns: ['id'] },
   ]);
-  // existing fields keep their v0.2.0 values
+  // Existing fields keep their values.
   expect(odcsForeignKeys(data)[0]).toMatchObject({
     label: 'customer_id',
     path: ['schema', 1, 'properties', 1, 'relationships', 0],

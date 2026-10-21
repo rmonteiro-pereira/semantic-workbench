@@ -1,10 +1,12 @@
+// Builds isolated Source Control fixtures with local repositories and an optional second clone.
 import { expect } from 'bun:test';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { testWorkspace } from './temp-data-dir';
-// Source Control fixtures: an isolated workspace with one project, a local bare remote and a second
-// clone standing for "someone else" — never a network remote or the owner's repositories.
+// Source Control fixtures: an isolated workspace with one project, a local bare remote and a
+// second clone standing for "someone else" — never a network remote or the owner's repositories.
+/** Calls the workspace HTTP handler and returns the status and decoded JSON body. */
 export const call = async (
   t: { handler: (r: Request) => Promise<Response> },
   method: string,
@@ -20,11 +22,13 @@ export const call = async (
   );
   return { status: r.status, body: await r.json().catch(() => null) };
 };
+/** Requires a successful HTTP result and returns its body. */
 export const ok = async (p: Promise<{ status: number; body: any }>) => {
   const r = await p;
   expect(r.status, JSON.stringify(r.body)).toBe(200);
   return r.body;
 };
+/** Runs Git in the supplied directory without prompting and returns stdout. */
 export function sh(cwd: string, args: string[]) {
   const r = Bun.spawnSync(['git', ...args], {
     cwd,
@@ -33,8 +37,10 @@ export function sh(cwd: string, args: string[]) {
   if (r.exitCode !== 0) throw Error(`git ${args.join(' ')}: ${r.stderr.toString()}`);
   return r.stdout.toString();
 }
+/** Builds a minimal shop ontology with the supplied customer description. */
 export const ontology = (desc: string) =>
   `name: Shop\nontology:\n  - concept: Customer\n    type: EntityType\n    description: ${desc}\n  - concept: Order\n    type: EntityType\n`;
+/** Creates a disposable project with optional local remote and second clone. */
 export async function scmProject(options: { remote?: boolean } = {}) {
   const t = await testWorkspace();
   const created = await ok(

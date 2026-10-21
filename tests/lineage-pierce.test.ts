@@ -1,9 +1,10 @@
+// Tests complete upstream and downstream column paths.
 import { test, expect } from 'bun:test';
 import { readFileSync, readdirSync } from 'node:fs';
 import { parse } from 'yaml';
 import { buildLineage, closure, cardOfNode, selectionNodes } from '../src/odcs/lineage';
 import { lineagePierce } from '../src/odcs/lineage-pierce';
-// Lineage Full pierce (FR-023): the cards of a column's complete upstream and downstream path.
+// Lineage Full pierce: the cards of a column's complete upstream and downstream path.
 const files = readdirSync('public/examples/ubl')
   .filter(f => /\.ya?ml$/.test(f))
   .map(f => ({ path: f, data: parse(readFileSync(`public/examples/ubl/${f}`, 'utf8')) }));
@@ -24,7 +25,8 @@ test('UBL invoice_line.line_extension_amount, Both: exactly the cards on its ups
   expect(new Set(r.cards)).toEqual(want);
   expect(r.total).toBe(want.size);
   expect(r.hidden).toBe(0);
-  // (UBL's governed metrics are counts; none reads this column, so the path ends at the dataset field)
+  // UBL's governed metrics count rows rather than reading this column, so its path ends
+  // at the dataset field.
   expect(r.cards).toContain('dataset:ubl.semantic.yaml#/invoice_line');
   expect(r.steps[r.cards[0]]).toBe(0);
 });

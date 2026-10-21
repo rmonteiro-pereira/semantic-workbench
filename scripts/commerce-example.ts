@@ -1,3 +1,4 @@
+// Generates commerce model examples, RDF instances and analytical fixtures.
 import { stringify } from 'yaml';
 import { graph, parse, serialize } from 'rdflib';
 const dir = 'public/examples/commerce/';

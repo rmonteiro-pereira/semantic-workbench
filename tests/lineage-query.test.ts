@@ -1,14 +1,14 @@
+// Tests neighborhood reachability and directional lineage paths.
 import { test, expect } from 'bun:test';
 import { buildLineage, around, closure, findAssets, selectionNodes } from '../src/odcs/lineage';
-// around(center, steps) reach and closure(ids, direction) path highlighting (T026, FR-005, FR-008).
 const doc = (n: string, props: any[], extra: any = {}) => ({
   name: n,
   physicalName: 'db.' + n,
   properties: props,
   ...extra,
 });
-// chain: c0 ← c1 ← c2 ← c3 (each child references the previous one); c1 is read by dataset d1
-// with metrics m1 (on d1.k) and m2 (on m1); c2 is read by d2.
+// Chain: c0 ← c1 ← c2 ← c3 (each child references the previous one); c1 is read by dataset d1 with
+// metrics m1 (on d1.k) and m2 (on m1); c2 is read by d2.
 const files = [
   {
     path: 'c.odcs.yaml',
@@ -58,7 +58,7 @@ test('default reach: one foreign-key step each way plus everything downstream to
   const two = around(g, o('c1'), 2);
   expect(two.cards.has(o('c3'))).toBe(true);
   expect(two.hidden.size).toBe(0);
-  // centring on a metric shows what feeds it and the objects one key away from its sources
+  // Centring on a metric shows what feeds it and the objects one key away from its sources.
   const m = around(g, 'metric:s.yaml#/m2');
   expect([...m.cards].sort()).toEqual(
     [
@@ -79,14 +79,15 @@ test('closure follows direction: up = ancestors, down = descendants, both = unio
   expect([...up.nodes].sort()).toEqual([start, `${o('c1')}/k`].sort());
   const both = closure(g, [start]);
   expect(both.nodes.size).toBe(4);
-  // d1.p is a sibling of d1.k through c1: never reached
+  // The sibling field d1.p is not reached through c1.
   expect(both.nodes.has('dataset:s.yaml#/d1/p')).toBe(false);
   expect(both.nodes.has(`${o('c2')}/p`)).toBe(false);
-  // from c1.k downstream: the child key of c2, then nothing further through c2.k (a different column)
+  // From c1.k downstream: the child key of c2, then nothing further through c2.k (a different
+  // column).
   const fk = closure(g, [`${o('c1')}/k`], 'down');
   expect(fk.nodes.has(`${o('c2')}/p`)).toBe(true);
   expect(fk.nodes.has(`${o('c3')}/p`)).toBe(false);
-  // edges in the closure are those between its nodes
+  // Edges in the closure are those between its nodes.
   for (const i of both.edges)
     expect(both.nodes.has(g.edges[i].from) && both.nodes.has(g.edges[i].to)).toBe(true);
 });

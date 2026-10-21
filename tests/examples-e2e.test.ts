@@ -1,3 +1,4 @@
+// Tests shipped examples across parsing and query execution.
 import { test, expect } from 'bun:test';
 import { checkExamples } from '../scripts/example-checks';
 test('all official Ossie examples and generated billing model round-trip; generated SQL produces verified fixture results', async () => {

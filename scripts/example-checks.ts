@@ -1,3 +1,4 @@
+// Validates example models and executes their governed metrics against synthetic fixtures.
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { Database } from 'bun:sqlite';
@@ -13,6 +14,7 @@ import {
 } from '../server/agent/runtime';
 import manifest from '../tests/fixtures/ossie-mapping/manifest.json';
 import { checkMall } from './mall-checks';
+/** Validates example models and checks governed query results against fixture expectations. */
 export async function checkExamples() {
   const upstream: StoredDocument[] = [];
   const imports: any[] = [];
@@ -72,8 +74,8 @@ export async function checkExamples() {
           metrics: [],
           dimensions: ['["AIRPORT","name"]'],
         });
-        // Only the test execution adapter changes the warehouse catalog prefix.
-        // Source files, exported context and original SQL preview remain untouched.
+        // Only the test execution adapter changes the warehouse catalog prefix. Source files,
+        // exported context and original SQL preview remain untouched.
         const testSql = p.sql.replaceAll('"DATABASE"."SCHEMA".', '"flights".');
         const actual = (flightDb.query(testSql).all() as any[]).map(r => r.dimension_1).sort();
         assert.deepEqual(actual, ['Boston', 'Denver', 'Seattle']);
@@ -215,7 +217,7 @@ export async function checkExamples() {
       assert.equal(
         mixedRows.reduce((sum, r) => sum + r.metric_2, 0),
         8,
-      ); // distinct counts are not additive across plans
+      ); // Distinct counts are not additive across plans.
       sqlExecutions.push({
         example: 'generated subscription billing',
         metric: 'mixed revenue/count/ratio',
@@ -240,8 +242,8 @@ export async function checkExamples() {
         result: twoRows,
       });
       plans.push(twoDimensions);
-      // Billed-account/billing-cycle and subscribed-account/billing-cycle routes
-      // represent different roles. A shortest path must not choose their meaning.
+      // Billed-account/billing-cycle and subscribed-account/billing-cycle routes represent
+      // different roles. A shortest path must not choose their meaning.
       assert.throws(
         () =>
           planQuery(context, {

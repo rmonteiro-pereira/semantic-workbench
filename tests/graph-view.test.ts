@@ -1,3 +1,4 @@
+// Tests neighborhood projection, search, ranking and paging.
 import { test, expect } from 'bun:test';
 import {
   graphView,
@@ -9,7 +10,7 @@ import {
   NEIGHBOR_PAGE,
 } from '../src/graph-view';
 import { layoutGraph } from '../src/layout';
-// Neighborhood projection (FR-034–FR-039; baseline defects 1–4).
+
 const nodes = Array.from({ length: 30 }, (_, i) => ({
   id: String(i),
   name: `Entity ${i}`,
@@ -25,7 +26,7 @@ const edge = (
   label = id,
   kind = 'relationship',
 ) => ({ id, source, target, label, data: { path: [], kind, definition: {} } });
-test('relationships among visible neighbors are kept around a center, and can be hidden (defect 1)', () => {
+test('relationships among visible neighbors are kept around a center, and can be hidden', () => {
   const edges = [edge('0', '1'), edge('0', '2'), edge('1', '2'), edge('3', '4')];
   const on = neighborhood(nodes, edges, { center: '0' });
   expect(on.edges.map(e => e.id).sort()).toEqual(['0-1', '0-2', '1-2']);
@@ -40,7 +41,7 @@ test('relationships among visible neighbors are kept around a center, and can be
       .sort(),
   ).toEqual(['0-1', '0-2', '1-2']);
 });
-test('shown and hidden neighbor counts; deterministic ranking by relationship kind then name; paging and keep (defect 2)', () => {
+test('shown and hidden neighbor counts; deterministic ranking by relationship kind then name; paging and keep', () => {
   const edges = nodes
     .slice(1)
     .map(n => edge('0', n.id, '0-' + n.id, 'has', Number(n.id) % 2 ? 'b-kind' : 'a-kind'));
@@ -87,7 +88,7 @@ test('incoming, outgoing and two-way neighbors are told apart', () => {
   expect(n.both).toEqual(['3']);
   expect(n.edges.some(e => e.id === '0-0')).toBe(true);
 });
-test('the OWL projection is the same with or without a center; technical resources only on request (defect 3)', () => {
+test('the OWL projection is the same with or without a center; technical resources only on request', () => {
   const rdf = [
     { ...nodes[0], kind: 'OWL class' },
     { ...nodes[1], kind: 'OWL property' },
@@ -106,7 +107,7 @@ test('the OWL projection is the same with or without a center; technical resourc
     graphView(rdf, edges, '', false, 8, '0').entities.map(n => n.id),
   );
 });
-test('search ranks exact name matches first, then prefixes, words and substrings (defect 4)', () => {
+test('search ranks exact name matches first, then prefixes, words and substrings', () => {
   const named = ['OrderLine', 'Order', 'PurchaseOrder', 'Reorder', 'Orders', 'Customer'].map(
     (name, i) => ({ ...nodes[i], id: 'n' + i, name }),
   );

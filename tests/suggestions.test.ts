@@ -1,3 +1,4 @@
+// Tests grouping suggestions and persistence of dismissed suggestions.
 import { test, expect } from 'bun:test';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -54,7 +55,7 @@ test('evidence kinds: ossie-ref-name, shared-iri, odcs-physical-name; never simi
       f('q', 'y', { sources: ['db.orders'] }),
     )[0].kind,
   ).toBe('odcs-physical-name');
-  // q/o.yaml (alone) joins p, which already holds a related file; never the reverse.
+  // The isolated q/o.yaml joins p, which already holds a related file; never the reverse.
   expect(
     inferSuggestions([a, b, f('p', 'sibling.yaml', { names: ['Flights'] })], new Set()),
   ).toEqual([

@@ -1,3 +1,4 @@
+// Checks automatic saves, stale drafts and commits using an isolated workspace and local remote.
 import { chromium, expect, type Page } from '@playwright/test';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -5,11 +6,8 @@ import { join } from 'node:path';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { projectDir, projectFile } from '../server/projects/paths';
 import { expectEditorValue, fillEditor } from './helpers/code-editor';
-// Phase 3 browser check (T024; Story 3, SC-005): valid edits are written automatically (one changed
-// line in `git diff`), invalid text is never written and stays a draft across a reload, a stale
-// save shows both versions, Commit… commits the ticked files in two actions, imports are
-// committed, refusals offer Commit…, and the header and Commit dialog fit four viewports.
-// Isolated data root and a local bare remote; screenshots in /tmp/workbench-autosave-*.png.
+// Invalid edits must remain drafts across reloads; stale saves must show both versions. Valid
+// saves must change only the edited lines.
 const api = await startIsolatedApi();
 const commerce = await api.ws.loadExample('commerce');
 const dir = projectDir(api.ws.layout, commerce.slug);
@@ -87,7 +85,7 @@ try {
           .find(l => l.includes('Customer in the order-to-cash process.'))!
           .replace('Customer in the order-to-cash process.', 'Buyer of record.')}`,
       ]);
-      // the editor keeps its text and cursor: nothing was replaced
+      // The editor keeps its text and cursor: nothing was replaced.
       await expectEditorValue(editor(), read(file));
     },
   );
@@ -145,65 +143,60 @@ try {
       expect(read(file)).toBe(disk.replace('Buyer of record.', 'My wording.'));
     },
   );
-  await check(
-    'Commit… commits only the ticked files in two actions after typing (SC-005)',
-    async () => {
-      writeFileSync(
-        join(dir, 'notes.ossie.yaml'),
-        'name: Notes\nontology:\n  - concept: Note\n    type: EntityType\n',
-      );
-      await expect(
-        tree().getByRole('button', { name: 'notes.ossie.yaml', exact: true }),
-      ).toBeVisible({ timeout: 5000 });
-      await page.getByRole('button', { name: 'Commit…' }).click();
-      const dialog = page.getByRole('dialog', { name: 'Commit' });
-      await expect(dialog).toBeVisible();
-      const files = dialog.getByRole('list', { name: 'Changed files' });
-      await expect(files.getByRole('checkbox', { name: file })).toBeChecked();
-      await expect(files.getByRole('checkbox', { name: 'notes.ossie.yaml' })).toBeChecked();
-      await expect(dialog.getByRole('region', { name: `Diff of ${file}` })).toContainText(
-        'My wording.',
-      );
-      await expect(dialog.getByRole('textbox', { name: 'Commit message' })).toHaveValue(
-        'Update 2 files',
-      );
-      await files.getByRole('checkbox', { name: 'notes.ossie.yaml' }).uncheck();
-      await expect(dialog.getByRole('textbox', { name: 'Commit message' })).toHaveValue(
-        `Update ${file}`,
-      );
-      for (const [w, h] of [
-        [390, 844],
-        [1280, 720],
-        [1440, 900],
-        [2560, 1440],
-      ]) {
-        await page.setViewportSize({ width: w, height: h });
-        await page.waitForTimeout(150);
-        await page.screenshot({ path: `/tmp/workbench-autosave-commit-${w}.png` });
-        const box = await dialog.locator('section.workbench-dialog').boundingBox();
-        expect(box!.x).toBeGreaterThanOrEqual(0);
-        expect(box!.x + box!.width).toBeLessThanOrEqual(w + 0.5);
-        expect(box!.y + box!.height).toBeLessThanOrEqual(h + 0.5);
-        const commit = await dialog
-          .getByRole('button', { name: 'Commit', exact: true })
-          .boundingBox();
-        expect(commit!.y + commit!.height).toBeLessThanOrEqual(h);
-      }
-      await page.setViewportSize({ width: 1440, height: 900 });
-      await dialog.getByRole('button', { name: 'Commit', exact: true }).click();
-      await expect(dialog).toHaveCount(0);
-      await expect(page.locator('main > .status')).toContainText(
-        /^Committed [0-9a-f]{7} \(1 file\)/,
-      );
-      expect(
-        sh(dir, ['show', '--name-only', '--format=%s', 'HEAD']).trim().split('\n').filter(Boolean),
-      ).toEqual([`Update ${file}`, file]);
-      expect(sh(dir, ['status', '--porcelain']).trim()).toBe('?? notes.ossie.yaml');
-      await expect(saveState()).toHaveText('Saved to file · 1 uncommitted change', {
-        timeout: 5000,
-      });
-    },
-  );
+  await check('Commit… commits only the ticked files in two actions after typing', async () => {
+    writeFileSync(
+      join(dir, 'notes.ossie.yaml'),
+      'name: Notes\nontology:\n  - concept: Note\n    type: EntityType\n',
+    );
+    await expect(tree().getByRole('button', { name: 'notes.ossie.yaml', exact: true })).toBeVisible(
+      { timeout: 5000 },
+    );
+    await page.getByRole('button', { name: 'Commit…' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Commit' });
+    await expect(dialog).toBeVisible();
+    const files = dialog.getByRole('list', { name: 'Changed files' });
+    await expect(files.getByRole('checkbox', { name: file })).toBeChecked();
+    await expect(files.getByRole('checkbox', { name: 'notes.ossie.yaml' })).toBeChecked();
+    await expect(dialog.getByRole('region', { name: `Diff of ${file}` })).toContainText(
+      'My wording.',
+    );
+    await expect(dialog.getByRole('textbox', { name: 'Commit message' })).toHaveValue(
+      'Update 2 files',
+    );
+    await files.getByRole('checkbox', { name: 'notes.ossie.yaml' }).uncheck();
+    await expect(dialog.getByRole('textbox', { name: 'Commit message' })).toHaveValue(
+      `Update ${file}`,
+    );
+    for (const [w, h] of [
+      [390, 844],
+      [1280, 720],
+      [1440, 900],
+      [2560, 1440],
+    ]) {
+      await page.setViewportSize({ width: w, height: h });
+      await page.waitForTimeout(150);
+      await page.screenshot({ path: `/tmp/workbench-autosave-commit-${w}.png` });
+      const box = await dialog.locator('section.workbench-dialog').boundingBox();
+      expect(box!.x).toBeGreaterThanOrEqual(0);
+      expect(box!.x + box!.width).toBeLessThanOrEqual(w + 0.5);
+      expect(box!.y + box!.height).toBeLessThanOrEqual(h + 0.5);
+      const commit = await dialog
+        .getByRole('button', { name: 'Commit', exact: true })
+        .boundingBox();
+      expect(commit!.y + commit!.height).toBeLessThanOrEqual(h);
+    }
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await dialog.getByRole('button', { name: 'Commit', exact: true }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(page.locator('main > .status')).toContainText(/^Committed [0-9a-f]{7} \(1 file\)/);
+    expect(
+      sh(dir, ['show', '--name-only', '--format=%s', 'HEAD']).trim().split('\n').filter(Boolean),
+    ).toEqual([`Update ${file}`, file]);
+    expect(sh(dir, ['status', '--porcelain']).trim()).toBe('?? notes.ossie.yaml');
+    await expect(saveState()).toHaveText('Saved to file · 1 uncommitted change', {
+      timeout: 5000,
+    });
+  });
   await check(
     'Commit & push without a remote commits and explains; with a remote it pushes',
     async () => {

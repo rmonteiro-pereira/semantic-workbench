@@ -1,3 +1,4 @@
+// Tests business-area grouping and summary connections in the overview graph.
 import { test, expect } from 'bun:test';
 import { inspect } from '../src/model';
 import { modelOverview } from '../src/overview';

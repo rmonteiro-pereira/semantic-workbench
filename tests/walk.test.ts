@@ -1,3 +1,4 @@
+// Tests graph navigation history and restoration of expansion steps.
 import { test, expect } from 'bun:test';
 import {
   walkReducer,
@@ -62,7 +63,7 @@ test('jump and reset; the trail is bounded', () => {
   expect(w.steps).toHaveLength(MAX_STEPS);
   expect(w.index).toBe(MAX_STEPS - 1);
 });
-// v0.3.0: expansion steps (data-model WalkStep); steps without `kind` stay re-centering steps.
+// Expansion steps (data-model WalkStep); steps without `kind` stay re-centering steps.
 import { canvasAt } from '../src/graph/walk';
 const expand = (center: string, set: string, name = set) => ({
   doc: 'd',
@@ -88,7 +89,7 @@ test('expansion steps keep the center and are pushed even when the center repeat
   w = run(w, { type: 'forward' }, { type: 'forward' });
   expect(canvasAt(w).sets).toEqual(['s1', 's2']);
 });
-test('re-centering starts a new canvas; v0.2.0 steps without kind still dedupe', () => {
+test('re-centering starts a new canvas; legacy steps without kind still dedupe', () => {
   let w = run(
     emptyWalk,
     { type: 'push', step: step('a') },

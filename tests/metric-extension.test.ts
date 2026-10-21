@@ -1,9 +1,10 @@
+// Tests metric extension validation across shipped examples.
 import { test, expect } from 'bun:test';
 import { parseDocument, stringify } from 'yaml';
 import { validateInput } from '../src/input';
 import { ansiExpression } from '../src/metrics/deps';
 import { inferredAdditivity, inferredType, readMetricExtension } from '../src/metrics/extension';
-// Metric extensions (FR-003, FR-004) on copies of the 34 metrics shipped in the examples.
+// Metric extensions on copies of the 34 metrics shipped in the examples.
 const shipped = [
   'billing/billing.semantic.yaml',
   'commerce/sales.ossie.yaml',
@@ -149,7 +150,7 @@ test('plain-language rules: ratio, semi-additive and deprecated', () => {
   );
   expect(messages(bad).some(x => x.includes('not valid JSON'))).toBe(true);
 });
-test('workspace findings: inputs exist, cycles, grains, fields and declared type (FR-004)', () => {
+test('workspace findings: inputs exist, cycles, grains, fields and declared type', () => {
   const m = messages(
     model([
       [

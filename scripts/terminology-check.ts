@@ -1,10 +1,9 @@
+// Checks metric terminology in the UI and documentation while allowing verbatim user data.
 import { chromium, type Page } from '@playwright/test';
 import { readFileSync, readdirSync } from 'node:fs';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
-// One vocabulary (T048; FR-014, SC-003): no rendered text, accessible name, tooltip, placeholder
-// or status message of any view says "KPI", and neither do README.md and docs/. User data shown as
-// written is allowed: a text that occurs verbatim in a loaded example file (for example the
-// shopping center's own descriptions), and the stored key `kpi_bindings`. Isolated data root.
+// Rendered text and documentation use metric terminology. Verbatim example content and stored keys
+// such as `kpi_bindings` are allowed.
 const api = await startIsolatedApi();
 const loaded: Record<string, { slug: string; name: string }> = {};
 for (const id of ['mall', 'flights', 'commerce', 'mapped-commerce', 'billing'])
