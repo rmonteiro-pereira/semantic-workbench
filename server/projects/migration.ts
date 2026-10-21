@@ -1,3 +1,5 @@
+// Migrates the legacy database into project folders using a backup copy. Exported bytes must match
+// stored hashes before the folders are installed.
 import { Database } from 'bun:sqlite';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
@@ -14,9 +16,8 @@ import {
   type DataLayout,
 } from './paths';
 import type { State, ProjectEntry } from './state';
-// One-time migration of a v0.1.0 workspace (research R8, FR-089). The old database is never opened
-// or modified: it is copied to data/backup/ and the copy is read. Every exported file is re-read and
-// its SHA-256 compared with the stored source; any mismatch stops before anything is moved into place.
+// Never open or modify the original database; read a backup copy instead.
+/** Summarizes migration status, backup location, exported files, and verification counts. */
 export type MigrationReport = {
   status: 'completed' | 'postponed' | 'failed';
   reason?: string;
@@ -25,6 +26,7 @@ export type MigrationReport = {
   files: number;
   verified: number;
 };
+/** Allows tests to alter exported files before byte verification. */
 export type MigrationHooks = { afterWrite?: (file: string) => void };
 type Context = {
   layout: DataLayout;
@@ -34,7 +36,9 @@ type Context = {
   gitAvailable: boolean;
   identityConfigured: boolean;
 };
+/** Commit message used for files imported from the legacy database. */
 export const MIGRATION_COMMIT = 'Import from Semantic Workbench v0.1.0';
+/** Migrates a legacy database once, returning null when no migration is needed. */
 export async function migrateLegacy(
   ctx: Context,
   hooks: MigrationHooks = {},

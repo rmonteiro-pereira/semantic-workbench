@@ -1,3 +1,5 @@
+// Explains project metrics using semantic models, mappings, and data contracts. SQL previews use
+// governed definitions and are never executed.
 import { inspect } from '../../src/model';
 import { rdfSyntax } from '../../src/rdf';
 import { isMapping } from '../../src/mapping-schema';
@@ -22,9 +24,6 @@ import {
   type ResolvedBinding,
 } from '../../src/metrics/bindings';
 import { modelContext, planQuery, type StoredDocument } from './runtime';
-// metric catalog and explanation (FR-001–FR-007): reads the semantic model, its extensions, the metric
-// bindings and the ODCS contracts of one project. Everything here explains; nothing executes. The
-// SQL preview comes from the governed planner and is labelled as not executed.
 type ProjectDocument = StoredDocument & { path: string };
 type Parsed = { doc: ProjectDocument; data: any };
 type ModelRef = {
@@ -34,6 +33,7 @@ type ModelRef = {
   ontology?: any;
   embeddedMapping?: any;
 };
+/** Connects a metric input to a concept and records its source and binding problems. */
 export type ConceptLink = {
   concept: string | null;
   input: string;
@@ -42,6 +42,7 @@ export type ConceptLink = {
   file: string;
   problems: string[];
 };
+/** Summarizes a metric’s definition, governance attributes, bindings, and findings. */
 export type KpiSummary = {
   file: string;
   modelPath: (string | number)[];
@@ -64,9 +65,10 @@ export type KpiSummary = {
   concepts: ConceptLink[];
   extension: MetricExtension | null;
   findings: Issue[];
-  // v0.3.0 (FR-017): true when the metric has workbench attributes (a SEMANTIC_WORKBENCH extension).
+  // True when a SEMANTIC_WORKBENCH extension supplies governance attributes.
   governed: boolean;
 };
+/** A metric or field in the dependency tree, with repeated references marked. */
 export type TreeNode = {
   kind: 'metric' | 'field';
   name: string;
@@ -79,6 +81,7 @@ export type TreeNode = {
   children: TreeNode[];
   repeated?: boolean;
 };
+/** Quality or service-level evidence supplied by a data contract. */
 export type Trust = {
   kind: 'quality' | 'sla';
   name?: string;
@@ -90,6 +93,7 @@ export type Trust = {
   unit?: string;
   element?: string;
 };
+/** Links a physical input to its data contract object or property and quality evidence. */
 export type OdcsLink = {
   file: string;
   contract: string;
@@ -99,6 +103,7 @@ export type OdcsLink = {
   logicalType?: string;
   quality: Trust[];
 };
+/** Describes a leaf metric’s datasets, physical columns, and contract evidence. */
 export type BaseInput = {
   metric: string;
   label: string;
@@ -115,6 +120,7 @@ export type BaseInput = {
   }[];
   sla: Trust[];
 };
+/** An unexecuted SQL plan or the reason planning was refused. */
 export type SqlPreview =
   | {
       grain: Grain | null;
@@ -126,6 +132,7 @@ export type SqlPreview =
       notExecuted: true;
     }
   | { refused: string; grain: Grain | null; dimensions: string[]; rollup: string | null };
+/** Explains a metric’s formula, dependencies, aggregation rules, and SQL preview. */
 export type KpiExplanation = {
   kpi: KpiSummary;
   formula: string;
@@ -159,7 +166,7 @@ function parseProject(documents: StoredDocument[], slug: string): Parsed[] {
       }
     });
 }
-// Every semantic model of a project: flat files, legacy wrappers and the consolidated layout's embedded models.
+// Models may be standalone, wrapped in a legacy list, or embedded in an ontology mapping.
 function semanticModels(parsed: Parsed[]): ModelRef[] {
   return parsed.flatMap(({ doc, data }): ModelRef[] => {
     if (isMapping(data) || data.kind === 'DataContract') return [];
@@ -192,9 +199,7 @@ const fieldNamesOf = (model: any) =>
       .filter(object)
       .map((d: any) => [d.name, new Set(list(d.fields).map((f: any) => f?.name))]),
   );
-// metric bindings for one model: the mapping documents of the project that reference it, or the
-// consolidated file's embedded semantic model root. Standard mappings whose expression is a metric
-// name are added as evidence for metrics the extension does not bind.
+// Standard mappings also provide evidence when the extension does not bind a metric.
 function conceptLinks(
   parsed: Parsed[],
   ref: ModelRef,
@@ -309,6 +314,7 @@ function summaries(parsed: Parsed[], ref: ModelRef): KpiSummary[] {
     };
   });
 }
+/** Lists metrics from all supported semantic models in the specified project. */
 export function projectMetrics(documents: StoredDocument[], slug: string): KpiSummary[] {
   const parsed = parseProject(documents, slug);
   return semanticModels(parsed).flatMap(ref => summaries(parsed, ref));
@@ -373,6 +379,7 @@ const qualityOf = (owner: any): Trust[] =>
           ? `${q.metric}${q.mustBe !== undefined ? ` must be ${q.mustBe}` : ''}`
           : undefined),
     }));
+/** Explains a project metric and previews SQL for the requested grain and dimensions. */
 export function explainMetric(
   documents: StoredDocument[],
   slug: string,
@@ -394,7 +401,6 @@ export function explainMetric(
       .map((d: any) => [d.name, d]),
   );
   const index = odcsIndex(parsed);
-  // Composition tree: metrics expand into their inputs; base metrics end in the fields they aggregate.
   const fieldLeaves = (sql: string) => {
     const seen = new Set<string>();
     return expressionRefs(sql).flatMap(r => {
@@ -444,7 +450,6 @@ export function explainMetric(
     };
   };
   const root = tree(metric);
-  // Base inputs: the metrics at the leaves of the tree, down to dataset fields and ODCS properties.
   const bases: string[] = [];
   const walk = (n: TreeNode) => {
     if (n.kind === 'metric' && !n.repeated && !n.children.some(c => c.kind === 'metric')) {
@@ -594,7 +599,7 @@ function preview(
     );
   if (rollup !== null && rollup !== 'sum')
     return refuse(`Rollup "${rollup}" is not supported; the only rollup is sum.`);
-  // Additivity decides which rollups are meaningful (FR-006).
+  // Additivity determines which rollups preserve the meaning of a metric.
   if (rollup === 'sum' && kpi.additivity === null)
     return refuse(
       `${kpi.label} has no declared additivity and none can be inferred, so summing it is refused.`,

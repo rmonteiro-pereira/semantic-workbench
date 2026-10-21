@@ -1,4 +1,5 @@
-// Errors that map to HTTP statuses in server/routes/http.ts.
+// Defines workspace errors translated into HTTP responses by the route layer.
+/** Reports a changed base version and carries the current hash and source for conflict handling. */
 export class StaleError extends Error {
   constructor(
     public currentHash: string | null,
@@ -8,20 +9,21 @@ export class StaleError extends Error {
     this.name = 'StaleError';
   }
 }
+/** Reports a missing workspace resource. */
 export class NotFoundError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'NotFoundError';
   }
 }
-// 410: the undo window has passed; the entry stays in the trash.
+/** Reports an expired undo window while leaving the entry available in trash. */
 export class GoneError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'GoneError';
   }
 }
-// 409: the target location is taken; nothing was overwritten. `suggestion` names a free target.
+/** Reports an occupied destination and suggests a free one without overwriting data. */
 export class OccupiedError extends Error {
   constructor(
     message: string,
@@ -31,7 +33,7 @@ export class OccupiedError extends Error {
     this.name = 'OccupiedError';
   }
 }
-// 409: a commit of chosen files during a merge; only the merge itself can be committed.
+/** Rejects selected-file commits during a merge and identifies unresolved conflicts. */
 export class MergingError extends Error {
   constructor(public conflicts: string[]) {
     super(
@@ -40,7 +42,7 @@ export class MergingError extends Error {
     this.name = 'MergingError';
   }
 }
-// 409: an import would replace existing files and no choice was given.
+/** Reports import paths that require an explicit replace or keep-both choice. */
 export class ConflictError extends Error {
   constructor(public conflicts: string[]) {
     super('Files with these names already exist in the project. Choose replace or keep both.');

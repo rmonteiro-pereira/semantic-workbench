@@ -1,3 +1,5 @@
+// Moves deleted files and project folders into journaled trash without rewriting Git history.
+// Restoration refuses occupied paths and suggests a free alternative.
 import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { join, posix } from 'node:path';
 import { randomBytes } from 'node:crypto';
@@ -15,11 +17,9 @@ import {
   type DataLayout,
 } from './paths';
 import type { ProjectEntry, State } from './state';
-// Delete, undo, restore, purge and Clear (FR-021–FR-026, FR-086–FR-088). Deleting moves the file or
-// the whole project folder (with .git) to data/trash/<entryId>/payload/ in one journaled
-// operation; Git history is never rewritten. Restores never overwrite: a taken location is a 409
-// with a free alternative.
+/** Time window for immediate undo after deletion. */
 export const UNDO_MS = 10_000;
+/** Metadata needed to restore a deleted file or project and its associated state. */
 export type TrashEntry = {
   formatVersion: 1;
   entryId: string;
@@ -35,7 +35,7 @@ export type TrashEntry = {
   registry?: Omit<ProjectEntry, 'slug' | 'name'>;
 };
 const CROCKFORD = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
-// ULID: 48-bit time and 80 random bits in Crockford base32, sortable by creation time.
+/** Creates a time-sortable identifier from a 48-bit timestamp and 80 random bits. */
 export function ulid(now = Date.now()) {
   let time = '';
   let t = now;
@@ -48,6 +48,7 @@ export function ulid(now = Date.now()) {
   for (let i = 0; i < 16; i++) rand += CROCKFORD[bytes[i] % 32];
   return time + rand;
 }
+/** Workspace services and optional clock used by journaled trash operations. */
 export type TrashContext = {
   layout: DataLayout;
   state: State;
@@ -66,6 +67,7 @@ export type TrashContext = {
   emit: (event: string, data: unknown) => void;
   now?: () => number;
 };
+/** Creates deletion and restoration operations that preserve recoverable content and state. */
 export function createTrash(ctx: TrashContext) {
   const { layout, state, journal, lock } = ctx;
   const now = ctx.now ?? Date.now;
@@ -139,9 +141,8 @@ export function createTrash(ctx: TrashContext) {
       return { entryId: e.entryId, undoUntil: e.undoUntil };
     });
   }
-  // Revert to last commit (FR-046, research R7): one journaled operation. The base hash is checked,
-  // the committed bytes are staged, then the current file moves into a new trash entry and the
-  // staged bytes move into its place. A file absent from the last commit just goes to the trash.
+  // Check the base hash before journaling the current file into trash and committed bytes into
+  // place. A file absent from the last commit goes to trash without a replacement.
   async function revertFile(
     slug: string,
     path: string,

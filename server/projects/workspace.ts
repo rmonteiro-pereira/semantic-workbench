@@ -1,3 +1,5 @@
+// Coordinates project files, durable state, and workspace services. Project folders are the source
+// of truth; the SQLite cache can be rebuilt.
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { join, posix } from 'node:path';
 import { validateInput } from '../../src/input';
@@ -32,11 +34,11 @@ import { createTrash } from './trash';
 import { createScm } from './scm';
 import { factsOf, inferSuggestions, type FileFacts, type IndexedFile } from './suggestions';
 import { ConflictError, OccupiedError } from './errors';
-// The folder store: project folders under data/projects/ are the source of truth, state files hold
-// what must survive, the SQLite cache is rebuilt from the folders whenever it is missing.
 import { StaleError, NotFoundError } from './errors';
 export { StaleError, NotFoundError, GoneError, OccupiedError, ConflictError } from './errors';
+/** A project-relative path and the source text to import there. */
 export type ImportFile = { path: string; source: string };
+/** Storage, Git, watching, and test-hook options for opening a workspace. */
 export type WorkspaceOptions = {
   root?: string;
   gitBinary?: string;
@@ -48,16 +50,16 @@ export type WorkspaceOptions = {
   migrationHooks?: Parameters<typeof migrateLegacy>[1];
   journalHooks?: JournalHooks;
 };
-// What an import's commit did (FR-049, contracts/http-api.md): the commit, or why there is none.
+/** Records an import commit or explains why no commit was created. */
 export type ImportCommit =
   | { committed: true; commit: string; message: string }
   | { committed: false; reason: 'no-git' | 'no-identity' | 'merging' | 'nothing' };
-// C6: "Import N files" (one file: "Import <name>"), "… into <subfolder>" in a subfolder project.
+/** Builds an import commit message naming the file or count and optional subfolder. */
 export function importMessage(paths: string[], subfolder = '') {
   const what = paths.length === 1 ? posix.basename(paths[0]) : `${paths.length} files`;
   return `Import ${what}${subfolder ? ` into ${subfolder}` : ''}`;
 }
-// Apply source-range patches (UTF-16 offsets into the base text) from the end so offsets stay valid.
+/** Applies ordered UTF-16 ranges from the end, preserving untouched source text exactly. */
 export function applyPatches(base: string, patches: Patch[]) {
   if (!Array.isArray(patches) || patches.length > 10_000) throw Error('Patches must be an array.');
   let end = 0;
@@ -78,8 +80,9 @@ export function applyPatches(base: string, patches: Patch[]) {
   for (const p of [...patches].reverse()) out = out.slice(0, p.from) + p.insert + out.slice(p.to);
   return out;
 }
-// Integer stand-in for the v0.1.0 `revision`, derived from the content hash (legacy facade only).
+/** Derives a numeric revision from a content hash for legacy document clients. */
 export const revisionOf = (hash: string) => parseInt(hash.slice(0, 12), 16) + 1;
+/** Recovers and opens workspace services, scans projects, and optionally starts watchers. */
 export async function openWorkspace(options: WorkspaceOptions = {}) {
   const layout: DataLayout = dataLayout(options.root);
   for (const dir of [layout.projects, layout.state, layout.trash, layout.backup])
@@ -87,7 +90,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   const state = createState(layout);
   const journal = createJournal(layout, options.journalHooks);
   const events = createEvents();
-  // Project folders resolve through the registry (research R10); unregistered slugs are their own folder.
+  // Unregistered slugs fall back to folders with the same name; registered projects use the
+  // registry.
   layout.locate = slug => {
     const e = state.registry().projects.find(p => p.slug === slug);
     return e ? locationOf(e) : undefined;
@@ -183,7 +187,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       } catch {}
     }, 50);
   }
-  // Stage a new project folder, then move it and the new registry into place in one journaled operation.
+  // Stage a new project folder, then move it and the new registry into place in one journaled
+  // operation.
   async function createProjectFolder(
     name: string,
     origin: string,
@@ -252,7 +257,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       }
     });
   }
-  // Commit exactly the imported paths (FR-049); `prefix` is the project folder inside its repository.
+  // Commit only imported paths to preserve unrelated work; prefix paths for subfolder projects.
   async function commitFiles(repo: string, paths: string[], prefix = ''): Promise<ImportCommit> {
     if (!gitAvailable) return { committed: false, reason: 'no-git' };
     const message = importMessage(paths, prefix.replace(/\/$/, ''));
@@ -292,7 +297,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     if (issues.length) throw new InputError(issues);
     return files.map(f => ({ path: projectPath(f.path), source: f.source }));
   }
-  // FR-018: a batch is named after the ontology or semantic model it contains.
+  // Use the contained ontology or semantic model name to give the import a recognizable project
+  // name.
   function batchName(files: ImportFile[]) {
     const models = files.map(f => validateInput(f.source, posix.basename(f.path)).model);
     for (const kind of ['Ossie ontology', 'Ossie semantic'])
@@ -366,9 +372,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       return { path: p, hash, findings: indexed.findings };
     });
   }
-  // Several files of one project in one journaled operation (FR-083: metric saves, deletes with
-  // dependents, confirmed rename rewrites). Every base hash is checked first; the new contents are
-  // staged and validated, then each current file is moved aside and the staged one moved in.
+  // Check every base hash before staging and validating replacements.
+  // Journal the file swaps together so related edits can be recovered after a crash.
   async function saveFiles(
     slug: string,
     writes: { path: string; baseHash: string | null; source?: string; patches?: Patch[] }[],
@@ -447,7 +452,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       };
     });
   }
-  // Legacy facade (research R9): flat documents with ids `<project>/<path>` or v0.1.0 ids.
+  // Legacy clients accept both `<project>/<path>` IDs and IDs from the old database.
   function resolveId(id: string) {
     const legacy = state.legacyIds().ids[id];
     if (legacy) return legacy;
@@ -549,7 +554,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     },
     createProject: (name, origin, files) => createProjectFolder(name, origin, files),
   });
-  // Move a file between projects (FR-020), journaled with its draft and view settings.
+  // Journal the file move with its draft and view settings so they remain attached to the file.
   async function moveFile(
     slug: string,
     path: string,
@@ -600,7 +605,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       }),
     );
   }
-  // Import into an existing project (FR-029): name clashes are a 409 unless the caller chose.
+  // Name clashes require an explicit replace or keep-both choice before any files change.
   async function importInto(
     slug: string,
     files: ImportFile[],
@@ -659,8 +664,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       return { written, commit };
     });
   }
-  // What a delete would remove and break (FR-022): unsaved drafts and Ossie references that would
-  // no longer resolve to any remaining file.
+  // Warn about unsaved drafts and references that would no longer resolve after deletion.
   function deleteImpact(slug: string, path?: string) {
     entry(slug);
     const p = path === undefined ? undefined : projectPath(path);
@@ -736,7 +740,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     identityConfigured,
     recovery,
     migration,
-    // Revert to last commit (FR-046): the committed bytes, then one journaled replace via the trash.
+    // Restore committed bytes through a journaled trash operation so the current version is
+    // recoverable.
     async revertFile(slug: string, path: string, baseHash: unknown) {
       entry(slug);
       if (baseHash !== null && (typeof baseHash !== 'string' || !/^[0-9a-f]{64}$/.test(baseHash)))
@@ -832,7 +837,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         path: name,
         source: readFileSync(join(examplesDir, set.folder, name), 'utf8'),
       }));
-      // A project that already holds every example file with identical bytes is opened, not duplicated.
+      // A project that already holds every example file with identical bytes is opened, not
+      // duplicated.
       const hashes = new Map(files.map(f => [f.path, sha256(encode(f.source))]));
       const same = projects().find(p =>
         files.every(f => cache.file(p.slug, f.path)?.hash === hashes.get(f.path)),
@@ -854,7 +860,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         events.emit('projects', { added: [], removed: [], renamed: [{ slug, name: value }] });
         return { slug, name: value };
       }),
-    // Facade save: new documents go to the "Ungrouped" project; existing ones need their base version.
+    // Facade save: new documents go to the "Ungrouped" project; existing ones need their base
+    // version.
     async saveDocument(
       filename: string,
       source: string,
@@ -918,5 +925,6 @@ function safeDirs(dir: string) {
     return [];
   }
 }
+/** Project storage and services returned by an opened workspace. */
 export type Workspace = Awaited<ReturnType<typeof openWorkspace>>;
 export { PathError };

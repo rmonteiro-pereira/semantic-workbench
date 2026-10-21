@@ -1,3 +1,5 @@
+// Builds evidence-backed semantic context and SQL plans from stored definitions. Plans preserve
+// governed formulas and never execute SQL.
 import { OSSIE_BUILTINS, builtinConcept } from '../../src/ossie-builtins';
 import { inspect } from '../../src/model';
 import { rdfSyntax } from '../../src/rdf';
@@ -13,6 +15,7 @@ import {
   quoteIdentifier,
   sourceSql,
 } from './sql';
+/** Stored source text with its identifier, revision, and optional project. */
 export type StoredDocument = {
   id: string;
   filename: string;
@@ -20,22 +23,24 @@ export type StoredDocument = {
   revision: number;
   project?: string;
 };
+/** Locates a definition within a particular document revision. */
 export type Evidence = {
   documentId: string;
   filename: string;
   revision: number;
   path: (string | number)[];
 };
+/** A context error or warning with optional source evidence. */
 export type Finding = {
   severity: 'error' | 'warning';
   code: string;
   message: string;
   evidence?: Evidence;
 };
-// `kind` (v0.3.0, additive): the mapping that produced the binding. Everything under a link
-// mapping is `link` (its anchor, the linked object and its identifying referents); otherwise a
-// referent mapping is `referent` and an object mapping `object`.
+// Bindings nested inside a link mapping inherit its link kind, including identifying referents.
+/** Identifies whether a binding comes from an object, referent, or link mapping. */
 export type BindingKind = 'object' | 'referent' | 'link';
+/** A mapped concept expression with resolved fields, metrics, and source evidence. */
 export type Binding = {
   id: string;
   kind: BindingKind;
@@ -48,6 +53,7 @@ export type Binding = {
   metrics: string[];
   evidence: Evidence;
 };
+/** A dataset field with its definition and source location. */
 export type RuntimeField = {
   id: string;
   dataset: string;
@@ -55,6 +61,7 @@ export type RuntimeField = {
   definition: any;
   evidence: Evidence;
 };
+/** A governed metric with resolved dependencies and source evidence. */
 export type RuntimeMetric = {
   id: string;
   name: string;
@@ -64,8 +71,7 @@ export type RuntimeMetric = {
   dependsOn: string[];
   evidence: Evidence;
 };
-// metric bindings of the mapping's SEMANTIC_WORKBENCH extension (v0.3.0, additive), resolved against
-// the ontology and the semantic model's metrics; problems stay on the binding as findings.
+/** A metric-to-concept binding whose resolution problems remain available as findings. */
 export type MetricBinding = {
   metric: string;
   measures: ConceptRef;
@@ -73,6 +79,7 @@ export type MetricBinding = {
   findings: Finding[];
   evidence: Evidence;
 };
+/** Resolved definitions, bindings, findings, and planning policy for a mapping or model. */
 export type RuntimeContext = {
   mappingId: string;
   name: string;
@@ -91,6 +98,7 @@ export type RuntimeContext = {
   metricBindings: MetricBinding[];
   policy: typeof policy;
 };
+/** Rules that keep query plans grounded in declared definitions without executing SQL. */
 export const policy = {
   metricFormulas:
     'Governed definitions are immutable. Select metrics by id; never redefine formulas.',
@@ -122,7 +130,7 @@ function parseDocuments(documents: StoredDocument[]) {
 }
 type Parsed = ReturnType<typeof parseDocuments>[number];
 type Target = { doc: StoredDocument; data: any; path: (string | number)[] };
-// Reference targets by logical name: flat semantic models, each model of a legacy semantic_model wrapper, and ontologies.
+// References can target standalone models or models inside legacy wrappers by logical name.
 function targets(parsed: Parsed[], kind: 'ontology' | 'semantic'): Target[] {
   return parsed.flatMap(p => {
     if (!p.data || isMapping(p.data)) return [];
@@ -161,6 +169,7 @@ function mappingEntries(parsed: Parsed[]) {
     }));
   });
 }
+/** Lists available mappings and the policy clients must follow when planning queries. */
 export function agentCatalog(documents: StoredDocument[]) {
   const parsed = parseDocuments(documents);
   return {
@@ -175,6 +184,7 @@ export function agentCatalog(documents: StoredDocument[]) {
     policy,
   };
 }
+/** Resolves a mapping by ID into semantic context with source evidence. */
 export function buildContext(documents: StoredDocument[], mappingId: string): RuntimeContext {
   const parsed = parseDocuments(documents);
   const entry = mappingEntries(parsed).find(m => m.id === mappingId);
@@ -185,8 +195,7 @@ export function buildContext(documents: StoredDocument[], mappingId: string): Ru
   return assemble(parsed, entry);
 }
 type Entry = ReturnType<typeof mappingEntries>[number] & { semanticPath?: (string | number)[] };
-// Fields, metrics, datasets and joins of one semantic model without any mapping (metric explanation
-// of a model that no mapping references). `path` locates the model inside its document.
+/** Builds context for a model at a document path when no mapping is required. */
 export function modelContext(
   documents: StoredDocument[],
   documentId: string,
@@ -227,7 +236,7 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
       }
       candidates = candidates.filter(t => t.doc.filename === local);
     }
-    // FR-033: the mapping's own project first; other projects only when it has no candidate.
+    // Prefer candidates in the mapping’s project before considering other projects.
     const own =
       entry.doc.project === undefined
         ? []
@@ -541,7 +550,7 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
       problem('mapping-reference', (e as Error).message, path);
     }
   }
-  // metric bindings: a mapping document's root extension, or an embedded semantic model's (FR-028).
+  // Bindings can belong to a standalone mapping or an embedded semantic model.
   const kpiOwner = entry.ontology ? entry.data.semantic_model : entry.data;
   const kpiPath = entry.ontology ? [...entry.path, 'semantic_model'] : entry.path;
   const kpi = readKpiBindings(kpiOwner, '', !entry.ontology);
@@ -576,6 +585,7 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
   );
   return context;
 }
+/** Narrows context to named concepts and their referenced fields and metrics. */
 export function selectContext(context: RuntimeContext, conceptNames: string[]) {
   const names = new Set(conceptNames);
   for (const n of names)
@@ -609,16 +619,18 @@ export function selectContext(context: RuntimeContext, conceptNames: string[]) {
     joins: context.joins,
   };
 }
+/** Selects governed metrics and dimensions, with internal options for model-wide previews. */
 export type PlanRequest = {
   mappingId: string;
   concepts?: string[];
   metrics: string[];
   dimensions: string[];
-  // Workbench-internal options (not accepted by /api/agent/plan): plan over the whole model rather than
-  // mapped concepts, and group by a time field truncated to a grain.
+  // Workbench-internal options (not accepted by /api/agent/plan): plan over the whole model rather
+  // than mapped concepts, and group by a time field truncated to a grain.
   scope?: 'model';
   timeGrain?: { field: string; grain: 'day' | 'week' | 'month' | 'quarter' | 'year' };
 };
+/** Builds an unexecuted SQL plan, refusing unsupported expressions or ambiguous joins. */
 export function planQuery(context: RuntimeContext, request: PlanRequest) {
   if (context.findings.some(f => f.severity === 'error'))
     throw Error('Resolve mapping context errors before planning.');
@@ -675,10 +687,8 @@ export function planQuery(context: RuntimeContext, request: PlanRequest) {
     );
   const root = [...metricDatasets][0] ?? dimensions[0]?.dataset;
   if (!root) throw Error('No physical dataset was resolved.');
-  // Find a directed path, then test each chosen edge for necessity. If the
-  // target remains reachable without any one edge, another simple path exists
-  // (including a longer one). Visited sets terminate cycles; reverse edges are
-  // never introduced. This avoids choosing a business role by graph distance.
+  // Reject joins with alternative directed paths, even longer ones, to avoid choosing a business
+  // role by distance. Visited sets terminate cycles without introducing reverse edges.
   const outgoing = new Map<string, any[]>();
   for (const join of context.joins) {
     const list = outgoing.get(join.from) ?? [];

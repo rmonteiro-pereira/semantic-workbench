@@ -1,11 +1,11 @@
+// Suggests project moves from exact references, shared IRIs, and matching physical sources. Files
+// move only after the user accepts a suggestion.
 import { posix } from 'node:path';
 import { validateInput } from '../../src/input';
 import { isMapping } from '../../src/mapping-schema';
 import { documentKeys } from '../../src/references';
 import { sha256 } from './atomic';
-// Grouping suggestions (FR-019): a file is offered to another project only on explicit evidence,
-// never on similar names: Ossie reference names, shared IRIs, ODCS physical names equal to
-// semantic dataset sources. Nothing is moved until the user accepts.
+/** Names, references, IRIs, and physical sources used as grouping evidence. */
 export type FileFacts = {
   names: string[];
   refs: string[];
@@ -13,22 +13,27 @@ export type FileFacts = {
   physical: string[];
   sources: string[];
 };
+/** The exact relationship supporting a suggested project move. */
 export type EvidenceKind = 'ossie-ref-name' | 'shared-iri' | 'odcs-physical-name';
+/** A matching fact and the other file that supports a grouping suggestion. */
 export type Evidence = {
   kind: EvidenceKind;
   detail: string;
   otherFile: { project: string; path: string };
 };
+/** A proposed file move with its current hash, target project, and supporting evidence. */
 export type Suggestion = {
   id: string;
   file: { project: string; path: string; hash: string };
   targetProject: string;
   evidence: Evidence[];
 };
+/** A file’s project, path, content hash, and extracted grouping facts. */
 export type IndexedFile = { project: string; path: string; hash: string; facts: FileFacts };
 const text = (v: unknown): v is string => typeof v === 'string' && v.trim().length > 0;
-// Identity comparison for names: exact, case-sensitive. Similar names are not evidence.
+/** Compares names exactly and case-sensitively; similarity is not grouping evidence. */
 export const sameName = (a: string, b: string) => a === b;
+/** Extracts grouping evidence from validated document source. */
 export function factsOf(source: string, path: string): FileFacts {
   const facts: FileFacts = { names: [], refs: [], iris: [], physical: [], sources: [] };
   const model = validateInput(source, posix.basename(path)).model;
@@ -58,7 +63,7 @@ export function factsOf(source: string, path: string): FileFacts {
   for (const k of Object.keys(facts) as (keyof FileFacts)[]) facts[k] = [...new Set(facts[k])];
   return facts;
 }
-// Evidence that file `a` belongs with file `b`, in either direction.
+/** Finds explicit relationships between two files in either direction. */
 export function evidenceBetween(a: IndexedFile, b: IndexedFile): Evidence[] {
   const out: Evidence[] = [];
   const other = { project: b.project, path: b.path };
@@ -94,11 +99,13 @@ export function evidenceBetween(a: IndexedFile, b: IndexedFile): Evidence[] {
     });
   return out;
 }
+/** Derives a stable suggestion identifier from the source file and target project. */
 export const suggestionId = (project: string, path: string, target: string) =>
   sha256(`${project}/${path}\u0000${target}`).slice(0, 20);
-// A file is suggested for another project when it has evidence there, nothing links it to the
-// other files of its own project, and its project is the smaller one (on equal size, the one
-// registered later): files imported on their own join the project they reference, not the reverse.
+// Suggest moves only when evidence links to another project and none links within the source.
+// Move from the smaller project, breaking ties by later registration, so isolated imports join
+// the project they reference rather than pulling that project apart.
+/** Suggests moves supported by cross-project evidence, excluding remembered rejections. */
 export function inferSuggestions(
   files: IndexedFile[],
   rejected: Set<string>,

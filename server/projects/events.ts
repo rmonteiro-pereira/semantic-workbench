@@ -1,10 +1,14 @@
-// Server-sent event hub (contracts/sse-events.md, research R4). Events only invalidate; clients
-// refetch. Ids increase monotonically; the last RING_SIZE events can be replayed after a reconnect.
+// Publishes invalidation events so clients can refetch workspace state. Increasing event IDs allow
+// recent events to be replayed after reconnecting.
+/** Maximum number of recent events retained for reconnecting clients. */
 export const RING_SIZE = 1000;
+/** Interval between keepalive messages on open event streams. */
 export const HEARTBEAT_MS = 15_000;
+/** An invalidation event with a monotonically increasing identifier. */
 export type WorkbenchEvent = { id: number; event: string; data: unknown };
 const frame = (e: WorkbenchEvent) =>
   `id: ${e.id}\nevent: ${e.event}\ndata: ${JSON.stringify(e.data)}\n\n`;
+/** Creates an event hub with bounded replay history and heartbeat support. */
 export function createEvents(options: { ringSize?: number; heartbeatMs?: number } = {}) {
   const ringSize = options.ringSize ?? RING_SIZE;
   const heartbeatMs = options.heartbeatMs ?? HEARTBEAT_MS;
@@ -83,4 +87,5 @@ export function createEvents(options: { ringSize?: number; heartbeatMs?: number 
     },
   };
 }
+/** Workspace event publisher and server-sent event stream interface. */
 export type Events = ReturnType<typeof createEvents>;

@@ -1,10 +1,10 @@
+// Resolves workspace locations and validates project paths. DATA_DIR allows tests to use isolated
+// workspaces.
 import { lstatSync } from 'node:fs';
 import { resolve, sep, join, posix } from 'node:path';
-// Data root layout (data-model.md). DATA_DIR overrides `data/` so tests and browser checks never
-// touch the owner's workspace.
-// `locate` resolves a project's folder and repository through the registry (research R10); set by
-// the workspace. Without it, or for unregistered slugs, both are the slug (v0.2.0 layout).
+/** Project and repository folders relative to the workspace projects directory. */
 export type ProjectLocation = { folder: string; repo: string };
+/** Workspace paths and an optional registry lookup for project locations. */
 export type DataLayout = {
   root: string;
   projects: string;
@@ -20,6 +20,7 @@ export type DataLayout = {
   legacyIds: string;
   locate?: (slug: string) => ProjectLocation | undefined;
 };
+/** Resolves storage paths from a root, defaulting to DATA_DIR or the data directory. */
 export function dataLayout(root = process.env.DATA_DIR || 'data'): DataLayout {
   const r = resolve(root);
   const state = join(r, 'state');
@@ -38,18 +39,21 @@ export function dataLayout(root = process.env.DATA_DIR || 'data'): DataLayout {
     legacyIds: join(state, 'legacy-ids.json'),
   };
 }
+/** Signals an invalid project name, identifier, or unsafe filesystem path. */
 export class PathError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'PathError';
   }
 }
+/** Allowed syntax for a project identifier used in paths and URLs. */
 export const SLUG = /^[a-z0-9][a-z0-9-]{0,62}$/;
+/** Validates and returns a project identifier, throwing for invalid input. */
 export function assertSlug(slug: unknown): string {
   if (typeof slug !== 'string' || !SLUG.test(slug)) throw new PathError('Invalid project id.');
   return slug;
 }
-// Project-relative POSIX paths only: no absolute paths, no `..` or `.` segments, nothing under `.git/`.
+/** Validates a relative POSIX path, rejecting traversal, absolute paths, and Git metadata. */
 export function projectPath(path: unknown): string {
   // Control characters are rejected on purpose: they never belong in a path.
   // oxlint-disable-next-line no-control-regex
@@ -64,8 +68,7 @@ export function projectPath(path: unknown): string {
     throw new PathError('Paths under .git are not allowed.');
   return posix.normalize(path);
 }
-// A registry entry's folder and repository under data/projects/: v0.2.0 entries (no `folder`/`repo`)
-// are `slug`; a subfolder project's folder lies inside its repository folder.
+/** Resolves registry folders, ensuring the project lies within its repository. */
 export function locationOf(entry: {
   slug: string;
   folder?: string;
@@ -82,22 +85,23 @@ export function locationOf(entry: {
 }
 const located = (layout: DataLayout, slug: string) =>
   layout.locate?.(assertSlug(slug)) ?? { folder: slug, repo: slug };
+/** Returns the project folder using the registry or the slug as a fallback. */
 export function projectDir(layout: DataLayout, slug: string) {
   return join(layout.projects, located(layout, slug).folder);
 }
-// The Git working tree a project belongs to; Git commands for the project run here.
+/** Returns the repository working directory in which the project’s Git commands run. */
 export function repoDir(layout: DataLayout, slug: string) {
   return join(layout.projects, located(layout, slug).repo);
 }
-// The project folder relative to its repository root, with a trailing slash ('' at the root):
-// project paths gain it on the way into Git and lose it on the way out.
+// Project paths gain this prefix on the way into Git and lose it on the way out.
+/** Returns the project’s repository-relative prefix, empty at the repository root. */
 export function projectPrefix(layout: DataLayout, slug: string) {
   const { folder, repo } = located(layout, slug);
   return folder === repo ? '' : folder.slice(repo.length + 1) + '/';
 }
-// Absolute location of a project file, re-checked to stay inside the project folder. A symbolic
-// link anywhere on the way (for example one checked out from a pulled repository) could lead
-// outside it, so no existing segment may be a link; reads and writes both go through here.
+// A symlink in any existing path segment could escape the project, including links pulled by Git.
+// Both reads and writes must use this validation.
+/** Returns a contained absolute file path, rejecting existing symlink segments. */
 export function projectFile(layout: DataLayout, slug: string, path: string) {
   const dir = projectDir(layout, slug);
   const rel = projectPath(path);
@@ -106,6 +110,7 @@ export function projectFile(layout: DataLayout, slug: string, path: string) {
   assertNoLinks(dir, rel);
   return file;
 }
+/** Rejects symlinks in existing segments of a path beneath the supplied directory. */
 export function assertNoLinks(dir: string, rel: string) {
   let at = dir;
   for (const part of rel.split('/')) {
@@ -119,6 +124,7 @@ export function assertNoLinks(dir: string, rel: string) {
     if (link) throw new PathError('Symbolic links are not followed.');
   }
 }
+/** Trims and validates a display name, excluding an optional current name from conflicts. */
 export function projectName(name: unknown, existing: string[] = [], except?: string): string {
   if (typeof name !== 'string') throw new PathError('Project name must be text.');
   const value = name.trim();
@@ -130,6 +136,7 @@ export function projectName(name: unknown, existing: string[] = [], except?: str
     throw new PathError(`A project named "${value}" already exists.`);
   return value;
 }
+/** Creates an available project identifier by normalizing the name and adding a suffix. */
 export function slugify(name: string, taken: Set<string>) {
   const base = (
     name
@@ -145,6 +152,7 @@ export function slugify(name: string, taken: Set<string>) {
   while (taken.has(slug)) slug = `${base}-${i++}`;
   return assertSlug(slug);
 }
+/** Adds a numeric suffix until the display name is unique, ignoring case. */
 export function uniqueName(name: string, existing: string[]) {
   const lower = new Set(existing.map(n => n.toLocaleLowerCase()));
   let value = name;
@@ -152,7 +160,7 @@ export function uniqueName(name: string, existing: string[]) {
   while (lower.has(value.toLocaleLowerCase())) value = `${name} (${i++})`;
   return value;
 }
-// `name.ext` → `name (2).ext` until free (migration and keep-both imports).
+/** Adds a numeric suffix before the extension until the file path is available. */
 export function disambiguate(path: string, taken: Set<string>) {
   if (!taken.has(path)) return path;
   const slash = path.lastIndexOf('/') + 1;

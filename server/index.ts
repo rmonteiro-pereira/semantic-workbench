@@ -1,8 +1,7 @@
+// Starts the local API with workspace recovery, migration, and file watching.
 import { openWorkspace } from './projects/workspace';
 import { createHandler } from './handler';
-// DATA_DIR (default `data/`) is the data root; start-up runs journal recovery, the one-time v0.1.0
-// migration, then scans every project folder into the cache.
-// `bun --hot` re-runs this module: close the previous workspace's watchers and cache first.
+// `bun --hot` reruns this module, so close the previous workspace before reopening it.
 const hot = globalThis as { __workbench?: { close(): void } };
 hot.__workbench?.close();
 const ws = await openWorkspace({ watch: true });

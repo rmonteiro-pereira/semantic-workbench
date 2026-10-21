@@ -1,9 +1,12 @@
+// Watches project folders and debounces change notifications. Periodic rescans cover missed
+// filesystem events.
 import { watch, type FSWatcher } from 'node:fs';
 import { projectDir, type DataLayout } from './paths';
-// Recursive watcher per project folder (research R3): bursts are debounced per project, changes to
-// .git/HEAD, .git/index and refs mark a Git change, and a periodic rescan covers missed events.
+/** Delay used to combine bursts of filesystem changes per project. */
 export const DEBOUNCE_MS = 150;
+/** Interval for rescans that catch missed filesystem events. */
 export const RESCAN_MS = 60_000;
+/** Watches project folders, flags Git metadata changes, and schedules periodic rescans. */
 export function createWatcher(
   layout: DataLayout,
   options: {

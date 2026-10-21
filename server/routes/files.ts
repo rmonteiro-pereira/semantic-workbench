@@ -1,9 +1,9 @@
+// Serves project files and validates save requests against their original content hashes.
 import { MAX_INPUT_BYTES } from '../../src/diagnostics';
 import { readJson } from '../request';
 import { decodePath, type Route } from './http';
 const HASH = /^[0-9a-f]{64}$/;
-// GET/PUT /api/projects/:slug/files/*path. Saves carry the hash of the version they started from
-// (`baseHash`, null for a new file) and either the full source or patches against those bytes.
+/** Handles file reads and saves with base hashes to detect stale edits. */
 export const fileRoutes: Route = async (ws, req, url) => {
   const m = url.pathname.match(/^\/api\/projects\/([^/]+)\/files\/(.+)$/);
   if (!m) return null;

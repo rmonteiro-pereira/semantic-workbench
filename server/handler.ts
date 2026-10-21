@@ -1,3 +1,5 @@
+// Routes API requests and preserves the legacy document interface. Host and origin checks restrict
+// access to local clients.
 import { agentCatalog, buildContext, selectContext, planQuery } from './agent/runtime';
 import { readJson } from './request';
 import { InputError, MAX_INPUT_BYTES } from '../src/diagnostics';
@@ -12,18 +14,16 @@ import { suggestionRoutes } from './routes/suggestions';
 import { metricRoutes } from './routes/metrics';
 import { kpiRoutes } from './routes/kpis';
 import { gitRoutes } from './routes/git';
+/** Local browser origins allowed to call the API. */
 export const ALLOWED_ORIGINS = [
   'http://127.0.0.1:5173',
   'http://localhost:5173',
   'http://127.0.0.1:4310',
 ];
-// Legacy facade (research R9): flat documents and the agent endpoints keep their v0.1.0 shapes over
-// the folder store. Ids are `<project>/<path>`; v0.1.0 ids resolve through legacy-ids.json.
-// Kept, not removed (T165): the UI's grouping hook (src/useGrouping.ts) reads and writes
-// /api/documents/:id/grouping, scripts/example-checks.ts and scripts/live-inspect.ts use
-// /api/documents, and the agent endpoints are the documented client interface (README).
+// Legacy clients still use document, grouping, and agent endpoints.
+// Document IDs use `<project>/<path>`; older IDs resolve through legacy-ids.json.
 const legacyRoutes: Route = async (ws, req, url) => {
-  // Agent mapping ids may carry a fragment (`<doc>#ontology_mappings/0`); translate a v0.1.0 doc id.
+  // Mapping fragments identify embedded mappings and must survive legacy document ID translation.
   const mappingRef = (id: string) => {
     const hash = id.indexOf('#');
     const doc = hash < 0 ? id : id.slice(0, hash);
@@ -177,6 +177,7 @@ const routes: Route[] = [
   draftRoutes,
   legacyRoutes,
 ];
+/** Accepts loopback hostnames or a missing Host header. */
 export function loopbackHost(host: string | null) {
   if (host === null) return true;
   const name = host.startsWith('[')
@@ -184,6 +185,7 @@ export function loopbackHost(host: string | null) {
     : host.replace(/:\d+$/, '');
   return ['127.0.0.1', 'localhost', '[::1]'].includes(name.toLowerCase());
 }
+/** Creates the API handler with local-access checks and shared error responses. */
 export function createHandler(ws: Workspace) {
   return async (req: Request) => {
     const url = new URL(req.url);
@@ -200,7 +202,7 @@ export function createHandler(ws: Workspace) {
       }
       return new Response('Not found', { status: 404 });
     } catch (e) {
-      // Facade and agent endpoints answer every failure with 400, as in v0.1.0.
+      // Legacy document and agent clients expect errors to use HTTP 400.
       if (url.pathname.startsWith('/api/documents') || url.pathname.startsWith('/api/agent/'))
         return Response.json(
           { error: (e as Error).message, ...(e instanceof InputError ? { issues: e.issues } : {}) },

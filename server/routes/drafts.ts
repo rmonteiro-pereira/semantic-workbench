@@ -1,8 +1,9 @@
+// Serves durable drafts, including the source hash needed to detect conflicting edits.
 import { MAX_INPUT_BYTES } from '../../src/diagnostics';
 import { readJson } from '../request';
 import { projectPath, assertSlug } from '../projects/paths';
 import { decodePath, type Route } from './http';
-// Drafts survive restarts and cache deletion (FR-078): text plus the hash of the base version.
+/** Handles persistent draft reads, saves, and removal. */
 export const draftRoutes: Route = async (ws, req, url) => {
   if (url.pathname === '/api/drafts' && req.method === 'GET')
     return Response.json(

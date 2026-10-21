@@ -1,9 +1,11 @@
+// Maintains a rebuildable SQLite index of project folders. Missing, incompatible, or corrupt caches
+// are recreated from source files.
 import { Database } from 'bun:sqlite';
 import { rmSync } from 'node:fs';
 import type { Issue } from '../../src/diagnostics';
-// Rebuildable index of the project folders (FR-077). Deleting cache.sqlite loses nothing: a rescan
-// recreates every row. Any schema version mismatch or corruption drops and rebuilds the file.
+/** Schema version required for the rebuildable SQLite cache. */
 export const CACHE_VERSION = 3;
+/** Indexed file metadata, validation status, visibility, and Git state. */
 export type CachedFile = {
   project: string;
   path: string;
@@ -16,6 +18,7 @@ export type CachedFile = {
   gitState: string;
   indexedAt: string;
 };
+/** An entity identifier, display name, and kind extracted from a file. */
 export type CachedEntity = { id: string; name: string; kind: string };
 const SCHEMA = `
 CREATE TABLE files(project TEXT NOT NULL,path TEXT NOT NULL,hash TEXT NOT NULL,serialization TEXT NOT NULL,doc_type TEXT NOT NULL,layout TEXT,valid INTEGER NOT NULL,visible INTEGER NOT NULL,git_state TEXT NOT NULL,indexed_at TEXT NOT NULL,PRIMARY KEY(project,path));
@@ -45,6 +48,7 @@ function open(path: string) {
     throw e;
   }
 }
+/** Opens the cache, rebuilding it when its schema is incompatible or its contents are corrupt. */
 export function createCache(path: string) {
   let opened: { db: Database; rebuilt: boolean };
   try {
@@ -138,4 +142,5 @@ export function createCache(path: string) {
     close: () => db.close(),
   };
 }
+/** Access to cached files, entities, findings, and suggestions. */
 export type Cache = ReturnType<typeof createCache>;
