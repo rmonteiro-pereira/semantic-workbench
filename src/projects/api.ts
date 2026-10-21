@@ -1,3 +1,4 @@
+import type {KpiSummary,KpiExplanation} from '../../server/agent/explain';
 // Browser client for the project API (contracts/http-api.md).
 export type ProjectFile={path:string;docType:string;layout?:string|null;valid:boolean;visible:boolean;gitState:string;hash:string};
 export type ProjectInfo={slug:string;name:string;origin:string;branch:string;ahead:number;behind:number;changes:number;files:ProjectFile[]};
@@ -16,7 +17,11 @@ async function json<T>(response:Response):Promise<T>{
  return body as T;
 }
 const send=(method:string,body?:unknown)=>({method,headers:{'Content-Type':'application/json'},...(body!==undefined?{body:JSON.stringify(body)}:{})});
+export type ExplainQuery={grain?:string;dimensions?:string[];rollup?:string};
+const explainQuery=(q:ExplainQuery)=>{const p=new URLSearchParams();if(q.grain)p.set('grain',q.grain);for(const d of q.dimensions??[])p.append('dimension',d);if(q.rollup)p.set('rollup',q.rollup);const s=p.toString();return s?'?'+s:'';};
 export const api={
+ metrics:(project:string)=>fetch(`/api/projects/${encodeURIComponent(project)}/metrics`).then(r=>json<KpiSummary[]>(r)),
+ explain:(project:string,path:string,metric:string,q:ExplainQuery={},signal?:AbortSignal)=>fetch(`${fileUrl(project,path)}/explain/${encodeURIComponent(metric)}${explainQuery(q)}`,{signal}).then(r=>json<KpiExplanation>(r)),
  status:()=>fetch('/api/status').then(r=>json<WorkspaceStatus>(r)),
  projects:()=>fetch('/api/projects').then(r=>json<ProjectInfo[]>(r)),
  file:(project:string,path:string)=>fetch(fileUrl(project,path)).then(r=>json<{path:string;source:string;hash:string;docType:string}>(r)),

@@ -1,14 +1,19 @@
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {ReactFlow,ReactFlowProvider,Background,Controls,Position,MarkerType,useNodesState,useNodesInitialized,useReactFlow,type Node} from '@xyflow/react';
-import {AlignHorizontalJustifyStart} from 'lucide-react';
+import {AlignHorizontalJustifyStart,Gauge} from 'lucide-react';
 import type {Entity,Relationship} from './model';
 import {graphView,groupRelationships} from './graph-view';
 import {layoutGraph} from './layout';
 import {relationshipEdgeTypes} from './RelationshipEdge';
 
-export type NeighborhoodGraphProps={entities:Entity[];edges:Relationship[];search:string;focusId:string;selected:string;selectedEdge:string;onFocus:(id:string)=>void;onSelectEntity:(id:string)=>void;onSelectEdge:(id:string)=>void;onOverview:()=>void;onFullGraph:()=>void};
+export type NeighborhoodGraphProps={entities:Entity[];edges:Relationship[];search:string;focusId:string;selected:string;selectedEdge:string;onFocus:(id:string)=>void;onSelectEntity:(id:string)=>void;onSelectEdge:(id:string)=>void;onOverview:()=>void;onFullGraph:()=>void;kpiBadges?:Map<string,string[]>};
 export function NeighborhoodGraph(props:NeighborhoodGraphProps){return <ReactFlowProvider><NeighborhoodCanvas {...props}/></ReactFlowProvider>}
-function NeighborhoodCanvas({entities,edges,search,focusId,selected,selectedEdge,onFocus,onSelectEntity,onSelectEdge,onOverview,onFullGraph}:NeighborhoodGraphProps){
+function NeighborhoodCanvas({entities:all,edges:allEdges,search,focusId,selected,selectedEdge,onFocus,onSelectEntity,onSelectEdge,onOverview,onFullGraph,kpiBadges}:NeighborhoodGraphProps){
+ // KPI nodes (governed metrics) can be hidden with their relationships.
+ const [hideKpis,setHideKpis]=useState(false);
+ const kpiCount=useMemo(()=>all.filter(e=>e.kind==='Metric').length,[all]);
+ const entities=useMemo(()=>hideKpis?all.filter(e=>e.kind!=='Metric'):all,[all,hideKpis]);
+ const edges=useMemo(()=>{if(!hideKpis)return allEdges;const ids=new Set(entities.map(e=>e.id));return allEdges.filter(e=>ids.has(e.source)&&ids.has(e.target));},[allEdges,entities,hideKpis]);
  const view=useMemo(()=>graphView(entities,edges,search,false,8,focusId),[entities,edges,search,focusId]);
  const groups=useMemo(()=>groupRelationships(view.edges),[view]);
  const [nodes,setNodes,onNodesChange]=useNodesState<Node>([]);
@@ -22,9 +27,9 @@ function NeighborhoodCanvas({entities,edges,search,focusId,selected,selectedEdge
   const positions=new Map(layoutGraph(view.entities.map(e=>e.id),view.edges).map(n=>[n.id,n.position]));
   setNodes(old=>{const retained=previous.current===membership?new Map(old.map(n=>[n.id,n.position])):new Map();previous.current=membership;
    return view.entities.map(e=>({id:e.id,position:retained.get(e.id)??positions.get(e.id)!,sourcePosition:Position.Right,targetPosition:Position.Left,
-    data:{name:e.name,label:<div className="node"><small>{e.kind}</small><strong>{e.name}</strong><span>{e.fields.length?`${e.fields.length} ${e.fields.length===1?'field':'fields'}`:e.description||'Select to inspect'}</span></div>},
+    data:{name:e.name,label:<div className={`node${e.kind==='Metric'?' kpi-node':''}`}><small>{e.kind==='Metric'?<><Gauge size={10}/> KPI · Metric</>:e.kind}{(kpiBadges?.get(e.name)?.length??0)>0&&<span className="kpi-badge" title={`KPIs: ${kpiBadges!.get(e.name)!.join(', ')}`}><Gauge size={10}/>{kpiBadges!.get(e.name)!.length===1?'KPI':`${kpiBadges!.get(e.name)!.length} KPIs`}</span>}</small><strong>{e.name}</strong><span>{e.fields.length?`${e.fields.length} ${e.fields.length===1?'field':'fields'}`:e.description||'Select to inspect'}</span></div>},
     style:{borderColor:e.id===selected?'#50cbb0':'#dbe3e4'}}));});
- },[view,membership,selected,setNodes]);
+ },[view,membership,selected,setNodes,kpiBadges]);
  // Wait for measured node dimensions, and fit to the real remaining canvas size.
  useEffect(()=>{
   if(!initialized||!canvas.current)return;
@@ -47,7 +52,7 @@ function NeighborhoodCanvas({entities,edges,search,focusId,selected,selectedEdge
   <div className="neighborhood-tools">
    <label>Center <select aria-label="Neighborhood center" value={view.focus??''} onChange={event=>{onFocus(event.target.value);onSelectEntity(event.target.value);}}>{!view.focus&&<option value="">No matching entity</option>}{entities.map(e=><option key={e.id} value={e.id}>{e.name}</option>)}</select></label>
    <button onClick={align} disabled={!nodes.length||aligning}><AlignHorizontalJustifyStart size={16}/>{aligning?'Aligning…':'Auto align'}</button>
-   <button onClick={()=>setLabels(v=>!v)} aria-pressed={labels}>Labels {labels?'on':'off'}</button><button onClick={onOverview}>Model overview</button><button onClick={onFullGraph}>Full graph</button>
+   <button onClick={()=>setLabels(v=>!v)} aria-pressed={labels}>Labels {labels?'on':'off'}</button>{kpiCount>0&&<button onClick={()=>setHideKpis(v=>!v)} aria-pressed={hideKpis} title={`${kpiCount} KPI nodes`}><Gauge size={14}/>KPIs {hideKpis?'hidden':'shown'}</button>}<button onClick={onOverview}>Model overview</button><button onClick={onFullGraph}>Full graph</button>
    <span className="neighborhood-summary">Showing {view.entities.length} of {entities.length} entities · {groups.length} connections</span>
   </div>
   <div className="neighborhood-canvas" ref={canvas}>
