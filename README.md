@@ -294,3 +294,20 @@ Source and import-repair editors share one editor (CodeMirror 6). Colors follow 
 ## Shopping center administration example
 
 **Load shopping center administration** opens a reference model for retail real-estate administration: 145 entity types in eleven namespaced modules (core, asset, party, lease, legal, hr, proc, ops, fin, perf, kpi), 259 declared joins, 1,057 mapping bindings and 25 governed metrics, including occupancy rate, minimum rent per m², delinquency rate, sales per m², occupancy cost ratio, footfall, net operating income, payroll cost, headcount, purchase spend and payables outstanding. Leasing, operations, legal, HR, procurement and finance share one contract register and one party model. The same specification produces Ossie, OWL, SHACL, ODCS and RDF instance data, plus a synthetic SQLite fixture whose metric results are checked against independently computed values. See [the example README](public/examples/mall/README.md). Regenerate with `bun scripts/mall-example.ts`.
+
+## Contributing
+
+The code style is part of the project's constitution (principle VIII, Readable Code):
+
+- `bun run fmt` formats `src/`, `server/`, `scripts/` and `tests/` with Oxfmt (100 columns,
+  2-space indentation, semicolons, single quotes, trailing commas). `bun run check` runs
+  TypeScript, `fmt:check`, Oxlint and the comment check, and fails on unformatted code.
+- One statement per line and one variable per declaration; descriptive names; small functions
+  (about 40 lines) and components (about 150 lines); no nested ternaries.
+- Comments are plain English for a developer new to the repository: they explain why, one idea
+  per sentence, and never carry spec or task IDs or process notes (traceability goes in commit
+  messages). Every module has a short header comment and every export a short JSDoc.
+- `bun run lint:full` also lists the readability warnings (names, function length, nesting) for
+  the code you touch.
+- `.git-blame-ignore-revs` lists the mechanical reformat; run
+  `git config blame.ignoreRevsFile .git-blame-ignore-revs` once to skip it in `git blame`.

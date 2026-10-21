@@ -638,3 +638,37 @@ agent context already carries everything except two additive fields).
   the project name as the contract says (projects-browser-check, previously "Shop, 3 files"); a
   long file name at 390 px wraps to two lines with its title instead of ellipsizing on one line
   (trash-browser-check). Each check keeps its behaviour; only how the control is reached changed.
+
+## R24. Readability step (owner request, between Phases 9 and 10)
+
+- **Tools.** Oxfmt 0.73 and Oxlint 1.88, both shipped with Vite+ 1.2.0 (`vp fmt` and `vp lint`
+  forward to them); no Prettier. Scripts run them with `bunx --bun` because the machine has no
+  Node.js. `.oxfmtrc.json`: 100 columns, 2 spaces, semicolons, single quotes, trailing commas,
+  `arrowParens: avoid`. `.oxlintrc.json`: correctness rules and `one-var` are errors; judgement
+  rules (name length, function length, nesting, complexity, nested ternaries) are warnings,
+  listed by `bun run lint:full`, so older code does not block the gate.
+- **Gate.** `bun run check` runs TypeScript, `fmt:check` and Oxlint; the mutation baseline runs
+  `fmt:check` and lint first; `scripts/check-comments.ts` rejects spec, task and research IDs in
+  comments and is part of `check`.
+- **Mutation anchors.** The reformat and the one-declaration split moved code, so every anchor was
+  re-derived from the formatted source by a whitespace-insensitive match and checked to occur as
+  many times as before; the commit-message mutant now names the `throw` so both commit paths still
+  lose their check. 116 mutants, all killed.
+- **Test changes.** tests/explain.test.ts walked only imports written `from 'x'`; after formatting
+  it reaches every module, where `.exec(` is RegExp#exec, so the no-execution check bans the
+  process APIs themselves (Bun.spawn, Bun.$, execSync, spawnSync) next to the child_process import
+  ban. The Full pierce check reads the canvas's node ids (`data-canvas-ids`) because large canvases
+  render only what is on screen; the Flights mappings check waits for the mapping list to load.
+  Test and check names lost their IDs; assertions are unchanged.
+- **Refactors.** `src/main.tsx` (2,730 lines, one component) became a 386-line entry point that
+  composes hooks and components under `src/app/`; `CodeEditor.tsx` became a hook
+  (`useCodeMirror`), a status bar and text/navigation helpers. Comments were rewritten in all of
+  src/, server/, scripts/ and tests/. Written by Codex from the briefs in
+  specs/002-lineage-and-ux/codex/readability-*.md and reviewed; behaviour checked by every suite.
+- **Two fixes the refactor exposed.** Splitting `main.tsx` changed the order in which component
+  stylesheets load, and the metrics explanation's unscoped `.lineage-row`/`.lineage-head` rules
+  began to override the lineage canvas cards. Those rules are now scoped under `.kpi-lineage`, so
+  stylesheet order no longer matters. Separately, the lineage canvas scheduled its first readable
+  view 80 ms after layout; a Fit clicked in that window was undone by it. An explicit Fit now
+  cancels the pending first view (the ODCS check caught this once machine load changed; it failed
+  the same way on the Phase 9 commit).
