@@ -3,12 +3,17 @@ import {ReactFlow,Background,Controls,BaseEdge,getBezierPath,type EdgeProps,type
 import {ArrowLeft,ArrowRight,Maximize2,Minimize2,Scan,Search,SlidersHorizontal,X} from 'lucide-react';
 import {LineageLegend,type LegendKind} from '../graph/LineageLegend';
 import {edgeSvgStyle,type EdgeKind} from '../graph/edge-styles';
-import {walkReducer,emptyWalk,currentStep,canBack,canForward} from '../graph/walk';
+import {walkReducer,emptyWalk,currentStep,canBack,canForward,canvasAt} from '../graph/walk';
+import {canvasOf,registerSet,setsOf,type Direction} from '../graph/expansion';
+import {placeBoxes,type Box} from '../graph/incremental-layout';
+import {PIERCE_BUDGET,PIERCE_MAX} from '../graph/pierce';
+import {PierceBanner,PierceControls} from '../graph/PierceControls';
+import type {LineagePierceInput,LineagePierceResult} from './lineage-pierce';
 import type {Fullscreen} from '../graph/fullscreen';
 import {Modal} from '../projects/Modal';
 import {around,aroundHops,closure,findAssets,pageColumns,selectionNodes,cardOfNode,moreRowId,type LineageGraph,type LineageCard} from './lineage';
 import {LineageCardNode,type CardData} from './LineageCard';
-import {elkGraph,positionsOf,cardHeight,CARD_W,type LayoutCard,type LayoutEdge,type LayoutResult} from './lineage-layout';
+import {elkGraph,positionsOf,cardHeight,CARD_W,HEADER_H,type LayoutCard,type LayoutEdge,type LayoutResult} from './lineage-layout';
 import ELK from 'elkjs/lib/elk-api.js';import elkWorkerUrl from 'elkjs/lib/elk-worker.min.js?url';
 import './odcs.css';
 // The lineage canvas (FR-001–FR-010, ui-contracts "Lineage canvas"): cards for the assets around a
@@ -53,31 +58,36 @@ export function LineageCanvas({mode='lineage',toolbarExtra,cardFilter,onFinding,
  useEffect(()=>{if(center)onCenterChange?.(center);},[center]);
  const [steps,setStepsState]=useState(()=>readSteps(storageKey));
  const setSteps=(n:number)=>{setStepsState(n);try{if(storageKey)localStorage.setItem(storageKey,String(n));}catch{}};
- const [selected,setSelected]=useState(''),[pages,setPages]=useState<Record<string,number>>({}),[expanded,setExpanded]=useState<Set<string>>(new Set());
+ const [selected,setSelected]=useState(''),[pages,setPages]=useState<Record<string,number>>({});
+ // Expansions and pierces are walk steps on this canvas (FR-019): Back / Undo expansion restore it.
+ const sets=useMemo(()=>{const c=canvasAt(walk);return c.center&&c.center.center===center?setsOf(c.sets):[];},[walk,center]);
  const [query,setQuery]=useState(''),[showResults,setShowResults]=useState(false),[options,setOptions]=useState(false);
  const [showMetrics,setShowMetrics]=useState(true),[showExternal,setShowExternal]=useState(true);
  const [openGroups,setOpenGroups]=useState<Set<string>>(new Set());
- useEffect(()=>{setSelected('');setExpanded(new Set());setPages({});setOpenGroups(new Set());},[center]);
+ useEffect(()=>{setSelected('');setPages({});setOpenGroups(new Set());},[center]);
  // Which cards: the centre's reach, plus the neighbours of expanded cards.
  const reach=useMemo(()=>{
-  const base=reachOf(graph,center,steps),cards=new Set(base.cards);
-  for(const id of expanded){const r=reachOf(graph,id,1);for(const c of r.cards)if(mapping||graph.cards.get(c)?.kind==='object'||graph.cards.get(c)?.kind==='external')cards.add(c);}
-  const hidden=new Map<string,number>();for(const [id,n] of base.hidden)if(!expanded.has(id))hidden.set(id,n);
+  const base=reachOf(graph,center,steps),canvas=canvasOf([...base.cards],sets),cards=new Set(canvas.nodes);
+  const expandedBy=canvas.expandedBy,hidden=new Map<string,number>();for(const [id,n] of base.hidden)if(!expandedBy.has(id))hidden.set(id,n);
+  // Cards that only expansions brought in are placed incrementally beside their origin (FR-018);
+  // everything else (the centre's reach, a pierce) is laid out by ELK.
+  const incremental=new Set<string>();const laid=new Set([...base.cards,...canvas.active.filter(x=>x.kind==='pierce').flatMap(x=>[x.from,...x.nodes])]);
+  for(const c of cards)if(!laid.has(c))incremental.add(c);
   for(const c of [...cards]){const k=graph.cards.get(c)?.kind;if((!showMetrics&&k==='metric'&&c!==center)||(!showExternal&&k==='external'))cards.delete(c);else if(cardFilter&&c!==center&&!cardFilter(graph.cards.get(c)!))cards.delete(c);}
   // Fan-outs (owner review): more than GROUP_AT leaf cards hanging off one card, of one kind, show
   // as one "N more …" card until opened, instead of shrinking the whole view. Not while a path is
   // selected (its cards must be visible).
   const groups=new Map<string,LineageCard>(),alias=new Map<string,string>();
   if(!selected){
-   const near=new Map<string,Set<string>>();for(const e of graph.edges){const a=cardOfNode(graph,e.from),b=cardOfNode(graph,e.to);if(a===b||!cards.has(a)||!cards.has(b))continue;(near.get(a)??near.set(a,new Set()).get(a)!).add(b);(near.get(b)??near.set(b,new Set()).get(b)!).add(a);}
+   const near=new Map<string,Set<string>>();for(const e of graph.edges){const a=cardOfNode(graph,e.from),b=cardOfNode(graph,e.to);if(a===b||!cards.has(a)||!cards.has(b)||incremental.has(a)||incremental.has(b))continue;(near.get(a)??near.set(a,new Set()).get(a)!).add(b);(near.get(b)??near.set(b,new Set()).get(b)!).add(a);}
    const leaves=new Map<string,string[]>();
-   for(const c of cards){const n=near.get(c);if(c===center||expanded.has(c)||!n||n.size!==1)continue;const parent=[...n][0],key=`group:${parent}|${graph.cards.get(c)!.kind}`;(leaves.get(key)??leaves.set(key,[]).get(key)!).push(c);}
+   for(const c of cards){const n=near.get(c);if(c===center||expandedBy.has(c)||incremental.has(c)||!n||n.size!==1)continue;const parent=[...n][0],key=`group:${parent}|${graph.cards.get(c)!.kind}`;(leaves.get(key)??leaves.set(key,[]).get(key)!).push(c);}
    for(const [id,members] of leaves){if(members.length<=GROUP_AT||openGroups.has(id))continue;const kind=graph.cards.get(members[0])!.kind;
     groups.set(id,{id,kind,label:`${members.length} more ${KIND_PLURAL[kind]??'cards'}`,file:'',detail:members.map(m=>graph.cards.get(m)!.label).join(', '),columns:[]});
     for(const m of members){cards.delete(m);alias.set(m,id);}cards.add(id);}
   }
-  return {cards,hidden,groups,alias};
- },[graph,center,steps,expanded,showMetrics,showExternal,cardFilter,mapping,selected,openGroups]);
+  return {cards,hidden,groups,alias,expandedBy,incremental,active:canvas.active};
+ },[graph,center,steps,sets,showMetrics,showExternal,cardFilter,mapping,selected,openGroups]);
  const cardFor=(id:string)=>graph.cards.get(id)??reach.groups.get(id)!;
  const shownCard=(id:string)=>reach.alias.get(id)??id;
  // A mapping link lights up the join rows it passes through (research R19).
@@ -102,22 +112,53 @@ export function LineageCanvas({mode='lineage',toolbarExtra,cardFilter,onFinding,
   for(const [k,ls] of pairs){if(ls.length>=BUNDLE_AT&&!ls.some(l=>l.onPath)){const f=ls[0];result.push({id:'bundle:'+k,from:f.fromCard,to:f.toCard,fromCard:f.fromCard,toCard:f.toCard,kind:f.kind,onPath:false,count:ls.reduce((a,l)=>a+l.count,0),edges:ls.flatMap(l=>l.edges)});}else result.push(...ls);}
   return result;
  },[graph,reach,paged,path]);
- const layoutCards=useMemo<LayoutCard[]>(()=>[...reach.cards].map(id=>{const p=paged.get(id)!;return {id,rows:p.rows.map(r=>r.id),pager:p.pages>1,more:p.hidden>0};}),[reach,paged]);
- const layoutCardsRef=useRef(layoutCards);layoutCardsRef.current=layoutCards;
- const layoutEdges=useMemo<LayoutEdge[]>(()=>lines.map(l=>({id:l.id,from:l.from,to:l.to,fromCard:l.fromCard,toCard:l.toCard})),[lines]);
+ const allLayoutCards=useMemo<LayoutCard[]>(()=>[...reach.cards].map(id=>{const p=paged.get(id)!;return {id,rows:p.rows.map(r=>r.id),pager:p.pages>1,more:p.hidden>0};}),[reach,paged]);
+ const layoutCards=useMemo(()=>allLayoutCards.filter(c=>!reach.incremental.has(c.id)),[allLayoutCards,reach]);
+ const layoutCardsRef=useRef(allLayoutCards);layoutCardsRef.current=allLayoutCards;
+ const layoutEdges=useMemo<LayoutEdge[]>(()=>lines.filter(l=>!reach.incremental.has(l.fromCard)&&!reach.incremental.has(l.toCard)).map(l=>({id:l.id,from:l.from,to:l.to,fromCard:l.fromCard,toCard:l.toCard})),[lines]);
  const layoutKey=useMemo(()=>JSON.stringify([layoutCards,layoutEdges.map(e=>e.id)]),[layoutCards,layoutEdges]);
- const {result,busy}=useLayout(layoutCards,layoutEdges,layoutKey);
+ const {result:elk,busy}=useLayout(layoutCards,layoutEdges,layoutKey);
+ // ELK positions, then each expansion's new cards beside their origin, in order; nothing placed moves.
+ const result=useMemo(()=>{
+  if(!elk)return null;const size=new Map(allLayoutCards.map(c=>[c.id,cardHeight(c)]));
+  let boxes=new Map<string,Box>(Object.entries(elk.layout.positions).map(([id,p])=>[id,{x:p.x,y:p.y,w:CARD_W,h:size.get(id)??HEADER_H}]));
+  for(const x of reach.active)if(x.kind==='expand'&&boxes.has(x.from)){
+   const fromCols=new Set(selectionNodes(graph,x.from));
+   const items=x.nodes.filter(n=>reach.incremental.has(n)&&!boxes.has(n)).map(n=>({id:n,side:(graph.edges.some(e=>fromCols.has(e.from)&&cardOfNode(graph,e.to)===n)?1:-1) as -1|1,w:CARD_W,h:size.get(n)??HEADER_H}));
+   boxes=placeBoxes(boxes,x.from,items);
+  }
+  return {key:elk.key,layout:{positions:Object.fromEntries([...boxes].map(([id,b])=>[id,{x:b.x,y:b.y}]))}};
+ },[elk,reach,allLayoutCards,graph]);
  const select=useCallback((id:string)=>setSelected(s=>s===id?'':id),[]);
+ // Expand / Collapse / Full pierce (FR-018–FR-023), recorded on the trail.
+ const record=(set:ReturnType<typeof registerSet>,name:string)=>dispatch({type:'push',step:{doc:graph.contract,center,name,kind:'expand',set:set.id}});
+ const labelOf=(id:string)=>graph.cards.get(id)?.label??id;
+ const expand=(cid:string)=>{const r=reachOf(graph,cid,1),nodes=[...r.cards].filter(c=>c!==cid&&(mapping||graph.cards.get(c)?.kind==='object'||graph.cards.get(c)?.kind==='external'));
+  record(registerSet({kind:'expand',from:cid,direction:'both',nodes,edges:[],frontier:{},total:nodes.length,budget:nodes.length}),`expanded ${labelOf(cid)}`);};
+ const collapse=(cid:string)=>{const target=reach.expandedBy.get(cid);if(target)record(registerSet({kind:'collapse',from:cid,target,direction:'both',nodes:[],edges:[],frontier:{},total:0,budget:0}),`collapsed ${labelOf(cid)}`);};
+ const [direction,setDirection]=useState<Direction>('both'),[piercing,setPiercing]=useState(false),pierceWorker=useRef<Worker|null>(null);
+ const stopPierce=()=>{pierceWorker.current?.terminate();pierceWorker.current=null;setPiercing(false);};
+ useEffect(()=>stopPierce,[center]);
+ const fullPierce=(budget=PIERCE_BUDGET)=>{
+  const start=selected||center,from=cardOfNode(graph,start);if(!from)return;
+  stopPierce();const w=new Worker(new URL('./lineage-pierce.worker.ts',import.meta.url),{type:'module'});pierceWorker.current=w;setPiercing(true);
+  const owners:Record<string,string>={};for(const c of graph.cards.values())for(const x of c.columns)owners[x.id]=c.id;
+  const input:LineagePierceInput={edges:graph.edges.map(e=>[e.from,e.to]),owners,start:selectionNodes(graph,start),direction,budget};
+  w.onmessage=(e:MessageEvent<{id:number;result:LineagePierceResult}>)=>{w.terminate();if(pierceWorker.current!==w)return;pierceWorker.current=null;setPiercing(false);const r=e.data.result;
+   record(registerSet({kind:'pierce',from,direction,nodes:r.cards.filter(c=>c!==from),edges:[],frontier:{},total:r.total,budget,steps:r.steps}),`pierced ${start===from?labelOf(from):start.slice(start.lastIndexOf('/')+1)}`);};
+  w.onerror=()=>stopPierce();w.postMessage({id:1,input});
+ };
+ const lastSet=reach.active.at(-1),currentIsExpansion=currentStep(walk)?.kind==='expand';
  const walkTo=useCallback((id:string,via?:string)=>{const c=graph.cards.get(id);if(!c)return;dispatch({type:'push',step:{doc:graph.contract,center:id,name:c.label,...(via?{via:{id:via,label:via.slice(via.lastIndexOf('/')+1)}}:{})}});},[graph]);
  const nodes=useMemo(()=>{
   if(!result)return [];
   return [...reach.cards].filter(id=>result.layout.positions[id]).map(id=>{
    const c=cardFor(id),p=paged.get(id)!,g=groupOf?.(c),isGroup=reach.groups.has(id);
-   const data:CardData={kindNames:mapping?MAPPING_KINDS:undefined,onFinding,card:c,rows:p.rows,pinned:p.pinned,page:p.page,pages:p.pages,more:p.hidden,hiddenNeighbours:isGroup?1:reach.hidden.get(id)??0,group:isGroup,selected,onPath:path?.nodes??null,center:id===center,tint:g?.color,expanded:expanded.has(id),
-    onSelect:select,onPage:(cid,n)=>setPages(x=>({...x,[cid]:n})),onWalk:cid=>walkTo(cid,selected||undefined),onExpand:cid=>reach.groups.has(cid)?setOpenGroups(s=>new Set([...s,cid])):setExpanded(s=>new Set([...s,cid])),onCollapse:cid=>setExpanded(s=>{const n=new Set(s);n.delete(cid);return n;}),onOpenAsset};
+   const data:CardData={kindNames:mapping?MAPPING_KINDS:undefined,onFinding,card:c,rows:p.rows,pinned:p.pinned,page:p.page,pages:p.pages,more:p.hidden,hiddenNeighbours:isGroup?1:reach.hidden.get(id)??0,group:isGroup,selected,onPath:path?.nodes??null,center:id===center,tint:g?.color,expanded:reach.expandedBy.has(id),
+    onSelect:select,onPage:(cid,n)=>setPages(x=>({...x,[cid]:n})),onWalk:cid=>walkTo(cid,selected||undefined),onExpand:cid=>reach.groups.has(cid)?setOpenGroups(s=>new Set([...s,cid])):expand(cid),onCollapse:collapse,onOpenAsset};
    return {id,type:'card',position:result.layout.positions[id],data:data as unknown as Record<string,unknown>,draggable:false,selectable:false,style:{pointerEvents:'all' as const}};
   });
- },[result,reach,paged,selected,path,center,expanded,select,walkTo,onOpenAsset,groupOf,mapping,onFinding]);
+ },[result,reach,paged,selected,path,center,select,walkTo,onOpenAsset,groupOf,mapping,onFinding,sets]);
  const edges=useMemo(()=>{const lanes=new Map<string,number>();return lines.filter(l=>result?.layout.positions[l.fromCard]&&result.layout.positions[l.toCard]).map(l=>({id:l.id,source:l.fromCard,target:l.toCard,sourceHandle:l.from+':out',targetHandle:l.to+':in',type:'lineage',data:{kind:l.kind,onPath:l.onPath,dim:!!path&&!l.onPath,count:l.count,from:l.from,to:l.to,label:mapping&&l.count===1?graph.edges[l.edges[0]].label:undefined,lane:(()=>{const k=l.from+'>'+l.to,n=lanes.get(k)??0;lanes.set(k,n+1);return n;})()}}));},[lines,result,path,graph,mapping]);
  const flow=useRef<ReactFlowInstance<any,any>|null>(null),fitted=useRef(''),stage=useRef<HTMLDivElement|null>(null);
  // Readable views (owner review): column names (13 px) render at 12 px or more. The first view of a
@@ -135,6 +176,9 @@ export function LineageCanvas({mode='lineage',toolbarExtra,cardFilter,onFinding,
  useEffect(()=>{if(!result||!nodes.length)return;const k=center+'|'+steps;if(fitted.current===k)return;fitted.current=k;
   // after React Flow has measured the pane and the cards (ResizeObserver)
   setTimeout(()=>requestAnimationFrame(()=>void firstView()),80);},[result,center,steps,nodes.length]);
+ // After an expansion or pierce, bring its cards into a readable view around its origin.
+ const focused=useRef('');
+ useEffect(()=>{if(!result||!lastSet||focused.current===lastSet.id)return;focused.current=lastSet.id;const t=setTimeout(()=>void readableFit(lastSet.from,lastSet.nodes),120);return()=>clearTimeout(t);},[result,lastSet]);
  // The path panel takes room beside the canvas: when a path opens, bring its cards into a readable
  // view (React Flow learns the new width from a ResizeObserver, so this waits for it).
  const panelOpen=!!path;useEffect(()=>{if(!result||!path)return;const t=setTimeout(()=>{const cards=[...new Set([...path.nodes].map(n=>cardOfNode(graph,n)))].filter(c=>reach.cards.has(c));void readableFit(cardOfNode(graph,selected),cards);},120);return()=>clearTimeout(t);},[panelOpen]);
@@ -155,9 +199,10 @@ export function LineageCanvas({mode='lineage',toolbarExtra,cardFilter,onFinding,
   <div className="lineage-toolbar">
    <div className="lineage-search" role="combobox" aria-expanded={showResults&&results.length>0} aria-haspopup="listbox" aria-owns="lineage-asset-results">
     <Search size={14}/><input aria-label="Find assets" placeholder="Find assets…" value={query} aria-autocomplete="list" aria-controls="lineage-asset-results" onFocus={()=>setShowResults(true)} onBlur={()=>setTimeout(()=>setShowResults(false),150)} onChange={e=>{setQuery(e.target.value);setShowResults(true);}} onKeyDown={e=>{if(e.key==='Enter'&&results[0]){e.preventDefault();choose(results[0]);}if(e.key==='Escape'){setQuery('');setShowResults(false);}}}/>
-    {showResults&&query&&<ul id="lineage-asset-results" role="listbox" aria-label="Asset results">{results.length?results.map(h=><li key={h.id} role="option" aria-selected={false} onMouseDown={e=>{e.preventDefault();choose(h);}}><span className={`asset-kind k-${h.kind}`}>{h.kind==='field'?'Field':h.kind==='object'?'Object':h.kind==='dataset'?'Dataset':h.kind==='metric'?'Metric':h.kind==='concept'?'Concept':'External'}</span><span className="asset-name">{h.label}</span></li>):<li role="option" aria-disabled="true" aria-selected={false} className="none">No asset matches “{query}”</li>}</ul>}
+    {showResults&&query&&<ul id="lineage-asset-results" role="listbox" aria-label="Asset results">{results.length?results.map(h=><li key={h.id} role="option" aria-selected={false} onMouseDown={e=>{e.preventDefault();choose(h);}}><span className={`asset-kind k-${h.kind}`}>{h.kind==='field'?'Field':h.kind==='column'?'Column':h.kind==='relationship'?'Relationship':h.kind==='object'?'Object':h.kind==='dataset'?'Dataset':h.kind==='metric'?'Metric':h.kind==='concept'?'Concept':'External'}</span><span className="asset-name">{h.label}</span></li>):<li role="option" aria-disabled="true" aria-selected={false} className="none">No asset matches “{query}”</li>}</ul>}
    </div>
    <label className="lineage-steps"><span>Steps</span><select aria-label="Steps" value={steps} onChange={e=>setSteps(Number(e.target.value))}>{[1,2,3,4,5].map(n=><option key={n} value={n}>{n}</option>)}</select></label>
+   <PierceControls direction={direction} onDirection={setDirection} running={piercing} onPierce={()=>fullPierce()} onStop={stopPierce} canUndo={currentIsExpansion} onUndo={()=>dispatch({type:'back'})} title={`Open every card on the path of ${selected?(selected.includes('/')&&!graph.cards.has(selected)?selected.slice(selected.lastIndexOf('/')+1):labelOf(selected)):labelOf(center)}`}/>
    {toolbarExtra}
    <span className="lineage-toolbar-spacer"/>
    <button onClick={()=>setOptions(true)} title="Lineage options"><SlidersHorizontal size={14}/><span className="tool-label">Lineage options…</span></button>
@@ -169,6 +214,7 @@ export function LineageCanvas({mode='lineage',toolbarExtra,cardFilter,onFinding,
    <button aria-label="Forward" disabled={!canForward(walk)} onClick={()=>dispatch({type:'forward'})}><ArrowRight size={13}/></button>
    <ol>{walk.steps.map((s,i)=><li key={i}><button aria-current={i===walk.index?'step':undefined} onClick={()=>dispatch({type:'jump',index:i})} title={s.via?`via ${s.via.label}`:undefined}>{s.via&&<small>via {s.via.label} →</small>}{s.name}</button></li>)}</ol>
   </div>
+  {lastSet?.kind==='pierce'&&currentStep(walk)?.set===lastSet.id&&<PierceBanner noun={['card','cards']} result={{shown:lastSet.nodes.length+1,total:lastSet.total,maxStep:Math.max(0,...Object.values(lastSet.steps??{}))}} budget={lastSet.budget} max={PIERCE_MAX} running={piercing} onStop={stopPierce} onFurther={()=>fullPierce(Math.min(PIERCE_MAX,lastSet.budget+PIERCE_BUDGET))}/>}
   <div className="lineage-stage">
    <div className="lineage-flow" ref={stage}>
     <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} edgeTypes={edgeTypes} onInit={i=>{flow.current=i;}} onPaneClick={()=>setSelected('')} minZoom={0.08} maxZoom={1.6} nodesConnectable={false} proOptions={{hideAttribution:false}} onlyRenderVisibleElements>

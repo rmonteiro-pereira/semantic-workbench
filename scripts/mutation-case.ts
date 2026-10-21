@@ -291,3 +291,21 @@ if(category==='mapping-graph'){
  const g4=m.buildMappingGraph(ctx(docs((f,s)=>f==='commerce.mapping.yaml'?s+'custom_extensions:\n  - vendor_name: SEMANTIC_WORKBENCH\n    data: \'{"schema": "semantic-workbench/mapping/v1", "kpi_bindings": [{"metric":"gross_revenue","measures":"Revenue","of":"Customer"}]}\'\n':s)));
  assert.deepEqual(g4.edges.filter((e:any)=>e.to==='metric:gross_revenue'&&e.kind!=='object').map((e:any)=>[e.kind,e.from]).sort(),[['measures','concept:Revenue'],['of','concept:Customer']]);
 }
+if(category==='expansion'){
+ const edges=[['C','A'],['C','B'],['A','X'],['B','X'],['A','Z']].map(([s,t],i)=>({id:`e${i}`,source:s,target:t,label:'r'}));
+ const ex=(from:string)=>{const n=m.neighbours(edges,from,'both');return m.registerSet({kind:'expand',from,direction:'both',nodes:n.nodes,edges:n.edges,frontier:{},total:0,budget:0});};
+ const base=['C','A','B'],a=ex('A'),b=ex('B'),ca=m.registerSet({kind:'collapse',from:'A',target:a.id,direction:'both',nodes:[],edges:[],frontier:{},total:0,budget:0});
+ // X is reached by B too: collapsing A keeps it, removes Z
+ assert.deepEqual(m.canvasOf(base,[a,b,ca]).nodes.sort(),['A','B','C','X']);
+}
+if(category==='incremental'){
+ const pos=new Map([['O',{x:0,y:0}],['k',{x:-50,y:999}]]);const out=m.placeNew(pos,'O',[{id:'k',side:1},{id:'n',side:1}],{column:360,row:130});
+ assert.deepEqual(out.get('k'),{x:-50,y:999});assert.deepEqual(out.get('n'),{x:360,y:0});
+}
+if(category==='pierce'){
+ const nodes=Array.from({length:30},(_,i)=>({id:'n'+i,name:'n'+i,kind:'EntityType'})),edges=nodes.slice(1).map((n,i)=>({id:'e'+i,source:'n'+i,target:n.id,label:'next'}));
+ const o={direction:'out',valueTypes:true,technical:true,metrics:true,budget:10};
+ const r=m.boundedClosure(nodes,edges,['n0'],o);assert.equal(r.nodes.length,10);assert.equal(r.total,30);assert.equal(r.hidden,20);
+ // outgoing from the middle never reaches the start of the chain
+ const mid=m.boundedClosure(nodes,edges,['n15'],{...o,budget:100});assert(!mid.nodes.includes('n14'));assert(mid.nodes.includes('n29'));
+}

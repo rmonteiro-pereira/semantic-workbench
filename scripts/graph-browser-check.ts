@@ -1,6 +1,7 @@
 import{chromium,expect,type Page}from'@playwright/test';import{startIsolatedApi,routeApi}from'./helpers/isolated-api';
 import{neighborhoodEdgeProblems,neighborhoodState,pickCenter}from'./helpers/edge-geometry';
-import{inspect}from'../src/model';import{neighborhood}from'../src/graph-view';
+import{inspect}from'../src/model';import{neighborhood,projectModel}from'../src/graph-view';
+import{boundedClosure,PIERCE_BUDGET}from'../src/graph/pierce';import{neighbours,registerSet,canvasOf}from'../src/graph/expansion';
 // Real-browser check of the full graph and the neighborhood walk (SC-008; baseline defects 1–9) on the
 // UBL, shopping center and 1,000-entity scale models, on an isolated data root. Screenshots of every
 // step are written to /tmp/workbench-neighborhood-*.png.
@@ -108,6 +109,68 @@ try{
   if(n.hidden){await page.getByRole('button',{name:/^\d+ more neighbors?$/}).click();await expectState(scale,id(scale,'Customer 10000'),[],{limit:24});}
   await expectCentered();expect(await neighborhoodEdgeProblems(page)).toEqual([]);await shot('scale');
   console.log(`  center chosen and laid out in ${Math.round(performance.now()-start)} ms`);
+ });
+ // Pierce through (T047; FR-018–FR-024, SC-010, SC-011).
+ const nodeIds=()=>page.locator('.neighborhood-canvas .react-flow__node').evaluateAll(ns=>ns.map(n=>n.getAttribute('data-id')!).sort());
+ const nodePositions=()=>page.locator('.neighborhood-canvas .react-flow__node').evaluateAll(ns=>Object.fromEntries(ns.map(n=>[n.getAttribute('data-id'),(n as HTMLElement).style.transform])));
+ const node=(m:typeof ubl,name:string)=>page.locator(`.neighborhood-canvas .react-flow__node[data-id="${id(m,name)}"]`);
+ // The canvas the app must show, computed here from the file with the same pure functions.
+ const ublProjection=projectModel(ubl.entities,ubl.edges);
+ const expectedCanvas=(m:typeof ubl,center:string,steps:{expand?:string;collapse?:string}[])=>{
+  const p=projectModel(m.entities,m.edges),base=neighborhood(m.entities,m.edges,{center:id(m,center)}).entities.map(e=>e.id),sets:any[]=[],by=new Map<string,any>();
+  for(const s of steps){if(s.expand){const n=neighbours(p.edges,id(m,s.expand),'both');const set=registerSet({kind:'expand',from:id(m,s.expand),direction:'both',nodes:n.nodes,edges:n.edges,frontier:{},total:0,budget:0});sets.push(set);by.set(s.expand,set);}
+   if(s.collapse)sets.push(registerSet({kind:'collapse',from:id(m,s.collapse),target:by.get(s.collapse).id,direction:'both',nodes:[],edges:[],frontier:{},total:0,budget:0}));}
+  return canvasOf(base,sets).nodes.sort();
+ };
+ await check('UBL Order: expand OrderLine, LineItem and Item in place; placed nodes never move; the chain to Item and Price is on one canvas; the trail records each expansion',async()=>{
+  await openFile('ubl.ontology.yaml');await tab('Neighborhood').click();await pickCenter(page,'Order');await expectState(ubl,id(ubl,'Order'));
+  const done:{expand?:string}[]=[];
+  for(const name of ['OrderLine','LineItem','Item']){
+   const before=await nodePositions();
+   await node(ubl,name).getByRole('button',{name:`Expand ${name}`}).click();done.push({expand:name});
+   await expect.poll(nodeIds).toEqual(expectedCanvas(ubl,'Order',done));
+   const after=await nodePositions();for(const [k,v] of Object.entries(before))expect(after[k],`${k} moved`).toBe(v);
+   await expect(page.getByRole('navigation',{name:'Walk'})).toContainText(`expanded ${name}`);
+  }
+  for(const name of ['Order','OrderLine','LineItem','Item','Price'])await expect(node(ubl,name)).toHaveCount(1);
+  await shot('expanded-chain');
+ });
+ await check('UBL: Collapse on Item removes only what expanding Item alone added; Undo expansion and Forward restore the exact canvas',async()=>{
+  const before=await nodePositions(),ids=await nodeIds();
+  await node(ubl,'Item').getByRole('button',{name:'Collapse Item'}).click();
+  await expect.poll(nodeIds).toEqual(expectedCanvas(ubl,'Order',[{expand:'OrderLine'},{expand:'LineItem'},{expand:'Item'},{collapse:'Item'}]));
+  await page.getByRole('button',{name:'Undo expansion'}).click();
+  await expect.poll(nodeIds).toEqual(ids);expect(await nodePositions()).toEqual(before);
+  await page.getByRole('navigation',{name:'Walk'}).getByRole('button',{name:'Forward'}).click();
+  await expect.poll(nodeIds).toEqual(expectedCanvas(ubl,'Order',[{expand:'OrderLine'},{expand:'LineItem'},{expand:'Item'},{collapse:'Item'}]));
+  // activating a relationship line expands its far end in place (FR-024); Walk here still re-centres
+  await page.getByRole('button',{name:'Walk to OrderLine'}).click();await expectState(ubl,id(ubl,'OrderLine'),[id(ubl,'Order')]);
+ });
+ await check('shopping center Lease, Outgoing: Full pierce adds every entity reachable from Lease once; the status gives shown entities and steps',async()=>{
+  await openFile('mall.ontology.yaml');await tab('Neighborhood').click();await pickCenter(page,'Lease');
+  const lease=id(mall,'Lease'),p=projectModel(mall.entities,mall.edges),r=boundedClosure(p.entities,p.edges,[lease],{direction:'out',valueTypes:true,technical:false,metrics:true,budget:PIERCE_BUDGET});
+  await page.getByRole('radiogroup',{name:'Pierce direction'}).getByRole('radio',{name:'Outgoing'}).click();
+  await page.getByRole('button',{name:'Full pierce'}).click();
+  const status=page.locator('.pierce-banner');await expect(status).toContainText(`${r.shown} entities shown in ${r.maxStep} steps`);
+  const ids=await nodeIds();for(const n of r.nodes)expect(ids).toContain(n);expect(new Set(ids).size).toBe(ids.length);
+  await shot('pierce-lease');
+ });
+ await check('1,000 entities, Both: Full pierce stops at the 150-node budget with frontier markers and "N more reachable"; Expand further grows it; input stays responsive',async()=>{
+  await openFile('commerce-scale.ttl');await tab('Neighborhood').click();
+  const p=projectModel(scale.entities,scale.edges),start=(await neighborhoodState(page)).center!;
+  const r=boundedClosure(p.entities,p.edges,[start],{direction:'both',valueTypes:true,technical:false,metrics:true,budget:PIERCE_BUDGET});
+  await page.evaluate(()=>{(window as any).__long=0;new PerformanceObserver(l=>{for(const e of l.getEntries())(window as any).__long=Math.max((window as any).__long,e.duration);}).observe({type:'longtask',buffered:false});});
+  await page.getByRole('radiogroup',{name:'Pierce direction'}).getByRole('radio',{name:'Both'}).click();
+  await page.getByRole('button',{name:'Full pierce'}).click();
+  const status=page.locator('.pierce-banner');await expect(status).toContainText(`${r.total-r.shown} more reachable`,{timeout:20000});
+  await expect(page.locator('.frontier-marker').first()).toBeVisible();
+  expect(Number(await page.locator('.neighborhood-canvas').getAttribute('data-canvas-nodes'))).toBeGreaterThanOrEqual(r.shown);
+  await shot('pierce-budget');
+  const long=await page.evaluate(()=>(window as any).__long);console.log(`  longest main-thread task during pierce: ${long.toFixed(0)} ms`);
+  expect(long).toBeLessThanOrEqual(100);
+  await status.getByRole('button',{name:'Expand further'}).click();
+  const r2=boundedClosure(p.entities,p.edges,[start],{direction:'both',valueTypes:true,technical:false,metrics:true,budget:2*PIERCE_BUDGET});
+  await expect(page.locator('.pierce-banner')).toContainText(`${r2.total-r2.shown} more reachable`,{timeout:20000});
  });
  await check('no empty-state flash on any center or document change; no browser errors',async()=>{
   expect(await page.evaluate(()=>(window as any).__emptySeen)).toBe(0);expect(errors).toEqual([]);

@@ -504,3 +504,40 @@ agent context already carries everything except two additive fields).
   `scripts/odcs-browser-check.ts` and `scripts/lineage-browser-check.ts` press **Fit** before
   counting cards, because the readable first view may leave outer cards off screen. The mapping
   canvas keeps the Graph view switch reachable while the mapping resolves or fails to resolve.
+
+## R20. Implementation decisions taken in Phase 6 (pierce through)
+
+- **Expansion sets** (`src/graph/expansion.ts`): a set records every node its expansion reaches,
+  not only the new ones; the canvas is the base view plus the union of the sets in force, which
+  is the reference counting of R5 without counters. Collapse is a set of kind `collapse` that
+  removes an earlier set (the data model's `kind` gains `collapse`), so Back/Forward replay any
+  sequence exactly; a set whose origin leaves the canvas goes with it. Sets live in an in-memory
+  registry keyed by id; walk steps carry the id. Trail labels: "expanded X", "collapsed X",
+  "pierced X".
+- **Placement**: Neighborhood places expansion nodes with `placeNew` (column beside the origin,
+  nearest free row) and pierce nodes with `placeLayers` (column by step distance, at most 8 per
+  column, wrapping outward); the lineage and mapping canvases place expansion cards with
+  `placeBoxes` (card-height aware) after the ELK layout of the centre's reach and any pierce. The
+  placement is pure and cheap, so it runs on the main thread; the closures run in workers
+  (`pierce.worker.ts`, `lineage-pierce.worker.ts`) and ELK in its worker.
+- **Pierce lines**: Full pierce in Neighborhood draws the lines that reached each node (a tree)
+  rather than every relationship among up to 500 nodes; the full set is one Expand away.
+- **Responsiveness**: canvases over 60 nodes render only what is on screen, and an addition of
+  more than 30 nodes is revealed 30 per frame; the 1,000-entity pierce's longest main-thread task
+  is about 50 ms in the dev build (`scripts/graph-browser-check.ts` asserts ≤ 100 ms).
+- **Relationship lines** (FR-024): clicking a line in Neighborhood expands its far end in place
+  instead of walking; nodes, **Walk here** and the keyboard still walk. No existing check relied
+  on line clicks walking.
+- **Lineage pierce** (`src/odcs/lineage-pierce.ts`): ancestors and/or descendants of the selected
+  column, or of every column of a card, as in path highlighting; cards in step order, cut at 150
+  cards. The UBL example's governed metrics are counts, so `invoice_line.line_extension_amount`
+  reaches its dataset field but no metric; the commerce check covers a path through to metrics.
+- **Scenario data**: the UBL ontology has 45 entities, so Full pierce Both from `Invoice` shows
+  all 45 without reaching the budget; the budget banner is checked on the 1,000-entity commerce
+  scale model. `OrderLine` reaches `Item` through `LineItem` in this ontology, so the chain check
+  expands OrderLine, LineItem and Item and expects Order, OrderLine, LineItem, Item and Price.
+  "Show step K only" from the scenario text is not offered: Expand further and Undo expansion
+  cover the same need without another control.
+- **Find assets** now also lists contract object columns (kind *Column*) and concept
+  relationships, so a column can be found and pierced directly (FR-007 already named columns).
+

@@ -11,10 +11,11 @@ await routeApi(page,api,async route=>{const r=route.request(),path=new URL(r.url
  if(holdPlan&&r.method()==='POST'&&path==='/api/agent/plan'){holdPlan=false;await new Promise<void>(resolve=>{releasePlan=resolve});}
  return false;});
 if(process.env.UI_MUTATION==='clear-nodes')await page.route('**/src/NeighborhoodGraph.tsx*',async route=>{
- const response=await route.fetch();const source=await response.text();const anchor='const build = () => view.entities.map';
+ const response=await route.fetch();const source=await response.text();// v0.3.0: the node list is the expansion canvas, revealed in chunks (T045).
+ const anchor='const build = (limit = reveal) => shownEntities.slice(0, limit).map';
  if(!source.includes(anchor))throw Error('UI mutation anchor missing');
  console.log('INJECTED_CLEAR_NODES_MUTATION');
- await route.fulfill({response,body:source.replace(anchor,'const build = () => [].map')});
+ await route.fulfill({response,body:source.replace(anchor,'const build = (limit = reveal) => [].map')});
 });
 try{
 await page.goto('http://127.0.0.1:5173/');

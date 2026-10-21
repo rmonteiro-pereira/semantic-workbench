@@ -1,5 +1,6 @@
 import{chromium,expect,type Page}from'@playwright/test';import{readFileSync}from'node:fs';
 import{startIsolatedApi,routeApi}from'./helpers/isolated-api';
+import{parse}from'yaml';import{readdirSync}from'node:fs';import{buildLineage,selectionNodes}from'../src/odcs/lineage';import{lineagePierce}from'../src/odcs/lineage-pierce';
 // Column-level lineage canvas (T037; SC-001, SC-002, FR-001–FR-012) on the commerce, mall and UBL
 // contracts: every drawn line is one of the expected (golden) edges and every expected edge between
 // two drawn rows is drawn; a selected column's path is emphasised within 200 ms; UBL's first view
@@ -118,6 +119,33 @@ try{
   await compare('ubl');await shots('ubl');
  });
  await check('UBL: the first view is readable (column names ≥ 12 px) at 1280×720 and 1440×900',async()=>{await firstViewReadable('ubl.odcs.yaml',examples.ubl.name,'UBL');});
+ // Expand in place and Full pierce (T047; FR-018, FR-019, FR-023).
+ const cardPositions=()=>graph().locator('.react-flow__node').evaluateAll(ns=>Object.fromEntries(ns.map(n=>[n.getAttribute('data-id'),(n as HTMLElement).style.transform])));
+ await check('UBL: Expand on a card adds its neighbours beside it; placed cards do not move; Undo expansion restores the canvas',async()=>{
+  await graph().getByRole('textbox',{name:'Find assets'}).fill('invoice_line');await graph().getByRole('listbox',{name:'Asset results'}).getByRole('option').filter({hasText:'Object'}).first().click();
+  await expect(card('Contract object invoice_line')).toHaveClass(/center/);await page.waitForTimeout(500);await fit();
+  const before=await cardPositions(),button=graph().locator('.lineage-card:not(.group):not(.center)').getByRole('button',{name:/^Expand /}).first();
+  const name=(await button.getAttribute('aria-label'))!.slice('Expand '.length);await button.click();
+  await expect(graph().getByLabel('Walk',{exact:true})).toContainText(`expanded ${name}`);await page.waitForTimeout(600);await fit();
+  const after=await cardPositions();expect(Object.keys(after).length).toBeGreaterThan(Object.keys(before).length);
+  for(const [id,t] of Object.entries(before))expect(after[id],`${id} moved`).toBe(t);
+  await graph().getByRole('button',{name:'Undo expansion'}).click();await page.waitForTimeout(600);await fit();
+  expect(Object.keys(await cardPositions()).sort()).toEqual(Object.keys(before).sort());
+ });
+ await check('UBL invoice_line.line_extension_amount: Full pierce (Both) opens every card on its upstream and downstream path, highlighted',async()=>{
+  const files=readdirSync('public/examples/ubl').filter(f=>/\.ya?ml$/.test(f)).map(f=>({path:f,data:parse(readFileSync(`public/examples/ubl/${f}`,'utf8'))})),g=buildLineage(files,'ubl.odcs.yaml');
+  const col='object:ubl.odcs.yaml#invoice_line/line_extension_amount',want=lineagePierce({edges:g.edges.map(e=>[e.from,e.to] as [string,string]),owners:Object.fromEntries([...g.cards.values()].flatMap(c=>c.columns.map(x=>[x.id,c.id]))),start:selectionNodes(g,col),direction:'both',budget:150});
+  await graph().getByRole('textbox',{name:'Find assets'}).fill('line_extension_amount');
+  await graph().getByRole('listbox',{name:'Asset results'}).getByRole('option').filter({hasText:'Column'}).filter({hasText:'invoice_line.line_extension_amount'}).first().click();
+  await expect(graph().getByRole('region',{name:'Selected path'})).toBeVisible();
+  await graph().getByRole('button',{name:'Full pierce'}).click();
+  await expect(graph().getByLabel('Walk',{exact:true})).toContainText('pierced line_extension_amount');await page.waitForTimeout(600);await fit();
+  const ids=await graph().locator('.lineage-card').evaluateAll(ns=>ns.map(n=>n.getAttribute('data-id')));
+  for(const c of want.cards)expect(ids).toContain(c);
+  expect(await graph().locator('g[data-on-path="true"]').count()).toBeGreaterThan(0);
+  await expect(page.locator('.pierce-banner')).toContainText(`${want.cards.length} cards shown`);
+  await page.screenshot({path:'/tmp/workbench-lineage-pierce.png'});
+ });
  await check('no browser errors',async()=>{expect(errors).toEqual([]);});
  console.log(`${passed} lineage checks passed on isolated data root ${api.root}.`);
 }catch(e){await page.screenshot({path:"/tmp/workbench-lineage-failure.png"});console.log("browser errors:",errors.join("\n").slice(0,3000));throw e;}finally{await browser.close();await api.stop();}
