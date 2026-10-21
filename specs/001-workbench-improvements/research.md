@@ -387,3 +387,44 @@ and recorded here so later phases build on them.
   opens the same confirmation as the menu's Delete. The filename ellipsizes before the icons;
   `scripts/helpers/tree-geometry.ts` asserts this in the responsive suite at all six viewports
   and in test:trash at 390 and 2560 px and with touch emulation.
+
+## R15. Implementation decisions taken in Phase 3
+
+- **Reference scan.** `src/metrics/deps.ts` is a tokenizer, not a parser: it skips string literals,
+  comments, function names, keywords, `AS` aliases, `::` casts, `EXTRACT(… FROM …)` parts and typed
+  literals. On every expression of the shipped examples it finds exactly the column references
+  of the `node-sql-parser` syntax tree (tests/metric-deps.test.ts, about 2,000 expressions, 0
+  differences); expressions the parser rejects are skipped by the comparison. One scan feeds graph
+  edges, `dependsOn`, the Metrics view and the explanation (fixes baseline defect 20).
+- **Metric cycles are warnings** in validation, not errors: a file with a cycle stays importable
+  so it can be repaired, and the planner still refuses cyclic metrics.
+- **Inference without extensions.** Type: `a / b` or `a / NULLIF(b, 0)` over two metrics is a
+  ratio, other metric references make it derived, else simple. Additivity: ratios, distinct counts,
+  averages, minima and maxima are non-additive; SUM/COUNT are additive; derived KPIs combine their
+  inputs (`*` or `/` makes them non-additive); otherwise unknown. Inferred values are labelled.
+- **Rollup rules of the preview.** `rollup=sum` is refused for non-additive and unknown
+  additivity. A grain coarser than a semi-additive input's minimum grain is refused for the KPI and
+  for every KPI built on it (occupancy rate per quarter is refused because GLA is a month-end
+  stock and the declared period aggregation is *last*); the workbench does not generate
+  last-period SQL. Grains outside `allowed_grains` (or finer than `min_grain`) are refused.
+- **Previews plan over the semantic model** (`modelContext`, planner `scope: 'model'`), so a KPI
+  is explainable without a mapping and mapping errors elsewhere do not block it.
+- **Lineage to ODCS** matches `dataset.source` to an ODCS object's `physicalName` (or `name`
+  when no physical name is declared) and each column read by the field's expression to a property's
+  `physicalName`/`name`, exactly. Quality rules of the object and property and the contract's
+  `slaProperties` (all, or those whose `element` starts with the object's physical name) are shown
+  as declared, not checked.
+- **Routes.** The explain route is matched before the file route; a GET of a file whose path ends in
+  `/explain/<name>` therefore reads as an explanation (documented in contracts/http-api.md).
+  `GET /api/projects/:slug/metrics` was added to the contract.
+- **Shopping center example.** All 25 metrics carry extensions (one key per line inside the block),
+  the mapping carries 25 KPI bindings (`measures` as `kpi:` QNames, `of` the entity). CalendarMonth
+  gained `first_day` (a date) as the monthly time dimension, so the preview's `DATE_TRUNC` has a date
+  to truncate; resolved bindings went from 1,056 to 1,057. The ODCS contract declares four quality
+  rules and three SLA properties so trust indicators can be shown. Purchase spend uses
+  `purchase_orders.order_date` (day grain). Flights ships without metrics, so the layout tests and
+  the browser check add one KPI to copies of the split and consolidated files.
+- **KPI node type.** Graph nodes for Ossie metrics are labelled KPI and can be hidden (remembered per
+  model like value types); concepts named by a KPI binding (`measures` or `of`) carry a KPI badge
+  in the graph, the neighborhood and the catalog.
+
