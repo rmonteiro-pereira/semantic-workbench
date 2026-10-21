@@ -2,8 +2,9 @@ import {OSSIE_BUILTINS,builtinConcept} from '../../src/ossie-builtins';
 import {inspect} from '../../src/model';
 import {rdfSyntax} from '../../src/rdf';
 import {isMapping} from '../../src/mapping-schema';
+import {metricDependencies as syntaxDependencies} from '../../src/metrics/deps';
 import {columnRefs,parseExpression,scalar,expressionSql,quoteIdentifier,sourceSql} from './sql';
-export type StoredDocument={id:string;filename:string;source:string;revision:number};
+export type StoredDocument={id:string;filename:string;source:string;revision:number;project?:string};
 export type Evidence={documentId:string;filename:string;revision:number;path:(string|number)[]};
 export type Finding={severity:'error'|'warning';code:string;message:string;evidence?:Evidence};
 export type Binding={id:string;concept:string;rootConcept:string;relationships:string[];expression:string;condition:unknown;fields:string[];metrics:string[];evidence:Evidence};
@@ -23,7 +24,7 @@ function targets(parsed:Parsed[],kind:'ontology'|'semantic'):Target[]{return par
  if(Array.isArray(p.data.datasets))return [{doc:p.doc,data:p.data,path:[]}];
  return Array.isArray(p.data.semantic_model)?p.data.semantic_model.flatMap((m:any,i:number)=>m&&Array.isArray(m.datasets)?[{doc:p.doc,data:m,path:['semantic_model',i]}]:[]):[];
 });}
-const identity=(t:Target)=>`"${t.data.name??'(unnamed)'}" in ${t.doc.filename}${t.path.length?'#/'+t.path.join('/'):''}`;
+const identity=(t:Target)=>`"${t.data.name??'(unnamed)'}" in ${t.doc.project?`${t.doc.project}/`:''}${t.doc.project?t.doc.id.slice(t.doc.project.length+1):t.doc.filename}${t.path.length?'#/'+t.path.join('/'):''}`;
 function mappingEntries(parsed:Parsed[]){return parsed.flatMap(p=>{
  if(isMapping(p.data))return [{id:p.doc.id,doc:p.doc,data:p.data,ontology:null as Parsed|null,path:[]as(string|number)[]}];
  return (p.data?.ontology_mappings??[]).map((m:any,i:number)=>({id:`${p.doc.id}#ontology_mappings/${i}`,doc:p.doc,data:m,ontology:p,path:['ontology_mappings',i]as(string|number)[]}));
@@ -31,6 +32,18 @@ function mappingEntries(parsed:Parsed[]){return parsed.flatMap(p=>{
 export function agentCatalog(documents:StoredDocument[]){const parsed=parseDocuments(documents);return {mappings:mappingEntries(parsed).map(m=>({id:m.id,name:m.data.name??`${m.doc.filename} mapping`,filename:m.doc.filename,embedded:!!m.ontology,ontologyRef:m.data.ontology_ref??{name:m.ontology?.data.name},semanticModelRef:m.data.semantic_model_ref??{name:m.data.semantic_model?.name}})),policy};}
 export function buildContext(documents:StoredDocument[],mappingId:string):RuntimeContext{
  const parsed=parseDocuments(documents),entry=mappingEntries(parsed).find(m=>m.id===mappingId);if(!entry)throw Error('Mapping not found. Import a standalone mapping or an ontology with embedded mappings.');
+ return assemble(parsed,entry);
+}
+type Entry=ReturnType<typeof mappingEntries>[number]&{semanticPath?:(string|number)[]};
+// Fields, metrics, datasets and joins of one semantic model without any mapping (KPI explanation
+// of a model that no mapping references). `path` locates the model inside its document.
+export function modelContext(documents:StoredDocument[],documentId:string,path:(string|number)[]=[]):RuntimeContext{
+ const parsed=parseDocuments(documents),p=parsed.find(x=>x.doc.id===documentId);if(!p?.data)throw Error('Semantic model not found.');
+ let model:any=p.data;for(const k of path)model=model?.[k];if(!model||!Array.isArray(model.datasets))throw Error('Semantic model not found.');
+ const entry:Entry={id:`${documentId}#model`,doc:p.doc,data:{name:model.name,semantic_model:model,concept_mappings:[]},ontology:{doc:p.doc,data:{name:'(none)',ontology:[]}},path:[],semanticPath:path};
+ return assemble(parsed,entry);
+}
+function assemble(parsed:Parsed[],entry:Entry):RuntimeContext{
  const findings:Finding[]=[];
  const problem=(code:string,message:string,path:(string|number)[]=entry.path)=>findings.push({severity:'error',code,message,evidence:evidence(entry.doc,path)});
  const resolve=(ref:any,kind:'ontology'|'semantic'):Target|null=>{
@@ -41,12 +54,14 @@ export function buildContext(documents:StoredDocument[],mappingId:string):Runtim
    if(local.includes('/')||local.includes('\\')||local==='..'){problem('reference',`Cannot resolve relative location ${ref.iri} in the flat local catalog. Import the target with a matching filename and update the reference.`);return null;}
    candidates=candidates.filter(t=>t.doc.filename===local);
   }
-  if(candidates.length!==1){problem('reference',`${label} reference "${ref.name}"${ref.iri?` at ${ref.iri}`:''} resolves to ${candidates.length} local documents. Import the missing document or remove duplicate identities; no target was guessed. ${all.length?`Local ${label} identities: ${all.map(identity).join(', ')}.`:`No ${label} documents are loaded.`}`);return null;}
+  // FR-033: the mapping's own project first; other projects only when it has no candidate.
+  const own=entry.doc.project===undefined?[]:candidates.filter(t=>t.doc.project===entry.doc.project);if(own.length)candidates=own;
+  if(candidates.length!==1){problem('reference',`${label} reference "${ref.name}"${ref.iri?` at ${ref.iri}`:''} resolves to ${candidates.length} local documents${candidates.length>1?`: ${candidates.map(identity).join(', ')}`:''}. Import the missing document or remove duplicate identities; no target was guessed. ${all.length?`Local ${label} identities: ${all.map(identity).join(', ')}.`:`No ${label} documents are loaded.`}`);return null;}
   if(ref.iri&&/^[a-z][a-z\d+.-]*:/i.test(ref.iri))findings.push({severity:'warning',code:'local-resolution',message:`Resolved ${ref.name} by its unique logical name in the local catalog. Remote location ${ref.iri} was not fetched.`,evidence:evidence(entry.doc)});
   return candidates[0];
  };
  const ont=entry.ontology?{doc:entry.ontology.doc,data:entry.ontology.data,path:[]}:resolve(entry.data.ontology_ref,'ontology');
- const sem:Target|null=entry.ontology?{doc:entry.doc,data:entry.data.semantic_model,path:[...entry.path,'semantic_model']}:resolve(entry.data.semantic_model_ref,'semantic');
+ const sem:Target|null=entry.ontology?{doc:entry.doc,data:entry.data.semantic_model,path:entry.semanticPath??[...entry.path,'semantic_model']}:resolve(entry.data.semantic_model_ref,'semantic');
  const semanticPrefix=sem?.path??[];
  const ontology=ont?.data??{},model=sem?.data??{};
  const context:RuntimeContext={mappingId:entry.id,name:entry.data.name??entry.doc.filename,documents:[evidence(entry.doc,entry.path),...(ont?[evidence(ont.doc)]:[]),...(sem?[evidence(sem.doc,semanticPrefix)]:[])],mapping:{conceptMappings:entry.data.concept_mappings,ontologyRef:entry.data.ontology_ref,semanticModelRef:entry.data.semantic_model_ref,description:entry.data.description,customExtensions:entry.data.custom_extensions,embedded:!!entry.ontology,evidence:evidence(entry.doc,entry.path)},ontology:{name:ontology.name,description:ontology.description,requires:ontology.requires,prefixes:ontology.prefixes},semanticModel:{name:model.name,description:model.description,version:model.version},concepts:[...(ontology.ontology??[]),...[...OSSIE_BUILTINS].filter(n=>!(ontology.ontology??[]).some((c:any)=>c.concept===n)).map(builtinConcept)],bindings:[],fields:[],metrics:[],datasets:model.datasets??[],joins:model.relationships??[],aiContext:[],findings,policy};
@@ -77,7 +92,7 @@ export function buildContext(documents:StoredDocument[],mappingId:string):Runtim
   if(active.size>64)throw Error('Metric dependency depth exceeds 64.');const next=new Set(active);next.add(name);
   const expressions=metric.definition.expression.dialects;const selected=expressions.find((d:any)=>d.dialect==='ANSI_SQL');
   if(!selected)throw Error(`Metric ${name} has no ANSI_SQL expression; choose a supported dialect before planning.`);
-  const refs=resolveRefs(selected.expression);metric.dependsOn=refs.metrics;const fields=new Set(refs.fields);
+  const refs=resolveRefs(selected.expression);metric.dependsOn=syntaxDependencies(selected.expression,new Set(metricMap.keys()));const fields=new Set(refs.fields);
   for(const dep of refs.metrics)for(const id of metricDependencies(dep,next).fields)fields.add(id);
   metric.fields=[...fields];metric.datasets=[...new Set(metric.fields.map(id=>fieldMap.get(id)!.dataset))];completed.add(name);return metric;
  };
@@ -124,19 +139,24 @@ export function selectContext(context:RuntimeContext,conceptNames:string[]){
  const fields=context.fields.filter(f=>fieldIds.has(f.id));
  return {...context,concepts:context.concepts.filter(c=>names.size===0||names.has(c.concept)||bindings.some(b=>b.concept===c.concept||b.rootConcept===c.concept)),bindings,metrics,fields,datasets:context.datasets,joins:context.joins};
 }
-export type PlanRequest={mappingId:string;concepts?:string[];metrics:string[];dimensions:string[]};
+export type PlanRequest={mappingId:string;concepts?:string[];metrics:string[];dimensions:string[];
+ // Workbench-internal options (not accepted by /api/agent/plan): plan over the whole model rather than
+ // mapped concepts, and group by a time field truncated to a grain.
+ scope?:'model';timeGrain?:{field:string;grain:'day'|'week'|'month'|'quarter'|'year'}};
 export function planQuery(context:RuntimeContext,request:PlanRequest){
  if(context.findings.some(f=>f.severity==='error'))throw Error('Resolve mapping context errors before planning.');
- const selected=selectContext(context,request.concepts??[]);
+ const selected=request.scope==='model'?{...context,bindings:[] as Binding[]}:selectContext(context,request.concepts??[]);
  const metricMap=new Map(context.metrics.map(m=>[m.id,m]));
  const fieldMap=new Map(context.fields.map(f=>[f.id,f]));
  const metrics=request.metrics.map(id=>{const m=selected.metrics.find(m=>m.id===id);if(!m)throw Error(`Metric ${id} is not reachable through the selected ontology mappings.`);return m;});
  const dimensions=request.dimensions.map(id=>{const f=selected.fields.find(f=>f.id===id);if(!f)throw Error(`Field ${id} is not reachable through the selected ontology mappings.`);return f;});
+ const timeField=request.timeGrain?selected.fields.find(f=>f.id===request.timeGrain!.field):undefined;
+ if(request.timeGrain&&(!timeField||!['day','week','month','quarter','year'].includes(request.timeGrain.grain)))throw Error('The time field or grain is not available in this model.');
  if(!metrics.length&&!dimensions.length)throw Error('Select at least one mapped field or governed metric.');
  if(new Set(request.metrics).size!==metrics.length||new Set(request.dimensions).size!==dimensions.length)throw Error('Duplicate query selections.');
  const conditional=selected.bindings.filter(b=>b.condition&&(b.metrics.some(m=>request.metrics.includes(m))||b.fields.some(f=>request.dimensions.includes(f))));
  if(conditional.length)throw Error('Selected bindings have population conditions. Review their meaning before query generation; the planner will not silently turn them into query filters.');
- const required=new Set([...metrics.flatMap(m=>m.datasets),...dimensions.map(f=>f.dataset)]);
+ const required=new Set([...metrics.flatMap(m=>m.datasets),...dimensions.map(f=>f.dataset),...(timeField?[timeField.dataset]:[])]);
  const metricDatasets=new Set(metrics.flatMap(m=>m.datasets));if(metricDatasets.size>1)throw Error('Multi-fact metric composition needs an explicit grain/aggregation model. No unsafe join was generated.');
  const root=[...metricDatasets][0]??dimensions[0]?.dataset;if(!root)throw Error('No physical dataset was resolved.');
  // Find a directed path, then test each chosen edge for necessity. If the
@@ -172,7 +192,8 @@ export function planQuery(context:RuntimeContext,request:PlanRequest){
    for(const k of Object.keys(ref.node))delete ref.node[k];Object.assign(ref.node,physical);
   }return ast;
  };
- const select=dimensions.map((f,i)=>({alias:`dimension_${i+1}`,sql:expressionSql(compile(`${quoteIdentifier(f.dataset)}.${quoteIdentifier(f.name)}`)),fieldId:f.id,evidence:f.evidence}));
+ const select=[...(timeField?[{alias:'period',sql:`DATE_TRUNC('${request.timeGrain!.grain}', ${expressionSql(compile(`${quoteIdentifier(timeField.dataset)}.${quoteIdentifier(timeField.name)}`))})`,fieldId:timeField.id,evidence:timeField.evidence}]:[]),
+  ...dimensions.map((f,i)=>({alias:`dimension_${i+1}`,sql:expressionSql(compile(`${quoteIdentifier(f.dataset)}.${quoteIdentifier(f.name)}`)),fieldId:f.id,evidence:f.evidence}))];
  const measures=metrics.map((m,i)=>({alias:`metric_${i+1}`,sql:expressionSql(compile(m.definition.expression.dialects.find((d:any)=>d.dialect==='ANSI_SQL').expression)),metricId:m.id,governedExpression:m.definition.expression,evidence:m.evidence}));
  const orderedJoins=[...joins.values()].sort((a,b)=>distances.get(a.to)!-distances.get(b.to)!||a.name.localeCompare(b.name));
  const from=`${sourceSql(modelDatasets.get(root).source)} AS ${quoteIdentifier(root)}`;
