@@ -18,28 +18,32 @@ check per user-visible change, targeted mutants for new decision logic, geometry
 layout work, and the authorization test matrix. Test tasks come first in each phase and must fail
 before the implementation tasks that follow.
 
-**Organization**: Setup and foundations, then the container (US9 part 1) and CI (US10 part 1),
-sign-in (US1), Azure delivery (US9 part 2, US10 part 2), then the remaining stories in priority
-order (P1: US2, US3, US8; P2: US4, US5, US6, US7). Each phase ends with every existing suite green
-in local mode (`bun test`, `check`, `build`, `test:ui`, `test:responsive`, `test:edges`,
+**Organization**: Setup and foundations, then the container (US9 part 1), the local build scripts
+and the Azure DevOps pipeline definition (US10 part 1), sign-in (US1), the Azure delivery
+definition (US9 part 2, US10 part 2), then the remaining stories in priority order (P1: US2, US3,
+US8; P2: US4, US5, US6, US7). Each phase ends with every existing suite green in local mode
+(`bun test`, `check`, `build`, `test:ui`, `test:responsive`, `test:edges`,
 `test:grouping-validation`, `test:examples:ui`, the 002 suites, `test:mutation`) plus its own
-checks. From Phase 4 on, each phase also ends with the CI run green, including the `container`
-job: every browser check a phase adds is registered in `scripts/container-suites.ts` (local or
-server group) and runs against the image; `tests/ci/workflows.test.ts` (T120) fails when a
-`test:*` script is missing from the CI matrix or the container suite list without a recorded
-reason.
+checks. From Phase 4 on, each phase ends with `bun run ci:validate` green on the owner's machine
+(there is no CI service: the GitHub repository runs nothing, FR-130), including the `container`
+step and the `pipeline` step (`pipeline:lint`, `pipeline:dry-run`): every browser check a phase
+adds is listed in `scripts/gate-suites.ts` and registered in `scripts/container-suites.ts` (local
+or server group), so it runs locally, against the image and in the pipeline's Validate stage;
+`tests/pipeline/azure-pipelines.test.ts` (T120) fails when a `test:*` script is missing from
+those lists without a recorded reason.
 
 **Task IDs**: IDs T001–T114 are unchanged from the first task list; the container and pipeline
 revision moved T104–T110 (former Phase 11) into Phases 3, 5 and 6, reworded T032 and T104–T110,
-and added T115–T133 (133 tasks in 15 phases). Phases are therefore no longer in numeric ID order; the phase headings
-give the order of work. Former Phases 3–10 are now Phases 5 and 7–13; former Phase 12 is Phase 14.
+and added T115–T133. The second revision (nothing runs on GitHub; Azure DevOps pipeline for the
+target) rewrote T107, T109 and T120–T133 in place, keeping their IDs (133 tasks in 15
+phases). Phases are therefore not in numeric ID order; the phase headings give the order of work.
 
 ## Format: `[ID] [P?] [Story?] Description`
 
 - **[P]**: can run in parallel (different files, no dependency on an unfinished task)
 - **[USn]**: US1 sign-in, US2 read filtering, US3 role enforcement, US4 working copies, US5
   governance guards, US6 remote credentials, US7 agent clients, US8 Admin panel, US9 container
-  and Azure, US10 CI/CD pipeline
+  and Azure, US10 local build scripts and Azure DevOps pipeline
 - Paths are repository-relative
 
 ---
@@ -110,21 +114,25 @@ and `bun run test:container` (local group).
 
 ---
 
-## Phase 4: User Story 10 (part 1) - Continuous integration on every change (Priority: P1)
+## Phase 4: User Story 10 (part 1) - Local build scripts and the Azure DevOps pipeline definition (Priority: P1)
 
-**Goal**: every pull request and push runs the whole quality gate, builds, scans and inventories
-the image and reruns the suites against it.
+**Goal**: one local command runs the whole quality gate, the image build, scan and bill of
+materials and the suites against the image; the repository ships an Azure DevOps pipeline whose
+Validate and Image stages call exactly those scripts, checked locally by a schema lint and a dry
+run; nothing runs on GitHub.
 
-**Independent Test**: `bun test tests/ci/workflows.test.ts`; a pull request with a failing unit
-test is blocked; a green pull request shows every required check.
+**Independent Test**: `bun test tests/pipeline/`; `bun run ci:validate` green; with a deliberately
+failing unit test it fails naming `verify`; `bun run pipeline:dry-run -- --run pr` and
+`--run main` print the expected stages and steps.
 
-- [ ] T120 [P] [US10] Workflow rules test tests/ci/workflows.test.ts (parses .github/workflows/*.yml with `yaml`): every third-party `uses:` pinned to a 40-hex commit; top-level permissions read-only; `id-token: write` only on `publish` and `deploy` jobs; no `pull_request_target`; `actions: read` allowed only on release `check` and `github-release`; an aggregate `browser-result` job exists and needs the `browser` matrix; `azure/login` takes ids from `vars.` and never `secrets.`; every quality-gate `test:*` script of package.json appears in the `browser` matrix and in scripts/container-suites.ts or in a recorded exclusion with reason; `.trivyignore` entries carry a reason and an unexpired date (FR-130, FR-131, FR-138)
-- [ ] T121 [US10] .github/workflows/ci.yml jobs `verify` (Bun 1.4.x pinned, frozen install, `check`, `bun test`, `build`), `mutation`, `browser` (matrix over the gate suites, Playwright Chromium with system dependencies, dev server started in the job, screenshots uploaded on failure) and the aggregate `browser-result` (`needs: browser`, `if: always()`, fails unless every leg succeeded); triggers `pull_request`, `push` on branches only (tags belong to release.yml); concurrency cancels superseded pull-request runs (FR-130)
-- [ ] T122 [US10] ci.yml jobs `image` (Buildx with the Actions cache, version and commit build arguments, image exported for later jobs, Trivy `--severity CRITICAL,HIGH --ignore-unfixed --exit-code 1` with .trivyignore, SARIF and SPDX JSON bill of materials uploaded as artifacts) and `container` (needs `image`; `bun run test:container --image <built>`) (FR-131, contracts/delivery-pipeline.md)
-- [ ] T123 [P] [US10] .github/dependabot.yml for `github-actions`, `docker` and `npm`, weekly, grouped (FR-138)
-- [ ] T124 [US10] Make the existing `ci.yml` checks (`verify`, `mutation`, `browser-result`, `image`, `container`) required on `main` through a ruleset (manual step; T107 writes it into the guide); record the first full run's job durations against SC-013 in specs/003-authn-authz/verification.md
+- [ ] T120 [P] [US10] Pipeline rules test tests/pipeline/azure-pipelines.test.ts (parses azure-pipelines.yml, azure-pipelines-rollback.yml and deploy/azure-devops/templates/*.yml with `yaml`): every rule of the pipeline check in contracts/delivery-pipeline.md (stage order, script steps call package scripts outside the setup template, allowed tasks pinned to a major version, images pinned by digest, no secret variables or secret-looking literals, `addSpnToEnvironment` not true, `azureSubscription` only from service-connection parameters, Deploy only for `refs/tags/v*` as a deployment job on the environment parameter, every gate `test:*` script of package.json in scripts/gate-suites.ts and in scripts/container-suites.ts or a recorded exclusion, `.trivyignore` entries with reason and unexpired date) and no `.github/workflows/` or `.github/dependabot.yml` in the repository (FR-130, FR-132, FR-133, FR-136, FR-140)
+- [ ] T121 [US10] Local gate runner scripts/ci-validate.ts and gate suite list scripts/gate-suites.ts, script `ci:validate` in package.json: steps `verify`, `mutation`, `browser`, `keycloak` (added in T109), `image`, `container`, `pipeline` in that order; `--step` (repeatable), `--suite`, `--keep-going`; container-runtime steps fail instead of skipping; JUnit XML and `summary.json` in out/ci/; non-zero exit naming the failed steps; `out/` added to .gitignore (FR-131)
+- [ ] T122 [US10] Image scripts scripts/image.ts with package scripts `image:build` (Docker or Podman, `SW_VERSION`/`SW_COMMIT` build arguments, `-dirty` suffix, tags `semantic-workbench:sha-<commit>` and `:dev`), `image:scan` (Trivy binary or pinned Trivy image, CRITICAL/HIGH with fix, .trivyignore, `--ref` for a registry digest, JSON and SARIF in out/image/), `image:sbom` (SPDX JSON in out/image/), `image:push` (`--registry`, refuses `-dirty`, prints the digest); tests of argument building and ignore-file parsing in tests/pipeline/image.test.ts (FR-131, FR-132)
+- [ ] T123 [US10] azure-pipelines.yml with templates deploy/azure-devops/templates/setup-steps.yml (pinned Bun, frozen install, Playwright Chromium), validate-jobs.yml and image-jobs.yml: parameters and variable group of contracts/delivery-pipeline.md, triggers (`main`, tags `v*`), stage Validate (jobs `verify`, `mutation`, `browser` matrix from scripts/gate-suites.ts, each `bun run ci:validate -- --step …`, test results and failure screenshots published), stage Image (`ci:validate --step image --step container`, bill of materials and scan report as pipeline artifacts, push to the target registry through `AzureCLI@2` with the push service connection on `main` and `v*` only, digest as output variable); deploy/azure-devops/sample-variables.yml with placeholder values (FR-133, FR-134)
+- [ ] T124 [US10] `pipeline:lint` (scripts/pipeline-lint.ts: pinned copy of the Azure Pipelines schema in deploy/azure-devops/schema/service-schema.json validated with the existing Ajv setup, plus the rules of T120) and `pipeline:dry-run` (scripts/pipeline-dry-run.ts: parameter expansion with sample-variables.yml, conditions for `pr`, `main` and `tag:<v>` runs, printed plan, `--execute` runs local steps and Azure steps on the fake client of tests/pipeline/fake-azure.ts); tests in tests/pipeline/dry-run.test.ts (plan per run kind; a step present in the pipeline but not in `ci:validate` fails); record the first full `ci:validate` duration against SC-013 in specs/003-authn-authz/verification.md (FR-140, SC-018)
 
-**Checkpoint**: CI is the gate for every later phase.
+**Checkpoint**: `ci:validate` is the gate for every later phase; the pipeline's Validate and Image
+stages are defined, linted and dry-run.
 
 ---
 
@@ -149,33 +157,37 @@ updates; local mode unchanged.
 - [ ] T036 [US1] Browser check scripts/auth-browser-check.ts (part 1): sign-in for each test user via the stub provider, header role, no token in `document.cookie`/storage/responses, live updates arrive, sign-out closes the stream, session expiry returns to sign-in; local-mode smoke unchanged
 - [ ] T037 [US1] Mutants: cookie without HttpOnly or Secure; CSRF header not required; nonce unchecked; `tid` unchecked; overage failure grants membership; session not expired after absolute lifetime — in scripts/mutation-tests.ts
 - [ ] T108 [US1] Keycloak browser check scripts/auth-keycloak-check.ts (start Keycloak 26 with tests/fixtures/keycloak/realm.json via Docker or Podman, skip with a message when absent; sign-in for each user, roles, sign-out, live updates, agent client credentials; SC-005)
-- [ ] T109 [US1] ci.yml job `keycloak` (Keycloak pinned by digest via `docker run`, readiness wait on the realm discovery document, frozen install, build, `bun run test:auth:keycloak`); add `keycloak` to the required checks on `main` (research R6, FR-130)
-- [ ] T125 [US1] Compose profile `server` in compose.yaml (`keycloak` with the test realm on `127.0.0.1:8080`, `workbench-server` with host networking, loopback public URL) and .env.server.example with development-only values; server group in scripts/container-suites.ts (sign-in as each test user, restart keeps the session and data, second container on `SW_PORT=4311` refused as in T110, sign-in within 30 s of start) run by the `container` job (FR-126, SC-009)
+- [ ] T109 [US1] Keycloak step: `keycloak` step of scripts/ci-validate.ts running `test:auth:keycloak` with `--require-container` (Keycloak pinned by digest, readiness wait on the realm discovery document, container removed afterwards), and the `keycloak` job of the Validate stage in deploy/azure-devops/templates/validate-jobs.yml calling it on the agent (research R6, FR-131, FR-134)
+- [ ] T125 [US1] Compose profile `server` in compose.yaml (`keycloak` with the test realm on `127.0.0.1:8080`, `workbench-server` with host networking, loopback public URL) and .env.server.example with development-only values; server group in scripts/container-suites.ts (sign-in as each test user, restart keeps the session and data, second container on `SW_PORT=4311` refused as in T110, sign-in within 30 s of start) run by `test:container` and therefore by the `container` step of `ci:validate` and the Image stage (FR-126, SC-009)
 
 **Checkpoint**: sign-in works with the stub provider, with Keycloak and in the container; local
-mode unchanged.
+mode unchanged; `ci:validate` green with the `keycloak` step.
 
 ---
 
-## Phase 6: User Story 9 (part 2) and User Story 10 (part 2) - Azure delivery (Priority: P1)
+## Phase 6: User Story 9 (part 2) and User Story 10 (part 2) - Azure delivery definition (Priority: P1)
 
-**Goal**: images published on `main`; version tags promoted, approved, deployed to Azure Container
-Apps through federated identities, smoke-tested and rolled back on failure.
+**Goal**: the Deploy stage and the rollback pipeline for the target: version check, approval
+through the environment, rescan, promotion on the same digest, deployment by digest to Azure
+Container Apps through workload identity federation, smoke test and automatic rollback, all in
+scripts that run locally against a fake Azure client; the target setup guide.
 
-**Independent Test**: `bun test tests/ci/` and quickstart §7 on a test subscription.
+**Independent Test**: `bun test tests/pipeline/`; `bun run pipeline:dry-run -- --run
+tag:v0.4.0-alpha.1 --execute` (deploy, smoke failure and rollback paths on the fake client);
+quickstart §7 in a trial organisation and subscription when available.
 
-- [ ] T126 [P] [US10] Deploy logic tests in tests/ci/deploy.test.ts with a fake Azure client: preflight refuses each wrong setting by name (revision mode, replicas, volume, identity `id-sw-app`, registry configured with that identity, mode, host, port); the running digest is recorded before the update; the update uses the digest; promotion happens only after a passing preflight; smoke failure redeploys the recorded digest, smoke-tests it and fails; manual rollback resolves the dispatched tag to its digest and refuses non-tag refs; a tag whose version core differs from `package.json` or is older than the last deployed version is refused (FR-134, FR-137, FR-139)
-- [ ] T127 [P] [US10] Smoke test tests in tests/ci/deploy-smoke.test.ts against a local Bun server: each check of contracts/delivery-pipeline.md failing alone fails the smoke; `state: handover` is waited out and never accepted as ready; the authorization endpoint is read from discovery (Keycloak-shaped and Entra-shaped stubs); version compared with `package.json`, commit exactly; `--loopback` relaxes only HSTS and the `Secure` flag (FR-136)
-- [ ] T128 [US10] Smoke test scripts/deploy-smoke.ts (one line per check, JSON summary); the `container` job also runs it with `--loopback` against the Compose server profile
-- [ ] T129 [US10] Deploy script scripts/deploy.ts (preflight, record, update, wait for running and ready revision, smoke, automatic rollback; Azure CLI client)
-- [ ] T130 [US10] ci.yml job `publish` (pushes to `main` only, after every other job; `azure/login` with the publisher identity; push `sha-<commit>` and `main`; digest in the job summary) (FR-132, FR-135)
-- [ ] T131 [US10] .github/workflows/release.yml (`check` without Azure access, `actions: read`: tag on `main`, green `ci.yml` run with `publish`, version core equals `package.json`, not older than the last deployed version; `deploy` in environment `production` with concurrency group `production`, not cancelled: rescan, preflight, promote with `docker buildx imagetools create`, `scripts/deploy.ts`, bill of materials regenerated from the digest; `github-release` after a passing smoke test with bill of materials and scan report) and .github/workflows/rollback.yml (dispatch on the target tag ref, same environment and concurrency group); OP-7 fallback variant as a commented, documented switch (FR-133, FR-134, FR-137)
-- [ ] T107 [P] [US9] Manual setup guide deploy/azure/README.md (no infrastructure as code, FR-139): every resource, setting and role of contracts/delivery-pipeline.md with portal and Azure CLI steps (resource group, Log Analytics, Container Apps environment, storage account and share with mount options, Key Vault, registry with retention rule, container app in single revision mode with one replica, probes, volume and identity, the user-assigned app identity `id-sw-app` created and granted `AcrPull` and Key Vault Secrets User before the app, the two federated pipeline identities and the final deployer role set), the ruleset of required checks (T124, T109), GitHub settings (rulesets, `production` environment or the OP-7 fallback, variables), App Service alternative, scale path
-- [ ] T132 [US10] Mutants: smoke test ignores a version mismatch; smoke test accepts an unauthenticated 200; smoke test accepts `state: handover`; rollback skipped after a failed smoke; preflight accepts more than one replica — in scripts/mutation-tests.ts
-- [ ] T133 [US9] First pre-release deployment `v0.4.0-alpha.1` on a test subscription with the fixture workspace: approval, smoke, Entra sign-in, restart keeps sessions and data, revision update hand-over measured (SC-017), rollback drill (SC-015), no stored Azure or registry secret (SC-016); recorded in specs/003-authn-authz/verification.md
+- [ ] T126 [P] [US10] Deploy logic tests in tests/pipeline/deploy.test.ts with the fake Azure client: version check refuses a tag whose version core differs from `package.json` or is older than the highest version tag in the registry, before any Azure write; missing variable-group values named before any call; preflight refuses each wrong setting by name (revision mode, replicas, volume, identity, registry identity, mode, host, port, Key Vault references, Entra client and tenant); the active revision and digest are recorded before the update; the update uses the digest; the version tag is added only after a passing preflight and before the update; smoke failure copies the recorded revision, smoke-tests it and fails; manual rollback resolves `previous` or the version of its tag ref to a revision or digest and refuses non-tag refs (FR-135, FR-138, FR-139)
+- [ ] T127 [P] [US10] Smoke test tests in tests/pipeline/deploy-smoke.test.ts against a local Bun server: each check of contracts/delivery-pipeline.md failing alone fails the smoke; `state: handover` is waited out and never accepted as ready; the authorization endpoint is read from discovery (Keycloak-shaped and Entra-shaped stubs); version compared with `package.json`, commit exactly; `--loopback` relaxes only HSTS and the `Secure` flag (FR-137)
+- [ ] T128 [US10] Smoke test scripts/deploy-smoke.ts and script `deploy:smoke` (one line per check, JSON summary); the `container` step of `ci:validate` runs it with `--loopback` against the Compose server profile
+- [ ] T129 [US10] Deploy script scripts/deploy.ts with scripts `deploy:check-version`, `deploy:azure` and `deploy:rollback` (version check, preflight, record, update, wait for running and ready revision, smoke, automatic rollback by revision copy; Azure CLI client, `--fake` client; reads the variable-group names from the environment), runnable on the owner's machine after `az login`
+- [ ] T130 [US10] Deploy stage in azure-pipelines.yml with deploy/azure-devops/templates/deploy-steps.yml: condition `refs/tags/v*`; job `check` with the push service connection (`deploy:check-version`) before any approval; deployment job on `${{ parameters.deployEnvironment }}` with `lockBehavior: runLatest`, `AzureCLI@2` with the deploy service connection: `image:scan --ref` on the digest from the Image stage, then `deploy:azure` (preflight, promotion with `az acr import` inside the registry, update, smoke, rollback); summary with digests, revisions and smoke results (FR-135, FR-136, FR-137, FR-138)
+- [ ] T131 [US10] azure-pipelines-rollback.yml (`trigger: none`, `pr: none`, queued on the tag ref of the version to restore, parameter `target` = `tag` or `previous`, same parameters and variable group, deployment job on the same environment calling `deploy:rollback`); both pipelines pass `pipeline:lint` and appear in the dry run (FR-138, FR-140)
+- [ ] T107 [P] [US9] Target setup guide deploy/README.md (no infrastructure as code, FR-139): every Azure resource, setting and role of contracts/delivery-pipeline.md with portal and Azure CLI steps (resource group, Log Analytics, Container Apps environment, storage account and share with mount options, Key Vault, registry with retention rule, container app in single revision mode with one replica, probes, volume and identity, the app identity `id-sw-app` created and granted `AcrPull` and Key Vault Secrets User before the app); every Azure DevOps item (the two Azure Resource Manager service connections with workload identity federation and their role assignments, pipeline permissions limited to the two pipelines, environment with approvals, branch control and exclusive lock, variable group with every value and none secret, agent pool, import of both pipelines, branch policy for pull requests, preview run); App Service alternative; scale path
+- [ ] T132 [US10] Mutants: smoke test ignores a version mismatch; smoke test accepts an unauthenticated 200; smoke test accepts `state: handover`; rollback skipped after a failed smoke; preflight accepts more than one replica; version check accepts a tag older than the last deployed version; pipeline lint accepts a step that is not a package script — in scripts/mutation-tests.ts
+- [ ] T133 [US10] Trial run in an Azure DevOps organisation and Azure subscription made available for it (owner or target), with the fixture workspace: setup from deploy/README.md, preview run, `main` run, tag `v0.4.0-alpha.1`, approval, smoke, Entra sign-in, restart keeps sessions and data, revision update hand-over measured (SC-017), rollback drill (SC-015), no stored Azure or registry secret (SC-016), final deploy role set; recorded in specs/003-authn-authz/verification.md. Until such an organisation exists, the dry run of T124 is the recorded evidence and this task stays open
 
-**Checkpoint**: the team environment is deployable and reversible; it holds only fixture data until
-Phases 7–9 are done.
+**Checkpoint**: the delivery definition is complete and verified locally; a target can deploy and
+roll back; any Azure environment holds only fixture data until Phases 7–9 are done.
 
 ---
 
@@ -322,24 +334,27 @@ allow-list.
 
 ## Phase 14: Polish and cross-cutting
 
-- [ ] T111 [P] README: both modes, configuration table, Entra guide (app roles, groups claim, overage permission, federated credential, Azure DevOps permission), Keycloak guide, role matrix and what each role sees, Admin panel, bootstrap Admin break-glass recovery, outbound calls of server mode (including the platform managed-identity endpoint when `SW_OIDC_CLIENT_ASSERTION=managed-identity`), delegated credentials, per-person working copies and publishing, audit log, single-instance limit and scale path, residual exposure of commit messages; running the image with Compose (both profiles, host networking), the delivery pipeline and the link to deploy/azure/README.md; counts from tests (constitution VII, FR-121)
+- [ ] T111 [P] README: both modes, configuration table, Entra guide (app roles, groups claim, overage permission, federated credential, Azure DevOps permission), Keycloak guide, role matrix and what each role sees, Admin panel, bootstrap Admin break-glass recovery, outbound calls of server mode (including the platform managed-identity endpoint when `SW_OIDC_CLIENT_ASSERTION=managed-identity`), delegated credentials, per-person working copies and publishing, audit log, single-instance limit and scale path, residual exposure of commit messages; running the image with Compose (both profiles, host networking and the Docker Desktop setting), the local build scripts (`ci:validate`, `image:*`, `pipeline:*`, `deploy:*`), the Azure DevOps pipeline and the link to deploy/README.md, and that the GitHub repository runs nothing automatically; counts from tests (constitution VII, FR-121)
 - [ ] T112 [P] docs/agent-runtime.md: authentication for agent clients and project grants
-- [ ] T113 Full authorization matrix and mutation run; record commands, counts, durations and the manual Entra checklist results in specs/003-authn-authz/verification.md (SC-001 to SC-017)
-- [ ] T114 Security review of the diff (cookie flags, CSRF, redirects, token handling, path rules, Git argument handling, image user and contents, workflow permissions, federated subjects) with findings fixed or recorded in specs/003-authn-authz/verification.md
+- [ ] T113 Full authorization matrix and mutation run through `bun run ci:validate`; record commands, counts, durations and the manual Entra checklist results in specs/003-authn-authz/verification.md (SC-001 to SC-018)
+- [ ] T114 Security review of the diff (cookie flags, CSRF, redirects, token handling, path rules, Git argument handling, image user and contents, pipeline permissions and service-connection scopes, absence of stored secrets) with findings fixed or recorded in specs/003-authn-authz/verification.md
 
 ---
 
 ## Dependencies & Execution Order
 
-- Phase 0 (after 002 merges) → Phase 1 → Phase 2 → Phase 3 (container) → Phase 4 (CI) → Phase 5
-  (US1) → Phase 6 (Azure delivery) → Phases 7–13 → Phase 14.
+- Phase 0 (after 002 merges) → Phase 1 → Phase 2 → Phase 3 (container) → Phase 4 (local build
+  scripts and pipeline definition) → Phase 5 (US1) → Phase 6 (Azure delivery definition) →
+  Phases 7–13 → Phase 14.
 - Phase 3 needs Phase 2 only (local mode through the boundary); T118 before T110.
-- Phase 4 needs Phase 3 (the `image` and `container` jobs build and run the image).
-- US1 (Phase 5) before every server-mode story; T125 needs T110 and T030.
+- Phase 4 needs Phase 3 (the `image` and `container` steps build and run the image); T121 and T122
+  before T123; T124 after T120 and T123.
+- US1 (Phase 5) before every server-mode story; T125 needs T110 and T030; T109 needs T108 and T121.
 - Phase 6 needs US1 (server mode cannot start without a provider) and Phase 4; T128 and T129
-  follow their tests T127 and T126; T130–T131 need T129; T133 needs T107 and T131.
-- US2 and US3 after Phase 6 (or after US1 if Azure access is not yet available: Phase 6 does not
-  block code work, only T133 needs the subscription); T051 extends T038 (shared matrix file).
+  follow their tests T127 and T126; T130–T131 need T129; T133 needs T107, T131 and a trial
+  organisation and subscription (it does not block code work or later phases).
+- US2 and US3 after Phase 6 (or after US1: only T133 needs Azure); T051 extends T038 (shared
+  matrix file).
 - US8 after US3 (Admin API reuses the write authorization and the matrix); earlier phases seed
   `data/admin/` from the fixture.
 - US4 after US3; US5 after US4 (guards on pull and pull-default use the copy model); US6 after
@@ -352,7 +367,7 @@ allow-list.
 - Phase 2: T010, T012, T013, T016, T017, T019, T021, T023 together; implementations follow their
   tests.
 - Phase 3: T104, T115, T117 together; T106 in parallel with T105/T116.
-- Phase 4: T120 and T123 together, then T121–T122.
+- Phase 4: T120 with T121 and T122, then T123, then T124.
 - US1: T026–T028 together; T108 in parallel with T029–T035. Phase 6: T126, T127, T107 together.
   US2: T038–T040 together. US8: T057–T059 together, then dialogs T065–T072 in parallel with the
   API tasks T060–T064.
@@ -360,13 +375,14 @@ allow-list.
 
 ## Implementation Strategy
 
-- **Container first**: Phases 0–4 give an image that runs today's product, verified by CI on every
-  change.
-- **MVP**: add Phases 5–8 (sign-in, Azure delivery with fixture data, read filtering, role
-  enforcement) with access seeded from files: a secure, deployable but file-administered team
-  deployment.
-- **P1 complete**: add Phase 9 (Admin panel). Tag a pre-release; from here real contracts may be
-  loaded in the Azure environment.
+- **Container first**: Phases 0–4 give an image that runs today's product, built, scanned and
+  tested on the owner's machine by `ci:validate`, with the pipeline's Validate and Image stages
+  defined and dry-run.
+- **MVP**: add Phases 5–8 (sign-in, Azure delivery definition, read filtering, role enforcement)
+  with access seeded from files: a secure, deployable but file-administered team deployment.
+- **P1 complete**: add Phase 9 (Admin panel). From here a target may load real contracts.
 - **Increment 2**: Phases 10–13 (working copies, governance guards, remote credentials, agents).
-- **Release v0.4.0** after Phase 14 with every suite green in CI and against the image, the README
-  updated, and the tag deployed through the pipeline.
+- **Release v0.4.0** after Phase 14 with `ci:validate` green on the owner's machine (every suite,
+  also against the image, plus `pipeline:lint` and `pipeline:dry-run`), the README updated, and
+  the pipeline definition ready for the target to import; the tag is deployed by the target's
+  pipeline (trial run T133 when an organisation is available).
