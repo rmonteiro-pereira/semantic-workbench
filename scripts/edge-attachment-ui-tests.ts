@@ -1,13 +1,12 @@
 import {chromium,expect,type Page} from '@playwright/test';
-import {createHandler} from '../server/handler';
-import {createStore} from '../server/store';
+import {startIsolatedApi,routeApi} from './helpers/isolated-api';
 import {inspect} from '../src/model';
 import {groupRelationships} from '../src/graph-view';
 const filename='flights.ontology.yaml', source=await Bun.file('public/examples/ossie/'+filename).text();
-const store=createStore(':memory:');store.save(filename,source);const handler=createHandler(store);
+const api=await startIsolatedApi();await api.ws.importBatch({files:[{path:filename,source}]});
 const links=groupRelationships(inspect(source,filename).edges).map(e=>({id:e.id,source:e.source,target:e.target}));
 const browser=await chromium.launch();const page=await browser.newPage({viewport:{width:1600,height:1000}});const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));let passed=0;
-await page.route('**/api/**',async route=>{const r=route.request();const response=await handler(new Request(r.url(),{method:r.method(),...(r.method()==='POST'?{body:r.postData()}:{} )}));await route.fulfill({status:response.status,body:await response.text(),contentType:'application/json'});});
+await routeApi(page,api);
 async function check(name:string,run:()=>Promise<void>){await run();console.log('PASS',name);passed++;}
 async function distances(){return page.evaluate(links=>{
  const borderDistance=(p:{x:number;y:number},r:DOMRect)=>{
@@ -35,4 +34,4 @@ try{
  await check('parent area dragging preserves child edge attachment',async()=>{await drag(page,'.react-flow__node-businessArea .full-area-title',96,48);await attached('area drag');});
  await check('layered and network layout changes preserve attachment',async()=>{for(const layout of ['layered','network']){await page.getByLabel('Graph layout').selectOption(layout);await expect(page.locator('.full-graph-loading')).toHaveCount(0,{timeout:60000});await attached(layout);}});
  await page.screenshot({path:'/tmp/edge-attachment-network.png'});await check('browser has no runtime errors',async()=>expect(errors).toEqual([]));console.log(`${passed} edge attachment UI checks passed`);
-}finally{await browser.close()}
+}finally{await browser.close();await api.stop();}

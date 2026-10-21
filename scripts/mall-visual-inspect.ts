@@ -1,13 +1,12 @@
 import {chromium,expect} from '@playwright/test';
-import {createHandler} from '../server/handler';
-import {createStore} from '../server/store';
+import {startIsolatedApi,routeApi} from './helpers/isolated-api';
 // Opens every shopping-center document in every applicable view against an
-// isolated in-memory store, records what renders, and saves screenshots.
+// isolated temporary data root, records what renders, and saves screenshots.
 const out=process.argv[2]??'/tmp/mall-inspect';
-const store=createStore(':memory:'),handler=createHandler(store);
+const api=await startIsolatedApi({watch:false});
 const browser=await chromium.launch(),page=await browser.newPage({viewport:{width:1600,height:1000}});
 const problems:string[]=[];page.on('pageerror',e=>problems.push('pageerror: '+e.message));page.on('console',m=>{if(m.type()==='error'||m.type()==='warning')problems.push(`console ${m.type()}: ${m.text().slice(0,300)}`);});
-await page.route('**/api/**',async route=>{const r=route.request();const response=await handler(new Request(r.url(),{method:r.method(),...(['POST','PUT'].includes(r.method())?{body:r.postData()}:{})}));await route.fulfill({status:response.status,body:await response.text(),contentType:'application/json'});});
+await routeApi(page,api);
 const report:any[]=[];const shot=async(name:string)=>page.screenshot({path:`${out}/${name}.png`});
 const tab=async(name:string)=>{const b=page.locator('.tabs').getByRole('button',{name,exact:true});if(!await b.count())return false;await b.click();await page.waitForTimeout(600);return true;};
 try{
@@ -30,4 +29,4 @@ try{
   if(await tab('Mappings')){entry.tabs.mappings={text:(await page.locator('.mapping-layer-chain').innerText().catch(()=>'')).replace(/\s+/g,' ').slice(0,200)};await shot(key+'-7-mappings');}
   const details=page.getByRole('button',{name:'Validation details',exact:true});if(await details.count()){await details.click();await page.waitForTimeout(300);entry.validation=(await page.locator('.validation-panel, [role=dialog]').first().innerText().catch(()=>'')).replace(/\s+/g,' ').slice(0,500);await shot(key+'-8-validation');await page.keyboard.press('Escape');}
  }
-}finally{console.log(JSON.stringify({report,problems},null,1));await browser.close();store.db.close();}
+}finally{console.log(JSON.stringify({report,problems},null,1));await browser.close();await api.stop();}

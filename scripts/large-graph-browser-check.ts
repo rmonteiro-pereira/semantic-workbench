@@ -1,6 +1,6 @@
-import{chromium,expect}from'@playwright/test';
+import{chromium,expect}from'@playwright/test';import{startIsolatedApi,routeApi}from'./helpers/isolated-api';
 const browser=await chromium.launch();const page=await browser.newPage({viewport:{width:1905,height:1000}});const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
-const source=await Bun.file('public/examples/commerce/commerce-scale.ttl').text();await page.route('**/api/documents',route=>route.fulfill({json:[{id:'scale',filename:'commerce-scale.ttl',source,revision:1}]}));
+const source=await Bun.file('public/examples/commerce/commerce-scale.ttl').text();const api=await startIsolatedApi({watch:false});await api.ws.importBatch({files:[{path:'commerce-scale.ttl',source}]});await routeApi(page,api);
 try{
  await page.goto('http://127.0.0.1:5173/');await page.locator('.tabs').getByRole('button',{name:'Graph',exact:true}).click();
  await expect(page.locator('.full-graph-status')).toHaveAttribute('data-entity-count','1000');await expect(page.locator('.full-graph-status')).toHaveAttribute('data-relationship-count','5000');
@@ -27,4 +27,4 @@ try{
   await page.screenshot({path:'/tmp/real-graph-1000-expanded.png'});
  }
  console.log(JSON.stringify({entities:1000,relationships:5000,layoutMs:Math.round(laidOut-start),renderedNodesAtFit:count,expandedCustomerEntities:100,errors}));if(errors.length)throw Error(errors.join('\n'));
-}finally{await browser.close()}
+}finally{await browser.close();await api.stop();}

@@ -5,7 +5,54 @@ if(category==='layout'){const nodes=m.layoutGraph(['a','b','c'],[{source:'a',tar
 if(category==='graph'){const nodes=Array.from({length:30},(_,i)=>({id:String(i),name:`Entity ${i}`,kind:'Entity',description:'',path:[],fields:[]}));const edge=(s:string,t:string,id=s+'-'+t)=>({id,source:s,target:t,label:id,data:{path:[],definition:{},kind:'relationship'}});const edges=[...nodes.slice(1).map(n=>edge('0',n.id)),edge('1','2')];const v=m.graphView(nodes,edges,'');assert.equal(v.entities.length,8);assert(v.edges.every((e:any)=>e.source==='0'||e.target==='0'));assert.equal(m.graphView(nodes,edges,'',true).entities.length,30);assert.equal(m.graphView(nodes,edges,'absent').entities.length,0);assert.equal(m.graphView(nodes,edges,'',false,8,'29').focus,'29');const g=m.groupRelationships([edge('a','b','one'),edge('a','b','two'),edge('a','c','three')]);assert.equal(g.length,2);assert.equal(g[0].data.relationships.length,2);}
 if(category==='export'){const r=m.exportDocument('original source\n','file.ttl');assert.equal(r.filename,'file.ttl');assert.equal(await r.blob.text(),'original source\n');assert(r.blob.type.includes('text/turtle'));}
 if(category==='model'){const source='name: Sample\nunknown: preserved\nontology: [{concept: Customer, type: EntityType}]\n';const edited=m.editEntity(source,['ontology',0],'Updated');assert.equal(m.inspect(edited).entities[0].description,'Updated');assert(edited.includes('unknown: preserved'));}
-if(category==='store'){const s=m.createStore(':memory:');const source='name: Sample\nontology: [{concept: Customer, type: EntityType}]';const d=s.save('test.yaml',source);assert.throws(()=>s.save('test.yaml',source,d.id,0));assert.throws(()=>s.save('invalid.yaml','name: invalid'));assert.equal(s.list().length,1);assert.equal(s.db.query('SELECT * FROM entities').all().length,1);s.db.close();}
+// Folder store cases run on isolated temporary data roots with a test Git identity.
+if(['files','atomic','migration','paths','events-origin','journal'].includes(category)){
+ const {tempDataDir}=await import('../tests/helpers/temp-data-dir');
+ const fs=await import('node:fs');const {join}=await import('node:path');const {createHash}=await import('node:crypto');
+ const hash=(b:string|Uint8Array)=>createHash('sha256').update(b).digest('hex');
+ const source='name: Sample\nontology: [{concept: Customer, type: EntityType}]\n';
+ const d=tempDataDir();
+ try{
+  if(category==='files'){
+   const ws=await m.openWorkspace({root:d.root});
+   try{
+    await ws.importBatch({files:[{path:'a.yaml',source}]});
+    await ws.saveFile('sample','a.yaml',{baseHash:hash(source),source:source.replace('Customer','Buyer')});
+    await assert.rejects(()=>ws.saveFile('sample','a.yaml',{baseHash:hash(source),source:source.replace('Customer','Other')}),/changed/);
+    await assert.rejects(()=>ws.saveFile('sample','a.yaml',{baseHash:hash(source.replace('Customer','Buyer')),source:'ontology: []'}));
+    assert.equal(fs.readFileSync(join(d.root,'projects/sample/a.yaml'),'utf8'),source.replace('Customer','Buyer'));
+   }finally{ws.close();}
+  }
+  if(category==='atomic'){
+   const file=join(d.root,'x.yaml');fs.writeFileSync(file,'original');
+   assert.throws(()=>m.atomicWrite(file,'new bytes',{beforeRename:()=>{throw Error('crash');}}));
+   assert.equal(fs.readFileSync(file,'utf8'),'original');
+  }
+  if(category==='paths'){
+   for(const bad of ['../x','a/../../x','.git/config','a/.git/x'])assert.throws(()=>m.projectPath(bad));
+   assert.equal(m.projectPath('a/b.yaml'),'a/b.yaml');
+  }
+  if(category==='journal'){
+   const layout={root:d.root,journal:join(d.root,'state/journal')} as any;fs.mkdirSync(layout.journal,{recursive:true});fs.mkdirSync(join(d.root,'x'));fs.mkdirSync(join(d.root,'s'));
+   fs.writeFileSync(join(d.root,'x/a'),'A');fs.writeFileSync(join(d.root,'s/b'),'B');fs.writeFileSync(join(d.root,'x/b'),'other');
+   fs.writeFileSync(join(layout.journal,'op.json'),JSON.stringify({formatVersion:1,opId:'op',kind:'move',steps:[{action:'rename',from:'s/a',to:'x/a',done:true},{action:'rename',from:'s/b',to:'x/b',done:false}],cleanup:[],startedAt:'t'}));
+   const [outcome]=m.createJournal(layout).recover();
+   assert.equal(outcome.outcome,'rolled-back');assert.equal(fs.readFileSync(join(d.root,'x/b'),'utf8'),'other');assert.equal(fs.readFileSync(join(d.root,'s/a'),'utf8'),'A');
+  }
+  if(category==='events-origin'){
+   const {openWorkspace}=await import('../server/projects/workspace');const ws=await openWorkspace({root:d.root});
+   try{const h=m.createHandler(ws);assert.equal((await h(new Request('http://127.0.0.1:4310/api/events',{headers:{origin:'https://evil.example'}}))).status,403);assert.equal((await h(new Request('http://127.0.0.1:4310/api/projects',{headers:{origin:'https://evil.example'}}))).status,403);}finally{ws.close();}
+  }
+  if(category==='migration'){
+   const {Database}=await import('bun:sqlite');const {dataLayout}=await import('../server/projects/paths');const {createState}=await import('../server/projects/state');const {createJournal}=await import('../server/projects/journal');const {createGit}=await import('../server/projects/git');
+   const layout=dataLayout(d.root);for(const dir of [layout.projects,layout.state,layout.backup])fs.mkdirSync(dir,{recursive:true});
+   const db=new Database(layout.legacyDb,{create:true});db.exec("CREATE TABLE documents(id TEXT PRIMARY KEY,filename TEXT NOT NULL,source TEXT NOT NULL,revision INTEGER NOT NULL DEFAULT 1,updated TEXT NOT NULL)");db.query('INSERT INTO documents VALUES(?,?,?,1,?)').run('one','a.yaml',source,'t');db.close();
+   const ctx={layout,state:createState(layout),journal:createJournal(layout),git:createGit({projectsRoot:layout.projects}),gitAvailable:true,identityConfigured:true};
+   const report=await m.migrateLegacy(ctx,{afterWrite:(file:string)=>fs.writeFileSync(file,'tampered')});
+   assert.equal(report.status,'failed');assert.equal(fs.readdirSync(layout.projects).length,0);assert.equal(ctx.state.hasRegistry(),false);
+  }
+ }finally{d.cleanup();}
+}
 
 if(category==='overview'){
  const {inspect}=await import('../src/model');

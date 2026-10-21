@@ -1,6 +1,6 @@
-import{chromium}from'@playwright/test';import{inspect}from'../src/model';
-const browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1600,height:1000}});const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));let docs:any[]=[];
-await page.route('**/api/documents',async route=>{if(route.request().method()==='GET')return route.fulfill({json:docs});const body=route.request().postDataJSON();inspect(body.source,body.filename);const doc={...body,id:body.filename,revision:1};docs.push(doc);return route.fulfill({json:doc});});
+import{chromium}from'@playwright/test';import{startIsolatedApi,routeApi}from'./helpers/isolated-api';
+const browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1600,height:1000}});const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));const api=await startIsolatedApi({watch:false});const docs={get length(){return api.ws.documents().length;},some:(f:(d:any)=>boolean)=>api.ws.documents().some(f)};
+await routeApi(page,api);
 await page.goto('http://127.0.0.1:5173/');
 await page.getByRole('button',{name:/Load commerce workspace/}).click();await page.getByRole('status').filter({hasText:'Loaded commerce contracts'}).waitFor({timeout:60000});
 if(docs.length!==7)throw Error(`Expected 7 documents, got ${docs.length}`);
@@ -19,4 +19,4 @@ for(const [name,example] of [['uploaded.rdf','commerce.owl'],['uploaded.shacl','
  await page.getByRole('button',{name,exact:true}).waitFor();await page.waitForTimeout(200);
  if(!docs.some(d=>d.filename===name))throw Error(`Upload failed: ${name}`);
 }
-console.log(JSON.stringify({exampleDocuments:docs.length,scale:'1000/5000',visibleNodes:visible,errors}));if(errors.length)throw Error(errors.join('\n'));await browser.close();
+console.log(JSON.stringify({exampleDocuments:docs.length,scale:'1000/5000',visibleNodes:visible,errors}));if(errors.length)throw Error(errors.join('\n'));await browser.close();await api.stop();
