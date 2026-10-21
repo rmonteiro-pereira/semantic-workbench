@@ -190,18 +190,18 @@ shopping center mapping in Graph; `bun run test:mapping-graph`.
 
 ### Tests
 
-- [ ] T055 [P] [US4] Unit tests for region finding and offset maps (all locations of contracts/sql-regions.md, all scalar styles, escapes, flow and multi-document YAML) in tests/sql-regions.test.ts
-- [ ] T056 [P] [US4] Unit tests for lint: CASE WHEN fixture clean; broken fixture finding at the hand-computed line/column; JSON escape and folded cases; placeholders; non-SQL dialect skipped; warnings only; text unchanged (SC-006) in tests/sql-lint.test.ts
-- [ ] T057 [P] [US4] Handler test: the API's file findings include the same SQL warnings as the browser module and never block save in tests/sql-api.test.ts
-- [ ] T058 [US4] Mutants: offset map ignores escapes; lint severity error blocks save; dialect ignored; region finder misses embedded models
+- [X] T055 [P] [US4] Unit tests for region finding and offset maps (all locations of contracts/sql-regions.md, all scalar styles, escapes, flow and multi-document YAML) in tests/sql-regions.test.ts
+- [X] T056 [P] [US4] Unit tests for lint: CASE WHEN fixture clean; broken fixture finding at the hand-computed line/column; JSON escape and folded cases; placeholders; non-SQL dialect skipped; warnings only; text unchanged (SC-006) in tests/sql-lint.test.ts
+- [X] T057 [P] [US4] Handler test: the API's file findings include the same SQL warnings as the browser module and never block save in tests/sql-api.test.ts
+- [X] T058 [US4] Mutants: offset map ignores escapes; lint severity error blocks save; dialect ignored; region finder misses embedded models
 
 ### Implementation
 
-- [ ] T059 [US4] src/sql/regions.ts (YAML/JSON CST via `yaml`, offset maps, dialect resolution) (FR-050, FR-051)
-- [ ] T060 [US4] src/sql/lint.ts with lazy per-dialect parser loading; call it from src/editor/lint.worker.ts and server/projects (indexBytes) (FR-052, FR-053, FR-055)
-- [ ] T061 [US4] SQL nesting in YAML and JSON languages with `parseMixed` in src/editor/languages.ts at the region key paths; dialect-specific note for non-SQL dialects
-- [ ] T062 [US4] `SqlField` (single-purpose CodeMirror with SQL language and lint) in src/editor/SqlField.tsx used by item editor expression fields (src/edit/ItemEditor.tsx), wizard inputs (src/metrics/MetricWizard.tsx) and read-only previews (src/metrics/Explanation.tsx, src/MappingExplorer.tsx) (FR-054)
-- [ ] T063 [US4] Browser check scripts/sql-browser-check.ts: colors on CASE WHEN, finding position on broken fixture within 500 ms, JSON escape case, item editor and wizard findings, preview coloring, export bytes equal; typing latency unchanged in scripts/editor-browser-check.ts
+- [X] T059 [US4] src/sql/regions.ts (YAML/JSON CST via `yaml`, offset maps, dialect resolution) (FR-050, FR-051)
+- [X] T060 [US4] src/sql/lint.ts with lazy per-dialect parser loading; call it from src/editor/lint.worker.ts and server/projects (indexBytes) (FR-052, FR-053, FR-055)
+- [X] T061 [US4] SQL nesting in YAML and JSON languages with `parseMixed` in src/editor/languages.ts at the region key paths; dialect-specific note for non-SQL dialects
+- [X] T062 [US4] `SqlField` (single-purpose CodeMirror with SQL language and lint) in src/editor/SqlField.tsx used by item editor expression fields (src/edit/ItemEditor.tsx), wizard inputs (src/metrics/MetricWizard.tsx) and read-only previews (src/metrics/Explanation.tsx, src/MappingExplorer.tsx) (FR-054)
+- [X] T063 [US4] Browser check scripts/sql-browser-check.ts: colors on CASE WHEN, finding position on broken fixture within 500 ms, JSON escape case, item editor and wizard findings, preview coloring, export bytes equal; typing latency unchanged in scripts/editor-browser-check.ts
 
 ---
 

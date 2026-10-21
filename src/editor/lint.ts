@@ -20,7 +20,10 @@ export function toDiagnostics(issues:Issue[],doc:Text){
 // for the same editor supersedes an older one.
 type Pending={resolve:(issues:Issue[])=>void};
 let worker:Worker|null=null,next=0;const pending=new Map<number,Pending>();
-export function validateInWorker(source:string,filename:string):Promise<Issue[]>{
+function post(message:Record<string,unknown>):Promise<Issue[]>{
  if(!worker){worker=new Worker(new URL('./lint.worker.ts',import.meta.url),{type:'module'});worker.onmessage=({data})=>{const p=pending.get(data.id);pending.delete(data.id);p?.resolve(data.issues);};}
- const id=++next;return new Promise(resolve=>{pending.set(id,{resolve});worker!.postMessage({id,source,filename});});
+ const id=++next;return new Promise(resolve=>{pending.set(id,{resolve});worker!.postMessage({id,...message});});
 }
+export const validateInWorker=(source:string,filename:string)=>post({source,filename});
+// One SQL text (a form field): findings with positions in the text (FR-054).
+export const lintSqlInWorker=(sql:string,dialect:string|null)=>post({sql,dialect,source:'',filename:''});

@@ -7,6 +7,7 @@ import {decode,sha256,TEMP_SUFFIX} from './atomic';
 import type {Cache,CachedFile} from './cache';
 import type {Git,FileGitState} from './git';
 import {projectDir,projectPath,type DataLayout} from './paths';
+import {sqlFindings} from '../sql/lint';
 // Folder scanner (FR-079, FR-092): list files the way Git sees them (.gitignore honoured by Git),
 // hash every file, validate supported ones with the shared rules and index them into the cache.
 // Unsupported types are indexed as hidden; supported files that fail validation stay visible.
@@ -36,7 +37,9 @@ export function indexBytes(project:string,path:string,bytes:Uint8Array,gitState:
  serialization=serializationOf(path,source);
  if(serialization==='gitignore')return {file:{...base,serialization,docType:'gitignore',layout:null,valid:true,visible:true},entities:[],findings:[]};
  const result=validateInput(source,posix.basename(path));
- return {file:{...base,serialization,docType:result.model?.kind??'unknown',layout:(result.model&&'layout'in result.model?result.model.layout:null)??null,valid:result.valid,visible:true},entities:result.model?.entities.map(e=>({id:e.id,name:e.name,kind:e.kind}))??[],findings:result.issues};
+ // SQL inside definitions: warnings only, never affecting validity (FR-052, FR-053).
+ const sql=serialization==='yaml'||serialization==='json'?sqlFindings(source,posix.basename(path)):[];
+ return {file:{...base,serialization,docType:result.model?.kind??'unknown',layout:(result.model&&'layout'in result.model?result.model.layout:null)??null,valid:result.valid,visible:true},entities:result.model?.entities.map(e=>({id:e.id,name:e.name,kind:e.kind}))??[],findings:[...result.issues,...sql]};
 }
 function walk(dir:string,prefix='',out:string[]=[]){
  for(const entry of readdirSync(dir,{withFileTypes:true})){

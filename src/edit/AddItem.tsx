@@ -9,6 +9,7 @@ import {insertPatches,itemValue,valuePatches} from './yaml-patch';
 import {addableKinds,fieldsFor,fieldValue,itemName,kindLabel,listPathFor,newItem,semanticModelPrefix,type Choices,type FieldSpec,type ItemKind,type Path} from './item-model';
 import type {Saved} from './ItemEditor';
 import './edit.css';
+import {SqlField} from '../editor/SqlField';
 // Add an entity or relationship (FR-049, FR-054): a form with the fields the format requires, a
 // preview of the text that will be inserted in the document's own style, the shared validation,
 // and Save. Nothing is written before Save.
@@ -60,7 +61,8 @@ export function AddItem({doc,base,document,kind:fixed,owner,preset={},choices,on
     <span id={id+'-label'}>{spec.label}{spec.required&&<em aria-hidden> *</em>}</span>
     {spec.input==='boolean'?<input id={id} aria-labelledby={id+'-label'} type="checkbox" checked={!!raw[spec.key]} onChange={e=>set(spec,e.target.checked)}/>
      :spec.input==='select'?<select id={id} aria-labelledby={id+'-label'} value={valueOf(spec)} onChange={e=>set(spec,e.target.value)}><option value="">—</option>{(spec.options??[]).filter(Boolean).map(o=><option key={o} value={o}>{o}</option>)}</select>
-     :spec.input==='textarea'||spec.input==='code'?<textarea id={id} aria-labelledby={id+'-label'} rows={2} className={spec.input==='code'?'code-field':''} value={valueOf(spec)} onChange={e=>set(spec,e.target.value)}/>
+     :spec.input==='code'?<SqlField id={id} labelledBy={id+'-label'} dialect="ANSI_SQL" value={valueOf(spec)} onChange={v=>set(spec,v)}/>
+     :spec.input==='textarea'?<textarea id={id} aria-labelledby={id+'-label'} rows={2} value={valueOf(spec)} onChange={e=>set(spec,e.target.value)}/>
      :<input id={id} aria-labelledby={id+'-label'} value={valueOf(spec)} onChange={e=>set(spec,e.target.value)}/>}
     {spec.hint&&<small>{spec.hint}</small>}
    </label>;})}
