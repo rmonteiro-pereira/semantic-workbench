@@ -27,14 +27,19 @@ person's delegated token (Entra on-behalf-of for Azure DevOps, GitHub user token
 run, versioned in an administration Git repository with rollback), an access simulator, the audit
 log and settings. A multi-stage, non-root container image runs both modes (local mode through
 host networking), is built right after the foundations with a Docker Compose setup (local profile;
-server profile with a development Keycloak), and every later phase is verified against it. A
-GitHub Actions pipeline runs the whole quality gate, builds, scans (Trivy) and inventories (SPDX
-bill of materials) the image on every change, publishes it to Azure Container Registry on `main`,
-and on `v*` tags promotes the same digest and deploys it to Azure Container Apps (one replica,
-Azure Files data root, Key Vault, managed identity) through OpenID Connect workload identity
-federation, after manual approval, with a smoke test and automatic rollback. Azure resources are
-created by hand from a guide; no infrastructure as code ([research.md](./research.md) R14,
-R17–R20).
+server profile with a development Keycloak), and every later phase is verified against it. The
+GitHub repository runs nothing automatically: the owner runs the whole quality gate, the image
+build, the Trivy scan and the SPDX bill of materials locally through package scripts
+(`ci:validate`, `image:build`, `image:scan`, `image:sbom`, `test:container`). The CI/CD pipeline
+is a deliverable for the target environment: a multi-stage Azure DevOps `azure-pipelines.yml`
+(Validate, Image, Deploy with smoke test and automatic rollback, plus a manual rollback pipeline)
+that only calls those scripts, pushes to the target's Azure Container Registry and deploys version
+tags to Azure Container Apps (one replica, Azure Files data root, Key Vault, managed identity)
+through Azure Resource Manager service connections with workload identity federation, gated by an
+Azure DevOps environment with approvals and checks. Target values are parameters and one variable
+group; the definition is checked locally by a schema and rules lint and a dry run. Azure resources
+and Azure DevOps items are created by hand from a guide; no infrastructure as code
+([research.md](./research.md) R14, R17–R20).
 
 ## Technical Context
 
@@ -57,13 +62,17 @@ state under `data/state/users/`, encrypted sessions, append-only audit JSONL, in
 `jose`), authorization test matrix (`tests/auth/matrix.test.ts`), Playwright suites `test:auth`,
 `test:auth:keycloak` (Keycloak 26 container), `test:admin`, `test:two-editors`; mutation suite
 additions; container checks (`test:container`: the suites of `scripts/container-suites.ts`
-against the image); pipeline tests (`tests/ci/`: workflow rules, deploy and rollback logic with a
-fake Azure client, smoke test). CI/CD: GitHub Actions (`ci.yml`, `release.yml`, `rollback.yml`),
-Trivy, Azure CLI; no new runtime dependency.
+against the image); pipeline tests (`tests/pipeline/`: pipeline rules against the pinned Azure
+Pipelines schema, deploy, version check and rollback logic with a fake Azure client, smoke test,
+dry run). Local build: `ci:validate`, `image:*`, `pipeline:lint`, `pipeline:dry-run` (Docker or
+Podman, Trivy binary or pinned Trivy image). CI/CD for the target: Azure DevOps Pipelines
+(`azure-pipelines.yml`, `azure-pipelines-rollback.yml`, templates in `deploy/azure-devops/`), Azure
+CLI; nothing runs on GitHub; no new runtime dependency.
 
 **Target Platform**: local: workstation (Linux incl. WSL2) on loopback, directly or as a container
 with host networking; server: Linux container on Azure Container Apps (App Service alternative,
-not covered by the pipeline), one replica, HTTPS ingress; CI: GitHub-hosted Ubuntu runners.
+not covered by the pipeline), one replica, HTTPS ingress; build and test: the owner's machine;
+pipeline: the target's Azure DevOps Linux agents with Docker (`ubuntu-latest` by default).
 
 **Project Type**: web application (`src/` frontend, `server/` Bun API).
 
@@ -75,13 +84,14 @@ sign-in ≤ 5 s against local Keycloak (SC-005); container ready ≤ 30 s on the
 never in the browser; single instance per data root; no plain-text credentials; local mode
 unchanged.
 
-**Scale/Scope**: teams of tens of people, tens of repositories; 10 user stories, 91 FRs, 17
+**Scale/Scope**: teams of tens of people, tens of repositories; 10 user stories, 92 FRs, 18
 success criteria; 66 routes in the matrix (57 implemented + 9 planned by 002) plus about 30 new.
 
-No NEEDS CLARIFICATION remain: owner decisions are binding; OP-1 to OP-8 resolved with
-recommended defaults (spec Clarifications). OP-6 (Azure Container Registry), OP-7 (approval gate
-depends on the GitHub plan) and OP-8 (host networking for local mode in a container) await owner
-confirmation.
+No NEEDS CLARIFICATION remain: owner decisions are binding; OP-1 to OP-5 resolved with
+recommended defaults awaiting owner confirmation; OP-8 (host networking for local mode in a
+container, Docker Desktop setting documented) accepted by the owner; the former OP-6 (registry)
+and OP-7 (GitHub approval gate) are withdrawn by the decision to run nothing on GitHub and deliver
+an Azure DevOps pipeline (spec Clarifications).
 
 ## Constitution Check (v3.0.0)
 
@@ -89,19 +99,20 @@ confirmation.
 
 | Principle | How the plan complies | Pre | Post |
 | --- | --- | --- | --- |
-| I. Local and Server Modes | `SW_MODE` selects the mode. Local: loopback binding enforced (refuses other hosts), origin/host checks kept, implicit Admin through the same boundary, machine credentials. Server: OIDC code + PKCE confidential client, `__Host-` HttpOnly cookie, tokens server-side, bearer only on `/api/agent/*`, refuses to start without complete config and valid policies, frontend and API on one origin. Outbound: provider endpoints (incl. Graph `checkMemberGroups` for configured groups, on-behalf-of token endpoint) and Git hosts on explicit action; delegated credentials via `GIT_ASKPASS` per command, never in Git config, sessions encrypted. Remote change and clone are Admin with host allow-list. Repositories only under `data/projects/`, `data/worktrees/`, `data/admin/`. Server never sends unreadable files, paths, events or counts. Container: local mode keeps loopback through host networking (OP-8, no exception needed); server mode binds the container interface as allowed; data root is the mounted volume. The pipeline adds no runtime network call | ✅ | ✅ |
+| I. Local and Server Modes | `SW_MODE` selects the mode. Local: loopback binding enforced (refuses other hosts), origin/host checks kept, implicit Admin through the same boundary, machine credentials. Server: OIDC code + PKCE confidential client, `__Host-` HttpOnly cookie, tokens server-side, bearer only on `/api/agent/*`, refuses to start without complete config and valid policies, frontend and API on one origin. Outbound: provider endpoints (incl. Graph `checkMemberGroups` for configured groups, on-behalf-of token endpoint) and Git hosts on explicit action; delegated credentials via `GIT_ASKPASS` per command, never in Git config, sessions encrypted. Remote change and clone are Admin with host allow-list. Repositories only under `data/projects/`, `data/worktrees/`, `data/admin/`. Server never sends unreadable files, paths, events or counts. Container: local mode keeps loopback through host networking (OP-8, no exception needed); server mode binds the container interface as allowed; data root is the mounted volume. The local scripts and the target pipeline add no runtime network call | ✅ | ✅ |
 | II. Byte-Exact Source Preservation | Files are sent whole or not at all; no redaction. Metric demotion to `proposed` uses the existing item-level edit (only the `status` scalar changes). Admin configuration files are written byte-exact through the same atomic save | ✅ | ✅ |
 | III. One Validation Rule Set | Guards reuse the shared parsers from `src/`; the browser uses the same guard module to disable controls; access JSON validated with a pinned application schema through the same Ajv setup | ✅ | ✅ |
 | IV. Atomic, Hash-Checked File Persistence | Saves unchanged (hash-checked, atomic) in each working copy; per-person drafts/views/suggestion state; trash entries record `owner` and keep unpublished work on project delete (journaled); sessions and users state atomic; audit append-only with hash chain; access configuration in `data/admin/` Git, one commit per change. Git queue keyed by base repository covers all worktrees; argument arrays, prompts off, timeouts; `core.autocrlf=false` and (SMB) `core.filemode=false` | ✅ | ✅ |
 | V. Pinned Official Standards | No standard schema changes; new application schema `schemas/semantic-workbench-access-v1.json` pinned and labelled; classification level ordering labelled as an application reading of ODCS free text | ✅ | ✅ |
-| VI. Verification Gate | Unit, matrix, browser suites per story; geometry checks for Admin dialogs and header menu. New mutants: decision ignores domain; filter returns unfiltered list; 404 replaced by 403 (existence leak); SSE send skips filter; replay skips filter; draft served to non-owner; trash lists others' entries; git show ignores path rule; agent context falls back to unreadable project; bearer accepted outside agent routes; cookie without HttpOnly/Secure; CSRF header not required; ID-token nonce unchecked; `tid` unchecked; overage failure grants membership; self-approval allowed; approved metric edit not demoted; classification change allowed to Editor; guard skipped in save-batch/pull/revert; push to protected branch by Editor; publish not fast-forward; commit author not principal; credential written to `.git/config`; remote change by non-Admin; last-Admin guard off; invalid policy activated; deactivated principal allowed; audit entry missing for denial; second instance not refused; hand-over serves before the lock is taken; readiness before recovery; smoke test ignores a version mismatch; smoke test accepts an unauthenticated 200; rollback skipped on smoke failure; preflight accepts more than one replica. The CI pipeline runs the whole gate on every change, and the container job reruns the browser suites against the image | ✅ | ✅ |
-| VII. Honest Claims | README: both modes, configuration, Entra and Keycloak guides, role matrix and what each role sees, outbound calls, delegated credentials, single-instance limit and scale path, the documented residual exposure of commit messages; container and Compose use; the delivery pipeline, the Azure resources it expects and the manual setup; counts from tests | ✅ | ✅ |
+| VI. Verification Gate | Unit, matrix, browser suites per story; geometry checks for Admin dialogs and header menu. New mutants: decision ignores domain; filter returns unfiltered list; 404 replaced by 403 (existence leak); SSE send skips filter; replay skips filter; draft served to non-owner; trash lists others' entries; git show ignores path rule; agent context falls back to unreadable project; bearer accepted outside agent routes; cookie without HttpOnly/Secure; CSRF header not required; ID-token nonce unchecked; `tid` unchecked; overage failure grants membership; self-approval allowed; approved metric edit not demoted; classification change allowed to Editor; guard skipped in save-batch/pull/revert; push to protected branch by Editor; publish not fast-forward; commit author not principal; credential written to `.git/config`; remote change by non-Admin; last-Admin guard off; invalid policy activated; deactivated principal allowed; audit entry missing for denial; second instance not refused; hand-over serves before the lock is taken; readiness before recovery; smoke test ignores a version mismatch; smoke test accepts an unauthenticated 200; rollback skipped on smoke failure; preflight accepts more than one replica; version check accepts a tag older than the last deployed version; pipeline lint accepts a step that is not a package script. `bun run ci:validate` runs the whole gate on the owner's machine (its `container` step reruns the browser suites against the image) and the target pipeline's Validate and Image stages call the same steps | ✅ | ✅ |
+| VII. Honest Claims | README: both modes, configuration, Entra and Keycloak guides, role matrix and what each role sees, outbound calls, delegated credentials, single-instance limit and scale path, the documented residual exposure of commit messages; container and Compose use (Docker Desktop host networking setting); the local build scripts; the Azure DevOps pipeline, the Azure resources and Azure DevOps items the target sets up by hand; counts from tests | ✅ | ✅ |
 
 Technical Constraints: one authorization boundary (`server/auth/authorize.ts`) used by every
 route (enforced by the route→action table test); Cedar evaluated in-process; single instance per
 data root (`instance.lock`; during a revision hand-over the waiting instance serves only health
 endpoints, so one instance at most serves the data root, FR-123); new dependencies justified
-above (R1–R3), server only; the container and the pipeline add no runtime dependency.
+above (R1–R3), server only; the container, the local scripts and the pipeline add no runtime
+dependency; nothing runs automatically on the GitHub repository (FR-130).
 
 ## Project Structure
 
@@ -169,10 +180,14 @@ tests/fixtures/{auth-workspace/, keycloak/realm.json}
 scripts/{auth-browser-check.ts,auth-keycloak-check.ts,admin-browser-check.ts,two-editors-check.ts; mutation-tests.ts additions}
 server/{routes/health.ts,projects/instance-lock.ts,static.ts}   # health with version, hand-over lock, dist/ serving
 Dockerfile, .dockerignore, compose.yaml, .env.server.example, .trivyignore
-deploy/azure/README.md            # manual Azure and GitHub setup (no infrastructure as code)
-.github/workflows/{ci.yml,release.yml,rollback.yml}, .github/dependabot.yml
-scripts/{container-check.ts,container-suites.ts,deploy.ts,deploy-smoke.ts}
-tests/ci/{workflows.test.ts,deploy.test.ts,deploy-smoke.test.ts}
+azure-pipelines.yml, azure-pipelines-rollback.yml   # for the target's Azure DevOps; never run here
+deploy/README.md                  # target setup: Azure resources, Azure DevOps items (no infrastructure as code)
+deploy/azure-devops/{templates/{setup-steps,validate-jobs,image-jobs,deploy-steps}.yml,
+                     schema/service-schema.json, sample-variables.yml}
+scripts/{ci-validate.ts,gate-suites.ts,image.ts,pipeline-lint.ts,pipeline-dry-run.ts,
+         container-check.ts,container-suites.ts,deploy.ts,deploy-smoke.ts}
+tests/pipeline/{azure-pipelines.test.ts,deploy.test.ts,deploy-smoke.test.ts,dry-run.test.ts,fake-azure.ts}
+(no .github/workflows/, no .github/dependabot.yml: FR-130)
 ```
 
 **Structure Decision**: same web-application layout; all access logic in `server/auth/` behind
@@ -189,13 +204,16 @@ modules for unit and mutation tests.
    loader with bootstrap Admins. Local mode suites green.
 3. US9 part 1 (P1): container image, static serving and health, instance lock with revision
    hand-over, Compose local profile, suites runnable against the image.
-4. US10 part 1 (P1): CI on every change (gate, image build, scan, SBOM, container job), workflow
-   rules test, Dependabot.
+4. US10 part 1 (P1): local build scripts and the Azure DevOps pipeline definition: `ci:validate`,
+   `image:build|scan|sbom|push`, gate suite list, `azure-pipelines.yml` stages Validate and Image,
+   pipeline rules test, `pipeline:lint` and `pipeline:dry-run`.
 5. US1 sign-in and sessions (server mode skeleton, live updates); Compose server profile with
-   Keycloak, Keycloak job in CI, server suites in the container job.
-6. US9 part 2 + US10 part 2 (P1): Azure setup guide, publish to the registry on `main`, release on
-   `v*` with approval, deploy, smoke test, rollback; first pre-release deployment with the test
-   fixture workspace.
+   Keycloak, Keycloak step of `ci:validate` and the Validate stage, server suites in the container
+   step.
+6. US9 part 2 + US10 part 2 (P1): Azure delivery definition: deploy, version check, smoke test and
+   rollback scripts (tested against a fake Azure client), Deploy stage, rollback pipeline, target
+   setup guide; trial run on an Azure DevOps organisation and subscription when one is available,
+   with the test fixture workspace.
 7. US2 read filtering everywhere (lists, derivations, SSE, Git history, trash, drafts).
 8. US3 role enforcement on every write and capability-driven UI.
 9. US8 Admin panel (users, roles, projects, policies with dry run and history, access check,
@@ -207,9 +225,12 @@ modules for unit and mutation tests.
 14. Polish: README, verification record, full matrix and mutation run, security review.
 
 The container comes right after the foundations (owner decision): from Phase 4 on, every phase
-ends with the CI run green, including the `container` job that reruns the phase's browser checks
-against the image. Azure delivery comes right after US1 because server mode cannot start without
-a provider; until Phases 7–9 are done the Azure environment holds only the test fixture workspace.
+ends with `bun run ci:validate` green on the owner's machine, including the `container` step that
+reruns the phase's browser checks against the image and the `pipeline` step (`pipeline:lint`,
+`pipeline:dry-run`). Nothing runs on the GitHub repository. Azure delivery comes right after US1
+because server mode cannot start without a provider; its code is verified locally (fake Azure
+client, dry run), and until Phases 7–9 are done any Azure environment holds only the test fixture
+workspace.
 US8 sits right after US3 because every later server-mode story is only testable through grants the
 panel manages (the fixture can seed `data/admin/` directly for earlier phases).
 
@@ -222,5 +243,6 @@ panel manages (the fixture can seed `data/admin/` directly for earlier phases).
 | Cedar WASM (13 MB, server only) | owner decision; reviewable, schema-validated policy language for the raw editor and simulator | TypeScript-only rules cannot be edited safely by Admins; documented as fallback (R3) |
 | Single instance per data root | in-process locks, event ring, cache | multi-instance coordination is out of scope for v0.4.0; scale path documented (R14) |
 | Revision hand-over in the instance lock | single revision mode waits for the new revision to be ready before stopping the old one; a plain refusal would block every update | stopping the app before each deployment (manual downtime, not automatable without extra rights) |
-| Host networking for local mode in a container | keeps the loopback rule of Principle I unchanged | binding `0.0.0.0` in local mode inside a container needs a constitution amendment (OP-8) |
-| Azure Container Registry | private repository: pulls and pushes without stored credentials (R19) | GHCR needs a stored token for private pulls (OP-6) |
+| Host networking for local mode in a container | keeps the loopback rule of Principle I unchanged (OP-8, accepted) | binding `0.0.0.0` in local mode inside a container needs a constitution amendment |
+| Package scripts as the only implementation of pipeline steps | the owner builds and tests locally and the target's pipeline must run exactly the same steps (R18) | inline pipeline scripts cannot be run or tested on the owner's machine |
+| Pipeline definition shipped but never run from this repository; checked by schema lint and dry run | the target uses Azure DevOps; the repository runs nothing automatically (owner decision) | GitHub Actions (rejected by the owner); an untested definition (would fail first at the target) |

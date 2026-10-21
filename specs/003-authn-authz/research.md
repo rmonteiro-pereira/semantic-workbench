@@ -94,19 +94,24 @@ below come from that probe.
 
 ## R6 Keycloak and automated tests
 
-- Keycloak 26 container (`quay.io/keycloak/keycloak:26.4`, pinned by digest in the workflow)
+- Keycloak 26 container (`quay.io/keycloak/keycloak:26.4`, pinned by digest in the test script)
   started with `start-dev --import-realm` and `tests/fixtures/keycloak/realm.json`: confidential
   client `semantic-workbench` (PKCE S256 required), client roles Viewer/Editor/Steward/Admin,
   group membership mapper (`groups`, full path off), client `sw-agent` and `sw-agent-ungranted`
   with service accounts holding client role `Agent`.
 - Test users: `alice` (Sales, Editor), `bob` (Sales, Steward), `carol` (HR, Viewer),
   `dave` (Admin), `erin` (no role), `frank` (Sales + Finance group, Editor).
-- CI: the `keycloak` job of `.github/workflows/ci.yml` (R18) runs `docker run` for
-  Keycloak (service containers cannot pass `start-dev` arguments), waits for
-  `/realms/workbench/.well-known/openid-configuration`, then `bun run test:auth:keycloak`
-  (Playwright: sign-in form, role header, sign-out, live updates, agent client credentials).
-  Locally the same script starts the container with Docker or Podman when available and skips
-  with a clear message otherwise; unit tests use an in-process stub provider (`jose` keys).
+- `bun run test:auth:keycloak` starts Keycloak with Docker or Podman (`docker run`, realm mounted
+  read-only, port on `127.0.0.1:8080`), waits for
+  `/realms/workbench/.well-known/openid-configuration`, then runs the Playwright check (sign-in
+  form, role header, sign-out, live updates, agent client credentials) and removes the container.
+  Run alone without a container runtime it skips with a clear message; under `ci:validate`
+  (`--require-container`) it fails instead. The pipeline's `keycloak` job runs the same step on
+  the agent, so the Keycloak container is started by the script, not declared as an Azure
+  Pipelines service container: a service container takes an image, options, environment, ports
+  and volumes but no start command, and the Keycloak image needs `start-dev --import-realm`
+  (a derived test image would have to be built and published before the job starts). Unit tests
+  use an in-process stub provider (`jose` keys).
 - Entra: manual checklist in quickstart.md, results recorded in verification.md.
 
 ## R7 Per-person Git working copies
@@ -247,7 +252,7 @@ below come from that probe.
   serve one data root; the interruption is the old instance's shutdown plus at most 30 s
   (SC-017). The deploy job also refuses to deploy unless min and max replicas are 1 (FR-139).
 - **No infrastructure as code** (owner decision): the resources are created by hand following
-  `deploy/azure/README.md`, which lists them (R20) with portal and Azure CLI steps; the deploy job
+  `deploy/README.md`, which lists them (R20) with portal and Azure CLI steps; the deploy job
   checks the settings that matter before every deployment.
 - **Alternative**: App Service (Web App for Containers), Azure Storage mount (SMB), Always On,
   one instance, same environment variables; not covered by the pipeline.
@@ -289,16 +294,20 @@ below come from that probe.
      (uid 1000), `ENV DATA_DIR=/data SW_CACHE_DIR=/tmp/sw-cache SW_SERVE_STATIC=1`, `VOLUME /data`,
      `EXPOSE 4310`, labels `org.opencontainers.image.{version,revision,source,created}` and the
      same values as `SW_VERSION`/`SW_COMMIT` from build arguments. `SW_VERSION` is the
-     `package.json` version (the image is built before any tag exists and promoted unchanged, so
-     the tag cannot be baked in; the release check requires the tag's version core to equal it). `HEALTHCHECK` runs a two-line
+     `package.json` version (the image does not depend on any tag: it is built on the owner's
+     machine and in pipeline runs of `main` and of tags alike, and the version tag is added to the
+     registry digest only at deployment; the version check requires the tag's version core to
+     equal it). `HEALTHCHECK` runs a two-line
      Bun `fetch` of `/healthz` (no curl in the image). Entry point `bun server/index.ts`, receiving
      SIGTERM directly (exec form) so the instance lock is released.
 - **Local mode in the container**: Principle I keeps local mode on loopback; with Docker's default
   bridge network a process bound to the container's `127.0.0.1` cannot be reached through a
   published port. Host networking (`network_mode: host`) makes the container share the host's
   loopback, so the unchanged loopback rule applies (OP-8). Docker Engine and Podman support it;
-  Docker Desktop needs its host networking option. Rejected: binding `0.0.0.0` in local mode when
-  a container is detected (violates Principle I; the server cannot see the host publish address).
+  Docker Desktop needs host networking turned on (4.34 or later: **Settings → Resources → Network
+  → Enable host networking**, **Apply & restart**; Linux containers only), documented in the
+  README and quickstart. Accepted by the owner. Rejected: binding `0.0.0.0` in local mode when a
+  container is detected (violates Principle I; the server cannot see the host publish address).
 - **Writable data root check**: at start-up the server writes and removes a probe file under the
   data root; failure stops start-up naming the path and the uid (FR-125).
 - **Compose** (`compose.yaml`): profile `local` → service `workbench` (image built from the
@@ -315,109 +324,123 @@ below come from that probe.
   `scripts/container-suites.ts` against it (local mode suites, and from US1 on the server suites
   through the compose server profile).
 
-## R18 Continuous integration and delivery with GitHub Actions
+## R18 Local build scripts and the Azure DevOps pipeline
 
-- **`ci.yml`** (pull requests, pushes to any branch but not tags): jobs
-  `verify` (Bun pinned to 1.4.x, `bun install --frozen-lockfile`, `bun --bun run check`,
-  `bun test`, `bun --bun run build`), `mutation` (`bun run test:mutation`), `browser` (matrix over
-  the browser suites, Playwright Chromium installed with its system dependencies, dev server
-  started in the job, screenshots uploaded on failure), `keycloak` (R6), `image` (Buildx with the
-  GitHub Actions cache, image exported to the job, Trivy scan with `--severity CRITICAL,HIGH
-  --ignore-unfixed --exit-code 1` and `.trivyignore` entries carrying a reason and an expiry that
-  a test checks, Trivy SPDX JSON bill of materials uploaded as an artifact), `container` (needs
-  `image`; runs `scripts/container-check.ts` for local and server suites against that image) and
-  `publish` (push to `main` only, after every other job; R19, R20). Concurrency cancels superseded
-  pull-request runs. Default permissions `contents: read`; `id-token: write` only on `publish`.
-- **`release.yml`** (tags `v*`): `check` without Azure access (tag commit is an ancestor of
-  `origin/main` and its `ci.yml` run on `main` succeeded including the `publish` job, read
-  through the GitHub API, so a tag without a published image fails before any approval), then
-  `deploy` in environment `production` (required reviewers; concurrency group `production`, never
-  cancelled). Only after approval, with the deployer identity: image `sha-<commit>` exists in the
-  registry, Trivy rescan of its digest, preflight of the container app settings (FR-139),
-  promotion to `vX.Y.Z` on the same digest with `docker buildx imagetools create` (no rebuild),
-  record of the running image digest, `az containerapp update --image
-  <registry>/semantic-workbench@<digest>`, wait for the new revision to run and be ready,
-  `scripts/deploy-smoke.ts`, and on failure redeploy of the recorded digest and a second smoke
-  test, then fail. A last job `github-release` (contents write, actions read) creates the release
-  with the bill of materials, regenerated from the digest by Trivy in `deploy` so artifact
-  retention cannot lose it, and the scan report. `check` also has `actions: read` (it reads
-  `ci.yml` runs) and refuses a tag whose version core differs from `package.json` or is older
-  than the last deployed version. The job summary lists both digests and results. Registry
-  steps sit after the approval because a tag push gets the OIDC subject
-  `ref:refs/tags/<tag>`, which no federated credential matches; only the environment subject
-  does.
-- **`rollback.yml`** (manual dispatch on the target tag ref, so the environment's `v*` rule admits
-  it; non-tag refs are refused; concurrency group `production`, not cancelled): resolves
-  `github.ref_name` to its digest and runs the same deploy and smoke steps. It exists at every tag
-  from `v0.4.0-alpha.1` on.
-- **Required checks**: matrix legs report as `browser (<suite>)`, so an aggregate job
-  `browser-result` (`needs: browser`, `if: always()`, fails unless every leg succeeded) is the
-  required check.
-- **Smoke test** (`scripts/deploy-smoke.ts`, also run against the compose server profile in the
-  `container` job so its logic is tested on every change): `/readyz` reports state `serving`
-  within 3 minutes (state `handover` is waited out); `/healthz` commit equals the released commit
-  and version equals the `package.json` version; `GET /api/projects` without a cookie → 401 with
-  no project names; `/auth/login` → 302 to the `authorization_endpoint` of the issuer's discovery
-  document (Keycloak and Entra differ) with `code_challenge_method=S256`;
-  HSTS, CSP, `X-Content-Type-Options` present; the sign-in cookie is `Secure; HttpOnly`.
-- **Hardening**: actions pinned by commit with Dependabot (`github-actions`, `docker`, `npm`
-  ecosystems) proposing updates; no `pull_request_target`; fork pull requests get no secrets and
-  no token issuance, and `publish`/`deploy` never run for them; `tests/ci/workflows.test.ts` parses
-  the workflows and fails on an unpinned action, a job with write permissions it does not need, a
-  `secrets.` reference in an Azure sign-in, or a quality-gate script missing from the `browser`
-  matrix or the container suite list.
-- **Rejected**: one workflow file for everything (release approval would block the whole run);
-  rebuilding the image on tag (the released digest would not be the tested one); Azure DevOps
-  Pipelines (the code and reviews live on GitHub).
+- **Owner decisions**: the GitHub repository runs nothing automatically (no workflows, no
+  Dependabot, no publishing or deployment from it); the owner builds, tests and scans on their own
+  machine; the CI/CD pipeline is a deliverable for the target environment, which uses Azure DevOps
+  Pipelines. Consequence: one set of package scripts is the single implementation of every
+  verification, build and deployment step, the owner runs them locally, and the pipeline only
+  calls them (contract: [delivery-pipeline.md](./contracts/delivery-pipeline.md)).
+- **`ci:validate`** (`scripts/ci-validate.ts`): runs the steps `verify` (`check`, `bun test`,
+  `build`), `mutation`, `browser` (every suite listed in `scripts/gate-suites.ts`, the single list
+  of quality-gate browser suites, each on an isolated data root with its own dev server port),
+  `keycloak`, `image` (`image:build`, `image:scan`, `image:sbom`), `container` (`test:container`,
+  then `deploy:smoke --loopback` against the Compose server profile) and `pipeline`
+  (`pipeline:lint`, `pipeline:dry-run`). Steps run in that order and stop at the first failing
+  step unless `--keep-going`; `--step` and `--suite` select a subset, which is how the pipeline
+  splits Validate into parallel jobs. It writes JUnit XML (for `PublishTestResults@2`) and a JSON
+  summary to `out/ci/`. The steps that need a container runtime fail instead of skipping.
+- **Image scripts** (`scripts/image.ts`): `build` with Docker or Podman (the first found; `--engine`
+  forces one), build arguments from `package.json` and `git rev-parse HEAD` (a dirty tree gets a
+  `-dirty` commit suffix that `image:push` refuses); `scan` and `sbom` with Trivy, using a local
+  `trivy` binary or else the `aquasec/trivy` image pinned by digest (so the owner needs only a
+  container runtime), `--severity CRITICAL,HIGH --ignore-unfixed --exit-code 1`, `.trivyignore`
+  entries with `# reason; expires YYYY-MM-DD` checked by the pipeline check; `push` to a registry
+  given on the command line after `az acr login`.
+- **Pipeline definition** (`azure-pipelines.yml`, multi-stage YAML, templates under
+  `deploy/azure-devops/templates/`): `Validate` (jobs `verify`, `mutation`, `browser` matrix,
+  `keycloak`, each one `ci:validate` step), `Image` (image steps and container suites; on `main` and
+  `v*` runs, `AzureCLI@2` with the push service connection, `az acr login` and `image:push`; the
+  digest becomes an output variable), `Deploy` (only `refs/tags/v*`: a `check` job before any
+  approval, then a deployment job on the environment, which applies the target's approvals and
+  checks before the job starts: rescan by digest, then `deploy:azure`, which runs the preflight,
+  promotes the version tag on the same digest with `az acr import` inside the registry, and
+  deploys). A tag run builds its own image in `Image`
+  (same commit as the `main` run that preceded it, so the build is reproducible from the lock file
+  and pinned bases); the deployed digest is the one this run built, scanned and tested.
+  `azure-pipelines-rollback.yml` (manual) is queued on the tag ref of the version to restore, so
+  the environment's branch control (`refs/tags/v*`) admits it, and deploys that version, or with
+  `target: previous` the revision before the active one, through the same environment. Bun is installed at a pinned version by the shared setup template; Playwright
+  Chromium is installed with its system dependencies.
+- **Triggers**: CI trigger on `main` and tags `v*`; pull-request validation is configured by the
+  target (Azure Repos branch policy on `main` requiring the pipeline, or the `pr:` trigger when the
+  target connects a GitHub repository). The target chooses where the code lives (an Azure Repos
+  mirror of this repository or a GitHub connection); nothing runs on this GitHub repository.
+- **One deployment at a time**: the environment's exclusive lock check and the Deploy stage's
+  `lockBehavior: runLatest` serialise deployments and rollbacks and drop older waiting runs.
+- **Local validation of the definition**: `pipeline:lint` validates the YAML files against a pinned
+  copy of the published Azure Pipelines schema (Ajv, as for the other pinned schemas) and applies
+  the repository rules (stage order, steps call package scripts, tasks pinned to a major version,
+  images pinned by digest, no secret variables, service connections only from parameters, Deploy
+  conditioned on version tags and run as a deployment job on the environment parameter, every
+  gate suite present, no `.github/workflows/` or `.github/dependabot.yml`). `pipeline:dry-run`
+  expands template parameters with sample values, evaluates the stage and step conditions for a
+  pull request, a `main` run and a tag, prints the resulting plan, and with `--execute` runs the
+  local steps and the Azure steps against the fake Azure client. When the target has imported the
+  pipeline, Azure DevOps' preview run (`previewRun: true` of the Runs API) returns the fully
+  expanded YAML without running it; the guide lists it as the target's first check.
+- **Smoke test** (`deploy:smoke`, also run against the Compose server profile in the `container`
+  step so its logic runs on every validation): `/readyz` reports state `serving` within 3 minutes
+  (state `handover` is waited out); `/healthz` commit equals the deployed commit and version equals
+  the `package.json` version; `GET /api/projects` without a cookie → 401 with no project names;
+  `/auth/login` → 302 to the `authorization_endpoint` of the issuer's discovery document (Keycloak
+  and Entra differ) with `code_challenge_method=S256`; HSTS, CSP, `X-Content-Type-Options`
+  present; the sign-in cookie is `Secure; HttpOnly`.
+- **Rollback**: the deploy script records the active revision before the update; on smoke failure
+  `az containerapp revision copy --from-revision <recorded>` creates a new revision with the
+  previous image digest and configuration (in single revision mode an inactive revision cannot run
+  beside the active one, so the previous revision is restored by copying it), waits for it and
+  smoke-tests it; the run fails either way.
+- **Dependency updates**: no bot runs on the repository; pinned digests (base images, Keycloak,
+  Trivy), the Bun version and package versions are reviewed by the owner (`bun outdated`, the scan
+  results) as part of each release.
+- **Rejected**: GitHub Actions (owner decision: the repository runs nothing); rebuilding the image
+  in the Deploy stage (the deployed digest would not be the scanned and tested one); an Azure
+  Pipelines service container for Keycloak (no start command, R6); pipeline-only logic in inline
+  scripts (could not be run or tested locally).
 
-## R19 Registry: Azure Container Registry
+## R19 Registry: the target's Azure Container Registry
 
-- **Decision**: Azure Container Registry, Basic tier, admin user disabled, repository
-  `semantic-workbench`. Tags: `sha-<commit>` (immutable by convention), `main` (moving), `vX.Y.Z`
-  (promoted). The container app pulls with its managed identity (`AcrPull`); the publish identity
-  holds `AcrPush`; the deploy identity holds `AcrPush` (to add version tags) and rights on the
-  container app only.
-- **Why**: the GitHub repository is private, so a GHCR package would be private too, and Azure
-  Container Apps can pull a private GHCR image only with a stored personal access token, a
-  long-lived secret the owner excluded. ACR keeps every pull and push on federated or managed
-  identities, inside the same tenant as the deployment.
-- **Cost and retention**: Basic tier has a monthly fee and a storage quota; a retention rule
-  (documented manual step) removes untagged manifests, and commit tags older than 90 days that no
-  version tag points to may be deleted by hand.
-- **Rejected**: GHCR (stored token for private pulls; free and simpler if the repository and image
-  become public, in which case anonymous pulls need no credential); Docker Hub (external account,
-  rate limits).
-- Open for the owner: OP-6 (accept the registry's cost, or make the repository public and use
-  GHCR).
+- **Decision**: images are built on the owner's machine and never published from the repository;
+  the target pipeline pushes to the target's own Azure Container Registry (admin user disabled),
+  repository `semantic-workbench`, tags `sha-<commit>` and `vX.Y.Z` (added only by deployments).
+  The container app pulls with its managed identity (`AcrPull`); the pipeline pushes through the
+  push service connection (`AcrPush`). The former open point on the registry (OP-6) is withdrawn.
+- **Retention**: a registry retention rule (documented manual step) removes untagged manifests;
+  commit tags that no version tag points to may be deleted by the target after a period it
+  chooses; version tags are kept so rollback can reach any earlier version.
 
-## R20 GitHub to Azure trust and the resources the pipeline expects
+## R20 Azure DevOps to Azure trust and what the target sets up
 
-- **Workload identity federation**: two user-assigned managed identities with federated
-  credentials (issuer `https://token.actions.githubusercontent.com`, audience
-  `api://AzureADTokenExchange`):
-  - `id-sw-publisher`, subject `repo:rmonteiro-pereira/semantic-workbench:ref:refs/heads/main`;
-    role `AcrPush` on the registry.
-  - `id-sw-deployer`, subject `repo:rmonteiro-pereira/semantic-workbench:environment:production`;
-    roles `AcrPush` on the registry and Contributor on the container app resource only (no
-    subscription or resource-group write). If the update also needs the Container Apps
-    environment's join action, a custom role limited to that action is added on the environment;
-    the final role set is recorded by T133 and written in the guide.
-  `azure/login` receives client id, tenant id and subscription id from repository variables
-  (`AZURE_CLIENT_ID_PUBLISHER`, `AZURE_CLIENT_ID_DEPLOYER`, `AZURE_TENANT_ID`,
-  `AZURE_SUBSCRIPTION_ID`), none of which is a secret. Environment-based subjects avoid the exact
-  match limits of tag subjects (`v*` cannot be expressed as one subject). Under the OP-7 fallback
-  (no required reviewers on the plan) the deploy workflow runs by manual dispatch on `main` and the
-  deployer's federated subject is `ref:refs/heads/main`; the workflow then checks that the actor
-  is listed in `SW_DEPLOYERS` before any Azure step.
-- **Resources** (manual, `deploy/azure/README.md`): resource group; Log Analytics workspace;
+- **Workload identity federation**: Azure Resource Manager service connections of type workload
+  identity federation (issuer `https://vstoken.dev.azure.com/<organisation id>`, subject
+  `sc://<organisation>/<project>/<service connection>`); Azure DevOps creates the federated
+  credential on an app registration it manages (automatic) or the target points the connection
+  at its own app registration or user-assigned managed identity (manual). No secret is stored.
+  Two connections by default: `sw-azure-push` (`AcrPush` on the registry) and `sw-azure-deploy`
+  (`AcrPush` on the registry and Contributor on the container app resource only; if the update
+  also needs the Container Apps environment's join action, a custom role limited to that action on
+  the environment; the final set is recorded by T133). `AzureCLI@2` uses them with
+  `addSpnToEnvironment: false`, so no token reaches the scripts' environment beyond the Azure CLI
+  session.
+- **Protection**: each service connection and the variable group grant pipeline permission only
+  to the two pipelines of this repository; the environment `production` carries approvals,
+  branch control (`refs/tags/v*`) and an exclusive lock; the service connections may carry the
+  same branch control check.
+- **Azure resources** (manual, `deploy/README.md`): resource group; Log Analytics workspace;
   Container Apps environment (consumption profile) with the Azure Files storage registered;
   storage account and file share; Key Vault (RBAC mode) with `SW_SESSION_KEY` and provider and
-  GitHub secrets; container registry; container app (single revision mode, one replica, ingress
-  4310, user-assigned identity `id-sw-app` with `AcrPull` and Key Vault Secrets User, created
-  and granted before the app so the first pull works, volume at `/data`, probes,
-  environment variables of contracts/configuration.md with secret references); the two pipeline
-  identities; the Entra app registration for sign-in (quickstart §5).
-- **GitHub settings** (manual, same guide): ruleset on `main` requiring the `ci.yml` checks and a
-  pull request; ruleset restricting creation of `v*` tags to the owner; environment `production`
-  with required reviewers and a deployment rule for `v*` tags (or the OP-7 fallback); repository
-  variables above plus `ACR_NAME`, `ACA_NAME`, `ACA_RESOURCE_GROUP`, `SW_PUBLIC_URL`.
+  GitHub app secrets; container registry; container app (single revision mode, one replica,
+  ingress 4310, user-assigned identity `id-sw-app` with `AcrPull` and Key Vault Secrets User,
+  created and granted before the app so the first pull works, volume at `/data`, probes,
+  environment variables of contracts/configuration.md with secret references); the Entra app
+  registration for sign-in (quickstart §5).
+- **Azure DevOps items** (manual, same guide): the two service connections; environment
+  `production` with approvals and checks; variable group `semantic-workbench-target` (values of
+  delivery-pipeline.md, none secret); agent pool (Microsoft-hosted `ubuntu-latest` or self-hosted
+  Linux with Docker); import of `azure-pipelines.yml` and `azure-pipelines-rollback.yml`; branch
+  policy on `main` requiring the pipeline for pull requests; a preview run to check the expansion.
+- **Parameters versus variables**: service connection, environment and variable group names are
+  compile-time parameters (Azure DevOps authorises protected resources when the run is compiled,
+  so runtime variables cannot name them); every other target value is a variable of the group.

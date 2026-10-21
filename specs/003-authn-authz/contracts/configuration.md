@@ -30,9 +30,10 @@
 
 Container image defaults: `DATA_DIR=/data`, `SW_CACHE_DIR=/tmp/sw-cache`, `SW_SERVE_STATIC=1`,
 `SW_PORT=4310`. Local mode in the container keeps `SW_HOST=127.0.0.1` and runs with host
-networking (OP-8); on Azure Container Apps server mode sets `SW_HOST=0.0.0.0` (checked by the
-deploy preflight). Pipeline variables (GitHub, not read by the server) are listed in
-[delivery-pipeline.md](./delivery-pipeline.md).
+networking (OP-8; on Docker Desktop, host networking must be enabled in its settings); on Azure
+Container Apps server mode sets `SW_HOST=0.0.0.0` (checked by the deploy preflight). The Azure
+DevOps pipeline parameters and variable group, and the variables the local build and deploy
+scripts read (not read by the server), are listed in [delivery-pipeline.md](./delivery-pipeline.md).
 
 Start-up refuses server mode when a required variable is missing or invalid, naming it. Secrets
 are read once and never logged; on Azure they are Key Vault references resolved by the platform.

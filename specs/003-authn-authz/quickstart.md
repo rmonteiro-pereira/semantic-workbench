@@ -1,6 +1,8 @@
 # Quickstart: validating v0.4.0
 
-Prerequisites: Bun 1.4+, Git 2.40+, Docker or Podman (Keycloak checks), Playwright browsers.
+Prerequisites: Bun 1.4+, Git 2.40+, Docker Engine, Docker Desktop (host networking enabled, §4)
+or Podman (Keycloak checks, image, container suites), Playwright browsers. Everything below runs on
+your own machine; nothing runs on the GitHub repository.
 Contracts: [http-api.md](./contracts/http-api.md), [configuration.md](./contracts/configuration.md).
 
 ## 1. Local mode is unchanged
@@ -65,8 +67,9 @@ volume with `SW_PORT=4311` and confirm `/readyz` on 4311 is 503 and its log name
 single-replica constraint (FR-122). Check `docker compose exec workbench-server id -u`
 is not 0.
 
-Without host networking (Docker Desktop with the option off) local mode is unreachable by design
-(OP-8); use server mode or enable host networking.
+Without host networking local mode is unreachable by design (OP-8). Docker Desktop: 4.34 or
+later, **Settings → Resources → Network → Enable host networking**, then **Apply & restart**
+(Linux containers only). Docker Engine on Linux or WSL2 and Podman need no setting.
 
 ## 5. Microsoft Entra ID (manual, recorded in verification.md)
 
@@ -79,9 +82,10 @@ Without host networking (Docker Desktop with the option off) local mode is unrea
    consent.
 4. Credential: federated credential for the container app's user-assigned identity `id-sw-app` (or a secret in Key
    Vault).
-5. Create the Azure resources of [delivery-pipeline.md](./contracts/delivery-pipeline.md) by hand
-   following `deploy/azure/README.md`, deploy through the pipeline (§7), sign in with users of
-   each role, push to Azure DevOps as an Editor and check the push author.
+5. Create the Azure resources and Azure DevOps items of
+   [delivery-pipeline.md](./contracts/delivery-pipeline.md) by hand following `deploy/README.md`,
+   deploy through the target's pipeline (§7), sign in with users of each role, push to Azure
+   DevOps as an Editor and check the push author.
 
 ## 6. Admin panel
 
@@ -89,19 +93,36 @@ As `dave`: assign a project to a domain, map a group to Steward, run **Access ch
 `alice`, edit a rule with **Dry run**, roll back, try to deactivate the last Admin (refused),
 export the audit log filtered to today.
 
-## 7. Pipeline (from Phase 4; delivery from Phase 6)
+## 7. Local build and the Azure DevOps pipeline (from Phase 4; delivery from Phase 6)
 
-1. Open a pull request: `ci.yml` runs `verify`, `mutation`, `browser`, `keycloak`, `image`,
-   `container`; all must pass before merge. A failing unit test or an unignored fixable
-   critical/high finding fails the run.
-2. Merge: `publish` pushes `sha-<commit>` and `main` to the registry (check with
-   `az acr repository show-tags -n <acr> --repository semantic-workbench`).
-3. `git tag v0.4.0-alpha.1 && git push origin v0.4.0-alpha.1`: `release.yml` checks the tag,
-   waits for approval in `production`, then rescans, promotes, deploys and smoke-tests; the job
-   summary shows the digest and the smoke result.
-4. Rollback drill: run `rollback.yml` with the previous version and confirm the smoke test passes
-   on it. The automatic rollback path is covered on every change by `tests/ci/deploy.test.ts`
-   (`scripts/deploy.ts` against a fake Azure client) and recorded once on Azure in
-   verification.md.
-5. Confirm the repository, its environments and variables hold no Azure or registry secret
-   (SC-016).
+On your machine:
+
+```sh
+bun run ci:validate                     # the whole gate: verify, mutation, browser, keycloak,
+                                        # image (build, scan, sbom), container, pipeline
+bun run ci:validate -- --step verify    # one step; --suite <name> for one browser suite
+bun run image:build && bun run image:scan && bun run image:sbom   # out/image/sbom.spdx.json
+bun run pipeline:lint                   # azure-pipelines*.yml against the pinned schema and rules
+bun run pipeline:dry-run -- --run tag:v0.4.0-alpha.1 --execute   # stages, conditions, fake Azure
+```
+
+Expected: a failing unit test, an unignored fixable critical or high finding, or a pipeline step
+that is not a package script fails the run and names the step; the dry run shows Validate and
+Image for a pull request, Image push for `main`, and Deploy only for the tag, with the deploy and
+rollback decisions taken against the fake Azure client. `ls .github/workflows` finds nothing.
+
+In the target (trial organisation and subscription, recorded in verification.md):
+
+1. Set up the items of `deploy/README.md`: service connections with workload identity federation,
+   environment `production` with approvals, branch control and exclusive lock, variable group
+   `semantic-workbench-target`, agent pool; import `azure-pipelines.yml` and
+   `azure-pipelines-rollback.yml`; run a preview run to check the expansion.
+2. Run the pipeline on `main`: Validate and Image pass, `sha-<commit>` appears in the registry
+   (`az acr repository show-tags -n <acr> --repository semantic-workbench`), the bill of materials
+   and scan report are pipeline artifacts.
+3. Push tag `v0.4.0-alpha.1`: the version check passes, the run waits for approval, then rescans,
+   tags, deploys by digest and smoke-tests; the summary shows the digest and the smoke result.
+4. Rollback drill: run the rollback pipeline with `previous` and confirm the smoke test passes. The
+   automatic rollback path is covered locally by `tests/pipeline/deploy.test.ts` and the dry run.
+5. Confirm the repository, the pipeline definition and the variable group hold no secret and that
+   every Azure sign-in used the federated service connections (SC-016).
