@@ -110,9 +110,9 @@ async function attachedFlights() {
               [...document.querySelectorAll('.react-flow__node')]
                 .find(node => node.getAttribute('data-id') === id)
                 ?.querySelector('.full-entity');
-            const source = entity(edge.source),
-              target = entity(edge.target),
-              transform = path?.getScreenCTM();
+            const source = entity(edge.source);
+            const target = entity(edge.target);
+            const transform = path?.getScreenCTM();
             if (!path || !source || !target || !transform) continue;
             for (const [length, node] of [
               [0, source],
@@ -201,11 +201,9 @@ try {
       await page.getByRole('button', { name: 'Apply grouping correction', exact: true }).click();
       await graphReady();
       await page.locator('.tabs').getByRole('button', { name: 'Overview', exact: true }).click();
-      const custom = page
-        .locator('.business-area')
-        .filter({
-          has: page.getByRole('heading', { name: 'Flight operations review', exact: true }),
-        });
+      const custom = page.locator('.business-area').filter({
+        has: page.getByRole('heading', { name: 'Flight operations review', exact: true }),
+      });
       await expect(custom).toBeVisible();
       await expect(custom.locator('[data-entity-id="' + airport.id + '"]')).toBeVisible();
       await unchangedExport('flights.ontology.yaml');

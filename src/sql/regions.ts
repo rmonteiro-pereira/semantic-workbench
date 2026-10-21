@@ -115,9 +115,9 @@ export function sqlRegions(source: string, filename = ''): SqlRegion[] {
       }
       if (!isScalar(node) || typeof node.value !== 'string' || !node.range) return;
       const p = pattern(path);
-      let kind: SqlKind | null = null,
-        dialect: string | null = null,
-        grammar: string | null = null;
+      let kind: SqlKind | null = null;
+      let dialect: string | null = null;
+      let grammar: string | null = null;
       if (odcs) {
         if (ODCS_QUERY.test(p)) {
           const type = isMap(parent) ? parent.get('type') : undefined;
@@ -202,16 +202,16 @@ function flow(
   to: number,
   quote: '"' | "'" | null,
 ): { chars: string[]; offsets: number[] } {
-  const chars: string[] = [],
-    offsets: number[] = [],
-    ls = lines(src, from, to);
-  let empties: number[] = [],
-    breakAt = from,
-    joined = false;
+  const chars: string[] = [];
+  const offsets: number[] = [];
+  const ls = lines(src, from, to);
+  let empties: number[] = [];
+  let breakAt = from;
+  let joined = false;
   ls.forEach((line, li) => {
     const last = li === ls.length - 1;
-    let text = line.text,
-      base = line.at;
+    let text = line.text;
+    let base = line.at;
     if (li > 0) {
       const lead = text.length - text.replace(/^[ \t]+/, '').length;
       text = text.slice(lead);
@@ -239,8 +239,8 @@ function flow(
     }
     let i = 0;
     for (; i < body.length; i++) {
-      const c = body[i],
-        at = base + i;
+      const c = body[i];
+      const at = base + i;
       if (quote === "'" && c === "'" && body[i + 1] === "'") {
         chars.push("'");
         offsets.push(at);
@@ -287,19 +287,19 @@ function block(src: string, node: Scalar<string>): { chars: string[]; offsets: n
   const headerEnd = src.indexOf('\n', start);
   if (headerEnd < 0 || headerEnd >= end) return { chars: [], offsets: [] };
   const header = src
-      .slice(start, headerEnd)
-      .replace(/\s+#.*$/, '')
-      .trim(),
-    folded = header[0] === '>';
-  const indicator = /[1-9]/.exec(header)?.[0],
-    chomp = header.includes('-') ? 'strip' : header.includes('+') ? 'keep' : 'clip';
+    .slice(start, headerEnd)
+    .replace(/\s+#.*$/, '')
+    .trim();
+  const folded = header[0] === '>';
+  const indicator = /[1-9]/.exec(header)?.[0];
+  const chomp = header.includes('-') ? 'strip' : header.includes('+') ? 'keep' : 'clip';
   let ls = lines(src, headerEnd + 1, end);
   if (ls.length && ls[ls.length - 1].at === end && ls[ls.length - 1].text === '')
     ls = ls.slice(0, -1);
   let indent: number;
   if (indicator) {
-    const lineStart = src.lastIndexOf('\n', start - 1) + 1,
-      keyLine = src.slice(lineStart, start);
+    const lineStart = src.lastIndexOf('\n', start - 1) + 1;
+    const keyLine = src.slice(lineStart, start);
     indent = keyLine.length - keyLine.trimStart().length + Number(indicator);
   } else {
     const first = ls.find(l => l.text.trim().length);
@@ -313,10 +313,10 @@ function block(src: string, node: Scalar<string>): { chars: string[]; offsets: n
   }));
   let lastContent = content.length - 1;
   while (lastContent >= 0 && !content[lastContent].text.length) lastContent--;
-  const chars: string[] = [],
-    offsets: number[] = [];
-  let prev = -1,
-    empties: number[] = [];
+  const chars: string[] = [];
+  const offsets: number[] = [];
+  let prev = -1;
+  let empties: number[] = [];
   for (let i = 0; i <= lastContent; i++) {
     const c = content[i];
     if (!c.text.length) {
@@ -398,8 +398,8 @@ export function offsetMap(src: string, node: Scalar<string>): Map_ {
 }
 // 1-based line and column of a file offset.
 export function lineColumn(src: string, offset: number) {
-  let line = 1,
-    last = -1;
+  let line = 1;
+  let last = -1;
   for (let i = 0; i < offset && i < src.length; i++)
     if (src[i] === '\n') {
       line++;

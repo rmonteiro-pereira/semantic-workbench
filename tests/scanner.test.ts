@@ -74,10 +74,10 @@ test('indexing validates with the shared rules and keeps invalid supported files
 test('the scanner lists files through git ls-files, honours .gitignore and hides unsupported types', async () => {
   const d = tempDataDir();
   try {
-    const layout = dataLayout(d.root),
-      git = createGit({ projectsRoot: layout.projects }),
-      cache = createCache(layout.cache),
-      dir = join(layout.projects, 'p');
+    const layout = dataLayout(d.root);
+    const git = createGit({ projectsRoot: layout.projects });
+    const cache = createCache(layout.cache);
+    const dir = join(layout.projects, 'p');
     mkdirSync(join(dir, 'nested'), { recursive: true });
     await git.init(dir);
     writeFileSync(join(dir, 'a.yaml'), 'name: T\nontology: [{concept: A}]');
@@ -113,9 +113,9 @@ test('the scanner lists files through git ls-files, honours .gitignore and hides
 test('without Git the scanner walks the folder and skips .git', async () => {
   const d = tempDataDir();
   try {
-    const layout = dataLayout(d.root),
-      cache = createCache(layout.cache),
-      dir = join(layout.projects, 'p');
+    const layout = dataLayout(d.root);
+    const cache = createCache(layout.cache);
+    const dir = join(layout.projects, 'p');
     mkdirSync(join(dir, '.git'), { recursive: true });
     writeFileSync(join(dir, '.git', 'config'), 'x');
     writeFileSync(join(dir, 'a.yaml'), 'name: T\nontology: [{concept: A}]');

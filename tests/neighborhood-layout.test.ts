@@ -8,8 +8,8 @@ test('the center is in the middle column, incoming on the left and outgoing on t
   for (const id of ['i1', 'i2']) expect(p.get(id)!.x).toBeLessThan(0);
   for (const id of ['o1', 'o2', 'o3']) expect(p.get(id)!.x).toBeGreaterThan(0);
   expect(p.get('b1')!.x).toBe(-NEIGHBOR_COLUMN);
-  const ys = [...p.values()].map(v => v.y),
-    mid = (Math.min(...ys) + Math.max(...ys)) / 2;
+  const ys = [...p.values()].map(v => v.y);
+  const mid = (Math.min(...ys) + Math.max(...ys)) / 2;
   expect(Math.abs(p.get('c')!.y - mid)).toBeLessThan(1);
   const many = neighborhoodLayout(
     'c',
@@ -41,13 +41,13 @@ function shared(a: [number, number][], b: [number, number][]) {
   return false;
 }
 test('no two edges share a path, including long and backward ones; labels sit apart', () => {
-  const center = 'c',
-    incoming = ['i1', 'i2', 'i3', 'i4', 'i5', 'i6', 'i7'],
-    outgoing = ['o1', 'o2', 'o3'];
-  const pos = neighborhoodLayout(center, incoming, outgoing),
-    boxes = new Map<string, Box>(
-      [...pos].map(([id, p]) => [id, { x: p.x, y: p.y, width: 250, height: 96 }]),
-    );
+  const center = 'c';
+  const incoming = ['i1', 'i2', 'i3', 'i4', 'i5', 'i6', 'i7'];
+  const outgoing = ['o1', 'o2', 'o3'];
+  const pos = neighborhoodLayout(center, incoming, outgoing);
+  const boxes = new Map<string, Box>(
+    [...pos].map(([id, p]) => [id, { x: p.x, y: p.y, width: 250, height: 96 }]),
+  );
   const edges = [
     ...incoming.map(i => ({ id: i + '>c', source: i, target: 'c' })),
     ...outgoing.map(o => ({ id: 'c>' + o, source: 'c', target: o })),
@@ -61,8 +61,8 @@ test('no two edges share a path, including long and backward ones; labels sit ap
   const routes = assignRoutes(edges, boxes);
   expect(routes.size).toBe(edges.length);
   const paths = edges.map(e => {
-    const s = boxes.get(e.source)!,
-      t = boxes.get(e.target)!;
+    const s = boxes.get(e.source)!;
+    const t = boxes.get(e.target)!;
     return {
       id: e.id,
       ...routePoints(s.x + s.width, s.y + s.height / 2, t.x, t.y + t.height / 2, routes.get(e.id)!),

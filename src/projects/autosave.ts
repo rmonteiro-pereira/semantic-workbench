@@ -200,12 +200,12 @@ const idle = (fn: () => void) => {
   else setTimeout(fn, 0);
 };
 export function useAutosave(o: AutosaveOptions) {
-  const ref = useRef<AutosaveState>(initialAutosave),
-    [state, setState] = useState<AutosaveState>(initialAutosave);
+  const ref = useRef<AutosaveState>(initialAutosave);
+  const [state, setState] = useState<AutosaveState>(initialAutosave);
   const opts = useRef(o);
   opts.current = o;
-  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined),
-    waiters = useRef<(() => void)[]>([]);
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const waiters = useRef<(() => void)[]>([]);
   const settle = () => {
     if (ref.current.inFlight === null && !timer.current) {
       const w = waiters.current;
@@ -225,8 +225,8 @@ export function useAutosave(o: AutosaveOptions) {
   }, []);
   async function fire() {
     timer.current = undefined;
-    const text = ref.current.text,
-      file = ref.current.file;
+    const text = ref.current.text;
+    const file = ref.current.file;
     let errors = 0;
     try {
       errors = await opts.current.validate(text);

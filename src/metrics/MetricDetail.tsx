@@ -18,10 +18,10 @@ export function MetricDetail({
   all: KpiSummary[];
   onEdit?: () => void;
 }) {
-  const [query, setQuery] = useState<ExplainQuery>({}),
-    [explanation, setExplanation] = useState<KpiExplanation | null>(null),
-    [error, setError] = useState(''),
-    [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState<ExplainQuery>({});
+  const [explanation, setExplanation] = useState<KpiExplanation | null>(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
     const abort = new AbortController();
     setLoading(true);
@@ -47,8 +47,8 @@ export function MetricDetail({
     JSON.stringify(kpi.extension),
     JSON.stringify(query),
   ]);
-  const measures = kpi.concepts.filter(c => c.role === 'measures'),
-    of = kpi.concepts.filter(c => c.role === 'of');
+  const measures = kpi.concepts.filter(c => c.role === 'measures');
+  const of = kpi.concepts.filter(c => c.role === 'of');
   const problems = [...new Set(kpi.concepts.flatMap(c => c.problems))];
   return (
     <article className="kpi-detail">

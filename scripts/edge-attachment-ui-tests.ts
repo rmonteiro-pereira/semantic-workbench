@@ -2,8 +2,8 @@ import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { inspect } from '../src/model';
 import { groupRelationships } from '../src/graph-view';
-const filename = 'flights.ontology.yaml',
-  source = await Bun.file('public/examples/ossie/' + filename).text();
+const filename = 'flights.ontology.yaml';
+const source = await Bun.file('public/examples/ossie/' + filename).text();
 const api = await startIsolatedApi();
 await api.ws.importBatch({ files: [{ path: filename, source }] });
 const links = groupRelationships(inspect(source, filename).edges).map(e => ({
@@ -25,8 +25,8 @@ async function check(name: string, run: () => Promise<void>) {
 async function distances() {
   return page.evaluate(links => {
     const borderDistance = (p: { x: number; y: number }, r: DOMRect) => {
-      const outsideX = Math.max(r.left - p.x, 0, p.x - r.right),
-        outsideY = Math.max(r.top - p.y, 0, p.y - r.bottom);
+      const outsideX = Math.max(r.left - p.x, 0, p.x - r.right);
+      const outsideY = Math.max(r.top - p.y, 0, p.y - r.bottom);
       return outsideX || outsideY
         ? Math.hypot(outsideX, outsideY)
         : Math.min(p.x - r.left, r.right - p.x, p.y - r.top, r.bottom - p.y);
@@ -41,8 +41,8 @@ async function distances() {
         [...document.querySelectorAll('.react-flow__node')]
           .find(n => n.getAttribute('data-id') === id)
           ?.querySelector('.full-entity');
-      const a = node(link.source),
-        b = node(link.target);
+      const a = node(link.source);
+      const b = node(link.target);
       if (!path || !a || !b) continue;
       const m = path.getScreenCTM();
       if (!m) continue;
@@ -91,9 +91,9 @@ async function targetSelector(selector: string) {
     const candidate = candidates.nth(i);
     if (
       await candidate.evaluate(n => {
-        const r = n.getBoundingClientRect(),
-          x = r.x + Math.min(r.width / 2, 60),
-          y = r.y + Math.min(r.height / 2, 18);
+        const r = n.getBoundingClientRect();
+        const x = r.x + Math.min(r.width / 2, 60);
+        const y = r.y + Math.min(r.height / 2, 18);
         return (
           document.elementFromPoint(x, y)?.closest('.react-flow__node') ===
           n.closest('.react-flow__node')
@@ -109,8 +109,8 @@ async function drag(page: Page, selector: string, dx: number, dy: number) {
   await expect(target).toBeVisible();
   const r = await target.boundingBox();
   if (!r) throw Error('Missing drag bounds');
-  const x = r.x + Math.min(r.width / 2, 60),
-    y = r.y + Math.min(r.height / 2, 18);
+  const x = r.x + Math.min(r.width / 2, 60);
+  const y = r.y + Math.min(r.height / 2, 18);
   await page.mouse.move(x, y);
   await page.mouse.down();
   try {

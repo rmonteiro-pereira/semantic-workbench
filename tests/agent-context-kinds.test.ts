@@ -93,8 +93,8 @@ test('every binding has a kind; links, referents and objects are told apart (map
   expect(at(['concept_mappings', 2, 'object_mappings', 0]).kind).toBe('object');
 });
 test('embedded mappings (Flights consolidated) carry kinds too, and the same kinds as the standalone mapping', () => {
-  const embedded = all.flights.find(x => x.embedded)!.context,
-    standalone = all.flights.find(x => x.filename === 'flights.mapping.yaml')!.context;
+  const embedded = all.flights.find(x => x.embedded)!.context;
+  const standalone = all.flights.find(x => x.filename === 'flights.mapping.yaml')!.context;
   for (const b of embedded.bindings) expect(['object', 'referent', 'link']).toContain(b.kind);
   const kinds = (c: any) =>
     c.bindings.map((b: any) => `${b.concept}|${b.expression}|${b.kind}`).sort();
@@ -134,8 +134,8 @@ test('metricBindings findings: an unknown metric or concept is reported on its b
       '{"metric":"no_such_metric","measures":"kpi:BilledAmount","of":"NoSuchConcept"}',
     ),
   });
-  const catalog = await (await t.handler(req('/api/agent/catalog'))).json(),
-    id = catalog.mappings.find((m: any) => m.filename === 'mall.mapping.yaml').id;
+  const catalog = await (await t.handler(req('/api/agent/catalog'))).json();
+  const id = catalog.mappings.find((m: any) => m.filename === 'mall.mapping.yaml').id;
   const c = await (
     await t.handler(req('/api/agent/context?mappingId=' + encodeURIComponent(id)))
   ).json();

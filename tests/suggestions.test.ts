@@ -35,8 +35,8 @@ test('evidence kinds: ossie-ref-name, shared-iri, odcs-physical-name; never simi
     hash: path,
     facts: { names: [], refs: [], iris: [], physical: [], sources: [], ...facts },
   });
-  const a = f('p', 'm.yaml', { refs: ['Flights'] }),
-    b = f('q', 'o.yaml', { names: ['Flights'] });
+  const a = f('p', 'm.yaml', { refs: ['Flights'] });
+  const b = f('q', 'o.yaml', { names: ['Flights'] });
   expect(evidenceBetween(a, b).map(e => e.kind)).toEqual(['ossie-ref-name']);
   expect(evidenceBetween(b, a).map(e => e.kind)).toEqual(['ossie-ref-name']);
   expect(evidenceBetween(f('p', 'x', { refs: ['Flight'] }), b)).toEqual([]);

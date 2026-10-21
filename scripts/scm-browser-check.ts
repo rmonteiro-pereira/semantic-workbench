@@ -13,11 +13,11 @@ import { example } from './helpers/examples';
 // banner. Isolated data roots; screenshots in /tmp/workbench-scm-*.png.
 const api = await startIsolatedApi();
 const commerce = await api.ws.loadExample('commerce');
-const dir = projectDir(api.ws.layout, commerce.slug),
-  file = 'commerce-business.ossie.yaml';
-const extra = mkdtempSync(join(tmpdir(), 'workbench-remote-')),
-  bare = join(extra, 'remote.git'),
-  other = join(extra, 'other');
+const dir = projectDir(api.ws.layout, commerce.slug);
+const file = 'commerce-business.ossie.yaml';
+const extra = mkdtempSync(join(tmpdir(), 'workbench-remote-'));
+const bare = join(extra, 'remote.git');
+const other = join(extra, 'other');
 const sh = (cwd: string, args: string[]) => {
   const r = Bun.spawnSync(['git', ...args], {
     cwd,
@@ -373,11 +373,9 @@ try {
           .getByRole('group', { name: 'Remote' })
           .getByRole('button', { name: 'Fetch' })
           .click();
-        const waiting = panel()
-          .getByRole('status')
-          .filter({
-            hasText: 'Waiting for Git (credentials may be requested in a separate window)',
-          });
+        const waiting = panel().getByRole('status').filter({
+          hasText: 'Waiting for Git (credentials may be requested in a separate window)',
+        });
         await expect(waiting).toBeVisible();
         await page.screenshot({ path: '/tmp/workbench-scm-waiting.png' });
         await waiting.getByRole('button', { name: 'Cancel' }).click();

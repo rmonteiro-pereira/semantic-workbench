@@ -30,13 +30,7 @@ import { createWatcher } from './watcher';
 import { migrateLegacy, type MigrationReport } from './migration';
 import { createTrash } from './trash';
 import { createScm } from './scm';
-import {
-  factsOf,
-  inferSuggestions,
-  evidenceBetween,
-  type FileFacts,
-  type IndexedFile,
-} from './suggestions';
+import { factsOf, inferSuggestions, type FileFacts, type IndexedFile } from './suggestions';
 import { ConflictError, OccupiedError } from './errors';
 // The folder store: project folders under data/projects/ are the source of truth, state files hold
 // what must survive, the SQLite cache is rebuilt from the folders whenever it is missing.
@@ -90,17 +84,17 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   const layout: DataLayout = dataLayout(options.root);
   for (const dir of [layout.projects, layout.state, layout.trash, layout.backup])
     mkdirSync(dir, { recursive: true });
-  const state = createState(layout),
-    journal = createJournal(layout, options.journalHooks),
-    events = createEvents();
+  const state = createState(layout);
+  const journal = createJournal(layout, options.journalHooks);
+  const events = createEvents();
   // Project folders resolve through the registry (research R10); unregistered slugs are their own folder.
   layout.locate = slug => {
     const e = state.registry().projects.find(p => p.slug === slug);
     return e ? locationOf(e) : undefined;
   };
   const git = createGit({ projectsRoot: layout.projects, binary: options.gitBinary });
-  const gitAvailable = await git.available(),
-    identityConfigured = gitAvailable && (await git.identity());
+  const gitAvailable = await git.available();
+  const identityConfigured = gitAvailable && (await git.identity());
   const recovery: RecoveryOutcome[] = journal.recover();
   const migration: MigrationReport | null = await migrateLegacy(
     { layout, state, journal, git, gitAvailable, identityConfigured },
@@ -174,8 +168,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       projects().map(p => p.slug),
     );
   }
-  let openSuggestions = -1,
-    suggestionTimer: ReturnType<typeof setTimeout> | undefined;
+  let openSuggestions = -1;
+  let suggestionTimer: ReturnType<typeof setTimeout> | undefined;
   function notifySuggestions() {
     clearTimeout(suggestionTimer);
     suggestionTimer = setTimeout(() => {
@@ -197,24 +191,24 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     preferredSlug?: string,
   ) {
     return lock('registry', async () => {
-      const current = projects(),
-        finalName = uniqueName(
-          name,
-          current.map(p => p.name),
-        );
+      const current = projects();
+      const finalName = uniqueName(
+        name,
+        current.map(p => p.name),
+      );
       const taken = new Set(current.map(p => p.slug));
       for (const s of safeDirs(layout.projects)) taken.add(s);
       const slug =
         preferredSlug && !taken.has(preferredSlug) ? preferredSlug : slugify(finalName, taken);
-      const opId = journal.newId(),
-        staging = join(layout.projects, `.staging-${opId}`),
-        stagedProject = join(staging, slug),
-        stateStaging = join(layout.state, `.staging-${opId}`);
+      const opId = journal.newId();
+      const staging = join(layout.projects, `.staging-${opId}`);
+      const stagedProject = join(staging, slug);
+      const stateStaging = join(layout.state, `.staging-${opId}`);
       try {
         mkdirSync(stagedProject, { recursive: true });
         for (const f of files) {
-          const bytes = encode(f.source),
-            file = join(stagedProject, f.path);
+          const bytes = encode(f.source);
+          const file = join(stagedProject, f.path);
           atomicWrite(file, bytes);
           if (sha256(readFileSync(file)) !== sha256(bytes))
             throw Error(`Could not verify ${f.path} after writing.`);
@@ -272,8 +266,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   function preflight(files: ImportFile[]) {
     if (!Array.isArray(files) || !files.length || files.length > 500)
       throw Error('Expected 1–500 files.');
-    const paths = new Set<string>(),
-      issues: Issue[] = [];
+    const paths = new Set<string>();
+    const issues: Issue[] = [];
     for (const f of files) {
       if (!f || typeof f.path !== 'string' || typeof f.source !== 'string')
         throw Error('Each file needs a path and source text.');
@@ -316,9 +310,9 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     } catch {
       throw new NotFoundError('File not found.');
     }
-    const p = projectPath(path),
-      hash = sha256(bytes),
-      cached = cache.file(slug, p);
+    const p = projectPath(path);
+    const hash = sha256(bytes);
+    const cached = cache.file(slug, p);
     return {
       path: p,
       source: decode(bytes),
@@ -337,8 +331,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     body: { baseHash: string | null; source?: string; patches?: Patch[] },
   ) {
     entry(slug);
-    const p = projectPath(path),
-      file = projectFile(layout, slug, p);
+    const p = projectPath(path);
+    const file = projectFile(layout, slug, p);
     return lock('project:' + slug, async () => {
       let current: Uint8Array | null = null;
       try {
@@ -397,10 +391,10 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         if (f.baseHash !== currentHash)
           throw new StaleError(currentHash, current ? decode(current) : null);
         const next =
-            f.source !== undefined
-              ? f.source
-              : applyPatches(current ? decode(current) : '', f.patches ?? []),
-          bytes = encode(next);
+          f.source !== undefined
+            ? f.source
+            : applyPatches(current ? decode(current) : '', f.patches ?? []);
+        const bytes = encode(next);
         if (bytes.length > MAX_INPUT_BYTES)
           throw new InputError([
             {
@@ -426,8 +420,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
           );
         return { ...f, file, exists: !!current, bytes, findings: indexed.findings };
       });
-      const opId = journal.newId(),
-        staging = join(layout.projects, `.staging-${opId}`);
+      const opId = journal.newId();
+      const staging = join(layout.projects, `.staging-${opId}`);
       try {
         const steps: { from: string; to: string }[] = [];
         prepared.forEach((f, i) => {
@@ -617,15 +611,15 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     if (onConflict !== undefined && onConflict !== 'replace' && onConflict !== 'keep-both')
       throw Error('onConflict must be replace or keep-both.');
     return lock('project:' + slug, async () => {
-      const dir = projectDir(layout, slug),
-        existing = new Set(cache.files(slug).map(f => f.path));
+      const dir = projectDir(layout, slug);
+      const existing = new Set(cache.files(slug).map(f => f.path));
       for (const f of batch) if (existsSync(join(dir, f.path))) existing.add(f.path);
       const conflicts = batch.filter(f => existing.has(f.path)).map(f => f.path);
       if (conflicts.length && !onConflict) throw new ConflictError(conflicts);
-      const opId = journal.newId(),
-        staging = join(layout.projects, `.staging-${opId}`),
-        steps: { from: string; to: string }[] = [],
-        written: { path: string; hash: string }[] = [];
+      const opId = journal.newId();
+      const staging = join(layout.projects, `.staging-${opId}`);
+      const steps: { from: string; to: string }[] = [];
+      const written: { path: string; hash: string }[] = [];
       const taken = new Set([...existing, ...batch.map(f => f.path)]);
       try {
         for (const f of batch) {
@@ -673,9 +667,9 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     if (p !== undefined && !cache.file(slug, p)) throw new NotFoundError('File not found.');
     const removed = (f: { project: string; path: string }) =>
       f.project === slug && (p === undefined || f.path === p);
-    const all = indexedFiles(),
-      gone = all.filter(removed),
-      kept = all.filter(f => !removed(f));
+    const all = indexedFiles();
+    const gone = all.filter(removed);
+    const kept = all.filter(f => !removed(f));
     const brokenReferences: {
       from: { project: string; path: string };
       to: { project: string; path: string };
@@ -748,8 +742,12 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       if (baseHash !== null && (typeof baseHash !== 'string' || !/^[0-9a-f]{64}$/.test(baseHash)))
         throw Error('baseHash must be a SHA-256 hex digest or null.');
       if (!gitAvailable) throw Error('Git is not available on this machine.');
-      const p = projectPath(path),
-        committed = await git.blob(repoDir(layout, slug), 'HEAD', projectPrefix(layout, slug) + p);
+      const p = projectPath(path);
+      const committed = await git.blob(
+        repoDir(layout, slug),
+        'HEAD',
+        projectPrefix(layout, slug) + p,
+      );
       const r = await trash.revertFile(slug, p, baseHash as string | null, committed);
       try {
         await scm.refresh(slug);
@@ -845,13 +843,13 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     },
     renameProject: (slug: string, name: unknown) =>
       lock('registry', () => {
-        const current = projects(),
-          p = entry(slug),
-          value = projectName(
-            name,
-            current.map(x => x.name),
-            p.name,
-          );
+        const current = projects();
+        const p = entry(slug);
+        const value = projectName(
+          name,
+          current.map(x => x.name),
+          p.name,
+        );
         state.writeRegistry(current.map(x => (x.slug === slug ? { ...x, name: value } : x)));
         events.emit('projects', { added: [], removed: [], renamed: [{ slug, name: value }] });
         return { slug, name: value };
@@ -868,8 +866,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         const path = projectPath(filename);
         preflight([{ path, source }]);
         if (!target) target = await createProjectFolder('Ungrouped', 'import', [], 'ungrouped');
-        const taken = new Set(cache.files(target.slug).map(f => f.path)),
-          free = disambiguate(path, taken);
+        const taken = new Set(cache.files(target.slug).map(f => f.path));
+        const free = disambiguate(path, taken);
         await saveFile(target.slug, free, { baseHash: null, source });
         return documents().find(d => d.project === target!.slug && d.path === free)!;
       }

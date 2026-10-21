@@ -8,9 +8,9 @@ import { projectDir, projectFile } from '../server/projects/paths';
 // in-place property edits that change only the edited value. Isolated data root; screenshots in
 // /tmp/workbench-odcs-*.png.
 const api = await startIsolatedApi();
-const commerce = await api.ws.loadExample('commerce'),
-  mall = await api.ws.loadExample('mall'),
-  ubl = await api.ws.loadExample('ubl');
+const commerce = await api.ws.loadExample('commerce');
+const mall = await api.ws.loadExample('mall');
+await api.ws.loadExample('ubl');
 const git = async (slug: string, args: string[]) =>
   (await api.ws.git.run(projectDir(api.ws.layout, slug), args)).stdout;
 const read = (slug: string, path: string) =>
@@ -350,12 +350,10 @@ try {
       const desc = table.getByLabel('Description of amount');
       await desc.fill('Order total in USD, after discounts.');
       await desc.press('Enter');
-      await expect
-        .poll(diff)
-        .toEqual({
-          removed: ['        description: Order amount in USD.', '        required: true'],
-          added: ['        description: Order total in USD, after discounts.'],
-        });
+      await expect.poll(diff).toEqual({
+        removed: ['        description: Order amount in USD.', '        required: true'],
+        added: ['        description: Order total in USD, after discounts.'],
+      });
       // Wait until the page has the saved version's hash before the next edit (the file on disk can
       // change before the save response arrives; an edit in between is correctly refused as stale).
       await expect(page.locator('main > .status')).toContainText('Saved description of amount');

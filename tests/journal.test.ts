@@ -6,8 +6,8 @@ import { createJournal } from '../server/projects/journal';
 import { dataLayout } from '../server/projects/paths';
 import { tempDataDir } from './helpers/temp-data-dir';
 function setup() {
-  const d = tempDataDir(),
-    layout = dataLayout(d.root);
+  const d = tempDataDir();
+  const layout = dataLayout(d.root);
   mkdirSync(layout.journal, { recursive: true });
   mkdirSync(join(d.root, 's'), { recursive: true });
   return { d, layout, j: createJournal(layout), f: (p: string) => join(d.root, p) };

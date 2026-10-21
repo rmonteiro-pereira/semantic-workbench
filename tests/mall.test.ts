@@ -10,9 +10,9 @@ test('shopping center example: every file validates and governed KPIs match inde
   expect(r.counts.entityTypes).toBe(145);
 });
 test('shopping center ontology groups by its eleven module namespaces', async () => {
-  const source = await Bun.file('public/examples/mall/mall.ontology.yaml').text(),
-    m = inspect(source, 'mall.ontology.yaml'),
-    o = modelOverview(m.entities, m.edges, m.name);
+  const source = await Bun.file('public/examples/mall/mall.ontology.yaml').text();
+  const m = inspect(source, 'mall.ontology.yaml');
+  const o = modelOverview(m.entities, m.edges, m.name);
   expect(o.mode).toBe('namespaces');
   expect(
     o.groups

@@ -86,8 +86,8 @@ test('empty message and path escapes are refused; commit with paths is refused d
 test('revert restores the last committed bytes and keeps the replaced version in the trash', async () => {
   const p = await scmProject({ remote: false });
   try {
-    const committed = readFileSync(join(p.dir, 'shop.yaml'), 'utf8'),
-      mine = ontology('My edit.');
+    const committed = readFileSync(join(p.dir, 'shop.yaml'), 'utf8');
+    const mine = ontology('My edit.');
     p.write('shop.yaml', mine);
     expect(
       (
@@ -136,8 +136,8 @@ test('an interrupted revert is completed on the next start', async () => {
       files: [{ path: 'shop.yaml', source: ontology('Committed.') }],
     }),
   );
-  const dir = join(root, 'projects', created.slug),
-    mine = ontology('Mine.');
+  const dir = join(root, 'projects', created.slug);
+  const mine = ontology('Mine.');
   writeFileSync(join(dir, 'shop.yaml'), mine);
   crash.on = true;
   const r = await call(t, 'POST', `/api/projects/${created.slug}/git/revert`, {

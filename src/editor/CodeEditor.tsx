@@ -50,17 +50,17 @@ type Props = {
 const external = Annotation.define<boolean>();
 // Shown when a file is loaded; new line breaks take the file's main style, so the label stays true.
 const lineEndingLabel = (text: string) => {
-  const crlf = /\r\n/.test(text),
-    lf = /(^|[^\r])\n/.test(text),
-    cr = /\r(?!\n)/.test(text),
-    kind =
-      [crlf, lf, cr].filter(Boolean).length > 1
-        ? 'Mixed line endings'
-        : crlf
-          ? 'CRLF'
-          : cr
-            ? 'CR'
-            : 'LF';
+  const crlf = /\r\n/.test(text);
+  const lf = /(^|[^\r])\n/.test(text);
+  const cr = /\r(?!\n)/.test(text);
+  const kind =
+    [crlf, lf, cr].filter(Boolean).length > 1
+      ? 'Mixed line endings'
+      : crlf
+        ? 'CRLF'
+        : cr
+          ? 'CR'
+          : 'LF';
   return kind === 'Mixed line endings'
     ? `${kind} · new lines ${({ '\r\n': 'CRLF', '\n': 'LF', '\r': 'CR' } as const)[dominantLineBreak(text)]}`
     : kind;
@@ -69,29 +69,29 @@ export const CodeEditor = forwardRef<CodeEditorHandle, Props>(function CodeEdito
   { value, filename, onChange, ariaLabel, disabled = false, className = '', onIssues, validate },
   ref,
 ) {
-  const host = useRef<HTMLDivElement>(null),
-    view = useRef<EditorView | null>(null),
-    lineInput = useRef<HTMLInputElement>(null);
-  const bytes = useRef(value),
-    hasCR = useRef(value.includes('\r'));
+  const host = useRef<HTMLDivElement>(null);
+  const view = useRef<EditorView | null>(null);
+  const lineInput = useRef<HTMLInputElement>(null);
+  const bytes = useRef(value);
+  const hasCR = useRef(value.includes('\r'));
   const [eol, setEol] = useState(() => lineEndingLabel(value));
   const props = useRef({ onChange, onIssues, filename, validate });
   props.current = { onChange, onIssues, filename, validate };
-  const language = useRef(new Compartment()),
-    editable = useRef(new Compartment());
-  const [documentLevel, setDocumentLevel] = useState<Issue[]>([]),
-    [cursor, setCursor] = useState({ line: 1, column: 1 }),
-    [checking, setChecking] = useState(false);
-  const head = value.slice(0, 400),
-    syntax = useMemo(() => syntaxFor(filename, head), [filename, head]);
+  const language = useRef(new Compartment());
+  const editable = useRef(new Compartment());
+  const [documentLevel, setDocumentLevel] = useState<Issue[]>([]);
+  const [cursor, setCursor] = useState({ line: 1, column: 1 });
+  const [checking, setChecking] = useState(false);
+  const head = value.slice(0, 400);
+  const syntax = useMemo(() => syntaxFor(filename, head), [filename, head]);
   useEffect(() => {
     const lint = linter(
       async v => {
         setChecking(true);
-        const text = v.state.doc.toString(),
-          issues = await (props.current.validate
-            ? props.current.validate(text)
-            : validateInWorker(text, props.current.filename));
+        const text = v.state.doc.toString();
+        const issues = await (props.current.validate
+          ? props.current.validate(text)
+          : validateInWorker(text, props.current.filename));
         setChecking(false);
         if (v.state.doc.toString() !== text) return [];
         const { diagnostics, documentLevel } = toDiagnostics(issues, v.state.doc);
@@ -145,8 +145,8 @@ export const CodeEditor = forwardRef<CodeEditorHandle, Props>(function CodeEdito
         }),
         EditorView.updateListener.of(update => {
           if (update.selectionSet || update.docChanged) {
-            const head = update.state.selection.main.head,
-              line = update.state.doc.lineAt(head);
+            const head = update.state.selection.main.head;
+            const line = update.state.doc.lineAt(head);
             setCursor({ line: line.number, column: head - line.from + 1 });
           }
           if (!update.docChanged || update.transactions.some(tr => tr.annotation(external))) return;
@@ -193,8 +193,8 @@ export const CodeEditor = forwardRef<CodeEditorHandle, Props>(function CodeEdito
     bytes.current = value;
     hasCR.current = value.includes('\r');
     setEol(lineEndingLabel(value));
-    const next = normalize(value),
-      current = v.state.doc.toString();
+    const next = normalize(value);
+    const current = v.state.doc.toString();
     if (next !== current) {
       let a = 0;
       while (a < next.length && a < current.length && next[a] === current[a]) a++;
@@ -226,8 +226,8 @@ export const CodeEditor = forwardRef<CodeEditorHandle, Props>(function CodeEdito
   const goToLine = (line: number, column = 1) => {
     const v = view.current;
     if (!v) return;
-    const l = v.state.doc.line(Math.max(1, Math.min(v.state.doc.lines, line))),
-      pos = Math.min(l.to, l.from + Math.max(0, column - 1));
+    const l = v.state.doc.line(Math.max(1, Math.min(v.state.doc.lines, line)));
+    const pos = Math.min(l.to, l.from + Math.max(0, column - 1));
     v.dispatch({
       selection: EditorSelection.range(l.to > pos ? l.to : pos, pos),
       effects: EditorView.scrollIntoView(pos, { y: 'center' }),

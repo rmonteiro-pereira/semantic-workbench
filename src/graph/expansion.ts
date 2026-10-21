@@ -53,8 +53,8 @@ export function canvasOf(
       }
     }
   }
-  const nodes = [...base],
-    seen = new Set(base);
+  const nodes = [...base];
+  const seen = new Set(base);
   for (const s of active)
     for (const n of [s.from, ...s.nodes])
       if (!seen.has(n)) {

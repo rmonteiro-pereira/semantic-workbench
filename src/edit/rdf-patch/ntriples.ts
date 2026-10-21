@@ -18,8 +18,8 @@ export function readLines(src: string): Line[] {
   const re = /[^\r\n]*(\r\n|\r|\n|$)/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(src)) && m[0].length) {
-    const text = m[0].replace(/\r?\n$|\r$/, ''),
-      start = m.index;
+    const text = m[0].replace(/\r?\n$|\r$/, '');
+    const start = m.index;
     let triple: Triple | null = null;
     if (text.trim() && !text.trim().startsWith('#')) {
       const q = new Parser({ format: 'N-Triples', baseIRI: BASE, blankNodePrefix: '' }).parse(text);
@@ -54,8 +54,8 @@ export function ntPatches(
         i => lines[i].triple?.s.value === subject && lines[i].triple?.s.termType === 'NamedNode',
       )
       .at(-1);
-    const at = last !== undefined ? lines[last].end : src.length,
-      needsBreak = at > 0 && !/[\r\n]$/.test(src.slice(0, at));
+    const at = last !== undefined ? lines[last].end : src.length;
+    const needsBreak = at > 0 && !/[\r\n]$/.test(src.slice(0, at));
     patches.push({
       from: at,
       to: at,

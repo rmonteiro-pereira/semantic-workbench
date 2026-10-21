@@ -9,11 +9,11 @@ export async function neighborhoodEdgeProblems(page: Page) {
       .map(g => {
         const path = g.querySelector('path.react-flow__edge-path') as SVGPathElement | null;
         if (!path) return null;
-        const ctm = path.getScreenCTM()!,
-          pt = (x: number, y: number) => {
-            const p = new DOMPoint(x, y).matrixTransform(ctm);
-            return [p.x, p.y] as [number, number];
-          };
+        const ctm = path.getScreenCTM()!;
+        const pt = (x: number, y: number) => {
+          const p = new DOMPoint(x, y).matrixTransform(ctm);
+          return [p.x, p.y] as [number, number];
+        };
         const tokens = (path.getAttribute('d') ?? '').match(/[MLQ]|-?\d*\.?\d+(?:e-?\d+)?/g) ?? [];
         const segments: [[number, number], [number, number]][] = [];
         let current: [number, number] | null = null;
@@ -38,8 +38,8 @@ export async function neighborhoodEdgeProblems(page: Page) {
       for (let j = i + 1; j < edges.length; j++)
         for (const [p, q] of edges[i].segments)
           for (const [r, s] of edges[j].segments) {
-            const horizontal = near(p[1], q[1]) && near(r[1], s[1]) && near(p[1], r[1]),
-              vertical = near(p[0], q[0]) && near(r[0], s[0]) && near(p[0], r[0]);
+            const horizontal = near(p[1], q[1]) && near(r[1], s[1]) && near(p[1], r[1]);
+            const vertical = near(p[0], q[0]) && near(r[0], s[0]) && near(p[0], r[0]);
             const k = horizontal ? 0 : vertical ? 1 : -1;
             if (k < 0) continue;
             const overlap =
@@ -55,8 +55,8 @@ export async function neighborhoodEdgeProblems(page: Page) {
     ].map(l => ({ text: l.textContent, box: l.getBoundingClientRect() }));
     for (let i = 0; i < labels.length; i++)
       for (let j = i + 1; j < labels.length; j++) {
-        const a = labels[i].box,
-          b = labels[j].box;
+        const a = labels[i].box;
+        const b = labels[j].box;
         if (
           a.left < b.right - 1 &&
           b.left < a.right - 1 &&

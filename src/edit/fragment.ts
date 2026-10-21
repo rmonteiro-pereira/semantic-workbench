@@ -24,8 +24,8 @@ export type Fragment = {
 export function openFragment(base: string, path: Path): Fragment {
   const node: any = parseSource(base).getIn(path, true);
   if (!node?.range) throw Error(`Nothing at /${path.join('/')}.`);
-  const span = itemSpan(base, node.range[0], node.range[1]),
-    { text, prefix } = dedent(base.slice(span.from, span.to), span.prefix);
+  const span = itemSpan(base, node.range[0], node.range[1]);
+  const { text, prefix } = dedent(base.slice(span.from, span.to), span.prefix);
   return {
     from: span.from,
     to: span.to,
@@ -56,8 +56,8 @@ export function fragmentValue(f: Fragment, text: string): { value?: any; error?:
 // Findings of the whole draft, on the fragment's lines; errors elsewhere stay document-level (they
 // block Save too), warnings elsewhere are about the rest of the file and are left out.
 export function fragmentIssues(issues: Issue[], f: Fragment, text: string): Issue[] {
-  const lines = text.split(/\r\n|\r|\n/).length,
-    inside = (i: Issue) => i.line !== undefined && i.line >= f.line && i.line < f.line + lines;
+  const lines = text.split(/\r\n|\r|\n/).length;
+  const inside = (i: Issue) => i.line !== undefined && i.line >= f.line && i.line < f.line + lines;
   return issues
     .filter(i => i.severity === 'error' || inside(i))
     .map(i => {
@@ -87,8 +87,8 @@ export function setField(
 ) {
   const current = fragmentValue(f, text);
   if (!current.value) return { text, reopened: false };
-  let next = writeField(current.value, spec, fieldValue(spec, input)),
-    reopened = false;
+  let next = writeField(current.value, spec, fieldValue(spec, input));
+  let reopened = false;
   if (kind === 'metric') {
     const r = applyStatusRules(original, next);
     next = r.item;

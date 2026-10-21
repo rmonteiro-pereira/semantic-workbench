@@ -16,20 +16,20 @@ export type LineagePierceResult = {
   steps: Record<string, number>;
 };
 export function lineagePierce(i: LineagePierceInput): LineagePierceResult {
-  const out = new Map<string, string[]>(),
-    inn = new Map<string, string[]>();
+  const out = new Map<string, string[]>();
+  const inn = new Map<string, string[]>();
   for (const [a, b] of i.edges) {
     (out.get(a) ?? out.set(a, []).get(a)!).push(b);
     (inn.get(b) ?? inn.set(b, []).get(b)!).push(a);
   }
-  const owner = (n: string) => i.owners[n] ?? n,
-    cardStep = new Map<string, number>();
+  const owner = (n: string) => i.owners[n] ?? n;
+  const cardStep = new Map<string, number>();
   const walk = (adj: Map<string, string[]>) => {
-    const seen = new Map<string, number>(i.start.map(s => [s, 0])),
-      q = [...i.start];
+    const seen = new Map<string, number>(i.start.map(s => [s, 0]));
+    const q = [...i.start];
     while (q.length) {
-      const n = q.shift()!,
-        d = seen.get(n)!;
+      const n = q.shift()!;
+      const d = seen.get(n)!;
       for (const m of adj.get(n) ?? [])
         if (!seen.has(m)) {
           seen.set(m, d + 1);
@@ -43,8 +43,8 @@ export function lineagePierce(i: LineagePierceInput): LineagePierceResult {
   };
   if (i.direction !== 'in') walk(out);
   if (i.direction !== 'out') walk(inn);
-  const ordered = [...cardStep].sort((a, b) => a[1] - b[1] || a[0].localeCompare(b[0])),
-    cards = ordered.slice(0, Math.max(1, i.budget)).map(([c]) => c);
+  const ordered = [...cardStep].sort((a, b) => a[1] - b[1] || a[0].localeCompare(b[0]));
+  const cards = ordered.slice(0, Math.max(1, i.budget)).map(([c]) => c);
   return {
     cards,
     total: ordered.length,

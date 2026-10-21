@@ -90,26 +90,26 @@ export function RdfItemEditor({
         : [],
     [],
   );
-  const [rows, setRows] = useState(initial),
-    [tab, setTab] = useState<'statements' | 'source'>('statements');
+  const [rows, setRows] = useState(initial);
+  const [tab, setTab] = useState<'statements' | 'source'>('statements');
   // Source: the resource's first statement block (or element, or lines), without its indentation.
   const fragment = useMemo<Fragment | null>(() => {
     if (!ok?.fragment) return null;
-    const { from, to } = ok.fragment,
-      lead = /^[ \t]*/.exec(base.slice(from))![0],
-      d = dedent(base.slice(from, to), lead);
+    const { from, to } = ok.fragment;
+    const lead = /^[ \t]*/.exec(base.slice(from))![0];
+    const d = dedent(base.slice(from, to), lead);
     return { from, to, prefix: d.prefix, text: d.text, path: [], line: ok.line };
   }, []);
   const [text, setText] = useState(fragment?.text ?? '');
   const rowsChanged =
-      JSON.stringify(rows.map(({ key, line, ...r }) => r)) !==
-      JSON.stringify(initial.map(({ key, line, ...r }) => r)),
-    textChanged = !!fragment && text !== fragment.text;
-  const [result, setResult] = useState<RdfResult | null>(null),
-    [check, setCheck] = useState<{ text: string; issues: Issue[] } | null>(null);
-  const [accept, setAccept] = useState(false),
-    [saving, setSaving] = useState(false),
-    [error, setError] = useState('');
+    JSON.stringify(rows.map(({ key, line, ...r }) => r)) !==
+    JSON.stringify(initial.map(({ key, line, ...r }) => r));
+  const textChanged = !!fragment && text !== fragment.text;
+  const [result, setResult] = useState<RdfResult | null>(null);
+  const [check, setCheck] = useState<{ text: string; issues: Issue[] } | null>(null);
+  const [accept, setAccept] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
   // The edited file, from the rows or from Source, behind the RDF gate.
   useEffect(() => {
     if (!rowsChanged && !textChanged) {
@@ -119,10 +119,8 @@ export function RdfItemEditor({
     const t = setTimeout(() => {
       if (textChanged && fragment) {
         const draft =
-            base.slice(0, fragment.from) +
-            reindent(text, fragment.prefix) +
-            base.slice(fragment.to),
-          g = checkRdfSource(base, draft, doc.filename, subject);
+          base.slice(0, fragment.from) + reindent(text, fragment.prefix) + base.slice(fragment.to);
+        const g = checkRdfSource(base, draft, doc.filename, subject);
         setResult(
           g.ok
             ? {
@@ -326,10 +324,10 @@ export function RdfItemEditor({
               onChange={setText}
               validate={async t => {
                 const d =
-                    base.slice(0, fragment.from) +
-                    reindent(t, fragment.prefix) +
-                    base.slice(fragment.to),
-                  g = checkRdfSource(base, d, doc.filename, subject);
+                  base.slice(0, fragment.from) +
+                  reindent(t, fragment.prefix) +
+                  base.slice(fragment.to);
+                const g = checkRdfSource(base, d, doc.filename, subject);
                 return [
                   ...(g.ok
                     ? []

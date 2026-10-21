@@ -32,8 +32,8 @@ const byName = (a: Entity, b: Entity) => a.name.localeCompare(b.name) || a.id.lo
 export function projectModel(entities: Entity[], edges: Relationship[], technical = false) {
   if (technical || !entities.some(e => e.kind === 'OWL class'))
     return { entities, edges, technicalHidden: 0 };
-  const classes = entities.filter(e => e.kind === 'OWL class'),
-    ids = new Set(classes.map(e => e.id));
+  const classes = entities.filter(e => e.kind === 'OWL class');
+  const ids = new Set(classes.map(e => e.id));
   return {
     entities: classes,
     edges: edges.filter(e => ids.has(e.source) && ids.has(e.target)),
@@ -73,9 +73,9 @@ export function searchEntities(entities: Entity[], query: string, limit = 50): E
 const VALUE_KINDS = new Set(['ValueType', 'Built-in concept']);
 export function defaultCenter(entities: Entity[], edges: Relationship[]) {
   const candidates = entities.some(e => !VALUE_KINDS.has(e.kind))
-      ? entities.filter(e => !VALUE_KINDS.has(e.kind))
-      : entities,
-    ids = new Set(candidates.map(e => e.id));
+    ? entities.filter(e => !VALUE_KINDS.has(e.kind))
+    : entities;
+  const ids = new Set(candidates.map(e => e.id));
   const degree = new Map<string, number>();
   for (const e of edges)
     if (ids.has(e.source) && ids.has(e.target) && e.source !== e.target) {
@@ -137,8 +137,8 @@ export function neighborhood(
       (a, b) =>
         info.get(a)!.kind.localeCompare(info.get(b)!.kind) || byName(byId.get(a)!, byId.get(b)!),
     );
-  const limit = Math.max(1, options.limit ?? NEIGHBOR_PAGE),
-    keep = new Set((options.keep ?? []).filter(id => info.has(id)));
+  const limit = Math.max(1, options.limit ?? NEIGHBOR_PAGE);
+  const keep = new Set((options.keep ?? []).filter(id => info.has(id)));
   const shownIds = [
     ...new Set([...ranked.filter(id => keep.has(id)), ...ranked.slice(0, limit)]),
   ].sort((a, b) => ranked.indexOf(a) - ranked.indexOf(b));

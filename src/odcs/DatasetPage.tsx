@@ -75,12 +75,12 @@ export function DatasetPage({
   editor,
   gitVersion = 0,
 }: Props) {
-  const schema = list(data?.schema),
-    index = schema.findIndex((o: any) => o?.name === objectName),
-    object = schema[index];
+  const schema = list(data?.schema);
+  const index = schema.findIndex((o: any) => o?.name === objectName);
+  const object = schema[index];
   const [tab, setTab] = useState<Tab>('Properties');
-  const [versions, setVersions] = useState<Version[] | null>(null),
-    [historyError, setHistoryError] = useState('');
+  const [versions, setVersions] = useState<Version[] | null>(null);
+  const [historyError, setHistoryError] = useState('');
   useEffect(() => {
     setTab('Properties');
   }, [objectName]);
@@ -122,10 +122,10 @@ export function DatasetPage({
         <p className="odcs-note">{objectName} is no longer in this contract.</p>
       </section>
     );
-  const properties = flattenProperties(object.properties),
-    rules = rulesOf(object),
-    changed = versions ? lastChange(versions, objectName) : null,
-    tags = list(object.tags);
+  const properties = flattenProperties(object.properties);
+  const rules = rulesOf(object);
+  const changed = versions ? lastChange(versions, objectName) : null;
+  const tags = list(object.tags);
   return (
     <section className="odcs-page odcs-dataset" aria-label={`Dataset ${objectName}`}>
       <button className="odcs-back" onClick={onBack}>
@@ -239,8 +239,8 @@ export function DatasetPage({
 }
 // Foreign-key targets per property path: property-level relationships and schema-level ones.
 function foreignKeys(data: any, objectIndex: number) {
-  const schema = list(data?.schema),
-    out = new Map<string, string[]>();
+  const schema = list(data?.schema);
+  const out = new Map<string, string[]>();
   for (const k of odcsForeignKeys(data))
     if (k.from === objectIndex)
       for (const name of k.label.split(', ')) {
@@ -262,11 +262,11 @@ function SchemaTab({
   onOpenObject: (n: string) => void;
   editor?: Props['editor'];
 }) {
-  const object = list(data?.schema)[objectIndex],
-    rows = useMemo(() => flattenProperties(object?.properties), [object]),
-    fks = useMemo(() => foreignKeys(data, objectIndex), [data, objectIndex]);
-  const [filter, setFilter] = useState(''),
-    [sort, setSort] = useState<{ key: string; dir: 1 | -1 } | null>(null);
+  const object = list(data?.schema)[objectIndex];
+  const rows = useMemo(() => flattenProperties(object?.properties), [object]);
+  const fks = useMemo(() => foreignKeys(data, objectIndex), [data, objectIndex]);
+  const [filter, setFilter] = useState('');
+  const [sort, setSort] = useState<{ key: string; dir: 1 | -1 } | null>(null);
   const valueOf = (r: { path: string; property: any }, key: string) =>
     key === 'name'
       ? r.path
@@ -416,8 +416,8 @@ function PropertyRow({
               ))}
             </td>
           );
-        const v = c.value(property),
-          flag = BOOLEAN_BADGE[c.key];
+        const v = c.value(property);
+        const flag = BOOLEAN_BADGE[c.key];
         if (flag)
           return (
             <td key={c.key} className={`col-${c.key}`}>
@@ -479,14 +479,14 @@ function LineageTab({
     () => buildLineage(projectFiles(projectDocs), doc.path, rev),
     [rev, doc.path],
   );
-  const id = objectId(doc.path, objectName),
-    card = graph.cards.get(id);
+  const id = objectId(doc.path, objectName);
+  const card = graph.cards.get(id);
   const rows = useMemo(
     () =>
       (card?.columns ?? []).map(col => {
-        const down = closure(graph, [col.id], 'down'),
-          fields: string[] = [],
-          metrics: string[] = [];
+        const down = closure(graph, [col.id], 'down');
+        const fields: string[] = [];
+        const metrics: string[] = [];
         for (const n of down.nodes) {
           if (n === col.id) continue;
           const c = graph.cards.get(cardOfNode(graph, n));
@@ -573,8 +573,8 @@ function RelationshipsTab({
   objectIndex: number;
   onOpenObject: (n: string) => void;
 }) {
-  const schema = list(data?.schema),
-    name = String(schema[objectIndex]?.name);
+  const schema = list(data?.schema);
+  const name = String(schema[objectIndex]?.name);
   const rows = useMemo(() => {
     const out: {
       column: string;
@@ -671,8 +671,8 @@ function HistoryTab({
   error: string;
   objectName: string;
 }) {
-  const [from, setFrom] = useState(''),
-    [to, setTo] = useState('');
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
   useEffect(() => {
     if (versions && versions.length > 1) {
       setFrom(versions[1].commit);
@@ -690,9 +690,9 @@ function HistoryTab({
     const o = list(v.data?.schema).find((x: any) => x?.name === objectName);
     return o ? flattenProperties(o.properties).length : null;
   };
-  const a = versions.find(v => v.commit === from),
-    b = versions.find(v => v.commit === to),
-    diff: ObjectDiff | null = a && b ? diffObject(a.data, b.data, objectName) : null;
+  const a = versions.find(v => v.commit === from);
+  const b = versions.find(v => v.commit === to);
+  const diff: ObjectDiff | null = a && b ? diffObject(a.data, b.data, objectName) : null;
   const option = (v: Version) => (
     <option key={v.commit} value={v.commit}>
       {v.commit.slice(0, 7)} · {text(v.data?.version)} · {v.message}

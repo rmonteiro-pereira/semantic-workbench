@@ -75,14 +75,14 @@ export function flattenProperties(
 }
 const CHILDREN = ['properties', 'items'];
 function propertyDiff(a: unknown, b: unknown): PropertyChange[] {
-  const before = flattenProperties(a),
-    after = flattenProperties(b);
+  const before = flattenProperties(a);
+  const after = flattenProperties(b);
   const ids =
     before.every(x => typeof x.property.id === 'string') &&
     after.every(x => typeof x.property.id === 'string');
   const k = (x: { path: string; property: any }) => (ids ? 'id:' + x.property.id : x.path);
-  const old = new Map(before.map(x => [k(x), x])),
-    now = new Map(after.map(x => [k(x), x]));
+  const old = new Map(before.map(x => [k(x), x]));
+  const now = new Map(after.map(x => [k(x), x]));
   const out: PropertyChange[] = [];
   for (const x of before)
     if (!now.has(k(x))) out.push({ path: x.path, kind: 'removed', changes: [] });
@@ -99,13 +99,13 @@ function propertyDiff(a: unknown, b: unknown): PropertyChange[] {
   return out;
 }
 export function diffContracts(before: any, after: any): ContractDiff {
-  const a = isObject(before) ? before : {},
-    b = isObject(after) ? after : {};
-  const objsA = list(a.schema).filter(isObject),
-    objsB = list(b.schema).filter(isObject),
-    m = matchBy(objsA, objsB);
-  const old = new Map(objsA.map(o => [m.key(o), o])),
-    now = new Map(objsB.map(o => [m.key(o), o]));
+  const a = isObject(before) ? before : {};
+  const b = isObject(after) ? after : {};
+  const objsA = list(a.schema).filter(isObject);
+  const objsB = list(b.schema).filter(isObject);
+  const m = matchBy(objsA, objsB);
+  const old = new Map(objsA.map(o => [m.key(o), o]));
+  const now = new Map(objsB.map(o => [m.key(o), o]));
   const objects: ObjectDiff[] = [];
   for (const o of objsA)
     if (!now.has(m.key(o)))
@@ -134,8 +134,8 @@ export function diffContracts(before: any, after: any): ContractDiff {
       });
       continue;
     }
-    const attributes = attributeChanges(p, o, ['properties']),
-      properties = propertyDiff(p.properties, o.properties);
+    const attributes = attributeChanges(p, o, ['properties']);
+    const properties = propertyDiff(p.properties, o.properties);
     if (attributes.length || properties.length)
       objects.push({ object: String(o.name), kind: 'changed', attributes, properties });
   }

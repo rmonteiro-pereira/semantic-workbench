@@ -12,11 +12,11 @@ export type Term = {
 export type Triple = { s: Term; p: Term; o: Term; g?: Term };
 export type RdfFormat = 'turtle' | 'ntriples' | 'n3' | 'rdfxml';
 export const BASE = 'https://workbench.local/import/';
-export const RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-  RDFS = 'http://www.w3.org/2000/01/rdf-schema#',
-  OWL = 'http://www.w3.org/2002/07/owl#',
-  XSD = 'http://www.w3.org/2001/XMLSchema#',
-  SH = 'http://www.w3.org/ns/shacl#';
+export const RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
+export const RDFS = 'http://www.w3.org/2000/01/rdf-schema#';
+export const OWL = 'http://www.w3.org/2002/07/owl#';
+export const XSD = 'http://www.w3.org/2001/XMLSchema#';
+export const SH = 'http://www.w3.org/ns/shacl#';
 // Prefixes a user may type in any RDF file, besides the file's own.
 export const WELL_KNOWN: Record<string, string> = {
   rdf: RDF,
@@ -156,7 +156,7 @@ export const usedPrefixes = (text: string) => [
     [
       ...text
         .replace(/"(?:[^"\\]|\\.)*"|<[^>]*>/g, ' ')
-        .matchAll(/(?:^|[\s,;(\[^])([A-Za-z][\w-]*):(?![/])/g),
+        .matchAll(/(?:^|[\s,;([^])([A-Za-z][\w-]*):(?![/])/g),
     ].map(m => m[1]),
   ),
 ];

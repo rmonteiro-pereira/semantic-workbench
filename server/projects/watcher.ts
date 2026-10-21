@@ -2,8 +2,8 @@ import { watch, type FSWatcher } from 'node:fs';
 import { projectDir, type DataLayout } from './paths';
 // Recursive watcher per project folder (research R3): bursts are debounced per project, changes to
 // .git/HEAD, .git/index and refs mark a Git change, and a periodic rescan covers missed events.
-export const DEBOUNCE_MS = 150,
-  RESCAN_MS = 60_000;
+export const DEBOUNCE_MS = 150;
+export const RESCAN_MS = 60_000;
 export function createWatcher(
   layout: DataLayout,
   options: {
@@ -13,11 +13,11 @@ export function createWatcher(
     rescanMs?: number;
   },
 ) {
-  const debounceMs = options.debounceMs ?? DEBOUNCE_MS,
-    rescanMs = options.rescanMs ?? RESCAN_MS;
-  const watchers = new Map<string, FSWatcher>(),
-    timers = new Map<string, ReturnType<typeof setTimeout>>(),
-    gitFlags = new Map<string, boolean>();
+  const debounceMs = options.debounceMs ?? DEBOUNCE_MS;
+  const rescanMs = options.rescanMs ?? RESCAN_MS;
+  const watchers = new Map<string, FSWatcher>();
+  const timers = new Map<string, ReturnType<typeof setTimeout>>();
+  const gitFlags = new Map<string, boolean>();
   const running = new Map<string, Promise<void>>();
   function schedule(slug: string, gitChanged: boolean) {
     if (gitChanged) gitFlags.set(slug, true);

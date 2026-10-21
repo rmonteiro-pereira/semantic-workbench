@@ -6,19 +6,17 @@ import { decodePath, type Route } from './http';
 export const draftRoutes: Route = async (ws, req, url) => {
   if (url.pathname === '/api/drafts' && req.method === 'GET')
     return Response.json(
-      ws.state
-        .drafts()
-        .map(d => ({
-          project: d.project,
-          path: d.path,
-          baseHash: d.baseHash,
-          updatedAt: d.updatedAt,
-        })),
+      ws.state.drafts().map(d => ({
+        project: d.project,
+        path: d.path,
+        baseHash: d.baseHash,
+        updatedAt: d.updatedAt,
+      })),
     );
   const m = url.pathname.match(/^\/api\/drafts\/([^/]+)\/(.+)$/);
   if (!m) return null;
-  const slug = assertSlug(decodeURIComponent(m[1])),
-    path = projectPath(decodePath(m[2]));
+  const slug = assertSlug(decodeURIComponent(m[1]));
+  const path = projectPath(decodePath(m[2]));
   if (!ws.state.registry().projects.some(p => p.slug === slug))
     return Response.json({ error: 'Project not found.' }, { status: 404 });
   if (req.method === 'GET') {

@@ -10,8 +10,8 @@ import { tempDataDir, testWorkspace, example } from './helpers/temp-data-dir';
 const V010_SCHEMA =
   'PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; CREATE TABLE IF NOT EXISTS documents(id TEXT PRIMARY KEY,filename TEXT NOT NULL,source TEXT NOT NULL,revision INTEGER NOT NULL DEFAULT 1,updated TEXT NOT NULL); CREATE TABLE IF NOT EXISTS entities(document_id TEXT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,id TEXT NOT NULL,name TEXT NOT NULL,kind TEXT NOT NULL,PRIMARY KEY(document_id,id)); CREATE TABLE IF NOT EXISTS document_views(document_id TEXT PRIMARY KEY REFERENCES documents(id) ON DELETE CASCADE,grouping TEXT NOT NULL)';
 async function legacyWorkspace() {
-  const d = tempDataDir(),
-    db = new Database(join(d.root, 'workbench.sqlite'), { create: true });
+  const d = tempDataDir();
+  const db = new Database(join(d.root, 'workbench.sqlite'), { create: true });
   db.exec('PRAGMA wal_autocheckpoint=0');
   db.exec(V010_SCHEMA);
   const docs = [
@@ -94,12 +94,12 @@ test('v0.1.0 migration backs up, exports byte for byte, verifies, commits and ma
         bad: { project: 'ungrouped', path: 'broken.yaml' },
       });
       for (const doc of docs) {
-        const ref = ids[doc.id],
-          stored = (
-            db.query('SELECT CAST(source AS BLOB) b FROM documents WHERE id=?').get(doc.id) as {
-              b: Uint8Array;
-            }
-          ).b;
+        const ref = ids[doc.id];
+        const stored = (
+          db.query('SELECT CAST(source AS BLOB) b FROM documents WHERE id=?').get(doc.id) as {
+            b: Uint8Array;
+          }
+        ).b;
         const written = readFileSync(join(d.root, 'projects', ref.project, ref.path));
         expect(sha256(written)).toBe(sha256(stored));
         expect(written.toString('utf8')).toBe(doc.source);

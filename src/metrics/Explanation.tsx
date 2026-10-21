@@ -243,8 +243,8 @@ function Preview({
   onQuery: (q: ExplainQuery) => void;
   loading: boolean;
 }) {
-  const p = e.sqlPreview,
-    [copied, setCopied] = useState(false);
+  const p = e.sqlPreview;
+  const [copied, setCopied] = useState(false);
   const grains = e.time ? GRAINS : [];
   const dims = query.dimensions ?? [];
   const toggle = (d: string) =>

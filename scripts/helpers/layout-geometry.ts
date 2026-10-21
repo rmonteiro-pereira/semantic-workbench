@@ -9,9 +9,9 @@ export async function layoutProblems(
 ): Promise<string[]> {
   return page.evaluate(
     ({ overlays, ignore }) => {
-      const out: string[] = [],
-        vw = innerWidth,
-        vh = innerHeight;
+      const out: string[] = [];
+      const vw = innerWidth;
+      const vh = innerHeight;
       const doc = document.documentElement;
       if (doc.scrollWidth > vw + 1)
         out.push(`page scrolls horizontally (${doc.scrollWidth} > ${vw})`);
@@ -47,19 +47,19 @@ export async function layoutProblems(
         /(auto|scroll)/.test(axis === 'x' ? s.overflowX : s.overflowY);
       for (const el of controls) {
         const r = el.getBoundingClientRect();
-        let reachableX = false,
-          reachableY = false,
-          clipped = '';
+        let reachableX = false;
+        let reachableY = false;
+        let clipped = '';
         for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
           const s = getComputedStyle(p);
           if (scrolls(s, 'x')) reachableX = true;
           if (scrolls(s, 'y')) reachableY = true;
-          const clipX = !reachableX && /(hidden|clip)/.test(s.overflowX),
-            clipY = !reachableY && /(hidden|clip)/.test(s.overflowY);
+          const clipX = !reachableX && /(hidden|clip)/.test(s.overflowX);
+          const clipY = !reachableY && /(hidden|clip)/.test(s.overflowY);
           if (clipX || clipY) {
             const pr = p.getBoundingClientRect();
-            const outX = clipX && (r.left < pr.left - 1 || r.right > pr.right + 1),
-              outY = clipY && (r.top < pr.top - 1 || r.bottom > pr.bottom + 1);
+            const outX = clipX && (r.left < pr.left - 1 || r.right > pr.right + 1);
+            const outY = clipY && (r.top < pr.top - 1 || r.bottom > pr.bottom + 1);
             const inside =
               r.right > pr.left && r.left < pr.right && r.bottom > pr.top && r.top < pr.bottom;
             if ((outX || outY) && inside) {
@@ -102,19 +102,19 @@ export async function layoutProblems(
         Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1;
       for (let i = 0; i < boxes.length; i++)
         for (let j = i + 1; j < boxes.length; j++) {
-          const a = boxes[i],
-            b = boxes[j];
+          const a = boxes[i];
+          const b = boxes[j];
           if (a.el.contains(b.el) || b.el.contains(a.el)) continue;
           if (hit(a.r, b.r)) out.push(`overlay ${a.sel} overlaps ${b.sel}`);
         }
       // The part of a control its scrolling or clipping ancestors actually show (a toolbar strip
       // scrolled sideways hides part of its buttons; the hidden part cannot be covered).
       const shownRect = (el: Element) => {
-        let r = el.getBoundingClientRect(),
-          left = r.left,
-          top = r.top,
-          right = r.right,
-          bottom = r.bottom;
+        let r = el.getBoundingClientRect();
+        let left = r.left;
+        let top = r.top;
+        let right = r.right;
+        let bottom = r.bottom;
         for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
           const s = getComputedStyle(p);
           if (s.overflowX !== 'visible' || s.overflowY !== 'visible') {
@@ -135,9 +135,9 @@ export async function layoutProblems(
           if (r.width < 1 || r.height < 1) continue;
           if (hit(o.r, r)) {
             // Covered only if the overlay is drawn above the control at the overlap's centre.
-            const x = (Math.max(o.r.left, r.left) + Math.min(o.r.right, r.right)) / 2,
-              y = (Math.max(o.r.top, r.top) + Math.min(o.r.bottom, r.bottom)) / 2,
-              top = document.elementFromPoint(x, y);
+            const x = (Math.max(o.r.left, r.left) + Math.min(o.r.right, r.right)) / 2;
+            const y = (Math.max(o.r.top, r.top) + Math.min(o.r.bottom, r.bottom)) / 2;
+            const top = document.elementFromPoint(x, y);
             if (top && o.el.contains(top) && !el.contains(top))
               out.push(`overlay ${o.sel} covers ${name(el)}`);
           }
@@ -153,10 +153,10 @@ export async function layoutProblems(
 // beside the path panel. Coordinates are on screen, so they hold at any zoom.
 export async function lineageProblems(page: Page): Promise<string[]> {
   return page.evaluate(() => {
-    const out: string[] = [],
-      hit = (a: DOMRect, b: DOMRect) =>
-        Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1 &&
-        Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1;
+    const out: string[] = [];
+    const hit = (a: DOMRect, b: DOMRect) =>
+      Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1 &&
+      Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1;
     const inside = (a: DOMRect, b: DOMRect) =>
       a.left >= b.left - 1 &&
       a.right <= b.right + 1 &&
@@ -166,8 +166,8 @@ export async function lineageProblems(page: Page): Promise<string[]> {
     if (!view) return ['no lineage canvas'];
     const cards = [...view.querySelectorAll('.lineage-card')];
     for (const c of cards) {
-      const r = c.getBoundingClientRect(),
-        label = c.getAttribute('aria-label');
+      const r = c.getBoundingClientRect();
+      const label = c.getAttribute('aria-label');
       for (const el of c.querySelectorAll(
         '.lineage-card-head > *, .lineage-card-marks > *, .lineage-rows li, .lineage-row > *, .property-badge, .lineage-pager > *, .lineage-more span',
       )) {
@@ -196,9 +196,9 @@ export async function lineageProblems(page: Page): Promise<string[]> {
     }
     // header marks (Unmapped badge, finding markers) never overlap the title or the actions
     for (const c of cards) {
-      const t = c.querySelector('.lineage-card-title strong')?.getBoundingClientRect(),
-        m = c.querySelector('.lineage-card-marks')?.getBoundingClientRect(),
-        a = c.querySelector('.lineage-card-actions')?.getBoundingClientRect();
+      const t = c.querySelector('.lineage-card-title strong')?.getBoundingClientRect();
+      const m = c.querySelector('.lineage-card-marks')?.getBoundingClientRect();
+      const a = c.querySelector('.lineage-card-actions')?.getBoundingClientRect();
       if (t && m && m.width > 0 && hit(t, m))
         out.push(`${c.getAttribute('aria-label')}: header badges overlap the title`);
       if (a && m && m.width > 0 && a.width > 0 && hit(a, m))

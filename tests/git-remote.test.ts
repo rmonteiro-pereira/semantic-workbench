@@ -122,8 +122,8 @@ test('remote environment: no terminal prompt, credential-helper GUI variables le
 });
 // A remote that never answers (an SSH command that sleeps), as when a credential window stays open.
 function hangingGit(remoteTimeoutMs?: number) {
-  const d = tempDataDir(),
-    layout = dataLayout(d.root);
+  const d = tempDataDir();
+  const layout = dataLayout(d.root);
   mkdirSync(join(layout.projects, 'p'), { recursive: true });
   const git = createGit({
     projectsRoot: layout.projects,
@@ -137,8 +137,8 @@ test('a waiting remote operation is cancelled from the UI, and stops at its time
   try {
     await h.git.init(h.dir);
     await h.git.run(h.dir, ['remote', 'add', 'origin', 'ssh://example.invalid/repo.git']);
-    const started = Date.now(),
-      pending = h.git.run(h.dir, ['fetch', 'origin'], { remote: true });
+    const started = Date.now();
+    const pending = h.git.run(h.dir, ['fetch', 'origin'], { remote: true });
     await Bun.sleep(300);
     expect(h.git.cancel(h.dir)).toBe(true);
     await expect(pending).rejects.toThrow('cancelled');

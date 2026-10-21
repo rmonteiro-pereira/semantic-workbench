@@ -1,12 +1,12 @@
 import { test, expect } from 'bun:test';
-import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createGit, gitEnv, parseStatus, LOCAL_TIMEOUT_MS } from '../server/projects/git';
 import { dataLayout } from '../server/projects/paths';
 import { tempDataDir } from './helpers/temp-data-dir';
 function setup(binary?: string) {
-  const d = tempDataDir(),
-    layout = dataLayout(d.root);
+  const d = tempDataDir();
+  const layout = dataLayout(d.root);
   mkdirSync(layout.projects, { recursive: true });
   return { d, layout, git: createGit({ projectsRoot: layout.projects, binary }) };
 }

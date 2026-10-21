@@ -29,8 +29,8 @@ test('the element type is locked; a nested description can be removed but not re
   const order = readRdfItem(src, 'c.owl', C + 'Order');
   expect(order.pairs[0]).toMatchObject({ predicateText: 'a', objectText: 'owl:Class' });
   expect(editRdfItem(src, 'c.owl', C + 'Order', pairs(src, C + 'Order').slice(1)).ok).toBe(false);
-  const paid = readRdfItem(src, 'c.owl', C + 'PaidOrder'),
-    nested = paid.pairs.find(p => p.nested)!;
+  const paid = readRdfItem(src, 'c.owl', C + 'PaidOrder');
+  const nested = paid.pairs.find(p => p.nested)!;
   expect(nested.objectText).toBe(
     '[ a owl:Restriction ; owl:onProperty <https://example.org/commerce#invoice> ; owl:someValuesFrom <https://example.org/commerce#Invoice> ]',
   );

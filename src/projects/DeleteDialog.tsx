@@ -20,10 +20,10 @@ export function DeleteDialog({
   onCancel: () => void;
   onDeleted: (entryIds: string[], undoUntil: string, label: string) => void;
 }) {
-  const [impact, setImpact] = useState<Impact | null>(null),
-    [drafts, setDrafts] = useState<{ project: string; path: string }[]>([]),
-    [error, setError] = useState(''),
-    [busy, setBusy] = useState(false);
+  const [impact, setImpact] = useState<Impact | null>(null);
+  const [drafts, setDrafts] = useState<{ project: string; path: string }[]>([]);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
   const name = (slug: string) => projects.find(p => p.slug === slug)?.name ?? slug;
   useEffect(() => {
     if (target.kind === 'clear')

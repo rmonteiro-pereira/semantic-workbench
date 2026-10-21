@@ -49,8 +49,8 @@ export function scanXml(src: string): El {
     parent: null,
     text: '',
   };
-  let cur = root,
-    i = 0;
+  let cur = root;
+  let i = 0;
   while (i < src.length) {
     const lt = src.indexOf('<', i);
     if (lt < 0) {
@@ -75,8 +75,8 @@ export function scanXml(src: string): El {
     if (src.startsWith('<!', lt))
       throw Error('RDF/XML DTDs and entity declarations are unsupported.');
     const gt = (() => {
-      let q = '',
-        k = lt + 1;
+      let q = '';
+      let k = lt + 1;
       for (; k < src.length; k++) {
         const c = src[k];
         if (q) {
@@ -94,9 +94,9 @@ export function scanXml(src: string): El {
       i = gt + 1;
       continue;
     }
-    const inner = src.slice(lt + 1, gt),
-      selfClosing = inner.endsWith('/'),
-      name = /^[^\s/>]+/.exec(inner)![0];
+    const inner = src.slice(lt + 1, gt);
+    const selfClosing = inner.endsWith('/');
+    const name = /^[^\s/>]+/.exec(inner)![0];
     const attrs: Attr[] = [];
     const re = /([^\s=/]+)\s*=\s*("([^"]*)"|'([^']*)')/g;
     let m: RegExpExecArray | null;
@@ -129,11 +129,11 @@ export function scanXml(src: string): El {
 }
 // Namespaces, xml:base and xml:lang in scope at an element.
 export function scope(el: El | null) {
-  const ns: Record<string, string> = {},
-    chain: El[] = [];
+  const ns: Record<string, string> = {};
+  const chain: El[] = [];
   for (let e = el; e; e = e.parent) chain.unshift(e);
-  let base = BASE,
-    lang = '';
+  let base = BASE;
+  let lang = '';
   for (const e of chain)
     for (const a of e.attrs) {
       if (a.name === 'xmlns') ns[''] = a.value;
@@ -160,9 +160,9 @@ const SYNTAX = new Set([
   'xml:space',
 ]);
 export function subjectOf(el: El): string | null {
-  const { base } = scope(el),
-    about = attr(el, 'rdf:about'),
-    id = attr(el, 'rdf:ID');
+  const { base } = scope(el);
+  const about = attr(el, 'rdf:about');
+  const id = attr(el, 'rdf:ID');
   return about ? new URL(about.value, base).href : id ? new URL('#' + id.value, base).href : null;
 }
 export function rdfRoot(doc: El) {
@@ -195,8 +195,8 @@ export type XmlPair = {
 const lineOf = (src: string, pos: number) => src.slice(0, pos).split('\n').length;
 // The statements one node element makes about its subject.
 export function elementPairs(src: string, el: El): XmlPair[] {
-  const { ns, lang } = scope(el),
-    out: XmlPair[] = [];
+  const { ns, lang } = scope(el);
+  const out: XmlPair[] = [];
   const typeIri = expandName(el.name, ns);
   if (typeIri !== RDF + 'Description')
     out.push({
@@ -228,10 +228,10 @@ export function elementPairs(src: string, el: El): XmlPair[] {
     });
   }
   for (const c of el.children) {
-    const cs = scope(c),
-      p = expandName(c.name, cs.ns),
-      line = lineOf(src, c.start),
-      pt = attr(c, 'rdf:parseType')?.value;
+    const cs = scope(c);
+    const p = expandName(c.name, cs.ns);
+    const line = lineOf(src, c.start);
+    const pt = attr(c, 'rdf:parseType')?.value;
     const base = { kind: 'element' as const, el, child: c, predicate: p };
     if (p === RDF + 'li' || /^_\d+$/.test(p.slice(RDF.length)))
       out.push({
@@ -287,8 +287,8 @@ export function elementPairs(src: string, el: El): XmlPair[] {
         locked: 'Blank node reference; edit it in Source.',
       });
     else {
-      const dt = attr(c, 'rdf:datatype')?.value,
-        l = attr(c, 'xml:lang')?.value ?? cs.lang;
+      const dt = attr(c, 'rdf:datatype')?.value;
+      const l = attr(c, 'xml:lang')?.value ?? cs.lang;
       out.push({
         ...base,
         object: {
@@ -340,9 +340,9 @@ export function isolatedTriples(src: string, c: El, subject: string): Triple[] {
 // --- writing ---------------------------------------------------------------------------------------
 const NCNAME = /^[A-Za-z_][\w.-]*$/;
 export function qname(iri: string, ns: Record<string, string>): { name: string; decl: string } {
-  const k = Math.max(iri.lastIndexOf('#'), iri.lastIndexOf('/')) + 1,
-    space = iri.slice(0, k),
-    local = iri.slice(k);
+  const k = Math.max(iri.lastIndexOf('#'), iri.lastIndexOf('/')) + 1;
+  const space = iri.slice(0, k);
+  const local = iri.slice(k);
   if (!NCNAME.test(local))
     throw Error(`<${iri}> cannot be written as an RDF/XML element name; edit it in Source.`);
   const prefix = Object.entries(ns).find(([p, v]) => p && v === space)?.[0];
@@ -377,8 +377,8 @@ export function propertyElement(
 const only = (src: string, from: number, to: number) => /^[ \t]*$/.test(src.slice(from, to));
 // A range with its whole line when nothing else shares the line.
 export function lineRange(src: string, from: number, to: number) {
-  const a = lineStart(src, from),
-    b = lineEndAfter(src, to);
+  const a = lineStart(src, from);
+  const b = lineEndAfter(src, to);
   return only(src, a, from) && /^[ \t]*(\r\n|\r|\n)?$/.test(src.slice(to, b))
     ? { from: a, to: b }
     : { from, to };
@@ -389,17 +389,17 @@ export function childIndent(src: string, el: El, root: El) {
   const first = el.children[0];
   if (first && only(src, lineStart(src, first.start), first.start))
     return indentOf(src, first.start);
-  const top = root.children[0],
-    step = top
-      ? indentOf(src, top.start).slice(indentOf(src, root.start).length) || '    '
-      : '    ';
+  const top = root.children[0];
+  const step = top
+    ? indentOf(src, top.start).slice(indentOf(src, root.start).length) || '    '
+    : '    ';
   return indentOf(src, el.start) + step;
 }
 export function addPatch(src: string, el: El, root: El, elements: string[], eol: string): Patch {
   const indent = childIndent(src, el, root);
   if (el.selfClosing) {
-    const slash = src.lastIndexOf('/', el.openEnd - 1),
-      ws = /[ \t]*$/.exec(src.slice(el.start, slash))![0].length;
+    const slash = src.lastIndexOf('/', el.openEnd - 1);
+    const ws = /[ \t]*$/.exec(src.slice(el.start, slash))![0].length;
     return {
       from: slash - ws,
       to: el.end,

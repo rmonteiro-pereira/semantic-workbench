@@ -21,8 +21,8 @@ function ItemMenu({
   label: string;
   items: { label: string; run: () => void }[];
 }) {
-  const [open, setOpen] = useState(false),
-    root = useRef<HTMLSpanElement>(null);
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLSpanElement>(null);
   useEffect(() => {
     if (!open) return;
     const close = (e: MouseEvent) => {

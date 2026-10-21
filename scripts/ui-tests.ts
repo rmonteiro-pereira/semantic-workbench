@@ -50,8 +50,8 @@ let failNextSave = false;
 let holdPlan = false;
 let releasePlan: (() => void) | null = null;
 await routeApi(page, api, async route => {
-  const r = route.request(),
-    path = new URL(r.url()).pathname;
+  const r = route.request();
+  const path = new URL(r.url()).pathname;
   if (failNextSave && r.method() === 'POST' && path === '/api/import') {
     failNextSave = false;
     await route.fulfill({ status: 503, json: { error: 'Temporary API failure' } });
@@ -103,8 +103,8 @@ try {
       const t = path.getScreenCTM();
       for (let i = 1; i < 100; i++) {
         const p = path.getPointAtLength((path.getTotalLength() * i) / 100);
-        const x = t.a * p.x + t.c * p.y + t.e,
-          y = t.b * p.x + t.d * p.y + t.f;
+        const x = t.a * p.x + t.c * p.y + t.e;
+        const y = t.b * p.x + t.d * p.y + t.f;
         if (document.elementFromPoint(x, y)?.closest('.react-flow__edge') === group)
           return { x, y };
       }
@@ -148,13 +148,11 @@ try {
       if (!path || (await readFile(path, 'utf8')) !== edited)
         throw Error('Unsaved source was not exported');
       page.once('dialog', d => d.accept());
-      await page
-        .locator('input[type=file]')
-        .setInputFiles({
-          name: 'roundtrip.ontology.yaml',
-          mimeType: 'application/yaml',
-          buffer: Buffer.from(edited),
-        });
+      await page.locator('input[type=file]').setInputFiles({
+        name: 'roundtrip.ontology.yaml',
+        mimeType: 'application/yaml',
+        buffer: Buffer.from(edited),
+      });
       await expect(
         page.getByRole('button', { name: 'roundtrip.ontology.yaml', exact: true }),
       ).toBeVisible();
@@ -254,13 +252,11 @@ try {
       null,
       2,
     );
-    await page
-      .locator('input[type=file]')
-      .setInputFiles({
-        name: 'roundtrip.json',
-        mimeType: 'application/json',
-        buffer: Buffer.from(source),
-      });
+    await page.locator('input[type=file]').setInputFiles({
+      name: 'roundtrip.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(source),
+    });
     await expect(page.getByRole('button', { name: 'roundtrip.json', exact: true })).toBeVisible();
     const [download] = await Promise.all([page.waitForEvent('download'), exportFile(page)]);
     if (download.suggestedFilename() !== 'roundtrip.json')
@@ -276,13 +272,11 @@ try {
     async () => {
       const before = store.list().length;
       const heading = await page.locator('h1').innerText();
-      await page
-        .locator('input[type=file]')
-        .setInputFiles({
-          name: 'broken.yaml',
-          mimeType: 'application/yaml',
-          buffer: Buffer.from('name: Broken\nontology: [{concept: A, extends: [Missing]}]'),
-        });
+      await page.locator('input[type=file]').setInputFiles({
+        name: 'broken.yaml',
+        mimeType: 'application/yaml',
+        buffer: Buffer.from('name: Broken\nontology: [{concept: A, extends: [Missing]}]'),
+      });
       const dialog = page.getByRole('dialog', { name: 'Review import' });
       await expect(dialog).toBeVisible();
       await expect(dialog).toContainText('Unknown parent concept');
@@ -420,13 +414,11 @@ try {
   await check('API failure retains repaired draft and permits retry', async () => {
     const before = store.list().length;
     const heading = await page.locator('h1').innerText();
-    await page
-      .locator('input[type=file]')
-      .setInputFiles({
-        name: 'retry.ttl',
-        mimeType: 'text/turtle',
-        buffer: Buffer.from('@prefix ex:'),
-      });
+    await page.locator('input[type=file]').setInputFiles({
+      name: 'retry.ttl',
+      mimeType: 'text/turtle',
+      buffer: Buffer.from('@prefix ex:'),
+    });
     const dialog = page.getByRole('dialog', { name: 'Review import' });
     await fillEditor(
       dialog.getByLabel('Repair definition'),

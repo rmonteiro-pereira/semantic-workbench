@@ -16,8 +16,8 @@ export function ImportDialog({
   onPick: (project: string | null) => void;
   onClose: () => void;
 }) {
-  const [target, setTarget] = useState<'new' | 'existing'>(initialProject ? 'existing' : 'new'),
-    [project, setProject] = useState(initialProject ?? projects[0]?.slug ?? '');
+  const [target, setTarget] = useState<'new' | 'existing'>(initialProject ? 'existing' : 'new');
+  const [project, setProject] = useState(initialProject ?? projects[0]?.slug ?? '');
   const into = target === 'existing' && project ? project : null;
   return (
     <Modal

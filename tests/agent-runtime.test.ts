@@ -25,8 +25,8 @@ const fixture: StoredDocument[] = await Promise.all(
   })),
 );
 function change(docs: StoredDocument[], index: number, edit: (data: any) => void) {
-  const result = structuredClone(docs),
-    data = parse(result[index].source);
+  const result = structuredClone(docs);
+  const data = parse(result[index].source);
   edit(data);
   result[index].source = stringify(data);
   return result;
@@ -82,8 +82,8 @@ test('mapping runtime exposes concept → nested mapping → field → physical 
   expect(c.concepts.find(c => c.concept === 'Order').identify_by).toEqual(['id']);
 });
 test('governed metrics are reached by mapping, retain source formulas, and resolve dataset dependencies', () => {
-  const c = context(),
-    metric = c.metrics.find(m => m.id === 'gross_revenue')!;
+  const c = context();
+  const metric = c.metrics.find(m => m.id === 'gross_revenue')!;
   expect(c.bindings.find(b => b.rootConcept === 'Revenue')!.metrics).toEqual(['gross_revenue']);
   expect(metric.fields).toEqual(['["orders","amount"]']);
   expect(metric.datasets).toEqual(['orders']);
@@ -94,8 +94,8 @@ test('governed metrics are reached by mapping, retain source formulas, and resol
   expect(() => selectContext(c, ['Unknown'])).toThrow('Unknown concept');
 });
 test('novel revenue by region query composes governed metric and declared join without predefined query', () => {
-  const before = structuredClone(fixture),
-    p = plan();
+  const before = structuredClone(fixture);
+  const p = plan();
   expect(p.sql).toContain('SUM("orders".amount)');
   expect(p.sql).toContain('GROUP BY "customers".region');
   expect(p.sql).toContain('LEFT JOIN "analytics"."commerce"."customers"');
@@ -257,9 +257,9 @@ test('computed logical fields resolve to physical expressions and remain scalar'
   expect(() => plan(buildContext(docs, '0'))).toThrow('not scalar');
 });
 test('embedded mappings resolve without flattening layers or duplicating metadata', () => {
-  const ontology = parse(fixture[1].source),
-    mapping = parse(fixture[0].source),
-    semantic = parse(fixture[2].source);
+  const ontology = parse(fixture[1].source);
+  const mapping = parse(fixture[0].source);
+  const semantic = parse(fixture[2].source);
   ontology.ontology_mappings = [
     {
       name: 'Embedded commerce',
@@ -303,8 +303,7 @@ test('upstream Apache Flights documents validate and all nested mappings and pop
 });
 test('two equal-length join paths are ambiguous and cycles terminate', () => {
   let docs = change(fixture, 2, d => {
-    const orders = d.datasets[0],
-      customers = d.datasets[1];
+    const customers = d.datasets[1];
     d.datasets.push({ ...customers, name: 'bridge_a' }, { ...customers, name: 'bridge_b' });
     d.relationships = [
       {
@@ -456,9 +455,9 @@ test('governed metric dependency expansion preserves arithmetic precedence', () 
 });
 
 test('embedded semantic definitions receive the same duplicate and reference integrity checks', () => {
-  const ontology = parse(fixture[1].source),
-    mapping = parse(fixture[0].source),
-    semantic = parse(fixture[2].source);
+  const ontology = parse(fixture[1].source);
+  const mapping = parse(fixture[0].source);
+  const semantic = parse(fixture[2].source);
   semantic.datasets.push(semantic.datasets[0]);
   ontology.ontology_mappings = [
     { semantic_model: semantic, concept_mappings: mapping.concept_mappings },

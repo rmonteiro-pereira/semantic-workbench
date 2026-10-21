@@ -41,11 +41,9 @@ test('relationships among visible neighbors are kept around a center, and can be
   ).toEqual(['0-1', '0-2', '1-2']);
 });
 test('shown and hidden neighbor counts; deterministic ranking by relationship kind then name; paging and keep (defect 2)', () => {
-  const edges = [
-    ...nodes
-      .slice(1)
-      .map(n => edge('0', n.id, '0-' + n.id, 'has', Number(n.id) % 2 ? 'b-kind' : 'a-kind')),
-  ];
+  const edges = nodes
+    .slice(1)
+    .map(n => edge('0', n.id, '0-' + n.id, 'has', Number(n.id) % 2 ? 'b-kind' : 'a-kind'));
   const n = neighborhood(nodes, edges, { center: '0' });
   expect(n.total).toBe(29);
   expect(n.shown).toBe(NEIGHBOR_PAGE);
@@ -91,12 +89,12 @@ test('incoming, outgoing and two-way neighbors are told apart', () => {
 });
 test('the OWL projection is the same with or without a center; technical resources only on request (defect 3)', () => {
   const rdf = [
-      { ...nodes[0], kind: 'OWL class' },
-      { ...nodes[1], kind: 'OWL property' },
-      { ...nodes[2], kind: 'RDF resource' },
-      { ...nodes[3], kind: 'OWL class' },
-    ],
-    edges = [edge('1', '0'), edge('1', '2'), edge('0', '3')];
+    { ...nodes[0], kind: 'OWL class' },
+    { ...nodes[1], kind: 'OWL property' },
+    { ...nodes[2], kind: 'RDF resource' },
+    { ...nodes[3], kind: 'OWL class' },
+  ];
+  const edges = [edge('1', '0'), edge('1', '2'), edge('0', '3')];
   expect(projectModel(rdf, edges).entities.map(n => n.id)).toEqual(['0', '3']);
   expect(projectModel(rdf, edges).technicalHidden).toBe(2);
   expect(neighborhood(rdf, edges, { center: '0' }).entities.map(n => n.id)).toEqual(['0', '3']);

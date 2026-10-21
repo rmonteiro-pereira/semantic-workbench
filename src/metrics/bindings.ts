@@ -18,8 +18,8 @@ export type { KpiBinding };
 export function resolveConcept(input: string, ontology: any): string | null {
   const concepts: any[] = Array.isArray(ontology?.ontology) ? ontology.ontology : [];
   if (concepts.some(c => c?.concept === input)) return input;
-  const prefixes = prefixMap(ontology?.prefixes),
-    target = expandIri(input, prefixes);
+  const prefixes = prefixMap(ontology?.prefixes);
+  const target = expandIri(input, prefixes);
   if ('error' in target) return null;
   const hit = concepts.find(c => {
     if (typeof c?.iri !== 'string') return false;

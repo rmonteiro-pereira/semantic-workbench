@@ -17,8 +17,8 @@ import { rdfSyntax } from '../rdf';
 // SEMANTIC_WORKBENCH extension block (`data: |`) is parsed and colored as JSON (research R1).
 export type SyntaxName = 'YAML' | 'JSON' | 'RDF/XML' | 'Turtle' | 'N3' | 'N-Triples' | 'Plain text';
 export function syntaxFor(filename: string, source: string): SyntaxName {
-  const name = filename.toLowerCase(),
-    ext = name.includes('.') ? name.split('.').pop()! : '';
+  const name = filename.toLowerCase();
+  const ext = name.includes('.') ? name.split('.').pop()! : '';
   if (name === '.gitignore' || name.endsWith('/.gitignore') || ext === 'txt') return 'Plain text';
   if (ext === 'nt') return 'N-Triples';
   if (ext === 'n3') return 'N3';
@@ -99,8 +99,8 @@ const MAPPINGS = new Set(['object_mappings', 'referent_mappings', 'link_mappings
 type Read = (from: number, to: number) => string;
 const unquote = (s: string) => s.trim().replace(/^(['"])(.*)\1$/s, '$2');
 export function sqlKeyPath(keys: string[], sibling: (key: string) => string | undefined) {
-  const n = keys.length,
-    last = keys[n - 1];
+  const n = keys.length;
+  const last = keys[n - 1];
   if (
     last === 'expression' &&
     keys[n - 2] === 'dialects' &&

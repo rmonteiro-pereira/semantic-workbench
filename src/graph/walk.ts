@@ -49,8 +49,8 @@ export function walkReducer(walk: Walk, action: WalkAction): Walk {
   return { steps, index: steps.length - 1 };
 }
 export const currentStep = (walk: Walk) => walk.steps[walk.index];
-export const canBack = (walk: Walk) => walk.index > 0,
-  canForward = (walk: Walk) => walk.index < walk.steps.length - 1;
+export const canBack = (walk: Walk) => walk.index > 0;
+export const canForward = (walk: Walk) => walk.index < walk.steps.length - 1;
 const isCenter = (s: WalkStep) => (s.kind ?? 'center') === 'center';
 // The canvas at the current step: the last re-centering step at or before it, and the expansion
 // sets applied after it, in order (Back/Forward restore exactly this).

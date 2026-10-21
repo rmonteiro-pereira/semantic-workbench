@@ -7,8 +7,8 @@ import { tempDataDir } from './helpers/temp-data-dir';
 test('every state file carries formatVersion and round-trips', () => {
   const d = tempDataDir();
   try {
-    const layout = dataLayout(d.root),
-      s = createState(layout);
+    const layout = dataLayout(d.root);
+    const s = createState(layout);
     expect(s.registry()).toEqual({ formatVersion: 1, projects: [] });
     expect(s.hasRegistry()).toBe(false);
     s.writeRegistry([{ slug: 'a', name: 'A', createdAt: 't', origin: 'import' }]);
@@ -45,8 +45,8 @@ test('every state file carries formatVersion and round-trips', () => {
 test('state files are replaced atomically and unknown formats are refused', () => {
   const d = tempDataDir();
   try {
-    const layout = dataLayout(d.root),
-      s = createState(layout);
+    const layout = dataLayout(d.root);
+    const s = createState(layout);
     s.writeRegistry([]);
     s.writeRegistry([{ slug: 'b', name: 'B', createdAt: 't', origin: 'import' }]);
     expect(readFileSync(layout.registry, 'utf8').endsWith('\n')).toBe(true);

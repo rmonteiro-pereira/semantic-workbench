@@ -17,7 +17,7 @@ const edges = [
   ['X', 'Y'],
   ['A', 'Z'],
 ].map(([s, t], i) => ({ id: `e${i}`, source: s, target: t, label: 'r' }));
-const expand = (from: string, current: string[]): ExpansionSet => {
+const expand = (from: string, _current: string[]): ExpansionSet => {
   const n = neighbours(edges, from, 'both');
   return registerSet({
     kind: 'expand',
@@ -38,8 +38,8 @@ test('expand adds only nodes not already on the canvas; the set still records ev
   expect(canvasOf(base, [a]).nodes).toEqual(['C', 'A', 'B', 'X', 'Z']);
 });
 test('collapse removes what that expansion alone added (reference counting), never the centre or base nodes', () => {
-  const a = expand('A', base),
-    b = expand('B', base);
+  const a = expand('A', base);
+  const b = expand('B', base);
   const both = canvasOf(base, [a, b]).nodes;
   expect(both.sort()).toEqual(['A', 'B', 'C', 'X', 'Z']);
   // collapse A: Z goes (only A reached it), X stays (B reaches it)
@@ -56,23 +56,23 @@ test('collapse removes what that expansion alone added (reference counting), nev
   });
   expect(canvasOf(base, [a, b, ca]).nodes.sort()).toEqual(['A', 'B', 'C', 'X']);
   // collapsing an expansion of the centre keeps the centre and the base view
-  const c = expand('C', base),
-    cc = registerSet({
-      kind: 'collapse',
-      from: 'C',
-      target: c.id,
-      direction: 'both',
-      nodes: [],
-      edges: [],
-      frontier: {},
-      total: 0,
-      budget: 0,
-    });
+  const c = expand('C', base);
+  const cc = registerSet({
+    kind: 'collapse',
+    from: 'C',
+    target: c.id,
+    direction: 'both',
+    nodes: [],
+    edges: [],
+    frontier: {},
+    total: 0,
+    budget: 0,
+  });
   expect(canvasOf(base, [c, cc]).nodes).toEqual(base);
 });
 test('collapsing an expansion also drops expansions made from the nodes it removed', () => {
-  const a = expand('A', base),
-    x = expand('X', [...base, 'X', 'Z']);
+  const a = expand('A', base);
+  const x = expand('X', [...base, 'X', 'Z']);
   expect(canvasOf(base, [a, x]).nodes).toContain('Y');
   const ca = registerSet({
     kind: 'collapse',
@@ -90,8 +90,8 @@ test('collapsing an expansion also drops expansions made from the nodes it remov
   expect(after.active.map(s => s.id)).toEqual([]);
 });
 test('undo and forward through the walk restore exactly the earlier canvas', () => {
-  const a = expand('A', base),
-    x = expand('X', [...base, 'X', 'Z']);
+  const a = expand('A', base);
+  const x = expand('X', [...base, 'X', 'Z']);
   let w = walkReducer(emptyWalk, { type: 'reset', step: { doc: 'd', center: 'C', name: 'C' } });
   w = walkReducer(w, {
     type: 'push',

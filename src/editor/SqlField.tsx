@@ -38,12 +38,12 @@ export function SqlField({
   disabled = false,
   onFindings,
 }: Props) {
-  const host = useRef<HTMLDivElement>(null),
-    view = useRef<EditorView | null>(null);
+  const host = useRef<HTMLDivElement>(null);
+  const view = useRef<EditorView | null>(null);
   const props = useRef({ onChange, dialect, onFindings });
   props.current = { onChange, dialect, onFindings };
-  const language = useRef(new Compartment()),
-    editable = useRef(new Compartment());
+  const language = useRef(new Compartment());
+  const editable = useRef(new Compartment());
   const [findings, setFindings] = useState<Issue[]>([]);
   const sql = grammarOf(dialect) !== null;
   useEffect(() => {

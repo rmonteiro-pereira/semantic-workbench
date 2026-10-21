@@ -40,8 +40,8 @@ export const kindLabel: Record<ItemKind, string> = {
 };
 // The kind of the item at `path` in a parsed YAML/JSON document.
 export function itemKindAt(document: any, path: Path): ItemKind | null {
-  const at = path.length - 2,
-    list = path[at];
+  const at = path.length - 2;
+  const list = path[at];
   if (typeof path.at(-1) !== 'number') return null;
   if (list === 'ontology') return 'concept';
   if (list === 'relationships')
@@ -276,14 +276,14 @@ export function extensionOf(item: any): { index: number; value: any } | null {
 }
 const getAt = (v: any, path: Path) => path.reduce((x, k) => x?.[k], v);
 function setAt(v: any, path: Path, value: any): any {
-  const [k, ...rest] = path,
-    base: any = Array.isArray(v)
-      ? [...v]
-      : isObject(v)
-        ? { ...v }
-        : typeof k === 'number'
-          ? []
-          : {};
+  const [k, ...rest] = path;
+  const base: any = Array.isArray(v)
+    ? [...v]
+    : isObject(v)
+      ? { ...v }
+      : typeof k === 'number'
+        ? []
+        : {};
   const next = rest.length ? setAt(base[k as any], rest, value) : value;
   if (next === undefined && !Array.isArray(base)) delete base[k as any];
   else base[k as any] = next;
@@ -310,13 +310,13 @@ export function fieldValue(spec: FieldSpec, input: string | boolean): any {
 }
 export function writeField(item: any, spec: FieldSpec, value: any) {
   if (!spec.extension) return setAt(item, spec.at, value);
-  const ext = extensionOf(item),
-    data = setAt(ext?.value ?? { schema: 'semantic-workbench/metric/v1' }, spec.at, value);
+  const ext = extensionOf(item);
+  const data = setAt(ext?.value ?? { schema: 'semantic-workbench/metric/v1' }, spec.at, value);
   return writeExtension(item, data);
 }
 export function writeExtension(item: any, data: any) {
-  const ext = extensionOf(item),
-    text = JSON.stringify(data, null, 2) + '\n';
+  const ext = extensionOf(item);
+  const text = JSON.stringify(data, null, 2) + '\n';
   const list = Array.isArray(item.custom_extensions) ? [...item.custom_extensions] : [];
   if (ext) list[ext.index] = { ...list[ext.index], data: text };
   else list.push({ vendor_name: VENDOR, data: text });
@@ -345,8 +345,8 @@ const definition = (item: any) => {
 // An approved metric whose definition (expression or extension attributes other than governance)
 // changes returns to proposed.
 export function applyStatusRules(before: any, after: any): { item: any; reopened: boolean } {
-  const was = extensionOf(before)?.value?.status,
-    now = extensionOf(after)?.value;
+  const was = extensionOf(before)?.value?.status;
+  const now = extensionOf(after)?.value;
   if (was !== 'approved' || now?.status !== 'approved' || definition(before) === definition(after))
     return { item: after, reopened: false };
   return { item: writeExtension(after, { ...now, status: 'proposed' }), reopened: true };

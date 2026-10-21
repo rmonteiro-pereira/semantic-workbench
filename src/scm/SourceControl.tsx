@@ -87,25 +87,25 @@ export function SourceControl({
   onBusy,
   onCommit,
 }: Props) {
-  const [status, setStatus] = useState<GitStatus | null>(null),
-    [error, setError] = useState(''),
-    [note, setNote] = useState<{
-      tone: 'info' | 'warning';
-      text: string;
-      paths?: string[];
-      commit?: boolean;
-    } | null>(null);
-  const [selected, setSelected] = useState<Selection>(null),
-    [diff, setDiff] = useState<GitDiff | null>(null),
-    [message, setMessage] = useState('');
-  const [waiting, setWaiting] = useState<string | null>(null),
-    [busy, setBusy] = useState(false),
-    [ignoring, setIgnoring] = useState<string | null>(null),
-    [remoteUrl, setRemoteUrl] = useState(''),
-    [editRemote, setEditRemote] = useState(false);
-  const [historyFile, setHistoryFile] = useState<string | undefined>(historyPath),
-    [log, setLog] = useState<Commit[]>([]),
-    [range, setRange] = useState<{ from: string; to: string } | null>(null);
+  const [status, setStatus] = useState<GitStatus | null>(null);
+  const [error, setError] = useState('');
+  const [note, setNote] = useState<{
+    tone: 'info' | 'warning';
+    text: string;
+    paths?: string[];
+    commit?: boolean;
+  } | null>(null);
+  const [selected, setSelected] = useState<Selection>(null);
+  const [diff, setDiff] = useState<GitDiff | null>(null);
+  const [message, setMessage] = useState('');
+  const [waiting, setWaiting] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [ignoring, setIgnoring] = useState<string | null>(null);
+  const [remoteUrl, setRemoteUrl] = useState('');
+  const [editRemote, setEditRemote] = useState(false);
+  const [historyFile, setHistoryFile] = useState<string | undefined>(historyPath);
+  const [log, setLog] = useState<Commit[]>([]);
+  const [range, setRange] = useState<{ from: string; to: string } | null>(null);
   const local = useRef(0);
   const [tick, setTick] = useState(0);
   const reload = () => setTick(t => t + 1);
@@ -331,18 +331,18 @@ export function SourceControl({
         </div>
       </section>
     );
-  const remoteNames = Object.keys(status.remotes),
-    canCommit =
-      !!message.trim() &&
-      (groups.staged.length > 0 || status.merging) &&
-      !groups.conflicts.length &&
-      status.identityConfigured &&
-      !busy;
+  const remoteNames = Object.keys(status.remotes);
+  const canCommit =
+    !!message.trim() &&
+    (groups.staged.length > 0 || status.merging) &&
+    !groups.conflicts.length &&
+    status.identityConfigured &&
+    !busy;
   const row = (c: GitChange, g: Group) => {
-    const isSel = selected?.path === c.path && selected.group === g,
-      l = letter(c, g),
-      name = c.path.split('/').pop()!,
-      folder = c.path.slice(0, -name.length).replace(/\/$/, '');
+    const isSel = selected?.path === c.path && selected.group === g;
+    const l = letter(c, g);
+    const name = c.path.split('/').pop()!;
+    const folder = c.path.slice(0, -name.length).replace(/\/$/, '');
     return (
       <li
         key={g + c.path}
@@ -790,8 +790,8 @@ function IgnoreChooser({
   onAdd: (pattern: string) => void;
   onCancel: () => void;
 }) {
-  const choices = ignoreChoices(path),
-    [pattern, setPattern] = useState(choices[0].pattern);
+  const choices = ignoreChoices(path);
+  const [pattern, setPattern] = useState(choices[0].pattern);
   return (
     <div className="scm-ignore" role="group" aria-label={`Add ${path} to .gitignore`}>
       {choices.map(c => (

@@ -21,8 +21,8 @@ export function Modal({
   footer?: React.ReactNode;
   describedBy?: string;
 }) {
-  const dialog = useRef<HTMLDialogElement>(null),
-    id = useRef('dialog-' + Math.random().toString(36).slice(2)).current;
+  const dialog = useRef<HTMLDialogElement>(null);
+  const id = useRef('dialog-' + Math.random().toString(36).slice(2)).current;
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
     dialog.current?.showModal();
@@ -50,9 +50,9 @@ export function Modal({
       ),
     ].filter(el => el.getClientRects().length > 0 && !el.closest('[inert]'));
     if (!items.length) return;
-    const first = items[0],
-      last = items[items.length - 1],
-      active = document.activeElement;
+    const first = items[0];
+    const last = items[items.length - 1];
+    const active = document.activeElement;
     if (e.shiftKey && (active === first || !e.currentTarget.contains(active))) {
       e.preventDefault();
       last.focus();

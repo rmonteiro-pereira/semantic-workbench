@@ -38,16 +38,16 @@ export function DeleteItem({
   onClose,
   onDeleted,
 }: Props) {
-  const [plan, setPlan] = useState<Plan | null>(null),
-    [error, setError] = useState(''),
-    [busy, setBusy] = useState(false);
+  const [plan, setPlan] = useState<Plan | null>(null);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
   useEffect(() => {
     const t = setTimeout(() => {
       try {
         const docs = projectDocs.map(d => (d.id === doc.id ? { ...d, source: base } : d));
         const refs = findReferences({ kind, name, docId: doc.id, path, owner }, docs);
-        const dependents = refs.filter(r => r.dependent),
-          breaking = refs.filter(r => !r.dependent);
+        const dependents = refs.filter(r => r.dependent);
+        const breaking = refs.filter(r => !r.dependent);
         // The item itself is removed together with its dependents, from the last position to the first.
         const edited = removeDependents(docs, [
           { docId: doc.id, dependent: { path, label: name } },
@@ -83,14 +83,14 @@ export function DeleteItem({
       const disk = (d: Doc) => projectDocs.find(x => x.id === d.id)!;
       let written: Saved[];
       if (plan.files.length === 1) {
-        const f = plan.files[0],
-          r = await api.save(
-            f.doc.project,
-            f.doc.path,
-            disk(f.doc).hash,
-            f.source,
-            diffPatches(disk(f.doc).source, f.source),
-          );
+        const f = plan.files[0];
+        const r = await api.save(
+          f.doc.project,
+          f.doc.path,
+          disk(f.doc).hash,
+          f.source,
+          diffPatches(disk(f.doc).source, f.source),
+        );
         written = [{ docId: f.doc.id, source: f.source, hash: r.hash }];
       } else {
         const r = await api.saveBatch(

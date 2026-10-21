@@ -76,8 +76,8 @@ test('a v0.2.0 registry file loads unchanged and its projects keep working', asy
 test('the workspace resolves a registered subfolder project through the registry', async () => {
   const t = await testWorkspace();
   try {
-    const repo = join(t.ws.layout.projects, 'team'),
-      sub = join(repo, 'domains', 'sales');
+    const repo = join(t.ws.layout.projects, 'team');
+    const sub = join(repo, 'domains', 'sales');
     mkdirSync(sub, { recursive: true });
     await t.ws.git.init(repo);
     writeFileSync(

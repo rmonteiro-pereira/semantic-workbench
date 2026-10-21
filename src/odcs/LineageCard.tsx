@@ -42,8 +42,8 @@ const KIND_NAME: Record<string, string> = {
 // Pages shown in the pager: all up to 7, otherwise first, last and the neighbours of the current one.
 export function pagerItems(page: number, pages: number): (number | '…')[] {
   if (pages <= 7) return Array.from({ length: pages }, (_, i) => i);
-  const keep = new Set([0, pages - 1, page - 1, page, page + 1].filter(p => p >= 0 && p < pages)),
-    out: (number | '…')[] = [];
+  const keep = new Set([0, pages - 1, page - 1, page, page + 1].filter(p => p >= 0 && p < pages));
+  const out: (number | '…')[] = [];
   [...keep]
     .sort((a, b) => a - b)
     .forEach((p, i, a) => {
@@ -73,11 +73,11 @@ function Port({ id, top }: { id: string; top: number }) {
   );
 }
 export const LineageCardNode = memo(({ data }: NodeProps) => {
-  const d = data as unknown as CardData,
-    c = d.card,
-    dim = !!d.onPath && !d.onPath.has(c.id) && !c.columns.some(x => d.onPath!.has(x.id));
-  const kindLabel = d.kindNames?.[c.kind] ?? KIND_NAME[c.kind] ?? c.kind,
-    legendKind = c.kind as any;
+  const d = data as unknown as CardData;
+  const c = d.card;
+  const dim = !!d.onPath && !d.onPath.has(c.id) && !c.columns.some(x => d.onPath!.has(x.id));
+  const kindLabel = d.kindNames?.[c.kind] ?? KIND_NAME[c.kind] ?? c.kind;
+  const legendKind = c.kind as any;
   return (
     <div
       role="group"

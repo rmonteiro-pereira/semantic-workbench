@@ -90,11 +90,11 @@ export function RdfAddItem({
   const own = Object.keys(prefixes).find(
     p => !['rdf', 'rdfs', 'owl', 'xsd', 'sh', 'skos', 'dcterms', 'schema'].includes(p),
   );
-  const [kind, setKind] = useState<Kind>('class'),
-    [values, setValues] = useState<Record<string, string>>({ iri: own ? `${own}:` : '' });
-  const [check, setCheck] = useState<{ text: string; issues: Issue[] } | null>(null),
-    [saving, setSaving] = useState(false),
-    [error, setError] = useState('');
+  const [kind, setKind] = useState<Kind>('class');
+  const [values, setValues] = useState<Record<string, string>>({ iri: own ? `${own}:` : '' });
+  const [check, setCheck] = useState<{ text: string; issues: Issue[] } | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
   const plan = useMemo(() => {
     const iri = (values.iri ?? '').trim();
     if (!iri || iri.endsWith(':'))
@@ -107,8 +107,8 @@ export function RdfAddItem({
     } catch {
       return { error: `"${iri}" is not an IRI or a prefixed name of this file.` };
     }
-    const spec = KINDS[kind],
-      pairs: DesiredPair[] = [];
+    const spec = KINDS[kind];
+    const pairs: DesiredPair[] = [];
     if (spec.type) pairs.push({ predicateText: 'a', objectText: spec.type });
     if (values.label?.trim())
       pairs.push({
@@ -146,12 +146,12 @@ export function RdfAddItem({
     );
     return () => clearTimeout(t);
   }, [plan]);
-  const ready = 'text' in plan && !!plan.text,
-    pending = ready && check?.text !== (plan as any).text,
-    errors =
-      ready && check?.text === (plan as any).text
-        ? check!.issues.filter(i => i.severity === 'error')
-        : [];
+  const ready = 'text' in plan && !!plan.text;
+  const pending = ready && check?.text !== (plan as any).text;
+  const errors =
+    ready && check?.text === (plan as any).text
+      ? check!.issues.filter(i => i.severity === 'error')
+      : [];
   async function save() {
     if (!('text' in plan) || !plan.text) return;
     setSaving(true);
@@ -272,8 +272,8 @@ export function RdfDeleteItem({
   onClose: () => void;
   onDeleted: (saved: Saved[]) => void;
 }) {
-  const [busy, setBusy] = useState(false),
-    [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
   const result = useMemo(() => deleteRdfItem(base, doc.filename, subject, true), []);
   const elsewhere = useMemo(
     () => projectDocs.filter(d => d.id !== doc.id && d.source.includes(subject)).map(d => d.path),

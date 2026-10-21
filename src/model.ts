@@ -2,7 +2,7 @@ import { OSSIE_BUILTINS, builtinConcept } from './ossie-builtins';
 import { isMapping } from './mapping-schema';
 import { expandIri, namespaceOf, prefixMap, type Namespace } from './iri';
 import { locateInner } from './metrics/extension';
-import { datasetReferences, ansiExpression } from './metrics/deps';
+import { datasetReferences } from './metrics/deps';
 import { odcsForeignKeys } from './odcs';
 import { parseDocument } from 'yaml';
 import { valuePatches } from './edit/yaml-patch';
@@ -104,10 +104,10 @@ export function inspect(source: string, filename = 'definition.yaml') {
       }
       // Findings inside a SEMANTIC_WORKBENCH JSON block point at the offending key in that block.
       const offset =
-          issue.innerPath && node?.range
-            ? locateInner(source, node.range[0], node.range[1], issue.innerPath)
-            : (node?.range?.[0] ?? 0),
-        before = source.slice(0, offset);
+        issue.innerPath && node?.range
+          ? locateInner(source, node.range[0], node.range[1], issue.innerPath)
+          : (node?.range?.[0] ?? 0);
+      const before = source.slice(0, offset);
       return {
         ...issue,
         line: before.split('\n').length,
@@ -121,8 +121,8 @@ export function inspect(source: string, filename = 'definition.yaml') {
     if (e instanceof InputError) throw new InputError(locate(e.issues));
     throw e;
   }
-  const entities: Entity[] = [],
-    edges: Relationship[] = [];
+  const entities: Entity[] = [];
+  const edges: Relationship[] = [];
   const add = (item: any, path: (string | number)[], kind: string) => {
     if (!item || typeof item !== 'object') throw Error(`${path.join('.')} must be an object`);
     const name = item.concept ?? item.name;
@@ -160,8 +160,8 @@ export function inspect(source: string, filename = 'definition.yaml') {
         .map(e => [e.name, e]),
     );
     for (const [ri, r] of (m.relationships ?? []).entries()) {
-      const a = byName.get(r.from),
-        b = byName.get(r.to);
+      const a = byName.get(r.from);
+      const b = byName.get(r.to);
       if (!a || !b) throw Error(`Relationship ${r.name}: unknown dataset`);
       if (!r.from_columns?.length || r.from_columns.length !== r.to_columns?.length)
         throw Error(`Relationship ${r.name}: join keys must have equal lengths`);

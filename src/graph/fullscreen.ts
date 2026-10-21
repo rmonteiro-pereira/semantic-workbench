@@ -28,8 +28,8 @@ export type Fullscreen = {
   toggle: () => void;
 };
 export function useFullscreen(target: RefObject<HTMLElement | null>, enabled = true): Fullscreen {
-  const [active, setActive] = useState(false),
-    [fallback, setFallback] = useState(false);
+  const [active, setActive] = useState(false);
+  const [fallback, setFallback] = useState(false);
   const enter = useCallback(() => {
     const el = target.current;
     if (!el || !enabled) return;
@@ -89,9 +89,9 @@ export function useViewRestore(
   getViewport: () => Viewport | undefined,
   setViewport: (v: Viewport) => void,
 ) {
-  const memory = useRef(createViewMemory()),
-    holdUntil = useRef(0),
-    was = useRef(active);
+  const memory = useRef(createViewMemory());
+  const holdUntil = useRef(0);
+  const was = useRef(active);
   useEffect(() => {
     if (active === was.current) return;
     was.current = active;

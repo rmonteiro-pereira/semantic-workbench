@@ -625,7 +625,7 @@ if (category === 'agent') {
     d.datasets[0].fields[2].expression.dialects[0].expression = 'amount + fee';
     d.metrics[0].expression.dialects[0].expression = 'SUM(orders.amount * 2)';
   });
-  assert(plan(arithmetic).sql.includes('(\"orders\".amount + \"orders\".fee) * 2'));
+  assert(plan(arithmetic).sql.includes('("orders".amount + "orders".fee) * 2'));
   assert(plan().sql.includes('SUM('));
   assert(plan().sql.includes('GROUP BY'));
   assert(
@@ -805,8 +805,8 @@ if (category === 'model-layout') {
 // Source editor (Phase 5): CRLF-preserving patches, lint ranges, patch-based saves.
 if (category === 'patch') {
   const { EditorState } = await import('@codemirror/state');
-  const original = 'a: 1\r\nb: 2\r\n',
-    state = EditorState.create({ doc: original });
+  const original = 'a: 1\r\nb: 2\r\n';
+  const state = EditorState.create({ doc: original });
   const tr = state.update({ changes: { from: 4, insert: '\nz: 9' } });
   assert.equal(
     m.applyPatches(original, m.changesToPatches(original, state.doc, tr.changes)),
@@ -919,9 +919,9 @@ if (category === 'kpi-save') {
     extension: { type: 'ratio', numerator: 'vacant_gla', denominator: 'total_gla' },
     binding: { measures: 'Property' },
   });
-  const mapping = plan.writes.find((w: any) => w.path === 'mall.mapping.yaml').source,
-    before = files[1].source.split('\n'),
-    after = mapping.split('\n');
+  const mapping = plan.writes.find((w: any) => w.path === 'mall.mapping.yaml').source;
+  const before = files[1].source.split('\n');
+  const after = mapping.split('\n');
   const at = after.findIndex((l: string) => l.includes('"aaa_rate"'));
   assert.equal(after.length, before.length + 1);
   assert.equal(after[at + 1], before[at]);
@@ -1005,11 +1005,11 @@ if (category === 'scm-block') {
   assert.equal(m.blockers([], []), null);
 }
 if (category === 'git-exec') {
-  const fs = await import('node:fs'),
-    os = await import('node:os'),
-    path = await import('node:path');
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'workbench-mutations-git-')),
-    dir = path.join(root, 'p');
+  const fs = await import('node:fs');
+  const os = await import('node:os');
+  const path = await import('node:path');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'workbench-mutations-git-'));
+  const dir = path.join(root, 'p');
   fs.mkdirSync(dir);
   try {
     const git = m.createGit({
@@ -1264,20 +1264,20 @@ if (category === 'expansion') {
       budget: 0,
     });
   };
-  const base = ['C', 'A', 'B'],
-    a = ex('A'),
-    b = ex('B'),
-    ca = m.registerSet({
-      kind: 'collapse',
-      from: 'A',
-      target: a.id,
-      direction: 'both',
-      nodes: [],
-      edges: [],
-      frontier: {},
-      total: 0,
-      budget: 0,
-    });
+  const base = ['C', 'A', 'B'];
+  const a = ex('A');
+  const b = ex('B');
+  const ca = m.registerSet({
+    kind: 'collapse',
+    from: 'A',
+    target: a.id,
+    direction: 'both',
+    nodes: [],
+    edges: [],
+    frontier: {},
+    total: 0,
+    budget: 0,
+  });
   // X is reached by B too: collapsing A keeps it, removes Z
   assert.deepEqual(m.canvasOf(base, [a, b, ca]).nodes.sort(), ['A', 'B', 'C', 'X']);
 }
@@ -1300,13 +1300,13 @@ if (category === 'incremental') {
 }
 if (category === 'pierce') {
   const nodes = Array.from({ length: 30 }, (_, i) => ({
-      id: 'n' + i,
-      name: 'n' + i,
-      kind: 'EntityType',
-    })),
-    edges = nodes
-      .slice(1)
-      .map((n, i) => ({ id: 'e' + i, source: 'n' + i, target: n.id, label: 'next' }));
+    id: 'n' + i,
+    name: 'n' + i,
+    kind: 'EntityType',
+  }));
+  const edges = nodes
+    .slice(1)
+    .map((n, i) => ({ id: 'e' + i, source: 'n' + i, target: n.id, label: 'next' }));
   const o = { direction: 'out', valueTypes: true, technical: true, metrics: true, budget: 10 };
   const r = m.boundedClosure(nodes, edges, ['n0'], o);
   assert.equal(r.nodes.length, 10);
@@ -1320,8 +1320,8 @@ if (category === 'pierce') {
 if (category === 'sql-regions') {
   const { readFileSync } = await import('node:fs');
   const root = process.cwd();
-  const json = readFileSync(root + '/tests/fixtures/sql/escaped.semantic.json', 'utf8'),
-    r = m.sqlRegions(json, 'escaped.semantic.json')[2];
+  const json = readFileSync(root + '/tests/fixtures/sql/escaped.semantic.json', 'utf8');
+  const r = m.sqlRegions(json, 'escaped.semantic.json')[2];
   assert(r.exact);
   const at = r.offsets[r.value.indexOf('"x"')];
   assert.deepEqual(m.lineColumn(json, at), { line: 15, column: 143 });
@@ -1343,7 +1343,7 @@ if (category === 'sql-regions') {
     'flights.yaml',
   );
   assert(
-    flights.some((x: any) => /^\/ontology_mappings\/0\/semantic_model\/datasets\//.test(x.pointer)),
+    flights.some((x: any) => x.pointer.startsWith('/ontology_mappings/0/semantic_model/datasets/')),
   );
 }
 if (category === 'sql-lint') {

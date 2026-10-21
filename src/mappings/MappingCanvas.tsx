@@ -39,9 +39,9 @@ export function MappingCanvas({
   toolbarExtra,
   onEditItem,
 }: Props) {
-  const [context, setContext] = useState<(MappingContext & { bindings: any[] }) | null>(null),
-    [error, setError] = useState(''),
-    [loading, setLoading] = useState(true);
+  const [context, setContext] = useState<(MappingContext & { bindings: any[] }) | null>(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
     const abort = new AbortController();
     setLoading(true);
@@ -67,8 +67,8 @@ export function MappingCanvas({
     () => (context ? buildMappingGraph(context, revisionKey) : null),
     [context],
   );
-  const [onlyUnmapped, setOnlyUnmapped] = useState(false),
-    [finding, setFinding] = useState<{ card: string; message: string } | null>(null);
+  const [onlyUnmapped, setOnlyUnmapped] = useState(false);
+  const [finding, setFinding] = useState<{ card: string; message: string } | null>(null);
   const storageKey = `workbench:mapping-center:${mappingId}`;
   const center = useMemo(() => {
     if (!graph) return '';

@@ -25,8 +25,8 @@ export function collapseAreas(overview: ReturnType<typeof modelOverview>, collap
   }
   const edges: Relationship[] = [];
   for (const edge of overview.links) {
-    const a = overview.groupOf.get(edge.source)!,
-      b = overview.groupOf.get(edge.target)!;
+    const a = overview.groupOf.get(edge.source)!;
+    const b = overview.groupOf.get(edge.target)!;
     if (a === b && collapsed.has(a)) {
       internal.get(a)!.push(edge);
       continue;

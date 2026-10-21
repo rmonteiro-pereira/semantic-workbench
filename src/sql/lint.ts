@@ -20,9 +20,9 @@ export const fillPlaceholders = (sql: string) =>
   sql.replace(/\$\{[^}\n]*\}/g, m => 'p' + '_'.repeat(m.length - 1));
 export function lintRegion(source: string, region: SqlRegion, astify: Astify): SqlFinding[] {
   if (!region.grammar || !region.value.trim()) return [];
-  const body = fillPlaceholders(region.value),
-    sql = region.kind === 'expression' ? PREFIX + body : body,
-    shift = region.kind === 'expression' ? PREFIX.length : 0;
+  const body = fillPlaceholders(region.value);
+  const sql = region.kind === 'expression' ? PREFIX + body : body;
+  const shift = region.kind === 'expression' ? PREFIX.length : 0;
   // ANSI expressions follow the planner (server/agent/sql.ts): PostgreSQL grammar, then SQLite's; the
   // finding reports the PostgreSQL error.
   const grammars = region.grammar === 'postgresql' ? ['postgresql', 'sqlite'] : [region.grammar];

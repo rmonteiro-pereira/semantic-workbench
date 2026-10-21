@@ -20,8 +20,8 @@ const doc = (path: string, dir = 'public/examples/commerce'): ProjectDoc => ({
   source: read(`${dir}/${path}`),
 });
 test('add a concept and a relationship to it, then delete both: the file equals the original', () => {
-  const original = read('public/examples/commerce/commerce-business.ossie.yaml'),
-    data = (validateInput(original, 'b.ossie.yaml').model as any).document;
+  const original = read('public/examples/commerce/commerce-business.ossie.yaml');
+  const data = (validateInput(original, 'b.ossie.yaml').model as any).document;
   const added = edit(
     original,
     t =>
@@ -96,8 +96,8 @@ test('deleting a concept lists the relationships and mappings that name it, and 
 });
 test('deleting a dataset lists its joins and the metrics that read it', () => {
   const docs = [doc('sales.ossie.yaml')];
-  const data = (validateInput(docs[0].source, 'sales.ossie.yaml').model as any).document,
-    i = data.datasets.findIndex((d: any) => d.name === 'orders');
+  const data = (validateInput(docs[0].source, 'sales.ossie.yaml').model as any).document;
+  const i = data.datasets.findIndex((d: any) => d.name === 'orders');
   const refs = findReferences(
     { kind: 'dataset', name: 'orders', docId: docs[0].id, path: ['datasets', i] },
     docs,
@@ -132,8 +132,8 @@ test('deleting a KPI removes its binding line from the mapping extension', () =>
     doc('mall.semantic.yaml', 'public/examples/mall'),
     doc('mall.mapping.yaml', 'public/examples/mall'),
   ];
-  const metrics = itemValue(docs[0].source, ['metrics']) as any[],
-    i = metrics.findIndex(m => m.name === 'headcount');
+  const metrics = itemValue(docs[0].source, ['metrics']) as any[];
+  const i = metrics.findIndex(m => m.name === 'headcount');
   const refs = findReferences(
     { kind: 'metric', name: 'headcount', docId: docs[0].id, path: ['metrics', i] },
     docs,
@@ -144,8 +144,8 @@ test('deleting a KPI removes its binding line from the mapping extension', () =>
   const [edited] = removeDependents(docs, [
     { docId: binding!.docId, dependent: binding!.dependent! },
   ]);
-  const before = docs[1].source.split('\n'),
-    after = edited.source.split('\n');
+  const before = docs[1].source.split('\n');
+  const after = edited.source.split('\n');
   expect(before.length - after.length).toBe(1);
   expect(before.filter(l => !after.includes(l))).toEqual([
     '        {"metric":"headcount","measures":"kpi:Headcount","of":"Employee"},',

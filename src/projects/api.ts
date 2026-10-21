@@ -394,8 +394,8 @@ export async function loadWorkspace(previous: Map<string, Doc>) {
       p.files
         .filter(f => f.visible)
         .map(async f => {
-          const id = docId(p.slug, f.path),
-            old = previous.get(id);
+          const id = docId(p.slug, f.path);
+          const old = previous.get(id);
           if (old && old.hash === f.hash) return old;
           try {
             const file = await api.file(p.slug, f.path);

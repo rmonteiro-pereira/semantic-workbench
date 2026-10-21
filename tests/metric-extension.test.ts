@@ -12,14 +12,14 @@ const shipped = [
 ];
 // A copy with an extension on every metric: mall's own, inferred ones elsewhere.
 async function annotated(file: string) {
-  const source = await Bun.file('public/examples/' + file).text(),
-    doc = parseDocument(source),
-    data = doc.toJS(),
-    names = new Set<string>(data.metrics.map((m: any) => m.name));
+  const source = await Bun.file('public/examples/' + file).text();
+  const doc = parseDocument(source);
+  const data = doc.toJS();
+  const names = new Set<string>(data.metrics.map((m: any) => m.name));
   data.metrics.forEach((m: any, i: number) => {
     if (m.custom_extensions) return;
-    const sql = ansiExpression(m),
-      shape = inferredType(sql, names);
+    const sql = ansiExpression(m);
+    const shape = inferredType(sql, names);
     const ext = {
       schema: 'semantic-workbench/metric/v1',
       type: shape.type,

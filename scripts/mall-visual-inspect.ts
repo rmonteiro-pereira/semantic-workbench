@@ -4,8 +4,8 @@ import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 // isolated temporary data root, records what renders, and saves screenshots.
 const out = process.argv[2] ?? '/tmp/mall-inspect';
 const api = await startIsolatedApi({ watch: false });
-const browser = await chromium.launch(),
-  page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
+const browser = await chromium.launch();
+const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
 const problems: string[] = [];
 page.on('pageerror', e => problems.push('pageerror: ' + e.message));
 page.on('console', m => {

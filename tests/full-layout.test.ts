@@ -29,8 +29,8 @@ function checkGeometry(result: any, count: number) {
   }));
   for (let i = 0; i < absolute.length; i++)
     for (let j = i + 1; j < absolute.length; j++) {
-      const a = absolute[i],
-        b = absolute[j];
+      const a = absolute[i];
+      const b = absolute[j];
       const overlap =
         a.x < b.x + b.width - 0.01 &&
         a.x + a.width > b.x + 0.01 &&

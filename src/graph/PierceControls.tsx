@@ -6,8 +6,8 @@ import type { PierceNode, PierceOptions, PierceResult } from './pierce';
 // Full pierce, the Pierce direction radio group, Stop while running, Undo expansion. The closure
 // runs in pierce.worker.ts; Stop or a new run terminates the previous worker.
 export function usePierce() {
-  const worker = useRef<Worker | null>(null),
-    seq = useRef(0);
+  const worker = useRef<Worker | null>(null);
+  const seq = useRef(0);
   const [running, setRunning] = useState(false);
   const stop = useCallback(() => {
     worker.current?.terminate();

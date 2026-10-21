@@ -18,13 +18,13 @@ const withBindings = (source: string, data: string) => {
   return doc.toString({ lineWidth: 0 });
 };
 test('the shopping center mapping binds all 25 KPIs; every concept resolves', async () => {
-  const mapping = parseDocument(await mall('mall.mapping.yaml')).toJS(),
-    ontology = parseDocument(await mall('mall.ontology.yaml')).toJS(),
-    semantic = parseDocument(await mall('mall.semantic.yaml')).toJS();
+  const mapping = parseDocument(await mall('mall.mapping.yaml')).toJS();
+  const ontology = parseDocument(await mall('mall.ontology.yaml')).toJS();
+  const semantic = parseDocument(await mall('mall.semantic.yaml')).toJS();
   const { value, issues } = readKpiBindings(mapping);
   expect(issues).toEqual([]);
   expect(value).toHaveLength(25);
-  expect(value.map(b => b.metric)).toEqual([...value.map(b => b.metric)].sort());
+  expect(value.map(b => b.metric)).toEqual(value.map(b => b.metric).sort());
   const resolved = resolveBindings(
     value,
     ontology,
@@ -53,11 +53,11 @@ test('the shopping center mapping binds all 25 KPIs; every concept resolves', as
   ]);
 });
 test('bindings are validated: schema, measures required, metric unique, metric and concepts exist', async () => {
-  const source = await mall('mall.mapping.yaml'),
-    errors = (data: string) =>
-      validateInput(withBindings(source, data), 'mall.mapping.yaml')
-        .issues.filter(i => i.severity === 'error')
-        .map(i => i.message);
+  const source = await mall('mall.mapping.yaml');
+  const errors = (data: string) =>
+    validateInput(withBindings(source, data), 'mall.mapping.yaml')
+      .issues.filter(i => i.severity === 'error')
+      .map(i => i.message);
   expect(errors(bindingsData([{ metric: 'visitors' }])).join(' ')).toContain('measures');
   expect(
     errors(bindingsData([{ metric: 'visitors', measures: 'kpi:Visitors', colour: 'red' }])).join(

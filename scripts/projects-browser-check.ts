@@ -172,12 +172,12 @@ try {
   await check(
     'deleting the cache and restarting restores projects, files, view settings and drafts (SC-015)',
     async () => {
-      const id = 'shop/shop.yaml',
-        grouping = {
-          mode: 'types',
-          assignments: { 'ontology/0': 'custom:Review' },
-          names: { 'custom:Review': 'Review' },
-        };
+      const id = 'shop/shop.yaml';
+      const grouping = {
+        mode: 'types',
+        assignments: { 'ontology/0': 'custom:Review' },
+        names: { 'custom:Review': 'Review' },
+      };
       await api.ws.saveGrouping(id, grouping);
       api.ws.state.writeDraft('shop', 'shop.yaml', {
         baseHash: null,

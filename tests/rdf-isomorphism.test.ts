@@ -15,13 +15,13 @@ import {
 // sample of resources, a no-op edit changes nothing, a label change changes only that resource's
 // statements and exactly one triple, removing and re-adding a statement restores the graph, and
 // deleting and re-adding a resource restores the graph.
-const bn = (v: string) => ({ termType: 'BlankNode' as const, value: v }),
-  nn = (v: string) => ({ termType: 'NamedNode' as const, value: v }),
-  lit = (v: string) => ({
-    termType: 'Literal' as const,
-    value: v,
-    datatype: 'http://www.w3.org/2001/XMLSchema#string',
-  });
+const bn = (v: string) => ({ termType: 'BlankNode' as const, value: v });
+const nn = (v: string) => ({ termType: 'NamedNode' as const, value: v });
+const lit = (v: string) => ({
+  termType: 'Literal' as const,
+  value: v,
+  datatype: 'http://www.w3.org/2001/XMLSchema#string',
+});
 test('graphs compare up to blank-node renaming, and differ on any changed triple', () => {
   const a: Triple[] = [
     { s: nn('x'), p: nn('p'), o: bn('1') },
@@ -89,8 +89,8 @@ const files = [
   'mall/mall-data.ttl',
 ];
 const extra = (() => {
-  const src = readFileSync('public/examples/commerce/commerce.owl.ttl', 'utf8'),
-    w = new Writer({ format: 'N-Triples' });
+  const src = readFileSync('public/examples/commerce/commerce.owl.ttl', 'utf8');
+  const w = new Writer({ format: 'N-Triples' });
   w.addQuads(new (require('n3').Parser)({ baseIRI: 'https://workbench.local/import/' }).parse(src));
   let nt = '';
   w.end((_e: any, r: string) => {
@@ -129,8 +129,8 @@ for (const { name, source } of [
 ]) {
   test(`round trips on ${name}`, () => {
     seed = [...name].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 2147483647, 7);
-    const format = formatOf(name, source),
-      graph = parseGraph(source, format);
+    const format = formatOf(name, source);
+    const graph = parseGraph(source, format);
     const subjects = [
       ...new Set(graph.filter(t => t.s.termType === 'NamedNode').map(t => t.s.value)),
     ];
@@ -223,10 +223,10 @@ for (const { name, source } of [
         const d = deleteRdfItem(source, name, subject, false);
         if (!d.ok) throw Error(`${name} ${subject} delete: ${d.error}`);
         const own = description(
-            graph,
-            new Set([termKey({ termType: 'NamedNode', value: subject })]),
-          ),
-          rest = graph.filter(t => !own.has(t));
+          graph,
+          new Set([termKey({ termType: 'NamedNode', value: subject })]),
+        );
+        const rest = graph.filter(t => !own.has(t));
         expect(isomorphic(parseGraph(d.text, format), rest)).toBe(true);
         const again = addRdfItem(
           d.text,

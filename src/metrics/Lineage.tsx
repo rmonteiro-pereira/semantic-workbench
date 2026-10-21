@@ -83,10 +83,10 @@ export function Lineage({ explanation: e }: { explanation: KpiExplanation }) {
                 byObject.set(k, [...(byObject.get(k) ?? []), l]);
               }
               return [...byObject.values()].map(group => {
-                const first = group[0],
-                  objectQuality = group
-                    .flatMap(l => l.quality)
-                    .filter((q, i, a) => a.findIndex(x => x.name === q.name) === i);
+                const first = group[0];
+                const objectQuality = group
+                  .flatMap(l => l.quality)
+                  .filter((q, i, a) => a.findIndex(x => x.name === q.name) === i);
                 return (
                   <div key={first.file + first.object} className="odcs-object">
                     <div className="odcs-title">

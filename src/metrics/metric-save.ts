@@ -54,8 +54,8 @@ export function addBinding(
   binding: KpiBinding,
   filename = '',
 ): string {
-  const root = itemValue(source, owner) ?? {},
-    list: any[] = Array.isArray(root.custom_extensions) ? root.custom_extensions : [];
+  const root = itemValue(source, owner) ?? {};
+  const list: any[] = Array.isArray(root.custom_extensions) ? root.custom_extensions : [];
   const index = list.findIndex(e => e?.vendor_name === VENDOR);
   if (index >= 0) {
     const current = readKpiBindings(root, '', true);
@@ -146,9 +146,9 @@ export function planKpiSave(files: ProjectFile[], req: KpiRequest): KpiPlan {
   let semantic: string;
   if (req.existing) {
     // Only the extension entry is added to the existing metric.
-    const entry = metric.custom_extensions[0],
-      own = model.metrics[at].custom_extensions,
-      path = [...listPath, at, 'custom_extensions'];
+    const entry = metric.custom_extensions[0];
+    const own = model.metrics[at].custom_extensions;
+    const path = [...listPath, at, 'custom_extensions'];
     semantic = applyPatches(
       file.source,
       Array.isArray(own)

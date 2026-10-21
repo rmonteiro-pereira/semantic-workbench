@@ -60,9 +60,9 @@ export function factsOf(source: string, path: string): FileFacts {
 }
 // Evidence that file `a` belongs with file `b`, in either direction.
 export function evidenceBetween(a: IndexedFile, b: IndexedFile): Evidence[] {
-  const out: Evidence[] = [],
-    other = { project: b.project, path: b.path },
-    match = (xs: string[], ys: string[]) => xs.filter(x => ys.some(y => sameName(x, y)));
+  const out: Evidence[] = [];
+  const other = { project: b.project, path: b.path };
+  const match = (xs: string[], ys: string[]) => xs.filter(x => ys.some(y => sameName(x, y)));
   for (const name of match(a.facts.refs, b.facts.names))
     out.push({
       kind: 'ossie-ref-name',
@@ -75,8 +75,8 @@ export function evidenceBetween(a: IndexedFile, b: IndexedFile): Evidence[] {
       detail: `${b.path} references "${name}", the name declared in ${a.path}`,
       otherFile: other,
     });
-  const iris = new Set(b.facts.iris),
-    shared = a.facts.iris.filter(i => iris.has(i));
+  const iris = new Set(b.facts.iris);
+  const shared = a.facts.iris.filter(i => iris.has(i));
   if (shared.length)
     out.push({
       kind: 'shared-iri',
@@ -104,12 +104,12 @@ export function inferSuggestions(
   rejected: Set<string>,
   order: string[] = [],
 ): Suggestion[] {
-  const out: Suggestion[] = [],
-    size = new Map<string, number>(),
-    rank = (p: string) => {
-      const i = order.indexOf(p);
-      return i < 0 ? order.length : i;
-    };
+  const out: Suggestion[] = [];
+  const size = new Map<string, number>();
+  const rank = (p: string) => {
+    const i = order.indexOf(p);
+    return i < 0 ? order.length : i;
+  };
   for (const f of files) size.set(f.project, (size.get(f.project) ?? 0) + 1);
   const smaller = (a: string, b: string) =>
     size.get(a)! < size.get(b)! || (size.get(a) === size.get(b) && rank(a) > rank(b));

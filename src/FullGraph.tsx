@@ -135,8 +135,8 @@ function writeHide(key: string, hide: boolean) {
     else localStorage.removeItem(key);
   } catch {}
 }
-const readHideValues = (name: string) => readHide(valuesKey(name)),
-  writeHideValues = (name: string, hide: boolean) => writeHide(valuesKey(name), hide);
+const readHideValues = (name: string) => readHide(valuesKey(name));
+const writeHideValues = (name: string, hide: boolean) => writeHide(valuesKey(name), hide);
 export function FullGraph(props: Props) {
   const container = useRef<HTMLDivElement | null>(null);
   const [viewport, setViewport] = useState({ x: 0, y: 0, zoom: 1 });
@@ -222,16 +222,16 @@ export function FullGraph(props: Props) {
     return () => observer.disconnect();
   }, []);
   const fit = useCallback(() => {
-    const instance = flow.current,
-      canvas = container.current?.querySelector('.react-flow');
+    const instance = flow.current;
+    const canvas = container.current?.querySelector('.react-flow');
     if (!instance || !canvas) return;
-    const current = instance.getNodes(),
-      byId = new Map(current.map(n => [n.id, n]));
+    const current = instance.getNodes();
+    const byId = new Map(current.map(n => [n.id, n]));
     if (!current.length) return;
     const boxes = current.map(n => {
-      let x = n.position.x,
-        y = n.position.y,
-        parent = n.parentId;
+      let x = n.position.x;
+      let y = n.position.y;
+      let parent = n.parentId;
       const seen = new Set<string>();
       while (parent && !seen.has(parent)) {
         seen.add(parent);
@@ -248,10 +248,10 @@ export function FullGraph(props: Props) {
         height: Number(n.style?.height ?? n.measured?.height ?? 60),
       };
     });
-    const x = Math.min(...boxes.map(n => n.x)),
-      y = Math.min(...boxes.map(n => n.y)),
-      width = Math.max(...boxes.map(n => n.x + n.width)) - x,
-      height = Math.max(...boxes.map(n => n.y + n.height)) - y;
+    const x = Math.min(...boxes.map(n => n.x));
+    const y = Math.min(...boxes.map(n => n.y));
+    const width = Math.max(...boxes.map(n => n.x + n.width)) - x;
+    const height = Math.max(...boxes.map(n => n.y + n.height)) - y;
     const rect = canvas.getBoundingClientRect();
     if (rect.width && rect.height)
       void instance.setViewport(
@@ -470,13 +470,13 @@ export function FullGraph(props: Props) {
   const edges = useMemo(
     () =>
       connections.map(e => {
-        const a = positions.get(e.source),
-          b = positions.get(e.target);
-        let source = 'e',
-          target = 'w';
+        const a = positions.get(e.source);
+        const b = positions.get(e.target);
+        let source = 'e';
+        let target = 'w';
         if (a && b) {
-          const dx = b.x - a.x,
-            dy = b.y - a.y;
+          const dx = b.x - a.x;
+          const dy = b.y - a.y;
           if (Math.abs(dx) > Math.abs(dy)) {
             source = dx >= 0 ? 'e' : 'w';
             target = dx >= 0 ? 'w' : 'e';

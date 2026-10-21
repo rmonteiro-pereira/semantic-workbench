@@ -163,13 +163,11 @@ try {
   await check(
     'a mapping imported on its own is suggested for Flights with evidence, and accepting moves it',
     async () => {
-      await page
-        .locator('input[type=file]')
-        .setInputFiles({
-          name: 'flights.mapping.yaml',
-          mimeType: 'application/yaml',
-          buffer: Buffer.from(await read('flights.mapping.yaml')),
-        });
+      await page.locator('input[type=file]').setInputFiles({
+        name: 'flights.mapping.yaml',
+        mimeType: 'application/yaml',
+        buffer: Buffer.from(await read('flights.mapping.yaml')),
+      });
       // v0.3.0 (FR-060): a one-line count in the sidebar opens the Grouping suggestions dialog.
       await page.getByRole('button', { name: '1 grouping suggestion' }).click();
       const region = page.getByRole('dialog', { name: 'Grouping suggestions' });
@@ -188,13 +186,11 @@ try {
     },
   );
   await check('a dismissed suggestion is not offered again', async () => {
-    await page
-      .locator('input[type=file]')
-      .setInputFiles({
-        name: 'flights.semantic_model.yaml',
-        mimeType: 'application/yaml',
-        buffer: Buffer.from(await read('flights.semantic_model.yaml')),
-      });
+    await page.locator('input[type=file]').setInputFiles({
+      name: 'flights.semantic_model.yaml',
+      mimeType: 'application/yaml',
+      buffer: Buffer.from(await read('flights.semantic_model.yaml')),
+    });
     await page.getByRole('button', { name: '1 grouping suggestion' }).click();
     const region = page.getByRole('dialog', { name: 'Grouping suggestions' });
     await expect(region).toBeVisible();

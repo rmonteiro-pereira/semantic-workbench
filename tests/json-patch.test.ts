@@ -16,8 +16,8 @@ const contract = (indent: string | number) =>
 const set = (src: string, path: (string | number)[], value: any) =>
   applyPatches(src, valuePatches(src, path, value, 'c.odcs.json'));
 const lines = (a: string, b: string) => {
-  const x = a.split('\n'),
-    y = b.split('\n');
+  const x = a.split('\n');
+  const y = b.split('\n');
   let p = 0;
   while (x[p] === y[p]) p++;
   let s = 0;
@@ -25,8 +25,8 @@ const lines = (a: string, b: string) => {
   return { removed: x.slice(p, x.length - s), added: y.slice(p, y.length - s) };
 };
 for (const indent of [2, 4, '\t']) {
-  const src = contract(indent),
-    pad = typeof indent === 'number' ? ' '.repeat(indent) : indent;
+  const src = contract(indent);
+  const pad = typeof indent === 'number' ? ' '.repeat(indent) : indent;
   test(`a changed value is the only changed line (indent ${JSON.stringify(indent)})`, () => {
     const out = set(src, ['schema', 0, 'properties', 0, 'description'], 'Customer identifier.');
     expect(lines(src, out).added).toEqual([

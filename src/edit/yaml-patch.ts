@@ -1,14 +1,4 @@
-import {
-  Document,
-  isMap,
-  isPair,
-  isScalar,
-  isSeq,
-  parseDocument,
-  Scalar,
-  stringify,
-  visit,
-} from 'yaml';
+import { Document, isMap, isPair, isScalar, isSeq, parseDocument, stringify, visit } from 'yaml';
 import { applyPatches } from '../editor/patch';
 import { jsonPatches, jsonRemove, jsonTextPatches, sortPatches } from './json-patch';
 import {
@@ -101,11 +91,11 @@ const prefixLines = (text: string, first: string, rest: string) =>
 // A scalar in the style it had: quoted stays quoted, a block literal stays a block literal.
 function scalarText(v: any, old: any, ctx: Ctx, contentIndent: string, after: string) {
   if (typeof v !== 'string') return v === null || v === undefined ? 'null' : String(v);
-  const type = old?.type,
-    hasComment = /\S/.test(after);
+  const type = old?.type;
+  const hasComment = /\S/.test(after);
   if (type === 'BLOCK_LITERAL' || type === 'BLOCK_FOLDED' || (v.includes('\n') && !hasComment)) {
-    const body = v.endsWith('\n') ? v.slice(0, -1) : v,
-      chomp = v.endsWith('\n') ? (v.endsWith('\n\n') ? '+' : '') : '-';
+    const body = v.endsWith('\n') ? v.slice(0, -1) : v;
+    const chomp = v.endsWith('\n') ? (v.endsWith('\n\n') ? '+' : '') : '-';
     return (
       '|' +
       chomp +
@@ -122,8 +112,8 @@ function scalarText(v: any, old: any, ctx: Ctx, contentIndent: string, after: st
   return stringify(v, { lineWidth: 0 }).replace(/\n$/, '');
 }
 function flowText(v: any, old: any, ctx: Ctx): string {
-  const text = old ? ctx.src.slice(range(old)[0], range(old)[1]) : '',
-    pad = /^[[{] /.test(text) ? ' ' : '';
+  const text = old ? ctx.src.slice(range(old)[0], range(old)[1]) : '';
+  const pad = /^[[{] /.test(text) ? ' ' : '';
   const item = (x: any): string =>
     isCollection(x)
       ? flowText(x, null, ctx)
@@ -155,8 +145,8 @@ function diff(ctx: Ctx, node: any, oldV: any, newV: any, keyIndent: string): Pat
   }
   if (isScalar(node) && !isCollection(newV)) return [scalarPatch(ctx, node, newV, keyIndent)];
   // A block collection replaced by another value: written from the node's column.
-  const [from, to] = range(node),
-    col = ' '.repeat(columnOf(ctx.src, from));
+  const [from, to] = range(node);
+  const col = ' '.repeat(columnOf(ctx.src, from));
   if (
     isCollection(newV) &&
     (Array.isArray(newV) ? newV.length : Object.keys(newV).length) &&
@@ -180,8 +170,8 @@ function diff(ctx: Ctx, node: any, oldV: any, newV: any, keyIndent: string): Pat
   ];
 }
 function scalarPatch(ctx: Ctx, node: any, v: any, keyIndent: string): Patch {
-  const [from, to] = range(node),
-    after = ctx.src.slice(to, lineEndAfter(ctx.src, to));
+  const [from, to] = range(node);
+  const after = ctx.src.slice(to, lineEndAfter(ctx.src, to));
   // Content of an existing block scalar keeps its indentation.
   const own = node.type?.startsWith('BLOCK')
     ? /\n([ \t]+)\S/.exec(ctx.src.slice(from, to))?.[1]
@@ -207,18 +197,18 @@ function mapDiff(
   oldV: Record<string, any>,
   newV: Record<string, any>,
 ): Patch[] {
-  const pairs: any[] = node.items,
-    out: Patch[] = [],
-    key = (p: any) => String(p.key?.value);
-  const first = pairs[0],
-    firstOnDash = leadingSpace(ctx.src, range(first.key)[0]) === null;
+  const pairs: any[] = node.items;
+  const out: Patch[] = [];
+  const key = (p: any) => String(p.key?.value);
+  const first = pairs[0];
+  const firstOnDash = leadingSpace(ctx.src, range(first.key)[0]) === null;
   const keyIndent = firstOnDash
     ? ' '.repeat(columnOf(ctx.src, range(first.key)[0]))
     : leadingSpace(ctx.src, range(first.key)[0])!;
   const kept = pairs.map(p => Object.hasOwn(newV, key(p)));
   if (!kept.some(Boolean)) {
-    const from = range(node)[0],
-      to = range(node)[1];
+    const from = range(node)[0];
+    const to = range(node)[1];
     return [
       {
         from,
@@ -238,14 +228,14 @@ function mapDiff(
     i = k;
   }
   for (; i < pairs.length; i++) {
-    const p = pairs[i],
-      k = key(p);
+    const p = pairs[i];
+    const k = key(p);
     if (!kept[i]) {
       out.push({ from: lineStart(ctx.src, range(p.key)[0]), to: pairEnd(ctx, p), insert: '' });
       continue;
     }
-    const a = oldV[k],
-      b = newV[k];
+    const a = oldV[k];
+    const b = newV[k];
     if (deepEqual(a, b)) continue;
     if (
       p.value &&
@@ -256,8 +246,8 @@ function mapDiff(
     )
       out.push(...diff(ctx, p.value, a, b, keyIndent));
     else {
-      const onDash = i === 0 && firstOnDash,
-        from = onDash ? range(p.key)[0] : lineStart(ctx.src, range(p.key)[0]);
+      const onDash = i === 0 && firstOnDash;
+      const from = onDash ? range(p.key)[0] : lineStart(ctx.src, range(p.key)[0]);
       out.push({
         from,
         to: pairEnd(ctx, p),
@@ -270,8 +260,8 @@ function mapDiff(
   }
   const added = Object.keys(newV).filter(k => !pairs.some(p => key(p) === k));
   if (added.length) {
-    const at = pairEnd(ctx, pairs[pairs.length - 1]),
-      needsBreak = at === ctx.src.length && !/[\r\n]$/.test(ctx.src);
+    const at = pairEnd(ctx, pairs[pairs.length - 1]);
+    const needsBreak = at === ctx.src.length && !/[\r\n]$/.test(ctx.src);
     out.push({
       from: at,
       to: at,
@@ -287,10 +277,10 @@ function mapDiff(
   return out;
 }
 function seqDiff(ctx: Ctx, node: any, oldV: any[], newV: any[]): Patch[] {
-  const items: any[] = node.items,
-    dash = lineStart(ctx.src, range(items[0])[0]),
-    dashIndent = /^[ \t]*/.exec(ctx.src.slice(dash))![0],
-    itemIndent = dashIndent + '  ';
+  const items: any[] = node.items;
+  const dash = lineStart(ctx.src, range(items[0])[0]);
+  const dashIndent = /^[ \t]*/.exec(ctx.src.slice(dash))![0];
+  const itemIndent = dashIndent + '  ';
   let p = 0;
   while (p < oldV.length && p < newV.length && deepEqual(oldV[p], newV[p])) p++;
   let s = 0;
@@ -300,9 +290,9 @@ function seqDiff(ctx: Ctx, node: any, oldV: any[], newV: any[]): Patch[] {
     deepEqual(oldV[oldV.length - 1 - s], newV[newV.length - 1 - s])
   )
     s++;
-  const removed = oldV.length - p - s,
-    added = newV.slice(p, newV.length - s),
-    out: Patch[] = [];
+  const removed = oldV.length - p - s;
+  const added = newV.slice(p, newV.length - s);
+  const out: Patch[] = [];
   const entry = (v: any) =>
     withEol(
       isCollection(v)
@@ -316,8 +306,8 @@ function seqDiff(ctx: Ctx, node: any, oldV: any[], newV: any[]): Patch[] {
   const itemEnd = (n: any) => lineEndAfter(ctx.src, range(n)[1]);
   if (removed === added.length) {
     items.slice(p, p + removed).forEach((n, i) => {
-      const a = oldV[p + i],
-        b = added[i];
+      const a = oldV[p + i];
+      const b = added[i];
       if (kindOf(a) === kindOf(b) && !(isScalar(n) && isCollection(b)))
         out.push(...diff(ctx, n, a, b, itemIndent));
       else
@@ -336,8 +326,8 @@ function seqDiff(ctx: Ctx, node: any, oldV: any[], newV: any[]): Patch[] {
       const at = lineStart(ctx.src, range(items[p + removed])[0]);
       out.push({ from: at, to: at, insert: added.map(v => entry(v) + ctx.eol).join('') });
     } else {
-      const at = itemEnd(items[items.length - 1]),
-        needsBreak = at === ctx.src.length && !/[\r\n]$/.test(ctx.src);
+      const at = itemEnd(items[items.length - 1]);
+      const needsBreak = at === ctx.src.length && !/[\r\n]$/.test(ctx.src);
       out.push({
         from: at,
         to: at,
@@ -352,7 +342,8 @@ function seqDiff(ctx: Ctx, node: any, oldV: any[], newV: any[]): Patch[] {
 }
 // The JSON text of a block scalar, with each line's indentation; patches inside it map back to the file.
 function blockJsonPatches(ctx: Ctx, node: any, oldV: string, newV: string): Patch[] | null {
-  let a: any, b: any;
+  let a: any;
+  let b: any;
   try {
     a = JSON.parse(oldV);
     b = JSON.parse(newV);
@@ -360,12 +351,12 @@ function blockJsonPatches(ctx: Ctx, node: any, oldV: string, newV: string): Patc
     return null;
   }
   if (!isObject(a) || !isObject(b)) return null;
-  const [from, to] = range(node),
-    raw = ctx.src.slice(from, to),
-    body = raw.indexOf('\n') + 1;
+  const [from, to] = range(node);
+  const raw = ctx.src.slice(from, to);
+  const body = raw.indexOf('\n') + 1;
   if (!body) return null;
-  const indent = /^[ \t]*/.exec(raw.slice(body))![0],
-    lines = raw.slice(body).split('\n');
+  const indent = /^[ \t]*/.exec(raw.slice(body))![0];
+  const lines = raw.slice(body).split('\n');
   if (!indent || lines.some(l => l.replace(/\r$/, '').trim() && !l.startsWith(indent))) return null;
   const text = lines.map(l => (l.startsWith(indent) ? l.slice(indent.length) : l)).join('\n');
   if (text.replace(/\r\n/g, '\n').replace(/\n+$/, '') !== oldV.replace(/\n+$/, '')) return null;
@@ -376,8 +367,8 @@ function blockJsonPatches(ctx: Ctx, node: any, oldV: string, newV: string): Patc
     at += l.length + 1;
   }
   const map = (off: number) => {
-    let line = 0,
-      acc = 0;
+    let line = 0;
+    let acc = 0;
     while (
       line < lines.length - 1 &&
       acc + lines[line].length - (lines[line].startsWith(indent) ? indent.length : 0) + 1 <= off
@@ -403,15 +394,15 @@ export function valuePatches(
   value: any,
   filename = '',
 ): Patch[] {
-  const doc = parseSource(src),
-    json = isJsonSource(src, filename),
-    ctx = context(src, doc, json);
+  const doc = parseSource(src);
+  const json = isJsonSource(src, filename);
+  const ctx = context(src, doc, json);
   if (!path.length) return sortPatches(diff(ctx, doc.contents, doc.toJS(), value, ''));
-  const parentPath = path.slice(0, -1),
-    parent = nodeAt(doc, parentPath),
-    key = path[path.length - 1];
-  const old = doc.getIn(path, false),
-    node: any = doc.getIn(path, true);
+  const parentPath = path.slice(0, -1);
+  const parent = nodeAt(doc, parentPath);
+  const key = path[path.length - 1];
+  const old = doc.getIn(path, false);
+  const node: any = doc.getIn(path, true);
   // Extension JSON in a block scalar: patched as JSON.
   if (
     !json &&
@@ -426,8 +417,8 @@ export function valuePatches(
   const parentValue = toJs(doc, parentPath);
   // Removing one list entry: exactly that entry, even when a neighbour has the same content.
   if (value === undefined && isSeq(parent) && Array.isArray(parentValue)) {
-    const i = Number(key),
-      items: any[] = parent.items;
+    const i = Number(key);
+    const items: any[] = parent.items;
     if (items.length === 1 || (!json && (parent as any).flow))
       return valuePatches(
         src,

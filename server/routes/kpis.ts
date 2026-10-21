@@ -15,8 +15,8 @@ export const kpiRoutes: Route = async (ws, req, url) => {
   if (req.method !== 'POST') return null;
   const batch = url.pathname.match(/^\/api\/projects\/([^/]+)\/save-batch$/);
   if (batch) {
-    const slug = decodeURIComponent(batch[1]),
-      body = await readJson(req, MAX_INPUT_BYTES * 6 + 4096);
+    const slug = decodeURIComponent(batch[1]);
+    const body = await readJson(req, MAX_INPUT_BYTES * 6 + 4096);
     if (!object(body) || !Array.isArray(body.files) || Object.keys(body).some(k => k !== 'files'))
       throw Error('Expected {files: [{path, baseHash, source} or {path, baseHash, patches}]}.');
     for (const f of body.files)
@@ -35,8 +35,8 @@ export const kpiRoutes: Route = async (ws, req, url) => {
   // v0.3.0: `metrics` names; the v0.2.0 `kpis` paths stay as documented aliases (FR-016).
   const m = url.pathname.match(/^\/api\/projects\/([^/]+)\/(?:metrics|kpis)(\/preview)?$/);
   if (!m) return null;
-  const slug = decodeURIComponent(m[1]),
-    preview = !!m[2];
+  const slug = decodeURIComponent(m[1]);
+  const preview = !!m[2];
   ws.project(slug);
   const body = await readJson(req, 256_000);
   if (
@@ -94,9 +94,9 @@ export const kpiRoutes: Route = async (ws, req, url) => {
         })),
     ];
     const changes = plan.writes.map(w => {
-      const before = documents.find(d => d.path === w.path)?.source ?? '',
-        a = before ? before.split('\n') : [],
-        b = w.source.split('\n');
+      const before = documents.find(d => d.path === w.path)?.source ?? '';
+      const a = before ? before.split('\n') : [];
+      const b = w.source.split('\n');
       let p = 0;
       while (p < a.length && p < b.length && a[p] === b[p]) p++;
       let s = 0;

@@ -14,8 +14,8 @@ export type LegendLine =
   | 'link'
   | 'measures'
   | 'of';
-export const FOREIGN_KEY_STROKE = '#b07a2a',
-  FEEDS_STROKE = '#7d9c91';
+export const FOREIGN_KEY_STROKE = '#b07a2a';
+export const FEEDS_STROKE = '#7d9c91';
 export const EDGE_STYLES: Record<EdgeKind, EdgeStyle> = {
   'foreign-key': {
     label: 'Foreign key',

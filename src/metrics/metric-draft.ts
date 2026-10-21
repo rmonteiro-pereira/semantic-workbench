@@ -98,8 +98,8 @@ export function extensionFor(d: Draft): Record<string, any> {
   if (d.unit.trim()) e.unit = d.unit.trim();
   if (d.format.trim()) e.format = d.format.trim();
   if (d.direction && num(d.target) !== undefined) {
-    const ops = d.direction === 'higher_is_better' ? 'mustBeLessThan' : 'mustBeGreaterThan',
-      thresholds: Record<string, any> = {};
+    const ops = d.direction === 'higher_is_better' ? 'mustBeLessThan' : 'mustBeGreaterThan';
+    const thresholds: Record<string, any> = {};
     if (num(d.warning) !== undefined) thresholds.warning = { [ops]: num(d.warning) };
     if (num(d.critical) !== undefined) thresholds.critical = { [ops]: num(d.critical) };
     e.targets = [

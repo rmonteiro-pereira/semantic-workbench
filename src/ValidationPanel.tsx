@@ -72,12 +72,12 @@ export function ImportRepair({
   onCancel: () => void;
   onImport: (drafts: ImportDraft[]) => Promise<void>;
 }) {
-  const [drafts, setDrafts] = useState(initial),
-    [active, setActive] = useState(0),
-    [busy, setBusy] = useState(false),
-    [error, setError] = useState('');
-  const dialog = useRef<HTMLDialogElement>(null),
-    editor = useRef<CodeEditorHandle>(null);
+  const [drafts, setDrafts] = useState(initial);
+  const [active, setActive] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const dialog = useRef<HTMLDialogElement>(null);
+  const editor = useRef<CodeEditorHandle>(null);
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
     dialog.current?.showModal();

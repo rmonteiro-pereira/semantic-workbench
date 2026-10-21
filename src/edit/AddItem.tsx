@@ -80,9 +80,9 @@ export function AddItem({
       Object.entries(preset).map(([k, v]) => [k, Array.isArray(v) ? v.join(', ') : v]),
     ),
   );
-  const [check, setCheck] = useState<{ text: string; issues: Issue[] } | null>(null),
-    [saving, setSaving] = useState(false),
-    [error, setError] = useState('');
+  const [check, setCheck] = useState<{ text: string; issues: Issue[] } | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
   const fields = kind ? createFields(kind, choices) : [];
   // Form text → item values: lists split on commas, empty text left out.
   const values = useMemo(
@@ -114,8 +114,8 @@ export function AddItem({
     );
     if (missing.length)
       return { error: `Fill in ${missing.map(f => f.label.toLowerCase()).join(', ')}.` };
-    const item = newItem(kind, values),
-      list = itemValue(base, listPath);
+    const item = newItem(kind, values);
+    const list = itemValue(base, listPath);
     const name = itemName(kind, item);
     if (Array.isArray(list) && name && list.some(x => itemName(kind, x) === name))
       return { error: `${kindLabel[kind]} ${name} already exists here.` };
@@ -123,8 +123,8 @@ export function AddItem({
       const patches = Array.isArray(list)
         ? insertPatches(base, listPath, item, undefined, doc.filename)
         : valuePatches(base, listPath, [item], doc.filename);
-      const text = applyPatches(base, patches),
-        index = Array.isArray(list) ? list.length : 0;
+      const text = applyPatches(base, patches);
+      const index = Array.isArray(list) ? list.length : 0;
       return {
         text,
         inserted: patches.map(p => p.insert).join(''),
@@ -143,8 +143,8 @@ export function AddItem({
     }, 200);
     return () => clearTimeout(t);
   }, [plan]);
-  const pending = plan.text !== undefined && check?.text !== plan.text,
-    issues = plan.text !== undefined && check && check.text === plan.text ? check.issues : [];
+  const pending = plan.text !== undefined && check?.text !== plan.text;
+  const issues = plan.text !== undefined && check && check.text === plan.text ? check.issues : [];
   const errors = issues.filter(i => i.severity === 'error');
   async function save() {
     if (plan.text === undefined || !kind) return;

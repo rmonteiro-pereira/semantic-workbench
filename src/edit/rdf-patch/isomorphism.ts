@@ -4,8 +4,8 @@ import { isBlank, termKey, type Term, type Triple } from './terms';
 // graphs are compared up to blank-node renaming: ground triples as sets, blank nodes by iterated
 // neighbourhood hashing, then an exact matching search where hashes alone leave a choice.
 const hash = (s: string) => {
-  let h1 = 0x811c9dc5,
-    h2 = 0x1b873593;
+  let h1 = 0x811c9dc5;
+  let h2 = 0x1b873593;
   for (let i = 0; i < s.length; i++) {
     const c = s.charCodeAt(i);
     h1 = Math.imul(h1 ^ c, 0x01000193);
@@ -33,8 +33,8 @@ function colours(triples: Triple[]) {
     }
   const name = (term: Term, self: string, c: Map<string, string>) =>
     isBlank(term) ? (termKey(term) === self ? '@' : '#' + c.get(termKey(term))) : termKey(term);
-  let current = nodes,
-    classes = 1;
+  let current = nodes;
+  let classes = 1;
   for (let round = 0; round < 64; round++) {
     const next = new Map<string, string>();
     for (const k of current.keys())
@@ -70,21 +70,21 @@ export function isomorphic(a: Triple[], b: Triple[]): boolean {
       .filter(t => !blanks(t).length)
       .map(key)
       .sort();
-  const ga = ground(a),
-    gb = ground(b);
+  const ga = ground(a);
+  const gb = ground(b);
   if (ga.length !== gb.length || ga.some((k, i) => k !== gb[i])) return false;
-  const ba = a.filter(t => blanks(t).length),
-    bb = b.filter(t => blanks(t).length);
+  const ba = a.filter(t => blanks(t).length);
+  const bb = b.filter(t => blanks(t).length);
   if (!ba.length) return true;
-  const ca = colours(ba),
-    cb = colours(bb);
+  const ca = colours(ba);
+  const cb = colours(bb);
   const sig = (t: Triple, c: Map<string, string>) =>
     [t.s, t.p, t.o, t.g]
       .filter(Boolean)
       .map(x => (isBlank(x!) ? '#' + c.get(termKey(x!)) : termKey(x!)))
       .join(' ');
-  const sa = ba.map(t => sig(t, ca)).sort(),
-    sb = bb.map(t => sig(t, cb)).sort();
+  const sa = ba.map(t => sig(t, ca)).sort();
+  const sb = bb.map(t => sig(t, cb)).sort();
   if (sa.some((s, i) => s !== sb[i])) return false;
   // Colour classes with one member fix the mapping; larger classes are matched by search.
   const byColour = (c: Map<string, string>) => {
@@ -92,11 +92,11 @@ export function isomorphic(a: Triple[], b: Triple[]): boolean {
     for (const [k, v] of c) m.set(v, [...(m.get(v) ?? []), k]);
     return m;
   };
-  const qa = byColour(ca),
-    qb = byColour(cb);
+  const qa = byColour(ca);
+  const qb = byColour(cb);
   if ([...qa.values()].every(x => x.length === 1)) return true;
-  const set = new Set(bb.map(t => key(t))),
-    map = new Map<string, string>();
+  const set = new Set(bb.map(t => key(t)));
+  const map = new Map<string, string>();
   for (const [c, xs] of qa) if (xs.length === 1) map.set(xs[0], qb.get(c)![0]);
   const ambiguous = [...qa.entries()]
     .filter(([, xs]) => xs.length > 1)
@@ -128,9 +128,9 @@ export function description(triples: Triple[], subjects: Set<string>): Set<Tripl
     const k = termKey(t.s);
     bySubject.set(k, [...(bySubject.get(k) ?? []), t]);
   }
-  const out = new Set<Triple>(),
-    seen = new Set<string>(),
-    queue = [...subjects];
+  const out = new Set<Triple>();
+  const seen = new Set<string>();
+  const queue = [...subjects];
   while (queue.length) {
     const k = queue.pop()!;
     if (seen.has(k)) continue;
@@ -152,10 +152,10 @@ export function gate(
   intended?: Triple[],
 ): Gate {
   const keys = new Set(subjects.map(s => termKey({ termType: 'NamedNode', value: s })));
-  const db = description(before, keys),
-    da = description(after, keys);
-  const restBefore = before.filter(t => !db.has(t)),
-    restAfter = after.filter(t => !da.has(t));
+  const db = description(before, keys);
+  const da = description(after, keys);
+  const restBefore = before.filter(t => !db.has(t));
+  const restAfter = after.filter(t => !da.has(t));
   if (!isomorphic(restBefore, restAfter))
     return {
       ok: false,
@@ -168,10 +168,10 @@ export function gate(
       reason:
         'The saved text would not read back as the intended statements, so it was not applied.',
     };
-  const kb = new Set([...db].filter(t => !blanks(t).length).map(key)),
-    ka = new Set([...da].filter(t => !blanks(t).length).map(key));
-  const blankBefore = [...db].filter(t => blanks(t).length).length,
-    blankAfter = [...da].filter(t => blanks(t).length).length;
+  const kb = new Set([...db].filter(t => !blanks(t).length).map(key));
+  const ka = new Set([...da].filter(t => !blanks(t).length).map(key));
+  const blankBefore = [...db].filter(t => blanks(t).length).length;
+  const blankAfter = [...da].filter(t => blanks(t).length).length;
   const same = isomorphic(
     [...db].filter(t => blanks(t).length),
     [...da].filter(t => blanks(t).length),

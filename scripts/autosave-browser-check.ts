@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { projectDir, projectFile } from '../server/projects/paths';
-import { editorValue, expectEditorValue, fillEditor } from './helpers/code-editor';
+import { expectEditorValue, fillEditor } from './helpers/code-editor';
 // Phase 3 browser check (T024; Story 3, SC-005): valid edits are written automatically (one changed
 // line in `git diff`), invalid text is never written and stays a draft across a reload, a stale
 // save shows both versions, Commit… commits the ticked files in two actions, imports are
@@ -12,8 +12,8 @@ import { editorValue, expectEditorValue, fillEditor } from './helpers/code-edito
 // Isolated data root and a local bare remote; screenshots in /tmp/workbench-autosave-*.png.
 const api = await startIsolatedApi();
 const commerce = await api.ws.loadExample('commerce');
-const dir = projectDir(api.ws.layout, commerce.slug),
-  file = 'commerce-business.ossie.yaml';
+const dir = projectDir(api.ws.layout, commerce.slug);
+const file = 'commerce-business.ossie.yaml';
 const sh = (cwd: string, args: string[]) => {
   const r = Bun.spawnSync(['git', ...args], {
     cwd,
@@ -24,8 +24,8 @@ const sh = (cwd: string, args: string[]) => {
 };
 const read = (path: string) =>
   readFileSync(projectFile(api.ws.layout, commerce.slug, path), 'utf8');
-const extra = mkdtempSync(join(tmpdir(), 'workbench-remote-')),
-  bare = join(extra, 'remote.git');
+const extra = mkdtempSync(join(tmpdir(), 'workbench-remote-'));
+const bare = join(extra, 'remote.git');
 sh(extra, ['init', '-q', '--bare', '-b', 'main', bare]);
 const browser = await chromium.launch();
 const errors: string[] = [];
@@ -255,15 +255,11 @@ try {
     },
   );
   await check('an import is committed with exactly its files', async () => {
-    await page
-      .locator('input[type=file]')
-      .setInputFiles({
-        name: 'imported.ossie.yaml',
-        mimeType: 'text/yaml',
-        buffer: Buffer.from(
-          'name: Imported\nontology:\n  - concept: Thing\n    type: EntityType\n',
-        ),
-      });
+    await page.locator('input[type=file]').setInputFiles({
+      name: 'imported.ossie.yaml',
+      mimeType: 'text/yaml',
+      buffer: Buffer.from('name: Imported\nontology:\n  - concept: Thing\n    type: EntityType\n'),
+    });
     await expect(page.locator('main > .status')).toContainText('Imported 1 file', {
       timeout: 8000,
     });
@@ -286,14 +282,14 @@ try {
       ]) {
         await page.setViewportSize({ width: w, height: h });
         await page.waitForTimeout(200);
-        const header = page.locator('.workspace-header'),
-          commit = header.getByRole('button', { name: 'Commit…' }),
-          state = saveState();
+        const header = page.locator('.workspace-header');
+        const commit = header.getByRole('button', { name: 'Commit…' });
+        const state = saveState();
         await expect(commit).toBeVisible();
         await expect(state).toBeVisible();
-        const a = (await commit.boundingBox())!,
-          b = (await state.boundingBox())!,
-          hb = (await header.boundingBox())!;
+        const a = (await commit.boundingBox())!;
+        const b = (await state.boundingBox())!;
+        const hb = (await header.boundingBox())!;
         const overlap =
           a.x < b.x + b.width &&
           b.x < a.x + a.width &&

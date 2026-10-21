@@ -9,9 +9,9 @@ export function escapeIgnore(text: string) {
     .replace(/ $/, '\\ ');
 }
 export function ignoreChoices(path: string): IgnoreChoice[] {
-  const parts = path.split('/'),
-    name = parts.at(-1)!,
-    dir = parts.slice(0, -1).join('/');
+  const parts = path.split('/');
+  const name = parts.at(-1)!;
+  const dir = parts.slice(0, -1).join('/');
   const out: IgnoreChoice[] = [
     { pattern: '/' + parts.map(escapeIgnore).join('/'), label: `This file (${path})` },
   ];
@@ -32,8 +32,8 @@ export function ignoreChoices(path: string): IgnoreChoice[] {
 export function appendIgnore(current: string, pattern: string): string | null {
   if (!pattern.trim() || /[\r\n]/.test(pattern))
     throw Error('A .gitignore entry is one non-empty line.');
-  const eol = /\r\n/.test(current) ? '\r\n' : '\n',
-    lines = current.split(/\r?\n/);
+  const eol = /\r\n/.test(current) ? '\r\n' : '\n';
+  const lines = current.split(/\r?\n/);
   if (lines.includes(pattern)) return null;
   return current + (current && !current.endsWith('\n') ? eol : '') + pattern + eol;
 }

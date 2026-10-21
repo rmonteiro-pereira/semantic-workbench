@@ -175,8 +175,8 @@ test('commerce: an object mapping whose expression is a governed metric draws co
   expect(g.cards.get(metricId('gross_revenue'))!.kind).toBe('metric');
 });
 test('mall: KPI bindings: billed_amount measures kpi:BilledAmount (solid) and is of Lease (dashed)', () => {
-  const c = contexts.find(([n]) => n.startsWith('mall'))![1],
-    g = buildMappingGraph(c);
+  const c = contexts.find(([n]) => n.startsWith('mall'))![1];
+  const g = buildMappingGraph(c);
   const b = c.metricBindings.find(m => m.metric === 'billed_amount')!;
   expect(
     g.edges
@@ -195,8 +195,8 @@ test('mall: KPI bindings: billed_amount measures kpi:BilledAmount (solid) and is
 });
 // Synthetic changes to mapped commerce for unmapped items and findings.
 function changed(edit: (files: Record<string, string>) => void) {
-  const d = sets.commerce.map(x => ({ ...x })),
-    files = Object.fromEntries(d.map(x => [x.filename, x.source]));
+  const d = sets.commerce.map(x => ({ ...x }));
+  const files = Object.fromEntries(d.map(x => [x.filename, x.source]));
   edit(files);
   for (const x of d) x.source = files[x.filename];
   return buildContext(d, agentCatalog(d).mappings[0].id);
@@ -209,9 +209,9 @@ test('unmapped: a concept with no mapping and a field nothing reads carry the Un
       '$1      - {name: notes, expression: {dialects: [{dialect: ANSI_SQL, expression: notes}]}}\n',
     );
   });
-  const g = buildMappingGraph(c),
-    labels = (x: { badges?: { label: string }[] } | undefined) =>
-      (x?.badges ?? []).map(b => b.label);
+  const g = buildMappingGraph(c);
+  const labels = (x: { badges?: { label: string }[] } | undefined) =>
+    (x?.badges ?? []).map(b => b.label);
   expect(labels(g.cards.get(conceptId('Shipment')))).toContain('Unmapped');
   expect(labels(g.cards.get(conceptId('Customer')))).not.toContain('Unmapped');
   const customers = g.cards.get(datasetId('customers'))!;

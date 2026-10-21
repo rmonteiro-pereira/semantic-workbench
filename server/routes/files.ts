@@ -7,8 +7,8 @@ const HASH = /^[0-9a-f]{64}$/;
 export const fileRoutes: Route = async (ws, req, url) => {
   const m = url.pathname.match(/^\/api\/projects\/([^/]+)\/files\/(.+)$/);
   if (!m) return null;
-  const slug = decodeURIComponent(m[1]),
-    path = decodePath(m[2]);
+  const slug = decodeURIComponent(m[1]);
+  const path = decodePath(m[2]);
   if (req.method === 'GET') return Response.json(ws.readFile(slug, path));
   if (req.method === 'PUT') {
     const body = await readJson(req, MAX_INPUT_BYTES * 6 + 4096);

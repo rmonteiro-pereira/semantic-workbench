@@ -30,8 +30,8 @@ test('GET metrics lists every metric of the project, each with governed true exa
   const { t, slug, read } = await mall();
   try {
     const list = await (await api(t, 'GET', `/api/projects/${slug}/metrics`)).json();
-    const model = parse(read('mall.semantic.yaml')),
-      all = model.metrics.map((m: any) => m.name);
+    const model = parse(read('mall.semantic.yaml'));
+    const all = model.metrics.map((m: any) => m.name);
     expect(list.map((m: any) => m.name).sort()).toEqual([...all].sort());
     for (const m of list) {
       expect(typeof m.governed).toBe('boolean');
@@ -63,22 +63,22 @@ const body = (hashes: Record<string, string>) => ({
   baseHashes: hashes,
 });
 test('POST metrics and metrics/preview equal the kpis aliases byte for byte', async () => {
-  const a = await mall(),
-    b = await mall();
+  const a = await mall();
+  const b = await mall();
   try {
     const hashes = (m: typeof a) =>
       Object.fromEntries(
         ['mall.semantic.yaml', 'mall.mapping.yaml'].map(p => [p, sha256(m.read(p))]),
       );
     const pa = await (
-        await api(a.t, 'POST', `/api/projects/${a.slug}/metrics/preview`, body(hashes(a)))
-      ).json(),
-      pb = await (
-        await api(b.t, 'POST', `/api/projects/${b.slug}/kpis/preview`, body(hashes(b)))
-      ).json();
+      await api(a.t, 'POST', `/api/projects/${a.slug}/metrics/preview`, body(hashes(a)))
+    ).json();
+    const pb = await (
+      await api(b.t, 'POST', `/api/projects/${b.slug}/kpis/preview`, body(hashes(b)))
+    ).json();
     expect(pa).toEqual(pb);
-    const ra = await api(a.t, 'POST', `/api/projects/${a.slug}/metrics`, body(hashes(a))),
-      rb = await api(b.t, 'POST', `/api/projects/${b.slug}/kpis`, body(hashes(b)));
+    const ra = await api(a.t, 'POST', `/api/projects/${a.slug}/metrics`, body(hashes(a)));
+    const rb = await api(b.t, 'POST', `/api/projects/${b.slug}/kpis`, body(hashes(b)));
     expect(ra.status).toBe(200);
     expect(rb.status).toBe(200);
     for (const p of ['mall.semantic.yaml', 'mall.mapping.yaml']) expect(a.read(p)).toBe(b.read(p));
@@ -91,10 +91,10 @@ test('Add attributes: an existing metric without attributes gains only its exten
   const t = await testWorkspace();
   const { slug } = await t.ws.loadExample('commerce');
   try {
-    const read = (p: string) => readFileSync(join(t.root, 'projects', slug, p), 'utf8'),
-      before = read('sales.ossie.yaml');
-    const list = await (await api(t, 'GET', `/api/projects/${slug}/metrics`)).json(),
-      target = list.find((m: any) => !m.governed);
+    const read = (p: string) => readFileSync(join(t.root, 'projects', slug, p), 'utf8');
+    const before = read('sales.ossie.yaml');
+    const list = await (await api(t, 'GET', `/api/projects/${slug}/metrics`)).json();
+    const target = list.find((m: any) => !m.governed);
     expect(target).toBeTruthy();
     const r = await api(t, 'POST', `/api/projects/${slug}/metrics`, {
       semanticPath: 'sales.ossie.yaml',
@@ -110,9 +110,9 @@ test('Add attributes: an existing metric without attributes gains only its exten
       baseHashes: { 'sales.ossie.yaml': sha256(before) },
     });
     expect(r.status).toBe(200);
-    const after = read('sales.ossie.yaml'),
-      a = before.split('\n'),
-      b = after.split('\n');
+    const after = read('sales.ossie.yaml');
+    const a = before.split('\n');
+    const b = after.split('\n');
     let p = 0;
     while (a[p] === b[p]) p++;
     let s = 0;
