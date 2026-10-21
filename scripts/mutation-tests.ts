@@ -501,6 +501,22 @@ const mutants: [string, string, string, string][] = [
     "return [\n      {\n        severity: 'warning',\n        code: 'sql'",
     "return [{severity:'error',code:'sql'",
   ],
+  // Git setup: identity stays repository-local; clones are explicit, staged under data/projects/
+  // and never create symbolic links.
+  [
+    'git-setup',
+    'server/projects/git.ts',
+    "['config', '--local', 'user.name', name]",
+    "['config', '--global', 'user.name', name]",
+  ],
+  ['git-setup', 'server/projects/git.ts', '{ remote: true },', '{},'],
+  ['git-setup', 'server/projects/git.ts', "'core.symlinks=false',", "'core.symlinks=true',"],
+  [
+    'clone',
+    'server/projects/clone.ts',
+    'const staging = join(layout.projects, CLONE_STAGING + op);',
+    'const staging = join(layout.root, CLONE_STAGING + op);',
+  ],
 ];
 let killed = 0;
 async function run(category: string, file: string, source: string, index: string) {

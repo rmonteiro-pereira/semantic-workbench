@@ -11,8 +11,9 @@ serialization. Remote Git commands run only from the endpoints marked **remote**
 | --- | --- | --- |
 | `GET /api/status` | | `{gitAvailable, dataRoot, migration, recovery, repositories: [{repo, identityConfigured, projects: [slug]}]}`; `identityConfigured` (top level) kept as "every repository has an identity" for v0.2.0 clients |
 | `GET /api/projects/:slug/git/identity` | | `{name: string\|null, email: string\|null, scope: 'local'\|'global'\|'none'}` (read with the repository as working directory) |
-| `PUT /api/projects/:slug/git/identity` | `{name, email, allRepositories?: boolean}` | `{repositories: [repo]}`; writes `user.name`/`user.email` with `git config` (local scope) in the project's repository, or in every repository under `data/projects/`; never `--global`. Name 1–200 chars, email 3–320 chars, no control characters |
-| `GET /api/git/credential-helper` | | `{helper: string\|null}` (read-only `git config --get credential.helper`; never reads credentials) |
+| `PUT /api/projects/:slug/git/identity` | `{name, email, allRepositories?: boolean}` | `{repositories: [repo]}`; writes `user.name`/`user.email` with `git config` (local scope) in the project's repository, or also in every repository under `data/projects/` that has no identity yet (a repository's own author is never replaced); never `--global`. Name 1–200 chars, email 3–320 chars, no control characters |
+| `GET /api/git/credential-helper` | | `{helper: string\|null}`: the helper set in the user's or system Git settings (read-only `git config --get credential.helper` outside any repository; never reads credentials) |
+| `DELETE /api/projects/:slug/git/remote` | `{name}` | `{removed: name}`; 400 when no remote has that name |
 
 ## Commit, revert, imports
 
@@ -26,7 +27,7 @@ serialization. Remote Git commands run only from the endpoints marked **remote**
 
 | Method & path | Request | Response |
 | --- | --- | --- |
-| `POST /api/clone` (**remote**) | `{url, name?}` | `{op}` immediately; progress and result through SSE `clone` events `{op, phase: 'cloning'\|'scanning'\|'done'\|'failed'\|'cancelled', message?, repo?, candidates?, manifest?}`; address rules as `setRemote` (no `transport::`, no leading `-`, ≤ 2000 chars, no newlines); clone into `data/projects/.staging-<op>/` then journaled move |
+| `POST /api/clone` (**remote**) | `{url, name?}` | `{op, name, slug}` immediately (a taken name, including one a running clone uses, gets a free one); progress and result through SSE `clone` events `{op, phase: 'cloning'\|'scanning'\|'done'\|'failed'\|'cancelled', name?, message?, repo?, invalid?, candidates?, manifest?}`; address rules as `setRemote` (no `transport::`, no leading `-`, ≤ 2000 chars, no control characters, no masked `***@` address); clone into `data/projects/.staging-clone-<op>/` then journaled move; a leftover staging folder is removed at start-up and reported as a rolled-back `clone` |
 | `POST /api/clone/:op/cancel` | | `{cancelled}` |
 | `GET /api/repos/:repo/project-candidates` | | `{manifest: {projects} \| null, manifestError?, detected: [{path, files}], registered: [slug]}` |
 | `PUT /api/repos/:repo/projects` | `{projects: [{path, name?}], saveManifest?: boolean, manifestBaseHash?: string\|null}` | registers the subfolder projects (journaled registry write) → `{projects: [{slug, name, folder}]}`; `saveManifest` writes `.semantic-workbench.json` through a hash-checked save; 400 nested or invalid paths |

@@ -14,6 +14,7 @@ import { suggestionRoutes } from './routes/suggestions';
 import { metricRoutes } from './routes/metrics';
 import { kpiRoutes } from './routes/kpis';
 import { gitRoutes } from './routes/git';
+import { cloneRoutes } from './routes/clone';
 /** Local browser origins allowed to call the API. */
 export const ALLOWED_ORIGINS = [
   'http://127.0.0.1:5173',
@@ -173,6 +174,7 @@ const routes: Route[] = [
   metricRoutes,
   kpiRoutes,
   gitRoutes,
+  cloneRoutes,
   fileRoutes,
   draftRoutes,
   legacyRoutes,

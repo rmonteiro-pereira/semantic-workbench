@@ -1374,3 +1374,84 @@ if (category === 'sql-lint') {
   assert.equal(f[0].severity, 'warning');
   assert.deepEqual([f[0].line, f[0].column], [23, 77]);
 }
+
+if (category === 'git-setup') {
+  const fs = await import('node:fs');
+  const os = await import('node:os');
+  const path = await import('node:path');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'workbench-mutations-setup-'));
+  const projects = path.join(root, 'projects');
+  const globalConfig = path.join(root, 'gitconfig');
+  fs.mkdirSync(projects);
+  fs.writeFileSync(globalConfig, '[init]\n\tdefaultBranch = main\n');
+  const env = { ...process.env, GIT_CONFIG_GLOBAL: globalConfig, GIT_CONFIG_NOSYSTEM: '1' };
+  const sh = (cwd: string, args: string[]) => {
+    const result = Bun.spawnSync(['git', ...args], { cwd, env });
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    return result.stdout.toString();
+  };
+  try {
+    const git = m.createGit({ projectsRoot: projects, env });
+    // The identity goes into the repository, never into the user's global configuration.
+    const repo = path.join(projects, 'repo');
+    fs.mkdirSync(repo);
+    await git.init(repo);
+    await git.setIdentity(repo, 'Ana', 'ana@example.org');
+    assert.equal(sh(repo, ['config', '--local', 'user.name']).trim(), 'Ana');
+    assert.equal(fs.readFileSync(globalConfig, 'utf8'), '[init]\n\tdefaultBranch = main\n');
+    // A clone runs from the explicit clone action and checks links out as plain files.
+    const work = path.join(root, 'work');
+    sh(root, ['init', '-q', '-b', 'main', work]);
+    sh(work, ['config', 'user.name', 'T']);
+    sh(work, ['config', 'user.email', 't@example.invalid']);
+    fs.symlinkSync('/etc/hostname', path.join(work, 'link.yaml'));
+    sh(work, ['add', '.']);
+    sh(work, ['commit', '-qm', 'Link']);
+    const staging = path.join(projects, '.staging-clone-test');
+    fs.mkdirSync(staging);
+    await git.clone(staging, work, 'team');
+    assert.equal(fs.lstatSync(path.join(staging, 'team', 'link.yaml')).isSymbolicLink(), false);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+}
+
+if (category === 'clone') {
+  const fs = await import('node:fs');
+  const os = await import('node:os');
+  const path = await import('node:path');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'workbench-mutations-clone-'));
+  const layout = { root, projects: path.join(root, 'projects'), state: path.join(root, 'state') };
+  fs.mkdirSync(layout.projects);
+  fs.mkdirSync(layout.state);
+  const parents: string[] = [];
+  const events: any[] = [];
+  try {
+    const cloner = m.createCloner({
+      layout,
+      git: {
+        clone: async (parent: string, _url: string, folder: string) => {
+          parents.push(parent);
+          fs.mkdirSync(path.join(parent, folder), { recursive: true });
+        },
+        cancel: () => false,
+      },
+      journal: { newId: () => 'op1', run: () => {} },
+      projects: () => [],
+      lock: async (_key: string, run: () => unknown) => run(),
+      registrySteps: () => [],
+      scan: async () => {},
+      invalidFiles: () => [],
+      added: () => {},
+      emit: (event: any) => events.push(event),
+    });
+    cloner.start('/tmp/team.git');
+    for (let tries = 0; tries < 100 && !events.some(e => e.phase === 'done'); tries++)
+      await Bun.sleep(10);
+    // The clone is staged inside data/projects/, nowhere else in the data folder.
+    assert.equal(parents.length, 1);
+    assert(parents[0].startsWith(layout.projects + path.sep), parents[0]);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+}
