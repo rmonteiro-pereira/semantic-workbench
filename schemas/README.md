@@ -12,3 +12,5 @@ Mapping support adds immutable snapshots from Apache Ossie commit `64a1ae44035f5
 ## Application schemas (not part of any standard)
 
 `semantic-workbench-metric-v1.json` and `semantic-workbench-mapping-v1.json` are Semantic Workbench's own schemas for the JSON it stores in Ossie `custom_extensions` entries with `vendor_name: SEMANTIC_WORKBENCH`: KPI attributes on a metric, and KPI-to-concept bindings on the root of a mapping document (or of the semantic model embedded in a consolidated file). They are application choices, not Apache Ossie semantics; other Ossie tools ignore these entries. Drafts live in `specs/001-workbench-improvements/contracts/`; a change to an application schema is published as a new versioned file.
+
+`semantic-workbench-repository-v1.json` (`semantic-workbench/repository/v1`) is Semantic Workbench's own schema for the optional `.semantic-workbench.json` manifest at the root of a Git repository, which lists the subfolders the workbench opens as separate projects. It is an application choice, not part of any standard; the draft lives in `specs/002-lineage-and-ux/contracts/repository-manifest.schema.json`.
