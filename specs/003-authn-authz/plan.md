@@ -45,7 +45,8 @@ ELK); **new, server only**: `openid-client` 6.8.8 (MIT, 236 KB + `oauth4webapi` 
 `jose` 6.2.13 (MIT, 412 KB), `@cedar-policy/cedar-wasm` 4.14.0 (Apache-2.0, 13 MB on disk, 4.2 MB
 WASM loaded; never bundled for the browser). All three verified under Bun 1.4.0 (research R1–R3).
 Network: only the identity provider (discovery, JWKS, token, end-session, Graph
-`checkMemberGroups` for overage) and Git hosts on explicit action — allowed by constitution 3.0.0
+`checkMemberGroups` for overage; on Azure the platform managed-identity endpoint for the Entra
+client assertion) and Git hosts on explicit action — allowed by constitution 3.0.0
 Principle I. Machine Git ≥ 2.40.
 
 **Storage**: unchanged project layout plus `data/worktrees/`, `data/admin/` (Git), per-person

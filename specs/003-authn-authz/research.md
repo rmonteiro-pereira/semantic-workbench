@@ -15,7 +15,9 @@ below come from that probe.
   `buildEndSessionUrl` import and run; installed size 236 KB plus `oauth4webapi` 332 KB.
 - **Client authentication**: client secret (Keycloak, simple Entra setups) or `private_key_jwt`
   with a client assertion. On Azure the recommended Entra credential is a federated identity
-  credential that trusts the container's managed identity: the server asks the platform identity
+  credential that trusts the container app's user-assigned managed identity `id-sw-app` (R14;
+  Microsoft documents managed-identity federation with user-assigned identities, and its object
+  id survives re-creating the app): the server asks the platform identity
   endpoint for a token for `api://AzureADTokenExchange` and sends it as the client assertion, so
   no client secret exists anywhere.
 - **Rejected**: MSAL Node (Entra-only, Keycloak would need a second path; larger); Azure built-in
@@ -217,9 +219,10 @@ below come from that probe.
 
 - **Primary**: Azure Container Apps, one container app, revision mode single, `minReplicas = 1`,
   `maxReplicas = 1`, external HTTPS ingress to port 4310, session affinity irrelevant (one
-  replica). System-assigned managed identity reads Key Vault secrets (`SW_SESSION_KEY`, provider
-  client secret if used, GitHub app secret), pulls from Azure Container Registry (`AcrPull`, R19)
-  and is the federated credential of the Entra app. Liveness probe `/healthz`, readiness probe
+  replica). A user-assigned managed identity `id-sw-app`, created before the app so its roles exist
+  at first pull, reads Key Vault secrets (`SW_SESSION_KEY`, provider client secret if used, GitHub
+  app secret), pulls from Azure Container Registry (`AcrPull`, R19) and is the federated
+  credential of the Entra app. Liveness probe `/healthz`, readiness probe
   `/readyz`, termination grace period 30 s.
 - **Storage**: data root on an Azure Files share mounted at `/data` (NFS on a premium storage
   account where the region supports it for Container Apps; SMB otherwise, with mount options
@@ -235,9 +238,12 @@ below come from that probe.
   ready before it stops the old one; a new instance that refused to become ready while the old
   one holds the lock would block the update forever. Therefore (FR-122, FR-123): a live lock of
   the **same** revision means a second replica → refuse to serve and stay not-ready; a live lock
-  of a **different** revision means a revision update → report ready, answer 503 with
-  `Retry-After: 5` on every non-health route, and take the lock as soon as the old instance
-  releases it in its SIGTERM handler or its heartbeat is older than 30 s. Two instances never
+  of a **different** revision means a revision update → report ready with state `handover`,
+  answer 503 with `Retry-After: 5` on every non-health route, run no recovery, migration or scan
+  and write nothing under the data root, and take the lock as soon as the old instance releases
+  it in its SIGTERM handler or its heartbeat is older than 30 s; then recover, scan and report
+  `serving`. A second replica of the same revision is detected before it can take the lock
+  because both read the lock first; the refusing instance re-checks every 10 s. Two instances never
   serve one data root; the interruption is the old instance's shutdown plus at most 30 s
   (SC-017). The deploy job also refuses to deploy unless min and max replicas are 1 (FR-139).
 - **No infrastructure as code** (owner decision): the resources are created by hand following
@@ -282,7 +288,9 @@ below come from that probe.
      imports, `policies/`, `schemas/`, `dist/` and the production `node_modules`. `USER bun`
      (uid 1000), `ENV DATA_DIR=/data SW_CACHE_DIR=/tmp/sw-cache SW_SERVE_STATIC=1`, `VOLUME /data`,
      `EXPOSE 4310`, labels `org.opencontainers.image.{version,revision,source,created}` and the
-     same values as `SW_VERSION`/`SW_COMMIT` from build arguments. `HEALTHCHECK` runs a two-line
+     same values as `SW_VERSION`/`SW_COMMIT` from build arguments. `SW_VERSION` is the
+     `package.json` version (the image is built before any tag exists and promoted unchanged, so
+     the tag cannot be baked in; the release check requires the tag's version core to equal it). `HEALTHCHECK` runs a two-line
      Bun `fetch` of `/healthz` (no curl in the image). Entry point `bun server/index.ts`, receiving
      SIGTERM directly (exec form) so the instance lock is released.
 - **Local mode in the container**: Principle I keeps local mode on loopback; with Docker's default
@@ -325,22 +333,32 @@ below come from that probe.
   through the GitHub API, so a tag without a published image fails before any approval), then
   `deploy` in environment `production` (required reviewers; concurrency group `production`, never
   cancelled). Only after approval, with the deployer identity: image `sha-<commit>` exists in the
-  registry, Trivy rescan of its digest, promotion to `vX.Y.Z` on the same digest with `docker
-  buildx imagetools create` (no rebuild), preflight of the container app settings (FR-139), record
-  of the running image digest, `az containerapp update --image
+  registry, Trivy rescan of its digest, preflight of the container app settings (FR-139),
+  promotion to `vX.Y.Z` on the same digest with `docker buildx imagetools create` (no rebuild),
+  record of the running image digest, `az containerapp update --image
   <registry>/semantic-workbench@<digest>`, wait for the new revision to run and be ready,
   `scripts/deploy-smoke.ts`, and on failure redeploy of the recorded digest and a second smoke
-  test, then fail. A last job `github-release` (contents write) creates the release with the
-  bill of materials and the scan report. The job summary lists both digests and results. Registry
+  test, then fail. A last job `github-release` (contents write, actions read) creates the release
+  with the bill of materials, regenerated from the digest by Trivy in `deploy` so artifact
+  retention cannot lose it, and the scan report. `check` also has `actions: read` (it reads
+  `ci.yml` runs) and refuses a tag whose version core differs from `package.json` or is older
+  than the last deployed version. The job summary lists both digests and results. Registry
   steps sit after the approval because a tag push gets the OIDC subject
   `ref:refs/tags/<tag>`, which no federated credential matches; only the environment subject
   does.
-- **`rollback.yml`** (manual dispatch with input `version`, environment `production`): resolves the
-  version tag to its digest and runs the same deploy and smoke steps.
+- **`rollback.yml`** (manual dispatch on the target tag ref, so the environment's `v*` rule admits
+  it; non-tag refs are refused; concurrency group `production`, not cancelled): resolves
+  `github.ref_name` to its digest and runs the same deploy and smoke steps. It exists at every tag
+  from `v0.4.0-alpha.1` on.
+- **Required checks**: matrix legs report as `browser (<suite>)`, so an aggregate job
+  `browser-result` (`needs: browser`, `if: always()`, fails unless every leg succeeded) is the
+  required check.
 - **Smoke test** (`scripts/deploy-smoke.ts`, also run against the compose server profile in the
-  `container` job so its logic is tested on every change): `/healthz` version and commit equal the
-  release; `/readyz` 200 within 3 minutes; `GET /api/projects` without a cookie → 401 with no
-  project names; `/auth/login` → 302 to the configured issuer with `code_challenge_method=S256`;
+  `container` job so its logic is tested on every change): `/readyz` reports state `serving`
+  within 3 minutes (state `handover` is waited out); `/healthz` commit equals the released commit
+  and version equals the `package.json` version; `GET /api/projects` without a cookie → 401 with
+  no project names; `/auth/login` → 302 to the `authorization_endpoint` of the issuer's discovery
+  document (Keycloak and Entra differ) with `code_challenge_method=S256`;
   HSTS, CSP, `X-Content-Type-Options` present; the sign-in cookie is `Secure; HttpOnly`.
 - **Hardening**: actions pinned by commit with Dependabot (`github-actions`, `docker`, `npm`
   ecosystems) proposing updates; no `pull_request_target`; fork pull requests get no secrets and
@@ -395,7 +413,8 @@ below come from that probe.
   Container Apps environment (consumption profile) with the Azure Files storage registered;
   storage account and file share; Key Vault (RBAC mode) with `SW_SESSION_KEY` and provider and
   GitHub secrets; container registry; container app (single revision mode, one replica, ingress
-  4310, system identity with `AcrPull` and Key Vault Secrets User, volume at `/data`, probes,
+  4310, user-assigned identity `id-sw-app` with `AcrPull` and Key Vault Secrets User, created
+  and granted before the app so the first pull works, volume at `/data`, probes,
   environment variables of contracts/configuration.md with secret references); the two pipeline
   identities; the Entra app registration for sign-in (quickstart §5).
 - **GitHub settings** (manual, same guide): ruleset on `main` requiring the `ci.yml` checks and a

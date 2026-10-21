@@ -135,7 +135,10 @@ owner (OP-1 to OP-5).
   to public repositories). The pipeline is written for the environment; if the plan does not
   offer required reviewers, the documented fallback is that the deploy workflow runs only on a
   manual dispatch for an existing tag, by an actor listed in the repository variable
-  `SW_DEPLOYERS`, and the dispatch is the approval.
+  `SW_DEPLOYERS`, and the dispatch is the approval. Accepted risk of the fallback: the deploy
+  identity then trusts the `main` branch subject, so anyone able to merge to `main` could obtain
+  it; on GitHub Pro or Team an environment with a deployment rule but no reviewers keeps the
+  environment subject and is preferred.
 - Q: How does local mode run in a container when it may bind only to loopback? → A (OP-8): the
   container in local mode uses host networking (`network_mode: host`), so the server binds the
   host's `127.0.0.1` and the constitution's loopback rule holds unchanged. This works with Docker
@@ -500,10 +503,11 @@ A contributor opens a pull request; GitHub Actions runs the type check, unit tes
 mutation suite, Playwright browser suites, the Keycloak sign-in tests, builds the image, scans it,
 produces its software bill of materials and runs the container checks; the pull request cannot
 merge while any of them fails. A merge to `main` publishes the image to the registry. When the
-owner pushes tag `v0.4.0`, the pipeline promotes the image already built and tested for that
-commit, waits for approval in the `production` environment, deploys it to Azure Container Apps
-signing in to Azure through workload identity federation, runs a smoke test and, if the smoke
-test fails, puts the previous revision's image back.
+owner pushes tag `v0.4.0`, the pipeline checks the tag, waits for approval in the `production`
+environment, then rescans and promotes the image already built and tested for that commit,
+deploys it to Azure Container Apps signing in to Azure through workload identity federation,
+runs a smoke test and, if the smoke test fails, puts the previous revision's image back; the
+GitHub release is created when the smoke test passes.
 
 **Why this priority**: P1, by owner decision. The verification gate of the constitution is only
 reliable when it runs on every change, and a reproducible, approved, reversible release is what
@@ -527,9 +531,10 @@ and confirm the rollback; confirm no Azure credential is stored in GitHub.
    image is pushed to the registry tagged with the commit and `main`, and its bill of materials is
    kept with the run.
 4. **Given** a version tag `v*` on a commit of `main` whose image was published, **When** the
-   release runs, **Then** that same image (same digest, not rebuilt) is rescanned, tagged with the
-   version, and a GitHub release is created with the bill of materials; a tag on a commit without
-   a published image fails with that reason.
+   release is approved, **Then** that same image (same digest, not rebuilt) is rescanned, tagged
+   with the version and deployed, and a GitHub release with the bill of materials is created after
+   the smoke test passes; a tag on a commit without a published image, or whose version differs
+   from the commit's `package.json` version, fails before approval with that reason.
 5. **Given** the release waiting for approval, **When** a required reviewer approves, **Then** the
    pipeline signs in to Azure with a short-lived federated token, deploys the image by digest as a
    new revision and runs the smoke test; without approval nothing is deployed.
@@ -594,8 +599,9 @@ and confirm the rollback; confirm no Azure credential is stored in GitHub.
   the release fails before any approval request, naming the reason.
 - A new critical vulnerability is published between the merge and the release: the release
   rescan fails, nothing is deployed, and the fix is a new commit and tag.
-- Two version tags are pushed in quick succession: deployments run one at a time in tag order;
-  the later one waits.
+- Two version tags are pushed in quick succession: deployments and rollbacks run one at a time;
+  a deployment waiting behind another is replaced by a newer one (GitHub keeps one pending run per
+  concurrency group), and the release check refuses a tag older than the version deployed last.
 - A person is signed in during a deployment: sessions are persisted under the data root and
   survive the new revision; requests during the hand-over get 503 and the browser retries.
 - Pre-release tags (for example `v0.4.0-alpha.1`) deploy to the same environment; until the
@@ -883,12 +889,16 @@ and confirm the rollback; confirm no Azure credential is stored in GitHub.
 - **FR-123**: When the live instance on the data root belongs to a different revision (a revision
   update), the starting instance MUST serve only the health endpoints and answer 503 with
   `Retry-After` elsewhere until the other instance releases the data root or its heartbeat is
-  older than 30 seconds, then take over; it MUST report itself ready to the platform meanwhile so
-  the update can proceed.
+  older than 30 seconds, then take over; it MUST report itself ready to the platform meanwhile
+  (state `handover`) so the update can proceed. Before it holds the lock it MUST NOT run journal
+  recovery, migration or scanning and MUST NOT write under the data root except the start-up
+  probe; after taking the lock it runs recovery and the first scan, then reports state
+  `serving`.
 - **FR-124**: In both modes the server MUST be able to serve the built frontend itself (always in
   the container), and `/healthz` MUST return the version and commit and nothing about the
-  workspace; `/readyz` MUST report ready only after recovery, the instance lock (or the hand-over
-  wait of FR-123) and the first scan.
+  workspace; `/readyz` MUST report ready with state `serving` only after the instance lock,
+  recovery and the first scan, or ready with state `handover` while waiting under FR-123, and
+  not ready otherwise.
 - **FR-125**: The container in local mode MUST keep every local-mode rule of FR-002 and FR-003; it
   is reached through host networking (OP-8). Start-up MUST stop with a clear message when the data
   root is not writable by the container user.
@@ -898,7 +908,7 @@ and confirm the rollback; confirm no Azure credential is stored in GitHub.
 
 #### Continuous integration and delivery
 
-- **FR-130**: A GitHub Actions pipeline MUST run on every pull request and every push: type check,
+- **FR-130**: A GitHub Actions pipeline MUST run on every pull request and every push to a branch: type check,
   unit and API tests, production build, mutation suite, every browser suite of the quality gate,
   the Keycloak sign-in tests, the image build, the image scan, the bill of materials and the
   container checks (the local and server suites run against the image). Any failure MUST fail the
@@ -910,7 +920,9 @@ and confirm the rollback; confirm no Azure credential is stored in GitHub.
   Azure Container Registry tagged with the commit and `main` (OP-6).
 - **FR-133**: On a version tag `v*`, the pipeline MUST promote the image already published for the
   tagged commit (same digest) to the version tag after a fresh scan, create a GitHub release with
-  the bill of materials, and refuse a tag whose commit is not on `main` or has no published image.
+  the bill of materials once the deployment's smoke test passes, and refuse, before any approval,
+  a tag whose commit is not on `main`, has no published image, or whose version without a
+  pre-release suffix differs from the `package.json` version of that commit.
 - **FR-134**: Deployment to Azure Container Apps MUST run only for version tags, in the GitHub
   environment `production` after manual approval (OP-7), one deployment at a time, and MUST deploy
   the image by digest.
@@ -919,9 +931,10 @@ and confirm the rollback; confirm no Azure credential is stored in GitHub.
   container app (deploy), each limited to those rights; no Azure or registry credential may be
   stored in GitHub, and identifiers are kept as repository variables.
 - **FR-136**: After each deployment the pipeline MUST run a smoke test against the public URL:
-  liveness reports the deployed version and commit, readiness is reached, an unauthenticated API
-  call gets 401 with no workspace data, sign-in redirects to the configured provider with PKCE,
-  and the security headers are present.
+  readiness reaches state `serving` (a hand-over is waited out), liveness reports the deployed
+  commit and the version baked into the image (the `package.json` version), an unauthenticated
+  API call gets 401 with no workspace data, sign-in redirects to the provider's authorization
+  endpoint (from its discovery document) with PKCE, and the security headers are present.
 - **FR-137**: When the smoke test fails, the pipeline MUST deploy the previously running image
   again, smoke-test it and fail the run; a manually started rollback workflow MUST deploy a chosen
   earlier version through the same approval and smoke test.

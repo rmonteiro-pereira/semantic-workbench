@@ -46,9 +46,9 @@ drops `Secure` and the `__Host-` prefix, for development only.) Sign in as `alic
 
 ```sh
 docker compose --profile local up --build         # local mode from the image, host networking
-# http://127.0.0.1:4310, no sign-in, workspace in ./.data
-SW_BASE_URL=http://127.0.0.1:4310 bun run test:ui # same suite against the image
+# http://127.0.0.1:4310, no sign-in, workspace in ./.data (your real data: never run suites here)
 bun run test:container                            # builds the image, runs every suite of scripts/container-suites.ts
+                                                  # against a container with a temporary data folder
 ```
 
 Server profile (from Phase 5): `cp .env.server.example .env.server`, then
@@ -60,8 +60,9 @@ bun scripts/deploy-smoke.ts http://localhost:4310 dev $(git rev-parse HEAD) --lo
 ```
 
 Sign in as `alice` (password `test`). Restart the `workbench-server` service and confirm the
-session and data survive (SC-009); start a second container of the same revision on the same
-volume and confirm it refuses to serve (FR-122). Check `docker compose exec workbench-server id -u`
+session and data survive (SC-009); start a second container of the same image on the same
+volume with `SW_PORT=4311` and confirm `/readyz` on 4311 is 503 and its log names the
+single-replica constraint (FR-122). Check `docker compose exec workbench-server id -u`
 is not 0.
 
 Without host networking (Docker Desktop with the option off) local mode is unreachable by design
@@ -76,7 +77,7 @@ Without host networking (Docker Desktop with the option off) local mode is unrea
 3. Expose an API `api://<client-id>` with scope `access_as_user`; add API permission Azure DevOps
    `user_impersonation`; for overage, application permission `GroupMember.Read.All`; grant admin
    consent.
-4. Credential: federated credential for the Container App's managed identity (or a secret in Key
+4. Credential: federated credential for the container app's user-assigned identity `id-sw-app` (or a secret in Key
    Vault).
 5. Create the Azure resources of [delivery-pipeline.md](./contracts/delivery-pipeline.md) by hand
    following `deploy/azure/README.md`, deploy through the pipeline (§7), sign in with users of
