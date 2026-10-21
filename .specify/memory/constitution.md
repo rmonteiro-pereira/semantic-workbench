@@ -1,19 +1,20 @@
 <!--
 Sync Impact Report
-- Version change: 2.0.1 → 2.1.0 (MINOR: materially expanded guidance in Principle I)
-- Modified principles: I. Local-Only Operation (clone added to the user-triggered Git network
-  operations; a clone is created only inside data/projects/ and the address entered becomes the
-  project's configured remote); VI. Verification Gate (remote-operation mutants include clone);
-  VII. Honest Claims (README lists clone among network operations)
-- Added principles: none
+- Version change: 2.1.0 → 2.2.0 (MINOR: new principle VIII and an expanded quality gate)
+- Modified principles: none
+- Added principles: VIII. Readable Code (formatter-enforced layout, one statement per line,
+  100-column width, descriptive names, small functions and components, plain-English comments
+  without spec or task IDs, JSDoc on exports)
 - Removed principles: none
-- Modified sections: none
+- Modified sections: Development Workflow and Quality Gates (`bun run check` includes
+  `fmt:check` and Oxlint; the mutation baseline runs them; comments are checked for IDs)
 - Templates requiring updates: .specify/templates/plan-template.md (✅ no change needed: its
-  "Constitution Check" gate reads this file); spec-template.md (✅ no change needed);
-  tasks-template.md (✅ no change needed)
-- Source: specs/002-lineage-and-ux/spec.md (Dependencies; owner approval 2026-10-21)
-- Follow-up TODOs: README documents clone when it ships (feature 002)
-- Earlier: 1.0.0 → 2.0.0 (Principle IV redefined), 2.0.0 → 2.0.1 (wording)
+  "Constitution Check" lists every principle from this file); spec-template.md (✅ no change
+  needed); tasks-template.md (✅ no change needed); README.md (✅ Contributing section added)
+- Source: owner request on branch 002-lineage-and-ux (2026-10-21), approved by the owner
+- Follow-up TODOs: none
+- Earlier: 2.0.1 → 2.1.0 (clone in Principle I), 1.0.0 → 2.0.0 (Principle IV redefined),
+  2.0.0 → 2.0.1 (wording)
 -->
 
 # Semantic Workbench Constitution
@@ -131,6 +132,27 @@ reformatting breaks diffs, reviews and downstream tooling.
 - The README MUST document the folder layout under `data/`, which Git operations (clone,
   fetch, pull, push, sync) contact a network, and that credentials come from the machine's Git configuration.
 
+### VIII. Readable Code
+
+- Layout is decided by the formatter (Oxfmt, configured in `.oxfmtrc.json`): 100-column lines,
+  2-space indentation, semicolons, trailing commas. `bun run fmt:check` MUST pass; unformatted code
+  fails the gate.
+- One statement per line and one variable per declaration. No line over 100 characters except a
+  string or URL that cannot be split.
+- Names describe what a thing is, in words; single letters only for loop indexes and tiny lambdas.
+  Functions do one thing (about 40 lines); React components stay around 150 lines; long inline
+  handlers are named functions; no nested ternaries.
+- Comments are plain English that a developer new to the repository understands without the
+  spec. They explain why or a non-obvious constraint, one idea per sentence, about three lines per
+  block. Every module starts with a one- or two-sentence header; exported functions, components and
+  types carry a short JSDoc. Comments MUST NOT contain spec, task or research IDs (FR-, SC-, T0xx,
+  R12, US3, phase numbers) or process notes; traceability belongs in commit messages and specs.
+  `scripts/check-comments.ts` enforces the ID rule.
+- Test names are plain sentences describing behaviour.
+
+Rationale: the code is read far more often than it is written, by people who have not read the
+planning documents.
+
 ## Technical Constraints
 
 - Frontend: React 19 + TypeScript + Vite+ in `src/`. API: Bun HTTP server in `server/`; project
@@ -148,7 +170,8 @@ reformatting breaks diffs, reviews and downstream tooling.
 
 - Work happens on feature branches; `main` only receives reviewed merges. Releases are tagged
   (`v0.1.0` is the first).
-- A change is complete when: `bun test`, `bun --bun run check` and `bun --bun run build` pass;
+- A change is complete when: `bun test`, `bun --bun run check` (TypeScript, `fmt:check`, Oxlint and
+  the comment check) and `bun --bun run build` pass;
   the relevant browser suites (`test:ui`, `test:responsive`, `test:edges`,
   `test:grouping-validation`, `test:examples:ui`) pass against the dev server; `test:mutation`
   detects every mutant; and the README reflects the new behaviour.
@@ -169,4 +192,4 @@ reformatting breaks diffs, reviews and downstream tooling.
 - Exceptions MUST be recorded in the feature's plan under "Complexity Tracking" with the reason
   and the simpler alternative that was rejected.
 
-**Version**: 2.1.0 | **Ratified**: 2026-10-20 | **Last Amended**: 2026-10-21
+**Version**: 2.2.0 | **Ratified**: 2026-10-20 | **Last Amended**: 2026-10-21
