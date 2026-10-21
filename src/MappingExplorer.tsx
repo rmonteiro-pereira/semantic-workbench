@@ -56,16 +56,16 @@ export function MappingExplorer({
   onEditItem?: (docId: string, path: (string | number)[]) => void;
 }) {
   const requestVersion = useRef(0);
-  const [options, setOptions] = useState<MappingOption[]>([]),
-    [mappingId, setMappingId] = useState(''),
-    [context, setContext] = useState<RuntimeContext | null>(null),
-    [concept, setConcept] = useState(''),
-    [query, setQuery] = useState(''),
-    [metrics, setMetrics] = useState<string[]>([]),
-    [dimensions, setDimensions] = useState<string[]>([]),
-    [plan, setPlan] = useState<any>(null),
-    [error, setError] = useState(''),
-    [loading, setLoading] = useState(false);
+  const [options, setOptions] = useState<MappingOption[]>([]);
+  const [mappingId, setMappingId] = useState('');
+  const [context, setContext] = useState<RuntimeContext | null>(null);
+  const [concept, setConcept] = useState('');
+  const [query, setQuery] = useState('');
+  const [metrics, setMetrics] = useState<string[]>([]);
+  const [dimensions, setDimensions] = useState<string[]>([]);
+  const [plan, setPlan] = useState<any>(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   useEffect(() => {
     const abort = new AbortController();
     fetch('/api/agent/catalog', { signal: abort.signal })
@@ -137,10 +137,10 @@ export function MappingExplorer({
       ) : null}
     </>
   );
-  const fieldIds = new Set(bindings.flatMap(b => b.fields)),
-    metricIds = new Set(bindings.flatMap(b => b.metrics));
-  const fields = context?.fields.filter(f => fieldIds.has(f.id)) ?? [],
-    governed = context?.metrics.filter(m => metricIds.has(m.id)) ?? [];
+  const fieldIds = new Set(bindings.flatMap(b => b.fields));
+  const metricIds = new Set(bindings.flatMap(b => b.metrics));
+  const fields = context?.fields.filter(f => fieldIds.has(f.id)) ?? [];
+  const governed = context?.metrics.filter(m => metricIds.has(m.id)) ?? [];
   const term = query.toLocaleLowerCase().trim();
   const concepts =
     context?.concepts.filter(

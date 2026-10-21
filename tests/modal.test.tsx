@@ -2,7 +2,8 @@ import { test, expect, beforeAll, afterAll } from 'bun:test';
 import { chromium, type Browser, type Page } from '@playwright/test';
 // Dialog conventions (T012): the shared Modal in a real browser. Escape closes it through onCancel,
 // focus returns to the opener, the footer slot renders after the body and size variants set a class.
-let browser: Browser, page: Page;
+let browser: Browser;
+let page: Page;
 beforeAll(async () => {
   const built = await Bun.build({
     entrypoints: ['tests/harness/modal-harness.tsx'],

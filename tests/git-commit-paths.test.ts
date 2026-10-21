@@ -13,9 +13,9 @@ const sh = (cwd: string, args: string[]) => {
 };
 function repo() {
   isolateGit();
-  const root = mkdtempSync(join(tmpdir(), 'workbench-commitpaths-')),
-    projects = join(root, 'projects'),
-    dir = join(projects, 'p');
+  const root = mkdtempSync(join(tmpdir(), 'workbench-commitpaths-'));
+  const projects = join(root, 'projects');
+  const dir = join(projects, 'p');
   mkdirSync(dir, { recursive: true });
   const git = createGit({ projectsRoot: projects });
   return {

@@ -82,9 +82,9 @@ export function createScm(deps: ScmDeps) {
         remotes: {},
         changes: [],
       };
-    const d = dir(slug),
-      s = await git.status(d),
-      merging = await git.merging(d);
+    const d = dir(slug);
+    const s = await git.status(d);
+    const merging = await git.merging(d);
     const changes = s.entries.map(e => ({
       ...e,
       ...fromRepo(slug, e.path),
@@ -123,8 +123,10 @@ export function createScm(deps: ScmDeps) {
   // used to skip files the user is still editing.
   async function alteredAfter(d: string, changed: string[]) {
     if (!changed.length) return [];
-    const s = await git.status(d),
-      busy = new Set(s.entries.filter(e => e.worktree !== '.' || e.conflicted).map(e => e.path));
+    const s = await git.status(d);
+    const busy = new Set(
+      s.entries.filter(e => e.worktree !== '.' || e.conflicted).map(e => e.path),
+    );
     const candidates = changed.filter(p => !busy.has(p) && existsSync(join(d, p)));
     const [disk, tree] = await Promise.all([
       git.worktreeIds(d, candidates),
@@ -133,29 +135,29 @@ export function createScm(deps: ScmDeps) {
     return candidates.filter(p => tree.has(p) && disk.get(p) !== tree.get(p));
   }
   const remoteOf = async (d: string, upstream: string) => {
-    const remotes = await git.remotes(d),
-      name = upstream
-        ? upstream.slice(0, upstream.indexOf('/'))
-        : remotes.has('origin')
-          ? 'origin'
-          : [...remotes.keys()][0];
+    const remotes = await git.remotes(d);
+    const name = upstream
+      ? upstream.slice(0, upstream.indexOf('/'))
+      : remotes.has('origin')
+        ? 'origin'
+        : [...remotes.keys()][0];
     if (!name) throw new GitError('This project has no remote. Add one under Remote first.');
     return name;
   };
   async function pullIn(slug: string, d: string) {
-    const s = await git.status(d),
-      blocked = blockers(deps.drafts(slug), s.entries);
+    const s = await git.status(d);
+    const blocked = blockers(deps.drafts(slug), s.entries);
     if (blocked) throw blocked;
-    const remote = await remoteOf(d, s.upstream),
-      before = await git.head(d);
+    const remote = await remoteOf(d, s.upstream);
+    const before = await git.head(d);
     const r = await git.run(
       d,
       ['pull', '--no-rebase', '--no-edit', ...(s.upstream ? [] : [remote, s.branch])],
       { remote: true, allowFailure: true },
     );
-    const now = await git.status(d),
-      conflicted = now.entries.filter(e => e.conflicted).map(e => e.path),
-      head = await git.head(d);
+    const now = await git.status(d);
+    const conflicted = now.entries.filter(e => e.conflicted).map(e => e.path);
+    const head = await git.head(d);
     const altered =
       head && head !== before
         ? await alteredAfter(d, await git.changedBetween(d, before, head))
@@ -231,31 +233,31 @@ export function createScm(deps: ScmDeps) {
     }
   };
   async function commitIndex(slug: string, message: string) {
-    const d = dir(slug),
-      s = await git.status(d);
+    const d = dir(slug);
+    const s = await git.status(d);
     if (s.entries.some(e => e.conflicted))
       throw new GitError('Resolve the conflicted files and stage them before committing.');
     const staged = s.entries.filter(e => e.index !== '.' && !e.untracked);
     if (!staged.length && !(await git.merging(d)))
       throw new GitError('Nothing is staged. Stage the changes to include, then commit.');
-    const clean = staged.filter(e => e.worktree === '.').map(e => e.path),
-      before = await git.worktreeIds(
-        d,
-        clean.filter(p => existsSync(join(d, p))),
-      );
+    const clean = staged.filter(e => e.worktree === '.').map(e => e.path);
+    const before = await git.worktreeIds(
+      d,
+      clean.filter(p => existsSync(join(d, p))),
+    );
     const parent = await git.head(d);
     await git.commit(d, message);
-    const head = (await git.head(d))!,
-      committed = await git.changedBetween(d, parent, head);
+    const head = (await git.head(d))!;
+    const committed = await git.changedBetween(d, parent, head);
     // A hook that rewrote a file, or a clean filter whose committed bytes differ from the saved file.
-    const checked = committed.filter(p => before.has(p)),
-      [disk, tree] = await Promise.all([
-        git.worktreeIds(
-          d,
-          checked.filter(p => existsSync(join(d, p))),
-        ),
-        git.treeIds(d, 'HEAD', checked),
-      ]);
+    const checked = committed.filter(p => before.has(p));
+    const [disk, tree] = await Promise.all([
+      git.worktreeIds(
+        d,
+        checked.filter(p => existsSync(join(d, p))),
+      ),
+      git.treeIds(d, 'HEAD', checked),
+    ]);
     const altered = checked.filter(
       p => disk.get(p) !== before.get(p) || (tree.has(p) && disk.get(p) !== tree.get(p)),
     );
@@ -263,16 +265,16 @@ export function createScm(deps: ScmDeps) {
     return { commit: head, altered };
   }
   async function commitChosen(slug: string, message: string, list: unknown) {
-    const d = dir(slug),
-      chosen = paths(slug, list);
+    const d = dir(slug);
+    const chosen = paths(slug, list);
     if (await git.merging(d)) {
       const s = await git.status(d);
       throw new MergingError(
         s.entries.filter(e => e.conflicted).map(e => fromRepo(slug, e.path).path),
       );
     }
-    const clean = chosen.filter(p => existsSync(join(d, p))),
-      before = await git.worktreeIds(d, clean);
+    const clean = chosen.filter(p => existsSync(join(d, p)));
+    const before = await git.worktreeIds(d, clean);
     const r = await git.commitPaths(d, chosen, message);
     if (!r.committed)
       throw new GitError(
@@ -282,14 +284,14 @@ export function createScm(deps: ScmDeps) {
             ? 'A merge is in progress.'
             : 'Nothing to commit: the chosen files match the last commit.',
       );
-    const checked = clean.filter(p => before.has(p)),
-      [disk, tree] = await Promise.all([
-        git.worktreeIds(
-          d,
-          checked.filter(p => existsSync(join(d, p))),
-        ),
-        git.treeIds(d, 'HEAD', checked),
-      ]);
+    const checked = clean.filter(p => before.has(p));
+    const [disk, tree] = await Promise.all([
+      git.worktreeIds(
+        d,
+        checked.filter(p => existsSync(join(d, p))),
+      ),
+      git.treeIds(d, 'HEAD', checked),
+    ]);
     const altered = checked
       .filter(p => disk.get(p) !== before.get(p) || (tree.has(p) && disk.get(p) !== tree.get(p)))
       .map(p => fromRepo(slug, p).path);
@@ -299,14 +301,14 @@ export function createScm(deps: ScmDeps) {
   return {
     status,
     async diff(slug: string, path: string, from = 'HEAD', to = 'worktree') {
-      const d = dir(slug),
-        p = projectPath(path),
-        [a, b] = await Promise.all([
-          content(d, from, prefix(slug) + p),
-          content(d, to, prefix(slug) + p),
-        ]),
-        before = asText(a),
-        after = asText(b);
+      const d = dir(slug);
+      const p = projectPath(path);
+      const [a, b] = await Promise.all([
+        content(d, from, prefix(slug) + p),
+        content(d, to, prefix(slug) + p),
+      ]);
+      const before = asText(a);
+      const after = asText(b);
       return {
         path: p,
         from,
@@ -331,11 +333,11 @@ export function createScm(deps: ScmDeps) {
       return status(slug);
     },
     async stageAll(slug: string, stage: boolean) {
-      const d = dir(slug),
-        s = await git.status(d),
-        list = s.entries
-          .filter(e => (stage ? e.worktree !== '.' : e.index !== '.' && !e.untracked))
-          .map(e => e.path);
+      const d = dir(slug);
+      const s = await git.status(d);
+      const list = s.entries
+        .filter(e => (stage ? e.worktree !== '.' : e.index !== '.' && !e.untracked))
+        .map(e => e.path);
       if (list.length) await (stage ? git.stage(d, list) : git.unstage(d, list));
       await after(slug);
       return status(slug);
@@ -366,9 +368,9 @@ export function createScm(deps: ScmDeps) {
     },
     refresh: (slug: string) => after(slug),
     async branches(slug: string) {
-      const d = dir(slug),
-        b = await git.branches(d),
-        s = await git.status(d);
+      const d = dir(slug);
+      const b = await git.branches(d);
+      const s = await git.status(d);
       return { current: s.branch, ...b };
     },
     async switchBranch(slug: string, branch: unknown, create = false) {
@@ -385,22 +387,22 @@ export function createScm(deps: ScmDeps) {
         ).code !== 0
       )
         throw Error(`"${name}" is not a valid branch name.`);
-      const s = await git.status(d),
-        blocked = blockers(deps.drafts(slug), s.entries);
+      const s = await git.status(d);
+      const blocked = blockers(deps.drafts(slug), s.entries);
       if (blocked) throw blocked;
       // A remote branch (`origin/x`) is checked out as the local tracking branch `x`.
-      const b = await git.branches(d),
-        local =
-          !create && !b.local.includes(name) && b.remote.includes(name)
-            ? name.slice(name.indexOf('/') + 1)
-            : name;
+      const b = await git.branches(d);
+      const local =
+        !create && !b.local.includes(name) && b.remote.includes(name)
+          ? name.slice(name.indexOf('/') + 1)
+          : name;
       const before = await git.head(d);
       await git.run(d, create ? ['switch', '-c', local] : ['switch', local]);
-      const head = await git.head(d),
-        altered =
-          head && head !== before
-            ? await alteredAfter(d, await git.changedBetween(d, before, head))
-            : [];
+      const head = await git.head(d);
+      const altered =
+        head && head !== before
+          ? await alteredAfter(d, await git.changedBetween(d, before, head))
+          : [];
       await after(slug, altered);
       return { branch: local, altered };
     },
@@ -419,8 +421,8 @@ export function createScm(deps: ScmDeps) {
       // addresses and local paths are accepted.
       if (/^[A-Za-z][A-Za-z0-9+.-]*::/.test(url.trim()))
         throw Error('Remote helper addresses (transport::address) are not accepted.');
-      const d = dir(slug),
-        remotes = await git.remotes(d);
+      const d = dir(slug);
+      const remotes = await git.remotes(d);
       await git.run(
         d,
         remotes.has(name)
@@ -450,9 +452,9 @@ export function createScm(deps: ScmDeps) {
     // A file's committed versions, newest first, with their text (ODCS History, FR-057). Binary or
     // missing versions are skipped.
     async versions(slug: string, path: string, limit = 20) {
-      const d = dir(slug),
-        p = prefix(slug) + projectPath(path),
-        log = await git.log(d, p, Math.max(1, Math.min(50, limit)));
+      const d = dir(slug);
+      const p = prefix(slug) + projectPath(path);
+      const log = await git.log(d, p, Math.max(1, Math.min(50, limit)));
       const out: {
         commit: string;
         author: string;

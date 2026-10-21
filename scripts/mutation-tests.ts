@@ -1,7 +1,7 @@
 import { mkdtemp, rm, symlink } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
-const root = process.cwd(),
-  temp = await mkdtemp('/tmp/workbench-mutations-');
+const root = process.cwd();
+const temp = await mkdtemp('/tmp/workbench-mutations-');
 // Candidate modules live outside the project; give their bare package imports
 // the same dependency tree as the real sources, without relying on Bun caches.
 await symlink(resolve(root, 'node_modules'), resolve(temp, 'node_modules'), 'dir');
@@ -377,7 +377,7 @@ const mutants: [string, string, string, string][] = [
   [
     'lineage',
     'src/odcs/lineage.ts',
-    'readers = schema.filter(\n            (o: any) => isObject(o) && (physical(o) === source || o.name === source),\n          )',
+    'readers = schema.filter(\n          (o: any) => isObject(o) && (physical(o) === source || o.name === source),\n        )',
     'readers=schema.filter((o:any)=>isObject(o)&&(String(physical(o)).startsWith(String(source))||o.name===source))',
   ],
   [
@@ -419,8 +419,8 @@ const mutants: [string, string, string, string][] = [
   [
     'mapping-graph',
     'src/mappings/mapping-graph.ts',
-    'const i = f.evidence ? cmIndex(f.evidence.path) : -1,',
-    'const i=f.evidence?cmIndex(f.evidence.path)+1:-1,',
+    'const i = f.evidence ? cmIndex(f.evidence.path) : -1;',
+    'const i = f.evidence ? cmIndex(f.evidence.path) + 1 : -1;',
   ],
   [
     'mapping-graph',
@@ -510,6 +510,12 @@ async function run(category: string, file: string, source: string, index: string
   const error = await new Response(child.stderr).text();
   return { code, error };
 }
+// The baseline includes formatting and lint: unformatted or lint-failing code fails the gate.
+for (const script of ['fmt:check', 'lint']) {
+  const child = Bun.spawn([process.execPath, 'run', script], { stdout: 'pipe', stderr: 'pipe' });
+  if ((await child.exited) !== 0)
+    throw Error(`Baseline failed (${script}): ${await new Response(child.stdout).text()}`);
+}
 try {
   for (const category of new Set(mutants.map(m => m[0]))) {
     const file = mutants.find(m => m[0] === category)![1];
@@ -549,9 +555,9 @@ try {
       stdout: 'pipe',
       stderr: 'pipe',
     });
-    const code = await child.exited,
-      output = await new Response(child.stdout).text(),
-      error = await new Response(child.stderr).text();
+    const code = await child.exited;
+    const output = await new Response(child.stdout).text();
+    const error = await new Response(child.stderr).text();
     if (code === 0) throw Error('Surviving UI mutant: ' + label);
     if (
       !output.includes(

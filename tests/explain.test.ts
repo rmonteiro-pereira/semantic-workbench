@@ -201,8 +201,8 @@ test('division by zero and unknown additivity are explained; no SQL is ever exec
     t.dispose();
   }
   // The explanation's import graph has no database, process or network access.
-  const seen = new Set<string>(),
-    pending = ['server/agent/explain.ts'];
+  const seen = new Set<string>();
+  const pending = ['server/agent/explain.ts'];
   for (let i = 0; i < pending.length; i++) {
     const file = pending[i];
     if (seen.has(file)) continue;

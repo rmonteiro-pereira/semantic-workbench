@@ -11,8 +11,8 @@ export function RenameDialog({
   onClose: () => void;
   onDone: (name: string) => void;
 }) {
-  const [name, setName] = useState(project.name),
-    [error, setError] = useState('');
+  const [name, setName] = useState(project.name);
+  const [error, setError] = useState('');
   return (
     <Modal title={`Rename ${project.name}`} onCancel={onClose}>
       <form
@@ -63,9 +63,9 @@ export function MoveDialog({
   onDone: (to: { project: string; path: string }) => void;
 }) {
   const others = projects.filter(p => p.slug !== project);
-  const [target, setTarget] = useState(others[0]?.slug ?? ''),
-    [toPath, setToPath] = useState(path.split('/').pop()!),
-    [error, setError] = useState('');
+  const [target, setTarget] = useState(others[0]?.slug ?? '');
+  const [toPath, setToPath] = useState(path.split('/').pop()!);
+  const [error, setError] = useState('');
   async function move() {
     setError('');
     try {

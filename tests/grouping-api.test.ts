@@ -1,8 +1,8 @@
 import { test, expect } from 'bun:test';
 import { testWorkspace } from './helpers/temp-data-dir';
 test('grouping corrections persist in view state files without changing source or hash', async () => {
-  const t = await testWorkspace(),
-    h = t.handler;
+  const t = await testWorkspace();
+  const h = t.handler;
   try {
     const source = 'name: Sample\nontology: [{concept: A}]';
     const doc = await t.ws.saveDocument('sample.yaml', source);
@@ -25,8 +25,8 @@ test('grouping corrections persist in view state files without changing source o
   }
 });
 test('grouping API rejects malformed modes and corrections and missing documents', async () => {
-  const t = await testWorkspace(),
-    h = t.handler;
+  const t = await testWorkspace();
+  const h = t.handler;
   try {
     const doc = await t.ws.saveDocument('sample.yaml', 'ontology: [{concept: A}]');
     for (const value of [

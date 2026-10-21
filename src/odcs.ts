@@ -23,8 +23,8 @@ type Resolved = { object: number; column: string | undefined } | 'external' | un
 // Column paths are property names joined by '.' (nested properties: `parent.child`). Property ids
 // of fully qualified references resolve to the same names.
 function resolver(schema: any[]) {
-  const byName = new Map<string, number>(),
-    byId = new Map<string, number>();
+  const byName = new Map<string, number>();
+  const byId = new Map<string, number>();
   schema.forEach((x, i) => {
     if (x && typeof x === 'object') {
       if (typeof x.name === 'string') byName.set(x.name, i);
@@ -64,11 +64,11 @@ function resolver(schema: any[]) {
   };
 }
 function collect(data: any) {
-  const schema = Array.isArray(data?.schema) ? data.schema : [],
-    resolve = resolver(schema);
-  const keys: OdcsForeignKey[] = [],
-    external: OdcsExternalForeignKey[] = [],
-    issues: OdcsReferenceIssue[] = [];
+  const schema = Array.isArray(data?.schema) ? data.schema : [];
+  const resolve = resolver(schema);
+  const keys: OdcsForeignKey[] = [];
+  const external: OdcsExternalForeignKey[] = [];
+  const issues: OdcsReferenceIssue[] = [];
   const add = (
     from: number,
     fromColumns: (string | undefined)[],
@@ -77,9 +77,9 @@ function collect(data: any) {
     path: (string | number)[],
     definition: any,
   ) => {
-    const targets = list(toRef),
-      first = targets[0],
-      target = resolve(first);
+    const targets = list(toRef);
+    const first = targets[0];
+    const target = resolve(first);
     if (target === 'external') {
       external.push({
         from,
@@ -137,9 +137,9 @@ function collect(data: any) {
     );
     (Array.isArray(x.relationships) ? x.relationships : []).forEach((r: any, k: number) => {
       if (!r || typeof r !== 'object') return;
-      const sources = list(r.from).map(f => resolve(f)),
-        from = sources[0],
-        path = ['schema', i, 'relationships', k];
+      const sources = list(r.from).map(f => resolve(f));
+      const from = sources[0];
+      const path = ['schema', i, 'relationships', k];
       if (from === undefined || from === 'external') {
         if (from !== 'external')
           issues.push({

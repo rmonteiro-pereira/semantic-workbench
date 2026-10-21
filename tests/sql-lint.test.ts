@@ -13,8 +13,8 @@ test('the CASE WHEN fixture is clean', () => {
   expect(warnings(fixture('case-when.ossie.yaml'), 'case-when.ossie.yaml')).toEqual([]);
 });
 test('the broken CASE WHEN: one warning at the ) closing SUM(CASE …, line 23 column 77 (counted by hand)', () => {
-  const src = fixture('case-when-broken.ossie.yaml'),
-    f = warnings(src, 'case-when-broken.ossie.yaml');
+  const src = fixture('case-when-broken.ossie.yaml');
+  const f = warnings(src, 'case-when-broken.ossie.yaml');
   expect(f).toHaveLength(1);
   expect(at(f[0])).toEqual([23, 77]);
   expect(f[0]).toMatchObject({
@@ -76,8 +76,8 @@ test('findings are warnings only: the files stay valid, and the text is unchange
     'escaped.semantic.json',
     'folded.ossie.yaml',
   ]) {
-    const src = fixture(name),
-      copy = src.slice();
+    const src = fixture(name);
+    const copy = src.slice();
     const f = warnings(src, name);
     expect(f.length).toBeGreaterThan(0);
     expect(f.every(x => x.severity === 'warning')).toBe(true);

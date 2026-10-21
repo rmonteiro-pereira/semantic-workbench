@@ -56,12 +56,12 @@ export function MetricsView({
   onEdit?: (k: KpiSummary) => void;
   onAddAttributes?: (k: KpiSummary) => void;
 }) {
-  const [query, setQuery] = useState(''),
-    [groupBy, setGroupBy] = useState<GroupBy>('none'),
-    [type, setType] = useState(''),
-    [status, setStatus] = useState(''),
-    [owner, setOwner] = useState(''),
-    [governedOnly, setGovernedOnly] = useState(false);
+  const [query, setQuery] = useState('');
+  const [groupBy, setGroupBy] = useState<GroupBy>('none');
+  const [type, setType] = useState('');
+  const [status, setStatus] = useState('');
+  const [owner, setOwner] = useState('');
+  const [governedOnly, setGovernedOnly] = useState(false);
   // A concept chosen elsewhere (the neighborhood's metric indicator) filters the list.
   useEffect(() => {
     if (filter) setQuery(filter.split('\u0000')[0]);
@@ -270,8 +270,8 @@ export function MetricsView({
                       </tr>
                     )}
                     {items.map(k => {
-                      const key = keyOf(k),
-                        active = key === selected;
+                      const key = keyOf(k);
+                      const active = key === selected;
                       return (
                         <tr key={key} className={active ? 'selected' : ''} aria-selected={active}>
                           <td data-label="Metric">

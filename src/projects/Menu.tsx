@@ -28,9 +28,9 @@ export function MenuButton({
   align?: 'start' | 'end';
   title?: string;
 }) {
-  const [open, setOpen] = useState(false),
-    root = useRef<HTMLSpanElement>(null),
-    button = useRef<HTMLButtonElement>(null);
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLSpanElement>(null);
+  const button = useRef<HTMLButtonElement>(null);
   const close = (focus = true) => {
     setOpen(false);
     if (focus) button.current?.focus();
@@ -42,8 +42,8 @@ export function MenuButton({
     if (!menu) return;
     const fit = () => {
       menu.style.transform = '';
-      const box = menu.getBoundingClientRect(),
-        edge = 12;
+      const box = menu.getBoundingClientRect();
+      const edge = 12;
       const shift = Math.max(
         edge - box.left,
         Math.min(0, document.documentElement.clientWidth - edge - box.right),

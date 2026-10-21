@@ -241,15 +241,13 @@ try {
   await check(
     'the import-repair dialog uses the same editor: findings, Go to line from the report, repair and import',
     async () => {
-      await page
-        .locator('input[type=file]')
-        .setInputFiles({
-          name: 'broken.yaml',
-          mimeType: 'text/yaml',
-          buffer: Buffer.from(
-            'name: Broken\nontology:\n  - concept: Customer\n    type: EntityType\n    extends: [Nowhere]\n',
-          ),
-        });
+      await page.locator('input[type=file]').setInputFiles({
+        name: 'broken.yaml',
+        mimeType: 'text/yaml',
+        buffer: Buffer.from(
+          'name: Broken\nontology:\n  - concept: Customer\n    type: EntityType\n    extends: [Nowhere]\n',
+        ),
+      });
       const dialog = page.getByRole('dialog', { name: 'Review import' });
       await expect(dialog).toBeVisible();
       const repair = dialog.getByRole('textbox', { name: 'Repair definition' });
@@ -321,8 +319,8 @@ try {
   await check(
     'typing in a 1.9 MB file stays responsive while an automatic save runs (FR-043)',
     async () => {
-      const root = mkdtempSync(join(tmpdir(), 'workbench-latency-')),
-        child = await startApiProcess(root);
+      const root = mkdtempSync(join(tmpdir(), 'workbench-latency-'));
+      const child = await startApiProcess(root);
       const p = await browser.newPage({ viewport: { width: 1440, height: 900 } });
       try {
         const created = await (
@@ -376,8 +374,8 @@ try {
             keys: (window as any).__keys as number[],
             long: (window as any).__long as number[],
           }));
-          const mean = (keys.reduce((a, b) => a + b, 0) + (39 - keys.length) * 16) / 39,
-            longest = Math.max(0, ...long);
+          const mean = (keys.reduce((a, b) => a + b, 0) + (39 - keys.length) * 16) / 39;
+          const longest = Math.max(0, ...long);
           console.log(
             `  ${label}: ${ms} ms wall clock for 39 keystrokes; in the page ${mean.toFixed(1)} ms mean per key, longest task ${Math.round(longest)} ms`,
           );

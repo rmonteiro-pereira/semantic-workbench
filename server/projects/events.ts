@@ -1,13 +1,13 @@
 // Server-sent event hub (contracts/sse-events.md, research R4). Events only invalidate; clients
 // refetch. Ids increase monotonically; the last RING_SIZE events can be replayed after a reconnect.
-export const RING_SIZE = 1000,
-  HEARTBEAT_MS = 15_000;
+export const RING_SIZE = 1000;
+export const HEARTBEAT_MS = 15_000;
 export type WorkbenchEvent = { id: number; event: string; data: unknown };
 const frame = (e: WorkbenchEvent) =>
   `id: ${e.id}\nevent: ${e.event}\ndata: ${JSON.stringify(e.data)}\n\n`;
 export function createEvents(options: { ringSize?: number; heartbeatMs?: number } = {}) {
-  const ringSize = options.ringSize ?? RING_SIZE,
-    heartbeatMs = options.heartbeatMs ?? HEARTBEAT_MS;
+  const ringSize = options.ringSize ?? RING_SIZE;
+  const heartbeatMs = options.heartbeatMs ?? HEARTBEAT_MS;
   const ring: WorkbenchEvent[] = [];
   let lastId = 0;
   const clients = new Set<(chunk: string) => void>();
@@ -40,8 +40,8 @@ export function createEvents(options: { ringSize?: number; heartbeatMs?: number 
     stream(req: Request) {
       const header = req.headers.get('last-event-id');
       const since = header !== null && /^\d+$/.test(header) ? Number(header) : null;
-      let send: ((chunk: string) => void) | undefined,
-        timer: ReturnType<typeof setInterval> | undefined;
+      let send: ((chunk: string) => void) | undefined;
+      let timer: ReturnType<typeof setInterval> | undefined;
       const cleanup = () => {
         if (send) clients.delete(send);
         if (timer) clearInterval(timer);

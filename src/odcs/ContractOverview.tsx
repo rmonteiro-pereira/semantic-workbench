@@ -21,8 +21,8 @@ export const rulesOf = (o: any) => [
   ...flattenProperties(o?.properties).flatMap(p => list(p.property.quality)),
 ];
 export function objectFacts(data: any) {
-  const schema = list(data?.schema),
-    fks = odcsForeignKeys(data);
+  const schema = list(data?.schema);
+  const fks = odcsForeignKeys(data);
   return schema.map((o: any, i: number) => ({
     index: i,
     name: String(o?.name ?? `object ${i + 1}`),
@@ -75,8 +75,8 @@ export function ContractOverview({
   onOpen: (name: string) => void;
   onOpenInLineage?: (name: string) => void;
 }) {
-  const [query, setQuery] = useState(''),
-    deferred = useDeferredValue(query);
+  const [query, setQuery] = useState('');
+  const deferred = useDeferredValue(query);
   const facts = useMemo(() => objectFacts(data), [data]);
   const shown = useMemo(() => {
     const q = deferred.trim().toLowerCase();
@@ -84,14 +84,14 @@ export function ContractOverview({
       ? facts.filter(f => `${f.name} ${f.physicalName} ${f.description}`.toLowerCase().includes(q))
       : facts;
   }, [facts, deferred]);
-  const description = data?.description,
-    team = list(data?.team),
-    roles = list(data?.roles),
-    sla = list(data?.slaProperties),
-    quality = list(data?.quality),
-    support = list(data?.support),
-    custom = list(data?.customProperties),
-    servers = list(data?.servers);
+  const description = data?.description;
+  const team = list(data?.team);
+  const roles = list(data?.roles);
+  const sla = list(data?.slaProperties);
+  const quality = list(data?.quality);
+  const support = list(data?.support);
+  const custom = list(data?.customProperties);
+  const servers = list(data?.servers);
   const objectRules = facts.reduce((n, f) => n + f.rules, 0);
   const identity: [string, unknown][] = [
     ['Version', data?.version],

@@ -118,14 +118,14 @@ function tokenize(sql: string): Token[] {
 const isName = (t?: Token) => !!t && (t.kind === 'quoted' || t.kind === 'ident');
 export function expressionRefs(sql: string): ExprRef[] {
   if (typeof sql !== 'string') return [];
-  const tokens = tokenize(sql),
-    refs: ExprRef[] = [];
+  const tokens = tokenize(sql);
+  const refs: ExprRef[] = [];
   for (let i = 0; i < tokens.length; i++) {
     const t = tokens[i];
     if (!isName(t)) continue;
     // A name chain a.b.c: the last part is the column, the rest the (dataset) qualifier.
-    const start = i,
-      parts = [t.value];
+    const start = i;
+    const parts = [t.value];
     let j = i;
     while (
       tokens[j + 1]?.value === '.' &&
@@ -135,8 +135,8 @@ export function expressionRefs(sql: string): ExprRef[] {
       parts.push(tokens[j + 2].value);
       j += 2;
     }
-    const previous = tokens[start - 1],
-      next = tokens[j + 1];
+    const previous = tokens[start - 1];
+    const next = tokens[j + 1];
     i = j;
     if (next?.kind === 'punct' && next.value === '(') continue;
     if (parts.length === 1 && t.kind === 'ident' && KEYWORDS.has(t.value.toLowerCase())) continue;

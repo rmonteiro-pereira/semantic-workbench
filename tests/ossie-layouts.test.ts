@@ -21,14 +21,14 @@ const docs = async (files: string[]) =>
   );
 test('split and consolidated Flights give the same concepts, datasets, joins, metrics and 60 bindings', async () => {
   const split = await docs([
-      'flights.ontology.yaml',
-      'flights.semantic_model.yaml',
-      'flights.mapping.yaml',
-    ]),
-    consolidated = await docs(['flights.yaml']);
-  const splitModel = inspect(split[1].source, split[1].filename) as any,
-    whole = inspect(consolidated[0].source, consolidated[0].filename) as any,
-    ontology = inspect(split[0].source, split[0].filename) as any;
+    'flights.ontology.yaml',
+    'flights.semantic_model.yaml',
+    'flights.mapping.yaml',
+  ]);
+  const consolidated = await docs(['flights.yaml']);
+  const splitModel = inspect(split[1].source, split[1].filename) as any;
+  const whole = inspect(consolidated[0].source, consolidated[0].filename) as any;
+  const ontology = inspect(split[0].source, split[0].filename) as any;
   const count = (m: any, kind: string) => m.entities.filter((e: any) => e.kind === kind).length;
   expect(count(whole, 'Dataset')).toBe(count(splitModel, 'Dataset'));
   expect(count(whole, 'Dataset')).toBeGreaterThan(0);
@@ -37,8 +37,8 @@ test('split and consolidated Flights give the same concepts, datasets, joins, me
   );
   expect(count(whole, 'Metric')).toBe(count(splitModel, 'Metric'));
   expect(whole.document.ontology.length).toBe(ontology.document.ontology.length);
-  const a = buildContext(split, 'flights/flights.mapping.yaml'),
-    b = buildContext(consolidated, agentCatalog(consolidated).mappings[0].id);
+  const a = buildContext(split, 'flights/flights.mapping.yaml');
+  const b = buildContext(consolidated, agentCatalog(consolidated).mappings[0].id);
   expect(a.bindings).toHaveLength(60);
   expect(b.bindings).toHaveLength(60);
   for (const k of ['concepts', 'datasets', 'joins', 'metrics', 'fields'] as const)
@@ -61,8 +61,8 @@ test('layouts are labelled: split files, and the consolidated form as deprecated
   ).toBe(true);
 });
 test('other single-file layouts are rejected with the two official layouts named', async () => {
-  const ontology = await read('flights.ontology.yaml'),
-    semantic = await read('flights.semantic_model.yaml');
+  const ontology = await read('flights.ontology.yaml');
+  const semantic = await read('flights.semantic_model.yaml');
   const mixed = stringify({ ...parse(ontology), datasets: parse(semantic).datasets });
   const r = validateInput(mixed, 'mixed.yaml');
   expect(r.valid).toBe(false);

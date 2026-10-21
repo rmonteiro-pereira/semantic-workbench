@@ -2,8 +2,8 @@
 // ontology-level `prefixes` map (ontology.md, "Global identifiers"). Nothing is fetched.
 export type Prefixes = Record<string, string>;
 export type Namespace = { prefix?: string; iri: string };
-const QNAME = /^([A-Za-z_][\w.-]*)?:(.*)$/s,
-  SCHEME = /^[a-z][a-z\d+.-]*$/i;
+const QNAME = /^([A-Za-z_][\w.-]*)?:(.*)$/s;
+const SCHEME = /^[a-z][a-z\d+.-]*$/i;
 // Schemes whose IRIs are absolute without an authority ("//"), so they are not mistaken for undeclared prefixes.
 const OPAQUE = new Set([
   'urn',
@@ -31,8 +31,8 @@ export function expandIri(
 ): { iri: string; prefix?: string } | { error: string } {
   const m = QNAME.exec(value);
   if (!m) return { error: 'Expected a full IRI or a prefix:local QName.' };
-  const prefix = m[1] ?? '',
-    local = m[2];
+  const prefix = m[1] ?? '';
+  const local = m[2];
   if (Object.hasOwn(prefixes, prefix)) return { iri: prefixes[prefix] + local, prefix };
   if (SCHEME.test(prefix) && (local.startsWith('//') || OPAQUE.has(prefix.toLowerCase())))
     return { iri: value };

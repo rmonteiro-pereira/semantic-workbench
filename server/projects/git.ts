@@ -2,8 +2,8 @@ import { resolve, sep } from 'node:path';
 // The machine's Git, invoked with argument arrays (never a shell string), an explicit working
 // directory inside data/projects/, no terminal prompts, timeouts and one queue per repository
 // (research R5). Credentials come from Git's own configuration; nothing here stores or asks for them.
-export const LOCAL_TIMEOUT_MS = 30_000,
-  REMOTE_TIMEOUT_MS = 600_000;
+export const LOCAL_TIMEOUT_MS = 30_000;
+export const REMOTE_TIMEOUT_MS = 600_000;
 export type GitResult = { code: number; stdout: string; stderr: string; bytes: Uint8Array };
 export class GitError extends Error {
   constructor(
@@ -55,7 +55,7 @@ export function gitEnv(base: Record<string, string | undefined> = process.env) {
 const REMOTE_COMMANDS = new Set(['fetch', 'pull', 'push', 'ls-remote', 'clone', 'remote-update']);
 // `https://user:token@host/...` → `https://***@host/...` in anything shown to the user.
 export function redactCredentials(text: string) {
-  return text.replace(/([A-Za-z][A-Za-z0-9+.-]*:\/\/)[^@\/\s]+@/g, '$1***@');
+  return text.replace(/([A-Za-z][A-Za-z0-9+.-]*:\/\/)[^@/\s]+@/g, '$1***@');
 }
 export function subcommandOf(args: string[]) {
   for (let i = 0; i < args.length; i++) {
@@ -70,12 +70,12 @@ export function subcommandOf(args: string[]) {
   return '';
 }
 export function createGit(options: GitOptions) {
-  const root = resolve(options.projectsRoot),
-    binary = options.binary ?? 'git',
-    timeoutMs = options.timeoutMs ?? LOCAL_TIMEOUT_MS,
-    remoteTimeoutMs = options.remoteTimeoutMs ?? REMOTE_TIMEOUT_MS;
-  const queues = new Map<string, Promise<unknown>>(),
-    cancels = new Map<string, () => void>();
+  const root = resolve(options.projectsRoot);
+  const binary = options.binary ?? 'git';
+  const timeoutMs = options.timeoutMs ?? LOCAL_TIMEOUT_MS;
+  const remoteTimeoutMs = options.remoteTimeoutMs ?? REMOTE_TIMEOUT_MS;
+  const queues = new Map<string, Promise<unknown>>();
+  const cancels = new Map<string, () => void>();
   function insideProjects(cwd: string) {
     const dir = resolve(cwd);
     if (!dir.startsWith(root + sep)) throw new GitError('Git may only run inside data/projects/.');
@@ -130,8 +130,8 @@ export function createGit(options: GitOptions) {
       throw new GitError(
         `git ${subcommandOf(args)} timed out after ${Math.round(timeout / 1000)} s.`,
       );
-    const [out, stderr, code] = result,
-      bytes = new Uint8Array(out);
+    const [out, stderr, code] = result;
+    const bytes = new Uint8Array(out);
     return {
       code,
       stdout: new TextDecoder().decode(bytes),
@@ -409,12 +409,12 @@ export type StatusEntry = {
 // their original path as a separate NUL-terminated element.
 export function parseStatus(output: string) {
   const parts = output.split('\0');
-  let branch = '',
-    upstream = '',
-    ahead = 0,
-    behind = 0;
-  const files = new Map<string, FileGitState>(),
-    entries: StatusEntry[] = [];
+  let branch = '';
+  let upstream = '';
+  let ahead = 0;
+  let behind = 0;
+  const files = new Map<string, FileGitState>();
+  const entries: StatusEntry[] = [];
   for (let i = 0; i < parts.length; i++) {
     const entry = parts[i];
     if (!entry) continue;
@@ -431,14 +431,14 @@ export function parseStatus(output: string) {
       files.set(path, 'untracked');
       entries.push({ path, index: '?', worktree: '?', conflicted: false, untracked: true });
     } else if (entry.startsWith('1 ')) {
-      const f = entry.split(' '),
-        xy = f[1],
-        path = f.slice(8).join(' ');
+      const f = entry.split(' ');
+      const xy = f[1];
+      const path = f.slice(8).join(' ');
       files.set(path, xy[0] === 'A' ? 'added' : xy.includes('D') ? 'deleted' : 'modified');
       entries.push({ path, index: xy[0], worktree: xy[1], conflicted: false, untracked: false });
     } else if (entry.startsWith('2 ')) {
-      const f = entry.split(' '),
-        path = f.slice(9).join(' ');
+      const f = entry.split(' ');
+      const path = f.slice(9).join(' ');
       files.set(path, 'renamed');
       entries.push({
         path,
@@ -450,8 +450,8 @@ export function parseStatus(output: string) {
       });
       i++;
     } else if (entry.startsWith('u ')) {
-      const f = entry.split(' '),
-        path = f.slice(10).join(' ');
+      const f = entry.split(' ');
+      const path = f.slice(10).join(' ');
       files.set(path, 'conflicted');
       entries.push({ path, index: f[1][0], worktree: f[1][1], conflicted: true, untracked: false });
     }

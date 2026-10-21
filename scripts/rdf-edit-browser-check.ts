@@ -10,8 +10,8 @@ import { newItem } from './helpers/header';
 // touches another resource is refused; an N3 rule is refused with a jump to Source. After each save
 // `git diff` is limited to the edited statements. Isolated data root; screenshots in /tmp/workbench-rdf-*.png.
 const api = await startIsolatedApi();
-const commerce = await api.ws.loadExample('commerce'),
-  mall = await api.ws.loadExample('mall');
+const commerce = await api.ws.loadExample('commerce');
+const mall = await api.ws.loadExample('mall');
 const ttl = readFileSync('public/examples/commerce/commerce.owl.ttl', 'utf8');
 const nt = (() => {
   const w = new Writer({ format: 'N-Triples' });

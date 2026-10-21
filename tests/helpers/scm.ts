@@ -40,12 +40,12 @@ export async function scmProject(options: { remote?: boolean } = {}) {
   const created = await ok(
     call(t, 'POST', '/api/import', { files: [{ path: 'shop.yaml', source: ontology('Buys.') }] }),
   );
-  const slug = created.slug,
-    dir = join(t.root, 'projects', slug),
-    base = `/api/projects/${slug}`;
+  const slug = created.slug;
+  const dir = join(t.root, 'projects', slug);
+  const base = `/api/projects/${slug}`;
   const extra = mkdtempSync(join(tmpdir(), 'workbench-remote-'));
-  let bare = '',
-    other = '';
+  let bare = '';
+  let other = '';
   if (options.remote !== false) {
     bare = join(extra, 'remote.git');
     sh(extra, ['init', '-q', '--bare', '-b', 'main', bare]);

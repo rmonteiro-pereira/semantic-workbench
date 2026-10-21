@@ -5,11 +5,11 @@ export function useGrouping(documentId?: string) {
     value: {},
     error: '',
   });
-  const version = useRef(0),
-    queue = useRef(Promise.resolve());
+  const version = useRef(0);
+  const queue = useRef(Promise.resolve());
   useEffect(() => {
-    const controller = new AbortController(),
-      revision = ++version.current;
+    const controller = new AbortController();
+    const revision = ++version.current;
     setState({ id: documentId, value: {}, error: '' });
     if (documentId)
       fetch(`/api/documents/${encodeURIComponent(documentId)}/grouping`, {

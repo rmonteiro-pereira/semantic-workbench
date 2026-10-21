@@ -15,7 +15,6 @@ import {
   fieldsFor,
   itemName,
   kindLabel,
-  nameKey,
   readField,
   type Choices,
   type FieldSpec,
@@ -66,20 +65,20 @@ export function ItemEditor({
   onOpenSource,
 }: Props) {
   const fragment = useMemo(() => openFragment(base, path), []);
-  const [text, setText] = useState(fragment.text),
-    [tab, setTab] = useState<'fields' | 'source'>('fields');
-  const [texts, setTexts] = useState<Record<string, string>>({}),
-    [reopened, setReopened] = useState(false);
-  const [check, setCheck] = useState<{ text: string; issues: Issue[] } | null>(null),
-    [saving, setSaving] = useState(false),
-    [error, setError] = useState('');
-  const [confirmed, setConfirmed] = useState<Set<number>>(new Set()),
-    [dependents, setDependents] = useState<Reference[] | null>(null);
+  const [text, setText] = useState(fragment.text);
+  const [tab, setTab] = useState<'fields' | 'source'>('fields');
+  const [texts, setTexts] = useState<Record<string, string>>({});
+  const [reopened, setReopened] = useState(false);
+  const [check, setCheck] = useState<{ text: string; issues: Issue[] } | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [confirmed, setConfirmed] = useState<Set<number>>(new Set());
+  const [dependents, setDependents] = useState<Reference[] | null>(null);
   const original = useMemo(() => fragmentValue(fragment, fragment.text).value, []);
   const parsed = useMemo(() => fragmentValue(fragment, text), [text]);
   const draft = useMemo(() => splice(base, fragment, text), [text]);
-  const oldName = itemName(kind, original),
-    newName = parsed.value ? itemName(kind, parsed.value) : oldName;
+  const oldName = itemName(kind, original);
+  const newName = parsed.value ? itemName(kind, parsed.value) : oldName;
   const ownerName = useMemo(
     () =>
       kind === 'field' || kind === 'odcs-property'
@@ -125,9 +124,9 @@ export function ItemEditor({
       newName,
     )[0].source;
   }, [draft, references, confirmed, newName]);
-  const pending = check?.text !== effective,
-    issues = check?.issues ?? [],
-    errors = issues.filter(i => i.severity === 'error');
+  const pending = check?.text !== effective;
+  const issues = check?.issues ?? [];
+  const errors = issues.filter(i => i.severity === 'error');
   const changed = effective !== base;
   // The whole draft is checked in the worker after a short pause; Save waits for the result.
   useEffect(() => {
@@ -154,8 +153,8 @@ export function ItemEditor({
     setSaving(true);
     setError('');
     try {
-      const chosen = references.filter((_, i) => confirmed.has(i)),
-        main = effective;
+      const chosen = references.filter((_, i) => confirmed.has(i));
+      const main = effective;
       const others = rewriteReferences(
         projectDocs,
         chosen.filter(r => r.docId !== doc.id),
@@ -265,8 +264,8 @@ export function ItemEditor({
         ) : (
           <div className="item-fields">
             {fields.filter(shown).map((spec, n) => {
-              const value = readField(parsed.value, spec),
-                id = `item-field-${spec.key}`;
+              const value = readField(parsed.value, spec);
+              const id = `item-field-${spec.key}`;
               const ref = (el: HTMLElement | null) => {
                 if (n === 0) firstField.current = el;
               };
@@ -288,8 +287,8 @@ export function ItemEditor({
                 );
               else if (spec.input === 'select') {
                 const options =
-                    spec.key === 'ext.status' ? allowedStatuses(status) : (spec.options ?? []),
-                  current = display(spec, value);
+                  spec.key === 'ext.status' ? allowedStatuses(status) : (spec.options ?? []);
+                const current = display(spec, value);
                 input = (
                   <select
                     ref={ref as any}

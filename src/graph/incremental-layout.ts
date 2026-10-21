@@ -25,8 +25,8 @@ export function placeNew(
   items: { id: string; side: -1 | 1; step?: number }[],
   g: Grid,
 ): Map<string, Pos> {
-  const out = new Map(positions),
-    origin = out.get(from) ?? { x: 0, y: 0 };
+  const out = new Map(positions);
+  const origin = out.get(from) ?? { x: 0, y: 0 };
   for (const it of items) {
     if (out.has(it.id)) continue;
     out.set(it.id, nearestFree(out, origin.x + it.side * (it.step ?? 1) * g.column, origin.y, g));
@@ -42,19 +42,19 @@ export function placeLayers(
   g: Grid,
   rows = 8,
 ): Map<string, Pos> {
-  const out = new Map(positions),
-    origin = out.get(from) ?? { x: 0, y: 0 };
+  const out = new Map(positions);
+  const origin = out.get(from) ?? { x: 0, y: 0 };
   for (const side of [1, -1] as const) {
-    const mine = items.filter(i => i.side === side && !out.has(i.id)),
-      steps = [...new Set(mine.map(i => i.step))].sort((a, b) => a - b);
+    const mine = items.filter(i => i.side === side && !out.has(i.id));
+    const steps = [...new Set(mine.map(i => i.step))].sort((a, b) => a - b);
     let column = 0;
     for (const s of steps) {
-      const layer = mine.filter(i => i.step === s),
-        cols = Math.ceil(layer.length / rows);
+      const layer = mine.filter(i => i.step === s);
+      const cols = Math.ceil(layer.length / rows);
       layer.forEach((it, i) => {
-        const c = column + Math.floor(i / rows),
-          inCol = Math.min(rows, layer.length - Math.floor(i / rows) * rows),
-          r = i % rows;
+        const c = column + Math.floor(i / rows);
+        const inCol = Math.min(rows, layer.length - Math.floor(i / rows) * rows);
+        const r = i % rows;
         out.set(
           it.id,
           nearestFree(
@@ -82,8 +82,8 @@ export function placeBoxes(
   gapY = 24,
   step = 24,
 ): Map<string, Box> {
-  const out = new Map(boxes),
-    o = out.get(from) ?? { x: 0, y: 0, w: 0, h: 0 };
+  const out = new Map(boxes);
+  const o = out.get(from) ?? { x: 0, y: 0, w: 0, h: 0 };
   const hits = (b: Box) => {
     for (const p of out.values())
       if (
@@ -100,8 +100,8 @@ export function placeBoxes(
     const x = it.side > 0 ? o.x + o.w + gapX : o.x - gapX - it.w;
     let placed: Box | null = null;
     for (let k = 0; k < 4000 && !placed; k++) {
-      const dy = k === 0 ? 0 : (k % 2 ? 1 : -1) * Math.ceil(k / 2) * step,
-        b = { x, y: o.y + dy, w: it.w, h: it.h };
+      const dy = k === 0 ? 0 : (k % 2 ? 1 : -1) * Math.ceil(k / 2) * step;
+      const b = { x, y: o.y + dy, w: it.w, h: it.h };
       if (!hits(b)) placed = b;
     }
     out.set(it.id, placed ?? { x, y: o.y, w: it.w, h: it.h });

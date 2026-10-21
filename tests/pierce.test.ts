@@ -3,8 +3,8 @@ import { inspect } from '../src/model';
 import { boundedClosure, PIERCE_BUDGET, type PierceOptions } from '../src/graph/pierce';
 // Bounded closure (T041; SC-010) on the UBL and shopping center ontologies and a 5,000-entity model.
 const load = async (path: string) => inspect(await Bun.file(path).text(), path.split('/').pop());
-const ubl = await load('public/examples/ubl/ubl.ontology.yaml'),
-  mall = await load('public/examples/mall/mall.ontology.yaml');
+const ubl = await load('public/examples/ubl/ubl.ontology.yaml');
+const mall = await load('public/examples/mall/mall.ontology.yaml');
 const big = inspect(
   JSON.stringify({
     name: 'Scale',
@@ -36,8 +36,8 @@ function reach(
   ok: (id: string) => boolean = () => true,
   label?: string,
 ) {
-  const seen = new Set([start]),
-    q = [start];
+  const seen = new Set([start]);
+  const q = [start];
   while (q.length) {
     const n = q.shift()!;
     for (const e of m.edges) {
@@ -62,8 +62,8 @@ for (const [name, m, start] of [
 ] as const)
   for (const dir of ['out', 'in', 'both'] as const)
     test(`${name} ${dir}: the unbounded closure equals plain reachability; each node once; steps are BFS distances`, () => {
-      const s = id(m, start),
-        r = boundedClosure(m.entities, m.edges, [s], opts({ direction: dir }));
+      const s = id(m, start);
+      const r = boundedClosure(m.entities, m.edges, [s], opts({ direction: dir }));
       expect(new Set(r.nodes)).toEqual(reach(m, s, dir));
       expect(r.nodes.length).toBe(new Set(r.nodes).size);
       expect(r.total).toBe(r.nodes.length);
@@ -73,14 +73,14 @@ for (const [name, m, start] of [
         if (n !== s) expect(r.nodes.some(p => r.steps[p] === r.steps[n] - 1)).toBe(true);
     });
 test('UBL Both from Invoice: budget 150 keeps the first 150 in breadth-first order, frontier counts, totals equal the full closure', () => {
-  const s = id(ubl, 'Invoice'),
-    full = boundedClosure(ubl.entities, ubl.edges, [s], opts({ direction: 'both' })),
-    r = boundedClosure(
-      ubl.entities,
-      ubl.edges,
-      [s],
-      opts({ direction: 'both', budget: PIERCE_BUDGET }),
-    );
+  const s = id(ubl, 'Invoice');
+  const full = boundedClosure(ubl.entities, ubl.edges, [s], opts({ direction: 'both' }));
+  const r = boundedClosure(
+    ubl.entities,
+    ubl.edges,
+    [s],
+    opts({ direction: 'both', budget: PIERCE_BUDGET }),
+  );
   expect(r.nodes).toEqual(full.nodes.slice(0, Math.min(150, full.total)));
   expect(r.total).toBe(full.total);
   expect(r.hidden).toBe(full.total - r.nodes.length);
@@ -93,23 +93,23 @@ test('UBL Both from Invoice: budget 150 keeps the first 150 in breadth-first ord
   }
 });
 test('value types, metrics and a relationship filter limit the closure', () => {
-  const s = id(mall, 'Lease'),
-    all = boundedClosure(mall.entities, mall.edges, [s], opts()),
-    noValues = boundedClosure(mall.entities, mall.edges, [s], opts({ valueTypes: false }));
+  const s = id(mall, 'Lease');
+  const all = boundedClosure(mall.entities, mall.edges, [s], opts());
+  const noValues = boundedClosure(mall.entities, mall.edges, [s], opts({ valueTypes: false }));
   const kinds = new Map(mall.entities.map(e => [e.id, e.kind]));
   expect(noValues.nodes.some(n => kinds.get(n) === 'ValueType')).toBe(false);
   expect(noValues.nodes.length).toBeLessThan(all.nodes.length);
   expect(new Set(noValues.nodes)).toEqual(
     reach(mall, s, 'out', n => !['ValueType', 'Built-in concept'].includes(kinds.get(n)!)),
   );
-  const label = mall.edges.find(e => e.source === s)!.label,
-    one = boundedClosure(mall.entities, mall.edges, [s], opts({ relationship: label }));
+  const label = mall.edges.find(e => e.source === s)!.label;
+  const one = boundedClosure(mall.entities, mall.edges, [s], opts({ relationship: label }));
   expect(new Set(one.nodes)).toEqual(reach(mall, s, 'out', () => true, label));
   const withMetric = [
-      ...mall.entities,
-      { ...mall.entities[0], id: 'm1', name: 'm1', kind: 'Metric' },
-    ],
-    edges = [...mall.edges, { ...mall.edges[0], id: 'mm', source: s, target: 'm1' }];
+    ...mall.entities,
+    { ...mall.entities[0], id: 'm1', name: 'm1', kind: 'Metric' },
+  ];
+  const edges = [...mall.edges, { ...mall.edges[0], id: 'mm', source: s, target: 'm1' }];
   expect(boundedClosure(withMetric, edges, [s], opts({ metrics: false })).nodes).not.toContain(
     'm1',
   );
@@ -117,15 +117,15 @@ test('value types, metrics and a relationship filter limit the closure', () => {
 });
 test('technical resources follow the switch in models with OWL classes', () => {
   const nodes = [
-      { id: 'a', name: 'a', kind: 'OWL class' },
-      { id: 'p', name: 'p', kind: 'OWL property' },
-      { id: 'b', name: 'b', kind: 'OWL class' },
-    ],
-    edges = [
-      { id: '1', source: 'a', target: 'p', label: 'x' },
-      { id: '2', source: 'p', target: 'b', label: 'x' },
-      { id: '3', source: 'a', target: 'b', label: 'y' },
-    ];
+    { id: 'a', name: 'a', kind: 'OWL class' },
+    { id: 'p', name: 'p', kind: 'OWL property' },
+    { id: 'b', name: 'b', kind: 'OWL class' },
+  ];
+  const edges = [
+    { id: '1', source: 'a', target: 'p', label: 'x' },
+    { id: '2', source: 'p', target: 'b', label: 'x' },
+    { id: '3', source: 'a', target: 'b', label: 'y' },
+  ];
   expect(boundedClosure(nodes, edges, ['a'], opts({ technical: false })).nodes).toEqual(['a', 'b']);
   expect(boundedClosure(nodes, edges, ['a'], opts({ technical: true })).nodes.sort()).toEqual([
     'a',
@@ -134,9 +134,9 @@ test('technical resources follow the switch in models with OWL classes', () => {
   ]);
 });
 test('5,000 entities: budgets 150 and 500, the total is the whole cycle-connected closure, cycles terminate, and it is fast and deterministic', () => {
-  const t = performance.now(),
-    r = boundedClosure(big.entities, big.edges, [id(big, 'E0')], opts({ budget: 150 })),
-    ms = performance.now() - t;
+  const t = performance.now();
+  const r = boundedClosure(big.entities, big.edges, [id(big, 'E0')], opts({ budget: 150 }));
+  const ms = performance.now() - t;
   expect(r.nodes).toHaveLength(150);
   expect(r.total).toBe(5000);
   expect(r.hidden).toBe(4850);
@@ -152,8 +152,8 @@ test('5,000 entities: budgets 150 and 500, the total is the whole cycle-connecte
   );
 });
 test('the lines of a pierce form a tree: one line reaching each shown node except the start', () => {
-  const s = id(ubl, 'Invoice'),
-    r = boundedClosure(ubl.entities, ubl.edges, [s], opts({ direction: 'both' }));
+  const s = id(ubl, 'Invoice');
+  const r = boundedClosure(ubl.entities, ubl.edges, [s], opts({ direction: 'both' }));
   expect(r.edges).toHaveLength(r.nodes.length - 1);
   const ends = new Set(
     r.edges.flatMap(e => {

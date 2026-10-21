@@ -57,11 +57,11 @@ export async function migrateLegacy(
         'Git user.name and user.email are not configured, so the initial commits cannot be made. Configure them and restart; the v0.1.0 database is untouched.',
       ...empty,
     };
-  const stamp = new Date().toISOString().replace(/[:.]/g, '-'),
-    opId = journal.newId();
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const opId = journal.newId();
   const backup = join(layout.backup, `workbench-${stamp}.sqlite`);
-  const staging = join(layout.projects, `.staging-${opId}`),
-    stateStaging = join(layout.state, `.staging-${opId}`);
+  const staging = join(layout.projects, `.staging-${opId}`);
+  const stateStaging = join(layout.state, `.staging-${opId}`);
   // Back up the database together with its WAL and shared-memory files, then verify the copies.
   for (const suffix of ['', '-wal', '-shm']) {
     const from = layout.legacyDb + suffix;
@@ -81,8 +81,8 @@ export async function migrateLegacy(
     copyFileSync(backup, readCopy);
     if (existsSync(backup + '-wal')) copyFileSync(backup + '-wal', readCopy + '-wal');
     const db = new Database(readCopy);
-    let docs: { id: string; filename: string; bytes: Uint8Array }[],
-      views: { document_id: string; grouping: string }[] = [];
+    let docs: { id: string; filename: string; bytes: Uint8Array }[];
+    let views: { document_id: string; grouping: string }[] = [];
     try {
       // Read the stored bytes themselves (CAST AS BLOB), not a decoded and re-encoded string.
       docs = (
@@ -108,8 +108,8 @@ export async function migrateLegacy(
       { name: string; origin: string; preferred: string; docs: typeof docs }
     >();
     for (const d of docs) {
-      const set = exampleForFilename(d.filename),
-        key = set ? set.id : 'ungrouped';
+      const set = exampleForFilename(d.filename);
+      const key = set ? set.id : 'ungrouped';
       if (!groups.has(key))
         groups.set(
           key,
@@ -130,13 +130,13 @@ export async function migrateLegacy(
       groups.get(key)!.docs.push(d);
     }
     const taken = new Set<string>([
-        ...readdirSync(layout.projects),
-        ...state.registry().projects.map(p => p.slug),
-      ]),
-      registry: ProjectEntry[] = [],
-      ids: Record<string, { project: string; path: string }> = {};
-    const viewFiles = new Map<string, Record<string, unknown>>(),
-      grouping = new Map(views.map(v => [v.document_id, v.grouping]));
+      ...readdirSync(layout.projects),
+      ...state.registry().projects.map(p => p.slug),
+    ]);
+    const registry: ProjectEntry[] = [];
+    const ids: Record<string, { project: string; path: string }> = {};
+    const viewFiles = new Map<string, Record<string, unknown>>();
+    const grouping = new Map(views.map(v => [v.document_id, v.grouping]));
     const report: MigrationReport = {
       status: 'completed',
       backup,
@@ -147,8 +147,8 @@ export async function migrateLegacy(
     for (const group of groups.values()) {
       const slug = taken.has(group.preferred) ? slugify(group.name, taken) : group.preferred;
       taken.add(slug);
-      const dir = join(staging, slug),
-        paths = new Set<string>();
+      const dir = join(staging, slug);
+      const paths = new Set<string>();
       for (const d of group.docs) {
         let name = d.filename;
         try {
@@ -159,9 +159,9 @@ export async function migrateLegacy(
         }
         const path = disambiguate(name, paths);
         paths.add(path);
-        const bytes = d.bytes,
-          file = join(dir, path),
-          expected = sha256(bytes);
+        const bytes = d.bytes;
+        const file = join(dir, path);
+        const expected = sha256(bytes);
         atomicWrite(file, bytes);
         hooks.afterWrite?.(file);
         report.files++;

@@ -33,8 +33,10 @@ const graph = () => page.getByRole('region', { name: 'Mapping graph' });
 const card = (name: string) => graph().getByRole('group', { name, exact: true });
 // The resolver's graph for a mapping, as the server sees the saved files.
 function expected(filename: string, embedded = false): MappingGraph {
-  const docs = api.ws.documents(),
-    m = agentCatalog(docs).mappings.find(x => x.filename === filename && x.embedded === embedded)!;
+  const docs = api.ws.documents();
+  const m = agentCatalog(docs).mappings.find(
+    x => x.filename === filename && x.embedded === embedded,
+  )!;
   return buildMappingGraph(buildContext(docs, m.id) as any);
 }
 async function openMapping(path: string, project: string) {
@@ -70,8 +72,8 @@ async function compare(g: MappingGraph, label: string) {
     drawn.add(k);
     if (!want.has(k)) throw Error(`${label}: line ${k} is not a resolver binding`);
   }
-  const shown = new Set(ports),
-    bundled = lines.some(l => l.count > 1);
+  const shown = new Set(ports);
+  const bundled = lines.some(l => l.count > 1);
   for (const k of want) {
     const [from, to] = k.split('>');
     if (shown.has(from) && shown.has(to) && !drawn.has(k) && !bundled)
@@ -110,8 +112,8 @@ try {
       await openMapping('commerce.mapping.yaml', loaded['mapped-commerce'].name);
       for (const n of ['Concept Customer', 'Dataset customers'])
         await expect(card(n)).toBeVisible();
-      const c = (await card('Concept Customer').boundingBox())!,
-        d = (await card('Dataset customers').boundingBox())!;
+      const c = (await card('Concept Customer').boundingBox())!;
+      const d = (await card('Dataset customers').boundingBox())!;
       expect(c.x + c.width).toBeLessThan(d.x + 1);
       const legend = graph().getByRole('list', { name: 'Legend' });
       for (const t of ['Concept', 'Semantic dataset', 'Object mapping', 'Referent'])
@@ -181,8 +183,8 @@ try {
     'Unmapped only: unmapped concepts and fields carry the badge; the filter leaves only them',
     async () => {
       // Add an unmapped concept to the mapped commerce ontology through the API, as an edit would.
-      const slug = loaded['mapped-commerce'].slug,
-        f = api.ws.readFile(slug, 'commerce.mapped-ontology.yaml');
+      const slug = loaded['mapped-commerce'].slug;
+      const f = api.ws.readFile(slug, 'commerce.mapped-ontology.yaml');
       await api.ws.saveFile(slug, 'commerce.mapped-ontology.yaml', {
         baseHash: f.hash,
         source: f.source + '  - concept: Shipment\n    type: EntityType\n',
@@ -209,8 +211,8 @@ try {
   await check(
     'warning markers: a resolver finding shows on the affected card with its message and Edit item',
     async () => {
-      const slug = loaded['mapped-commerce'].slug,
-        f = api.ws.readFile(slug, 'commerce.mapping.yaml');
+      const slug = loaded['mapped-commerce'].slug;
+      const f = api.ws.readFile(slug, 'commerce.mapping.yaml');
       await api.ws.saveFile(slug, 'commerce.mapping.yaml', {
         baseHash: f.hash,
         source: f.source.replace(

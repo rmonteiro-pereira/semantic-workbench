@@ -13,8 +13,8 @@ function edit(
   original: string,
   spec: (doc: string) => { from: number; to?: number; insert?: string }[],
 ) {
-  const state = EditorState.create({ doc: original }),
-    tr = state.update({ changes: spec(state.doc.toString()) });
+  const state = EditorState.create({ doc: original });
+  const tr = state.update({ changes: spec(state.doc.toString()) });
   return applyPatches(original, changesToPatches(original, state.doc, tr.changes));
 }
 test('CodeMirror normalizes line breaks; the original keeps them', () => {
@@ -52,9 +52,9 @@ test('tabs, a missing or present trailing newline and several changes at once ar
 });
 test('a save sends the smallest patch, never splitting CRLF or surrogate pairs', () => {
   expect(diffPatches('same', 'same')).toEqual([]);
-  const base = 'a: 1\r\nb: 2\r\nc: 3\r\n',
-    next = 'a: 1\r\nb: 22\r\nc: 3\r\n',
-    p = diffPatches(base, next);
+  const base = 'a: 1\r\nb: 2\r\nc: 3\r\n';
+  const next = 'a: 1\r\nb: 22\r\nc: 3\r\n';
+  const p = diffPatches(base, next);
   expect(p).toEqual([{ from: 10, to: 10, insert: '2' }]);
   expect(applyPatches(base, p)).toBe(next);
   for (const [a, b] of [

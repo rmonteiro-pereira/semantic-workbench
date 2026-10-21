@@ -6,16 +6,14 @@ import { testWorkspace, example } from './helpers/temp-data-dir';
 // rdflib numbers blank nodes with a process-wide counter, so their labels differ between parses in
 // one process (not between restarts); compare them by position only.
 const snapshot = (ws: Awaited<ReturnType<typeof testWorkspace>>['ws']) =>
-  ws.cache
-    .files()
-    .map(f => ({
-      ...f,
-      indexedAt: '',
-      entities: ws.cache
-        .entities(f.project, f.path)
-        .map(e => (e.kind === 'Blank node' ? { ...e, id: '_:b', name: '_:b' } : e)),
-      findings: ws.cache.findings(f.project, f.path),
-    }));
+  ws.cache.files().map(f => ({
+    ...f,
+    indexedAt: '',
+    entities: ws.cache
+      .entities(f.project, f.path)
+      .map(e => (e.kind === 'Blank node' ? { ...e, id: '_:b', name: '_:b' } : e)),
+    findings: ws.cache.findings(f.project, f.path),
+  }));
 test('deleting cache.sqlite and reopening rebuilds identical files, entities and findings (SC-015)', async () => {
   const t = await testWorkspace();
   try {
@@ -39,8 +37,8 @@ test('deleting cache.sqlite and reopening rebuilds identical files, entities and
     );
     t.ws.state.writeView('ubl', { 'ubl.ontology.yaml': { mode: 'types' } });
     t.ws.state.writeDraft('ubl', 'commerce.owl', { baseHash: null, text: 'draft', patches: [] });
-    const before = snapshot(t.ws),
-      registry = t.ws.state.registry();
+    const before = snapshot(t.ws);
+    const registry = t.ws.state.registry();
     expect(before.length).toBe(4);
     expect(before.some(f => f.findings.length)).toBe(true);
     t.ws.close();

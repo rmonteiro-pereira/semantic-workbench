@@ -29,9 +29,9 @@ export function suggestCommunities(entities: Entity[], edges: Relationship[]) {
     for (; passes < 20; passes++) {
       let changed = false;
       for (const entity of business) {
-        const id = entity.id,
-          old = membership.get(id)!,
-          k = degree.get(id)!;
+        const id = entity.id;
+        const old = membership.get(id)!;
+        const k = degree.get(id)!;
         if (!k) continue;
         const weights = new Map<string, number>();
         for (const neighbor of [...adjacent.get(id)!].sort()) {
@@ -41,8 +41,8 @@ export function suggestCommunities(entities: Entity[], edges: Relationship[]) {
         totals.set(old, totals.get(old)! - k);
         const score = (group: string) =>
           (weights.get(group) ?? 0) - (k * (totals.get(group) ?? 0)) / twiceEdges;
-        let best = old,
-          bestScore = score(old);
+        let best = old;
+        let bestScore = score(old);
         for (const candidate of [...weights.keys()].sort()) {
           const value = score(candidate);
           if (value > bestScore + 1e-10) {

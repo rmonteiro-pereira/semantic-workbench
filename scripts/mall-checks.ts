@@ -81,8 +81,8 @@ export async function checkMall() {
           `${label} ${k}: ${actual[k]} != ${wanted[k]}`,
         );
     };
-    const month: [string, string] = ['calendar_months', 'year_month'],
-      property: [string, string] = ['properties', 'name'];
+    const month: [string, string] = ['calendar_months', 'year_month'];
+    const property: [string, string] = ['properties', 'name'];
     same(
       run('occupancy_rate', [month, property]),
       expected.occupancyRateByMonthProperty,

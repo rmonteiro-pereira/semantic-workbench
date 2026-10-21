@@ -1,4 +1,4 @@
-import { chromium, expect, type Page } from '@playwright/test';
+import { chromium, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { parse } from 'yaml';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
@@ -10,8 +10,8 @@ import { newItem } from './helpers/header';
 // references; the metric wizard; status rules. After each save `git diff` is limited to the item.
 // Isolated data root; screenshots in /tmp/workbench-item-*.png.
 const api = await startIsolatedApi();
-const commerce = await api.ws.loadExample('commerce'),
-  mall = await api.ws.loadExample('mall');
+const commerce = await api.ws.loadExample('commerce');
+const mall = await api.ws.loadExample('mall');
 const contract =
   JSON.stringify(
     parse(readFileSync('public/examples/commerce/commerce.odcs.yaml', 'utf8')),

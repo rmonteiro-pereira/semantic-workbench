@@ -8,12 +8,12 @@ type Props = {
   error?: string;
 };
 export function GroupingControls({ overview, value, onChange, example, error }: Props) {
-  const [entity, setEntity] = useState(''),
-    [group, setGroup] = useState(''),
-    [name, setName] = useState('');
-  const details = useRef<HTMLDetailsElement>(null),
-    [opened, setOpened] = useState(false),
-    [position, setPosition] = useState({ left: 0, top: 0, maxHeight: 0 });
+  const [entity, setEntity] = useState('');
+  const [group, setGroup] = useState('');
+  const [name, setName] = useState('');
+  const details = useRef<HTMLDetailsElement>(null);
+  const [opened, setOpened] = useState(false);
+  const [position, setPosition] = useState({ left: 0, top: 0, maxHeight: 0 });
   useLayoutEffect(() => {
     if (!opened) return;
     const place = () => {
@@ -127,8 +127,8 @@ export function GroupingControls({ overview, value, onChange, example, error }: 
             <button
               disabled={!selected || (!destination && !name.trim())}
               onClick={() => {
-                const title = name.trim(),
-                  id = title ? 'custom:' + title : destination;
+                const title = name.trim();
+                const id = title ? 'custom:' + title : destination;
                 onChange({
                   ...value,
                   assignments: { ...value.assignments, [selected]: id },

@@ -1,5 +1,5 @@
 import { test, expect } from 'bun:test';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { appendIgnore, escapeIgnore, ignoreChoices } from '../src/scm/gitignore';
 import { call, ok, scmProject, sh } from './helpers/scm';

@@ -2681,8 +2681,8 @@ const ancestors = (d: Def): Def[] =>
     const parent = byConcept.get(p)!;
     return [...ancestors(parent), parent];
   });
-const allAttrs = (d: Def) => [...ancestors(d), d].flatMap(attrsOf),
-  allLinks = (d: Def) => [...ancestors(d), d].flatMap(linksOf);
+const allAttrs = (d: Def) => [...ancestors(d), d].flatMap(attrsOf);
+const allLinks = (d: Def) => [...ancestors(d), d].flatMap(linksOf);
 const camel = (s: string) => s.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
 const lowerFirst = (s: string) => s[0].toLowerCase() + s.slice(1);
 const relIri = (owner: string, name: string) =>
@@ -2900,8 +2900,8 @@ const months = [
     first_day: '2026-09-01',
   },
 ];
-const monthEnd: Record<number, string> = { 1: '2026-08-31', 2: '2026-09-30' },
-  monthStart: Record<number, string> = { 1: '2026-08-01', 2: '2026-09-01' };
+const monthEnd: Record<number, string> = { 1: '2026-08-31', 2: '2026-09-30' };
+const monthStart: Record<number, string> = { 1: '2026-08-01', 2: '2026-09-01' };
 const rows: Record<string, Record<string, any>[]> = {
   countries: [{ id: 1, name: 'Brazil', iso_code: 'BR' }],
   state_provinces: [{ id: 1, name: 'São Paulo', code: 'SP', country_id: 1 }],
@@ -3233,8 +3233,8 @@ const sales: Record<number, [number, number]> = {
 // Paid fraction of each lease's charges at the reporting date: lease 3 has not paid September; lease 5 paid half of September.
 const paidFraction = (lease: number, month: number) =>
   month === 2 && lease === 3 ? 0 : month === 2 && lease === 5 ? 0.5 : 1;
-const serviceChargePerM2 = 30,
-  marketingRate = 0.1;
+const serviceChargePerM2 = 30;
+const marketingRate = 0.1;
 rows.occupancy_snapshots = [];
 rows.charges = [];
 rows.invoices = [];
@@ -3321,8 +3321,8 @@ rows.parking_activity = months.flatMap(m => [
   { id: m.id * 2, tickets: m.id === 1 ? 14000 : 16500, revenue: 0, facility_id: 2, month_id: m.id },
 ]);
 // Ledger: rent income from minimum and percentage rent charges, parking income, non-recoverable expenses and depreciation.
-const opex: Record<number, [number, number]> = { 1: [30000, 32000], 2: [9000, 9500] },
-  depreciation: Record<number, number> = { 1: 45000, 2: 12000 };
+const opex: Record<number, [number, number]> = { 1: [30000, 32000], 2: [9000, 9500] };
+const depreciation: Record<number, number> = { 1: 45000, 2: 12000 };
 rows.journal_entries = [];
 rows.journal_lines = [];
 for (const m of months)
@@ -3455,9 +3455,9 @@ rows.purchase_order_lines = [
 ];
 rows.supplier_invoices = rows.purchase_orders.map(po => {
   const gross = rows.purchase_order_lines
-      .filter(l => l.purchase_order_id === po.id)
-      .reduce((s, l) => s + l.quantity * l.unit_price, 0),
-    withheld = Math.round(gross * 0.11 * 100) / 100;
+    .filter(l => l.purchase_order_id === po.id)
+    .reduce((s, l) => s + l.quantity * l.unit_price, 0);
+  const withheld = Math.round(gross * 0.11 * 100) / 100;
   return {
     id: po.id,
     invoice_number: `NF-${5000 + po.id}`,
@@ -3491,12 +3491,12 @@ const byMonthProperty = <T>(
       ]),
     ),
   );
-const snap = rows.occupancy_snapshots,
-  chg = rows.charges,
-  rep = rows.sales_reports,
-  jl = rows.journal_lines;
-const entryOf = (l: any) => rows.journal_entries[l.entry_id - 1],
-  propertyOfLine = (l: any) => rows.cost_centers[l.cost_center_id - 1].property_id;
+const snap = rows.occupancy_snapshots;
+const chg = rows.charges;
+const rep = rows.sales_reports;
+const jl = rows.journal_lines;
+const entryOf = (l: any) => rows.journal_entries[l.entry_id - 1];
+const propertyOfLine = (l: any) => rows.cost_centers[l.cost_center_id - 1].property_id;
 const expected = {
   counts: {
     entityTypes: defs.length,
@@ -3849,8 +3849,8 @@ const contract: any = {
       { type: 'businessDefinition', url: `${prefixes[d.module]}${d.concept}` },
     ],
     properties: columnsOf(d).map(column => {
-      const attr = allAttrs(d).find(a => a.name === column),
-        link = allLinks(d).find(l => l.name + '_id' === column);
+      const attr = allAttrs(d).find(a => a.name === column);
+      const link = allLinks(d).find(l => l.name + '_id' === column);
       return {
         name: column,
         logicalType: logical[fieldType(d, column)],

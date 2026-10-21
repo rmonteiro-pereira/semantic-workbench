@@ -19,8 +19,8 @@ export const LOGICAL_TYPES = [
   'array',
   'boolean',
 ];
-const FLAGS = new Set(['required', 'unique', 'primaryKey']),
-  TEXTS = new Set(['classification', 'description']);
+const FLAGS = new Set(['required', 'unique', 'primaryKey']);
+const TEXTS = new Set(['classification', 'description']);
 // The file text after setting one attribute of a top-level property (`undefined` removes the key).
 export function propertyEdit(
   source: string,
@@ -49,8 +49,8 @@ export function propertyEditor({ doc, base, onSaved, onError }: Options) {
     }
   };
   async function save(objectIndex: number, path: string, key: string, value: unknown) {
-    const list = properties(objectIndex),
-      index = Array.isArray(list) ? list.findIndex((p: any) => p?.name === path) : -1;
+    const list = properties(objectIndex);
+    const index = Array.isArray(list) ? list.findIndex((p: any) => p?.name === path) : -1;
     if (index < 0) return;
     let next: string;
     try {

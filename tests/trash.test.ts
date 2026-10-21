@@ -37,8 +37,8 @@ async function setup() {
   };
 }
 test('ULIDs are 26 Crockford characters and sort by time', () => {
-  const a = ulid(1000),
-    b = ulid(2000);
+  const a = ulid(1000);
+  const b = ulid(2000);
   expect(a).toMatch(/^[0-9A-HJKMNP-TV-Z]{26}$/);
   expect(a < b).toBe(true);
 });

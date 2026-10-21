@@ -250,13 +250,13 @@ function conceptLinks(
   return out;
 }
 function summaries(parsed: Parsed[], ref: ModelRef): KpiSummary[] {
-  const metrics = list(ref.model.metrics).filter(object),
-    names = new Set<string>(
-      metrics.map((m: any) => m.name).filter((n: unknown) => typeof n === 'string'),
-    );
-  const prefix = pointerOf(ref.path),
-    issues = metricLayerIssues(ref.model, prefix, fieldNamesOf(ref.model)),
-    links = conceptLinks(parsed, ref, names);
+  const metrics = list(ref.model.metrics).filter(object);
+  const names = new Set<string>(
+    metrics.map((m: any) => m.name).filter((n: unknown) => typeof n === 'string'),
+  );
+  const prefix = pointerOf(ref.path);
+  const issues = metricLayerIssues(ref.model, prefix, fieldNamesOf(ref.model));
+  const links = conceptLinks(parsed, ref, names);
   const declared = new Map<string, MetricExtension | null>(
     metrics.map((m: any) => [m.name, readMetricExtension(m).value]),
   );
@@ -265,9 +265,9 @@ function summaries(parsed: Parsed[], ref: ModelRef): KpiSummary[] {
     if (ext?.additivity) return ext.additivity;
     if (seen.has(name)) return null;
     seen.add(name);
-    const m = metrics.find((x: any) => x.name === name),
-      sql = ansiExpression(m),
-      shape = inferredType(sql, names);
+    const m = metrics.find((x: any) => x.name === name);
+    const sql = ansiExpression(m);
+    const shape = inferredType(sql, names);
     return inferredAdditivity(
       sql,
       ext?.type ?? shape.type,
@@ -277,9 +277,9 @@ function summaries(parsed: Parsed[], ref: ModelRef): KpiSummary[] {
   };
   const layout = ref.embeddedMapping ? 'embedded (deprecated)' : 'split';
   return metrics.map((m: any, i: number) => {
-    const ext = declared.get(m.name) ?? null,
-      sql = ansiExpression(m),
-      shape = inferredType(sql, names);
+    const ext = declared.get(m.name) ?? null;
+    const sql = ansiExpression(m);
+    const shape = inferredType(sql, names);
     const own = issues.filter(
       x => x.path === `${prefix}/metrics/${i}` || x.path.startsWith(`${prefix}/metrics/${i}/`),
     );
@@ -380,14 +380,14 @@ export function explainMetric(
   metric: string,
   options: { grain?: string | null; dimensions?: string[]; rollup?: string | null } = {},
 ): KpiExplanation {
-  const parsed = parseProject(documents, slug),
-    refs = semanticModels(parsed).filter(r => r.doc.path === path);
+  const parsed = parseProject(documents, slug);
+  const refs = semanticModels(parsed).filter(r => r.doc.path === path);
   if (!refs.length) throw Error(`${path} has no semantic model in project ${slug}.`);
   const ref = refs.find(r => list(r.model.metrics).some((m: any) => m?.name === metric));
   if (!ref) throw Error(`Metric ${metric} is not in ${path}.`);
-  const all = summaries(parsed, ref),
-    byName = new Map(all.map(k => [k.name, k])),
-    kpi = byName.get(metric)!;
+  const all = summaries(parsed, ref);
+  const byName = new Map(all.map(k => [k.name, k]));
+  const kpi = byName.get(metric)!;
   const datasets = new Map<string, any>(
     list(ref.model.datasets)
       .filter(object)
@@ -418,8 +418,8 @@ export function explainMetric(
     const k = byName.get(name)!;
     if (path.has(name))
       return { kind: 'metric', name, label: k.label, role, children: [], repeated: true };
-    const next = new Set(path).add(name),
-      sql = k.expression ?? '';
+    const next = new Set(path).add(name);
+    const sql = k.expression ?? '';
     const ratio =
       k.type === 'ratio'
         ? k.extension?.numerator && k.extension.denominator
@@ -453,15 +453,15 @@ export function explainMetric(
   };
   walk(root);
   const inputs: BaseInput[] = bases.map(name => {
-    const k = byName.get(name)!,
-      sql = k.expression ?? '',
-      leaves = fieldLeaves(sql);
+    const k = byName.get(name)!;
+    const sql = k.expression ?? '';
+    const leaves = fieldLeaves(sql);
     const used = [...new Set(leaves.map(l => l.dataset!))];
     const fields = leaves.map(l => {
-      const d = datasets.get(l.dataset!),
-        columns = l.expression
-          ? [...new Set(expressionRefs(l.expression).map(r => r.column))]
-          : [l.name];
+      const d = datasets.get(l.dataset!);
+      const columns = l.expression
+        ? [...new Set(expressionRefs(l.expression).map(r => r.column))]
+        : [l.name];
       const odcs: OdcsLink[] = (
         typeof d?.source === 'string' ? (index.get(d.source) ?? []) : []
       ).flatMap((o): OdcsLink[] => {
@@ -520,17 +520,17 @@ export function explainMetric(
       sla: sla.filter((s, i) => sla.findIndex(t => JSON.stringify(t) === JSON.stringify(s)) === i),
     };
   });
-  const ext = kpi.extension,
-    time = ext?.time
-      ? {
-          dimension: ext.time.dimension,
-          minGrain: ext.time.min_grain,
-          allowedGrains: (ext.time.allowed_grains ??
-            GRAINS.filter(
-              g => !ext.time!.min_grain || GRAINS.indexOf(g) >= GRAINS.indexOf(ext.time!.min_grain),
-            )) as Grain[],
-        }
-      : null;
+  const ext = kpi.extension;
+  const time = ext?.time
+    ? {
+        dimension: ext.time.dimension,
+        minGrain: ext.time.min_grain,
+        allowedGrains: (ext.time.allowed_grains ??
+          GRAINS.filter(
+            g => !ext.time!.min_grain || GRAINS.indexOf(g) >= GRAINS.indexOf(ext.time!.min_grain),
+          )) as Grain[],
+      }
+    : null;
   const division = divisionSafety(kpi.expression ?? '');
   const stocks = bases.filter(n => byName.get(n)!.additivity === 'semi_additive');
   return {
@@ -579,9 +579,9 @@ function preview(
   time: KpiExplanation['time'],
   options: { grain?: string | null; dimensions?: string[]; rollup?: string | null },
 ): SqlPreview {
-  const dimensions = options.dimensions ?? [],
-    rollup = options.rollup ?? null,
-    requested = options.grain ?? null;
+  const dimensions = options.dimensions ?? [];
+  const rollup = options.rollup ?? null;
+  const requested = options.grain ?? null;
   const grain = (requested ?? time?.minGrain ?? null) as Grain | null;
   const refuse = (refused: string): SqlPreview => ({ refused, grain, dimensions, rollup });
   if (requested !== null && !(GRAINS as readonly string[]).includes(requested))

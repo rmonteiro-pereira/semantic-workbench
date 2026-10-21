@@ -22,13 +22,13 @@ export function orthogonalPath(points: [number, number][], radius = 10) {
       d += ` L ${x},${y}`;
       break;
     }
-    const [px, py] = p[i - 1],
-      [nx, ny] = p[i + 1];
+    const [px, py] = p[i - 1];
+    const [nx, ny] = p[i + 1];
     const r = Math.min(radius, Math.hypot(x - px, y - py) / 2, Math.hypot(nx - x, ny - y) / 2);
-    const ax = x - Math.sign(x - px) * r,
-      ay = y - Math.sign(y - py) * r,
-      bx = x + Math.sign(nx - x) * r,
-      by = y + Math.sign(ny - y) * r;
+    const ax = x - Math.sign(x - px) * r;
+    const ay = y - Math.sign(y - py) * r;
+    const bx = x + Math.sign(nx - x) * r;
+    const by = y + Math.sign(ny - y) * r;
     d += ` L ${ax},${ay} Q ${x},${y} ${bx},${by}`;
   }
   return d;
@@ -40,8 +40,8 @@ export function routePoints(
   ty0: number,
   r: EdgeRoute,
 ): { points: [number, number][]; label: [number, number] } {
-  const sy = sy0 + (r.dyOut ?? 0),
-    ty = ty0 + (r.dyIn ?? 0);
+  const sy = sy0 + (r.dyOut ?? 0);
+  const ty = ty0 + (r.dyIn ?? 0);
   // Between two nodes of one column: out of the source's right side, along the column, into the
   // target's right side.
   if (r.route === 'side') {
@@ -89,8 +89,8 @@ export function assignRoutes(
   const routes = new Map<string, EdgeRoute>();
   const all = [...boxes.values()];
   if (!all.length) return routes;
-  const top = Math.min(...all.map(b => b.y)),
-    bottom = Math.max(...all.map(b => b.y + b.height));
+  const top = Math.min(...all.map(b => b.y));
+  const bottom = Math.max(...all.map(b => b.y + b.height));
   // The free gap right of x (next column's left edge) and left of x (previous column's right edge).
   const rightOf = (x: number) => {
     const n = all.filter(b => b.x > x + 1).map(b => b.x);
@@ -108,18 +108,20 @@ export function assignRoutes(
     g.needs.push(n);
     gaps.set(k, g);
   };
-  let above = 0,
-    below = 0;
+  let above = 0;
+  let below = 0;
   for (const e of [...edges].sort((a, b) => a.id.localeCompare(b.id))) {
-    const s = boxes.get(e.source),
-      t = boxes.get(e.target);
+    const s = boxes.get(e.source);
+    const t = boxes.get(e.target);
     if (!s || !t) continue;
-    const sx = s.x + s.width,
-      sy = s.y + s.height / 2,
-      tx = t.x,
-      ty = t.y + t.height / 2;
+    const sx = s.x + s.width;
+    const sy = s.y + s.height / 2;
+    const tx = t.x;
+    const ty = t.y + t.height / 2;
     if (e.source === e.target) {
-      routes.set(e.id, { route: 'loop', outX: 0, inX: 0, top: s.y - 14 - above++ * 0 });
+      // A self loop sits just above its own card, but still takes a lane slot above the row.
+      above++;
+      routes.set(e.id, { route: 'loop', outX: 0, inX: 0, top: s.y - 14 });
       need(rightOf(sx), { edge: e.id, slot: 'outX', order: sy });
       need(leftOf(tx), { edge: e.id, slot: 'inX', order: ty });
       continue;
@@ -161,10 +163,10 @@ export function assignRoutes(
   // Spread every vertical segment of a gap evenly across it, ordered to limit crossings.
   for (const { range, needs } of gaps.values()) {
     needs.sort((a, b) => a.order - b.order || a.edge.localeCompare(b.edge));
-    const [l, r] = range,
-      inner = Math.max(4, r - l - 24),
-      step = needs.length > 1 ? Math.min(12, inner / (needs.length - 1)) : 0,
-      start = (l + r) / 2 - (step * (needs.length - 1)) / 2;
+    const [l, r] = range;
+    const inner = Math.max(4, r - l - 24);
+    const step = needs.length > 1 ? Math.min(12, inner / (needs.length - 1)) : 0;
+    const start = (l + r) / 2 - (step * (needs.length - 1)) / 2;
     needs.forEach((n, i) => {
       (routes.get(n.edge) as any)[n.slot] = start + i * step;
     });
@@ -173,8 +175,8 @@ export function assignRoutes(
   // a start or end segment.
   const spread = (key: 'dyOut' | 'dyIn', ends: Map<string, { id: string; other: number }[]>) => {
     for (const [node, list] of ends) {
-      const box = boxes.get(node)!,
-        usable = Math.max(0, box.height / 2 - 14);
+      const box = boxes.get(node)!;
+      const usable = Math.max(0, box.height / 2 - 14);
       list.sort((a, b) => a.other - b.other || a.id.localeCompare(b.id));
       const step = list.length > 1 ? Math.min(14, (2 * usable) / (list.length - 1)) : 0;
       list.forEach((e, i) => {
@@ -183,11 +185,11 @@ export function assignRoutes(
       });
     }
   };
-  const outs = new Map<string, { id: string; other: number }[]>(),
-    ins = new Map<string, { id: string; other: number }[]>();
+  const outs = new Map<string, { id: string; other: number }[]>();
+  const ins = new Map<string, { id: string; other: number }[]>();
   for (const e of edges) {
-    const s = boxes.get(e.source),
-      t = boxes.get(e.target);
+    const s = boxes.get(e.source);
+    const t = boxes.get(e.target);
     if (!s || !t || !routes.has(e.id)) continue;
     const r = routes.get(e.id)!;
     outs.set(e.source, [...(outs.get(e.source) ?? []), { id: e.id, other: t.y }]);
@@ -199,6 +201,8 @@ export function assignRoutes(
     ]);
   }
   // Ends on a node's right side (outgoing and same-column arrivals) share one spread.
+  // Iterate over a copy: the loop adds and removes entries of the map.
+  // oxlint-disable-next-line no-useless-spread
   for (const [k, list] of [...outs])
     if (k.endsWith('#right')) {
       const node = k.slice(0, -6);
@@ -207,8 +211,8 @@ export function assignRoutes(
     }
   const sideIn = new Map<string, number>();
   for (const [node, list] of outs) {
-    const box = boxes.get(node)!,
-      usable = Math.max(0, box.height / 2 - 14);
+    const box = boxes.get(node)!;
+    const usable = Math.max(0, box.height / 2 - 14);
     list.sort((a, b) => a.other - b.other || a.id.localeCompare(b.id));
     const step = list.length > 1 ? Math.min(14, (2 * usable) / (list.length - 1)) : 0;
     list.forEach((e, i) => {
@@ -234,13 +238,13 @@ export function placeLabels(
   items: { id: string; text: string; points: [number, number][] }[],
   boxes: Box[],
 ) {
-  const placed: Box[] = [],
-    out = new Map<string, [number, number]>();
+  const placed: Box[] = [];
+  const out = new Map<string, [number, number]>();
   const hits = (a: Box, b: Box) =>
     a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
   for (const item of items) {
-    const w = item.text.length * 7 + 16,
-      h = 18;
+    const w = item.text.length * 7 + 16;
+    const h = 18;
     const mids = item.points
       .slice(1)
       .map((p, i) => {

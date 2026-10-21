@@ -32,8 +32,8 @@ const edgesOf = (g: LineageGraph): Edge[] =>
     .map(e => [e.from, e.to, e.kind] as Edge)
     .sort((a, b) => a.join('>').localeCompare(b.join('>')));
 function oracle(files: { path: string; data: any }[], contract: string): Edge[] {
-  const c = files.find(f => f.path === contract)!.data,
-    out: Edge[] = [];
+  const c = files.find(f => f.path === contract)!.data;
+  const out: Edge[] = [];
   const obj = (n: string) => `object:${contract}#${n}`;
   for (const o of c.schema)
     for (const p of o.properties ?? [])
@@ -58,7 +58,7 @@ function oracle(files: { path: string; data: any }[], contract: string): Edge[] 
         fields.set(`${d.name}.${fd.name}`, `${ds}/${fd.name}`);
         const e = String(ansi(fd) ?? fd.name);
         // Field expressions in the shipped examples are column names or arithmetic over column names.
-        expect(/^[A-Za-z0-9_\s*+\-\/()]+$/.test(e)).toBe(true);
+        expect(/^[A-Za-z0-9_\s*+\-/()]+$/.test(e)).toBe(true);
         for (const col of new Set(e.match(/[A-Za-z_]\w*/g) ?? [])) {
           const p = (o.properties ?? []).find((x: any) => (x.physicalName ?? x.name) === col);
           if (p) out.push([`${obj(o.name)}/${p.name}`, `${ds}/${fd.name}`, 'reads']);
@@ -119,10 +119,10 @@ for (const [dir, contract] of [
   ['ubl', 'ubl.odcs.yaml'],
 ] as const) {
   test(`${dir}: every drawn edge is expected and no expected edge is missing (SC-002)`, () => {
-    const files = load(dir),
-      g = buildLineage(files, contract),
-      got = edgesOf(g),
-      want = oracle(files, contract);
+    const files = load(dir);
+    const g = buildLineage(files, contract);
+    const got = edgesOf(g);
+    const want = oracle(files, contract);
     expect(got.filter(e => !want.some(w => w.join() === e.join()))).toEqual([]);
     expect(want.filter(w => !got.some(e => e.join() === w.join()))).toEqual([]);
     golden(dir, got);
@@ -138,8 +138,8 @@ for (const [dir, contract] of [
   });
 }
 test('commerce: customers.customer_id → orders.customer_id (parent left of child), fields and metrics to the right', () => {
-  const g = buildLineage(load('commerce'), 'commerce.odcs.yaml'),
-    o = (n: string) => objectId('commerce.odcs.yaml', n);
+  const g = buildLineage(load('commerce'), 'commerce.odcs.yaml');
+  const o = (n: string) => objectId('commerce.odcs.yaml', n);
   expect(g.edges).toContainEqual(
     expect.objectContaining({
       from: `${o('customers')}/customer_id`,
@@ -228,9 +228,9 @@ test('nested columns, composite keys, external stubs, declared transforms, cycle
       },
     },
   ];
-  const g = buildLineage(files, 'c.odcs.yaml'),
-    a = 'object:c.odcs.yaml#a',
-    b = 'object:c.odcs.yaml#b';
+  const g = buildLineage(files, 'c.odcs.yaml');
+  const a = 'object:c.odcs.yaml#a';
+  const b = 'object:c.odcs.yaml#b';
   expect(g.cards.get(a)!.columns.map(c => c.path)).toEqual([
     'id',
     'k2',

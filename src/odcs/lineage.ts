@@ -102,11 +102,11 @@ export function buildLineage(
   contractPath: string,
   revision = '',
 ): LineageGraph {
-  const contract = files.find(f => f.path === contractPath)?.data,
-    schema = list(contract?.schema);
-  const cards = new Map<string, LineageCard>(),
-    edges: ColumnEdge[] = [],
-    seen = new Set<string>();
+  const contract = files.find(f => f.path === contractPath)?.data;
+  const schema = list(contract?.schema);
+  const cards = new Map<string, LineageCard>();
+  const edges: ColumnEdge[] = [];
+  const seen = new Set<string>();
   const edge = (e: ColumnEdge) => {
     const k = `${e.from}>${e.to}>${e.kind}`;
     if (seen.has(k)) return;
@@ -118,16 +118,16 @@ export function buildLineage(
   const fkTargets = new Map<string, string[]>();
   for (const k of keys)
     k.fromColumns.forEach((c, i) => {
-      const id = columnId(objectId(contractPath, String(schema[k.from]?.name)), c),
-        t = `${schema[k.to]?.name}.${k.toColumns[i]}`;
+      const id = columnId(objectId(contractPath, String(schema[k.from]?.name)), c);
+      const t = `${schema[k.to]?.name}.${k.toColumns[i]}`;
       fkTargets.set(id, [...(fkTargets.get(id) ?? []), t]);
     });
   schema.forEach((o: any) => {
     if (!isObject(o)) return;
     const id = objectId(contractPath, String(o.name));
     const columns = flattenProperties(o.properties).map(p => {
-      const cid = columnId(id, p.path),
-        fk = fkTargets.get(cid);
+      const cid = columnId(id, p.path);
+      const fk = fkTargets.get(cid);
       return {
         id: cid,
         path: p.path,
@@ -152,8 +152,8 @@ export function buildLineage(
   });
   // Referenced (parent) column → referencing (child) column (C2), pairwise by position.
   for (const k of keys) {
-    const parent = objectId(contractPath, String(schema[k.to]?.name)),
-      child = objectId(contractPath, String(schema[k.from]?.name));
+    const parent = objectId(contractPath, String(schema[k.to]?.name));
+    const child = objectId(contractPath, String(schema[k.from]?.name));
     k.fromColumns.forEach((c, i) =>
       edge({
         from: columnId(parent, k.toColumns[i]),
@@ -191,8 +191,8 @@ export function buildLineage(
     const walk = (props: unknown, prefix: string, path: (string | number)[]) =>
       list(props).forEach((p: any, j: number) => {
         if (!isObject(p)) return;
-        const at = prefix + String(p.name),
-          pp = [...path, 'properties', j];
+        const at = prefix + String(p.name);
+        const pp = [...path, 'properties', j];
         for (const src of list(p.transformSourceObjects).filter(
           (s: unknown): s is string => typeof s === 'string',
         )) {
@@ -234,8 +234,8 @@ export function buildLineage(
   }[] = [];
   for (const f of files)
     for (const { file, key, model } of models(f)) {
-      const datasets = list(model.datasets).filter(isObject),
-        metrics = list(model.metrics).filter(isObject);
+      const datasets = list(model.datasets).filter(isObject);
+      const metrics = list(model.metrics).filter(isObject);
       const names = new Set<string>(
         metrics.map((m: any) => m.name).filter((n: unknown) => typeof n === 'string'),
       );
@@ -258,16 +258,16 @@ export function buildLineage(
       };
       const fieldColumns = new Map<string, string>();
       datasets.forEach((d: any, di: number) => {
-        const source = list(d.source)[0],
-          readers = schema.filter(
-            (o: any) => isObject(o) && (physical(o) === source || o.name === source),
-          );
+        const source = list(d.source)[0];
+        const readers = schema.filter(
+          (o: any) => isObject(o) && (physical(o) === source || o.name === source),
+        );
         if (!readers.length) {
           unmatched++;
           return;
         }
-        const id = datasetCardId(file, key, String(d.name)),
-          pk = new Set(list(d.primary_key).map(String));
+        const id = datasetCardId(file, key, String(d.name));
+        const pk = new Set(list(d.primary_key).map(String));
         const fields = list(d.fields).filter(isObject);
         cards.set(id, {
           id,
@@ -284,15 +284,17 @@ export function buildLineage(
         });
         const ambiguous = readers.length > 1;
         for (const o of readers) {
-          const objId = objectId(contractPath, String(o.name)),
-            props = new Map(
-              list(o.properties)
-                .filter(isObject)
-                .map((p: any) => [columnOf(p), String(p.name)]),
-            );
+          const objId = objectId(contractPath, String(o.name));
+          const props = new Map(
+            list(o.properties)
+              .filter(isObject)
+              .map((p: any) => [columnOf(p), String(p.name)]),
+          );
           fields.forEach((fd: any, fi: number) => {
-            const sql = ansiExpression(fd),
-              cols = sql ? [...new Set(expressionRefs(sql).map(r => r.column))] : [String(fd.name)];
+            const sql = ansiExpression(fd);
+            const cols = sql
+              ? [...new Set(expressionRefs(sql).map(r => r.column))]
+              : [String(fd.name)];
             for (const c of cols) {
               const p = props.get(c);
               if (p)
@@ -312,8 +314,8 @@ export function buildLineage(
       });
       // Field → metric (aggregates); metric → metric (uses).
       metrics.forEach((m: any, mi: number) => {
-        const sql = ansiExpression(m) ?? '',
-          refs = expressionRefs(sql);
+        const sql = ansiExpression(m) ?? '';
+        const refs = expressionRefs(sql);
         for (const r of refs) {
           const col =
             r.table !== null
@@ -391,18 +393,18 @@ export function closure(
   ids: string[],
   direction: 'up' | 'down' | 'both' = 'both',
 ) {
-  const a = adj(g),
-    nodes = new Set<string>(ids),
-    edgeSet = new Set<number>();
+  const a = adj(g);
+  const nodes = new Set<string>(ids);
+  const edgeSet = new Set<number>();
   const walk = (dir: 'up' | 'down') => {
-    const seenHere = new Set<string>(ids),
-      queue = [...ids];
+    const seenHere = new Set<string>(ids);
+    const queue = [...ids];
     while (queue.length) {
       const n = queue.shift()!;
       for (const i of (dir === 'down' ? a.out : a.in).get(n) ?? []) {
         edgeSet.add(i);
-        const e = g.edges[i],
-          next = dir === 'down' ? e.to : e.from;
+        const e = g.edges[i];
+        const next = dir === 'down' ? e.to : e.from;
         if (!seenHere.has(next)) {
           seenHere.add(next);
           nodes.add(next);
@@ -421,14 +423,14 @@ export function closure(
 // metrics, declared transforms). Cards one more foreign-key hop away are counted as hidden on the
 // visible card they connect to ("+N more").
 export function around(g: LineageGraph, center: string, steps = 1) {
-  const card = (n: string) => cardOfNode(g, n),
-    shown = new Set<string>([center]);
+  const card = (n: string) => cardOfNode(g, n);
+  const shown = new Set<string>([center]);
   const nodes = selectionNodes(g, center);
   // Upstream and downstream along every line kind except foreign keys.
   const flowOnly = (start: string[]) => {
-    const a = adj(g),
-      seenN = new Set(start),
-      q = [...start];
+    const a = adj(g);
+    const seenN = new Set(start);
+    const q = [...start];
     const cardsOut = new Set<string>();
     while (q.length) {
       const n = q.shift()!;
@@ -493,8 +495,8 @@ export function around(g: LineageGraph, center: string, steps = 1) {
 // direction, plus the cards holding rows a shown link passes through; neighbours one line further
 // are counted as hidden on the card they connect to.
 export function aroundHops(g: LineageGraph, center: string, steps = 1) {
-  const card = (n: string) => cardOfNode(g, n),
-    links = new Map<string, Set<string>>();
+  const card = (n: string) => cardOfNode(g, n);
+  const links = new Map<string, Set<string>>();
   const link = (a: string, b: string) => {
     if (a === b) return;
     (links.get(a) ?? links.set(a, new Set()).get(a)!).add(b);
@@ -534,12 +536,12 @@ export function pageColumns(
   pinned: Set<string>,
   size = PAGE_SIZE,
 ) {
-  const pages = Math.max(1, Math.ceil(card.columns.length / size)),
-    p = Math.min(Math.max(0, page), pages - 1);
-  const onPage = card.columns.slice(p * size, p * size + size),
-    pinnedRows = card.columns.filter(c => pinned.has(c.id) && !onPage.includes(c));
-  const rows = [...pinnedRows, ...onPage],
-    visible = new Set(rows.map(r => r.id));
+  const pages = Math.max(1, Math.ceil(card.columns.length / size));
+  const p = Math.min(Math.max(0, page), pages - 1);
+  const onPage = card.columns.slice(p * size, p * size + size);
+  const pinnedRows = card.columns.filter(c => pinned.has(c.id) && !onPage.includes(c));
+  const rows = [...pinnedRows, ...onPage];
+  const visible = new Set(rows.map(r => r.id));
   const hidden = card.columns.length - rows.length;
   return {
     page: p,

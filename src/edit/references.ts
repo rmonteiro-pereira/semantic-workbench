@@ -24,8 +24,8 @@ export type Target = { kind: ItemKind; name: string; docId: string; path: Path; 
 type Node = any;
 const lineOf = (src: string, pos: number) => src.slice(0, pos).split('\n').length;
 const excerpt = (src: string, pos: number) => {
-  const a = src.lastIndexOf('\n', pos - 1) + 1,
-    b = src.indexOf('\n', pos);
+  const a = src.lastIndexOf('\n', pos - 1) + 1;
+  const b = src.indexOf('\n', pos);
   return src
     .slice(a, b < 0 ? undefined : b)
     .trim()
@@ -55,9 +55,9 @@ const upTo = (path: Path, key: string) => {
 };
 // The text of `name` inside a scalar's source, at each match of `pattern`.
 function within(src: string, node: Node, pattern: RegExp) {
-  const [a, b] = node.range,
-    text = src.slice(a, b),
-    out: [number, number][] = [];
+  const [a, b] = node.range;
+  const text = src.slice(a, b);
+  const out: [number, number][] = [];
   let m;
   pattern.lastIndex = 0;
   while ((m = pattern.exec(text))) {
@@ -86,12 +86,12 @@ function describe(path: Path, data: any) {
   return path.join(' / ');
 }
 export function findReferences(target: Target, docs: ProjectDoc[]): Reference[] {
-  const out: Reference[] = [],
-    name = target.name;
+  const out: Reference[] = [];
+  const name = target.name;
   if (!name) return out;
   const quoted = JSON.stringify(name);
-  const word = new RegExp(`(?<![\\w$.'"])(${escape(name)})(?![\\w$'"(])`, 'g'),
-    qualifier = new RegExp(`(?<![\\w$.'"])(${escape(name)})(?=\\s*\\.)`, 'g');
+  const word = new RegExp(`(?<![\\w$.'"])(${escape(name)})(?![\\w$'"(])`, 'g');
+  const qualifier = new RegExp(`(?<![\\w$.'"])(${escape(name)})(?=\\s*\\.)`, 'g');
   const fieldRef = target.owner
     ? new RegExp(`(?<![\\w$'"])${escape(target.owner)}\\s*\\.\\s*(${escape(name)})(?![\\w$])`, 'g')
     : null;
@@ -104,9 +104,9 @@ export function findReferences(target: Target, docs: ProjectDoc[]): Reference[] 
     } catch {
       continue;
     }
-    const data = doc.toJS(),
-      src = d.source,
-      self = d.id === target.docId;
+    const data = doc.toJS();
+    const src = d.source;
+    const self = d.id === target.docId;
     const add = (path: Path, spans: [number, number][], dependent: Dependent | null) => {
       for (const [from, to] of spans)
         out.push({
@@ -124,14 +124,14 @@ export function findReferences(target: Target, docs: ProjectDoc[]): Reference[] 
     const dep = (p: Path | null): Dependent | null =>
       p ? { path: p, label: describe(p, data) } : null;
     for (const s of scalars(doc)) {
-      const { path, node, value } = s,
-        key = path.at(-1);
+      const { path, node, value } = s;
+      const key = path.at(-1);
       // The item itself (and what it contains) is not a reference to itself.
       if (self && startsWith(path, target.path)) continue;
       // metric bindings and metric extensions: JSON inside a SEMANTIC_WORKBENCH block.
       if (key === 'data' && path.at(-3) === 'custom_extensions') {
-        const owner = path.slice(0, -3),
-          entry = path.slice(0, -1).reduce((x: any, k) => x?.[k], data);
+        const owner = path.slice(0, -3);
+        const entry = path.slice(0, -1).reduce((x: any, k) => x?.[k], data);
         if (entry?.vendor_name !== VENDOR) continue;
         let json: any;
         try {
@@ -148,12 +148,12 @@ export function findReferences(target: Target, docs: ProjectDoc[]): Reference[] 
                   ? b.measures === name || b.of === name
                   : false;
             if (!hit) continue;
-            const [a, z] = node.range,
-              text = src.slice(a, z),
-              at =
-                text.indexOf(`${JSON.stringify(b.metric)}`) >= 0
-                  ? text.indexOf(JSON.stringify(b.metric))
-                  : 0;
+            const [a, z] = node.range;
+            const text = src.slice(a, z);
+            const at =
+              text.indexOf(`${JSON.stringify(b.metric)}`) >= 0
+                ? text.indexOf(JSON.stringify(b.metric))
+                : 0;
             const spans: [number, number][] = [];
             let i = text.indexOf(quoted, at);
             const end = text.indexOf('}', at);
@@ -339,8 +339,8 @@ export function rewriteReferences(
   for (const r of refs) byDoc.set(r.docId, [...(byDoc.get(r.docId) ?? []), r]);
   return [...byDoc].map(([docId, list]) => {
     const d = docs.find(x => x.id === docId)!;
-    let out = '',
-      at = 0;
+    let out = '';
+    let at = 0;
     for (const r of [...list].sort((a, b) => a.from - b.from)) {
       if (r.from < at || r.to === r.from) continue;
       out += d.source.slice(at, r.from) + newName;

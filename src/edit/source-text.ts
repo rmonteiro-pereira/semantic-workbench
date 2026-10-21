@@ -13,8 +13,8 @@ export function deepEqual(a: any, b: any): boolean {
   }
   if (isObject(a)) {
     if (!isObject(b)) return false;
-    const ka = Object.keys(a),
-      kb = Object.keys(b);
+    const ka = Object.keys(a);
+    const kb = Object.keys(b);
     return ka.length === kb.length && ka.every(k => Object.hasOwn(b, k) && deepEqual(a[k], b[k]));
   }
   return false;

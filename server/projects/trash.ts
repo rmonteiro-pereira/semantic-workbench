@@ -37,8 +37,8 @@ export type TrashEntry = {
 const CROCKFORD = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 // ULID: 48-bit time and 80 random bits in Crockford base32, sortable by creation time.
 export function ulid(now = Date.now()) {
-  let time = '',
-    t = now;
+  let time = '';
+  let t = now;
   for (let i = 0; i < 10; i++) {
     time = CROCKFORD[t % 32] + time;
     t = Math.floor(t / 32);
@@ -67,15 +67,15 @@ export type TrashContext = {
   now?: () => number;
 };
 export function createTrash(ctx: TrashContext) {
-  const { layout, state, journal, lock } = ctx,
-    now = ctx.now ?? Date.now;
+  const { layout, state, journal, lock } = ctx;
+  const now = ctx.now ?? Date.now;
   const dirOf = (id: string) => {
     if (!/^[0-9A-HJKMNP-TV-Z]{26}$/.test(id)) throw new NotFoundError('Trash entry not found.');
     return join(layout.trash, id);
   };
   const read = (id: string) => {
-    const dir = dirOf(id),
-      e = readJsonFile<TrashEntry>(join(dir, 'entry.json'));
+    const dir = dirOf(id);
+    const e = readJsonFile<TrashEntry>(join(dir, 'entry.json'));
     if (!e || !existsSync(join(dir, 'payload'))) throw new NotFoundError('Trash entry not found.');
     return { e, dir };
   };
@@ -95,8 +95,8 @@ export function createTrash(ctx: TrashContext) {
     ...fields,
   });
   async function deleteFile(slug: string, path: string) {
-    const p = projectPath(path),
-      project = registryEntry(assertSlug(slug));
+    const p = projectPath(path);
+    const project = registryEntry(assertSlug(slug));
     return lock('project:' + slug, async () => {
       const file = projectFile(layout, slug, p);
       let bytes: Uint8Array;
@@ -148,8 +148,8 @@ export function createTrash(ctx: TrashContext) {
     baseHash: string | null,
     committed: Uint8Array | null,
   ) {
-    const p = projectPath(path),
-      project = registryEntry(assertSlug(slug));
+    const p = projectPath(path);
+    const project = registryEntry(assertSlug(slug));
     return lock('project:' + slug, async () => {
       const file = projectFile(layout, slug, p);
       let current: Uint8Array | null = null;
@@ -161,12 +161,12 @@ export function createTrash(ctx: TrashContext) {
         throw new StaleError(currentHash, current ? decode(current) : null);
       if (!current && !committed)
         throw new NotFoundError('The file is neither on disk nor in the last commit.');
-      const at = now(),
-        opId = journal.newId(),
-        staging = join(layout.projects, `.staging-${opId}`),
-        steps: { from: string; to: string }[] = [];
-      let entry: TrashEntry | null = null,
-        entryDir = '';
+      const at = now();
+      const opId = journal.newId();
+      const staging = join(layout.projects, `.staging-${opId}`);
+      const steps: { from: string; to: string }[] = [];
+      let entry: TrashEntry | null = null;
+      let entryDir = '';
       try {
         if (current) {
           const view = state.view(slug).files[p];
@@ -209,24 +209,24 @@ export function createTrash(ctx: TrashContext) {
     return lock('registry', async () => {
       const current = ctx.projects();
       for (const slug of slugs) registryEntry(slug);
-      const at = now(),
-        opId = journal.newId(),
-        stateStaging = join(layout.state, `.staging-${opId}`),
-        entries: TrashEntry[] = [],
-        steps: { from: string; to: string }[] = [];
+      const at = now();
+      const opId = journal.newId();
+      const stateStaging = join(layout.state, `.staging-${opId}`);
+      const entries: TrashEntry[] = [];
+      const steps: { from: string; to: string }[] = [];
       try {
         for (const slug of slugs) {
-          const p = registryEntry(slug),
-            e = newEntry(
-              {
-                kind: 'project',
-                project: slug,
-                projectName: p.name,
-                batchId,
-                registry: { createdAt: p.createdAt, origin: p.origin },
-              },
-              at,
-            );
+          const p = registryEntry(slug);
+          const e = newEntry(
+            {
+              kind: 'project',
+              project: slug,
+              projectName: p.name,
+              batchId,
+              registry: { createdAt: p.createdAt, origin: p.origin },
+            },
+            at,
+          );
           const dir = dirOf(e.entryId);
           atomicWriteJson(join(dir, 'entry.json'), e);
           entries.push(e);
@@ -265,8 +265,8 @@ export function createTrash(ctx: TrashContext) {
     if (undo && now() > Date.parse(e.undoUntil))
       throw new GoneError('The undo window has passed. Restore the item from the trash instead.');
     if (e.kind === 'file') {
-      const slug = target.toProject !== undefined ? assertSlug(target.toProject) : e.project,
-        path = projectPath(target.toPath ?? e.path!);
+      const slug = target.toProject !== undefined ? assertSlug(target.toProject) : e.project;
+      const path = projectPath(target.toPath ?? e.path!);
       const payload = join(dir, 'payload', posix.basename(e.path!));
       if (!ctx.projects().some(p => p.slug === slug)) {
         if (target.toProject !== undefined) throw new NotFoundError('Project not found.');
@@ -299,16 +299,16 @@ export function createTrash(ctx: TrashContext) {
       });
     }
     return lock('registry', async () => {
-      const current = ctx.projects(),
-        slug = target.toProject !== undefined ? assertSlug(target.toProject) : e.project;
+      const current = ctx.projects();
+      const slug = target.toProject !== undefined ? assertSlug(target.toProject) : e.project;
       if (current.some(p => p.slug === slug) || existsSync(projectDir(layout, slug))) {
         const taken = new Set([...current.map(p => p.slug), ...safeReaddir(layout.projects)]);
         throw new OccupiedError(`A project "${slug}" already exists; nothing was overwritten.`, {
           toProject: slugify(e.projectName, taken),
         });
       }
-      const opId = journal.newId(),
-        stateStaging = join(layout.state, `.staging-${opId}`);
+      const opId = journal.newId();
+      const stateStaging = join(layout.state, `.staging-${opId}`);
       const name = uniqueName(
         e.projectName,
         current.map(p => p.name),
@@ -385,8 +385,8 @@ export function createTrash(ctx: TrashContext) {
     async clear() {
       const slugs = ctx.projects().map(p => p.slug);
       if (!slugs.length) return { batchId: null, entries: [], undoUntil: null };
-      const batchId = ulid(),
-        entries = await deleteProjects(slugs, batchId);
+      const batchId = ulid();
+      const entries = await deleteProjects(slugs, batchId);
       return { batchId, entries: entries.map(e => e.entryId), undoUntil: entries[0].undoUntil };
     },
     undo: (id: string) => restore(id, {}, true),

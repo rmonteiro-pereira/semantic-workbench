@@ -128,13 +128,13 @@ test('CRLF files keep CRLF in new and changed lines', () => {
 });
 test('the JSON inside an extension block is patched line by line', () => {
   const sem = readFileSync('public/examples/mall/mall.semantic.yaml', 'utf8');
-  const metrics = itemValue(sem, ['metrics']) as any[],
-    i = metrics.findIndex(m => m.name === 'occupancy_rate');
-  const path = ['metrics', i, 'custom_extensions', 0, 'data'],
-    ext = JSON.parse(itemValue(sem, path));
+  const metrics = itemValue(sem, ['metrics']) as any[];
+  const i = metrics.findIndex(m => m.name === 'occupancy_rate');
+  const path = ['metrics', i, 'custom_extensions', 0, 'data'];
+  const ext = JSON.parse(itemValue(sem, path));
   const out = set(sem, path, JSON.stringify({ ...ext, status: 'proposed', steward: 'Finance' }));
-  const before = sem.split('\n'),
-    after = out.split('\n');
+  const before = sem.split('\n');
+  const after = out.split('\n');
   expect(after.length).toBe(before.length + 1);
   // Three lines differ: the changed status, the comma after the last attribute, the new steward.
   let a = 0;
@@ -172,16 +172,16 @@ import {
 import { fieldsFor } from '../src/edit/item-model';
 test('the item editor edits the item fragment and puts it back in place', () => {
   const sem = readFileSync('public/examples/mall/mall.semantic.yaml', 'utf8');
-  const metrics = itemValue(sem, ['metrics']) as any[],
-    i = metrics.findIndex(m => m.name === 'occupancy_rate');
+  const metrics = itemValue(sem, ['metrics']) as any[];
+  const i = metrics.findIndex(m => m.name === 'occupancy_rate');
   const f = openFragment(sem, ['metrics', i]);
   expect(f.text.startsWith('- name: occupancy_rate\n  description:')).toBe(true);
   expect(f.prefix).toBe('  ');
   expect(splice(sem, f, f.text)).toBe(sem);
-  const original = fragmentValue(f, f.text).value,
-    fields = fieldsFor('metric', { concepts: [], datasets: [], metrics: [] });
-  const expression = fields.find(x => x.key === 'expression')!,
-    owner = fields.find(x => x.key === 'ext.owner')!;
+  const original = fragmentValue(f, f.text).value;
+  const fields = fieldsFor('metric', { concepts: [], datasets: [], metrics: [] });
+  const expression = fields.find(x => x.key === 'expression')!;
+  const owner = fields.find(x => x.key === 'ext.owner')!;
   // Changing the formula of an approved KPI: two lines change (expression, status → proposed).
   const a = setField(
     f.text,
@@ -193,9 +193,9 @@ test('the item editor edits the item fragment and puts it back in place', () => 
     original,
   );
   expect(a.reopened).toBe(true);
-  const draft = splice(sem, f, a.text),
-    x = sem.split('\n'),
-    y = draft.split('\n');
+  const draft = splice(sem, f, a.text);
+  const x = sem.split('\n');
+  const y = draft.split('\n');
   expect(y.length).toBe(x.length);
   expect(y.filter((l, n) => l !== x[n])).toEqual([
     '          expression: occupied_gla / total_gla',

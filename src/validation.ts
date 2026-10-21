@@ -9,12 +9,12 @@ import odcs from '../schemas/odcs-v3.1.0.json';
 import ossie from '../schemas/ossie-0.2.0.dev0.json';
 import { type Issue, rejectIssues, InputError } from './diagnostics';
 import { metricLayerIssues, readKpiBindings } from './metrics/extension';
-const a = new Ajv2019({ strict: false, allErrors: true }),
-  b = new Ajv2020({ strict: false, allErrors: true });
+const a = new Ajv2019({ strict: false, allErrors: true });
+const b = new Ajv2020({ strict: false, allErrors: true });
 formats(a);
 formats(b);
-const contract = a.compile(odcs),
-  semantic = b.compile(ossie);
+const contract = a.compile(odcs);
+const semantic = b.compile(ossie);
 const object = (v: any) => v !== null && typeof v === 'object' && !Array.isArray(v);
 const text = (v: any) => typeof v === 'string' && !!v.trim();
 
@@ -146,11 +146,11 @@ export function validateStructured(data: any, applyPinnedSchema = true): Issue[]
     }
     for (const issue of odcsReferenceIssues(data)) fail(issue.path, issue.message, 'reference');
   } else if (data.ontology !== undefined) {
-    const xs = arr(data.ontology, '/ontology', true),
-      names = named(xs, '/ontology', 'concept'),
-      parents = new Map<string, string[]>();
-    const iris = new Map<string, string>(),
-      prefixes = prefixMap(data.prefixes);
+    const xs = arr(data.ontology, '/ontology', true);
+    const names = named(xs, '/ontology', 'concept');
+    const parents = new Map<string, string[]>();
+    const iris = new Map<string, string>();
+    const prefixes = prefixMap(data.prefixes);
     if (data.prefixes !== undefined && obj(data.prefixes, '/prefixes'))
       for (const [prefix, base] of Object.entries(data.prefixes)) {
         const q = `/prefixes/${prefix.replace(/~/g, '~0').replace(/\//g, '~1')}`;
@@ -234,8 +234,8 @@ export function validateStructured(data: any, applyPinnedSchema = true): Issue[]
         'Ontology compatibility profile checked; the pinned Apache ontology schema applies to version 0.2.0.dev0.',
       );
     arr(data.ontology_mappings, '/ontology_mappings').forEach((m, i) => {
-      const prefix = `/ontology_mappings/${i}`,
-        schemaIssues = mappingSchemaIssues(m, 'embedded', prefix);
+      const prefix = `/ontology_mappings/${i}`;
+      const schemaIssues = mappingSchemaIssues(m, 'embedded', prefix);
       issues.push(...schemaIssues);
       if (!schemaIssues.length)
         try {
@@ -270,9 +270,9 @@ export function validateStructured(data: any, applyPinnedSchema = true): Issue[]
       const p = data.semantic_model !== undefined ? `/semantic_model/${mi}` : '';
       if (!obj(m, p || '/')) return;
       str(m.name, p + '/name');
-      const ds = arr(m.datasets, p + '/datasets', true),
-        names = named(ds, p + '/datasets'),
-        fieldNames = new Map<string, Set<string>>();
+      const ds = arr(m.datasets, p + '/datasets', true);
+      const names = named(ds, p + '/datasets');
+      const fieldNames = new Map<string, Set<string>>();
       ds.forEach((d, i) => {
         if (!object(d)) return;
         const q = `${p}/datasets/${i}`;
@@ -304,8 +304,8 @@ export function validateStructured(data: any, applyPinnedSchema = true): Issue[]
         for (const key of ['from', 'to'])
           if (str(r[key], q + '/' + key) && !names.has(r[key]))
             fail(q + '/' + key, `unknown dataset "${r[key]}".`, 'reference');
-        const from = arr(r.from_columns, q + '/from_columns', true),
-          to = arr(r.to_columns, q + '/to_columns', true);
+        const from = arr(r.from_columns, q + '/from_columns', true);
+        const to = arr(r.to_columns, q + '/to_columns', true);
         if (from.length !== to.length) fail(q, 'Join keys must have equal lengths.', 'join');
         for (const [side, keys] of [
           ['from', from],
@@ -325,8 +325,8 @@ export function validateStructured(data: any, applyPinnedSchema = true): Issue[]
               );
           });
       });
-      const ms = arr(m.metrics, p + '/metrics'),
-        metricNames = named(ms, p + '/metrics');
+      const ms = arr(m.metrics, p + '/metrics');
+      const metricNames = named(ms, p + '/metrics');
       for (const n of metricNames)
         if (names.has(n))
           fail(p + '/metrics', `Metric "${n}" collides with a dataset name.`, 'duplicate');

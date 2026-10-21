@@ -5,10 +5,10 @@ import { InputError } from './diagnostics';
 import { graph, parse } from 'rdflib';
 import type { Entity, Relationship } from './model';
 import { namespaceOf, prefixMap } from './iri';
-const RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-  RDFS = 'http://www.w3.org/2000/01/rdf-schema#',
-  OWL = 'http://www.w3.org/2002/07/owl#',
-  SH = 'http://www.w3.org/ns/shacl#';
+const RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
+const RDFS = 'http://www.w3.org/2000/01/rdf-schema#';
+const OWL = 'http://www.w3.org/2002/07/owl#';
+const SH = 'http://www.w3.org/ns/shacl#';
 export function rdfSyntax(source: string, filename = '') {
   const ext = filename.split('.').pop()?.toLowerCase();
   if (

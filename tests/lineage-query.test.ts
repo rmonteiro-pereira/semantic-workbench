@@ -39,8 +39,8 @@ const files = [
     },
   },
 ];
-const g = buildLineage(files, 'c.odcs.yaml'),
-  o = (n: string) => `object:c.odcs.yaml#${n}`;
+const g = buildLineage(files, 'c.odcs.yaml');
+const o = (n: string) => `object:c.odcs.yaml#${n}`;
 test('default reach: one foreign-key step each way plus everything downstream to metrics; hidden counts', () => {
   const a = around(g, o('c1'));
   expect([...a.cards].sort()).toEqual(

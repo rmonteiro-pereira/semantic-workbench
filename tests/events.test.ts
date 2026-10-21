@@ -3,8 +3,8 @@ import { appendFileSync } from 'node:fs';
 import { createEvents } from '../server/projects/events';
 import { testWorkspace } from './helpers/temp-data-dir';
 async function read(response: Response, until: (text: string) => boolean, timeout = 2000) {
-  const reader = response.body!.getReader(),
-    decoder = new TextDecoder();
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
   let text = '';
   const stop = Date.now() + timeout;
   while (!until(text) && Date.now() < stop) {

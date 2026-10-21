@@ -16,11 +16,11 @@ export function BranchPicker({
   onSwitch: (branch: string, create: boolean) => void;
 }) {
   const [branches, setBranches] = useState<{ local: string[]; remote: string[] }>({
-      local: [],
-      remote: [],
-    }),
-    [creating, setCreating] = useState(false),
-    [name, setName] = useState('');
+    local: [],
+    remote: [],
+  });
+  const [creating, setCreating] = useState(false);
+  const [name, setName] = useState('');
   useEffect(() => {
     let live = true;
     scm

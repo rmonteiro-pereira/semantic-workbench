@@ -25,6 +25,8 @@ export function validateEnvelope(source: string, filename: string) {
     typeof filename !== 'string' ||
     !filename.trim() ||
     filename.length > 255 ||
+    // Control characters are rejected on purpose: they never belong in a file name.
+    // oxlint-disable-next-line no-control-regex
     /[\x00-\x1f/\\]/.test(filename)
   )
     fail(

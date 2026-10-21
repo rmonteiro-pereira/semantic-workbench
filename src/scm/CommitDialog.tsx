@@ -27,8 +27,8 @@ type Props = {
 export function suggestedMessage(paths: string[], itemHints: Record<string, string> = {}) {
   if (!paths.length) return '';
   if (paths.length === 1) {
-    const p = paths[0],
-      item = itemHints[p];
+    const p = paths[0];
+    const item = itemHints[p];
     return item ? `Update ${item} in ${p}` : `Update ${p}`;
   }
   return `Update ${paths.length} files`;
@@ -53,17 +53,17 @@ export function CommitDialog({
   onReverted,
   onSetIdentity,
 }: Props) {
-  const [status, setStatus] = useState<GitStatus | null>(null),
-    [error, setError] = useState(''),
-    [ticked, setTicked] = useState<Set<string>>(new Set());
-  const [selected, setSelected] = useState(''),
-    [diff, setDiff] = useState<GitDiff | null>(null),
-    [diskHash, setDiskHash] = useState<string | null | undefined>(undefined);
-  const [message, setMessage] = useState(''),
-    [edited, setEdited] = useState(false),
-    [busy, setBusy] = useState(false),
-    [confirmRevert, setConfirmRevert] = useState(false),
-    [tick, setTick] = useState(0);
+  const [status, setStatus] = useState<GitStatus | null>(null);
+  const [error, setError] = useState('');
+  const [ticked, setTicked] = useState<Set<string>>(new Set());
+  const [selected, setSelected] = useState('');
+  const [diff, setDiff] = useState<GitDiff | null>(null);
+  const [diskHash, setDiskHash] = useState<string | null | undefined>(undefined);
+  const [message, setMessage] = useState('');
+  const [edited, setEdited] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [confirmRevert, setConfirmRevert] = useState(false);
+  const [tick, setTick] = useState(0);
   useEffect(() => {
     let live = true;
     scm
@@ -82,9 +82,9 @@ export function CommitDialog({
       live = false;
     };
   }, [project, tick]);
-  const changes = status?.changes ?? [],
-    conflicts = changes.filter(c => c.conflicted),
-    merging = !!status?.merging;
+  const changes = status?.changes ?? [];
+  const conflicts = changes.filter(c => c.conflicted);
+  const merging = !!status?.merging;
   const tickedPaths = useMemo(
     () => changes.map(c => c.path).filter(p => ticked.has(p)),
     [changes, ticked],

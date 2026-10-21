@@ -88,8 +88,8 @@ test('loading an example commits its files', async () => {
 });
 test('without an identity the files are written and the reason is reported; a local identity works at once', async () => {
   isolateGit();
-  const extra = mkdtempSync(join(tmpdir(), 'workbench-noid-')),
-    empty = join(extra, 'gitconfig');
+  const extra = mkdtempSync(join(tmpdir(), 'workbench-noid-'));
+  const empty = join(extra, 'gitconfig');
   writeFileSync(empty, '[init]\n\tdefaultBranch = main\n');
   const saved = process.env.GIT_CONFIG_GLOBAL;
   process.env.GIT_CONFIG_GLOBAL = empty;

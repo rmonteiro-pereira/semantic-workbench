@@ -240,8 +240,8 @@ try {
     async () => {
       await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
       // v0.3.0 (FR-034): the consolidated Flights file opens on its mapping graph; the metric nodes are in its ontology graph.
-      const views = page.getByRole('group', { name: 'Graph view' }),
-        toggle = page.getByRole('button', { name: /^Metrics (shown|hidden)$/ });
+      const views = page.getByRole('group', { name: 'Graph view' });
+      const toggle = page.getByRole('button', { name: /^Metrics (shown|hidden)$/ });
       await expect(views.or(toggle).first()).toBeVisible();
       if (await views.count()) await views.getByRole('button', { name: 'Ontology graph' }).click();
       await expect(toggle).toHaveText('Metrics shown');
@@ -326,8 +326,8 @@ try {
       await expect(list().getByRole('status')).toHaveText('0 of 3 metrics');
       await governed.uncheck();
       await expect(list().getByRole('status')).toHaveText('3 metrics');
-      const path = `${api.root}/projects/${commerce.slug}/sales.ossie.yaml`,
-        before = await Bun.file(path).text();
+      const path = `${api.root}/projects/${commerce.slug}/sales.ossie.yaml`;
+      const before = await Bun.file(path).text();
       await list().getByRole('button', { name: 'Add attributes to gross_revenue' }).click();
       const w = page.getByRole('dialog', { name: 'Add attributes to gross_revenue' });
       await expect(w).toBeVisible();
@@ -348,9 +348,9 @@ try {
       await next();
       await w.getByRole('button', { name: 'Save to file' }).click();
       await expect(w).toBeHidden({ timeout: 10000 });
-      const after = await Bun.file(path).text(),
-        a = before.split('\n'),
-        b = after.split('\n');
+      const after = await Bun.file(path).text();
+      const a = before.split('\n');
+      const b = after.split('\n');
       let i = 0;
       while (a[i] === b[i]) i++;
       let j = 0;

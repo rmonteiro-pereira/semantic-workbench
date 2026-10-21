@@ -86,8 +86,8 @@ async function compare(name: string) {
     drawn.add(k);
     if (!g.has(k)) throw new Error(`${name}: unexpected line ${k}`);
   }
-  const shown = new Set(ports),
-    bundled = lines.some(l => l.count > 1);
+  const shown = new Set(ports);
+  const bundled = lines.some(l => l.count > 1);
   for (const k of g) {
     const [from, to] = k.split('>');
     if (shown.has(from) && shown.has(to) && !drawn.has(k) && !bundled)
@@ -324,11 +324,11 @@ try {
       await expect(card('Contract object invoice_line')).toHaveClass(/center/);
       await page.waitForTimeout(500);
       await fit();
-      const before = await cardPositions(),
-        button = graph()
-          .locator('.lineage-card:not(.group):not(.center)')
-          .getByRole('button', { name: /^Expand / })
-          .first();
+      const before = await cardPositions();
+      const button = graph()
+        .locator('.lineage-card:not(.group):not(.center)')
+        .getByRole('button', { name: /^Expand / })
+        .first();
       const name = (await button.getAttribute('aria-label'))!.slice('Expand '.length);
       await button.click();
       await expect(graph().getByLabel('Walk', { exact: true })).toContainText(`expanded ${name}`);
@@ -347,19 +347,19 @@ try {
     'UBL invoice_line.line_extension_amount: Full pierce (Both) opens every card on its upstream and downstream path, highlighted',
     async () => {
       const files = readdirSync('public/examples/ubl')
-          .filter(f => /\.ya?ml$/.test(f))
-          .map(f => ({ path: f, data: parse(readFileSync(`public/examples/ubl/${f}`, 'utf8')) })),
-        g = buildLineage(files, 'ubl.odcs.yaml');
-      const col = 'object:ubl.odcs.yaml#invoice_line/line_extension_amount',
-        want = lineagePierce({
-          edges: g.edges.map(e => [e.from, e.to] as [string, string]),
-          owners: Object.fromEntries(
-            [...g.cards.values()].flatMap(c => c.columns.map(x => [x.id, c.id])),
-          ),
-          start: selectionNodes(g, col),
-          direction: 'both',
-          budget: 150,
-        });
+        .filter(f => /\.ya?ml$/.test(f))
+        .map(f => ({ path: f, data: parse(readFileSync(`public/examples/ubl/${f}`, 'utf8')) }));
+      const g = buildLineage(files, 'ubl.odcs.yaml');
+      const col = 'object:ubl.odcs.yaml#invoice_line/line_extension_amount';
+      const want = lineagePierce({
+        edges: g.edges.map(e => [e.from, e.to] as [string, string]),
+        owners: Object.fromEntries(
+          [...g.cards.values()].flatMap(c => c.columns.map(x => [x.id, c.id])),
+        ),
+        start: selectionNodes(g, col),
+        direction: 'both',
+        budget: 150,
+      });
       await graph().getByRole('textbox', { name: 'Find assets' }).fill('line_extension_amount');
       await graph()
         .getByRole('listbox', { name: 'Asset results' })

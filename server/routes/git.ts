@@ -8,10 +8,10 @@ import type { Route } from './http';
 export const gitRoutes: Route = async (ws, req, url) => {
   const m = url.pathname.match(/^\/api\/projects\/([^/]+)\/(git\/[a-z-]+|gitignore)$/);
   if (!m) return null;
-  const slug = decodeURIComponent(m[1]),
-    action = m[2],
-    q = url.searchParams,
-    scm = ws.scm;
+  const slug = decodeURIComponent(m[1]);
+  const action = m[2];
+  const q = url.searchParams;
+  const scm = ws.scm;
   const body = async (keys: string[]) => {
     const b = await readJson(req, 64_000);
     if (
@@ -49,8 +49,8 @@ export const gitRoutes: Route = async (ws, req, url) => {
       );
     }
     if (action === 'git/show') {
-      const commit = q.get('commit'),
-        path = q.get('path');
+      const commit = q.get('commit');
+      const path = q.get('path');
       if (!commit || !path) throw Error('commit and path are required.');
       return Response.json(await scm.show(slug, commit, path));
     }
@@ -96,10 +96,10 @@ export const gitRoutes: Route = async (ws, req, url) => {
       if (typeof b.pattern !== 'string' || b.pattern.length > 1000)
         throw Error('pattern must be one line of text.');
       ws.project(slug);
-      const file = projectFile(ws.layout, slug, '.gitignore'),
-        bytes = existsSync(file) ? new Uint8Array(readFileSync(file)) : null;
-      const current = bytes ? decode(bytes) : '',
-        next = appendIgnore(current, b.pattern);
+      const file = projectFile(ws.layout, slug, '.gitignore');
+      const bytes = existsSync(file) ? new Uint8Array(readFileSync(file)) : null;
+      const current = bytes ? decode(bytes) : '';
+      const next = appendIgnore(current, b.pattern);
       const hash =
         next === null
           ? sha256(bytes!)

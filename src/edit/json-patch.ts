@@ -27,11 +27,11 @@ type Layout = {
 // `:` and `,` spacing as written in one collection (", " and ": " when it cannot tell).
 function separators(src: string, node: any) {
   const items: any[] = node.items;
-  let comma = ', ',
-    colon = ': ';
+  let comma = ', ';
+  let colon = ': ';
   if (items.length > 1) {
-    const a = isMap(node) ? (items[0].value ?? items[0].key) : items[0],
-      b = isMap(node) ? items[1].key : items[1];
+    const a = isMap(node) ? (items[0].value ?? items[0].key) : items[0];
+    const b = isMap(node) ? items[1].key : items[1];
     const between = src.slice(range(a)[1], range(b)[0]);
     const m = /^\s*,([ \t]*)$/.exec(between);
     if (m) comma = ',' + m[1];
@@ -46,12 +46,12 @@ function separators(src: string, node: any) {
 // How a container writes its entries: separator between entries, entry indentation, `:` spacing,
 // and whether new nested values are written inline (as the existing nested values are).
 function layoutOf(src: string, node: any, style: TextStyle, parentIndent: string): Layout {
-  const items: any[] = node.items,
-    first = items[0],
-    firstStart = first ? range(isMap(node) ? first.key : first)[0] : range(node)[0];
-  const lines = multiline(src, node),
-    indent = first ? (leadingSpace(src, firstStart) ?? '') : parentIndent + style.unit,
-    own = separators(src, node);
+  const items: any[] = node.items;
+  const first = items[0];
+  const firstStart = first ? range(isMap(node) ? first.key : first)[0] : range(node)[0];
+  const lines = multiline(src, node);
+  const indent = first ? (leadingSpace(src, firstStart) ?? '') : parentIndent + style.unit;
+  const own = separators(src, node);
   const nested = items.map(i => (isMap(node) ? i.value : i)).filter(v => isMap(v) || isSeq(v));
   const compactValues = !lines
     ? true
@@ -116,8 +116,8 @@ export function jsonPatches(
     return mapPatches(src, node, oldV, newV, style, indent);
   if (isSeq(node) && Array.isArray(oldV) && Array.isArray(newV) && node.items.length)
     return seqPatches(src, node, oldV, newV, style, indent);
-  const [from, to] = range(node),
-    own = leadingSpace(src, from) ?? indent;
+  const [from, to] = range(node);
+  const own = leadingSpace(src, from) ?? indent;
   return [
     {
       from,
@@ -139,9 +139,9 @@ function mapPatches(
   style: TextStyle,
   indent: string,
 ): Patch[] {
-  const pairs: Pair[] = node.items,
-    layout = layoutOf(src, node, style, indent),
-    out: Patch[] = [];
+  const pairs: Pair[] = node.items;
+  const layout = layoutOf(src, node, style, indent);
+  const out: Patch[] = [];
   const kept = pairs.map(p => Object.hasOwn(newV, keyOf(p)));
   if (!kept.some(Boolean))
     return [
@@ -210,8 +210,8 @@ function seqPatches(
   style: TextStyle,
   indent: string,
 ): Patch[] {
-  const items: any[] = node.items,
-    layout = layoutOf(src, node, style, indent);
+  const items: any[] = node.items;
+  const layout = layoutOf(src, node, style, indent);
   let p = 0;
   while (p < oldV.length && p < newV.length && deepEqual(oldV[p], newV[p])) p++;
   let s = 0;
@@ -221,8 +221,8 @@ function seqPatches(
     deepEqual(oldV[oldV.length - 1 - s], newV[newV.length - 1 - s])
   )
     s++;
-  const removed = oldV.length - p - s,
-    added = newV.slice(p, newV.length - s);
+  const removed = oldV.length - p - s;
+  const added = newV.slice(p, newV.length - s);
   if (removed === added.length)
     return items
       .slice(p, p + removed)
@@ -240,12 +240,12 @@ function seqPatches(
         ),
       },
     ];
-  const kept = items.map((_, i) => i < p || i >= p + removed),
-    out = removeRuns(
-      src,
-      items.map(n => [range(n)[0], range(n)[1]] as [number, number]),
-      kept,
-    );
+  const kept = items.map((_, i) => i < p || i >= p + removed);
+  const out = removeRuns(
+    src,
+    items.map(n => [range(n)[0], range(n)[1]] as [number, number]),
+    kept,
+  );
   if (added.length) {
     const text = added.map(v => valueText(v, layout, style));
     // Before the next kept entry, or after the last one.
@@ -275,9 +275,9 @@ export function jsonTextPatches(text: string, path: (string | number)[], value: 
   if (doc.errors.length) throw Error(`Not valid JSON: ${doc.errors[0].message}`);
   const style = textStyle(text, true);
   if (!path.length) return sorted(jsonPatches(text, doc.contents, doc.toJS(), value, style));
-  const parentPath = path.slice(0, -1),
-    parent: any = parentPath.length ? doc.getIn(parentPath, true) : doc.contents,
-    key = path[path.length - 1];
+  const parentPath = path.slice(0, -1);
+  const parent: any = parentPath.length ? doc.getIn(parentPath, true) : doc.contents;
+  const key = path[path.length - 1];
   if (!parent || !(isMap(parent) || isSeq(parent)))
     throw Error(`No JSON object or array at /${parentPath.join('/')}.`);
   const old: any = parentPath.reduce((v: any, k) => v?.[k], doc.toJS());

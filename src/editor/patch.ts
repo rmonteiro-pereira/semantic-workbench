@@ -18,9 +18,9 @@ export function lineStarts(text: string) {
   return starts;
 }
 export function dominantLineBreak(text: string): '\r\n' | '\n' | '\r' {
-  let crlf = 0,
-    lf = 0,
-    cr = 0;
+  let crlf = 0;
+  let lf = 0;
+  let cr = 0;
   for (let i = 0; i < text.length; i++) {
     const c = text.charCodeAt(i);
     if (c === 13) {
@@ -45,8 +45,8 @@ export function changesToPatches(
   changes: ChangeSet,
   starts = lineStarts(original),
 ): Patch[] {
-  const eol = dominantLineBreak(original),
-    patches: Patch[] = [];
+  const eol = dominantLineBreak(original);
+  const patches: Patch[] = [];
   changes.iterChanges((fromA, toA, _fromB, _toB, inserted) => {
     patches.push({
       from: originalOffset(doc, starts, fromA),
@@ -57,8 +57,8 @@ export function changesToPatches(
   return patches;
 }
 export function applyPatches(text: string, patches: Patch[]) {
-  let out = '',
-    at = 0;
+  let out = '';
+  let at = 0;
   for (const p of [...patches].sort((a, b) => a.from - b.from)) {
     if (p.from < at || p.to < p.from || p.to > text.length)
       throw Error('Patches must be ordered, non-overlapping and inside the text.');

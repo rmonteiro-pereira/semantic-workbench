@@ -113,8 +113,8 @@ const parsedDocs = new Map<
 function parsedDoc(d: Doc) {
   const hit = parsedDocs.get(d.id);
   if (hit && hit.hash === d.hash) return hit;
-  let model: ReturnType<typeof validateInput>['model'] = null,
-    keys = new Set<string>();
+  let model: ReturnType<typeof validateInput>['model'] = null;
+  let keys = new Set<string>();
   try {
     model = validateInput(d.source, d.filename).model;
     keys = documentKeys(model);
@@ -134,15 +134,15 @@ function readSidebarWidth() {
   return 300;
 }
 function App() {
-  const [docs, setDocs] = useState<Doc[]>([]),
-    [current, setCurrentState] = useState<Doc | null>(null),
-    [source, setSource] = useState(''),
-    [selected, setSelected] = useState(''),
-    [selectedEdge, setSelectedEdge] = useState(''),
-    [tab, setTabState] = useState('fullgraph'),
-    [search, setSearch] = useState(''),
-    [message, setMessage] = useState(''),
-    [busy, setBusy] = useState(false);
+  const [docs, setDocs] = useState<Doc[]>([]);
+  const [current, setCurrentState] = useState<Doc | null>(null);
+  const [source, setSource] = useState('');
+  const [selected, setSelected] = useState('');
+  const [selectedEdge, setSelectedEdge] = useState('');
+  const [tab, setTabState] = useState('fullgraph');
+  const [search, setSearch] = useState('');
+  const [message, setMessage] = useState('');
+  const [busy, setBusy] = useState(false);
   function setCurrent(next: Doc | null) {
     if (next?.id !== current?.id) setMessage('');
     setCurrentState(next);
@@ -159,28 +159,28 @@ function App() {
     return () => clearTimeout(timer);
   }, [message]);
   const [pendingImport, setPendingImport] = useState<ImportDraft[] | null>(null);
-  const [projects, setProjects] = useState<ProjectInfo[]>([]),
-    [status, setStatus] = useState<WorkspaceStatus | null>(null);
+  const [projects, setProjects] = useState<ProjectInfo[]>([]);
+  const [status, setStatus] = useState<WorkspaceStatus | null>(null);
   const [stale, setStale] = useState<{ current: string | null; currentHash: string | null } | null>(
     null,
   );
-  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null),
-    [deleted, setDeleted] = useState<Deleted | null>(null),
-    [trashOpen, setTrashOpen] = useState(false),
-    [trashVersion, setTrashVersion] = useState(0);
-  const [renaming, setRenaming] = useState<ProjectInfo | null>(null),
-    [moving, setMoving] = useState<{ project: string; path: string } | null>(null),
-    [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
+  const [deleted, setDeleted] = useState<Deleted | null>(null);
+  const [trashOpen, setTrashOpen] = useState(false);
+  const [trashVersion, setTrashVersion] = useState(0);
+  const [renaming, setRenaming] = useState<ProjectInfo | null>(null);
+  const [moving, setMoving] = useState<{ project: string; path: string } | null>(null);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [importConflict, setImportConflict] = useState<{
     project: ProjectInfo;
     files: { path: string; source: string }[];
     conflicts: string[];
   } | null>(null);
-  const importInto = useRef<string>(''),
-    importInput = useRef<HTMLInputElement | null>(null);
-  const docsRef = useRef(new Map<string, Doc>()),
-    currentRef = useRef<Doc | null>(null),
-    sourceRef = useRef('');
+  const importInto = useRef<string>('');
+  const importInput = useRef<HTMLInputElement | null>(null);
+  const docsRef = useRef(new Map<string, Doc>());
+  const currentRef = useRef<Doc | null>(null);
+  const sourceRef = useRef('');
   currentRef.current = current;
   sourceRef.current = source;
   const [showValidation, setShowValidation] = useState(false);
@@ -189,16 +189,16 @@ function App() {
   const [importing, setImporting] = useState<{ project?: string } | null>(null);
   const grouping = useGrouping(current?.id);
   // metrics of the open file's project, for the Metrics tab and the metric badges on concepts.
-  const [kpis, setKpis] = useState<KpiSummary[]>([]),
-    [kpiError, setKpiError] = useState(''),
-    [kpiLoading, setKpiLoading] = useState(false),
-    [selectedKpi, setSelectedKpi] = useState(''),
-    [kpiFilter, setKpiFilter] = useState('');
-  const kpiProject = current?.project ?? null,
-    kpiRevision = docs
-      .filter(d => d.project === kpiProject)
-      .map(d => d.path + ':' + d.hash)
-      .join('|');
+  const [kpis, setKpis] = useState<KpiSummary[]>([]);
+  const [kpiError, setKpiError] = useState('');
+  const [kpiLoading, setKpiLoading] = useState(false);
+  const [selectedKpi, setSelectedKpi] = useState('');
+  const [kpiFilter, setKpiFilter] = useState('');
+  const kpiProject = current?.project ?? null;
+  const kpiRevision = docs
+    .filter(d => d.project === kpiProject)
+    .map(d => d.path + ':' + d.hash)
+    .join('|');
   useEffect(() => {
     if (!kpiProject) {
       setKpis([]);
@@ -242,8 +242,8 @@ function App() {
   const sourceEditor = useRef<CodeEditorHandle | null>(null);
   // Neighborhood walk across centers and files (FR-037).
   const [walk, dispatchWalk] = useReducer(walkReducer, emptyWalk);
-  const walkStep = walk.steps[walk.index],
-    neighborhoodFocus = walkStep && walkStep.doc === current?.id ? walkStep.center : '';
+  const walkStep = walk.steps[walk.index];
+  const neighborhoodFocus = walkStep && walkStep.doc === current?.id ? walkStep.center : '';
   const setNeighborhoodFocus = (id: string) => {
     if (id && current)
       dispatchWalk({
@@ -286,8 +286,8 @@ function App() {
       setResizingSidebar(false);
     }
   }, [compact, sidebarOpen]);
-  const sidebarRef = useRef<HTMLElement | null>(null),
-    workspaceToggle = useRef<HTMLButtonElement | null>(null);
+  const sidebarRef = useRef<HTMLElement | null>(null);
+  const workspaceToggle = useRef<HTMLButtonElement | null>(null);
   useEffect(() => {
     const media = window.matchMedia('(max-width: 1099px)');
     const change = () => {
@@ -317,9 +317,9 @@ function App() {
         event.preventDefault();
         closeWorkspace();
       } else if (event.key === 'Tab') {
-        const nodes = focusable(),
-          first = nodes[0],
-          last = nodes.at(-1);
+        const nodes = focusable();
+        const first = nodes[0];
+        const last = nodes.at(-1);
         if (event.shiftKey && document.activeElement === first) {
           event.preventDefault();
           last?.focus();
@@ -333,8 +333,8 @@ function App() {
     return () => el.removeEventListener('keydown', keyboard);
   }, [compact, sidebarOpen]);
   // The folder store is the source of truth: refetch on start and whenever the server reports a change.
-  const refreshing = useRef<Promise<Doc[]> | null>(null),
-    again = useRef(false);
+  const refreshing = useRef<Promise<Doc[]> | null>(null);
+  const again = useRef(false);
   async function refresh(): Promise<Doc[]> {
     if (refreshing.current) {
       again.current = true;
@@ -347,8 +347,8 @@ function App() {
         setProjects(loaded.projects);
         setDocs(loaded.docs);
         // An open file that changed on disk follows the disk unless it has unsaved edits.
-        const open = currentRef.current,
-          fresh = open && docsRef.current.get(open.id);
+        const open = currentRef.current;
+        const fresh = open && docsRef.current.get(open.id);
         if (open && fresh && fresh.hash !== open.hash && sourceRef.current === open.source) {
           setCurrent(fresh);
           setSource(fresh.source);
@@ -491,11 +491,11 @@ function App() {
   const isContract = model?.kind === 'ODCS';
   // Mapping documents and consolidated files (embedded ontology_mappings) get the mapping canvas
   // on the Graph tab (FR-028, FR-034); a consolidated file can switch to its ontology graph.
-  const isMappingDoc = model?.kind === 'Ossie mappings',
-    isConsolidated =
-      !isMappingDoc &&
-      Array.isArray((model as any)?.document?.ontology_mappings) &&
-      (model as any).document.ontology_mappings.length > 0;
+  const isMappingDoc = model?.kind === 'Ossie mappings';
+  const isConsolidated =
+    !isMappingDoc &&
+    Array.isArray((model as any)?.document?.ontology_mappings) &&
+    (model as any).document.ontology_mappings.length > 0;
   const [mappingView, setMappingView] = useState<'mapping' | 'ontology'>('mapping');
   useEffect(() => setMappingView('mapping'), [current?.id]);
   const mappingId =
@@ -623,8 +623,8 @@ function App() {
   );
   const conceptKinds = new Set(['EntityType', 'ValueType', 'Built-in concept', 'OWL class']);
   function crossFile(e: Entity): CrossFileTarget[] {
-    const keys = new Set(entityKeys(e, model)),
-      out: CrossFileTarget[] = [];
+    const keys = new Set(entityKeys(e, model));
+    const out: CrossFileTarget[] = [];
     for (const [id, m] of projectModels) {
       const d = docsRef.current.get(id);
       if (!d) continue;
@@ -691,19 +691,19 @@ function App() {
   }
   // Item editing (FR-048–FR-052): the editor, add and delete dialogs work on one file of a project.
   type ItemTarget = { docId: string; path: Path; kind: ItemKind };
-  const [editing, setEditing] = useState<ItemTarget | null>(null),
-    [adding, setAdding] = useState<{
-      docId: string;
-      kind?: ItemKind;
-      owner?: Path;
-      preset?: Record<string, any>;
-    } | null>(null),
-    [deleting, setDeleting] = useState<ItemTarget | null>(null),
-    [wizard, setWizard] = useState<boolean | KpiSummary>(false);
+  const [editing, setEditing] = useState<ItemTarget | null>(null);
+  const [adding, setAdding] = useState<{
+    docId: string;
+    kind?: ItemKind;
+    owner?: Path;
+    preset?: Record<string, any>;
+  } | null>(null);
+  const [deleting, setDeleting] = useState<ItemTarget | null>(null);
+  const [wizard, setWizard] = useState<boolean | KpiSummary>(false);
   // Source Control (Phase 8): the project shown, a file whose history is open, and the open file's
   // unsaved text kept as a server draft so pull and switch are refused while it exists (FR-065).
-  const [scmProject, setScmProject] = useState<string | null>(null),
-    [historyPath, setHistoryPath] = useState<string | undefined>(undefined);
+  const [scmProject, setScmProject] = useState<string | null>(null);
+  const [historyPath, setHistoryPath] = useState<string | undefined>(undefined);
   const scmSlug =
     scmProject && projects.some(p => p.slug === scmProject)
       ? scmProject
@@ -730,9 +730,9 @@ function App() {
   }, [source, current?.id, current?.hash]);
   // RDF, OWL and SHACL resources are edited by IRI (Phase 7); blank nodes go with their parent.
   type RdfTarget = { docId: string; subject: string; label: string; kind: string };
-  const [rdfEditing, setRdfEditing] = useState<RdfTarget | null>(null),
-    [rdfAdding, setRdfAdding] = useState<string | null>(null),
-    [rdfDeleting, setRdfDeleting] = useState<RdfTarget | null>(null);
+  const [rdfEditing, setRdfEditing] = useState<RdfTarget | null>(null);
+  const [rdfAdding, setRdfAdding] = useState<string | null>(null);
+  const [rdfDeleting, setRdfDeleting] = useState<RdfTarget | null>(null);
   const currentIsRdf = !!current && !!rdfSyntax(source, current.filename);
   function rdfTarget(e: Entity): RdfTarget | null {
     return current && currentIsRdf && e.readOnlyForm && isIri(e.id) && e.kind !== 'Built-in concept'
@@ -741,8 +741,8 @@ function App() {
   }
   function rdfEdgeTarget(r: Relationship): RdfTarget | null {
     if (!current || !currentIsRdf) return null;
-    const d = r.data.definition,
-      subject = r.data.kind === 'OWL object property' ? d?.iri : d?.subject;
+    const d = r.data.definition;
+    const subject = r.data.kind === 'OWL object property' ? d?.iri : d?.subject;
     const e = model?.entities.find(x => x.id === subject);
     return subject && isIri(subject)
       ? { docId: current.id, subject, label: e?.name ?? subject, kind: e?.kind ?? 'RDF resource' }
@@ -770,11 +770,12 @@ function App() {
     return kind ? { docId: current.id, path: r.data.path, kind } : null;
   }
   function choicesFor(id: string): Choices {
-    const own = modelOf(id),
-      project = docsRef.current.get(id)?.project;
-    const models = [...docs.filter(d => d.project === project).map(d => modelOf(d.id))].filter(
-      Boolean,
-    ) as NonNullable<typeof model>[];
+    const own = modelOf(id);
+    const project = docsRef.current.get(id)?.project;
+    const models = docs
+      .filter(d => d.project === project)
+      .map(d => modelOf(d.id))
+      .filter(Boolean) as NonNullable<typeof model>[];
     const names = (m: typeof model, kinds: string[]) =>
       (m?.entities ?? []).filter(e => kinds.includes(e.kind)).map(e => e.name);
     return {
@@ -812,11 +813,11 @@ function App() {
   function editMappingItem(docId: string, path: Path) {
     const d = docsRef.current.get(docId);
     if (!d) return;
-    const document = documentOf(docId),
-      text = docText(docId);
+    const document = documentOf(docId);
+    const text = docText(docId);
     for (let length = path.length; length > 0; length--) {
-      const prefix = path.slice(0, length),
-        kind = itemKindAt(document, prefix);
+      const prefix = path.slice(0, length);
+      const kind = itemKindAt(document, prefix);
       if (kind && prefix.reduce((value, key) => value?.[key], document) != null) {
         if (d.id !== current?.id && !open(d)) return;
         setEditing({ docId, path: prefix, kind });
@@ -834,8 +835,8 @@ function App() {
     openSourceAt(docId, 1);
   }
   function editKpi(k: KpiSummary) {
-    const id = `${kpiProject}/${k.file}`,
-      d = docsRef.current.get(id);
+    const id = `${kpiProject}/${k.file}`;
+    const d = docsRef.current.get(id);
     if (!d) return;
     const metrics = itemValue(docText(id), [...k.modelPath, 'metrics']);
     const i = Array.isArray(metrics) ? metrics.findIndex((m: any) => m?.name === k.name) : -1;
@@ -865,8 +866,8 @@ function App() {
     return () => window.removeEventListener('resize', update);
   }, []);
   const pageDetails = phone && inspectorVisible && (tab === 'overview' || tab === 'catalog');
-  const canvasRow = useRef<HTMLDivElement | null>(null),
-    graphView = tab === 'fullgraph' || tab === 'neighborhood';
+  const canvasRow = useRef<HTMLDivElement | null>(null);
+  const graphView = tab === 'fullgraph' || tab === 'neighborhood';
   useEffect(() => {
     if (!pageDetails) return;
     const previous = document.activeElement as HTMLElement | null;
@@ -882,8 +883,8 @@ function App() {
       const controls = Array.from(
         panel.querySelectorAll<HTMLElement>('button:not(:disabled),input,select,textarea,a[href]'),
       ).filter(el => el.getClientRects().length);
-      const first = controls[0],
-        last = controls.at(-1);
+      const first = controls[0];
+      const last = controls.at(-1);
       if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
         last?.focus();
@@ -975,8 +976,8 @@ function App() {
   }
   // Automatic saving of valid edits (FR-040–FR-043): 1 s after the last edit, through the usual
   // hash-checked save with only the changed range; invalid text stays a server draft.
-  const [gitBusy, setGitBusy] = useState(false),
-    [committing, setCommitting] = useState(false);
+  const [gitBusy, setGitBusy] = useState(false);
+  const [committing, setCommitting] = useState(false);
   const itemHints = useRef<Record<string, Record<string, string>>>({});
   const autosave = useAutosave({
     file: current?.id ?? null,
@@ -987,8 +988,8 @@ function App() {
     validate: async text => {
       const d = currentRef.current;
       if (!d || isGitignore(d.filename)) return 0;
-      const ei = editorIssuesRef.current,
-        errors = (issues: Issue[]) => issues.filter(i => i.severity === 'error').length;
+      const ei = editorIssuesRef.current;
+      const errors = (issues: Issue[]) => issues.filter(i => i.severity === 'error').length;
       if (ei && ei.id === d.id && ei.text !== undefined && ei.text === normalize(text))
         return errors(ei.issues);
       return errors(await validateInWorker(text, d.filename));
@@ -1051,8 +1052,8 @@ function App() {
     }
     setPendingImport(null);
     // Open the batch's last file, as the one-by-one import of earlier versions did.
-    const loaded = await refresh(),
-      last = drafts[drafts.length - 1].filename;
+    const loaded = await refresh();
+    const last = drafts[drafts.length - 1].filename;
     const opened =
       loaded.find(d => d.project === created.slug && d.path === last) ??
       loaded.find(d => d.project === created.slug);
@@ -1167,8 +1168,8 @@ function App() {
   }
   // New ▾ (FR-060): one Add dialog per kind; kinds the open file cannot hold stay listed with the reason.
   function newItems(): MenuItem[] {
-    const doc = (model as any)?.document,
-      kinds = current && model && !currentIsRdf ? addableKinds(doc) : [];
+    const doc = (model as any)?.document;
+    const kinds = current && model && !currentIsRdf ? addableKinds(doc) : [];
     const none = !current
       ? 'Open a file first.'
       : !model
@@ -1333,8 +1334,8 @@ function App() {
           choices={choicesFor(editing.docId)}
           onClose={() => setEditing(null)}
           onSaved={saved => {
-            const file = docsRef.current.get(editing.docId)?.path,
-              d = docsRef.current.get(editing.docId);
+            const file = docsRef.current.get(editing.docId)?.path;
+            const d = docsRef.current.get(editing.docId);
             if (d && file) {
               const name = itemName(editing.kind, itemValue(docText(editing.docId), editing.path));
               if (name) (itemHints.current[d.project] ??= {})[file] = name;
@@ -1387,12 +1388,12 @@ function App() {
       {deleting &&
         docsRef.current.get(deleting.docId) &&
         (() => {
-          const base = docText(deleting.docId),
-            item = itemValue(base, deleting.path),
-            owner =
-              deleting.kind === 'field' || deleting.kind === 'odcs-property'
-                ? String(itemValue(base, deleting.path.slice(0, -2))?.name ?? '')
-                : undefined;
+          const base = docText(deleting.docId);
+          const item = itemValue(base, deleting.path);
+          const owner =
+            deleting.kind === 'field' || deleting.kind === 'odcs-property'
+              ? String(itemValue(base, deleting.path.slice(0, -2))?.name ?? '')
+              : undefined;
           return (
             <DeleteItem
               doc={docsRef.current.get(deleting.docId)!}
@@ -1785,8 +1786,8 @@ function App() {
           aria-hidden="true"
           accept=".yaml,.yml,.json,.odcs,.ossie,.ttl,.nt,.rdf,.owl,.xml,.shacl,.n3"
           onChange={e => {
-            const files = Array.from(e.target.files ?? []),
-              into = importInto.current;
+            const files = Array.from(e.target.files ?? []);
+            const into = importInto.current;
             importInto.current = '';
             e.target.value = '';
             if (into)

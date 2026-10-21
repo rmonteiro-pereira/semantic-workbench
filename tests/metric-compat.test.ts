@@ -20,10 +20,10 @@ test('every v0.2.0 example with metric attributes validates as shipped', () => {
   expect(files[1].source).toContain('"kpi_bindings"');
 });
 test('editing one metric attribute changes only that metric extension block; everything else keeps its bytes', () => {
-  const f = files[0],
-    data = parse(f.source),
-    i = data.metrics.findIndex((m: any) => extensionOf(m)),
-    ext = extensionOf(data.metrics[i])!;
+  const f = files[0];
+  const data = parse(f.source);
+  const i = data.metrics.findIndex((m: any) => extensionOf(m));
+  const ext = extensionOf(data.metrics[i])!;
   const next = JSON.stringify({ ...ext.value, owner: 'Centre management' }, null, 2) + '\n';
   const after = edit(f.source, t =>
     valuePatches(
@@ -35,8 +35,8 @@ test('editing one metric attribute changes only that metric extension block; eve
   );
   expect(errors(after, 'mall.semantic.yaml')).toEqual([]);
   expect(extensionOf(parse(after).metrics[i])!.value.owner).toBe('Centre management');
-  const a = f.source.split('\n'),
-    b = after.split('\n');
+  const a = f.source.split('\n');
+  const b = after.split('\n');
   let p = 0;
   while (a[p] === b[p]) p++;
   let s = 0;
@@ -51,9 +51,9 @@ test('editing one metric attribute changes only that metric extension block; eve
   );
 });
 test('a binding edit keeps the stored key kpi_bindings', () => {
-  const f = files[1],
-    data = parse(f.source),
-    ext = extensionOf(data)!;
+  const f = files[1];
+  const data = parse(f.source);
+  const ext = extensionOf(data)!;
   const value = {
     ...ext.value,
     kpi_bindings: ext.value.kpi_bindings.map((b: any, j: number) =>

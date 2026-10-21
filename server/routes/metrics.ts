@@ -12,9 +12,9 @@ export const metricRoutes: Route = (ws, req, url) => {
   }
   const m = url.pathname.match(/^\/api\/projects\/([^/]+)\/files\/(.+)\/explain\/([^/]+)$/);
   if (!m) return null;
-  const slug = decodeURIComponent(m[1]),
-    path = decodePath(m[2]),
-    metric = decodeURIComponent(m[3]);
+  const slug = decodeURIComponent(m[1]);
+  const path = decodePath(m[2]);
+  const metric = decodeURIComponent(m[3]);
   ws.project(slug);
   const dimensions = url.searchParams.getAll('dimension');
   if (dimensions.length > 20 || dimensions.some(d => !/^[^.\s]+\.[^.\s]+$/.test(d)))

@@ -4,9 +4,9 @@ import { api, type TrashItem } from './api';
 // FR-024: restore or permanently delete trash entries; emptying the trash asks for confirmation.
 // A restore never overwrites; when the location is taken, the free alternative is offered.
 export function TrashDialog({ onClose, version }: { onClose: () => void; version: number }) {
-  const [items, setItems] = useState<TrashItem[] | null>(null),
-    [error, setError] = useState(''),
-    [confirming, setConfirming] = useState<string | null>(null);
+  const [items, setItems] = useState<TrashItem[] | null>(null);
+  const [error, setError] = useState('');
+  const [confirming, setConfirming] = useState<string | null>(null);
   const [occupied, setOccupied] = useState<{
     id: string;
     message: string;

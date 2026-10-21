@@ -60,8 +60,8 @@ export async function layoutFullGraph(
   }[] = [];
   const routes: Record<string, { x: number; y: number }[][]> = {};
   function visit(node: any, ox = 0, oy = 0, parentId?: string) {
-    const x = ox + (node.x ?? 0),
-      y = oy + (node.y ?? 0);
+    const x = ox + (node.x ?? 0);
+    const y = oy + (node.y ?? 0);
     if (node.id !== 'root')
       nodes.push({
         id: node.id,
@@ -97,7 +97,7 @@ export async function layoutFullGraph(
 export async function packNetwork(
   result: any,
   elk: { layout: (g: any) => Promise<any> },
-  grouping?: GroupingOptions,
+  _grouping?: GroupingOptions,
 ) {
   const groups = result.nodes.filter((n: any) => n.group);
   const interiors = await Promise.all(

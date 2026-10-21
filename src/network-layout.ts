@@ -56,8 +56,8 @@ export function layoutNetwork(
         .boundingBox({ includeLabels: false, includeOverlays: false }),
     ]),
   );
-  const minX = Math.min(0, ...[...groupBounds.values()].map(b => b.x1)) - 40,
-    minY = Math.min(0, ...[...groupBounds.values()].map(b => b.y1)) - 40;
+  const minX = Math.min(0, ...[...groupBounds.values()].map(b => b.x1)) - 40;
+  const minY = Math.min(0, ...[...groupBounds.values()].map(b => b.y1)) - 40;
   const nodes = [
     ...o.groups.map(g => {
       const b = groupBounds.get(g.id)!;
@@ -88,8 +88,8 @@ export function layoutNetwork(
       };
     }),
   ];
-  const width = Math.max(...[...groupBounds.values()].map(b => b.x2)) - minX + 40,
-    height = Math.max(...[...groupBounds.values()].map(b => b.y2)) - minY + 40;
+  const width = Math.max(...[...groupBounds.values()].map(b => b.x2)) - minX + 40;
+  const height = Math.max(...[...groupBounds.values()].map(b => b.y2)) - minY + 40;
   cy.destroy();
   return {
     nodes,

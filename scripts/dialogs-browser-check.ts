@@ -167,8 +167,8 @@ try {
             await expect(dialog).toBeVisible({ timeout: 10000 });
             // Fits: the dialog box inside the window, nothing scrolling sideways inside it.
             const fit = await dialog.evaluate(d => {
-              const s = (d.querySelector('section') ?? d) as HTMLElement,
-                r = s.getBoundingClientRect();
+              const s = (d.querySelector('section') ?? d) as HTMLElement;
+              const r = s.getBoundingClientRect();
               const wide = [s, ...s.querySelectorAll<HTMLElement>('*')]
                 .filter(
                   el =>

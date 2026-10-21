@@ -11,14 +11,15 @@ async function fixture() {
   return t;
 }
 const req = (path: string, body?: any) =>
-  new Request('http://localhost' + path, {
-    ...(body !== undefined ? { method: 'POST', body: JSON.stringify(body) } : {}),
-  });
+  new Request(
+    'http://localhost' + path,
+    body !== undefined ? { method: 'POST', body: JSON.stringify(body) } : {},
+  );
 test('agent discovers layers and generates a new grounded query through the real HTTP API', async () => {
   const t = await fixture();
   try {
-    const handler = t.handler,
-      before = t.ws.documents();
+    const handler = t.handler;
+    const before = t.ws.documents();
     const catalog = await (await handler(req('/api/agent/catalog'))).json();
     expect(catalog.mappings).toHaveLength(1);
     const id = catalog.mappings[0].id;
@@ -62,9 +63,9 @@ test('agent discovers layers and generates a new grounded query through the real
 test('agent requests cannot override metrics, inject expressions or select unknown ids', async () => {
   const t = await fixture();
   try {
-    const h = t.handler,
-      catalog = await (await h(req('/api/agent/catalog'))).json(),
-      id = catalog.mappings[0].id;
+    const h = t.handler;
+    const catalog = await (await h(req('/api/agent/catalog'))).json();
+    const id = catalog.mappings[0].id;
     const valid = { mappingId: id, metrics: ['gross_revenue'], dimensions: [] };
     for (const body of [
       null,
@@ -95,8 +96,8 @@ test('reference diagnostics update immediately when referenced documents are sav
   const t = await fixture();
   try {
     const h = t.handler;
-    const catalog = await (await h(req('/api/agent/catalog'))).json(),
-      id = catalog.mappings[0].id;
+    const catalog = await (await h(req('/api/agent/catalog'))).json();
+    const id = catalog.mappings[0].id;
     const ontology = t.ws.documents().find(d => d.filename === 'commerce.mapped-ontology.yaml')!;
     await t.ws.saveDocument(
       ontology.filename,

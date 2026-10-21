@@ -3,8 +3,8 @@ import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Modal } from '../../src/projects/Modal';
 function App() {
-  const [open, setOpen] = useState(false),
-    [log, setLog] = useState<string[]>([]);
+  const [open, setOpen] = useState(false);
+  const [log, setLog] = useState<string[]>([]);
   return (
     <>
       <button onClick={() => setOpen(true)}>Open dialog</button>

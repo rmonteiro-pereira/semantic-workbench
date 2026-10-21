@@ -128,8 +128,8 @@ test('unknown benchmarks use definition types; suggested mode is bounded on larg
   const links = Array.from({ length: 5000 }, (_, i) =>
     edge(String(i % 1000), String((i * 37 + 1) % 1000), String(i)),
   );
-  const start = performance.now(),
-    o = modelOverview(nodes, links, 'Benchmark');
+  const start = performance.now();
+  const o = modelOverview(nodes, links, 'Benchmark');
   expect(o.entities).toHaveLength(1000);
   expect(o.links).toHaveLength(5000);
   expect(performance.now() - start).toBeLessThan(5000);

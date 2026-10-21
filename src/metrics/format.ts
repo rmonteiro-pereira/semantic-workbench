@@ -14,8 +14,8 @@ export const additivityLabel = {
   non_additive: 'Non-additive',
 } as const;
 export const conceptText = (links: ConceptLink[]) => {
-  const m = links.find(c => c.role === 'measures'),
-    of = links.find(c => c.role === 'of');
+  const m = links.find(c => c.role === 'measures');
+  const of = links.find(c => c.role === 'of');
   return [m ? (m.concept ?? m.input) : null, of ? `of ${of.concept ?? of.input}` : null]
     .filter(Boolean)
     .join(' ');

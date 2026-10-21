@@ -64,9 +64,9 @@ export function fixtureFiles(kind: FixtureKind): Record<string, string> {
 // symbolic link pointing outside the repository (committed as a link).
 export function bareRepository(kind: FixtureKind): BareFixture {
   isolateGit();
-  const dir = mkdtempSync(join(tmpdir(), 'workbench-gitfix-')),
-    work = join(dir, 'work'),
-    bare = join(dir, `${kind}.git`);
+  const dir = mkdtempSync(join(tmpdir(), 'workbench-gitfix-'));
+  const work = join(dir, 'work');
+  const bare = join(dir, `${kind}.git`);
   mkdirSync(work);
   git(work, ['init', '-q', '-b', 'main']);
   const files = fixtureFiles(kind);

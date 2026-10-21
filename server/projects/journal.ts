@@ -119,8 +119,8 @@ export function createJournal(layout: DataLayout, hooks: JournalHooks = {}) {
         settle(j);
         const remaining = j.steps.filter(s => !s.done);
         // Check the remaining steps in order against the file system as earlier steps would leave it.
-        const moved = new Map<string, boolean>(),
-          exists = (p: string) => moved.get(p) ?? existsSync(abs(p));
+        const moved = new Map<string, boolean>();
+        const exists = (p: string) => moved.get(p) ?? existsSync(abs(p));
         const forward = remaining.every(s => {
           const ok = exists(s.from) && !exists(s.to);
           moved.set(s.from, false);

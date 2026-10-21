@@ -1,7 +1,7 @@
 import { stringify } from 'yaml';
 const mapping = await Bun.file('public/examples/ubl/model-map.json').json();
-const dir = 'public/examples/ubl/',
-  iri = 'https://example.org/ubl-workbench#';
+const dir = 'public/examples/ubl/';
+const iri = 'https://example.org/ubl-workbench#';
 const snake = (s: string) =>
   s === 'Order' ? 'purchase_order' : s.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
 const desc = (e: any) =>
@@ -12,8 +12,8 @@ let owl =
   prefixes +
   '\n<https://example.org/ubl-workbench> a owl:Ontology ; rdfs:label "UBL procurement-to-payment · 45 business entities" ; rdfs:comment "Application-specific projection of OASIS UBL 2.3. This is not an official OASIS OWL ontology." .\n';
 let shacl = prefixes;
-const tables: any[] = [],
-  joins: any[] = [];
+const tables: any[] = [];
+const joins: any[] = [];
 for (const e of mapping.entities) {
   owl += `\nu:${e.name} a owl:Class ; rdfs:label ${quote(e.name)} ; rdfs:comment ${quote(desc(e))} ; rdfs:isDefinedBy <${e.source}> .\n`;
   const props: any[] = [
@@ -32,9 +32,9 @@ for (const e of mapping.entities) {
     if (props.some(p => p.name === name)) continue;
     const logicalType = /Amount|Quantity|Percent|Rate|Numeric$/.test(f.name)
       ? 'number'
-      : /Indicator$/.test(f.name)
+      : f.name.endsWith('Indicator')
         ? 'boolean'
-        : /Date$/.test(f.name)
+        : f.name.endsWith('Date')
           ? 'date'
           : 'string';
     props.push({

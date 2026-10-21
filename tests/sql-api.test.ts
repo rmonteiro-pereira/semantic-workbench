@@ -58,8 +58,8 @@ test("file findings include the browser module's SQL warnings; a file with SQL w
     }
     expect(warned).toBe(3);
     // Saving a new SQL error is accepted: warnings never block.
-    const source = fixture('case-when.ossie.yaml'),
-      broken = source.replace('ELSE 0 END)', 'ELSE 0)');
+    const source = fixture('case-when.ossie.yaml');
+    const broken = source.replace('ELSE 0 END)', 'ELSE 0)');
     const saved = await api(t, 'PUT', `/api/projects/${slug}/files/case-when.ossie.yaml`, {
       baseHash: sha256(source),
       source: broken,

@@ -31,8 +31,8 @@ export function tokenize(src: string): Tok[] {
     i = end;
   };
   while (i < src.length) {
-    const c = src[i],
-      rest = src.slice(i, i + 3);
+    const c = src[i];
+    const rest = src.slice(i, i + 3);
     if (/\s/.test(c)) {
       i++;
       continue;
@@ -175,19 +175,19 @@ const resolve = (iri: string, base: string) => {
   }
 };
 export function readDocument(src: string): Document {
-  const toks = tokenize(src),
-    statements: Statement[] = [],
-    prefixes: Record<string, string> = {};
-  let base = BASE,
-    directiveEnd = 0,
-    sparqlStyle = false;
+  const toks = tokenize(src);
+  const statements: Statement[] = [];
+  const prefixes: Record<string, string> = {};
+  let base = BASE;
+  let directiveEnd = 0;
+  let sparqlStyle = false;
   const expand = (t: Tok): string | null =>
     t.t === 'iri'
       ? resolve(t.text.slice(1, -1), base)
       : t.t === 'pname'
         ? (() => {
-            const k = t.text.indexOf(':'),
-              p = t.text.slice(0, k);
+            const k = t.text.indexOf(':');
+            const p = t.text.slice(0, k);
             return p in prefixes ? prefixes[p] + t.text.slice(k + 1).replace(/\\(.)/g, '$1') : null;
           })()
         : t.t === 'word' && t.text === 'a'
@@ -200,11 +200,11 @@ export function readDocument(src: string): Document {
     if (i >= toks.length) break;
     const first = toks[i];
     if (first.t === 'directive') {
-      const lower = first.text.toLowerCase(),
-        sparql = !first.text.startsWith('@');
+      const lower = first.text.toLowerCase();
+      const sparql = !first.text.startsWith('@');
       if (lower.endsWith('prefix')) {
-        const p = toks[i + 1],
-          iri = toks[i + 2];
+        const p = toks[i + 1];
+        const iri = toks[i + 2];
         prefixes[p.text.slice(0, -1)] = resolve(iri.text.slice(1, -1), base);
         i += 3;
       } else {
@@ -228,8 +228,8 @@ export function readDocument(src: string): Document {
       continue;
     }
     // One statement: tokens up to the '.' outside brackets.
-    let j = i,
-      depth = 0;
+    let j = i;
+    let depth = 0;
     const body: Tok[] = [];
     while (j < toks.length) {
       const t = toks[j];
@@ -261,14 +261,14 @@ export function readDocument(src: string): Document {
     if (st.n3 || !['iri', 'pname'].includes(first.t)) continue;
     st.subject = expand(first);
     // predicate-object list
-    let k = 1,
-      ok = true;
+    let k = 1;
+    let ok = true;
     const object = (): ObjectSpan | null => {
       const t = body[k];
       if (!t) return null;
       if (t.text === '[' || t.text === '(') {
-        let d = 0,
-          e = k;
+        let d = 0;
+        let e = k;
         for (; e < body.length; e++) {
           if (body[e].text === '[' || body[e].text === '(') d++;
           if (body[e].text === ']' || body[e].text === ')') d--;
@@ -352,8 +352,8 @@ export function turtlePatches(
   eol: string,
   subjectText: string,
 ): { patches: Patch[]; warnings: string[] } {
-  const patches: Patch[] = [],
-    warnings: string[] = [];
+  const patches: Patch[] = [];
+  const warnings: string[] = [];
   const mine = doc.statements
     .map((s, i) => ({ s, i }))
     .filter(x => !x.s.directive && x.s.subject === subject);
@@ -380,8 +380,8 @@ export function turtlePatches(
         rest.push(a);
         continue;
       }
-      const sg = st.segments[g],
-        last = [...sg.objects.keys()].filter(o => !removed.has(id(i, g, o))).at(-1)!;
+      const sg = st.segments[g];
+      const last = [...sg.objects.keys()].filter(o => !removed.has(id(i, g, o))).at(-1)!;
       patches.push({
         from: sg.objects[last].end,
         to: sg.objects[last].end,
@@ -405,13 +405,13 @@ export function turtlePatches(
         warnComments(st.segments[0].start, st.segments.at(-1)!.end, st);
       } else {
         const from = only(src, lineStart(src, st.start), st.start)
-            ? lineStart(src, st.start)
-            : st.start,
-          to =
-            only(src, st.end, lineEndAfter(src, st.end)) ||
-            /^[ \t]*\r?\n?$/.test(src.slice(st.end, lineEndAfter(src, st.end)))
-              ? lineEndAfter(src, st.end)
-              : st.end;
+          ? lineStart(src, st.start)
+          : st.start;
+        const to =
+          only(src, st.end, lineEndAfter(src, st.end)) ||
+          /^[ \t]*\r?\n?$/.test(src.slice(st.end, lineEndAfter(src, st.end)))
+            ? lineEndAfter(src, st.end)
+            : st.end;
         patches.push({ from, to, insert: '' });
         warnComments(from, to, st);
       }
@@ -426,8 +426,8 @@ export function turtlePatches(
       }
       let h = g;
       while (h + 1 < st.segments.length && !keptSeg[h + 1]) h++;
-      const from = g > 0 ? st.segments[g - 1].end : st.segments[g].start,
-        to = g > 0 ? st.segments[h].end : st.segments[h + 1].start;
+      const from = g > 0 ? st.segments[g - 1].end : st.segments[g].start;
+      const to = g > 0 ? st.segments[h].end : st.segments[h + 1].start;
       patches.push({ from, to, insert: '' });
       warnComments(from, to, st);
       g = h + 1;
@@ -445,8 +445,8 @@ export function turtlePatches(
         }
         let h = o;
         while (h + 1 < sg.objects.length && !keptObj[h + 1]) h++;
-        const from = o > 0 ? sg.objects[o - 1].end : sg.objects[o].start,
-          to = o > 0 ? sg.objects[h].end : sg.objects[h + 1].start;
+        const from = o > 0 ? sg.objects[o - 1].end : sg.objects[o].start;
+        const to = o > 0 ? sg.objects[h].end : sg.objects[h + 1].start;
         patches.push({ from, to, insert: '' });
         o = h + 1;
       }
@@ -476,8 +476,8 @@ export function turtlePatches(
     const body = [...grouped.values()]
       .map(g => `${g[0].verbText} ${g.map(a => a.objectText).join(', ')}`)
       .join(multi ? ` ;${eol}${indent}` : ' ; ');
-    const at = src.length,
-      needsBreak = at > 0 && !/[\r\n]$/.test(src);
+    const at = src.length;
+    const needsBreak = at > 0 && !/[\r\n]$/.test(src);
     patches.push({
       from: at,
       to: at,

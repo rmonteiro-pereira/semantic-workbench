@@ -47,8 +47,8 @@ export function indexBytes(
   bytes: Uint8Array,
   gitState: FileGitState | 'unknown' = 'unknown',
 ): Indexed {
-  const hash = sha256(bytes),
-    base = { project, path, hash, gitState, indexedAt: new Date().toISOString() };
+  const hash = sha256(bytes);
+  const base = { project, path, hash, gitState, indexedAt: new Date().toISOString() };
   let serialization = serializationOf(path);
   if (serialization === 'unsupported')
     return {
@@ -131,8 +131,8 @@ export function createScanner(
   const queues = new Map<string, Promise<unknown>>();
   async function scan(slug: string) {
     const dir = projectDir(layout, slug);
-    let paths: string[],
-      states = new Map<string, FileGitState>();
+    let paths: string[];
+    let states = new Map<string, FileGitState>();
     if (gitAvailable()) {
       paths = await git.lsFiles(dir);
       try {
@@ -141,9 +141,9 @@ export function createScanner(
         /* a repository without commits still lists files */
       }
     } else paths = walk(dir);
-    const present = new Set<string>(),
-      changed: string[] = [],
-      removed: string[] = [];
+    const present = new Set<string>();
+    const changed: string[] = [];
+    const removed: string[] = [];
     for (const raw of paths) {
       let path: string;
       try {
@@ -160,8 +160,8 @@ export function createScanner(
         continue;
       }
       present.add(path);
-      const old = cache.file(slug, path),
-        gitState = states.get(path) ?? (gitAvailable() ? 'clean' : 'unknown');
+      const old = cache.file(slug, path);
+      const gitState = states.get(path) ?? (gitAvailable() ? 'clean' : 'unknown');
       if (old && old.hash === sha256(bytes)) {
         if (old.gitState !== gitState)
           cache.put({ ...old, gitState }, cache.entities(slug, path), cache.findings(slug, path));

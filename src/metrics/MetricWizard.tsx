@@ -63,8 +63,8 @@ function modelsOf(docs: Doc[]): Model[] {
   return docs.flatMap(d => {
     const v = validateInput(d.source, d.filename);
     if (!v.valid || !('document' in v.model)) return [];
-    const doc = v.model.document,
-      prefix = semanticModelPrefix(doc);
+    const doc = v.model.document;
+    const prefix = semanticModelPrefix(doc);
     if (!prefix) return [];
     const m = prefix.reduce((x: any, k) => x?.[k], doc);
     if (!m || !Array.isArray(m.datasets)) return [];
@@ -120,10 +120,10 @@ export function MetricWizard({
   onSaved: (file: string, modelPath: Path, name: string) => void;
   existing?: KpiSummary;
 }) {
-  const models = useMemo(() => modelsOf(docs), []),
-    concepts = useMemo(() => conceptsOf(docs), []);
-  const [step, setStep] = useState(0),
-    [done, setDone] = useState(0);
+  const models = useMemo(() => modelsOf(docs), []);
+  const concepts = useMemo(() => conceptsOf(docs), []);
+  const [step, setStep] = useState(0);
+  const [done, setDone] = useState(0);
   const [d, setD] = useState<Draft>({
     measures: '',
     of: '',
@@ -165,8 +165,8 @@ export function MetricWizard({
     setD(x => ({ ...x, ...patch }));
     setPreview(null);
   };
-  const model = models.find(m => m.file === d.file),
-    fields = model?.datasets.flatMap(ds => ds.fields.map(f => `${ds.name}.${f}`)) ?? [];
+  const model = models.find(m => m.file === d.file);
+  const fields = model?.datasets.flatMap(ds => ds.fields.map(f => `${ds.name}.${f}`)) ?? [];
   const labelOf = (name: string) => kpis.find(k => k.name === name && k.file === d.file)?.label;
   const metricOption = (name: string) => (
     <option key={name} value={name}>
@@ -175,8 +175,8 @@ export function MetricWizard({
   );
   // An existing metric keeps its expression; one already bound to concepts keeps its binding.
   const bound = !!existing?.concepts.length;
-  const expression = existing ? (existing.expression ?? '') : expressionFor(d),
-    extension = extensionFor(d);
+  const expression = existing ? (existing.expression ?? '') : expressionFor(d);
+  const extension = extensionFor(d);
   const request: KpiSaveRequest = {
     semanticPath: d.file,
     modelPath: existing ? existing.modelPath : model?.path,
@@ -241,8 +241,8 @@ export function MetricWizard({
     changes: { path: string; created: boolean; added: string[]; removed: string[] }[];
     explanation: KpiExplanation;
   } | null>(null);
-  const [error, setError] = useState(''),
-    [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
   useEffect(() => {
     if (step !== 6 || preview) return;
     setBusy(true);

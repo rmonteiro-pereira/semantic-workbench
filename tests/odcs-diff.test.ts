@@ -16,8 +16,8 @@ test('identical versions, and key order, are no change', () => {
   expect(canonical({ b: 1, a: [{ d: 2, c: 3 }] })).toBe(canonical({ a: [{ c: 3, d: 2 }], b: 1 }));
 });
 test('added, removed and changed properties with each changed attribute, types included', () => {
-  const next = clone(),
-    o = orders(next);
+  const next = clone();
+  const o = orders(next);
   o.properties.find((p: any) => p.name === 'amount').logicalType = 'string';
   o.properties.find((p: any) => p.name === 'status').required = false;
   o.properties = o.properties.filter((p: any) => p.name !== 'order_date');
@@ -51,8 +51,8 @@ test('added, removed and changed properties with each changed attribute, types i
   ]);
 });
 test('physical type, keys, relationships and classification changes are all reported', () => {
-  const next = clone(),
-    p = orders(next).properties.find((x: any) => x.name === 'customer_id');
+  const next = clone();
+  const p = orders(next).properties.find((x: any) => x.name === 'customer_id');
   p.physicalType = 'BIGINT';
   p.primaryKey = true;
   p.classification = 'internal';
@@ -100,8 +100,8 @@ test('objects added and removed, contract-level attributes, nested properties by
     },
   ]);
   // With ids on both sides, a renamed property is one change, not a removal and an addition.
-  const a = { schema: [{ id: 'o1', name: 'o', properties: [{ id: 'p1', name: 'old' }] }] },
-    b = { schema: [{ id: 'o1', name: 'o', properties: [{ id: 'p1', name: 'new' }] }] };
+  const a = { schema: [{ id: 'o1', name: 'o', properties: [{ id: 'p1', name: 'old' }] }] };
+  const b = { schema: [{ id: 'o1', name: 'o', properties: [{ id: 'p1', name: 'new' }] }] };
   expect(diffContracts(a, b).objects[0].properties).toEqual([
     {
       path: 'new',
@@ -114,8 +114,8 @@ test('objects added and removed, contract-level attributes, nested properties by
   ]);
 });
 test('last change of an object across newest-first versions', () => {
-  const v1 = clone(),
-    v2 = clone();
+  const v1 = clone();
+  const v2 = clone();
   orders(v2).properties[0].description = 'v2';
   const v3 = structuredClone(v2);
   v3.schema.find((o: any) => o.name === 'customers').description = 'v3';

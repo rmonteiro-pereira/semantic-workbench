@@ -100,8 +100,8 @@ test('issue 2 request: modular ontologies group by declared namespace prefix', (
       { concept: 'Note', type: 'EntityType' },
     );
   });
-  const m = inspect(modular, 'm.yaml'),
-    o = modelOverview(m.entities, m.edges, m.name);
+  const m = inspect(modular, 'm.yaml');
+  const o = modelOverview(m.entities, m.edges, m.name);
   expect(o.mode).toBe('namespaces');
   expect(
     Object.fromEntries(o.groups.map(g => [g.name, g.entities.map(e => e.name).sort()])),

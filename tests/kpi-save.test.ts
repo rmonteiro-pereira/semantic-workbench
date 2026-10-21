@@ -29,8 +29,8 @@ const api = (
     }),
   );
 const diff = (a: string, b: string) => {
-  const x = a.split('\n'),
-    y = b.split('\n');
+  const x = a.split('\n');
+  const y = b.split('\n');
   let p = 0;
   while (x[p] === y[p]) p++;
   let s = 0;
@@ -77,8 +77,8 @@ async function mall() {
 test('a ratio KPI writes the metric with its extension and one sorted binding line, journaled', async () => {
   const { t, slug, read, hashes } = await mall();
   try {
-    const semantic = read('mall.semantic.yaml'),
-      mapping = read('mall.mapping.yaml');
+    const semantic = read('mall.semantic.yaml');
+    const mapping = read('mall.mapping.yaml');
     const r = await api(t, 'POST', `/api/projects/${slug}/kpis`, request(hashes()));
     expect(r.status).toBe(200);
     const body = await r.json();
@@ -92,8 +92,8 @@ test('a ratio KPI writes the metric with its extension and one sorted binding li
     expect(s.added[0]).toBe('  - name: vacancy_rate');
     expect(s.added).toContain('          expression: vacant_gla / NULLIF(total_gla, 0)');
     // The formula is in the expression only; the extension names its inputs.
-    const metrics = itemValue(read('mall.semantic.yaml'), ['metrics']) as any[],
-      metric = metrics.find(m => m.name === 'vacancy_rate');
+    const metrics = itemValue(read('mall.semantic.yaml'), ['metrics']) as any[];
+    const metric = metrics.find(m => m.name === 'vacancy_rate');
     const ext = readMetricExtension(metric);
     expect(ext.issues).toEqual([]);
     expect(ext.value).toMatchObject({
@@ -212,8 +212,8 @@ test('a consolidated file keeps the binding in its embedded semantic model root'
     });
     expect(r.status).toBe(200);
     expect((await r.json()).written.map((w: any) => w.path)).toEqual(['flights.yaml']);
-    const after = readFileSync(join(t.root, 'projects', slug, 'flights.yaml'), 'utf8'),
-      d = diff(source, after);
+    const after = readFileSync(join(t.root, 'projects', slug, 'flights.yaml'), 'utf8');
+    const d = diff(source, after);
     expect(d.removed).toEqual([]);
     expect(after).toContain('"kpi_bindings"');
     expect(
@@ -273,8 +273,8 @@ test('dependents of a KPI are listed: metrics that use it and its binding', () =
     filename: p,
     source: readFileSync('public/examples/mall/' + p, 'utf8'),
   }));
-  const metrics = itemValue(docs[0].source, ['metrics']) as any[],
-    i = metrics.findIndex(m => m.name === 'total_gla');
+  const metrics = itemValue(docs[0].source, ['metrics']) as any[];
+  const i = metrics.findIndex(m => m.name === 'total_gla');
   const refs = findReferences(
     { kind: 'metric', name: 'total_gla', docId: docs[0].id, path: ['metrics', i] },
     docs,

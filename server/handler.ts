@@ -25,9 +25,9 @@ export const ALLOWED_ORIGINS = [
 const legacyRoutes: Route = async (ws, req, url) => {
   // Agent mapping ids may carry a fragment (`<doc>#ontology_mappings/0`); translate a v0.1.0 doc id.
   const mappingRef = (id: string) => {
-    const hash = id.indexOf('#'),
-      doc = hash < 0 ? id : id.slice(0, hash),
-      rest = hash < 0 ? '' : id.slice(hash);
+    const hash = id.indexOf('#');
+    const doc = hash < 0 ? id : id.slice(0, hash);
+    const rest = hash < 0 ? '' : id.slice(hash);
     const legacy = ws.state.legacyIds().ids[doc];
     return legacy ? `${legacy.project}/${legacy.path}${rest}` : id;
   };

@@ -300,8 +300,8 @@ export function modelOverview(
   }
   const order = areas.map(a => a.id);
   const ordered = [...groups.values()].sort((a, b) => {
-    const ai = order.indexOf(a.id),
-      bi = order.indexOf(b.id);
+    const ai = order.indexOf(a.id);
+    const bi = order.indexOf(b.id);
     return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi) || a.name.localeCompare(b.name);
   });
   const groupOf = new Map(ordered.flatMap(g => g.entities.map(e => [e.id, g.id] as const)));

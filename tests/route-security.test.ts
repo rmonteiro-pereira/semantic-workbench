@@ -39,8 +39,8 @@ async function project() {
   return t;
 }
 test('symbolic links inside a project are never followed for reads or writes', async () => {
-  const t = await project(),
-    outside = mkdtempSync(join(tmpdir(), 'workbench-outside-'));
+  const t = await project();
+  const outside = mkdtempSync(join(tmpdir(), 'workbench-outside-'));
   try {
     const dir = join(t.root, 'projects/shop');
     writeFileSync(join(outside, 'secret.yaml'), ontology.replace('Shop', 'Secret'));

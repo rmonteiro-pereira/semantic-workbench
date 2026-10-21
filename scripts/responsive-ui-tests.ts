@@ -69,9 +69,9 @@ async function openPage(width: number, height: number) {
   }
   if (process.env.RESPONSIVE_MUTATION === 'status-stays')
     await page.route('**/src/main.tsx*', async route => {
-      const response = await route.fetch(),
-        source = await response.text(),
-        anchor = 'const timer = setTimeout(() => setMessage(""), 5e3);';
+      const response = await route.fetch();
+      const source = await response.text();
+      const anchor = 'const timer = setTimeout(() => setMessage(""), 5e3);';
       if (!source.includes(anchor)) throw Error('Status mutation anchor missing');
       console.log('INJECTED_STATUS_MUTATION');
       await route.fulfill({ response, body: source.replace(anchor, 'const timer = 0;') });
@@ -339,8 +339,8 @@ try {
       const selectedName = await fsPage.locator('.inspector h2').textContent();
       // Details sit beside the graph inside the full-screen row (Phase 12: no overlay covers the
       // graph's controls), and together they use the full width.
-      const graphBox = (await fsPage.locator('.react-flow').boundingBox())!,
-        detailsBox = (await inspector.boundingBox())!;
+      const graphBox = (await fsPage.locator('.react-flow').boundingBox())!;
+      const detailsBox = (await inspector.boundingBox())!;
       expect(graphBox.width).toBeGreaterThan(1000);
       expect(graphBox.x + graphBox.width).toBeLessThanOrEqual(detailsBox.x + 1);
       expect(graphBox.width + detailsBox.width).toBeGreaterThan(1400);
@@ -633,13 +633,13 @@ try {
       const point = await sweep.locator('.react-flow__edge').evaluateAll(edges => {
         for (const edge of edges) {
           if (!/\d+ relationships/.test(edge.textContent ?? '')) continue;
-          const path = edge.querySelector('.react-flow__edge-interaction') as SVGPathElement | null,
-            m = path?.getScreenCTM();
+          const path = edge.querySelector('.react-flow__edge-interaction') as SVGPathElement | null;
+          const m = path?.getScreenCTM();
           if (!path || !m) continue;
           for (let i = 1; i < 30; i++) {
-            const local = path.getPointAtLength((path.getTotalLength() * i) / 30),
-              x = m.a * local.x + m.c * local.y + m.e,
-              y = m.b * local.x + m.d * local.y + m.f;
+            const local = path.getPointAtLength((path.getTotalLength() * i) / 30);
+            const x = m.a * local.x + m.c * local.y + m.e;
+            const y = m.b * local.x + m.d * local.y + m.f;
             if (document.elementFromPoint(x, y)?.closest('.react-flow__edge') === edge)
               return { x, y };
           }
@@ -680,9 +680,9 @@ try {
           ...(await sweep.locator('.full-area-title').evaluateAll(
             (titles, size) =>
               titles.flatMap(title => {
-                const node = title.closest('.react-flow__node')!.getBoundingClientRect(),
-                  box = title.getBoundingClientRect(),
-                  name = title.querySelector('strong')!;
+                const node = title.closest('.react-flow__node')!.getBoundingClientRect();
+                const box = title.getBoundingClientRect();
+                const name = title.querySelector('strong')!;
                 const out: string[] = [];
                 if (box.left < node.left - 1 || box.right > node.right + 1)
                   out.push(`${size}: area title "${name.textContent}" spills out of its area`);
@@ -711,8 +711,8 @@ try {
         await summary.click();
         const pop = sweep.locator('.grouping-details[open]');
         await expect(pop).toBeVisible();
-        const s = (await sweep.locator('summary[aria-label="Grouping details"]').boundingBox())!,
-          b = (await pop.boundingBox())!;
+        const s = (await sweep.locator('summary[aria-label="Grouping details"]').boundingBox())!;
+        const b = (await pop.boundingBox())!;
         const header = (await sweep.locator('main > header.workspace-header').boundingBox())!;
         if (b.left < -1 || b.right > width + 1 || b.bottom > height + 1)
           found.push(`${width}×${height}: grouping details outside the viewport`);
@@ -857,8 +857,8 @@ try {
       page.on('pageerror', error => errors.push(`sidebar: ${error.message}`));
       await routeApi(page, api);
       await page.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
-      const sidebar = page.locator('#workspace-sidebar'),
-        separator = page.getByRole('separator', { name: 'Resize sidebar' });
+      const sidebar = page.locator('#workspace-sidebar');
+      const separator = page.getByRole('separator', { name: 'Resize sidebar' });
       await expect(separator).toBeVisible();
       await expect(separator).toHaveAttribute('aria-orientation', 'vertical');
       await expect(separator).toHaveAttribute('aria-valuemin', '220');
@@ -904,13 +904,13 @@ try {
       await page.keyboard.press('Home');
       const clipped = await page.evaluate(() =>
         [...document.querySelectorAll<HTMLElement>('.project-tree .tree-row')].flatMap(row => {
-          const button = row.querySelector<HTMLElement>('.project-toggle,.document')!,
-            text = button.querySelector<HTMLElement>('span')!;
-          const full = button.getAttribute('aria-label') ?? text.textContent ?? '',
-            lines = Math.round(
-              text.getBoundingClientRect().height /
-                parseFloat(getComputedStyle(text).lineHeight || '16'),
-            );
+          const button = row.querySelector<HTMLElement>('.project-toggle,.document')!;
+          const text = button.querySelector<HTMLElement>('span')!;
+          const full = button.getAttribute('aria-label') ?? text.textContent ?? '';
+          const lines = Math.round(
+            text.getBoundingClientRect().height /
+              parseFloat(getComputedStyle(text).lineHeight || '16'),
+          );
           const cut =
             text.scrollHeight > text.clientHeight + 1 || text.scrollWidth > text.clientWidth + 1;
           const problems: string[] = [];

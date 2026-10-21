@@ -4,22 +4,22 @@ import type { Page } from '@playwright/test';
 // visible filename text ends before the delete icon (it ellipsizes instead of running under it).
 export async function treeRowProblems(page: Page) {
   return page.evaluate(() => {
-    const problems: string[] = [],
-      sidebar = document.querySelector('.workspace-sidebar')!.getBoundingClientRect();
+    const problems: string[] = [];
+    const sidebar = document.querySelector('.workspace-sidebar')!.getBoundingClientRect();
     const rows = [...document.querySelectorAll<HTMLElement>('.project-tree .tree-row')];
     if (!rows.length) problems.push('no tree rows');
     for (const row of rows) {
-      const r = row.getBoundingClientRect(),
-        label = row.querySelector('button')?.getAttribute('aria-label') ?? row.textContent;
-      const name = row.querySelector<HTMLElement>('.project-toggle,.document')!,
-        del = row.querySelector<HTMLElement>('.row-delete'),
-        menu = row.querySelector<HTMLElement>('.item-menu-toggle');
+      const r = row.getBoundingClientRect();
+      const label = row.querySelector('button')?.getAttribute('aria-label') ?? row.textContent;
+      const name = row.querySelector<HTMLElement>('.project-toggle,.document')!;
+      const del = row.querySelector<HTMLElement>('.row-delete');
+      const menu = row.querySelector<HTMLElement>('.item-menu-toggle');
       if (!del || !menu) {
         problems.push(`${label}: missing delete or menu button`);
         continue;
       }
-      const boxes = [name, del, menu].map(e => e.getBoundingClientRect()),
-        text = name.querySelector('span')!.getBoundingClientRect();
+      const boxes = [name, del, menu].map(e => e.getBoundingClientRect());
+      const text = name.querySelector('span')!.getBoundingClientRect();
       if (r.right > sidebar.right + 0.5 || r.left < sidebar.left - 0.5)
         problems.push(`${label}: row leaves the sidebar`);
       for (const b of boxes)
@@ -27,8 +27,8 @@ export async function treeRowProblems(page: Page) {
           problems.push(`${label}: control leaves its row`);
       for (let i = 0; i < 3; i++)
         for (let j = i + 1; j < 3; j++) {
-          const a = boxes[i],
-            b = boxes[j];
+          const a = boxes[i];
+          const b = boxes[j];
           if (
             a.left < b.right - 0.5 &&
             b.left < a.right - 0.5 &&

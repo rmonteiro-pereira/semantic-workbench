@@ -11,8 +11,8 @@ function mapsBack(src: string, r: SqlRegion) {
   expect(r.exact).toBe(true);
   expect(r.offsets).toHaveLength(r.value.length + 1);
   for (let i = 0; i < r.value.length; i++) {
-    const v = r.value[i],
-      f = src[r.offsets[i]];
+    const v = r.value[i];
+    const f = src[r.offsets[i]];
     const ok =
       v === f || (/[ \n]/.test(v) && /[\r\n]/.test(f)) || f === '\\' || (v === "'" && f === "'");
     if (!ok)
@@ -42,8 +42,8 @@ test('Ossie locations: dataset fields and metrics, flat, legacy semantic_model l
     '/semantic_model/0/datasets/0/fields/0/expression/dialects/0/expression',
     '/semantic_model/0/metrics/0/expression/dialects/0/expression',
   ]);
-  const flights = readFileSync('public/examples/ossie/flights.yaml', 'utf8'),
-    rs = one(flights, 'flights.yaml');
+  const flights = readFileSync('public/examples/ossie/flights.yaml', 'utf8');
+  const rs = one(flights, 'flights.yaml');
   expect(
     rs.some(
       r =>
@@ -140,13 +140,13 @@ test('block literal: indentation removed per line, breaks map to line breaks; ch
   ).toEqual({ line: 10, column: 15 });
 });
 test('block folded: single breaks fold to spaces mapped to the break; empty and more-indented lines keep breaks', () => {
-  const src = fixture('folded.ossie.yaml'),
-    [, r] = one(src);
+  const src = fixture('folded.ossie.yaml');
+  const [, r] = one(src);
   expect(r.value).toBe(
     'SUM(CASE WHEN orders.amount > 100\n  THEN orders.amount\n  ELSE 0 END END)\n',
   );
-  const plain = metric('>-\n            SUM(a)\n            + SUM(b)\n\n            + SUM(c)\n'),
-    [f] = one(plain);
+  const plain = metric('>-\n            SUM(a)\n            + SUM(b)\n\n            + SUM(c)\n');
+  const [f] = one(plain);
   expect(f.value).toBe('SUM(a) + SUM(b)\n+ SUM(c)');
   expect(plain[f.offsets[f.value.indexOf(' + SUM(b)')]]).toBe('\n');
 });
@@ -165,8 +165,8 @@ test('plain, single- and double-quoted scalars, single and multi-line', () => {
   expect(d2.value).toBe('SUM(a) + SUM(b)\n+ 1');
 });
 test('JSON strings with escapes, flow YAML and multi-document YAML', () => {
-  const src = fixture('escaped.semantic.json'),
-    rs = one(src, 'escaped.semantic.json');
+  const src = fixture('escaped.semantic.json');
+  const rs = one(src, 'escaped.semantic.json');
   expect(rs).toHaveLength(3);
   expect(rs[2].value).toBe('SUM(CASE WHEN status = "open" THEN 1 "x" END)');
   const at = rs[2].value.indexOf('"x"');

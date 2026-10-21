@@ -1,0 +1,76 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "categories": {
+    "correctness": "error"
+  },
+  "rules": {
+    "eslint/one-var": [
+      "error",
+      "never"
+    ],
+    "eslint/no-nested-ternary": "warn",
+    "eslint/max-depth": [
+      "warn",
+      {
+        "max": 4
+      }
+    ],
+    "eslint/max-params": [
+      "warn",
+      {
+        "max": 4
+      }
+    ],
+    "eslint/max-lines-per-function": [
+      "warn",
+      {
+        "max": 80,
+        "skipBlankLines": true,
+        "skipComments": true
+      }
+    ],
+    "eslint/max-lines": [
+      "warn",
+      {
+        "max": 500,
+        "skipBlankLines": true,
+        "skipComments": true
+      }
+    ],
+    "eslint/complexity": [
+      "warn",
+      {
+        "max": 15
+      }
+    ],
+    "eslint/id-length": [
+      "warn",
+      {
+        "min": 2,
+        "exceptions": [
+          "_",
+          "i",
+          "j",
+          "x",
+          "y",
+          "e"
+        ]
+      }
+    ],
+    "eslint/no-unused-vars": [
+      "error",
+      {
+        "ignoreRestSiblings": true,
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrors": "none"
+      }
+    ]
+  },
+  "ignorePatterns": [
+    "tests/fixtures/**",
+    "public/**",
+    "dist/**",
+    "data/**"
+  ]
+}

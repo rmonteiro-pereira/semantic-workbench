@@ -176,8 +176,8 @@ export function agentCatalog(documents: StoredDocument[]) {
   };
 }
 export function buildContext(documents: StoredDocument[], mappingId: string): RuntimeContext {
-  const parsed = parseDocuments(documents),
-    entry = mappingEntries(parsed).find(m => m.id === mappingId);
+  const parsed = parseDocuments(documents);
+  const entry = mappingEntries(parsed).find(m => m.id === mappingId);
   if (!entry)
     throw Error(
       'Mapping not found. Import a standalone mapping or an ontology with embedded mappings.',
@@ -192,8 +192,8 @@ export function modelContext(
   documentId: string,
   path: (string | number)[] = [],
 ): RuntimeContext {
-  const parsed = parseDocuments(documents),
-    p = parsed.find(x => x.doc.id === documentId);
+  const parsed = parseDocuments(documents);
+  const p = parsed.find(x => x.doc.id === documentId);
   if (!p?.data) throw Error('Semantic model not found.');
   let model: any = p.data;
   for (const k of path) model = model?.[k];
@@ -213,8 +213,8 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
   const problem = (code: string, message: string, path: (string | number)[] = entry.path) =>
     findings.push({ severity: 'error', code, message, evidence: evidence(entry.doc, path) });
   const resolve = (ref: any, kind: 'ontology' | 'semantic'): Target | null => {
-    const all = targets(parsed, kind),
-      label = kind === 'ontology' ? 'ontology' : 'semantic model';
+    const all = targets(parsed, kind);
+    const label = kind === 'ontology' ? 'ontology' : 'semantic model';
     let candidates = all.filter(t => t.data.name === ref.name);
     if (ref.iri && !/^[a-z][a-z\d+.-]*:/i.test(ref.iri)) {
       const local = ref.iri.replace(/^\.\//, '');
@@ -260,8 +260,8 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
       }
     : resolve(entry.data.semantic_model_ref, 'semantic');
   const semanticPrefix = sem?.path ?? [];
-  const ontology = ont?.data ?? {},
-    model = sem?.data ?? {};
+  const ontology = ont?.data ?? {};
+  const model = sem?.data ?? {};
   const context: RuntimeContext = {
     mappingId: entry.id,
     name: entry.data.name ?? entry.doc.filename,
@@ -304,7 +304,6 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
   };
   if (!ont || !sem) return context;
   const concepts = new Map<string, any>(context.concepts.map(c => [c.concept, c]));
-  const datasets = new Map<string, any>(context.datasets.map(d => [d.name, d]));
   const fieldMap = new Map<string, RuntimeField>();
   const metricMap = new Map<string, RuntimeMetric>();
   const addAi = (definition: any, scope: string, ev: Evidence) => {
@@ -354,8 +353,8 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
     expression: string,
   ): { fields: string[]; metrics: string[]; condition: unknown } => {
     const ast = parseExpression(expression, { conditional: true });
-    const fields = new Set<string>(),
-      metrics = new Set<string>();
+    const fields = new Set<string>();
+    const metrics = new Set<string>();
     for (const ref of columnRefs([ast.expression, ast.condition])) {
       if (ref.table) {
         const id = key(ref.table, ref.column);
@@ -418,9 +417,9 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
       concept = qualified[0];
       name = qualified[1];
     }
-    const queue = [concept],
-      seen = new Set<string>(),
-      matches: any[] = [];
+    const queue = [concept];
+    const seen = new Set<string>();
+    const matches: any[] = [];
     for (let i = 0; i < queue.length; i++) {
       const current = queue[i];
       if (seen.has(current)) continue;
@@ -472,8 +471,8 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
       );
   });
   for (let i = 0; i < queue.length; i++) {
-    const task = queue[i],
-      { node, path, rootConcept } = task;
+    const task = queue[i];
+    const { node, path, rootConcept } = task;
     let { concept, relationships } = task;
     if (task.depth > 128) {
       problem('mapping-depth', 'Mapping nesting exceeds 128.', path);
@@ -543,8 +542,8 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
     }
   }
   // metric bindings: a mapping document's root extension, or an embedded semantic model's (FR-028).
-  const kpiOwner = entry.ontology ? entry.data.semantic_model : entry.data,
-    kpiPath = entry.ontology ? [...entry.path, 'semantic_model'] : entry.path;
+  const kpiOwner = entry.ontology ? entry.data.semantic_model : entry.data;
+  const kpiPath = entry.ontology ? [...entry.path, 'semantic_model'] : entry.path;
   const kpi = readKpiBindings(kpiOwner, '', !entry.ontology);
   const extIndex = workbenchEntry(kpiOwner)?.index ?? 0;
   context.metricBindings = resolveBindings(kpi.value, ontology, new Set(metricMap.keys())).map(
@@ -686,9 +685,9 @@ export function planQuery(context: RuntimeContext, request: PlanRequest) {
     list.push(join);
     outgoing.set(join.from, list);
   }
-  const distances = new Map([[root, 0]]),
-    previous = new Map<string, any>(),
-    queue = [root];
+  const distances = new Map([[root, 0]]);
+  const previous = new Map<string, any>();
+  const queue = [root];
   for (let i = 0; i < queue.length; i++)
     for (const join of outgoing.get(queue[i]) ?? []) {
       if (!distances.has(join.to)) {
@@ -698,8 +697,8 @@ export function planQuery(context: RuntimeContext, request: PlanRequest) {
       }
     }
   const reachableWithout = (removed: string, target: string) => {
-    const seen = new Set([root]),
-      pending = [root];
+    const seen = new Set([root]);
+    const pending = [root];
     for (let i = 0; i < pending.length; i++)
       for (const edge of outgoing.get(pending[i]) ?? []) {
         if (edge.name === removed || seen.has(edge.to)) continue;

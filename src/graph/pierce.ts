@@ -23,8 +23,8 @@ export type PierceResult = {
   hidden: number;
   maxStep: number;
 };
-export const PIERCE_BUDGET = 150,
-  PIERCE_MAX = 500;
+export const PIERCE_BUDGET = 150;
+export const PIERCE_MAX = 500;
 const VALUE_KINDS = new Set(['ValueType', 'Built-in concept']);
 // Technical resources as the Neighborhood projection reads them: in a model with OWL classes,
 // everything that is not a class.
@@ -39,8 +39,8 @@ export function boundedClosure(
   start: string[],
   o: PierceOptions,
 ): PierceResult {
-  const byId = new Map(nodes.map(n => [n.id, n])),
-    technical = o.technical ? new Set<string>() : technicalIds(nodes);
+  const byId = new Map(nodes.map(n => [n.id, n]));
+  const technical = o.technical ? new Set<string>() : technicalIds(nodes);
   const allowed = (id: string) => {
     const n = byId.get(id);
     if (!n) return false;
@@ -67,9 +67,9 @@ export function boundedClosure(
         a.to.localeCompare(b.to),
     );
   // Full closure, in order.
-  const steps: Record<string, number> = {},
-    order: string[] = [],
-    via: Record<string, string> = {};
+  const steps: Record<string, number> = {};
+  const order: string[] = [];
+  const via: Record<string, string> = {};
   let layer = [...new Set(start)]
     .filter(id => byId.has(id))
     .sort((a, b) => name(a).localeCompare(name(b)) || a.localeCompare(b));
@@ -97,9 +97,9 @@ export function boundedClosure(
     layer = next.map(n => n.id);
     order.push(...layer);
   }
-  const budget = Math.max(1, Math.min(o.budget, PIERCE_MAX)),
-    shownList = order.slice(0, budget),
-    shown = new Set(shownList);
+  const budget = Math.max(1, Math.min(o.budget, PIERCE_MAX));
+  const shownList = order.slice(0, budget);
+  const shown = new Set(shownList);
   const frontier: Record<string, number> = {};
   for (const id of shownList) {
     let n = 0;

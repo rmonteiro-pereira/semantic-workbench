@@ -6,12 +6,12 @@ import { ansiExpression, expressionRefs, metricDependencies } from './deps';
 // metric attributes in Ossie `custom_extensions` (research R1, R12): an entry with
 // vendor_name SEMANTIC_WORKBENCH whose `data` is a JSON string. Validated against the pinned
 // application schemas by the same code in the browser, the file store and the API (FR-003).
-export const VENDOR = 'SEMANTIC_WORKBENCH',
-  METRIC_SCHEMA = 'semantic-workbench/metric/v1',
-  MAPPING_SCHEMA = 'semantic-workbench/mapping/v1';
+export const VENDOR = 'SEMANTIC_WORKBENCH';
+export const METRIC_SCHEMA = 'semantic-workbench/metric/v1';
+export const MAPPING_SCHEMA = 'semantic-workbench/mapping/v1';
 const ajv = new Ajv2020({ strict: false, allErrors: true });
-const checkMetric = ajv.compile(metricSchema),
-  checkMapping = ajv.compile(mappingSchema);
+const checkMetric = ajv.compile(metricSchema);
+const checkMapping = ajv.compile(mappingSchema);
 export const GRAINS = ['day', 'week', 'month', 'quarter', 'year'] as const;
 export type Grain = (typeof GRAINS)[number];
 export type KpiType = 'simple' | 'ratio' | 'derived' | 'cumulative' | 'filtered';
@@ -76,8 +76,6 @@ function parseData(data: unknown, path: string): { value?: any; issues: Issue[] 
     };
   }
 }
-const pointer = (segments: (string | number)[]) =>
-  segments.map(s => '/' + String(s).replace(/~/g, '~0').replace(/\//g, '~1')).join('');
 // Rules stated in plain language; the schema's if/then branches would otherwise report bare `required`.
 function metricRules(v: any): { inner: string; message: string }[] {
   const out: { inner: string; message: string }[] = [];
@@ -148,8 +146,8 @@ export function readMetricExtension(
 ): { value: MetricExtension | null; issues: Issue[] } {
   const entry = workbenchEntry(metric);
   if (!entry) return { value: null, issues: [] };
-  const dataPath = `${path}/custom_extensions/${entry.index}/data`,
-    parsed = parseData(entry.data, dataPath);
+  const dataPath = `${path}/custom_extensions/${entry.index}/data`;
+  const parsed = parseData(entry.data, dataPath);
   if (parsed.issues.length) return { value: null, issues: parsed.issues };
   const issues = schemaIssues(checkMetric, parsed.value, dataPath, metricRules(parsed.value));
   return { value: issues.length ? null : parsed.value, issues };
@@ -162,8 +160,8 @@ export function readKpiBindings(
 ): { value: KpiBinding[]; issues: Issue[] } {
   const entry = workbenchEntry(owner);
   if (!entry) return { value: [], issues: [] };
-  const dataPath = `${path}/custom_extensions/${entry.index}/data`,
-    parsed = parseData(entry.data, dataPath);
+  const dataPath = `${path}/custom_extensions/${entry.index}/data`;
+  const parsed = parseData(entry.data, dataPath);
   if (parsed.issues.length) return { value: [], issues: parsed.issues };
   // On a semantic model root the entry may hold model defaults instead of metric bindings.
   if (!mappingDocument && !(object(parsed.value) && parsed.value.schema === MAPPING_SCHEMA))
@@ -211,8 +209,8 @@ export function ratioParts(
     /^\(?\s*"?([A-Za-z_][\w$]*)"?\s*\)?\s*\/\s*(?:NULLIF\s*\(\s*"?([A-Za-z_][\w$]*)"?\s*,\s*0(?:\.0+)?\s*\)|"?([A-Za-z_][\w$]*)"?)$/i,
   );
   if (!m) return null;
-  const numerator = m[1],
-    denominator = m[2] ?? m[3];
+  const numerator = m[1];
+  const denominator = m[2] ?? m[3];
   return metricNames.has(numerator) && metricNames.has(denominator)
     ? { numerator, denominator, guarded: !!m[2] }
     : null;
@@ -261,13 +259,13 @@ export function metricLayerIssues(
   prefix: string,
   fieldNames: Map<string, Set<string>>,
 ): Issue[] {
-  const issues: Issue[] = [],
-    metrics: any[] = Array.isArray(model?.metrics) ? model.metrics.filter(object) : [];
+  const issues: Issue[] = [];
+  const metrics: any[] = Array.isArray(model?.metrics) ? model.metrics.filter(object) : [];
   const names = new Set(metrics.map(m => m.name).filter((n: unknown) => typeof n === 'string'));
   const deps = new Map<string, string[]>();
   metrics.forEach((m: any, i: number) => {
-    const path = `${prefix}/metrics/${i}`,
-      sql = ansiExpression(m);
+    const path = `${prefix}/metrics/${i}`;
+    const sql = ansiExpression(m);
     deps.set(m.name, sql ? metricDependencies(sql, names) : []);
     const { value, issues: own } = readMetricExtension(m, path);
     issues.push(...own);
@@ -349,8 +347,8 @@ export function metricLayerIssues(
     const stack: [string, number][] = [[start, 0]];
     state.set(start, 1);
     while (stack.length) {
-      const top = stack[stack.length - 1],
-        next = (deps.get(top[0]) ?? [])[top[1]++];
+      const top = stack[stack.length - 1];
+      const next = (deps.get(top[0]) ?? [])[top[1]++];
       if (next === undefined) {
         state.set(top[0], 2);
         stack.pop();

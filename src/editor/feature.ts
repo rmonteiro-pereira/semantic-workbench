@@ -44,8 +44,8 @@ export function featureLabeler(source?: string) {
   };
 }
 export function sourceLineRange(source: string, line: number) {
-  const lines = source.split('\n'),
-    index = Math.max(0, Math.min(lines.length - 1, line - 1));
+  const lines = source.split('\n');
+  const index = Math.max(0, Math.min(lines.length - 1, line - 1));
   const start = lines.slice(0, index).reduce((n, s) => n + s.length + 1, 0);
   return { start, end: start + lines[index].length, line: index + 1 };
 }

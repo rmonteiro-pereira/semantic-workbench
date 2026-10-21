@@ -21,8 +21,8 @@ export type DataLayout = {
   locate?: (slug: string) => ProjectLocation | undefined;
 };
 export function dataLayout(root = process.env.DATA_DIR || 'data'): DataLayout {
-  const r = resolve(root),
-    state = join(r, 'state');
+  const r = resolve(root);
+  const state = join(r, 'state');
   return {
     root: r,
     projects: join(r, 'projects'),
@@ -51,6 +51,8 @@ export function assertSlug(slug: unknown): string {
 }
 // Project-relative POSIX paths only: no absolute paths, no `..` or `.` segments, nothing under `.git/`.
 export function projectPath(path: unknown): string {
+  // Control characters are rejected on purpose: they never belong in a path.
+  // oxlint-disable-next-line no-control-regex
   if (typeof path !== 'string' || !path || path.length > 1024 || /[\x00-\x1f\\]/.test(path))
     throw new PathError('Invalid file path.');
   if (path.startsWith('/') || /^[a-zA-Z]:/.test(path))
@@ -72,8 +74,8 @@ export function locationOf(entry: {
   assertSlug(entry.slug);
   if (entry.folder === undefined && entry.repo === undefined)
     return { folder: entry.slug, repo: entry.slug };
-  const folder = projectPath(entry.folder ?? entry.repo),
-    repo = projectPath(entry.repo ?? folder);
+  const folder = projectPath(entry.folder ?? entry.repo);
+  const repo = projectPath(entry.repo ?? folder);
   if (folder !== repo && !folder.startsWith(repo + '/'))
     throw new PathError('A project folder must be its repository folder or lie inside it.');
   return { folder, repo };
@@ -97,9 +99,9 @@ export function projectPrefix(layout: DataLayout, slug: string) {
 // link anywhere on the way (for example one checked out from a pulled repository) could lead
 // outside it, so no existing segment may be a link; reads and writes both go through here.
 export function projectFile(layout: DataLayout, slug: string, path: string) {
-  const dir = projectDir(layout, slug),
-    rel = projectPath(path),
-    file = resolve(dir, rel);
+  const dir = projectDir(layout, slug);
+  const rel = projectPath(path);
+  const file = resolve(dir, rel);
   if (!file.startsWith(dir + sep)) throw new PathError('Path escapes the project folder.');
   assertNoLinks(dir, rel);
   return file;
@@ -120,6 +122,8 @@ export function assertNoLinks(dir: string, rel: string) {
 export function projectName(name: unknown, existing: string[] = [], except?: string): string {
   if (typeof name !== 'string') throw new PathError('Project name must be text.');
   const value = name.trim();
+  // Control characters are rejected on purpose: they never belong in a name.
+  // oxlint-disable-next-line no-control-regex
   if (!value || value.length > 200 || /[\x00-\x1f]/.test(value))
     throw new PathError('Use a project name of 1–200 characters.');
   if (existing.some(n => n !== except && n.toLocaleLowerCase() === value.toLocaleLowerCase()))
@@ -136,26 +140,26 @@ export function slugify(name: string, taken: Set<string>) {
       .replace(/^-+|-+$/g, '')
       .slice(0, 56) || 'project'
   ).replace(/-+$/, '');
-  let slug = base,
-    i = 2;
+  let slug = base;
+  let i = 2;
   while (taken.has(slug)) slug = `${base}-${i++}`;
   return assertSlug(slug);
 }
 export function uniqueName(name: string, existing: string[]) {
   const lower = new Set(existing.map(n => n.toLocaleLowerCase()));
-  let value = name,
-    i = 2;
+  let value = name;
+  let i = 2;
   while (lower.has(value.toLocaleLowerCase())) value = `${name} (${i++})`;
   return value;
 }
 // `name.ext` → `name (2).ext` until free (migration and keep-both imports).
 export function disambiguate(path: string, taken: Set<string>) {
   if (!taken.has(path)) return path;
-  const slash = path.lastIndexOf('/') + 1,
-    base = path.slice(slash),
-    dot = base.lastIndexOf('.');
-  const stem = dot > 0 ? base.slice(0, dot) : base,
-    ext = dot > 0 ? base.slice(dot) : '';
+  const slash = path.lastIndexOf('/') + 1;
+  const base = path.slice(slash);
+  const dot = base.lastIndexOf('.');
+  const stem = dot > 0 ? base.slice(0, dot) : base;
+  const ext = dot > 0 ? base.slice(dot) : '';
   for (let i = 2; ; i++) {
     const candidate = path.slice(0, slash) + `${stem} (${i})${ext}`;
     if (!taken.has(candidate)) return candidate;

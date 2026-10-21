@@ -1,8 +1,8 @@
 import { type Issue, rejectIssues } from './diagnostics';
-const RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-  OWL = 'http://www.w3.org/2002/07/owl#',
-  SH = 'http://www.w3.org/ns/shacl#',
-  XSD = 'http://www.w3.org/2001/XMLSchema#';
+const RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
+const OWL = 'http://www.w3.org/2002/07/owl#';
+const SH = 'http://www.w3.org/ns/shacl#';
+const XSD = 'http://www.w3.org/2001/XMLSchema#';
 export function validateRdf(store: any): Issue[] {
   const issues: Issue[] = [];
   const fail = (id: string, p: string, message: string) =>
@@ -72,8 +72,8 @@ export function validateRdf(store: any): Issue[] {
     while (term?.value !== RDF + 'nil') {
       if (!resource(term) || seen.has(term.value) || n > 10000) return false;
       seen.add(term.value);
-      const first = get(term.value, RDF + 'first'),
-        rest = get(term.value, RDF + 'rest');
+      const first = get(term.value, RDF + 'first');
+      const rest = get(term.value, RDF + 'rest');
       if (first.length !== 1 || rest.length !== 1 || !path(first[0], active)) return false;
       n++;
       term = rest[0];
@@ -114,8 +114,8 @@ export function validateRdf(store: any): Issue[] {
       ['minLength', 'maxLength'],
       ['qualifiedMinCount', 'qualifiedMaxCount'],
     ]) {
-      const l = get(id, SH + lo)[0],
-        h = get(id, SH + hi)[0];
+      const l = get(id, SH + lo)[0];
+      const h = get(id, SH + hi)[0];
       if (integer(l) && integer(h) && BigInt(l.value) > BigInt(h.value))
         fail(id, SH + hi, `${hi} must be greater than or equal to ${lo}.`);
     }
@@ -151,19 +151,19 @@ export function validateRdf(store: any): Issue[] {
     for (const v of get(id, SH + 'property'))
       if (!resource(v)) fail(id, SH + 'property', 'Expected a property-shape resource.');
     if (types.includes(OWL + 'Restriction')) {
-      const on = get(id, OWL + 'onProperty'),
-        qualifiers = [
-          'someValuesFrom',
-          'allValuesFrom',
-          'hasValue',
-          'hasSelf',
-          'cardinality',
-          'minCardinality',
-          'maxCardinality',
-          'qualifiedCardinality',
-          'minQualifiedCardinality',
-          'maxQualifiedCardinality',
-        ];
+      const on = get(id, OWL + 'onProperty');
+      const qualifiers = [
+        'someValuesFrom',
+        'allValuesFrom',
+        'hasValue',
+        'hasSelf',
+        'cardinality',
+        'minCardinality',
+        'maxCardinality',
+        'qualifiedCardinality',
+        'minQualifiedCardinality',
+        'maxQualifiedCardinality',
+      ];
       if (on.length !== 1 || !resource(on[0]))
         fail(id, OWL + 'onProperty', 'An OWL restriction requires exactly one property resource.');
       const qs = qualifiers.filter(p => ps.has(OWL + p));
