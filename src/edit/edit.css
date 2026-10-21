@@ -78,3 +78,7 @@ button.link{border:0;background:none;padding:2px 4px;color:#1e6a4f;font-size:12p
  .item-actions button{padding:8px 10px}
  .item-actions .item-state{flex-basis:100%}
 }
+
+.wizard-steps { flex-wrap: nowrap; overflow-x: auto; min-width: 0; }
+.wizard-steps li { flex: 0 0 auto; }
+.wizard-steps button { white-space: nowrap; padding: 5px 6px; gap: 3px; font-size: 10px; }

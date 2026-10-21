@@ -68,14 +68,17 @@ import "./style.css";
 const sample = `name: Commerce\nontology:\n  - concept: Customer\n    type: EntityType\n    description: A person who purchases products.\n    relationships:\n      - name: places\n        roles:\n          - concept: Order\n        verbalizes: ['{Customer} places {Order}']\n  - concept: Order\n    type: EntityType\n    description: A purchase made by a customer.\n    relationships:\n      - name: contains\n        roles:\n          - concept: Product\n        verbalizes: ['{Order} contains {Product}']\n  - concept: Product\n    type: EntityType\n    description: An item available for purchase.\n`;
 function App() {
   const [docs, setDocs] = useState<Doc[]>([]),
-    [current, setCurrent] = useState<Doc | null>(null),
+    [current, setCurrentState] = useState<Doc | null>(null),
     [source, setSource] = useState(""),
     [selected, setSelected] = useState(""),
     [selectedEdge, setSelectedEdge] = useState(""),
-    [tab, setTab] = useState("fullgraph"),
+    [tab, setTabState] = useState("fullgraph"),
     [search, setSearch] = useState(""),
     [message, setMessage] = useState(""),
     [busy, setBusy] = useState(false);
+  function setCurrent(next:Doc|null){if(next?.id!==current?.id)setMessage('');setCurrentState(next);}
+  function setTab(next:string){setMessage('');setTabState(next==='graph'?'neighborhood':next);}
+  useEffect(()=>{if(!message)return;const timer=setTimeout(()=>setMessage(''),5000);return()=>clearTimeout(timer);},[message]);
   const [pendingImport,setPendingImport]=useState<ImportDraft[]|null>(null);
   const [projects,setProjects]=useState<ProjectInfo[]>([]),[status,setStatus]=useState<WorkspaceStatus|null>(null);
   const [stale,setStale]=useState<{current:string|null;currentHash:string|null}|null>(null);
@@ -141,6 +144,7 @@ function App() {
       .catch(() => setMessage("Cannot reach local API"));
   }, []);
   function open(d: Doc):boolean {
+    setMessage('');
     if(current?.id===d.id){if(compact)closeWorkspace();return true;}
     if (current && source !== current.source && !confirm("Discard unsaved changes?")) return false;
     setCurrent(d);
@@ -148,8 +152,8 @@ function App() {
     setNeighborhoodFocus('');if(compact)closeWorkspace();
     setSelected("");
     setSelectedEdge("");
-    setSearch("");setShowAll(false);
-    if(tab!=='graph'&&validateInput(d.source,d.filename).model?.kind==='Ossie mappings')setTab('mappings');
+    setSearch("");
+    if(tab!=='neighborhood'&&validateInput(d.source,d.filename).model?.kind==='Ossie mappings')setTab('mappings');
     return true;
   }
   // While typing in Source, findings come from the editor's validation worker (after a 300 ms pause)
@@ -165,7 +169,7 @@ function App() {
   const validation=live?{...checked,issues:live,valid:!live.some(i=>i.severity==='error')}:checked;
   const result = {model:validation.model,error:(source||current)&&!validation.valid?validation.issues.filter(i=>i.severity==='error').map(i=>i.message).join('\n'):''};
   const model = result.model;
-  const [showAll,setShowAll]=useState(false);
+
   // ODCS contract overview and dataset pages (Phase 9): the object whose page is open, per document.
   const isContract=model?.kind==='ODCS';
   const [contractObject,setContractObject]=useState<string|null>(null);
@@ -194,11 +198,11 @@ function App() {
       const target=hit??mapped;if(target)out.push({doc:id,file:d.path,entity:target.id,name:target.name,reason:hit?'Same identity (IRI, physical name or business definition)':'Ossie mapping reference'});}
     return out;
   }
-  function walkTo(index:number){const step=walk.steps[index];if(!step)return;if(step.doc!==current?.id){const d=docsRef.current.get(step.doc);if(!d||!open(d))return;setTab('graph');setShowAll(false);}setSelected(step.center);setSelectedEdge('');dispatchWalk({type:'jump',index});}
+  function walkTo(index:number){const step=walk.steps[index];if(!step)return;if(step.doc!==current?.id){const d=docsRef.current.get(step.doc);if(!d||!open(d))return;setTab('neighborhood');}setSelected(step.center);setSelectedEdge('');dispatchWalk({type:'jump',index});}
   function crossTo(t:CrossFileTarget){const d=docsRef.current.get(t.doc);if(!d||!current)return;const from=walk.steps[walk.index];if(!open(d))return;
     if(!from||from.doc!==current.id||from.center!==neighborhoodFocus){const c=model?.entities.find(e=>e.id===(neighborhoodFocus||selected));if(c)dispatchWalk({type:'push',step:{doc:current.id,center:c.id,name:c.name}});}
-    dispatchWalk({type:'push',step:{doc:t.doc,center:t.entity,name:t.name,via:{id:'file',label:'same definition'}}});setTab('graph');setShowAll(false);setSelected(t.entity);setSelectedEdge('');}
-  function showNeighborhood(id=selected||relationship?.source||neighborhoodFocus){setNeighborhoodFocus(id);setSearch('');setTab('graph');setShowAll(false);}
+    dispatchWalk({type:'push',step:{doc:t.doc,center:t.entity,name:t.name,via:{id:'file',label:'same definition'}}});setTab('neighborhood');setSelected(t.entity);setSelectedEdge('');}
+  function showNeighborhood(id=selected||relationship?.source||neighborhoodFocus){setNeighborhoodFocus(id);setSearch('');setTab('neighborhood');}
   // Item editing (FR-048–FR-052): the editor, add and delete dialogs work on one file of a project.
   type ItemTarget={docId:string;path:Path;kind:ItemKind};
   const [editing,setEditing]=useState<ItemTarget|null>(null),[adding,setAdding]=useState<{docId:string;kind?:ItemKind;owner?:Path;preset?:Record<string,any>}|null>(null),[deleting,setDeleting]=useState<ItemTarget|null>(null),[wizard,setWizard]=useState(false);
@@ -262,12 +266,31 @@ function App() {
   latest.current=()=>{const t=entity?entityTarget(entity):relationship?relationshipTarget(relationship):null;if(t){setEditing(t);return;}const r=entity?rdfTarget(entity):relationship?rdfEdgeTarget(relationship):null;if(r)setRdfEditing(r);};
   // "e" opens the editor of the selected item (outside text fields and dialogs).
   // Full screen for Graph and Neighborhood (FR-066): the canvas row (graph and details) fills the screen.
-  const canvasRow=useRef<HTMLDivElement|null>(null),graphView=tab==='fullgraph'||(tab==='graph'&&!showAll);
+  const inspectorVisible=tab!=='mappings'&&tab!=='metrics'&&!!(entity||relationship);
+  const [phone,setPhone]=useState(()=>window.innerWidth<=650);
+  useEffect(()=>{const update=()=>setPhone(window.innerWidth<=650);window.addEventListener('resize',update);return()=>window.removeEventListener('resize',update);},[]);
+  const pageDetails=phone&&inspectorVisible&&(tab==='overview'||tab==='catalog');
+  const canvasRow=useRef<HTMLDivElement|null>(null),graphView=tab==='fullgraph'||(tab==='neighborhood');
+  useEffect(()=>{
+    if(!pageDetails)return;
+    const previous=document.activeElement as HTMLElement|null;
+    const panel=canvasRow.current?.querySelector<HTMLElement>('.inspector');
+    panel?.querySelector<HTMLButtonElement>('.inspector-close')?.focus();
+    const key=(event:KeyboardEvent)=>{
+      if(event.key==='Escape'){setSelected('');setSelectedEdge('');return;}
+      if(event.key!=='Tab'||!panel)return;
+      const controls=Array.from(panel.querySelectorAll<HTMLElement>('button:not(:disabled),input,select,textarea,a[href]')).filter(el=>el.getClientRects().length);
+      const first=controls[0],last=controls.at(-1);
+      if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}
+      else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}
+    };
+    document.addEventListener('keydown',key);return()=>{document.removeEventListener('keydown',key);if(previous?.isConnected)previous.focus();};
+  },[pageDetails]);
   const fullscreen=useFullscreen(canvasRow,graphView&&!!model);
   const toggleFull=useRef(()=>{});toggleFull.current=fullscreen.toggle;
   useEffect(()=>{const key=(e:KeyboardEvent)=>{const el=e.target as HTMLElement;if(e.key!=='f'||e.ctrlKey||e.metaKey||e.altKey||el.closest('input,textarea,select,[contenteditable=true],dialog,.cm-editor'))return;e.preventDefault();toggleFull.current();};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[]);
   useEffect(()=>{const key=(e:KeyboardEvent)=>{const el=e.target as HTMLElement;if(e.key!=='e'||e.ctrlKey||e.metaKey||e.altKey||el.closest('input,textarea,select,[contenteditable=true],dialog'))return;e.preventDefault();latest.current();};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[]);
-  function selectEntity(id:string){setSelected(id);setSelectedEdge('');if(tab==='graph'&&!showAll){setNeighborhoodFocus(id);setSearch('');}}
+  function selectEntity(id:string){setSelected(id);setSelectedEdge('');if(tab==='neighborhood'){setNeighborhoodFocus(id);setSearch('');}}
   async function loadExample(id:string) {
     const set=exampleSet(id)!;
     if(current && source !== current.source && !confirm('Discard unsaved changes and open examples?'))return;
@@ -277,7 +300,7 @@ function App() {
       const loaded=await refresh();
       const first=loaded.find(d=>d.project===slug&&d.path===set.files[0])??loaded.find(d=>d.project===slug);
       if(first){setCurrent(first);setSource(first.source);}
-      setNeighborhoodFocus('');if(compact)closeWorkspace();setSelected('');setSelectedEdge('');setSearch('');setShowAll(false);setTab(set.tab);
+      setNeighborhoodFocus('');if(compact)closeWorkspace();setSelected('');setSelectedEdge('');setSearch('');setTab(set.tab);
       setMessage(set.message);
     }catch(e){setMessage((e as Error).message)}finally{setBusy(false)}
   }
@@ -313,8 +336,8 @@ function App() {
     const loaded=await refresh(),last=drafts[drafts.length-1].filename;
     const opened=loaded.find(d=>d.project===created.slug&&d.path===last)??loaded.find(d=>d.project===created.slug);
     if(opened){setCurrent(opened);setSource(opened.source);}
+    setNeighborhoodFocus('');if(compact)closeWorkspace();setSelected('');setSelectedEdge('');setSearch('');setTab('neighborhood');
     setMessage(`Imported ${created.written.length} file${created.written.length===1?'':'s'} into project ${created.name}.`);
-    setNeighborhoodFocus('');if(compact)closeWorkspace();setSelected('');setSelectedEdge('');setSearch('');setShowAll(false);setTab('graph');
   }
   async function importFiles(files: File[]) {
     if (!files.length) return;
@@ -388,7 +411,7 @@ function App() {
         onClose={()=>setRdfEditing(null)} onSaved={saved=>{const file=docsRef.current.get(rdfEditing.docId)?.path;setRdfEditing(null);applySaved(saved,`Saved to ${file}.`);}} onDelete={()=>{setRdfDeleting(rdfEditing);setRdfEditing(null);}} onOpenSource={line=>{const id=rdfEditing.docId;setRdfEditing(null);openSourceAt(id,line);}}/>}
       {rdfAdding&&docsRef.current.get(rdfAdding)&&<RdfAddItem doc={docsRef.current.get(rdfAdding)!} base={docText(rdfAdding)} onClose={()=>setRdfAdding(null)} onSaved={(saved,subject)=>{setRdfAdding(null);applySaved([saved],`Added to ${docsRef.current.get(saved.docId)?.path}.`);if(saved.docId===current?.id){setSelected(subject);setSelectedEdge('');}}}/>}
       {rdfDeleting&&docsRef.current.get(rdfDeleting.docId)&&<RdfDeleteItem doc={docsRef.current.get(rdfDeleting.docId)!} base={docText(rdfDeleting.docId)} subject={rdfDeleting.subject} label={rdfDeleting.label} projectDocs={projectDocsOf(rdfDeleting.docId)} onClose={()=>setRdfDeleting(null)} onDeleted={saved=>{const label=rdfDeleting.label;setRdfDeleting(null);setSelected('');setSelectedEdge('');applySaved(saved,`Deleted ${label}.`);}}/>}
-      {wizard&&kpiProject&&<KpiWizard project={kpiProject} docs={docs.filter(d=>d.project===kpiProject)} kpis={kpis} onClose={()=>setWizard(false)} onSaved={(file,modelPath,name)=>{setWizard(false);setMessage(`Created KPI ${name} in ${file}.`);setSelectedKpi(`${file}#${modelPath.join('/')}#${name}`);setTab('metrics');void refresh().catch(()=>{});}}/>}
+      {wizard&&kpiProject&&<KpiWizard project={kpiProject} docs={docs.filter(d=>d.project===kpiProject)} kpis={kpis} onClose={()=>setWizard(false)} onSaved={(file,modelPath,name)=>{setWizard(false);setSelectedKpi(`${file}#${modelPath.join('/')}#${name}`);setTab('metrics');setMessage(`Created KPI ${name} in ${file}.`);void refresh().catch(()=>{});}}/>}
       {pendingImport&&<ImportRepair initial={pendingImport} onCancel={()=>setPendingImport(null)} onImport={commitImports}/>}
       {compact&&sidebarOpen&&<button className="workspace-scrim" aria-label="Dismiss workspace drawer" tabIndex={-1} onClick={closeWorkspace}/>}
       <aside id="workspace-sidebar" className="sidebar workspace-sidebar" ref={sidebarRef} inert={!sidebarOpen} role={compact&&sidebarOpen?'dialog':undefined} aria-modal={compact&&sidebarOpen?true:undefined} aria-label="Workspace documents">
@@ -402,13 +425,13 @@ function App() {
         <div className="workspace-label">
           LOCAL WORKSPACE <span className="dot" />
         </div>
-        <button className={`nav${tab==='scm'?'':' active'}`} onClick={() => {showNeighborhood();if(compact)closeWorkspace();}}>
+        <button className={`nav${tab!=='scm'&&tab!=='source'?' active':''}`} aria-current={tab!=='scm'&&tab!=='source'?'page':undefined} onClick={() => {setTab('fullgraph');if(compact)closeWorkspace();}}>
           <Network size={18} /> Model explorer
         </button>
-        <button className="nav" onClick={() => {setTab("source");if(compact)closeWorkspace();}}>
+        <button className={`nav${tab==='source'?' active':''}`} aria-current={tab==='source'?'page':undefined} onClick={() => {setTab("source");if(compact)closeWorkspace();}}>
           <FileCode size={18} /> Source editor
         </button>
-        <button className={`nav${tab==='scm'?' active':''}`} onClick={() => {setHistoryPath(undefined);setTab("scm");if(compact)closeWorkspace();}}>
+        <button className={`nav${tab==='scm'?' active':''}`} aria-current={tab==='scm'?'page':undefined} onClick={() => {setHistoryPath(undefined);setTab("scm");if(compact)closeWorkspace();}}>
           <GitBranch size={18} /> Source control{(()=>{const n=projects.find(p=>p.slug===scmSlug)?.changes??0;return n>0&&<span className="nav-count" aria-label={`${n} changed files`}>{n}</span>;})()}
         </button>
         <div className="section-label">
@@ -467,26 +490,26 @@ function App() {
           </div>
         </header>
         <div className="toolbar">
-          <ScrollStrip className="tabs" selection={`${tab}-${showAll}`}>
-            {isContract&&<button className={tab==='contract'?'selected':''} onClick={()=>setTab('contract')}><FileCheck2 size={16}/> Contract</button>}
-            <button className={showAll && tab==='graph'?'selected':''} onClick={()=>{setTab('graph');setShowAll(true);setSearch('')}}><Layers size={16}/> Overview</button>
-            <button className={tab==='fullgraph' ? "selected" : ""} onClick={() => {setTab("fullgraph");setShowAll(false);setSearch('')}}>
+          <ScrollStrip className="tabs" selection={tab}>
+            {isContract&&<button className={tab==='contract'?'selected':''} aria-current={tab==='contract'?'page':undefined} onClick={()=>setTab('contract')}><FileCheck2 size={16}/> Contract</button>}
+            <button className={tab==='overview'?'selected':''} aria-current={tab==='overview'?'page':undefined} onClick={()=>{setTab('overview');setSearch('')}}><Layers size={16}/> Overview</button>
+            <button className={tab==='fullgraph' ? "selected" : ""} aria-current={tab==='fullgraph' ?'page':undefined} onClick={() => {setTab("fullgraph");setSearch('')}}>
               <Network size={16} /> Graph
             </button>
-            <button className={tab==='graph'&&!showAll?'selected':''} onClick={()=>showNeighborhood()}><Focus size={16}/> Neighborhood</button>
+            <button className={tab==='neighborhood'?'selected':''} aria-current={tab==='neighborhood'?'page':undefined} onClick={()=>showNeighborhood(neighborhoodFocus||selected||relationship?.source||'')}><Focus size={16}/> Neighborhood</button>
             <button
-              className={tab === "catalog" ? "selected" : ""}
+              className={tab === "catalog" ? "selected" : ""} aria-current={tab === "catalog" ?'page':undefined}
               onClick={() => setTab("catalog")}
             >
               <Box size={16} /> Catalog
             </button>
-            <button className={tab === "source" ? "selected" : ""} onClick={() => {setTab("source");if(compact)closeWorkspace();}}>
+            <button className={tab === "source" ? "selected" : ""} aria-current={tab === "source" ?'page':undefined} onClick={() => {setTab("source");if(compact)closeWorkspace();}}>
               <FileCode size={16} /> Source
             </button>
-            <button className={tab==='mappings'?'selected':''} onClick={()=>setTab('mappings')}><Layers size={16}/> Mappings</button>
-            <button className={tab==='metrics'?'selected':''} onClick={()=>setTab('metrics')}><Gauge size={16}/> Metrics{kpis.length>0&&<span className="tab-count">{kpis.length}</span>}</button>
+            <button className={tab==='mappings'?'selected':''} aria-current={tab==='mappings'?'page':undefined} onClick={()=>setTab('mappings')}><Layers size={16}/> Mappings</button>
+            <button className={tab==='metrics'?'selected':''} aria-current={tab==='metrics'?'page':undefined} onClick={()=>setTab('metrics')}><Gauge size={16}/> Metrics{kpis.length>0&&<span className="tab-count">{kpis.length}</span>}</button>
           </ScrollStrip>
-          {groupingOverview&&(tab==='fullgraph'||(tab==='graph'&&showAll))&&<GroupingControls overview={groupingOverview} value={grouping.value} onChange={grouping.change} example={model!.name.includes('UBL')} error={grouping.error}/>}
+          {groupingOverview&&(tab==='fullgraph'||(tab==='overview'))&&<GroupingControls overview={groupingOverview} value={grouping.value} onChange={grouping.change} example={model!.name.includes('UBL')} error={grouping.error}/>}
           <label className="search">
             <Search size={16} />
             <input
@@ -497,9 +520,9 @@ function App() {
           </label>
         </div>
         {tab!=='scm'&&(source||current)&&(showValidation||!!result.error)&&<details className="validation-details" open><summary onClick={e=>{e.preventDefault();setShowValidation(false);}}>Validation findings</summary><ValidationPanel source={source} issues={validation.issues} onLocate={issue=>{setTab('source');setTimeout(()=>{sourceEditor.current?.locate(issue);},0);}}/></details>}
-        <div ref={canvasRow} className={`canvas-row${fullscreen.active?' is-fullscreen':''}${fullscreen.fallback?' window-fill':''}`}>
-          <section className="canvas">
-            {tab==='contract'&&isContract&&current ? (contractObject?<DatasetPage key={contractObject} doc={current} data={(model as any).document} objectName={contractObject} projectDocs={docs.filter(d=>d.project===current.project)} onBack={()=>setContractObject(null)} onOpenObject={setContractObject} gitVersion={gitVersion} editor={propertyEditor({doc:current,base:docText(current.id),onSaved:applySaved,onError:setMessage})}/>:<ContractOverview data={(model as any).document} onOpen={setContractObject}/>) : tab==='scm' ? (scmSlug?<SourceControl projects={projects} project={scmSlug} version={gitVersion} unsaved={current&&current.project===scmSlug&&source!==current.source?[current.path]:[]} historyPath={historyPath} onProject={slug=>{setScmProject(slug);setHistoryPath(undefined);}} onChanged={()=>void refresh().catch(()=>{})} onOpen={(project,path)=>{const d=docsRef.current.get(`${project}/${path}`);if(d&&open(d))setTab('source');}}/>:<p className="hint">Import definitions or load an example to start a project.</p>) : tab==='metrics' ? <MetricsView project={kpiProject} projectName={projects.find(p=>p.slug===kpiProject)?.name} kpis={kpis} error={kpiError} loading={kpiLoading} selected={selectedKpi} onSelect={setSelectedKpi} filter={kpiFilter} onNew={()=>setWizard(true)} onEdit={editKpi}/> : tab==='mappings' ? <MappingExplorer onEditItem={editMappingItem} currentId={current?.id} revisionKey={docs.map(d=>d.id+':'+d.hash).join('|')} dirty={!!current&&source!==current.source}/> : !source && !current ? (
+        <div ref={canvasRow} className={`canvas-row${inspectorVisible?' has-inspector':''}${pageDetails?' page-details':''}${fullscreen.active?' is-fullscreen':''}${fullscreen.fallback?' window-fill':''}`}>
+          <section className="canvas" inert={pageDetails}>
+            {tab==='contract'&&isContract&&current ? (contractObject?<DatasetPage key={contractObject} doc={current} data={(model as any).document} objectName={contractObject} projectDocs={docs.filter(d=>d.project===current.project)} onBack={()=>setContractObject(null)} onOpenObject={setContractObject} gitVersion={gitVersion} editor={propertyEditor({doc:current,base:docText(current.id),onSaved:applySaved,onError:setMessage})}/>:<ContractOverview data={(model as any).document} onOpen={setContractObject}/>) : tab==='scm' ? (scmSlug?<SourceControl projects={projects} project={scmSlug} version={gitVersion} unsaved={current&&current.project===scmSlug&&source!==current.source?[current.path]:[]} historyPath={historyPath} onProject={slug=>{setMessage('');setScmProject(slug);setHistoryPath(undefined);}} onChanged={()=>void refresh().catch(()=>{})} onOpen={(project,path)=>{const d=docsRef.current.get(`${project}/${path}`);if(d&&open(d))setTab('source');}}/>:<p className="hint">Import definitions or load an example to start a project.</p>) : tab==='metrics' ? <MetricsView project={kpiProject} projectName={projects.find(p=>p.slug===kpiProject)?.name} kpis={kpis} error={kpiError} loading={kpiLoading} selected={selectedKpi} onSelect={setSelectedKpi} filter={kpiFilter} onNew={()=>setWizard(true)} onEdit={editKpi}/> : tab==='mappings' ? <MappingExplorer onEditItem={editMappingItem} currentId={current?.id} revisionKey={docs.map(d=>d.id+':'+d.hash).join('|')} dirty={!!current&&source!==current.source}/> : !source && !current ? (
               <div className="empty">
                 <div className="empty-icon">
                   <Network size={36} />
@@ -542,11 +565,11 @@ function App() {
                     </div>
                   ))}
               </div>
-            ) : tab==='fullgraph' && model ? <FullGraph fullscreen={fullscreen} kpiBadges={kpiBadges} grouping={grouping.value} onGroupingChange={grouping.change} groupingError={grouping.error} key={current?.id} name={model.name} entities={model.entities} edges={model.edges} selected={selected} selectedEdge={selectedEdge} search={search} onSelectEntity={selectEntity} onSelectEdge={id=>{setSelectedEdge(id);setSelected('')}} onOverview={()=>{setTab('graph');setShowAll(true);setSearch('')}} onNeighborhood={()=>showNeighborhood()}/> : (
-              showAll && model ? <ModelOverview grouping={grouping.value} onGroupingChange={grouping.change} groupingError={grouping.error} key={current?.id} name={model.name} entities={model.entities} edges={model.edges} search={search} selected={selected} onSelectEntity={selectEntity} onSelectRelationship={id=>{setSelectedEdge(id);setSelected('')}} onClose={()=>showNeighborhood()} onOpenGraph={()=>{setShowAll(false);setTab('fullgraph')}}/> : <NeighborhoodGraph fullscreen={fullscreen} kpiBadges={kpiBadges} key={current?.id} docId={current!.id} docLabel={id=>docsRef.current.get(id)?.path??id} entities={model?.entities??[]} edges={model?.edges??[]} search={search} walk={walk} selected={selected} selectedEdge={selectedEdge} onWalk={(steps:WalkStep[])=>{for(const step of steps)dispatchWalk({type:'push',step});}} onWalkTo={walkTo} onClearSearch={()=>setSearch('')} onSelectEntity={id=>{setSelected(id);setSelectedEdge('');}} onSelectEdge={id=>{setSelectedEdge(id);}} onOverview={()=>{setSearch('');setTab('graph');setShowAll(true)}} onFullGraph={()=>{setSearch('');setShowAll(false);setTab('fullgraph')}} onOpenKpis={concept=>{setKpiFilter(concept+'\u0000'+Date.now());setSelectedKpi('');setTab('metrics');}} crossFile={crossFile} onCrossFile={crossTo}/>
+            ) : tab==='fullgraph' && model ? <FullGraph fullscreen={fullscreen} kpiBadges={kpiBadges} grouping={grouping.value} onGroupingChange={grouping.change} groupingError={grouping.error} key={current?.id} name={model.name} entities={model.entities} edges={model.edges} selected={selected} selectedEdge={selectedEdge} search={search} onSelectEntity={selectEntity} onSelectEdge={id=>{setSelectedEdge(id);setSelected('')}} onOverview={()=>{setTab('overview');setSearch('')}} onNeighborhood={()=>showNeighborhood()}/> : (
+              tab==='overview' && model ? <ModelOverview grouping={grouping.value} onGroupingChange={grouping.change} groupingError={grouping.error} key={current?.id} name={model.name} entities={model.entities} edges={model.edges} search={search} selected={selected} onSelectEntity={selectEntity} onSelectRelationship={id=>{setSelectedEdge(id);setSelected('')}} onClose={()=>showNeighborhood()} onOpenGraph={()=>{setTab('fullgraph')}}/> : <NeighborhoodGraph fullscreen={fullscreen} kpiBadges={kpiBadges} key={current?.id} docId={current!.id} docLabel={id=>docsRef.current.get(id)?.path??id} entities={model?.entities??[]} edges={model?.edges??[]} search={search} walk={walk} selected={selected} selectedEdge={selectedEdge} onWalk={(steps:WalkStep[])=>{for(const step of steps)dispatchWalk({type:'push',step});}} onWalkTo={walkTo} onClearSearch={()=>setSearch('')} onSelectEntity={id=>{setSelected(id);setSelectedEdge('');}} onSelectEdge={id=>{setSelectedEdge(id);}} onOverview={()=>{setSearch('');setTab('overview')}} onFullGraph={()=>{setSearch('');setTab('fullgraph')}} onOpenKpis={concept=>{setKpiFilter(concept+'\u0000'+Date.now());setSelectedKpi('');setTab('metrics');}} crossFile={crossFile} onCrossFile={crossTo}/>
             )}
           </section>
-          {tab!=='mappings'&&tab!=='metrics'&&(entity || relationship) && <aside className="inspector" aria-label="Definition details">
+          {inspectorVisible && <aside className="inspector" aria-label="Definition details" role={pageDetails?'dialog':undefined} aria-modal={pageDetails||undefined}>
             <div className="section-label">DEFINITION DETAILS{(entity||relationship)&&<button className="inspector-close" aria-label="Close details" onClick={()=>{setSelected('');setSelectedEdge('')}}>×</button>}</div>
             {relationship ? (
               <>

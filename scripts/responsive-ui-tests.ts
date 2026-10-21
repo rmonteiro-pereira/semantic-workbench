@@ -16,7 +16,10 @@ const centerOf = async (page: Page) => (await neighborhoodState(page)).center;
 const browser = await chromium.launch({ headless: true });
 const errors: string[] = [];
 let passed = 0;
+// RESPONSIVE_ONLY runs only the checks whose names start with it (the mutation harness uses it).
+const only = process.env.RESPONSIVE_ONLY;
 async function check(name: string, action: () => Promise<void>) {
+  if (only && !name.startsWith(only)) return;
   await action();
   console.log('PASS', name);
   passed++;
@@ -25,6 +28,18 @@ async function openPage(width: number, height: number) {
   const page = await browser.newPage({ viewport: { width, height } });
   page.on('pageerror', error => errors.push(`${width}×${height}: ${error.message}`));
   await routeApi(page, api);
+  // Mutants for the mutation harness (T161): a status line back over the mini-map and controls,
+  // and status messages that never dismiss by themselves.
+  if (process.env.RESPONSIVE_MUTATION === 'overlay') {
+   await page.addInitScript(() => document.addEventListener('DOMContentLoaded', () => { const style = document.createElement('style'); style.textContent = '.full-graph-status{position:absolute!important;left:0!important;right:0!important;bottom:0!important;z-index:30!important}'; document.head.append(style); }));
+   console.log('INJECTED_OVERLAY_MUTATION');
+  }
+  if (process.env.RESPONSIVE_MUTATION === 'status-stays') await page.route('**/src/main.tsx*', async route => {
+   const response = await route.fetch(), source = await response.text(), anchor = 'const timer = setTimeout(() => setMessage(""), 5e3);';
+   if (!source.includes(anchor)) throw Error('Status mutation anchor missing');
+   console.log('INJECTED_STATUS_MUTATION');
+   await route.fulfill({ response, body: source.replace(anchor, 'const timer = 0;') });
+  });
   await page.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
   await expect(page.locator('h1')).toContainText('UBL');
   await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60_000 });
@@ -186,8 +201,12 @@ try {
    const inspector = fsPage.locator('.inspector');
    await expect(inspector).toBeVisible();
    const selectedName = await fsPage.locator('.inspector h2').textContent();
-   // Details sit over the graph: the graph keeps the full width.
-   expect((await fsPage.locator('.react-flow').boundingBox())!.width).toBeGreaterThan(1400);
+   // Details sit beside the graph inside the full-screen row (Phase 12: no overlay covers the
+   // graph's controls), and together they use the full width.
+   const graphBox = (await fsPage.locator('.react-flow').boundingBox())!, detailsBox = (await inspector.boundingBox())!;
+   expect(graphBox.width).toBeGreaterThan(1000);
+   expect(graphBox.x + graphBox.width).toBeLessThanOrEqual(detailsBox.x + 1);
+   expect(graphBox.width + detailsBox.width).toBeGreaterThan(1400);
    expect(await layoutProblems(fsPage)).toEqual([]);
    await fsPage.screenshot({ path: '/tmp/workbench-fullscreen-graph.png' });
    await fsPage.keyboard.press('Escape');
@@ -385,20 +404,28 @@ try {
   });
   // Status messages (FR-072): a message never covers a control, disappears by itself within six
   // seconds, and clears on the next action.
+  // The sidebar re-opens or closes itself just after a resize; wait for it to settle, then open it
+  // only if the loader is not already on screen.
+  async function loadCommerce() {
+   await sweep.waitForTimeout(400);
+   const load = sweep.getByRole('button', { name: /Load commerce workspace/ });
+   if (!(await load.isVisible())) await sweep.getByRole('button', { name: 'Open workspace', exact: true }).click();
+   await load.click();
+  }
   await check('status messages: never cover a control, auto-dismiss within 6 s and clear on the next action', async () => {
    for (const [width, height] of [[1280, 720], [390, 844]] as const) {
     await sweep.setViewportSize({ width, height });
-    const open = sweep.getByRole('button', { name: 'Open workspace', exact: true });
-    if (await open.isVisible()) await open.click();
-    await sweep.getByRole('button', { name: /Load commerce workspace/ }).click();
+    await closeDrawer(sweep);
+    await loadCommerce();
     const status = sweep.locator('main > .status');
     await expect(status).toBeVisible();
-    if (await sweep.locator('#workspace-sidebar[role=dialog]').count()) await sweep.keyboard.press('Escape');
+    await closeDrawer(sweep);
     expect(await overlapProblems(sweep, `${width}×${height}`)).toEqual([]);
     await expect(status).toHaveCount(0, { timeout: 6_500 });
    }
    await sweep.setViewportSize({ width: 1440, height: 900 });
-   await sweep.getByRole('button', { name: /Load commerce workspace/ }).click();
+   await closeDrawer(sweep);
+   await loadCommerce();
    await expect(sweep.locator('main > .status')).toBeVisible();
    await tab(sweep, 'Catalog');
    await expect(sweep.locator('main > .status')).toHaveCount(0, { timeout: 1_000 });
@@ -408,6 +435,7 @@ try {
    await sweep.setViewportSize({ width: 1440, height: 900 });
    const nav = async () => sweep.locator('#workspace-sidebar button.nav[aria-current="page"]').allTextContents();
    const tabs = async () => sweep.locator('.tabs [aria-current="page"]').allTextContents();
+   await closeDrawer(sweep);
    await openFile(sweep, 'ubl.ontology.yaml');
    await sweep.getByRole('button', { name: 'Model explorer', exact: true }).click();
    await expect.poll(async () => (await nav()).map(t => t.trim())).toEqual(['Model explorer']);

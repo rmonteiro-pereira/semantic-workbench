@@ -557,7 +557,6 @@ main > .status { position: absolute; bottom: 40px; left: 20px; right: 20px; widt
   .workspace-open > .workspace-scrim { display: block; position: fixed; inset: 0; z-index: 79; padding: 0; border: 0; border-radius: 0; background: #193a3455; }
   .workspace-title { flex-wrap: wrap; gap: 3px 10px; }
   .workspace-title .badge { font-size: 9px; padding: 2px 6px; }
-  .inspector { position: absolute; top: 0; bottom: 0; right: 0; z-index: 20; width: min(340px, 85%); box-shadow: -8px 0 25px #24393612; }
 }
 @media (max-width: 650px) {
   .workspace-header { padding: 7px 9px; gap: 8px; min-height: 56px; }
@@ -763,20 +762,51 @@ button.danger{background:#a3392f;color:white;border-color:#a3392f}button.danger:
   }
   .neighborhood-tools:has(.center-picker[aria-expanded=true]) { mask-image: none; }
 }
-@media (min-width: 651px) and (max-width: 1366px) {
-  .canvas-row:not(.is-fullscreen) > .inspector {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    right: 0;
-    z-index: 20;
-    width: min(340px, 40%);
-    box-shadow: -8px 0 25px #24393612;
-  }
-}
 .mapping-explorer p { max-width: 90ch; }
 .mapping-explorer select { display: block; width: auto; max-width: min(100%, 640px); }
 @media (min-width: 1920px) {
   .catalog { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); align-content: start; }
   .catalog p { max-width: 90ch; }
+}
+
+/* Phase 12: reserve space for controls instead of stacking floating boxes. */
+main > .status { position: static; flex: 0 0 auto; width: auto; max-width: none; margin: 0 12px 4px; max-height: 20dvh; overflow: auto; box-shadow: none; }
+.full-graph-status { position: static; flex: 0 0 auto; width: auto; max-width: none; margin: 0; border-radius: 0; padding: 2px 10px; line-height: 13px; }
+.graph-bundle-choice { position: static; flex: 0 0 auto; max-width: 100%; margin: 0; padding: 5px 9px; border-radius: 0; }
+.graph-bundle-choice select { width: 100%; min-width: 0; margin-top: 3px; }
+.full-area-title { right: 18px; min-width: 0; }
+.full-area-title strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.full-area-title > span, .full-area-title small { flex-shrink: 0; }
+.canvas-row > .inspector, .canvas-row.is-fullscreen > .inspector { position: relative; inset: auto; width: clamp(250px, 22vw, 340px); max-height: none; box-shadow: none; border-radius: 0; }
+.inspector .inspect-neighborhood { display: flex; width: fit-content; max-width: 100%; margin-bottom: 10px; white-space: normal; }
+.inspector > .badge { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.grouping-controls .grouping-details[open] { position: static; width: auto; padding: 0; border: 0; background: none; box-shadow: none; max-height: none; overflow: visible; }
+.grouping-controls .grouping-details[open] > summary { margin: 0; }
+.grouping-panel { position: fixed; z-index: 45; width: min(480px, calc(100vw - 20px)); overflow: auto; padding: 10px; background: white; border: 1px solid #dce6df; border-radius: 7px; box-shadow: 0 6px 24px #23453620; }
+.workspace-sidebar .documents { flex: 1 0 320px; min-height: 320px; }
+.workspace-sidebar .workspace-label { margin: 10px 8px 6px; }
+.workspace-sidebar .section-label { margin: 8px; }
+.workspace-sidebar .scale-example { padding: 5px 7px; margin: 1px 0; font-size: 10px; min-height: 27px; }
+.workspace-sidebar .scale-example > span { min-width: 0; white-space: nowrap; }
+/* Keep subtitles in the accessible names of the example loaders. */
+.workspace-sidebar .scale-example small { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.workspace-sidebar .local { margin-top: 6px; }
+.project-toggle { gap: 3px; padding-inline: 3px; }
+.project-toggle svg, .project-toggle small { flex-shrink: 0; }
+.suggestions { flex-shrink: 0; font-size: 10px; margin: 4px 0; }
+.suggestions > summary { cursor: pointer; white-space: nowrap; }
+.suggestions[open] { max-height: 180px; overflow: auto; }
+.suggestion li { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.walk-trail { max-width: 100%; }
+.walk-trail > button, .walk-trail li { flex-shrink: 0; }
+.walk-trail ol { flex: 1 1 0; }
+.node small .center-tag, .node small .origin-tag { display: inline-flex; flex-shrink: 0; overflow: visible; line-height: 16px; font-size: 9px; }
+.node small .center-tag { color: white; }
+@media (max-width: 650px) {
+ .full-graph .react-flow__minimap { display: none; }
+ .canvas-row.has-inspector:not(.page-details) { flex-direction: column; }
+ .canvas-row.has-inspector:not(.page-details) > .canvas { flex: 1 1 0; }
+ .canvas-row.has-inspector > .inspector { flex: 0 1 50%; width: 100%; min-height: 0; }
+ .canvas-row.has-inspector .react-flow__controls, .canvas-row.has-inspector .full-graph-status { display: none; }
+ .canvas-row.page-details > .inspector { position: absolute; inset: auto 0 0; max-height: 85%; width: 100%; z-index: 20; }
 }

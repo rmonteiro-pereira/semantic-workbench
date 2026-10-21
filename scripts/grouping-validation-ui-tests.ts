@@ -122,7 +122,7 @@ try {
     const airport = inspect(originals.get('flights.ontology.yaml')!, 'flights.ontology.yaml').entities.find(entity => entity.name === 'Airport')!;
     await page.getByLabel('Group model by', { exact: true }).selectOption('suggested');
     await groupingDetails();
-    const adjustment = page.locator('.grouping-details > details');
+    const adjustment = page.locator('.grouping-panel > details');
     await adjustment.locator('summary').click();
     await page.getByLabel('Entity to regroup', { exact: true }).selectOption(airport.id);
     await page.getByLabel('New group name', { exact: true }).fill('Flight operations review');

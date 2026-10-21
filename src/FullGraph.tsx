@@ -14,7 +14,7 @@ const EntityNode=memo(({data}:NodeProps)=><div className={`full-entity ${data.fo
  <span className="entity-color"/>{data.kind==='Metric'&&<small className="kpi-kind"><Gauge size={11}/>KPI</small>}<strong>{String(data.name).replace(/([a-z])([A-Z])/g,'$1 $2').replaceAll('_',' ')}</strong>{!!data.collapsedArea&&<small>{String(data.internalCount??0)} internal relationships · click to expand</small>}
  {Array.isArray(data.kpis)&&data.kpis.length>0&&<span className="kpi-badge node-kpi-badge" title={`KPIs: ${data.kpis.join(', ')}`}><Gauge size={10}/>{data.kpis.length===1?'KPI':`${data.kpis.length} KPIs`}</span>}
 </div>);
-const AreaNode=memo(({data}:NodeProps)=><div className="full-area-title"><span style={{background:String(data.color)}}/><strong>{String(data.name)}</strong><small>{String(data.count)} entities</small></div>);
+const AreaNode=memo(({data}:NodeProps)=><div className="full-area-title" title={String(data.name)}><span style={{background:String(data.color)}}/><strong>{String(data.name)}</strong><small>{String(data.count)} entities</small></div>);
 const GraphEdge=memo((props:EdgeProps)=>{
  if(props.source===props.target){const{sourceX:x,sourceY:y,targetX:tx,targetY:ty}=props;return <BaseEdge id={props.id} path={`M ${x},${y} C ${x+70},${y-75} ${tx+70},${ty+75} ${tx},${ty}`} markerEnd={props.markerEnd} style={props.style} interactionWidth={24} label={props.label} labelX={x+55} labelY={y-35}/>;}
  if(!props.data?.routeDetailed)return <BezierEdge {...props}/>;

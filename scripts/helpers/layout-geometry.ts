@@ -40,7 +40,12 @@ export async function layoutProblems(page:Page,options:{overlays?:string[];ignor
   const boxes=(overlays??[]).flatMap(sel=>[...document.querySelectorAll(sel)].filter(shown).map(el=>({sel,el,r:el.getBoundingClientRect()})));
   const hit=(a:DOMRect,b:DOMRect)=>Math.min(a.right,b.right)-Math.max(a.left,b.left)>1&&Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>1;
   for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++){const a=boxes[i],b=boxes[j];if(a.el.contains(b.el)||b.el.contains(a.el))continue;if(hit(a.r,b.r))out.push(`overlay ${a.sel} overlaps ${b.sel}`);}
-  for(const o of boxes)for(const el of controls){if(o.el.contains(el)||el.contains(o.el))continue;const r=el.getBoundingClientRect();if(hit(o.r,r)){
+  // The part of a control its scrolling or clipping ancestors actually show (a toolbar strip
+  // scrolled sideways hides part of its buttons; the hidden part cannot be covered).
+  const shownRect=(el:Element)=>{let r=el.getBoundingClientRect(),left=r.left,top=r.top,right=r.right,bottom=r.bottom;
+   for(let p=el.parentElement;p&&p!==document.body;p=p.parentElement){const s=getComputedStyle(p);if(s.overflowX!=='visible'||s.overflowY!=='visible'){const q=p.getBoundingClientRect();left=Math.max(left,q.left);top=Math.max(top,q.top);right=Math.min(right,q.right);bottom=Math.min(bottom,q.bottom);}if(s.position==='fixed')break;}
+   return new DOMRect(left,top,Math.max(0,right-left),Math.max(0,bottom-top));};
+  for(const o of boxes)for(const el of controls){if(o.el.contains(el)||el.contains(o.el))continue;const r=shownRect(el);if(r.width<1||r.height<1)continue;if(hit(o.r,r)){
    // Covered only if the overlay is drawn above the control at the overlap's centre.
    const x=(Math.max(o.r.left,r.left)+Math.min(o.r.right,r.right))/2,y=(Math.max(o.r.top,r.top)+Math.min(o.r.bottom,r.bottom))/2,top=document.elementFromPoint(x,y);
    if(top&&o.el.contains(top)&&!el.contains(top))out.push(`overlay ${o.sel} covers ${name(el)}`);}}

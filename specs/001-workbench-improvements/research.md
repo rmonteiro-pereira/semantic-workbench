@@ -751,3 +751,34 @@ bounded JSON bodies with key allowlists. Fixed, with tests in `tests/route-secur
 Left as is: draft bodies are capped by size (patches are validated when applied), and an oversize
 body answers 400 rather than 413, as everywhere else in the API.
 
+## R25. Implementation decisions taken in Phase 12
+
+- **Who did what.** T156 (brief), T157 (checks, written first and failing on the real overlaps)
+  and T161 (mutants) without Codex; T158–T160 and polish findings 1–8 by Codex from
+  `codex/phase-12.md`, then reviewed and adjusted.
+- **Details panel.** The Phase 10 overlay between 651 and 1366 px is withdrawn: it covered the
+  graph toolbar, mini-map and status line, and Overview and Catalog cards (FR-071). Details are now
+  a side column (250–340 px) at every width from 651 px, also in full screen; below 651 px they
+  sit under the graph in Graph and Neighborhood, and in Overview and Catalog they are a modal sheet
+  with the page behind it inert.
+- **Graph status line and bundle selector** are no longer floating: they take a compact row under
+  the canvas, so they cannot cover the mini-map or zoom controls. The status row is kept to about
+  19 px so the graph keeps at least 70 % of a 720 px window.
+- **Status messages** clear after five seconds, on any view change, on opening another document,
+  and when another project is chosen in Source Control (polish finding 6). Validation failures
+  stay while they last, in a box that reserves its own space.
+- **Navigation.** Overview and Neighborhood are separate views (`overview`, `neighborhood`); the
+  Neighborhood center survives a visit to Overview. **Model explorer** opens Graph and is current
+  for every model view; current items carry `aria-current="page"`.
+- **Sidebar.** The project tree keeps at least 320 px; example loaders are one line each (their
+  subtitles stay in the accessible names); grouping suggestions are a collapsible group, open when
+  suggestions arrive, with long evidence truncated and shown in full on hover.
+- **Wizard.** "Built from" reuses the Metrics composition tree; step chips stay on one line and
+  scroll when narrow. Neighborhood columns are balanced so the center sits near the middle; the
+  center tag, walk trail and project names no longer clip.
+- **Checks adjusted to the new structure (not weakened):** the grouping correction controls moved
+  into a positioned panel (`.grouping-panel > details`), and the full-screen check now expects the
+  details beside the graph. The overlap helper measures only the part of a control its scrolling
+  ancestors show, so a toolbar button scrolled out of view is not reported as covered; the React
+  Flow attribution credit is not counted as a control.
+
