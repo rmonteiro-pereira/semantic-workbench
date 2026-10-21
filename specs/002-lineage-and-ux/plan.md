@@ -10,7 +10,8 @@ Release v0.3.0 makes the ODCS contract the start of a navigable, column-level li
 through semantic fields to metrics, in the Graph tab, with expansion in place and Full pierce
 shared with Neighborhood. It replaces Save with automatic saving of valid edits and a Commit
 dialog, commits imports, adds clone, remotes, repository-local identity, a credential guide and
-several projects per repository. SQL embedded in definitions gets coloring and lint with exact
+several projects per repository. Mapping documents get a real
+concept-mapping graph on the same components. SQL embedded in definitions gets coloring and lint with exact
 file positions. The UI moves secondary work into dialogs, gets a resizable sidebar, one
 vocabulary ("Metric"), working Group by and a Mappings layout that fits. Technical approach:
 reuse the lineage matching rules (`src/odcs/lineage.ts`), React Flow and ELK in a worker, the
@@ -33,7 +34,7 @@ repository manifest is user content inside the repository ([data-model.md](./dat
 
 **Testing**: `bun test` (unit, HTTP handler on temp `DATA_DIR`), Playwright browser checks with
 isolated API (`scripts/helpers/isolated-api.ts`), targeted mutation suite, responsive geometry
-suite. New suites: `test:lineage`, `test:autosave`, `test:sql`, `test:git-setup`,
+suite. New suites: `test:lineage`, `test:mapping-graph`, `test:autosave`, `test:sql`, `test:git-setup`,
 `test:monorepo`, `test:dialogs`, `test:terminology`, `test:mappings-layout`.
 
 **Target Platform**: single-user workstation (Linux incl. WSL2), Chromium-class browser, loopback.
@@ -49,7 +50,7 @@ including clone); writes only under the data root (repository-local Git config o
 documents; no symbolic links followed; constitution 2.1.0.
 
 **Scale/Scope**: shipped examples (UBL, shopping center 145 entity types / 142 objects / 25
-governed metrics, 1,000-entity scale data, 5,000/15,000 fixture); 10 user stories, 58 FRs, 11 success criteria.
+governed metrics, 1,000-entity scale data, 5,000/15,000 fixture); 11 user stories, 65 FRs, 12 success criteria.
 
 No NEEDS CLARIFICATION remain: the owner answered Q1–Q5 and approved constitution 2.1.0.
 
@@ -113,6 +114,8 @@ src/
 │   ├── walk.ts                   # step kind 'expand'
 │   ├── LineageLegend.tsx         # new: shared legend
 │   └── edge-styles.ts            # new: shared line styles
+├── mappings/mapping-graph.ts       # new: concept-mapping graph from the agent context (pure)
+├── mappings/MappingCanvas.tsx      # new: Graph tab for mapping documents (reuses LineageCanvas)
 ├── NeighborhoodGraph.tsx         # expand in place, Full pierce
 ├── PropertyBadges.tsx            # new: PK/FK/Required/Unique/classification badges
 ├── sql/
@@ -147,16 +150,18 @@ autosave state) in plain modules for unit and mutation tests; React components s
    badges, foreign-key column pairs).
 2. Save and commit flow (US3) — early, because later phases touch editing.
 3. Column-level lineage (US1).
-4. Pierce through (US10), Neighborhood and lineage.
-5. Metric vocabulary (US2).
-6. SQL coloring and lint (US4).
-7. Main screen and dialogs, sidebar (US5).
-8. Group by (US6).
-9. Git setup: identity, remote, clone, credential guide (US7).
-10. Several projects per repository (US8).
-11. Mappings layout (US9).
-12. Polish, README, verification record.
+4. Concept-mapping graph (US11), sharing the lineage components.
+5. Pierce through (US10), Neighborhood and lineage.
+6. Metric vocabulary (US2).
+7. SQL coloring and lint (US4).
+8. Main screen and dialogs, sidebar (US5).
+9. Group by (US6).
+10. Git setup: identity, remote, clone, credential guide (US7).
+11. Several projects per repository (US8).
+12. Mappings layout (US9).
+13. Polish, README, verification record.
 
+tasks.md splits item 1 into Setup and Foundational, so its phase numbers are one higher.
 Each phase leaves every existing suite green and is shippable on its own.
 
 ## Complexity Tracking

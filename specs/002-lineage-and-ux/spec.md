@@ -415,6 +415,51 @@ opens in a dialog so bindings get the width.
 
 ---
 
+### User Story 11 - A real concept-mapping graph (Priority: P1)
+
+A modeller opens a mapping document (standalone, or the embedded `ontology_mappings` of a
+consolidated Ossie file) and the Graph tab shows the mapping itself: ontology concepts as cards
+on the left, semantic datasets as cards with field rows on the right, and lines for what the
+mapping declares. Today it shows one area box full of unconnected squares (Appendix A.9).
+
+**Why this priority**: mappings are the bridge between business vocabulary and data, and the
+current Graph tab shows nothing of them; it shares the lineage components, so it follows them.
+
+**Independent Test**: open Flights (`flights.mapping.yaml` and the consolidated `flights.yaml`),
+mapped commerce, billing and the shopping center mapping; compare every drawn line with the
+bindings the existing resolver returns for that mapping.
+
+**Acceptance Scenarios**:
+
+1. **Given** `commerce.mapping.yaml`, **When** the Graph tab opens, **Then** concept cards
+   (with their relationships as rows) are on the left, dataset cards with field rows on the
+   right, the shared legend is shown, and no single area box holds unconnected nodes.
+2. **Given** an object mapping of `Customer` to `customers` with identifying field
+   `customer_id`, **When** shown, **Then** a line runs from the `Customer` card to the
+   `customers` card and its `customer_id` row is marked as identifying.
+3. **Given** a referent mapping `Customer.email → customers.email`, **When** shown, **Then** a
+   line runs from the concept's `email` row to the `customers.email` field row.
+4. **Given** a link mapping for the relationship `Customer places Order`, **When** shown,
+   **Then** the relationship row of `Customer` connects to `Order` through the join fields
+   (`orders.customer_id` → `customers.customer_id`), labelled with the relationship name.
+5. **Given** the shopping center mapping with metric bindings in its `SEMANTIC_WORKBENCH`
+   extension, **When** shown, **Then** each bound metric appears as a metric card linked from the
+   concept it measures (and the concept it is "of", dashed per legend).
+6. **Given** any concept or field row, **When** selected, **Then** its mappings are emphasised,
+   the rest dimmed, and a summary lists the bindings with **Edit item** (as in Mappings).
+7. **Given** concepts or fields with no mapping, **When** shown, **Then** they carry an
+   "Unmapped" badge and a filter shows only unmapped items.
+8. **Given** a binding with an unknown concept, missing field or ambiguous relationship from the
+   resolver, **When** shown, **Then** the line or card carries a warning marker with the
+   finding's message and **Edit item**.
+9. **Given** a concept card, **When** the user uses Expand, Collapse or Full pierce, **Then** they
+   behave as in Story 10 (in place, budgeted, undoable) over concept relationships and mappings.
+10. **Given** the consolidated `flights.yaml`, **When** the Graph tab opens, **Then** the same
+    mapping graph appears for its embedded mappings, and **Ontology graph** switches to the
+    v0.2.0 entity graph of its ontology.
+
+---
+
 ### User Story 10 - Pierce through relationships (Priority: P1)
 
 Today a user follows relationships one hop at a time: activating a neighbor makes it the new
@@ -582,6 +627,28 @@ nodes and the "hidden" counts with the closure computed from the files.
   Required, Unique and classification badges where declared, with the same labels and colours
   as the Properties table and the contract overview's PK/FK counts.
 
+**Concept-mapping graph (Story 11)**
+
+- **FR-028**: For a mapping document, and for the embedded mappings of a consolidated file, the
+  Graph tab MUST show a mapping canvas built from the existing mapping resolver (the same
+  bindings, fields, metrics and findings the Mappings tab and agent context use).
+- **FR-029**: Cards MUST be ontology concepts (rows: relationships and mapped attributes) on the
+  left and semantic datasets (rows: fields) on the right, plus metric cards for metric bindings,
+  using the lineage card, badges and the shared legend.
+- **FR-030**: Lines MUST be: object mapping → concept card to dataset card with identifying field
+  rows marked; referent mapping → concept attribute/relationship row to field row; link mapping
+  → relationship row to the related concept through its join field rows, labelled with the
+  relationship; metric binding → concept to metric (`measures` solid, `of` dashed).
+- **FR-031**: Selecting a concept, row or field MUST emphasise its mappings and dim the rest, with
+  a summary offering **Edit item** for each binding.
+- **FR-032**: Unmapped concepts and fields MUST carry an "Unmapped" badge, with a filter; resolver
+  findings (unknown concept, missing field, ambiguous relationship) MUST show as warning markers
+  on the affected line or card.
+- **FR-033**: Expand, Collapse, Full pierce and the walk trail of Story 10 MUST apply.
+- **FR-034**: Consolidated files MUST offer a switch between the mapping graph and the ontology
+  entity graph; standalone mapping files no longer project concept mappings as unconnected
+  entities.
+
 **Metric vocabulary (Story 2)**
 
 - **FR-014**: All UI text, accessible names, tooltips, status messages, README and docs MUST
@@ -706,6 +773,8 @@ nodes and the "hidden" counts with the closure computed from the files.
   settings belong to it.
 - **Embedded SQL region**: a range of a file holding SQL text, with dialect and the mapping
   from expression offsets to file positions.
+- **Mapping canvas**: concept cards, dataset cards and metric cards with lines per binding kind
+  (object, referent, link, metric binding), each carrying the binding's evidence and findings.
 - **Metric**: an Ossie metric, optionally with workbench attributes (the extension) and a
   binding to a concept.
 
@@ -721,6 +790,9 @@ nodes and the "hidden" counts with the closure computed from the files.
   for more than 100 ms, and its shown + hidden counts equal the closure computed from the files.
 - **SC-011**: Expanding or collapsing a node moves no previously placed node (position change
   0 px), checked by the graph browser suite.
+- **SC-012**: For Flights (standalone and consolidated), mapped commerce, billing and the shopping
+  center mapping, 100% of resolver bindings appear as lines and every drawn line matches a
+  binding; zero mapping canvases show an area box of unconnected nodes.
 - **SC-002**: For the commerce, shopping center and UBL contracts, 100% of drawn edges match
   the edges computed from the files, and no expected edge is missing.
 - **SC-003**: Zero occurrences of "KPI" in rendered UI text, accessible names and the README
@@ -901,6 +973,24 @@ Measured with `modelOverview` on the shipped examples (groups per mode):
   (foreign key dashed amber, feeds solid). Its "KPI" kind is renamed Metric.
 - `src/odcs/DatasetPage.tsx:20-31,101` and `src/odcs/ContractOverview.tsx` — PK/Required/
   Unique columns, FK target buttons and PK/FK counts that the lineage cards must match.
+
+### A.9 Concept mappings in the Graph tab
+
+- `src/model.ts:92-94` — a standalone mapping document is projected as one `Concept mapping`
+  entity per `concept_mappings` item and **no edges**: object, referent and link mappings are
+  never read, and the ontology and semantic model the mapping references (other files) are not
+  loaded, so nothing can be connected.
+- `src/model.ts:135-136` — in a consolidated file the embedded `ontology_mappings` contribute only
+  their semantic model's datasets, joins and metrics; the `concept_mappings` themselves are not
+  projected, so no concept–dataset line exists.
+- `src/communities.ts:2` and `src/overview.ts:26,35` — `Concept mapping` is not a business kind,
+  so Auto falls back to "types": all items land in one group (`mall.mapping.yaml`: 1 group of
+  167, Appendix A.2), and `src/FullGraph.tsx:53,68` draws that group as one area box holding
+  every node — the "big square with squares inside".
+- The resolver that does connect them (`server/agent/runtime.ts:106-130`, bindings with fields,
+  metrics, relationships and findings) is used only by the Mappings tab and agent endpoints; its
+  bindings do not record whether they came from an object, referent or link mapping, and metric
+  bindings (`kpi_bindings`, read by `src/metrics/extension.ts:56`) are not part of its context.
 
 ## Appendix B - Dialog inventory
 

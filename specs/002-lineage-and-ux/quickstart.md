@@ -30,6 +30,17 @@ By hand: load **UBL business model**, open `ubl.odcs.yaml`, open **Graph**.
 Neighborhood: open `ubl.ontology.yaml`, center `Order`, expand `OrderLine`, then `Item`, then
 **Full pierce** (Outgoing) from `Lease` in the shopping center ontology.
 
+## 1b. Concept-mapping graph (Story 11)
+
+```sh
+bun run test:mapping-graph
+```
+
+Open `commerce.mapping.yaml` (mapped commerce) in **Graph**: concept cards left, dataset cards
+with field rows right, lines per object/referent/link mapping, shared legend. Select `Customer`:
+its mappings are emphasised. Tick **Unmapped only**. Open Flights `flights.yaml`: the same graph
+for the embedded mappings, with **Ontology graph** to switch.
+
 ## 2. Save and commit (Story 3)
 
 ```sh
