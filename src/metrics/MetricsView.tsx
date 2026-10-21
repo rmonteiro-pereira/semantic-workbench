@@ -1,5 +1,5 @@
 import React,{useEffect,useMemo,useState} from 'react';
-import {ArrowLeft,Gauge,Search} from 'lucide-react';
+import {ArrowLeft,Gauge,Plus,Search} from 'lucide-react';
 import type {KpiSummary} from '../../server/agent/explain';
 import {KpiDetail} from './KpiDetail';
 import {conceptText,typeLabel} from './format';
@@ -14,7 +14,7 @@ function groupValue(k:KpiSummary,by:GroupBy){
  if(by==='concept')return k.concepts.find(c=>c.role==='of')?.concept??k.concepts.find(c=>c.role==='measures')?.concept??'Not bound to a concept';
  if(by==='file')return k.file;return '';
 }
-export function MetricsView({project,projectName,kpis,error,loading,selected,onSelect,filter}:{project:string|null;projectName?:string;kpis:KpiSummary[];error:string;loading:boolean;selected:string;onSelect:(key:string)=>void;filter?:string}){
+export function MetricsView({project,projectName,kpis,error,loading,selected,onSelect,filter,onNew,onEdit}:{project:string|null;projectName?:string;kpis:KpiSummary[];error:string;loading:boolean;selected:string;onSelect:(key:string)=>void;filter?:string;onNew?:()=>void;onEdit?:(k:KpiSummary)=>void}){
  const [query,setQuery]=useState(''),[groupBy,setGroupBy]=useState<GroupBy>('none'),[type,setType]=useState(''),[status,setStatus]=useState(''),[owner,setOwner]=useState('');
  // A concept chosen elsewhere (the neighborhood's KPI indicator) filters the list.
  useEffect(()=>{if(filter)setQuery(filter.split('\u0000')[0]);},[filter]);
@@ -28,7 +28,7 @@ export function MetricsView({project,projectName,kpis,error,loading,selected,onS
  const filtered=!!(type||status||owner||term);
  return <div className={`metrics-view${current?' has-detail':''}`}>
   <section className="metrics-list" aria-label="Metrics">
-   <header className="metrics-heading"><small>GOVERNED KPIS{projectName?` · ${projectName.toUpperCase()}`:''}</small><h2>Metrics</h2><p>What each KPI measures, how it is calculated and where its data comes from. Explained here, never executed.</p></header>
+   <header className="metrics-heading"><small>GOVERNED KPIS{projectName?` · ${projectName.toUpperCase()}`:''}</small><div className="metrics-title"><h2>Metrics</h2>{project&&onNew&&<button className="primary metrics-new" onClick={onNew}><Plus size={14}/>New KPI</button>}</div><p>What each KPI measures, how it is calculated and where its data comes from. Explained here, never executed.</p></header>
    <div className="metrics-filters">
     <label className="metrics-search"><Search size={15}/><input aria-label="Find a KPI" placeholder="Find a KPI, owner or concept" value={query} onChange={e=>setQuery(e.target.value)}/></label>
     <label>Group by<select aria-label="Group KPIs by" value={groupBy} onChange={e=>setGroupBy(e.target.value as GroupBy)}>{Object.entries(groupLabel).map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></label>
@@ -57,7 +57,7 @@ export function MetricsView({project,projectName,kpis,error,loading,selected,onS
   </section>
   {current&&project&&<section className="metrics-detail" aria-label={`KPI ${current.label}`}>
    <button className="metrics-back" onClick={()=>onSelect('')}><ArrowLeft size={15}/>All metrics</button>
-   <KpiDetail key={keyOf(current)} project={project} kpi={current} all={kpis}/>
+   <KpiDetail key={keyOf(current)} project={project} kpi={current} all={kpis} onEdit={onEdit?()=>onEdit(current):undefined}/>
   </section>}
  </div>;
 }

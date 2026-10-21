@@ -187,3 +187,5 @@
  .kpi-tree ul { margin-left: 6px; padding-left: 10px; }
  .kpi-tree ul > .tree-node::before { left: -10px; width: 8px; }
 }
+.metrics-title{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.metrics-title h2{min-width:0}
+.metrics-new,.kpi-edit{flex-shrink:0;font-size:12px;padding:7px 11px;gap:5px}.kpi-edit{background:white}

@@ -17,6 +17,12 @@ import{exampleSet}from'./projects/examples';
 import {NeighborhoodGraph} from './NeighborhoodGraph';
 import {MappingExplorer} from './MappingExplorer';
 import {MetricsView} from './metrics/MetricsView';
+import {KpiWizard} from './metrics/KpiWizard';
+import {ItemEditor,type Saved} from './edit/ItemEditor';
+import {AddItem} from './edit/AddItem';
+import {DeleteItem} from './edit/DeleteItem';
+import {itemKindAt,itemName,addableKinds,type ItemKind,type Path,type Choices} from './edit/item-model';
+import {itemValue} from './edit/yaml-patch';
 import type {KpiSummary} from '../server/agent/explain';
 import React, { useEffect, useMemo, useState, useRef, useReducer } from "react";
 import {walkReducer,emptyWalk,type WalkStep} from './graph/walk';
@@ -32,11 +38,11 @@ import {
   FileCode,
   Box,
   CheckCircle2,
-  Menu, X, Focus, Gauge,
+  Menu, X, Focus, Gauge, Pencil, Plus, Trash2,
 } from "lucide-react";
 import {validateInput} from "./input";
 import {documentKeys,entityKeys} from './references';
-import type {Entity} from './model';
+import type {Entity,Relationship} from './model';
 import type {Issue} from './diagnostics';
 import {ValidationPanel, ImportRepair, type ImportDraft} from "./ValidationPanel";
 import { editEntity } from "./model";
@@ -173,6 +179,36 @@ function App() {
     if(!from||from.doc!==current.id||from.center!==neighborhoodFocus){const c=model?.entities.find(e=>e.id===(neighborhoodFocus||selected));if(c)dispatchWalk({type:'push',step:{doc:current.id,center:c.id,name:c.name}});}
     dispatchWalk({type:'push',step:{doc:t.doc,center:t.entity,name:t.name,via:{id:'file',label:'same definition'}}});setTab('graph');setShowAll(false);setSelected(t.entity);setSelectedEdge('');}
   function showNeighborhood(id=selected||relationship?.source||neighborhoodFocus){setNeighborhoodFocus(id);setSearch('');setTab('graph');setShowAll(false);}
+  // Item editing (FR-048–FR-052): the editor, add and delete dialogs work on one file of a project.
+  type ItemTarget={docId:string;path:Path;kind:ItemKind};
+  const [editing,setEditing]=useState<ItemTarget|null>(null),[adding,setAdding]=useState<{docId:string;kind?:ItemKind;owner?:Path;preset?:Record<string,any>}|null>(null),[deleting,setDeleting]=useState<ItemTarget|null>(null),[wizard,setWizard]=useState(false);
+  const docText=(id:string)=>id===current?.id?source:docsRef.current.get(id)?.source??'';
+  const modelOf=(id:string)=>id===current?.id?model:projectModels.get(id)??(()=>{const d=docsRef.current.get(id);try{return d?validateInput(d.source,d.filename).model:null;}catch{return null;}})();
+  const documentOf=(id:string)=>(modelOf(id) as any)?.document;
+  function entityTarget(e:Entity):ItemTarget|null{if(!current||e.readOnlyForm||!e.path.length)return null;const kind=itemKindAt(documentOf(current.id),e.path);return kind?{docId:current.id,path:e.path,kind}:null;}
+  function relationshipTarget(r:Relationship):ItemTarget|null{if(!current||r.data.readOnlyForm||!r.data.path.length)return null;const kind=itemKindAt(documentOf(current.id),r.data.path);return kind?{docId:current.id,path:r.data.path,kind}:null;}
+  function choicesFor(id:string):Choices{
+    const own=modelOf(id),project=docsRef.current.get(id)?.project;
+    const models=[...docs.filter(d=>d.project===project).map(d=>modelOf(d.id))].filter(Boolean) as NonNullable<typeof model>[];
+    const names=(m:typeof model,kinds:string[])=>(m?.entities??[]).filter(e=>kinds.includes(e.kind)).map(e=>e.name);
+    return {concepts:[...new Set(models.flatMap(m=>names(m,['EntityType','ValueType','Concept'])))].sort(),datasets:names(own,['Dataset']),metrics:names(own,['Metric'])};
+  }
+  const projectDocsOf=(id:string)=>docs.filter(d=>d.project===docsRef.current.get(id)?.project);
+  // Saved item changes: every view follows the new bytes at once, then the folder scan confirms.
+  function applySaved(saved:Saved[],label:string){
+    for(const x of saved){const d=docsRef.current.get(x.docId);if(!d)continue;const next={...d,source:x.source,hash:x.hash};docsRef.current.set(d.id,next);if(currentRef.current?.id===d.id){setCurrent(next);setSource(x.source);}}
+    setDocs(old=>old.map(d=>docsRef.current.get(d.id)??d));setMessage(label);void refresh().catch(()=>{});
+  }
+  function openSourceAt(id:string,line:number){const d=docsRef.current.get(id);if(d&&d.id!==current?.id&&!open(d))return;setTab('source');setTimeout(()=>sourceEditor.current?.goToLine(line),60);}
+  function editKpi(k:KpiSummary){
+    const id=`${kpiProject}/${k.file}`,d=docsRef.current.get(id);if(!d)return;
+    const metrics=itemValue(docText(id),[...k.modelPath,'metrics']);const i=Array.isArray(metrics)?metrics.findIndex((m:any)=>m?.name===k.name):-1;
+    if(i>=0)setEditing({docId:id,path:[...k.modelPath,'metrics',i],kind:'metric'});
+  }
+  const latest=useRef<()=>void>(()=>{});
+  latest.current=()=>{const t=entity?entityTarget(entity):relationship?relationshipTarget(relationship):null;if(t)setEditing(t);};
+  // "e" opens the editor of the selected item (outside text fields and dialogs).
+  useEffect(()=>{const key=(e:KeyboardEvent)=>{const el=e.target as HTMLElement;if(e.key!=='e'||e.ctrlKey||e.metaKey||e.altKey||el.closest('input,textarea,select,[contenteditable=true],dialog'))return;e.preventDefault();latest.current();};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[]);
   function selectEntity(id:string){setSelected(id);setSelectedEdge('');if(tab==='graph'&&!showAll){setNeighborhoodFocus(id);setSearch('');}}
   async function loadExample(id:string) {
     const set=exampleSet(id)!;
@@ -275,6 +311,14 @@ function App() {
       {moving&&<MoveDialog project={moving.project} path={moving.path} projects={projects} onClose={()=>setMoving(null)} onDone={to=>{setMoving(null);setMessage(`Moved ${moving.path} to ${projects.find(p=>p.slug===to.project)?.name}.`);void refresh().then(d=>{const doc=d.find(x=>x.project===to.project&&x.path===to.path);if(doc&&currentRef.current?.project===moving.project&&currentRef.current.path===moving.path){setCurrent(doc);setSource(doc.source);}});}}/>}
       {importConflict&&<ImportConflictDialog project={importConflict.project} conflicts={importConflict.conflicts} onClose={()=>setImportConflict(null)} onChoose={choice=>void importIntoProject(importConflict.files,choice)}/>}
       {deleted&&<UndoToast deleted={deleted} onUndo={()=>void undoDelete()} onExpire={()=>setDeleted(null)}/>}
+      {editing&&docsRef.current.get(editing.docId)&&<ItemEditor key={editing.docId+'#'+editing.path.join('/')} doc={docsRef.current.get(editing.docId)!} base={docText(editing.docId)} path={editing.path} kind={editing.kind} projectDocs={projectDocsOf(editing.docId)} choices={choicesFor(editing.docId)}
+        onClose={()=>setEditing(null)} onSaved={saved=>{const file=docsRef.current.get(editing.docId)?.path;setEditing(null);applySaved(saved,`Saved to ${file}${saved.length>1?` and ${saved.length-1} other file${saved.length>2?'s':''}`:''}.`);}}
+        onOpenItem={(path,kind)=>setEditing({docId:editing.docId,path,kind})} onAddChild={(kind,owner)=>{setAdding({docId:editing.docId,kind,owner});setEditing(null);}} onDelete={()=>{setDeleting(editing);setEditing(null);}} onOpenSource={line=>{const id=editing.docId;setEditing(null);openSourceAt(id,line);}}/>}
+      {adding&&docsRef.current.get(adding.docId)&&<AddItem doc={docsRef.current.get(adding.docId)!} base={docText(adding.docId)} document={documentOf(adding.docId)} kind={adding.kind} owner={adding.owner} preset={adding.preset} choices={choicesFor(adding.docId)} onClose={()=>setAdding(null)}
+        onSaved={(saved,path,kind)=>{setAdding(null);applySaved([saved],`Added to ${docsRef.current.get(saved.docId)?.path}.`);if(saved.docId===current?.id&&!['ontology-relationship','join','odcs-foreign-key'].includes(kind)){setSelected(path.join('/'));setSelectedEdge('');}}}/>}
+      {deleting&&docsRef.current.get(deleting.docId)&&(()=>{const base=docText(deleting.docId),item=itemValue(base,deleting.path),owner=deleting.kind==='field'||deleting.kind==='odcs-property'?String(itemValue(base,deleting.path.slice(0,-2))?.name??''):undefined;
+        return <DeleteItem doc={docsRef.current.get(deleting.docId)!} base={base} path={deleting.path} kind={deleting.kind} name={itemName(deleting.kind,item)||'this item'} owner={owner} projectDocs={projectDocsOf(deleting.docId)} onClose={()=>setDeleting(null)} onDeleted={saved=>{setDeleting(null);setSelected('');setSelectedEdge('');applySaved(saved,`Deleted ${itemName(deleting.kind,item)} and saved ${saved.length} file${saved.length===1?'':'s'}.`);}}/>;})()}
+      {wizard&&kpiProject&&<KpiWizard project={kpiProject} docs={docs.filter(d=>d.project===kpiProject)} kpis={kpis} onClose={()=>setWizard(false)} onSaved={(file,modelPath,name)=>{setWizard(false);setMessage(`Created KPI ${name} in ${file}.`);setSelectedKpi(`${file}#${modelPath.join('/')}#${name}`);setTab('metrics');void refresh().catch(()=>{});}}/>}
       {pendingImport&&<ImportRepair initial={pendingImport} onCancel={()=>setPendingImport(null)} onImport={commitImports}/>}
       {compact&&sidebarOpen&&<button className="workspace-scrim" aria-label="Dismiss workspace drawer" tabIndex={-1} onClick={closeWorkspace}/>}
       <aside id="workspace-sidebar" className="sidebar workspace-sidebar" ref={sidebarRef} inert={!sidebarOpen} role={compact&&sidebarOpen?'dialog':undefined} aria-modal={compact&&sidebarOpen?true:undefined} aria-label="Workspace documents">
@@ -332,6 +376,9 @@ function App() {
           <button ref={workspaceToggle} className="workspace-toggle" aria-label={sidebarOpen?'Close workspace':'Open workspace'} aria-expanded={sidebarOpen} aria-controls="workspace-sidebar" onClick={()=>setSidebarOpen(v=>!v)}>{sidebarOpen?<X size={18}/>:<Menu size={18}/>}</button>
           <div className="workspace-title"><h1 title={model?.name??current?.filename??'Semantic Workbench'}>{model?.name??current?.filename??'Semantic Workbench'}</h1><span className="badge"><span className="dot"/>{model?.kind??'ODCS + Apache Ossie'}</span></div>
           <div className="header-actions">
+            <button aria-label="Add item" onClick={()=>current&&setAdding({docId:current.id})} disabled={!current||!model||!addableKinds((model as any).document).length} title="Add an entity or relationship to this file">
+              <Plus size={15} /> <span className="action-label">Add</span>
+            </button>
             <button aria-label="Export" onClick={download} disabled={!source}>
               <Download size={15} /> <span className="action-label">Export</span>
             </button>
@@ -378,7 +425,7 @@ function App() {
         {(source||current)&&(showValidation||!!result.error)&&<details className="validation-details" open><summary onClick={e=>{e.preventDefault();setShowValidation(false);}}>Validation findings</summary><ValidationPanel source={source} issues={validation.issues} onLocate={issue=>{setTab('source');setTimeout(()=>{sourceEditor.current?.locate(issue);},0);}}/></details>}
         <div className="canvas-row">
           <section className="canvas">
-            {tab==='metrics' ? <MetricsView project={kpiProject} projectName={projects.find(p=>p.slug===kpiProject)?.name} kpis={kpis} error={kpiError} loading={kpiLoading} selected={selectedKpi} onSelect={setSelectedKpi} filter={kpiFilter}/> : tab==='mappings' ? <MappingExplorer currentId={current?.id} revisionKey={docs.map(d=>d.id+':'+d.hash).join('|')} dirty={!!current&&source!==current.source}/> : !source && !current ? (
+            {tab==='metrics' ? <MetricsView project={kpiProject} projectName={projects.find(p=>p.slug===kpiProject)?.name} kpis={kpis} error={kpiError} loading={kpiLoading} selected={selectedKpi} onSelect={setSelectedKpi} filter={kpiFilter} onNew={()=>setWizard(true)} onEdit={editKpi}/> : tab==='mappings' ? <MappingExplorer currentId={current?.id} revisionKey={docs.map(d=>d.id+':'+d.hash).join('|')} dirty={!!current&&source!==current.source}/> : !source && !current ? (
               <div className="empty">
                 <div className="empty-icon">
                   <Network size={36} />
@@ -411,11 +458,14 @@ function App() {
                 {model?.entities
                   .filter((e) => e.name.toLowerCase().includes(search.toLowerCase()))
                   .map((e) => (
-                    <button key={e.id} onClick={() => selectEntity(e.id)}>
+                    <div className="catalog-card" key={e.id}>
+                    <button onClick={() => selectEntity(e.id)}>
                       <small>{e.kind==='Metric'?'KPI · Metric':e.kind}{(kpiBadges.get(e.name)?.length??0)>0&&<span className="kpi-badge" title={`KPIs: ${kpiBadges.get(e.name)!.join(', ')}`}><Gauge size={10}/>{kpiBadges.get(e.name)!.length===1?'KPI':`${kpiBadges.get(e.name)!.length} KPIs`}</span>}</small>
                       <strong>{e.name}</strong>
                       <p>{e.description || "No description yet"}</p>
                     </button>
+                    {entityTarget(e)&&<button className="catalog-edit" aria-label={`Edit ${e.name}`} onClick={()=>setEditing(entityTarget(e))}><Pencil size={11}/>Edit</button>}
+                    </div>
                   ))}
               </div>
             ) : tab==='fullgraph' && model ? <FullGraph kpiBadges={kpiBadges} grouping={grouping.value} onGroupingChange={grouping.change} groupingError={grouping.error} key={current?.id} name={model.name} entities={model.entities} edges={model.edges} selected={selected} selectedEdge={selectedEdge} search={search} onSelectEntity={selectEntity} onSelectEdge={id=>{setSelectedEdge(id);setSelected('')}} onOverview={()=>{setTab('graph');setShowAll(true);setSearch('')}} onNeighborhood={()=>showNeighborhood()}/> : (
@@ -430,6 +480,8 @@ function App() {
                 {activeGroup && activeGroup.data.relationships.length>1 && <label>Relationships on this connection<select aria-label="Connection relationship" value={selectedEdge} onChange={e=>setSelectedEdge(e.target.value)}>{activeGroup.data.relationships.map(r=><option key={r.id} value={r.id}>{r.label}</option>)}</select></label>}
                 <h2>{relationship.label}</h2>
                 <div className="badge">{relationship.data.kind}</div>
+                {(()=>{const t=relationshipTarget(relationship);if(!t)return <p className="hint">Edit this relationship in Source.</p>;const whole=relationship.data.kind==='Inheritance'||relationship.data.kind==='Metric expression reference';const owner=whole?itemName(t.kind,itemValue(source,t.path)):relationship.label;
+                  return <div className="inspector-actions"><button className="primary" onClick={()=>setEditing(t)} aria-label={`Edit ${owner}`}><Pencil size={13}/>{whole?`Edit ${owner}`:'Edit'}</button>{!whole&&<button onClick={()=>setDeleting(t)} aria-label={`Delete ${relationship.label}`}><Trash2 size={13}/>Delete</button>}</div>;})()}
                 <dl className="relationship-details">
                   <dt>From</dt><dd>{model?.entities.find(e=>e.id===relationship.source)?.name}</dd>
                   <dt>To</dt><dd>{model?.entities.find(e=>e.id===relationship.target)?.name}</dd>
@@ -438,7 +490,7 @@ function App() {
                   {relationship.data.definition.roles && <><dt>Roles</dt><dd>{relationship.data.definition.roles.map((role:any,i:number)=><div key={i}>{role.concept}{role.name ? ` (${role.name})` : ''}</div>)}</dd></>}
                   {relationship.data.definition.verbalizes && <><dt>Verbalizations</dt><dd>{relationship.data.definition.verbalizes.join(' · ')}</dd></>}
                 </dl>
-                {relationship.data.kind !== 'Inheritance' && !relationship.data.readOnlyForm && <label>Description<textarea aria-label="Relationship description" value={relationship.data.definition.description ?? ''} onChange={e=>setSource(editEntity(source,relationship.data.path,e.target.value))}/></label>}
+                {relationship.data.kind !== 'Inheritance' && !relationship.data.readOnlyForm && <label>Description<textarea aria-label="Relationship description" value={relationship.data.definition.description ?? ''} onChange={e=>setSource(editEntity(source,relationship.data.path,e.target.value,current?.filename))}/></label>}
                 <details className="raw-definition"><summary>Full relationship definition</summary><pre>{JSON.stringify(relationship.data.definition,null,2)}</pre></details>
                 <p className="hint">Edit the description here or the full definition in Source. Save to persist changes.</p>
               </>
@@ -450,11 +502,13 @@ function App() {
                 <h2>{entity.name}</h2>
                 <button className="inspect-neighborhood" onClick={()=>showNeighborhood(entity.id)}><Focus size={14}/>Explore neighborhood</button>
                 <div className="badge">{entity.kind}</div>
+                {(()=>{const t=entityTarget(entity);if(!t)return null;const add=t.kind==='concept'?{kind:'ontology-relationship' as ItemKind,owner:t.path,label:'Add relationship'}:t.kind==='dataset'?{kind:'join' as ItemKind,preset:{from:entity.name},label:'Add relationship'}:t.kind==='odcs-object'?{kind:'odcs-property' as ItemKind,owner:t.path,label:'Add property'}:null;
+                  return <div className="inspector-actions"><button className="primary" onClick={()=>setEditing(t)} aria-label={`Edit ${entity.name}`} title="Edit (E)"><Pencil size={13}/>Edit</button>{add&&<button onClick={()=>setAdding({docId:t.docId,kind:add.kind,owner:add.owner,preset:add.preset})}><Plus size={13}/>{add.label}</button>}<button onClick={()=>setDeleting(t)} aria-label={`Delete ${entity.name}`}><Trash2 size={13}/>Delete</button></div>;})()}
                 {entity.readOnlyForm ? <p className="hint">{entity.description || 'Edit this RDF resource in Source. Original serialization is preserved.'}</p> : <label>
                   Description
                   <textarea
                     value={entity.description}
-                    onChange={(e) => setSource(editEntity(source, entity.path, e.target.value))}
+                    onChange={(e) => setSource(editEntity(source, entity.path, e.target.value, current?.filename))}
                   />
                 </label>}
                 {relatedDocuments.length>0 && <><div className="section-label">SHARED REFERENCES</div>{relatedDocuments.map(d=><button className="document" key={d.id} onClick={()=>open(d)}><FileCode size={14}/>{d.filename}</button>)}</>}
