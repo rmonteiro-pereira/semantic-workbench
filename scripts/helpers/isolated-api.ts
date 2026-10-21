@@ -6,11 +6,11 @@ import {tempDataDir} from '../../tests/helpers/temp-data-dir';
 // Browser checks run the API on a temporary DATA_DIR (never the user's data/) and send the page's
 // /api requests there, whatever the dev server's own API points at.
 export type IsolatedApi={root:string;url:string;ws:Workspace;handler:(req:Request)=>Promise<Response>;restart(options?:{deleteCache?:boolean}):Promise<void>;stop():Promise<void>};
-export async function startIsolatedApi(options:{root?:string;watch?:boolean}={}):Promise<IsolatedApi>{
+export async function startIsolatedApi(options:{root?:string;watch?:boolean;gitBinary?:string}={}):Promise<IsolatedApi>{
  const dir=options.root?{root:options.root,cleanup:()=>rmSync(options.root!,{recursive:true,force:true})}:tempDataDir('workbench-browser-');
  let port=0;
  const start=async()=>{
-  const ws=await openWorkspace({root:dir.root,watch:options.watch??true,debounceMs:100});
+  const ws=await openWorkspace({root:dir.root,watch:options.watch??true,debounceMs:100,gitBinary:options.gitBinary});
   const handler=createHandler(ws);
   const server=Bun.serve({hostname:'127.0.0.1',port,idleTimeout:0,fetch:handler});
   port=server.port!;

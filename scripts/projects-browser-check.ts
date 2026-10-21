@@ -52,7 +52,7 @@ try{
   expect(readFileSync(join(api.root,'projects/shop/shop.yaml'),'utf8')).toContain('Saved from tab A.');
   await b.getByRole('button',{name:'Save changes',exact:true}).click();
   const dialog=b.getByRole('dialog',{name:/shop\.yaml changed since you opened it/});
-  await expect(dialog).toBeVisible();await expect(dialog.getByLabel('Your version (not saved)')).toContainText('Edited in tab B.');await expect(dialog.getByLabel('Current file on disk')).toContainText('Saved from tab A.');
+  await expect(dialog).toBeVisible();const diff=dialog.getByRole('group',{name:'Your version and the current file'});await expect(diff).toContainText('Edited in tab B.');await expect(diff).toContainText('Saved from tab A.');await expect(diff.locator('.cm-changedLine').first()).toBeVisible();
   await b.screenshot({path:'/tmp/workbench-projects-stale.png'});
   expect(readFileSync(join(api.root,'projects/shop/shop.yaml'),'utf8')).toContain('Saved from tab A.');
   await dialog.getByRole('button',{name:'Keep editing'}).click();await expect(dialog).toHaveCount(0);await expectEditorValue(sourceText(b),/Edited in tab B\./);
