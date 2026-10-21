@@ -113,6 +113,11 @@ const mutants:[string,string,string,string][]=[
  ['git-exec','server/projects/git.ts','if(REMOTE_COMMANDS.has(subcommandOf(args))&&!opts.remote)throw','if(false)throw'],
  ['git-exec','server/projects/git.ts',"if(typeof message!=='string'||!message.trim())throw new GitError('A commit message is required.');",''],
  ['rdf-lines','src/edit/rdf-patch/ntriples.ts',"else if(replaced.has(i))patches.push({from:l.start,to:l.start+l.text.length,insert:replaced.get(i)!});","else if(l.triple)patches.push({from:l.start,to:l.start+l.text.length,insert:replaced.get(i)??ntLine(l.triple.s.value,l.triple.p.value,l.triple.o)});"],
+ // SQL regions and lint (T058).
+ ['sql-regions','src/sql/regions.ts',"if(quote==='\"'&&c==='\\\\'){","if(false){"],
+ ['sql-regions','src/sql/regions.ts',"dialect=typeof d==='string'?d:null;grammar=grammarOf(dialect);","dialect=typeof d==='string'?d:null;grammar=grammarOf(null);"],
+ ['sql-regions','src/sql/regions.ts',"|ontology_mappings/\\\\*/semantic_model(?:/\\\\*)?/)?${MODEL}$`","|nothing)?${MODEL}$`"],
+ ['sql-lint','src/sql/lint.ts',"return [{severity:'warning',code:'sql'","return [{severity:'error',code:'sql'"],
 ];
 let killed=0;
 async function run(category:string,file:string,source:string,index:string){const rewritten=source.replace(/\bfrom\s*(['"])(\.[^'"]+)\1/g,(_all,q,path)=>`from ${q}${resolve(dirname(resolve(root,file)),path)}${q}`);const target=resolve(temp,index+'.ts');await Bun.write(target,rewritten);const child=Bun.spawn([process.execPath,resolve(root,'scripts/mutation-case.ts'),target,category],{stdout:'pipe',stderr:'pipe'});const timer=setTimeout(()=>child.kill(),10000);const code=await child.exited;clearTimeout(timer);const error=await new Response(child.stderr).text();return{code,error};}
