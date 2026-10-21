@@ -87,6 +87,7 @@ const mutants:[string,string,string,string][]=[
  ['metric-extension','src/metrics/extension.ts',"if(!validate(value))for(","if(false)for("],
  ['model-layout','src/model.ts',"(Array.isArray(data.ontology_mappings)?data.ontology_mappings:[]).forEach(","([] as any[]).forEach("],
  ['rdf-gate','src/edit/rdf-patch/isomorphism.ts',"if(!isomorphic(restBefore,restAfter))return","if(false)return"],
+ ['odcs-diff','src/odcs/odcs-diff.ts',".filter(k=>!skip.includes(k)).sort();",".filter(k=>!skip.includes(k)&&!/Type$/.test(k)).sort();"],
  ['scm-block','server/projects/scm.ts',"if(drafts.length)return new BlockedError('drafts',drafts);",''],
  ['git-exec','server/projects/git.ts','Bun.spawn([binary,...args],',"Bun.spawn(['sh','-c',[binary,...args].join(' ')],"],
  ['git-exec','server/projects/git.ts','if(REMOTE_COMMANDS.has(subcommandOf(args))&&!opts.remote)throw','if(false)throw'],

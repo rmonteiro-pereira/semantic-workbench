@@ -229,4 +229,8 @@ if(category==='git-exec'){const fs=await import('node:fs'),os=await import('node
   await assert.rejects(git.commit(dir,'  '),(e:any)=>e.message==='A commit message is required.');assert.equal(await git.head(dir),null);
   await git.commit(dir,'ok');assert(await git.head(dir));
  }finally{fs.rmSync(root,{recursive:true,force:true});}}
+if(category==='odcs-diff'){const v=(t:string,p='VARCHAR')=>({schema:[{name:'o',properties:[{name:'a',logicalType:t,physicalType:p}]}]});
+ assert.deepEqual(m.diffObject(v('string'),v('integer'),'o')?.properties[0]?.changes,[{attribute:'logicalType',before:'string',after:'integer'}]);
+ assert.deepEqual(m.diffObject(v('string'),v('string','TEXT'),'o')?.properties[0]?.changes,[{attribute:'physicalType',before:'VARCHAR',after:'TEXT'}]);
+ assert.equal(m.diffObject(v('string'),v('string'),'o'),null);}
 
