@@ -50,6 +50,7 @@ test('commit needs a message and staged changes; history and versions between tw
   expect(log[0]).toMatchObject({author:'Workbench Test'});
   const d=await ok(call(p.t,'GET',`${p.base}/git/diff?path=shop.yaml&from=${log[2].commit}&to=${log[0].commit}`));expect([d.before,d.after]).toEqual([ontology('Buys.'),ontology('Third.')]);
   expect((await ok(call(p.t,'GET',`${p.base}/git/show?commit=${log[1].commit}&path=shop.yaml`))).source).toBe(ontology('Second.'));
+  const versions=await ok(call(p.t,'GET',p.base+'/git/versions?path=shop.yaml&limit=2'));expect(versions.map((v:any)=>[v.message,v.source])).toEqual([['Again',ontology('Third.')],['Describe customers',ontology('Second.')]]);
   expect((await ok(call(p.t,'GET',p.base+'/git/status'))).changes).toEqual([]);
  }finally{p.dispose();}
 });

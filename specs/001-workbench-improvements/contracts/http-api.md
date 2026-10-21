@@ -73,6 +73,7 @@ Paths in URLs are URL-encoded relative POSIX paths; `..`, absolute paths and `.g
 | `POST /api/projects/:slug/git/fetch` / `pull` / `push` / `sync` | | `{ok, cancelled?, ahead, behind, conflicted: [path], altered: [path], stderr}`; pull/sync `409 {error:'drafts'\|'dirty', paths}` |
 | `POST /api/projects/:slug/git/cancel` | | `{cancelled}`: kills the running remote action (the UI's Cancel); that action then answers `{ok:false, cancelled:true}` |
 | `GET /api/projects/:slug/git/log` | `path?`, `limit?` | `[{commit, author, date, message}]` |
+| `GET /api/projects/:slug/git/versions` | `path`, `limit?` (≤ 50, default 20) | `[{commit, author, date, message, source}]` newest first: a file's committed texts, for ODCS History |
 | `GET /api/projects/:slug/git/show` | `commit`, `path` | `{source}` |
 | `POST /api/projects/:slug/gitignore` | `{pattern}` | appends via the normal hash-checked save → `{hash, added, tracked: [path]}` (`tracked`: committed files the rules now match, which Git keeps tracking) |
 

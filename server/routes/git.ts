@@ -14,6 +14,7 @@ export const gitRoutes:Route=async(ws,req,url)=>{
   if(action==='git/diff'){const path=q.get('path');if(!path)throw Error('path is required.');return Response.json(await scm.diff(slug,path,q.get('from')??'HEAD',q.get('to')??'worktree'));}
   if(action==='git/branches')return Response.json(await scm.branches(slug));
   if(action==='git/log')return Response.json(await scm.log(slug,q.get('path')??undefined,q.has('limit')?Number(q.get('limit')):undefined));
+  if(action==='git/versions'){const path=q.get('path');if(!path)throw Error('path is required.');return Response.json(await scm.versions(slug,path,q.has('limit')?Number(q.get('limit')):undefined));}
   if(action==='git/show'){const commit=q.get('commit'),path=q.get('path');if(!commit||!path)throw Error('commit and path are required.');return Response.json(await scm.show(slug,commit,path));}
   return null;
  }
