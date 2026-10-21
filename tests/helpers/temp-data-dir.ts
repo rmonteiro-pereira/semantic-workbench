@@ -1,4 +1,4 @@
-import {mkdtempSync,rmSync,writeFileSync} from 'node:fs';
+import {mkdirSync,mkdtempSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {openWorkspace,type WorkspaceOptions,type ImportFile} from '../../server/projects/workspace';
@@ -8,7 +8,8 @@ import {createHandler} from '../../server/handler';
 let gitHome:string|undefined;
 export function isolateGit(){
  if(!gitHome){
-  gitHome=mkdtempSync(join(tmpdir(),'workbench-git-'));
+  // One fixed folder per user, rewritten with the same content each time, so nothing accumulates.
+  gitHome=join(tmpdir(),`workbench-git-test-${process.getuid?.()??'user'}`);mkdirSync(gitHome,{recursive:true});
   const config=join(gitHome,'gitconfig');
   writeFileSync(config,'[user]\n\tname = Workbench Test\n\temail = workbench-test@example.invalid\n[init]\n\tdefaultBranch = main\n');
   process.env.GIT_CONFIG_GLOBAL=config;process.env.GIT_CONFIG_NOSYSTEM='1';

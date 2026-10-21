@@ -81,3 +81,20 @@ test('migration waits for Git and an identity instead of creating projects witho
   finally{t.ws.close();}
  }finally{db.close();d.cleanup();}
 });
+test('after a failed migration, projects created meanwhile are kept and the next start still migrates',async()=>{
+ const {d,db}=await legacyWorkspace();
+ try{
+  let writes=0;
+  const first=await testWorkspace({root:d.root,migrationHooks:{afterWrite:file=>{if(++writes===1)writeFileSync(file,'tampered');}}});
+  expect(first.ws.migration!.status).toBe('failed');
+  await first.ws.importBatch({name:'UBL business model',files:[{path:'mine.yaml',source:'name: Mine\nontology: [{concept: M}]\n'}]});
+  first.ws.close();
+  const second=await testWorkspace({root:d.root});
+  try{
+   expect(second.ws.migration!.status).toBe('completed');
+   expect(second.ws.state.registry().projects.map(p=>[p.slug,p.name])).toEqual([['ubl-business-model','UBL business model'],['ubl','UBL business model (2)'],['flights','Ossie Flights'],['ungrouped','Ungrouped']]);
+   expect(second.ws.documents()).toHaveLength(7);
+  }finally{second.ws.close();}
+  const third=await testWorkspace({root:d.root});expect(third.ws.migration).toBeNull();third.ws.close();
+ }finally{db.close();d.cleanup();}
+});
