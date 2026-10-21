@@ -25,8 +25,9 @@ export const api={
  status:()=>fetch('/api/status').then(r=>json<WorkspaceStatus>(r)),
  projects:()=>fetch('/api/projects').then(r=>json<ProjectInfo[]>(r)),
  file:(project:string,path:string)=>fetch(fileUrl(project,path)).then(r=>json<{path:string;source:string;hash:string;docType:string}>(r)),
- async save(project:string,path:string,baseHash:string|null,source:string){
-  const response=await fetch(fileUrl(project,path),send('PUT',{baseHash,source}));
+ // A save sends patches against the version it started from when it has them (FR-046), else the text.
+ async save(project:string,path:string,baseHash:string|null,source:string,patches?:{from:number;to:number;insert:string}[]){
+  const response=await fetch(fileUrl(project,path),send('PUT',patches&&baseHash!==null?{baseHash,patches}:{baseHash,source}));
   if(response.status===409){const body=await response.json();throw new StaleSave(body.currentHash,body.currentSource);}
   return json<{path:string;hash:string}>(response);
  },

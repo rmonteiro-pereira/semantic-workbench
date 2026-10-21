@@ -1,5 +1,5 @@
 import {test,expect} from 'bun:test';
-import {issueFeature,sourceLineRange} from '../src/SourceEditor';
+import {issueFeature,sourceLineRange} from '../src/editor/feature';
 test('feature paths decode pointer escapes and identify list entries',()=>{
  expect(issueFeature('/schema/2/properties/0/name')).toBe('schema → item 3 → properties → item 1 → name');
  expect(issueFeature('/a~1b/~0label')).toBe('a/b → ~label');

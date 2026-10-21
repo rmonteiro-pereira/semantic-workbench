@@ -1,7 +1,8 @@
 import{GroupingControls}from'./GroupingControls';
 import{modelOverview}from'./overview';
 import{useGrouping}from'./useGrouping';
-import{SourceEditor,locateSourceIssue}from'./SourceEditor';
+import{CodeEditor,type CodeEditorHandle}from'./editor/CodeEditor';
+import{diffPatches}from'./editor/patch';
 import{api,loadWorkspace,StaleSave,type Doc,type ProjectInfo,type WorkspaceStatus,type Deleted,type Suggestion}from'./projects/api';
 import{useEvents}from'./projects/useEvents';
 import{ProjectTree,type TreeAction}from'./projects/Sidebar';
@@ -36,6 +37,7 @@ import {
 import {validateInput} from "./input";
 import {documentKeys,entityKeys} from './references';
 import type {Entity} from './model';
+import type {Issue} from './diagnostics';
 import {ValidationPanel, ImportRepair, type ImportDraft} from "./ValidationPanel";
 import { editEntity } from "./model";
 import {groupRelationships} from "./graph-view";
@@ -72,7 +74,7 @@ function App() {
   useEffect(()=>{if(!kpiProject){setKpis([]);return;}let live=true;setKpiLoading(true);api.metrics(kpiProject).then(k=>{if(live){setKpis(k);setKpiError('');}}).catch(e=>{if(live){setKpis([]);setKpiError(e.message);}}).finally(()=>{if(live)setKpiLoading(false);});return()=>{live=false;};},[kpiProject,kpiRevision]);
   useEffect(()=>setSelectedKpi(''),[kpiProject]);
   const kpiBadges=useMemo(()=>{const map=new Map<string,string[]>();for(const k of kpis)for(const c of k.concepts){const name=c.concept??c.input;const list=map.get(name)??[];if(!list.includes(k.label))list.push(k.label);map.set(name,list);}return map;},[kpis]);
-  const sourceEditor=useRef<HTMLTextAreaElement|null>(null);
+  const sourceEditor=useRef<CodeEditorHandle|null>(null);
   // Neighborhood walk across centers and files (FR-037).
   const [walk,dispatchWalk]=useReducer(walkReducer,emptyWalk);
   const walkStep=walk.steps[walk.index],neighborhoodFocus=walkStep&&walkStep.doc===current?.id?walkStep.center:'';
@@ -130,7 +132,16 @@ function App() {
     if(tab!=='graph'&&validateInput(d.source,d.filename).model?.kind==='Ossie mappings')setTab('mappings');
     return true;
   }
-  const validation = useMemo(()=>validateInput(source,current?.filename??'definition.yaml'),[source,current?.filename]);
+  // While typing in Source, findings come from the editor's validation worker (after a 300 ms pause)
+  // and the whole model is rebuilt only when another view needs it, so keystrokes never wait for a
+  // parse on the main thread (FR-045). A newly opened file is checked at once.
+  const [settled,setSettled]=useState({id:current?.id,text:source});
+  const [editorIssues,setEditorIssues]=useState<{id?:string;issues:Issue[]}|null>(null);
+  useEffect(()=>{if(tab!=='source'||settled.id!==current?.id)setSettled({id:current?.id,text:source});},[source,tab,current?.id]);
+  const checkedSource=tab==='source'&&settled.id===current?.id?settled.text:source;
+  const checked = useMemo(()=>validateInput(checkedSource,current?.filename??'definition.yaml'),[checkedSource,current?.filename]);
+  const live=tab==='source'&&checkedSource!==source&&editorIssues?.id===current?.id?editorIssues!.issues:null;
+  const validation=live?{...checked,issues:live,valid:!live.some(i=>i.severity==='error')}:checked;
   const result = {model:validation.model,error:(source||current)&&!validation.valid?validation.issues.filter(i=>i.severity==='error').map(i=>i.message).join('\n'):''};
   const model = result.model;
   const [showAll,setShowAll]=useState(false);
@@ -181,7 +192,8 @@ function App() {
     setBusy(true);
     setMessage("");
     try {
-      const saved=await api.save(current.project,current.path,baseHash,source);
+      // Unchanged base: send only the changed range, so untouched bytes are never re-sent.
+      const saved=await api.save(current.project,current.path,baseHash,source,baseHash===current.hash?diffPatches(current.source,source):undefined);
       const doc:Doc={...current,source,hash:saved.hash};
       docsRef.current.set(doc.id,doc);
       setDocs((old) => old.map((x) => x.id === doc.id ? doc : x));
@@ -363,7 +375,7 @@ function App() {
             />
           </label>
         </div>
-        {(source||current)&&(showValidation||!!result.error)&&<details className="validation-details" open><summary onClick={e=>{e.preventDefault();setShowValidation(false);}}>Validation findings</summary><ValidationPanel source={source} issues={validation.issues} onLocate={issue=>{setTab('source');setTimeout(()=>{const editor=sourceEditor.current;if(!editor)return;locateSourceIssue(editor,issue);},0);}}/></details>}
+        {(source||current)&&(showValidation||!!result.error)&&<details className="validation-details" open><summary onClick={e=>{e.preventDefault();setShowValidation(false);}}>Validation findings</summary><ValidationPanel source={source} issues={validation.issues} onLocate={issue=>{setTab('source');setTimeout(()=>{sourceEditor.current?.locate(issue);},0);}}/></details>}
         <div className="canvas-row">
           <section className="canvas">
             {tab==='metrics' ? <MetricsView project={kpiProject} projectName={projects.find(p=>p.slug===kpiProject)?.name} kpis={kpis} error={kpiError} loading={kpiLoading} selected={selectedKpi} onSelect={setSelectedKpi} filter={kpiFilter}/> : tab==='mappings' ? <MappingExplorer currentId={current?.id} revisionKey={docs.map(d=>d.id+':'+d.hash).join('|')} dirty={!!current&&source!==current.source}/> : !source && !current ? (
@@ -385,14 +397,14 @@ function App() {
                 </button>
               </div>
             ) : tab === "source" ? (
-              <SourceEditor
-                issues={validation.issues}
+              <CodeEditor
                 ref={sourceEditor}
-                aria-label="Definition source"
+                ariaLabel="Definition source"
                 className="code"
-                spellCheck={false}
+                filename={current?.filename??'definition.yaml'}
                 value={source}
-                onChange={(e) => setSource(e.target.value)}
+                onChange={setSource}
+                onIssues={issues=>setEditorIssues({id:current?.id,issues})}
               />
             ) : result.error ? <div className="invalid-definition"><h2>This definition needs repair</h2><p>Your saved document is unchanged. Open Source to fix the validation findings.</p><button onClick={()=>setTab("source")}>Repair in Source</button></div> : tab === "catalog" ? (
               <div className="catalog">

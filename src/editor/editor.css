@@ -1,0 +1,34 @@
+/* Source editor: CodeMirror inside the app's palette; colors of the code follow VS Code Light+. */
+.code-editor { display: flex; flex-direction: column; width: 100%; height: 100%; min-height: 0; background: #fff; border: 1px solid #e3eae5; border-radius: 6px; overflow: hidden; }
+.code-editor-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 5px 8px; border-bottom: 1px solid #e3eae5; background: #f8fbfa; font-size: 11px; color: #5c7c68; }
+.code-editor-bar button { padding: 4px 8px; font-size: 11px; gap: 5px; }
+.code-editor-bar button:last-child { margin-right: 0; }
+.code-editor-syntax { font-weight: 700; color: #1e6a4f; background: #e9f4ef; border-radius: 8px; padding: 1px 8px; }
+.code-editor-eol { color: #6f8881; }
+.code-editor-position { margin-left: auto; font-variant-numeric: tabular-nums; }
+.code-editor-checking { color: #8a6d12; }
+.code-editor-document-findings { list-style: none; margin: 0; padding: 6px 10px; display: grid; gap: 4px; border-bottom: 1px solid #efe3b8; background: #fffaf0; font-size: 12px; max-height: 120px; overflow: auto; }
+.code-editor-document-findings li.error strong { color: #a3392f; }
+.code-editor-document-findings li.warning strong { color: #8a6d12; }
+.code-editor-host { flex: 1 1 0; min-height: 0; display: flex; overflow: hidden; }
+/* CodeMirror's base theme forces position: relative; the editor fills the host and scrolls inside. */
+.code-editor-host .cm-editor { flex: 1 1 auto; min-width: 0; height: 100%; font-size: 12.5px; }
+.code-editor-host .cm-editor.cm-focused { outline: 2px solid #67a590; outline-offset: -2px; }
+.code-editor-host .cm-scroller { font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace; line-height: 1.6; }
+.code-editor-host .cm-content { color: #1f1f1f; caret-color: #000; }
+.code-editor-host .cm-gutters { background: #f8faf9; color: #8b9c95; border-right: 1px solid #e3eae5; }
+.code-editor-host .cm-activeLineGutter { background: #e9f4ef; color: #1e6a4f; }
+.code-editor-host .cm-activeLine { background: #f4f9f6; }
+.code-editor-host .cm-selectionBackground, .code-editor-host .cm-editor.cm-focused .cm-selectionBackground { background: #add6ff !important; }
+.code-editor-host .cm-searchMatch { background: #ffe58f; outline: 1px solid #e3c34a; }
+.code-editor-host .cm-searchMatch-selected { background: #f8c555; }
+.code-editor-host .cm-panels { background: #f8fbfa; border-color: #e3eae5; font-size: 12px; }
+.code-editor-host .cm-panels input, .code-editor-host .cm-panels button { font-size: 12px; }
+.code-editor-host .cm-lintRange-error { background-image: none; text-decoration: underline wavy #e51400; text-decoration-skip-ink: none; text-underline-offset: 3px; }
+.code-editor-host .cm-lintRange-warning { background-image: none; text-decoration: underline wavy #bf8803; text-decoration-skip-ink: none; text-underline-offset: 3px; }
+.code-editor-host .cm-tooltip-lint { font-size: 12px; max-width: 520px; }
+.code-editor.code { padding: 0; border: 0; border-radius: 0; background: #fff; font: inherit; }
+.code-editor-bar, .code-editor-document-findings { flex-shrink: 0; }
+.code-editor .code-editor-goto label { flex-direction: row; margin: 0; font-size: 11px; color: #5c7c68; display: flex; align-items: center; gap: 5px; border: 1px solid #dce4e2; border-radius: 6px; padding: 0 6px; background: #fff; }
+.code-editor .code-editor-goto input { margin: 0; height: auto; width: 64px; border: 0; padding: 4px 0; font-size: 11px; outline: none; background: none; }
+.code-editor-goto label:focus-within { border-color: #50cbb0; box-shadow: 0 0 0 2px #50cbb033; }
