@@ -6,7 +6,7 @@ if(category==='graph'){const nodes=Array.from({length:30},(_,i)=>({id:String(i),
 if(category==='export'){const r=m.exportDocument('original source\n','file.ttl');assert.equal(r.filename,'file.ttl');assert.equal(await r.blob.text(),'original source\n');assert(r.blob.type.includes('text/turtle'));}
 if(category==='model'){const source='name: Sample\nunknown: preserved\nontology: [{concept: Customer, type: EntityType}]\n';const edited=m.editEntity(source,['ontology',0],'Updated');assert.equal(m.inspect(edited).entities[0].description,'Updated');assert(edited.includes('unknown: preserved'));}
 // Folder store cases run on isolated temporary data roots with a test Git identity.
-if(['files','atomic','migration','paths','events-origin','journal'].includes(category)){
+if(['files','atomic','migration','paths','events-origin','journal','trash','confirm'].includes(category)){
  const {tempDataDir}=await import('../tests/helpers/temp-data-dir');
  const fs=await import('node:fs');const {join}=await import('node:path');const {createHash}=await import('node:crypto');
  const hash=(b:string|Uint8Array)=>createHash('sha256').update(b).digest('hex');
@@ -42,6 +42,29 @@ if(['files','atomic','migration','paths','events-origin','journal'].includes(cat
   if(category==='events-origin'){
    const {openWorkspace}=await import('../server/projects/workspace');const ws=await openWorkspace({root:d.root});
    try{const h=m.createHandler(ws);assert.equal((await h(new Request('http://127.0.0.1:4310/api/events',{headers:{origin:'https://evil.example'}}))).status,403);assert.equal((await h(new Request('http://127.0.0.1:4310/api/projects',{headers:{origin:'https://evil.example'}}))).status,403);}finally{ws.close();}
+  }
+  if(category==='trash'){
+   let clock=Date.parse('2026-10-21T10:00:00Z');
+   const {openWorkspace}=await import('../server/projects/workspace');const ws=await openWorkspace({root:d.root,now:()=>clock});
+   try{
+    await ws.importBatch({files:[{path:'a.yaml',source}]});
+    const trash=m.createTrash({layout:ws.layout,state:ws.state,journal:ws.journal,lock:ws.lock,projects:()=>ws.state.registry().projects,registrySteps:ws.registrySteps,afterFiles:(s:string)=>ws.rescan(s),forgetProject:()=>{},adoptProject:async()=>{},createProject:async()=>{throw Error('unused');},emit:()=>{},now:()=>clock});
+    const first=await trash.deleteFile('sample','a.yaml');clock+=10_001;
+    await assert.rejects(()=>trash.undo(first.entryId),(e:any)=>e.name==='GoneError');
+    fs.writeFileSync(join(d.root,'projects/sample/a.yaml'),'name: Newer\nontology: [{concept: N}]\n');
+    await assert.rejects(()=>trash.restore(first.entryId),(e:any)=>e.name==='OccupiedError'&&e.suggestion.toPath==='a (2).yaml');
+    assert.equal(fs.readFileSync(join(d.root,'projects/sample/a.yaml'),'utf8'),'name: Newer\nontology: [{concept: N}]\n');
+   }finally{ws.close();}
+  }
+  if(category==='confirm'){
+   assert.throws(()=>m.requireConfirm({}));assert.throws(()=>m.requireConfirm({confirm:'yes'}));m.requireConfirm({confirm:true});
+   const {openWorkspace}=await import('../server/projects/workspace');const ws=await openWorkspace({root:d.root});
+   try{
+    await ws.importBatch({files:[{path:'a.yaml',source}]});
+    await assert.rejects(async()=>m.trashRoutes(ws,new Request('http://x/api/projects/sample/files/a.yaml',{method:'DELETE',body:'{}'}),new URL('http://x/api/projects/sample/files/a.yaml')));
+    await assert.rejects(async()=>m.trashRoutes(ws,new Request('http://x/api/clear',{method:'POST',body:'{}'}),new URL('http://x/api/clear')));
+    assert(fs.existsSync(join(d.root,'projects/sample/a.yaml')));
+   }finally{ws.close();}
   }
   if(category==='migration'){
    const {Database}=await import('bun:sqlite');const {dataLayout}=await import('../server/projects/paths');const {createState}=await import('../server/projects/state');const {createJournal}=await import('../server/projects/journal');const {createGit}=await import('../server/projects/git');
@@ -126,4 +149,11 @@ if(category==='agent'){
 }
 if(category==='iri'){assert.deepEqual(m.expandIri('ex:A',{ex:'https://example.org/'}),{iri:'https://example.org/A',prefix:'ex'});assert('error'in m.expandIri('zz:A',{ex:'https://example.org/'}));assert.deepEqual(m.expandIri('https://x.example/A'),{iri:'https://x.example/A'});}
 if(category==='odcs'){const data={schema:[{name:'a',properties:[{name:'id'}]},{name:'b',properties:[{name:'a_id',relationships:[{to:'a.id'}]},{name:'x_id',relationships:[{to:'x.id'}]}]}]};assert.equal(m.odcsForeignKeys(data).length,1);assert.equal(m.odcsReferenceIssues(data).length,1);}
+if(category==='suggestions'){
+ const f=(project:string,path:string,facts:any)=>({project,path,hash:path,facts:{names:[],refs:[],iris:[],physical:[],sources:[],...facts}});
+ const own=f('p','o.yaml',{names:['Flights']});
+ for(const ref of ['Flight','flights','Flig','FLIGHTS semantic'])assert.equal(m.evidenceBetween(f('q','m.yaml',{refs:[ref]}),own).length,0);
+ assert.equal(m.evidenceBetween(f('q','m.yaml',{refs:['Flights']}),own).length,1);
+ assert.equal(m.inferSuggestions([own,f('q','m.yaml',{refs:['Flightz']})],new Set()).length,0);
+}
 if(category==='references'){const entity={id:'ontology/0',name:'P',kind:'EntityType',path:[],description:'',fields:[],definition:{iri:'core:P'}};assert(m.entityKeys(entity,{entities:[entity],document:{prefixes:{core:'https://example.org/core#'}}}).includes('https://example.org/core#P'));}

@@ -60,6 +60,10 @@ const mutants:[string,string,string,string][]=[
  ['paths','server/projects/paths.ts',"if(parts.some(p=>p.toLowerCase()==='.git'))throw","if(false)throw"],
  ['events-origin','server/handler.ts',"if(origin&&!ALLOWED_ORIGINS.includes(origin))return","if(origin&&!ALLOWED_ORIGINS.includes(origin)&&url.pathname!=='/api/events')return"],
  ['journal','server/projects/journal.ts','const forward=remaining.every(','const forward=true||remaining.every('],
+ ['trash','server/projects/trash.ts','if(undo&&now()>Date.parse(e.undoUntil))throw new GoneError','if(false)throw new GoneError'],
+ ['trash','server/projects/trash.ts','if(existsSync(dest)){','if(false){'],
+ ['suggestions','server/projects/suggestions.ts','export const sameName=(a:string,b:string)=>a===b;','export const sameName=(a:string,b:string)=>a.slice(0,4).toLowerCase()===b.slice(0,4).toLowerCase();'],
+ ['confirm','server/routes/trash.ts',"if(!body||body.confirm!==true)throw","if(false)throw"],
 ];
 let killed=0;
 async function run(category:string,file:string,source:string,index:string){const rewritten=source.replace(/\bfrom\s*(['"])(\.[^'"]+)\1/g,(_all,q,path)=>`from ${q}${resolve(dirname(resolve(root,file)),path)}${q}`);const target=resolve(temp,index+'.ts');await Bun.write(target,rewritten);const child=Bun.spawn([process.execPath,resolve(root,'scripts/mutation-case.ts'),target,category],{stdout:'pipe',stderr:'pipe'});const timer=setTimeout(()=>child.kill(),10000);const code=await child.exited;clearTimeout(timer);const error=await new Response(child.stderr).text();return{code,error};}

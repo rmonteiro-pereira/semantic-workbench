@@ -353,3 +353,30 @@ and recorded here so later phases build on them.
   `browser-check.ts` fail on v0.1.0 as well (stale selectors, verified in a v0.1.0 worktree); they
   were moved to isolated data roots so they can no longer write to a real workspace, but are not
   part of the gate.
+
+## R14. Implementation decisions taken in Phase 2
+
+- **Trash log.** Each trash entry is `data/trash/<entryId>/entry.json` beside its `payload/`
+  (plus `draft.json`, `view.json` or `drafts/` when there were drafts or view settings), instead of a
+  separate `state/trash/index.json` (R6). The entry files are durable, written atomically and
+  outside the cache, so FR-078 holds, and an entry cannot disagree with an index. Entry ids are ULIDs.
+- **What is journaled.** Delete, project delete, Clear (all projects in one journal, entries sharing
+  a `batchId`), undo/restore, move and import into an existing project are rename-only journals.
+  Undo of a Clear is one undo call per entry (the UI sends them together).
+- **Restore targets.** A file whose project is gone is restored into a new project with the old name
+  (created and committed like an import). A taken file path or project id is a 409 `occupied` with
+  a free alternative (`name (2).ext`, `<slug>-2`); nothing is ever overwritten.
+- **Broken references** in the delete confirmation are Ossie `ontology_ref`/`semantic_model_ref`
+  names that no remaining file declares. Shared IRIs and physical names are not "references" that
+  break, so they are not listed.
+- **Grouping suggestions** are computed on request from per-file facts memoized by content hash; the
+  cache's `suggestions` table stays unused. A file is offered to another project only when nothing
+  links it to the other files of its own project and its project is the smaller one (on equal
+  size, the one registered later). Without the size rule, the two halves of a project that are
+  only connected through a separately imported mapping would be offered to the mapping's
+  one-file project. Limit: an unrelated file inside a large batch is not offered to a smaller
+  project (the spec's "suggestions offer to split" edge case is therefore only partly covered).
+  Accepting a suggestion whose name is taken in the target keeps both (`name (2).ext`).
+- **Imports into an existing project and moves are not committed**; they appear as changes for
+  Source Control (Phase 8). "Replace" overwrites only after the user chose it in the conflict
+  dialog; the replaced bytes remain recoverable only from Git history if they were committed.

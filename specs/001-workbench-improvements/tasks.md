@@ -99,25 +99,25 @@ deletion loses nothing, two-tab stale save).
 
 ### Tests
 
-- [ ] T038 [P] [US2] Trash tests in tests/trash.test.ts: undo allowed until `undoUntil = deletedAt + 10 s`, 410 after; restore never overwrites (409 `occupied`); purge; Clear creates one entry per project with a shared `batchId`; all journaled; project delete moves the folder including `.git`
-- [ ] T039 [P] [US2] Delete-impact tests in tests/delete-impact.test.ts: removed items, unsaved drafts and broken references listed
-- [ ] T040 [P] [US2] Suggestion tests in tests/suggestions.test.ts: evidence only of kinds `ossie-ref-name`, `shared-iri`, `odcs-physical-name` (never name similarity); rejected suggestions persist by file hash + target
-- [ ] T041 [P] [US2] Rename/move and re-import conflict tests (`409 {conflicts}` without `onConflict`; `replace` or `keep-both`) in tests/projects-api.test.ts
+- [X] T038 [P] [US2] Trash tests in tests/trash.test.ts: undo allowed until `undoUntil = deletedAt + 10 s`, 410 after; restore never overwrites (409 `occupied`); purge; Clear creates one entry per project with a shared `batchId`; all journaled; project delete moves the folder including `.git`
+- [X] T039 [P] [US2] Delete-impact tests in tests/delete-impact.test.ts: removed items, unsaved drafts and broken references listed
+- [X] T040 [P] [US2] Suggestion tests in tests/suggestions.test.ts: evidence only of kinds `ossie-ref-name`, `shared-iri`, `odcs-physical-name` (never name similarity); rejected suggestions persist by file hash + target
+- [X] T041 [P] [US2] Rename/move and re-import conflict tests (`409 {conflicts}` without `onConflict`; `replace` or `keep-both`) in tests/projects-api.test.ts
 
 ### Implementation
 
-- [ ] T042 [US2] Implement delete/undo/restore/purge/clear with trash entries (`entryId` ULID, `kind`, original location, `deletedAt`, `hash`, `undoUntil`, `batchId`) in server/projects/trash.ts
-- [ ] T043 [US2] Implement trash and delete routes including `GET …/delete-impact` per contracts/http-api.md in server/routes/trash.ts
-- [ ] T044 [P] [US2] Implement suggestion inference and accept/reject in server/projects/suggestions.ts and server/routes/suggestions.ts
-- [ ] T045 [US2] Implement rename, move (journaled) and re-import conflict handling in server/routes/projects.ts
-- [ ] T046 [P] [US2] Delete confirmation dialog in src/projects/DeleteDialog.tsx
-- [ ] T047 [P] [US2] Undo toast (10 s) in src/projects/UndoToast.tsx
-- [ ] T048 [P] [US2] Trash dialog (restore, delete permanently, empty with confirmation) in src/projects/Trash.tsx
-- [ ] T049 [P] [US2] Grouping suggestions region in src/projects/Suggestions.tsx
-- [ ] T050 [US2] Wire Rename/Move/Delete/Clear/Trash into src/projects/Sidebar.tsx
-- [ ] T051 [US2] Browser check scripts/trash-browser-check.ts: confirm → undo → trash → restore → purge; Clear; suggestion accept/reject; no reload
-- [ ] T052 [US2] Add mutants in scripts/mutation-tests.ts: undo after expiry allowed; restore overwrites; suggestion from similar names; delete without the confirm flag
-- [ ] T053 [US2] Remove scripts/clear-db.ts and update README.md (deletion, trash, suggestions)
+- [X] T042 [US2] Implement delete/undo/restore/purge/clear with trash entries (`entryId` ULID, `kind`, original location, `deletedAt`, `hash`, `undoUntil`, `batchId`) in server/projects/trash.ts
+- [X] T043 [US2] Implement trash and delete routes including `GET …/delete-impact` per contracts/http-api.md in server/routes/trash.ts
+- [X] T044 [P] [US2] Implement suggestion inference and accept/reject in server/projects/suggestions.ts and server/routes/suggestions.ts
+- [X] T045 [US2] Implement rename, move (journaled) and re-import conflict handling in server/routes/projects.ts
+- [X] T046 [P] [US2] Delete confirmation dialog in src/projects/DeleteDialog.tsx
+- [X] T047 [P] [US2] Undo toast (10 s) in src/projects/UndoToast.tsx
+- [X] T048 [P] [US2] Trash dialog (restore, delete permanently, empty with confirmation) in src/projects/Trash.tsx
+- [X] T049 [P] [US2] Grouping suggestions region in src/projects/Suggestions.tsx
+- [X] T050 [US2] Wire Rename/Move/Delete/Clear/Trash into src/projects/Sidebar.tsx
+- [X] T051 [US2] Browser check scripts/trash-browser-check.ts: confirm → undo → trash → restore → purge; Clear; suggestion accept/reject; no reload
+- [X] T052 [US2] Add mutants in scripts/mutation-tests.ts: undo after expiry allowed; restore overwrites; suggestion from similar names; delete without the confirm flag
+- [X] T053 [US2] Remove scripts/clear-db.ts and update README.md (deletion, trash, suggestions)
 
 **Checkpoint**: Story 2 complete.
 
