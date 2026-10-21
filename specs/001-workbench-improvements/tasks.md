@@ -353,11 +353,11 @@ to concepts and ODCS.
 
 ## Final Phase: Polish and cross-cutting
 
-- [ ] T162 [P] Final README.md pass: every count produced by tests, limits stated (constitution VII)
+- [X] T162 [P] Final README.md pass: every count produced by tests, limits stated (constitution VII)
 - [X] T163 [P] Update docs/graph-design.md and docs/agent-runtime.md for the folder store and ids
 - [X] T164 Security review of all new routes (path traversal, origin check, argument arrays, no background remote calls)
 - [X] T165 Remove the legacy facade if no suite or documented client uses it, else document it (research R9) in server/handler.ts
-- [ ] T166 Run the full quickstart.md and every suite including `bun run test:mutation`
+- [X] T166 Run the full quickstart.md and every suite including `bun run test:mutation`
 
 ---
 

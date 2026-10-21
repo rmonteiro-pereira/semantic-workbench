@@ -782,3 +782,14 @@ body answers 400 rather than 413, as everywhere else in the API.
   ancestors show, so a toolbar button scrolled out of view is not reported as covered; the React
   Flow attribution credit is not counted as a control.
 
+## R26. Final verification (T162, T166)
+
+Every count in the README comes from a test or suite run: 421 unit tests; browser suites ODCS 9,
+Source Control 10, projects 5, RDF edit 9, item edit 11, UI 20, grouping and validation 7, trash
+13, metrics 10, graph 11, editor 8, responsive 51, edges 6, examples UI 18, plus the example
+checks; 93 of 93 targeted mutants killed (90 module mutants and three browser mutants). The
+quickstart's "Always" block was run with the API on a fresh temporary data root (Vite proxy,
+import, loopback-only Host and cross-origin write refusal checked live); the per-phase steps are
+the browser suites above, each on its own temporary data root. The owner's `data/` and its backup
+were not touched by any check.
+
