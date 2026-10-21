@@ -64,6 +64,11 @@ const mutants:[string,string,string,string][]=[
  ['trash','server/projects/trash.ts','if(existsSync(dest)){','if(false){'],
  ['suggestions','server/projects/suggestions.ts','export const sameName=(a:string,b:string)=>a===b;','export const sameName=(a:string,b:string)=>a.slice(0,4).toLowerCase()===b.slice(0,4).toLowerCase();'],
  ['confirm','server/routes/trash.ts',"if(!body||body.confirm!==true)throw","if(false)throw"],
+ ['explain','server/agent/explain.ts',"if(rollup==='sum'&&kpi.additivity==='non_additive')return refuse(","if(false)return refuse("],
+ ['explain','server/agent/explain.ts',"columns.includes(p?.physicalName??p?.name)","columns.some(c=>String(p?.physicalName??p?.name).includes(c))"],
+ ['explain','server/agent/explain.ts',"if(Array.isArray(data.ontology))return list(data.ontology_mappings)","if(Array.isArray(data.ontology))return [];if(false)return list(data.ontology_mappings)"],
+ ['metric-extension','src/metrics/extension.ts',"if(!validate(value))for(","if(false)for("],
+ ['model-layout','src/model.ts',"(Array.isArray(data.ontology_mappings)?data.ontology_mappings:[]).forEach(","([] as any[]).forEach("],
 ];
 let killed=0;
 async function run(category:string,file:string,source:string,index:string){const rewritten=source.replace(/\bfrom\s*(['"])(\.[^'"]+)\1/g,(_all,q,path)=>`from ${q}${resolve(dirname(resolve(root,file)),path)}${q}`);const target=resolve(temp,index+'.ts');await Bun.write(target,rewritten);const child=Bun.spawn([process.execPath,resolve(root,'scripts/mutation-case.ts'),target,category],{stdout:'pipe',stderr:'pipe'});const timer=setTimeout(()=>child.kill(),10000);const code=await child.exited;clearTimeout(timer);const error=await new Response(child.stderr).text();return{code,error};}
