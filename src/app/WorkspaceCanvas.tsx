@@ -12,7 +12,7 @@ import { MappingExplorer } from '../MappingExplorer';
 import type { Entity } from '../model';
 import type { CrossFileTarget } from '../NeighborhoodGraph';
 import type { LineageCard, LineageGraph } from '../odcs/lineage';
-import type { GroupingOptions } from '../overview';
+import type { GroupingOptions, modelOverview } from '../overview';
 import type { Doc, ProjectInfo } from '../projects/api';
 import type { AutosaveState } from '../projects/autosave';
 import type { ImportDraft } from '../ValidationPanel';
@@ -94,6 +94,7 @@ type Props = {
   lineage: LineageGraph | null;
   lineageCenterId: string;
   lineageCenterChanged: (id: string) => void;
+  groupingOverview: ReturnType<typeof modelOverview> | null;
   grouping: { value: GroupingOptions; error: string; change: (value: GroupingOptions) => void };
   selected: string;
   selectedEdge: string;
@@ -168,6 +169,7 @@ export function WorkspaceCanvas({
   lineage,
   lineageCenterId,
   lineageCenterChanged,
+  groupingOverview,
   grouping,
   selected,
   selectedEdge,
@@ -331,6 +333,7 @@ export function WorkspaceCanvas({
         continueInNeighborhood={continueInNeighborhood}
         model={model}
         kpiBadges={kpiBadges}
+        groupingOverview={groupingOverview}
         grouping={grouping}
         selected={selected}
         selectedEdge={selectedEdge}

@@ -229,12 +229,12 @@ shopping center mapping in Graph; `bun run test:mapping-graph`.
 
 **Independent Test**: `bun run test:grouping-validation`; tests/grouping-modes.test.ts.
 
-- [ ] T073 [P] [US6] Unit tests: per shipped example and mode, group counts (≥ 2 for every enabled mode), disabled reasons, Auto choice and label, UBL areas without name check, contract-level domain alone not "declared" (SC-007) in tests/grouping-modes.test.ts
-- [ ] T074 [US6] Mutant: Auto picks a one-group mode; communities ignore foreign keys
-- [ ] T075 [US6] Kind-aware business entities and backbone edges in src/communities.ts; `groupingModes` and Auto order, contract domain rule, areas detection in src/overview.ts (FR-070–FR-072)
-- [ ] T076 [US6] Disabled modes with reasons and the correct Auto label in src/GroupingControls.tsx; Adjust grouping dialog src/AdjustGroupingDialog.tsx (FR-073, FR-074)
-- [ ] T077 [US6] Apply grouping as card tint in the lineage canvas and to Neighborhood node colour in src/odcs/LineageCanvas.tsx and src/NeighborhoodGraph.tsx (FR-074)
-- [ ] T078 [US6] Update scripts/grouping-validation-ui-tests.ts for contracts and semantic models
+- [x] T073 [P] [US6] Unit tests: per shipped example and mode, group counts (≥ 2 for every enabled mode), disabled reasons, Auto choice and label, UBL areas without name check, contract-level domain alone not "declared" (SC-007) in tests/grouping-modes.test.ts
+- [x] T074 [US6] Mutant: Auto picks a one-group mode; communities ignore foreign keys
+- [x] T075 [US6] Kind-aware business entities and backbone edges in src/communities.ts; `groupingModes` and Auto order, contract domain rule, areas detection in src/overview.ts (FR-070–FR-072)
+- [x] T076 [US6] Disabled modes with reasons and the correct Auto label in src/GroupingControls.tsx; Adjust grouping dialog src/AdjustGroupingDialog.tsx (FR-073, FR-074)
+- [x] T077 [US6] Apply grouping as card tint in the lineage canvas and to Neighborhood node colour in src/odcs/LineageCanvas.tsx and src/NeighborhoodGraph.tsx (FR-074)
+- [x] T078 [US6] Update scripts/grouping-validation-ui-tests.ts for contracts and semantic models
 
 ---
 

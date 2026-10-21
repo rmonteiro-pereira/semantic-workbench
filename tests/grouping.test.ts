@@ -139,9 +139,10 @@ test('unknown benchmarks use definition types; suggested mode is bounded on larg
 test('ODCS contract domain is preserved as a declared affiliation without rewriting source', async () => {
   const source = await Bun.file('public/examples/commerce/commerce.odcs.yaml').text();
   const m = inspect(source, 'commerce.odcs.yaml');
-  const o = modelOverview(m.entities, m.edges, m.name, false, { mode: 'declared' });
-  expect(o.groups).toHaveLength(1);
-  expect(o.groups[0].name).toBe('Commerce');
-  expect(modelOverview(m.entities, m.edges, m.name).mode).toBe('declared');
-  expect(o.groups[0].entities).toHaveLength(m.entities.length);
+  // The contract-level domain stays every object's declared affiliation, but on its own it is one
+  // group, so Declared domains is disabled and Auto moves on.
+  expect(m.entities.every(e => e.declaredDomains?.[0] === 'Commerce')).toBe(true);
+  const o = modelOverview(m.entities, m.edges, m.name);
+  expect(o.modes.declared.reason).toBe('Only the contract-level domain is declared');
+  expect(o.mode).not.toBe('declared');
 });

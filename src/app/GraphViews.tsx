@@ -1,10 +1,22 @@
 /** Presentation and event handling for graph views. */
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { FullGraph } from '../FullGraph';
 import { MappingCanvas } from '../mappings/MappingCanvas';
 import { ModelOverview } from '../ModelOverview';
 import { NeighborhoodGraph } from '../NeighborhoodGraph';
 import { LineageCanvas } from '../odcs/LineageCanvas';
+import type { LineageCard } from '../odcs/lineage';
+import type { modelOverview } from '../overview';
+
+type GroupLook = { name: string; color: string };
+
+// Each entity's group name and colour under the current Group by choice.
+function groupLooks(overview: ReturnType<typeof modelOverview> | null) {
+  const looks = new Map<string, GroupLook>();
+  for (const group of overview?.groups ?? [])
+    for (const entity of group.entities) looks.set(entity.id, group);
+  return looks;
+}
 
 type Props = {
   tab: string;
@@ -41,6 +53,7 @@ type Props = {
       }
     | null;
   kpiBadges: Map<string, string[]>;
+  groupingOverview: ReturnType<typeof modelOverview> | null;
   grouping: {
     value: import('../overview').GroupingOptions;
     error: string;
@@ -85,6 +98,7 @@ export function GraphViews({
   continueInNeighborhood,
   model,
   kpiBadges,
+  groupingOverview,
   grouping,
   selected,
   selectedEdge,
@@ -106,6 +120,8 @@ export function GraphViews({
   crossFile,
   crossTo,
 }: Props) {
+  const looks = useMemo(() => groupLooks(groupingOverview), [groupingOverview]);
+  const groupColorOf = useCallback((id: string) => looks.get(id)?.color, [looks]);
   if (tab === 'fullgraph' && mappingId && mappingView === 'mapping') {
     return (
       <MappingCanvas
@@ -123,6 +139,17 @@ export function GraphViews({
     );
   }
   if (tab === 'fullgraph' && isContract && lineage && lineageCenterId) {
+    // Lineage cards of the open contract's objects match its entities by object name.
+    const objectLooks = new Map(
+      (model?.entities ?? []).flatMap(e => {
+        const look = looks.get(e.id);
+        return look ? [[e.name, look] as const] : [];
+      }),
+    );
+    const contractGroupOf = (card: LineageCard) =>
+      card.kind === 'object' && card.file === current?.path
+        ? objectLooks.get(card.label)
+        : undefined;
     return (
       <LineageCanvas
         key={current?.id}
@@ -133,6 +160,7 @@ export function GraphViews({
         onCenterChange={lineageCenterChanged}
         onOpenAsset={handleLineageCanvasOpenAsset}
         onNeighborhood={continueInNeighborhood}
+        groupOf={contractGroupOf}
       />
     );
   }
@@ -188,6 +216,7 @@ export function GraphViews({
       modelName={model?.name}
       fullscreen={fullscreen}
       kpiBadges={kpiBadges}
+      groupColorOf={groupColorOf}
       key={current?.id}
       docId={current!.id}
       docLabel={id => docsRef.current.get(id)?.path ?? id}

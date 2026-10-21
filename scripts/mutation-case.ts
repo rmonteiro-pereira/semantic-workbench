@@ -436,6 +436,18 @@ if (category === 'overview') {
       links.every((e: any) => o.groupOf.get(e.source) === from && o.groupOf.get(e.target) === to),
     );
   }
+  const contract = inspect(
+    await Bun.file('public/examples/ubl/ubl.odcs.yaml').text(),
+    'ubl.odcs.yaml',
+  );
+  const contractOverview = m.modelOverview(contract.entities, contract.edges, contract.name);
+  assert.notEqual(contractOverview.mode, 'declared');
+  assert.equal(
+    contractOverview.modes.declared.reason,
+    'Only the contract-level domain is declared',
+  );
+  assert.equal(contractOverview.modes.suggested.reason, undefined);
+  assert(contractOverview.modes.suggested.groups > 1);
   const owl = inspect(await Bun.file('public/examples/ubl/ubl.owl.ttl').text(), 'ubl.owl.ttl');
   assert.equal(m.modelOverview(owl.entities, owl.edges, owl.name).entities.length, 45);
   assert.equal(

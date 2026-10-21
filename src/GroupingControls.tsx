@@ -1,20 +1,42 @@
 /** Provides the grouping selector shared by model overview and graph views. */
 import { useState, useRef, useLayoutEffect } from 'react';
-import type { modelOverview, GroupingOptions, GroupingMode } from './overview';
+import { createPortal } from 'react-dom';
+import type {
+  modelOverview,
+  GroupingOptions,
+  GroupingMode,
+  ConcreteGroupingMode,
+} from './overview';
+import { AdjustGroupingDialog } from './AdjustGroupingDialog';
+
+type Overview = ReturnType<typeof modelOverview>;
 type Props = {
-  overview: ReturnType<typeof modelOverview>;
+  overview: Overview;
   value: GroupingOptions;
   onChange: (next: GroupingOptions) => void;
-  example: boolean;
   error?: string;
 };
-/** Selects how model entities are grouped. */
-export function GroupingControls({ overview, value, onChange, example, error }: Props) {
-  const [entity, setEntity] = useState('');
-  const [group, setGroup] = useState('');
-  const [name, setName] = useState('');
-  const details = useRef<HTMLDetailsElement>(null);
-  const [opened, setOpened] = useState(false);
+
+// Short names for the Auto option, which says which mode Auto would use for this document.
+const AUTO_NAMES: Record<ConcreteGroupingMode, string> = {
+  declared: 'domains',
+  example: 'example areas',
+  namespaces: 'namespaces',
+  suggested: 'communities',
+  types: 'types',
+};
+
+// The order of the options in the menu; the UBL areas come last because few files offer them.
+const MENU: [ConcreteGroupingMode, string][] = [
+  ['declared', 'Declared domains'],
+  ['namespaces', 'IRI namespaces'],
+  ['suggested', 'Suggested communities'],
+  ['types', 'Definition types'],
+  ['example', 'UBL example areas'],
+];
+
+// Places the floating explanation under its button and inside the window.
+function usePanelPosition(details: React.RefObject<HTMLDetailsElement | null>, opened: boolean) {
   const [position, setPosition] = useState({ left: 0, top: 0, maxHeight: 0 });
   useLayoutEffect(() => {
     if (!opened) return;
@@ -35,12 +57,29 @@ export function GroupingControls({ overview, value, onChange, example, error }: 
       window.removeEventListener('scroll', place, true);
     };
   }, [opened]);
-  const selected = overview.entities.some(e => e.id === entity)
-    ? entity
-    : (overview.entities[0]?.id ?? '');
-  const destination = overview.groups.some(g => g.id === group)
-    ? group
-    : (overview.groups[0]?.id ?? '');
+  return position;
+}
+
+/** Selects how model entities are grouped. Modes with nothing to group are disabled with the
+ * reason, and corrections open in their own dialog. */
+export function GroupingControls({ overview, value, onChange, error }: Props) {
+  const details = useRef<HTMLDetailsElement>(null);
+  const [opened, setOpened] = useState(false);
+  const [adjusting, setAdjusting] = useState(false);
+  const position = usePanelPosition(details, opened);
+  const requested = value.mode ?? 'auto';
+  // A stored mode this document cannot use shows as Auto, which is what the views use.
+  const shown = requested !== 'auto' && overview.mode !== requested ? 'auto' : requested;
+
+  function chooseMode(event: React.ChangeEvent<HTMLSelectElement>) {
+    onChange({ ...value, mode: event.target.value as GroupingMode });
+  }
+
+  function openAdjustDialog() {
+    details.current?.removeAttribute('open');
+    setAdjusting(true);
+  }
+
   return (
     <div className="grouping-controls">
       <label>
@@ -48,26 +87,18 @@ export function GroupingControls({ overview, value, onChange, example, error }: 
         <select
           aria-label="Group model by"
           title={overview.explanation}
-          value={value.mode ?? 'auto'}
-          onChange={e => onChange({ ...value, mode: e.target.value as GroupingMode })}
+          value={shown}
+          onChange={chooseMode}
         >
-          <option value="auto">
-            Auto:{' '}
-            {overview.mode === 'suggested'
-              ? 'communities'
-              : overview.mode === 'declared'
-                ? 'domains'
-                : overview.mode === 'namespaces'
-                  ? 'namespaces'
-                  : overview.mode === 'example'
-                    ? 'example areas'
-                    : 'types'}
-          </option>
-          <option value="declared">Declared domains</option>
-          <option value="namespaces">IRI namespaces</option>
-          <option value="suggested">Suggested communities</option>
-          <option value="types">Definition types</option>
-          {example && <option value="example">UBL example areas</option>}
+          <option value="auto">Auto: {AUTO_NAMES[overview.autoMode]}</option>
+          {MENU.filter(([mode]) => overview.modes[mode].offered).map(([mode, label]) => {
+            const reason = overview.modes[mode].reason;
+            return (
+              <option key={mode} value={mode} disabled={!!reason} title={reason}>
+                {reason ? `${label} (${reason})` : label}
+              </option>
+            );
+          })}
         </select>
       </label>
       <details
@@ -82,79 +113,24 @@ export function GroupingControls({ overview, value, onChange, example, error }: 
           <p className="grouping-explanation">
             <strong>{overview.groupingLabel}.</strong> {overview.explanation}
           </p>
-          <details>
-            <summary>Adjust grouping</summary>
-            <p>
-              Corrections are saved with this document’s view in the workbench’s state folder, not
-              in the file. Export keeps the original definition.
-            </p>
-            <label>
-              Entity{' '}
-              <select
-                aria-label="Entity to regroup"
-                value={selected}
-                onChange={e => setEntity(e.target.value)}
-              >
-                {overview.entities.map(e => (
-                  <option key={e.id} value={e.id}>
-                    {e.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Move to{' '}
-              <select
-                aria-label="Move to group"
-                value={destination}
-                onChange={e => setGroup(e.target.value)}
-              >
-                {overview.groups.map(g => (
-                  <option key={g.id} value={g.id}>
-                    {g.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Or create{' '}
-              <input
-                aria-label="New group name"
-                placeholder="New group name"
-                maxLength={100}
-                value={name}
-                onChange={e => setName(e.target.value)}
-              />
-            </label>
-            <button
-              disabled={!selected || (!destination && !name.trim())}
-              onClick={() => {
-                const title = name.trim();
-                const id = title ? 'custom:' + title : destination;
-                onChange({
-                  ...value,
-                  assignments: { ...value.assignments, [selected]: id },
-                  names: {
-                    ...Object.fromEntries(overview.groups.map(g => [g.id, g.name])),
-                    ...value.names,
-                    ...(title ? { [id]: title } : {}),
-                  },
-                });
-                setName('');
-              }}
-            >
-              Apply grouping correction
-            </button>
-            <button
-              disabled={!Object.keys(value.assignments ?? {}).length}
-              onClick={() => onChange({ mode: value.mode })}
-            >
-              Reset grouping corrections
-            </button>
-          </details>
+          <button type="button" onClick={openAdjustDialog}>
+            Adjust grouping…
+          </button>
         </div>
       </details>
       {error && <span role="alert">{error}</span>}
+      {/* The dialog renders outside the toolbar so the toolbar's compact control styles do not
+          apply to its form. */}
+      {adjusting &&
+        createPortal(
+          <AdjustGroupingDialog
+            overview={overview}
+            value={value}
+            onChange={onChange}
+            onClose={() => setAdjusting(false)}
+          />,
+          document.body,
+        )}
     </div>
   );
 }

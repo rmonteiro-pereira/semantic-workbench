@@ -924,7 +924,11 @@ textarea.odcs-edit.text {
 }
 .lineage-card[style*='--card-tint'] {
   background:
-    linear-gradient(var(--card-tint), var(--card-tint)) top/100% 64px no-repeat,
+    linear-gradient(
+        color-mix(in srgb, var(--card-tint) 14%, #fff),
+        color-mix(in srgb, var(--card-tint) 14%, #fff)
+      )
+      top/100% 64px no-repeat,
     #fff;
 }
 .lineage-card.center {

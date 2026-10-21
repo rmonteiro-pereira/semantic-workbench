@@ -6,7 +6,6 @@ import { GroupingControls } from '../GroupingControls';
 import type { Relationship } from '../model';
 import type { GroupingOptions, modelOverview } from '../overview';
 import { ScrollStrip } from '../ScrollStrip';
-import type { ValidatedModel } from './types';
 
 type Props = {
   tab: string;
@@ -23,7 +22,6 @@ type Props = {
   groupingOverview: ReturnType<typeof modelOverview> | null;
   lineageShown: boolean;
   grouping: { value: GroupingOptions; error: string; change: (value: GroupingOptions) => void };
-  model: ValidatedModel;
   search: string;
 };
 /** Renders workspace toolbar. */
@@ -42,7 +40,6 @@ export function WorkspaceToolbar({
   groupingOverview,
   lineageShown,
   grouping,
-  model,
   search,
 }: Props) {
   function handleButtonClick() {
@@ -59,6 +56,10 @@ export function WorkspaceToolbar({
     if (compact) closeWorkspace();
   }
 
+  // Grouping applies to the entity graph, the overview and a contract's lineage canvas, not to
+  // the mapping canvas.
+  const groupingApplies =
+    tab === 'overview' || (tab === 'fullgraph' && (!lineageShown || isContract));
   return (
     <>
       <div className="toolbar">
@@ -126,12 +127,11 @@ export function WorkspaceToolbar({
             {kpis.length > 0 && <span className="tab-count">{kpis.length}</span>}
           </button>
         </ScrollStrip>
-        {groupingOverview && ((tab === 'fullgraph' && !lineageShown) || tab === 'overview') && (
+        {groupingOverview && groupingApplies && (
           <GroupingControls
             overview={groupingOverview}
             value={grouping.value}
             onChange={grouping.change}
-            example={model!.name.includes('UBL')}
             error={grouping.error}
           />
         )}

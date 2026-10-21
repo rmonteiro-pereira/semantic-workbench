@@ -3872,3 +3872,93 @@ button.import {
     display: none;
   }
 }
+/* Adjust grouping dialog */
+.adjust-grouping .dialog-footer-spacer {
+  flex: 1;
+}
+.adjust-grouping-intro {
+  margin: 0 0 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #587264;
+}
+.adjust-grouping-form {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.adjust-grouping-form label {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+.adjust-grouping-form select,
+.adjust-grouping-form input {
+  min-width: 0;
+  max-width: none;
+  width: 100%;
+  font: inherit;
+  padding: 7px 8px;
+  border: 1px solid #dce6df;
+  border-radius: 6px;
+  background: #fff;
+}
+.adjust-grouping h3 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #6f8881;
+}
+.adjust-grouping-groups,
+.adjust-grouping-corrections {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.adjust-grouping-groups li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 13px;
+}
+.adjust-grouping-groups .group-swatch {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+.adjust-grouping-groups .group-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.adjust-grouping-groups small {
+  margin-left: auto;
+  flex: none;
+  color: #6f8881;
+}
+.adjust-grouping-corrections li {
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.grouping-panel > button {
+  font-size: 12px;
+}
+@media (max-width: 480px) {
+  .adjust-grouping-form label {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+}
+/* Group colours on the neighborhood graph: a coloured edge on each node of a group. */
+.react-flow__node.neighborhood-node[style*='--group-color'] .node {
+  box-shadow: inset 4px 0 0 var(--group-color);
+}

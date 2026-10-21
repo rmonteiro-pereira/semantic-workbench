@@ -672,3 +672,39 @@ agent context already carries everything except two additive fields).
   view 80 ms after layout; a Fit clicked in that window was undone by it. An explicit Fit now
   cancels the pending first view (the ODCS check caught this once machine load changed; it failed
   the same way on the Phase 9 commit).
+
+## R25. Implementation decisions taken in Phase 10 (Group by that groups)
+
+- **Business entities and backbone.** Communities now run over ontology concepts and classes,
+  contract objects, semantic datasets and metrics, and concept mappings. Their edges are the
+  document's own relationships (foreign keys, joins, metric references) plus, for mapping
+  documents, a link from each concept mapping to every other mapped concept it names inside its
+  link mappings. A mapping document has no relationships of its own, so without these links every
+  mapping would be its own community. Value types and primitives stay out, as before.
+- **When a mode is enabled.** A mode is enabled when it finds at least two real groups: distinct
+  domains, namespaces, communities (with at least one backbone edge), example areas or definition
+  types. Catch-all groups (Unassigned, No IRI, Built-in concepts) do not count, so "one namespace
+  plus No IRI" stays disabled. Every enabled mode therefore yields at least two groups.
+  Disabled modes stay in the menu, greyed, with the reason in the option text.
+- **Contract-level domain.** ODCS objects cannot declare their own domain, so the contract-level
+  `domain` is every object's only declared domain and Declared domains is disabled with "Only the
+  contract-level domain is declared". When an entity declares its own domain, that domain comes
+  before the copied contract domain.
+- **UBL example areas.** Offered when at least 80% of the entities carry a curated UBL name. The
+  UBL files match 98–100%; the next highest shipped file (commerce) matches 50%, and mall 4%,
+  because names like Order or Address are common. The model name no longer matters.
+- **Stored choices.** A mode stored from an earlier session that the document cannot use falls
+  back to Auto, and the menu shows Auto.
+- **Auto label.** The Auto option names the mode Auto would pick for the document, whatever mode
+  is selected.
+- **Adjust grouping.** The correction form moved from a nested disclosure into the **Adjust
+  grouping** dialog (entity, destination group or new group name, the current groups with
+  counts, the corrections in effect, Apply and Reset). Corrections persist as before.
+- **Lineage and Neighborhood.** Group by is shown on a contract's Graph tab, which is the lineage
+  canvas; objects of the open contract are tinted with their group colour (a light wash of the
+  colour on the card header). Neighborhood nodes carry their group colour as a 4 px edge.
+- **Test changes.** `tests/grouping.test.ts` asserted that Declared domains groups a contract into
+  its single contract domain and that Auto picks it; the spec now requires the opposite, so the
+  test checks that the domain is still every object's declared affiliation, that the mode is
+  disabled with its reason and that Auto moves on. The overview mutants that targeted the old Auto
+  expression now target the equivalent counts in the new code.
