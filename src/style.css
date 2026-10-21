@@ -468,7 +468,7 @@ dialog.validation-backdrop:not([open]) { display: none; }
 .mapping-layer-chain { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin: 18px 0; }
 .mapping-layer-chain span { padding: 15px; border: 1px solid #dbe3e4; border-radius: 8px; background: white; color: #6f8881; }
 .mapping-layer-chain strong { display: block; color: #284d43; margin-top: 7px; overflow-wrap: anywhere; }
-.mapping-columns { display: grid; grid-template-columns: 210px minmax(0,1fr); gap: 22px; }
+.mapping-columns { display: grid; grid-template-columns: minmax(180px,230px) minmax(0,1fr) minmax(280px,350px); gap: 18px; align-items: start; }
 .mapping-concepts button { display: flex; width: 100%; justify-content: space-between; text-align: left; margin: 5px 0; padding: 10px; }
 .mapping-concepts button[aria-pressed=true] { background: #e3f2ec; border-color: #66a793; }.mapping-concepts small { color: #6f8881; }
 .mapping-binding,.mapping-query { padding: 16px; border: 1px solid #dbe3e4; border-radius: 8px; background: white; margin: 12px 0; overflow-wrap: anywhere; }
@@ -480,9 +480,22 @@ dialog.validation-backdrop:not([open]) { display: none; }
 .mapping-query fieldset { border: 1px solid #e1e9e5; border-radius: 6px; margin: 12px 0; padding: 10px; }
 .mapping-query label { display: flex; align-items: center; gap: 8px; margin: 9px 0; }
 .mapping-query code { font-size: 11px; color: #587a6f; }
-@media(max-width: 950px) { .mapping-columns { grid-template-columns: 1fr; }.mapping-layer-chain { grid-template-columns: 1fr 1fr; } }
+@media(max-width: 1099px) { .mapping-columns { grid-template-columns: minmax(0,1fr); }.mapping-layer-chain { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 .mapping-query fieldset { max-height: 280px; overflow: auto; }
-.mapping-concepts { position: sticky; top: 0; align-self: start; max-height: 65vh; overflow: auto; }
+.mapping-concepts { max-height: 65vh; overflow: auto; }
+.mapping-columns > * { min-width: 0; }
+.mapping-query { position: sticky; top: 0; min-width: 0; }
+.mapping-query fieldset { min-width: 0; }
+.mapping-query label { flex-wrap: wrap; }
+.mapping-query label input { flex-shrink: 0; }
+.mapping-binding-chain { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+.mapping-binding-chain [data-step] { display: flex; flex-direction: column; gap: 2px; max-width: 100%; min-width: 0; padding: 5px 8px; border: 1px solid #dbe3e4; border-radius: 6px; background: #f8fbfa; }
+.mapping-binding-chain .step-label { font-size: 10px; color: #587a6f; }
+.mapping-arrow { color: #718881; }
+.mapping-group > summary { overflow-wrap: anywhere; }
+.mapping-group > summary small,.mapping-grouping-note { color: #587a6f; }
+.mapping-binding-finding button,.mapping-findings button { margin-left: 8px; }
+@media(max-width: 1099px) { .mapping-query { position: static; }.mapping-concepts { max-height: 40vh; } }
 
 
 /* Viewport-sized workbench: keep model controls compact and the canvas flexible. */

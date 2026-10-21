@@ -700,3 +700,21 @@ and recorded here so later phases build on them.
 - **Layout checks** (`scripts/helpers/layout-geometry.ts`) report horizontal page scroll, controls
   cut off by the viewport or a clipping ancestor (scroll containers count as reachable, closed
   `<details>` content is ignored) and overlays drawn over controls, across 10 views × 9 sizes.
+
+## R23. Implementation decisions taken in Phase 11
+
+- **Who did what.** T152 (brief) and T153 (browser checks, written first and failing) without
+  Codex; T154 and T155 by Codex from `codex/phase-11.md`, reviewed, with column widths and step
+  padding adjusted after screenshots at 390, 1280, 1440 and 2560 px.
+- **Chains** are built from the runtime context only (no server change): root concept, each
+  relationship, the target concept when it differs, fields as `dataset.field`, metrics, then the
+  dataset and its physical source for field bindings.
+- **Grouping by dataset** uses the dataset of a binding's first field; bindings that reach only
+  metrics form a "Metrics" group. It is a view choice and is labelled so.
+- **Findings** belong to a binding when they come from the same document and one evidence path is
+  a prefix of the other; the rest stay in the list above. **Edit item** opens the deepest prefix
+  of the finding's path that the item editor can edit (`itemKindAt`); when none is editable, it
+  opens Source at the nearest located line.
+- **Layout.** Three columns from 1100 px (concepts 180–230 px, evidence flexible, composer
+  280–350 px and sticky); stacked below, with the concept list capped at 40 % of the height.
+

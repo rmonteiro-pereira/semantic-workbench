@@ -247,7 +247,11 @@ API: `GET /api/projects/:slug/metrics`, `POST /api/projects/:slug/kpis` (and `â€
 
 ## Ontology mappings and agent tools
 
-**Load mapped commerce** demonstrates separate ontology, semantic model, and mapping documents. The **Mappings** tab resolves object/referent/link mappings, displays source evidence and physical sources, exposes governed metrics and AI metadata, exports agent context, and composes a new revenue-by-region SQL preview from selected building blocks. Missing or ambiguous document/field/concept references are reported. Existing Graph, Overview, Catalog, Source, import repair and byte-exact source export remain available.
+**Load mapped commerce** demonstrates separate ontology, semantic model, and mapping documents. The **Mappings** tab resolves object/referent/link mappings, displays source evidence and physical sources, exposes governed metrics and AI metadata, exports agent context, and composes a new revenue-by-region SQL preview from selected building blocks. Missing or ambiguous document/field/concept references are reported.
+
+Each binding reads as a chain of labelled steps: concept, relationship path, field or metric, dataset and physical source, with its condition and its findings attached. Bindings are grouped by dataset (a view choice; groups collapse and show their counts). A finding offers **Edit item**, which opens the item editor on the offending mapping item, or Source at its line when the item has no form. From 1100 px the concept list, the evidence and the query composer sit side by side, with the composer kept in view; narrower windows stack them in that order.
+
+Existing Graph, Overview, Catalog, Source, import repair and byte-exact source export remain available.
 
 Standalone mapping documents and deprecated embedded `ontology_mappings` are supported using pinned Apache schemas. Agent clients can call `/api/agent/catalog`, `/api/agent/context`, and `/api/agent/plan`. The runtime supplies explicit mapping traversal and immutable metric definitions; callers supply language interpretation and any external query execution. No hosted LLM is required or called. See [agent runtime and integration protocol](docs/agent-runtime.md) for examples, supported composition, graph integrity checks, and limits.
 

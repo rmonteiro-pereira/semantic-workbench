@@ -28,6 +28,7 @@ import {isIri} from './edit/rdf-patch/index';
 import {rdfSyntax} from './rdf';
 import {itemKindAt,itemName,addableKinds,type ItemKind,type Path,type Choices} from './edit/item-model';
 import {itemValue} from './edit/yaml-patch';
+import {openFragment} from './edit/fragment';
 import type {KpiSummary} from '../server/agent/explain';
 import React, { useEffect, useMemo, useState, useRef, useReducer } from "react";
 import {walkReducer,emptyWalk,type WalkStep} from './graph/walk';
@@ -236,6 +237,22 @@ function App() {
     setDocs(old=>old.map(d=>docsRef.current.get(d.id)??d));setMessage(label);void refresh().catch(()=>{});
   }
   function openSourceAt(id:string,line:number){const d=docsRef.current.get(id);if(d&&d.id!==current?.id&&!open(d))return;setTab('source');setTimeout(()=>sourceEditor.current?.goToLine(line),60);}
+  function editMappingItem(docId:string,path:Path){
+    const d=docsRef.current.get(docId);if(!d)return;
+    const document=documentOf(docId),text=docText(docId);
+    for(let length=path.length;length>0;length--){
+      const prefix=path.slice(0,length),kind=itemKindAt(document,prefix);
+      if(kind&&prefix.reduce((value,key)=>value?.[key],document)!=null){
+        if(d.id!==current?.id&&!open(d))return;
+        setEditing({docId,path:prefix,kind});return;
+      }
+    }
+    // A non-editable finding still leads to the nearest source location available.
+    for(let length=path.length;length>0;length--){
+      try{const fragment=openFragment(text,path.slice(0,length));openSourceAt(docId,fragment.line);return;}catch{}
+    }
+    openSourceAt(docId,1);
+  }
   function editKpi(k:KpiSummary){
     const id=`${kpiProject}/${k.file}`,d=docsRef.current.get(id);if(!d)return;
     const metrics=itemValue(docText(id),[...k.modelPath,'metrics']);const i=Array.isArray(metrics)?metrics.findIndex((m:any)=>m?.name===k.name):-1;
@@ -482,7 +499,7 @@ function App() {
         {tab!=='scm'&&(source||current)&&(showValidation||!!result.error)&&<details className="validation-details" open><summary onClick={e=>{e.preventDefault();setShowValidation(false);}}>Validation findings</summary><ValidationPanel source={source} issues={validation.issues} onLocate={issue=>{setTab('source');setTimeout(()=>{sourceEditor.current?.locate(issue);},0);}}/></details>}
         <div ref={canvasRow} className={`canvas-row${fullscreen.active?' is-fullscreen':''}${fullscreen.fallback?' window-fill':''}`}>
           <section className="canvas">
-            {tab==='contract'&&isContract&&current ? (contractObject?<DatasetPage key={contractObject} doc={current} data={(model as any).document} objectName={contractObject} projectDocs={docs.filter(d=>d.project===current.project)} onBack={()=>setContractObject(null)} onOpenObject={setContractObject} gitVersion={gitVersion} editor={propertyEditor({doc:current,base:docText(current.id),onSaved:applySaved,onError:setMessage})}/>:<ContractOverview data={(model as any).document} onOpen={setContractObject}/>) : tab==='scm' ? (scmSlug?<SourceControl projects={projects} project={scmSlug} version={gitVersion} unsaved={current&&current.project===scmSlug&&source!==current.source?[current.path]:[]} historyPath={historyPath} onProject={slug=>{setScmProject(slug);setHistoryPath(undefined);}} onChanged={()=>void refresh().catch(()=>{})} onOpen={(project,path)=>{const d=docsRef.current.get(`${project}/${path}`);if(d&&open(d))setTab('source');}}/>:<p className="hint">Import definitions or load an example to start a project.</p>) : tab==='metrics' ? <MetricsView project={kpiProject} projectName={projects.find(p=>p.slug===kpiProject)?.name} kpis={kpis} error={kpiError} loading={kpiLoading} selected={selectedKpi} onSelect={setSelectedKpi} filter={kpiFilter} onNew={()=>setWizard(true)} onEdit={editKpi}/> : tab==='mappings' ? <MappingExplorer currentId={current?.id} revisionKey={docs.map(d=>d.id+':'+d.hash).join('|')} dirty={!!current&&source!==current.source}/> : !source && !current ? (
+            {tab==='contract'&&isContract&&current ? (contractObject?<DatasetPage key={contractObject} doc={current} data={(model as any).document} objectName={contractObject} projectDocs={docs.filter(d=>d.project===current.project)} onBack={()=>setContractObject(null)} onOpenObject={setContractObject} gitVersion={gitVersion} editor={propertyEditor({doc:current,base:docText(current.id),onSaved:applySaved,onError:setMessage})}/>:<ContractOverview data={(model as any).document} onOpen={setContractObject}/>) : tab==='scm' ? (scmSlug?<SourceControl projects={projects} project={scmSlug} version={gitVersion} unsaved={current&&current.project===scmSlug&&source!==current.source?[current.path]:[]} historyPath={historyPath} onProject={slug=>{setScmProject(slug);setHistoryPath(undefined);}} onChanged={()=>void refresh().catch(()=>{})} onOpen={(project,path)=>{const d=docsRef.current.get(`${project}/${path}`);if(d&&open(d))setTab('source');}}/>:<p className="hint">Import definitions or load an example to start a project.</p>) : tab==='metrics' ? <MetricsView project={kpiProject} projectName={projects.find(p=>p.slug===kpiProject)?.name} kpis={kpis} error={kpiError} loading={kpiLoading} selected={selectedKpi} onSelect={setSelectedKpi} filter={kpiFilter} onNew={()=>setWizard(true)} onEdit={editKpi}/> : tab==='mappings' ? <MappingExplorer onEditItem={editMappingItem} currentId={current?.id} revisionKey={docs.map(d=>d.id+':'+d.hash).join('|')} dirty={!!current&&source!==current.source}/> : !source && !current ? (
               <div className="empty">
                 <div className="empty-icon">
                   <Network size={36} />
