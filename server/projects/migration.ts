@@ -5,7 +5,7 @@ import {exampleForFilename} from '../../src/projects/examples';
 import {atomicWrite,atomicWriteJson,sha256} from './atomic';
 import type {Git} from './git';
 import type {Journal} from './journal';
-import {disambiguate,projectDir,projectPath,slugify,type DataLayout} from './paths';
+import {disambiguate,projectDir,projectPath,slugify,uniqueName,type DataLayout} from './paths';
 import type {State,ProjectEntry} from './state';
 // One-time migration of a v0.1.0 workspace (research R8, FR-089). The old database is never opened
 // or modified: it is copied to data/backup/ and the copy is read. Every exported file is re-read and
@@ -16,7 +16,8 @@ type Context={layout:DataLayout;state:State;journal:Journal;git:Git;gitAvailable
 export const MIGRATION_COMMIT='Import from Semantic Workbench v0.1.0';
 export async function migrateLegacy(ctx:Context,hooks:MigrationHooks={}):Promise<MigrationReport|null>{
  const {layout,state,journal,git}=ctx;
- if(!existsSync(layout.legacyDb)||state.hasRegistry())return null;
+ // legacy-ids.json marks a finished migration; projects created meanwhile are kept and merged.
+ if(!existsSync(layout.legacyDb)||existsSync(layout.legacyIds))return null;
  const empty={projects:[],files:0,verified:0};
  if(!ctx.gitAvailable)return {status:'postponed',reason:'Git 2.40 or newer is required to create project repositories. Install Git and restart; the v0.1.0 database is untouched.',...empty};
  if(!ctx.identityConfigured)return {status:'postponed',reason:'Git user.name and user.email are not configured, so the initial commits cannot be made. Configure them and restart; the v0.1.0 database is untouched.',...empty};
@@ -41,13 +42,14 @@ export async function migrateLegacy(ctx:Context,hooks:MigrationHooks={}):Promise
    if(db.query("SELECT name FROM sqlite_master WHERE type='table' AND name='document_views'").get())views=db.query('SELECT document_id,grouping FROM document_views').all() as any;
   }finally{db.close();}
   // Group: known example sets into their own projects, everything else into "Ungrouped".
+  const names=state.registry().projects.map(p=>p.name);
   const groups=new Map<string,{name:string;origin:string;preferred:string;docs:typeof docs}>();
   for(const d of docs){
    const set=exampleForFilename(d.filename),key=set?set.id:'ungrouped';
-   if(!groups.has(key))groups.set(key,set?{name:set.name,origin:`example:${set.id}`,preferred:set.id,docs:[]}:{name:'Ungrouped',origin:'migration',preferred:'ungrouped',docs:[]});
+   if(!groups.has(key))groups.set(key,set?{name:uniqueName(set.name,names),origin:`example:${set.id}`,preferred:set.id,docs:[]}:{name:uniqueName('Ungrouped',names),origin:'migration',preferred:'ungrouped',docs:[]});
    groups.get(key)!.docs.push(d);
   }
-  const taken=new Set<string>(readdirSync(layout.projects)),registry:ProjectEntry[]=[],ids:Record<string,{project:string;path:string}>={};
+  const taken=new Set<string>([...readdirSync(layout.projects),...state.registry().projects.map(p=>p.slug)]),registry:ProjectEntry[]=[],ids:Record<string,{project:string;path:string}>={};
   const viewFiles=new Map<string,Record<string,unknown>>(),grouping=new Map(views.map(v=>[v.document_id,v.grouping]));
   const report:MigrationReport={status:'completed',backup,projects:[],files:0,verified:0};
   for(const group of groups.values()){
@@ -72,7 +74,10 @@ export async function migrateLegacy(ctx:Context,hooks:MigrationHooks={}):Promise
   const steps:{from:string;to:string}[]=report.projects.map(p=>({from:join(staging,p.slug),to:projectDir(layout,p.slug)}));
   for(const [slug,files]of viewFiles){const staged=join(stateStaging,'views',slug+'.json');atomicWriteJson(staged,{formatVersion:1,files});steps.push({from:staged,to:join(layout.views,slug+'.json')});}
   atomicWriteJson(join(stateStaging,'legacy-ids.json'),{formatVersion:1,ids});steps.push({from:join(stateStaging,'legacy-ids.json'),to:layout.legacyIds});
-  atomicWriteJson(join(stateStaging,'projects.json'),{formatVersion:1,projects:registry});steps.push({from:join(stateStaging,'projects.json'),to:layout.registry});
+  const existing=state.registry().projects;
+  atomicWriteJson(join(stateStaging,'projects.json'),{formatVersion:1,projects:[...existing,...registry]});
+  if(existsSync(layout.registry))steps.push({from:layout.registry,to:join(stateStaging,'projects.previous.json')});
+  steps.push({from:join(stateStaging,'projects.json'),to:layout.registry});
   rmSync(readCopy,{force:true});rmSync(readCopy+'-wal',{force:true});rmSync(readCopy+'-shm',{force:true});
   journal.run('migration',steps,[staging,stateStaging],opId);
   return report;
