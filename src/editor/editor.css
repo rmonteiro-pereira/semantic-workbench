@@ -1,3 +1,4 @@
+/* Fits CodeMirror into the workbench palette and sizes source editors and SQL form fields. */
 /* Source editor: CodeMirror inside the app's palette; colors of the code follow VS Code Light+. */
 .code-editor {
   display: flex;
@@ -70,7 +71,8 @@
   display: flex;
   overflow: hidden;
 }
-/* CodeMirror's base theme forces position: relative; the editor fills the host and scrolls inside. */
+/* CodeMirror's base theme forces position: relative; the editor fills the host and scrolls
+ * inside. */
 .code-editor-host .cm-editor {
   flex: 1 1 auto;
   min-width: 0;
@@ -199,7 +201,7 @@
     max-width: 100%;
   }
 }
-/* SQL fields (FR-054): a compact CodeMirror input with SQL colors and its warnings listed below. */
+/* SQL fields: a compact CodeMirror input with SQL colors and its warnings listed below. */
 .sql-field {
   display: grid;
   gap: 4px;
