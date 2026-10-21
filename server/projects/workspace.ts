@@ -14,6 +14,7 @@ import {createState,type ProjectEntry,type Patch} from './state';
 import {createWatcher} from './watcher';
 import {migrateLegacy,type MigrationReport} from './migration';
 import {createTrash} from './trash';
+import {createScm} from './scm';
 import {factsOf,inferSuggestions,evidenceBetween,type FileFacts,type IndexedFile} from './suggestions';
 import {ConflictError,OccupiedError} from './errors';
 // The folder store: project folders under data/projects/ are the source of truth, state files hold
@@ -190,6 +191,7 @@ export async function openWorkspace(options:WorkspaceOptions={}){
  },all:()=>projects().map(p=>p.slug)}):null;
  for(const p of projects())if(existsSync(projectDir(layout,p.slug))){await scanner.scan(p.slug);watcher?.add(p.slug);}
  for(const r of recovery)events.emit('recovery',r);
+ const scm=createScm({layout,git,gitAvailable,identityConfigured,project:slug=>entry(slug),drafts:slug=>state.drafts().filter(d=>d.project===slug).map(d=>d.path),rescan:slug=>rescan(slug),emit:(e,d)=>events.emit(e,d)});
  let closed=false;
  const trash=createTrash({layout,state,journal,lock,projects,registrySteps,now:options.now,emit:(e,d)=>events.emit(e,d),
   afterFiles:slug=>rescan(slug),
@@ -270,7 +272,7 @@ export async function openWorkspace(options:WorkspaceOptions={}){
   notifySuggestions();events.emit('suggestions',{open:suggestions().length});
  }
  return {
-  layout,state,cache,events,git,journal,gitAvailable,identityConfigured,recovery,migration,
+  layout,state,cache,events,git,scm,journal,gitAvailable,identityConfigured,recovery,migration,
   lock,rescan,project:entry,registrySteps,readFile,saveFile,saveFiles,documents,resolveId,preflight,trash,moveFile,importInto,deleteImpact,suggestions,acceptSuggestion,rejectSuggestion,
   async listProjects(){
    return Promise.all(projects().map(async p=>{
