@@ -23,6 +23,7 @@ Paths in URLs are URL-encoded relative POSIX paths; `..`, absolute paths and `.g
 | --- | --- | --- |
 | `GET /api/projects/:slug/files/*path` | | `{path, source, hash, docType, findings}` (`source` is the exact bytes as UTF-8 text) |
 | `PUT /api/projects/:slug/files/*path` | `{baseHash, source}` or `{baseHash, patches: [{from, to, insert}]}` | `200 {hash, findings}`; `409 {error:'stale', currentHash, currentSource}`; `400 {error, issues}` when invalid |
+| `POST /api/projects/:slug/kpis` | `{semanticPath, metric: {name, expression, description?, datatype?}, extension, binding?: {measures, of?}, baseHashes: {<path>: hash}}` | Journaled multi-file save (FR-010): writes the metric and its extension in the semantic model and one sorted binding line in the mapping extension (creating a minimal mapping document when none exists) → `{written: [{path, hash}]}`; `409` stale on any base hash |
 | `GET /api/projects/:slug/files/*path/explain/:metric` | query `grain?`, `dimension*` | KPI explanation (data-model.md); `sqlPreview.refused` when additivity forbids the rollup. Never executes SQL |
 
 ## Drafts

@@ -99,7 +99,7 @@ specs/001-workbench-improvements/
 server/
 ├── index.ts                      # reads DATA_DIR; runs migration + recovery on start
 ├── handler.ts                    # router; legacy /api/documents facade (R9)
-├── routes/                       # projects, files, drafts, trash, suggestions, git, events, explain
+├── routes/                       # projects, files, drafts, trash, suggestions, git, events, explain, kpis
 ├── projects/
 │   ├── paths.ts                  # DATA_DIR layout, path validation
 │   ├── atomic.ts                 # temp+fsync+rename, hashing
@@ -124,10 +124,11 @@ src/
 ├── editor/                       # CodeEditor (CodeMirror), languages, lint worker, patch.ts
 ├── edit/                         # ItemEditor, yaml-patch, json-patch, rdf-patch/{turtle,ntriples,n3,rdfxml}, add/delete forms
 ├── metrics/                      # extension.ts (shared parse/validate), MetricsView, KpiDetail, Explanation, KpiWizard
-├── graph/                        # graph-view.ts (rewritten neighborhood), walk.ts, NeighborhoodGraph, FullGraph, fullscreen
+├── graph/                        # walk.ts, fullscreen.ts (graph-view.ts, layout.ts, RelationshipEdge.tsx,
+│                                 #   NeighborhoodGraph.tsx, FullGraph.tsx stay in src/ and are reworked in place)
 ├── odcs/                         # ContractOverview, DatasetPage, odcs-diff
 ├── scm/                          # SourceControl panel, DiffView (merge view), BranchPicker
-└── mappings/                     # MappingExplorer (relayout)
+└── MappingExplorer.tsx           # relayout in place (Phase 11)
 
 schemas/semantic-workbench-metric-v1.json
 schemas/semantic-workbench-mapping-v1.json
