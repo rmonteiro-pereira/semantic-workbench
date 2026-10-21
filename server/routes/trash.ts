@@ -20,7 +20,7 @@ export const trashRoutes:Route=async(ws,req,url)=>{
   const id=entry[1];
   if(entry[2]==='/undo'&&req.method==='POST')return Response.json(await ws.trash.undo(id));
   if(entry[2]==='/restore'&&req.method==='POST'){
-   const body=req.headers.get('content-length')==='0'?{}:await readJson(req,4096).catch(()=>({}));
+   const body=await readJson(req,4096,{});
    if(!body||typeof body!=='object'||Object.keys(body).some(k=>!['toProject','toPath'].includes(k)))throw Error('Expected {toProject?, toPath?}.');
    for(const k of ['toProject','toPath'])if(body[k]!==undefined&&typeof body[k]!=='string')throw Error(`${k} must be text.`);
    return Response.json(await ws.trash.restore(id,body));

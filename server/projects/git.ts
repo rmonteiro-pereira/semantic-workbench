@@ -9,12 +9,15 @@ export type GitOptions={projectsRoot:string;binary?:string;timeoutMs?:number;rem
 type RunOptions={stdin?:string;timeout?:number;allowFailure?:boolean;readOnly?:boolean;remote?:boolean};
 export function gitEnv(base:Record<string,string|undefined>=process.env){
  const env:Record<string,string>={};
- for(const [k,v]of Object.entries(base))if(v!==undefined&&!['GIT_DIR','GIT_WORK_TREE','GIT_INDEX_FILE','GIT_OBJECT_DIRECTORY','GIT_PREFIX'].includes(k))env[k]=v;
+ // Variables that redirect the repository, inject configuration or swap Git's helper programs.
+ for(const [k,v]of Object.entries(base))if(v!==undefined&&!['GIT_DIR','GIT_WORK_TREE','GIT_INDEX_FILE','GIT_OBJECT_DIRECTORY','GIT_PREFIX','GIT_CONFIG_PARAMETERS','GIT_CONFIG_COUNT','GIT_EXEC_PATH'].includes(k)&&!/^GIT_CONFIG_(KEY|VALUE)_/.test(k))env[k]=v;
  return {...env,GIT_TERMINAL_PROMPT:'0',LC_ALL:'C'};
 }
 // Subcommands that contact a remote. They run only from the explicit fetch/pull/push/sync actions
 // (FR-063), which pass `remote: true`; anything else asking for them is refused.
 const REMOTE_COMMANDS=new Set(['fetch','pull','push','ls-remote','clone','remote-update']);
+// `https://user:token@host/...` → `https://***@host/...` in anything shown to the user.
+export function redactCredentials(text:string){return text.replace(/([A-Za-z][A-Za-z0-9+.-]*:\/\/)[^@\/\s]+@/g,'$1***@');}
 export function subcommandOf(args:string[]){
  for(let i=0;i<args.length;i++){const a=args[i];if(a==='-c'||a==='-C'){i++;continue;}if(a.startsWith('-'))continue;return a==='remote'&&args[i+1]==='update'?'remote-update':a;}
  return '';
@@ -40,7 +43,7 @@ export function createGit(options:GitOptions){
   if(result==='cancelled')throw new GitError(`git ${subcommandOf(args)} was cancelled.`,undefined,true);
   if(result==='timeout')throw new GitError(`git ${subcommandOf(args)} timed out after ${Math.round(timeout/1000)} s.`);
   const [out,stderr,code]=result,bytes=new Uint8Array(out);
-  return {code,stdout:new TextDecoder().decode(bytes),stderr,bytes};
+  return {code,stdout:new TextDecoder().decode(bytes),stderr:redactCredentials(stderr),bytes};
  }
  // Serialize per repository so two operations never interleave on one index. Read-only commands
  // skip the queue, so status stays live while a push waits for a credential window.
@@ -48,7 +51,9 @@ export function createGit(options:GitOptions){
   const dir=insideProjects(cwd);
   if(!Array.isArray(args)||args.some(a=>typeof a!=='string'))throw new GitError('Git arguments must be an array of strings.');
   if(REMOTE_COMMANDS.has(subcommandOf(args))&&!opts.remote)throw new GitError('Remote Git commands run only from an explicit fetch, pull, push or sync.');
-  const exec=async()=>{const r=await spawnGit(dir,args,opts.stdin,opts.timeout??(opts.remote?remoteTimeoutMs:timeoutMs),!!opts.remote);if(r.code!==0&&!opts.allowFailure)throw new GitError(r.stderr.trim()||`git ${subcommandOf(args)} failed with exit code ${r.code}.`,r);return r;};
+  // Remote commands never run transport helpers that execute programs (`ext::`).
+  const argv=opts.remote?['-c','protocol.ext.allow=never',...args]:args;
+  const exec=async()=>{const r=await spawnGit(dir,argv,opts.stdin,opts.timeout??(opts.remote?remoteTimeoutMs:timeoutMs),!!opts.remote);if(r.code!==0&&!opts.allowFailure)throw new GitError(r.stderr.trim()||`git ${subcommandOf(args)} failed with exit code ${r.code}.`,r);return r;};
   if(opts.readOnly)return exec();
   const previous=queues.get(dir)??Promise.resolve();
   const next=previous.catch(()=>{}).then(exec);

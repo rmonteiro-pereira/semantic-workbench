@@ -241,6 +241,11 @@ legacy ids continue to resolve through `legacy-ids.json`.
 **Rationale**: Existing browser checks, the mutation suite and external agent clients keep working
 while the UI moves to project endpoints.
 
+**Outcome (T165)**: The facade stays. It still has users: the grouping hook in the UI
+(`/api/documents/:id/grouping`), `scripts/example-checks.ts` and `scripts/live-inspect.ts`
+(`/api/documents`), the API tests that pin its shapes, and agent clients of `/api/agent/*`. It is
+documented at its definition in `server/handler.ts` and in `contracts/http-api.md`.
+
 ---
 
 ## R10. Neighborhood graph
@@ -717,4 +722,32 @@ and recorded here so later phases build on them.
   opens Source at the nearest located line.
 - **Layout.** Three columns from 1100 px (concepts 180–230 px, evidence flexible, composer
   280–350 px and sticky); stacked below, with the concept list capped at 40 % of the height.
+
+## R24. Security review of the new routes (T164)
+
+Reviewed every route in `server/handler.ts` and `server/routes/*` for path traversal, the origin
+check, Git argument handling, background remote calls and request limits. Already correct: slug
+and path validation on every route, argument arrays for Git with `--` before paths, commit
+messages on stdin, remote commands only from explicit actions, Origin checked on every write,
+bounded JSON bodies with key allowlists. Fixed, with tests in `tests/route-security.test.ts`:
+
+- **Symbolic links.** A link inside a project (for example one checked out from a pulled repository)
+  could lead reads and writes outside it. `projectFile` now refuses any path with a link on the
+  way, and so does the working-tree side of the diff; the scanner already listed real files only.
+- **DNS rebinding.** Requests whose `Host` is not a loopback name (`127.0.0.1`, `localhost`, `[::1]`,
+  any port) are refused, so a page on another name resolved to 127.0.0.1 cannot read files with a
+  same-origin GET.
+- **Branch names** are trimmed before validation and always checked with
+  `git check-ref-format --branch`, so a leading space cannot pass an option to `git switch`.
+- **Remote addresses** of the form `transport::address` (Git remote helpers; `ext::` runs any
+  command) are refused, and remote commands run with `protocol.ext.allow=never`. Local paths stay
+  accepted: they are a documented use (local bare remotes).
+- **Git environment.** `GIT_CONFIG_PARAMETERS`, `GIT_CONFIG_COUNT`, `GIT_CONFIG_KEY_*`/`VALUE_*` and
+  `GIT_EXEC_PATH` are removed, as `GIT_DIR` and related variables already were.
+- **Credentials** in remote URLs (`https://user:token@…`) are redacted in status and Git messages.
+- **Trash restore** treats only an absent or empty body as "restore to the original place"; a
+  malformed body is an error.
+
+Left as is: draft bodies are capped by size (patches are validated when applied), and an oversize
+body answers 400 rather than 413, as everywhere else in the API.
 

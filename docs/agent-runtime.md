@@ -7,14 +7,14 @@ The runtime is an HTTP tool surface for an agent that performs language interpre
 ## Try it in the interface
 
 1. **Load mapped commerce** imports three separate documents: `commerce.mapped-ontology.yaml`, `commerce.mapped-semantic.yaml`, and `commerce.mapping.yaml`.
-2. In **Mappings**, select **Revenue** to see its binding to `gross_revenue`, whose formula lives only in the semantic model. Select **Customer** or **Region** to see nested referent and link mappings into fields and physical sources.
+2. In **Mappings**, select **Revenue** to see its binding to `gross_revenue`, whose formula lives only in the semantic model. Select **Customer** or **Region** to see nested referent and link mappings into fields and physical sources. Each binding is shown as a chain of labelled steps (concept, relationship, field or metric, dataset, physical source), grouped by dataset.
 3. Select **All mapped concepts**, check `gross_revenue` and `customers.region`, then **Preview governed query**. The runtime composes a revenue-by-region query using the stored metric and the declared customer join. No predefined query is stored in the model.
 4. **Export agent context** downloads the resolved layers, raw mapping tree, definitions, AI context, document revisions, and paths. Regular **Export** still exports the original source document byte for byte.
-5. Missing, mismatched or ambiguous references appear as findings and disable query planning. Correct the source and save; runtime resolution refreshes. Unsaved edits remain separate and the UI explicitly reports that it is showing saved revisions.
+5. Missing, mismatched or ambiguous references appear as findings and disable query planning. **Edit item** on a finding opens the item editor on the offending mapping item (or Source at its line). Correct it and save; runtime resolution refreshes. Unsaved edits remain separate and the UI explicitly reports that it is showing saved revisions.
 
 ## Agent tools
 
-All endpoints use the loopback API (`http://127.0.0.1:4310`) or Vite's `/api` proxy. They operate on saved SQLite documents. No endpoint executes generated SQL or fetches remote references, schemas, or imports.
+All endpoints use the loopback API (`http://127.0.0.1:4310`) or Vite's `/api` proxy. They operate on the saved files of the folder store: each project is a folder (a Git repository) under the data root, and a document id is `<project>/<path>` (for example `commerce/commerce.mapping.yaml`). Ids from v0.1.0, when documents lived in SQLite, still resolve through the store's `legacy-ids.json`. Unsaved editor drafts are never read. No endpoint executes generated SQL or fetches remote references, schemas, or imports.
 
 | Agent operation | Endpoint | Inputs / output |
 | --- | --- | --- |
@@ -23,7 +23,7 @@ All endpoints use the loopback API (`http://127.0.0.1:4310`) or Vite's `/api` pr
 | Limit concept traversal | Add repeated `&concept=Revenue&concept=Customer` | Select matching roots and target concepts; include referenced metrics and their dependency formulas/fields. Full datasets/joins remain available for intermediate join traversal. |
 | Compose a governed query | `POST /api/agent/plan` | `{mappingId, concepts?, metrics: [metricId], dimensions: [fieldId]}` → SQL preview, original governed expressions, join plan, sources, bindings and revision provenance |
 
-Mapping IDs come from the catalog. Field IDs are opaque identifiers returned by context; clients must not fabricate them from physical column names. Metric IDs are scoped to the referenced semantic model.
+Mapping IDs come from the catalog: the document id for a standalone mapping, and the document id plus a fragment (`<project>/<path>#ontology_mappings/0`) for an embedded one. Field IDs are opaque identifiers returned by context; clients must not fabricate them from physical column names. Metric IDs are scoped to the referenced semantic model.
 
 ### Standalone mapping header and reference identity
 
@@ -84,7 +84,7 @@ The planner rejects request keys such as `expression`, metric objects, SQL strin
 
 The Metrics tab and `GET /api/projects/:slug/files/*path/explain/:metric` reuse this planner with a model scope (no mapping is required) and an optional time grain (`DATE_TRUNC` over the KPI's declared time dimension). The explanation returns the composition tree, base inputs down to ODCS properties, additivity, division-by-zero and missing-value text, concepts from the `SEMANTIC_WORKBENCH` KPI bindings, and either a SQL preview or a refusal with its reason: a ratio or other non-additive KPI is never summed, a semi-additive stock is not summed over periods coarser than its grain, a KPI with unknown additivity is not rolled up, and grains outside the declared ones are refused. Nothing is executed.
 
-Metric dependencies (context `dependsOn`, graph edges, the explanation) come from one syntax-aware reference scan (`src/metrics/deps.ts`) that skips strings, comments, function names and keywords, so `order.` never matches `suborder.x`. Cross-file references resolve inside the mapping's own project first; when several documents still match, every candidate is listed and none is guessed. Both official Ossie layouts are supported: split files and the consolidated file with embedded `ontology_mappings` (deprecated upstream).
+Metric dependencies (context `dependsOn`, graph edges, the explanation) come from one syntax-aware reference scan (`src/metrics/deps.ts`) that skips strings, comments, function names and keywords, so `order.` never matches `suborder.x`. Cross-file references resolve inside the mapping's own project folder first; when several documents still match, every candidate is listed and none is guessed. Both official Ossie layouts are supported: split files and the consolidated file with embedded `ontology_mappings` (deprecated upstream).
 
 ## Deliberate limits
 
