@@ -708,3 +708,47 @@ agent context already carries everything except two additive fields).
   test checks that the domain is still every object's declared affiliation, that the mode is
   disabled with its reason and that Auto moves on. The overview mutants that targeted the old Auto
   expression now target the equivalent counts in the new code.
+
+## R26. Implementation decisions taken in Phase 11 (Git setup from the app)
+
+- **Identity, live.** No cache: `GET /api/status` and every Source Control status read
+  `user.name`/`user.email` with the repository as working directory each time (a few
+  milliseconds). `PUT …/git/identity` runs `git config --local` in the repository, or in every
+  repository with `allRepositories`; the user's global configuration is never written. The scope
+  reported is `local` when both values are set in the repository's own configuration.
+- **Remote dialog.** The inline remote form of the Source Control panel became the **Remote**
+  dialog (name, URL, Save, Remove); `DELETE …/git/remote` removes a remote. The address checks
+  moved into one function shared by remotes and clone. `scripts/scm-browser-check.ts` now sets
+  the remote through the dialog (spec change: FR-065 asks for a dialog).
+- **Clone.** The clone runs in `data/projects/.staging-clone-<op>/` with `-c core.autocrlf=false
+  -c core.symlinks=false clone --no-recurse-submodules`, then sets `core.autocrlf`,
+  `core.safecrlf` and `core.symlinks` in the clone and moves it with the registry in one journal
+  step. A clone interrupted by a stop has no journal entry yet, so start-up removes any
+  `.staging-clone-*` folder and reports it as a rolled-back `clone` operation. The registry entry
+  records `origin: 'clone'` and the redacted address. Invalid files are reported in the `done`
+  event; a symbolic link arrives as a one-line text file, which is usually not a valid
+  definition and is listed too.
+- **Clone dialog placement.** Clone is offered from the Import dialog (**Clone a Git
+  repository…**), so the sidebar keeps one import entry. A quick clone can finish before its
+  request returns, so the dialog keeps every `clone` event and looks up its operation afterwards.
+- **Credential guide.** Offered next to a Source Control error whose text matches Git's
+  authentication phrases (`could not read Username`, `Authentication failed`, `Permission denied
+  (publickey)`, HTTP 401/403), and from a failed clone. A failed Commit & push says that Source
+  Control offers the guide. The browser check produces a real refusal with a local HTTP server
+  answering 401, so no network remote is used.
+- **Source Control error kept.** The panel used to clear any error when it reloaded the status,
+  and every action reloads it, so a failed push's message disappeared at once. Load errors and
+  action errors are now separate.
+- **Identity in the Commit dialog.** It listens for the `identity` event and updates only the
+  identity flag, so the files the user unticked stay unticked.
+- **Responsive sweep helper.** The overlap sweep opened the sidebar by checking whether
+  **Open workspace** was visible right after a resize, before the page had switched layout; it
+  failed about one run in three. The helper now waits for the layout that matches the viewport
+  and shows a desktop sidebar that an earlier check hid. No assertion changed.
+- **Architecture review fixes.** An unchanged masked address (`https://***@…`) saved from the
+  Remote dialog keeps the original; any other masked address is refused. "Every repository"
+  fills in only repositories without an identity. Two clones started together reserve
+  different names and folders. The address and remote-name rules live in `git.ts` with
+  `redactCredentials`; the status summary is `workspace.status()`; the browser imports the
+  identity and clone event types from the server; the clone dialog sits in `src/scm/` with the
+  other Git setup dialogs; the credential helper route moved to the Git routes.

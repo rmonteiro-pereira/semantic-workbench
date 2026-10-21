@@ -1,4 +1,5 @@
 /** Presentation and event handling for app dialogs. */
+import { useGitSetup } from '../scm/GitSetup';
 import React from 'react';
 import type { KpiSummary } from '../../server/agent/explain';
 import type { ImportDraft } from '../ValidationPanel';
@@ -219,6 +220,7 @@ export function AppDialogs({
   setPendingImport,
   commitImports,
 }: Props) {
+  const openGitSetup = useGitSetup();
   function handleValidationPanelLocate(issue: import('../diagnostics').Issue) {
     setShowValidation(false);
     setTab('source');
@@ -365,6 +367,10 @@ export function AppDialogs({
           initialProject={importing.project}
           onClose={() => setImporting(null)}
           onPick={handleImportDialogPick}
+          onClone={() => {
+            setImporting(null);
+            openGitSetup({ kind: 'clone' });
+          }}
         />
       )}
       {pendingImport && (

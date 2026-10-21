@@ -1,5 +1,7 @@
 /** Defines browser requests and response types for project files, metrics and source control. */
 import type { KpiSummary, KpiExplanation } from '../../server/agent/explain';
+import type { GitIdentity } from '../../server/projects/git';
+import type { CloneEvent } from '../../server/projects/clone';
 // Browser client for the project API (contracts/http-api.md).
 /** Summarizes a project file’s type, validation, visibility, Git state and hash. */
 export type ProjectFile = {
@@ -79,7 +81,10 @@ export type WorkspaceStatus = {
     verified: number;
   };
   recovery: { opId: string; kind: string; outcome: string; paths: string[] }[];
+  repositories?: { repo: string; identityConfigured: boolean; projects: string[] }[];
 };
+// The browser shares these shapes with the API instead of keeping copies that could drift.
+export type { GitIdentity, CloneEvent };
 /** Describes index and working-tree changes for a project path. */
 export type GitChange = {
   path: string;
@@ -385,6 +390,25 @@ export const scm = {
   setRemote: (p: string, name: string, url: string) =>
     fetch(gitUrl(p, 'git/remote'), send('PUT', { name, url })).then(r =>
       json<{ name: string; url: string }>(r),
+    ),
+  removeRemote: (p: string, name: string) =>
+    fetch(gitUrl(p, 'git/remote'), send('DELETE', { name })).then(r =>
+      json<{ removed: string }>(r),
+    ),
+  identity: (p: string) => fetch(gitUrl(p, 'git/identity')).then(r => json<GitIdentity>(r)),
+  setIdentity: (p: string, name: string, email: string, allRepositories = false) =>
+    fetch(gitUrl(p, 'git/identity'), send('PUT', { name, email, allRepositories })).then(r =>
+      json<{ repositories: string[] }>(r),
+    ),
+  credentialHelper: () =>
+    fetch('/api/git/credential-helper').then(r => json<{ helper: string | null }>(r)),
+  clone: (url: string, name?: string) =>
+    fetch('/api/clone', send('POST', { url, ...(name ? { name } : {}) })).then(r =>
+      json<{ op: string; name: string; slug: string }>(r),
+    ),
+  cancelClone: (op: string) =>
+    fetch(`/api/clone/${encodeURIComponent(op)}/cancel`, send('POST')).then(r =>
+      json<{ cancelled: boolean }>(r),
     ),
   remote: (p: string, action: 'fetch' | 'pull' | 'push' | 'sync') =>
     gitPost<RemoteResult>(p, 'git/' + action),

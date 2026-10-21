@@ -57,6 +57,14 @@ async function openScm() {
   await expect(panel()).toBeVisible();
 }
 const group = (name: string) => panel().getByRole('region', { name });
+// The remote is edited in the Remote dialog opened from the panel.
+async function setRemote(url: string) {
+  await panel().getByRole('button', { name: 'Remote…' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Remote' });
+  await dialog.getByLabel('Remote URL').fill(url);
+  await dialog.getByRole('button', { name: 'Save remote' }).click();
+  await expect(dialog).toHaveCount(0);
+}
 const rowButton = (path: string) =>
   panel().getByRole('button', {
     name: new RegExp(`^${path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}, `),
@@ -196,8 +204,7 @@ try {
   await check(
     'remote: save a local bare remote and push; pull a commit made elsewhere',
     async () => {
-      await panel().getByLabel('Remote URL').fill(bare);
-      await panel().getByRole('button', { name: 'Save remote' }).click();
+      await setRemote(bare);
       await panel()
         .getByRole('group', { name: 'Remote' })
         .getByRole('button', { name: 'Push' })
@@ -362,9 +369,7 @@ try {
   await check(
     'waiting for credentials: the panel says so and Cancel stops the operation',
     async () => {
-      await panel().getByRole('button', { name: 'Change' }).click();
-      await panel().getByLabel('Remote URL').fill('ssh://example.invalid/repo.git');
-      await panel().getByRole('button', { name: 'Save remote' }).click();
+      await setRemote('ssh://example.invalid/repo.git');
       process.env.GIT_SSH_COMMAND = 'sleep 30 #';
       try {
         await panel()

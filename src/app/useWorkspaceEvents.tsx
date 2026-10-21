@@ -94,7 +94,14 @@ export function useWorkspaceEvents({
   const [gitVersion, setGitVersion] = useState(0);
   useEvents(event => {
     if (event === 'trash') setTrashVersion(v => v + 1);
-    if (event === 'git' || event === 'files' || event === 'resync') setGitVersion(v => v + 1);
+    if (event === 'git' || event === 'files' || event === 'resync' || event === 'identity')
+      setGitVersion(v => v + 1);
+    // The banner and commit checks read the identity from the status, so reread it.
+    if (event === 'identity' || event === 'projects' || event === 'resync')
+      api
+        .status()
+        .then(setStatus)
+        .catch(() => {});
     clearTimeout(refreshTimer.current);
     refreshTimer.current = setTimeout(() => {
       void refresh().catch(() => {});

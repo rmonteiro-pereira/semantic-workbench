@@ -246,16 +246,16 @@ shopping center mapping in Graph; `bun run test:mapping-graph`.
 
 ### Tests
 
-- [ ] T079 [P] [US7] Handler tests: identity read per repository (local and global scope), `PUT identity` writes local config only, `allRepositories`, live (no restart) in tests/identity.test.ts
-- [ ] T080 [P] [US7] Handler tests: clone validation (`transport::`, leading `-`, newlines), staging + journal, `core.autocrlf=false`, `core.symlinks=false`, no submodules, cancel, invalid files listed not rewritten, name collision proposes free name, interrupted clone rolled back on restart in tests/clone.test.ts
-- [ ] T081 [US7] Mutants: identity written with `--global`; clone runs without explicit action; clone target outside data/projects/; symlinks enabled on clone
+- [x] T079 [P] [US7] Handler tests: identity read per repository (local and global scope), `PUT identity` writes local config only, `allRepositories`, live (no restart) in tests/identity.test.ts
+- [x] T080 [P] [US7] Handler tests: clone validation (`transport::`, leading `-`, newlines), staging + journal, `core.autocrlf=false`, `core.symlinks=false`, no submodules, cancel, invalid files listed not rewritten, name collision proposes free name, interrupted clone rolled back on restart in tests/clone.test.ts
+- [x] T081 [US7] Mutants: identity written with `--global`; clone runs without explicit action; clone target outside data/projects/; symlinks enabled on clone
 
 ### Implementation
 
-- [ ] T082 [US7] Per-repository live identity in server/projects/git.ts, server/projects/workspace.ts, server/routes/projects.ts (`/api/status` repositories) and routes `git/identity`, `git/credential-helper`, emitting the SSE `identity` event (FR-067)
-- [ ] T083 [US7] Clone flow server/routes/clone.ts and workspace `cloneRepository` with SSE `clone` events (FR-064)
-- [ ] T084 [US7] Dialogs: Set Git identity (banner, commit dialog and import failures link to it), Remote, Clone repository with progress and Cancel, Credential setup guide (static text per OS, helper check) in src/scm/*.tsx and src/projects/GitBanner.tsx (FR-065, FR-068)
-- [ ] T085 [US7] Browser check scripts/git-setup-browser-check.ts: identity, remote, clone from bare repository, guide from a failed push, no network remote (SC-009)
+- [x] T082 [US7] Per-repository live identity in server/projects/git.ts, server/projects/workspace.ts, server/routes/projects.ts (`/api/status` repositories) and routes `git/identity`, `git/credential-helper`, emitting the SSE `identity` event (FR-067)
+- [x] T083 [US7] Clone flow server/routes/clone.ts and workspace `cloneRepository` with SSE `clone` events (FR-064)
+- [x] T084 [US7] Dialogs: Set Git identity (banner, commit dialog and import failures link to it), Remote, Clone repository with progress and Cancel, Credential setup guide (static text per OS, helper check) in src/scm/*.tsx and src/projects/GitBanner.tsx (FR-065, FR-068)
+- [x] T085 [US7] Browser check scripts/git-setup-browser-check.ts: identity, remote, clone from bare repository, guide from a failed push, no network remote (SC-009)
 
 ---
 
