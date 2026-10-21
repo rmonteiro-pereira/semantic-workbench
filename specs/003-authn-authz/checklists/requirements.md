@@ -38,8 +38,11 @@
   The spec names them only where they are the owner's requirement (Input, Dependencies); route
   paths appear only to identify existing behaviour (Appendix A, FR-015, FR-090). This is accepted
   for a security feature whose scope is defined by the existing interfaces. The container and
-  pipeline revision adds owner-fixed technologies (Docker image and Compose, GitHub Actions,
-  Azure Container Apps, workload identity federation) and one recommended choice (Azure Container
-  Registry, OP-6); the scanner and bill-of-materials tool are named only in plan and research.
+  pipeline revisions add owner-fixed technologies (Docker image and Compose, Azure DevOps
+  Pipelines for the target environment, Azure Container Registry of the target, Azure Container
+  Apps, workload identity federation, local package scripts such as `ci:validate`); the scanner
+  and bill-of-materials tool are named only in plan and research. The GitHub repository runs
+  nothing automatically (owner decision, FR-130).
 - Five decisions not fixed by the owner are resolved in the clarify pass with recommended
-  defaults and listed for owner confirmation.
+  defaults and listed for owner confirmation (OP-1 to OP-5); OP-8 (host networking for local mode
+  in a container) is accepted by the owner; the former OP-6 and OP-7 are withdrawn.
