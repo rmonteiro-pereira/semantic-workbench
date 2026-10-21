@@ -1,3 +1,4 @@
+/** Plans metric and concept-binding writes across semantic models and mapping documents. */
 import { validateInput } from '../input';
 import { rdfSyntax } from '../rdf';
 import { isMapping } from '../mapping-schema';
@@ -13,13 +14,10 @@ import {
   type KpiBinding,
   type MetricExtension,
 } from './extension';
-// A new metric from the wizard (FR-009, FR-010, research R12): the metric with its formula and its
-// SEMANTIC_WORKBENCH extension go into the semantic model; the metric's concepts go, as one binding
-// line in sorted position, into the root extension of the project's mapping document (created,
-// minimal, when the project has none) or of the embedded semantic model in a consolidated file.
-// The formula lives only in the metric's expression; the extension names inputs, never formulas.
-// `existing` (v0.3.0, FR-017 Add attributes): the metric is already in the model without attributes;
-// only its extension (and the binding) are added, its expression is left as it is.
+// The metric and its extension belong in the semantic model. Concept bindings are sorted by metric
+// name in the mapping root extension, or the embedded model root; a minimal mapping is planned if
+// none exists.
+/** Supplies a metric, its attributes and optional concept binding for a save plan. */
 export type KpiRequest = {
   semanticPath: string;
   modelPath?: Path;
@@ -28,11 +26,17 @@ export type KpiRequest = {
   extension: MetricExtension;
   binding?: { measures: string; of?: string };
 };
+/** Names the request accepted by metric save planning. */
 export type MetricRequest = KpiRequest;
+/** Pairs a project path with original source text for save planning. */
 export type ProjectFile = { path: string; source: string };
+/** Lists source writes needed to save a metric and its concept binding. */
 export type KpiPlan = { writes: { path: string; source: string; created: boolean }[] };
+/** Explains why a requested metric save plan cannot be constructed. */
 export class KpiError extends Error {}
+/** Exports the metric save error under its descriptive alias. */
 export { KpiError as MetricError };
+/** Plans the source writes for a metric without writing files. */
 export const planMetricSave = (files: ProjectFile[], req: KpiRequest) => planKpiSave(files, req);
 const basename = (p: string) => p.split('/').pop()!;
 const object = (v: unknown): v is Record<string, any> =>
@@ -42,12 +46,15 @@ const parsed = (f: ProjectFile) => {
   const v = validateInput(f.source, basename(f.path));
   return v.valid && 'document' in v.model ? v.model.document : null;
 };
-// One binding per line, sorted by metric name (research R12).
+
+/** Serializes metric bindings one per line for readable source diffs. */
 export const bindingsText = (bindings: KpiBinding[]) =>
   `{"schema": "${MAPPING_SCHEMA}", "kpi_bindings": [\n${bindings.map(b => '  ' + JSON.stringify(b)).join(',\n')}\n]}\n`;
+/** Replaces or adds one metric binding and sorts bindings by metric name. */
 export const sortedBindings = (list: KpiBinding[], next: KpiBinding) =>
   [...list, next].sort((a, b) => (a.metric < b.metric ? -1 : a.metric > b.metric ? 1 : 0));
-// Add one binding to the root extension at `owner` of a YAML/JSON text.
+
+/** Patches a binding into the selected root extension of YAML or JSON source. */
 export function addBinding(
   source: string,
   owner: Path,
@@ -88,6 +95,7 @@ const stem = (path: string) =>
   basename(path)
     .replace(/\.(ya?ml|json)$/i, '')
     .replace(/\.(semantic_model|semantic|ossie)$/i, '');
+/** Builds a minimal mapping document for the supplied model and metric binding. */
 export function minimalMapping(
   name: string,
   ontology: { name: string; path: string },
@@ -102,6 +110,7 @@ export function minimalMapping(
     .map(l => '      ' + l)
     .join('\n')}\n`;
 }
+/** Plans metric and binding source changes without applying the writes. */
 export function planKpiSave(files: ProjectFile[], req: KpiRequest): KpiPlan {
   const name = req.metric?.name;
   if (typeof name !== 'string' || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(name))
@@ -127,7 +136,7 @@ export function planKpiSave(files: ProjectFile[], req: KpiRequest): KpiPlan {
     throw new KpiError(`There is no metric named ${name} in ${model.name}.`);
   if (req.existing && readMetricExtension(model.metrics[at]).value)
     throw new KpiError(`${name} already has attributes; edit them in the metric editor.`);
-  // The extension: the pinned schema, inputs by name, no formula (FR-002, FR-003).
+  // The extension: the pinned schema, inputs by name, no formula.
   const extension = { ...req.extension, schema: METRIC_SCHEMA };
   const checked = readMetricExtension({
     custom_extensions: [{ vendor_name: VENDOR, data: JSON.stringify(extension) }],

@@ -1,3 +1,4 @@
+/* Styles the workbench shell, graph controls and responsive project navigation. */
 :root {
   font-family: 'DM Sans', sans-serif;
   color: #243936;
@@ -2140,7 +2141,7 @@ main > .status {
 .node strong {
   overflow-wrap: anywhere;
 }
-/* Project tree (Phase 1) */
+/* Project tree */
 .project-tree,
 .project-tree ul {
   list-style: none;
@@ -2283,7 +2284,7 @@ main > .status {
   display: inline-block;
   min-width: 100%;
 }
-/* Phase 2: item menus, delete, undo, trash, suggestions */
+/* Item menus, delete, undo, trash, suggestions */
 /* Tree rows: the name ellipsizes; delete and menu buttons keep a fixed 28px slot at the right. */
 .project,
 .project-file {
@@ -2667,7 +2668,7 @@ button.danger:hover {
   padding: 0 6px;
   margin-left: 2px;
 }
-/* Neighborhood walk (Phase 4): center picker, trail, counts, center and origin styling, legend. */
+/* Neighborhood walk: center picker, trail, counts, center and origin styling, legend. */
 .center-picker {
   position: relative;
   display: flex;
@@ -2934,8 +2935,8 @@ button.danger:hover {
 .react-flow__edge.edge-lateral .react-flow__edge-text {
   fill: #7b8f87;
 }
-/* Full screen (FR-066): the canvas row fills the screen (or the window when the browser refuses);
-   details open over the graph instead of beside it. */
+/* Full screen: the canvas row fills the screen (or the window when the browser refuses); details
+   open over the graph instead of beside it. */
 .canvas-row.is-fullscreen {
   margin: 0;
   border: 0;
@@ -2978,7 +2979,7 @@ button.danger:hover {
   gap: 5px;
 }
 
-/* Adaptive reflow (T150). Fade only the edges with more content to scroll to. */
+/* Adaptive reflow. Fade only the edges with more content to scroll to. */
 @media (max-width: 1100px) {
   .full-graph-tools,
   .neighborhood-tools {
@@ -3074,7 +3075,7 @@ button.danger:hover {
   }
 }
 
-/* Phase 12: reserve space for controls instead of stacking floating boxes. */
+/* Reserve space for controls instead of stacking floating boxes. */
 main > .status {
   position: static;
   flex: 0 0 auto;
@@ -3254,7 +3255,7 @@ main > .status {
     z-index: 20;
   }
 }
-/* Save state indicator (FR-044): a pill next to Commit…; it opens Commit, the findings or the diff. */
+/* Save state indicator: a pill next to Commit…; it opens Commit, the findings or the diff. */
 .header-actions .save-state {
   display: inline-flex;
   align-items: center;
@@ -3334,7 +3335,7 @@ main > .status {
   }
 }
 
-/* Pierce through (v0.3.0, FR-018–FR-024): expand/collapse on nodes, Full pierce controls, banner. */
+/* Pierce through: expand/collapse on nodes, Full pierce controls, banner. */
 .node-actions .expand-button {
   display: inline-flex;
   align-items: center;
@@ -3413,7 +3414,7 @@ main > .status {
   cursor: pointer;
 }
 
-/* Resizable desktop sidebar and two-line tree names (FR-061–FR-062). */
+/* Resizable desktop sidebar and two-line tree names. */
 .sidebar-separator {
   position: absolute;
   left: calc(var(--sidebar-width) - 4px);
@@ -3498,8 +3499,8 @@ main > .status {
     padding-right: 0;
   }
 }
-/* v0.3.0: with the wider sidebar (300 px default) the Graph toolbar stays one row on desktop and
-   scrolls sideways, with the same edge fade as on smaller screens, instead of wrapping. */
+/* The wider sidebar leaves less graph toolbar space. Keep desktop controls on one row with
+   horizontal scrolling and overflow fades. */
 @media (min-width: 1101px) {
   .full-graph-tools {
     flex-wrap: nowrap;
@@ -3529,7 +3530,7 @@ main > .status {
   }
 }
 
-/* v0.3.0 dialogs and menus (FR-060, Appendix B). */
+/* Dialog and menu sizing. */
 .import-input {
   display: none;
 }
@@ -3745,7 +3746,7 @@ button.import {
   min-width: 0;
 }
 
-/* T072: let status yield space to the title; keep controls in their reading order. */
+/* Let status yield space to the title; keep controls in their reading order. */
 .workspace-header {
   min-height: 58px;
   gap: 10px;

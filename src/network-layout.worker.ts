@@ -1,3 +1,4 @@
+/** Computes compound network layouts off the main thread. */
 import { layoutNetwork } from './network-layout';
 self.onmessage = ({ data }) => {
   try {

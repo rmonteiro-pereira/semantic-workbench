@@ -1,12 +1,9 @@
-// Automatic saving of valid edits (FR-040–FR-043, research R7). A pure state machine per open file,
-// unit- and mutation-tested, plus the React hook that drives it with timers. The machine never runs
-// on keystrokes: an edit only records the text and asks for the 1 s pause timer to restart.
-//
-// Text kinds: `savedText` is the file's text at `baseHash` (what the disk holds as far as we know);
-// `text` is the editor's text. Nothing is written while the text has validation errors (it stays a
-// server draft), while a stale save waits for the user, while a Git operation on the repository
-// runs, or after the file was deleted, moved or trashed. One save is in flight at a time; edits made
-// meanwhile are saved next, on the hash that save returns.
+/** Coordinates delayed saves of valid edits with validation, stale-file and Git-operation
+ * safeguards. */
+// Edits restart a one-second pause before validation and saving. Invalid text remains a server
+// draft; stale saves, Git operations and removed files block writes. Only one save runs at a time;
+// later edits use the hash returned by that save.
+/** Names the current saving, validation or conflict state of an open file. */
 export type AutosaveStatus =
   | 'clean'
   | 'pending'
@@ -17,6 +14,7 @@ export type AutosaveStatus =
   | 'failed'
   | 'waiting'
   | 'cancelled';
+/** Tracks editor text, saved text, base hash and pending autosave work. */
 export type AutosaveState = {
   file: string | null;
   status: AutosaveStatus;
@@ -29,6 +27,7 @@ export type AutosaveState = {
   message?: string;
   lastSavedAt?: number;
 };
+/** Describes an edit, validation result or external event affecting autosave. */
 export type AutosaveEvent =
   | { type: 'open'; file: string; hash: string | null; text: string }
   | { type: 'edit'; text: string }
@@ -40,6 +39,7 @@ export type AutosaveEvent =
   | { type: 'cancel' }
   | { type: 'git'; busy: boolean }
   | { type: 'external'; hash: string; text: string };
+/** Requests a validation or save side effect from the autosave driver. */
 export type AutosaveEffect =
   | { type: 'save'; file: string; baseHash: string | null; from: string; to: string }
   | { type: 'schedule' }
@@ -58,6 +58,7 @@ export const initialAutosave: AutosaveState = {
 const paused = (s: AutosaveState) => s.status === 'stale' || s.status === 'cancelled';
 const settled = (s: AutosaveState): AutosaveStatus =>
   s.lastSavedAt !== undefined ? 'saved' : 'clean';
+/** Advances autosave state and returns effects without performing writes itself. */
 export function autosave(
   state: AutosaveState,
   event: AutosaveEvent,
@@ -136,7 +137,8 @@ export function autosave(
       return keep(next);
     }
     case 'external': {
-      // The disk changed (Git, another tab, an external editor): follow it only without unsaved edits.
+      // The disk changed (Git, another tab, an external editor): follow it only without unsaved
+      // edits.
       if (state.text !== state.savedText || state.inFlight !== null) return keep(state);
       return keep({
         ...state,
@@ -148,8 +150,10 @@ export function autosave(
     }
   }
 }
+/** Checks whether editor text differs from the last saved text. */
 export const isDirty = (s: AutosaveState) => s.text !== s.savedText;
-// The indicator text (FR-044, ui-contracts "Save state").
+// Save-state labels distinguish validation, conflicts and uncommitted changes.
+/** Returns the visible save-state label including uncommitted-change status. */
 export function saveStateLabel(s: AutosaveState, uncommitted: number) {
   const changes = `${uncommitted} uncommitted change${uncommitted === 1 ? '' : 's'}`;
   switch (s.status) {
@@ -171,13 +175,13 @@ export function saveStateLabel(s: AutosaveState, uncommitted: number) {
       return `Saved to file · ${changes}`;
   }
 }
-// ---------------------------------------------------------------------------------------------
-// React driver. `saved`/`hash` are the open file's version on disk; `text` is the editor text.
-// `validate` returns the error count of exactly that text (the editor's worker result when it has
-// one); `save` writes `from → to` against `baseHash` and returns the new hash. The diff and the
-// request start in idle time after the pause, never on a keystroke (FR-043).
+// Validation must match the exact editor text. Saves apply changes against the saved version’s
+// hash and return the next hash. Diff computation and requests start in idle time after the pause,
+// never on a keystroke.
 import { useCallback, useEffect, useRef, useState } from 'react';
+/** Describes a save effect against a specific base hash. */
 export type SaveRequest = Extract<AutosaveEffect, { type: 'save' }>;
+/** Supplies file versions, validation, persistence and callbacks to the autosave driver. */
 export type AutosaveOptions = {
   file: string | null;
   hash: string | null;
@@ -199,6 +203,7 @@ const idle = (fn: () => void) => {
   if (w.requestIdleCallback) w.requestIdleCallback(fn, { timeout: 500 });
   else setTimeout(fn, 0);
 };
+/** Drives delayed validation and serialized saves for the open file. */
 export function useAutosave(o: AutosaveOptions) {
   const ref = useRef<AutosaveState>(initialAutosave);
   const [state, setState] = useState<AutosaveState>(initialAutosave);

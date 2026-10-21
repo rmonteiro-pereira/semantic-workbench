@@ -1,5 +1,7 @@
-// Shipped example sets. Each loads as one project (`POST /api/examples/:id`); the v0.1.0 migration
-// recognizes their filenames to group migrated documents into the same projects.
+/** Defines shipped example projects and their filenames for import and migration grouping. */
+// Each example set loads as one project. Migration recognizes the filenames to keep related
+// documents together.
+/** Describes one shipped example project and its source files. */
 export type ExampleSet = {
   id: string;
   name: string;
@@ -104,6 +106,8 @@ export const EXAMPLE_SETS: ExampleSet[] = [
       'Loaded shopping center administration: 145 entity types in 11 namespaces, 259 joins, 1,057 bindings and 25 metrics with attributes, with OWL, SHACL, ODCS and RDF data.',
   },
 ];
+/** Looks up a shipped example project by identifier. */
 export const exampleSet = (id: string) => EXAMPLE_SETS.find(e => e.id === id);
+/** Finds the example project containing a shipped filename. */
 export const exampleForFilename = (filename: string) =>
   EXAMPLE_SETS.find(e => e.files.includes(filename));

@@ -1,3 +1,4 @@
+/** Configures source highlighting, including embedded JSON and SQL in structured definitions. */
 import {
   LanguageSupport,
   StreamLanguage,
@@ -12,10 +13,11 @@ import { xml } from '@codemirror/lang-xml';
 import { StandardSQL } from '@codemirror/lang-sql';
 import type { SyntaxNode } from '@lezer/common';
 import { rdfSyntax } from '../rdf';
-// Syntax per serialization (FR-042): YAML, JSON, XML for RDF/XML, the Turtle mode for Turtle and N3,
-// N-Triples, and plain text for `.gitignore` and anything unknown. In YAML, the JSON text of a
-// SEMANTIC_WORKBENCH extension block (`data: |`) is parsed and colored as JSON (research R1).
+// Unknown files and .gitignore use plain text. Workbench extension data inside YAML is highlighted
+// as JSON.
+/** Names a source serialization supported by editor highlighting. */
 export type SyntaxName = 'YAML' | 'JSON' | 'RDF/XML' | 'Turtle' | 'N3' | 'N-Triples' | 'Plain text';
+/** Chooses a syntax from the filename and source text. */
 export function syntaxFor(filename: string, source: string): SyntaxName {
   const name = filename.toLowerCase();
   const ext = name.includes('.') ? name.split('.').pop()! : '';
@@ -30,9 +32,8 @@ export function syntaxFor(filename: string, source: string): SyntaxName {
   if (/^\s*[{[]/.test(source)) return 'JSON';
   return 'YAML';
 }
-// Turtle, N3 and N-Triples share one tokenizer (the legacy Turtle mode colors local names by their
-// first letter and numbers as keywords): IRIs, prefixed names (prefix and local part), literals with
-// language tags and datatypes, numbers, booleans, blank nodes, N3 variables and rules, directives.
+// A shared tokenizer distinguishes RDF names, literals, datatypes and N3 rules. The legacy Turtle
+// mode misclassifies local names and numbers.
 type RdfState = { long: string | null; local: boolean };
 const rdfMode = {
   name: 'rdf',
@@ -91,13 +92,13 @@ const rdfMode = {
   },
 };
 const rdfLanguage = StreamLanguage.define(rdfMode);
-// SQL inside definitions (FR-050, FR-051, contracts/sql-regions.md): the value of a key path the
-// region table names is parsed as SQL, unless its sibling `dialect` is not SQL (DAX, MDX, …). The
-// key path is read from the syntax tree (cheap, incremental); the lint uses the exact YAML CST.
+// Known SQL key paths use SQL highlighting unless their sibling dialect names a non-SQL language.
+// Highlighting uses the incremental syntax tree; lint positions use the exact YAML syntax tree.
 const NOT_SQL = new Set(['MDX', 'DAX', 'MAQL', 'TABLEAU', 'SIGMA', 'THOUGHTSPOT', 'HOLISTICS_AQL']);
 const MAPPINGS = new Set(['object_mappings', 'referent_mappings', 'link_mappings']);
 type Read = (from: number, to: number) => string;
 const unquote = (s: string) => s.trim().replace(/^(['"])(.*)\1$/s, '$2');
+/** Identifies embedded SQL paths while excluding declared non-SQL dialects. */
 export function sqlKeyPath(keys: string[], sibling: (key: string) => string | undefined) {
   const n = keys.length;
   const last = keys[n - 1];
@@ -231,6 +232,7 @@ const sqlJson = jsonLanguage.configure({
       : null;
   }),
 });
+/** Returns the CodeMirror language configuration for a source syntax. */
 export function languageFor(syntax: SyntaxName) {
   if (syntax === 'YAML') return new LanguageSupport(extensionYaml, yaml().support);
   if (syntax === 'JSON') return new LanguageSupport(sqlJson, json().support);

@@ -1,3 +1,4 @@
+/** Inspects structured and RDF documents into entities, relationships and validation findings. */
 import { OSSIE_BUILTINS, builtinConcept } from './ossie-builtins';
 import { isMapping } from './mapping-schema';
 import { expandIri, namespaceOf, prefixMap, type Namespace } from './iri';
@@ -10,6 +11,7 @@ import { applyPatches } from './editor/patch';
 import { inspectRdf, rdfSyntax } from './rdf';
 import { validateStructured } from './validation';
 import { InputError, validateEnvelope, type Issue } from './diagnostics';
+/** Describes a model item displayed in the catalog and graph. */
 export type Entity = {
   id: string;
   name: string;
@@ -22,6 +24,7 @@ export type Entity = {
   declaredDomains?: string[];
   namespace?: Namespace;
 };
+/** Describes a directed, labeled link between model entities. */
 export type Relationship = {
   id: string;
   source: string;
@@ -29,6 +32,7 @@ export type Relationship = {
   label: string;
   data: { path: (string | number)[]; definition: any; kind: string; readOnlyForm?: boolean };
 };
+/** Parses a document into model entities, relationships and validation findings. */
 export function inspect(source: string, filename = 'definition.yaml') {
   validateEnvelope(source, filename);
   if (/\.(trig|nq|jsonld|ofn|omn)$/i.test(filename))
@@ -284,7 +288,7 @@ export function inspect(source: string, filename = 'definition.yaml') {
           });
       }
     });
-    // Consolidated layout: ontology_mappings embed a semantic model (FR-031).
+    // Consolidated layout: ontology_mappings embed a semantic model.
     (Array.isArray(data.ontology_mappings) ? data.ontology_mappings : []).forEach(
       (om: any, i: number) => {
         if (om?.semantic_model && typeof om.semantic_model === 'object')
@@ -314,7 +318,8 @@ export function inspect(source: string, filename = 'definition.yaml') {
     document: data,
   };
 }
-// The inspector's quick description edit: only the description's text changes (FR-053).
+
+/** Patches an entity description while preserving unrelated source text. */
 export function editEntity(
   source: string,
   path: (string | number)[],

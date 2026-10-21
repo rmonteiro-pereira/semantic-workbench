@@ -1,9 +1,10 @@
+/** Keeps graph edges attached to live handles while background routes are pending. */
 import { BaseEdge, BezierEdge, type EdgeProps } from '@xyflow/react';
 import { useSmartEdgePath } from '@tisoap/react-flow-smart-edge';
 import { pathMatchesEndpoints } from './edge-path';
 
-/** Background routing may finish after a drag or a complete layout change.
- * Keep using live React Flow handles until the matching route arrives. */
+/** Background routing may finish after a drag or a complete layout change. Keep using live React
+ * Flow handles until the matching route arrives. */
 export function RoutedEdge(props: EdgeProps) {
   const { route, isDragging } = useSmartEdgePath({
     id: props.id,

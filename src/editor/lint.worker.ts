@@ -1,9 +1,10 @@
+/** Runs document and SQL validation off the main thread, loading SQL grammars only when needed. */
 import { validateInput } from '../input';
 import { isGitignore } from '../scm/gitignore';
 import { browserSqlFindings, browserSqlTextFindings } from '../sql/browser';
-// Shared validation rules off the main thread: typing never waits for a parse (FR-045).
-// SQL inside definitions is linted here too (FR-052): warnings with exact positions, grammar builds
-// loaded on first need. A request with `sql` lints one SQL text (form fields).
+// Shared validation rules off the main thread: typing never waits for a parse. SQL inside
+// definitions is linted here too: warnings with exact positions, grammar builds loaded on first
+// need. A request with `sql` lints one SQL text (form fields).
 self.onmessage = async (
   event: MessageEvent<{
     id: number;

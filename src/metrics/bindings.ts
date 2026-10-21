@@ -1,10 +1,12 @@
+/** Resolves metric-to-concept bindings from extensions and standard mapping expressions. */
 import { expandIri, prefixMap } from '../iri';
 import { readKpiBindings, type KpiBinding } from './extension';
-// metric-to-concept bindings (research R12): stored in the mapping document's root extension (or the
-// embedded semantic model's root in a consolidated file). Resolved against the ontology and the
-// semantic model the mapping references. Standard concept mappings whose expression is exactly a
-// metric name are read as evidence too, labelled as such, but never written.
+// Bindings live in a mapping root extension or an embedded semantic model root. They resolve
+// against the referenced ontology and model. Exact metric-name mapping expressions also provide
+// evidence but are never written here.
+/** Pairs a declared concept reference with its resolved name, or null if unresolved. */
 export type ConceptRef = { input: string; concept: string | null };
+/** Records metric-to-concept resolution, its evidence source and any problems. */
 export type ResolvedBinding = {
   metric: string;
   measures: ConceptRef;
@@ -12,9 +14,12 @@ export type ResolvedBinding = {
   source: 'kpi-binding' | 'mapping-expression';
   problems: string[];
 };
+/** Exports the shared metric-binding reader and data types. */
 export { readKpiBindings };
+/** Exports the shared metric-binding reader and data types. */
 export type { KpiBinding };
 // Concept name, full IRI or a QName declared in the ontology's prefixes.
+/** Resolves a concept name, full IRI or declared qualified name against the ontology. */
 export function resolveConcept(input: string, ontology: any): string | null {
   const concepts: any[] = Array.isArray(ontology?.ontology) ? ontology.ontology : [];
   if (concepts.some(c => c?.concept === input)) return input;
@@ -28,6 +33,7 @@ export function resolveConcept(input: string, ontology: any): string | null {
   });
   return hit?.concept ?? null;
 }
+/** Validates metric bindings against known metrics and ontology concepts. */
 export function resolveBindings(
   bindings: KpiBinding[],
   ontology: any,
@@ -52,7 +58,8 @@ export function resolveBindings(
     };
   });
 }
-// Concept mappings whose object-mapping expression is exactly the name of a governed metric.
+
+/** Reads concept mappings whose expression is exactly a governed metric's name. */
 export function mappingExpressionBindings(
   mapping: any,
   metricNames: Set<string>,

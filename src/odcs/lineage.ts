@@ -1,13 +1,17 @@
+/** Builds column-level lineage from declared names and parsed expressions without fetching or
+ * running data. */
 import { odcsForeignKeys } from '../odcs';
 import { ansiExpression, expressionRefs, metricDependencies } from '../metrics/deps';
 import { readMetricExtension } from '../metrics/extension';
 // Shared readers for the column-level lineage below: semantic models in a project file, physical
 // names of objects and columns. Matching is by declared names and parsed expressions only.
+/** Pairs a project path with its parsed definition for lineage construction. */
 export type ProjectFile = { path: string; data: any };
 const list = (v: unknown): any[] =>
   Array.isArray(v) ? v : v === undefined || v === null ? [] : [v];
 const isObject = (v: unknown): v is Record<string, any> =>
   !!v && typeof v === 'object' && !Array.isArray(v);
+/** Builds an identifier for a contract object within a project file. */
 export const objectId = (file: string, name: string) => `object:${file}#${name}`;
 // Semantic models in a file: flat, legacy `semantic_model` lists, and models embedded in a
 // consolidated ontology's `ontology_mappings`.
@@ -32,17 +36,16 @@ const physical = (o: any) =>
 const columnOf = (p: any) =>
   typeof p?.physicalName === 'string' ? p.physicalName : String(p?.name);
 
-// ---------------------------------------------------------------------------------------------
-// v0.3.0 column-level lineage (FR-001–FR-004, research R1, data-model LineageGraph). Cards are
-// contract objects, semantic datasets that read them, the metrics over their fields (and metrics
-// on those metrics) and external stubs; lines go column to column, left to right: referenced key →
-// foreign key → semantic field reading the column → metric → metric. All matching is the
-// workbench's reading of declared names and parsed expressions; nothing is run or fetched.
+// Edges follow referenced key → foreign key → semantic field → metric → dependent metric. Cards
+// include contract objects, semantic datasets, metrics and external stubs. Matching uses declared
+// names and parsed expressions; nothing is fetched or executed.
 import { odcsExternalForeignKeys } from '../odcs';
 import { flattenProperties } from './odcs-diff';
 import { propertyBadges, badge, type BadgeInfo } from '../PropertyBadges';
 import type { LineageEdgeKind, MappingEdgeKind } from '../graph/edge-styles';
+/** Names an asset category rendered as a lineage card. */
 export type CardKind = 'object' | 'dataset' | 'metric' | 'external' | 'concept';
+/** Describes a lineage row with identity, labels and property badges. */
 export type LineageColumn = {
   id: string;
   path: string;
@@ -50,7 +53,9 @@ export type LineageColumn = {
   badges: BadgeInfo[];
   fk?: string[];
 };
-// Mapping cards (src/mappings/mapping-graph.ts) also carry card badges (Unmapped) and resolver findings.
+// Mapping cards (src/mappings/mapping-graph.ts) also carry card badges (Unmapped) and resolver
+// findings.
+/** Describes an asset and its visible lineage columns and findings. */
 export type LineageCard = {
   id: string;
   kind: CardKind;
@@ -64,7 +69,9 @@ export type LineageCard = {
   findings?: string[];
   missing?: boolean;
 };
-// `via`: rows a mapping link passes through (highlighted with it); `bindings`: resolver binding ids.
+// `via`: rows a mapping link passes through (highlighted with it); `bindings`: resolver binding
+// ids.
+/** Connects lineage nodes with optional intermediate rows and resolver binding identifiers. */
 export type ColumnEdge = {
   from: string;
   to: string;
@@ -75,6 +82,7 @@ export type ColumnEdge = {
   via?: string[];
   bindings?: string[];
 };
+/** Collects asset cards, column edges and adjacency indexes for traversal. */
 export type LineageGraph = {
   contract: string;
   cards: Map<string, LineageCard>;
@@ -84,8 +92,11 @@ export type LineageGraph = {
 };
 const datasetCardId = (file: string, key: string, name: string) => `dataset:${file}#${key}/${name}`;
 const metricCardId = (file: string, key: string, name: string) => `metric:${file}#${key}/${name}`;
+/** Builds a column identifier under its owning card. */
 export const columnId = (card: string, path: string) => `${card}/${path}`;
-// The card a node (column or card) belongs to. Ids contain file paths, so this is a lookup, not a parse.
+// The card a node (column or card) belongs to. Ids contain file paths, so this is a lookup, not a
+// parse.
+/** Looks up a node's owning card without parsing identifiers that contain file paths. */
 export function cardOfNode(graph: LineageGraph, node: string) {
   if (graph.cards.has(node)) return node;
   let owners = columnOwner.get(graph);
@@ -97,6 +108,7 @@ export function cardOfNode(graph: LineageGraph, node: string) {
   return owners.get(node) ?? node;
 }
 const columnOwner = new WeakMap<LineageGraph, Map<string, string>>();
+/** Builds column dependencies from declared contract references and parsed model expressions. */
 export function buildLineage(
   files: ProjectFile[],
   contractPath: string,
@@ -150,7 +162,7 @@ export function buildLineage(
       columns,
     });
   });
-  // Referenced (parent) column → referencing (child) column (C2), pairwise by position.
+  // Referenced (parent) column → referencing (child) column , pairwise by position.
   for (const k of keys) {
     const parent = objectId(contractPath, String(schema[k.to]?.name));
     const child = objectId(contractPath, String(schema[k.from]?.name));
@@ -338,7 +350,8 @@ export function buildLineage(
             source: { file, path: [...base, 'metrics', mi] },
           });
       });
-      // Metrics on metrics: only those whose dependency is already part of the lineage, to any depth.
+      // Metrics on metrics: only those whose dependency is already part of the lineage, to any
+      // depth.
       let added = true;
       while (added) {
         added = false;
@@ -381,13 +394,15 @@ function adj(g: LineageGraph) {
   }
   return a;
 }
-// The nodes a selection stands for: a column, or every column of a card plus the card itself.
+
+/** Expands a selection to its column or the card and all of its columns. */
 export function selectionNodes(g: LineageGraph, id: string) {
   const c = g.cards.get(id);
   return c ? [id, ...c.columns.map(x => x.id)] : [id];
 }
-// Path highlight (FR-005): every node and edge upstream ('up'), downstream ('down') or both of the
-// given nodes. 'both' is ancestors plus descendants, never siblings. Cycles terminate.
+// Path highlight: every node and edge upstream ('up'), downstream ('down') or both of the given
+// nodes. 'both' is ancestors plus descendants, never siblings. Cycles terminate.
+/** Finds ancestors, descendants or both without including siblings; cycles terminate. */
 export function closure(
   g: LineageGraph,
   ids: string[],
@@ -417,11 +432,10 @@ export function closure(
   if (direction !== 'down') walk('up');
   return { nodes, edges: edgeSet };
 }
-// Which cards a view centred on `center` shows (FR-008, research R4): the centre; the contract
-// objects within `steps` foreign-key hops of the centre's objects, either way; and everything
-// upstream and downstream of the centre along the other line kinds (fields, metrics, metrics on
-// metrics, declared transforms). Cards one more foreign-key hop away are counted as hidden on the
-// visible card they connect to ("+N more").
+// The center reaches contract objects within the requested foreign-key hops in either direction.
+// Other edge kinds include the full upstream and downstream chain. Objects one extra foreign-key
+// hop away are counted as hidden on their visible neighbor.
+/** Builds a neighborhood with bounded foreign-key hops and full non-key dependency chains. */
 export function around(g: LineageGraph, center: string, steps = 1) {
   const card = (n: string) => cardOfNode(g, n);
   const shown = new Set<string>([center]);
@@ -491,9 +505,10 @@ export function around(g: LineageGraph, center: string, steps = 1) {
   }
   return { cards: shown, hidden };
 }
-// The mapping canvas' reach (research R19): cards within `steps` lines of the centre in any
-// direction, plus the cards holding rows a shown link passes through; neighbours one line further
-// are counted as hidden on the card they connect to.
+// The mapping canvas' reach: cards within `steps` lines of the centre in any direction, plus the
+// cards holding rows a shown link passes through; neighbours one line further are counted as
+// hidden on the card they connect to.
+/** Builds a mapping neighborhood by edge distance, including intermediate join rows. */
 export function aroundHops(g: LineageGraph, center: string, steps = 1) {
   const card = (n: string) => cardOfNode(g, n);
   const links = new Map<string, Set<string>>();
@@ -526,10 +541,12 @@ export function aroundHops(g: LineageGraph, center: string, steps = 1) {
   }
   return { cards: shown, hidden };
 }
-// Paging (FR-006, research R3): ten columns per page; columns on the highlighted path are pinned
-// above the page; an edge to a column that is not shown attaches to the card's "more" row.
+// Paging: ten columns per page; columns on the highlighted path are pinned above the page; an edge
+// to a column that is not shown attaches to the card's "more" row.
 export const PAGE_SIZE = 10;
+/** Returns the synthetic row identifier for hidden columns on a card. */
 export const moreRowId = (card: string) => `${card}/#more`;
+/** Pages columns while pinning highlighted path rows and counting hidden columns. */
 export function pageColumns(
   card: LineageCard,
   page: number,
@@ -553,9 +570,10 @@ export function pageColumns(
       visible.has(id) || !card.columns.some(c => c.id === id) ? id : moreRowId(card.id),
   };
 }
-// The asset search (FR-007): objects (name, physical name) and their columns, datasets and their
-// fields, metrics (and, on the mapping canvas, concepts and their relationships); exact
-// names first, then prefixes, then substrings; separators are ignored ("invoice line").
+// The asset search: objects (name, physical name) and their columns, datasets and their fields,
+// metrics (and, on the mapping canvas, concepts and their relationships); exact names first, then
+// prefixes, then substrings; separators are ignored ("invoice line").
+/** Searches asset and column names, ranking exact matches before prefixes and substrings. */
 export function findAssets(g: LineageGraph, query: string, limit = 20) {
   const norm = (s: string) => s.toLowerCase().replace(/[\s_.-]+/g, '');
   const q = norm(query);
@@ -588,7 +606,8 @@ export function findAssets(g: LineageGraph, query: string, limit = 20) {
     )
     .slice(0, limit);
 }
-// The card a contract opens on: the object with the most lineage lines touching it.
+
+/** Chooses the contract object with the most lineage connections. */
 export function defaultCenter(g: LineageGraph) {
   const count = new Map<string, number>();
   for (const e of g.edges)

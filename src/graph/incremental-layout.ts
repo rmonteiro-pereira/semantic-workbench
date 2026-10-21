@@ -1,7 +1,10 @@
-// Incremental placement (FR-018, SC-011, research R5): new nodes go into the column beside the node
-// they were expanded from (left for incoming, right for outgoing), at the free row nearest to that
-// node's row. Placed nodes never move; the result is deterministic for the same input order.
+/** Places added nodes beside their origins without moving nodes already on the canvas. */
+// Incremental placement: new nodes go into the column beside the node they were expanded from
+// (left for incoming, right for outgoing), at the free row nearest to that node's row. Placed
+// nodes never move; the result is deterministic for the same input order.
+/** Records a node's canvas coordinates. */
 export type Pos = { x: number; y: number };
+/** Defines horizontal and vertical spacing for incremental placement. */
 export type Grid = { column: number; row: number };
 const free = (positions: Map<string, Pos>, x: number, y: number, g: Grid) => {
   for (const p of positions.values())
@@ -19,6 +22,7 @@ function nearestFree(positions: Map<string, Pos>, x: number, y: number, g: Grid)
 }
 // `items` in the order to place; `side` -1 places left of `from`, 1 right, and `step` (default 1)
 // how many columns away (Full pierce places by step distance).
+/** Places new nodes beside their origin without moving existing positions. */
 export function placeNew(
   positions: Map<string, Pos>,
   from: string,
@@ -35,6 +39,7 @@ export function placeNew(
 }
 // Full pierce placement: nodes by step distance, each step in columns of at most `rows` nodes,
 // further steps further out; within the free space, never moving placed nodes.
+/** Places traversal layers outward in bounded columns without moving existing nodes. */
 export function placeLayers(
   positions: Map<string, Pos>,
   from: string,
@@ -73,7 +78,9 @@ export function placeLayers(
 // Cards of different heights (lineage): a new card goes beside its origin (right: after it; left:
 // before it) at the nearest vertical slot, scanning down and up in `step` px, that overlaps no
 // placed card. Placed cards never move.
+/** Records a positioned rectangle used for graph layout. */
 export type Box = { x: number; y: number; w: number; h: number };
+/** Places variable-height cards in nearby free slots without moving existing cards. */
 export function placeBoxes(
   boxes: Map<string, Box>,
   from: string,

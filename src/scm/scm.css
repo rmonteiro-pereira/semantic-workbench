@@ -1,4 +1,5 @@
-/* Source Control (Phase 8): a changes column beside the diff, as in VS Code. */
+/* Styles source-control history and diffs with responsive layouts for review and commit dialogs. */
+/* Source Control: a changes column beside the diff, as in VS Code. */
 .scm {
   display: grid;
   grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
@@ -558,7 +559,7 @@
     max-height: 160px;
   }
 }
-/* Commit dialog (FR-045): files left, diff right; one column on narrow screens. */
+/* Commit dialog: files left, diff right; one column on narrow screens. */
 .commit-dialog .commit-scope {
   margin: 0 0 10px;
   font-size: 12px;

@@ -1,7 +1,8 @@
+/** Provides keyboard-accessible menus that return focus to their trigger when closed. */
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-// A menu button (ui-contracts "Header and status"): `aria-haspopup="menu"`, items as menuitems;
-// arrows move between items, Escape or a click outside closes it and focus returns to the button.
-// A disabled item stays listed with its reason (aria-description and title).
+// Arrow keys move between menu items; Escape or an outside click restores button focus. Disabled
+// items stay visible with an accessible explanation.
+/** Defines a menu action, icon and optional disabled explanation. */
 export type MenuItem = {
   label: string;
   run: () => void;
@@ -9,6 +10,7 @@ export type MenuItem = {
   disabled?: string | false;
   hint?: string;
 };
+/** Opens a keyboard-accessible action menu and restores focus when it closes. */
 export function MenuButton({
   label,
   ariaLabel,

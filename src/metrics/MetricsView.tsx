@@ -1,12 +1,12 @@
+/** Lists, filters and groups project metrics alongside the selected metric's explanation. */
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Gauge, Plus, Search, Tags } from 'lucide-react';
 import type { KpiSummary } from '../../server/agent/explain';
 import { MetricDetail } from './MetricDetail';
 import { conceptText, typeLabel } from './format';
 import './metrics.css';
-// Every metric of the project (FR-001, FR-017); `Governed only` keeps the ones with workbench
-// attributes, and a metric without them offers Add attributes: a table to scan, group and filter, and the selected metric's
-// detail with its explanation beside it (below it on narrow screens).
+// The governed filter keeps metrics with workbench attributes. Metrics without them offer Add
+// attributes; details sit beside the list or below it on narrow screens.
 type GroupBy = 'none' | 'owner' | 'type' | 'status' | 'concept' | 'file';
 const groupLabel: Record<GroupBy, string> = {
   none: 'No grouping',
@@ -31,6 +31,7 @@ function groupValue(k: KpiSummary, by: GroupBy) {
   if (by === 'file') return k.file;
   return '';
 }
+/** Displays searchable project metrics with the selected metric's detail pane. */
 export function MetricsView({
   project,
   projectName,
@@ -364,4 +365,5 @@ export function MetricsView({
     </div>
   );
 }
+/** Exports the stable metric key used by selection and navigation. */
 export { keyOf as kpiKey };

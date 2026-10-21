@@ -1,3 +1,4 @@
+/** Displays the complete model graph with grouping, filtering and a detail inspector. */
 import { ScrollStrip } from './ScrollStrip';
 import type { GroupingOptions } from './overview';
 import { RoutedEdge } from './RoutedEdge';
@@ -137,6 +138,7 @@ function writeHide(key: string, hide: boolean) {
 }
 const readHideValues = (name: string) => readHide(valuesKey(name));
 const writeHideValues = (name: string, hide: boolean) => writeHide(valuesKey(name), hide);
+/** Displays the model graph with grouping, filtering and entity details. */
 export function FullGraph(props: Props) {
   const container = useRef<HTMLDivElement | null>(null);
   const [viewport, setViewport] = useState({ x: 0, y: 0, zoom: 1 });
@@ -151,7 +153,8 @@ export function FullGraph(props: Props) {
   const [labels, setLabels] = useState(false);
   const [version, setVersion] = useState(0);
   const [routeMetrics, setRouteMetrics] = useState<SmartEdgeMetrics | null>(null);
-  // Value types (including built-ins) can be hidden with their edges; the choice is remembered per model in this browser.
+  // Value types (including built-ins) can be hidden with their edges; the choice is remembered per
+  // model in this browser.
   const valueIds = useMemo(
     () => new Set(props.entities.filter(e => VALUE_KINDS.has(e.kind)).map(e => e.id)),
     [props.entities],
@@ -162,7 +165,7 @@ export function FullGraph(props: Props) {
       writeHideValues(props.name, !v);
       return !v;
     });
-  // metric nodes (governed metrics) can be hidden the same way.
+  // Metric nodes (governed metrics) can be hidden the same way.
   const kpiIds = useMemo(
     () => new Set(props.entities.filter(e => e.kind === 'Metric').map(e => e.id)),
     [props.entities],
@@ -380,7 +383,7 @@ export function FullGraph(props: Props) {
       elk?.terminateWorker();
     };
   }, [overview, display, algorithm, version, layoutGrouping]);
-  // Full screen keeps the view it started from and puts it back on exit (FR-066).
+  // Full screen keeps the view it started from and puts it back on exit.
   const held = useViewRestore(
     !!props.fullscreen?.active,
     () => flow.current?.getViewport(),
@@ -759,6 +762,7 @@ export function FullGraph(props: Props) {
     </div>
   );
 }
+/** Toggles the graph's full-screen view. */
 export const FullscreenButton = ({ fullscreen: f }: { fullscreen: Fullscreen }) => (
   <button
     className="fullscreen-toggle"

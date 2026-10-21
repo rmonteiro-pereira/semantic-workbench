@@ -1,3 +1,4 @@
+/** Displays column-level lineage with path highlighting, paging and reversible graph expansion. */
 import React, { memo, useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import {
   ReactFlow,
@@ -53,10 +54,8 @@ import {
 import ELK from 'elkjs/lib/elk-api.js';
 import elkWorkerUrl from 'elkjs/lib/elk-worker.min.js?url';
 import './odcs.css';
-// The lineage canvas (FR-001–FR-010, ui-contracts "Lineage canvas"): cards for the assets around a
-// centre, column-to-column lines in the shared legend's styles, a selected column's whole path
-// emphasised and everything else dimmed, Find assets, a Steps control, paging, walking with a
-// trail, fit and full screen. Layout runs in a worker (ELK, ports per row).
+// The selected column’s path is emphasized while unrelated rows dim. Navigation records expansions
+// and centers; ELK lays out row ports in a worker.
 const nodeTypes = { card: LineageCardNode };
 const LineageEdge = memo((p: EdgeProps) => {
   const d = p.data as {
@@ -70,7 +69,8 @@ const LineageEdge = memo((p: EdgeProps) => {
     label?: string;
     lane?: number;
   };
-  // Parallel lines between the same two ports (an object mapping and a metric binding of one metric) fan out.
+  // Parallel lines between the same two ports (an object mapping and a metric binding of one
+  // metric) fan out.
   const shift = (d.lane ?? 0) * 7;
   const [path, lx, ly] = getBezierPath({
     ...p,
@@ -125,7 +125,8 @@ const KIND_SHORT: Record<string, string> = {
   external: 'External',
   concept: 'Concept',
 };
-// The mapping canvas (src/mappings/MappingCanvas.tsx) reuses this canvas with mapping names and lines.
+// The mapping canvas (src/mappings/MappingCanvas.tsx) reuses this canvas with mapping names and
+// lines.
 const MAPPING_KINDS = { concept: 'Concept', dataset: 'Dataset', metric: 'Metric' };
 type Props = {
   mode?: 'lineage' | 'mapping';
@@ -185,6 +186,7 @@ function useLayout(cards: LayoutCard[], edges: LayoutEdge[], key: string) {
   }, [key]);
   return { result, busy };
 }
+/** Displays lineage cards with navigation, path highlighting and graph expansion. */
 export function LineageCanvas({
   mode = 'lineage',
   toolbarExtra,
@@ -215,7 +217,8 @@ export function LineageCanvas({
   }, [initial, graph.contract]);
   const mapping = mode === 'mapping';
   const reachOf = mapping ? aroundHops : around;
-  // A centre that is gone from the graph (the file changed under the walk) falls back to the initial one.
+  // A centre that is gone from the graph (the file changed under the walk) falls back to the
+  // initial one.
   const walked = currentStep(walk)?.center;
   const center =
     walked && graph.cards.has(walked)
@@ -235,7 +238,7 @@ export function LineageCanvas({
   };
   const [selected, setSelected] = useState('');
   const [pages, setPages] = useState<Record<string, number>>({});
-  // Expansions and pierces are walk steps on this canvas (FR-019): Back / Undo expansion restore it.
+  // Expansions and pierces are walk steps on this canvas: Back / Undo expansion restore it.
   const sets = useMemo(() => {
     const c = canvasAt(walk);
     return c.center && c.center.center === center ? setsOf(c.sets) : [];
@@ -259,7 +262,7 @@ export function LineageCanvas({
     const expandedBy = canvas.expandedBy;
     const hidden = new Map<string, number>();
     for (const [id, n] of base.hidden) if (!expandedBy.has(id)) hidden.set(id, n);
-    // Cards that only expansions brought in are placed incrementally beside their origin (FR-018);
+    // Cards that only expansions brought in are placed incrementally beside their origin;
     // everything else (the centre's reach, a pierce) is laid out by ELK.
     const incremental = new Set<string>();
     const laid = new Set([
@@ -275,9 +278,8 @@ export function LineageCanvas({
         cards.delete(c);
       else if (cardFilter && c !== center && !cardFilter(graph.cards.get(c)!)) cards.delete(c);
     }
-    // Fan-outs (owner review): more than GROUP_AT leaf cards hanging off one card, of one kind, show
-    // as one "N more …" card until opened, instead of shrinking the whole view. Not while a path is
-    // selected (its cards must be visible).
+    // Large groups of same-kind leaf cards collapse into a count card to keep the view readable.
+    // Selected paths bypass this grouping so every path card stays visible.
     const groups = new Map<string, LineageCard>();
     const alias = new Map<string, string>();
     if (!selected) {
@@ -331,7 +333,7 @@ export function LineageCanvas({
   ]);
   const cardFor = (id: string) => graph.cards.get(id) ?? reach.groups.get(id)!;
   const shownCard = (id: string) => reach.alias.get(id) ?? id;
-  // A mapping link lights up the join rows it passes through (research R19).
+  // A mapping link lights up the join rows it passes through.
   const path = useMemo(() => {
     if (!selected) return null;
     const p = closure(graph, selectionNodes(graph, selected));
@@ -392,7 +394,8 @@ export function LineageCanvas({
           edges: [i],
         });
     });
-    // Bundle per card pair when nothing on it is selected (edge case "a column read by many fields").
+    // Bundle per card pair when nothing on it is selected (edge case "a column read by many
+    // fields").
     const pairs = new Map<string, typeof out extends Map<any, infer V> ? V[] : never>();
     for (const l of out.values()) {
       const k = `${l.fromCard}>${l.toCard}>${l.kind}`;
@@ -443,7 +446,8 @@ export function LineageCanvas({
     [layoutCards, layoutEdges],
   );
   const { result: elk, busy } = useLayout(layoutCards, layoutEdges, layoutKey);
-  // ELK positions, then each expansion's new cards beside their origin, in order; nothing placed moves.
+  // ELK positions, then each expansion's new cards beside their origin, in order; nothing placed
+  // moves.
   const result = useMemo(() => {
     if (!elk) return null;
     const size = new Map(allLayoutCards.map(c => [c.id, cardHeight(c)]));
@@ -476,7 +480,7 @@ export function LineageCanvas({
     };
   }, [elk, reach, allLayoutCards, graph]);
   const select = useCallback((id: string) => setSelected(s => (s === id ? '' : id)), []);
-  // Expand / Collapse / Full pierce (FR-018–FR-023), recorded on the trail.
+  // Expand / Collapse / Full pierce, recorded on the trail.
   const record = (set: ReturnType<typeof registerSet>, name: string) =>
     dispatch({
       type: 'push',
@@ -683,9 +687,8 @@ export function LineageCanvas({
   const flow = useRef<ReactFlowInstance<any, any> | null>(null);
   const fitted = useRef('');
   const stage = useRef<HTMLDivElement | null>(null);
-  // Readable views (owner review): column names (13 px) render at 12 px or more. The first view of a
-  // centre fits everything when that stays readable; otherwise the centre and its direct neighbours;
-  // otherwise the centre card alone at the readable zoom. Fit shows everything at any zoom.
+  // Keep column names at least 12 px on entry by fitting the nearest readable neighborhood. Fall
+  // back to the center alone when needed; explicit Fit may zoom out further.
   const READABLE = 0.93;
   const readableFit = useCallback(async (focus: string, group: string[]) => {
     const f = flow.current;
@@ -701,7 +704,9 @@ export function LineageCanvas({
     const lc = layoutCardsRef.current.find(c => c.id === focus);
     if (n) {
       const w = CARD_W;
-      const h = lc ? cardHeight(lc) : (n.measured?.height ?? 200); // A card taller than the canvas shows its top (header and first rows), not its middle.
+      const h = lc ? cardHeight(lc) : (n.measured?.height ?? 200); // A card taller than the canvas shows its
+      // top (header and first rows), not its
+      // middle.
       const visible = (stage.current?.clientHeight ?? 600) / READABLE - 48;
       f.setCenter(
         n.position.x + w / 2,
@@ -721,7 +726,7 @@ export function LineageCanvas({
     const k = center + '|' + steps;
     if (fitted.current === k) return;
     fitted.current = k;
-    // after React Flow has measured the pane and the cards (ResizeObserver)
+    // After React Flow has measured the pane and the cards (ResizeObserver)
     setTimeout(() => requestAnimationFrame(() => void firstView()), 80);
   }, [result, center, steps, nodes.length]);
   // After an expansion or pierce, bring its cards into a readable view around its origin.
@@ -732,8 +737,8 @@ export function LineageCanvas({
     const t = setTimeout(() => void readableFit(lastSet.from, lastSet.nodes), 120);
     return () => clearTimeout(t);
   }, [result, lastSet]);
-  // The path panel takes room beside the canvas: when a path opens, bring its cards into a readable
-  // view (React Flow learns the new width from a ResizeObserver, so this waits for it).
+  // The path panel takes room beside the canvas: when a path opens, bring its cards into a
+  // readable view (React Flow learns the new width from a ResizeObserver, so this waits for it).
   const panelOpen = !!path;
   useEffect(() => {
     if (!result || !path) return;

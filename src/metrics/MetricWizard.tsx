@@ -1,3 +1,4 @@
+/** Validates metric creation step by step and previews the server's plan without executing SQL. */
 import { CompositionTree } from './Explanation';
 import React, { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, Check } from 'lucide-react';
@@ -12,10 +13,8 @@ import { expressionFor, extensionFor, list, type Draft } from './metric-draft';
 import '../edit/edit.css';
 import { SqlField } from '../editor/SqlField';
 import { SqlCode } from '../sql/SqlCode';
-// New metric (FR-009, SC-002): concept → data → type and inputs → time and breakdowns → targets →
-// governance → explanation and SQL preview → save. Each step is checked before the next opens; the
-// preview comes from the server's planner and is never executed. Save writes the metric and its
-// extension into the semantic model and the metric binding into the mapping document (FR-010).
+// Each step must validate before advancing; the server’s SQL preview is never executed. Save
+// writes the metric and its extension to the model and its concept binding to the mapping.
 function prefill(k: KpiSummary): Partial<Draft> {
   const agg = aggregationOf(k.expression);
   return {
@@ -93,9 +92,8 @@ const conceptsOf = (docs: Doc[]) =>
       }),
     ),
   ].sort() as string[];
-// `existing` (FR-017 Add attributes): a metric of the model without workbench attributes. The wizard
-// opens prefilled from it; its name and expression stay as written and only the attributes (and, when
-// it has none yet, the concept binding) are saved.
+// An existing metric keeps its name and expression. Only workbench attributes and a missing
+// concept binding are added.
 const aggregationOf = (expression = '') => {
   const m = /^\s*(SUM|COUNT|AVG|MIN|MAX)\s*\(\s*(DISTINCT\s+)?([^()]+?)\s*\)\s*$/i.exec(expression);
   return m
@@ -105,6 +103,7 @@ const aggregationOf = (expression = '') => {
       }
     : null;
 };
+/** Collects and validates a metric definition or adds attributes to an existing metric. */
 export function MetricWizard({
   project,
   docs,

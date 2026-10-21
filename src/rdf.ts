@@ -1,3 +1,4 @@
+/** Parses RDF serializations into the workbench's model representation. */
 import { DOMParser } from '@xmldom/xmldom';
 import { Parser } from 'n3';
 import { validateRdf } from './rdf-validation';
@@ -9,6 +10,7 @@ const RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
 const RDFS = 'http://www.w3.org/2000/01/rdf-schema#';
 const OWL = 'http://www.w3.org/2002/07/owl#';
 const SH = 'http://www.w3.org/ns/shacl#';
+/** Detects a supported RDF serialization from its filename and source. */
 export function rdfSyntax(source: string, filename = '') {
   const ext = filename.split('.').pop()?.toLowerCase();
   if (
@@ -26,6 +28,7 @@ export function rdfSyntax(source: string, filename = '') {
     return 'text/turtle';
   return null;
 }
+/** Parses RDF into entities, relationships and findings for the workbench. */
 export function inspectRdf(source: string, filename: string, syntax: string) {
   const store = graph();
   if (syntax === 'application/rdf+xml' && /<!DOCTYPE|<!ENTITY/i.test(source))

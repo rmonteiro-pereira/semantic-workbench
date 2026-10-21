@@ -1,10 +1,10 @@
-// Expansion in place (FR-018, FR-019, research R5): a canvas is its centre's base view plus the
-// expansion sets applied after it, in order. A set records every node the expansion reaches (not
-// only the new ones), so a node stays while any applied set still reaches it: collapsing one
-// expansion removes exactly what it alone added (reference counting by union). A collapse is a set
-// of its own that removes an earlier one, so Back and Forward replay the exact canvas. Sets are
-// immutable and kept in a registry by id; walk steps refer to them (`WalkStep.set`).
+/** Records reversible graph expansions so navigation history can restore the exact canvas. */
+// Each immutable expansion records all nodes it reaches, including shared nodes. Collapsing it
+// removes only nodes no remaining expansion reaches. History stores expansion and collapse IDs so
+// Back and Forward restore the exact canvas.
+/** Selects incoming, outgoing or bidirectional graph traversal. */
 export type Direction = 'out' | 'in' | 'both';
+/** Records a reversible expansion, traversal or collapse and its reached nodes. */
 export type ExpansionSet = {
   id: string;
   kind: 'expand' | 'pierce' | 'collapse';
@@ -16,21 +16,25 @@ export type ExpansionSet = {
   frontier: Record<string, number>;
   total: number;
   budget: number;
-  // collapse: the set it removes; pierce: the step distance of each node from `from`
+  // Collapse: the set it removes; pierce: the step distance of each node from `from`
   target?: string;
   steps?: Record<string, number>;
 };
 const registry = new Map<string, ExpansionSet>();
 let counter = 0;
+/** Stores an expansion set under its supplied or generated identifier. */
 export function registerSet(set: Omit<ExpansionSet, 'id'> & { id?: string }): ExpansionSet {
   const s = { ...set, id: set.id ?? `x${++counter}` } as ExpansionSet;
   registry.set(s.id, s);
   return s;
 }
+/** Looks up a recorded expansion by identifier. */
 export const getSet = (id: string) => registry.get(id);
+/** Resolves expansion identifiers in order, ignoring missing entries. */
 export const setsOf = (ids: string[]) => ids.map(getSet).filter((s): s is ExpansionSet => !!s);
 // The canvas: base nodes (the centre's view, never removed) and every node of the sets still in
 // force. A set whose origin is no longer on the canvas (its expansion was collapsed) goes with it.
+/** Replays expansions and collapses while retaining base and shared reachable nodes. */
 export function canvasOf(
   base: string[],
   sets: ExpansionSet[],
@@ -65,14 +69,17 @@ export function canvasOf(
   for (const s of active) if (s.kind === 'expand') expandedBy.set(s.from, s.id);
   return { nodes, active, expandedBy };
 }
-// The nodes an expansion adds to the current canvas (FR-018: only new ones are placed).
+
+/** Returns nodes an expansion introduces beyond the current canvas. */
 export const addedBy = (current: Iterable<string>, set: ExpansionSet) => {
   const have = new Set(current);
   return set.nodes.filter(n => !have.has(n));
 };
 // One-hop neighbours of a node along the chosen direction, optionally one relationship label;
 // deterministic: by relationship label, then name, then id.
+/** Identifies the source and target nodes of an edge. */
 export type Link = { id: string; source: string; target: string; label: string };
+/** Returns one-hop neighbors ordered by relationship label, name and identifier. */
 export function neighbours(
   edges: Link[],
   node: string,

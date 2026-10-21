@@ -1,3 +1,4 @@
+/* Styles metric lists, detail panels, explanations and lineage views. */
 /* Metrics view, KPI detail, explanation and lineage. Same palette as the mapping explorer. */
 .metrics-view {
   height: 100%;
@@ -1028,7 +1029,7 @@
     max-width: 640px;
   }
 }
-/* Governed only (FR-017): a checkbox aligned with the selects; Add attributes on metrics without them. */
+/* Governed only: a checkbox aligned with the selects; Add attributes on metrics without them. */
 .metrics-filters label.metrics-governed {
   display: flex;
   align-items: center;

@@ -1,8 +1,11 @@
+/** Restores or permanently deletes trash entries, offering alternate paths instead of overwriting
+ * files. */
 import React, { useEffect, useState } from 'react';
 import { Modal } from './Modal';
 import { api, type TrashItem } from './api';
-// FR-024: restore or permanently delete trash entries; emptying the trash asks for confirmation.
-// A restore never overwrites; when the location is taken, the free alternative is offered.
+// Restore or permanently delete trash entries; emptying the trash asks for confirmation. A restore
+// never overwrites; when the location is taken, the free alternative is offered.
+/** Reviews trash entries and offers restore or confirmed permanent deletion. */
 export function TrashDialog({ onClose, version }: { onClose: () => void; version: number }) {
   const [items, setItems] = useState<TrashItem[] | null>(null);
   const [error, setError] = useState('');

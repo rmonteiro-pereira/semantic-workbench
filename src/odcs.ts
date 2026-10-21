@@ -1,7 +1,8 @@
-// ODCS 3.1 foreign keys: property-level `relationships` (from is the property) and
-// schema-level `relationships` (explicit from/to). References use shorthand
-// `object.property` or fully qualified `schema/<id>/properties/<id>` notation.
-// References into another contract file are external and never resolved here.
+/** Resolves ODCS foreign keys within a contract and records external references separately. */
+// Property-level relationships use their property as the source; schema-level ones name both ends.
+// References accept object.property or schema/<id>/properties/<id> notation. Targets in another
+// contract remain external.
+/** Identifies a resolved foreign key between properties in one contract. */
 export type OdcsForeignKey = {
   from: number;
   to: number;
@@ -11,12 +12,14 @@ export type OdcsForeignKey = {
   fromColumns: string[];
   toColumns: string[];
 };
+/** Describes a foreign-key target declared outside the current contract. */
 export type OdcsExternalForeignKey = {
   from: number;
   fromColumns: string[];
   reference: string;
   path: (string | number)[];
 };
+/** Reports an unresolved contract reference at its document path. */
 export type OdcsReferenceIssue = { path: string; message: string };
 const list = (v: unknown) => (Array.isArray(v) ? v : v === undefined ? [] : [v]);
 type Resolved = { object: number; column: string | undefined } | 'external' | undefined;
@@ -164,6 +167,9 @@ function collect(data: any) {
   });
   return { keys, external, issues };
 }
+/** Returns foreign keys resolved within the contract. */
 export const odcsForeignKeys = (data: any) => collect(data).keys;
+/** Returns declared foreign keys targeting another contract. */
 export const odcsExternalForeignKeys = (data: any) => collect(data).external;
+/** Returns findings for contract references that cannot be resolved. */
 export const odcsReferenceIssues = (data: any) => collect(data).issues;

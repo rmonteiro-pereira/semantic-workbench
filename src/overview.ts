@@ -1,6 +1,9 @@
+/** Groups model entities into overview areas using declared or inferred structure. */
 import type { Entity, Relationship } from './model';
 import { isBusinessEntity, isInheritance, suggestCommunities } from './communities';
+/** Selects the source of model group boundaries. */
 export type GroupingMode = 'auto' | 'declared' | 'namespaces' | 'suggested' | 'types' | 'example';
+/** Controls grouping mode and namespace depth. */
 export type GroupingOptions = {
   mode?: GroupingMode;
   assignments?: Record<string, string>;
@@ -101,6 +104,7 @@ const normalize = (name: string) => name.replace(/[^a-zA-Z0-9]/g, '').toLowerCas
 const byName = new Map(
   areas.flatMap(area => area.names.map(name => [normalize(name), area] as const)),
 );
+/** Groups entities and relationships into overview areas. */
 export function modelOverview(
   entities: Entity[],
   edges: Relationship[],

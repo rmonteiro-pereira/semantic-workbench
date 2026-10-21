@@ -1,14 +1,19 @@
+/** Finds broken dependencies and rename occurrences across project files for explicit user
+ * review. */
 import { isMap, isScalar, isSeq, parseDocument, type Document } from 'yaml';
 import { rdfSyntax } from '../rdf';
 import { VENDOR } from '../metrics/extension';
 import { itemValue, removePatches, valuePatches, edit } from './yaml-patch';
 import type { ItemKind, Path } from './item-model';
 import type { Patch } from './source-text';
-// References to an item across the project's YAML/JSON files (FR-050, FR-051): what breaks when
-// it is deleted (each with the item that would be removed with it) and what still names it after a
-// rename (each occurrence rewritten only when the user ticks it). Nothing is rewritten silently.
+// References to an item across the project's YAML/JSON files: what breaks when it is deleted (each
+// with the item that would be removed with it) and what still names it after a rename (each
+// occurrence rewritten only when the user ticks it). Nothing is rewritten silently.
+/** Provides document identity and source for cross-file reference analysis. */
 export type ProjectDoc = { id: string; path: string; filename: string; source: string };
+/** Locates an item or metric binding removed with its dependency. */
 export type Dependent = { path: Path; label: string; binding?: { dataPath: Path; metric: string } };
+/** Describes an occurrence affected by an item rename or deletion. */
 export type Reference = {
   docId: string;
   file: string;
@@ -20,6 +25,7 @@ export type Reference = {
   excerpt: string;
   dependent: Dependent | null;
 };
+/** Identifies the item whose cross-file references are being inspected. */
 export type Target = { kind: ItemKind; name: string; docId: string; path: Path; owner?: string };
 type Node = any;
 const lineOf = (src: string, pos: number) => src.slice(0, pos).split('\n').length;
@@ -85,6 +91,7 @@ function describe(path: Path, data: any) {
   if (path.includes('identify_by')) return `identifier of ${item('ontology')}`;
   return path.join(' / ');
 }
+/** Finds references affected by renaming or deleting the target item. */
 export function findReferences(target: Target, docs: ProjectDoc[]): Reference[] {
   const out: Reference[] = [];
   const name = target.name;
@@ -128,7 +135,7 @@ export function findReferences(target: Target, docs: ProjectDoc[]): Reference[] 
       const key = path.at(-1);
       // The item itself (and what it contains) is not a reference to itself.
       if (self && startsWith(path, target.path)) continue;
-      // metric bindings and metric extensions: JSON inside a SEMANTIC_WORKBENCH block.
+      // Metric bindings and metric extensions: JSON inside a SEMANTIC_WORKBENCH block.
       if (key === 'data' && path.at(-3) === 'custom_extensions') {
         const owner = path.slice(0, -3);
         const entry = path.slice(0, -1).reduce((x: any, k) => x?.[k], data);
@@ -274,6 +281,7 @@ export function findReferences(target: Target, docs: ProjectDoc[]): Reference[] 
 }
 // Removal of the given dependents, file by file, applied from the last path to the first so list
 // positions stay valid; bindings are removed by metric name.
+/** Removes dependents in reverse path order so list indexes remain valid. */
 export function removeDependents(
   docs: ProjectDoc[],
   dependents: { docId: string; dependent: Dependent }[],
@@ -329,7 +337,8 @@ export function removeDependents(
     return { docId, source: edit(d.source, ...steps) };
   });
 }
-// Rewrite the chosen occurrences of a renamed item (each confirmed by the user).
+
+/** Rewrites only the rename occurrences explicitly selected by the user. */
 export function rewriteReferences(
   docs: ProjectDoc[],
   refs: Reference[],

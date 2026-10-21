@@ -1,3 +1,4 @@
+/** Displays project files and validation status, keeping invalid files available for repair. */
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ChevronDown,
@@ -8,12 +9,13 @@ import {
   Trash2,
 } from 'lucide-react';
 import type { ProjectInfo } from './api';
-// Project → files tree (FR-017, ui-contracts "Sidebar"). Each file shows its document type and
-// whether it passed validation; invalid files stay listed so they can be repaired in Source.
+// Project → files tree. Each file shows its document type and whether it passed validation;
+// invalid files stay listed so they can be repaired in Source.
+/** Names actions available from a project or file tree row. */
 export type TreeAction =
   | { action: 'rename' | 'import' | 'delete-project' | 'gitignore'; project: string }
   | { action: 'move' | 'delete-file' | 'history'; project: string; path: string };
-// Per-item menu (ui-contracts "Sidebar"): a button that opens a list of menu items.
+// Per-item menu: a button that opens a list of menu items.
 function ItemMenu({
   label,
   items,
@@ -82,6 +84,7 @@ function DeleteButton({ label, onClick }: { label: string; onClick: () => void }
 }
 const typeLabel = (docType: string) =>
   docType === 'unknown' ? 'Unrecognized' : docType === 'gitignore' ? '.gitignore' : docType;
+/** Renders project files with validation status and file actions. */
 export function ProjectTree({
   projects,
   currentId,

@@ -1,3 +1,4 @@
+/** Validates standalone and embedded mappings against the pinned mapping schema. */
 import Ajv from 'ajv/dist/2020';
 import formats from 'ajv-formats';
 import ontology from '../schemas/ossie-ontology-0.2.0.dev0.json';
@@ -22,12 +23,14 @@ const embedded = validator.compile({
 const versionedOntology = validator.getSchema(
   'https://raw.githubusercontent.com/apache/ossie/main/ontology/ontology.json',
 )!;
+/** Checks whether parsed data has a supported concept-mapping shape. */
 export function isMapping(data: any) {
   return (
     data &&
     ['concept_mappings', 'ontology_ref', 'semantic_model_ref'].some(key => data[key] !== undefined)
   );
 }
+/** Validates mappings and attaches findings to their document paths. */
 export function mappingSchemaIssues(
   data: any,
   mode: 'standalone' | 'embedded' | 'ontology' = 'standalone',

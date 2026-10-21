@@ -1,9 +1,9 @@
+/** Builds searchable, paged neighborhoods from a model's visible entities and relationships. */
 import type { Entity, Relationship } from './model';
-// Neighborhood projection (FR-034–FR-039, research R10). The OWL "classes only" projection is a
-// property of the model, not of the center: technical resources (properties, restrictions, plain
-// RDF resources) appear only when the user asks for them. A center shows its neighbors, ranked
-// deterministically (relationship kind, then name), up to a page size; the rest are counted and can
-// be revealed. Relationships among visible neighbors are kept unless the user hides them.
+// Technical RDF resources are hidden unless requested for the model. Neighbors are paged in
+// relationship-kind and name order; hidden ones remain counted. Relationships among visible
+// neighbors remain unless the user hides them.
+/** Controls neighborhood paging, relationship filters and resource visibility. */
 export type NeighborhoodOptions = {
   center?: string;
   limit?: number;
@@ -12,6 +12,7 @@ export type NeighborhoodOptions = {
   relationship?: string;
   keep?: string[];
 };
+/** Contains the visible center, neighbors, relationships and hidden counts. */
 export type Neighborhood = {
   center: string | undefined;
   entities: Entity[];
@@ -29,6 +30,7 @@ export type Neighborhood = {
 export const NEIGHBOR_PAGE = 12;
 const byName = (a: Entity, b: Entity) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id);
 // Entities and edges of the default projection; `technical` includes everything.
+/** Filters technical resources unless the caller explicitly includes them. */
 export function projectModel(entities: Entity[], edges: Relationship[], technical = false) {
   if (technical || !entities.some(e => e.kind === 'OWL class'))
     return { entities, edges, technicalHidden: 0 };
@@ -41,6 +43,7 @@ export function projectModel(entities: Entity[], edges: Relationship[], technica
   };
 }
 // Search ranking: exact name, name prefix, word prefix, name substring, then IRI/id substring.
+/** Ranks entity matches by exact name, prefixes, substrings and identifiers. */
 export function searchEntities(entities: Entity[], query: string, limit = 50): Entity[] {
   const q = query.trim().toLowerCase();
   if (!q) return [];
@@ -67,10 +70,10 @@ export function searchEntities(entities: Entity[], query: string, limit = 50): E
     .slice(0, limit)
     .map(x => x.e);
 }
-// The default center: the most connected entity (ties by name), so a fresh view is never a leaf.
-// Value types and built-ins are hubs of attributes, not useful starting points, so they are passed
-// over when the model has anything else.
+// Start at the most connected entity, breaking ties by name. Prefer business entities over
+// value-type and built-in attribute hubs when possible.
 const VALUE_KINDS = new Set(['ValueType', 'Built-in concept']);
+/** Chooses the most connected business entity, breaking ties by name. */
 export function defaultCenter(entities: Entity[], edges: Relationship[]) {
   const candidates = entities.some(e => !VALUE_KINDS.has(e.kind))
     ? entities.filter(e => !VALUE_KINDS.has(e.kind))
@@ -86,6 +89,7 @@ export function defaultCenter(entities: Entity[], edges: Relationship[]) {
     (a, b) => (degree.get(b.id) ?? 0) - (degree.get(a.id) ?? 0) || byName(a, b),
   )[0]?.id;
 }
+/** Builds a paged neighborhood with directional relationships and hidden counts. */
 export function neighborhood(
   allEntities: Entity[],
   allEdges: Relationship[],
@@ -114,7 +118,8 @@ export function neighborhood(
     technicalHidden,
   };
   if (!center) return empty;
-  // Every neighbor with its direction(s) and the kinds and labels of the relationships that reach it.
+  // Every neighbor with its direction(s) and the kinds and labels of the relationships that reach
+  // it.
   const touching = edges.filter(e => e.source === center || e.target === center);
   const relationships = new Map<string, number>();
   for (const e of touching) relationships.set(e.label, (relationships.get(e.label) ?? 0) + 1);
@@ -176,8 +181,9 @@ export function neighborhood(
     technicalHidden,
   };
 }
-// Compatibility wrapper used by tests and imports: a bounded neighborhood, a search result as center,
-// or every projected entity with `all`.
+// Compatibility wrapper used by tests and imports: a bounded neighborhood, a search result as
+// center, or every projected entity with `all`.
+/** Returns a bounded neighborhood or the full projected graph when requested. */
 export function graphView(
   entities: Entity[],
   edges: Relationship[],
@@ -196,6 +202,7 @@ export function graphView(
   const n = neighborhood(entities, edges, { center, limit: Math.max(1, limit - 1) });
   return { entities: n.entities, edges: n.edges, focus: n.center };
 }
+/** Groups relationships by their endpoints. */
 export function groupRelationships(edges: Relationship[]) {
   const groups = new Map<string, Relationship[]>();
   for (const edge of edges) {

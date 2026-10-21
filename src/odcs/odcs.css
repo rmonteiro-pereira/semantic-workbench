@@ -1,5 +1,6 @@
-/* ODCS contract overview and dataset pages (Phase 9): a header with key facts, then sections or
-   tabs; tables scroll inside their own wrapper so the page never scrolls sideways. */
+/* Styles contract pages and lineage cards with locally scrolling tables and fixed row geometry. */
+/* ODCS contract overview and dataset pages: a header with key facts, then sections or tabs; tables
+   scroll inside their own wrapper so the page never scrolls sideways. */
 .odcs-page {
   height: 100%;
   overflow: auto;
@@ -526,7 +527,7 @@ button.odcs-link.fk:hover {
 .col-physicalType {
   white-space: nowrap;
 }
-/* In-place edits (T143): controls that read as table text until hovered or focused. */
+/* In-place edits: controls that read as table text until hovered or focused. */
 .odcs-edit {
   font: inherit;
   font-size: 12px;
@@ -589,7 +590,7 @@ textarea.odcs-edit.text {
     flex: 0 1 640px;
   }
 }
-/* Lineage canvas (v0.3.0, FR-001–FR-010). Layout geometry constants live in lineage-layout.ts. */
+/* Lineage canvas. Layout geometry constants live in lineage-layout.ts. */
 .lineage-view {
   display: flex;
   min-width: 0;
@@ -1223,7 +1224,7 @@ textarea.odcs-edit.text {
   background: #eef5f9;
 }
 
-/* Mapping canvas (v0.3.0, FR-028–FR-034); styling refined in T109. */
+/* Mapping canvas cards and bindings. */
 .mapping-canvas {
   display: flex;
   flex-direction: column;

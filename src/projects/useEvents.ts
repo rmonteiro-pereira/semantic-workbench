@@ -1,7 +1,7 @@
+/** Subscribes to workspace change notifications and requests refreshed state after reconnects. */
 import { useEffect, useRef } from 'react';
-// Subscribe to /api/events (contracts/sse-events.md). Events only say what changed; `onChange` refetches.
-// EventSource reconnects by itself and sends Last-Event-ID, so missed events are replayed; when the
-// server cannot replay it sends `resync`, which also triggers a full refetch.
+// Events describe changes, so the callback refetches state. EventSource replays missed events
+// using Last-Event-ID; if replay is unavailable, resync requests a full refresh.
 export const EVENT_TYPES = [
   'files',
   'projects',
@@ -12,6 +12,7 @@ export const EVENT_TYPES = [
   'recovery',
   'resync',
 ] as const;
+/** Subscribes to workspace events and requests refreshed state after reconnects. */
 export function useEvents(onChange: (event: string, data: any) => void) {
   const handler = useRef(onChange);
   handler.current = onChange;

@@ -1,8 +1,10 @@
+/** Validates RDF and SHACL structures without fetching external IRIs. */
 import { type Issue, rejectIssues } from './diagnostics';
 const RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
 const OWL = 'http://www.w3.org/2002/07/owl#';
 const SH = 'http://www.w3.org/ns/shacl#';
 const XSD = 'http://www.w3.org/2001/XMLSchema#';
+/** Checks RDF and SHACL structures without retrieving external resources. */
 export function validateRdf(store: any): Issue[] {
   const issues: Issue[] = [];
   const fail = (id: string, p: string, message: string) =>

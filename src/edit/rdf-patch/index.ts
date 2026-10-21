@@ -1,3 +1,4 @@
+/** Edits RDF resources in place and accepts only the intended changes to the parsed graph. */
 import { applyPatches, dominantLineBreak, type Patch } from '../../editor/patch';
 import { lineStart } from '../source-text';
 import { gate, type Gate } from './isomorphism';
@@ -34,10 +35,9 @@ import {
   scope,
   type El,
 } from './rdfxml';
-// Per-item editing of RDF files (FR-055) behind one interface for Turtle, N-Triples, N3 and
-// RDF/XML: read a resource's statements as predicate–object pairs, write the desired pairs back as
-// the smallest in-place change the serialization allows, and accept the result only when the
-// parsed graph equals the original minus the removed triples plus the added ones.
+// The serialization determines the smallest supported text change. The result must parse as
+// exactly the original graph minus removed triples plus added triples.
+/** Describes an editable predicate-object pair and its source identity. */
 export type RdfPair = {
   id: string;
   predicate: string;
@@ -49,6 +49,7 @@ export type RdfPair = {
   line: number;
   triples: Triple[];
 };
+/** Collects a resource's editable statements, prefixes and source information. */
 export type RdfItem = {
   subject: string;
   format: RdfFormat;
@@ -61,7 +62,9 @@ export type RdfItem = {
   subjectText: string;
   ranges: { from: number; to: number }[];
 };
+/** Supplies the requested predicate and object text for an RDF statement. */
 export type DesiredPair = { id?: string; predicateText: string; objectText: string };
+/** Reports an accepted RDF edit or the reason it cannot be applied safely. */
 export type RdfResult =
   | { ok: true; text: string; patches: Patch[]; warnings: string[]; removed: number; added: number }
   | { ok: false; error: string; line?: number };
@@ -73,7 +76,7 @@ const resubject = (triples: Triple[], subject: string) =>
       ? { ...t, s: { termType: 'NamedNode' as const, value: subject } }
       : t,
   );
-// A blank-node subtree as Turtle `[ ... ]`, for showing nested RDF/XML descriptions.
+// A blank-node subtree as Turtle `[... ]`, for showing nested RDF/XML descriptions.
 function nestedText(
   o: Term,
   triples: Triple[],
@@ -127,6 +130,7 @@ function xmlPairs(src: string, p: Parsed, subject: string) {
       .flatMap((n, e) => elementPairs(src, n.el).map((x, k) => ({ x, id: `${e}:${k}` }))),
   };
 }
+/** Reads a resource's statements for editing in its original serialization. */
 export function readRdfItem(src: string, filename: string, subject: string): RdfItem {
   const format = formatOf(filename, src);
   const p = parsed(src, format);
@@ -615,6 +619,7 @@ function finish(
     ? { ok: true, text, patches: order(patches), warnings, removed: g.removed, added: g.added }
     : { ok: false, error: g.reason };
 }
+/** Applies requested pairs and rejects unintended changes to the parsed RDF graph. */
 export function editRdfItem(
   src: string,
   filename: string,
@@ -634,6 +639,7 @@ export function editRdfItem(
 }
 // Statements elsewhere in the file that name `subject` as their object (top-level pairs only; a
 // nested description is removed with its parent pair).
+/** Finds top-level statements that refer to the subject as their object. */
 export function rdfReferences(src: string, filename: string, subject: string) {
   const format = formatOf(filename, src);
   const triples = parseGraph(src, format);
@@ -659,6 +665,7 @@ export function rdfReferences(src: string, filename: string, subject: string) {
       blankOwners.push(termKey(t.s));
   return { owners: [...owners], unowned: blankOwners.length };
 }
+/** Deletes a resource and selected references behind the RDF graph check. */
 export function deleteRdfItem(
   src: string,
   filename: string,
@@ -713,7 +720,8 @@ export function deleteRdfItem(
     return { ok: false, error: (e as Error).message };
   }
 }
-// A Source edit of the item's own text: only this resource's statements may change.
+// Source edits may change only this resource’s statements; unrelated triples must stay equal.
+/** Accepts a source edit only if statements outside the resource stay unchanged. */
 export function checkRdfSource(
   before: string,
   after: string,
@@ -735,8 +743,10 @@ export function checkRdfSource(
   }
   return gate(a, b, [subject]);
 }
+/** Exports RDF format detection for editing callers. */
 export { formatOf };
 // A new resource: its statements in the file's own layout (refused when it already has some).
+/** Adds a new resource in the file's layout, refusing subjects already described. */
 export function addRdfItem(
   src: string,
   filename: string,
@@ -759,7 +769,8 @@ export function addRdfItem(
     desired.map(({ predicateText, objectText }) => ({ predicateText, objectText })),
   );
 }
-// The prefixes a user may type in this file: its own and the well-known ones.
+
+/** Returns file-declared and well-known prefixes available for RDF editing. */
 export function rdfPrefixes(src: string, filename: string): Record<string, string> {
   const format = formatOf(filename, src);
   try {
@@ -775,4 +786,5 @@ export function rdfPrefixes(src: string, filename: string): Record<string, strin
   } catch {}
   return { ...WELL_KNOWN };
 }
+/** Checks for an absolute IRI-like identifier, excluding blank-node labels. */
 export const isIri = (id: string) => /^[a-z][\w+.-]*:/i.test(id) && !id.startsWith('_:');

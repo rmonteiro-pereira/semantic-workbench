@@ -1,3 +1,5 @@
+/** Patches changed JSON values and separators in place, preserving untouched bytes and local
+ * layout. */
 import { isMap, isSeq, isScalar, parseDocument, type Node, type Pair } from 'yaml';
 import {
   deepEqual,
@@ -8,10 +10,8 @@ import {
   type Patch,
   type TextStyle,
 } from './source-text';
-// JSON value patches (FR-053, baseline defect 22): an edit replaces only the changed values, keys
-// and list entries, with commas kept right; the rest of the document is never re-serialized. New
-// values follow the container's own layout: one per line at its indentation, or inline when the
-// container (or its other nested values) is written on one line.
+// Only changed values, keys and list entries are replaced, including their separators. New values
+// follow the surrounding inline or multiline layout; unrelated bytes stay exact.
 type Range = [number, number, number];
 const range = (n: any): Range => n.range;
 const keyOf = (p: Pair) => String((p.key as any)?.value);
@@ -78,7 +78,8 @@ const compact = (v: any, colon: string, comma: string): string =>
           .join(comma) +
         '}'
       : JSON.stringify(v ?? null);
-// A JSON value written at `indent`: inline, or one entry per line with the document's unit.
+
+/** Renders a JSON value using the requested indentation and inline layout. */
 export function renderJson(
   v: any,
   indent: string,
@@ -102,7 +103,8 @@ function valueText(v: any, layout: Layout, style: TextStyle) {
     layout.inner.comma,
   );
 }
-// Structural diff of one JSON node: unchanged values keep their bytes.
+
+/** Computes structural JSON patches while preserving unchanged bytes. */
 export function jsonPatches(
   src: string,
   node: any,
@@ -259,7 +261,8 @@ function seqPatches(
   }
   return out;
 }
-// Remove entry `index` of a JSON array (with its comma).
+
+/** Removes an array entry together with its separator. */
 export const jsonRemove = (src: string, node: any, index: number) =>
   removeRuns(
     src,
@@ -268,8 +271,8 @@ export const jsonRemove = (src: string, node: any, index: number) =>
   );
 const sorted = (patches: Patch[]) =>
   patches.sort((a, b) => a.from - b.from || a.to - a.from - (b.to - b.from));
-// Patches that set the value at `path` of a JSON text (a JSON document, or the JSON inside an
-// extension block) to `value`, or remove it when `value` is undefined.
+
+/** Patches a JSON path, removing the value when it is undefined. */
 export function jsonTextPatches(text: string, path: (string | number)[], value: any): Patch[] {
   const doc = parseDocument(text);
   if (doc.errors.length) throw Error(`Not valid JSON: ${doc.errors[0].message}`);
@@ -295,5 +298,7 @@ export function jsonTextPatches(text: string, path: (string | number)[], value: 
     jsonPatches(text, parent, old, next, style, leadingSpace(text, (parent as any).range[0]) ?? ''),
   );
 }
+/** Exports patch ordering for callers that combine JSON edits. */
 export { sorted as sortPatches };
+/** Checks whether a parsed syntax node is a scalar. */
 export const isJsonScalar = (n: unknown): n is Node => isScalar(n);

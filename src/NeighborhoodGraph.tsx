@@ -1,3 +1,4 @@
+/** Displays a centered relationship graph with expansion and navigation history. */
 import { ScrollStrip } from './ScrollStrip';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -52,10 +53,9 @@ import {
 import type { Walk, WalkStep } from './graph/walk';
 import { useViewRestore, type Fullscreen } from './graph/fullscreen';
 import { FullscreenButton } from './FullGraph';
-// Neighborhood of one center (FR-034–FR-041): the center in the middle, incoming neighbors on the
-// left and outgoing on the right, counts of shown and hidden neighbors, relationships among
-// neighbors on request, and a walk: activating a neighbor or relationship moves the center across
-// it and records the step in a trail with Back and Forward, also into another file of the project.
+// Incoming neighbors appear left of the center and outgoing neighbors right. Navigation history
+// also records steps into other project files.
+/** Identifies a navigation target in another project document. */
 export type CrossFileTarget = {
   doc: string;
   file: string;
@@ -63,6 +63,7 @@ export type CrossFileTarget = {
   name: string;
   reason: string;
 };
+/** Supplies the model, selection and callbacks for neighborhood navigation. */
 export type NeighborhoodGraphProps = {
   docId: string;
   docLabel: (doc: string) => string;
@@ -86,6 +87,7 @@ export type NeighborhoodGraphProps = {
   crossFile?: (entity: Entity) => CrossFileTarget[];
   onCrossFile?: (target: CrossFileTarget) => void;
 };
+/** Displays the current graph center and its expandable neighborhood. */
 export function NeighborhoodGraph(props: NeighborhoodGraphProps) {
   return (
     <ReactFlowProvider>
@@ -99,7 +101,7 @@ const LATERAL_DEFAULT_MAX = 10;
 const LARGE_CANVAS = 60;
 const REVEAL_CHUNK = 15;
 const COLORS = { out: '#237c68', in: '#5b4fa8', lateral: '#93a8a0' };
-// Value types share the Graph view's per-model setting (FR-021).
+// Value types share the Graph view's per-model setting.
 const VALUE_KINDS = new Set(['ValueType', 'Built-in concept']);
 const valuesKey = (name: string) => 'workbench:hide-value-types:' + name;
 const readHideValues = (name?: string) => {
@@ -149,15 +151,15 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
     const ids = new Set(entities.map(e => e.id));
     return allEdges.filter(e => ids.has(e.source) && ids.has(e.target));
   }, [allEdges, entities, hideKpis, hideValues]);
-  // The canvas at this point of the walk: its re-centring step and the expansions after it (FR-019).
+  // The canvas at this point of the walk: its re-centring step and the expansions after it.
   const walkCanvas = useMemo(() => canvasAt(walk), [walk]);
   const step = walkCanvas.center;
   const requested = step?.doc === docId ? step.center : undefined;
   const stepIndex = step ? walk.steps.lastIndexOf(step) : -1;
   const before = stepIndex > 0 ? walk.steps[stepIndex - 1] : undefined;
   const previous = before && before.doc === docId ? before.center : undefined;
-  // Links among neighbors are shown by default unless there are so many that they bury the center's own
-  // relationships; the toggle states how many there are either way.
+  // Links among neighbors are shown by default unless there are so many that they bury the
+  // center's own relationships; the toggle states how many there are either way.
   const base = useMemo(
     () =>
       neighborhood(entities, edges, {
@@ -188,7 +190,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   );
   const center = view.center;
   const byId = useMemo(() => new Map(all.map(e => [e.id, e])), [all]);
-  // Expansions in place (FR-018) on top of the centre's view; a walk to another centre starts afresh.
+  // Expansions in place on top of the centre's view; a walk to another centre starts afresh.
   const projection = useMemo(
     () => projectModel(entities, edges, technical),
     [entities, edges, technical],
@@ -273,8 +275,9 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
     }
     return out;
   }, [membership]);
-  // Nodes are derived from the view synchronously; selection and center styling never rebuild them.
-  // A large addition (a pierce) is revealed in chunks, one per frame, so no frame blocks input.
+  // Nodes are derived from the view synchronously; selection and center styling never rebuild
+  // them. A large addition (a pierce) is revealed in chunks, one per frame, so no frame blocks
+  // input.
   const [reveal, setReveal] = useState(Infinity);
   const build = (limit = reveal) =>
     shownEntities.slice(0, limit).map((e): Node => ({
@@ -343,7 +346,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
     if (select) props.onSelectEntity(target);
   };
   // Expand / Collapse / Full pierce record steps on the walk ("expanded X"), so Back and Undo
-  // expansion restore the earlier canvas exactly (FR-019).
+  // expansion restore the earlier canvas exactly.
   const nameOf = (id: string) => byId.get(id)?.name ?? id;
   const record = (set: ExpansionSet, label: string) => {
     if (!center) return;
@@ -415,7 +418,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
     );
   };
   const undoable = walk.steps[walk.index]?.kind === 'expand';
-  // A new centre or document stops a running pierce (scenario 7).
+  // A new centre or document stops a running pierce .
   useEffect(() => () => pierce.stop(), [center, docId]);
   const viaFor = (target: string) => {
     const g = view.edges.find(
@@ -711,7 +714,8 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
     props.onClearSearch();
   };
   const centerEntity = center ? byId.get(center) : undefined;
-  // The current center is on the trail unless it was reached without a step (default center, new file).
+  // The current center is on the trail unless it was reached without a step (default center, new
+  // file).
   const offTrail = !step || step.doc !== docId || step.center !== center;
   const cross = centerEntity && props.crossFile ? props.crossFile(centerEntity) : [];
   const kpiFor = centerEntity ? (kpiBadges?.get(centerEntity.name) ?? []) : [];
@@ -1002,7 +1006,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
               else walkTo(node.id, viaFor(node.id));
             }}
             onEdgeClick={(_, edge) => {
-              // FR-024: a relationship line expands its far end in place; Walk here re-centres.
+              // A relationship line expands its far end in place; Walk here re-centres.
               const ends =
                 edge.source === center
                   ? [edge.target]

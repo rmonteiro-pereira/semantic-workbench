@@ -1,10 +1,14 @@
+/** Expands Ossie identifiers through declared prefixes without fetching external resources. */
 // Ossie global identifiers: a full IRI, or a prefix:local QName expanded through the
 // ontology-level `prefixes` map (ontology.md, "Global identifiers"). Nothing is fetched.
+/** Maps declared prefix names to namespace IRIs. */
 export type Prefixes = Record<string, string>;
+/** Identifies a namespace IRI and its optional declared prefix. */
 export type Namespace = { prefix?: string; iri: string };
 const QNAME = /^([A-Za-z_][\w.-]*)?:(.*)$/s;
 const SCHEME = /^[a-z][a-z\d+.-]*$/i;
-// Schemes whose IRIs are absolute without an authority ("//"), so they are not mistaken for undeclared prefixes.
+// Schemes whose IRIs are absolute without an authority ("//"), so they are not mistaken for
+// undeclared prefixes.
 const OPAQUE = new Set([
   'urn',
   'mailto',
@@ -19,12 +23,14 @@ const OPAQUE = new Set([
   'geo',
   'file',
 ]);
+/** Returns a usable prefix map from an unknown document value. */
 export const prefixMap = (value: unknown): Prefixes =>
   value && typeof value === 'object' && !Array.isArray(value)
     ? Object.fromEntries(
         Object.entries(value).filter((e): e is [string, string] => typeof e[1] === 'string'),
       )
     : {};
+/** Expands a qualified name or reports an undeclared prefix without fetching the IRI. */
 export function expandIri(
   value: string,
   prefixes: Prefixes = {},

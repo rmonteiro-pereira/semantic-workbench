@@ -1,3 +1,4 @@
+/** Displays metric metadata and server-generated explanations without executing SQL. */
 import React, { useEffect, useState } from 'react';
 import { Target, UserRound, FileCode, AlertTriangle, Pencil } from 'lucide-react';
 import type { KpiExplanation, KpiSummary } from '../../server/agent/explain';
@@ -5,8 +6,8 @@ import { api, type ExplainQuery } from '../projects/api';
 import { Explanation } from './Explanation';
 import { Lineage } from './Lineage';
 import { additivityLabel, targetText, typeLabel } from './format';
-// One metric: what it is (label, type, unit, status, owner, concepts), then how it is calculated and
-// where its data comes from. The explanation is fetched from the server, never computed by running SQL.
+// The explanation comes from the server and never requires executing SQL.
+/** Displays a metric's metadata and server-generated explanation. */
 export function MetricDetail({
   project,
   kpi,

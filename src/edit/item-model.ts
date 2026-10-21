@@ -1,8 +1,9 @@
+/** Defines editable item kinds, field schemas and status rules for each document format. */
 import { VENDOR, GRAINS } from '../metrics/extension';
 import { isObject } from './source-text';
-// What can be edited, added and deleted per document type (FR-048–FR-050): the kind of item at a
-// path, its form fields (each a path inside the item, or inside the metric's SEMANTIC_WORKBENCH
-// extension), its child lists, where new items go and what a new item contains.
+// Field paths address either the item or its workbench metric extension. Child lists and insertion
+// locations depend on the document format.
+/** Names a document item that supports structured editing. */
 export type ItemKind =
   | 'concept'
   | 'ontology-relationship'
@@ -14,7 +15,9 @@ export type ItemKind =
   | 'odcs-property'
   | 'odcs-foreign-key'
   | 'concept-mapping';
+/** Locates a value by mapping keys and list indexes. */
 export type Path = (string | number)[];
+/** Describes an editable field's path, input type and available choices. */
 export type FieldSpec = {
   key: string;
   label: string;
@@ -38,7 +41,8 @@ export const kindLabel: Record<ItemKind, string> = {
   'odcs-foreign-key': 'Foreign key',
   'concept-mapping': 'Concept mapping',
 };
-// The kind of the item at `path` in a parsed YAML/JSON document.
+
+/** Identifies the editable kind at a parsed document path. */
 export function itemKindAt(document: any, path: Path): ItemKind | null {
   const at = path.length - 2;
   const list = path[at];
@@ -58,27 +62,32 @@ export function itemKindAt(document: any, path: Path): ItemKind | null {
   if (list === 'concept_mappings') return 'concept-mapping';
   return null;
 }
+/** Returns the field used as the name for an item kind. */
 export const nameKey = (kind: ItemKind) =>
   kind === 'concept' || kind === 'concept-mapping'
     ? 'concept'
     : kind === 'odcs-foreign-key'
       ? 'to'
       : 'name';
+/** Reads the identifying name of an item. */
 export function itemName(kind: ItemKind, item: any) {
   const v = item?.[nameKey(kind)];
   return typeof v === 'string' ? v : Array.isArray(v) ? v.join(', ') : '';
 }
 export const STATUSES = ['draft', 'proposed', 'approved', 'deprecated'] as const;
-// FR-015: draft → proposed → approved → deprecated; a proposed metric can go back to draft and a
+// Draft → proposed → approved → deprecated; a proposed metric can go back to draft and a
 // deprecated one can be proposed again.
+/** Returns allowed metric status transitions from the current status. */
 export function allowedStatuses(current?: string): string[] {
   if (current === 'proposed') return ['draft', 'proposed', 'approved'];
   if (current === 'approved') return ['approved', 'proposed', 'deprecated'];
   if (current === 'deprecated') return ['deprecated', 'proposed'];
   return ['draft', 'proposed'];
 }
+/** Supplies concept, dataset and metric names for editor choices. */
 export type Choices = { concepts: string[]; datasets: string[]; metrics: string[] };
 const ansi: Path = ['expression', 'dialects', 0, 'expression'];
+/** Returns the form fields supported by an item kind. */
 export function fieldsFor(kind: ItemKind, choices: Choices): FieldSpec[] {
   const f = (
     key: string,
@@ -261,7 +270,8 @@ export const childLists: Partial<
   ],
   'odcs-property': [{ key: 'relationships', kind: 'odcs-foreign-key', label: 'Foreign keys' }],
 };
-// --- reading and writing one field ----------------------------------------------------------------
+
+/** Reads an item's workbench extension and its list position. */
 export function extensionOf(item: any): { index: number; value: any } | null {
   const list = item?.custom_extensions;
   if (!Array.isArray(list)) return null;
@@ -292,10 +302,12 @@ function setAt(v: any, path: Path, value: any): any {
     delete base[k as any];
   return base;
 }
+/** Reads a field from the item or its metric extension. */
 export function readField(item: any, spec: FieldSpec) {
   return getAt(spec.extension ? extensionOf(item)?.value : item, spec.at);
 }
-// Empty text removes an optional value; lists are written as lists.
+
+/** Converts form input to a document value, omitting empty optional text. */
 export function fieldValue(spec: FieldSpec, input: string | boolean): any {
   if (spec.input === 'boolean') return input ? true : undefined;
   const text = String(input);
@@ -308,12 +320,14 @@ export function fieldValue(spec: FieldSpec, input: string | boolean): any {
   }
   return text === '' && !spec.required ? undefined : text;
 }
+/** Writes a field into an item or its extension. */
 export function writeField(item: any, spec: FieldSpec, value: any) {
   if (!spec.extension) return setAt(item, spec.at, value);
   const ext = extensionOf(item);
   const data = setAt(ext?.value ?? { schema: 'semantic-workbench/metric/v1' }, spec.at, value);
   return writeExtension(item, data);
 }
+/** Updates the workbench extension while preserving other vendors' entries. */
 export function writeExtension(item: any, data: any) {
   const ext = extensionOf(item);
   const text = JSON.stringify(data, null, 2) + '\n';
@@ -322,7 +336,7 @@ export function writeExtension(item: any, data: any) {
   else list.push({ vendor_name: VENDOR, data: text });
   return { ...item, custom_extensions: list };
 }
-// --- metric status rules (FR-015) --------------------------------------------------------------------
+
 const GOVERNANCE = new Set([
   'status',
   'replaced_by',
@@ -344,6 +358,7 @@ const definition = (item: any) => {
 };
 // An approved metric whose definition (expression or extension attributes other than governance)
 // changes returns to proposed.
+/** Reopens an approved metric when its definition changes beyond governance fields. */
 export function applyStatusRules(before: any, after: any): { item: any; reopened: boolean } {
   const was = extensionOf(before)?.value?.status;
   const now = extensionOf(after)?.value;
@@ -351,8 +366,8 @@ export function applyStatusRules(before: any, after: any): { item: any; reopened
     return { item: after, reopened: false };
   return { item: writeExtension(after, { ...now, status: 'proposed' }), reopened: true };
 }
-// --- adding --------------------------------------------------------------------------------------
-// Where a new item of `kind` goes in a document (`owner` is the item that holds child lists).
+
+/** Locates the list where a new item belongs, optionally under an owner. */
 export function listPathFor(
   kind: ItemKind,
   document: any,
@@ -382,7 +397,8 @@ export function listPathFor(
       return Array.isArray(document?.concept_mappings) ? ['concept_mappings'] : null;
   }
 }
-// The kinds a document can receive, with the list each goes to.
+
+/** Lists the item kinds supported by the document. */
 export function addableKinds(document: any): ItemKind[] {
   if (!isObject(document)) return [];
   if (document.kind === 'DataContract') return ['odcs-object'];
@@ -393,8 +409,8 @@ export function addableKinds(document: any): ItemKind[] {
     out.push('dataset', 'join', 'metric');
   return out;
 }
-// The semantic model inside a document: the root, the first of a `semantic_model` list, or the
-// first embedded model of a consolidated file.
+
+/** Locates the first semantic model in a flat, legacy or consolidated document. */
 export function semanticModelPrefix(document: any): Path | null {
   if (Array.isArray(document?.datasets)) return [];
   if (Array.isArray(document?.semantic_model)) return ['semantic_model', 0];
@@ -403,7 +419,8 @@ export function semanticModelPrefix(document: any): Path | null {
     : -1;
   return i >= 0 ? ['ontology_mappings', i, 'semantic_model'] : null;
 }
-// A new item from the form values, with the keys in the order the format's examples use.
+
+/** Builds a new item with fields ordered like the format's examples. */
 export function newItem(kind: ItemKind, values: Record<string, any>): any {
   const clean = (o: Record<string, any>) =>
     Object.fromEntries(

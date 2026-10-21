@@ -1,9 +1,11 @@
+/** Displays validation findings and lets users repair an import before accepting it. */
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import type { Issue } from './diagnostics';
 import { validateInput } from './input';
 import { featureLabeler } from './editor/feature';
 import { CodeEditor, type CodeEditorHandle } from './editor/CodeEditor';
 import './validation-editor.css';
+/** Displays document findings and links to their source locations. */
 export function ValidationPanel({
   issues,
   onLocate,
@@ -62,7 +64,9 @@ export function ValidationPanel({
   );
 }
 
+/** Holds a filename and source text awaiting import validation. */
 export type ImportDraft = { filename: string; source: string };
+/** Edits and validates an import draft before it is accepted. */
 export function ImportRepair({
   initial,
   onCancel,

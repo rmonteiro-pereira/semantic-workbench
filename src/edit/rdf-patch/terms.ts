@@ -1,15 +1,19 @@
+/** Normalizes RDF terms across serializations using the workbench's parsers and base IRI. */
 import { Parser } from 'n3';
 import { graph, parse } from 'rdflib';
-// RDF terms and graphs for item editing (FR-055): one plain triple shape for every serialization,
-// parsed with the same parsers the workbench reads files with (n3 for Turtle, N-Triples and N3,
-// rdflib for RDF/XML) and the same base IRI, so a graph compares with itself across edits.
+// RDF terms and graphs for item editing: one plain triple shape for every serialization, parsed
+// with the same parsers the workbench reads files with (n3 for Turtle, N-Triples and N3, rdflib
+// for RDF/XML) and the same base IRI, so a graph compares with itself across edits.
+/** Represents an RDF term independently of the parser that produced it. */
 export type Term = {
   termType: 'NamedNode' | 'BlankNode' | 'Literal' | 'Variable' | 'DefaultGraph';
   value: string;
   language?: string;
   datatype?: string;
 };
+/** Represents an RDF statement with an optional graph term. */
 export type Triple = { s: Term; p: Term; o: Term; g?: Term };
+/** Names an RDF serialization supported by the item patchers. */
 export type RdfFormat = 'turtle' | 'ntriples' | 'n3' | 'rdfxml';
 export const BASE = 'https://workbench.local/import/';
 export const RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
@@ -28,6 +32,7 @@ export const WELL_KNOWN: Record<string, string> = {
   dcterms: 'http://purl.org/dc/terms/',
   schema: 'https://schema.org/',
 };
+/** Detects an RDF serialization from a filename and source text. */
 export function formatOf(filename: string, source: string): RdfFormat {
   const ext = filename.split('.').pop()?.toLowerCase();
   if (
@@ -48,6 +53,7 @@ const plain = (t: any): Term =>
         datatype: t.language ? undefined : (t.datatype?.value ?? XSD + 'string'),
       }
     : { termType: t.termType === 'Collection' ? 'BlankNode' : t.termType, value: t.value };
+/** Parses RDF using the shared base IRI and serialization-specific parser. */
 export function parseGraph(source: string, format: RdfFormat): Triple[] {
   if (format === 'rdfxml') {
     const store = graph();
@@ -69,6 +75,7 @@ export function parseGraph(source: string, format: RdfFormat): Triple[] {
     ...(q.graph.termType === 'DefaultGraph' ? {} : { g: plain(q.graph) }),
   }));
 }
+/** Builds a comparable identity from a term's kind, value and literal metadata. */
 export const termKey = (t: Term) =>
   t.termType === 'NamedNode'
     ? `<${t.value}>`
@@ -79,8 +86,10 @@ export const termKey = (t: Term) =>
         : t.termType === 'Literal'
           ? `${JSON.stringify(t.value)}${t.language ? '@' + t.language.toLowerCase() : '^^<' + t.datatype + '>'}`
           : '';
+/** Identifies blank nodes and variables requiring graph-local identity handling. */
 export const isBlank = (t: Term) => t.termType === 'BlankNode' || t.termType === 'Variable';
-// N-Triples text of a ground term (also valid Turtle).
+
+/** Serializes a term as N-Triples text that is also valid Turtle. */
 export function ntTerm(t: Term) {
   if (t.termType === 'NamedNode') return `<${t.value}>`;
   if (t.termType === 'BlankNode') return `_:${t.value.replace(/[^\w-]/g, '_')}`;
@@ -91,7 +100,8 @@ export function ntTerm(t: Term) {
     .replace(/\r/g, '\\r');
   return `"${v}"${t.language ? '@' + t.language : t.datatype && t.datatype !== XSD + 'string' ? '^^<' + t.datatype + '>' : ''}`;
 }
-// A prefixed name when a prefix covers the IRI and the local part is a plain name.
+
+/** Uses a declared prefix when the local part is a valid plain name. */
 export function shortIri(iri: string, prefixes: Record<string, string>) {
   let best: [string, string] | null = null;
   for (const [p, ns] of Object.entries(prefixes))
@@ -103,6 +113,7 @@ export function shortIri(iri: string, prefixes: Record<string, string>) {
       best = [p, ns];
   return best ? `${best[0]}:${iri.slice(best[1].length)}` : `<${iri}>`;
 }
+/** Serializes an RDF term using available prefixes. */
 export function turtleTerm(t: Term, prefixes: Record<string, string>) {
   if (t.termType === 'NamedNode') return shortIri(t.value, prefixes);
   if (t.termType !== 'Literal') return ntTerm(t);
@@ -118,11 +129,13 @@ export function turtleTerm(t: Term, prefixes: Record<string, string>) {
 }
 // The terms a user types (Turtle syntax: prefixed names, <IRIs>, literals, nested [ ] and ( )),
 // read with the file's prefixes plus the well-known ones.
+/** Contains a parsed object term and any nested triples it introduces. */
 export type ParsedObject = { term: Term; nested: boolean; triples: Triple[] };
 const directives = (prefixes: Record<string, string>) =>
   Object.entries({ ...WELL_KNOWN, ...prefixes })
     .map(([p, ns]) => `@prefix ${p}: <${ns}> .\n`)
     .join('');
+/** Parses Turtle object input with declared and well-known prefixes. */
 export function parseObject(
   text: string,
   prefixes: Record<string, string>,
@@ -137,6 +150,7 @@ export function parseObject(
     throw Error(`"${text}" is not one RDF term.`);
   return { term: top.o, nested: triples.length > 1, triples: triples.filter(t => t !== top) };
 }
+/** Parses a Turtle predicate using the prefixes available to the file. */
 export function parsePredicate(
   text: string,
   prefixes: Record<string, string>,
@@ -151,6 +165,7 @@ export function parsePredicate(
   return triples[0].p.value;
 }
 // Whether a typed prefix is known (the file's, or a well-known one that will be declared).
+/** Lists prefix names used by Turtle text. */
 export const usedPrefixes = (text: string) => [
   ...new Set(
     [

@@ -1,12 +1,13 @@
+/** Displays read-only source comparisons for changes, file history and stale saves. */
 import React, { useEffect, useRef } from 'react';
 import { MergeView } from '@codemirror/merge';
 import { EditorState } from '@codemirror/state';
 import { EditorView, lineNumbers } from '@codemirror/view';
 import { languageFor, syntaxFor, highlighting } from '../editor/languages';
 import './scm.css';
-// Side-by-side diff (research R2: @codemirror/merge) with the file's syntax colors: changed lines
-// are marked on both sides, unchanged stretches fold away. Read-only; used by Source Control, file
-// history and stale saves.
+// Side-by-side diff with the file's syntax colors: changed lines are marked on both sides,
+// unchanged stretches fold away. Read-only; used by Source Control, file history and stale saves.
+/** Displays a read-only, syntax-highlighted comparison of two file versions. */
 export function DiffView({
   before,
   after,

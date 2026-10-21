@@ -1,6 +1,8 @@
+/** Offers deletion undo until the server-provided deadline expires. */
 import React, { useEffect, useState } from 'react';
 import type { Deleted } from './api';
-// FR-023: after a confirmed delete or Clear, "Undo" is offered until the server's undoUntil.
+
+/** Offers undo while the server's deletion deadline remains valid. */
 export function UndoToast({
   deleted,
   onUndo,

@@ -1,5 +1,7 @@
+/** Converts the metric wizard's draft into an expression and workbench extension attributes. */
 import type { KpiType } from './extension';
 // The metric wizard's draft → the metric expression and the SEMANTIC_WORKBENCH extension it saves.
+/** Holds the metric wizard's editable inputs before a save plan is built. */
 export type Draft = {
   measures: string;
   of: string;
@@ -36,6 +38,7 @@ export type Draft = {
   unit: string;
   format: string;
 };
+/** Builds the metric expression represented by the wizard draft. */
 export function expressionFor(d: Draft) {
   if (d.type === 'simple')
     return d.field
@@ -47,13 +50,15 @@ export function expressionFor(d: Draft) {
     return d.numerator && d.denominator ? `${d.numerator} / NULLIF(${d.denominator}, 0)` : '';
   return d.expression.trim();
 }
+/** Splits comma-separated input into nonempty trimmed values. */
 export const list = (s: string) =>
   s
     .split(',')
     .map(x => x.trim())
     .filter(Boolean);
 const num = (s: string) => (s.trim() === '' ? undefined : Number(s));
-// The extension names inputs and rules; the formula stays in the metric's expression (FR-002).
+// The extension names inputs and rules; the formula stays in the metric's expression.
+/** Builds metric attributes while keeping the formula in the metric expression. */
 export function extensionFor(d: Draft): Record<string, any> {
   const e: Record<string, any> = { label: d.label.trim() || undefined, type: d.type };
   if (d.type === 'ratio') {

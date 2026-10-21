@@ -1,8 +1,11 @@
+/** Patches N-Triples by whole lines so unrelated spacing, comments and line endings keep their
+ * bytes. */
 import { Parser } from 'n3';
 import type { Patch } from '../../editor/patch';
 import { BASE, ntTerm, type Term, type Triple } from './terms';
-// N-Triples (FR-055): one triple per line, so an edit replaces, adds or removes whole lines and
-// every other line keeps its bytes (spacing, comments, line endings).
+// N-Triples: one triple per line, so an edit replaces, adds or removes whole lines and every other
+// line keeps its bytes (spacing, comments, line endings).
+/** Records an N-Triples source line and its optional parsed triple. */
 export type Line = { start: number; end: number; text: string; triple: Triple | null };
 const plain = (t: any): Term =>
   t.termType === 'Literal'
@@ -13,6 +16,7 @@ const plain = (t: any): Term =>
         datatype: t.language ? undefined : t.datatype?.value,
       }
     : { termType: t.termType, value: t.value };
+/** Reads N-Triples lines with exact source offsets. */
 export function readLines(src: string): Line[] {
   const out: Line[] = [];
   const re = /[^\r\n]*(\r\n|\r|\n|$)/g;
@@ -30,8 +34,10 @@ export function readLines(src: string): Line[] {
   }
   return out;
 }
-// A triple as one N-Triples line, without its line break.
+
+/** Serializes one triple without a trailing line break. */
 export const ntLine = (s: string, p: string, o: Term) => `<${s}> <${p}> ${ntTerm(o)} .`;
+/** Adds, removes or replaces triple lines while preserving unrelated bytes. */
 export function ntPatches(
   src: string,
   lines: Line[],

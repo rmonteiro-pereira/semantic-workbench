@@ -1,13 +1,14 @@
+/** Reviews selected file changes before committing, pushing or reverting them. */
 import React, { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, GitCommit, RotateCcw, Upload } from 'lucide-react';
 import { Modal } from '../projects/Modal';
 import { api, scm, type GitChange, type GitDiff, type GitStatus } from '../projects/api';
 import { DiffView } from './DiffView';
 import './scm.css';
-// Commit… (FR-044–FR-046, ui-contracts "Commit"): the repository's changed files, all ticked, the
-// diff of the selected file, a pre-filled message, Commit / Commit & push, and Revert to last commit
-// with a confirmation (the replaced version goes to the trash). During a merge only the merge can
-// be committed. Ticked files are committed with `git commit --only`, so other work stays as it is.
+// Selected files use git commit --only so unrelated changes remain untouched. During a merge, only
+// the merge can be committed. Reverting requires confirmation and moves the replaced disk version
+// to trash.
+/** Reports a completed commit and its optional push result. */
 export type CommitOutcome = {
   commit: string;
   altered: string[];
@@ -24,6 +25,7 @@ type Props = {
   onReverted: (path: string, hash: string | null) => void;
   onSetIdentity?: () => void;
 };
+/** Builds a concise commit message from changed paths and optional item hints. */
 export function suggestedMessage(paths: string[], itemHints: Record<string, string> = {}) {
   if (!paths.length) return '';
   if (paths.length === 1) {
@@ -43,6 +45,7 @@ const describe = (c: GitChange) =>
         : c.index === 'A'
           ? 'added'
           : 'modified';
+/** Reviews selected changes before committing, pushing or confirmed reversion. */
 export function CommitDialog({
   project,
   projectName,

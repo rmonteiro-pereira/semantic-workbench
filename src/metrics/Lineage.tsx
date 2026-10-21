@@ -1,11 +1,13 @@
+/** Traces metric inputs to physical sources and declared contract quality rules without running
+ * them. */
 import React from 'react';
 import { ArrowRight, Database, FileCheck2, Gauge, Table2 } from 'lucide-react';
 import type { KpiExplanation, Trust } from '../../server/agent/explain';
-// Where a metric's data comes from (FR-007): each base input, the fields it reads, the dataset's physical
-// source and the ODCS object and property that source is contracted as, matched by physical name.
-// Quality rules and service levels are shown as declared in the contract; they are not checked here.
+// Physical names link metric input fields to contract objects and properties. Quality rules and
+// service levels are displayed as declared, never checked here.
 const slaText = (s: Trust) =>
   `${s.property}${s.value !== undefined ? ` ${s.value}` : ''}${s.unit ? ` ${s.unit}` : ''}`;
+/** Displays metric inputs and their declared dataset and contract sources. */
 export function Lineage({ explanation: e }: { explanation: KpiExplanation }) {
   const declared = e.inputs.some(
     i => i.sla.length || i.fields.some(f => f.odcs.some(o => o.quality.length)),

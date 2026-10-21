@@ -1,7 +1,9 @@
+/** Displays the current branch and offers branch creation and switching. */
 import React, { useEffect, useState } from 'react';
 import { GitBranch, Plus } from 'lucide-react';
 import { scm } from '../projects/api';
-// Current branch, switch to a local or remote branch, or create one from here (FR-060).
+
+/** Displays and switches branches or creates a new branch. */
 export function BranchPicker({
   project,
   current,

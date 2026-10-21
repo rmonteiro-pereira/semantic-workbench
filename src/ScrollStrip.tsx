@@ -1,3 +1,4 @@
+/** Provides horizontal overflow cues and scrolls selected tabs into view. */
 import { useLayoutEffect, useRef, type ReactNode } from 'react';
 
 /** Scroll cues follow the actual overflow; tab selection only scrolls this strip. */

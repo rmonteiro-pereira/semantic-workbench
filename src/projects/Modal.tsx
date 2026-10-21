@@ -1,9 +1,10 @@
+/** Provides modal focus handling and keeps dialog actions visible below scrolling content. */
 import React, { useEffect, useRef } from 'react';
-// Native modal dialog: the page behind is inert, Tab cycles inside (trap below), Escape cancels, focus returns afterwards.
-// v0.3.0 dialog conventions (T012): `size` sets the width (small 420, medium 560 — the default —,
-// large 880, full: the whole window less a margin); `footer` holds the dialog's actions, after the
-// scrolling body, so they stay visible on long content.
+// The background is inert, Tab stays inside, and closing restores focus. Size controls dialog
+// width; the footer stays visible below the scrolling body.
+/** Selects the dialog's width preset. */
 export type ModalSize = 'small' | 'medium' | 'large' | 'full';
+/** Renders a modal with contained focus, a scrolling body and persistent actions. */
 export function Modal({
   title,
   onCancel,

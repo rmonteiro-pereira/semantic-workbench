@@ -1,3 +1,4 @@
+/** Displays resolved concept mappings and their validation findings. */
 import React, { useEffect, useState, useRef } from 'react';
 import type { Binding, Finding, RuntimeContext } from '../server/agent/runtime';
 import { SqlCode } from './sql/SqlCode';
@@ -44,6 +45,7 @@ function bindingSteps(b: Binding, context: RuntimeContext) {
   }
   return steps;
 }
+/** Displays resolved mappings and their findings. */
 export function MappingExplorer({
   currentId,
   revisionKey,

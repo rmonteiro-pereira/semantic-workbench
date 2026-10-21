@@ -1,5 +1,7 @@
+/** Renders neighborhood relationships using the routes assigned by the graph layout. */
 import { BaseEdge, type EdgeProps } from '@xyflow/react';
 import { orthogonalPath, routePoints, type EdgeRoute } from './graph/routes';
+/** Exports the shared relationship routing geometry and types. */
 export {
   assignRoutes,
   placeLabels,
@@ -8,7 +10,8 @@ export {
   type EdgeRoute,
   type Box,
 } from './graph/routes';
-// Neighborhood edge: draws the route assigned in src/graph/routes.ts.
+
+/** Renders an assigned relationship route and its label. */
 export function RelationshipEdge(props: EdgeProps) {
   const { sourceX: sx, sourceY: sy, targetX: tx, targetY: ty, data } = props;
   const route = (data?.route as EdgeRoute | undefined) ?? { route: 'short', bendX: (sx + tx) / 2 };

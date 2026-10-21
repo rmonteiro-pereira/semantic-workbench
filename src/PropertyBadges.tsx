@@ -1,7 +1,9 @@
+/** Shares property constraint labels and colors across tables and lineage cards. */
 import React from 'react';
 import './property-badges.css';
-// Column badges shared by the Properties table, the contract overview counts and lineage card rows
-// (FR-027): one label and colour per key or constraint, read from the same property fields.
+// Column badges shared by the Properties table, the contract overview counts and lineage card
+// rows: one label and colour per key or constraint, read from the same property fields.
+/** Names a property constraint or classification badge. */
 export type BadgeKind =
   | 'pk'
   | 'fk'
@@ -10,6 +12,7 @@ export type BadgeKind =
   | 'classification'
   | 'identifying'
   | 'unmapped';
+/** Describes a badge's kind, visible label and tooltip. */
 export type BadgeInfo = { kind: BadgeKind; label: string; title: string };
 const LABEL: Record<Exclude<BadgeKind, 'classification'>, string> = {
   pk: 'PK',
@@ -28,7 +31,8 @@ const TITLE: Record<Exclude<BadgeKind, 'classification' | 'fk'>, string> = {
 };
 const text = (v: unknown) =>
   typeof v === 'string' ? v : typeof v === 'number' || typeof v === 'boolean' ? String(v) : '';
-// Badges of one ODCS property; `fkTargets` are the referenced `object.column` names.
+
+/** Returns property badges, including the supplied foreign-key target names. */
 export function propertyBadges(
   property: Record<string, any> | undefined,
   fkTargets: string[] = [],
@@ -46,11 +50,13 @@ export function propertyBadges(
   if (c) out.push({ kind: 'classification', label: c, title: `Classification: ${c}` });
   return out;
 }
+/** Returns the shared label and tooltip for a fixed constraint badge. */
 export const badge = (kind: Exclude<BadgeKind, 'classification' | 'fk'>): BadgeInfo => ({
   kind,
   label: LABEL[kind],
   title: TITLE[kind],
 });
+/** Renders one property constraint badge. */
 export function Badge({
   kind,
   title,
@@ -66,6 +72,7 @@ export function Badge({
     </span>
   );
 }
+/** Renders the shared badges for an ODCS property. */
 export function PropertyBadges({
   badges,
   className = '',

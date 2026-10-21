@@ -1,3 +1,5 @@
+/** Explains metric formulas, composition and rollup rules with SQL previews that are never
+ * executed. */
 import React, { useState } from 'react';
 import {
   Ban,
@@ -17,8 +19,9 @@ import { additivityLabel, readableFormula, typeLabel } from './format';
 import { SqlCode } from '../sql/SqlCode';
 const GRAINS = ['day', 'week', 'month', 'quarter', 'year'];
 const roleLabel = { numerator: 'Numerator', denominator: 'Denominator', input: 'Input' } as const;
-// "How this metric is calculated" (FR-002, FR-006, FR-007): the formula in words, the composition tree down to
-// fields, the rules that govern rollups, and a SQL preview that is never executed.
+// "How this metric is calculated": the formula in words, the composition tree down to fields, the
+// rules that govern rollups, and a SQL preview that is never executed.
+/** Displays a metric's formula, rollup rules and unexecuted SQL preview. */
 export function Explanation({
   explanation: e,
   all,
@@ -183,6 +186,7 @@ function Rule({
     </div>
   );
 }
+/** Renders a metric's nested expression and input composition. */
 export function CompositionTree({ node, className = '' }: { node: TreeNode; className?: string }) {
   return (
     <ul className={`kpi-tree ${className}`} role="tree" aria-label="Composition tree">

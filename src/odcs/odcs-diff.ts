@@ -1,24 +1,29 @@
-// Property-level comparison of two versions of an ODCS contract (FR-057 History tab). Objects and
-// properties are matched by `id` when both versions have one, else by `name`; nested properties
-// (`properties`, `items`) are compared under dotted paths (`address.street`, `tags[]`). Every
-// attribute counts, including types, keys, flags, relationships and quality rules.
+/** Compares contract attributes and nested properties, matching by shared IDs or otherwise by
+ * name. */
+// Objects and properties match by ID when both versions provide one, otherwise by name. Nested
+// properties use dotted paths, and all attributes participate in the comparison.
+/** Records an attribute's value before and after a contract edit. */
 export type AttributeChange = { attribute: string; before: unknown; after: unknown };
+/** Records changes to one nested property path. */
 export type PropertyChange = {
   path: string;
   kind: 'added' | 'removed' | 'changed';
   changes: AttributeChange[];
 };
+/** Groups an object's attribute and property changes. */
 export type ObjectDiff = {
   object: string;
   kind: 'added' | 'removed' | 'changed';
   attributes: AttributeChange[];
   properties: PropertyChange[];
 };
+/** Groups contract-level changes and changed schema objects. */
 export type ContractDiff = { contract: AttributeChange[]; objects: ObjectDiff[] };
 const list = (v: unknown): any[] => (Array.isArray(v) ? v : []);
 const isObject = (v: unknown): v is Record<string, any> =>
   !!v && typeof v === 'object' && !Array.isArray(v);
-// Deterministic JSON (sorted keys), so key order in the source never counts as a change.
+
+/** Serializes values with sorted keys so key order does not count as a change. */
 export function canonical(v: unknown): string {
   if (Array.isArray(v)) return '[' + v.map(canonical).join(',') + ']';
   if (isObject(v))
@@ -52,7 +57,8 @@ function matchBy(before: any[], after: any[]) {
   const useId = [...before, ...after].every(x => typeof x?.id === 'string');
   return { useId, key: (x: any) => keyOf(x, useId) };
 }
-// Flatten a property tree into dotted paths with the property's own attributes (children excluded).
+
+/** Flattens nested properties into paths with their own non-child attributes. */
 export function flattenProperties(
   props: unknown,
   prefix = '',
@@ -98,6 +104,7 @@ function propertyDiff(a: unknown, b: unknown): PropertyChange[] {
   }
   return out;
 }
+/** Compares all contract and object attributes across two versions. */
 export function diffContracts(before: any, after: any): ContractDiff {
   const a = isObject(before) ? before : {};
   const b = isObject(after) ? after : {};
@@ -141,7 +148,8 @@ export function diffContracts(before: any, after: any): ContractDiff {
   }
   return { contract: attributeChanges(a, b, ['schema']), objects };
 }
-// One object's changes between two versions (null when it is unchanged or absent from both).
+
+/** Returns one object's changes, or null when unchanged or absent from both versions. */
 export function diffObject(before: any, after: any, name: string): ObjectDiff | null {
   const pick = (c: any) =>
     list(c?.schema)
@@ -149,7 +157,8 @@ export function diffObject(before: any, after: any, name: string): ObjectDiff | 
       .filter(o => o.name === name);
   return diffContracts({ schema: pick(before) }, { schema: pick(after) }).objects[0] ?? null;
 }
-// Newest-first versions of a contract → the newest version in which `name` changed (or appeared).
+
+/** Finds the newest version where the named object changed in a newest-first history. */
 export function lastChange<T extends { data: any }>(versions: T[], name: string): T | null {
   for (let i = 0; i < versions.length; i++) {
     const older = versions[i + 1];

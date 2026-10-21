@@ -1,8 +1,7 @@
+/** Checks edited RDF graphs for unintended changes while allowing blank-node renaming. */
 import { isBlank, termKey, type Term, type Triple } from './terms';
-// The RDF edit gate (FR-055a): the graph parsed after an edit must equal the graph before it minus
-// the removed triples plus the added ones. Blank nodes have no stable names across parses, so
-// graphs are compared up to blank-node renaming: ground triples as sets, blank nodes by iterated
-// neighbourhood hashing, then an exact matching search where hashes alone leave a choice.
+// Blank-node names can change between parses, so comparison allows renaming. Ground triples
+// compare as sets; ambiguous neighborhood hashes require exact matching.
 const hash = (s: string) => {
   let h1 = 0x811c9dc5;
   let h2 = 0x1b873593;
@@ -16,6 +15,7 @@ const hash = (s: string) => {
 const key = (t: Triple) =>
   `${termKey(t.s)} ${termKey(t.p)} ${termKey(t.o)}${t.g ? ' ' + termKey(t.g) : ''}`;
 const blanks = (t: Triple) => [t.s, t.p, t.o, ...(t.g ? [t.g] : [])].filter(isBlank);
+/** Removes duplicate triples using their term identities. */
 export function dedupe(triples: Triple[]) {
   const m = new Map<string, Triple>();
   for (const t of triples) m.set(key(t), t);
@@ -61,6 +61,7 @@ function colours(triples: Triple[]) {
   }
   return current;
 }
+/** Compares RDF graphs while allowing blank-node identifiers to differ. */
 export function isomorphic(a: Triple[], b: Triple[]): boolean {
   a = dedupe(a);
   b = dedupe(b);
@@ -122,6 +123,7 @@ export function isomorphic(a: Triple[], b: Triple[]): boolean {
 }
 // A resource's description: its triples, and the blank nodes it reaches with theirs (nested
 // property lists, restrictions, collections), which are edited as a whole with it.
+/** Collects subjects' triples and the blank-node descriptions they reach. */
 export function description(triples: Triple[], subjects: Set<string>): Set<Triple> {
   const bySubject = new Map<string, Triple[]>();
   for (const t of triples) {
@@ -142,9 +144,11 @@ export function description(triples: Triple[], subjects: Set<string>): Set<Tripl
   }
   return out;
 }
+/** Reports graph-check success with triple counts, or a rejection reason. */
 export type Gate = { ok: true; removed: number; added: number } | { ok: false; reason: string };
 // After an edit of `subjects`: everything else is unchanged, and (when given) their description is
 // exactly the intended one. Returns the removed and added triple counts for the summary.
+/** Verifies that only intended resource descriptions changed and reports triple counts. */
 export function gate(
   before: Triple[],
   after: Triple[],

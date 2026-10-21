@@ -1,6 +1,7 @@
+/** Runs graph traversal off the main thread; stopping a traversal terminates the worker. */
 import { boundedClosure, type PierceNode, type PierceOptions } from './pierce';
 import type { Link } from './expansion';
-// Full pierce off the main thread (FR-022). Stop terminates the worker.
+// Full pierce off the main thread. Stop terminates the worker.
 self.onmessage = (
   e: MessageEvent<{
     id: number;

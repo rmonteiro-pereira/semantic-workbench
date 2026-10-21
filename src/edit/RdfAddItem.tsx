@@ -1,3 +1,4 @@
+/** Adds or deletes RDF resources only after validation and graph-equivalence checks. */
 import React, { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import type { Issue } from '../diagnostics';
@@ -9,8 +10,8 @@ import { addRdfItem, deleteRdfItem, rdfPrefixes, type DesiredPair } from './rdf-
 import { parseObject } from './rdf-patch/terms';
 import type { Saved } from './ItemEditor';
 import './edit.css';
-// Add an RDF resource (FR-049, FR-054): an OWL class or property, a SHACL shape or any resource,
-// written in the file's serialization and layout, checked by the RDF gate before Save.
+// Add an RDF resource: an OWL class or property, a SHACL shape or any resource, written in the
+// file's serialization and layout, checked by the RDF gate before Save.
 type Kind = 'class' | 'object' | 'datatype' | 'node' | 'property' | 'resource';
 const KINDS: Record<
   Kind,
@@ -75,6 +76,7 @@ const KINDS: Record<
   },
 };
 const quote = (s: string) => JSON.stringify(s);
+/** Previews and validates a new RDF resource in the file's serialization. */
 export function RdfAddItem({
   doc,
   base,
@@ -253,8 +255,9 @@ export function RdfAddItem({
     </Modal>
   );
 }
-// Delete an RDF resource (FR-050): its statements, and the statements in the same file that name
-// it (listed first); references in other files are listed as breaking.
+// Delete an RDF resource: its statements, and the statements in the same file that name it (listed
+// first); references in other files are listed as breaking.
+/** Reviews references before deleting an RDF resource and its statements. */
 export function RdfDeleteItem({
   doc,
   base,

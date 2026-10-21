@@ -1,10 +1,11 @@
+/** Selects files for a new or existing project before conflict resolution and source repair. */
 import React, { useState } from 'react';
 import { FolderInput, Upload } from 'lucide-react';
 import { Modal } from './Modal';
 import type { ProjectInfo } from './api';
-// Import (FR-060, spec Appendix B): one dialog for both destinations, a new project (one project per
-// batch, named after its ontology) or an existing project. Choosing files opens the browser's file
-// picker; name conflicts and repairs follow in their own dialogs.
+// A batch creates one project named after its ontology, or joins an existing project. Filename
+// conflicts and source repairs are handled in subsequent dialogs.
+/** Chooses a destination and files for a project import. */
 export function ImportDialog({
   projects,
   initialProject,

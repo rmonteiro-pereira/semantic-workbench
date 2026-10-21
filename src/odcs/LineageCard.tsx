@@ -1,3 +1,5 @@
+/** Renders asset columns with row ports, path highlights and controls for hidden columns and
+ * neighbors. */
 import React, { memo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import { AlertTriangle, ExternalLink, Footprints, Minus, Plus } from 'lucide-react';
@@ -5,10 +7,9 @@ import { KindIcon, KIND_LABEL } from '../graph/LineageLegend';
 import { PropertyBadges } from '../PropertyBadges';
 import { moreRowId, type LineageCard as Card, type LineageColumn } from './lineage';
 import { CARD_W, HEADER_H, ROW_H, MORE_H, PAGER_H } from './lineage-layout';
-// One lineage card (research R3, ui-contracts "Lineage canvas"): a header with the asset's kind,
-// name and detail, one row per visible column with a port on each side, the "N more columns" row
-// that collects lines to columns on other pages, a numbered pager and the "+N more" stub that
-// expands hidden neighbours. Rows on the highlighted path are marked; everything else dims.
+// Hidden column edges attach to the shared more-columns row. Path rows remain highlighted, while
+// paging and expansion controls reveal other content.
+/** Supplies visible rows, selection state and actions for a lineage card. */
 export type CardData = {
   card: Card;
   rows: LineageColumn[];
@@ -39,7 +40,8 @@ const KIND_NAME: Record<string, string> = {
   external: 'External reference',
   concept: 'Concept',
 };
-// Pages shown in the pager: all up to 7, otherwise first, last and the neighbours of the current one.
+
+/** Returns all pages up to seven, otherwise endpoints and current-page neighbors. */
 export function pagerItems(page: number, pages: number): (number | '…')[] {
   if (pages <= 7) return Array.from({ length: pages }, (_, i) => i);
   const keep = new Set([0, pages - 1, page - 1, page, page + 1].filter(p => p >= 0 && p < pages));
@@ -72,6 +74,7 @@ function Port({ id, top }: { id: string; top: number }) {
     </>
   );
 }
+/** Renders an asset card with row ports, column paging and neighbor expansion. */
 export const LineageCardNode = memo(({ data }: NodeProps) => {
   const d = data as unknown as CardData;
   const c = d.card;

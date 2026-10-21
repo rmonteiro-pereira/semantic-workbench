@@ -1,3 +1,4 @@
+/** Edits RDF resource statements as rows or source, with graph-equivalence checks before Save. */
 import React, { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, FileCode, Plus, Trash2, X } from 'lucide-react';
 import type { Issue } from '../diagnostics';
@@ -11,10 +12,8 @@ import { fragmentIssues, type Fragment } from './fragment';
 import { dedent, reindent } from './source-text';
 import type { Saved } from './ItemEditor';
 import './edit.css';
-// Item editor for RDF, OWL and SHACL resources (FR-048, FR-055): the resource's statements as
-// predicate–object rows in Turtle syntax, or its statement text in Source. Every change is checked
-// by the RDF gate (the parsed graph must be the original minus the removed plus the added triples)
-// and by the shared validation before Save is offered.
+// Save requires shared validation and an RDF graph matching exactly the original triples minus the
+// removed triples plus the added triples.
 type Row = {
   key: string;
   id?: string;
@@ -56,6 +55,7 @@ const SUGGESTED = [
   'sh:maxCount',
   'sh:pattern',
 ];
+/** Edits RDF statements while rejecting unintended graph changes. */
 export function RdfItemEditor({
   doc,
   base,

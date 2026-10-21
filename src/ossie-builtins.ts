@@ -1,3 +1,4 @@
+/** Defines the built-in Ossie concepts from the pinned ontology schema. */
 // Apache Ossie ontology.md, Built-in concepts (pinned schema commit in schemas/README.md).
 export const OSSIE_BUILTINS = new Set([
   'Any',
@@ -9,6 +10,7 @@ export const OSSIE_BUILTINS = new Set([
   'Integer',
   'String',
 ]);
+/** Constructs the model representation of a built-in Ossie concept. */
 export const builtinConcept = (name: string) => ({
   concept: name,
   type: name === 'Any' ? 'EntityType' : 'ValueType',
