@@ -14,6 +14,9 @@ import{DeleteDialog,type DeleteTarget}from'./projects/DeleteDialog';
 import{UndoToast}from'./projects/UndoToast';
 import{TrashDialog}from'./projects/Trash';
 import{Suggestions}from'./projects/Suggestions';
+import {MenuButton,type MenuItem} from './projects/Menu';
+import {ImportDialog} from './projects/ImportDialog';
+import {Modal} from './projects/Modal';
 import{RenameDialog,MoveDialog,ImportConflictDialog}from'./projects/ProjectDialogs';
 import{GitBanner}from'./projects/GitBanner';
 import{StaleSaveDialog}from'./projects/StaleSave';
@@ -29,7 +32,7 @@ import {RdfItemEditor} from './edit/RdfItemEditor';
 import {RdfAddItem,RdfDeleteItem} from './edit/RdfAddItem';
 import {isIri} from './edit/rdf-patch/index';
 import {rdfSyntax} from './rdf';
-import {itemKindAt,itemName,addableKinds,type ItemKind,type Path,type Choices} from './edit/item-model';
+import {itemKindAt,itemName,addableKinds,kindLabel,type ItemKind,type Path,type Choices} from './edit/item-model';
 import {itemValue} from './edit/yaml-patch';
 import {openFragment} from './edit/fragment';
 import type {KpiSummary} from '../server/agent/explain';
@@ -46,7 +49,7 @@ import {
   FileCode,
   Box,
   CheckCircle2,
-  Menu, X, Focus, Gauge, Pencil, Plus, Trash2, GitBranch, FileCheck2, GitCommit as GitCommitIcon,
+  Menu, X, Braces, MoreHorizontal, PanelLeftClose, PanelLeftOpen, Focus, Gauge, Pencil, Plus, Trash2, GitBranch, FileCheck2, GitCommit as GitCommitIcon,
 } from "lucide-react";
 import {validateInput} from "./input";
 import {documentKeys,entityKeys} from './references';
@@ -81,6 +84,11 @@ function parsedDoc(d:Doc){
   const value={hash:d.hash,model,keys};parsedDocs.set(d.id,value);return value;
 }
 const sample = `name: Commerce\nontology:\n  - concept: Customer\n    type: EntityType\n    description: A person who purchases products.\n    relationships:\n      - name: places\n        roles:\n          - concept: Order\n        verbalizes: ['{Customer} places {Order}']\n  - concept: Order\n    type: EntityType\n    description: A purchase made by a customer.\n    relationships:\n      - name: contains\n        roles:\n          - concept: Product\n        verbalizes: ['{Order} contains {Product}']\n  - concept: Product\n    type: EntityType\n    description: An item available for purchase.\n`;
+const clampSidebarWidth=(width:number)=>Math.max(220,Math.min(520,Math.round(width)));
+function readSidebarWidth(){
+  try{const stored=localStorage.getItem('workbench.sidebarWidth');const width=Number(stored);if(stored?.trim()&&Number.isFinite(width))return clampSidebarWidth(width);}catch{}
+  return 300;
+}
 function App() {
   const [docs, setDocs] = useState<Doc[]>([]),
     [current, setCurrentState] = useState<Doc | null>(null),
@@ -101,10 +109,13 @@ function App() {
   const [deleteTarget,setDeleteTarget]=useState<DeleteTarget|null>(null),[deleted,setDeleted]=useState<Deleted|null>(null),[trashOpen,setTrashOpen]=useState(false),[trashVersion,setTrashVersion]=useState(0);
   const [renaming,setRenaming]=useState<ProjectInfo|null>(null),[moving,setMoving]=useState<{project:string;path:string}|null>(null),[suggestions,setSuggestions]=useState<Suggestion[]>([]);
   const [importConflict,setImportConflict]=useState<{project:ProjectInfo;files:{path:string;source:string}[];conflicts:string[]}|null>(null);
-  const importInto=useRef<string>('');
+  const importInto=useRef<string>(''),importInput=useRef<HTMLInputElement|null>(null);
   const docsRef=useRef(new Map<string,Doc>()),currentRef=useRef<Doc|null>(null),sourceRef=useRef('');
   currentRef.current=current;sourceRef.current=source;
   const [showValidation,setShowValidation]=useState(false);
+  // View definition (FR-060): the item's full definition as read, in a dialog.
+  const [definition,setDefinition]=useState<{title:string;value:unknown}|null>(null);
+  const [importing,setImporting]=useState<{project?:string}|null>(null);
   const grouping=useGrouping(current?.id);
   // metrics of the open file's project, for the Metrics tab and the metric badges on concepts.
   const [kpis,setKpis]=useState<KpiSummary[]>([]),[kpiError,setKpiError]=useState(''),[kpiLoading,setKpiLoading]=useState(false),[selectedKpi,setSelectedKpi]=useState(''),[kpiFilter,setKpiFilter]=useState('');
@@ -118,14 +129,24 @@ function App() {
   const walkStep=walk.steps[walk.index],neighborhoodFocus=walkStep&&walkStep.doc===current?.id?walkStep.center:'';
   const setNeighborhoodFocus=(id:string)=>{if(id&&current)dispatchWalk({type:'push',step:{doc:current.id,center:id,name:model?.entities.find(e=>e.id===id)?.name??id}});};
   const [compact,setCompact]=useState(()=>window.innerWidth<1100);
-  const [sidebarOpen,setSidebarOpen]=useState(()=>window.innerWidth>=1100);
+  const [drawerOpen,setSidebarOpen]=useState(false);
+  const [sidebarHidden,setSidebarHidden]=useState(()=>{try{return localStorage.getItem('workbench.sidebarHidden')==='true';}catch{return false;}});
+  const sidebarOpen=compact?drawerOpen:!sidebarHidden;
+  const [sidebarWidth,setSidebarWidth]=useState(readSidebarWidth);
+  const [resizingSidebar,setResizingSidebar]=useState(false);
+  const sidebarDrag=useRef<{pointerId:number;x:number;width:number}|null>(null);
+  const [examplesChoice,setExamplesChoice]=useState<boolean|null>(null);
+  const examplesOpen=examplesChoice??projects.length===0;
+  useEffect(()=>{try{localStorage.setItem('workbench.sidebarWidth',String(sidebarWidth));}catch{}},[sidebarWidth]);
+  useEffect(()=>{try{localStorage.setItem('workbench.sidebarHidden',String(sidebarHidden));}catch{}},[sidebarHidden]);
+  useEffect(()=>{if(compact||!sidebarOpen){sidebarDrag.current=null;setResizingSidebar(false);}},[compact,sidebarOpen]);
   const sidebarRef=useRef<HTMLElement|null>(null),workspaceToggle=useRef<HTMLButtonElement|null>(null);
-  useEffect(()=>{const media=window.matchMedia('(max-width: 1099px)');const change=()=>{setCompact(media.matches);setSidebarOpen(!media.matches);};media.addEventListener('change',change);return()=>media.removeEventListener('change',change)},[]);
+  useEffect(()=>{const media=window.matchMedia('(max-width: 1099px)');const change=()=>{setCompact(media.matches);setSidebarOpen(false);};media.addEventListener('change',change);return()=>media.removeEventListener('change',change)},[]);
   function closeWorkspace(){setSidebarOpen(false);requestAnimationFrame(()=>workspaceToggle.current?.focus());}
   useEffect(()=>{
     if(!compact||!sidebarOpen)return;
     const el=sidebarRef.current;if(!el)return;
-    const focusable=()=>Array.from(el.querySelectorAll<HTMLElement>('button:not([disabled]),input:not([disabled]),select:not([disabled]),[tabindex="0"]')).filter(node=>node.getClientRects().length>0);
+    const focusable=()=>Array.from(el.querySelectorAll<HTMLElement>('button:not([disabled]),input:not([disabled]),select:not([disabled]),summary,[tabindex="0"]')).filter(node=>node.getClientRects().length>0);
     focusable()[0]?.focus();
     const keyboard=(event:KeyboardEvent)=>{if(event.key==='Escape'){event.preventDefault();closeWorkspace();}else if(event.key==='Tab'){const nodes=focusable(),first=nodes[0],last=nodes.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}};
     el.addEventListener('keydown',keyboard);return()=>el.removeEventListener('keydown',keyboard);
@@ -342,6 +363,8 @@ function App() {
   useEffect(()=>{const key=(e:KeyboardEvent)=>{const el=e.target as HTMLElement;if(e.key!=='e'||e.ctrlKey||e.metaKey||e.altKey||el.closest('input,textarea,select,[contenteditable=true],dialog'))return;e.preventDefault();latest.current();};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[]);
   function selectEntity(id:string){setSelected(id);setSelectedEdge('');if(tab==='neighborhood'){setNeighborhoodFocus(id);setSearch('');}}
   async function loadExample(id:string) {
+    // Loading from the Examples group keeps it as the user left it (open) instead of collapsing it.
+    setExamplesChoice(c=>c??examplesOpen);
     const set=exampleSet(id)!;
     await leaveCurrent();
     setBusy(true);setMessage('Loading example documents…');
@@ -413,9 +436,7 @@ function App() {
     else if(a.action==='history'){setScmProject(a.project);setHistoryPath(a.path);setTab('scm');if(compact)closeWorkspace();}
     else if(a.action==='gitignore')void editGitignore(a.project);
     else{
-      // A detached file input, so the page keeps a single "Import definitions" file field.
-      importInto.current=a.project;const input=document.createElement('input');input.type='file';input.multiple=true;
-      input.onchange=async()=>{const files=await Promise.all(Array.from(input.files??[]).map(async f=>({path:f.name,source:await f.text()})));if(files.length)void importIntoProject(files);};input.click();
+      setImporting({project:a.project});
     }
   }
   // FR-094: `.gitignore` opens in Source; it is created empty when the project has none.
@@ -424,8 +445,8 @@ function App() {
     if(!d){try{await api.save(slug,'.gitignore',null,'');d=(await refresh()).find(x=>x.id===`${slug}/.gitignore`);}catch(e){setMessage((e as Error).message);return;}}
     if(d&&open(d))setTab('source');
   }
-  async function importIntoProject(files:{path:string;source:string}[],onConflict?:'replace'|'keep-both'){
-    const project=projects.find(p=>p.slug===importInto.current);if(!project)return;
+  async function importIntoProject(files:{path:string;source:string}[],onConflict?:'replace'|'keep-both',slug?:string){
+    const project=projects.find(p=>p.slug===(slug??importConflict?.project.slug));if(!project)return;
     try{const r=await api.importInto(project.slug,files,onConflict);setImportConflict(null);await refresh();setMessage(`Imported ${r.written.length} file${r.written.length===1?'':'s'} into ${project.name}.`);}
     catch(e:any){if(e.status===409&&e.body?.conflicts)setImportConflict({project,files,conflicts:e.body.conflicts});else{setImportConflict(null);setMessage(e.message);}}
   }
@@ -443,8 +464,23 @@ function App() {
     a.click();
     setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
+  // New ▾ (FR-060): one Add dialog per kind; kinds the open file cannot hold stay listed with the reason.
+  function newItems():MenuItem[]{
+    const doc=(model as any)?.document,kinds=current&&model&&!currentIsRdf?addableKinds(doc):[];
+    const none=!current?'Open a file first.':!model?'The open file has errors; repair it in Source first.':'';
+    const item=(kind:ItemKind,why:string):MenuItem=>({label:`Add ${kindLabel[kind].toLowerCase()}…`,disabled:none||(kinds.includes(kind)?false:why),run:()=>{if(current)setAdding({docId:current.id,kind});}});
+    return [
+      item('concept','Open an Ossie ontology to add a concept.'),
+      item('dataset','Open an Ossie semantic model to add a dataset.'),
+      item('join','Open an Ossie semantic model to add a dataset relationship.'),
+      item('metric','Open an Ossie semantic model to add a metric.'),
+      item('odcs-object','Open an ODCS contract to add a contract object.'),
+      item('concept-mapping','Open an Ossie mapping document to add a concept mapping.'),
+      {label:'Add RDF resource…',disabled:none||(currentIsRdf?false:'Open a Turtle, N-Triples, RDF/XML or N3 file to add a resource.'),run:()=>{if(current)setRdfAdding(current.id);}},
+    ];
+  }
   return (
-    <div className={`shell ${sidebarOpen?'workspace-open':'workspace-closed'}`}>
+    <div className={`shell ${sidebarOpen?'workspace-open':'workspace-closed'}${resizingSidebar?' sidebar-resizing':''}`} style={{'--sidebar-width':`${sidebarWidth}px`} as React.CSSProperties}>
       {stale&&current&&<StaleSaveDialog filename={current.path} mine={source} current={stale.current} onCancel={()=>setStale(null)} onLoadCurrent={()=>{if(stale.current===null||stale.currentHash===null)return;autosave.resolved(stale.currentHash,stale.current);const doc={...current,source:stale.current,hash:stale.currentHash};docsRef.current.set(doc.id,doc);setCurrent(doc);setSource(doc.source);setStale(null);setMessage('Loaded the current file from disk.');}} onKeepMine={()=>{autosave.resolved(stale.currentHash,stale.current??'');setStale(null);}}/>}
       {deleteTarget&&<DeleteDialog target={deleteTarget} projects={projects} dirty={current&&source!==current.source?{project:current.project,path:current.path}:null} onCancel={()=>setDeleteTarget(null)} onDeleted={(entryIds,undoUntil,label)=>{
         // The user confirmed losing unsaved edits of a removed file: drop them before refreshing.
@@ -470,10 +506,13 @@ function App() {
       {committing&&current&&<CommitDialog project={current.project} projectName={projects.find(p=>p.slug===current.project)?.name} itemHints={itemHints.current[current.project]} unsaved={source!==current.source?[current.path]:[]} onClose={()=>setCommitting(false)}
         onCommitted={r=>{setCommitting(false);itemHints.current[current.project]={};setMessage(`Committed ${r.commit.slice(0,7)} (${r.files.length} file${r.files.length===1?'':'s'})${r.pushed?r.pushed.ok?' and pushed.':`; push failed: ${r.pushed.message}`:'.'}`);setGitVersion(v=>v+1);void refresh().catch(()=>{});}}
         onReverted={(path,hash)=>{setMessage(hash?`Reverted ${path} to the last commit; the replaced version is in the trash.`:`Moved ${path} to the trash.`);setTrashVersion(v=>v+1);void refresh().then(d=>{const doc=d.find(x=>x.project===current.project&&x.path===path);if(doc&&currentRef.current?.project===current.project&&currentRef.current.path===path){autosave.resolved(doc.hash,doc.source);setCurrent(doc);setSource(doc.source);}}).catch(()=>{});}}/>}
+      {showValidation&&(source||current)&&<Modal title="Validation details" size="large" onCancel={()=>setShowValidation(false)} className="validation-details" footer={<button type="button" onClick={()=>setShowValidation(false)}>Close</button>}><ValidationPanel source={source} issues={validation.issues} onLocate={issue=>{setShowValidation(false);setTab('source');setTimeout(()=>{sourceEditor.current?.locate(issue);},0);}}/></Modal>}
+      {definition&&<Modal title={definition.title} size="large" onCancel={()=>setDefinition(null)} className="definition-dialog" footer={<button type="button" onClick={()=>setDefinition(null)}>Close</button>}><pre className="definition-json" aria-label="Definition">{JSON.stringify(definition.value,null,2)}</pre></Modal>}
+      {importing&&<ImportDialog projects={projects} initialProject={importing.project} onClose={()=>setImporting(null)} onPick={project=>{importInto.current=project??'';setImporting(null);requestAnimationFrame(()=>importInput.current?.click());}}/>}
       {pendingImport&&<ImportRepair initial={pendingImport} onCancel={()=>setPendingImport(null)} onImport={commitImports}/>}
       {compact&&sidebarOpen&&<button className="workspace-scrim" aria-label="Dismiss workspace drawer" tabIndex={-1} onClick={closeWorkspace}/>}
       <aside id="workspace-sidebar" className="sidebar workspace-sidebar" ref={sidebarRef} inert={!sidebarOpen} role={compact&&sidebarOpen?'dialog':undefined} aria-modal={compact&&sidebarOpen?true:undefined} aria-label="Workspace documents">
-        <button className="workspace-close" aria-label="Close workspace drawer" onClick={closeWorkspace}><X size={18}/></button>
+        {compact&&<button className="workspace-close" aria-label="Close workspace drawer" onClick={closeWorkspace}><X size={18}/></button>}
         <div className="brand">
           <Layers size={26} />
           <span>
@@ -500,6 +539,8 @@ function App() {
         </div>
         <div className="workspace-actions"><button onClick={()=>setDeleteTarget({kind:'clear'})} disabled={!projects.length}>Clear workspace</button><button onClick={()=>setTrashOpen(true)}>Trash</button></div>
         <Suggestions items={suggestions} projects={projects} onAccept={id=>void api.acceptSuggestion(id).then(r=>{setMessage(`Moved ${r.path} into ${projects.find(p=>p.slug===r.project)?.name}.`);return refresh();}).catch(e=>setMessage(e.message))} onReject={id=>void api.rejectSuggestion(id).then(()=>refresh()).catch(e=>setMessage(e.message))}/>
+        <details className="examples" aria-label="Examples" open={examplesOpen}>
+          <summary onClick={e=>{e.preventDefault();setExamplesChoice(!examplesOpen);}}>Examples</summary>
         <button className="scale-example" onClick={()=>loadExample('ubl')} disabled={busy}><Layers size={16}/><span>Load UBL business model<small>45 entities · 277 relationships</small></span></button>
         <button className="scale-example" onClick={()=>loadExample('commerce')} disabled={busy}><Layers size={16}/><span>Load commerce workspace<small>ODCS · Ossie · OWL · SHACL · RDF</small></span></button>
         <button className="scale-example" onClick={()=>loadExample('commerce-scale')} disabled={busy}><Network size={16}/><span>Load commerce scale data<small>1,000 entities · 5,000 relationships</small></span></button>
@@ -507,36 +548,39 @@ function App() {
         <button className="scale-example" onClick={()=>loadExample('flights')} disabled={busy}><Network size={16}/><span>Load Ossie Flights<small>Official ontology · semantic model · mappings</small></span></button>
         <button className="scale-example" onClick={()=>loadExample('billing')} disabled={busy}><Layers size={16}/><span>Load subscription billing<small>36 business entities · 4 governed metrics</small></span></button>
         <button className="scale-example" onClick={()=>loadExample('mall')} disabled={busy}><Layers size={16}/><span>Load shopping center administration<small>145 entity types · 11 namespaces · 25 metrics</small></span></button>
-        <label className="import" tabIndex={0} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.currentTarget.querySelector('input')?.click();}}}>
-          <Upload size={16} /> Import definitions
-          <input
-            type="file"
-            multiple
-            accept=".yaml,.yml,.json,.odcs,.ossie,.ttl,.nt,.rdf,.owl,.xml,.shacl,.n3"
-            onChange={(e) => {
-              void importFiles(Array.from(e.target.files??[]));
-              e.target.value = "";
-            }}
-          />
-        </label>
+        </details>
+        <button className="import" onClick={()=>setImporting({})}><Upload size={16} /> Import…</button>
+        {/* The one file field: the Import dialog opens it for a new or an existing project. */}
+        <input ref={importInput} className="import-input" type="file" multiple tabIndex={-1} aria-hidden="true"
+          accept=".yaml,.yml,.json,.odcs,.ossie,.ttl,.nt,.rdf,.owl,.xml,.shacl,.n3"
+          onChange={(e) => {
+            const files=Array.from(e.target.files??[]),into=importInto.current;importInto.current='';e.target.value='';
+            if(into)void Promise.all(files.map(async f=>({path:f.name,source:await f.text()}))).then(list=>{if(list.length)void importIntoProject(list,undefined,into);});
+            else void importFiles(files);
+          }}
+        />
         <div className="local">
           <span className="dot" /> Project folders · on your machine
           <small>Your definitions stay local.</small>
         </div>
       </aside>
+      {!compact&&sidebarOpen&&<div className="sidebar-separator" role="separator" aria-label="Resize sidebar" aria-orientation="vertical" aria-valuemin={220} aria-valuemax={520} aria-valuenow={sidebarWidth} tabIndex={0}
+        onPointerDown={e=>{if(e.button!==0)return;e.preventDefault();e.currentTarget.focus();e.currentTarget.setPointerCapture(e.pointerId);sidebarDrag.current={pointerId:e.pointerId,x:e.clientX,width:sidebarWidth};setResizingSidebar(true);}}
+        onPointerMove={e=>{const drag=sidebarDrag.current;if(drag?.pointerId===e.pointerId)setSidebarWidth(clampSidebarWidth(drag.width+e.clientX-drag.x));}}
+        onPointerUp={e=>{if(sidebarDrag.current?.pointerId!==e.pointerId)return;sidebarDrag.current=null;setResizingSidebar(false);e.currentTarget.releasePointerCapture(e.pointerId);}}
+        onPointerCancel={()=>{sidebarDrag.current=null;setResizingSidebar(false);}}
+        onLostPointerCapture={()=>{sidebarDrag.current=null;setResizingSidebar(false);}}
+        onKeyDown={e=>{const width=e.key==='Home'?220:e.key==='End'?520:e.key==='ArrowLeft'?sidebarWidth-16:e.key==='ArrowRight'?sidebarWidth+16:null;if(width!==null){e.preventDefault();setSidebarWidth(clampSidebarWidth(width));}}}
+      />}
       <main inert={compact&&sidebarOpen}>
         <GitBanner status={status}/>
         <header className="workspace-header">
-          <button ref={workspaceToggle} className="workspace-toggle" aria-label={sidebarOpen?'Close workspace':'Open workspace'} aria-expanded={sidebarOpen} aria-controls="workspace-sidebar" onClick={()=>setSidebarOpen(v=>!v)}>{sidebarOpen?<X size={18}/>:<Menu size={18}/>}</button>
+          <button ref={workspaceToggle} className="workspace-toggle" aria-label={compact?(sidebarOpen?'Close workspace':'Open workspace'):(sidebarOpen?'Hide sidebar':'Show sidebar')} aria-expanded={sidebarOpen} aria-controls="workspace-sidebar" onClick={()=>compact?setSidebarOpen(v=>!v):setSidebarHidden(v=>!v)}>{compact?(sidebarOpen?<X size={18}/>:<Menu size={18}/>):(sidebarOpen?<PanelLeftClose size={18}/>:<PanelLeftOpen size={18}/>)}</button>
           <div className="workspace-title"><h1 title={model?.name??current?.filename??'Semantic Workbench'}>{model?.name??current?.filename??'Semantic Workbench'}</h1><span className="badge"><span className="dot"/>{model?.kind??'ODCS + Apache Ossie'}</span></div>
           <div className="header-actions">
-            <button aria-label="Add item" onClick={()=>{if(!current)return;if(currentIsRdf)setRdfAdding(current.id);else setAdding({docId:current.id});}} disabled={!current||!model||(!currentIsRdf&&!addableKinds((model as any).document).length)} title="Add an entity or relationship to this file">
-              <Plus size={15} /> <span className="action-label">Add</span>
-            </button>
-            <button aria-label="Export" onClick={download} disabled={!source}>
-              <Download size={15} /> <span className="action-label">Export</span>
-            </button>
-            <button className={`save-state s-${autosave.state.status}`} role="status" aria-label="Save state" disabled={!current} title={`${current?saveState:'No file open'} — ${autosave.state.status==='invalid'?'show the validation findings':autosave.state.status==='stale'?'compare with the file on disk':'open Commit'}`} onClick={()=>{const st=autosave.state.status;if(st==='invalid')setShowValidation(true);else if(st==='stale')void openStale();else setCommitting(true);}}><span className="save-state-text">{current?saveState:'No file open'}</span></button>
+            <MenuButton ariaLabel="New" label={<span className="action-label">New</span>} icon={<Plus size={15}/>} buttonClassName="new-menu" items={newItems()}/>
+            <MenuButton ariaLabel="More actions" title="More actions" icon={<MoreHorizontal size={16}/>} items={[{label:'Export',icon:<Download size={14}/>,run:download,disabled:source?false:'Open a file to export it.',hint:'Download the file exactly as it is'}]}/>
+            <button className={`save-state s-${autosave.state.status}`} role="status" aria-label="Save state" disabled={!current} title={`${current?saveState:'No file open'} — ${autosave.state.status==='invalid'?'show the validation findings':autosave.state.status==='stale'?'compare with the file on disk':'open Commit'}`} onClick={()=>{const st=autosave.state.status;if(st==='invalid'||!!result.error)setShowValidation(true);else if(st==='stale')void openStale();else setCommitting(true);}}><span className="save-state-text">{current?saveState:'No file open'}</span></button>
             <button className="primary" onClick={()=>{void autosave.flush();setCommitting(true);}} disabled={!current||status?.gitAvailable===false} title={status?.gitAvailable===false?'Git is not available on this machine':'Commit changed files of this project'}>
               <GitCommitIcon size={15} />
               <span className="action-label">Commit…</span>
@@ -574,7 +618,7 @@ function App() {
             />
           </label>}
         </div>
-        {tab!=='scm'&&(source||current)&&(showValidation||!!result.error)&&<details className="validation-details" open><summary onClick={e=>{e.preventDefault();setShowValidation(false);}}>Validation findings</summary><ValidationPanel source={source} issues={validation.issues} onLocate={issue=>{setTab('source');setTimeout(()=>{sourceEditor.current?.locate(issue);},0);}}/></details>}
+
         <div ref={canvasRow} className={`canvas-row${inspectorVisible?' has-inspector':''}${pageDetails?' page-details':''}${fullscreen.active?' is-fullscreen':''}${fullscreen.fallback?' window-fill':''}`}>
           <section className="canvas" inert={pageDetails}>
             {tab==='contract'&&isContract&&current ? (contractObject?<DatasetPage key={contractObject} doc={current} data={(model as any).document} objectName={contractObject} projectDocs={docs.filter(d=>d.project===current.project)} onBack={()=>setContractObject(null)} onOpenObject={setContractObject} onOpenInLineage={openInLineage} onNeighborhood={continueInNeighborhood} gitVersion={gitVersion} editor={propertyEditor({doc:current,base:docText(current.id),onSaved:applySaved,onError:setMessage})}/>:<ContractOverview data={(model as any).document} onOpen={setContractObject} onOpenInLineage={openInLineage}/>) : tab==='scm' ? (scmSlug?<SourceControl onBusy={setGitBusy} onCommit={()=>{void autosave.flush();setCommitting(true);}} projects={projects} project={scmSlug} version={gitVersion} unsaved={current&&current.project===scmSlug&&source!==current.source?[current.path]:[]} historyPath={historyPath} onProject={slug=>{setMessage('');setScmProject(slug);setHistoryPath(undefined);}} onChanged={()=>void refresh().catch(()=>{})} onOpen={(project,path)=>{const d=docsRef.current.get(`${project}/${path}`);if(d&&open(d))setTab('source');}}/>:<p className="hint">Import definitions or load an example to start a project.</p>) : tab==='metrics' ? <MetricsView project={kpiProject} projectName={projects.find(p=>p.slug===kpiProject)?.name} kpis={kpis} error={kpiError} loading={kpiLoading} selected={selectedKpi} onSelect={setSelectedKpi} filter={kpiFilter} onNew={()=>setWizard(true)} onEdit={editKpi} onAddAttributes={k=>setWizard(k)}/> : tab==='mappings' ? <MappingExplorer onEditItem={editMappingItem} currentId={current?.id} revisionKey={docs.map(d=>d.id+':'+d.hash).join('|')} dirty={!!current&&source!==current.source}/> : !source && !current ? (
@@ -644,7 +688,7 @@ function App() {
                   {relationship.data.definition.verbalizes && <><dt>Verbalizations</dt><dd>{relationship.data.definition.verbalizes.join(' · ')}</dd></>}
                 </dl>
                 {relationship.data.kind !== 'Inheritance' && !relationship.data.readOnlyForm && <label>Description<textarea aria-label="Relationship description" value={relationship.data.definition.description ?? ''} onChange={e=>setSource(editEntity(source,relationship.data.path,e.target.value,current?.filename))}/></label>}
-                <details className="raw-definition"><summary>Full relationship definition</summary><pre>{JSON.stringify(relationship.data.definition,null,2)}</pre></details>
+                <button className="view-definition" onClick={()=>setDefinition({title:`Definition of ${relationship.label}`,value:relationship.data.definition})}><Braces size={13}/>View definition</button>
                 <p className="hint">Edit the description here or the full definition in Source. Save to persist changes.</p>
               </>
             ) : entity ? (
@@ -668,7 +712,7 @@ function App() {
                 {relatedDocuments.length>0 && <><div className="section-label">SHARED REFERENCES</div>{relatedDocuments.map(d=><button className="document" key={d.id} onClick={()=>open(d)}><FileCode size={14}/>{d.filename}</button>)}</>}
                 <div className="section-label">RELATIONSHIPS</div>
                 <div className="related-edges">{model?.edges.filter(e=>e.source===entity.id||e.target===entity.id).map(e=><button key={e.id} onClick={()=>{setSelectedEdge(e.id);setSelected('')}}><span>{e.label}</span><small>{model.entities.find(n=>n.id===(e.source===entity.id?e.target:e.source))?.name}</small></button>)}</div>
-                {entity.definition && <details className="raw-definition"><summary>Full definition</summary><pre>{JSON.stringify(entity.definition,null,2)}</pre></details>}
+                {entity.definition&&<button className="view-definition" onClick={()=>setDefinition({title:`Definition of ${entity.name}`,value:entity.definition})}><Braces size={13}/>View definition</button>}
                 {entity.fields.length > 0 && (
                   <>
                     <div className="section-label">FIELDS</div>

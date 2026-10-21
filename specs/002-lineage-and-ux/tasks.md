@@ -211,15 +211,15 @@ shopping center mapping in Graph; `bun run test:mapping-graph`.
 
 **Independent Test**: `bun run test:dialogs`, `test:responsive`.
 
-- [ ] T064 [P] [US5] Dialog check scripts/dialogs-browser-check.ts: every dialog of spec Appendix B opens from its trigger, fits each of the six viewports, traps focus, closes with Escape, returns focus
-- [ ] T065 [P] [US5] Sidebar tests in scripts/responsive-ui-tests.ts: resize by pointer and keyboard (220–520, persisted), no clipped names (2-line wrap + title), Examples collapsed when projects exist, one sidebar toggle on desktop (FR-061, FR-062, SC-008)
-- [ ] T066 [US5] [CODEX] Resizable sidebar with separator, width variable and persistence, two-line names, collapsible Examples in src/main.tsx, src/projects/Sidebar.tsx, src/style.css; brief specs/002-lineage-and-ux/codex/phase-08.md
-- [ ] T067 [US5] [CODEX] Single sidebar toggle (panel icon) on desktop, drawer close only below 1100 px in src/main.tsx and src/style.css (FR-062)
-- [ ] T068 [US5] `New` menu with per-kind Add dialogs and reasons for disabled kinds; context adds stay in details panel in src/main.tsx, src/edit/AddItem.tsx, src/edit/RdfAddItem.tsx (FR-060)
-- [ ] T069 [US5] Grouping suggestions as a one-line count opening a dialog in src/projects/Suggestions.tsx
-- [ ] T070 [US5] Import dialog (new project or into a project, conflict choice, repair) in src/projects/ImportDialog.tsx replacing the inline flows in src/main.tsx
-- [ ] T071 [US5] Validation details dialog opened from the Save state indicator; View definition dialog; Export in More actions, in src/main.tsx and src/ValidationPanel.tsx
-- [ ] T072 [US5] [CODEX] Header layout (title, New, Commit…, status, More actions) and dialog styling across the viewport matrix in src/style.css
+- [X] T064 [P] [US5] Dialog check scripts/dialogs-browser-check.ts: every dialog of spec Appendix B opens from its trigger, fits each of the six viewports, traps focus, closes with Escape, returns focus
+- [X] T065 [P] [US5] Sidebar tests in scripts/responsive-ui-tests.ts: resize by pointer and keyboard (220–520, persisted), no clipped names (2-line wrap + title), Examples collapsed when projects exist, one sidebar toggle on desktop (FR-061, FR-062, SC-008)
+- [X] T066 [US5] [CODEX] Resizable sidebar with separator, width variable and persistence, two-line names, collapsible Examples in src/main.tsx, src/projects/Sidebar.tsx, src/style.css; brief specs/002-lineage-and-ux/codex/phase-08.md
+- [X] T067 [US5] [CODEX] Single sidebar toggle (panel icon) on desktop, drawer close only below 1100 px in src/main.tsx and src/style.css (FR-062)
+- [X] T068 [US5] `New` menu with per-kind Add dialogs and reasons for disabled kinds; context adds stay in details panel in src/main.tsx, src/edit/AddItem.tsx, src/edit/RdfAddItem.tsx (FR-060)
+- [X] T069 [US5] Grouping suggestions as a one-line count opening a dialog in src/projects/Suggestions.tsx
+- [X] T070 [US5] Import dialog (new project or into a project, conflict choice, repair) in src/projects/ImportDialog.tsx replacing the inline flows in src/main.tsx
+- [X] T071 [US5] Validation details dialog opened from the Save state indicator; View definition dialog; Export in More actions, in src/main.tsx and src/ValidationPanel.tsx
+- [X] T072 [US5] [CODEX] Header layout (title, New, Commit…, status, More actions) and dialog styling across the viewport matrix in src/style.css
 
 ---
 

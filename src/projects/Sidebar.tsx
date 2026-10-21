@@ -24,13 +24,13 @@ export function ProjectTree({projects,currentId,onOpen,onAction}:{projects:Proje
  if(!projects.length)return <p className="projects-empty">No projects yet. Import definitions or load an example.</p>;
  return <ul className="project-tree" role="tree" aria-label="Projects">
   {projects.map(p=>{const open=!collapsed.has(p.slug);return <li key={p.slug} role="treeitem" aria-expanded={open} aria-label={p.name} className="project">
-   <div className="tree-row"><button className="project-toggle" title={p.name} aria-label={`${p.name}, ${p.files.length} file${p.files.length===1?'':'s'}`} onClick={()=>toggle(p.slug)} onKeyDown={e=>{if(e.key==='ArrowLeft'&&open){e.preventDefault();toggle(p.slug);}if(e.key==='ArrowRight'&&!open){e.preventDefault();toggle(p.slug);}}}>
-    {open?<ChevronDown size={14}/>:<ChevronRight size={14}/>}<FolderGit2 size={15}/><span>{p.name}</span><small>{p.files.length}</small>
+   <div className="tree-row"><button className="project-toggle" title={p.name} aria-label={p.name} onClick={()=>toggle(p.slug)} onKeyDown={e=>{if(e.key==='ArrowLeft'&&open){e.preventDefault();toggle(p.slug);}if(e.key==='ArrowRight'&&!open){e.preventDefault();toggle(p.slug);}}}>
+    {open?<ChevronDown size={14}/>:<ChevronRight size={14}/>}<FolderGit2 size={15}/><span title={p.name}>{p.name}</span><small>{p.files.length}</small>
    </button>
    <DeleteButton label={`Delete project ${p.name}`} onClick={()=>onAction({action:'delete-project',project:p.slug})}/>
    <ItemMenu label={p.name} items={[{label:'Rename',run:()=>onAction({action:'rename',project:p.slug})},{label:'Import files into this project',run:()=>onAction({action:'import',project:p.slug})},{label:'Edit .gitignore',run:()=>onAction({action:'gitignore',project:p.slug})},{label:'Delete',run:()=>onAction({action:'delete-project',project:p.slug})}]}/></div>
    {open&&<ul role="group">{p.files.map(f=>{const id=`${p.slug}/${f.path}`;return <li key={f.path} role="treeitem" aria-selected={currentId===id} aria-label={f.path} className={`project-file ${f.valid?'':'invalid'}`}>
-    <div className="tree-row file-row"><button className={`document ${currentId===id?'chosen':''}`} onClick={()=>onOpen(p.slug,f.path)}><FileCode size={15}/><span>{f.path}</span></button>
+    <div className="tree-row file-row"><button className={`document ${currentId===id?'chosen':''}`} aria-label={f.path} title={f.path} onClick={()=>onOpen(p.slug,f.path)}><FileCode size={15}/><span title={f.path}>{f.path}</span></button>
     <DeleteButton label={`Delete ${f.path}`} onClick={()=>onAction({action:'delete-file',project:p.slug,path:f.path})}/>
     <ItemMenu label={`${f.path} in ${p.name}`} items={[{label:'History',run:()=>onAction({action:'history',project:p.slug,path:f.path})},{label:'Move',run:()=>onAction({action:'move',project:p.slug,path:f.path})},{label:'Delete',run:()=>onAction({action:'delete-file',project:p.slug,path:f.path})}]}/></div>
     <small className="file-meta">{typeLabel(f.docType)}{f.layout==='embedded (deprecated)'&&<span title="Consolidated Ossie file: the ontology embeds its semantic model in ontology_mappings. Apache Ossie deprecates this layout in favour of split files."> · consolidated (deprecated upstream)</span>}{!f.valid&&<em className="file-invalid"> · invalid</em>}{f.gitState!=='clean'&&f.gitState!=='unknown'&&<> · {f.gitState}</>}</small>
