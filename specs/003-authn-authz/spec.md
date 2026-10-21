@@ -4,9 +4,12 @@
 
 **Created**: 2026-10-21
 
-**Status**: Clarified (open points OP-1 to OP-8 resolved with recommended defaults; owner to
-confirm). Revised 2026-10-21 for the owner's container and delivery-pipeline changes (US9 raised to
-P1 and moved right after foundations; US10 added). Constitution 3.0.0 applies.
+**Status**: Clarified (open points OP-1 to OP-5 resolved with recommended defaults, owner to
+confirm; OP-8 accepted by the owner). Revised 2026-10-21 for the owner's container and
+delivery-pipeline changes (US9 raised to P1 and moved right after foundations; US10 added), and
+revised again the same day: the repository runs nothing automatically, the owner builds and tests
+locally, and the delivery pipeline is an Azure DevOps Pipelines definition for the target
+environment. Constitution 3.0.0 applies.
 
 **Builds on**: feature 002 (`002-lineage-and-ux`, v0.3.0). This branch starts from
 `origin/002-lineage-and-ux` and is rebased onto `main` after 002 merges; every route, dialog and
@@ -63,15 +66,24 @@ repository projects, subfolder projects, metrics routes) is in scope for the acc
   locally, including a Keycloak for development; then Azure Container Apps (single replica, Azure
   Files, Key Vault, managed identity). The container exists right after the foundations and every
   later phase is verified in the container as well.
-- **Revision (same day)**: a GitHub Actions pipeline for `github.com/rmonteiro-pereira/semantic-workbench`
-  runs type check, unit tests, build, the mutation suite, the Playwright browser suites and the
-  Keycloak sign-in tests on every pull request and push; builds the image, scans it and produces a
-  software bill of materials; publishes the image on `main` and on version tags; deploys version
-  tags `v*` to Azure Container Apps through workload identity federation from GitHub to Azure (no
-  long-lived secrets) behind a manually approved production environment; runs a smoke test after
-  deployment and rolls back to the previous revision when it fails. Infrastructure as code is out
-  of scope: the Azure resources the pipeline expects are listed and set up by hand from a
-  documented guide.
+- **Revision (same day, superseding an earlier GitHub Actions plan)**: the GitHub repository runs
+  nothing automatically (no workflows, no image publishing, no deployment from the repository).
+  The owner builds, tests and scans the image on their own machine. The CI/CD pipeline is a
+  deliverable for the target environment, which uses **Azure DevOps Pipelines**: the repository
+  ships a multi-stage `azure-pipelines.yml` for the target organisation to import, with the stages
+  Validate (type check, unit tests, build, mutation suite, Playwright browser suites, Keycloak
+  sign-in tests against a Keycloak container), Image (build, vulnerability scan, software bill of
+  materials, push to the target's own Azure Container Registry) and Deploy (Azure Container Apps,
+  single replica, through an Azure Resource Manager service connection using workload identity
+  federation, no stored secrets; production gated by an Azure DevOps environment with approvals
+  and checks), a smoke test after deployment, automatic rollback to the previous revision when it
+  fails, and a manual rollback pipeline. Everything target-specific (subscription, resource group,
+  registry, Container Apps environment and app, Key Vault, Entra app and tenant) is a parameter or
+  a variable-group value; the guide lists what the target sets up (service connection,
+  environments, variable group, agent pool). Every step the pipeline runs is a package script the
+  owner also runs locally (for example `bun run ci:validate`, `image:build`, `image:scan`,
+  `image:sbom`); Docker Compose (with the Keycloak profile) stays for local runs. Infrastructure as
+  code is out of scope.
 
 Evidence for the current state: the authorization inventory of the 002 working tree (38 resource
 types, 57 implemented and 9 planned routes, 45 UI action groups, 42 policy attributes) is
@@ -119,32 +131,21 @@ owner (OP-1 to OP-5).
   history), and the policies inside project repositories (a project's editors could grant
   themselves access).
 
-### Session 2026-10-21 (container and pipeline revision; owner to confirm OP-6 to OP-8)
+### Session 2026-10-21 (container and pipeline revision)
 
-- Q: Which registry holds the published images? → A (OP-6): **Azure Container Registry** (Basic
-  tier, admin user disabled). The repository is private, so a GitHub Container Registry package
-  would also be private and Azure Container Apps could pull it only with a stored personal access
-  token, a long-lived secret. With Azure Container Registry the container app pulls through its
-  managed identity (`AcrPull`) and the pipeline pushes through workload identity federation
-  (`AcrPush`), so no registry credential exists anywhere. Cost: the registry's monthly fee.
-  Rejected: GitHub Container Registry (needs a stored token for a private package; acceptable only
-  if the repository and the image become public).
-- Q: How is the production approval enforced? → A (OP-7): a GitHub environment `production` with
-  required reviewers and a deployment rule allowing only `v*` tags. GitHub offers required
-  reviewers on private repositories only on its Enterprise plans (on Free, Pro and Team they apply
-  to public repositories). The pipeline is written for the environment; if the plan does not
-  offer required reviewers, the documented fallback is that the deploy workflow runs only on a
-  manual dispatch for an existing tag, by an actor listed in the repository variable
-  `SW_DEPLOYERS`, and the dispatch is the approval. Accepted risk of the fallback: the deploy
-  identity then trusts the `main` branch subject, so anyone able to merge to `main` could obtain
-  it; on GitHub Pro or Team an environment with a deployment rule but no reviewers keeps the
-  environment subject and is preferred.
-- Q: How does local mode run in a container when it may bind only to loopback? → A (OP-8): the
-  container in local mode uses host networking (`network_mode: host`), so the server binds the
-  host's `127.0.0.1` and the constitution's loopback rule holds unchanged. This works with Docker
-  Engine (Linux, WSL2) and Podman; Docker Desktop needs its host networking option enabled.
-  Rejected: binding the container interface and publishing the port only on the host's loopback
-  (the server cannot verify the publish address, so Principle I would need an amendment).
+The registry and approval-gate questions raised for a GitHub-hosted pipeline (formerly OP-6 and
+OP-7) no longer apply and are withdrawn: images are built on the owner's machine, the target's
+pipeline pushes to the target's own Azure Container Registry, and production approval is an
+Azure DevOps environment with approvals and checks that the target configures.
+
+- Q: How does local mode run in a container when it may bind only to loopback? → A (OP-8,
+  **accepted by the owner**): the container in local mode uses host networking
+  (`network_mode: host`), so the server binds the host's `127.0.0.1` and the constitution's
+  loopback rule holds unchanged. This works with Docker Engine (Linux, WSL2) and Podman. Docker
+  Desktop needs host networking turned on: Docker Desktop 4.34 or later, **Settings → Resources →
+  Network → Enable host networking**, then **Apply & restart** (Linux containers only). Rejected:
+  binding the container interface and publishing the port only on the host's loopback (the server
+  cannot verify the publish address, so Principle I would need an amendment).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -497,54 +498,71 @@ and confirm it refuses to serve; follow the Azure guide on a test subscription (
 
 ---
 
-### User Story 10 - Every change verified, every release deployed through the pipeline (Priority: P1)
+### User Story 10 - Verified locally with one command, delivered by the target's Azure DevOps pipeline (Priority: P1)
 
-A contributor opens a pull request; GitHub Actions runs the type check, unit tests, build,
-mutation suite, Playwright browser suites, the Keycloak sign-in tests, builds the image, scans it,
-produces its software bill of materials and runs the container checks; the pull request cannot
-merge while any of them fails. A merge to `main` publishes the image to the registry. When the
-owner pushes tag `v0.4.0`, the pipeline checks the tag, waits for approval in the `production`
-environment, then rescans and promotes the image already built and tested for that commit,
-deploys it to Azure Container Apps signing in to Azure through workload identity federation,
-runs a smoke test and, if the smoke test fails, puts the previous revision's image back; the
-GitHub release is created when the smoke test passes.
+The owner changes the code on their machine and runs `bun run ci:validate`: type check, unit and
+API tests, build, mutation suite, every browser suite of the quality gate, the Keycloak sign-in
+tests, the image build, scan and bill of materials, the suites against the image and the check of
+the pipeline definition all run, and any failure stops the run with a summary. Nothing runs on the
+GitHub repository. The repository ships `azure-pipelines.yml`; the target organisation imports it
+into Azure DevOps, fills one variable group and sets up a service connection, an environment and
+an agent pool from the guide. On the target, every run validates and builds the image with the
+same scripts; runs of `main` and of version tags push the image to the target's registry; a
+version tag `v0.4.0` waits for the approvals and checks of the target's `production` environment,
+deploys the image by digest to Azure Container Apps signing in through workload identity
+federation, runs a smoke test and, if it fails, returns to the previous revision. A manual
+rollback pipeline puts an earlier version back through the same approvals.
 
 **Why this priority**: P1, by owner decision. The verification gate of the constitution is only
-reliable when it runs on every change, and a reproducible, approved, reversible release is what
-makes the team deployment trustworthy.
+reliable when one command runs all of it, and the target environment needs a reproducible,
+approved, reversible delivery that runs exactly what the owner ran.
 
-**Independent Test**: open a pull request with a deliberately failing unit test and with a
-vulnerable base image and confirm the pipeline blocks both; merge a green change and confirm the
-image appears in the registry with its commit tag and its bill of materials; push a pre-release
-tag, approve, and confirm deployment and smoke test; push a tag whose image fails the smoke test
-and confirm the rollback; confirm no Azure credential is stored in GitHub.
+**Independent Test**: on the owner's machine, introduce a failing unit test and a base image with
+a fixable critical vulnerability and confirm `ci:validate` and `image:scan` fail; confirm the
+pipeline check rejects a pipeline step that is not a package script, an unpinned container image
+and a secret variable; run the pipeline dry run and confirm the stages, conditions and steps for a
+pull request, a `main` run and a version tag, with the deploy and rollback logic exercised against
+a fake Azure client; confirm the repository holds no workflow or bot configuration. On an Azure
+DevOps organisation and subscription made available for a trial (manual, recorded): import,
+configure from the guide, tag, approve, and confirm deployment, smoke test and rollback, and that
+no credential is stored.
 
 **Acceptance Scenarios**:
 
-1. **Given** a pull request or a push, **When** the pipeline runs, **Then** type check, unit
-   tests, build, mutation suite, browser suites, Keycloak sign-in tests, image build, image scan,
-   bill of materials and container checks all run, and a failure of any of them fails the run.
-2. **Given** the image scan, **When** it finds a critical or high vulnerability that has a fix,
-   **Then** the run fails unless the finding is listed in the ignore file with a reason and an
-   expiry date that has not passed.
-3. **Given** a push to `main` that passes every check, **When** the publish job runs, **Then** the
-   image is pushed to the registry tagged with the commit and `main`, and its bill of materials is
-   kept with the run.
-4. **Given** a version tag `v*` on a commit of `main` whose image was published, **When** the
-   release is approved, **Then** that same image (same digest, not rebuilt) is rescanned, tagged
-   with the version and deployed, and a GitHub release with the bill of materials is created after
-   the smoke test passes; a tag on a commit without a published image, or whose version differs
-   from the commit's `package.json` version, fails before approval with that reason.
-5. **Given** the release waiting for approval, **When** a required reviewer approves, **Then** the
-   pipeline signs in to Azure with a short-lived federated token, deploys the image by digest as a
-   new revision and runs the smoke test; without approval nothing is deployed.
-6. **Given** a deployed revision whose smoke test fails, **When** the failure is detected, **Then**
-   the previous image is deployed again, the smoke test is repeated on it, and the run fails with
-   both results in its summary.
-7. **Given** an Admin, **When** they run the rollback workflow for an earlier version, **Then** that
-   version's image is deployed after approval and smoke-tested.
-8. **Given** a pull request from a fork, **When** the pipeline runs, **Then** checks run without
-   access to Azure or to repository secrets, and no publish or deploy job runs.
+1. **Given** the owner's machine with Bun, Playwright browsers and Docker or Podman, **When** they
+   run `bun run ci:validate`, **Then** type check, unit and API tests, build, mutation suite,
+   browser suites, Keycloak sign-in tests, image build, image scan, bill of materials, the suites
+   against the image and the pipeline check all run, and a failure of any of them gives a non-zero
+   exit and names the failed step.
+2. **Given** the image scan (`bun run image:scan`), **When** it finds a critical or high
+   vulnerability that has a fix, **Then** it fails unless the finding is listed in the ignore file
+   with a reason and an expiry date that has not passed.
+3. **Given** the pipeline definition, **When** `bun run pipeline:lint` runs, **Then** it validates
+   the definition against the pinned Azure Pipelines schema and the repository's rules (stages
+   Validate, Image, Deploy; every script step calls a package script; container images pinned by
+   digest; no secret variable; Azure access only through the service-connection parameter) and
+   fails on any violation.
+4. **Given** `bun run pipeline:dry-run`, **When** it runs for a pull request, a `main` run and a
+   version tag, **Then** it lists the stages, jobs and steps that would run with their conditions,
+   runs the local steps for real and the Azure steps against a fake Azure client, and fails if a
+   step would differ from what `ci:validate` runs.
+5. **Given** the pipeline imported in the target organisation with its variable group, service
+   connection, environment and agent pool, **When** a run of `main` or of a version tag passes the
+   Validate and Image stages, **Then** the image is pushed to the target's registry tagged with the
+   commit, and the bill of materials and scan report are kept as pipeline artifacts.
+6. **Given** a version tag `v*` whose version core equals the `package.json` version of its commit
+   and is not older than the version deployed last, **When** the environment's approvals and checks
+   pass, **Then** the pipeline signs in to Azure through the service connection with a short-lived
+   federated token, rescans the image, tags the same digest with the version and deploys it by
+   digest as a new revision; without approval nothing is deployed; a tag that fails the version
+   rule fails before the approval request.
+7. **Given** a deployed revision whose smoke test fails, **When** the failure is detected, **Then**
+   the previous revision is restored as a new revision, the smoke test is repeated on it, and the
+   run fails with both results in its summary.
+8. **Given** an Admin of the target, **When** they run the rollback pipeline for an earlier version
+   or for the previous revision, **Then** it is deployed after the same approvals and smoke-tested.
+9. **Given** the GitHub repository, **When** anything is pushed to it, **Then** nothing runs: the
+   repository contains no workflow and no bot configuration, and a test fails if one is added.
 
 ---
 
@@ -584,24 +602,31 @@ and confirm the rollback; confirm no Azure credential is stored in GitHub.
   re-runs it; no credential prompt appears in the container.
 - Local mode on a non-loopback address is requested: the server refuses and explains that server
   mode with sign-in is required. In a container this includes local mode started without host
-  networking: the server binds loopback inside the container, is unreachable, and its start-up
-  log says to use the compose local profile (OP-8).
+  networking (or on Docker Desktop with host networking turned off): the server binds loopback
+  inside the container, is unreachable, and its start-up log says to use the compose local profile
+  and, on Docker Desktop, to enable host networking (OP-8).
 - The mounted data folder is not writable by the container's non-root user (wrong owner on a
   bind mount or wrong mount options on Azure Files): start-up stops with the path and the user id
   instead of failing on the first save.
 - A revision update starts the new revision while the old one holds the data root: the new one
   answers 503 with `Retry-After` on every route except health until the old one releases the lock
   at shutdown or its heartbeat is older than 30 seconds (FR-123).
-- The smoke test fails after a deployment: the previous image is deployed again; if the previous
-  image fails its smoke test too, the run fails, says so, and the app is left on the previous
-  image for a person to investigate.
-- A version tag is pushed on a commit that is not on `main`, or whose image was never published:
-  the release fails before any approval request, naming the reason.
-- A new critical vulnerability is published between the merge and the release: the release
-  rescan fails, nothing is deployed, and the fix is a new commit and tag.
-- Two version tags are pushed in quick succession: deployments and rollbacks run one at a time;
-  a deployment waiting behind another is replaced by a newer one (GitHub keeps one pending run per
-  concurrency group), and the release check refuses a tag older than the version deployed last.
+- The smoke test fails after a deployment: the previous revision is restored; if it fails its
+  smoke test too, the run fails, says so, and the app is left on the previous revision for a
+  person to investigate.
+- A version tag whose version core differs from `package.json`, or that is older than the version
+  deployed last: the Deploy stage fails before any approval request, naming the reason.
+- A new critical vulnerability is published between the image build and the deployment: the
+  rescan in the Deploy stage fails, nothing is deployed, and the fix is a new commit and tag.
+- Two version tags are pushed in quick succession: the environment's exclusive-lock check lets one
+  deployment or rollback run at a time and keeps only the newest waiting run; the version rule
+  refuses a tag older than the version deployed last.
+- `ci:validate` on a machine without Docker or Podman: the Keycloak, image and container steps
+  fail with a message saying a container runtime is required (they never pass by skipping); each
+  other step can still be run alone with `--step`.
+- The pipeline is imported with an incomplete variable group or missing service connection: the
+  first step that needs a value fails naming the variable, before any image is pushed or anything
+  is deployed.
 - A person is signed in during a deployment: sessions are persisted under the data root and
   survive the new revision; requests during the hand-over get 503 and the browser retries.
 - Pre-release tags (for example `v0.4.0-alpha.1`) deploy to the same environment; until the
@@ -880,8 +905,9 @@ and confirm the rollback; confirm no Azure credential is stored in GitHub.
   liveness endpoint; and takes configuration only through environment variables and secret
   references. The same image MUST run in local mode and in server mode.
 - **FR-121**: The README MUST document running the image with Docker Compose (local profile, and
-  server profile with a development Keycloak), Azure Container Apps (primary) and App Service
-  (alternative) deployment, the Azure resources the pipeline expects with their manual setup,
+  server profile with a development Keycloak; the Docker Desktop host networking setting), Azure
+  Container Apps (primary) and App Service (alternative) deployment, the local build scripts, the
+  Azure DevOps pipeline and what the target sets up for it,
   Entra and Keycloak setup, both modes, the role matrix, what each role can see, the outbound
   network calls of server mode, and the single-replica constraint with the path to scale.
 - **FR-122**: The server MUST refuse to serve when it detects another live instance of the same
@@ -906,46 +932,69 @@ and confirm the rollback; confirm no Azure credential is stored in GitHub.
   developer's choice) and a server profile (server mode against a development Keycloak loaded with
   the test realm, loopback public URL, development-only secrets).
 
-#### Continuous integration and delivery
+#### Local build and the target's delivery pipeline
 
-- **FR-130**: A GitHub Actions pipeline MUST run on every pull request and every push to a branch: type check,
-  unit and API tests, production build, mutation suite, every browser suite of the quality gate,
-  the Keycloak sign-in tests, the image build, the image scan, the bill of materials and the
-  container checks (the local and server suites run against the image). Any failure MUST fail the
-  run, and `main` MUST accept only changes whose run passed.
-- **FR-131**: The image scan MUST fail on critical or high vulnerabilities that have a fix, unless
+- **FR-130**: The repository MUST run nothing automatically on its hosting service: it MUST contain
+  no GitHub Actions workflow, no Dependabot or other bot configuration and no deployment from the
+  repository. A repository test MUST fail when such a file is added.
+- **FR-131**: The repository MUST provide package scripts that run every verification and build
+  step on the owner's machine with Docker or Podman: `ci:validate` (type check, unit and API tests,
+  production build, mutation suite, every browser suite of the quality gate, the Keycloak sign-in
+  tests, the image build, scan and bill of materials, the suites against the image, and the
+  pipeline check; selectable per step; any failure gives a non-zero exit naming the step),
+  `image:build`, `image:scan`, `image:sbom`, `image:push`, `test:container`, `pipeline:lint`,
+  `pipeline:dry-run`, `deploy:check-version`, `deploy:azure`, `deploy:smoke` and
+  `deploy:rollback`. Steps that need a
+  container runtime MUST fail, not skip, under `ci:validate` when none is present.
+- **FR-132**: The image scan MUST fail on critical or high vulnerabilities that have a fix, unless
   each is listed in an ignore file with a reason and an unexpired date. Every built image MUST get
   a software bill of materials in SPDX JSON.
-- **FR-132**: On a push to `main` that passes every check, the pipeline MUST publish the image to
-  Azure Container Registry tagged with the commit and `main` (OP-6).
-- **FR-133**: On a version tag `v*`, the pipeline MUST promote the image already published for the
-  tagged commit (same digest) to the version tag after a fresh scan, create a GitHub release with
-  the bill of materials once the deployment's smoke test passes, and refuse, before any approval,
-  a tag whose commit is not on `main`, has no published image, or whose version without a
-  pre-release suffix differs from the `package.json` version of that commit.
-- **FR-134**: Deployment to Azure Container Apps MUST run only for version tags, in the GitHub
-  environment `production` after manual approval (OP-7), one deployment at a time, and MUST deploy
-  the image by digest.
-- **FR-135**: The pipeline MUST authenticate to Azure only through OpenID Connect workload identity
-  federation, with one identity that may push images (publish) and one that may also update the
-  container app (deploy), each limited to those rights; no Azure or registry credential may be
-  stored in GitHub, and identifiers are kept as repository variables.
-- **FR-136**: After each deployment the pipeline MUST run a smoke test against the public URL:
+- **FR-133**: The repository MUST ship a multi-stage Azure DevOps Pipelines definition
+  (`azure-pipelines.yml`) for the target organisation to import, with the stages **Validate**,
+  **Image** and **Deploy** (deployment, smoke test and automatic rollback). Every step MUST either
+  call a package script of FR-131 or be a built-in Azure DevOps task used only to sign in to Azure,
+  publish test results or publish artifacts; no verification, build or deployment logic may exist
+  only in the pipeline.
+- **FR-134**: Validate MUST run on every run (pull-request validation through the target's branch
+  policy, pushes to `main`, version tags) with the same steps as `ci:validate`, the Keycloak
+  sign-in tests running against a Keycloak container on the agent. Image MUST build, scan and
+  inventory the image, run the suites against it, keep the bill of materials and scan report as
+  pipeline artifacts, and push the image to the target's Azure Container Registry tagged with the
+  commit only for runs of `main` and of version tags.
+- **FR-135**: Deploy MUST run only for version tags `v*`, refuse before any approval a tag whose
+  version without a pre-release suffix differs from the `package.json` version of its commit or is
+  older than the version deployed last (the highest version tag in the registry, since only
+  deployments add version tags), run as a deployment to an Azure DevOps environment (name
+  set by a parameter, `production` by default) whose approvals and checks the target configures,
+  one deployment at a time, rescan the image, tag the same digest with the version (no rebuild)
+  and deploy it by digest.
+- **FR-136**: The pipeline MUST access Azure only through Azure Resource Manager service
+  connections that use workload identity federation; no Azure, registry or provider credential
+  may be stored in the repository, the pipeline definition or the variable group. The service
+  connection used to push needs only push rights on the registry; the one used to deploy needs
+  only push rights on the registry and update rights on the container app.
+- **FR-137**: After each deployment the pipeline MUST run a smoke test against the public URL:
   readiness reaches state `serving` (a hand-over is waited out), liveness reports the deployed
   commit and the version baked into the image (the `package.json` version), an unauthenticated
   API call gets 401 with no workspace data, sign-in redirects to the provider's authorization
   endpoint (from its discovery document) with PKCE, and the security headers are present.
-- **FR-137**: When the smoke test fails, the pipeline MUST deploy the previously running image
-  again, smoke-test it and fail the run; a manually started rollback workflow MUST deploy a chosen
-  earlier version through the same approval and smoke test.
-- **FR-138**: Workflows MUST pin third-party actions by commit, grant the least permissions per
-  job (read-only by default; token issuance only to publish and deploy jobs), never run publish or
-  deploy for pull requests from forks, and keep dependency updates for actions, images and
-  packages automated.
-- **FR-139**: Infrastructure as code is out of scope: the deployment guide MUST list every Azure
-  resource, role assignment and GitHub setting the pipeline expects and the manual steps to create
-  them, and the deploy job MUST check before deploying that the container app has single revision
-  mode, exactly one replica, the data volume and the managed identity.
+- **FR-138**: When the smoke test fails, the pipeline MUST restore the revision that ran before the
+  deployment as a new revision, smoke-test it and fail the run. A manually started rollback
+  pipeline MUST deploy a chosen earlier version, or the previous revision, through the same
+  environment approvals and smoke test; it runs on the tag ref of the version to restore, so the
+  environment's branch rule admits it.
+- **FR-139**: Everything target-specific (subscription, tenant, resource group, registry,
+  Container Apps environment and app, Key Vault, Entra application and tenant, public URL, agent
+  pool, service connections, environment) MUST be a pipeline parameter or a variable of one
+  variable group; infrastructure as code is out of scope. The target setup guide MUST list every
+  Azure resource and role assignment and every Azure DevOps item (service connections, environment
+  with approvals and checks, variable group, agent pool, pipeline import, branch policy) with the
+  manual steps, and the deploy step MUST check before deploying that the container app has single
+  revision mode, exactly one replica, the data volume and the managed identity.
+- **FR-140**: The pipeline definition MUST be checked locally: validated against a pinned copy of
+  the Azure Pipelines YAML schema and the rules of FR-133 to FR-136 (`pipeline:lint`), and
+  simulated stage by stage with the Azure steps against a fake Azure client (`pipeline:dry-run`);
+  both are part of `ci:validate`.
 
 ### Key Entities
 
@@ -972,12 +1021,13 @@ and confirm the rollback; confirm no Azure credential is stored in GitHub.
 - **Bootstrap Admin**: a person named in the environment who always holds Admin (break-glass).
 - **Instance lock**: the record on the data root of the instance (host, process, revision,
   heartbeat) that may serve it.
-- **Image**: the container image built once per commit, identified by digest, with its version,
-  commit, scan result and bill of materials.
-- **Release**: a version tag, the image digest it promotes, its GitHub release and the deployment
-  it triggers.
+- **Image**: the container image built from one commit (on the owner's machine or by the target's
+  pipeline), identified by digest, with its version, commit, scan result and bill of materials.
+- **Pipeline definition**: the Azure DevOps multi-stage definition and its rollback pipeline,
+  shipped in the repository and run only by the target, with its parameters and variable group.
+- **Release**: a version tag, the image digest it promotes and the pipeline run that deploys it.
 - **Deployment**: a revision of the container app running one image digest, with its smoke-test
-  result and the previous digest kept for rollback.
+  result and the previous revision kept for rollback.
 
 ## Success Criteria *(mandatory)*
 
@@ -1009,16 +1059,21 @@ and confirm the rollback; confirm no Azure credential is stored in GitHub.
 - **SC-012**: 100% of attempts in the test suite to remove the last Admin, activate an invalid
   policy or weaken a baseline prohibition are refused, and a rollback restores the previous
   decisions for 100% of the matrix cases.
-- **SC-013**: 100% of the quality-gate checks (FR-130) run on every pull request and push, and the
-  pull-request pipeline finishes within 45 minutes on GitHub-hosted runners.
-- **SC-014**: Every published image has a bill of materials, and no released image has an
-  unignored critical or high vulnerability with a fix at release time.
+- **SC-013**: `bun run ci:validate` runs 100% of the quality-gate checks of FR-131, the pipeline's
+  Validate and Image stages call the same steps (100% of them, checked by the pipeline check), and
+  a full local run finishes within 45 minutes on the owner's workstation.
+- **SC-014**: Every built image has a bill of materials, and no image pushed or deployed by the
+  pipeline has an unignored critical or high vulnerability with a fix at that time.
 - **SC-015**: From approval to a smoke-tested revision takes at most 15 minutes; when the smoke
-  test fails, the previous image serves again within 10 minutes.
-- **SC-016**: Zero Azure or registry credentials are stored in the GitHub repository, its
-  environments or its variables; every Azure sign-in of the pipeline uses a federated token.
+  test fails, the previous revision serves again within 10 minutes (measured in the trial run).
+- **SC-016**: Zero Azure, registry or provider credentials are stored in the repository, the
+  pipeline definition or the variable group; every Azure sign-in of the pipeline uses a federated
+  token.
 - **SC-017**: A revision update interrupts service for at most the old instance's shutdown time
   plus 30 seconds, and never lets two instances serve one data root.
+- **SC-018**: The GitHub repository has zero workflow and bot configuration files, and from Phase 4
+  on every phase ends with `ci:validate` green on the owner's machine, including `pipeline:lint`
+  and `pipeline:dry-run`.
 
 ## Assumptions
 
@@ -1042,12 +1097,17 @@ and confirm the rollback; confirm no Azure credential is stored in GitHub.
   with the documented steps.
 - People's display names and emails from the provider may be shown to other people who share a
   project (commit authors, "in use by"), as in any Git hosting service.
-- One Azure environment (production) is deployed by the pipeline; pre-release tags use it with the
-  test fixture workspace until the P1 access stories are complete (see Edge Cases).
-- GitHub-hosted Ubuntu runners provide Docker for the image build, the container checks and the
+- One Azure environment (production by default) is deployed by the target's pipeline;
+  pre-release tags use it with the test fixture workspace until the P1 access stories are complete
+  (see Edge Cases).
+- The owner's machine has Bun, Playwright browsers and Docker Engine, Docker Desktop with host
+  networking enabled, or Podman; images are built and tested there and never published from the
+  repository.
+- The target provides Linux agents with Docker (Microsoft-hosted `ubuntu-latest` by default, or a
+  self-hosted pool named by a parameter) for the image build, the container checks and the
   Keycloak tests.
-- Released images are kept in the registry so that rollback can reach any earlier version;
-  retention of commit-tagged images is an Admin choice documented in the guide.
+- Released images are kept in the target's registry so that rollback can reach any earlier
+  version; retention of commit-tagged images is the target's choice, documented in the guide.
 
 ## Dependencies
 
@@ -1059,13 +1119,14 @@ and confirm the rollback; confirm no Azure credential is stored in GitHub.
   app roles, or Keycloak 26 or later).
 - For remote credentials: an Azure DevOps organisation connected to the same Entra tenant, or a
   GitHub OAuth app / GitHub App registered by the Admin.
-- Container runtime for the Keycloak tests and the container checks (Docker or Podman): GitHub-hosted
-  runners in CI, Docker Engine or Podman with host networking locally.
-- For delivery: an Azure subscription with the resources of the deployment guide (resource group,
-  Container Apps environment and app, storage account with an Azure Files share, Key Vault, Azure
-  Container Registry, Log Analytics workspace, two user-assigned identities federated with the
-  GitHub repository), and a GitHub plan that offers required reviewers on the repository's
-  environments or the fallback of OP-7.
+- Container runtime for the Keycloak tests and the container checks: Docker Engine, Docker Desktop
+  with host networking, or Podman on the owner's machine; Docker on the target's agents.
+- For delivery (target): an Azure DevOps organisation and project with an agent pool, Azure
+  Resource Manager service connections using workload identity federation, an environment with
+  approvals and checks and one variable group; and an Azure subscription with the resources of the
+  target setup guide (resource group, Container Apps environment and app, storage account with an
+  Azure Files share, Key Vault, Azure Container Registry, Log Analytics workspace, the app's
+  user-assigned identity). A trial run needs such an organisation and subscription.
 
 ## Appendix A - What exists today (from the authorization inventory)
 
