@@ -1,4 +1,4 @@
-import { chromium, expect, type Page } from '@playwright/test';
+import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { neighborhoodEdgeProblems, neighborhoodState, pickCenter } from './helpers/edge-geometry';
 import { inspect } from '../src/model';
@@ -12,10 +12,10 @@ const api = await startIsolatedApi();
 for (const id of ['ubl', 'mall', 'commerce-scale']) await api.ws.loadExample(id);
 const model = async (folder: string, file: string) =>
   inspect(await Bun.file(`public/examples/${folder}/${file}`).text(), file);
-const ubl = await model('ubl', 'ubl.ontology.yaml'),
-  mall = await model('mall', 'mall.ontology.yaml'),
-  scale = await model('commerce', 'commerce-scale.ttl'),
-  owl = await model('ubl', 'ubl.owl.ttl');
+const ubl = await model('ubl', 'ubl.ontology.yaml');
+const mall = await model('mall', 'mall.ontology.yaml');
+const scale = await model('commerce', 'commerce-scale.ttl');
+await model('ubl', 'ubl.owl.ttl');
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
 const errors: string[] = [];
@@ -58,8 +58,8 @@ async function expectState(
 async function expectCentered() {
   await expect
     .poll(async () => {
-      const box = (await page.locator('.react-flow__node.center').boundingBox())!,
-        canvas = (await page.locator('.neighborhood-canvas').boundingBox())!;
+      const box = (await page.locator('.react-flow__node.center').boundingBox())!;
+      const canvas = (await page.locator('.neighborhood-canvas').boundingBox())!;
       return (
         Math.abs(box.x + box.width / 2 - (canvas.x + canvas.width / 2)) < canvas.width * 0.06 &&
         box.y > canvas.y &&
@@ -124,11 +124,11 @@ try {
     'UBL: five steps across relationships (the last by keyboard), each with the right center, counts, origin and trail; no edge shares a path',
     async () => {
       for (let step = 1; step <= 5; step++) {
-        const previous = walked.at(-1)!,
-          n = neighborhood(ubl.entities, ubl.edges, {
-            center: previous,
-            keep: walked.length > 1 ? [walked.at(-2)!] : [],
-          });
+        const previous = walked.at(-1)!;
+        const n = neighborhood(ubl.entities, ubl.edges, {
+          center: previous,
+          keep: walked.length > 1 ? [walked.at(-2)!] : [],
+        });
         const next = n.entities.slice(1).find(e => !walked.includes(e.id))!;
         const walkButton = page.getByRole('button', { name: `Walk to ${next.name}`, exact: true });
         if (step === 5) {
@@ -279,6 +279,13 @@ try {
     page
       .locator('.neighborhood-canvas .react-flow__node')
       .evaluateAll(ns => ns.map(n => n.getAttribute('data-id')!).sort());
+  // Every node on the canvas, including those scrolled off screen: large canvases render only the
+  // visible part, so the DOM alone can miss nodes that are there.
+  const canvasIds = async () =>
+    ((await page.locator('.neighborhood-canvas').getAttribute('data-canvas-ids')) ?? '')
+      .split(' ')
+      .filter(Boolean)
+      .sort();
   const nodePositions = () =>
     page
       .locator('.neighborhood-canvas .react-flow__node')
@@ -290,16 +297,17 @@ try {
   const node = (m: typeof ubl, name: string) =>
     page.locator(`.neighborhood-canvas .react-flow__node[data-id="${id(m, name)}"]`);
   // The canvas the app must show, computed here from the file with the same pure functions.
-  const ublProjection = projectModel(ubl.entities, ubl.edges);
   const expectedCanvas = (
     m: typeof ubl,
     center: string,
     steps: { expand?: string; collapse?: string }[],
   ) => {
-    const p = projectModel(m.entities, m.edges),
-      base = neighborhood(m.entities, m.edges, { center: id(m, center) }).entities.map(e => e.id),
-      sets: any[] = [],
-      by = new Map<string, any>();
+    const p = projectModel(m.entities, m.edges);
+    const base = neighborhood(m.entities, m.edges, { center: id(m, center) }).entities.map(
+      e => e.id,
+    );
+    const sets: any[] = [];
+    const by = new Map<string, any>();
     for (const s of steps) {
       if (s.expand) {
         const n = neighbours(p.edges, id(m, s.expand), 'both');
@@ -362,8 +370,8 @@ try {
   await check(
     'UBL: Collapse on Item removes only what expanding Item alone added; Undo expansion and Forward restore the exact canvas',
     async () => {
-      const before = await nodePositions(),
-        ids = await nodeIds();
+      const before = await nodePositions();
+      const ids = await nodeIds();
       await node(ubl, 'Item').getByRole('button', { name: 'Collapse Item' }).click();
       await expect
         .poll(nodeIds)
@@ -403,15 +411,15 @@ try {
       await openFile('mall.ontology.yaml');
       await tab('Neighborhood').click();
       await pickCenter(page, 'Lease');
-      const lease = id(mall, 'Lease'),
-        p = projectModel(mall.entities, mall.edges),
-        r = boundedClosure(p.entities, p.edges, [lease], {
-          direction: 'out',
-          valueTypes: true,
-          technical: false,
-          metrics: true,
-          budget: PIERCE_BUDGET,
-        });
+      const lease = id(mall, 'Lease');
+      const p = projectModel(mall.entities, mall.edges);
+      const r = boundedClosure(p.entities, p.edges, [lease], {
+        direction: 'out',
+        valueTypes: true,
+        technical: false,
+        metrics: true,
+        budget: PIERCE_BUDGET,
+      });
       await page
         .getByRole('radiogroup', { name: 'Pierce direction' })
         .getByRole('radio', { name: 'Outgoing' })
@@ -419,7 +427,7 @@ try {
       await page.getByRole('button', { name: 'Full pierce' }).click();
       const status = page.locator('.pierce-banner');
       await expect(status).toContainText(`${r.shown} entities shown in ${r.maxStep} steps`);
-      const ids = await nodeIds();
+      const ids = await canvasIds();
       for (const n of r.nodes) expect(ids).toContain(n);
       expect(new Set(ids).size).toBe(ids.length);
       await shot('pierce-lease');
@@ -430,8 +438,8 @@ try {
     async () => {
       await openFile('commerce-scale.ttl');
       await tab('Neighborhood').click();
-      const p = projectModel(scale.entities, scale.edges),
-        start = (await neighborhoodState(page)).center!;
+      const p = projectModel(scale.entities, scale.edges);
+      const start = (await neighborhoodState(page)).center!;
       const r = boundedClosure(p.entities, p.edges, [start], {
         direction: 'both',
         valueTypes: true,
