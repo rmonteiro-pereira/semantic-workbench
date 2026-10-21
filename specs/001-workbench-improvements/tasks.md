@@ -324,10 +324,10 @@ to concepts and ODCS.
 **Independent Test**: quickstart.md "Phases 10–12"; SC-013.
 
 - [ ] T147 [US10] Write the Codex brief (FR-066–067, viewport matrix, defects list, suites) in specs/001-workbench-improvements/codex/phase-10.md
-- [ ] T148 [US10] Extend scripts/responsive-ui-tests.ts with a resize sweep and full-screen enter/exit state-restore checks (written before the Codex work)
-- [ ] T149 [US10] [CODEX] Full-screen control, Escape exit and window-filling fallback in src/graph/fullscreen.ts, src/FullGraph.tsx and src/NeighborhoodGraph.tsx
+- [X] T148 [US10] Extend scripts/responsive-ui-tests.ts with a resize sweep and full-screen enter/exit state-restore checks (written before the Codex work)
+- [X] T149 [US10] [CODEX] Full-screen control, Escape exit and window-filling fallback in src/graph/fullscreen.ts, src/FullGraph.tsx and src/NeighborhoodGraph.tsx (implemented without Codex while Codex was unavailable)
 - [ ] T150 [US10] [CODEX] Adaptive reflow for sidebar, toolbars, inspector, Metrics, ODCS, Source Control and editors in src/style.css
-- [ ] T151 [US10] Add mutant: full-screen exit does not restore the view
+- [X] T151 [US10] Add mutant: full-screen exit does not restore the view
 
 ---
 
