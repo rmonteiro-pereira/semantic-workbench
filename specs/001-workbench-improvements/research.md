@@ -650,3 +650,33 @@ and recorded here so later phases build on them.
 - **Panel placement.** Source Control is a main-area view opened from the sidebar (like the Metrics
   view), with the changes column beside the diff; on narrow screens the diff goes below.
 
+## R21. Implementation decisions taken in Phase 9
+
+- **Codex.** The brief (`codex/phase-09.md`) was written for Codex CLI, whose sign-in had expired;
+  by owner decision the [CODEX] tasks of this and later phases are implemented directly, following
+  the briefs, without Codex.
+- **Where the pages live.** An ODCS document gets a **Contract** tab (first in the tab bar, only for
+  ODCS); the overview and the dataset pages render in the main canvas, one object page at a time,
+  with **All objects** back. Opening an ODCS file does not switch tabs automatically, so the graph
+  views stay where users left them.
+- **Property diff** compares every attribute as canonical JSON (key order never counts), matches
+  objects and properties by `id` when every one of them has an id and by name (dotted path for
+  nested properties) otherwise, and reports a renamed property with ids as one change. History reads
+  up to 20 committed versions through `GET git/versions` (added to the contract) and diffs them in
+  the browser; "last change" is the newest version in which the object's own definition differs.
+- **Lineage** is derived from declared names only: foreign keys from the contract (both
+  directions), semantic datasets whose `source` equals the object's `physicalName` (or name), fields
+  whose parsed expressions read one of its columns, metrics whose expressions aggregate those fields
+  (`dataset.field`, or a bare field in a one-dataset model), and metrics built on those metrics.
+  Metrics with a workbench extension are shown as KPIs. Depth counts hops from the object; the
+  control offers 1 to the furthest hop. The graph is a column layout (one column per hop) with
+  inline SVG edges in its own scroll area, so large lineages never widen the page.
+- **In-place edits** cover logical type (the schema's enum), required, unique, primary key,
+  classification and description of top-level properties; nested properties are edited in the item
+  editor or Source. Unticking a flag or emptying a text removes the key, as the item editor does.
+  Each edit is one `valuePatches` change (YAML or JSON), validated with the shared rules (pinned
+  ODCS 3.1.0 schema) and saved with the base hash; if the open file has unsaved Source edits, the
+  edit starts from them and saving includes them, as in the Phase 6 item editor.
+- **Quality** is listed as declared (object and property rules, thresholds such as `mustBe` and
+  `mustBeBetween` written as `= 0`, `between 1 and 5`) with an explicit statement that nothing runs.
+
