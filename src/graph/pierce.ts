@@ -1,10 +1,11 @@
+/** Traverses reachable graph nodes deterministically within a node budget. */
 import type { Direction, Link } from './expansion';
-// Full pierce (FR-020–FR-022, research R5): the transitive closure from the start nodes along the
-// chosen direction, optionally one relationship label, honouring the Value types, Technical
-// resources and metrics switches, cut at a node budget. Breadth first; within a step nodes are
-// ordered by the relationship that reached them, then name, then id, so the result is the same
-// for the same input. Each node appears once; cycles terminate. Runs in pierce.worker.ts.
+// Traversal honors direction, relationship and visibility filters within a node budget.
+// Breadth-first ties use relationship, name and ID order; each node appears once. Only discovery
+// edges are drawn so dense relationships do not bury the result.
+/** Supplies node identity, name and kind for filtered traversal. */
 export type PierceNode = { id: string; name: string; kind: string };
+/** Controls traversal direction, visibility filters and the node budget. */
 export type PierceOptions = {
   direction: Direction;
   relationship?: string;
@@ -13,6 +14,7 @@ export type PierceOptions = {
   metrics: boolean;
   budget: number;
 };
+/** Reports reached nodes, discovery edges, distances and hidden frontier counts. */
 export type PierceResult = {
   nodes: string[];
   edges: string[];
@@ -28,11 +30,13 @@ export const PIERCE_MAX = 500;
 const VALUE_KINDS = new Set(['ValueType', 'Built-in concept']);
 // Technical resources as the Neighborhood projection reads them: in a model with OWL classes,
 // everything that is not a class.
+/** Identifies non-class resources when the model contains OWL classes. */
 export function technicalIds(nodes: PierceNode[]) {
   return nodes.some(n => n.kind === 'OWL class')
     ? new Set(nodes.filter(n => n.kind !== 'OWL class').map(n => n.id))
     : new Set<string>();
 }
+/** Traverses filtered relationships deterministically and limits visible nodes to the budget. */
 export function boundedClosure(
   nodes: PierceNode[],
   edges: Link[],
@@ -111,8 +115,8 @@ export function boundedClosure(
       }
     if (n) frontier[id] = n;
   }
-  // The lines drawn are the ones that reached each node (a tree): every shown node is connected
-  // to the start, and the canvas is not buried under every relationship among 150 nodes.
+  // The lines drawn are the ones that reached each node (a tree): every shown node is connected to
+  // the start, and the canvas is not buried under every relationship among 150 nodes.
   const edgeIds = shownList.filter(id => via[id]).map(id => via[id]);
   const shownSteps: Record<string, number> = {};
   for (const id of shownList) shownSteps[id] = steps[id];

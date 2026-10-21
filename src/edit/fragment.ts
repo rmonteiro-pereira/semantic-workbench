@@ -1,3 +1,5 @@
+/** Edits an item's own lines while preserving every byte outside it and unchanged values
+ * inside it. */
 import type { Issue } from '../diagnostics';
 import { applyPatches } from '../editor/patch';
 import { parseSource, valuePatches, itemValue } from './yaml-patch';
@@ -10,9 +12,10 @@ import {
   type ItemKind,
   type Path,
 } from './item-model';
-// The item editor's draft (FR-048, FR-053): the item's own lines, without their indentation, are
-// edited on their own (as fields or as source) and put back into the file in place. Every byte
-// outside the item stays as it was; inside it, only the changed values change.
+// The item editor's draft: the item's own lines, without their indentation, are edited on their
+// own (as fields or as source) and put back into the file in place. Every byte outside the item
+// stays as it was; inside it, only the changed values change.
+/** Records an item's source range, indentation and fragment-local path. */
 export type Fragment = {
   from: number;
   to: number;
@@ -21,6 +24,7 @@ export type Fragment = {
   path: Path;
   line: number;
 };
+/** Extracts an item's source lines with their common indentation removed. */
 export function openFragment(base: string, path: Path): Fragment {
   const node: any = parseSource(base).getIn(path, true);
   if (!node?.range) throw Error(`Nothing at /${path.join('/')}.`);
@@ -35,9 +39,11 @@ export function openFragment(base: string, path: Path): Fragment {
     line: base.slice(0, span.from).split(/\r\n|\r|\n/).length,
   };
 }
+/** Restores fragment indentation and preserves all bytes outside the item. */
 export const splice = (base: string, f: Fragment, text: string) =>
   base.slice(0, f.from) + reindent(text, f.prefix) + base.slice(f.to);
-// The item value of an edited fragment, or why it is not one item any more.
+
+/** Parses exactly one item from a fragment or returns an explanation of failure. */
 export function fragmentValue(f: Fragment, text: string): { value?: any; error?: string } {
   try {
     if (f.path.length) {
@@ -55,6 +61,7 @@ export function fragmentValue(f: Fragment, text: string): { value?: any; error?:
 }
 // Findings of the whole draft, on the fragment's lines; errors elsewhere stay document-level (they
 // block Save too), warnings elsewhere are about the rest of the file and are left out.
+/** Maps findings to fragment lines while retaining errors elsewhere that block Save. */
 export function fragmentIssues(issues: Issue[], f: Fragment, text: string): Issue[] {
   const lines = text.split(/\r\n|\r|\n/).length;
   const inside = (i: Issue) => i.line !== undefined && i.line >= f.line && i.line < f.line + lines;
@@ -76,6 +83,7 @@ export function fragmentIssues(issues: Issue[], f: Fragment, text: string): Issu
     });
 }
 // One form field changed: the item is rewritten through the patcher, so only that value changes.
+/** Patches one form field and reapplies metric status rules when needed. */
 export function setField(
   text: string,
   f: Fragment,

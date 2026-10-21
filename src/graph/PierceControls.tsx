@@ -1,10 +1,12 @@
+/** Provides worker-backed graph traversal controls, cancellation and expansion summaries. */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Network, Square, Undo2 } from 'lucide-react';
 import type { Direction, Link } from './expansion';
 import type { PierceNode, PierceOptions, PierceResult } from './pierce';
-// Shared Full pierce controls (FR-020–FR-022, ui-contracts "Lineage canvas" and "Neighborhood"):
-// Full pierce, the Pierce direction radio group, Stop while running, Undo expansion. The closure
-// runs in pierce.worker.ts; Stop or a new run terminates the previous worker.
+// Shared Full pierce controls: Full pierce, the Pierce direction radio group, Stop while running,
+// Undo expansion. The closure runs in pierce.worker.ts; Stop or a new run terminates the previous
+// worker.
+/** Runs graph traversal in a worker and terminates superseded or stopped runs. */
 export function usePierce() {
   const worker = useRef<Worker | null>(null);
   const seq = useRef(0);
@@ -57,6 +59,7 @@ const LABELS: Record<Direction, [string, string]> = {
   in: ['In', 'Incoming'],
   both: ['Both', 'Both'],
 };
+/** Selects traversal direction and offers start, stop and undo actions. */
 export function PierceControls({
   direction,
   onDirection,
@@ -113,7 +116,8 @@ export function PierceControls({
     </span>
   );
 }
-// The banner after a pierce (FR-021): shown and reachable counts, Expand further, Stop.
+// The banner after a pierce: shown and reachable counts, Expand further, Stop.
+/** Shows traversal coverage and controls for expanding further or stopping. */
 export function PierceBanner({
   result,
   budget,

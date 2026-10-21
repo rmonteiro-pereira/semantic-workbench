@@ -1,11 +1,12 @@
+/** Reads and validates workbench metric attributes stored as JSON in Ossie custom extensions. */
 import Ajv2020 from 'ajv/dist/2020';
 import metricSchema from '../../schemas/semantic-workbench-metric-v1.json';
 import mappingSchema from '../../schemas/semantic-workbench-mapping-v1.json';
 import type { Issue } from '../diagnostics';
 import { ansiExpression, expressionRefs, metricDependencies } from './deps';
-// metric attributes in Ossie `custom_extensions` (research R1, R12): an entry with
-// vendor_name SEMANTIC_WORKBENCH whose `data` is a JSON string. Validated against the pinned
-// application schemas by the same code in the browser, the file store and the API (FR-003).
+// Metric attributes in Ossie `custom_extensions`: an entry with vendor_name SEMANTIC_WORKBENCH
+// whose `data` is a JSON string. Validated against the pinned application schemas by the same code
+// in the browser, the file store and the API.
 export const VENDOR = 'SEMANTIC_WORKBENCH';
 export const METRIC_SCHEMA = 'semantic-workbench/metric/v1';
 export const MAPPING_SCHEMA = 'semantic-workbench/mapping/v1';
@@ -13,9 +14,13 @@ const ajv = new Ajv2020({ strict: false, allErrors: true });
 const checkMetric = ajv.compile(metricSchema);
 const checkMapping = ajv.compile(mappingSchema);
 export const GRAINS = ['day', 'week', 'month', 'quarter', 'year'] as const;
+/** Names a supported time granularity for metric aggregation. */
 export type Grain = (typeof GRAINS)[number];
+/** Names the metric calculation categories supported by workbench extensions. */
 export type KpiType = 'simple' | 'ratio' | 'derived' | 'cumulative' | 'filtered';
+/** Describes which dimensions permit a metric to be summed. */
 export type Additivity = 'additive' | 'semi_additive' | 'non_additive';
+/** Defines validated workbench attributes for a metric. */
 export type MetricExtension = {
   schema: string;
   label?: string;
@@ -39,10 +44,12 @@ export type MetricExtension = {
   replaced_by?: string;
   deprecation_reason?: string;
 };
+/** Links a metric to the concept it measures and an optional subject concept. */
 export type KpiBinding = { metric: string; measures: string; of?: string };
 const object = (v: unknown): v is Record<string, any> =>
   !!v && typeof v === 'object' && !Array.isArray(v);
-// The workbench's entry in a custom_extensions list, with its index (for issue paths).
+
+/** Finds the workbench extension and its index for validation paths. */
 export function workbenchEntry(owner: any): { index: number; data: unknown } | null {
   const list = owner?.custom_extensions;
   if (!Array.isArray(list)) return null;
@@ -76,7 +83,8 @@ function parseData(data: unknown, path: string): { value?: any; issues: Issue[] 
     };
   }
 }
-// Rules stated in plain language; the schema's if/then branches would otherwise report bare `required`.
+// Rules stated in plain language; the schema's if/then branches would otherwise report bare
+// `required`.
 function metricRules(v: any): { inner: string; message: string }[] {
   const out: { inner: string; message: string }[] = [];
   if (!object(v)) return out;
@@ -139,7 +147,8 @@ function schemaIssues(
     }
   return issues;
 }
-// Parse and validate a metric's extension. `path` is the JSON pointer of the metric.
+
+/** Parses and validates a metric extension using the metric's JSON pointer for findings. */
 export function readMetricExtension(
   metric: any,
   path = '',
@@ -152,7 +161,8 @@ export function readMetricExtension(
   const issues = schemaIssues(checkMetric, parsed.value, dataPath, metricRules(parsed.value));
   return { value: issues.length ? null : parsed.value, issues };
 }
-// Parse and validate metric bindings in a mapping document root (or an embedded semantic model root).
+
+/** Parses and validates metric bindings from a mapping or embedded model root. */
 export function readKpiBindings(
   owner: any,
   path = '',
@@ -185,7 +195,8 @@ export function readKpiBindings(
   );
   return { value: issues.length ? [] : parsed.value.kpi_bindings, issues };
 }
-// Offset of an inner JSON key inside a block scalar's source range, for line/column reporting.
+
+/** Finds an inner JSON key's source offset within an extension block scalar. */
 export function locateInner(source: string, start: number, end: number, innerPath: string) {
   const keys = innerPath
     .split('/')
@@ -199,7 +210,9 @@ export function locateInner(source: string, start: number, end: number, innerPat
   }
   return start;
 }
-// Top-level shape of an expression: `a / b` or `a / NULLIF(b, 0)` over two metric names is a ratio.
+// Top-level shape of an expression: `a / b` or `a / NULLIF(b, 0)` over two metric names is a
+// ratio.
+/** Recognizes a ratio between metric names, including a NULLIF zero guard. */
 export function ratioParts(
   sql: string,
   metricNames: Set<string>,
@@ -215,7 +228,8 @@ export function ratioParts(
     ? { numerator, denominator, guarded: !!m[2] }
     : null;
 }
-// The metric type an expression shows, used when no type is declared and to check a declared one.
+
+/** Infers a metric calculation type from its expression. */
 export function inferredType(
   sql: string | undefined,
   metricNames: Set<string>,
@@ -228,6 +242,7 @@ export function inferredType(
 }
 // Additivity an expression implies when none is declared: SUM/COUNT of fields add up; ratios,
 // distinct counts, averages, minima and maxima do not. Null when it cannot be told.
+/** Infers whether an expression can be summed, or returns null when unknown. */
 export function inferredAdditivity(
   sql: string | undefined,
   kind: KpiType,
@@ -252,8 +267,9 @@ export function inferredAdditivity(
   return /^\s*(SUM|COUNT)\s*\(/i.test(sql) ? 'additive' : null;
 }
 const GRAIN_ORDER = new Map(GRAINS.map((g, i) => [g, i]));
-// Cross-references within one semantic model (FR-004): inputs exist, no cycles, grains and fields
-// exist, and the declared type agrees with the expression.
+// Cross-references within one semantic model: inputs exist, no cycles, grains and fields exist,
+// and the declared type agrees with the expression.
+/** Checks metric dependencies, cycles, fields, grains and declared calculation types. */
 export function metricLayerIssues(
   model: any,
   prefix: string,
@@ -371,4 +387,5 @@ export function metricLayerIssues(
   }
   return issues;
 }
+/** Exports the shared SQL reference reader for metric dependencies. */
 export { expressionRefs };

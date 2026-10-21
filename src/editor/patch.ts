@@ -1,11 +1,13 @@
+/** Maps editor changes to original file offsets so untouched bytes remain exact. */
 import type { ChangeSet, Text } from '@codemirror/state';
-// Byte-exact editing (FR-046, research R2). CodeMirror keeps its document with "\n" line breaks, so
-// the editor never owns the file's bytes: each change is mapped back to offsets in the original
-// text and applied there. Untouched line endings, tabs and the trailing newline stay as they were;
-// line breaks typed by the user take the file's dominant style.
+// CodeMirror normalizes line endings, so edits map back to the original file offsets. Untouched
+// line endings, tabs and the trailing newline stay exact. New line breaks use the file’s dominant
+// style.
+/** Replaces an original source range with supplied text. */
 export type Patch = { from: number; to: number; insert: string };
 // Start offset of every line in the original text; a line break is \r\n, \n or a lone \r (as in
 // CodeMirror's own line splitting).
+/** Returns line-start offsets recognizing CRLF, LF and lone CR breaks. */
 export function lineStarts(text: string) {
   const starts = [0];
   for (let i = 0; i < text.length; i++) {
@@ -17,6 +19,7 @@ export function lineStarts(text: string) {
   }
   return starts;
 }
+/** Chooses the original file's most common line-ending sequence. */
 export function dominantLineBreak(text: string): '\r\n' | '\n' | '\r' {
   let crlf = 0;
   let lf = 0;
@@ -32,13 +35,16 @@ export function dominantLineBreak(text: string): '\r\n' | '\n' | '\r' {
   }
   return crlf > lf && crlf >= cr ? '\r\n' : cr > lf && cr > crlf ? '\r' : '\n';
 }
-// The editor text of an original: every line break as "\n".
+
+/** Converts source line endings to the editor's LF representation. */
 export const normalize = (text: string) => text.replace(/\r\n?/g, '\n');
-// A position in the normalized document → offset in the original text.
+
+/** Maps a normalized editor position back to its original source offset. */
 export function originalOffset(doc: Text, starts: number[], pos: number) {
   const line = doc.lineAt(pos);
   return starts[line.number - 1] + (pos - line.from);
 }
+/** Maps editor changes to original bytes and uses the file's line endings for inserts. */
 export function changesToPatches(
   original: string,
   doc: Text,
@@ -56,6 +62,7 @@ export function changesToPatches(
   });
   return patches;
 }
+/** Applies source replacements while preserving every untouched byte. */
 export function applyPatches(text: string, patches: Patch[]) {
   let out = '';
   let at = 0;
@@ -67,8 +74,8 @@ export function applyPatches(text: string, patches: Patch[]) {
   }
   return out + text.slice(at);
 }
-// The smallest single patch that turns `base` into `next` (common prefix and suffix kept): what a
-// save sends instead of the whole file.
+
+/** Returns the smallest single replacement without splitting CRLF or surrogate pairs. */
 export function diffPatches(base: string, next: string): Patch[] {
   if (base === next) return [];
   let start = 0;

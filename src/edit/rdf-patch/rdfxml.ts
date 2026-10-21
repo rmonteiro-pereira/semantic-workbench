@@ -1,13 +1,14 @@
+/** Patches RDF/XML elements in place while preserving unrelated bytes and namespace
+ * declarations. */
 import { graph, parse } from 'rdflib';
 import type { Patch } from '../../editor/patch';
 import { lineEndAfter, lineStart } from '../source-text';
 import { BASE, RDF, type Term, type Triple } from './terms';
-// RDF/XML (FR-055): a resource's node element is edited in place. Property elements are removed,
-// replaced or added (at the indentation of their siblings); other elements, namespace declarations
-// and comments keep their bytes. Constructs that span more than the element (parse-type
-// collections, reified statements, nested descriptions of named resources, rdf:li) are refused,
-// with the line to open in Source.
+// Collections, reified statements, nested named descriptions and rdf:li can span elements. These
+// constructs are refused with a source location so users can edit them in Source.
+/** Records an XML attribute's name, value and source span. */
 export type Attr = { name: string; value: string; start: number; end: number };
+/** Records an XML element's hierarchy, attributes and source spans. */
 export type El = {
   name: string;
   attrs: Attr[];
@@ -30,12 +31,14 @@ const decode = (s: string) =>
           e.toLowerCase()
         ],
   );
+/** Escapes XML text or attribute content. */
 export const escapeXml = (s: string, attr = false) =>
   s
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(attr ? /"/g : /$^/, '&quot;');
+/** Scans XML elements while retaining their source locations. */
 export function scanXml(src: string): El {
   const root: El = {
     name: '#document',
@@ -127,7 +130,8 @@ export function scanXml(src: string): El {
   }
   return root;
 }
-// Namespaces, xml:base and xml:lang in scope at an element.
+
+/** Collects inherited namespaces, base IRI and language for an XML element. */
 export function scope(el: El | null) {
   const ns: Record<string, string> = {};
   const chain: El[] = [];
@@ -143,6 +147,7 @@ export function scope(el: El | null) {
     }
   return { ns, base, lang };
 }
+/** Expands an XML qualified name using the in-scope namespaces. */
 export const expandName = (name: string, ns: Record<string, string>) => {
   const k = name.indexOf(':');
   return k < 0 ? (ns[''] ?? '') + name : (ns[name.slice(0, k)] ?? '') + name.slice(k + 1);
@@ -159,16 +164,19 @@ const SYNTAX = new Set([
   'xml:base',
   'xml:space',
 ]);
+/** Resolves the RDF subject named by an XML node element. */
 export function subjectOf(el: El): string | null {
   const { base } = scope(el);
   const about = attr(el, 'rdf:about');
   const id = attr(el, 'rdf:ID');
   return about ? new URL(about.value, base).href : id ? new URL('#' + id.value, base).href : null;
 }
+/** Finds the RDF root element in a scanned XML document. */
 export function rdfRoot(doc: El) {
   return doc.children.find(c => expandName(c.name, scope(c).ns) === RDF + 'RDF') ?? null;
 }
-// Every node element (top level and nested) with its subject.
+
+/** Lists top-level and nested RDF node elements with their subjects. */
 export function nodeElements(root: El) {
   const out: { el: El; subject: string | null; top: boolean }[] = [];
   const visitNode = (el: El, top: boolean) => {
@@ -181,6 +189,7 @@ export function nodeElements(root: El) {
   for (const c of root.children) visitNode(c, true);
   return out;
 }
+/** Describes an RDF/XML statement and the source construct that expresses it. */
 export type XmlPair = {
   kind: 'type' | 'attr' | 'element';
   el: El;
@@ -193,7 +202,8 @@ export type XmlPair = {
   refuse?: string;
 };
 const lineOf = (src: string, pos: number) => src.slice(0, pos).split('\n').length;
-// The statements one node element makes about its subject.
+
+/** Reads the statements an XML node element makes about its subject. */
 export function elementPairs(src: string, el: El): XmlPair[] {
   const { ns, lang } = scope(el);
   const out: XmlPair[] = [];
@@ -307,7 +317,8 @@ export function elementPairs(src: string, el: El): XmlPair[] {
   }
   return out;
 }
-// The triples one property element makes, read on their own (for nested descriptions).
+
+/** Parses one property element with the namespaces needed for its description. */
 export function isolatedTriples(src: string, c: El, subject: string): Triple[] {
   const { ns, base, lang } = scope(c.parent);
   const decl = Object.entries(ns)
@@ -337,8 +348,9 @@ export function isolatedTriples(src: string, c: El, subject: string): Triple[] {
     o: plain(s.object),
   }));
 }
-// --- writing ---------------------------------------------------------------------------------------
+
 const NCNAME = /^[A-Za-z_][\w.-]*$/;
+/** Returns an XML qualified name and any namespace declaration it requires. */
 export function qname(iri: string, ns: Record<string, string>): { name: string; decl: string } {
   const k = Math.max(iri.lastIndexOf('#'), iri.lastIndexOf('/')) + 1;
   const space = iri.slice(0, k);
@@ -350,6 +362,7 @@ export function qname(iri: string, ns: Record<string, string>): { name: string; 
     ? { name: `${prefix}:${local}`, decl: '' }
     : { name: `ns1:${local}`, decl: ` xmlns:ns1="${escapeXml(space, true)}"` };
 }
+/** Serializes an RDF property as an XML element in the supplied scope. */
 export function propertyElement(
   predicate: string,
   object: Term,
@@ -375,7 +388,8 @@ export function propertyElement(
   return `<${name}${decl}${lang}${dt}>${escapeXml(object.value)}</${name}>`;
 }
 const only = (src: string, from: number, to: number) => /^[ \t]*$/.test(src.slice(from, to));
-// A range with its whole line when nothing else shares the line.
+
+/** Includes a construct's full line only when nothing else shares it. */
 export function lineRange(src: string, from: number, to: number) {
   const a = lineStart(src, from);
   const b = lineEndAfter(src, to);
@@ -384,7 +398,8 @@ export function lineRange(src: string, from: number, to: number) {
     : { from, to };
 }
 const indentOf = (src: string, pos: number) => /^[ \t]*/.exec(src.slice(lineStart(src, pos)))![0];
-// The indentation one level below an element (from its children, or the file's step).
+
+/** Infers child indentation from siblings or the file's indentation unit. */
 export function childIndent(src: string, el: El, root: El) {
   const first = el.children[0];
   if (first && only(src, lineStart(src, first.start), first.start))
@@ -395,6 +410,7 @@ export function childIndent(src: string, el: El, root: El) {
     : '    ';
   return indentOf(src, el.start) + step;
 }
+/** Inserts property elements using the parent element's layout and line endings. */
 export function addPatch(src: string, el: El, root: El, elements: string[], eol: string): Patch {
   const indent = childIndent(src, el, root);
   if (el.selfClosing) {

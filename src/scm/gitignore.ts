@@ -1,13 +1,16 @@
-// "Add to .gitignore" (FR-093): the exact path, or a pattern derived from it (its extension, its
-// folder), written so Git reads it literally; and appending one entry to the file's text.
+/** Builds literal-safe ignore patterns and appends them using the file's existing line endings. */
+// Ignore choices include the literal path and patterns based on its extension or folder.
+/** Pairs an ignore pattern with its human-readable choice label. */
 export type IgnoreChoice = { pattern: string; label: string };
-// Escape what .gitignore would otherwise read as syntax: wildcards, a leading # or !, trailing spaces.
+// Escape wildcards, leading # or !, and trailing spaces so Git treats filenames literally.
+/** Escapes Git ignore syntax so a chosen filename is treated literally. */
 export function escapeIgnore(text: string) {
   return text
     .replace(/[\\*?[]/g, c => '\\' + c)
     .replace(/^([#!])/, '\\$1')
     .replace(/ $/, '\\ ');
 }
+/** Offers literal path, extension and folder ignore patterns for a file. */
 export function ignoreChoices(path: string): IgnoreChoice[] {
   const parts = path.split('/');
   const name = parts.at(-1)!;
@@ -27,8 +30,8 @@ export function ignoreChoices(path: string): IgnoreChoice[] {
     });
   return out;
 }
-// The file's text with `pattern` on its own line at the end, in the file's line-ending style.
-// Returns null when the exact line is already there.
+
+/** Appends a unique pattern using the file's line endings, or returns null if present. */
 export function appendIgnore(current: string, pattern: string): string | null {
   if (!pattern.trim() || /[\r\n]/.test(pattern))
     throw Error('A .gitignore entry is one non-empty line.');
@@ -37,6 +40,7 @@ export function appendIgnore(current: string, pattern: string): string | null {
   if (lines.includes(pattern)) return null;
   return current + (current && !current.endsWith('\n') ? eol : '') + pattern + eol;
 }
-// `.gitignore` is plain text: edited in Source, never validated as a model (FR-094).
+// `.gitignore` is plain text: edited in Source, never validated as a model.
+/** Checks whether a filename denotes a plain-text Git ignore file. */
 export const isGitignore = (filename: string) =>
   filename === '.gitignore' || filename.endsWith('/.gitignore');

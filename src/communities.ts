@@ -1,12 +1,15 @@
+/** Suggests model groups from relationships between business entities. */
 import type { Entity, Relationship } from './model';
+/** Checks whether an entity belongs in the business graph used for grouping. */
 export const isBusinessEntity = (entity: Entity) =>
   entity.kind === 'EntityType' || entity.kind === 'OWL class';
+/** Checks whether a relationship expresses inheritance. */
 export const isInheritance = (edge: Relationship) =>
   /inheritance|subclass/i.test(edge.data.kind) ||
   /^(extends|subClassOf|rdfs:subClassOf)$/i.test(edge.label);
-/** Deterministic bounded modularity local-moving on a simple undirected
- * business backbone. Multiplicity, direction, inheritance and primitive hubs
- * do not affect community weights. This is a suggestion, never a domain claim. */
+/** Suggests deterministic communities from an undirected business graph. Direction, duplicate
+ * edges, inheritance and primitive hubs do not affect weights. These groups are suggestions, not
+ * domain classifications. */
 export function suggestCommunities(entities: Entity[], edges: Relationship[]) {
   const business = entities.filter(isBusinessEntity).sort((a, b) => a.id.localeCompare(b.id));
   const adjacent = new Map(business.map(e => [e.id, new Set<string>()]));

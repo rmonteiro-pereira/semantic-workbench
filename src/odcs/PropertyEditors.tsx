@@ -1,3 +1,5 @@
+/** Validates and saves single property edits against the file's base hash using source-preserving
+ * patches. */
 import React, { useEffect, useRef, useState } from 'react';
 import { valuePatches } from '../edit/yaml-patch';
 import { applyPatches, diffPatches } from '../editor/patch';
@@ -5,9 +7,8 @@ import { validateInput } from '../input';
 import { api, StaleSave, type Doc } from '../projects/api';
 import type { Saved } from '../edit/ItemEditor';
 import type { PropertyCellProps } from './DatasetPage';
-// In-place property edits from the schema table (FR-058): one value changes, written with the same
-// patchers as the item editor (only the edited value's text changes, YAML or JSON), checked with the
-// shared validation (the pinned ODCS 3.1.0 schema) and saved against the file's base hash.
+// Shared patchers change only the edited value. Validation uses the pinned ODCS schema, and the
+// base hash prevents overwriting a newer file.
 export const LOGICAL_TYPES = [
   'string',
   'date',
@@ -21,7 +22,8 @@ export const LOGICAL_TYPES = [
 ];
 const FLAGS = new Set(['required', 'unique', 'primaryKey']);
 const TEXTS = new Set(['classification', 'description']);
-// The file text after setting one attribute of a top-level property (`undefined` removes the key).
+
+/** Patches one top-level property attribute, removing the key when undefined. */
 export function propertyEdit(
   source: string,
   filename: string,
@@ -39,6 +41,7 @@ type Options = {
   onSaved: (saved: Saved[], label: string) => void;
   onError: (message: string) => void;
 };
+/** Builds inline property controls that validate and save against the file's base hash. */
 export function propertyEditor({ doc, base, onSaved, onError }: Options) {
   const properties = (objectIndex: number) => {
     try {
@@ -136,7 +139,8 @@ export function propertyEditor({ doc, base, onSaved, onError }: Options) {
     return null;
   };
 }
-// Shows the new state at once; the file's value takes over again once saved (or if the save fails).
+// Shows the new state at once; the file's value takes over again once saved (or if the save
+// fails).
 function CheckCell({
   label,
   value,

@@ -1,3 +1,5 @@
+/** Patches YAML values in place while preserving untouched comments, anchors, quoting and
+ * layout. */
 import { Document, isMap, isPair, isScalar, isSeq, parseDocument, stringify, visit } from 'yaml';
 import { applyPatches } from '../editor/patch';
 import { jsonPatches, jsonRemove, jsonTextPatches, sortPatches } from './json-patch';
@@ -13,12 +15,9 @@ import {
   type Patch,
   type TextStyle,
 } from './source-text';
-// YAML item patches (FR-053, FR-054, FR-082): an edit rewrites only the scalars, keys and list
-// entries that changed. Comments, anchors, key order, quoting and indentation elsewhere keep their
-// bytes; new keys and entries are written in the document's own style (indentation, list
-// indentation, flow or block for the same key in sibling items). JSON files use the JSON rules in
-// json-patch.ts on the same syntax tree. The JSON inside a block scalar (a SEMANTIC_WORKBENCH
-// extension) is patched as JSON, line by line, so one changed metric attribute is one changed line.
+// New entries follow sibling indentation and flow or block style. JSON documents and JSON inside
+// extension blocks use the JSON patcher, preserving unchanged lines when a single metric attribute
+// changes.
 type Ctx = TextStyle & { src: string; indentSeq: boolean; flowKeys: Set<string>; flowPad: boolean };
 const range = (n: any): [number, number, number] => n.range;
 const isCollection = (v: unknown) => Array.isArray(v) || isObject(v);
@@ -29,6 +28,7 @@ const emptyFlow = (n: any) => (isSeq(n) || isMap(n)) && (n as any).flow && !n.it
 const emptied = (v: unknown) =>
   Array.isArray(v) ? !v.length : isObject(v) && !Object.keys(v).length;
 let cache: { src: string; doc: Document.Parsed } | null = null;
+/** Parses source while retaining tokens needed for byte-preserving patches. */
 export function parseSource(src: string) {
   if (cache?.src === src) return cache.doc;
   const doc = parseDocument(src, { uniqueKeys: false });
@@ -36,6 +36,7 @@ export function parseSource(src: string) {
   cache = { src, doc };
   return doc;
 }
+/** Identifies JSON source by filename or leading syntax. */
 export const isJsonSource = (src: string, filename = '') =>
   /\.json$/i.test(filename) || /^\s*[{[]/.test(src);
 function context(src: string, doc: Document.Parsed, json: boolean): Ctx {
@@ -60,7 +61,7 @@ function nodeAt(doc: Document.Parsed, path: (string | number)[]) {
   if (!n) throw Error(`Nothing at /${path.join('/')}.`);
   return n;
 }
-// --- rendering -----------------------------------------------------------------------------------
+
 function blockText(v: any, ctx: Ctx) {
   const d = new Document(v);
   visit(d, {
@@ -124,7 +125,7 @@ function flowText(v: any, old: any, ctx: Ctx): string {
     ? `{${pad}${entries.map(([k, x]) => `${item(k)}: ${item(x)}`).join(', ')}${pad}}`
     : '{}';
 }
-// --- structural diff -----------------------------------------------------------------------------
+
 function diff(ctx: Ctx, node: any, oldV: any, newV: any, keyIndent: string): Patch[] {
   if (deepEqual(oldV, newV)) return [];
   if (ctx.json) return jsonPatches(ctx.src, node, oldV, newV, ctx, keyIndent);
@@ -340,7 +341,8 @@ function seqDiff(ctx: Ctx, node: any, oldV: any[], newV: any[]): Patch[] {
   }
   return out;
 }
-// The JSON text of a block scalar, with each line's indentation; patches inside it map back to the file.
+// The JSON text of a block scalar, with each line's indentation; patches inside it map back to the
+// file.
 function blockJsonPatches(ctx: Ctx, node: any, oldV: string, newV: string): Patch[] | null {
   let a: any;
   let b: any;
@@ -386,8 +388,8 @@ function blockJsonPatches(ctx: Ctx, node: any, oldV: string, newV: string): Patc
       .replace(/\n/g, ctx.eol === '\n' ? '\n' : ctx.eol),
   }));
 }
-// --- public operations ---------------------------------------------------------------------------
-// Patches that set the value at `path` (an item, or one of its keys) to `value`.
+
+/** Patches the value at a document path while preserving unchanged source bytes. */
 export function valuePatches(
   src: string,
   path: (string | number)[],
@@ -445,7 +447,8 @@ export function valuePatches(
     if (value === undefined) delete next[key];
     else next[key] = value;
   }
-  // A changed value inside a parent: diff the parent so the key itself, its comment and position stay.
+  // A changed value inside a parent: diff the parent so the key itself, its comment and position
+  // stay.
   if (
     value !== undefined &&
     node &&
@@ -466,8 +469,11 @@ function toJs(doc: Document.Parsed, path: (string | number)[]) {
   const n: any = path.length ? doc.getIn(path, true) : doc.contents;
   return n && typeof n.toJS === 'function' ? n.toJS(doc) : (n?.value ?? n);
 }
+/** Reads a parsed value at a source document path. */
 export const itemValue = (src: string, path: (string | number)[]) => toJs(parseSource(src), path);
-// Insert `value` into the list at `listPath` (at `index`, default the end) in the document's style.
+// Insert `value` into the list at `listPath` (at `index`, default the end) in the document's
+// style.
+/** Inserts a list item in the document's layout, appending when no index is supplied. */
 export function insertPatches(
   src: string,
   listPath: (string | number)[],
@@ -481,10 +487,13 @@ export function insertPatches(
   next.splice(index ?? list.length, 0, value);
   return valuePatches(src, listPath, next, filename);
 }
+/** Removes the item at a document path without removing equal-valued neighbors. */
 export const removePatches = (src: string, path: (string | number)[], filename = '') =>
   valuePatches(src, path, undefined, filename);
-// Apply patches computed one after another (each against the previous result).
+
+/** Applies patch-producing steps sequentially against each preceding result. */
 export function edit(src: string, ...steps: ((text: string) => Patch[])[]) {
   return steps.reduce((text, step) => applyPatches(text, step(text)), src);
 }
+/** Exports the YAML pair guard used by source patchers. */
 export { isPair };

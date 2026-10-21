@@ -1,7 +1,9 @@
+/** Provides project renaming, file moving and import-conflict dialogs. */
 import React, { useState } from 'react';
 import { Modal } from './Modal';
 import { api, type ProjectInfo } from './api';
-// Rename a project (FR-020): only the display name changes; the folder keeps its id.
+
+/** Renames a project's display label while retaining its folder identifier. */
 export function RenameDialog({
   project,
   onClose,
@@ -48,7 +50,8 @@ export function RenameDialog({
     </Modal>
   );
 }
-// Move a file to another project (FR-020); a taken name offers the free alternative.
+
+/** Moves a file to another project and offers an alternate name when occupied. */
 export function MoveDialog({
   project,
   path,
@@ -125,7 +128,8 @@ export function MoveDialog({
     </Modal>
   );
 }
-// FR-029: importing a name that already exists asks whether to replace it or keep both.
+
+/** Asks whether to replace an existing filename or keep both files. */
 export function ImportConflictDialog({
   project,
   conflicts,

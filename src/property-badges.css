@@ -1,4 +1,5 @@
-/* PK / FK / Required / Unique / classification badges (FR-027), shared by tables and lineage cards. */
+/* Shares constraint badge styles between property tables and lineage cards. */
+/* PK / FK / Required / Unique / classification badges, shared by tables and lineage cards. */
 .prop-badges {
   display: inline-flex;
   flex-wrap: wrap;

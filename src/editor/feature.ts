@@ -1,9 +1,12 @@
+/** Turns validation paths and source positions into readable item labels and line ranges. */
 import { parseDocument, isMap, isScalar, isSeq } from 'yaml';
-// Readable names for validation paths: `/ontology/0/relationships/1` becomes
-// "ontology → Customer (item 1) → relationships → orders (item 2)".
+// Readable names for validation paths: `/ontology/0/relationships/1` becomes "ontology → Customer
+// (item 1) → relationships → orders (item 2)".
+/** Returns a readable item label for a validation path. */
 export function issueFeature(path: string, source?: string) {
   return featureLabeler(source)(path);
 }
+/** Builds a label lookup from parsed source for repeated validation findings. */
 export function featureLabeler(source?: string) {
   let root: any;
   if (source)
@@ -43,6 +46,7 @@ export function featureLabeler(source?: string) {
       .join(' → ');
   };
 }
+/** Returns the source offsets covering a requested line. */
 export function sourceLineRange(source: string, line: number) {
   const lines = source.split('\n');
   const index = Math.max(0, Math.min(lines.length - 1, line - 1));

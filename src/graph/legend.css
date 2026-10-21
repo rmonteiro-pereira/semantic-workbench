@@ -1,4 +1,5 @@
-/* Shared lineage legend (moved from odcs.css; FR-025). */
+/* Styles the shared lineage and mapping legend. */
+/* Shared lineage and mapping legend. */
 .lineage-legend {
   display: flex;
   flex-wrap: wrap;

@@ -1,3 +1,5 @@
+/** Displays project changes, diffs, history and explicit Git actions with progress and
+ * cancellation. */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle,
@@ -27,9 +29,8 @@ import { DiffView } from './DiffView';
 import { BranchPicker } from './BranchPicker';
 import { ignoreChoices } from './gitignore';
 import './scm.css';
-// VS Code-like Source Control for one project (Story 9): changes with per-file diffs, stage and
-// unstage, commit, branches, explicit remote actions with a visible wait and Cancel, conflicts for
-// repair, Add to .gitignore and file history. Hidden-type files are listed read-only.
+// Changes include diffs, staging, branches, history and explicit remote actions. Hidden-type files
+// remain read-only; remote actions expose progress and cancellation.
 type Group = 'conflicts' | 'staged' | 'changes';
 type Selection = { path: string; group: Group } | null;
 const STATE: Record<string, string> = {
@@ -62,7 +63,7 @@ const rangeOf = (g: Group, c: GitChange) =>
         ? ['index', 'worktree']
         : ['index', 'worktree'];
 // `onBusy` tells the editor that a pull, sync or branch switch runs (automatic saving waits);
-// `onCommit` opens the Commit dialog, offered when a pull, sync or switch is refused (FR-048).
+// `onCommit` opens the Commit dialog, offered when a pull, sync or switch is refused.
 type Props = {
   projects: ProjectInfo[];
   project: string;
@@ -75,6 +76,7 @@ type Props = {
   onBusy?: (busy: boolean) => void;
   onCommit?: () => void;
 };
+/** Displays project Git changes and actions with progress and cancellation. */
 export function SourceControl({
   projects,
   project,

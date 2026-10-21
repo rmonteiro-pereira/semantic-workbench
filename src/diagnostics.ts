@@ -1,3 +1,5 @@
+/** Defines validation findings and rejects unsafe or oversized input envelopes. */
+/** Describes a validation finding with optional source and feature locations. */
 export type Issue = {
   severity: 'error' | 'warning' | 'info';
   code: string;
@@ -7,16 +9,19 @@ export type Issue = {
   column?: number;
   innerPath?: string;
 };
+/** Carries validation findings for input that cannot be accepted. */
 export class InputError extends Error {
   constructor(public issues: Issue[]) {
     super(issues.map(i => `${i.path}: ${i.message}`).join('\n'));
     this.name = 'InputError';
   }
 }
+/** Throws an input error when any finding has error severity. */
 export function rejectIssues(issues: Issue[]) {
   if (issues.some(i => i.severity === 'error')) throw new InputError(issues);
 }
 export const MAX_INPUT_BYTES = 2_000_000;
+/** Rejects oversized input and unsafe filenames before parsing. */
 export function validateEnvelope(source: string, filename: string) {
   const issues: Issue[] = [];
   const fail = (code: string, message: string) =>

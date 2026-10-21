@@ -1,7 +1,7 @@
-// Syntax-aware references in Ossie SQL expressions (FR-005). One tokenizer serves the graph,
-// the Metrics view, lineage, the explanation and the agent runtime's metric dependencies:
-// string literals, comments, function names, keywords and type names are never references,
-// and `order.x` is a reference to dataset `order` only, never to `suborder`.
+/** Finds SQL expression references while excluding literals, comments, functions and type names. */
+// The shared tokenizer excludes literals, comments, functions, keywords and type names. Qualified
+// references match whole dataset names, so order.x never matches suborder.
+/** Identifies a column reference and its optional dataset qualifier. */
 export type ExprRef = { table: string | null; column: string };
 type Token = { kind: 'ident' | 'quoted' | 'punct' | 'other'; value: string };
 const KEYWORDS = new Set([
@@ -116,6 +116,7 @@ function tokenize(sql: string): Token[] {
   return out;
 }
 const isName = (t?: Token) => !!t && (t.kind === 'quoted' || t.kind === 'ident');
+/** Extracts SQL column references without treating literals or functions as dependencies. */
 export function expressionRefs(sql: string): ExprRef[] {
   if (typeof sql !== 'string') return [];
   const tokens = tokenize(sql);
@@ -156,8 +157,10 @@ export function expressionRefs(sql: string): ExprRef[] {
   }
   return refs;
 }
+/** Builds a comparable key for a qualified or unqualified expression reference. */
 export const refKey = (r: ExprRef) => `${r.table ?? ''}.${r.column}`;
-// Governed metrics an expression depends on: unqualified references that name a metric of the model.
+
+/** Returns unqualified references that name metrics in the model. */
 export function metricDependencies(sql: string, metricNames: Set<string>) {
   return [
     ...new Set(
@@ -167,7 +170,8 @@ export function metricDependencies(sql: string, metricNames: Set<string>) {
     ),
   ];
 }
-// Datasets an expression reads directly through qualified `dataset.field` references.
+
+/** Returns known datasets read through qualified field references. */
 export function datasetReferences(sql: string, datasetNames: Set<string>) {
   return [
     ...new Set(
@@ -177,6 +181,7 @@ export function datasetReferences(sql: string, datasetNames: Set<string>) {
     ),
   ];
 }
+/** Reads an ANSI SQL expression from a supported expression definition. */
 export function ansiExpression(definition: any): string | undefined {
   const dialects = definition?.expression?.dialects;
   if (!Array.isArray(dialects)) return undefined;

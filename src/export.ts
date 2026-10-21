@@ -1,3 +1,5 @@
+/** Downloads the original document text without reserializing it. */
+/** Downloads the supplied source text without reserializing it. */
 export function exportDocument(source: string, filename: string) {
   const ext = filename.split('.').pop()?.toLowerCase();
   const type =

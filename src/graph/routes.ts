@@ -1,16 +1,15 @@
+/** Assigns separate orthogonal routes and rounded corners to neighborhood relationships. */
 import type { Link } from '../layout';
-// Orthogonal routes with rounded corners (FR-040). Every edge has its own route: short forward
-// edges bend at their own x inside the gap between columns; long and backward edges travel on their
-// own lane above or below the neighborhood, with their own stubs, and carry their label on that
-// lane; a self-relationship loops over its node. Corners turn the way the path actually travels.
-// Every vertical segment has its own x: outX/inX/bendX/laneX are absolute positions allocated per
-// gap between columns. dyOut/dyIn spread the edges that leave or enter one side of a node.
+// Short forward edges bend between columns; long and backward edges get separate outer lanes.
+// Self-relationships loop over their nodes, and each corner follows the travel direction.
+/** Describes an edge's assigned lane or bend and endpoint offsets. */
 export type EdgeRoute = (
   | { route: 'short'; bendX: number }
   | { route: 'side'; laneX: number; endX: number; endY: number }
   | { route: 'lane'; laneY: number; outX: number; inX: number }
   | { route: 'loop'; outX: number; inX: number; top: number }
 ) & { dyOut?: number; dyIn?: number };
+/** Builds a rounded SVG path through orthogonal points. */
 export function orthogonalPath(points: [number, number][], radius = 10) {
   const p = points.filter(
     (pt, i) => i === 0 || pt[0] !== points[i - 1][0] || pt[1] !== points[i - 1][1],
@@ -33,6 +32,7 @@ export function orthogonalPath(points: [number, number][], radius = 10) {
   }
   return d;
 }
+/** Returns route vertices and an initial label position for the current endpoints. */
 export function routePoints(
   sx: number,
   sy0: number,
@@ -81,7 +81,9 @@ export function routePoints(
 }
 // Routes for a set of edges between laid-out nodes. Boxes are the node rectangles; handles sit on
 // the right (source) and left (target) edges at mid height.
+/** Records a positioned rectangle used for graph layout. */
 export type Box = { x: number; y: number; width: number; height: number };
+/** Assigns edge lanes and handle offsets between positioned node rectangles. */
 export function assignRoutes(
   edges: (Link & { id: string })[],
   boxes: Map<string, Box>,
@@ -91,7 +93,8 @@ export function assignRoutes(
   if (!all.length) return routes;
   const top = Math.min(...all.map(b => b.y));
   const bottom = Math.max(...all.map(b => b.y + b.height));
-  // The free gap right of x (next column's left edge) and left of x (previous column's right edge).
+  // The free gap right of x (next column's left edge) and left of x (previous column's right
+  // edge).
   const rightOf = (x: number) => {
     const n = all.filter(b => b.x > x + 1).map(b => b.x);
     return [x, n.length ? Math.min(...n) : x + 110] as const;
@@ -171,8 +174,8 @@ export function assignRoutes(
       (routes.get(n.edge) as any)[n.slot] = start + i * step;
     });
   }
-  // Spread edge ends along each node side, ordered by the other end's height, so no two edges share
-  // a start or end segment.
+  // Spread edge ends along each node side, ordered by the other end's height, so no two edges
+  // share a start or end segment.
   const spread = (key: 'dyOut' | 'dyIn', ends: Map<string, { id: string; other: number }[]>) => {
     for (const [node, list] of ends) {
       const box = boxes.get(node)!;
@@ -234,6 +237,7 @@ export function assignRoutes(
 // Label positions that do not overlap each other or the nodes: each label tries the middle of each
 // segment of its route (longest first), then the same points shifted up and down; widths are
 // estimated from the text (10 px labels).
+/** Places estimated label boxes along routes while avoiding nodes and earlier labels. */
 export function placeLabels(
   items: { id: string; text: string; points: [number, number][] }[],
   boxes: Box[],

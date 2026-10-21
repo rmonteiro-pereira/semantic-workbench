@@ -1,11 +1,11 @@
+/** Patches Turtle and N3 predicate-object lists in their original layout using token source
+ * ranges. */
 import { lineEndAfter, lineStart } from '../source-text';
 import type { Patch } from '../../editor/patch';
 import { BASE, WELL_KNOWN, usedPrefixes } from './terms';
-// Turtle and N3 statements with source positions (FR-055, Turtle/N3). A subject's statement blocks
-// are found by a tokenizer that knows strings, IRIs, comments and nesting; edits change the
-// predicate-object list in place: a removed pair takes its own separator, a changed object is
-// replaced, a new pair follows the block's own layout (same line, or one per line at the block's
-// indentation). Blocks with N3 formulae or rules are left to Source.
+// Edits preserve separators and the statement’s inline or multiline layout. Blocks containing N3
+// formulae or rules must be edited in Source.
+/** Records a Turtle token's kind, text and source offsets. */
 export type Tok = {
   t:
     | 'iri'
@@ -23,6 +23,7 @@ export type Tok = {
   end: number;
 };
 const PN = /^(?:[\p{L}_][\p{L}\p{N}_.-]*)?:(?:[\p{L}\p{N}_:%-]|\\[^\s]|\.(?=[\p{L}\p{N}_:%-]))*/u;
+/** Scans Turtle tokens while respecting strings, IRIs, comments and nesting. */
 export function tokenize(src: string): Tok[] {
   const out: Tok[] = [];
   let i = 0;
@@ -141,7 +142,9 @@ export function tokenize(src: string): Tok[] {
   }
   return out;
 }
+/** Records the source range and text of a Turtle object. */
 export type ObjectSpan = { start: number; end: number; text: string };
+/** Records a predicate and its objects within a Turtle statement. */
 export type Segment = {
   verb: Tok;
   verbIri: string;
@@ -149,6 +152,7 @@ export type Segment = {
   start: number;
   end: number;
 };
+/** Records a subject's Turtle statement and predicate segments. */
 export type Statement = {
   start: number;
   end: number;
@@ -160,6 +164,7 @@ export type Statement = {
   directive: boolean;
   parsed: boolean;
 };
+/** Collects parsed Turtle statements, prefixes and source-layout information. */
 export type Document = {
   statements: Statement[];
   prefixes: Record<string, string>;
@@ -174,6 +179,7 @@ const resolve = (iri: string, base: string) => {
     return iri;
   }
 };
+/** Reads Turtle statements and source spans for in-place editing. */
 export function readDocument(src: string): Document {
   const toks = tokenize(src);
   const statements: Statement[] = [];
@@ -260,7 +266,7 @@ export function readDocument(src: string): Document {
     i = j + 1;
     if (st.n3 || !['iri', 'pname'].includes(first.t)) continue;
     st.subject = expand(first);
-    // predicate-object list
+    // Predicate-object list
     let k = 1;
     let ok = true;
     const object = (): ObjectSpan | null => {
@@ -332,8 +338,10 @@ export function readDocument(src: string): Document {
   }
   return { statements, prefixes, base, directiveEnd, sparqlStyle };
 }
-// --- patches ---------------------------------------------------------------------------------------
+
+/** Locates a predicate-object pair by statement, segment and object indexes. */
 export type PairRef = { statement: number; segment: number; object: number };
+/** Supplies a predicate IRI and source text for a new Turtle pair. */
 export type TurtleAdd = { verbIri: string; verbText: string; objectText: string };
 const only = (src: string, from: number, to: number) => /^[ \t]*$/.test(src.slice(from, to));
 // Separator before a new pair: the block's own (a line break and the indentation of its later
@@ -342,6 +350,7 @@ function separator(src: string, st: Statement, eol: string) {
   const later = st.segments.slice(1).find(s => only(src, lineStart(src, s.start), s.start));
   return later ? eol + src.slice(lineStart(src, later.start), later.start) : ' ';
 }
+/** Edits predicate-object lists while preserving surrounding Turtle layout. */
 export function turtlePatches(
   src: string,
   doc: Document,
@@ -417,8 +426,8 @@ export function turtlePatches(
       }
       return;
     }
-    // Removed predicates, as runs: a run after a kept one starts at its end (taking the ';' and any
-    // comment before the removed predicate); a run at the start goes up to the next kept one.
+    // Removed predicates, as runs: a run after a kept one starts at its end (taking the ';' and
+    // any comment before the removed predicate); a run at the start goes up to the next kept one.
     for (let g = 0; g < st.segments.length;) {
       if (keptSeg[g]) {
         g++;
@@ -486,7 +495,8 @@ export function turtlePatches(
   }
   return { patches, warnings };
 }
-// Prefix lines for well-known prefixes the new text uses and the file does not declare yet.
+
+/** Adds declarations for well-known prefixes used by new text but absent from the file. */
 export function prefixPatches(src: string, doc: Document, texts: string[], eol: string): Patch[] {
   const missing = [...new Set(texts.flatMap(usedPrefixes))].filter(
     p => !(p in doc.prefixes) && p in WELL_KNOWN,

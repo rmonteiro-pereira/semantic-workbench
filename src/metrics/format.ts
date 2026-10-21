@@ -1,3 +1,4 @@
+/** Shares readable metric labels, formulas and targets between tables, details and graph badges. */
 import type { ConceptLink, KpiSummary } from '../../server/agent/explain';
 import { expressionRefs } from './deps';
 // Wording shared by the Metrics view, the metric detail and the graph badges.
@@ -13,6 +14,7 @@ export const additivityLabel = {
   semi_additive: 'Semi-additive',
   non_additive: 'Non-additive',
 } as const;
+/** Formats metric concept links for compact display. */
 export const conceptText = (links: ConceptLink[]) => {
   const m = links.find(c => c.role === 'measures');
   const of = links.find(c => c.role === 'of');
@@ -20,11 +22,14 @@ export const conceptText = (links: ConceptLink[]) => {
     .filter(Boolean)
     .join(' ');
 };
+/** Converts an identifier into readable words. */
 export const humanize = (name: string) =>
   name.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2');
 // A metric expression as readable parts: governed metrics become their labels, NULLIF guards and
 // operators are shown as arithmetic. Anything else stays as written.
+/** Represents a metric reference, arithmetic operator or unchanged formula text. */
 export type FormulaPart = { kind: 'metric' | 'op' | 'text'; text: string; name?: string };
+/** Replaces metric names with labels and renders recognized arithmetic in readable parts. */
 export function readableFormula(sql: string, labels: Map<string, string>): FormulaPart[] {
   const refs = expressionRefs(sql).filter(r => r.table === null && labels.has(r.column));
   if (!refs.length) return [];
@@ -45,6 +50,7 @@ export function readableFormula(sql: string, labels: Map<string, string>): Formu
   }
   return parts;
 }
+/** Formats a metric target with its optional unit. */
 export function targetText(t: any, unit?: string) {
   const show = (v: number) =>
     unit === 'ratio'

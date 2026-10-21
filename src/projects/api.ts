@@ -1,5 +1,7 @@
+/** Defines browser requests and response types for project files, metrics and source control. */
 import type { KpiSummary, KpiExplanation } from '../../server/agent/explain';
 // Browser client for the project API (contracts/http-api.md).
+/** Summarizes a project file’s type, validation, visibility, Git state and hash. */
 export type ProjectFile = {
   path: string;
   docType: string;
@@ -9,6 +11,7 @@ export type ProjectFile = {
   gitState: string;
   hash: string;
 };
+/** Summarizes a project, its Git state and indexed files. */
 export type ProjectInfo = {
   slug: string;
   name: string;
@@ -19,6 +22,7 @@ export type ProjectInfo = {
   changes: number;
   files: ProjectFile[];
 };
+/** Describes a deleted entry and its restoration and undo metadata. */
 export type TrashItem = {
   entryId: string;
   kind: 'file' | 'project';
@@ -29,6 +33,7 @@ export type TrashItem = {
   undoUntil: string;
   batchId: string | null;
 };
+/** Lists removed files, unsaved drafts and references broken by a deletion. */
 export type Impact = {
   removes: { project: string; name?: string; files: string[] };
   unsavedDrafts: { project: string; path: string }[];
@@ -39,16 +44,20 @@ export type Impact = {
     name: string;
   }[];
 };
+/** Describes a proposed file move and the evidence linking it to a project. */
 export type Suggestion = {
   id: string;
   file: { project: string; path: string; hash: string };
   targetProject: string;
   evidence: { kind: string; detail: string; otherFile: { project: string; path: string } }[];
 };
+/** Reports whether imported files were committed or why no commit was created. */
 export type ImportCommit =
   | { committed: true; commit: string; message: string }
   | { committed: false; reason: 'no-git' | 'no-identity' | 'merging' | 'nothing' };
+/** Identifies a completed deletion batch and its undo deadline. */
 export type Deleted = { entryIds: string[]; undoUntil: string; label: string };
+/** Holds an open document's identity, source and saved content hash. */
 export type Doc = {
   id: string;
   project: string;
@@ -57,6 +66,7 @@ export type Doc = {
   source: string;
   hash: string;
 };
+/** Reports Git availability, identity setup, migration and recovery results. */
 export type WorkspaceStatus = {
   gitAvailable: boolean;
   identityConfigured: boolean;
@@ -70,6 +80,7 @@ export type WorkspaceStatus = {
   };
   recovery: { opId: string; kind: string; outcome: string; paths: string[] }[];
 };
+/** Describes index and working-tree changes for a project path. */
 export type GitChange = {
   path: string;
   orig?: string;
@@ -80,6 +91,7 @@ export type GitChange = {
   hidden: boolean;
   label?: string;
 };
+/** Summarizes branch tracking, repository capabilities and changed files. */
 export type GitStatus = {
   branch: string;
   upstream: string;
@@ -91,6 +103,7 @@ export type GitStatus = {
   remotes: Record<string, string>;
   changes: GitChange[];
 };
+/** Reports completion, cancellation, conflicts and altered paths after a remote action. */
 export type RemoteResult = {
   ok: boolean;
   cancelled?: boolean;
@@ -100,6 +113,7 @@ export type RemoteResult = {
   altered: string[];
   stderr: string;
 };
+/** Holds before and after file contents and existence flags for a comparison. */
 export type GitDiff = {
   path: string;
   from: string;
@@ -110,8 +124,10 @@ export type GitDiff = {
   beforeExists: boolean;
   afterExists: boolean;
 };
+/** Describes a commit's identity, author, date and message. */
 export type GitCommit = { commit: string; author: string; date: string; message: string };
-// 409 from pull, sync or switch: unsaved drafts or a dirty tree (FR-065).
+// 409 from pull, sync or switch: unsaved drafts or a dirty tree.
+/** Reports a Git operation blocked by unsaved drafts or a dirty working tree. */
 export class Blocked extends Error {
   constructor(
     public reason: 'drafts' | 'dirty',
@@ -121,6 +137,7 @@ export class Blocked extends Error {
     super(message);
   }
 }
+/** Carries the current disk version after a save's base hash is rejected. */
 export class StaleSave extends Error {
   constructor(
     public currentHash: string | null,
@@ -129,7 +146,9 @@ export class StaleSave extends Error {
     super('This file changed since you opened it.');
   }
 }
+/** Builds an open-document identifier from project and file path. */
 export const docId = (project: string, path: string) => `${project}/${path}`;
+/** Builds the file API URL with each path segment encoded. */
 export const fileUrl = (project: string, path: string) =>
   `/api/projects/${encodeURIComponent(project)}/files/${path.split('/').map(encodeURIComponent).join('/')}`;
 async function json<T>(response: Response): Promise<T> {
@@ -150,6 +169,7 @@ const send = (method: string, body?: unknown) => ({
   headers: { 'Content-Type': 'application/json' },
   ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
 });
+/** Supplies a metric definition, extension attributes and optional concept binding. */
 export type KpiSaveRequest = {
   semanticPath: string;
   modelPath?: (string | number)[];
@@ -158,6 +178,7 @@ export type KpiSaveRequest = {
   extension: Record<string, any>;
   binding?: { measures: string; of?: string };
 };
+/** Selects grain, dimensions and rollup options for a metric explanation. */
 export type ExplainQuery = { grain?: string; dimensions?: string[]; rollup?: string };
 const explainQuery = (q: ExplainQuery) => {
   const p = new URLSearchParams();
@@ -167,6 +188,7 @@ const explainQuery = (q: ExplainQuery) => {
   const s = p.toString();
   return s ? '?' + s : '';
 };
+/** Provides browser operations for projects, documents, imports and metrics. */
 export const api = {
   metrics: (project: string) =>
     fetch(`/api/projects/${encodeURIComponent(project)}/metrics`).then(r => json<KpiSummary[]>(r)),
@@ -186,7 +208,7 @@ export const api = {
     fetch(fileUrl(project, path)).then(r =>
       json<{ path: string; source: string; hash: string; docType: string }>(r),
     ),
-  // A save sends patches against the version it started from when it has them (FR-046), else the text.
+  // A save sends patches against the version it started from when it has them, else the text.
   async save(
     project: string,
     path: string,
@@ -321,6 +343,7 @@ async function gitPost<T>(project: string, action: string, body?: unknown): Prom
   }
   return json<T>(response);
 }
+/** Provides browser operations for source-control review and Git actions. */
 export const scm = {
   status: (p: string) => fetch(gitUrl(p, 'git/status')).then(r => json<GitStatus>(r)),
   diff: (p: string, path: string, from = 'HEAD', to = 'worktree') =>
@@ -332,7 +355,8 @@ export const scm = {
     gitPost<GitStatus>(p, 'git/stage', paths === 'all' ? { all: true } : { paths }),
   unstage: (p: string, paths: string[] | 'all') =>
     gitPost<GitStatus>(p, 'git/unstage', paths === 'all' ? { all: true } : { paths }),
-  // `paths`: commit exactly these files (git commit --only); `push`: then push and report the outcome.
+  // `paths`: commit exactly these files (git commit --only); `push`: then push and report the
+  // outcome.
   async commit(p: string, message: string, options: { paths?: string[]; push?: boolean } = {}) {
     const response = await fetch(gitUrl(p, 'git/commit'), send('POST', { message, ...options }));
     if (response.status === 409) {
@@ -343,7 +367,7 @@ export const scm = {
       response,
     );
   },
-  // Revert to last commit (FR-046): `baseHash` is the hash of the file now on disk (null if absent).
+  // Revert to last commit: `baseHash` is the hash of the file now on disk (null if absent).
   async revert(p: string, path: string, baseHash: string | null) {
     const response = await fetch(gitUrl(p, 'git/revert'), send('POST', { path, baseHash }));
     if (response.status === 409) {
@@ -386,7 +410,8 @@ export const scm = {
       { method: 'DELETE' },
     ),
 };
-// Load every visible file of every project, reusing already loaded sources whose hash is unchanged.
+
+/** Loads visible project files while reusing sources whose hashes are unchanged. */
 export async function loadWorkspace(previous: Map<string, Doc>) {
   const projects = await api.projects();
   const docs = await Promise.all(

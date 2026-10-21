@@ -1,14 +1,17 @@
+/** Locates embedded SQL and maps decoded characters back to exact file offsets without changing
+ * bytes. */
 import { parseAllDocuments, isMap, isSeq, isScalar, isPair, type Scalar } from 'yaml';
-// SQL inside definitions (FR-050, FR-051, contracts/sql-regions.md, research R11): where SQL sits in
-// an Ossie or ODCS file, which dialect it is written in, and, for every character of the value,
-// the file offset it came from (indentation, folding, quotes and escapes undone), so a parser
-// position becomes an exact file line and column. Reads only; never changes a byte.
+// SQL regions retain their dialect and a source offset for each decoded character. Undoing
+// indentation, folding, quotes and escapes lets parser positions map back to the file. Reading
+// regions never changes source bytes.
+/** Distinguishes SQL expressions from complete statements. */
 export type SqlKind = 'expression' | 'statement';
+/** Records embedded SQL, its dialect and decoded-character source offsets. */
 export type SqlRegion = {
   pointer: string;
   path: (string | number)[];
   value: string;
-  // offsets[i] is the file offset of value[i]; offsets[value.length] is the end of the scalar.
+  // Offsets[i] is the file offset of value[i]; offsets[value.length] is the end of the scalar.
   offsets: number[];
   start: number;
   end: number;
@@ -57,6 +60,7 @@ export const GRAMMARS = [
   'athena',
   'db2',
 ] as const;
+/** Selects the parser grammar for a dialect, or null when it should remain unchecked. */
 export function grammarOf(dialect: string | null, odcs = false): string | null {
   if (dialect === null || dialect === '') return 'postgresql';
   if (odcs) return ODCS[dialect.toLowerCase()] ?? 'postgresql';
@@ -67,7 +71,7 @@ const pointerOf = (path: (string | number)[]) =>
   '/' + path.map(p => String(p).replace(/~/g, '~0').replace(/\//g, '~1')).join('/');
 const pattern = (path: (string | number)[]) =>
   path.map(p => (typeof p === 'number' ? '*' : p)).join('/');
-// Locations (contracts/sql-regions.md).
+// Key paths that can contain SQL expressions or statements.
 const MODEL = '(?:datasets/\\*/fields/\\*|metrics/\\*)/expression/dialects/\\*/expression';
 const OSSIE_MODEL = new RegExp(
   `^(?:semantic_model(?:/\\*)?/|ontology_mappings/\\*/semantic_model(?:/\\*)?/)?${MODEL}$`,
@@ -82,6 +86,7 @@ const isOdcs = (root: any) =>
   typeof root === 'object' &&
   root.kind === 'DataContract' &&
   typeof root.apiVersion === 'string';
+/** Extracts embedded SQL and exact source mappings from a structured definition. */
 export function sqlRegions(source: string, filename = ''): SqlRegion[] {
   if (!/\.(ya?ml|json)$/i.test(filename) && filename) return [];
   // Nothing to find without one of the keys that hold SQL (keeps large files cheap).
@@ -156,7 +161,7 @@ export function sqlRegions(source: string, filename = ''): SqlRegion[] {
   }
   return out;
 }
-// ---------- offset maps ----------
+
 type Map_ = { offsets: number[]; exact: boolean };
 const ESCAPES: Record<string, string> = {
   '0': '\0',
@@ -193,9 +198,9 @@ function lines(src: string, from: number, to: number) {
   }
   return out;
 }
-// Flow scalars (plain, single- and double-quoted) between `from` and `to`: continuation lines lose
-// their leading white space, a single line break folds to a space (mapped to the break), each empty
-// line gives a line break (mapped to that line), and `\` before a break joins the lines.
+// Continuation lines lose leading whitespace; one break folds to a space and blank lines to
+// breaks. An escaped break joins lines. Each decoded character retains its original offset,
+// including folded whitespace.
 function flow(
   src: string,
   from: number,
@@ -278,10 +283,9 @@ function flow(
   });
   return { chars, offsets };
 }
-// Block scalars: the header (`|` or `>`, indentation indicator, chomping), then content lines with
-// their indentation removed. Literal keeps every break; folded turns a single break between two
-// lines that are not more indented into a space. Each character maps to its own offset, each
-// break to the line break it came from.
+// Block indentation is removed according to the header and chomping rules. Literal style keeps
+// breaks; folded style joins ordinary adjacent lines with a space. Characters and breaks retain
+// their original offsets.
 function block(src: string, node: Scalar<string>): { chars: string[]; offsets: number[] } {
   const [start, end] = node.range!;
   const headerEnd = src.indexOf('\n', start);
@@ -368,6 +372,7 @@ function block(src: string, node: Scalar<string>): { chars: string[]; offsets: n
   }
   return { chars, offsets };
 }
+/** Maps decoded scalar characters back to their original source offsets. */
 export function offsetMap(src: string, node: Scalar<string>): Map_ {
   const [start, valueEnd] = node.range!;
   const value = node.value;
@@ -382,7 +387,7 @@ export function offsetMap(src: string, node: Scalar<string>): Map_ {
   }
   if (r.chars.join('') === value && r.offsets.length === value.length)
     return { offsets: [...r.offsets, valueEnd], exact: true };
-  // Not reliably mappable: every character goes to the expression's first character (FR-052).
+  // Not reliably mappable: every character goes to the expression's first character.
   const first =
     node.type === 'QUOTE_DOUBLE' || node.type === 'QUOTE_SINGLE'
       ? start + 1
@@ -396,7 +401,8 @@ export function offsetMap(src: string, node: Scalar<string>): Map_ {
         : start;
   return { offsets: Array.from({ length: value.length + 1 }, () => first), exact: false };
 }
-// 1-based line and column of a file offset.
+
+/** Returns the one-based line and column for a source offset. */
 export function lineColumn(src: string, offset: number) {
   let line = 1;
   let last = -1;

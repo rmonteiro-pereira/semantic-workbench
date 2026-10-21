@@ -1,12 +1,12 @@
+/** Reports SQL syntax warnings at source positions without executing SQL or blocking saves. */
 import type { Issue } from '../diagnostics';
 import { lineColumn, sqlRegions, type SqlRegion } from './regions';
-// SQL lint (FR-052, FR-053, FR-055, research R11): each SQL region is parsed with the grammar of
-// its dialect (an expression as the select list of `SELECT <expression>`, a quality query or
-// transformLogic as a full statement), and a syntax error becomes a warning at the exact file line
-// and column. Warnings only: they never block saving. Nothing is executed and no byte changes.
-// The parser comes from the caller: the server passes the full node-sql-parser, the browser worker
-// loads one grammar build per dialect on first need (loadGrammars).
+// Expressions parse as SELECT lists; quality queries and transforms parse as statements. Syntax
+// errors become warnings at exact source locations and never block saving. The caller supplies the
+// parser; browser workers load only the needed dialect grammars.
+/** Parses SQL with a selected grammar, throwing when its syntax is invalid. */
 export type Astify = (sql: string, grammar: string) => void;
+/** Adds SQL region and dialect information to a validation finding. */
 export type SqlFinding = Issue & {
   severity: 'warning';
   code: 'sql';
@@ -16,15 +16,17 @@ export type SqlFinding = Issue & {
 };
 const PREFIX = 'SELECT ';
 // `${name}` placeholders (ODCS quality rules) become same-length identifiers.
+/** Replaces quality-rule placeholders with identifiers of equal length. */
 export const fillPlaceholders = (sql: string) =>
   sql.replace(/\$\{[^}\n]*\}/g, m => 'p' + '_'.repeat(m.length - 1));
+/** Parses one SQL region and maps syntax warnings back to file positions. */
 export function lintRegion(source: string, region: SqlRegion, astify: Astify): SqlFinding[] {
   if (!region.grammar || !region.value.trim()) return [];
   const body = fillPlaceholders(region.value);
   const sql = region.kind === 'expression' ? PREFIX + body : body;
   const shift = region.kind === 'expression' ? PREFIX.length : 0;
-  // ANSI expressions follow the planner (server/agent/sql.ts): PostgreSQL grammar, then SQLite's; the
-  // finding reports the PostgreSQL error.
+  // ANSI expressions follow the planner (server/agent/sql.ts): PostgreSQL grammar, then SQLite's;
+  // the finding reports the PostgreSQL error.
   const grammars = region.grammar === 'postgresql' ? ['postgresql', 'sqlite'] : [region.grammar];
   let first: unknown = null;
   for (const g of grammars) {
@@ -70,9 +72,11 @@ export function lintRegion(source: string, region: SqlRegion, astify: Astify): S
   }
 }
 // Notes for dialects that are not SQL (info, never a warning): left plain and not checked.
+/** Returns regions whose dialects are intentionally left unchecked. */
 export function uncheckedRegions(regions: SqlRegion[]) {
   return regions.filter(r => !r.grammar && r.dialect);
 }
+/** Reports informational notes for unsupported or non-SQL dialects. */
 export function dialectNotes(source: string, regions: SqlRegion[]): Issue[] {
   return uncheckedRegions(regions).map(r => {
     const { line, column } = lineColumn(source, r.offsets[0] ?? r.start);
@@ -86,6 +90,7 @@ export function dialectNotes(source: string, regions: SqlRegion[]): Issue[] {
     };
   });
 }
+/** Lints embedded SQL regions without executing SQL or producing save-blocking errors. */
 export function lintSql(
   source: string,
   filename: string,
@@ -94,6 +99,7 @@ export function lintSql(
 ): Issue[] {
   return [...regions.flatMap(r => lintRegion(source, r, astify)), ...dialectNotes(source, regions)];
 }
+/** Lists the distinct parser grammars required by SQL regions. */
 export const grammarsNeeded = (regions: SqlRegion[]) => [
   ...new Set(
     regions.flatMap(r =>

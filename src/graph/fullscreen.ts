@@ -1,9 +1,12 @@
+/** Manages native or window-filling graph views and restores the entry viewport on exit. */
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
-// Full screen for Graph and Neighborhood (FR-066): the canvas row (graph plus inspector) fills the
-// screen through the Fullscreen API, or the browser window when the API is refused or missing.
-// Escape or the exit control leaves it, and the view (pan and zoom) at entry is put back.
+// Full screen for Graph and Neighborhood: the canvas row (graph plus inspector) fills the screen
+// through the Fullscreen API, or the browser window when the API is refused or missing. Escape or
+// the exit control leaves it, and the view (pan and zoom) at entry is put back.
+/** Records the canvas pan offset and zoom level. */
 export type Viewport = { x: number; y: number; zoom: number };
-// Remembers the view when full screen starts and hands it back once when it ends.
+
+/** Remembers the entry viewport and returns it once when leaving full screen. */
 export function createViewMemory() {
   let saved: Viewport | null = null;
   return {
@@ -20,6 +23,7 @@ export function createViewMemory() {
     },
   };
 }
+/** Exposes full-screen state and controls, including window-filling fallback mode. */
 export type Fullscreen = {
   active: boolean;
   fallback: boolean;
@@ -27,6 +31,7 @@ export type Fullscreen = {
   exit: () => void;
   toggle: () => void;
 };
+/** Manages native full screen or a window-filling fallback when unavailable. */
 export function useFullscreen(target: RefObject<HTMLElement | null>, enabled = true): Fullscreen {
   const [active, setActive] = useState(false);
   const [fallback, setFallback] = useState(false);
@@ -84,6 +89,7 @@ export function useFullscreen(target: RefObject<HTMLElement | null>, enabled = t
 }
 // For a React Flow canvas: save the viewport when full screen starts; when it ends, ignore the
 // resize refit for a moment and put the saved viewport back.
+/** Restores the entry viewport after exit and briefly suppresses resize refits. */
 export function useViewRestore(
   active: boolean,
   getViewport: () => Viewport | undefined,
@@ -103,7 +109,8 @@ export function useViewRestore(
     const v = memory.current.exit();
     if (!v) return;
     holdUntil.current = performance.now() + 700;
-    // After the layout settles at its old size (two frames, then once more after the resize refit window).
+    // After the layout settles at its old size (two frames, then once more after the resize refit
+    // window).
     let frame = requestAnimationFrame(() => {
       frame = requestAnimationFrame(() => setViewport(v));
     });

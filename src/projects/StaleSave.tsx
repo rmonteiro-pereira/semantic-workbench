@@ -1,7 +1,8 @@
+/** Compares conflicting file versions so the user can resolve a rejected stale save. */
 import React, { useEffect, useRef } from 'react';
 import { DiffView } from '../scm/DiffView';
-// FR-064 / FR-081: a save based on an older version is rejected; show both versions side by side
-// in the diff view (changed lines marked) and let the user decide.
+// A stale save compares the open and disk versions so the user can choose how to resolve it.
+/** Compares conflicting versions and offers explicit stale-save resolution. */
 export function StaleSaveDialog({
   filename,
   mine,

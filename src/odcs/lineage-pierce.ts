@@ -1,7 +1,8 @@
-// Full pierce in the lineage and mapping canvases (FR-023, research R5): from a column (or every
-// column of a card) follow lines upstream, downstream or both (ancestors plus descendants, never
-// siblings), and open the cards they reach in breadth-first order, cut at a card budget. Runs in
-// lineage-pierce.worker.ts; pure so it is unit- and mutation-tested.
+/** Traverses upstream or downstream lineage in breadth-first order within a card budget. */
+// Traversals start at a column or all columns of a card and stop at a card budget. Both directions
+// means ancestors plus descendants, never siblings. The worker runs the same pure traversal used
+// by the canvases.
+/** Supplies lineage, starting nodes, direction and a traversal card budget. */
 export type LineagePierceInput = {
   edges: [string, string][];
   owners: Record<string, string>;
@@ -9,12 +10,14 @@ export type LineagePierceInput = {
   direction: 'out' | 'in' | 'both';
   budget: number;
 };
+/** Reports reached cards and nodes with traversal coverage and distances. */
 export type LineagePierceResult = {
   cards: string[];
   total: number;
   hidden: number;
   steps: Record<string, number>;
 };
+/** Traverses lineage ancestors or descendants within the card budget, excluding siblings. */
 export function lineagePierce(i: LineagePierceInput): LineagePierceResult {
   const out = new Map<string, string[]>();
   const inn = new Map<string, string[]>();

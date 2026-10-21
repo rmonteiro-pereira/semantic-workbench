@@ -1,8 +1,7 @@
-// Neighborhood walk history (FR-037): each step is a center in a document, reached optionally through
-// a relationship. `push` truncates forward history like a browser; pushing the current center again
-// is a no-op so re-selecting does not grow the trail.
-// v0.3.0 adds expansion steps (`kind: 'expand'`, with the expansion set id): the canvas keeps its
-// center and grows. Steps without `kind` are re-centering steps, as in v0.2.0.
+/** Tracks graph centers and expansions as reversible navigation history. */
+// Selecting the current center does not add a step; a new step discards forward history. Expansion
+// steps keep the center and record their expansion set. Steps without a kind change the center.
+/** Records a document center or expansion reached during graph navigation. */
 export type WalkStep = {
   doc: string;
   center: string;
@@ -11,7 +10,9 @@ export type WalkStep = {
   kind?: 'center' | 'expand';
   set?: string;
 };
+/** Stores navigation steps and the active history position. */
 export type Walk = { steps: WalkStep[]; index: number };
+/** Describes a navigation push, move, jump or reset. */
 export type WalkAction =
   | { type: 'push'; step: WalkStep }
   | { type: 'back' }
@@ -20,6 +21,7 @@ export type WalkAction =
   | { type: 'reset'; step?: WalkStep };
 export const emptyWalk: Walk = { steps: [], index: -1 };
 export const MAX_STEPS = 100;
+/** Updates bounded navigation history and discards forward steps after a new branch. */
 export function walkReducer(walk: Walk, action: WalkAction): Walk {
   if (action.type === 'back') return walk.index > 0 ? { ...walk, index: walk.index - 1 } : walk;
   if (action.type === 'forward')
@@ -48,12 +50,16 @@ export function walkReducer(walk: Walk, action: WalkAction): Walk {
   const steps = [...walk.steps.slice(0, walk.index + 1), action.step].slice(-MAX_STEPS);
   return { steps, index: steps.length - 1 };
 }
+/** Returns the active navigation step, if any. */
 export const currentStep = (walk: Walk) => walk.steps[walk.index];
+/** Checks whether navigation has an earlier step. */
 export const canBack = (walk: Walk) => walk.index > 0;
+/** Checks whether navigation has a later step. */
 export const canForward = (walk: Walk) => walk.index < walk.steps.length - 1;
 const isCenter = (s: WalkStep) => (s.kind ?? 'center') === 'center';
 // The canvas at the current step: the last re-centering step at or before it, and the expansion
 // sets applied after it, in order (Back/Forward restore exactly this).
+/** Reconstructs the current center and ordered expansions from navigation history. */
 export function canvasAt(walk: Walk): { center: WalkStep | undefined; sets: string[] } {
   const sets: string[] = [];
   for (let i = walk.index; i >= 0; i--) {

@@ -1,12 +1,16 @@
+/** Confirms project or file deletion after showing affected files, unsaved edits and broken
+ * references. */
 import React, { useEffect, useState } from 'react';
 import { Modal } from './Modal';
 import { api, type Impact, type ProjectInfo } from './api';
-// FR-022: the confirmation names everything that is removed and warns about unsaved edits and
-// references that will no longer resolve. Nothing is removed until "Delete" is pressed.
+// The confirmation names everything that is removed and warns about unsaved edits and references
+// that will no longer resolve. Nothing is removed until "Delete" is pressed.
+/** Identifies the project or file being considered for deletion. */
 export type DeleteTarget =
   | { kind: 'file'; project: string; path: string }
   | { kind: 'project'; project: string }
   | { kind: 'clear' };
+/** Shows deletion impact and requires an explicit delete action. */
 export function DeleteDialog({
   target,
   projects,

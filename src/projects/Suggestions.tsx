@@ -1,9 +1,10 @@
+/** Shows evidence for project grouping suggestions before the user chooses to move files. */
 import React, { useState } from 'react';
 import { Lightbulb } from 'lucide-react';
 import { Modal } from './Modal';
 import type { ProjectInfo, Suggestion } from './api';
-// FR-019, FR-060: grouping suggestions are a one-line count in the sidebar that opens the Grouping
-// suggestions dialog; each shows its evidence, and nothing moves until "Add to project".
+// Suggestions show their evidence before anything moves to a project.
+/** Displays grouping evidence before moving files into suggested projects. */
 export function Suggestions({
   items,
   projects,

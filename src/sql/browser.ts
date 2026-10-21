@@ -1,8 +1,9 @@
+/** Loads SQL dialect grammars on demand inside the validation worker to keep typing responsive. */
 import { lintSql, lintRegion, grammarsNeeded, type Astify, type SqlFinding } from './lint';
 import { grammarOf, sqlRegions, type SqlRegion } from './regions';
 import type { Issue } from '../diagnostics';
-// The browser's SQL lint (research R11): one node-sql-parser grammar build per dialect, imported
-// on first need (each 180–300 KB), inside the validation worker so typing never waits.
+// The browser's SQL lint: one node-sql-parser grammar build per dialect, imported on first need
+// (each 180–300 KB), inside the validation worker so typing never waits.
 const builds: Record<string, () => Promise<any>> = {
   postgresql: () => import('node-sql-parser/build/postgresql.js'),
   sqlite: () => import('node-sql-parser/build/sqlite.js'),
@@ -31,6 +32,7 @@ function parserFor(grammar: string) {
   }
   return p;
 }
+/** Lints embedded SQL using dialect grammars loaded on demand. */
 export async function browserSqlFindings(source: string, filename: string): Promise<Issue[]> {
   const regions = sqlRegions(source, filename);
   if (!regions.length) return [];
@@ -43,7 +45,8 @@ export async function browserSqlFindings(source: string, filename: string): Prom
   };
   return lintSql(source, filename, astify, regions);
 }
-// One SQL text on its own (item editor fields, wizard inputs, previews): positions are in the text.
+
+/** Lints one SQL field with findings relative to the supplied text. */
 export async function browserSqlTextFindings(
   sql: string,
   dialect: string | null,

@@ -1,5 +1,7 @@
+/** Projects collapsed model areas into group nodes and their connecting edges. */
 import type { Entity, Relationship } from './model';
 import type { modelOverview } from './overview';
+/** Replaces collapsed areas with group nodes and their aggregate relationships. */
 export function collapseAreas(overview: ReturnType<typeof modelOverview>, collapsed: Set<string>) {
   if (!collapsed.size)
     return {

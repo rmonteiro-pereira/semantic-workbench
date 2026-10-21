@@ -1,17 +1,12 @@
+/** Turns resolved concept mappings into lineage cards and binding edges without reparsing the
+ * mapping. */
 import { OSSIE_BUILTINS } from '../ossie-builtins';
 import { badge, type BadgeInfo } from '../PropertyBadges';
 import type { LineageCard, LineageColumn, ColumnEdge, LineageGraph } from '../odcs/lineage';
 import type { MappingEdgeKind } from '../graph/edge-styles';
-// The concept-mapping graph (FR-028–FR-032, research R15): the resolver's context (the same one the
-// Mappings tab and `GET /api/agent/context` use) as lineage cards. Concepts on the left with their
-// relationships as rows, semantic datasets with field rows, metric cards; lines per binding:
-//  object   concept card → dataset card (identifying field rows marked), or → field / metric when
-//           the object mapping's own expression reads it;
-//  referent concept row (the relationship path) → field row or metric card;
-//  link     relationship row → related concept card, through the join field rows (`via`),
-//           labelled with the relationship;
-//  measures / of  concept card → metric card (metric bindings of the mapping's extension).
-// Nothing here parses the mapping again: the tree is only walked to find a link child's relationship.
+// Cards represent concepts, datasets and metrics; rows hold relationships and fields. Object,
+// referent and link bindings connect their resolved endpoints. Metric bindings connect concepts to
+// metrics, and link paths retain intermediate join rows.
 type Evidence = { path: (string | number)[]; documentId?: string };
 type Binding = {
   id: string;
@@ -31,6 +26,7 @@ type Finding = {
   evidence?: Evidence & { filename?: string };
 };
 type ConceptRef = { input: string; concept: string | null };
+/** Supplies resolved ontology, model and bindings for mapping graph construction. */
 export type MappingContext = {
   mappingId: string;
   name: string;
@@ -49,17 +45,20 @@ export type MappingContext = {
     evidence: Evidence;
   }[];
 };
+/** Describes a mapping binding edge with resolver evidence. */
 export type MappingEdge = Omit<ColumnEdge, 'kind'> & {
   kind: MappingEdgeKind;
   bindings: string[];
   via?: string[];
   findings?: string[];
 };
+/** Extends an asset card with mapping-specific findings and evidence. */
 export type MappingCard = LineageCard & {
   badges?: BadgeInfo[];
   findings?: string[];
   missing?: boolean;
 };
+/** Collects mapping cards, binding edges and graph-level findings. */
 export type MappingGraph = Omit<LineageGraph, 'cards' | 'edges'> & {
   cards: Map<string, MappingCard>;
   edges: MappingEdge[];
@@ -68,9 +67,13 @@ export type MappingGraph = Omit<LineageGraph, 'cards' | 'edges'> & {
   // Where each finding message points (for Edit item).
   findingEvidence: Map<string, { documentId: string; path: (string | number)[] }>;
 };
+/** Builds a graph identifier for an ontology concept. */
 export const conceptId = (name: string) => `concept:${name}`;
+/** Builds a graph identifier for a semantic dataset. */
 export const datasetId = (name: string) => `dataset:${name}`;
+/** Builds a graph identifier for a semantic metric. */
 export const metricId = (name: string) => `metric:${name}`;
+/** Builds a graph identifier for a dataset field. */
 export const fieldId = (dataset: string, field: string) => `${datasetId(dataset)}/${field}`;
 const fieldOf = (key: string) => {
   const [d, f] = JSON.parse(key) as [string, string];
@@ -85,6 +88,7 @@ const cmIndex = (path: (string | number)[]) => {
   const i = path.indexOf('concept_mappings');
   return i < 0 ? -1 : Number(path[i + 1]);
 };
+/** Builds mapping cards and binding edges from the resolver's context. */
 export function buildMappingGraph(context: MappingContext, revision = ''): MappingGraph {
   const cards = new Map<string, MappingCard>();
   const edges: MappingEdge[] = [];
@@ -112,8 +116,8 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
     }
     return null;
   };
-  // Cards: every ontology concept (built-in value types only when the mapping draws a line to them),
-  // every dataset with its fields, metrics as lines reach them.
+  // Cards: every ontology concept (built-in value types only when the mapping draws a line to
+  // them), every dataset with its fields, metrics as lines reach them.
   const conceptCard = (name: string, missing = false): MappingCard => {
     let c = cards.get(conceptId(name));
     if (c) return c;
@@ -225,7 +229,8 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
       const key = JSON.stringify(childPath);
       let entry = linkChildren.get(key);
       if (!entry) {
-        // The owner of a child's relationship: the root concept, or the parent child's object concept.
+        // The owner of a child's relationship: the root concept, or the parent child's object
+        // concept.
         const parentAt = childPath.slice(0, -2).lastIndexOf('children');
         let owner = b.rootConcept;
         if (parentAt >= 0) {
@@ -242,7 +247,7 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
       entry.bindings.push(b);
       continue;
     }
-    // object mapping node: concept_mappings,i,object_mappings,j (direct) — referents below it
+    // Object mapping node: concept_mappings,i,object_mappings,j (direct) — referents below it
     const om = p.slice(0, cm + 4);
     const key = JSON.stringify(om);
     let g = objectGroups.get(key);
@@ -331,7 +336,8 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
     });
     void key;
   }
-  // A link mapping with only an anchor (no children) still shows its bindings, as referent-like lines.
+  // A link mapping with only an anchor (no children) still shows its bindings, as referent-like
+  // lines.
   for (const [key, list] of linkAnchors)
     if (
       ![...linkChildren.values()].some(
@@ -347,7 +353,7 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
             bindings: [b.id],
             source: source(b.evidence.path),
           });
-  // metric bindings.
+  // Metric bindings.
   for (const m of context.metricBindings) {
     const metric = metricCard(m.metric);
     for (const [role, ref] of [
@@ -379,7 +385,8 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
       }
     if ((c.kind as string) === 'concept' && !mapped.has(c.label)) c.badges = [badge('unmapped')];
   }
-  // Resolver findings: on the concept card of the concept mapping they come from; others on the graph.
+  // Resolver findings: on the concept card of the concept mapping they come from; others on the
+  // graph.
   for (const f of context.findings) {
     const i = f.evidence ? cmIndex(f.evidence.path) : -1;
     const name = i >= 0 ? tree[i]?.concept : undefined;
@@ -410,7 +417,8 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
     bindings: new Map(context.bindings.map(b => [b.id, b])),
   };
 }
-// The card a mapping graph opens on: the concept with the most lines.
+
+/** Chooses the concept card with the most mapping connections. */
 export function defaultMappingCenter(g: MappingGraph) {
   const count = new Map<string, number>();
   const owner = (n: string) => (g.cards.has(n) ? n : n.slice(0, n.lastIndexOf('/')));

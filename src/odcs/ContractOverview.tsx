@@ -1,10 +1,11 @@
+/** Displays contract metadata and a searchable schema-object summary. */
 import React, { useDeferredValue, useMemo, useState } from 'react';
 import { FileCheck2, Search, Table2, Workflow } from 'lucide-react';
 import { odcsForeignKeys } from '../odcs';
 import { flattenProperties } from './odcs-diff';
 import { Badge } from '../PropertyBadges';
 import './odcs.css';
-// ODCS contract overview (FR-056): identity and status, the contract-level sections that are present
+// ODCS contract overview: identity and status, the contract-level sections that are present
 // (servers, team and roles, service levels, quality, support, pricing, custom properties) and a
 // searchable list of schema objects with property, key and quality-rule counts.
 const list = (v: unknown): any[] => (Array.isArray(v) ? v : []);
@@ -16,10 +17,12 @@ const text = (v: unknown) =>
       : typeof v === 'number' || typeof v === 'boolean'
         ? String(v)
         : JSON.stringify(v);
+/** Collects quality rules declared on an object and its properties. */
 export const rulesOf = (o: any) => [
   ...list(o?.quality),
   ...flattenProperties(o?.properties).flatMap(p => list(p.property.quality)),
 ];
+/** Summarizes schema objects with property, constraint and quality-rule counts. */
 export function objectFacts(data: any) {
   const schema = list(data?.schema);
   const fks = odcsForeignKeys(data);
@@ -66,6 +69,7 @@ const Section = ({ label, children }: { label: string; children: React.ReactNode
     {children}
   </section>
 );
+/** Displays declared contract sections and a searchable object summary. */
 export function ContractOverview({
   data,
   onOpen,

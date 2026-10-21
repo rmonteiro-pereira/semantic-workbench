@@ -1,3 +1,4 @@
+/** Provides the grouping selector shared by model overview and graph views. */
 import { useState, useRef, useLayoutEffect } from 'react';
 import type { modelOverview, GroupingOptions, GroupingMode } from './overview';
 type Props = {
@@ -7,6 +8,7 @@ type Props = {
   example: boolean;
   error?: string;
 };
+/** Selects how model entities are grouped. */
 export function GroupingControls({ overview, value, onChange, example, error }: Props) {
   const [entity, setEntity] = useState('');
   const [group, setGroup] = useState('');

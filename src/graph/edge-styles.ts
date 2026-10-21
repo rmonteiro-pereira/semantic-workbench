@@ -1,11 +1,15 @@
-// One line style per lineage and mapping edge kind (FR-025, FR-026), shared by the lineage canvas,
-// the mapping canvas, the asset page and the legend. Foreign keys and `of` metric bindings are
-// dashed; every "feeds" kind is solid. Path emphasis adds weight and accent colour in CSS without
-// changing the dash pattern.
+/** Shares edge colors and dash patterns across lineage, mappings, asset pages and legends. */
+// Foreign keys and metric concept bindings use dashed lines; data-flow edges are solid. Path
+// emphasis changes weight and color without changing the dash pattern.
+/** Names a dependency or foreign-key relationship in column lineage. */
 export type LineageEdgeKind = 'foreign-key' | 'reads' | 'aggregates' | 'uses' | 'transform';
+/** Names a resolved concept-mapping binding kind. */
 export type MappingEdgeKind = 'object' | 'referent' | 'link' | 'measures' | 'of';
+/** Names any supported lineage or mapping edge kind. */
 export type EdgeKind = LineageEdgeKind | MappingEdgeKind;
+/** Defines an edge's label, legend category, color and optional dash pattern. */
 export type EdgeStyle = { label: string; legend: LegendLine; stroke: string; dash?: string };
+/** Groups edge kinds under the line styles displayed in the legend. */
 export type LegendLine =
   | 'foreign-key'
   | 'feeds'
@@ -42,8 +46,10 @@ export const LEGEND_LINES: Record<LegendLine, { label: string; stroke: string; d
   measures: { label: 'Measures', stroke: '#8a5ad1' },
   of: { label: 'Of (metric binding)', stroke: '#8a5ad1', dash: '5 4' },
 };
+/** Returns the shared visual style for an edge kind. */
 export const edgeStyle = (kind: EdgeKind) => EDGE_STYLES[kind];
 // React Flow / SVG style for an edge of this kind.
+/** Returns SVG stroke properties, preserving dash patterns when emphasized. */
 export const edgeSvgStyle = (kind: EdgeKind, emphasis = false) => {
   const s = EDGE_STYLES[kind];
   return {

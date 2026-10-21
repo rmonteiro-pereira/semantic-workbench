@@ -1,9 +1,10 @@
+/** Shares asset icons and line-style labels between lineage and mapping canvases. */
 import React from 'react';
 import { Boxes, Columns3, Database, Gauge, Table2, Link2 } from 'lucide-react';
 import { LEGEND_LINES, type LegendLine } from './edge-styles';
 import './legend.css';
-// The legend of the v0.2.0 dataset Lineage tab as one shared component (FR-025): kind icons and the
-// line styles of edge-styles.ts.
+// Asset icons and edge-style labels are shared so all canvases use the same legend.
+/** Names an asset category shown in the shared legend. */
 export type LegendKind = 'object' | 'dataset' | 'field' | 'metric' | 'concept' | 'external';
 export const KIND_LABEL: Record<LegendKind, string> = {
   object: 'Contract object',
@@ -13,6 +14,7 @@ export const KIND_LABEL: Record<LegendKind, string> = {
   concept: 'Concept',
   external: 'External reference',
 };
+/** Renders the shared icon for an asset kind. */
 export const KindIcon = ({ kind, size = 12 }: { kind: LegendKind; size?: number }) =>
   kind === 'object' ? (
     <Table2 size={size} />
@@ -27,6 +29,7 @@ export const KindIcon = ({ kind, size = 12 }: { kind: LegendKind; size?: number 
   ) : (
     <Link2 size={size} />
   );
+/** Explains the asset icons and edge styles visible on a canvas. */
 export function LineageLegend({
   kinds = ['object', 'dataset', 'field', 'metric'],
   lines = ['foreign-key', 'feeds'],

@@ -1,7 +1,10 @@
+/** Explains Git setup problems and startup recovery results while non-Git features remain
+ * available. */
 import React, { useState } from 'react';
 import type { WorkspaceStatus } from './api';
-// FR-090: missing Git or a missing identity is explained; everything that does not need Git keeps
-// working. Migration and crash-recovery outcomes from start-up are reported once here as well.
+// Missing Git or a missing identity is explained; everything that does not need Git keeps working.
+// Migration and crash-recovery outcomes from start-up are reported once here as well.
+/** Displays Git setup and startup recovery information. */
 export function GitBanner({ status }: { status: WorkspaceStatus | null }) {
   const [dismissed, setDismissed] = useState<string[]>([]);
   if (!status) return null;

@@ -1,3 +1,4 @@
+/** Provides a SQL form input with nonblocking lint warnings; non-SQL dialects stay plain text. */
 import React, { useEffect, useRef, useState } from 'react';
 import { Annotation, Compartment, EditorState } from '@codemirror/state';
 import { EditorView, keymap, placeholder as placeholderExt, drawSelection } from '@codemirror/view';
@@ -9,10 +10,8 @@ import { toDiagnostics, lintSqlInWorker } from './lint';
 import { grammarOf } from '../sql/regions';
 import type { Issue } from '../diagnostics';
 import './editor.css';
-// A one-purpose SQL input (FR-054): the Source editor's SQL colors and the shared SQL lint for one
-// expression, in the item editor, the metric wizard and wherever SQL is typed into a form. Findings
-// are warnings drawn under the text and listed below it; they never block saving. A dialect that
-// is not SQL (DAX, MDX, …) is plain text with a "not checked" note.
+// Findings appear as warnings and never block saving. Non-SQL dialects such as DAX and MDX are
+// left unchecked.
 const fromProps = Annotation.define<boolean>();
 type Props = {
   value: string;
@@ -26,6 +25,7 @@ type Props = {
   disabled?: boolean;
   onFindings?: (f: Issue[]) => void;
 };
+/** Edits a SQL expression with nonblocking syntax warnings. */
 export function SqlField({
   value,
   onChange,

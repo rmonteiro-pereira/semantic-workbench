@@ -1,3 +1,4 @@
+/** Validates structured definitions against pinned schemas and semantic constraints. */
 import { OSSIE_BUILTINS } from './ossie-builtins';
 import { isMapping, mappingSchemaIssues } from './mapping-schema';
 import { expandIri, prefixMap } from './iri';
@@ -19,6 +20,7 @@ const object = (v: any) => v !== null && typeof v === 'object' && !Array.isArray
 const text = (v: any) => typeof v === 'string' && !!v.trim();
 
 // Kahn's algorithm is iterative and O(V + E), even for deep inheritance chains.
+/** Detects inheritance cycles without recursion, including deep chains. */
 export function inheritanceCycle(nodes: string[], parents: Map<string, string[]>) {
   const degree = new Map(nodes.map(n => [n, 0]));
   for (const list of parents.values())
@@ -32,6 +34,7 @@ export function inheritanceCycle(nodes: string[], parents: Map<string, string[]>
       }
   return nodes.filter(n => degree.get(n)! > 0);
 }
+/** Checks structured definitions against schemas and semantic rules. */
 export function validateStructured(data: any, applyPinnedSchema = true): Issue[] {
   const issues: Issue[] = [];
   const fail = (path: string, message: string, code = 'structure') =>
@@ -349,7 +352,7 @@ export function validateStructured(data: any, applyPinnedSchema = true): Issue[]
                 }
               });
         }
-      // Metrics-layer extensions and metric bindings on this model (application schemas, FR-003/FR-004).
+      // Metrics-layer extensions and metric bindings on this model.
       issues.push(...metricLayerIssues(m, p, fieldNames), ...readKpiBindings(m, p, false).issues);
     });
     if (data.version !== '0.2.0.dev0')
@@ -382,4 +385,5 @@ export function validateStructured(data: any, applyPinnedSchema = true): Issue[]
   rejectIssues(issues);
   return issues;
 }
+/** Validates a structured definition using the shared validation rules. */
 export const validateKnownVersion = validateStructured;

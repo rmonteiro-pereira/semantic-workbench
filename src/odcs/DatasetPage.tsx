@@ -1,3 +1,5 @@
+/** Displays an ODCS object's properties, relationships, lineage, Git history and declared quality
+ * rules. */
 import React, { useEffect, useMemo, useState } from 'react';
 import { parse } from 'yaml';
 import { ArrowLeft, ArrowDown, ArrowUp, ArrowUpDown, Search, Table2 } from 'lucide-react';
@@ -10,9 +12,8 @@ import { projectFiles, projectRevision } from './project-files';
 import { rulesOf } from './ContractOverview';
 import { Badge, badge, type BadgeInfo } from '../PropertyBadges';
 import './odcs.css';
-// Marquez-style dataset page for one ODCS schema object (FR-057): a header with key facts, then
-// Schema (property table), Lineage (graph with depth control and property-level lineage), History
-// (versions from Git with property-level changes) and Quality (rules as declared, never run).
+// Quality rules are displayed as declared and never executed. Git history compares versions at
+// property level.
 const list = (v: unknown): any[] => (Array.isArray(v) ? v : []);
 const text = (v: unknown) =>
   v === undefined || v === null
@@ -23,9 +24,10 @@ const text = (v: unknown) =>
         ? String(v)
         : JSON.stringify(v);
 type Version = Commit & { source: string; data: any };
-// v0.3.0 asset page (FR-011): Lineage, Relationships, Data Quality, Properties, History.
+
 type Tab = 'Lineage' | 'Relationships' | 'Data Quality' | 'Properties' | 'History';
 const TABS: Tab[] = ['Lineage', 'Relationships', 'Data Quality', 'Properties', 'History'];
+/** Supplies the object, property path and value for an editable table cell. */
 export type PropertyCellProps = {
   objectIndex: number;
   path: string;
@@ -60,9 +62,10 @@ type Props = {
   onNeighborhood?: (card: LineageCard) => void;
   // Changes when Git reports a commit, switch or pull, so History follows commits made elsewhere.
   gitVersion?: number;
-  // T143: cells that can be edited in place; null renders the value read-only.
+  // Cells that can be edited in place; null renders the value read-only.
   editor?: (cell: PropertyCellProps) => React.ReactNode | null;
 };
+/** Displays one contract object's properties, lineage, relationships, history and quality. */
 export function DatasetPage({
   doc,
   data,
@@ -357,7 +360,7 @@ function SchemaTab({
     </>
   );
 }
-// The boolean columns render the shared badges (FR-027), so the table and lineage cards match.
+// The boolean columns render the shared badges, so the table and lineage cards match.
 const BOOLEAN_BADGE: Record<string, BadgeInfo> = {
   primaryKey: badge('pk'),
   required: badge('required'),
@@ -459,8 +462,8 @@ function PropertyRow({
     </tr>
   );
 }
-// The asset's Lineage tab (FR-011): the lineage canvas centred on this object, and per property
-// the fields that read it and the metrics downstream of it, read from the same lineage graph.
+// The asset's Lineage tab: the lineage canvas centred on this object, and per property the fields
+// that read it and the metrics downstream of it, read from the same lineage graph.
 function LineageTab({
   doc,
   projectDocs,
@@ -563,7 +566,7 @@ function LineageTab({
     </>
   );
 }
-// Relationships (FR-011): foreign keys out of and into each column, both directions, with links.
+// Relationships: foreign keys out of and into each column, both directions, with links.
 function RelationshipsTab({
   data,
   objectIndex,
@@ -813,6 +816,7 @@ const OPERATORS: [string, string][] = [
   ['mustBeLessThan', '<'],
   ['mustBeLessOrEqualTo', '≤'],
 ];
+/** Formats a declared quality rule's threshold for display. */
 export function threshold(r: any) {
   for (const [k, op] of OPERATORS) if (r?.[k] !== undefined) return `${op} ${text(r[k])}`;
   if (Array.isArray(r?.mustBeBetween))

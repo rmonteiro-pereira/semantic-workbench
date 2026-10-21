@@ -1,3 +1,4 @@
+/** Edits one item's fields or source as a draft, then validates and saves against its base hash. */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, FileCode, Pencil, Plus, Trash2 } from 'lucide-react';
 import type { Issue } from '../diagnostics';
@@ -24,9 +25,10 @@ import {
 import { findReferences, rewriteReferences, type Reference } from './references';
 import './edit.css';
 import { SqlField } from '../editor/SqlField';
-// Item editor (FR-048, FR-051–FR-053, FR-015): the selected entity, relationship or metric only, as a
-// form of its attributes or as its own source lines, with the shared validation shown inline. The
-// change is a draft in this dialog until Save, which writes it in place (base-hash checked).
+// Item editor: the selected entity, relationship or metric only, as a form of its attributes or as
+// its own source lines, with the shared validation shown inline. The change is a draft in this
+// dialog until Save, which writes it in place (base-hash checked).
+/** Reports the saved document version and the item selected after editing. */
 export type Saved = { docId: string; source: string; hash: string };
 type Props = {
   doc: Doc;
@@ -50,6 +52,7 @@ const display = (spec: FieldSpec, v: any) =>
     : v === undefined || v === null
       ? ''
       : String(v);
+/** Edits an item's fields or source and validates the draft before saving. */
 export function ItemEditor({
   doc,
   base,
@@ -86,7 +89,7 @@ export function ItemEditor({
         : undefined,
     [],
   );
-  // A metric's dependents are listed before any change is saved (FR-015); found after the first paint.
+  // A metric's dependents are listed before any change is saved; found after the first paint.
   useEffect(() => {
     if (kind !== 'metric') return;
     const t = setTimeout(

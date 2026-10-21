@@ -1,7 +1,9 @@
+/** Arranges grouped graphs and packs group rectangles without stretching their nodes. */
 import type { GroupingOptions } from './overview';
 import { modelOverview } from './overview';
 import { groupRelationships } from './graph-view';
 import type { Entity, Relationship } from './model';
+/** Lays out nodes and edges within their model groups. */
 export async function layoutFullGraph(
   entities: Entity[],
   edges: Relationship[],
@@ -92,8 +94,9 @@ export async function layoutFullGraph(
     relationshipCount: overview.links.length,
   };
 }
-// Keep fCoSE's internal compound layout, then pack the area rectangles with
-// ELK's box packer to remove empty space without stretching individual nodes.
+// Keep fCoSE's internal compound layout, then pack the area rectangles with ELK's box packer to
+// remove empty space without stretching individual nodes.
+/** Packs group rectangles while preserving their internal network layouts. */
 export async function packNetwork(
   result: any,
   elk: { layout: (g: any) => Promise<any> },

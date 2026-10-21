@@ -1,9 +1,11 @@
+/** Maps findings to editor ranges and requests validation from a shared worker. */
 import type { Text } from '@codemirror/state';
 import type { Diagnostic } from '@codemirror/lint';
 import type { Issue } from '../diagnostics';
-// Findings → editor diagnostics (FR-043, FR-044). A finding with a line (and column) becomes a range
-// from that position to the end of the token there; one without a reliable location stays
-// document-level and is listed above the editor instead of being drawn on a guessed line.
+// Findings → editor diagnostics. A finding with a line (and column) becomes a range from that
+// position to the end of the token there; one without a reliable location stays document-level and
+// is listed above the editor instead of being drawn on a guessed line.
+/** Returns a finding's token range, or null when its location is unreliable. */
 export function issueRange(issue: Issue, doc: Text): { from: number; to: number } | null {
   if (!issue.line || issue.line < 1 || issue.line > doc.lines) return null;
   const line = doc.line(issue.line);
@@ -13,6 +15,7 @@ export function issueRange(issue: Issue, doc: Text): { from: number; to: number 
   const token = rest.match(/^\s*\S+/)?.[0].length ?? 0;
   return { from, to: token ? from + token : line.to };
 }
+/** Converts located validation findings into CodeMirror diagnostics. */
 export function toDiagnostics(issues: Issue[], doc: Text) {
   const diagnostics: Diagnostic[] = [];
   const documentLevel: Issue[] = [];
@@ -31,8 +34,8 @@ export function toDiagnostics(issues: Issue[], doc: Text) {
   }
   return { diagnostics, documentLevel };
 }
-// Validation runs in a worker (FR-045): one shared worker, requests answered by id; a newer request
-// for the same editor supersedes an older one.
+// Validation runs in a worker: one shared worker, requests answered by id; a newer request for the
+// same editor supersedes an older one.
 type Pending = { resolve: (issues: Issue[]) => void };
 let worker: Worker | null = null;
 let next = 0;
@@ -52,7 +55,9 @@ function post(message: Record<string, unknown>): Promise<Issue[]> {
     worker!.postMessage({ id, ...message });
   });
 }
+/** Requests document validation from the shared worker. */
 export const validateInWorker = (source: string, filename: string) => post({ source, filename });
-// One SQL text (a form field): findings with positions in the text (FR-054).
+
+/** Requests SQL field warnings with positions relative to the supplied text. */
 export const lintSqlInWorker = (sql: string, dialect: string | null) =>
   post({ sql, dialect, source: '', filename: '' });

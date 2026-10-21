@@ -1,6 +1,9 @@
+/** Places graph nodes in bounded columns so broad layers remain readable. */
+/** Identifies the source and target nodes of an edge. */
 export type Link = { source: string; target: string };
-// Linear-time layered layout. Cyclic components get a deterministic starting node.
-// Edges discovered after a node has been placed do not continually increase its rank.
+// Linear-time layered layout. Cyclic components get a deterministic starting node. Edges
+// discovered after a node has been placed do not continually increase its rank.
+/** Assigns stable layered positions without repeatedly increasing ranks around cycles. */
 export function layoutGraph(ids: string[], edges: Link[]) {
   const outgoing = new Map(ids.map(id => [id, [] as string[]]));
   const incoming = new Map(ids.map(id => [id, 0]));
@@ -34,8 +37,8 @@ export function layoutGraph(ids: string[], edges: Link[]) {
       queue.push(id);
       drain();
     }
-  // Wrap broad layers into short columns so a hub's neighbors do not form a
-  // tall strip that becomes unreadable when fitted to the canvas.
+  // Wrap broad layers into short columns so a hub's neighbors do not form a tall strip that
+  // becomes unreadable when fitted to the canvas.
   const maxRows = ids.length <= 200 ? 4 : Math.ceil(Math.sqrt(ids.length));
   const counts = new Map<number, number>();
   let maxRank = 0;
@@ -63,12 +66,13 @@ export function layoutGraph(ids: string[], edges: Link[]) {
     };
   });
 }
-// Neighborhood layout (FR-034): the center in the middle column, neighbors that only point at it on
-// the left, neighbors it points at on the right; two-way neighbors join the shorter side. Each
-// side wraps outward into extra columns, and every column is centered on the center's row.
+// Neighborhood layout: the center in the middle column, neighbors that only point at it on the
+// left, neighbors it points at on the right; two-way neighbors join the shorter side. Each side
+// wraps outward into extra columns, and every column is centered on the center's row.
 export const NEIGHBOR_COLUMN = 360;
 export const NEIGHBOR_ROW = 130;
 export const NEIGHBOR_ROWS = 6;
+/** Places incoming and outgoing neighbors in bounded columns around the center. */
 export function neighborhoodLayout(
   center: string,
   incoming: string[],

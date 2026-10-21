@@ -1,5 +1,7 @@
+/** Remembers the selected grouping options for each open document. */
 import { useEffect, useRef, useState } from 'react';
 import type { GroupingOptions } from './overview';
+/** Stores grouping preferences for the selected document. */
 export function useGrouping(documentId?: string) {
   const [state, setState] = useState<{ id?: string; value: GroupingOptions; error: string }>({
     value: {},

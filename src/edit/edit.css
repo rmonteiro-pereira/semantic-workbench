@@ -1,5 +1,6 @@
-/* Item editor, add and delete dialogs (Phase 6). The editor is a drawer on the right, so the graph
-   or list the item came from stays visible beside it. */
+/* Styles item drawers so the originating graph or list remains visible beside the form. */
+/* Item editor, add and delete dialogs. The editor is a drawer on the right, so the graph or list
+   the item came from stays visible beside it. */
 dialog.validation-backdrop:has(.item-editor) {
   display: flex;
   justify-content: flex-end;

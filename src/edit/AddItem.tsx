@@ -1,3 +1,4 @@
+/** Previews and validates a new entity or relationship before Save writes it to the document. */
 import React, { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import type { Issue } from '../diagnostics';
@@ -23,9 +24,8 @@ import {
 import type { Saved } from './ItemEditor';
 import './edit.css';
 import { SqlField } from '../editor/SqlField';
-// Add an entity or relationship (FR-049, FR-054): a form with the fields the format requires, a
-// preview of the text that will be inserted in the document's own style, the shared validation,
-// and Save. Nothing is written before Save.
+// The preview uses the document’s own layout and shared validation. Nothing is written before
+// Save.
 type Props = {
   doc: Doc;
   base: string;
@@ -37,8 +37,8 @@ type Props = {
   onClose: () => void;
   onSaved: (saved: Saved, path: Path, kind: ItemKind) => void;
 };
-// The form of a new item: the editable fields of the kind (not the metric extension, which the metric
-// wizard writes), plus the first property of a new contract object.
+// The form of a new item: the editable fields of the kind (not the metric extension, which the
+// metric wizard writes), plus the first property of a new contract object.
 function createFields(kind: ItemKind, choices: Choices): FieldSpec[] {
   const base = fieldsFor(kind, choices).filter(f => !f.extension);
   if (kind === 'odcs-object')
@@ -62,6 +62,7 @@ function createFields(kind: ItemKind, choices: Choices): FieldSpec[] {
     ];
   return base;
 }
+/** Previews and validates a new item before saving it. */
 export function AddItem({
   doc,
   base,

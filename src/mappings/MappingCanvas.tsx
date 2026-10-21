@@ -1,3 +1,4 @@
+/** Displays a mapping's resolved graph at the saved revision and indicates unsaved edits. */
 import React, { useEffect, useMemo, useState } from 'react';
 import { LineageCanvas } from '../odcs/LineageCanvas';
 import { Modal } from '../projects/Modal';
@@ -9,10 +10,8 @@ import {
   type MappingContext,
   type MappingGraph,
 } from './mapping-graph';
-// The mapping canvas (FR-028–FR-034, ui-contracts "Mapping canvas"): the lineage canvas over the
-// resolver's context for one mapping (a standalone document, or a consolidated file's embedded
-// mappings). It follows the saved revision, like the Mappings tab, and says so while the open file
-// has unsaved edits.
+// The resolver reads the saved revision for standalone and embedded mappings. The canvas indicates
+// when the open document has unsaved edits.
 type EditItem = (docId: string, path: (string | number)[]) => void;
 type Props = {
   mappingId: string;
@@ -28,6 +27,7 @@ type Props = {
 const unmapped = (c: LineageCard) =>
   !!c.badges?.some(b => b.kind === 'unmapped') ||
   c.columns.some(x => x.badges.some(b => b.kind === 'unmapped'));
+/** Displays the resolver's saved mapping graph through the shared lineage canvas. */
 export function MappingCanvas({
   mappingId,
   revisionKey,
@@ -214,4 +214,5 @@ export function MappingCanvas({
     </div>
   );
 }
+/** Exports the graph type accepted by the mapping canvas. */
 export type { MappingGraph };

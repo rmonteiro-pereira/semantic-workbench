@@ -1,3 +1,4 @@
+/** Confirms item deletion with its dependents and broken references before a journaled save. */
 import React, { useEffect, useState } from 'react';
 import { Modal } from '../projects/Modal';
 import { api, StaleSave, type Doc } from '../projects/api';
@@ -7,9 +8,9 @@ import { findReferences, removeDependents, type Reference } from './references';
 import { kindLabel, type ItemKind, type Path } from './item-model';
 import type { Saved } from './ItemEditor';
 import './edit.css';
-// Delete an entity or relationship (FR-050): the confirmation lists what depends on it (removed
-// with it) and the references that will no longer resolve (kept, to fix in Source). Delete writes
-// every affected file in one journaled save; Cancel changes nothing.
+// Delete an entity or relationship: the confirmation lists what depends on it (removed with it)
+// and the references that will no longer resolve (kept, to fix in Source). Delete writes every
+// affected file in one journaled save; Cancel changes nothing.
 type Props = {
   doc: Doc;
   base: string;
@@ -27,6 +28,7 @@ type Plan = {
   files: { doc: Doc; source: string }[];
   invalid: string[];
 };
+/** Reviews dependencies and confirms an item deletion across affected files. */
 export function DeleteItem({
   doc,
   base,
@@ -48,7 +50,8 @@ export function DeleteItem({
         const refs = findReferences({ kind, name, docId: doc.id, path, owner }, docs);
         const dependents = refs.filter(r => r.dependent);
         const breaking = refs.filter(r => !r.dependent);
-        // The item itself is removed together with its dependents, from the last position to the first.
+        // The item itself is removed together with its dependents, from the last position to the
+        // first.
         const edited = removeDependents(docs, [
           { docId: doc.id, dependent: { path, label: name } },
           ...dependents.map(r => ({ docId: r.docId, dependent: r.dependent! })),

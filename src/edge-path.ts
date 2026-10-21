@@ -1,5 +1,6 @@
-/** Smart-edge routes use absolute SVG commands. Never publish a cached path
- * whose endpoints belong to an earlier node position. */
+/** Checks whether a cached SVG route still matches the current edge endpoints. */
+/** Smart-edge routes use absolute SVG commands. Never publish a cached path whose endpoints belong
+ * to an earlier node position. */
 export function pathMatchesEndpoints(
   path: string,
   sourceX: number,
