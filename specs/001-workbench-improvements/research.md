@@ -680,3 +680,23 @@ and recorded here so later phases build on them.
 - **Quality** is listed as declared (object and property rules, thresholds such as `mustBe` and
   `mustBeBetween` written as `= 0`, `between 1 and 5`) with an explicit statement that nothing runs.
 
+## R22. Implementation decisions taken in Phase 10
+
+- **Who did what.** T149 (full screen) was implemented without Codex while its sign-in had
+  expired; T150 (adaptive reflow) was done by Codex from `codex/phase-10.md` once it was signed in
+  again, then reviewed. Codex's sandbox cannot open listening sockets, so every browser suite was
+  run outside it.
+- **Full screen** uses the Fullscreen API on the canvas row (graph plus inspector) and falls back to
+  a window-filling class when the API is refused. Escape or the toolbar control exits; the viewport
+  transform and the selection are restored, and resize refits are held back briefly after exit so
+  the restored view is not replaced. The toggle is icon-only until active, so the toolbar keeps one
+  row at 1280×720.
+- **Scrolling strips.** The tab bar and the graph toolbars scroll horizontally below 650 px with
+  edge fades that follow the real overflow (`ScrollStrip`: one ResizeObserver and one
+  MutationObserver per strip); a newly selected tab is scrolled into view. Between 651 and 1100 px
+  the toolbars wrap into two rows. The inspector becomes an overlay between 651 and 1366 px.
+- **Wide screens.** Text-heavy pages (Metrics, ODCS, Source Control, editors) keep a readable
+  maximum width at 1920 px and above instead of stretching; the catalog uses a wider grid.
+- **Layout checks** (`scripts/helpers/layout-geometry.ts`) report horizontal page scroll, controls
+  cut off by the viewport or a clipping ancestor (scroll containers count as reachable, closed
+  `<details>` content is ignored) and overlays drawn over controls, across 10 views × 9 sizes.

@@ -32,3 +32,11 @@
 .code-editor .code-editor-goto label { flex-direction: row; margin: 0; font-size: 11px; color: #5c7c68; display: flex; align-items: center; gap: 5px; border: 1px solid #dce4e2; border-radius: 6px; padding: 0 6px; background: #fff; }
 .code-editor .code-editor-goto input { margin: 0; height: auto; width: 64px; border: 0; padding: 4px 0; font-size: 11px; outline: none; background: none; }
 .code-editor-goto label:focus-within { border-color: #50cbb0; box-shadow: 0 0 0 2px #50cbb033; }
+
+.code-editor, .code-editor-bar, .code-editor-host { min-width: 0; }
+.code-editor-bar > span { overflow-wrap: anywhere; }
+@media (max-width: 650px) {
+ .code-editor-bar { gap: 5px; }
+ .code-editor-host .cm-search { display: flex; flex-wrap: wrap; gap: 4px; padding-right: 24px; }
+ .code-editor-host .cm-search input { min-width: 0; max-width: 100%; }
+}

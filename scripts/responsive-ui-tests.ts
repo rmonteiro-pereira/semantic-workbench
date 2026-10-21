@@ -258,7 +258,8 @@ try {
      await sweep.setViewportSize({ width, height });
      await sweep.waitForTimeout(250);
      for (const problem of await layoutProblems(sweep)) found.push(`${width}×${height}: ${problem}`);
-     if (width === 390 || width === 2560) await sweep.screenshot({ path: `/tmp/workbench-sweep-${view.toLowerCase().replace(/ /g, '-')}-${width}.png` });
+     // Review screenshots at the four reference sizes (phone, small laptop, laptop, wide screen).
+     if ([390, 1280, 1440, 2560].includes(width)) await sweep.screenshot({ path: `/tmp/workbench-sweep-${view.toLowerCase().replace(/ /g, '-')}-${width}.png` });
     }
     expect(found).toEqual([]);
    });

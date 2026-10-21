@@ -1,3 +1,4 @@
+import {ScrollStrip} from './ScrollStrip';
 import{GroupingControls}from'./GroupingControls';
 import{modelOverview}from'./overview';
 import{useGrouping}from'./useGrouping';
@@ -449,7 +450,7 @@ function App() {
           </div>
         </header>
         <div className="toolbar">
-          <div className="tabs">
+          <ScrollStrip className="tabs" selection={`${tab}-${showAll}`}>
             {isContract&&<button className={tab==='contract'?'selected':''} onClick={()=>setTab('contract')}><FileCheck2 size={16}/> Contract</button>}
             <button className={showAll && tab==='graph'?'selected':''} onClick={()=>{setTab('graph');setShowAll(true);setSearch('')}}><Layers size={16}/> Overview</button>
             <button className={tab==='fullgraph' ? "selected" : ""} onClick={() => {setTab("fullgraph");setShowAll(false);setSearch('')}}>
@@ -467,7 +468,7 @@ function App() {
             </button>
             <button className={tab==='mappings'?'selected':''} onClick={()=>setTab('mappings')}><Layers size={16}/> Mappings</button>
             <button className={tab==='metrics'?'selected':''} onClick={()=>setTab('metrics')}><Gauge size={16}/> Metrics{kpis.length>0&&<span className="tab-count">{kpis.length}</span>}</button>
-          </div>
+          </ScrollStrip>
           {groupingOverview&&(tab==='fullgraph'||(tab==='graph'&&showAll))&&<GroupingControls overview={groupingOverview} value={grouping.value} onChange={grouping.change} example={model!.name.includes('UBL')} error={grouping.error}/>}
           <label className="search">
             <Search size={16} />
