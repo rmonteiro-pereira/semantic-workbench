@@ -619,3 +619,27 @@ main > .status { position: absolute; bottom: 40px; left: 20px; right: 20px; widt
 .stale-columns figure{margin:0;min-width:0}.stale-columns figcaption{font-size:11px;font-weight:650;margin-bottom:4px;color:#3a5a50}
 .stale-columns pre{margin:0;max-height:50vh;overflow:auto;font:11px/1.55 monospace;border:1px solid #dbe3e4;border-radius:6px;padding:8px;background:#f8fbfa}
 .stale-columns pre .changed{background:#fdeccf;display:inline-block;min-width:100%}
+/* Phase 2: item menus, delete, undo, trash, suggestions */
+.project,.project-file{position:relative}
+.file-row{display:flex;align-items:center}.file-row .document{flex:1;min-width:0}
+.project{display:block}.project>.project-toggle{width:calc(100% - 26px)}
+.item-menu{position:absolute;right:0;top:3px}.project-file .item-menu{top:2px}
+.item-menu-toggle{border:0;background:transparent;padding:4px;color:#6d8379;opacity:.55}.item-menu-toggle:hover,.item-menu-toggle:focus-visible,.item-menu-toggle[aria-expanded=true]{opacity:1;background:#e9f4ef}
+.item-menu-list{position:absolute;right:0;top:26px;z-index:30;display:flex;flex-direction:column;min-width:190px;background:#fff;border:1px solid #dbe3e4;border-radius:8px;box-shadow:0 8px 24px #17323a22;padding:4px}
+.item-menu-list button{border:0;justify-content:flex-start;font-size:12px;padding:8px 10px;background:transparent}.item-menu-list button:hover,.item-menu-list button:focus-visible{background:#eef6f2}
+.workspace-actions{display:flex;gap:6px;margin:8px 0 2px;flex-shrink:0}.workspace-actions button{flex:1;font-size:11px;padding:7px 6px}
+.workbench-dialog{background:white;border:1px solid #dbe3e4;border-radius:14px;box-shadow:0 20px 80px #17323a33;padding:22px;width:min(560px,100%);max-height:88vh;overflow:auto}
+.workbench-dialog h2{margin:0 0 8px;font-size:18px;overflow-wrap:anywhere}.workbench-dialog h3{font-size:12px;margin:14px 0 4px;color:#3a5a50}
+.workbench-dialog p{font-size:13px;color:#52656b}.workbench-dialog label{display:flex;flex-direction:column;gap:5px;font-size:12px;margin:10px 0}
+.workbench-dialog input,.workbench-dialog select{padding:8px;border:1px solid #dbe3e4;border-radius:5px;background:white}
+.delete-list{font-size:12px;margin:4px 0;padding-left:18px;max-height:200px;overflow:auto;overflow-wrap:anywhere}
+.delete-warning{font-size:12px;border:1px solid #e3d6a4;background:#fbf6e2;color:#5a4a12;border-radius:7px;padding:8px 10px;margin:10px 0}.delete-warning ul{margin:4px 0;padding-left:18px}
+.dialog-error{color:#a3392f!important}
+button.danger{background:#a3392f;color:white;border-color:#a3392f}button.danger:hover{background:#8b2f27}
+.undo-toast{position:fixed;left:50%;bottom:52px;transform:translateX(-50%);z-index:900;display:flex;align-items:center;gap:12px;background:#24393d;color:white;font-size:13px;padding:10px 14px;border-radius:9px;box-shadow:0 10px 30px #17323a44;max-width:calc(100vw - 32px)}
+.undo-toast button{background:#fff;color:#24393d;border:0;font-weight:650;padding:6px 12px}.undo-toast small{opacity:.7}
+.trash-list{list-style:none;padding:0;margin:0}.trash-list li{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #eef2f1;flex-wrap:wrap}
+.trash-list li div{display:flex;flex-direction:column;min-width:0;font-size:12px;overflow-wrap:anywhere}.trash-list small{color:#7d9188}.trash-list li>span{display:flex;gap:6px;flex-wrap:wrap}.trash-list button{font-size:11px;padding:6px 9px}
+.trash-confirm{font-size:12px;align-items:center}
+.suggestions{flex-shrink:0;max-height:220px;overflow:auto}.suggestion{font-size:11px;border:1px solid #dfe9e4;border-radius:7px;padding:8px;margin:4px 0;background:#f7fbf9}
+.suggestion p{margin:0 0 4px;overflow-wrap:anywhere}.suggestion ul{margin:0 0 6px;padding-left:16px;color:#5d7268;overflow-wrap:anywhere}.suggestion span{display:flex;gap:6px}.suggestion button{font-size:11px;padding:5px 8px}
