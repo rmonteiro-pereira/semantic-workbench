@@ -121,32 +121,6 @@
   padding: 6px 4px;
   gap: 3px;
 }
-.scm-remote-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: flex-end;
-  width: 100%;
-}
-.scm-remote-form label {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  flex: 1 1 100%;
-  font-weight: 600;
-  color: #3a5a50;
-}
-.scm-remote-form input {
-  font-size: 12px;
-  padding: 6px 7px;
-  border: 1px solid #cfdad6;
-  border-radius: 6px;
-  font-family: ui-monospace, monospace;
-}
-.scm-remote-form button {
-  font-size: 12px;
-  padding: 6px 10px;
-}
 .scm-note {
   display: flex;
   align-items: flex-start;
@@ -207,10 +181,9 @@
 }
 .scm-error {
   margin: 0;
-  font:
-    11px/1.45 ui-monospace,
-    monospace;
-  white-space: pre-wrap;
+  display: grid;
+  gap: 6px;
+  justify-items: start;
   color: #8a2c22;
   background: #fdf1ef;
   border: 1px solid #efc9c2;
@@ -218,6 +191,21 @@
   padding: 8px 10px;
   max-height: 160px;
   overflow: auto;
+}
+.scm-error pre {
+  margin: 0;
+  font:
+    11px/1.45 ui-monospace,
+    monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.scm-error button {
+  font-size: 12px;
+}
+.scm-remote > button {
+  font-size: 12px;
+  padding: 5px 9px;
 }
 .scm-commit {
   display: flex;
@@ -697,4 +685,106 @@
   .commit-dialog .dialog-footer .commit-spacer {
     display: none;
   }
+}
+
+/* Git setup dialogs: identity, remote, clone and the credential guide. */
+.dialog-intro {
+  margin: 0 0 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #587264;
+}
+.workbench-dialog label.check-row {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.dialog-footer-spacer {
+  flex: 1;
+}
+.clone-progress p[role='status'] {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.clone-progress pre {
+  margin: 8px 0 0;
+  font:
+    12px/1.45 ui-monospace,
+    monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: #8a2c22;
+}
+.clone-invalid {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  font:
+    12px/1.6 ui-monospace,
+    monospace;
+  overflow-wrap: anywhere;
+}
+.credential-guide h3 {
+  margin: 18px 0 6px;
+  font-size: 13px;
+}
+.credential-guide p {
+  margin: 6px 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.credential-helper {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #f3f7f5;
+}
+.credential-guide .segmented {
+  display: inline-flex;
+  border: 1px solid #dbe3e4;
+  border-radius: 7px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+.credential-guide .segmented button {
+  border: 0;
+  border-radius: 0;
+  padding: 6px 14px;
+  font-size: 12px;
+  background: #fff;
+}
+.credential-guide .segmented button.selected {
+  background: #e5f1ec;
+  color: #1f5e4e;
+  font-weight: 600;
+}
+.copyable-command {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin: 6px 0;
+  padding: 6px 6px 6px 10px;
+  border: 1px solid #dbe3e4;
+  border-radius: 6px;
+  background: #f8faf9;
+}
+.copyable-command code {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+.copyable-command button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  padding: 4px 8px;
+}
+/* A form's hidden submit button keeps Enter working without showing an empty button. */
+.workbench-dialog button[hidden] {
+  display: none;
 }

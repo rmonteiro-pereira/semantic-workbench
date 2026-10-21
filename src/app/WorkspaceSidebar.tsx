@@ -1,4 +1,5 @@
 /** Presentation and event handling for workspace sidebar. */
+import { useGitSetup } from '../scm/GitSetup';
 import { FileCode, GitBranch, Layers, Network, Upload, X } from 'lucide-react';
 import React from 'react';
 import type { Doc, ProjectInfo, Suggestion } from '../projects/api';
@@ -72,6 +73,7 @@ export function WorkspaceSidebar({
   importIntoProject,
   importFiles,
 }: Props) {
+  const openGitSetup = useGitSetup();
   function handleButtonClick() {
     setTab('fullgraph');
     if (compact) closeWorkspace();
@@ -86,6 +88,12 @@ export function WorkspaceSidebar({
     setHistoryPath(undefined);
     setTab('scm');
     if (compact) closeWorkspace();
+  }
+
+  // The Remote dialog belongs to the Git setup dialogs; every other action goes to the workbench.
+  function handleTreeAction(action: TreeAction) {
+    if (action.action === 'remote') openGitSetup({ kind: 'remote', project: action.project });
+    else treeAction(action);
   }
 
   function handleProjectTreeOpen(project: string, path: string) {
@@ -199,7 +207,7 @@ export function WorkspaceSidebar({
           <ProjectTree
             projects={projects}
             currentId={current?.id}
-            onAction={treeAction}
+            onAction={handleTreeAction}
             onOpen={handleProjectTreeOpen}
           />
         </div>

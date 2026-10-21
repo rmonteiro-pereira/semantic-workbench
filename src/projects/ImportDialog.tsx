@@ -11,11 +11,13 @@ export function ImportDialog({
   initialProject,
   onPick,
   onClose,
+  onClone,
 }: {
   projects: ProjectInfo[];
   initialProject?: string;
   onPick: (project: string | null) => void;
   onClose: () => void;
+  onClone?: () => void;
 }) {
   const [target, setTarget] = useState<'new' | 'existing'>(initialProject ? 'existing' : 'new');
   const [project, setProject] = useState(initialProject ?? projects[0]?.slug ?? '');
@@ -91,6 +93,14 @@ export function ImportDialog({
           </label>
         )}
       </fieldset>
+      {onClone && (
+        <p className="import-clone">
+          Files in a Git repository?{' '}
+          <button type="button" className="link" onClick={onClone}>
+            Clone a Git repository…
+          </button>
+        </p>
+      )}
     </Modal>
   );
 }

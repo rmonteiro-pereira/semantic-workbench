@@ -13,7 +13,7 @@ import type { ProjectInfo } from './api';
 // invalid files stay listed so they can be repaired in Source.
 /** Names actions available from a project or file tree row. */
 export type TreeAction =
-  | { action: 'rename' | 'import' | 'delete-project' | 'gitignore'; project: string }
+  | { action: 'rename' | 'import' | 'delete-project' | 'gitignore' | 'remote'; project: string }
   | { action: 'move' | 'delete-file' | 'history'; project: string; path: string };
 // Per-item menu: a button that opens a list of menu items.
 function ItemMenu({
@@ -158,6 +158,7 @@ export function ProjectTree({
                     label: 'Edit .gitignore',
                     run: () => onAction({ action: 'gitignore', project: p.slug }),
                   },
+                  { label: 'Remote…', run: () => onAction({ action: 'remote', project: p.slug }) },
                   {
                     label: 'Delete',
                     run: () => onAction({ action: 'delete-project', project: p.slug }),

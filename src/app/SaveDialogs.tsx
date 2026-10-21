@@ -1,5 +1,7 @@
 /** Presentation and event handling for save dialogs. */
 import React from 'react';
+import { useGitSetup } from '../scm/GitSetup';
+import { looksLikeAuthFailure } from '../scm/CredentialGuide';
 import type { KpiSummary } from '../../server/agent/explain';
 import { MetricWizard } from '../metrics/MetricWizard';
 import type { Doc, ProjectInfo } from '../projects/api';
@@ -58,6 +60,7 @@ export function SaveDialogs({
   setCurrent,
   setSource,
 }: Props) {
+  const openGitSetup = useGitSetup();
   function handleMetricWizardSaved(
     file: string,
     modelPath: import('../edit/item-model').Path,
@@ -81,7 +84,10 @@ export function SaveDialogs({
         if (r.pushed.ok) {
           return ' and pushed.';
         }
-        return `; push failed: ${r.pushed.message}`;
+        const guide = looksLikeAuthFailure(r.pushed.message)
+          ? ' Source control offers a Credential setup guide.'
+          : '';
+        return `; push failed: ${r.pushed.message}${guide}`;
       }
       return '.';
     }
@@ -145,6 +151,7 @@ export function SaveDialogs({
           onClose={() => setCommitting(false)}
           onCommitted={handleCommitDialogCommitted}
           onReverted={handleCommitDialogReverted}
+          onSetIdentity={() => openGitSetup({ kind: 'identity', project: current.project })}
         />
       )}
     </>

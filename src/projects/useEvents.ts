@@ -10,6 +10,8 @@ export const EVENT_TYPES = [
   'suggestions',
   'drafts',
   'recovery',
+  'clone',
+  'identity',
   'resync',
 ] as const;
 /** Subscribes to workspace events and requests refreshed state after reconnects. */

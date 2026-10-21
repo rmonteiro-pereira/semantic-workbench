@@ -1,5 +1,7 @@
 /** Displays project changes, diffs, history and explicit Git actions with progress and
  * cancellation. */
+import { useGitSetup } from './GitSetup';
+import { looksLikeAuthFailure } from './CredentialGuide';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle,
@@ -91,6 +93,9 @@ export function SourceControl({
 }: Props) {
   const [status, setStatus] = useState<GitStatus | null>(null);
   const [error, setError] = useState('');
+  // Kept apart from action errors: reloading the status after a failed push must not hide why it
+  // failed.
+  const [loadError, setLoadError] = useState('');
   const [note, setNote] = useState<{
     tone: 'info' | 'warning';
     text: string;
@@ -103,8 +108,7 @@ export function SourceControl({
   const [waiting, setWaiting] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [ignoring, setIgnoring] = useState<string | null>(null);
-  const [remoteUrl, setRemoteUrl] = useState('');
-  const [editRemote, setEditRemote] = useState(false);
+  const openGitSetup = useGitSetup();
   const [historyFile, setHistoryFile] = useState<string | undefined>(historyPath);
   const [log, setLog] = useState<Commit[]>([]);
   const [range, setRange] = useState<{ from: string; to: string } | null>(null);
@@ -116,6 +120,7 @@ export function SourceControl({
     setDiff(null);
     setNote(null);
     setError('');
+    setLoadError('');
     setHistoryFile(historyPath);
   }, [project]);
   useEffect(() => {
@@ -131,11 +136,11 @@ export function SourceControl({
       .then(s => {
         if (live) {
           setStatus(s);
-          setError('');
+          setLoadError('');
         }
       })
       .catch(e => {
-        if (live) setError(e.message);
+        if (live) setLoadError(e.message);
       });
     return () => {
       live = false;
@@ -307,11 +312,11 @@ export function SourceControl({
         else setNote({ tone: 'info', text: `Committed ${r.commit.slice(0, 7)}.` });
       },
     );
-  if (error && !status)
+  if ((loadError || error) && !status)
     return (
       <section className="scm scm-message" aria-label="Source Control">
         <p role="alert" className="scm-error">
-          {error}
+          {loadError || error}
         </p>
       </section>
     );
@@ -498,67 +503,29 @@ export function SourceControl({
           </span>
         </div>
         <div className="scm-remote">
-          {remoteNames.length && !editRemote ? (
-            <>
-              <span className="scm-remote-url" title={status.remotes[remoteNames[0]]}>
-                {remoteNames[0]}: {status.remotes[remoteNames[0]]}
-              </span>
-              <button
-                className="link"
-                onClick={() => {
-                  setRemoteUrl(status.remotes[remoteNames[0]]);
-                  setEditRemote(true);
-                }}
-              >
-                Change
-              </button>
-              <div className="scm-remote-actions" role="group" aria-label="Remote">
-                {(['fetch', 'pull', 'push', 'sync'] as const).map(a => (
-                  <button key={a} onClick={() => void remote(a)} disabled={busy}>
-                    {a === 'sync' ? (
-                      <RefreshCw size={13} />
-                    ) : a === 'push' ? (
-                      <ArrowUp size={13} />
-                    ) : (
-                      <ArrowDown size={13} />
-                    )}
-                    {title(a)}
-                  </button>
-                ))}
-              </div>
-            </>
+          {remoteNames.length ? (
+            <span className="scm-remote-url" title={status.remotes[remoteNames[0]]}>
+              {remoteNames[0]}: {status.remotes[remoteNames[0]]}
+            </span>
           ) : (
-            <form
-              className="scm-remote-form"
-              onSubmit={e => {
-                e.preventDefault();
-                void act(
-                  () => scm.setRemote(project, remoteNames[0] ?? 'origin', remoteUrl),
-                  () => {
-                    setEditRemote(false);
-                    setNote({ tone: 'info', text: 'Remote saved. Push to publish this branch.' });
-                  },
-                );
-              }}
-            >
-              <label>
-                <span>Remote URL or path</span>
-                <input
-                  aria-label="Remote URL"
-                  value={remoteUrl}
-                  onChange={e => setRemoteUrl(e.target.value)}
-                  placeholder="https://… or git@… or /path/to/repo.git"
-                />
-              </label>
-              <button type="submit" className="primary" disabled={!remoteUrl.trim() || busy}>
-                Save remote
-              </button>
-              {editRemote && (
-                <button type="button" onClick={() => setEditRemote(false)}>
-                  Cancel
+            <span className="scm-remote-url">No remote yet. Add one to push and pull.</span>
+          )}
+          <button onClick={() => openGitSetup({ kind: 'remote', project })}>Remote…</button>
+          {remoteNames.length > 0 && (
+            <div className="scm-remote-actions" role="group" aria-label="Remote">
+              {(['fetch', 'pull', 'push', 'sync'] as const).map(a => (
+                <button key={a} onClick={() => void remote(a)} disabled={busy}>
+                  {a === 'sync' ? (
+                    <RefreshCw size={13} />
+                  ) : a === 'push' ? (
+                    <ArrowUp size={13} />
+                  ) : (
+                    <ArrowDown size={13} />
+                  )}
+                  {title(a)}
                 </button>
-              )}
-            </form>
+              ))}
+            </div>
           )}
         </div>
         {waiting && (
@@ -597,9 +564,14 @@ export function SourceControl({
           </div>
         )}
         {error && (
-          <pre role="alert" className="scm-error">
-            {error}
-          </pre>
+          <div role="alert" className="scm-error">
+            <pre>{error}</pre>
+            {looksLikeAuthFailure(error) && (
+              <button onClick={() => openGitSetup({ kind: 'credentials' })}>
+                Credential setup guide
+              </button>
+            )}
+          </div>
         )}
         {status.merging && !note && (
           <p className="scm-note warning">
@@ -643,7 +615,12 @@ export function SourceControl({
             Commit
           </button>
           {!status.identityConfigured && (
-            <small>Git has no user.name or user.email, so commits are not possible yet.</small>
+            <small>
+              Git has no user.name or user.email, so commits are not possible yet.{' '}
+              <button className="link" onClick={() => openGitSetup({ kind: 'identity', project })}>
+                Set Git identity…
+              </button>
+            </small>
           )}
         </div>
         {!status.changes.length && (

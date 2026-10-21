@@ -402,14 +402,26 @@ try {
     if (!(await p.locator('.tabs').isVisible())) return;
     await p.locator('.tabs').getByRole('button', { name, exact: true }).click();
   }
-  async function sidebarNav(p: Page, name: RegExp) {
+  // Makes the sidebar reachable. Right after a resize the page may still show the other layout,
+  // so wait for the one that matches the viewport before deciding what to click.
+  async function showSidebar(p: Page) {
     const open = p.getByRole('button', { name: 'Open workspace', exact: true });
-    if (await open.isVisible()) await open.click();
+    if ((p.viewportSize()?.width ?? 1440) < 1100) {
+      await expect(open).toBeVisible();
+      await open.click();
+      return;
+    }
+    await expect(open).toHaveCount(0);
+    // The desktop sidebar can be hidden by an earlier check; its state persists per browser.
+    const show = p.getByRole('button', { name: 'Show sidebar', exact: true });
+    if (await show.isVisible()) await show.click();
+  }
+  async function sidebarNav(p: Page, name: RegExp) {
+    await showSidebar(p);
     await p.getByRole('button', { name }).click();
   }
   async function openFile(p: Page, path: string) {
-    const open = p.getByRole('button', { name: 'Open workspace', exact: true });
-    if (await open.isVisible()) await open.click();
+    await showSidebar(p);
     await p.getByRole('button', { name: path, exact: true }).click();
   }
   const views: [string, (p: Page) => Promise<void>][] = [

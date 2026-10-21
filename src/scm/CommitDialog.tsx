@@ -1,4 +1,5 @@
 /** Reviews selected file changes before committing, pushing or reverting them. */
+import { useEvents } from '../projects/useEvents';
 import React, { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, GitCommit, RotateCcw, Upload } from 'lucide-react';
 import { Modal } from '../projects/Modal';
@@ -85,6 +86,18 @@ export function CommitDialog({
       live = false;
     };
   }, [project, tick]);
+  // An identity set from the Set Git identity dialog enables Commit without losing the selection.
+  useEvents(type => {
+    if (type !== 'identity') return;
+    scm
+      .status(project)
+      .then(next =>
+        setStatus(previous =>
+          previous ? { ...previous, identityConfigured: next.identityConfigured } : next,
+        ),
+      )
+      .catch(() => {});
+  });
   const changes = status?.changes ?? [];
   const conflicts = changes.filter(c => c.conflicted);
   const merging = !!status?.merging;
