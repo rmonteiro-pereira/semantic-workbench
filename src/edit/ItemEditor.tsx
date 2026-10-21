@@ -11,6 +11,7 @@ import {openFragment,splice,fragmentValue,fragmentIssues,setField} from './fragm
 import {allowedStatuses,childLists,extensionOf,fieldsFor,itemName,kindLabel,nameKey,readField,type Choices,type FieldSpec,type ItemKind,type Path} from './item-model';
 import {findReferences,rewriteReferences,type Reference} from './references';
 import './edit.css';
+import {SqlField} from '../editor/SqlField';
 // Item editor (FR-048, FR-051–FR-053, FR-015): the selected entity, relationship or metric only, as a
 // form of its attributes or as its own source lines, with the shared validation shown inline. The
 // change is a draft in this dialog until Save, which writes it in place (base-hash checked).
@@ -93,7 +94,8 @@ export function ItemEditor({doc,base,path,kind,projectDocs,choices,onClose,onSav
      const options=spec.key==='ext.status'?allowedStatuses(status):spec.options??[],current=display(spec,value);
      input=<select ref={ref as any} {...common} value={current} onChange={e=>edit(spec,e.target.value)}>{!options.includes(current)&&<option value={current}>{current||'—'}</option>}{options.map(o=><option key={o} value={o}>{o||'—'}</option>)}</select>;
     }
-    else if(spec.input==='textarea'||spec.input==='code')input=<textarea ref={ref as any} {...common} className={spec.input==='code'?'code-field':''} rows={spec.input==='code'?3:2} value={texts[spec.key]??display(spec,value)} onChange={e=>edit(spec,e.target.value)} spellCheck={spec.input!=='code'}/>;
+    else if(spec.input==='code')input=<SqlField id={id} labelledBy={id+'-label'} dialect="ANSI_SQL" rows={3} value={texts[spec.key]??display(spec,value)} onChange={v=>edit(spec,v)}/>;
+    else if(spec.input==='textarea')input=<textarea ref={ref as any} {...common} rows={2} value={texts[spec.key]??display(spec,value)} onChange={e=>edit(spec,e.target.value)} spellCheck/>;
     else input=<input ref={ref as any} {...common} list={spec.options?.length?id+'-options':undefined} value={texts[spec.key]??display(spec,value)} onChange={e=>edit(spec,e.target.value)}/>;
     return <label key={spec.key} className={spec.input==='boolean'?'item-check':''} htmlFor={id}>
      <span id={id+'-label'}>{spec.label}{spec.required&&<em aria-hidden> *</em>}</span>{input}

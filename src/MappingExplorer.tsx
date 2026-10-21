@@ -1,5 +1,6 @@
 import React,{useEffect,useState,useRef} from 'react';
 import type {Binding,Finding,RuntimeContext} from '../server/agent/runtime';
+import {SqlCode} from './sql/SqlCode';
 type MappingOption={id:string;name:string;filename:string;embedded:boolean};
 const stepLabels={concept:'Concept',relationship:'Relationship',field:'Field',metric:'Metric',dataset:'Dataset',source:'Physical source'};
 function belongsTo(f:Finding,b:Binding){
@@ -66,7 +67,7 @@ export function MappingExplorer({currentId,revisionKey,dirty,onEditItem}:{curren
      <fieldset><legend>Governed metrics</legend>{!governed.length&&<p>No metrics mapped to this selection.</p>}{governed.map(m=><label key={m.id}><input type="checkbox" aria-label={`Metric ${m.name}`} checked={metrics.includes(m.id)} onChange={()=>toggle(m.id,metrics,setMetrics)}/>{m.name}<code>{m.definition.expression.dialects.find((d:any)=>d.dialect==='ANSI_SQL')?.expression??'No ANSI_SQL expression'}</code></label>)}</fieldset>
      <fieldset><legend>Group by mapped fields</legend>{fields.map(f=><label key={f.id}><input type="checkbox" aria-label={`Dimension ${f.dataset}.${f.name}`} checked={dimensions.includes(f.id)} onChange={()=>toggle(f.id,dimensions,setDimensions)}/>{f.dataset}.{f.name}</label>)}</fieldset>
      <button className="primary" onClick={preview} disabled={loading||(!metrics.length&&!dimensions.length)||context.findings.some(f=>f.severity==='error')}>Preview governed query</button>
-     {plan&&<div className="mapping-plan"><h4>SQL preview · not executed</h4><pre aria-label="Governed SQL preview">{plan.sql}</pre><details><summary>Query provenance</summary><pre>{JSON.stringify(plan,null,2)}</pre></details></div>}
+     {plan&&<div className="mapping-plan"><h4>SQL preview · not executed</h4><pre aria-label="Governed SQL preview"><SqlCode sql={plan.sql}/></pre><details><summary>Query provenance</summary><pre>{JSON.stringify(plan,null,2)}</pre></details></div>}
     </div>
    </div>
   </>}

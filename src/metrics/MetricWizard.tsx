@@ -10,6 +10,8 @@ import {GRAINS,VENDOR,readMetricExtension,type KpiType} from './extension';
 import {typeLabel} from './format';
 import {expressionFor,extensionFor,list,type Draft} from './metric-draft';
 import '../edit/edit.css';
+import {SqlField} from '../editor/SqlField';
+import {SqlCode} from '../sql/SqlCode';
 // New metric (FR-009, SC-002): concept → data → type and inputs → time and breakdowns → targets →
 // governance → explanation and SQL preview → save. Each step is checked before the next opens; the
 // preview comes from the server's planner and is never executed. Save writes the metric and its
@@ -122,7 +124,7 @@ export function MetricWizard({project,docs,kpis,onClose,onSaved,existing}:{proje
     {d.type==='ratio'&&<>{field('Numerator',select(d.numerator,v=>set({numerator:v}),model?.metrics.map(metricOption),'Numerator','Choose…'))}{field('Denominator',select(d.denominator,v=>set({denominator:v}),model?.metrics.map(metricOption),'Denominator','Choose…'),'Division by zero gives no value (NULLIF)')}</>}
     {['derived','cumulative','filtered'].includes(d.type)&&<>{field('Input metrics',<input aria-label="Input metrics" list="kpi-metrics" value={d.inputs} onChange={e=>set({inputs:e.target.value,...(!d.expression&&d.type!=='derived'?{expression:list(e.target.value)[0]??''}:{})})}/>,'Metric names, separated by commas')}
      <datalist id="kpi-metrics">{model?.metrics.map(m=><option key={m} value={m}/>)}</datalist>
-     {field('Expression',<textarea className="code-field" aria-label="Expression" rows={2} value={d.expression} onChange={e=>set({expression:e.target.value})}/>,'ANSI SQL over the input metrics',true)}</>}
+     {field('Expression',<SqlField ariaLabel="Expression" dialect="ANSI_SQL" rows={2} value={d.expression} onChange={v=>set({expression:v})}/>,'ANSI SQL over the input metrics; warnings never block',true)}</>}
     {d.type==='cumulative'&&<>{field('Window',select(d.window,v=>set({window:v}),['to_date','rolling','all'].map(w=><option key={w}>{w}</option>),'Window'))}{field('Window grain',select(d.windowGrain,v=>set({windowGrain:v}),GRAINS.map(g=><option key={g}>{g}</option>),'Window grain'))}{d.window==='rolling'&&field('Length',<input aria-label="Window length" value={d.windowLength} onChange={e=>set({windowLength:e.target.value})}/>)}</>}
     {d.type==='filtered'&&<>{field('Filter field',select(d.filterField,v=>set({filterField:v}),fields.map(f=><option key={f}>{f}</option>),'Filter field'))}{field('Operator',select(d.filterOperator,v=>set({filterOperator:v}),['equals','not_equals','in','not_in','gt','gte','lt','lte','is_null','is_not_null'].map(o=><option key={o}>{o}</option>),'Filter operator'))}{field('Value',<input aria-label="Filter value" value={d.filterValue} onChange={e=>set({filterValue:e.target.value})}/>)}</>}
     {field('Additivity',select(d.additivity,v=>set({additivity:v}),['additive','semi_additive','non_additive'].map(a=><option key={a}>{a}</option>),'Additivity','From the type'),d.type==='ratio'?'A ratio is never summed across groups':undefined)}
@@ -152,7 +154,7 @@ export function MetricWizard({project,docs,kpis,onClose,onSaved,existing}:{proje
    {step===6&&(busy&&!preview?<p role="status">Explaining the {existing?'metric':'new metric'}…</p>:preview&&<div className="wizard-preview">
     <p><strong>{d.label}</strong> = <code>{preview.explanation.formula}</code></p>
     <h4>Built from</h4><CompositionTree className="wizard-tree" node={preview.explanation.tree}/>
-    <h4>SQL preview</h4>{'refused'in preview.explanation.sqlPreview?<p className="item-note">{preview.explanation.sqlPreview.refused}</p>:<pre aria-label="Preview · not executed"><code>{preview.explanation.sqlPreview.sql}</code></pre>}
+    <h4>SQL preview</h4>{'refused'in preview.explanation.sqlPreview?<p className="item-note">{preview.explanation.sqlPreview.refused}</p>:<pre aria-label="Preview · not executed"><code><SqlCode sql={preview.explanation.sqlPreview.sql}/></code></pre>}
     <small>Preview, not executed.</small>
    </div>)}
    {step===7&&preview&&<div className="wizard-preview"><p>Saving writes these changes in one step:</p>{preview.changes.map(c=><div key={c.path}><h4>{c.path}{c.created?' (new file)':''}</h4><pre aria-label={`Changes to ${c.path}`}>{c.added.map(l=>'+ '+l).join('\n')}{c.removed.length?'\n'+c.removed.map(l=>'- '+l).join('\n'):''}</pre></div>)}</div>}

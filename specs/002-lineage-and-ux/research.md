@@ -577,3 +577,32 @@ agent context already carries everything except two additive fields).
   metric`). Each assertion checks the same behaviour as before; only the wording differs. The mall
   example has 25 metrics, all with attributes, so its count is unchanged.
 
+## R22. Implementation decisions taken in Phase 8 (SQL coloring and lint)
+
+- **ANSI fallback.** An ANSI (or undeclared) expression is accepted when either the PostgreSQL or
+  the SQLite grammar parses it, as the governed planner does (server/agent/sql.ts); the reported
+  finding is the PostgreSQL one. Without it, the official Flights mapping
+  (`FLIGHT.id WHERE ( FLIGHT.diverted == TRUE )`) would show warnings the planner itself accepts.
+- **Unknown dialects.** A declared Ossie dialect outside the contract's table is treated like the
+  non-SQL dialects (left plain, "not checked"); an unknown ODCS server type falls back to ANSI as
+  the contract says.
+- **Message.** `SQL expression (<dialect>): syntax error near "<token>". Checked, not executed.`;
+  the token is read from the value at the mapped position (the parser's "found" is one character).
+- **Unmappable positions.** The offset map is rebuilt from the raw text for each scalar style and
+  compared with the parsed value; on any difference the finding goes to the expression's first
+  character (FR-052). Every SQL region of every shipped example maps exactly (tests/sql-regions).
+- **Coloring.** The YAML and JSON languages nest `@codemirror/lang-sql` (StandardSQL) where the
+  key path read from the syntax tree matches the region table; the lint uses the exact YAML CST.
+  Read-only previews (metric explanation, wizard, Mappings) draw the same grammar and colors as
+  spans inside their existing `<pre><code>`, so their text stays exactly the SQL.
+- **Wizard inputs.** The wizard's free SQL input is the Expression (derived, cumulative and
+  filtered metrics); the filter is structured (field, operator, value), so it has no SQL text to
+  color or lint.
+- **Cache.** The index cache version is bumped (3) so cached findings gain the SQL warnings.
+- **Worker chunks.** Workers are built as ES modules (`worker.format: "es"` in vite.config.ts) so
+  the grammar builds stay separate chunks loaded on first need; with the default IIFE format every
+  grammar was inlined into one 3.3 MB worker. The validation worker is now 0.7 MB and each grammar
+  0.2–0.3 MB.
+- **Gate note.** The first browser runs after the new dependencies were added failed in
+  `test:graph` and `test:odcs` while the dev server re-optimized dependencies (page reloads mid
+  check); with the dependency cache warm, both pass repeatedly, unchanged.

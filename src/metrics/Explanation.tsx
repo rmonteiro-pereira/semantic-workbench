@@ -3,6 +3,7 @@ import {Ban,CalendarDays,Check,Copy,Filter,Layers3,ShieldAlert,ShieldCheck,Sigma
 import type {KpiExplanation,KpiSummary,TreeNode} from '../../server/agent/explain';
 import type {ExplainQuery} from '../projects/api';
 import {additivityLabel,readableFormula,typeLabel} from './format';
+import {SqlCode} from '../sql/SqlCode';
 const GRAINS=['day','week','month','quarter','year'];
 const roleLabel={numerator:'Numerator',denominator:'Denominator',input:'Input'} as const;
 // "How this metric is calculated" (FR-002, FR-006, FR-007): the formula in words, the composition tree down to
@@ -71,7 +72,7 @@ function Preview({e,query,onQuery,loading}:{e:KpiExplanation;query:ExplainQuery;
   </div>
   {'refused'in p?<div className="preview-refused" role="alert"><Ban size={18}/><div><strong>No SQL for this request</strong><p>{p.refused}</p></div></div>:<>
    <div className="preview-head"><span className="not-executed">Preview · not executed</span>{p.joins.length>0&&<span className="muted">Joins: {p.joins.join(', ')}</span>}<button className="copy-sql" onClick={()=>{void navigator.clipboard?.writeText(p.sql).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),1500);}).catch(()=>{});}}>{copied?<Check size={14}/>:<Copy size={14}/>}{copied?'Copied':'Copy SQL'}</button></div>
-   <pre className={`preview-sql${loading?' stale':''}`} aria-label="SQL preview, not executed"><code>{p.sql}</code></pre>
+   <pre className={`preview-sql${loading?' stale':''}`} aria-label="SQL preview, not executed"><code><SqlCode sql={p.sql}/></code></pre>
    {p.warnings.map(w=><p key={w} className="preview-note">{w}</p>)}
   </>}
  </div>;

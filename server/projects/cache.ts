@@ -3,7 +3,7 @@ import {rmSync} from 'node:fs';
 import type {Issue} from '../../src/diagnostics';
 // Rebuildable index of the project folders (FR-077). Deleting cache.sqlite loses nothing: a rescan
 // recreates every row. Any schema version mismatch or corruption drops and rebuilds the file.
-export const CACHE_VERSION=2;
+export const CACHE_VERSION=3;
 export type CachedFile={project:string;path:string;hash:string;serialization:string;docType:string;layout:string|null;valid:boolean;visible:boolean;gitState:string;indexedAt:string};
 export type CachedEntity={id:string;name:string;kind:string};
 const SCHEMA=`
