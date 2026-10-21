@@ -2,6 +2,7 @@ import{chromium,expect,type Page}from'@playwright/test';
 import{startIsolatedApi,routeApi}from'./helpers/isolated-api';
 import{agentCatalog,buildContext}from'../server/agent/runtime';
 import{buildMappingGraph,type MappingGraph}from'../src/mappings/mapping-graph';
+import{lineagePierce}from'../src/odcs/lineage-pierce';import{selectionNodes}from'../src/odcs/lineage';
 // The concept-mapping graph (T108; SC-012, FR-028–FR-034) on Flights (standalone and consolidated),
 // mapped commerce, billing and the shopping center mapping: every drawn line is a binding the
 // resolver returns, and every binding line between two drawn rows or cards is drawn; selection
@@ -102,6 +103,17 @@ try{
   await dialog.getByRole('button',{name:'Edit item'}).click();await expect(page.getByRole('dialog',{name:/^Edit /})).toBeVisible();
   await page.getByRole('dialog',{name:/^Edit /}).getByRole('button',{name:'Cancel'}).click();
   await api.ws.saveFile(slug,'commerce.mapping.yaml',{baseHash:api.ws.readFile(slug,'commerce.mapping.yaml').hash,source:f.source});
+ });
+ await check('Expand, Collapse and Full pierce work on the mapping canvas (T110): Full pierce from Customer opens exactly the cards its mappings reach',async()=>{
+  const g=expected('commerce.mapping.yaml');
+  await graph().getByRole('textbox',{name:'Find assets'}).fill('Customer');await graph().getByRole('listbox',{name:'Asset results'}).getByRole('option').filter({hasText:'Concept'}).first().click();
+  await expect(card('Concept Customer')).toHaveClass(/center/);await page.keyboard.press('Escape');
+  const want=lineagePierce({edges:g.edges.map(e=>[e.from,e.to] as [string,string]),owners:Object.fromEntries([...g.cards.values()].flatMap(c=>c.columns.map(x=>[x.id,c.id]))),start:selectionNodes(g as any,'concept:Customer'),direction:'both',budget:150});
+  await graph().getByRole('button',{name:'Full pierce'}).click();
+  await expect(graph().getByLabel('Walk',{exact:true})).toContainText('pierced Customer');await page.waitForTimeout(500);await graph().getByRole('button',{name:'Fit'}).click();await page.waitForTimeout(300);
+  const ids=await graph().locator('.lineage-card').evaluateAll(ns=>ns.map(n=>n.getAttribute('data-id')));for(const c of want.cards)expect(ids).toContain(c);
+  await graph().getByRole('button',{name:'Undo expansion'}).click();const trail=graph().getByLabel('Walk',{exact:true});
+  await expect(trail.getByRole('button',{name:'pierced Customer'})).not.toHaveAttribute('aria-current','step');await expect(trail.getByRole('button',{name:'Forward'})).toBeEnabled();
  });
  await check('Flights standalone: drawn lines are the resolver bindings',async()=>{
   await page.reload();await openMapping('flights.mapping.yaml',loaded.flights.name);

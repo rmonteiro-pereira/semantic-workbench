@@ -168,7 +168,8 @@ export function pageColumns(card:LineageCard,page:number,pinned:Set<string>,size
  const hidden=card.columns.length-rows.length;
  return {page:p,pages,rows,pinned:pinnedRows.map(r=>r.id),hidden,port:(id:string)=>visible.has(id)||!card.columns.some(c=>c.id===id)?id:moreRowId(card.id)};
 }
-// The asset search (FR-007): objects (name, physical name), datasets, fields and metrics; exact
+// The asset search (FR-007): objects (name, physical name) and their columns, datasets and their
+// fields, metrics (and, on the mapping canvas, concepts and their relationships); exact
 // names first, then prefixes, then substrings; separators are ignored ("invoice line").
 export function findAssets(g:LineageGraph,query:string,limit=20){
  const norm=(s:string)=>s.toLowerCase().replace(/[\s_.-]+/g,'');const q=norm(query);if(!q)return [];
@@ -176,7 +177,7 @@ export function findAssets(g:LineageGraph,query:string,limit=20){
  const rank=(s:string)=>{const n=norm(s);return n===q?0:n.startsWith(q)?1:n.includes(q)?2:-1;};
  for(const c of g.cards.values()){
   const best=[c.label,c.detail??''].map(rank).filter(x=>x>=0);if(best.length)hits.push({id:c.id,card:c.id,label:c.label,kind:c.kind,rank:Math.min(...best)});
-  if(c.kind==='dataset'||c.kind==='concept')for(const col of c.columns){const x=rank(col.path);if(x>=0)hits.push({id:col.id,card:c.id,label:`${c.label}.${col.path}`,kind:'field',rank:x+0.5});}
+  for(const col of c.columns){const x=rank(col.path);if(x>=0)hits.push({id:col.id,card:c.id,label:`${c.label}.${col.path}`,kind:c.kind==='dataset'?'field':c.kind==='concept'?'relationship':'column',rank:x+0.5});}
  }
  return hits.sort((a,b)=>a.rank-b.rank||a.label.length-b.label.length||a.label.localeCompare(b.label)).slice(0,limit);
 }

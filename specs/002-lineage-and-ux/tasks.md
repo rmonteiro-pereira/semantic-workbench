@@ -148,19 +148,19 @@ shopping center mapping in Graph; `bun run test:mapping-graph`.
 
 ### Tests
 
-- [ ] T039 [P] [US10] Unit tests for ExpansionState (expand adds only new nodes, collapse reference counting, center not collapsible, undo/forward exact restore) in tests/expansion.test.ts
-- [ ] T040 [P] [US10] Unit tests for incremental placement (placed nodes never move, column by direction, nearest free row, deterministic) in tests/incremental-layout.test.ts (SC-011)
-- [ ] T041 [P] [US10] Unit tests for bounded closure (direction, relationship filter, value types/technical/metrics switches, budget 150/500, frontier hidden counts, totals equal full closure, cycles, deterministic order) on UBL and shopping center ontologies and the 5,000-entity fixture in tests/pierce.test.ts (SC-010)
-- [ ] T042 [US10] Mutants: collapse removes shared nodes; placement moves a placed node; closure ignores budget; pierce follows the wrong direction
+- [X] T039 [P] [US10] Unit tests for ExpansionState (expand adds only new nodes, collapse reference counting, center not collapsible, undo/forward exact restore) in tests/expansion.test.ts
+- [X] T040 [P] [US10] Unit tests for incremental placement (placed nodes never move, column by direction, nearest free row, deterministic) in tests/incremental-layout.test.ts (SC-011)
+- [X] T041 [P] [US10] Unit tests for bounded closure (direction, relationship filter, value types/technical/metrics switches, budget 150/500, frontier hidden counts, totals equal full closure, cycles, deterministic order) on UBL and shopping center ontologies and the 5,000-entity fixture in tests/pierce.test.ts (SC-010)
+- [X] T042 [US10] Mutants: collapse removes shared nodes; placement moves a placed node; closure ignores budget; pierce follows the wrong direction
 
 ### Implementation
 
-- [ ] T043 [US10] src/graph/expansion.ts and src/graph/incremental-layout.ts (pure) (FR-018, FR-019)
-- [ ] T044 [US10] src/graph/pierce.ts and worker src/graph/pierce.worker.ts with Stop (FR-020–FR-022)
-- [ ] T045 [US10] Neighborhood: Expand/Collapse per node, relationship activation expands its far end, Full pierce toolbar (direction, Stop, Undo expansion), a Value types switch sharing Graph's per-model setting, banner with Expand further, trail steps "expanded X" in src/NeighborhoodGraph.tsx and src/layout.ts (FR-018–FR-024)
-- [ ] T046 [US10] Lineage: Expand/Collapse on cards, Full pierce on a column or card through to metrics, incremental placement for expansions, ELK for pierce in src/odcs/LineageCanvas.tsx (FR-023)
-- [ ] T110 [US10] [US11] Expand, Collapse and Full pierce on the mapping canvas (concept relationships and mappings) in src/mappings/MappingCanvas.tsx, with a pierce case added to scripts/mapping-graph-browser-check.ts (FR-033)
-- [ ] T047 [US10] Browser checks: Neighborhood scenarios on UBL (`Order` → `OrderLine` → `Item` → `Price`, Full pierce Both from `Invoice` with budget banner) and shopping center (`Lease`, Outgoing) in scripts/graph-browser-check.ts; lineage pierce on UBL `invoice_line.line_extension_amount` in scripts/lineage-browser-check.ts; input never blocked > 100 ms
+- [X] T043 [US10] src/graph/expansion.ts and src/graph/incremental-layout.ts (pure) (FR-018, FR-019)
+- [X] T044 [US10] src/graph/pierce.ts and worker src/graph/pierce.worker.ts with Stop (FR-020–FR-022)
+- [X] T045 [US10] Neighborhood: Expand/Collapse per node, relationship activation expands its far end, Full pierce toolbar (direction, Stop, Undo expansion), a Value types switch sharing Graph's per-model setting, banner with Expand further, trail steps "expanded X" in src/NeighborhoodGraph.tsx and src/layout.ts (FR-018–FR-024)
+- [X] T046 [US10] Lineage: Expand/Collapse on cards, Full pierce on a column or card through to metrics, incremental placement for expansions, ELK for pierce in src/odcs/LineageCanvas.tsx (FR-023)
+- [X] T110 [US10] [US11] Expand, Collapse and Full pierce on the mapping canvas (concept relationships and mappings) in src/mappings/MappingCanvas.tsx, with a pierce case added to scripts/mapping-graph-browser-check.ts (FR-033)
+- [X] T047 [US10] Browser checks: Neighborhood scenarios on UBL (`Order` → `OrderLine` → `Item` → `Price`, Full pierce Both from `Invoice` with budget banner) and shopping center (`Lease`, Outgoing) in scripts/graph-browser-check.ts; lineage pierce on UBL `invoice_line.line_extension_amount` in scripts/lineage-browser-check.ts; input never blocked > 100 ms
 
 **Checkpoint**: all P1 stories shippable.
 
