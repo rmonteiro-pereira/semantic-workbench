@@ -30,13 +30,13 @@ export type Indexed={file:CachedFile;entities:{id:string;name:string;kind:string
 export function indexBytes(project:string,path:string,bytes:Uint8Array,gitState:FileGitState|'unknown'='unknown'):Indexed{
  const hash=sha256(bytes),base={project,path,hash,gitState,indexedAt:new Date().toISOString()};
  let serialization=serializationOf(path);
- if(serialization==='unsupported')return {file:{...base,serialization,docType:'unsupported',valid:true,visible:false},entities:[],findings:[]};
+ if(serialization==='unsupported')return {file:{...base,serialization,docType:'unsupported',layout:null,valid:true,visible:false},entities:[],findings:[]};
  let source:string;
- try{source=decode(bytes);}catch(e){return {file:{...base,serialization,docType:'unknown',valid:false,visible:true},entities:[],findings:[{severity:'error',code:'encoding',path:'/',message:(e as Error).message}]};}
+ try{source=decode(bytes);}catch(e){return {file:{...base,serialization,docType:'unknown',layout:null,valid:false,visible:true},entities:[],findings:[{severity:'error',code:'encoding',path:'/',message:(e as Error).message}]};}
  serialization=serializationOf(path,source);
- if(serialization==='gitignore')return {file:{...base,serialization,docType:'gitignore',valid:true,visible:true},entities:[],findings:[]};
+ if(serialization==='gitignore')return {file:{...base,serialization,docType:'gitignore',layout:null,valid:true,visible:true},entities:[],findings:[]};
  const result=validateInput(source,posix.basename(path));
- return {file:{...base,serialization,docType:result.model?.kind??'unknown',valid:result.valid,visible:true},entities:result.model?.entities.map(e=>({id:e.id,name:e.name,kind:e.kind}))??[],findings:result.issues};
+ return {file:{...base,serialization,docType:result.model?.kind??'unknown',layout:(result.model&&'layout'in result.model?result.model.layout:null)??null,valid:result.valid,visible:true},entities:result.model?.entities.map(e=>({id:e.id,name:e.name,kind:e.kind}))??[],findings:result.issues};
 }
 function walk(dir:string,prefix='',out:string[]=[]){
  for(const entry of readdirSync(dir,{withFileTypes:true})){

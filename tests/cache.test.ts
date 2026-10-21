@@ -28,7 +28,7 @@ test('deleting cache.sqlite and reopening rebuilds identical files, entities and
 test('a user_version mismatch or a corrupt file triggers a rebuild',()=>{
  const t=`/tmp/workbench-cache-${crypto.randomUUID()}.sqlite`;
  try{
-  const c=createCache(t);expect(c.rebuilt).toBe(true);c.put({project:'p',path:'a',hash:'h',serialization:'yaml',docType:'x',valid:true,visible:true,gitState:'clean',indexedAt:'t'},[],[]);c.close();
+  const c=createCache(t);expect(c.rebuilt).toBe(true);c.put({project:'p',path:'a',hash:'h',serialization:'yaml',docType:'x',layout:null,valid:true,visible:true,gitState:'clean',indexedAt:'t'},[],[]);c.close();
   const kept=createCache(t);expect(kept.rebuilt).toBe(false);expect(kept.files()).toHaveLength(1);kept.close();
   const db=new Database(t);db.exec(`PRAGMA user_version=${CACHE_VERSION+1}`);db.close();
   const bumped=createCache(t);expect(bumped.rebuilt).toBe(true);expect(bumped.files()).toHaveLength(0);bumped.close();

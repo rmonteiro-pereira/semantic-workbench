@@ -8,6 +8,7 @@ import formats from 'ajv-formats';
 import odcs from '../schemas/odcs-v3.1.0.json';
 import ossie from '../schemas/ossie-0.2.0.dev0.json';
 import { type Issue, rejectIssues, InputError } from './diagnostics';
+import {metricLayerIssues,readKpiBindings} from './metrics/extension';
 const a = new Ajv2019({strict:false,allErrors:true}), b = new Ajv2020({strict:false,allErrors:true});
 formats(a); formats(b);
 const contract = a.compile(odcs), semantic = b.compile(ossie);
@@ -41,8 +42,10 @@ export function validateStructured(data:any, applyPinnedSchema=true): Issue[] {
   // Cyclic YAML aliases and non-JSON scalar types cannot be persisted consistently.
   try {JSON.stringify(data);} catch {fail('/','Cyclic aliases or non-JSON scalar values are unsupported.','serialization');rejectIssues(issues);}
   const families = [data.kind==='DataContract'||data.apiVersion!==undefined||data.schema!==undefined, data.ontology!==undefined, data.datasets!==undefined||data.semantic_model!==undefined, isMapping(data)].filter(Boolean).length;
-  if(families!==1){fail('/','Provide exactly one ODCS contract, Ossie ontology, mapping document, or Ossie semantic model.','format');rejectIssues(issues);return issues;}
-  if(isMapping(data)){issues.push(...mappingSchemaIssues(data));}
+  if(families!==1){fail('/',families>1&&(data.ontology!==undefined||isMapping(data))&&(data.datasets!==undefined||data.semantic_model!==undefined||data.ontology!==undefined&&isMapping(data))
+    ?'This file mixes Ossie layers in an unsupported single-file layout. Use one of the two official Ossie layouts: split files (an ontology, a semantic model and a standalone mapping, each in its own file), or the consolidated form (an ontology whose ontology_mappings embed the semantic model; deprecated upstream).'
+    :'Provide exactly one ODCS contract, Ossie ontology, mapping document, or Ossie semantic model.','format');rejectIssues(issues);return issues;}
+  if(isMapping(data)){issues.push(...mappingSchemaIssues(data));issues.push(...readKpiBindings(data,'').issues);}
   else if(data.kind==='DataContract'||data.apiVersion!==undefined||data.schema!==undefined){
     if(data.kind!=='DataContract')fail('/kind','ODCS kind must be DataContract.');
     for(const k of ['apiVersion','id','version'])str(data[k],'/'+k);
@@ -101,6 +104,8 @@ export function validateStructured(data:any, applyPinnedSchema=true): Issue[] {
         const expressions=i<ds.length?arr(x.fields,q+'/fields').filter(object).map((f,j)=>({value:f.expression,path:`${q}/fields/${j}/expression`})):[{value:x.expression,path:q+'/expression'}];
         for(const {value,path}of expressions)if(obj(value,path))arr(value.dialects,path+'/dialects',true).forEach((d,j)=>{if(obj(d,`${path}/dialects/${j}`)){str(d.dialect,`${path}/dialects/${j}/dialect`);str(d.expression,`${path}/dialects/${j}/expression`);}});
       }
+      // Metrics-layer extensions and KPI bindings on this model (application schemas, FR-003/FR-004).
+      issues.push(...metricLayerIssues(m,p,fieldNames),...readKpiBindings(m,p,false).issues);
     });
     if(data.version!=='0.2.0.dev0')warn('/version',`No pinned Ossie schema for ${String(data.version??'unspecified version')}; only structural checks apply.`);
   }

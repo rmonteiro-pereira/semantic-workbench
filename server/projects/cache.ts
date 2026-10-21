@@ -3,11 +3,11 @@ import {rmSync} from 'node:fs';
 import type {Issue} from '../../src/diagnostics';
 // Rebuildable index of the project folders (FR-077). Deleting cache.sqlite loses nothing: a rescan
 // recreates every row. Any schema version mismatch or corruption drops and rebuilds the file.
-export const CACHE_VERSION=1;
-export type CachedFile={project:string;path:string;hash:string;serialization:string;docType:string;valid:boolean;visible:boolean;gitState:string;indexedAt:string};
+export const CACHE_VERSION=2;
+export type CachedFile={project:string;path:string;hash:string;serialization:string;docType:string;layout:string|null;valid:boolean;visible:boolean;gitState:string;indexedAt:string};
 export type CachedEntity={id:string;name:string;kind:string};
 const SCHEMA=`
-CREATE TABLE files(project TEXT NOT NULL,path TEXT NOT NULL,hash TEXT NOT NULL,serialization TEXT NOT NULL,doc_type TEXT NOT NULL,valid INTEGER NOT NULL,visible INTEGER NOT NULL,git_state TEXT NOT NULL,indexed_at TEXT NOT NULL,PRIMARY KEY(project,path));
+CREATE TABLE files(project TEXT NOT NULL,path TEXT NOT NULL,hash TEXT NOT NULL,serialization TEXT NOT NULL,doc_type TEXT NOT NULL,layout TEXT,valid INTEGER NOT NULL,visible INTEGER NOT NULL,git_state TEXT NOT NULL,indexed_at TEXT NOT NULL,PRIMARY KEY(project,path));
 CREATE TABLE entities(project TEXT NOT NULL,path TEXT NOT NULL,id TEXT NOT NULL,name TEXT NOT NULL,kind TEXT NOT NULL,PRIMARY KEY(project,path,id));
 CREATE TABLE findings(project TEXT NOT NULL,path TEXT NOT NULL,severity TEXT NOT NULL,code TEXT NOT NULL,json_path TEXT NOT NULL,line INTEGER,column INTEGER,message TEXT NOT NULL);
 CREATE INDEX findings_file ON findings(project,path);
@@ -28,7 +28,7 @@ export function createCache(path:string){
  try{opened=open(path);}
  catch{for(const suffix of ['','-wal','-shm'])rmSync(path+suffix,{force:true});opened=open(path);opened.rebuilt=true;}
  const db=opened.db;
- const row=(r:any):CachedFile=>({project:r.project,path:r.path,hash:r.hash,serialization:r.serialization,docType:r.doc_type,valid:!!r.valid,visible:!!r.visible,gitState:r.git_state,indexedAt:r.indexed_at});
+ const row=(r:any):CachedFile=>({project:r.project,path:r.path,hash:r.hash,serialization:r.serialization,docType:r.doc_type,layout:r.layout??null,valid:!!r.valid,visible:!!r.visible,gitState:r.git_state,indexedAt:r.indexed_at});
  return {
   db,rebuilt:opened.rebuilt,
   file:(project:string,path:string)=>{const r=db.query('SELECT * FROM files WHERE project=? AND path=?').get(project,path);return r?row(r):null;},
@@ -36,7 +36,7 @@ export function createCache(path:string){
   entities:(project:string,path:string)=>db.query('SELECT id,name,kind FROM entities WHERE project=? AND path=? ORDER BY rowid').all(project,path) as CachedEntity[],
   findings:(project:string,path:string):Issue[]=>(db.query('SELECT * FROM findings WHERE project=? AND path=? ORDER BY rowid').all(project,path) as any[]).map(f=>({severity:f.severity,code:f.code,path:f.json_path,message:f.message,...(f.line!=null?{line:f.line}:{}),...(f.column!=null?{column:f.column}:{})})),
   put:db.transaction((file:CachedFile,entities:CachedEntity[],findings:Issue[])=>{
-   db.query('INSERT OR REPLACE INTO files VALUES(?,?,?,?,?,?,?,?,?)').run(file.project,file.path,file.hash,file.serialization,file.docType,file.valid?1:0,file.visible?1:0,file.gitState,file.indexedAt);
+   db.query('INSERT OR REPLACE INTO files VALUES(?,?,?,?,?,?,?,?,?,?)').run(file.project,file.path,file.hash,file.serialization,file.docType,file.layout??null,file.valid?1:0,file.visible?1:0,file.gitState,file.indexedAt);
    db.query('DELETE FROM entities WHERE project=? AND path=?').run(file.project,file.path);
    db.query('DELETE FROM findings WHERE project=? AND path=?').run(file.project,file.path);
    const entity=db.query('INSERT OR IGNORE INTO entities VALUES(?,?,?,?,?)');for(const e of entities)entity.run(file.project,file.path,e.id,e.name,e.kind);

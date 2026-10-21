@@ -1,5 +1,5 @@
 // Browser client for the project API (contracts/http-api.md).
-export type ProjectFile={path:string;docType:string;valid:boolean;visible:boolean;gitState:string;hash:string};
+export type ProjectFile={path:string;docType:string;layout?:string|null;valid:boolean;visible:boolean;gitState:string;hash:string};
 export type ProjectInfo={slug:string;name:string;origin:string;branch:string;ahead:number;behind:number;changes:number;files:ProjectFile[]};
 export type TrashItem={entryId:string;kind:'file'|'project';project:string;projectName:string;path?:string;deletedAt:string;undoUntil:string;batchId:string|null};
 export type Impact={removes:{project:string;name?:string;files:string[]};unsavedDrafts:{project:string;path:string}[];brokenReferences:{from:{project:string;path:string};to:{project:string;path:string};kind:string;name:string}[]};
