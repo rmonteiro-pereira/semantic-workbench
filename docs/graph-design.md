@@ -34,4 +34,12 @@ The overview, relationship matrix and actual graph are complementary representat
 - Browser checks exercise the real workspace, full graph, both engines, area zoom, selection, return to overview, downloads, and large-model expansion. They capture screenshots under `/tmp`.
 - Mutation checks include deliberately removing overlap cleanup and dropping entity nodes.
 
-The graph engines are not OWL reasoners or SHACL validators. Layout positions are currently browser-session state; document export preserves the original definitions rather than exporting a screenshot.
+## Storage and identity
+
+Documents live in the folder store: one folder (a Git repository) per project, and an entity's identity is its document id (`<project>/<path>`) plus its path inside the document. Grouping corrections are saved per document as view state in the workbench state folder (outside the project folders, so they are not committed), never in the definitions, so export keeps the original bytes. The Neighborhood center and walk refer to entities by these ids, so they survive renames of other documents and a reload.
+
+## Neighborhood, full screen and layout checks
+
+The Neighborhood view projects a center with its incoming neighbors on the left and outgoing neighbors on the right, keeps links between neighbors as an option, pages hidden neighbors and keeps a walk history. Graph and Neighborhood can fill the screen (Fullscreen API, with a window-filling fallback); leaving restores the zoom and selection. The responsive suite checks every view from 390×844 to 2560×1440 for horizontal scroll, cut-off controls and floating overlays (mini-map, zoom controls, status line, bundle selector, toasts, inspector) drawn over each other or over a control.
+
+The graph engines are not OWL reasoners or SHACL validators. Layout positions are browser-session state; document export preserves the original definitions rather than exporting a screenshot.

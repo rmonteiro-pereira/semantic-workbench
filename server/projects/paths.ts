@@ -1,3 +1,4 @@
+import {lstatSync} from 'node:fs';
 import {resolve,sep,join,posix} from 'node:path';
 // Data root layout (data-model.md). DATA_DIR overrides `data/` so tests and browser checks never
 // touch the owner's workspace.
@@ -19,11 +20,22 @@ export function projectPath(path:unknown):string{
  return posix.normalize(path);
 }
 export function projectDir(layout:DataLayout,slug:string){return join(layout.projects,assertSlug(slug));}
-// Absolute location of a project file, re-checked to stay inside the project folder.
+// Absolute location of a project file, re-checked to stay inside the project folder. A symbolic
+// link anywhere on the way (for example one checked out from a pulled repository) could lead
+// outside it, so no existing segment may be a link; reads and writes both go through here.
 export function projectFile(layout:DataLayout,slug:string,path:string){
- const dir=projectDir(layout,slug),file=resolve(dir,projectPath(path));
+ const dir=projectDir(layout,slug),rel=projectPath(path),file=resolve(dir,rel);
  if(!file.startsWith(dir+sep))throw new PathError('Path escapes the project folder.');
+ assertNoLinks(dir,rel);
  return file;
+}
+export function assertNoLinks(dir:string,rel:string){
+ let at=dir;
+ for(const part of rel.split('/')){
+  at=join(at,part);
+  let link=false;try{link=lstatSync(at).isSymbolicLink();}catch{return;}
+  if(link)throw new PathError('Symbolic links are not followed.');
+ }
 }
 export function projectName(name:unknown,existing:string[]=[],except?:string):string{
  if(typeof name!=='string')throw new PathError('Project name must be text.');

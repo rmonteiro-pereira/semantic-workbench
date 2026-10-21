@@ -1,8 +1,8 @@
 import {existsSync,readFileSync} from 'node:fs';
 import {join} from 'node:path';
-import {GitError,type Git,type StatusEntry} from './git';
+import {GitError,redactCredentials,type Git,type StatusEntry} from './git';
 import {decode,sha256} from './atomic';
-import {projectDir,projectPath,type DataLayout} from './paths';
+import {assertNoLinks,projectDir,projectPath,type DataLayout} from './paths';
 import {serializationOf} from './scanner';
 // Source Control for one project folder (Story 9, FR-059–FR-065, FR-091–FR-096): status with
 // hidden-file labels, diff texts, stage/unstage, commit, branches, remote actions, history and the
@@ -26,7 +26,7 @@ export function createScm(deps:ScmDeps){
   if(!deps.gitAvailable)return {branch:'',upstream:'',ahead:0,behind:0,gitAvailable:false,identityConfigured:false,merging:false,remotes:{},changes:[]};
   const d=dir(slug),s=await git.status(d),merging=await git.merging(d);
   const changes=s.entries.map(e=>({...e,hidden:serializationOf(e.path)==='unsupported',...(serializationOf(e.path)==='unsupported'?{label:HIDDEN_LABEL}:{})}));
-  return {branch:s.branch,upstream:s.upstream,ahead:s.ahead,behind:s.behind,gitAvailable:true,identityConfigured:deps.identityConfigured,merging,remotes:Object.fromEntries(await git.remotes(d)),changes};
+  return {branch:s.branch,upstream:s.upstream,ahead:s.ahead,behind:s.behind,gitAvailable:true,identityConfigured:deps.identityConfigured,merging,remotes:Object.fromEntries([...await git.remotes(d)].map(([n,u])=>[n,redactCredentials(u)])),changes};
  }
  async function after(slug:string,altered:string[]=[]){
   await deps.rescan(slug);const s=await git.status(projectDir(layout,slug));
@@ -74,7 +74,7 @@ export function createScm(deps:ScmDeps){
  }
  // The bytes of a path at `HEAD`, a commit, `index` or `worktree`, for the diff view.
  async function content(d:string,rev:string,path:string){
-  if(rev==='worktree'){const f=join(d,path);return existsSync(f)?new Uint8Array(readFileSync(f)):null;}
+  if(rev==='worktree'){assertNoLinks(d,path);const f=join(d,path);return existsSync(f)?new Uint8Array(readFileSync(f)):null;}
   if(rev!=='index'&&!REV.test(rev))throw Error('Revision must be HEAD, index, worktree or a commit id.');
   return git.blob(d,rev==='index'?'':rev,path);
  }
@@ -106,9 +106,11 @@ export function createScm(deps:ScmDeps){
   },
   async branches(slug:string){const d=dir(slug),b=await git.branches(d),s=await git.status(d);return {current:s.branch,...b};},
   async switchBranch(slug:string,branch:unknown,create=false){
-   if(typeof branch!=='string'||!branch.trim()||branch.startsWith('-')||branch.length>200)throw Error('Give a branch name.');
-   const d=dir(slug),name=branch.trim();
-   if(create&&(await git.run(d,['check-ref-format','--branch',name],{allowFailure:true,readOnly:true})).code!==0)throw Error(`"${name}" is not a valid branch name.`);
+   // Trimmed before any check, so a leading space cannot smuggle an option such as `--detach`.
+   const name=typeof branch==='string'?branch.trim():'';
+   if(!name||name.startsWith('-')||name.length>200)throw Error('Give a branch name.');
+   const d=dir(slug);
+   if((await git.run(d,['check-ref-format','--branch',name],{allowFailure:true,readOnly:true})).code!==0)throw Error(`"${name}" is not a valid branch name.`);
    const s=await git.status(d),blocked=blockers(deps.drafts(slug),s.entries);if(blocked)throw blocked;
    // A remote branch (`origin/x`) is checked out as the local tracking branch `x`.
    const b=await git.branches(d),local=!create&&!b.local.includes(name)&&b.remote.includes(name)?name.slice(name.indexOf('/')+1):name;
@@ -121,6 +123,9 @@ export function createScm(deps:ScmDeps){
   async setRemote(slug:string,name:unknown,url:unknown){
    if(typeof name!=='string'||!/^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/.test(name))throw Error('A remote name uses letters, digits, dot, dash or underscore.');
    if(typeof url!=='string'||!url.trim()||url.trim().startsWith('-')||/[\r\n]/.test(url)||url.length>2000)throw Error('Give the remote URL or path.');
+   // `<transport>::<address>` runs a helper program (`ext::` runs any command); only URLs, scp-like
+   // addresses and local paths are accepted.
+   if(/^[A-Za-z][A-Za-z0-9+.-]*::/.test(url.trim()))throw Error('Remote helper addresses (transport::address) are not accepted.');
    const d=dir(slug),remotes=await git.remotes(d);
    await git.run(d,remotes.has(name)?['remote','set-url',name,url.trim()]:['remote','add',name,url.trim()]);
    await after(slug);return {name,url:url.trim()};

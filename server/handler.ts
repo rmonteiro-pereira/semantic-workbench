@@ -15,6 +15,9 @@ import {gitRoutes} from './routes/git';
 export const ALLOWED_ORIGINS=['http://127.0.0.1:5173','http://localhost:5173','http://127.0.0.1:4310'];
 // Legacy facade (research R9): flat documents and the agent endpoints keep their v0.1.0 shapes over
 // the folder store. Ids are `<project>/<path>`; v0.1.0 ids resolve through legacy-ids.json.
+// Kept, not removed (T165): the UI's grouping hook (src/useGrouping.ts) reads and writes
+// /api/documents/:id/grouping, scripts/example-checks.ts and scripts/live-inspect.ts use
+// /api/documents, and the agent endpoints are the documented client interface (README).
 const legacyRoutes:Route=async(ws,req,url)=>{
  // Agent mapping ids may carry a fragment (`<doc>#ontology_mappings/0`); translate a v0.1.0 doc id.
  const mappingRef=(id:string)=>{const hash=id.indexOf('#'),doc=hash<0?id:id.slice(0,hash),rest=hash<0?'':id.slice(hash);const legacy=ws.state.legacyIds().ids[doc];return legacy?`${legacy.project}/${legacy.path}${rest}`:id;};
@@ -62,11 +65,19 @@ const legacyRoutes:Route=async(ws,req,url)=>{
  return null;
 };
 const routes:Route[]=[eventRoutes,trashRoutes,suggestionRoutes,projectRoutes,metricRoutes,kpiRoutes,gitRoutes,fileRoutes,draftRoutes,legacyRoutes];
+export function loopbackHost(host:string|null){
+ if(host===null)return true;
+ const name=host.startsWith('[')?host.slice(0,host.indexOf(']')+1):host.replace(/:\d+$/,'');
+ return ['127.0.0.1','localhost','[::1]'].includes(name.toLowerCase());
+}
 export function createHandler(ws:Workspace){
  return async(req:Request)=>{
   const url=new URL(req.url);
   const origin=req.headers.get('origin');
   if(origin&&!ALLOWED_ORIGINS.includes(origin))return new Response('Forbidden',{status:403});
+  // DNS rebinding: a page on another name resolved to 127.0.0.1 sends its own name as Host, and a
+  // same-origin GET carries no Origin. Only loopback names are served.
+  if(!loopbackHost(req.headers.get('host')))return new Response('Forbidden',{status:403});
   try{
    for(const route of routes){const response=await route(ws,req,url);if(response)return response;}
    return new Response('Not found',{status:404});
