@@ -141,8 +141,10 @@ lineage card rows.
   unstaged work is untouched; **Commit & push** calls the existing push. Pre-filled message:
   one file → "Update <file>"; one item edited → "Update <item> in <file>"; several → "Update N
   files".
-- **Revert to last commit**: the current bytes go to the trash as a file entry (existing trash
-  machinery), then the file is restored from `HEAD` through a hash-checked save.
+- **Revert to last commit**: one journaled operation (constitution IV): the base hash is
+  checked, the `HEAD` bytes are staged, then the journal moves the current file into a new
+  trash file entry and the staged bytes into place; an interruption is completed or rolled back
+  on the next start like every other journaled operation.
 
 **Rationale**: owner's choice (Q1); reuses validation worker, patches, drafts, stale dialog and
 Source Control; `--only` commits exactly the chosen paths without disturbing the index.

@@ -557,8 +557,8 @@ nodes and the "hidden" counts with the closure computed from the files.
   selection along relationships in the chosen direction (Outgoing, Incoming, Both; default
   Outgoing in Neighborhood, Both in lineage), optionally limited to one relationship kind, each
   node at most once, cycles terminating.
-- **FR-021**: Full pierce MUST respect the Value types and Technical resources switches and the
-  metrics shown/hidden switch, and MUST stop at a node budget (default 150 nodes, adjustable up
+- **FR-021**: Full pierce MUST respect the Value types switch (added to Neighborhood, sharing
+  Graph's per-model setting), the Technical resources switch and the metrics shown/hidden switch, and MUST stop at a node budget (default 150 nodes, adjustable up
   to 500) with frontier markers "+N hidden", a banner with the hidden count, **Expand further**
   (next budget) and **Stop**.
 - **FR-022**: Closure computation and layout for expansions and pierce MUST run off the main
