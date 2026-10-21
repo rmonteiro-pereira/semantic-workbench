@@ -1,12 +1,10 @@
+// Tests mapping kinds and metric bindings without changing existing agent context fields.
 import { test, expect } from 'bun:test';
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { testWorkspace } from './helpers/temp-data-dir';
-// T101 (FR-028, research R15): the agent context gains two additive fields for the mapping canvas:
-// `bindings[].kind` (object · referent · link) and `metricBindings` (the mapping's KPI bindings,
-// resolved, with findings). Everything else stays byte-for-byte what v0.2.0 returned: a digest of
-// the context without the two fields is pinned in tests/fixtures/agent-context/digests.json
-// (written once from v0.2.0's resolver; regenerate only deliberately with UPDATE_GOLDEN=1).
+// Only binding kinds and metric bindings may extend the existing agent context. The remaining
+// fields must match the saved digests; UPDATE_GOLDEN=1 deliberately replaces them.
 const req = (path: string) => new Request('http://localhost' + path);
 const stable = (v: any): any =>
   Array.isArray(v)
@@ -47,7 +45,7 @@ async function contexts(example: string) {
 const all: Record<string, Awaited<ReturnType<typeof contexts>>> = {};
 for (const example of ['mapped-commerce', 'flights', 'billing', 'mall'])
   all[example] = await contexts(example);
-test('other context fields are unchanged (digest of v0.2.0 output)', () => {
+test('other context fields are unchanged (digest of legacy output)', () => {
   const now: Record<string, string> = {};
   for (const [example, list] of Object.entries(all))
     for (const c of list)
@@ -76,7 +74,7 @@ test('every binding has a kind; links, referents and objects are told apart (map
   expect(
     at(['concept_mappings', 0, 'link_mappings', 0, 'children', 0, 'object_mapping']).relationships,
   ).toEqual(['region']);
-  // inside a link, the identifying referent of the linked object is part of the link
+  // Inside a link, the identifying referent of the linked object is part of the link.
   expect(
     at([
       'concept_mappings',
@@ -119,7 +117,7 @@ test("metricBindings: the mall mapping's KPI bindings resolve to metric ids and 
     expect(Array.isArray(m.findings)).toBe(true);
     expect(m.evidence.filename).toBe('mall.mapping.yaml');
   }
-  // without a SEMANTIC_WORKBENCH extension the list is empty, never missing
+  // Without a SEMANTIC_WORKBENCH extension the list is empty, never missing.
   for (const x of [...all['mapped-commerce'], ...all.flights, ...all.billing])
     expect(x.context.metricBindings).toEqual([]);
 });

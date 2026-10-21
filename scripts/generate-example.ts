@@ -1,3 +1,4 @@
+// Generates a deterministic scale example with 1,000 entities and 5,000 relationships.
 import { stringify } from 'yaml';
 const domains = [
   'Customer',

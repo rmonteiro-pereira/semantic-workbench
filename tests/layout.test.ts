@@ -1,3 +1,4 @@
+// Tests graph alignment, scale and relationship metadata.
 import { test, expect } from 'bun:test';
 import { layoutGraph } from '../src/layout';
 import { inspect } from '../src/model';

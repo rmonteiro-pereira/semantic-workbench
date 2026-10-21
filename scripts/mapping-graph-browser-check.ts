@@ -1,14 +1,12 @@
+// Checks mapping graph bindings, selection and warnings in an isolated browser workspace.
 import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { agentCatalog, buildContext } from '../server/agent/runtime';
 import { buildMappingGraph, type MappingGraph } from '../src/mappings/mapping-graph';
 import { lineagePierce } from '../src/odcs/lineage-pierce';
 import { selectionNodes } from '../src/odcs/lineage';
-// The concept-mapping graph (T108; SC-012, FR-028–FR-034) on Flights (standalone and consolidated),
-// mapped commerce, billing and the shopping center mapping: every drawn line is a binding the
-// resolver returns, and every binding line between two drawn rows or cards is drawn; selection
-// dims the rest and lists the bindings with Edit item; the Unmapped filter; warning markers; no
-// area box of unconnected nodes. Isolated data root; screenshots in /tmp/workbench-mapping-graph-*.png.
+// Checks rendered bindings against the resolver, including selection, filters and warnings.
+// Screenshots use /tmp/workbench-mapping-graph-*.png.
 const api = await startIsolatedApi();
 const loaded: Record<string, { slug: string; name: string }> = {};
 for (const id of ['mapped-commerce', 'flights', 'billing', 'mall'])
@@ -79,7 +77,7 @@ async function compare(g: MappingGraph, label: string) {
     if (shown.has(from) && shown.has(to) && !drawn.has(k) && !bundled)
       throw Error(`${label}: binding line ${k} is missing`);
   }
-  // the v0.2.0 entity graph's area boxes never appear for a mapping
+  // The entity graph's area boxes never appear for a mapping.
   await expect(page.locator('.full-area-title')).toHaveCount(0);
   return drawn.size;
 }
@@ -248,7 +246,7 @@ try {
     },
   );
   await check(
-    'Expand, Collapse and Full pierce work on the mapping canvas (T110): Full pierce from Customer opens exactly the cards its mappings reach',
+    'Expand, Collapse and Full pierce work on the mapping canvas: Full pierce from Customer opens exactly the cards its mappings reach',
     async () => {
       const g = expected('commerce.mapping.yaml');
       await graph().getByRole('textbox', { name: 'Find assets' }).fill('Customer');

@@ -1,3 +1,4 @@
+// Tests atomic file writes and recovery.
 import { test, expect } from 'bun:test';
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';

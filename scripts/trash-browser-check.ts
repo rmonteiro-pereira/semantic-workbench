@@ -1,12 +1,13 @@
+// Checks grouping, deletion, undo and trash recovery in an isolated browser workspace.
 import { chromium, expect } from '@playwright/test';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { treeRowProblems } from './helpers/tree-geometry';
 import { expectEditorValue, fillEditor } from './helpers/code-editor';
-// Phase 2 browser check (T051; SC-005, SC-006): suggestions accept/dismiss, delete with
-// confirmation, undo, trash restore and purge, project delete, Clear, without any page reload.
-// Runs against an isolated temporary data root.
+// Browser check: suggestions accept/dismiss, delete with confirmation, undo, trash restore and
+// purge, project delete, Clear, without any page reload. Runs against an isolated temporary data
+// root.
 const api = await startIsolatedApi();
 const read = (path: string) => Bun.file('public/examples/ossie/' + path).text();
 await api.ws.importBatch({
@@ -139,7 +140,7 @@ try {
             .getByRole('tree', { name: 'Projects' })
             .getByRole('button', { name: longName, exact: true })
             .locator('span');
-          // v0.3.0 (FR-061): long names wrap to at most two lines and keep the full name as a tooltip.
+          // Long names wrap to at most two lines and keep the full name as a tooltip.
           if (width === 390) {
             expect(await long.getAttribute('title')).toBe(longName);
             expect(
@@ -168,7 +169,7 @@ try {
         mimeType: 'application/yaml',
         buffer: Buffer.from(await read('flights.mapping.yaml')),
       });
-      // v0.3.0 (FR-060): a one-line count in the sidebar opens the Grouping suggestions dialog.
+      // A one-line count in the sidebar opens the Grouping suggestions dialog.
       await page.getByRole('button', { name: '1 grouping suggestion' }).click();
       const region = page.getByRole('dialog', { name: 'Grouping suggestions' });
       await expect(region).toContainText('flights.mapping.yaml');

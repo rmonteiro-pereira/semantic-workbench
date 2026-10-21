@@ -1,3 +1,4 @@
+// Tests validation failures through the HTTP API.
 import { test, expect } from 'bun:test';
 import { testWorkspace } from './helpers/temp-data-dir';
 const source = 'name: Test\nontology: [{concept: A}]';

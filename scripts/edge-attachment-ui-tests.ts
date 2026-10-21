@@ -1,3 +1,4 @@
+// Checks that graph edges stay attached to their nodes during browser interactions.
 import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { inspect } from '../src/model';

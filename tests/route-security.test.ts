@@ -1,3 +1,4 @@
+// Tests path containment, request validation and safe Git invocation.
 import { test, expect } from 'bun:test';
 import {
   mkdtempSync,
@@ -13,8 +14,8 @@ import { join } from 'node:path';
 import { gitEnv, redactCredentials } from '../server/projects/git';
 import { loopbackHost } from '../server/handler';
 import { testWorkspace } from './helpers/temp-data-dir';
-// Security review of the new routes (T164): symbolic links, DNS rebinding, option injection in
-// branch names, Git transport helpers, environment hardening, credential redaction, strict bodies.
+// Checks symbolic links, DNS rebinding, Git option injection, transport helpers, environment
+// isolation and credential redaction.
 const api = (
   t: { handler: (r: Request) => Promise<Response> },
   method: string,

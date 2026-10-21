@@ -1,3 +1,4 @@
+// Tests workspace event streaming, replay and external file changes.
 import { test, expect } from 'bun:test';
 import { appendFileSync } from 'node:fs';
 import { createEvents } from '../server/projects/events';
@@ -91,7 +92,7 @@ test('/api/events applies the origin check and streams workspace changes', async
     t.dispose();
   }
 });
-test('the watcher turns an external edit into a files event within 2 s (SC-017)', async () => {
+test('the watcher turns an external edit into a files event within 2 s', async () => {
   const t = await testWorkspace({ watch: true, debounceMs: 50 });
   try {
     await t.seed([{ path: 'a.yaml', source: 'name: A\nontology: [{concept: A}]\n' }]);

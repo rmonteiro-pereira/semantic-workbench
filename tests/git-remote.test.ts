@@ -1,3 +1,4 @@
+// Tests remote Git actions, conflicts and cancellation.
 import { test, expect } from 'bun:test';
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -120,7 +121,8 @@ test('remote environment: no terminal prompt, credential-helper GUI variables le
   expect(gitEnv({ PATH: '/bin' })).not.toHaveProperty('GCM_GUI_PROMPT');
   expect(REMOTE_TIMEOUT_MS).toBe(600_000);
 });
-// A remote that never answers (an SSH command that sleeps), as when a credential window stays open.
+// A remote that never answers (an SSH command that sleeps), as when a credential window stays
+// open.
 function hangingGit(remoteTimeoutMs?: number) {
   const d = tempDataDir();
   const layout = dataLayout(d.root);

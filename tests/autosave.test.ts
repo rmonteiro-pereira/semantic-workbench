@@ -1,3 +1,4 @@
+// Tests queued automatic saves, stale versions and cancellation.
 import { test, expect } from 'bun:test';
 import {
   autosave,
@@ -7,8 +8,8 @@ import {
   type AutosaveEvent,
   type AutosaveState,
 } from '../src/projects/autosave';
-// The autosave state machine (T013, research R7): pending → saving → saved/stale/failed/invalid, one
-// save in flight, queued text saved on the returned hash, cancel on delete/move, wait for Git.
+// The autosave state machine: pending → saving → saved/stale/failed/invalid, one save in flight,
+// queued text saved on the returned hash, cancel on delete/move, wait for Git.
 const run = (events: AutosaveEvent[], state: AutosaveState = initialAutosave) => {
   const effects: any[] = [];
   for (const e of events) {
@@ -56,7 +57,7 @@ test('invalid text is never written and is reported with its error count', () =>
   expect(state.status).toBe('invalid');
   expect(state.errors).toBe(2);
   expect(saveStateLabel(state, 0)).toBe('Not saved: 2 errors');
-  // repaired: saved on the next pause
+  // Repaired: saved on the next pause.
   const r = run(
     [
       { type: 'edit', text: 'a: 3\n' },

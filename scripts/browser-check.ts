@@ -1,3 +1,4 @@
+// Measures browser loading and alignment of a synthetic large graph in an isolated workspace.
 import { chromium } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 const browser = await chromium.launch({ headless: true });

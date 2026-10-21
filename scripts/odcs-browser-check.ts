@@ -1,11 +1,10 @@
+// Checks contract pages, history and byte-preserving property edits in the browser.
 import { chromium, expect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { parse } from 'yaml';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { projectDir, projectFile } from '../server/projects/paths';
-// Phase 9 browser check (T144; SC-011, FR-056–FR-058): the ODCS contract overview and Marquez-style
-// dataset pages (Schema, Lineage, History, Quality) for the commerce, mall and UBL contracts, and
-// in-place property edits that change only the edited value. Isolated data root; screenshots in
+// Contract property edits must change only the edited value. Screenshots use
 // /tmp/workbench-odcs-*.png.
 const api = await startIsolatedApi();
 const commerce = await api.ws.loadExample('commerce');
@@ -99,7 +98,7 @@ try {
       const table = o.getByRole('table', { name: 'Schema objects' });
       await expect(table.getByRole('row')).toHaveCount(5);
       const orders = table.getByRole('row').filter({ hasText: 'analytics.commerce.orders' });
-      await expect(orders).toContainText('6'); // properties after the "Add currency" commit
+      await expect(orders).toContainText('6'); // Properties after the "Add currency" commit.
       await expect(orders.getByRole('cell').nth(4)).toContainText('1 PK');
       await expect(orders.getByRole('cell').nth(4)).toContainText('1 FK');
       await o.getByRole('searchbox', { name: 'Find an object' }).fill('line');
@@ -118,7 +117,7 @@ try {
       const header = d.getByRole('group', { name: 'Dataset facts' });
       for (const fact of ['table', '6 properties', '0 quality rules', 'Add currency'])
         await expect(header).toContainText(fact);
-      // v0.3.0 asset page tabs (FR-011): Properties is the v0.2.0 Schema table and opens first.
+      // Properties is the default asset tab and contains the schema table.
       expect(await views('orders').getByRole('tab').allTextContents()).toEqual([
         'Lineage',
         'Relationships',
@@ -195,7 +194,7 @@ try {
       await expect(overview()).toBeVisible();
     },
   );
-  // v0.3.0: the asset page's Lineage tab hosts the column-level lineage canvas (FR-011).
+  // The asset page's Lineage tab hosts the column-level lineage canvas.
   await check(
     'Lineage tab: the lineage canvas centred on the object, foreign-key neighbours, the sales metrics; property lineage; Relationships',
     async () => {
@@ -203,7 +202,8 @@ try {
       await views('orders').getByRole('tab', { name: 'Lineage' }).click();
       const graph = dataset('orders').getByRole('region', { name: 'Lineage graph' });
       await expect(graph).toBeVisible();
-      // the first view is a readable zoom that may leave outer cards off screen; Fit shows them all
+      // The first view is a readable zoom that may leave outer cards off screen; Fit shows them
+      // all.
       await expect(graph.locator('.lineage-card.center')).toBeVisible({ timeout: 8000 });
       await graph.getByRole('button', { name: 'Fit' }).click();
       await page.waitForTimeout(300);
@@ -244,7 +244,7 @@ try {
     async () => {
       await views('orders').getByRole('tab', { name: 'History' }).click();
       const versions = dataset('orders').getByRole('table', { name: 'Versions' });
-      await expect(versions.getByRole('row')).toHaveCount(4); // header + 3 commits touching the contract
+      await expect(versions.getByRole('row')).toHaveCount(4); // Header + 3 commits touching the contract.
       await expect(versions).toContainText('Add currency');
       await expect(versions).toContainText('1.2.0');
       await expect(versions).toContainText('Workbench Test');
@@ -354,8 +354,9 @@ try {
         removed: ['        description: Order amount in USD.', '        required: true'],
         added: ['        description: Order total in USD, after discounts.'],
       });
-      // Wait until the page has the saved version's hash before the next edit (the file on disk can
-      // change before the save response arrives; an edit in between is correctly refused as stale).
+      // Wait until the page has the saved version's hash before the next edit (the file on disk
+      // can change before the save response arrives; an edit in between is correctly refused as
+      // stale).
       await expect(page.locator('main > .status')).toContainText('Saved description of amount');
       await table.getByLabel('Logical type of currency').selectOption('date');
       await expect.poll(async () => (await diff()).added).toContain('        logicalType: date');

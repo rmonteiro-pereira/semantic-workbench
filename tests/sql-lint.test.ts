@@ -1,10 +1,10 @@
+// Tests SQL warning locations without changing source text.
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { sqlFindings } from '../server/sql/lint';
 import { fillPlaceholders, type SqlFinding } from '../src/sql/lint';
 import { validateInput } from '../src/input';
-// SQL lint (T056; FR-052, FR-053, FR-055, SC-006): findings at exact, hand-computed positions,
-// warnings only, nothing changed.
+// SQL lint: findings at exact, hand-computed positions, warnings only, nothing changed.
 const fixture = (name: string) => readFileSync(`tests/fixtures/sql/${name}`, 'utf8');
 const warnings = (src: string, name: string) =>
   sqlFindings(src, name).filter(f => f.severity === 'warning') as SqlFinding[];

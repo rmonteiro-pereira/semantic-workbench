@@ -1,3 +1,4 @@
+// Runs focused assertions against candidate modules to detect deliberately introduced faults.
 import assert from 'node:assert/strict';
 const m = await import(process.argv[2]);
 const category = process.argv[3];
@@ -194,7 +195,7 @@ if (
           fs.readFileSync(join(d.root, 'projects/sample/a.yaml'), 'utf8'),
           source.replace('Customer', 'Buyer'),
         );
-        // v0.3.0 import commits (T017): only the imported paths, never the user's other changes.
+        // Import commits: only the imported paths, never the user's other changes.
         const r = await ws.importInto('sample', [{ path: 'b.yaml', source }]);
         assert.equal(r.commit.committed, true);
         const shown = (
@@ -323,7 +324,7 @@ if (
           fs.readFileSync(join(d.root, 'projects/sample/a.yaml'), 'utf8'),
           'name: Newer\nontology: [{concept: N}]\n',
         );
-        // v0.3.0 revert (T017): the replaced version goes to a trash entry, the committed bytes come back.
+        // Revert: the replaced version goes to a trash entry, the committed bytes come back.
         const newer = 'name: Newer\nontology: [{concept: N}]\n';
         const rv = await trash.revertFile(
           'sample',
@@ -683,7 +684,7 @@ if (category === 'odcs') {
   };
   assert.equal(m.odcsForeignKeys(data).length, 1);
   assert.equal(m.odcsReferenceIssues(data).length, 1);
-  // v0.3.0 column pairs (T007): referenced column kept; unequal composite arity pairs nothing.
+  // Column pairs: referenced column kept; unequal composite arity pairs nothing.
   assert.deepEqual(
     [m.odcsForeignKeys(data)[0].fromColumns, m.odcsForeignKeys(data)[0].toColumns],
     [['a_id'], ['id']],
@@ -736,7 +737,7 @@ if (category === 'references') {
       .includes('https://example.org/core#P'),
   );
 }
-// Metrics read side (Phase 3): rollup refusal, lineage by exact physical names, both Ossie layouts.
+// Metrics read side: rollup refusal, lineage by exact physical names, both Ossie layouts.
 if (category === 'explain') {
   const docs = await Promise.all(
     ['mall.mapping.yaml', 'mall.ontology.yaml', 'mall.semantic.yaml', 'mall.odcs.yaml'].map(
@@ -802,7 +803,7 @@ if (category === 'model-layout') {
   assert.equal(model.layout, 'embedded (deprecated)');
   assert(model.entities.filter((e: any) => e.kind === 'Dataset').length >= 6);
 }
-// Source editor (Phase 5): CRLF-preserving patches, lint ranges, patch-based saves.
+// Source editor: CRLF-preserving patches, lint ranges, patch-based saves.
 if (category === 'patch') {
   const { EditorState } = await import('@codemirror/state');
   const original = 'a: 1\r\nb: 2\r\n';
@@ -1042,7 +1043,7 @@ if (category === 'git-exec') {
     assert.equal(await git.head(dir), null);
     await git.commit(dir, 'ok');
     assert(await git.head(dir));
-    // v0.3.0 commitPaths (T017): only the listed paths; other staged work stays staged.
+    // CommitPaths: only the listed paths; other staged work stays staged.
     fs.writeFileSync(path.join(dir, 'a.yaml'), 'a: 2\n');
     fs.writeFileSync(path.join(dir, 'b.yaml'), 'b: 1\n');
     await git.run(dir, ['add', 'b.yaml']);
@@ -1131,12 +1132,12 @@ if (category === 'lineage') {
     },
   ];
   const g = m.buildLineage(files, 'c.odcs.yaml');
-  // foreign key: referenced (parent) column → referencing column
+  // Foreign key: referenced (parent) column → referencing column.
   assert.deepEqual(
     g.edges.filter((e: any) => e.kind === 'foreign-key').map((e: any) => [e.from, e.to]),
     [['object:c.odcs.yaml#p/id', 'object:c.odcs.yaml#ch/pid']],
   );
-  // the dataset reads `db.ch` only, never the similarly named `db.chx`
+  // The dataset reads `db.ch` only, never the similarly named `db.chx`.
   assert.deepEqual(
     g.edges
       .filter((e: any) => e.kind === 'reads')
@@ -1144,12 +1145,12 @@ if (category === 'lineage') {
       .sort(),
     ['object:c.odcs.yaml#ch/pid', 'object:c.odcs.yaml#ch/v'],
   );
-  // closure direction: upstream of d.v is ch.v only, not d.pid
+  // Closure direction: upstream of d.v is ch.v only, not d.pid.
   const up = m.closure(g, ['dataset:s.yaml#/d/v'], 'up');
   assert.deepEqual([...up.nodes].sort(), ['dataset:s.yaml#/d/v', 'object:c.odcs.yaml#ch/v']);
   const down = m.closure(g, ['object:c.odcs.yaml#p/id'], 'down');
   assert(!down.nodes.has('object:c.odcs.yaml#ch/v'));
-  // an edge to a column on another page attaches to the "more" row
+  // An edge to a column on another page attaches to the "more" row.
   const card = {
     id: 'k',
     kind: 'object',
@@ -1177,12 +1178,12 @@ if (category === 'mapping-graph') {
     );
   const ctx = (d: any[]) => buildContext(d, agentCatalog(d).mappings[0].id);
   const g = m.buildMappingGraph(ctx(docs()));
-  // link Order.customer passes through the join fields
+  // Link Order.customer passes through the join fields.
   assert.deepEqual(
     g.edges.find((e: any) => e.kind === 'link' && e.from === 'concept:Order/customer').via,
     ['dataset:orders/customer_id', 'dataset:customers/customer_id'],
   );
-  // a field nothing reads is unmapped, a mapped one is not
+  // A field nothing reads is unmapped, a mapped one is not.
   const g2 = m.buildMappingGraph(
     ctx(
       docs((f, s) =>
@@ -1206,7 +1207,7 @@ if (category === 'mapping-graph') {
       .find((c: any) => c.path === 'order_id')
       .badges.some((b: any) => b.label === 'Unmapped'),
   );
-  // a finding sits on the concept mapping it comes from
+  // A finding sits on the concept mapping it comes from.
   const g3 = m.buildMappingGraph(
     ctx(
       docs((f, s) =>
@@ -1221,7 +1222,7 @@ if (category === 'mapping-graph') {
   );
   assert((g3.cards.get('concept:Order').findings ?? []).join().includes('no_such_field'));
   assert.deepEqual(g3.cards.get('concept:Revenue').findings ?? [], []);
-  // a KPI binding's `of` is dashed `of`, not `measures`
+  // A KPI binding's `of` is dashed `of`, not `measures`.
   const g4 = m.buildMappingGraph(
     ctx(
       docs((f, s) =>
@@ -1278,7 +1279,7 @@ if (category === 'expansion') {
     total: 0,
     budget: 0,
   });
-  // X is reached by B too: collapsing A keeps it, removes Z
+  // X is reached by B too: collapsing A keeps it, removes Z.
   assert.deepEqual(m.canvasOf(base, [a, b, ca]).nodes.sort(), ['A', 'B', 'C', 'X']);
 }
 if (category === 'incremental') {
@@ -1312,7 +1313,7 @@ if (category === 'pierce') {
   assert.equal(r.nodes.length, 10);
   assert.equal(r.total, 30);
   assert.equal(r.hidden, 20);
-  // outgoing from the middle never reaches the start of the chain
+  // Outgoing from the middle never reaches the start of the chain.
   const mid = m.boundedClosure(nodes, edges, ['n15'], { ...o, budget: 100 });
   assert(!mid.nodes.includes('n14'));
   assert(mid.nodes.includes('n29'));

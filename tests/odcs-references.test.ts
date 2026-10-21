@@ -1,3 +1,4 @@
+// Tests resolution of contract references.
 import { test, expect } from 'bun:test';
 import { stringify } from 'yaml';
 import { validateInput } from '../src/input';

@@ -1,3 +1,4 @@
+// Tests resolving project and repository folders from registry entries.
 import { test, expect } from 'bun:test';
 import { join } from 'node:path';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -11,9 +12,9 @@ import {
 } from '../server/projects/paths';
 import { testWorkspace } from './helpers/temp-data-dir';
 import { call, ok } from './helpers/scm';
-// Research R10/T011: a project folder and its repository folder are resolved through the registry;
-// entries without `folder`/`repo` (every v0.2.0 registry) keep `folder = repo = slug`.
-test('v0.2.0 entries default to folder = repo = slug', () => {
+// Project and repository folders come from the registry. Entries without `folder` or `repo` use
+// the slug for both.
+test('legacy entries default to folder = repo = slug', () => {
   expect(locationOf({ slug: 'shop' })).toEqual({ folder: 'shop', repo: 'shop' });
   const layout = dataLayout('/tmp/x');
   expect(projectDir(layout, 'shop')).toBe(join(layout.projects, 'shop'));
@@ -48,7 +49,7 @@ test('subfolder entries resolve inside their repository; invalid ones are refuse
   expect(projectDir(layout, 'other')).toBe(join(layout.projects, 'other'));
   expect(() => projectDir(layout, '../x')).toThrow(PathError);
 });
-test('a v0.2.0 registry file loads unchanged and its projects keep working', async () => {
+test('a legacy registry file loads unchanged and its projects keep working', async () => {
   const t = await testWorkspace();
   try {
     const created = await ok(

@@ -1,6 +1,7 @@
+// Tests Turtle and N3 resource edits that preserve other statements.
 import { test, expect } from 'bun:test';
 import { readRdfItem, editRdfItem, deleteRdfItem, addRdfItem } from '../src/edit/rdf-patch/index';
-// Turtle and N3 item edits rewrite the subject's statement blocks in place (FR-055).
+// Turtle and N3 item edits rewrite the subject's statement blocks in place.
 const src = `@prefix e: <https://e/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .

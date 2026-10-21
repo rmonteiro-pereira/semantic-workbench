@@ -1,3 +1,4 @@
+// Checks column lineage against reference edges and measures browser interaction latency.
 import { chromium, expect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
@@ -5,11 +6,8 @@ import { parse } from 'yaml';
 import { readdirSync } from 'node:fs';
 import { buildLineage, selectionNodes } from '../src/odcs/lineage';
 import { lineagePierce } from '../src/odcs/lineage-pierce';
-// Column-level lineage canvas (T037; SC-001, SC-002, FR-001–FR-012) on the commerce, mall and UBL
-// contracts: every drawn line is one of the expected (golden) edges and every expected edge between
-// two drawn rows is drawn; a selected column's path is emphasised within 200 ms; UBL's first view
-// appears within 2 s; paging, walking with a trail, the legend, badges and full screen. Isolated
-// data root; screenshots in /tmp/workbench-lineage-*.png at four viewports.
+// Every visible edge must match a reference edge, and all reference edges between visible rows
+// must appear. Path highlighting has a 200 ms budget; the first UBL view has a 2 s budget.
 const api = await startIsolatedApi();
 const examples = {
   commerce: await api.ws.loadExample('commerce'),
@@ -51,7 +49,7 @@ async function openContract(path: string, project: string) {
   await expect(graph().locator(`.lineage-card[data-id^="object:${path}#"]`).first()).toBeVisible({
     timeout: 8000,
   });
-  await page.waitForTimeout(300); // the first view settles once the pane is measured
+  await page.waitForTimeout(300); // The first view settles once the pane is measured.
   await expect(graph().locator('.lineage-card').first()).toBeVisible({ timeout: 8000 });
   return Date.now() - t;
 }
@@ -59,8 +57,8 @@ const fit = async () => {
   await graph().getByRole('button', { name: 'Fit' }).click();
   await page.waitForTimeout(350);
 };
-// Lines drawn vs golden: drawn ⊆ expected (non-bundled, both ends real ports), and expected ⊆ drawn
-// for edges whose two ends are drawn rows or cards.
+// Lines drawn vs golden: drawn ⊆ expected (non-bundled, both ends real ports), and expected ⊆
+// drawn for edges whose two ends are drawn rows or cards.
 async function compare(name: string) {
   await fit();
   const g = golden(name);
@@ -95,8 +93,7 @@ async function compare(name: string) {
   }
   return drawn.size;
 }
-// Readability (owner review): a column name in the centre card renders at 12 px or more in the
-// first view, at 1280×720 and 1440×900.
+// Center-card column names must render at 12 px or more in the initial laptop views.
 async function renderedRowPx() {
   return page.evaluate(() => {
     const v = document.querySelector(
@@ -153,7 +150,7 @@ try {
     async () => {
       await openContract('commerce.odcs.yaml', 'Commerce workspace');
       await expect(card('Contract object orders')).toHaveClass(/center/);
-      // the first view may leave outer cards off screen at a readable zoom; Fit shows them all
+      // The first view may leave outer cards off screen at a readable zoom; Fit shows them all.
       expect(await compare('commerce')).toBeGreaterThan(5);
       for (const n of [
         'Contract object customers',
@@ -188,7 +185,8 @@ try {
   await check(
     'selecting a column emphasises its whole path within 200 ms and dims the rest; the path panel lists it in order',
     async () => {
-      // The readable first view may leave outer cards off screen (they are not rendered); Fit shows the whole path.
+      // The readable first view may leave outer cards off screen (they are not rendered); Fit
+      // shows the whole path.
       await graph().getByRole('button', { name: 'Fit' }).click();
       await page.waitForTimeout(300);
       const ms = await page.evaluate(
@@ -274,7 +272,7 @@ try {
       const center = graph().locator('.lineage-card.center');
       await expect(center).toHaveAttribute('aria-label', 'Contract object consignment');
       expect(await renderedRowPx()).toBeGreaterThanOrEqual(12);
-      // the fan-out of bridge tables is one "N more objects" card, which opens on request
+      // The fan-out of bridge tables is one "N more objects" card, which opens on request.
       await fit();
       const group = graph().locator('.lineage-card.group').first();
       await expect(group).toContainText('more objects');
@@ -302,7 +300,7 @@ try {
       await firstViewReadable('ubl.odcs.yaml', examples.ubl.name, 'UBL');
     },
   );
-  // Expand in place and Full pierce (T047; FR-018, FR-019, FR-023).
+
   const cardPositions = () =>
     graph()
       .locator('.react-flow__node')

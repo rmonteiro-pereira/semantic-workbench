@@ -1,7 +1,8 @@
+// Tests centered graph placement and separate edge routes.
 import { test, expect } from 'bun:test';
 import { neighborhoodLayout, NEIGHBOR_COLUMN } from '../src/layout';
 import { assignRoutes, routePoints, orthogonalPath, type Box } from '../src/graph/routes';
-// Centered layout (defect 9) and per-edge routes (defect 7).
+
 test('the center is in the middle column, incoming on the left and outgoing on the right', () => {
   const p = neighborhoodLayout('c', ['i1', 'i2'], ['o1', 'o2', 'o3'], ['b1']);
   expect(p.get('c')!.x).toBe(0);

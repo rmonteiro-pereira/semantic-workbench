@@ -1,12 +1,13 @@
+// Tests committing imported paths and reporting why an import could not be committed.
 import { test, expect } from 'bun:test';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { testWorkspace, isolateGit } from './helpers/temp-data-dir';
 import { call, ok, ontology, sh } from './helpers/scm';
-// FR-049 / T015: every import commits exactly the written paths ("Import N files", one file
-// "Import <name>"); when Git, an identity or a clean merge state is missing, the files are still
-// written and the reason is reported.
+// Every import commits exactly the written paths ("Import N files", one file "Import <name>");
+// when Git, an identity or a clean merge state is missing, the files are still written and the
+// reason is reported.
 const log = (dir: string) => sh(dir, ['log', '--format=%s']).trim().split('\n');
 const committed = (dir: string) =>
   sh(dir, ['show', '--name-only', '--format=', 'HEAD']).trim().split('\n').filter(Boolean).sort();
@@ -57,7 +58,7 @@ test('import into an existing project commits only the imported paths', async ()
       ' M shop.yaml',
       '?? notes.yaml',
     ]);
-    // replace: the replaced file is committed with its new bytes
+    // Replace: the replaced file is committed with its new bytes.
     const re = await ok(
       call(t, 'POST', `/api/projects/${p.slug}/import`, {
         files: [{ path: 'x.yaml', source: ontology('X2') }],
@@ -78,7 +79,7 @@ test('loading an example commits its files', async () => {
     expect(r.commit.message).toMatch(/^Import \d+ files$/);
     const dir = join(t.root, 'projects', r.slug);
     expect(sh(dir, ['status', '--porcelain']).trim()).toBe('');
-    // opening the existing example project again commits nothing new
+    // Opening the existing example project again commits nothing new.
     const again = await ok(call(t, 'POST', '/api/examples/commerce'));
     expect(again.created).toBe(false);
     expect(again.commit).toBeUndefined();

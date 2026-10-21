@@ -1,3 +1,4 @@
+// Tests workspace path validation and containment.
 import { test, expect } from 'bun:test';
 import {
   assertSlug,

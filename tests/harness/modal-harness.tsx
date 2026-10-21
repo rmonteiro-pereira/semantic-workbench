@@ -1,3 +1,4 @@
+// Renders the shared dialog in Chromium for focus, dismissal and layout tests.
 // Browser harness for tests/modal.test.tsx (bundled with Bun.build, run in Chromium).
 import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';

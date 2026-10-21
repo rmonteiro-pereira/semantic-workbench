@@ -1,3 +1,4 @@
+// Tests file imports, byte-preserving saves, drafts and project creation through the API.
 import { test, expect } from 'bun:test';
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
@@ -363,7 +364,7 @@ test('example loaders create the example project once and reopen it afterwards',
     t.dispose();
   }
 });
-test('the legacy /api/documents facade keeps its shapes over the folder store (R9)', async () => {
+test('the legacy /api/documents facade keeps its shapes over the folder store', async () => {
   const { t } = await project();
   try {
     const docs = await (await api(t, 'GET', '/api/documents')).json();

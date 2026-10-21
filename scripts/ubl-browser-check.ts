@@ -1,3 +1,4 @@
+// Inspects UBL graph rendering and layout in the browser.
 import { chromium } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 const browser = await chromium.launch({ headless: true });

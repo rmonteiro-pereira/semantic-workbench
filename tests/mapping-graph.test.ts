@@ -1,3 +1,4 @@
+// Tests concept mapping graphs derived from resolved bindings.
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import {
@@ -14,8 +15,8 @@ import {
   metricId,
   type MappingGraph,
 } from '../src/mappings/mapping-graph';
-// The concept-mapping graph (T102; FR-029–FR-032, SC-012): built from the resolver's context, so
-// every drawn line is a binding the Mappings tab and the agent context also see.
+// The concept-mapping graph: built from the resolver's context, so every drawn line is a binding
+// the Mappings tab and the agent context also see.
 const docs = (folder: string, files: string[]): StoredDocument[] =>
   files.map((f, i) => ({
     id: `p/${f}`,
@@ -76,7 +77,7 @@ for (const [name, context] of contexts)
       const own = edgesOf(g, b.id).filter(e => e.kind === b.kind);
       expect(own.length).toBeGreaterThan(0);
       if (b.kind === 'referent') {
-        // exactly one line per field (or metric) the expression reads, from the concept's row
+        // Exactly one line per field (or metric) the expression reads, from the concept's row.
         for (const f of b.fields) {
           const field = JSON.parse(f) as [string, string];
           expect(own.filter(e => e.to === fieldId(field[0], field[1])).length).toBe(1);
@@ -85,7 +86,8 @@ for (const [name, context] of contexts)
         for (const e of own)
           expect(e.from).toBe(`${conceptId(b.rootConcept)}/${b.relationships.join('.')}`);
       }
-      // a link child's fields are the rows its line passes through (the link's anchor only identifies the subject)
+      // A link child's fields are the rows its line passes through (the link's anchor only
+      // identifies the subject).
       if (b.kind === 'link' && b.evidence.path.includes('children')) {
         const fields = b.fields.map(f => {
           const [d, n] = JSON.parse(f);
@@ -94,7 +96,7 @@ for (const [name, context] of contexts)
         expect(own.some(e => fields.every(x => e.via?.includes(x)))).toBe(true);
       }
     }
-    // metric bindings: measures solid, of dashed
+    // Metric bindings: measures solid, of dashed.
     for (const m of context.metricBindings) {
       if (m.measures.concept)
         expect(
@@ -143,7 +145,7 @@ test('commerce: object mapping Customer → customers with customer_id identifyi
         e.to === fieldId('customers', 'customer_id'),
     ),
   ).toBe(true);
-  // concept rows are its relationships, in declared order
+  // Concept rows are its relationships, in declared order.
   expect(g.cards.get(conceptId('Order'))!.columns.map(c => c.path)).toEqual([
     'id',
     'customer',
@@ -190,7 +192,8 @@ test('mall: KPI bindings: billed_amount measures kpi:BilledAmount (solid) and is
       ['of', conceptId('Lease')],
     ].sort() as any,
   );
-  // the object line is the concept mapping `BilledAmount: expression billed_amount`, a binding of its own
+  // The object line is the concept mapping `BilledAmount: expression billed_amount`, a binding of
+  // its own.
   expect(b.measures.concept).toBe('BilledAmount');
 });
 // Synthetic changes to mapped commerce for unmapped items and findings.
@@ -235,7 +238,7 @@ test('findings sit on the affected card: unknown concept, missing field, ambiguo
     'Unknown ontology concept Ghost',
   );
   expect(g.cards.get(conceptId('Order'))!.findings!.join(' ')).toContain('no_such_field');
-  // a finding is never attached to an unrelated card
+  // A finding is never attached to an unrelated card.
   expect(g.cards.get(conceptId('Customer'))!.findings ?? []).toEqual([]);
   const r = changed(f => {
     f['commerce.mapping.yaml'] = f['commerce.mapping.yaml'].replace(

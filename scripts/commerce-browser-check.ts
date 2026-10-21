@@ -1,3 +1,4 @@
+// Inspects the commerce example in the browser.
 import { chromium } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { example } from './helpers/examples';

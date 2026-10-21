@@ -1,3 +1,4 @@
+// Checks workspace interactions in the browser using isolated example projects.
 import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { inspect } from '../src/model';
@@ -68,7 +69,7 @@ await routeApi(page, api, async route => {
 if (process.env.UI_MUTATION === 'clear-nodes')
   await page.route('**/src/NeighborhoodGraph.tsx*', async route => {
     const response = await route.fetch();
-    const source = await response.text(); // v0.3.0: the node list is the expansion canvas, revealed in chunks (T045).
+    const source = await response.text(); // The node list is the expansion canvas, revealed in chunks.
     const anchor = 'const build = (limit = reveal) => shownEntities.slice(0, limit).map';
     if (!source.includes(anchor)) throw Error('UI mutation anchor missing');
     console.log('INJECTED_CLEAR_NODES_MUTATION');
@@ -339,7 +340,7 @@ try {
         /^Not saved: \d+ errors?$/,
         { timeout: 5000 },
       );
-      // v0.3.0 (FR-060): findings open in the Validation details dialog from the Save state indicator.
+      // Findings open in the Validation details dialog from the Save state indicator.
       await page.getByRole('status', { name: 'Save state' }).click();
       await expect(page.locator('.validation-details')).toContainText('definition is empty');
       await page.keyboard.press('Escape');

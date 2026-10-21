@@ -1,3 +1,4 @@
+// Tests migration from the SQLite workspace to the folder store.
 import { test, expect } from 'bun:test';
 import { Database } from 'bun:sqlite';
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
@@ -59,7 +60,7 @@ async function legacyWorkspace() {
     );
   return { d, db, docs, files };
 }
-test('v0.1.0 migration backs up, exports byte for byte, verifies, commits and maps legacy ids (SC-016)', async () => {
+test('v0.1.0 migration backs up, exports byte for byte, verifies, commits and maps legacy ids', async () => {
   const { d, db, docs, files } = await legacyWorkspace();
   try {
     const before = files();

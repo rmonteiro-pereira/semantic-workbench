@@ -1,3 +1,4 @@
+// Tests editor patches that preserve untouched bytes and line endings.
 import { test, expect } from 'bun:test';
 import { EditorState } from '@codemirror/state';
 import {
@@ -8,7 +9,7 @@ import {
   lineStarts,
   normalize,
 } from '../src/editor/patch';
-// Editor changes become patches on the original bytes (FR-046).
+
 function edit(
   original: string,
   spec: (doc: string) => { from: number; to?: number; insert?: string }[],

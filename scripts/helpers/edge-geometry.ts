@@ -1,7 +1,8 @@
+// Measures neighborhood edge paths and labels in browser screen coordinates.
 import type { Page } from '@playwright/test';
-// Neighborhood edge geometry in the real page (FR-040): no two edges may run along the same line for
-// more than a few pixels, and no two visible edge labels may overlap. Paths are read from the SVG
-// `d` attributes (straight segments; rounded corners are skipped) in screen coordinates.
+// SVG paths are measured as straight segments in screen coordinates, skipping rounded corners.
+// Shared segments and overlapping labels make connections ambiguous.
+/** Returns overlapping edge segments and labels measured in screen coordinates. */
 export async function neighborhoodEdgeProblems(page: Page) {
   return page.evaluate(() => {
     const problems: string[] = [];
@@ -69,6 +70,7 @@ export async function neighborhoodEdgeProblems(page: Page) {
   });
 }
 // The neighborhood's current center id and its counts.
+/** Returns the neighborhood center and its visible neighbor counts. */
 export async function neighborhoodState(page: Page) {
   return page.evaluate(() => {
     const counts = document.querySelector('[aria-label="Neighbor counts"]')?.textContent ?? '';
@@ -83,6 +85,7 @@ export async function neighborhoodState(page: Page) {
   });
 }
 // Choose a center through the searchable picker.
+/** Selects a neighborhood center through the searchable picker. */
 export async function pickCenter(page: Page, query: string, name = query) {
   const input = page.getByRole('textbox', { name: 'Find a center' });
   await input.fill(query);

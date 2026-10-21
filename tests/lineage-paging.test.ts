@@ -1,7 +1,8 @@
+// Tests column paging, pinned path rows and edges to hidden columns.
 import { test, expect } from 'bun:test';
 import { pageColumns, moreRowId, PAGE_SIZE, type LineageCard } from '../src/odcs/lineage';
-// Paging (T027, FR-006): ten rows per page, path rows pinned above the page, and an edge to a
-// column that is not shown attaches to the card's "N more columns" row.
+// Paging: ten rows per page, path rows pinned above the page, and an edge to a column that is not
+// shown attaches to the card's "N more columns" row.
 const card: LineageCard = {
   id: 'object:c#big',
   kind: 'object',

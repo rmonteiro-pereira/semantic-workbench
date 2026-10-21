@@ -1,7 +1,8 @@
+// Tests dialog focus, dismissal and layout in a real browser.
 import { test, expect, beforeAll, afterAll } from 'bun:test';
 import { chromium, type Browser, type Page } from '@playwright/test';
-// Dialog conventions (T012): the shared Modal in a real browser. Escape closes it through onCancel,
-// focus returns to the opener, the footer slot renders after the body and size variants set a class.
+// Dialog conventions: the shared Modal in a real browser. Escape closes it through onCancel, focus
+// returns to the opener, the footer slot renders after the body and size variants set a class.
 let browser: Browser;
 let page: Page;
 beforeAll(async () => {
@@ -32,13 +33,13 @@ test('Escape closes the dialog through onCancel and focus returns to the opener'
   expect(await page.getByLabel('Log').textContent()).toBe('cancel');
   expect(await page.evaluate(() => document.activeElement?.textContent)).toBe('Open dialog');
 }, 20_000);
-test('size variant and footer slot', async () => {
+test('the size variant applies and the footer follows the dialog body', async () => {
   await page.getByRole('button', { name: 'Open dialog' }).click();
   const section = page.locator('dialog section.workbench-dialog');
   expect(await section.getAttribute('class')).toContain('size-large');
   const footer = section.locator('footer.dialog-footer');
   expect(await footer.getByRole('button', { name: 'Done' }).count()).toBe(1);
-  // the footer comes after the body
+  // The footer comes after the body.
   expect(await section.evaluate(s => s.lastElementChild?.tagName)).toBe('FOOTER');
   await footer.getByRole('button', { name: 'Done' }).click();
   expect(await page.getByRole('dialog').count()).toBe(0);

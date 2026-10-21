@@ -1,3 +1,4 @@
+// Tests RDF graph equivalence and resource edit round trips.
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { Writer } from 'n3';
@@ -11,10 +12,8 @@ import {
   addRdfItem,
   checkRdfSource,
 } from '../src/edit/rdf-patch/index';
-// The RDF edit gate (FR-055a, SC-010) and round trips over every shipped RDF example: for a seeded
-// sample of resources, a no-op edit changes nothing, a label change changes only that resource's
-// statements and exactly one triple, removing and re-adding a statement restores the graph, and
-// deleting and re-adding a resource restores the graph.
+// Round trips must preserve the RDF graph, while a label edit changes exactly one triple belonging
+// to the selected resource.
 const bn = (v: string) => ({ termType: 'BlankNode' as const, value: v });
 const nn = (v: string) => ({ termType: 'NamedNode' as const, value: v });
 const lit = (v: string) => ({
@@ -76,7 +75,7 @@ test('the gate refuses a change to another resource and reports removed and adde
     ).ok,
   ).toBe(false);
 });
-// --- round trips over the shipped examples -----------------------------------------------------------
+// Round trips use shipped examples to cover their actual RDF constructs.
 const files = [
   'commerce/commerce.owl.ttl',
   'commerce/commerce.owl',
@@ -211,8 +210,8 @@ for (const { name, source } of [
         if (!b.ok) throw Error(`${name} ${subject} re-add: ${b.error}`);
         expect(isomorphic(parseGraph(b.text, format), graph)).toBe(true);
       }
-      // Delete the resource (statements only), then add it again.
-      // (A labelled blank node's own statements are not part of the pair texts, so those re-adds are skipped.)
+      // Labelled blank nodes omit their own statements from pair text, so they cannot
+      // be restored by re-adding those pairs.
       if (
         !item.pairs.some(
           p =>

@@ -1,11 +1,12 @@
+// Tests equivalent parsing of split and consolidated Ossie documents.
 import { test, expect } from 'bun:test';
 import { parse, stringify } from 'yaml';
 import { inspect } from '../src/model';
 import { validateInput } from '../src/input';
 import { buildContext, agentCatalog } from '../server/agent/runtime';
 import { projectMetrics } from '../server/agent/explain';
-// Both official Ossie layouts (FR-031): split files and the consolidated file whose ontology_mappings
-// embed the semantic model (deprecated upstream) give the same model.
+// Both official Ossie layouts: split files and the consolidated file whose ontology_mappings embed
+// the semantic model (deprecated upstream) give the same model.
 const dir = 'public/examples/ossie/';
 const read = (f: string) => Bun.file(dir + f).text();
 const docs = async (files: string[]) =>
@@ -50,7 +51,8 @@ test('layouts are labelled: split files, and the consolidated form as deprecated
     expect((inspect(await read(f), f) as any).layout).toBe('split');
   const whole = inspect(await read('flights.yaml'), 'flights.yaml') as any;
   expect(whole.layout).toBe('embedded (deprecated)');
-  // The embedded semantic model is not treated as ontology-only: its datasets are entities of the file.
+  // The embedded semantic model is not treated as ontology-only: its datasets are entities of the
+  // file.
   expect(
     whole.entities.some((e: any) => e.kind === 'Dataset' && e.path[0] === 'ontology_mappings'),
   ).toBe(true);

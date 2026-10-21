@@ -1,3 +1,4 @@
+// Tests validation of edge routes against current endpoint coordinates.
 import { test, expect } from 'bun:test';
 import { pathMatchesEndpoints } from '../src/edge-path';
 test('accepts routed curves only at their actual current handle coordinates', () => {

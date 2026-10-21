@@ -1,3 +1,4 @@
+// Tests grounded queries and reference diagnostics through the agent API.
 import { test, expect } from 'bun:test';
 import { testWorkspace } from './helpers/temp-data-dir';
 async function fixture() {

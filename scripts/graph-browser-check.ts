@@ -1,3 +1,4 @@
+// Checks graph navigation and rendering at multiple scales in an isolated browser workspace.
 import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { neighborhoodEdgeProblems, neighborhoodState, pickCenter } from './helpers/edge-geometry';
@@ -5,9 +6,9 @@ import { inspect } from '../src/model';
 import { neighborhood, projectModel } from '../src/graph-view';
 import { boundedClosure, PIERCE_BUDGET } from '../src/graph/pierce';
 import { neighbours, registerSet, canvasOf } from '../src/graph/expansion';
-// Real-browser check of the full graph and the neighborhood walk (SC-008; baseline defects 1–9) on the
-// UBL, shopping center and 1,000-entity scale models, on an isolated data root. Screenshots of every
-// step are written to /tmp/workbench-neighborhood-*.png.
+// Real-browser check of the full graph and the neighborhood walk on the UBL, shopping center and
+// 1,000-entity scale models, on an isolated data root. Screenshots of every step are written to
+// /tmp/workbench-neighborhood-*.png.
 const api = await startIsolatedApi();
 for (const id of ['ubl', 'mall', 'commerce-scale']) await api.ws.loadExample(id);
 const model = async (folder: string, file: string) =>
@@ -20,7 +21,7 @@ const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
 const errors: string[] = [];
 page.on('pageerror', e => errors.push(e.message));
-// Defect 6: record any frame in which the empty-state message is shown.
+// Record any frame in which the empty-state message is shown.
 await page.addInitScript(() => {
   (window as any).__emptySeen = 0;
   new MutationObserver(() => {
@@ -54,7 +55,8 @@ async function expectState(
     .toEqual({ center, shown: n.shown, total: n.total, hidden: n.hidden, nodes: n.shown + 1 });
   return n;
 }
-// The view fits once nodes are measured (and again when the canvas resizes): poll until it settles.
+// The view fits once nodes are measured (and again when the canvas resizes): poll until it
+// settles.
 async function expectCentered() {
   await expect
     .poll(async () => {
@@ -274,7 +276,7 @@ try {
       console.log(`  center chosen and laid out in ${Math.round(performance.now() - start)} ms`);
     },
   );
-  // Pierce through (T047; FR-018–FR-024, SC-010, SC-011).
+
   const nodeIds = () =>
     page
       .locator('.neighborhood-canvas .react-flow__node')
@@ -400,7 +402,7 @@ try {
             { collapse: 'Item' },
           ]),
         );
-      // activating a relationship line expands its far end in place (FR-024); Walk here still re-centres
+      // Activating a relationship line expands its far end in place; Walk here still re-centres.
       await page.getByRole('button', { name: 'Walk to OrderLine' }).click();
       await expectState(ubl, id(ubl, 'OrderLine'), [id(ubl, 'Order')]);
     },

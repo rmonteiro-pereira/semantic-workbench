@@ -1,3 +1,4 @@
+// Tests graph expansion, shared-node retention and collapse.
 import { test, expect } from 'bun:test';
 import {
   registerSet,
@@ -8,7 +9,7 @@ import {
   type ExpansionSet,
 } from '../src/graph/expansion';
 import { walkReducer, emptyWalk, canvasAt } from '../src/graph/walk';
-// Expansion in place (T039; FR-018, FR-019).
+
 const edges = [
   ['C', 'A'],
   ['C', 'B'],
@@ -42,7 +43,7 @@ test('collapse removes what that expansion alone added (reference counting), nev
   const b = expand('B', base);
   const both = canvasOf(base, [a, b]).nodes;
   expect(both.sort()).toEqual(['A', 'B', 'C', 'X', 'Z']);
-  // collapse A: Z goes (only A reached it), X stays (B reaches it)
+  // Collapse A: Z goes (only A reached it), X stays (B reaches it).
   const ca = registerSet({
     kind: 'collapse',
     from: 'A',
@@ -55,7 +56,7 @@ test('collapse removes what that expansion alone added (reference counting), nev
     budget: 0,
   });
   expect(canvasOf(base, [a, b, ca]).nodes.sort()).toEqual(['A', 'B', 'C', 'X']);
-  // collapsing an expansion of the centre keeps the centre and the base view
+  // Collapsing an expansion of the centre keeps the centre and the base view.
   const c = expand('C', base);
   const cc = registerSet({
     kind: 'collapse',
@@ -108,7 +109,7 @@ test('undo and forward through the walk restore exactly the earlier canvas', () 
   expect(canvasOf(base, setsOf(canvasAt(w).sets)).nodes).toEqual(one);
   w = walkReducer(w, { type: 'forward' });
   expect(canvasOf(base, setsOf(canvasAt(w).sets)).nodes).toEqual(two);
-  // walking (re-centring) starts a new canvas
+  // Walking (re-centring) starts a new canvas.
   w = walkReducer(w, { type: 'push', step: { doc: 'd', center: 'A', name: 'A' } });
   expect(canvasAt(w).sets).toEqual([]);
 });

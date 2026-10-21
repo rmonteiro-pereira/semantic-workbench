@@ -1,3 +1,4 @@
+// Tests compatibility of the document API over the folder store.
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { editEntity, inspect } from '../src/model';

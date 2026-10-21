@@ -1,3 +1,4 @@
+// Tests document exports and preservation of source content.
 import { test, expect } from 'bun:test';
 import { exportDocument } from '../src/export';
 import { inspect, editEntity } from '../src/model';

@@ -1,3 +1,4 @@
+// Checks RDF item editing and refusal of edits that would change other resources.
 import { chromium, expect, type Locator } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { Parser, Writer } from 'n3';
@@ -5,10 +6,8 @@ import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { projectDir, projectFile } from '../server/projects/paths';
 import { editorValue, fillEditor } from './helpers/code-editor';
 import { newItem } from './helpers/header';
-// Phase 7 browser check (T119; FR-055, SC-010 RDF): per-item editing of Turtle, RDF/XML, N-Triples and
-// N3 resources from the catalog and the inspector; add and delete with dependents; a Source edit that
-// touches another resource is refused; an N3 rule is refused with a jump to Source. After each save
-// `git diff` is limited to the edited statements. Isolated data root; screenshots in /tmp/workbench-rdf-*.png.
+// RDF edits must change only the selected resource statements. Unsupported rules and edits
+// spanning other resources must be refused with a link to Source.
 const api = await startIsolatedApi();
 const commerce = await api.ws.loadExample('commerce');
 const mall = await api.ws.loadExample('mall');

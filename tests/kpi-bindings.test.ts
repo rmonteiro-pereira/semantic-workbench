@@ -1,3 +1,4 @@
+// Tests metric-to-concept bindings and their validation.
 import { test, expect } from 'bun:test';
 import { parseDocument } from 'yaml';
 import { validateInput } from '../src/input';
@@ -8,7 +9,7 @@ import {
   mappingExpressionBindings,
 } from '../src/metrics/bindings';
 import { projectMetrics } from '../server/agent/explain';
-// KPI-to-concept bindings in the mapping document's root extension (research R12).
+
 const mall = async (f: string) => Bun.file('public/examples/mall/' + f).text();
 const bindingsData = (list: any[]) =>
   JSON.stringify({ schema: 'semantic-workbench/mapping/v1', kpi_bindings: list });

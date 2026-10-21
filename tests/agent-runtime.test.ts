@@ -1,3 +1,4 @@
+// Tests grounded agent queries and rejection of invalid requests.
 import { test, expect } from 'bun:test';
 import { parse, stringify } from 'yaml';
 import { Database } from 'bun:sqlite';

@@ -1,3 +1,4 @@
+// Checks responsive layouts, overlays and navigation in an isolated browser workspace.
 import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { treeRowProblems } from './helpers/tree-geometry';
@@ -5,8 +6,8 @@ import { neighborhoodEdgeProblems, neighborhoodState, pickCenter } from './helpe
 import { inspect } from '../src/model';
 import { layoutProblems, lineageProblems } from './helpers/layout-geometry';
 
-// Isolated API fixture: exercising viewport changes never modifies the local workspace.
-// The UBL ontology is imported first so that it opens first.
+// Isolated API fixture: exercising viewport changes never modifies the local workspace. The UBL
+// ontology is imported first so that it opens first.
 const api = await startIsolatedApi();
 await api.ws.importBatch({
   files: [
@@ -24,7 +25,7 @@ await api.ws.importBatch({
     })),
   ),
 });
-// A long file name for the sidebar's two-line names (T065).
+// A long file name for the sidebar's two-line names.
 await api.ws.importBatch({
   files: [
     {
@@ -54,8 +55,8 @@ async function openPage(width: number, height: number) {
   const page = await browser.newPage({ viewport: { width, height } });
   page.on('pageerror', error => errors.push(`${width}×${height}: ${error.message}`));
   await routeApi(page, api);
-  // Mutants for the mutation harness (T161): a status line back over the mini-map and controls,
-  // and status messages that never dismiss by themselves.
+  // Mutants for the mutation harness: a status line back over the mini-map and controls, and
+  // status messages that never dismiss by themselves.
   if (process.env.RESPONSIVE_MUTATION === 'overlay') {
     await page.addInitScript(() =>
       document.addEventListener('DOMContentLoaded', () => {
@@ -179,8 +180,8 @@ try {
       `${width}×${height}: workspace toggle preserves graph and document access`,
       async () => {
         const before = (await page.locator('.react-flow').boundingBox())!.width;
-        // v0.3.0 (FR-062): on desktop one toggle hides and shows the sidebar; below 1100 px the
-        // header button opens the drawer. Examples is a collapsed group once projects exist (FR-061).
+        // On desktop one toggle hides and shows the sidebar; below 1100 px the header button opens
+        // the drawer. Examples is a collapsed group once projects exist.
         if (desktop) {
           await page.getByRole('button', { name: 'Hide sidebar', exact: true }).click();
           await expect
@@ -305,8 +306,8 @@ try {
     },
   );
   await page.close();
-  // Full screen (FR-066): Graph and Neighborhood fill the screen, details open over the graph, and
-  // Escape (or the exit control) restores the earlier layout, zoom and selection.
+  // Full screen: Graph and Neighborhood fill the screen, details open over the graph, and Escape
+  // (or the exit control) restores the earlier layout, zoom and selection.
   const transform = (p: Page) =>
     p
       .locator('.react-flow__viewport')
@@ -337,8 +338,8 @@ try {
       const inspector = fsPage.locator('.inspector');
       await expect(inspector).toBeVisible();
       const selectedName = await fsPage.locator('.inspector h2').textContent();
-      // Details sit beside the graph inside the full-screen row (Phase 12: no overlay covers the
-      // graph's controls), and together they use the full width.
+      // Details and the graph share the full-screen width so the panel cannot cover graph
+      // controls.
       const graphBox = (await fsPage.locator('.react-flow').boundingBox())!;
       const detailsBox = (await inspector.boundingBox())!;
       expect(graphBox.width).toBeGreaterThan(1000);
@@ -373,7 +374,8 @@ try {
       await expect(fsPage.locator('.canvas-row.is-fullscreen')).toHaveCount(0);
       await expect.poll(() => transform(fsPage), { timeout: 3000 }).toBe(before);
       await expect.poll(() => centerOf(fsPage)).toBe('ontology/40');
-      // Full screen belongs to the graph views: other tabs have no control and F does nothing there.
+      // Full screen belongs to the graph views: other tabs have no control and F does nothing
+      // there.
       await fsPage.locator('.tabs').getByRole('button', { name: 'Catalog', exact: true }).click();
       await expect(fsPage.getByRole('button', { name: 'Enter full screen' })).toHaveCount(0);
       await fsPage.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
@@ -382,8 +384,8 @@ try {
     },
   );
   await fsPage.close();
-  // Resize sweep (FR-067): every view reflows across the viewport matrix and on resize between
-  // sizes, with no horizontal page scroll and no control cut off.
+  // Resize sweep: every view reflows across the viewport matrix and on resize between sizes, with
+  // no horizontal page scroll and no control cut off.
   const sweep = await openPage(1440, 900);
   const sizes: [number, number][] = [
     [2560, 1440],
@@ -479,7 +481,8 @@ try {
           await sweep.waitForTimeout(250);
           for (const problem of await layoutProblems(sweep))
             found.push(`${width}×${height}: ${problem}`);
-          // Review screenshots at the four reference sizes (phone, small laptop, laptop, wide screen).
+          // Review screenshots at the four reference sizes (phone, small laptop, laptop, wide
+          // screen).
           if ([390, 1280, 1440, 2560].includes(width))
             await sweep.screenshot({
               path: `/tmp/workbench-sweep-${view.toLowerCase().replace(/ /g, '-')}-${width}.png`,
@@ -489,8 +492,8 @@ try {
       },
     );
   }
-  // Overlaps (FR-071): floating overlays never cover each other or a control, in every view, at the
-  // six supported viewports, with and without the inspector. Popovers stay anchored below their
+  // Overlaps: floating overlays never cover each other or a control, in every view, at the six
+  // supported viewports, with and without the inspector. Popovers stay anchored below their
   // control and inside the viewport; area titles stay inside their area.
   const overlays = [
     '.react-flow__minimap',
@@ -519,7 +522,7 @@ try {
     const close = p.getByRole('button', { name: 'Close details', exact: true });
     if (await close.count()) await close.first().click();
   };
-  // Lineage cards and canvas (T038): at the four reference sizes, with and without a selected path.
+  // Lineage cards and canvas: at the four reference sizes, with and without a selected path.
   await check(
     'lineage: cards, rows, badges, pager and toolbar fit; cards never overlap; the canvas stays usable beside the path panel',
     async () => {
@@ -728,16 +731,15 @@ try {
       expect(found).toEqual([]);
     },
   );
-  // Status messages (FR-072): a message never covers a control, disappears by itself within six
-  // seconds, and clears on the next action.
-  // The sidebar re-opens or closes itself just after a resize; wait for it to settle, then open it
-  // only if the loader is not already on screen.
+  // Status messages: a message never covers a control, disappears by itself within six seconds,
+  // and clears on the next action. The sidebar re-opens or closes itself just after a resize; wait
+  // for it to settle, then open it only if the loader is not already on screen.
   async function loadCommerce() {
     await sweep.waitForTimeout(400);
     const load = sweep.getByRole('button', { name: /Load commerce workspace/ });
     const openWorkspace = sweep.getByRole('button', { name: 'Open workspace', exact: true });
     if (!(await load.isVisible()) && (await openWorkspace.isVisible())) await openWorkspace.click();
-    // v0.3.0 (FR-061): the examples sit in a collapsed Examples group once projects exist.
+    // The examples sit in a collapsed Examples group once projects exist.
     if (!(await load.isVisible()))
       await sweep.getByRole('group', { name: 'Examples' }).locator('summary').click();
     await load.click();
@@ -766,7 +768,7 @@ try {
       await expect(sweep.locator('main > .status')).toHaveCount(0, { timeout: 1_000 });
     },
   );
-  // Navigation state (FR-073): exactly one sidebar item and one tab are current, and they match.
+  // Navigation state: exactly one sidebar item and one tab are current, and they match.
   await check(
     'navigation: the sidebar item and the tab marked current match the view shown',
     async () => {
@@ -802,7 +804,7 @@ try {
       await expect.poll(() => centerOf(sweep)).toBe('ontology/40');
     },
   );
-  // Mapping canvas (T109): same card geometry rules on the mapped commerce mapping, with a selection.
+  // Mapping canvas: same card geometry rules on the mapped commerce mapping, with a selection.
   await check(
     'mapping graph: cards, rows, badges, finding markers and toolbar fit; cards never overlap; the canvas stays usable beside the path panel',
     async () => {
@@ -846,9 +848,9 @@ try {
     },
   );
   await sweep.close();
-  // T065 (FR-061, FR-062, SC-008): the sidebar resizes by pointer and keyboard within 220–520 px and
-  // remembers it; names wrap to two lines and keep their full text; Examples is collapsed when
-  // projects exist; one sidebar toggle on desktop, the drawer's close button only below 1100 px.
+  // The sidebar resizes by pointer and keyboard within 220–520 px and remembers it; names wrap to
+  // two lines and keep their full text; Examples is collapsed when projects exist; one sidebar
+  // toggle on desktop, the drawer's close button only below 1100 px.
   await check(
     'sidebar: resize by pointer and keyboard (220–520, persisted), two-line names, collapsed Examples, one toggle',
     async () => {

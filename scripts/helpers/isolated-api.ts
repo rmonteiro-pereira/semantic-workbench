@@ -1,3 +1,4 @@
+// Routes browser checks to a temporary API workspace without changing the user's data.
 import type { Page, Route } from '@playwright/test';
 import { rmSync } from 'node:fs';
 import { openWorkspace, type Workspace } from '../../server/projects/workspace';
@@ -5,6 +6,7 @@ import { createHandler } from '../../server/handler';
 import { tempDataDir } from '../../tests/helpers/temp-data-dir';
 // Browser checks run the API on a temporary DATA_DIR (never the user's data/) and send the page's
 // /api requests there, whatever the dev server's own API points at.
+/** Provides a temporary API workspace, its URL and cleanup operation. */
 export type IsolatedApi = {
   root: string;
   url: string;
@@ -13,6 +15,7 @@ export type IsolatedApi = {
   restart(options?: { deleteCache?: boolean }): Promise<void>;
   stop(): Promise<void>;
 };
+/** Starts a temporary API workspace, optionally using the supplied data root. */
 export async function startIsolatedApi(
   options: { root?: string; watch?: boolean; gitBinary?: string } = {},
 ): Promise<IsolatedApi> {
@@ -61,6 +64,7 @@ export async function startIsolatedApi(
 }
 // Forward every /api request of the page to the isolated API. `intercept` may answer a request
 // itself (fault injection) by returning true.
+/** Routes page requests to the isolated API; an interceptor may handle a request itself. */
 export async function routeApi(
   page: Page,
   api: IsolatedApi,

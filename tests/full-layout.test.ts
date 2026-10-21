@@ -1,3 +1,4 @@
+// Tests full graph placement and routing.
 import { test, expect } from 'bun:test';
 import ELK from 'elkjs/lib/elk-api.js';
 import { layoutNetwork } from '../src/network-layout';

@@ -1,3 +1,4 @@
+// Tests deletion, undo, restore and purge without overwriting occupied paths.
 import { test, expect } from 'bun:test';
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';

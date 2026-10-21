@@ -1,3 +1,4 @@
+// Tests Git status, staging and diffs for workspace files.
 import { test, expect } from 'bun:test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';

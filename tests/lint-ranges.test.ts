@@ -1,8 +1,9 @@
+// Tests mapping findings to source ranges and document-level fallbacks.
 import { test, expect } from 'bun:test';
 import { Text } from '@codemirror/state';
 import { issueRange, toDiagnostics } from '../src/editor/lint';
 import { validateInput } from '../src/input';
-// Lint ranges (FR-043) and the document-level fallback (FR-044).
+
 const doc = (s: string) => Text.of(s.split('\n'));
 test('a finding with line and column covers the token there', () => {
   const d = doc('name: x\nontology:\n  - concept: Customer\n    extends: [Missing]');

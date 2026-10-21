@@ -1,8 +1,9 @@
+// Tests SQL extraction and offsets back to the original YAML or JSON.
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { grammarOf, lineColumn, sqlRegions, type SqlRegion } from '../src/sql/regions';
-// SQL regions and offset maps (T055; FR-050, FR-051, contracts/sql-regions.md): every location of
-// the contract, every scalar style, escapes, flow and multi-document YAML.
+// SQL regions and offset maps: every location of the contract, every scalar style, escapes, flow
+// and multi-document YAML.
 const fixture = (name: string) => readFileSync(`tests/fixtures/sql/${name}`, 'utf8');
 const shape = (r: SqlRegion) => r.pointer.replace(/\/\d+(?=\/|$)/g, '/*');
 // Every value character maps to the file character it came from: itself, the line break a folded
@@ -69,7 +70,7 @@ test('Ossie mapping locations: object, referent and link mapping expressions at 
     'mall.mapping.yaml',
   ).map(shape);
   expect(mall).toContain('/concept_mappings/*/object_mappings/*/expression');
-  // other keys named expression are not SQL regions
+  // Other keys named expression are not SQL regions.
   expect(one('concepts:\n  - name: a\n    expression: not sql\n')).toEqual([]);
 });
 test('ODCS locations: quality query only when type is sql (schema, property and nested properties), transformLogic; dialect from servers[].type', () => {

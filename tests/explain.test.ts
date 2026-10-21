@@ -1,8 +1,9 @@
+// Tests metric explanations and SQL previews without query execution.
 import { test, expect } from 'bun:test';
 import { stringify } from 'yaml';
 import { testWorkspace } from './helpers/temp-data-dir';
-// KPI explanation (FR-001–FR-007): composition, lineage to ODCS, additivity refusals, division by
-// zero; the workbench explains and previews SQL but never executes it.
+// KPI explanation: composition, lineage to ODCS, additivity refusals, division by zero; the
+// workbench explains and previews SQL but never executes it.
 const mallFiles = [
   'mall.ontology.yaml',
   'mall.semantic.yaml',

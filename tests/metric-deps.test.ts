@@ -1,10 +1,11 @@
+// Tests metric reference scanning shared by graphs and query execution.
 import { test, expect } from 'bun:test';
 import { Glob } from 'bun';
 import { parse } from 'yaml';
 import { datasetReferences, expressionRefs, metricDependencies } from '../src/metrics/deps';
 import { inspect } from '../src/model';
 import { columnRefs, parseExpression } from '../server/agent/sql';
-// One syntax-aware reference scan (FR-005) for the graph, the Metrics view and the runtime.
+
 function expressions(value: any, out: string[] = []) {
   if (Array.isArray(value)) value.forEach(v => expressions(v, out));
   else if (value && typeof value === 'object')
@@ -66,7 +67,7 @@ test('order. never matches suborder.x; strings, comments, functions and keywords
     'date',
   ]);
 });
-test('graph metric edges come from the syntax scan (baseline defect 20)', () => {
+test('graph metric edges come from the syntax scan', () => {
   const source = `version: '0.2.0.dev0'\nname: m\ndatasets:\n  - name: order\n    source: s.order\n    fields: [{name: amount, expression: {dialects: [{dialect: ANSI_SQL, expression: amount}]}}]\n  - name: suborder\n    source: s.suborder\n    fields: [{name: amount, expression: {dialects: [{dialect: ANSI_SQL, expression: amount}]}}]\nmetrics:\n  - name: sub_total\n    expression: {dialects: [{dialect: ANSI_SQL, expression: "SUM(suborder.amount) -- order.amount"}]}\n`;
   const model = inspect(source, 'm.yaml') as any;
   const edges = model.edges

@@ -1,7 +1,8 @@
+// Tests bounded graph traversal against an independent breadth-first search.
 import { test, expect } from 'bun:test';
 import { inspect } from '../src/model';
 import { boundedClosure, PIERCE_BUDGET, type PierceOptions } from '../src/graph/pierce';
-// Bounded closure (T041; SC-010) on the UBL and shopping center ontologies and a 5,000-entity model.
+// Bounded closure on the UBL and shopping center ontologies and a 5,000-entity model.
 const load = async (path: string) => inspect(await Bun.file(path).text(), path.split('/').pop());
 const ubl = await load('public/examples/ubl/ubl.ontology.yaml');
 const mall = await load('public/examples/mall/mall.ontology.yaml');

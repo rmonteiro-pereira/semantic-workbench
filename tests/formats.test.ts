@@ -1,3 +1,4 @@
+// Tests document format detection and parsing.
 import { test, expect } from 'bun:test';
 import { inspect } from '../src/model';
 import { graphView } from '../src/graph-view';

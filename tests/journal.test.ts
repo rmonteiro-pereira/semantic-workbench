@@ -1,3 +1,4 @@
+// Tests journaled workspace operations and recovery.
 import { test, expect } from 'bun:test';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';

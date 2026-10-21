@@ -1,3 +1,4 @@
+// Tests the generated shopping center model and its metrics.
 import { test, expect } from 'bun:test';
 import { parse } from 'yaml';
 import { inspect } from '../src/model';

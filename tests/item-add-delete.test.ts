@@ -1,3 +1,4 @@
+// Tests adding and deleting items while preserving document style.
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { applyPatches } from '../src/editor/patch';
@@ -10,8 +11,7 @@ import {
   type ProjectDoc,
 } from '../src/edit/references';
 import { validateInput } from '../src/input';
-// Adding items in the document's style and deleting them with their dependents (FR-049, FR-050,
-// FR-051, FR-054).
+
 const read = (p: string) => readFileSync(p, 'utf8');
 const doc = (path: string, dir = 'public/examples/commerce'): ProjectDoc => ({
   id: 'p/' + path,

@@ -1,3 +1,4 @@
+// Captures the UBL overview graph and reports browser errors.
 import { chromium } from '@playwright/test';
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1905, height: 1000 } });
