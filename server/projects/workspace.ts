@@ -140,6 +140,37 @@ export async function openWorkspace(options:WorkspaceOptions={}){
    return {path:p,hash,findings:indexed.findings};
   });
  }
+ // Several files of one project in one journaled operation (FR-083: KPI saves, deletes with
+ // dependents, confirmed rename rewrites). Every base hash is checked first; the new contents are
+ // staged and validated, then each current file is moved aside and the staged one moved in.
+ async function saveFiles(slug:string,writes:{path:string;baseHash:string|null;source?:string;patches?:Patch[]}[],kind='save-files'){
+  entry(slug);
+  if(!Array.isArray(writes)||!writes.length||writes.length>50)throw Error('Expected 1–50 files.');
+  const files=writes.map(w=>({...w,path:projectPath(w.path)}));
+  if(new Set(files.map(f=>f.path)).size!==files.length)throw Error('Each file may appear once.');
+  return lock('project:'+slug,async()=>{
+   const prepared=files.map(f=>{
+    const file=projectFile(layout,slug,f.path);let current:Uint8Array|null=null;try{current=readFileSync(file);}catch{}
+    const currentHash=current?sha256(current):null;
+    if(f.baseHash!==currentHash)throw new StaleError(currentHash,current?decode(current):null);
+    const next=f.source!==undefined?f.source:applyPatches(current?decode(current):'',f.patches??[]),bytes=encode(next);
+    if(bytes.length>MAX_INPUT_BYTES)throw new InputError([{severity:'error',code:'size',path:'/',message:`${f.path}: the definition exceeds the 2 MB UTF-8 limit.`}]);
+    const indexed=indexBytes(slug,f.path,bytes);
+    if(!indexed.file.visible)throw new InputError([{severity:'error',code:'unsupported',path:'/',message:`${f.path}: unsupported file type.`}]);
+    if(!indexed.file.valid)throw new InputError(indexed.findings.map(i=>({...i,message:`${f.path}: ${i.message}`})));
+    return {...f,file,exists:!!current,bytes,findings:indexed.findings};
+   });
+   const opId=journal.newId(),staging=join(layout.projects,`.staging-${opId}`);
+   try{
+    const steps:{from:string;to:string}[]=[];
+    prepared.forEach((f,i)=>{const staged=join(staging,'new',String(i));atomicWrite(staged,f.bytes);if(f.exists)steps.push({from:f.file,to:join(staging,'previous',String(i))});steps.push({from:staged,to:f.file});});
+    journal.run(kind,steps,[staging],opId);
+   }catch(e){rmSync(staging,{recursive:true,force:true});throw e;}
+   for(const f of prepared)state.deleteDraft(slug,f.path);
+   await rescan(slug);
+   return {written:prepared.map(f=>({path:f.path,hash:sha256(f.bytes),created:!f.exists,findings:f.findings}))};
+  });
+ }
  // Legacy facade (research R9): flat documents with ids `<project>/<path>` or v0.1.0 ids.
  function resolveId(id:string){
   const legacy=state.legacyIds().ids[id];if(legacy)return legacy;
@@ -240,7 +271,7 @@ export async function openWorkspace(options:WorkspaceOptions={}){
  }
  return {
   layout,state,cache,events,git,journal,gitAvailable,identityConfigured,recovery,migration,
-  lock,rescan,project:entry,registrySteps,readFile,saveFile,documents,resolveId,preflight,trash,moveFile,importInto,deleteImpact,suggestions,acceptSuggestion,rejectSuggestion,
+  lock,rescan,project:entry,registrySteps,readFile,saveFile,saveFiles,documents,resolveId,preflight,trash,moveFile,importInto,deleteImpact,suggestions,acceptSuggestion,rejectSuggestion,
   async listProjects(){
    return Promise.all(projects().map(async p=>{
     let gitInfo={branch:'',ahead:0,behind:0,changes:0};
