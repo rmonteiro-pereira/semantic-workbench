@@ -104,7 +104,7 @@ try{
   expect((await api.ws.trash.list()).some(e=>e.path===file)).toBe(true);
  });
  await check('an import is committed with exactly its files',async()=>{
-  await page.locator('label.import input[type=file]').setInputFiles({name:'imported.ossie.yaml',mimeType:'text/yaml',buffer:Buffer.from('name: Imported\nontology:\n  - concept: Thing\n    type: EntityType\n')});
+  await page.locator('input[type=file]').setInputFiles({name:'imported.ossie.yaml',mimeType:'text/yaml',buffer:Buffer.from('name: Imported\nontology:\n  - concept: Thing\n    type: EntityType\n')});
   await expect(page.locator('main > .status')).toContainText('Imported 1 file',{timeout:8000});
   const slug=(await api.ws.listProjects()).find(p=>p.files.some(f=>f.path==='imported.ossie.yaml'))!.slug;
   const d=projectDir(api.ws.layout,slug);expect(sh(d,['log','--format=%s']).trim()).toBe('Import imported.ossie.yaml');expect(sh(d,['status','--porcelain']).trim()).toBe('');

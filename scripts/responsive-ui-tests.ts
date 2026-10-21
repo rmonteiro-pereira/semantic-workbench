@@ -10,6 +10,8 @@ import { layoutProblems, lineageProblems } from './helpers/layout-geometry';
 const api = await startIsolatedApi();
 await api.ws.importBatch({ files: [{ path: 'ubl.ontology.yaml', source: await Bun.file('public/examples/ubl/ubl.ontology.yaml').text() }] });
 await api.ws.importBatch({ files: await Promise.all(['commerce.odcs.yaml', 'sales.ossie.yaml'].map(async path => ({ path, source: await Bun.file(`public/examples/commerce/${path}`).text() }))) });
+// A long file name for the sidebar's two-line names (T065).
+await api.ws.importBatch({ files: [{ path: 'customer-orders-invoices-and-payments-reconciliation-for-regional-warehouses.ossie.yaml', source: 'name: Long names\nontology:\n  - concept: Customer\n    type: EntityType\n' }] });
 const ublModel = inspect(await Bun.file('public/examples/ubl/ubl.ontology.yaml').text(), 'ubl.ontology.yaml');
 const name40 = ublModel.entities.find(e => e.id === 'ontology/40')!.name;
 const centerOf = async (page: Page) => (await neighborhoodState(page)).center;
@@ -93,26 +95,28 @@ try {
       expect(graph!.width).toBeGreaterThan(desktop ? width! * .5 : width! * .7);
       await noOverflow(page);
       await visibleGraph(page);
-      await expect(page.getByRole('button', { name: desktop ? 'Close workspace' : 'Open workspace', exact: true })).toBeVisible();
+      await expect(page.getByRole('button', { name: desktop ? 'Hide sidebar' : 'Open workspace', exact: true })).toBeVisible();
       await page.screenshot({ path: `/tmp/workbench-responsive-${width}x${height}.png` });
     });
     await check(`${width}×${height}: workspace toggle preserves graph and document access`, async () => {
       const before = (await page.locator('.react-flow').boundingBox())!.width;
+      // v0.3.0 (FR-062): on desktop one toggle hides and shows the sidebar; below 1100 px the
+      // header button opens the drawer. Examples is a collapsed group once projects exist (FR-061).
       if (desktop) {
-        await page.getByRole('button', { name: 'Close workspace', exact: true }).click();
+        await page.getByRole('button', { name: 'Hide sidebar', exact: true }).click();
         await expect.poll(async () => (await page.locator('.react-flow').boundingBox())!.width).toBeGreaterThan(before + 150);
       }
-      await page.getByRole('button', { name: 'Open workspace', exact: true }).click();
+      await page.getByRole('button', { name: desktop ? 'Show sidebar' : 'Open workspace', exact: true }).click();
       await expect(page.getByRole('button', { name: 'ubl.ontology.yaml', exact: true })).toBeInViewport();
-      await expect(page.getByRole('button', { name: /Load UBL business model/ })).toBeVisible();
+      await expect(page.getByRole('group', { name: 'Examples' })).toBeVisible();
       await expect(page.locator('input[type=file]')).toHaveCount(1);
       // Project tree rows: name, delete icon and menu stay side by side at every viewport.
       await expect(page.getByRole('button', { name: 'Delete ubl.ontology.yaml', exact: true })).toBeVisible();
       expect(await treeRowProblems(page)).toEqual([]);
       if (width === 390) await page.screenshot({ path: '/tmp/workbench-responsive-drawer-390.png' });
-      if (desktop) await page.getByRole('button', { name: 'Close workspace', exact: true }).click();
+      if (desktop) await page.getByRole('button', { name: 'Hide sidebar', exact: true }).click();
       else await page.keyboard.press('Escape');
-      await expect(page.getByRole('button', { name: 'Open workspace', exact: true })).toBeVisible();
+      await expect(page.getByRole('button', { name: desktop ? 'Show sidebar' : 'Open workspace', exact: true })).toBeVisible();
       await visibleGraph(page);
       await noOverflow(page);
     });
@@ -430,7 +434,10 @@ try {
   async function loadCommerce() {
    await sweep.waitForTimeout(400);
    const load = sweep.getByRole('button', { name: /Load commerce workspace/ });
-   if (!(await load.isVisible())) await sweep.getByRole('button', { name: 'Open workspace', exact: true }).click();
+   const openWorkspace = sweep.getByRole('button', { name: 'Open workspace', exact: true });
+   if (!(await load.isVisible()) && await openWorkspace.isVisible()) await openWorkspace.click();
+   // v0.3.0 (FR-061): the examples sit in a collapsed Examples group once projects exist.
+   if (!(await load.isVisible())) await sweep.getByRole('group', { name: 'Examples' }).locator('summary').click();
    await load.click();
   }
   await check('status messages: never cover a control, auto-dismiss within 6 s and clear on the next action', async () => {
@@ -501,6 +508,93 @@ try {
    expect(found).toEqual([]);
   });
   await sweep.close();
+  // T065 (FR-061, FR-062, SC-008): the sidebar resizes by pointer and keyboard within 220–520 px and
+  // remembers it; names wrap to two lines and keep their full text; Examples is collapsed when
+  // projects exist; one sidebar toggle on desktop, the drawer's close button only below 1100 px.
+  await check('sidebar: resize by pointer and keyboard (220–520, persisted), two-line names, collapsed Examples, one toggle', async () => {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const page = await context.newPage();
+    page.on('pageerror', error => errors.push(`sidebar: ${error.message}`));
+    await routeApi(page, api);
+    await page.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
+    const sidebar = page.locator('#workspace-sidebar'), separator = page.getByRole('separator', { name: 'Resize sidebar' });
+    await expect(separator).toBeVisible();
+    await expect(separator).toHaveAttribute('aria-orientation', 'vertical');
+    await expect(separator).toHaveAttribute('aria-valuemin', '220');
+    await expect(separator).toHaveAttribute('aria-valuemax', '520');
+    await expect(separator).toHaveAttribute('aria-valuenow', '300');
+    expect(Math.round((await sidebar.boundingBox())!.width)).toBe(300);
+    // Pointer: drag the separator 100 px to the right, then far beyond the maximum.
+    let box = (await separator.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2 + 100, box.y + box.height / 2, { steps: 5 });
+    await page.mouse.up();
+    await expect(separator).toHaveAttribute('aria-valuenow', '400');
+    expect(Math.round((await sidebar.boundingBox())!.width)).toBe(400);
+    box = (await separator.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + 600, box.y + box.height / 2, { steps: 5 });
+    await page.mouse.up();
+    await expect(separator).toHaveAttribute('aria-valuenow', '520');
+    // Keyboard: Home, End and arrows of 16 px.
+    await separator.focus();
+    await page.keyboard.press('Home');
+    await expect(separator).toHaveAttribute('aria-valuenow', '220');
+    await page.keyboard.press('ArrowLeft');
+    await expect(separator).toHaveAttribute('aria-valuenow', '220');
+    await page.keyboard.press('ArrowRight');
+    await expect(separator).toHaveAttribute('aria-valuenow', '236');
+    await page.keyboard.press('End');
+    await expect(separator).toHaveAttribute('aria-valuenow', '520');
+    await page.keyboard.press('ArrowLeft');
+    await page.keyboard.press('ArrowLeft');
+    await expect(separator).toHaveAttribute('aria-valuenow', '488');
+    // Remembered per browser.
+    await page.reload();
+    await expect(page.getByRole('separator', { name: 'Resize sidebar' })).toHaveAttribute('aria-valuenow', '488');
+    expect(Math.round((await sidebar.boundingBox())!.width)).toBe(488);
+    // Narrowest width: names wrap to at most two lines and keep their full text; rows stay tidy.
+    await page.getByRole('separator', { name: 'Resize sidebar' }).focus();
+    await page.keyboard.press('Home');
+    const clipped = await page.evaluate(() => [...document.querySelectorAll<HTMLElement>('.project-tree .tree-row')].flatMap(row => {
+      const button = row.querySelector<HTMLElement>('.project-toggle,.document')!, text = button.querySelector<HTMLElement>('span')!;
+      const full = button.getAttribute('aria-label') ?? text.textContent ?? '', lines = Math.round(text.getBoundingClientRect().height / parseFloat(getComputedStyle(text).lineHeight || '16'));
+      const cut = text.scrollHeight > text.clientHeight + 1 || text.scrollWidth > text.clientWidth + 1;
+      const problems: string[] = [];
+      if (lines > 2) problems.push(`${full}: ${lines} lines`);
+      if (cut && (button.getAttribute('title') ?? text.getAttribute('title')) !== full && !(button.getAttribute('title') ?? text.getAttribute('title') ?? '').includes(full)) problems.push(`${full}: cut without a title`);
+      return problems;
+    }));
+    expect(clipped).toEqual([]);
+    expect(await treeRowProblems(page)).toEqual([]);
+    await page.screenshot({ path: '/tmp/workbench-sidebar-220.png' });
+    // Examples: collapsed because projects exist; it opens on demand.
+    const examples = page.getByRole('group', { name: 'Examples' });
+    await expect(examples).toBeVisible();
+    await expect(page.getByRole('button', { name: /Load UBL business model/ })).toBeHidden();
+    await examples.locator('summary').click();
+    await expect(page.getByRole('button', { name: /Load UBL business model/ })).toBeVisible();
+    // One toggle on desktop; the drawer's close button is not shown.
+    await expect(page.getByRole('button', { name: 'Close workspace drawer' })).toBeHidden();
+    await expect(page.getByRole('button', { name: /^(Open|Close) workspace$/ })).toHaveCount(0);
+    const toggle = page.getByRole('button', { name: 'Hide sidebar' });
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await toggle.click();
+    await expect(sidebar).toBeHidden();
+    await expect(page.getByRole('button', { name: 'Show sidebar' })).toHaveAttribute('aria-expanded', 'false');
+    await page.getByRole('button', { name: 'Show sidebar' }).click();
+    await expect(sidebar).toBeVisible();
+    await expect(page.getByRole('separator', { name: 'Resize sidebar' })).toHaveAttribute('aria-valuenow', '220');
+    // Drawer mode: no separator and no desktop toggle; the drawer has its close button.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(page.getByRole('separator', { name: 'Resize sidebar' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /^(Hide|Show) sidebar$/ })).toHaveCount(0);
+    await page.getByRole('button', { name: 'Open workspace', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Close workspace drawer' })).toBeVisible();
+    await context.close();
+  });
   await check('no uncaught browser errors', async () => expect(errors).toEqual([]));
   console.log(`${passed} responsive UI checks passed`);
 } finally {

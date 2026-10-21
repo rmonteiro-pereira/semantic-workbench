@@ -1,6 +1,7 @@
 import{chromium,expect,type Page}from'@playwright/test';import{mkdtempSync,readFileSync,rmSync,writeFileSync}from'node:fs';import{tmpdir}from'node:os';import{join}from'node:path';
 import{startIsolatedApi,routeApi,type IsolatedApi}from'./helpers/isolated-api';import{projectDir,projectFile}from'../server/projects/paths';
 import{editorValue,fillEditor}from'./helpers/code-editor';
+import {example} from './helpers/examples';
 // Phase 8 browser check (T133; SC-012): commit, branch, switch, push, pull and conflict repair
 // entirely from the Source Control panel, against a local bare remote and a second clone (never a
 // network remote). Also: hidden-type files listed read-only, Add to .gitignore, .gitignore editing,
@@ -150,7 +151,7 @@ try{
  await check('missing Git: the banner explains it, the panel says so, editing and saving still work',async()=>{
   const noGit=await startIsolatedApi({gitBinary:join(extra,'no-such-git')});
   try{
-   const p=await newPage(noGit);await p.getByRole('button',{name:/Load commerce workspace/}).click();await expect(tree(p).getByRole('button',{name:file,exact:true})).toBeVisible({timeout:10000});
+   const p=await newPage(noGit);await (await example(p,/Load commerce workspace/)).click();await expect(tree(p).getByRole('button',{name:file,exact:true})).toBeVisible({timeout:10000});
    await expect(p.getByRole('alert').filter({hasText:'Git 2.40 or newer was not found'})).toBeVisible();
    await p.getByRole('button',{name:/^Source control/}).click();await expect(p.getByRole('region',{name:'Source Control'})).toContainText('Git was not found on this machine');
    await p.screenshot({path:'/tmp/workbench-scm-no-git.png'});

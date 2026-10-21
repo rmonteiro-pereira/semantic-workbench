@@ -1,5 +1,6 @@
 import {chromium} from '@playwright/test';
 import {startIsolatedApi,routeApi} from './helpers/isolated-api';
+import {example} from './helpers/examples';
 const browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1440,height:900}});
 const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
 const source=JSON.stringify({name:'Commerce',ontology:[{concept:'Customer',type:'EntityType',relationships:[{name:'places',multiplicity:'ManyToOne',description:'Customer places an order',roles:[{concept:'Order'}],verbalizes:['{Customer} places {Order}']}]},{concept:'Order',type:'EntityType'}]});
@@ -19,7 +20,7 @@ await page.getByRole('button',{name:'Save changes'}).click();
 await page.getByRole('status').filter({hasText:'Saved to the project folder'}).waitFor();
 if(!savedSource()?.includes('Updated relationship description'))throw Error('Relationship edit was not saved');
 await page.screenshot({path:'/tmp/semantic-workbench-relationship.png'});
-await page.getByRole('button',{name:/Load commerce scale data/}).click();
+await (await example(page,/Load commerce scale data/)).click();
 await page.getByText('1000 entities · 5000 relationships',{exact:true}).waitFor({timeout:60000});
 await page.getByRole('button',{name:'Auto align',exact:true}).click();
 await page.waitForTimeout(1500);await page.getByRole('button',{name:'Auto align',exact:true}).waitFor({state:'visible',timeout:60000});
