@@ -92,23 +92,23 @@ is shippable: it ends with every existing suite (`bun test`, `check`, `build`, `
 
 ### Tests
 
-- [ ] T025 [P] [US1] Unit tests for `buildLineage` on commerce, mall and UBL: every expected edge (foreign-key direction parent → child, reads, aggregates, uses, transform), cards once, nested columns, ambiguous sources, external stubs, cycles; golden edge lists in tests/fixtures/lineage/ (SC-002)
-- [ ] T026 [P] [US1] Unit tests for `around(center, steps)` reach and `closure(ids, direction)` path highlighting in tests/lineage-query.test.ts
-- [ ] T027 [P] [US1] Unit tests for paging (10 rows, pinned path rows, "N more columns" port for off-page edges) in tests/lineage-paging.test.ts
-- [ ] T028 [US1] Mutants: foreign-key direction reversed; closure ignores direction; off-page edge dropped; dataset matched by similar name
+- [X] T025 [P] [US1] Unit tests for `buildLineage` on commerce, mall and UBL: every expected edge (foreign-key direction parent → child, reads, aggregates, uses, transform), cards once, nested columns, ambiguous sources, external stubs, cycles; golden edge lists in tests/fixtures/lineage/ (SC-002)
+- [X] T026 [P] [US1] Unit tests for `around(center, steps)` reach and `closure(ids, direction)` path highlighting in tests/lineage-query.test.ts
+- [X] T027 [P] [US1] Unit tests for paging (10 rows, pinned path rows, "N more columns" port for off-page edges) in tests/lineage-paging.test.ts
+- [X] T028 [US1] Mutants: foreign-key direction reversed; closure ignores direction; off-page edge dropped; dataset matched by similar name
 
 ### Implementation
 
-- [ ] T029 [US1] Column-level `buildLineage`, `around`, `closure` in src/odcs/lineage.ts (keeps `odcsLineage` property table data for the asset page until T036) (FR-001–FR-004, FR-008)
-- [ ] T030 [US1] ELK layered layout with ports in a worker src/odcs/lineage-layout.worker.ts (direction RIGHT, FIXED_ORDER ports)
-- [ ] T031 [US1] Card node src/odcs/LineageCard.tsx: header, column rows with handles, PropertyBadges, pager, "+N more" stubs, Walk here / Open asset page
-- [ ] T032 [US1] Canvas src/odcs/LineageCanvas.tsx: React Flow, shared legend and edge styles, path highlight and dim, Selected path summary, Find assets, Steps control, zoom/fit/full screen (F), walk trail with Back/Forward using src/graph/walk.ts (FR-005–FR-010)
-- [ ] T033 [US1] Graph tab shows LineageCanvas for ODCS in src/main.tsx; non-ODCS keeps FullGraph (FR-013); walking into a semantic file continues in Neighborhood (FR-009)
-- [ ] T034 [US1] Asset page tabs Lineage, Relationships, Data Quality, Properties, History in src/odcs/DatasetPage.tsx; Lineage tab hosts LineageCanvas centered on the asset; remove the SVG graph (FR-011)
-- [ ] T035 [US1] Contract overview rows: Open <name> in lineage / Open <name> in src/odcs/ContractOverview.tsx (FR-012)
-- [ ] T036 [US1] Property lineage table reads from `buildLineage`; delete `odcsLineage` in src/odcs/lineage.ts
-- [ ] T037 [US1] Browser check scripts/lineage-browser-check.ts on commerce, mall, UBL: edges vs golden lists, highlight ≤ 200 ms, first view ≤ 2 s on UBL, paging, walk, legend and badges, full screen (SC-001, SC-002)
-- [ ] T038 [US1] [CODEX] Card and canvas styling (card widths, row density, badges, dimming, 390 px layout) in src/odcs/odcs.css with geometry assertions added to scripts/responsive-ui-tests.ts; brief in specs/002-lineage-and-ux/codex/phase-04.md
+- [X] T029 [US1] Column-level `buildLineage`, `around`, `closure` in src/odcs/lineage.ts (keeps `odcsLineage` property table data for the asset page until T036) (FR-001–FR-004, FR-008)
+- [X] T030 [US1] ELK layered layout with ports in a worker src/odcs/lineage-layout.worker.ts (direction RIGHT, FIXED_ORDER ports)
+- [X] T031 [US1] Card node src/odcs/LineageCard.tsx: header, column rows with handles, PropertyBadges, pager, "+N more" stubs, Walk here / Open asset page
+- [X] T032 [US1] Canvas src/odcs/LineageCanvas.tsx: React Flow, shared legend and edge styles, path highlight and dim, Selected path summary, Find assets, Steps control, zoom/fit/full screen (F), walk trail with Back/Forward using src/graph/walk.ts (FR-005–FR-010)
+- [X] T033 [US1] Graph tab shows LineageCanvas for ODCS in src/main.tsx; non-ODCS keeps FullGraph (FR-013); walking into a semantic file continues in Neighborhood (FR-009)
+- [X] T034 [US1] Asset page tabs Lineage, Relationships, Data Quality, Properties, History in src/odcs/DatasetPage.tsx; Lineage tab hosts LineageCanvas centered on the asset; remove the SVG graph (FR-011)
+- [X] T035 [US1] Contract overview rows: Open <name> in lineage / Open <name> in src/odcs/ContractOverview.tsx (FR-012)
+- [X] T036 [US1] Property lineage table reads from `buildLineage`; delete `odcsLineage` in src/odcs/lineage.ts
+- [X] T037 [US1] Browser check scripts/lineage-browser-check.ts on commerce, mall, UBL: edges vs golden lists, highlight ≤ 200 ms, first view ≤ 2 s on UBL, paging, walk, legend and badges, full screen (SC-001, SC-002)
+- [X] T038 [US1] [CODEX] Card and canvas styling (card widths, row density, badges, dimming, 390 px layout) in src/odcs/odcs.css with geometry assertions added to scripts/responsive-ui-tests.ts; brief in specs/002-lineage-and-ux/codex/phase-04.md
 
 **Checkpoint**: US1 shippable (MVP with US3).
 

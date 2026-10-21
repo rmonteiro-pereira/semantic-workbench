@@ -407,3 +407,40 @@ agent context already carries everything except two additive fields).
   saved), `editor-browser-check` (CRLF patches are sent by the automatic save), `scm-browser-check`
   (the edit that blocks a pull is now an invalid one kept as a draft; the refusal offers Commit…),
   `grouping-validation`, `item-edit` and `rdf-edit` (button names *Save to file*).
+
+## R18. Implementation decisions taken in Phase 4 (column-level lineage)
+
+- **Model** (`src/odcs/lineage.ts`): cards are `object:<file>#<name>`, `dataset:<file>#/<name>`,
+  `metric:<file>#/<name>` and `external:<ref>`; columns are `<card>/<path>` (nested properties as
+  `parent.child`). Foreign keys run from the referenced (parent) column to the referencing one, per
+  column pair for composite keys. A semantic dataset matches an object by physical name or name;
+  when both match different objects, both lines are drawn and flagged ambiguous. Metrics enter the
+  graph only when they read a matched field, directly or through other metrics (`uses`), so
+  unrelated metrics in the same file do not clutter the canvas. Datasets reading none of the
+  contract's objects are counted in the footer, not drawn. The v0.2.0 `odcsLineage` and
+  `tests/odcs-lineage.test.ts` are replaced by `buildLineage` and `tests/lineage.test.ts`, whose
+  expected edges come from an independent reading of the files and are kept as golden lists in
+  `tests/fixtures/lineage/` (regenerate deliberately with `UPDATE_GOLDEN=1`).
+- **Layout**: ELK layered, left to right, fixed ports at row centres; run through `elk-api` with
+  `elk-worker.min.js?url` as the Graph view does (`elk.bundled` inside a module worker fails with
+  "_Worker is not a constructor"). More than 8 lines between the same two cards with nothing on
+  them selected draw as one bundled line labelled "N lines".
+- **First view**: fit when the whole reach stays readable (zoom ≥ 0.55); otherwise the centre card
+  at zoom 0.7 (UBL's consignment), with Fit showing everything. The canvas has no mini-map (it
+  rendered as a blank overlay over the cards) and hides React Flow's own fit button because the
+  toolbar has **Fit**. On a contract's Graph tab the header's "Find an entity" search and Group by
+  are hidden: the canvas has its own **Find assets**, and grouping applies to the entity graph.
+- **Asset page tabs** (FR-011): `Lineage, Relationships, Data Quality, Properties, History`, opening
+  on Properties (the v0.2.0 Schema table, unchanged). `scripts/odcs-browser-check.ts` changed
+  because the spec renamed and reordered the tabs ("Dataset views" → "Asset views", "Schema" →
+  "Properties", "Quality" → "Data Quality") and replaced the SVG lineage with the canvas; its
+  assertions on content are unchanged in substance (foreign-key neighbours, the three sales
+  metrics, the per-property lineage table).
+- **Stale centre**: switching from one contract to another while the Graph tab is open rendered
+  the new graph with the previous contract's centre for one frame and crashed. The centre is now
+  validated against the graph in `main.tsx` and in the canvas (a walk step whose card disappeared
+  after an edit falls back to the initial centre).
+- **Check hooks**: cards and rows carry `data-id`, and lines carry `data-from`, `data-to`,
+  `data-count` besides `data-edge-kind`/`data-on-path`, so `scripts/lineage-browser-check.ts`
+  compares drawn lines with the golden lists both ways.
+

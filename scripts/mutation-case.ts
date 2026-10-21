@@ -258,3 +258,18 @@ if(category==='autosave'){
  assert.equal(step({type:'idle',text:'broken',errors:2}),null);assert.equal(s.status,'invalid');
  step({type:'edit',text:'ok'});assert.equal(step({type:'idle',text:'ok',errors:0}).type,'save');step({type:'stale'});
  step({type:'edit',text:'ok2'});assert.equal(step({type:'idle',text:'ok2',errors:0}),null);assert.equal(s.status,'stale');}
+if(category==='lineage'){
+ const files=[{path:'c.odcs.yaml',data:{schema:[{name:'p',physicalName:'db.p',properties:[{name:'id'}]},{name:'ch',physicalName:'db.ch',properties:[{name:'pid',relationships:[{to:'p.id'}]},{name:'v'}]},{name:'chx',physicalName:'db.chx',properties:[{name:'v'}]}]}},
+  {path:'s.yaml',data:{name:'S',datasets:[{name:'d',source:'db.ch',fields:[{name:'pid'},{name:'v'}]}],metrics:[{name:'m',expression:{dialects:[{dialect:'ANSI_SQL',expression:'SUM(d.v)'}]}}]}}];
+ const g=m.buildLineage(files,'c.odcs.yaml');
+ // foreign key: referenced (parent) column → referencing column
+ assert.deepEqual(g.edges.filter((e:any)=>e.kind==='foreign-key').map((e:any)=>[e.from,e.to]),[['object:c.odcs.yaml#p/id','object:c.odcs.yaml#ch/pid']]);
+ // the dataset reads `db.ch` only, never the similarly named `db.chx`
+ assert.deepEqual(g.edges.filter((e:any)=>e.kind==='reads').map((e:any)=>e.from).sort(),['object:c.odcs.yaml#ch/pid','object:c.odcs.yaml#ch/v']);
+ // closure direction: upstream of d.v is ch.v only, not d.pid
+ const up=m.closure(g,['dataset:s.yaml#/d/v'],'up');assert.deepEqual([...up.nodes].sort(),['dataset:s.yaml#/d/v','object:c.odcs.yaml#ch/v']);
+ const down=m.closure(g,['object:c.odcs.yaml#p/id'],'down');assert(!down.nodes.has('object:c.odcs.yaml#ch/v'));
+ // an edge to a column on another page attaches to the "more" row
+ const card={id:'k',kind:'object',label:'k',file:'',columns:Array.from({length:12},(_,i)=>({id:`k/c${i}`,path:`c${i}`,badges:[]}))};
+ assert.equal(m.pageColumns(card,0,new Set()).port('k/c11'),m.moreRowId('k'));
+}
