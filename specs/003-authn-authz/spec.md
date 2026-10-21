@@ -9,7 +9,11 @@ confirm; OP-8 accepted by the owner). Revised 2026-10-21 for the owner's contain
 delivery-pipeline changes (US9 raised to P1 and moved right after foundations; US10 added), and
 revised again the same day: the repository runs nothing automatically, the owner builds and tests
 locally, and the delivery pipeline is an Azure DevOps Pipelines definition for the target
-environment. Constitution 3.0.0 applies.
+environment. Revised a third time the same day for the owner's answers on the target environment
+(OP-9 to OP-11, decided): the target uses Microsoft Entra ID only, so the pipeline never starts
+Keycloak and covers sign-in with a mock OpenID provider; the trial deployment is an owner
+acceptance step run from a runbook; the target imports releases into its own Azure Repos mirror.
+Constitution 3.0.0 applies.
 
 **Builds on**: feature 002 (`002-lineage-and-ux`, v0.3.0). This branch starts from
 `origin/002-lineage-and-ux` and is rebased onto `main` after 002 merges; every route, dialog and
@@ -84,6 +88,21 @@ repository projects, subfolder projects, metrics routes) is in scope for the acc
   owner also runs locally (for example `bun run ci:validate`, `image:build`, `image:scan`,
   `image:sbom`); Docker Compose (with the Keycloak profile) stays for local runs. Infrastructure as
   code is out of scope.
+- **Revision (owner answers on the target environment, supersedes the Keycloak parts above)**:
+  "Keycloak is the compatibility, we won't be using it on the target." The target uses Microsoft
+  Entra ID only, and Entra stays the primary, optimised provider. The Azure DevOps pipeline MUST
+  NOT start or depend on Keycloak: Keycloak becomes a local compatibility suite (Compose profile
+  `keycloak` and `test:auth:keycloak`) run on the owner's machine. Sign-in tests in the gate and
+  in the target pipeline use a self-contained mock OpenID provider started by the test scripts
+  (discovery, signing keys, authorization code with PKCE, refresh, client credentials, sign-out,
+  Entra-shaped claims `oid`, `tid`, `roles`, `groups` and group overage `_claim_names`), so the
+  Validate stage covers the sign-in flow and the Entra claim mapping without any external
+  provider. A manual Entra checklist for the real tenant stays documented. The implementer has
+  no access to the trial Azure DevOps organisation and subscription: the real trial deployment is
+  an owner acceptance step run from a step-by-step runbook; the implementation is done when
+  `pipeline:lint`, `pipeline:dry-run` and the container suites pass locally. The target imports
+  each release into its own Azure Repos mirror; nothing connects to this GitHub repository, and
+  the deployment guide documents the hand-over.
 
 Evidence for the current state: the authorization inventory of the 002 working tree (38 resource
 types, 57 implemented and 9 planned routes, 45 UI action groups, 42 policy attributes) is
@@ -147,6 +166,25 @@ Azure DevOps environment with approvals and checks that the target configures.
   binding the container interface and publishing the port only on the host's loopback (the server
   cannot verify the publish address, so Principle I would need an amendment).
 
+### Session 2026-10-21 (owner answers on the target environment, decided)
+
+- Q: Does the target pipeline run the Keycloak sign-in tests? → A (OP-9, **decided by the
+  owner**): No. The target uses Microsoft Entra ID only. The pipeline neither starts nor depends
+  on Keycloak or any other external provider; its Validate stage runs the sign-in suites against
+  the mock OpenID provider (FR-141) with Entra-shaped claims, including group overage. Keycloak
+  remains a supported provider, verified by the compatibility suite `test:auth:keycloak` and the
+  Compose `keycloak` profile on the owner's machine, outside `ci:validate` and outside the
+  pipeline. Entra on the real tenant is verified with the manual checklist (quickstart §5).
+- Q: Who runs the trial deployment in the trial Azure DevOps organisation and subscription? → A
+  (OP-10, **decided by the owner**): the owner. The implementer has no access; the real trial is
+  an owner acceptance step run from the trial runbook (FR-143) with expected outputs and a report
+  block the owner returns. The implementation's done criteria are `pipeline:lint`,
+  `pipeline:dry-run` and the container suites passing locally (inside `ci:validate`).
+- Q: How does the target get the code? → A (OP-11, **decided by the owner**): the target imports
+  from its own Azure Repos mirror; nothing connects to this GitHub repository. Each release is
+  handed over by pushing the release commit and tag to the mirror, or by copying a Git bundle (or,
+  as a fallback, a source archive) that someone with mirror access imports (FR-142).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Sign in to a team workbench, and nothing changes locally (Priority: P1)
@@ -160,9 +198,11 @@ v0.3.0: no sign-in, every action available.
 **Why this priority**: without an identity there is nothing to authorise; and local mode is the
 existing product that must not regress.
 
-**Independent Test**: start the server in server mode against the Keycloak test realm, sign in as
-each test user through the browser, check header, live updates, sign-out and session expiry;
-start in local mode and run every existing suite unchanged.
+**Independent Test**: start the server in server mode against the mock OpenID provider with
+Entra-shaped claims, sign in as each test user through the browser, check header, live updates,
+token refresh, sign-out and session expiry; start in local mode and run every existing suite
+unchanged. On the owner's machine, the Keycloak compatibility suite repeats the sign-in against
+the Keycloak test realm.
 
 **Acceptance Scenarios**:
 
@@ -375,8 +415,9 @@ appear in the audit log under its client id.
 **Why this priority**: external agents are the most likely automated consumers of the workspace
 and today can read everything.
 
-**Independent Test**: obtain client-credentials tokens from the Keycloak test realm for a granted
-and an ungranted client; call the three agent routes and compare results with the grants.
+**Independent Test**: obtain client-credentials tokens (Entra-shaped application tokens) from the
+mock OpenID provider for a granted and an ungranted client; call the three agent routes and
+compare results with the grants.
 
 **Acceptance Scenarios**:
 
@@ -456,8 +497,10 @@ previous decisions return; find every change in the audit view.
 
 A developer runs `docker compose --profile local up` and gets the workbench in local mode from the
 image, on `http://127.0.0.1:4310`, without sign-in, with the workspace in a folder on their
-machine. With `--profile server` the same compose file also starts a development Keycloak and runs
-the image in server mode against it. An Admin deploys the same image to Azure Container Apps with
+machine. With `--profile keycloak` the same compose file also starts a development Keycloak and
+runs the image in server mode against it (the compatibility setup); the container check runs the
+image in server mode against the mock OpenID provider without any external provider. An Admin
+deploys the same image to Azure Container Apps with
 a mounted file share for the data root, the provider settings and secrets from Key Vault, a
 managed identity and a single replica. The README gives the steps for Entra (app registration,
 app roles, group assignment, optional groups claim), for Keycloak (realm, client, roles, group
@@ -469,9 +512,12 @@ image as well as on the developer machine, and image or platform problems (non-r
 network shares, health probes, revision updates) surface while the code is still small.
 
 **Independent Test**: build the image; run it in local mode with a mounted folder and run the
-local browser suites against it; run the compose server profile with Keycloak, sign in, restart
-the container and confirm sessions and data survive; start a second container on the same volume
-and confirm it refuses to serve; follow the Azure guide on a test subscription (manual, recorded).
+local browser suites against it; run it in server mode against the mock OpenID provider, sign
+in, restart the container and confirm sessions and data survive; start a second container on the
+same volume and confirm it refuses to serve; start a container of a different revision on the
+same volume and confirm the hand-over. The Compose `keycloak` profile repeats the sign-in on the
+owner's machine; the Azure guide is followed on the trial subscription by the owner (owner
+acceptance, trial runbook).
 
 **Acceptance Scenarios**:
 
@@ -484,8 +530,9 @@ and confirm it refuses to serve; follow the Azure guide on a test subscription (
 3. **Given** the image in server mode behind the platform ingress, **When** it starts, **Then** it
    serves the built frontend and the API on one HTTPS origin, and health endpoints answer without
    sign-in and without workspace data.
-4. **Given** the compose server profile, **When** it starts, **Then** Keycloak loads the test
-   realm and a person can sign in to the containerised workbench with a test user.
+4. **Given** the image in server mode against the mock OpenID provider (container check) or the
+   Compose `keycloak` profile (compatibility, owner's machine), **When** it starts, **Then** a
+   person can sign in to the containerised workbench with a test user.
 5. **Given** a restart, **When** a signed-in person reloads, **Then** their session is still valid
    (until its normal expiry) and all files, worktrees, drafts and audit entries are intact.
 6. **Given** more than one replica of the same revision, **When** the second starts, **Then** it
@@ -501,11 +548,12 @@ and confirm it refuses to serve; follow the Azure guide on a test subscription (
 ### User Story 10 - Verified locally with one command, delivered by the target's Azure DevOps pipeline (Priority: P1)
 
 The owner changes the code on their machine and runs `bun run ci:validate`: type check, unit and
-API tests, build, mutation suite, every browser suite of the quality gate, the Keycloak sign-in
-tests, the image build, scan and bill of materials, the suites against the image and the check of
-the pipeline definition all run, and any failure stops the run with a summary. Nothing runs on the
-GitHub repository. The repository ships `azure-pipelines.yml`; the target organisation imports it
-into Azure DevOps, fills one variable group and sets up a service connection, an environment and
+API tests, build, mutation suite, every browser suite of the quality gate (sign-in included,
+against the mock OpenID provider), the image build, scan and bill of materials, the suites against
+the image and the check of the pipeline definition all run, and any failure stops the run with a
+summary. Nothing runs on the GitHub repository. For a release the owner hands the tagged commit
+over to the target's Azure Repos mirror. The repository ships `azure-pipelines.yml`; the target
+organisation imports it from its mirror into Azure DevOps, fills one variable group and sets up a service connection, an environment and
 an agent pool from the guide. On the target, every run validates and builds the image with the
 same scripts; runs of `main` and of version tags push the image to the target's registry; a
 version tag `v0.4.0` waits for the approvals and checks of the target's `production` environment,
@@ -522,17 +570,19 @@ a fixable critical vulnerability and confirm `ci:validate` and `image:scan` fail
 pipeline check rejects a pipeline step that is not a package script, an unpinned container image
 and a secret variable; run the pipeline dry run and confirm the stages, conditions and steps for a
 pull request, a `main` run and a version tag, with the deploy and rollback logic exercised against
-a fake Azure client; confirm the repository holds no workflow or bot configuration. On an Azure
-DevOps organisation and subscription made available for a trial (manual, recorded): import,
-configure from the guide, tag, approve, and confirm deployment, smoke test and rollback, and that
-no credential is stored.
+a fake Azure client; confirm the pipeline references no Keycloak and that its Validate stage
+signs in against the mock OpenID provider; confirm the repository holds no workflow or bot
+configuration. Owner acceptance (the implementer has no access): on the trial Azure DevOps
+organisation and subscription, the owner follows the trial runbook (hand-over to the mirror,
+import, configure from the guide, tag, approve, deployment, smoke test, rollback, no stored
+credential, Entra sign-in) and returns the filled report.
 
 **Acceptance Scenarios**:
 
 1. **Given** the owner's machine with Bun, Playwright browsers and Docker or Podman, **When** they
    run `bun run ci:validate`, **Then** type check, unit and API tests, build, mutation suite,
-   browser suites, Keycloak sign-in tests, image build, image scan, bill of materials, the suites
-   against the image and the pipeline check all run, and a failure of any of them gives a non-zero
+   browser suites (sign-in against the mock OpenID provider included), image build, image scan,
+   bill of materials, the suites against the image and the pipeline check all run, and a failure of any of them gives a non-zero
    exit and names the failed step.
 2. **Given** the image scan (`bun run image:scan`), **When** it finds a critical or high
    vulnerability that has a fix, **Then** it fails unless the finding is listed in the ignore file
@@ -563,6 +613,15 @@ no credential is stored.
    or for the previous revision, **Then** it is deployed after the same approvals and smoke-tested.
 9. **Given** the GitHub repository, **When** anything is pushed to it, **Then** nothing runs: the
    repository contains no workflow and no bot configuration, and a test fails if one is added.
+10. **Given** the pipeline definition, **When** the pipeline check runs, **Then** it fails if any
+    stage starts or references Keycloak, a Keycloak image, `test:auth:keycloak` or an identity
+    provider outside the agent; the Validate stage's sign-in suites run against the mock OpenID
+    provider started by the test script on the agent's loopback, with Entra-shaped claims
+    (`oid`, `tid`, `roles`, `groups`, group overage) and token refresh.
+11. **Given** a release tag in this repository, **When** the owner follows the hand-over of the
+    deployment guide (push to the target's mirror, or a Git bundle imported by someone with
+    mirror access), **Then** the mirror holds the same commit and tag, and the target pipeline's
+    image reports that commit in `/healthz`.
 
 ---
 
@@ -622,9 +681,18 @@ no credential is stored.
 - Two version tags are pushed in quick succession: the environment's exclusive-lock check lets one
   deployment or rollback run at a time and keeps only the newest waiting run; the version rule
   refuses a tag older than the highest version ever promoted.
-- `ci:validate` on a machine without Docker or Podman: the Keycloak, image and container steps
-  fail with a message saying a container runtime is required (they never pass by skipping); each
-  other step can still be run alone with `--step`.
+- `ci:validate` on a machine without Docker or Podman: the image and container steps fail with a
+  message saying a container runtime is required (they never pass by skipping); each other step
+  can still be run alone with `--step`. The Keycloak compatibility suite also fails, naming the
+  missing runtime.
+- The mock OpenID provider's issuer is configured on a real deployment by mistake: server mode
+  refuses an `http://` issuer unless the public URL is a loopback address, so the mock (loopback
+  `http://` only) can never sign people in to a deployed instance; the mock is not part of the
+  image.
+- A release is handed to the mirror as a source archive instead of a Git bundle: the mirror's
+  commit differs from this repository's, so the image's commit and `sha-` tag name the mirror's
+  commit; the guide recommends the bundle (same commit) and says how to record the mapping when
+  an archive is used.
 - The pipeline is imported with an incomplete variable group or missing service connection: the
   first step that needs a value fails naming the variable (the Image stage's push step checks the
   whole variable group), before any image is pushed or anything is deployed.
@@ -657,7 +725,11 @@ no credential is stored.
 
 - **FR-010**: Server mode MUST sign people in through any OpenID Connect provider using the
   authorization code flow with PKCE, the server acting as a confidential client. Microsoft Entra
-  ID and Keycloak MUST be supported and documented; Keycloak MUST be exercised by automated tests.
+  ID is the primary, optimised provider (the only one on the target) and Keycloak MUST also be
+  supported; both MUST be documented. Automated sign-in tests in `ci:validate` and in the target
+  pipeline MUST use the mock OpenID provider (FR-141); Keycloak MUST be exercised by the
+  compatibility suite `test:auth:keycloak` on the owner's machine; Entra on a real tenant is
+  verified with the manual checklist.
 - **FR-011**: The browser MUST receive only an opaque session identifier in a cookie that is
   HttpOnly, Secure, SameSite=Lax and host-only. Access, ID and refresh tokens MUST stay on the
   server and MUST NOT appear in any response body, URL, log or audit entry. Only when the public
@@ -906,7 +978,8 @@ no credential is stored.
   liveness endpoint; and takes configuration only through environment variables and secret
   references. The same image MUST run in local mode and in server mode.
 - **FR-121**: The README MUST document running the image with Docker Compose (local profile, and
-  server profile with a development Keycloak; the Docker Desktop host networking setting), Azure
+  the `keycloak` compatibility profile with a development Keycloak; the Docker Desktop host
+  networking setting), Azure
   Container Apps (primary) and App Service (alternative) deployment, the local build scripts, the
   Azure DevOps pipeline and what the target sets up for it,
   Entra and Keycloak setup, both modes, the role matrix, what each role can see, the outbound
@@ -930,8 +1003,10 @@ no credential is stored.
   is reached through host networking (OP-8). Start-up MUST stop with a clear message when the data
   root is not writable by the container user.
 - **FR-126**: A Docker Compose file MUST provide a local profile (local mode, data folder of the
-  developer's choice) and a server profile (server mode against a development Keycloak loaded with
-  the test realm, loopback public URL, development-only secrets).
+  developer's choice) and a `keycloak` compatibility profile (server mode against a development
+  Keycloak loaded with the test realm, loopback public URL, development-only secrets). The
+  container check MUST also run the image in server mode against the mock OpenID provider
+  (FR-141), with no Keycloak, so the container suites can run in the target pipeline.
 
 #### Local build and the target's delivery pipeline
 
@@ -941,13 +1016,15 @@ no credential is stored.
   from its own Azure Repos mirror; the guide never connects a pipeline to this GitHub repository.
 - **FR-131**: The repository MUST provide package scripts that run every verification and build
   step on the owner's machine with Docker or Podman: `ci:validate` (type check, unit and API tests,
-  production build, mutation suite, every browser suite of the quality gate, the Keycloak sign-in
-  tests, the image build, scan and bill of materials, the suites against the image, and the
-  pipeline check; selectable per step; any failure gives a non-zero exit naming the step),
-  `image:build`, `image:scan`, `image:sbom`, `image:push`, `test:container`, `pipeline:lint`,
-  `pipeline:dry-run`, `deploy:check-version`, `deploy:azure`, `deploy:smoke` and
-  `deploy:rollback`. Steps that need a
-  container runtime MUST fail, not skip, under `ci:validate` when none is present.
+  production build, mutation suite, every browser suite of the quality gate including the sign-in
+  suites against the mock OpenID provider, the image build, scan and bill of materials, the
+  suites against the image, and the pipeline check; selectable per step; any failure gives a
+  non-zero exit naming the step), `image:build`, `image:scan`, `image:sbom`, `image:push`,
+  `test:container`, `pipeline:lint`, `pipeline:dry-run`, `deploy:check-version`, `deploy:azure`,
+  `deploy:smoke` and `deploy:rollback`; and, outside `ci:validate` and the pipeline, the
+  Keycloak compatibility suite `test:auth:keycloak`. Steps that need a container runtime MUST
+  fail, not skip, under `ci:validate` (and `test:auth:keycloak` MUST fail, not skip) when none is
+  present.
 - **FR-132**: The image scan MUST fail on critical or high vulnerabilities that have a fix, unless
   each is listed in an ignore file with a reason and an unexpired date. Every built image MUST get
   a software bill of materials in SPDX JSON.
@@ -960,8 +1037,10 @@ no credential is stored.
   verification, build or deployment logic may exist only in the pipeline.
 - **FR-134**: Validate MUST run on every run (pull-request validation through the target's branch
   policy, pushes to `main`, version tags) with the steps of `ci:validate` other than `image` and
-  `container`, which Image runs, so the two stages together run every `ci:validate` step; the Keycloak
-  sign-in tests running against a Keycloak container on the agent. Image MUST build, scan and
+  `container`, which Image runs, so the two stages together run every `ci:validate` step. No
+  stage may start or depend on Keycloak or any identity provider outside the agent: the sign-in
+  suites of Validate and the server-mode container suites of Image run against the mock OpenID
+  provider (FR-141) on the agent's loopback. Image MUST build, scan and
   inventory the image, run the suites against it, keep the bill of materials and scan report as
   pipeline artifacts, and push the image to the target's Azure Container Registry tagged with the
   commit only for runs of `main` and of version tags.
@@ -998,7 +1077,36 @@ no credential is stored.
 - **FR-140**: The pipeline definition MUST be checked locally: validated against a pinned copy of
   the Azure Pipelines YAML schema and the rules of FR-133 to FR-136 (`pipeline:lint`), and
   simulated stage by stage with the Azure steps against a fake Azure client (`pipeline:dry-run`);
-  both are part of `ci:validate`.
+  both are part of `ci:validate`. Together with the container suites they are the implementation's
+  done criteria for delivery; the real trial is owner acceptance (FR-143).
+- **FR-141**: The repository MUST ship a self-contained mock OpenID provider used by the unit
+  tests (in process) and by the browser, container and smoke checks (a loopback-only `http://`
+  server started and stopped by the test scripts, never part of the image). It MUST implement
+  discovery, signing keys (with key rotation), the authorization code flow with PKCE S256 (a
+  test-user chooser page that browser checks drive), `state` and `nonce`, refresh tokens (which
+  carry changed roles or groups), client credentials, end-session, and a stand-in for Microsoft
+  Graph `checkMemberGroups` for overage resolution. Its default claim shape MUST be Entra's
+  (`iss` with the tenant id, `oid`, `tid`, `sub`, `name`, `preferred_username`, `email`, `roles`,
+  `groups`, `idtyp=app` for applications, and group overage through `hasgroups` or
+  `_claim_names`/`_claim_sources`); Keycloak-shaped and generic claim shapes MUST be selectable.
+  Server mode MUST refuse an `http://` issuer unless the public URL is a loopback address, and
+  MUST accept as the directory endpoint for overage only Microsoft Graph or, under the same
+  loopback condition, the mock's stand-in, so an app-only token is never sent elsewhere.
+- **FR-142**: The deployment guide MUST document the release hand-over to the target's Azure Repos
+  mirror: (a) someone with mirror access pushes the release commit as a branch
+  `release/vX.Y.Z`, brings it into the mirror's `main` through a pull request (so the branch
+  policy runs Validate and Image), then pushes the version tag, which points to the release
+  commit; or (b) the owner produces a Git bundle of the release branch and the tag with its
+  SHA-256 checksum, which someone with mirror access verifies and pushes the same way; a plain
+  source archive is a documented fallback that changes the commit. The guide MUST state that the mirror never fetches
+  from this repository automatically and that the commit pushed to the mirror is what the
+  pipeline builds and reports.
+- **FR-143**: The deployment guide MUST include an owner trial runbook: numbered steps from
+  hand-over to rollback drill, each with the command or portal action, the expected output and a
+  pass or fail box, and a report block (with subscription, tenant and resource identifiers
+  replaced by placeholders) that the owner fills and returns to be recorded in
+  `specs/003-authn-authz/verification.md`. Running it is owner acceptance, not an implementation
+  task; each failed step becomes a follow-up task.
 
 ### Key Entities
 
@@ -1029,7 +1137,12 @@ no credential is stored.
   pipeline), identified by digest, with its version, commit, scan result and bill of materials.
 - **Pipeline definition**: the Azure DevOps multi-stage definition and its rollback pipeline,
   shipped in the repository and run only by the target, with its parameters and variable group.
-- **Release**: a version tag, the image digest it promotes and the pipeline run that deploys it.
+- **Release**: a version tag, the image digest it promotes and the pipeline run that deploys it;
+  handed over to the target's Azure Repos mirror by push or Git bundle.
+- **Mock OpenID provider**: the test identity provider of the gate and the pipeline, with
+  Entra-shaped claims by default; never deployed.
+- **Owner trial report**: the filled report block of the trial runbook, recorded in
+  verification.md.
 - **Deployment**: a revision of the container app running one image digest, with its smoke-test
   result and the previous revision kept for rollback.
 
@@ -1045,8 +1158,9 @@ no credential is stored.
 - **SC-003**: Every new decision rule has at least one targeted mutant and the mutation suite
   detects 100% of them.
 - **SC-004**: In local mode every v0.3.0 suite passes without modification.
-- **SC-005**: Sign-in against the Keycloak test container, from first request to workspace shown,
-  completes in under 5 seconds in the automated browser check.
+- **SC-005**: Sign-in against the mock OpenID provider, from first request to workspace shown,
+  completes in under 5 seconds in the automated browser check, and in under 5 seconds against the
+  Keycloak test container in the compatibility suite.
 - **SC-006**: With 5,000 files in 20 projects, filtering adds at most 150 ms to the project
   listing and at most 10% to the full workspace load compared with local mode.
 - **SC-007**: Two Editors working concurrently on one repository for the whole two-person browser
@@ -1057,27 +1171,37 @@ no credential is stored.
   seconds on a workspace of the shipped examples, and keeps sessions and data across a restart;
   in local mode the local browser suites pass against the image as against the dev server.
 - **SC-010**: The README's Entra and Keycloak guides let a person who has not seen the project
-  reach a signed-in workspace (recorded once for Entra manually, automated for Keycloak).
+  reach a signed-in workspace (recorded once for Entra by the owner on the real tenant with the
+  manual checklist, automated for Keycloak in the compatibility suite).
 - **SC-011**: An Admin can assign a project to a domain, map a group to a role and confirm the
   result in the access check within 3 minutes, using only the Admin panel.
 - **SC-012**: 100% of attempts in the test suite to remove the last Admin, activate an invalid
   policy or weaken a baseline prohibition are refused, and a rollback restores the previous
   decisions for 100% of the matrix cases.
-- **SC-013**: `bun run ci:validate` runs 100% of the quality-gate checks of FR-131, the pipeline's
+- **SC-013**: `bun run ci:validate` runs 100% of the quality-gate checks of FR-131 (every check
+  except the Keycloak compatibility suite, which is outside the gate), the pipeline's
   Validate and Image stages call the same steps (100% of them, checked by the pipeline check), and
   a full local run finishes within 45 minutes on the owner's workstation.
 - **SC-014**: Every built image has a bill of materials, and no image pushed or deployed by the
   pipeline has an unignored critical or high vulnerability with a fix at that time.
 - **SC-015**: From approval to a smoke-tested revision takes at most 15 minutes; when the smoke
-  test fails, the previous revision serves again within 10 minutes (measured in the trial run).
+  test fails, the previous revision serves again within 10 minutes (measured by the owner in the
+  trial run; owner acceptance).
 - **SC-016**: Zero Azure, registry or provider credentials are stored in the repository, the
-  pipeline definition or the variable group; every Azure sign-in of the pipeline uses a federated
-  token.
+  pipeline definition or the variable group (checked by `pipeline:lint`); every Azure sign-in of
+  the pipeline uses a federated token (confirmed by the owner in the trial run).
 - **SC-017**: A revision update interrupts service for at most the old instance's shutdown time
-  plus 30 seconds, and never lets two instances serve one data root.
+  plus 30 seconds, and never lets two instances serve one data root (measured locally by the
+  container check with two image revisions on one volume; confirmed by the owner in the trial
+  run).
 - **SC-018**: The GitHub repository has zero workflow and bot configuration files, and from Phase 4
   on every phase ends with `ci:validate` green on the owner's machine, including `pipeline:lint`
   and `pipeline:dry-run`.
+- **SC-019**: The pipeline definition references Keycloak or an external identity provider zero
+  times (checked by the pipeline check), and the sign-in suites it runs cover 100% of the
+  sign-in scenarios of US1 (sign-in, refresh, sign-out, expiry, no-role refusal) and of the Entra
+  claim cases of FR-020 to FR-022 (`tid` check, `tid:oid` id, app roles, groups, overage
+  resolved and overage failure) against the mock OpenID provider.
 
 ## Assumptions
 
@@ -1097,8 +1221,14 @@ no credential is stored.
   configured groups.
 - No hosted LLM is introduced; no query is executed; source bytes are never rewritten by any
   access rule (redaction is never applied to documents).
-- Tests use a Keycloak container with a realm file in the repository; Entra is verified manually
-  with the documented steps.
+- The target uses Microsoft Entra ID only (OP-9). Automated tests, in the gate and in the
+  pipeline, use the mock OpenID provider with Entra-shaped claims; the Keycloak compatibility
+  suite uses a Keycloak container with a realm file in the repository and runs on the owner's
+  machine; Entra on a real tenant is verified manually by the owner with the documented
+  checklist. Entra behaviour not reproduced by the mock (conditional access, consent prompts,
+  token lifetimes set by the tenant) is covered only by that checklist.
+- The implementer has no access to the trial Azure DevOps organisation and subscription (OP-10);
+  the owner runs the trial from the runbook and returns the report.
 - People's display names and emails from the provider may be shown to other people who share a
   project (commit authors, "in use by"), as in any Git hosting service.
 - One Azure environment (production by default) is deployed by the target's pipeline;
@@ -1108,8 +1238,10 @@ no credential is stored.
   networking enabled, or Podman; images are built and tested there and never published from the
   repository.
 - The target provides Linux agents with Docker (Microsoft-hosted `ubuntu-latest` by default, or a
-  self-hosted pool named by a parameter) for the image build, the container checks and the
-  Keycloak tests.
+  self-hosted pool named by a parameter) for the image build and the container checks; the
+  agents need no network access to any identity provider during validation.
+- The target's Azure Repos mirror is updated only by the release hand-over (OP-11); nothing
+  connects it to this GitHub repository.
 - Released images are kept in the target's registry so that rollback can reach any earlier
   version; retention of commit-tagged images is the target's choice, documented in the guide.
 
@@ -1123,14 +1255,17 @@ no credential is stored.
   app roles, or Keycloak 26 or later).
 - For remote credentials: an Azure DevOps organisation connected to the same Entra tenant, or a
   GitHub OAuth app / GitHub App registered by the Admin.
-- Container runtime for the Keycloak tests and the container checks: Docker Engine, Docker Desktop
-  with host networking, or Podman on the owner's machine; Docker on the target's agents.
+- Container runtime for the image, the container checks and the Keycloak compatibility suite:
+  Docker Engine, Docker Desktop with host networking, or Podman on the owner's machine; Docker on
+  the target's agents (no Keycloak there).
 - For delivery (target): an Azure DevOps organisation and project with an agent pool, Azure
   Resource Manager service connections using workload identity federation, an environment with
   approvals and checks and one variable group; and an Azure subscription with the resources of the
   target setup guide (resource group, Container Apps environment and app, storage account with an
   Azure Files share, Key Vault, Azure Container Registry, Log Analytics workspace, the app's
-  user-assigned identity). A trial run needs such an organisation and subscription.
+  user-assigned identity). The trial organisation and subscription exist and are used by the
+  owner only (owner acceptance); the target's Azure Repos mirror receives each release by the
+  hand-over of FR-142.
 
 ## Appendix A - What exists today (from the authorization inventory)
 
