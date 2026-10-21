@@ -9,7 +9,8 @@ export async function layoutProblems(page:Page,options:{overlays?:string[];ignor
   const doc=document.documentElement;if(doc.scrollWidth>vw+1)out.push(`page scrolls horizontally (${doc.scrollWidth} > ${vw})`);
   const name=(el:Element)=>{const a=el.getAttribute('aria-label')||(el as HTMLElement).innerText?.trim().split('\n')[0]||el.getAttribute('placeholder')||'';return `${el.tagName.toLowerCase()}${el.className&&typeof el.className==='string'?'.'+el.className.trim().split(/\s+/)[0]:''} "${a.slice(0,40)}"`;};
   const shown=(el:Element)=>{const s=getComputedStyle(el);if(s.visibility==='hidden'||s.display==='none'||Number(s.opacity)===0)return false;const r=el.getBoundingClientRect();return r.width>=1&&r.height>=1;};
-  const skip='[inert] *,.react-flow__node *,.react-flow__node,.react-flow__edge,.react-flow__minimap *,.cm-editor *,[aria-hidden="true"] *,.sr-only'+(ignore?','+ignore:'');
+  // Content of a closed <details> keeps layout boxes in Chromium but is not shown.
+  const skip='details:not([open]) > :not(summary),details:not([open]) > :not(summary) *,[inert] *,.react-flow__node *,.react-flow__node,.react-flow__edge,.react-flow__minimap *,.cm-editor *,[aria-hidden="true"] *,.sr-only'+(ignore?','+ignore:'');
   // In full screen only the full-screen element (or the window-filling one) is on screen.
   const scope:ParentNode=document.fullscreenElement??document.querySelector('.window-fill')??document;
   const controls=[...scope.querySelectorAll('button,input:not([type=file]):not([type=hidden]),select,textarea,[role=tab],a[href]')].filter(el=>shown(el)&&!el.matches(skip));
