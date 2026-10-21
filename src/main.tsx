@@ -17,7 +17,9 @@ import {NeighborhoodGraph} from './NeighborhoodGraph';
 import {MappingExplorer} from './MappingExplorer';
 import {MetricsView} from './metrics/MetricsView';
 import type {KpiSummary} from '../server/agent/explain';
-import React, { useEffect, useMemo, useState, useRef } from "react";
+import React, { useEffect, useMemo, useState, useRef, useReducer } from "react";
+import {walkReducer,emptyWalk,type WalkStep} from './graph/walk';
+import type {CrossFileTarget} from './NeighborhoodGraph';
 import { createRoot } from "react-dom/client";
 import {
   Layers,
@@ -33,6 +35,7 @@ import {
 } from "lucide-react";
 import {validateInput} from "./input";
 import {documentKeys,entityKeys} from './references';
+import type {Entity} from './model';
 import {ValidationPanel, ImportRepair, type ImportDraft} from "./ValidationPanel";
 import { editEntity } from "./model";
 import {groupRelationships} from "./graph-view";
@@ -64,13 +67,16 @@ function App() {
   const [showValidation,setShowValidation]=useState(false);
   const grouping=useGrouping(current?.id);
   // KPIs of the open file's project, for the Metrics tab and the KPI badges on concepts.
-  const [kpis,setKpis]=useState<KpiSummary[]>([]),[kpiError,setKpiError]=useState(''),[kpiLoading,setKpiLoading]=useState(false),[selectedKpi,setSelectedKpi]=useState('');
+  const [kpis,setKpis]=useState<KpiSummary[]>([]),[kpiError,setKpiError]=useState(''),[kpiLoading,setKpiLoading]=useState(false),[selectedKpi,setSelectedKpi]=useState(''),[kpiFilter,setKpiFilter]=useState('');
   const kpiProject=current?.project??null,kpiRevision=docs.filter(d=>d.project===kpiProject).map(d=>d.path+':'+d.hash).join('|');
   useEffect(()=>{if(!kpiProject){setKpis([]);return;}let live=true;setKpiLoading(true);api.metrics(kpiProject).then(k=>{if(live){setKpis(k);setKpiError('');}}).catch(e=>{if(live){setKpis([]);setKpiError(e.message);}}).finally(()=>{if(live)setKpiLoading(false);});return()=>{live=false;};},[kpiProject,kpiRevision]);
   useEffect(()=>setSelectedKpi(''),[kpiProject]);
   const kpiBadges=useMemo(()=>{const map=new Map<string,string[]>();for(const k of kpis)for(const c of k.concepts){const name=c.concept??c.input;const list=map.get(name)??[];if(!list.includes(k.label))list.push(k.label);map.set(name,list);}return map;},[kpis]);
   const sourceEditor=useRef<HTMLTextAreaElement|null>(null);
-  const [neighborhoodFocus,setNeighborhoodFocus]=useState('');
+  // Neighborhood walk across centers and files (FR-037).
+  const [walk,dispatchWalk]=useReducer(walkReducer,emptyWalk);
+  const walkStep=walk.steps[walk.index],neighborhoodFocus=walkStep&&walkStep.doc===current?.id?walkStep.center:'';
+  const setNeighborhoodFocus=(id:string)=>{if(id&&current)dispatchWalk({type:'push',step:{doc:current.id,center:id,name:model?.entities.find(e=>e.id===id)?.name??id}});};
   const [compact,setCompact]=useState(()=>window.innerWidth<1100);
   const [sidebarOpen,setSidebarOpen]=useState(()=>window.innerWidth>=1100);
   const sidebarRef=useRef<HTMLElement|null>(null),workspaceToggle=useRef<HTMLButtonElement|null>(null);
@@ -112,16 +118,17 @@ function App() {
       .then((d) => { if (d[0]) open(d[0]); })
       .catch(() => setMessage("Cannot reach local API"));
   }, []);
-  function open(d: Doc) {
-    if(current?.id===d.id){if(compact)closeWorkspace();return;}
-    if (current && source !== current.source && !confirm("Discard unsaved changes?")) return;
+  function open(d: Doc):boolean {
+    if(current?.id===d.id){if(compact)closeWorkspace();return true;}
+    if (current && source !== current.source && !confirm("Discard unsaved changes?")) return false;
     setCurrent(d);
     setSource(d.source);
     setNeighborhoodFocus('');if(compact)closeWorkspace();
     setSelected("");
     setSelectedEdge("");
     setSearch("");setShowAll(false);
-    if(validateInput(d.source,d.filename).model?.kind==='Ossie mappings')setTab('mappings');
+    if(tab!=='graph'&&validateInput(d.source,d.filename).model?.kind==='Ossie mappings')setTab('mappings');
+    return true;
   }
   const validation = useMemo(()=>validateInput(source,current?.filename??'definition.yaml'),[source,current?.filename]);
   const result = {model:validation.model,error:(source||current)&&!validation.valid?validation.issues.filter(i=>i.severity==='error').map(i=>i.message).join('\n'):''};
@@ -138,6 +145,22 @@ function App() {
   const relationship = model?.edges.find(e => e.id === selectedEdge);
   const globalGroups=useMemo(()=>groupRelationships(model?.edges??[]),[model]);
   const activeGroup=globalGroups.find(e=>e.data.relationships.some(r=>r.id===selectedEdge));
+  // Other files of the project that define the same thing: a shared IRI, physical name or business
+  // definition, or an Ossie concept mapping and the ontology concept it maps (FR-037).
+  const projectModels=useMemo(()=>new Map(docs.filter(d=>d.project===current?.project&&d.id!==current?.id).flatMap(d=>{try{const m=validateInput(d.source,d.filename).model;return m?[[d.id,m] as const]:[];}catch{return [];}})),[docs,current?.project,current?.id]);
+  const conceptKinds=new Set(['EntityType','ValueType','Built-in concept','OWL class']);
+  function crossFile(e:Entity):CrossFileTarget[]{
+    const keys=new Set(entityKeys(e,model)),out:CrossFileTarget[]=[];
+    for(const [id,m] of projectModels){const d=docsRef.current.get(id);if(!d)continue;
+      const hit=m.entities.find(x=>entityKeys(x,m).some(k=>keys.has(k)));
+      const mapped=!hit&&(e.kind==='Concept mapping'?m.entities.find(x=>x.name===e.name&&conceptKinds.has(x.kind)):conceptKinds.has(e.kind)?m.entities.find(x=>x.name===e.name&&x.kind==='Concept mapping'):undefined);
+      const target=hit??mapped;if(target)out.push({doc:id,file:d.path,entity:target.id,name:target.name,reason:hit?'Same identity (IRI, physical name or business definition)':'Ossie mapping reference'});}
+    return out;
+  }
+  function walkTo(index:number){const step=walk.steps[index];if(!step)return;if(step.doc!==current?.id){const d=docsRef.current.get(step.doc);if(!d||!open(d))return;setTab('graph');setShowAll(false);}setSelected(step.center);setSelectedEdge('');dispatchWalk({type:'jump',index});}
+  function crossTo(t:CrossFileTarget){const d=docsRef.current.get(t.doc);if(!d||!current)return;const from=walk.steps[walk.index];if(!open(d))return;
+    if(!from||from.doc!==current.id||from.center!==neighborhoodFocus){const c=model?.entities.find(e=>e.id===(neighborhoodFocus||selected));if(c)dispatchWalk({type:'push',step:{doc:current.id,center:c.id,name:c.name}});}
+    dispatchWalk({type:'push',step:{doc:t.doc,center:t.entity,name:t.name,via:{id:'file',label:'same definition'}}});setTab('graph');setShowAll(false);setSelected(t.entity);setSelectedEdge('');}
   function showNeighborhood(id=selected||relationship?.source||neighborhoodFocus){setNeighborhoodFocus(id);setSearch('');setTab('graph');setShowAll(false);}
   function selectEntity(id:string){setSelected(id);setSelectedEdge('');if(tab==='graph'&&!showAll){setNeighborhoodFocus(id);setSearch('');}}
   async function loadExample(id:string) {
@@ -343,7 +366,7 @@ function App() {
         {(source||current)&&(showValidation||!!result.error)&&<details className="validation-details" open><summary onClick={e=>{e.preventDefault();setShowValidation(false);}}>Validation findings</summary><ValidationPanel source={source} issues={validation.issues} onLocate={issue=>{setTab('source');setTimeout(()=>{const editor=sourceEditor.current;if(!editor)return;locateSourceIssue(editor,issue);},0);}}/></details>}
         <div className="canvas-row">
           <section className="canvas">
-            {tab==='metrics' ? <MetricsView project={kpiProject} projectName={projects.find(p=>p.slug===kpiProject)?.name} kpis={kpis} error={kpiError} loading={kpiLoading} selected={selectedKpi} onSelect={setSelectedKpi}/> : tab==='mappings' ? <MappingExplorer currentId={current?.id} revisionKey={docs.map(d=>d.id+':'+d.hash).join('|')} dirty={!!current&&source!==current.source}/> : !source && !current ? (
+            {tab==='metrics' ? <MetricsView project={kpiProject} projectName={projects.find(p=>p.slug===kpiProject)?.name} kpis={kpis} error={kpiError} loading={kpiLoading} selected={selectedKpi} onSelect={setSelectedKpi} filter={kpiFilter}/> : tab==='mappings' ? <MappingExplorer currentId={current?.id} revisionKey={docs.map(d=>d.id+':'+d.hash).join('|')} dirty={!!current&&source!==current.source}/> : !source && !current ? (
               <div className="empty">
                 <div className="empty-icon">
                   <Network size={36} />
@@ -384,7 +407,7 @@ function App() {
                   ))}
               </div>
             ) : tab==='fullgraph' && model ? <FullGraph kpiBadges={kpiBadges} grouping={grouping.value} onGroupingChange={grouping.change} groupingError={grouping.error} key={current?.id} name={model.name} entities={model.entities} edges={model.edges} selected={selected} selectedEdge={selectedEdge} search={search} onSelectEntity={selectEntity} onSelectEdge={id=>{setSelectedEdge(id);setSelected('')}} onOverview={()=>{setTab('graph');setShowAll(true);setSearch('')}} onNeighborhood={()=>showNeighborhood()}/> : (
-              showAll && model ? <ModelOverview grouping={grouping.value} onGroupingChange={grouping.change} groupingError={grouping.error} key={current?.id} name={model.name} entities={model.entities} edges={model.edges} search={search} selected={selected} onSelectEntity={selectEntity} onSelectRelationship={id=>{setSelectedEdge(id);setSelected('')}} onClose={()=>showNeighborhood()} onOpenGraph={()=>{setShowAll(false);setTab('fullgraph')}}/> : <NeighborhoodGraph kpiBadges={kpiBadges} key={current?.id} entities={model?.entities??[]} edges={model?.edges??[]} search={search} focusId={neighborhoodFocus} selected={selected} selectedEdge={selectedEdge} onFocus={id=>{setNeighborhoodFocus(id);setSearch('')}} onSelectEntity={selectEntity} onSelectEdge={id=>{setSelectedEdge(id);setSelected('')}} onOverview={()=>{setSearch('');setTab('graph');setShowAll(true)}} onFullGraph={()=>{setSearch('');setShowAll(false);setTab('fullgraph')}}/>
+              showAll && model ? <ModelOverview grouping={grouping.value} onGroupingChange={grouping.change} groupingError={grouping.error} key={current?.id} name={model.name} entities={model.entities} edges={model.edges} search={search} selected={selected} onSelectEntity={selectEntity} onSelectRelationship={id=>{setSelectedEdge(id);setSelected('')}} onClose={()=>showNeighborhood()} onOpenGraph={()=>{setShowAll(false);setTab('fullgraph')}}/> : <NeighborhoodGraph kpiBadges={kpiBadges} key={current?.id} docId={current!.id} docLabel={id=>docsRef.current.get(id)?.path??id} entities={model?.entities??[]} edges={model?.edges??[]} search={search} walk={walk} selected={selected} selectedEdge={selectedEdge} onWalk={(steps:WalkStep[])=>{for(const step of steps)dispatchWalk({type:'push',step});}} onWalkTo={walkTo} onClearSearch={()=>setSearch('')} onSelectEntity={id=>{setSelected(id);setSelectedEdge('');}} onSelectEdge={id=>{setSelectedEdge(id);}} onOverview={()=>{setSearch('');setTab('graph');setShowAll(true)}} onFullGraph={()=>{setSearch('');setShowAll(false);setTab('fullgraph')}} onOpenKpis={concept=>{setKpiFilter(concept+'\u0000'+Date.now());setSelectedKpi('');setTab('metrics');}} crossFile={crossFile} onCrossFile={crossTo}/>
             )}
           </section>
           {tab!=='mappings'&&tab!=='metrics'&&(entity || relationship) && <aside className="inspector" aria-label="Definition details">

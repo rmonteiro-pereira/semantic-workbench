@@ -1,4 +1,4 @@
-import React,{useMemo,useState} from 'react';
+import React,{useEffect,useMemo,useState} from 'react';
 import {ArrowLeft,Gauge,Search} from 'lucide-react';
 import type {KpiSummary} from '../../server/agent/explain';
 import {KpiDetail} from './KpiDetail';
@@ -14,8 +14,10 @@ function groupValue(k:KpiSummary,by:GroupBy){
  if(by==='concept')return k.concepts.find(c=>c.role==='of')?.concept??k.concepts.find(c=>c.role==='measures')?.concept??'Not bound to a concept';
  if(by==='file')return k.file;return '';
 }
-export function MetricsView({project,projectName,kpis,error,loading,selected,onSelect}:{project:string|null;projectName?:string;kpis:KpiSummary[];error:string;loading:boolean;selected:string;onSelect:(key:string)=>void}){
+export function MetricsView({project,projectName,kpis,error,loading,selected,onSelect,filter}:{project:string|null;projectName?:string;kpis:KpiSummary[];error:string;loading:boolean;selected:string;onSelect:(key:string)=>void;filter?:string}){
  const [query,setQuery]=useState(''),[groupBy,setGroupBy]=useState<GroupBy>('none'),[type,setType]=useState(''),[status,setStatus]=useState(''),[owner,setOwner]=useState('');
+ // A concept chosen elsewhere (the neighborhood's KPI indicator) filters the list.
+ useEffect(()=>{if(filter)setQuery(filter.split('\u0000')[0]);},[filter]);
  const term=query.trim().toLocaleLowerCase();
  const owners=useMemo(()=>[...new Set(kpis.map(k=>k.owner).filter(Boolean) as string[])].sort(),[kpis]);
  const statuses=useMemo(()=>[...new Set(kpis.map(k=>k.status).filter(Boolean) as string[])].sort(),[kpis]);
