@@ -1,12 +1,17 @@
 import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { treeRowProblems } from './helpers/tree-geometry';
+import { neighborhoodEdgeProblems, neighborhoodState, pickCenter } from './helpers/edge-geometry';
+import { inspect } from '../src/model';
 
 // Isolated API fixture: exercising viewport changes never modifies the local workspace.
 // The UBL ontology is imported first so that it opens first.
 const api = await startIsolatedApi();
 await api.ws.importBatch({ files: [{ path: 'ubl.ontology.yaml', source: await Bun.file('public/examples/ubl/ubl.ontology.yaml').text() }] });
 await api.ws.importBatch({ files: await Promise.all(['commerce.odcs.yaml', 'sales.ossie.yaml'].map(async path => ({ path, source: await Bun.file(`public/examples/commerce/${path}`).text() }))) });
+const ublModel = inspect(await Bun.file('public/examples/ubl/ubl.ontology.yaml').text(), 'ubl.ontology.yaml');
+const name40 = ublModel.entities.find(e => e.id === 'ontology/40')!.name;
+const centerOf = async (page: Page) => (await neighborhoodState(page)).center;
 const browser = await chromium.launch({ headless: true });
 const errors: string[] = [];
 let passed = 0;
@@ -97,9 +102,14 @@ try {
     });
     await check(`${width}×${height}: neighborhood center, inspector and repeated view transitions work`, async () => {
       await page.locator('.tabs').getByRole('button', { name: 'Neighborhood', exact: true }).click();
-      const center = page.getByLabel('Neighborhood center', { exact: true });
-      await center.selectOption('ontology/40');
-      await expect(center).toHaveValue('ontology/40');
+      await pickCenter(page, name40);
+      await expect.poll(() => centerOf(page)).toBe('ontology/40');
+      await expect.poll(() => neighborhoodEdgeProblems(page)).toEqual([]);
+      if (desktop) {
+        await page.getByRole('button', { name: 'Labels off', exact: true }).click();
+        await expect.poll(() => neighborhoodEdgeProblems(page)).toEqual([]);
+        await page.getByRole('button', { name: 'Labels on', exact: true }).click();
+      }
       if (width === 1280) await page.screenshot({ path: '/tmp/workbench-responsive-neighborhood-1280.png' });
       const focused = page.locator('.react-flow__node[data-id="ontology/40"]');
       await expect(focused).toBeVisible();
@@ -113,7 +123,8 @@ try {
       const neighbor = page.locator('.react-flow__node:not([data-id="ontology/40"])').first();
       const neighborId = await neighbor.getAttribute('data-id');
       await neighbor.click();
-      await expect(center).toHaveValue(neighborId!);
+      await expect.poll(() => centerOf(page)).toBe(neighborId);
+      await expect.poll(() => neighborhoodEdgeProblems(page)).toEqual([]);
       await expect(page.locator('.inspector h2')).toBeInViewport();
       await page.getByRole('button', { name: 'Close details', exact: true }).click();
       await expect(page.locator('.inspector')).toHaveCount(0);
@@ -142,14 +153,15 @@ try {
     await page.locator('.tabs').getByRole('button', { name: 'Overview', exact: true }).click();
     await page.locator('[data-entity-id="ontology/40"]').click();
     await page.getByRole('button', { name: 'Neighborhood', exact: true }).last().click();
-    await expect(page.getByLabel('Neighborhood center', { exact: true })).toHaveValue('ontology/40');
+    await expect.poll(() => centerOf(page)).toBe('ontology/40');
     await expect(page.locator('.react-flow__node[data-id="ontology/40"]')).toBeVisible();
     await page.getByRole('button', { name: 'Close details', exact: true }).click();
     for (const [width, height] of [[1280, 720], [2560, 1440], [1366, 768]]) {
       await page.setViewportSize({ width: width!, height: height! });
       await visibleGraph(page);
       await noOverflow(page);
-      await expect(page.getByLabel('Neighborhood center', { exact: true })).toHaveValue('ontology/40');
+      await expect.poll(() => centerOf(page)).toBe('ontology/40');
+      await expect.poll(() => neighborhoodEdgeProblems(page)).toEqual([]);
     }
   });
   await page.close();
