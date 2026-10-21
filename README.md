@@ -21,8 +21,9 @@ Everything stays under the data root, `data/` by default. Set `DATA_DIR` to use 
 data/
 ├── projects/<project>/   one folder per project: your files, byte for byte, in a Git working tree
 ├── state/                projects.json (project registry), views/ (grouping corrections per file),
-│                         drafts/, journal/ (unfinished multi-file operations), legacy-ids.json
-├── trash/                reserved for deleted files and projects (deletion arrives in a later release)
+│                         drafts/, journal/ (unfinished multi-file operations), suggestions.json
+│                         (dismissed grouping suggestions), legacy-ids.json
+├── trash/<entry>/        deleted files and projects (with their .git), each with an entry.json
 ├── backup/               the v0.1.0 database copied before migration
 └── cache.sqlite          index of hashes, entities and findings; safe to delete
 ```
@@ -32,6 +33,17 @@ The files in `data/projects/` are the only copy of your definitions. `cache.sqli
 Every save sends the SHA-256 of the version it started from. If the file changed in the meantime (another tab, an external editor, a Git command), the save is refused and both versions are shown side by side: keep editing, load the current file, or explicitly save your version over it. Saves write a temporary file and rename it over the original, so a crash leaves either the old or the new bytes. Imports and project creation are staged and moved into place through a journal; an operation interrupted by a crash is completed or rolled back on the next start, and the outcome is shown.
 
 The API watches every project folder. Files you change, add or delete outside the workbench (an editor, a terminal, a Git checkout) appear in every open tab within about two seconds without a reload; an open file follows the disk unless it has unsaved edits. A full rescan also runs every 60 seconds. Files that `.gitignore` excludes and file types the workbench does not read (for example `.csv` or `.md`) are not listed; files of a supported type that fail validation are listed as invalid and open in Source for repair. As in Git, a file that is already committed stays listed even if `.gitignore` matches it.
+
+**Organizing and cleaning up.** Every project and file in the **Projects** tree has an actions menu: rename a project (its folder keeps its id), import more files into it, move a file to another project, or delete. **Clear workspace** and **Trash** sit below the tree. Nothing needs a script or a reload:
+
+- Deleting asks first. The confirmation names everything that is removed, warns about unsaved edits that would be lost, and lists Ossie `ontology_ref`/`semantic_model_ref` references that would no longer resolve to any remaining file.
+- A deleted file or project moves to `data/trash/<entry>/`; a project moves with its `.git` folder, so its history is kept. Git history is never rewritten: a deleted file shows up in Git as an ordinary deletion.
+- **Undo** is offered for 10 seconds after a delete or Clear and puts everything back exactly as it was, including drafts and grouping corrections.
+- After that, **Trash** restores entries or deletes them permanently; emptying the trash asks for confirmation. A restore never overwrites: if a file or project now occupies the original place, the workbench offers a free name instead. A file whose project no longer exists is restored into a new project with the old name.
+- **Clear workspace** moves every project to the trash as its own entry, in one operation.
+- Importing into an existing project a file whose name already exists asks whether to replace it or keep both (`name (2).ext`).
+
+**Grouping suggestions.** When a file has explicit evidence that it belongs with another project, **Grouping suggestions** below the tree proposes adding it there and lists the evidence. Three kinds count: an Ossie `ontology_ref` or `semantic_model_ref` naming an ontology or semantic model declared in that project, an IRI shared with a file there, or an ODCS physical name equal to a semantic dataset `source` there. Names that are merely similar never count. A file is offered only when nothing links it to the other files of its own project, and only from the smaller project to the larger one (a file imported on its own joins the project it references, not the reverse). **Add to project** moves it; **Dismiss** is remembered for that file's content and target in `state/suggestions.json`. Nothing is regrouped automatically.
 
 **Upgrading from v0.1.0.** On the first start with a `data/workbench.sqlite` from v0.1.0, the API copies that database (with its `-wal` and `-shm` files) to `data/backup/`, reads the copy, and writes every stored document's exact bytes into project folders: documents of a shipped example set go to that example's project, everything else to **Ungrouped**; duplicate filenames become `name (2).ext`. Each written file is read back and its SHA-256 compared with the stored bytes; any mismatch stops the migration before anything is moved into place, and it is retried on the next start. Each project then gets `git init` and one commit, "Import from Semantic Workbench v0.1.0". Old document ids keep resolving through `state/legacy-ids.json`, and saved grouping corrections move to `state/views/`. The original database is never opened or modified. The migration needs Git and a Git identity; without them it waits, leaves everything untouched and says so.
 
@@ -113,11 +125,12 @@ bun run test:responsive
 bun run test:edges
 bun run test:grouping-validation
 bun run test:projects
+bun run test:trash
 bun run test:mutation
 bun scripts/live-inspect.ts
 ```
 
-`bun run test:projects` checks the project tree, an external edit appearing in an open tab within 2 seconds, a stale save from a second tab, and a restart after deleting `cache.sqlite` (projects, files, view settings and drafts are restored).
+`bun run test:trash` checks suggestions (accept and dismiss), delete confirmation with its warnings, Undo, restore and permanent delete from the trash, project delete and restore, and Clear with Undo, all without a page reload. `bun run test:projects` checks the project tree, an external edit appearing in an open tab within 2 seconds, a stale save from a second tab, and a restart after deleting `cache.sqlite` (projects, files, view settings and drafts are restored).
 
 The UI suite uses real browser downloads and an API on a temporary data root. It checks reopening existing examples (the previous blank-graph regression), grouped relationship selection, unobstructed controls, all UBL exports plus RDF/XML, unsaved edits, JSON export, re-import, document switching and alignment. `live-inspect.ts` uses the real running API and workspace read-only (every non-GET request is refused), captures screenshots, and compares the live exported document with its project file.
 
@@ -125,7 +138,7 @@ The responsive suite checks six viewports from 390×844 through 2560×1440, incl
 
 `bun run test:edges` measures Flights SVG endpoints against rendered entity borders during entity and business-area dragging, zooming, selection, and both layout modes. Worker routes render only when their endpoints match the current React Flow handles; live curves keep connections attached while dragging or waiting for a fresh route.
 
-The mutation suite is **targeted**, not a whole-project mutation score. It checks 56 deliberate logic faults in validation, RDF definitions, size limits, layout, neighborhood filtering, grouping, exports, form edits and the folder store (a dropped base-hash check, an invalid save accepted, a write in place instead of temporary file and rename, skipped migration hash verification, `..` and `.git` paths accepted, no origin check on the event stream, journal recovery that always rolls forward), plus a browser-injected empty neighborhood node projection. Unmodified module baselines must pass, and every mutant must be detected. It writes temporary candidate modules under `/tmp`, never changes application sources, and removes temporary files afterward.
+The mutation suite is **targeted**, not a whole-project mutation score. It checks 60 deliberate logic faults in validation, RDF definitions, size limits, layout, neighborhood filtering, grouping, exports, form edits and the folder store (a dropped base-hash check, an invalid save accepted, a write in place instead of temporary file and rename, skipped migration hash verification, `..` and `.git` paths accepted, no origin check on the event stream, journal recovery that always rolls forward, undo after the 10-second window, a restore that overwrites, suggestions from similar names, deletion without the confirmation flag), plus a browser-injected empty neighborhood node projection. Unmodified module baselines must pass, and every mutant must be detected. It writes temporary candidate modules under `/tmp`, never changes application sources, and removes temporary files afterward.
 
 **Group by → IRI namespaces** places each definition in the namespace of its IRI, labelled with the declared prefix of the longest matching namespace (Ossie `prefixes`, or the RDF document's prefixes). Definitions without an IRI are listed under **No IRI**. Auto grouping picks namespaces when business entities use at least two declared prefixes and no domains are declared.
 
