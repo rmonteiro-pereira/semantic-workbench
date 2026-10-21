@@ -17,6 +17,7 @@ async function json<T>(response:Response):Promise<T>{
  return body as T;
 }
 const send=(method:string,body?:unknown)=>({method,headers:{'Content-Type':'application/json'},...(body!==undefined?{body:JSON.stringify(body)}:{})});
+export type KpiSaveRequest={semanticPath:string;modelPath?:(string|number)[];metric:{name:string;expression:string;description?:string;datatype?:string};extension:Record<string,any>;binding?:{measures:string;of?:string}};
 export type ExplainQuery={grain?:string;dimensions?:string[];rollup?:string};
 const explainQuery=(q:ExplainQuery)=>{const p=new URLSearchParams();if(q.grain)p.set('grain',q.grain);for(const d of q.dimensions??[])p.append('dimension',d);if(q.rollup)p.set('rollup',q.rollup);const s=p.toString();return s?'?'+s:'';};
 export const api={
@@ -30,6 +31,18 @@ export const api={
   const response=await fetch(fileUrl(project,path),send('PUT',patches&&baseHash!==null?{baseHash,patches}:{baseHash,source}));
   if(response.status===409){const body=await response.json();throw new StaleSave(body.currentHash,body.currentSource);}
   return json<{path:string;hash:string}>(response);
+ },
+ // Several files of one project in one journaled save; a stale base hash rejects the whole batch.
+ async saveBatch(project:string,files:{path:string;baseHash:string|null;source?:string;patches?:{from:number;to:number;insert:string}[]}[]){
+  const response=await fetch(`/api/projects/${encodeURIComponent(project)}/save-batch`,send('POST',{files}));
+  if(response.status===409){const body=await response.json();throw new StaleSave(body.currentHash,body.currentSource);}
+  return json<{written:{path:string;hash:string;created:boolean}[]}>(response);
+ },
+ previewKpi:(project:string,body:KpiSaveRequest)=>fetch(`/api/projects/${encodeURIComponent(project)}/kpis/preview`,send('POST',body)).then(r=>json<{changes:{path:string;created:boolean;added:string[];removed:string[]}[];explanation:KpiExplanation}>(r)),
+ async saveKpi(project:string,body:KpiSaveRequest&{baseHashes:Record<string,string>}){
+  const response=await fetch(`/api/projects/${encodeURIComponent(project)}/kpis`,send('POST',body));
+  if(response.status===409){const b=await response.json();throw new StaleSave(b.currentHash,b.currentSource);}
+  return json<{written:{path:string;hash:string;created:boolean}[]}>(response);
  },
  importBatch:(files:{path:string;source:string}[],name?:string)=>fetch('/api/import',send('POST',{files,...(name?{name}:{})})).then(r=>json<{slug:string;name:string;written:{path:string;hash:string}[]}>(r)),
  deleteImpact:(project:string,path?:string)=>fetch(`/api/projects/${encodeURIComponent(project)}/delete-impact${path!==undefined?'?path='+encodeURIComponent(path):''}`).then(r=>json<Impact>(r)),
