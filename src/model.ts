@@ -5,6 +5,8 @@ import {locateInner} from './metrics/extension';
 import {datasetReferences,ansiExpression} from './metrics/deps';
 import {odcsForeignKeys} from './odcs';
 import { parseDocument } from "yaml";
+import {valuePatches} from "./edit/yaml-patch";
+import {applyPatches} from "./editor/patch";
 import {inspectRdf,rdfSyntax} from "./rdf";
 import {validateStructured} from "./validation";
 import {InputError,validateEnvelope,type Issue} from "./diagnostics";
@@ -140,9 +142,7 @@ export function inspect(source: string, filename='definition.yaml') {
   const layout=kind==='Ossie ontology'||kind==='Ossie semantic'||kind==='Ossie mappings'?(Array.isArray(data.ontology_mappings)&&data.ontology_mappings.length?'embedded (deprecated)':'split'):undefined;
   return { kind, layout, name: data.name ?? data.semantic_model?.[0]?.name ?? "Untitled", entities, edges, issues, document:data };
 }
-export function editEntity(source: string, path: (string | number)[], description: string) {
-  const doc = parseDocument(source);
-  doc.setIn([...path, "description"], description);
-  if(/^\s*\{/.test(source)) {try{JSON.parse(source);return JSON.stringify(doc.toJS(),null,2)}catch{}}
-  return doc.toString();
+// The inspector's quick description edit: only the description's text changes (FR-053).
+export function editEntity(source: string, path: (string | number)[], description: string, filename = '') {
+  return applyPatches(source, valuePatches(source, [...path, "description"], description, filename));
 }
