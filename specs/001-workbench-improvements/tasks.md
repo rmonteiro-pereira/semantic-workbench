@@ -302,14 +302,14 @@ to concepts and ODCS.
 
 ### Tests
 
-- [ ] T136 [P] [US8] Property-level diff between commits in tests/odcs-diff.test.ts
-- [ ] T137 [P] [US8] ODCS lineage (foreign keys, downstream datasets, metrics, KPIs; depth) in tests/odcs-lineage.test.ts
+- [X] T136 [P] [US8] Property-level diff between commits in tests/odcs-diff.test.ts
+- [X] T137 [P] [US8] ODCS lineage (foreign keys, downstream datasets, metrics, KPIs; depth) in tests/odcs-lineage.test.ts
 
 ### Implementation
 
-- [ ] T138 [P] [US8] Property diff in src/odcs/odcs-diff.ts
-- [ ] T139 [P] [US8] Lineage builder in src/odcs/lineage.ts
-- [ ] T140 [US8] Write the Codex brief for phase 9 layout (FR-056–058, ui-contracts, Marquez concepts, suites to pass) in specs/001-workbench-improvements/codex/phase-09.md
+- [X] T138 [P] [US8] Property diff in src/odcs/odcs-diff.ts
+- [X] T139 [P] [US8] Lineage builder in src/odcs/lineage.ts
+- [X] T140 [US8] Write the Codex brief for phase 9 layout (FR-056–058, ui-contracts, Marquez concepts, suites to pass) in specs/001-workbench-improvements/codex/phase-09.md
 - [ ] T141 [US8] [CODEX] Contract overview page in src/odcs/ContractOverview.tsx
 - [ ] T142 [US8] [CODEX] Dataset page with header and tabs Schema/Lineage/History/Quality in src/odcs/DatasetPage.tsx
 - [ ] T143 [US8] In-place property edits from the schema table via src/edit/yaml-patch.ts and src/edit/json-patch.ts in src/odcs/DatasetPage.tsx
