@@ -42,12 +42,15 @@ import {
   FileCode,
   Box,
   CheckCircle2,
-  Menu, X, Focus, Gauge, Pencil, Plus, Trash2,
+  Menu, X, Focus, Gauge, Pencil, Plus, Trash2, GitBranch,
 } from "lucide-react";
 import {validateInput} from "./input";
 import {documentKeys,entityKeys} from './references';
 import type {Entity,Relationship} from './model';
 import type {Issue} from './diagnostics';
+import {SourceControl} from './scm/SourceControl';
+import {isGitignore} from './scm/gitignore';
+import {scm as scmApi} from './projects/api';
 import {ValidationPanel, ImportRepair, type ImportDraft} from "./ValidationPanel";
 import { editEntity } from "./model";
 import {groupRelationships} from "./graph-view";
@@ -123,7 +126,8 @@ function App() {
     refreshing.current=run;return run;
   }
   const refreshTimer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined);
-  useEvents(event=>{if(event==='trash')setTrashVersion(v=>v+1);clearTimeout(refreshTimer.current);refreshTimer.current=setTimeout(()=>{void refresh().catch(()=>{});},80);});
+  const [gitVersion,setGitVersion]=useState(0);
+  useEvents(event=>{if(event==='trash')setTrashVersion(v=>v+1);if(event==='git'||event==='files'||event==='resync')setGitVersion(v=>v+1);clearTimeout(refreshTimer.current);refreshTimer.current=setTimeout(()=>{void refresh().catch(()=>{});},80);});
   useEffect(() => {
     api.status().then(setStatus).catch(()=>{});
     refresh()
@@ -149,7 +153,8 @@ function App() {
   const [editorIssues,setEditorIssues]=useState<{id?:string;issues:Issue[]}|null>(null);
   useEffect(()=>{if(tab!=='source'||settled.id!==current?.id)setSettled({id:current?.id,text:source});},[source,tab,current?.id]);
   const checkedSource=tab==='source'&&settled.id===current?.id?settled.text:source;
-  const checked = useMemo(()=>validateInput(checkedSource,current?.filename??'definition.yaml'),[checkedSource,current?.filename]);
+  const plainText=!!current&&isGitignore(current.filename);
+  const checked = useMemo(()=>plainText?{valid:true as const,model:null,issues:[] as Issue[]}:validateInput(checkedSource,current?.filename??'definition.yaml'),[checkedSource,current?.filename,plainText]);
   const live=tab==='source'&&checkedSource!==source&&editorIssues?.id===current?.id?editorIssues!.issues:null;
   const validation=live?{...checked,issues:live,valid:!live.some(i=>i.severity==='error')}:checked;
   const result = {model:validation.model,error:(source||current)&&!validation.valid?validation.issues.filter(i=>i.severity==='error').map(i=>i.message).join('\n'):''};
@@ -186,6 +191,17 @@ function App() {
   // Item editing (FR-048–FR-052): the editor, add and delete dialogs work on one file of a project.
   type ItemTarget={docId:string;path:Path;kind:ItemKind};
   const [editing,setEditing]=useState<ItemTarget|null>(null),[adding,setAdding]=useState<{docId:string;kind?:ItemKind;owner?:Path;preset?:Record<string,any>}|null>(null),[deleting,setDeleting]=useState<ItemTarget|null>(null),[wizard,setWizard]=useState(false);
+  // Source Control (Phase 8): the project shown, a file whose history is open, and the open file's
+  // unsaved text kept as a server draft so pull and switch are refused while it exists (FR-065).
+  const [scmProject,setScmProject]=useState<string|null>(null),[historyPath,setHistoryPath]=useState<string|undefined>(undefined);
+  const scmSlug=scmProject&&projects.some(p=>p.slug===scmProject)?scmProject:current?.project??projects[0]?.slug??null;
+  const draftOf=useRef<{project:string;path:string}|null>(null);
+  useEffect(()=>{
+    const dirty=!!current&&source!==current.source;
+    if(!dirty){const d=draftOf.current;if(d){draftOf.current=null;void scmApi.deleteDraft(d.project,d.path).catch(()=>{});}return;}
+    const t=setTimeout(()=>{const prev=draftOf.current;if(prev&&(prev.project!==current!.project||prev.path!==current!.path))void scmApi.deleteDraft(prev.project,prev.path).catch(()=>{});draftOf.current={project:current!.project,path:current!.path};void scmApi.saveDraft(current!.project,current!.path,current!.hash,source).catch(()=>{});},400);
+    return()=>clearTimeout(t);
+  },[source,current?.id,current?.hash]);
   // RDF, OWL and SHACL resources are edited by IRI (Phase 7); blank nodes go with their parent.
   type RdfTarget={docId:string;subject:string;label:string;kind:string};
   const [rdfEditing,setRdfEditing]=useState<RdfTarget|null>(null),[rdfAdding,setRdfAdding]=useState<string|null>(null),[rdfDeleting,setRdfDeleting]=useState<RdfTarget|null>(null);
@@ -284,11 +300,19 @@ function App() {
     else if(a.action==='move')setMoving({project:a.project,path:a.path});
     else if(a.action==='delete-file')setDeleteTarget({kind:'file',project:a.project,path:a.path});
     else if(a.action==='delete-project')setDeleteTarget({kind:'project',project:a.project});
+    else if(a.action==='history'){setScmProject(a.project);setHistoryPath(a.path);setTab('scm');if(compact)closeWorkspace();}
+    else if(a.action==='gitignore')void editGitignore(a.project);
     else{
       // A detached file input, so the page keeps a single "Import definitions" file field.
       importInto.current=a.project;const input=document.createElement('input');input.type='file';input.multiple=true;
       input.onchange=async()=>{const files=await Promise.all(Array.from(input.files??[]).map(async f=>({path:f.name,source:await f.text()})));if(files.length)void importIntoProject(files);};input.click();
     }
+  }
+  // FR-094: `.gitignore` opens in Source; it is created empty when the project has none.
+  async function editGitignore(slug:string){
+    let d=docsRef.current.get(`${slug}/.gitignore`);
+    if(!d){try{await api.save(slug,'.gitignore',null,'');d=(await refresh()).find(x=>x.id===`${slug}/.gitignore`);}catch(e){setMessage((e as Error).message);return;}}
+    if(d&&open(d))setTab('source');
   }
   async function importIntoProject(files:{path:string;source:string}[],onConflict?:'replace'|'keep-both'){
     const project=projects.find(p=>p.slug===importInto.current);if(!project)return;
@@ -346,11 +370,14 @@ function App() {
         <div className="workspace-label">
           LOCAL WORKSPACE <span className="dot" />
         </div>
-        <button className="nav active" onClick={() => {showNeighborhood();if(compact)closeWorkspace();}}>
+        <button className={`nav${tab==='scm'?'':' active'}`} onClick={() => {showNeighborhood();if(compact)closeWorkspace();}}>
           <Network size={18} /> Model explorer
         </button>
         <button className="nav" onClick={() => {setTab("source");if(compact)closeWorkspace();}}>
           <FileCode size={18} /> Source editor
+        </button>
+        <button className={`nav${tab==='scm'?' active':''}`} onClick={() => {setHistoryPath(undefined);setTab("scm");if(compact)closeWorkspace();}}>
+          <GitBranch size={18} /> Source control{(()=>{const n=projects.find(p=>p.slug===scmSlug)?.changes??0;return n>0&&<span className="nav-count" aria-label={`${n} changed files`}>{n}</span>;})()}
         </button>
         <div className="section-label">
           PROJECTS <span>{projects.length}</span>
@@ -436,10 +463,10 @@ function App() {
             />
           </label>
         </div>
-        {(source||current)&&(showValidation||!!result.error)&&<details className="validation-details" open><summary onClick={e=>{e.preventDefault();setShowValidation(false);}}>Validation findings</summary><ValidationPanel source={source} issues={validation.issues} onLocate={issue=>{setTab('source');setTimeout(()=>{sourceEditor.current?.locate(issue);},0);}}/></details>}
+        {tab!=='scm'&&(source||current)&&(showValidation||!!result.error)&&<details className="validation-details" open><summary onClick={e=>{e.preventDefault();setShowValidation(false);}}>Validation findings</summary><ValidationPanel source={source} issues={validation.issues} onLocate={issue=>{setTab('source');setTimeout(()=>{sourceEditor.current?.locate(issue);},0);}}/></details>}
         <div className="canvas-row">
           <section className="canvas">
-            {tab==='metrics' ? <MetricsView project={kpiProject} projectName={projects.find(p=>p.slug===kpiProject)?.name} kpis={kpis} error={kpiError} loading={kpiLoading} selected={selectedKpi} onSelect={setSelectedKpi} filter={kpiFilter} onNew={()=>setWizard(true)} onEdit={editKpi}/> : tab==='mappings' ? <MappingExplorer currentId={current?.id} revisionKey={docs.map(d=>d.id+':'+d.hash).join('|')} dirty={!!current&&source!==current.source}/> : !source && !current ? (
+            {tab==='scm' ? (scmSlug?<SourceControl projects={projects} project={scmSlug} version={gitVersion} unsaved={current&&current.project===scmSlug&&source!==current.source?[current.path]:[]} historyPath={historyPath} onProject={slug=>{setScmProject(slug);setHistoryPath(undefined);}} onChanged={()=>void refresh().catch(()=>{})} onOpen={(project,path)=>{const d=docsRef.current.get(`${project}/${path}`);if(d&&open(d))setTab('source');}}/>:<p className="hint">Import definitions or load an example to start a project.</p>) : tab==='metrics' ? <MetricsView project={kpiProject} projectName={projects.find(p=>p.slug===kpiProject)?.name} kpis={kpis} error={kpiError} loading={kpiLoading} selected={selectedKpi} onSelect={setSelectedKpi} filter={kpiFilter} onNew={()=>setWizard(true)} onEdit={editKpi}/> : tab==='mappings' ? <MappingExplorer currentId={current?.id} revisionKey={docs.map(d=>d.id+':'+d.hash).join('|')} dirty={!!current&&source!==current.source}/> : !source && !current ? (
               <div className="empty">
                 <div className="empty-icon">
                   <Network size={36} />
@@ -467,7 +494,7 @@ function App() {
                 onChange={setSource}
                 onIssues={issues=>setEditorIssues({id:current?.id,issues})}
               />
-            ) : result.error ? <div className="invalid-definition"><h2>This definition needs repair</h2><p>Your saved document is unchanged. Open Source to fix the validation findings.</p><button onClick={()=>setTab("source")}>Repair in Source</button></div> : tab === "catalog" ? (
+            ) : plainText ? <div className="invalid-definition"><h2>Git ignore rules</h2><p>{current?.path} is plain text: one pattern per line, read by Git. Files it matches are not shown in the workspace or in Source Control.</p><button onClick={()=>setTab("source")}>Edit in Source</button></div> : result.error ? <div className="invalid-definition"><h2>This definition needs repair</h2><p>Your saved document is unchanged. Open Source to fix the validation findings.</p><button onClick={()=>setTab("source")}>Repair in Source</button></div> : tab === "catalog" ? (
               <div className="catalog">
                 {model?.entities
                   .filter((e) => e.name.toLowerCase().includes(search.toLowerCase()))
@@ -567,9 +594,9 @@ function App() {
             {model?.entities.length ?? 0} entities · {model?.edges.length ?? 0} relationships
           </span>
         </footer>
-        {(message || result.error) && (
-          <div role="status" className={`status ${result.error ? "error" : ""}`}>
-            {result.error ? "Validation failed. Review the findings and repair in Source." : message}
+        {(message || (result.error&&tab!=='scm')) && (
+          <div role="status" className={`status ${result.error&&tab!=='scm' ? "error" : ""}`}>
+            {result.error&&tab!=='scm' ? "Validation failed. Review the findings and repair in Source." : message}
           </div>
         )}
       </main>

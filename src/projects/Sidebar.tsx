@@ -3,7 +3,7 @@ import {ChevronDown,ChevronRight,FileCode,FolderGit2,MoreHorizontal,Trash2} from
 import type {ProjectInfo} from './api';
 // Project → files tree (FR-017, ui-contracts "Sidebar"). Each file shows its document type and
 // whether it passed validation; invalid files stay listed so they can be repaired in Source.
-export type TreeAction={action:'rename'|'import'|'delete-project';project:string}|{action:'move'|'delete-file';project:string;path:string};
+export type TreeAction={action:'rename'|'import'|'delete-project'|'gitignore';project:string}|{action:'move'|'delete-file'|'history';project:string;path:string};
 // Per-item menu (ui-contracts "Sidebar"): a button that opens a list of menu items.
 function ItemMenu({label,items}:{label:string;items:{label:string;run:()=>void}[]}){
  const [open,setOpen]=useState(false),root=useRef<HTMLSpanElement>(null);
@@ -28,11 +28,11 @@ export function ProjectTree({projects,currentId,onOpen,onAction}:{projects:Proje
     {open?<ChevronDown size={14}/>:<ChevronRight size={14}/>}<FolderGit2 size={15}/><span>{p.name}</span><small>{p.files.length}</small>
    </button>
    <DeleteButton label={`Delete project ${p.name}`} onClick={()=>onAction({action:'delete-project',project:p.slug})}/>
-   <ItemMenu label={p.name} items={[{label:'Rename',run:()=>onAction({action:'rename',project:p.slug})},{label:'Import files into this project',run:()=>onAction({action:'import',project:p.slug})},{label:'Delete',run:()=>onAction({action:'delete-project',project:p.slug})}]}/></div>
+   <ItemMenu label={p.name} items={[{label:'Rename',run:()=>onAction({action:'rename',project:p.slug})},{label:'Import files into this project',run:()=>onAction({action:'import',project:p.slug})},{label:'Edit .gitignore',run:()=>onAction({action:'gitignore',project:p.slug})},{label:'Delete',run:()=>onAction({action:'delete-project',project:p.slug})}]}/></div>
    {open&&<ul role="group">{p.files.map(f=>{const id=`${p.slug}/${f.path}`;return <li key={f.path} role="treeitem" aria-selected={currentId===id} aria-label={f.path} className={`project-file ${f.valid?'':'invalid'}`}>
     <div className="tree-row file-row"><button className={`document ${currentId===id?'chosen':''}`} onClick={()=>onOpen(p.slug,f.path)}><FileCode size={15}/><span>{f.path}</span></button>
     <DeleteButton label={`Delete ${f.path}`} onClick={()=>onAction({action:'delete-file',project:p.slug,path:f.path})}/>
-    <ItemMenu label={`${f.path} in ${p.name}`} items={[{label:'Move',run:()=>onAction({action:'move',project:p.slug,path:f.path})},{label:'Delete',run:()=>onAction({action:'delete-file',project:p.slug,path:f.path})}]}/></div>
+    <ItemMenu label={`${f.path} in ${p.name}`} items={[{label:'History',run:()=>onAction({action:'history',project:p.slug,path:f.path})},{label:'Move',run:()=>onAction({action:'move',project:p.slug,path:f.path})},{label:'Delete',run:()=>onAction({action:'delete-file',project:p.slug,path:f.path})}]}/></div>
     <small className="file-meta">{typeLabel(f.docType)}{f.layout==='embedded (deprecated)'&&<span title="Consolidated Ossie file: the ontology embeds its semantic model in ontology_mappings. Apache Ossie deprecates this layout in favour of split files."> · consolidated (deprecated upstream)</span>}{!f.valid&&<em className="file-invalid"> · invalid</em>}{f.gitState!=='clean'&&f.gitState!=='unknown'&&<> · {f.gitState}</>}</small>
    </li>;})}</ul>}
   </li>;})}
