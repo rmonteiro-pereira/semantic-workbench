@@ -1,3 +1,5 @@
+// Reads JSON request bodies with a byte limit before parsing.
+/** Parses a body within maxBytes, using empty for an absent or empty optional body. */
 export async function readJson(req: Request, maxBytes: number, empty?: object) {
   const reader = req.body?.getReader();
   if (!reader) {

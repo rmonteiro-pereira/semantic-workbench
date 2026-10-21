@@ -1,3 +1,5 @@
+// Connects project source control actions to Git and workspace updates. Checks after mutations
+// detect bytes rewritten by hooks or filters.
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { GitError, redactCredentials, type Git, type StatusEntry } from './git';
@@ -5,9 +7,7 @@ import { MergingError } from './errors';
 import { decode, sha256 } from './atomic';
 import { assertNoLinks, projectPath, projectPrefix, repoDir, type DataLayout } from './paths';
 import { serializationOf } from './scanner';
-// Source Control for one project folder (Story 9, FR-059–FR-065, FR-091–FR-096): status with
-// hidden-file labels, diff texts, stage/unstage, commit, branches, remote actions, history and the
-// post-operation check for bytes altered by hooks or filters. Every operation rescans the project.
+/** Reports drafts or uncommitted changes that prevent a source control operation. */
 export class BlockedError extends Error {
   constructor(
     public reason: 'drafts' | 'dirty',
@@ -21,15 +21,17 @@ export class BlockedError extends Error {
     this.name = 'BlockedError';
   }
 }
+/** Label for repository files omitted from the workspace view. */
 export const HIDDEN_LABEL = 'not shown in workspace';
-// Pull and switch need no unsaved drafts and a clean index and working tree (FR-065). Untracked
-// files do not block: Git itself refuses to overwrite them.
+// Untracked files do not block pull or switch because Git refuses to overwrite them.
+/** Returns the first draft or tracked-change blocker for pull and branch switching. */
 export function blockers(drafts: string[], entries: StatusEntry[]): BlockedError | null {
   if (drafts.length) return new BlockedError('drafts', drafts);
   const dirty = entries.filter(e => !e.untracked).map(e => e.path);
   return dirty.length ? new BlockedError('dirty', dirty) : null;
 }
 const REV = /^(HEAD|[0-9a-f]{7,64})$/;
+/** Workspace services needed to run Git actions and refresh project state. */
 export type ScmDeps = {
   layout: DataLayout;
   git: Git;
@@ -40,10 +42,11 @@ export type ScmDeps = {
   emit: (event: string, data: unknown) => void;
   project: (slug: string) => unknown;
 };
+/** Creates project source control operations with draft checks and workspace notifications. */
 export function createScm(deps: ScmDeps) {
   const { layout, git } = deps;
-  // Git runs in the project's repository (research R10), so the per-repository queue in git.ts keeps
-  // two projects of one repository from interleaving; project paths gain the project's prefix.
+  // Projects sharing a repository also share its Git queue to avoid interleaving index changes.
+  // Project paths gain their repository prefix before reaching Git.
   function dir(slug: string) {
     deps.project(slug);
     if (!deps.gitAvailable)
@@ -59,8 +62,7 @@ export function createScm(deps: ScmDeps) {
     const pre = prefix(slug);
     return list.map(p => pre + projectPath(String(p)));
   };
-  // Repository paths inside the project, relative to it; others stay repository-relative and are
-  // marked `outside` (the whole repository's changes are shown, FR-069).
+  // Show changes across the repository; paths outside this project keep repository-relative names.
   const fromRepo = (slug: string, path: string) => {
     const pre = prefix(slug);
     return !pre
@@ -118,9 +120,8 @@ export function createScm(deps: ScmDeps) {
     });
     return s;
   }
-  // FR-096: files whose bytes on disk differ from the bytes Git recorded for them, among `changed`
-  // (a smudge filter, an end-of-line attribute or a hook rewrote them). Git's own view of clean is
-  // used to skip files the user is still editing.
+  // Hooks and filters can change saved bytes even when Git reports a clean file.
+  // Skip files with uncommitted edits so normal editing is not reported as a rewrite.
   async function alteredAfter(d: string, changed: string[]) {
     if (!changed.length) return [];
     const s = await git.status(d);
@@ -249,7 +250,8 @@ export function createScm(deps: ScmDeps) {
     await git.commit(d, message);
     const head = (await git.head(d))!;
     const committed = await git.changedBetween(d, parent, head);
-    // A hook that rewrote a file, or a clean filter whose committed bytes differ from the saved file.
+    // A hook that rewrote a file, or a clean filter whose committed bytes differ from the saved
+    // file.
     const checked = committed.filter(p => before.has(p));
     const [disk, tree] = await Promise.all([
       git.worktreeIds(
@@ -342,9 +344,9 @@ export function createScm(deps: ScmDeps) {
       await after(slug);
       return status(slug);
     },
-    // `paths` (FR-045): commit exactly those project files with `git commit --only`, leaving other
-    // staged and unstaged work alone; refused during a merge. Without `paths`, the index is committed
-    // (v0.2.0). `push` then pushes; its outcome is reported, never thrown, as the commit is made.
+    // Selected paths use `git commit --only` to preserve unrelated staged and unstaged work.
+    // Without paths, commit the index; during a merge, refuse selected-path commits.
+    // Report push failures separately because the commit already exists.
     async commit(
       slug: string,
       message: unknown,
@@ -417,8 +419,8 @@ export function createScm(deps: ScmDeps) {
         url.length > 2000
       )
         throw Error('Give the remote URL or path.');
-      // `<transport>::<address>` runs a helper program (`ext::` runs any command); only URLs, scp-like
-      // addresses and local paths are accepted.
+      // `<transport>::<address>` runs a helper program (`ext::` runs any command); only URLs, scp-
+      // like addresses and local paths are accepted.
       if (/^[A-Za-z][A-Za-z0-9+.-]*::/.test(url.trim()))
         throw Error('Remote helper addresses (transport::address) are not accepted.');
       const d = dir(slug);
@@ -449,8 +451,7 @@ export function createScm(deps: ScmDeps) {
       if (!bytes) return { source: '', exists: false };
       return { source: decode(bytes), exists: true, hash: sha256(bytes) };
     },
-    // A file's committed versions, newest first, with their text (ODCS History, FR-057). Binary or
-    // missing versions are skipped.
+    // Skip binary and missing versions because the history view displays text.
     async versions(slug: string, path: string, limit = 20) {
       const d = dir(slug);
       const p = prefix(slug) + projectPath(path);
@@ -471,7 +472,7 @@ export function createScm(deps: ScmDeps) {
       }
       return out;
     },
-    // Tracked files that a .gitignore pattern now matches: Git keeps tracking them.
+    // Git keeps tracking files even after an ignore pattern matches them.
     async ignoredButTracked(slug: string) {
       const r = await git.run(
         dir(slug),
@@ -490,4 +491,5 @@ export function createScm(deps: ScmDeps) {
     },
   };
 }
+/** Project source control operations, status, and history. */
 export type Scm = ReturnType<typeof createScm>;

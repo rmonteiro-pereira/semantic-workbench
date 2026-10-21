@@ -1,3 +1,5 @@
+// Indexes project files using Git ignore rules and shared validation. Unsupported files stay hidden
+// while invalid supported files remain visible.
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, posix } from 'node:path';
 import { validateInput } from '../../src/input';
@@ -8,9 +10,7 @@ import type { Cache, CachedFile } from './cache';
 import type { Git, FileGitState } from './git';
 import { projectDir, projectPath, type DataLayout } from './paths';
 import { sqlFindings } from '../sql/lint';
-// Folder scanner (FR-079, FR-092): list files the way Git sees them (.gitignore honoured by Git),
-// hash every file, validate supported ones with the shared rules and index them into the cache.
-// Unsupported types are indexed as hidden; supported files that fail validation stay visible.
+/** A recognized file syntax, Git ignore file, or unsupported format. */
 export type Serialization =
   | 'yaml'
   | 'json'
@@ -20,6 +20,7 @@ export type Serialization =
   | 'rdfxml'
   | 'gitignore'
   | 'unsupported';
+/** Infers a file format from its path, consulting source text for ambiguous OWL files. */
 export function serializationOf(path: string, source?: string): Serialization {
   const name = posix.basename(path).toLowerCase();
   if (name === '.gitignore') return 'gitignore';
@@ -35,12 +36,13 @@ export function serializationOf(path: string, source?: string): Serialization {
     return source !== undefined && rdfSyntax(source, name) === 'text/turtle' ? 'turtle' : 'rdfxml';
   return 'unsupported';
 }
+/** A file’s cache metadata, extracted entities, and validation findings. */
 export type Indexed = {
   file: CachedFile;
   entities: { id: string; name: string; kind: string }[];
   findings: Issue[];
 };
-// Validate one file's bytes. Pure: used by the scanner and by saves before anything is written.
+/** Validates bytes without writing, for both indexing and save checks. */
 export function indexBytes(
   project: string,
   path: string,
@@ -95,7 +97,7 @@ export function indexBytes(
       findings: [],
     };
   const result = validateInput(source, posix.basename(path));
-  // SQL inside definitions: warnings only, never affecting validity (FR-052, FR-053).
+  // SQL findings are warnings only and do not make a document invalid.
   const sql =
     serialization === 'yaml' || serialization === 'json'
       ? sqlFindings(source, posix.basename(path))
@@ -122,6 +124,7 @@ function walk(dir: string, prefix = '', out: string[] = []) {
   }
   return out;
 }
+/** Creates serialized project scans that refresh the cache and publish file changes. */
 export function createScanner(
   layout: DataLayout,
   cache: Cache,
@@ -138,7 +141,7 @@ export function createScanner(
       try {
         states = (await git.status(dir)).files;
       } catch {
-        /* a repository without commits still lists files */
+        /* File listing still works when the repository has no commits. */
       }
     } else paths = walk(dir);
     const present = new Set<string>();
@@ -192,4 +195,5 @@ export function createScanner(
     },
   };
 }
+/** Scans project folders into the rebuildable file index. */
 export type Scanner = ReturnType<typeof createScanner>;

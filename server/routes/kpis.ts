@@ -1,3 +1,5 @@
+// Previews metric changes and saves related files in one journaled operation. Previews never
+// execute SQL.
 import { readJson } from '../request';
 import { MAX_INPUT_BYTES } from '../../src/diagnostics';
 import { explainMetric } from '../agent/explain';
@@ -7,10 +9,7 @@ import type { Route } from './http';
 const HASH = /^[0-9a-f]{64}$/;
 const object = (v: unknown): v is Record<string, any> =>
   !!v && typeof v === 'object' && !Array.isArray(v);
-// POST /api/projects/:slug/metrics (FR-010, FR-016; alias …/kpis): the wizard's metric as one journaled save of the semantic
-// model and the mapping document. `…/kpis/preview` returns the same plan and its explanation
-// without writing anything; neither executes SQL. POST /api/projects/:slug/save-batch saves several
-// files of a project in one journaled operation (deletes with dependents, confirmed rewrites).
+/** Handles metric previews and journaled saves across related files. */
 export const kpiRoutes: Route = async (ws, req, url) => {
   if (req.method !== 'POST') return null;
   const batch = url.pathname.match(/^\/api\/projects\/([^/]+)\/save-batch$/);
@@ -32,7 +31,7 @@ export const kpiRoutes: Route = async (ws, req, url) => {
         );
     return Response.json(await ws.saveFiles(slug, body.files, 'save-batch'));
   }
-  // v0.3.0: `metrics` names; the v0.2.0 `kpis` paths stay as documented aliases (FR-016).
+  // Keep the older `kpis` paths as aliases for existing clients.
   const m = url.pathname.match(/^\/api\/projects\/([^/]+)\/(?:metrics|kpis)(\/preview)?$/);
   if (!m) return null;
   const slug = decodeURIComponent(m[1]);

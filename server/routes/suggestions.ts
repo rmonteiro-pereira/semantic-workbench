@@ -1,6 +1,8 @@
+// Lists evidence for moving files between projects and records accepted or rejected suggestions.
 import type { Route } from './http';
-// Grouping suggestions (FR-019): listed with their evidence; accepting moves the file, rejecting
-// is remembered by file hash and target project in data/state/suggestions.json.
+// Rejections are remembered by file hash and target project so unchanged suggestions stay
+// dismissed.
+/** Handles file grouping suggestions and the user’s accept or reject decision. */
 export const suggestionRoutes: Route = async (ws, req, url) => {
   if (url.pathname === '/api/suggestions' && req.method === 'GET')
     return Response.json(ws.suggestions());

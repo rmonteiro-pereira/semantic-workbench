@@ -1,10 +1,11 @@
+// Exposes project source control operations. Remote actions run only through explicit requests.
 import { existsSync, readFileSync } from 'node:fs';
 import { readJson } from '../request';
 import { decode, sha256 } from '../projects/atomic';
 import { projectFile } from '../projects/paths';
 import { appendIgnore } from '../../src/scm/gitignore';
 import type { Route } from './http';
-// Source Control (contracts/http-api.md). Remote actions run only from these explicit endpoints.
+/** Handles source control requests, including explicitly requested remote actions. */
 export const gitRoutes: Route = async (ws, req, url) => {
   const m = url.pathname.match(/^\/api\/projects\/([^/]+)\/(git\/[a-z-]+|gitignore)$/);
   if (!m) return null;
@@ -90,7 +91,7 @@ export const gitRoutes: Route = async (ws, req, url) => {
     if (action === 'git/push') return Response.json(await scm.push(slug));
     if (action === 'git/sync') return Response.json(await scm.sync(slug));
     if (action === 'git/cancel') return Response.json(scm.cancel(slug));
-    // FR-093/FR-095: append through the normal hash-checked save, which rescans the project.
+    // Use the hash-checked save so concurrent edits are detected and the project is rescanned.
     if (action === 'gitignore') {
       const b = await body(['pattern']);
       if (typeof b.pattern !== 'string' || b.pattern.length > 1000)

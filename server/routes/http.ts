@@ -1,3 +1,4 @@
+// Defines shared route handling, HTTP error responses, and URL path decoding.
 import { InputError } from '../../src/diagnostics';
 import { PathError } from '../projects/paths';
 import { GitError } from '../projects/git';
@@ -11,12 +12,13 @@ import {
   ConflictError,
   MergingError,
 } from '../projects/errors';
+/** Handles a request or returns null so the next route can try it. */
 export type Route = (
   ws: Workspace,
   req: Request,
   url: URL,
 ) => Promise<Response | null> | Response | null;
-// Error shapes of contracts/http-api.md: `{error, issues?}`; stale saves carry the current file.
+/** Maps workspace errors to HTTP responses, including current content for stale saves. */
 export function errorResponse(e: unknown) {
   if (e instanceof StaleError)
     return Response.json(
@@ -48,7 +50,7 @@ export function errorResponse(e: unknown) {
   if (e instanceof PathError) return Response.json({ error: e.message }, { status: 400 });
   return Response.json({ error: (e as Error).message }, { status: 400 });
 }
-// `/a/b%2Fc` → `a/b/c`: each URL segment is decoded, then validated as a project path.
+/** Decodes URL path segments; callers must validate the resulting project path. */
 export function decodePath(raw: string) {
   return raw
     .split('/')

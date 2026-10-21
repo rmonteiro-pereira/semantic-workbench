@@ -1,10 +1,13 @@
+// Runs the installed Git with argument arrays, timeouts, and a queue per repository. Credentials
+// come from Git configuration; terminal prompts are disabled.
 import { resolve, sep } from 'node:path';
-// The machine's Git, invoked with argument arrays (never a shell string), an explicit working
-// directory inside data/projects/, no terminal prompts, timeouts and one queue per repository
-// (research R5). Credentials come from Git's own configuration; nothing here stores or asks for them.
+/** Default time limit for local Git commands. */
 export const LOCAL_TIMEOUT_MS = 30_000;
+/** Default time limit for remote Git commands. */
 export const REMOTE_TIMEOUT_MS = 600_000;
+/** Git exit status, decoded output, and raw stdout bytes. */
 export type GitResult = { code: number; stdout: string; stderr: string; bytes: Uint8Array };
+/** Reports Git failure or cancellation with optional command output. */
 export class GitError extends Error {
   constructor(
     message: string,
@@ -15,6 +18,7 @@ export class GitError extends Error {
     this.name = 'GitError';
   }
 }
+/** Configures the allowed repository root, Git binary, environment, and timeouts. */
 export type GitOptions = {
   projectsRoot: string;
   binary?: string;
@@ -29,6 +33,7 @@ type RunOptions = {
   readOnly?: boolean;
   remote?: boolean;
 };
+/** Removes repository overrides and injected Git configuration, then disables terminal prompts. */
 export function gitEnv(base: Record<string, string | undefined> = process.env) {
   const env: Record<string, string> = {};
   // Variables that redirect the repository, inject configuration or swap Git's helper programs.
@@ -50,13 +55,13 @@ export function gitEnv(base: Record<string, string | undefined> = process.env) {
       env[k] = v;
   return { ...env, GIT_TERMINAL_PROMPT: '0', LC_ALL: 'C' };
 }
-// Subcommands that contact a remote. They run only from the explicit fetch/pull/push/sync actions
-// (FR-063), which pass `remote: true`; anything else asking for them is refused.
+// Remote commands require explicit opt-in with `remote: true` to prevent incidental network access.
 const REMOTE_COMMANDS = new Set(['fetch', 'pull', 'push', 'ls-remote', 'clone', 'remote-update']);
-// `https://user:token@host/...` → `https://***@host/...` in anything shown to the user.
+/** Masks credentials embedded in URLs before output is shown to users. */
 export function redactCredentials(text: string) {
   return text.replace(/([A-Za-z][A-Za-z0-9+.-]*:\/\/)[^@/\s]+@/g, '$1***@');
 }
+/** Finds the Git subcommand after global options, recognizing remote update separately. */
 export function subcommandOf(args: string[]) {
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
@@ -69,6 +74,7 @@ export function subcommandOf(args: string[]) {
   }
   return '';
 }
+/** Creates a Git runner restricted to project repositories with serialized mutations. */
 export function createGit(options: GitOptions) {
   const root = resolve(options.projectsRoot);
   const binary = options.binary ?? 'git';
@@ -102,8 +108,8 @@ export function createGit(options: GitOptions) {
     } catch (e) {
       throw new GitError(`Git is not available: ${(e as Error).message}`);
     }
-    // On timeout or Cancel, kill Git and stop waiting: a child process (hook, credential helper) may
-    // keep the pipes open.
+    // On timeout or Cancel, kill Git and stop waiting: a child process (hook, credential helper)
+    // may keep the pipes open.
     let timer: ReturnType<typeof setTimeout> | undefined;
     const stopped = new Promise<'timeout' | 'cancelled'>(res => {
       timer = setTimeout(() => {
@@ -196,10 +202,9 @@ export function createGit(options: GitOptions) {
   }
   const merging = async (cwd: string) =>
     (await read(cwd, ['rev-parse', '-q', '--verify', 'MERGE_HEAD'], true)).code === 0;
-  // Commit exactly `paths` (research R8): untracked ones are added first, then `git commit --only`
-  // takes those paths from the working tree and leaves every other staged or unstaged change alone.
-  // Ignored paths and paths without changes are skipped. No identity, a merge in progress or nothing
-  // to commit is reported instead of thrown.
+  // Commit only these paths from the working tree to preserve unrelated staged and unstaged
+  // changes. Skip ignored or unchanged paths; report missing identity, active merges, or no changes
+  // as outcomes.
   async function commitPaths(
     cwd: string,
     paths: string[],
@@ -384,10 +389,13 @@ export function createGit(options: GitOptions) {
     },
   };
 }
+/** Repository operations backed by the installed Git executable. */
 export type Git = ReturnType<typeof createGit>;
+/** A selected-path commit result or the reason no commit was made. */
 export type CommitPathsResult =
   | { committed: true; commit: string }
   | { committed: false; reason: 'no-identity' | 'merging' | 'nothing' };
+/** Workspace status of a file relative to Git’s index and working tree. */
 export type FileGitState =
   | 'clean'
   | 'modified'
@@ -396,7 +404,7 @@ export type FileGitState =
   | 'renamed'
   | 'untracked'
   | 'conflicted';
-// One changed path: index and worktree columns as Git prints them ('.' unchanged, '?' untracked).
+/** A changed path with Git index and worktree codes, including rename and conflict details. */
 export type StatusEntry = {
   path: string;
   orig?: string;
@@ -405,8 +413,8 @@ export type StatusEntry = {
   conflicted: boolean;
   untracked: boolean;
 };
-// Porcelain v2 (-z) reader: branch facts and one entry per path. Rename entries are followed by
-// their original path as a separate NUL-terminated element.
+// Rename records include the original path as a separate NUL-terminated element.
+/** Parses NUL-delimited porcelain status into branch metadata and changed paths. */
 export function parseStatus(output: string) {
   const parts = output.split('\0');
   let branch = '';

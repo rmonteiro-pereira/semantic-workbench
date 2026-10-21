@@ -1,12 +1,13 @@
+// Journals operations across several files as atomic, reversible renames within the data root. Only
+// fully staged content is moved into place.
 import { existsSync, mkdirSync, readdirSync, renameSync, rmSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { atomicWriteJson, readJsonFile } from './atomic';
 import type { DataLayout } from './paths';
-// Journal-then-act for operations that touch several files (research R7). Every step is a rename
-// inside the data root, so each step is atomic and reversible. Content is staged first (for
-// example under data/projects/.staging-<opId>/) and the journal only moves finished files.
+/** A reversible rename and whether its completion has been recorded. */
 export type JournalStep = { action: 'rename'; from: string; to: string; done: boolean };
+/** Durable operation metadata, ordered rename steps, and cleanup paths. */
 export type JournalFile = {
   formatVersion: 1;
   opId: string;
@@ -15,21 +16,23 @@ export type JournalFile = {
   cleanup: string[];
   startedAt: string;
 };
+/** Reports whether an interrupted operation completed or rolled back and its affected paths. */
 export type RecoveryOutcome = {
   opId: string;
   kind: string;
   outcome: 'completed' | 'rolled-back';
   paths: string[];
 };
-// Test hook: `crashAfter(kind, step)` returning true stops right after that step as a crash would
-// (no roll-back, no clean-up), so recovery on the next start can be tested.
+/** Simulates interruption without rollback or cleanup so startup recovery can be tested. */
 export class JournalCrash extends Error {
   constructor() {
     super('Simulated crash (test hook).');
     this.name = 'JournalCrash';
   }
 }
+/** Allows tests to simulate a crash immediately after a chosen rename step. */
 export type JournalHooks = { crashAfter?: (kind: string, step: number) => boolean };
+/** Creates journaled file operations and recovery confined to the data root. */
 export function createJournal(layout: DataLayout, hooks: JournalHooks = {}) {
   const abs = (path: string) => {
     const p = resolve(layout.root, path);
@@ -111,14 +114,15 @@ export function createJournal(layout: DataLayout, hooks: JournalHooks = {}) {
       return j;
     },
     pending,
-    // Start-up recovery: roll an unfinished operation forward when every remaining source exists and
-    // every destination is free; otherwise roll the completed steps back.
+    // Start-up recovery: roll an unfinished operation forward when every remaining source exists
+    // and every destination is free; otherwise roll the completed steps back.
     recover(): RecoveryOutcome[] {
       return pending().map(name => {
         const j = readJsonFile<JournalFile>(join(layout.journal, name))!;
         settle(j);
         const remaining = j.steps.filter(s => !s.done);
-        // Check the remaining steps in order against the file system as earlier steps would leave it.
+        // Check the remaining steps in order against the file system as earlier steps would leave
+        // it.
         const moved = new Map<string, boolean>();
         const exists = (p: string) => moved.get(p) ?? existsSync(abs(p));
         const forward = remaining.every(s => {
@@ -146,4 +150,5 @@ export function createJournal(layout: DataLayout, hooks: JournalHooks = {}) {
     },
   };
 }
+/** Runs and recovers durable operations composed of reversible file renames. */
 export type Journal = ReturnType<typeof createJournal>;

@@ -1,7 +1,8 @@
+// Handles project management, imports, example loading, and workspace status.
 import { readJson } from '../request';
 import type { Route } from './http';
 const IMPORT_LIMIT = 64_000_000;
-// Projects (contracts/http-api.md): list, create, rename, one project per import batch, examples.
+/** Handles project management and imports, creating one project per new import batch. */
 export const projectRoutes: Route = async (ws, req, url) => {
   const p = url.pathname;
   if (p === '/api/status' && req.method === 'GET')

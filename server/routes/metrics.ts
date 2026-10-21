@@ -1,7 +1,8 @@
+// Lists project metrics and explains their inputs without executing SQL.
 import { explainMetric, projectMetrics } from '../agent/explain';
 import { decodePath, type Route } from './http';
-// GET /api/projects/:slug/metrics and GET /api/projects/:slug/files/*path/explain/:metric. Read only:
-// the explanation never executes SQL. Matched before the files route, which would read `…/explain/x` as a path.
+// Match before the files route so `explain` is not treated as part of a file path.
+/** Handles metric listings and explanations without executing SQL. */
 export const metricRoutes: Route = (ws, req, url) => {
   if (req.method !== 'GET') return null;
   const list = url.pathname.match(/^\/api\/projects\/([^/]+)\/metrics$/);

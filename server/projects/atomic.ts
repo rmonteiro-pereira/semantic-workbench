@@ -1,3 +1,4 @@
+// Preserves UTF-8 content and replaces files atomically through temporary files beside each target.
 import {
   openSync,
   writeSync,
@@ -10,11 +11,14 @@ import {
 } from 'node:fs';
 import { dirname, basename, join } from 'node:path';
 import { createHash, randomBytes } from 'node:crypto';
+/** Returns the SHA-256 hex digest of bytes or UTF-8 text. */
 export const sha256 = (bytes: Uint8Array | string) =>
   createHash('sha256').update(bytes).digest('hex');
 // Keep a leading BOM: it is part of the file's bytes.
 const decoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
+/** Encodes text as UTF-8 without normalizing its contents. */
 export const encode = (text: string) => new TextEncoder().encode(text);
+/** Decodes valid UTF-8 while preserving a leading byte-order mark. */
 export function decode(bytes: Uint8Array) {
   try {
     return decoder.decode(bytes);
@@ -28,18 +32,19 @@ function fsyncDir(dir: string) {
     fd = openSync(dir, 'r');
     fsyncSync(fd);
   } catch {
-    /* some file systems refuse directory fsync */
+    /* Some filesystems do not support syncing directories. */
   } finally {
     if (fd !== undefined) closeSync(fd);
   }
 }
+/** Suffix used to recognize temporary files and exclude them from indexing. */
 export const TEMP_SUFFIX = '.workbench-tmp';
+/** Returns a randomized temporary path beside the destination file. */
 export const tempPath = (path: string) =>
   join(dirname(path), `.${basename(path)}.${randomBytes(6).toString('hex')}${TEMP_SUFFIX}`);
-// Test seam: lets crash tests stop between writing the temporary file and the rename.
+/** Allows crash tests to interrupt a write before the temporary file is renamed. */
 export type AtomicHooks = { beforeRename?: (temp: string) => void };
-// Write a temporary file beside the target, fsync it, rename it over the target and fsync the
-// folder. A crash at any point leaves either the old or the new bytes, never a mix.
+/** Replaces a file atomically and returns its hash; crashes cannot mix old and new bytes. */
 export function atomicWrite(path: string, data: Uint8Array | string, hooks: AtomicHooks = {}) {
   const dir = dirname(path);
   mkdirSync(dir, { recursive: true });
@@ -63,9 +68,11 @@ export function atomicWrite(path: string, data: Uint8Array | string, hooks: Atom
   fsyncDir(dir);
   return sha256(bytes);
 }
+/** Atomically writes indented JSON with a trailing newline and returns its hash. */
 export function atomicWriteJson(path: string, value: unknown) {
   return atomicWrite(path, JSON.stringify(value, null, 2) + '\n');
 }
+/** Reads JSON as the requested type, returning null only when the file is missing. */
 export function readJsonFile<T>(path: string): T | null {
   let text: string;
   try {

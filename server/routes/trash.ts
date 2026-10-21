@@ -1,12 +1,14 @@
+// Handles deletion, undo, restoration, and permanent removal with explicit confirmation for
+// destructive calls.
 import { readJson } from '../request';
 import { decodePath, type Route } from './http';
-// Delete, undo, restore, purge and Clear (contracts/http-api.md). Every destructive call needs
-// an explicit `{confirm: true}` body, which the UI sends only from its confirmation dialog.
+/** Requires an explicit confirmation flag before a destructive operation. */
 export function requireConfirm(body: any) {
   if (!body || body.confirm !== true)
     throw Error('This removes data; send {"confirm": true} after the user confirmed.');
 }
 const ENTRY = /^[0-9A-HJKMNP-TV-Z]{26}$/;
+/** Handles trash operations, requiring confirmation before destructive actions. */
 export const trashRoutes: Route = async (ws, req, url) => {
   const p = url.pathname;
   const impact = p.match(/^\/api\/projects\/([^/]+)\/delete-impact$/);
