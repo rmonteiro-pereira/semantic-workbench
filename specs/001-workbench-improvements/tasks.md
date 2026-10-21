@@ -219,24 +219,24 @@ to concepts and ODCS.
 
 ### Tests
 
-- [ ] T095 [P] [US6] YAML node patch tests (comments, anchors, key order, quoting kept) in tests/yaml-patch.test.ts
-- [ ] T096 [P] [US6] JSON value patch tests (indentation kept; no whole-file re-serialization, baseline defect 22) in tests/json-patch.test.ts
-- [ ] T097 [P] [US7] Insert-in-document-style and dependents-on-delete tests in tests/item-add-delete.test.ts
-- [ ] T098 [P] [US1] KPI save tests in tests/kpi-save.test.ts: metric + extension written; exactly one sorted binding line added to the mapping extension; minimal mapping created with `concept_mappings: []` when none exists; consolidated file uses the embedded semantic_model root; journaled; 409 on any stale base hash; editing an approved KPI sets `status` to `proposed`, deprecation requires `replaced_by` or `deprecation_reason`, and dependents are listed before saving (FR-015)
+- [X] T095 [P] [US6] YAML node patch tests (comments, anchors, key order, quoting kept) in tests/yaml-patch.test.ts
+- [X] T096 [P] [US6] JSON value patch tests (indentation kept; no whole-file re-serialization, baseline defect 22) in tests/json-patch.test.ts
+- [X] T097 [P] [US7] Insert-in-document-style and dependents-on-delete tests in tests/item-add-delete.test.ts
+- [X] T098 [P] [US1] KPI save tests in tests/kpi-save.test.ts: metric + extension written; exactly one sorted binding line added to the mapping extension; minimal mapping created with `concept_mappings: []` when none exists; consolidated file uses the embedded semantic_model root; journaled; 409 on any stale base hash; editing an approved KPI sets `status` to `proposed`, deprecation requires `replaced_by` or `deprecation_reason`, and dependents are listed before saving (FR-015)
 
 ### Implementation
 
-- [ ] T099 [US6] YAML range patching in src/edit/yaml-patch.ts
-- [ ] T100 [P] [US6] JSON range patching in src/edit/json-patch.ts
-- [ ] T101 [US6] Item ranges per document type (concept, relationship, dataset, join, metric, ODCS object/property/foreign key, mapping) in src/edit/item-model.ts
-- [ ] T102 [US6] Item editor (fields per type, inline lint, Save disabled while invalid) in src/edit/ItemEditor.tsx, opened from graph, neighborhood, overview and catalog clicks in src/main.tsx
-- [ ] T103 [US7] Add/delete forms and dependents confirmation in src/edit/AddItem.tsx and src/edit/DeleteItem.tsx
-- [ ] T104 [US6] Rename reference report (no silent rewrite) in src/edit/references.ts
-- [ ] T105 [US1] `POST /api/projects/:slug/kpis` journaled multi-file save in server/routes/kpis.ts
-- [ ] T106 [US1] KPI wizard (concept → data → type and inputs → time and breakdowns → targets → governance → explanation and SQL preview → save) in src/metrics/KpiWizard.tsx, with the FR-015 status rules also enforced when a KPI is edited in src/edit/ItemEditor.tsx
-- [ ] T107 [US6] Browser check scripts/item-edit-browser-check.ts: edit/add/delete per YAML/JSON type, wizard, `git diff` limited to the item
-- [ ] T108 [US6] Add mutants: JSON re-serialization; delete without dependents; wizard duplicates a formula into the extension
-- [ ] T109 [US6] Update README.md (item editing, KPI wizard)
+- [X] T099 [US6] YAML range patching in src/edit/yaml-patch.ts
+- [X] T100 [P] [US6] JSON range patching in src/edit/json-patch.ts
+- [X] T101 [US6] Item ranges per document type (concept, relationship, dataset, join, metric, ODCS object/property/foreign key, mapping) in src/edit/item-model.ts
+- [X] T102 [US6] Item editor (fields per type, inline lint, Save disabled while invalid) in src/edit/ItemEditor.tsx, opened from graph, neighborhood, overview and catalog clicks in src/main.tsx
+- [X] T103 [US7] Add/delete forms and dependents confirmation in src/edit/AddItem.tsx and src/edit/DeleteItem.tsx
+- [X] T104 [US6] Rename reference report (no silent rewrite) in src/edit/references.ts
+- [X] T105 [US1] `POST /api/projects/:slug/kpis` journaled multi-file save in server/routes/kpis.ts
+- [X] T106 [US1] KPI wizard (concept → data → type and inputs → time and breakdowns → targets → governance → explanation and SQL preview → save) in src/metrics/KpiWizard.tsx, with the FR-015 status rules also enforced when a KPI is edited in src/edit/ItemEditor.tsx
+- [X] T107 [US6] Browser check scripts/item-edit-browser-check.ts: edit/add/delete per YAML/JSON type, wizard, `git diff` limited to the item
+- [X] T108 [US6] Add mutants: JSON re-serialization; delete without dependents; wizard duplicates a formula into the extension
+- [X] T109 [US6] Update README.md (item editing, KPI wizard)
 
 **Checkpoint**: Stories 6/7 (YAML/JSON) and Story 1 authoring complete.
 

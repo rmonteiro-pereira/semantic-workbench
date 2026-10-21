@@ -53,7 +53,7 @@ The workbench only opens folders under `data/projects/` and never contacts a net
 
 | Input | Serialization | Editing and validation |
 | --- | --- | --- |
-| ODCS | YAML / JSON | Form descriptions and full source; pinned official v3.1.0 schema validation; property- and schema-level foreign keys shown as relationships |
+| ODCS | YAML / JSON | Item editor for objects, properties and foreign keys, and full source; pinned official v3.1.0 schema validation; property- and schema-level foreign keys shown as relationships |
 | Ossie semantic model | YAML / JSON | Current flat model and legacy model arrays; official 0.2.0.dev0 schema validation for versioned flat models |
 | Ossie ontology | YAML / JSON | Concepts, roles, inheritance, built-in concepts; pinned 0.2.0.dev0 schema or unversioned compatibility checks |
 | Ossie mappings | YAML / JSON | Standalone and embedded object/referent/link mappings; pinned schemas, cross-document runtime resolution and query planning |
@@ -133,6 +133,7 @@ bun run test:trash
 bun run test:metrics
 bun run test:graph
 bun run test:editor
+bun run test:item-edit
 bun run test:mutation
 bun scripts/live-inspect.ts
 ```
@@ -145,7 +146,7 @@ The responsive suite checks six viewports from 390×844 through 2560×1440, incl
 
 `bun run test:edges` measures Flights SVG endpoints against rendered entity borders during entity and business-area dragging, zooming, selection, and both layout modes. Worker routes render only when their endpoints match the current React Flow handles; live curves keep connections attached while dragging or waiting for a fresh route.
 
-The mutation suite is **targeted**, not a whole-project mutation score. It checks 60 deliberate logic faults in validation, RDF definitions, size limits, layout, neighborhood filtering, grouping, exports, form edits and the folder store (a dropped base-hash check, an invalid save accepted, a write in place instead of temporary file and rename, skipped migration hash verification, `..` and `.git` paths accepted, no origin check on the event stream, journal recovery that always rolls forward, undo after the 10-second window, a restore that overwrites, suggestions from similar names, deletion without the confirmation flag), plus a browser-injected empty neighborhood node projection. Unmodified module baselines must pass, and every mutant must be detected. It writes temporary candidate modules under `/tmp`, never changes application sources, and removes temporary files afterward.
+The mutation suite is **targeted**, not a whole-project mutation score. It checks 82 deliberate logic faults in validation, RDF definitions, size limits, layout, neighborhood filtering, grouping, exports, form edits, the source and item editors, KPIs and the folder store (item patches that re-serialize JSON or rewrite a whole YAML item, a delete that skips dependents, a KPI wizard or save that copies the formula into the extension, binding lines out of order, an approved KPI that stays approved after a change, a dropped base-hash check, an invalid save accepted, a write in place instead of temporary file and rename, skipped migration hash verification, `..` and `.git` paths accepted, no origin check on the event stream, journal recovery that always rolls forward, undo after the 10-second window, a restore that overwrites, suggestions from similar names, deletion without the confirmation flag), plus a browser-injected empty neighborhood node projection. Unmodified module baselines must pass, and every mutant must be detected. It writes temporary candidate modules under `/tmp`, never changes application sources, and removes temporary files afterward.
 
 **Group by → IRI namespaces** places each definition in the namespace of its IRI, labelled with the declared prefix of the longest matching namespace (Ossie `prefixes`, or the RDF document's prefixes). Definitions without an IRI are listed under **No IRI**. Auto grouping picks namespaces when business entities use at least two declared prefixes and no domains are declared.
 
@@ -188,7 +189,12 @@ These are input and supported-definition validators. They do not certify full OW
 
 Standards references: [ODCS schema](https://github.com/bitol-io/open-data-contract-standard/blob/main/schema/odcs-json-schema-v3.1.0.json), [Ossie semantic specification](https://github.com/apache/ossie/blob/main/core-spec/spec.md), [W3C SHACL](https://www.w3.org/TR/shacl/).
 
-## Metrics: KPIs explained, never executed
+## Editing one item
+
+Select an entity, relationship or KPI anywhere (graph, neighborhood, overview, catalog, Metrics) and press **Edit** in the details panel (or the **E** key; catalog cards and the KPI detail have their own **Edit**). A drawer opens on the right with only that item: **Fields** shows its attributes as a form (a concept's name, type, description, parents and IRI; a relationship's related concept, role, multiplicity and reading; a dataset, field or join; an ODCS object, property or foreign key; a metric's expression and its KPI attributes), and **Source** shows the item's own lines in the source editor, with highlighting and inline findings. Child lists (a concept's relationships, a dataset's fields, a contract object's properties and foreign keys) open their own editors. The whole file is validated as you edit; **Save** stays off while there are errors and writes the change in place with the usual base-hash check. Only the edited values change: comments, anchors, key order, quoting, indentation and line endings elsewhere keep their bytes, and JSON files are never re-serialized. **Open in Source** jumps to the item's line.
+
+**Add** (header) inserts a new entity in the open file, and **Add relationship** / **Add property** (details panel) a relationship or property, through a form with the fields the format needs and a preview of the text that will be inserted, written in the file's own style (indentation, list style, flow lists where the file uses them). **Delete** lists what depends on the item (relationships and parent lists that name a concept, joins and metrics that read a dataset, foreign keys to a contract object, metrics that use a KPI and its binding line, mappings in other files of the project) and removes them with it in one journaled save, or Cancel; references that cannot be removed safely (expressions in mappings) are listed to fix in Source. Renaming an item lists every other place in the project that still names it; each one is rewritten only if ticked. Nothing is written until **Save** or **Delete**; Git keeps the previous version. RDF items (Turtle, N-Triples, N3, RDF/XML) are edited in Source for now.
+
 
 The **Metrics** tab lists every governed KPI of the open file's project: label, type, unit, status, owner and the ontology concept it measures, with search, grouping (owner, type, status, concept, file) and filters. Selecting a KPI opens its detail beside the list (in place of it on narrow screens):
 
@@ -200,7 +206,9 @@ The workbench never executes queries: the explanation and the SQL preview are co
 
 KPI attributes are stored in the Ossie files themselves, so they travel with the model and diff cleanly: each metric carries a `custom_extensions` entry with `vendor_name: SEMANTIC_WORKBENCH` whose `data` is JSON validated against [schemas/semantic-workbench-metric-v1.json](schemas/semantic-workbench-metric-v1.json); the KPI-to-concept bindings (`measures`, optional `of`) are one line per KPI in the root extension of the standalone mapping document (or of the embedded semantic model in a consolidated file), validated against [schemas/semantic-workbench-mapping-v1.json](schemas/semantic-workbench-mapping-v1.json). Errors in these blocks are reported at the exact line and column. Without extensions, type and additivity are inferred, and concept mappings whose expression is a metric name are shown as evidence. The graph shows KPI nodes (with a *KPIs shown/hidden* toggle) and a KPI badge on concepts that KPIs measure or describe, also in the catalog. The shopping center example declares all of this for its 25 KPIs.
 
-API: `GET /api/projects/:slug/metrics` and `GET /api/projects/:slug/files/*path/explain/:metric?grain=&dimension=&rollup=sum` ([contract](specs/001-workbench-improvements/contracts/http-api.md)). `bun run test:metrics` checks the view in a browser on an isolated data root.
+**New KPI** (Metrics) opens a wizard in eight numbered steps: the concept it measures and the entity it is about; the semantic model; type and inputs (a simple aggregation of a field, a ratio of two metrics with a `NULLIF` guard, or a derived, cumulative or filtered KPI over named metrics), label, name and additivity; time dimension, grains and breakdowns; target and thresholds; owner, steward, status, unit and format; the explanation and SQL preview of the new KPI (computed, not executed); and the exact lines each file will gain. Save writes the metric (its formula only as the Ossie expression) with its extension into the semantic model and one binding line, in sorted position, into the project's mapping document, in one journaled save; a project without a mapping document gets a minimal one (`concept_mappings: []`), and a consolidated file keeps the binding in its embedded semantic model. **Edit KPI** follows the status rules: draft → proposed → approved → deprecated; changing the definition of an approved KPI returns it to proposed; deprecation needs `replaced_by` or `deprecation_reason`; the metrics and bindings that use the KPI are listed before saving.
+
+API: `GET /api/projects/:slug/metrics`, `POST /api/projects/:slug/kpis` (and `…/kpis/preview`), `POST /api/projects/:slug/save-batch` and `GET /api/projects/:slug/files/*path/explain/:metric?grain=&dimension=&rollup=sum` ([contract](specs/001-workbench-improvements/contracts/http-api.md)). `bun run test:metrics` checks the view and `bun run test:item-edit` the item editor, add, delete, rename, the wizard and the status rules in a browser on an isolated data root, with `git diff` limited to the edited item.
 
 ## Ontology mappings and agent tools
 
