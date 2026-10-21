@@ -250,9 +250,9 @@ identities.
    other.
 5. **Given** a Viewer, **When** they read a repository, **Then** they see the published state of
    its default branch and get no working copy.
-6. **Given** two people saving the same file in the same working copy is impossible, **When** a
-   person's own two tabs save the same file, **Then** the existing hash check still refuses the
-   stale save.
+6. **Given** one person with two tabs open on the same file of their working copy, **When**
+   both tabs save, **Then** the existing hash check refuses the stale save (two people never
+   share a working copy).
 
 ---
 
@@ -498,7 +498,9 @@ survive; follow the Azure guide on a test subscription (manual, recorded).
   ID and Keycloak MUST be supported and documented; Keycloak MUST be exercised by automated tests.
 - **FR-011**: The browser MUST receive only an opaque session identifier in a cookie that is
   HttpOnly, Secure, SameSite=Lax and host-only. Access, ID and refresh tokens MUST stay on the
-  server and MUST NOT appear in any response body, URL, log or audit entry.
+  server and MUST NOT appear in any response body, URL, log or audit entry. Only when the public
+  URL is a loopback `http://` address (development and tests) may the cookie omit `Secure`; the
+  server MUST refuse a non-loopback `http://` public URL.
 - **FR-012**: Sessions MUST expire after a period of inactivity and after an absolute lifetime
   (defaults in Assumptions); sign-out MUST end the server session and call the provider's
   sign-out endpoint when it has one.
@@ -587,6 +589,10 @@ survive; follow the Azure guide on a test subscription (manual, recorded).
 - **FR-051**: The UI MUST hide actions the person cannot perform, or show them disabled with the
   reason where the action's absence would confuse; the UI MUST NOT be the enforcement point.
 - **FR-052**: A denied write MUST leave files, Git state, drafts and state files unchanged.
+- **FR-053**: A project created by a Steward (new project, import as a new project, example,
+  clone by an Admin on behalf of a domain) MUST be assigned at creation to a domain the creator
+  is Steward of (chosen in the dialog when there are several), so the creator can read it; only
+  Admins may create a project without a domain.
 
 #### Metric and classification governance
 

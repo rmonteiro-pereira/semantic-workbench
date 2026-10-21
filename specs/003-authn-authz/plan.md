@@ -62,7 +62,7 @@ sign-in ≤ 5 s against local Keycloak (SC-005); container ready ≤ 30 s on the
 never in the browser; single instance per data root; no plain-text credentials; local mode
 unchanged.
 
-**Scale/Scope**: teams of tens of people, tens of repositories; 9 user stories, 76 FRs, 12 success
+**Scale/Scope**: teams of tens of people, tens of repositories; 9 user stories, 77 FRs, 12 success
 criteria; 66 routes in the matrix (57 implemented + 9 planned by 002) plus about 30 new.
 
 No NEEDS CLARIFICATION remain: owner decisions are binding; OP-1 to OP-5 resolved with
