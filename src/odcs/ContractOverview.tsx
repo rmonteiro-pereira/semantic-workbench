@@ -1,5 +1,5 @@
 import React,{useDeferredValue,useMemo,useState} from 'react';
-import {FileCheck2,Search,Table2} from 'lucide-react';
+import {FileCheck2,Search,Table2,Workflow} from 'lucide-react';
 import {odcsForeignKeys} from '../odcs';
 import {flattenProperties} from './odcs-diff';
 import {Badge} from '../PropertyBadges';
@@ -21,7 +21,7 @@ function Records({items,columns}:{items:any[];columns:[string,string][]}){
   <tbody>{items.map((x,i)=><tr key={i}>{columns.map(([key])=><td key={key}>{text(x?.[key])}</td>)}</tr>)}</tbody></table></div>;
 }
 const Section=({label,children}:{label:string;children:React.ReactNode})=><section className="odcs-section" aria-label={label}><h3>{label}</h3>{children}</section>;
-export function ContractOverview({data,onOpen}:{data:any;onOpen:(name:string)=>void}){
+export function ContractOverview({data,onOpen,onOpenInLineage}:{data:any;onOpen:(name:string)=>void;onOpenInLineage?:(name:string)=>void}){
  const [query,setQuery]=useState(''),deferred=useDeferredValue(query);
  const facts=useMemo(()=>objectFacts(data),[data]);
  const shown=useMemo(()=>{const q=deferred.trim().toLowerCase();return q?facts.filter(f=>`${f.name} ${f.physicalName} ${f.description}`.toLowerCase().includes(q)):facts;},[facts,deferred]);
@@ -52,7 +52,7 @@ export function ContractOverview({data,onOpen}:{data:any;onOpen:(name:string)=>v
    <div className="odcs-table-wrap"><table className="odcs-table" aria-label="Schema objects">
     <thead><tr><th>Object</th><th>Physical name</th><th>Type</th><th className="num">Properties</th><th>Keys</th><th className="num">Quality rules</th><th>Description</th></tr></thead>
     <tbody>{shown.map(f=><tr key={f.index}>
-     <td><button className="odcs-link" aria-label={`Open ${f.name}`} onClick={()=>onOpen(f.name)}>{f.name}</button></td>
+     <td><span className="odcs-object-cell"><button className="odcs-link" aria-label={`Open ${f.name}`} onClick={()=>onOpen(f.name)}>{f.name}</button>{onOpenInLineage&&<button className="odcs-lineage-link" aria-label={`Open ${f.name} in lineage`} title="Open in lineage (Graph)" onClick={()=>onOpenInLineage(f.name)}><Workflow size={13}/></button>}</span></td>
      <td className="nowrap"><code>{f.physicalName}</code></td><td className="nowrap">{f.type}</td><td className="num">{f.properties}</td>
      <td className="nowrap">{f.pk||f.fk?<span className="prop-badges">{f.pk>0&&<Badge kind="pk" title={`${f.pk} primary key ${f.pk===1?'property':'properties'}`}>{f.pk} PK</Badge>}{f.fk>0&&<Badge kind="fk" title={`${f.fk} foreign ${f.fk===1?'key':'keys'}`}>{f.fk} FK</Badge>}</span>:<span className="muted">—</span>}</td>
      <td className="num">{f.rules||<span className="muted">0</span>}</td><td className="odcs-desc">{f.description}</td>

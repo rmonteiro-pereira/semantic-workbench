@@ -3,7 +3,7 @@ import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { treeRowProblems } from './helpers/tree-geometry';
 import { neighborhoodEdgeProblems, neighborhoodState, pickCenter } from './helpers/edge-geometry';
 import { inspect } from '../src/model';
-import { layoutProblems } from './helpers/layout-geometry';
+import { layoutProblems, lineageProblems } from './helpers/layout-geometry';
 
 // Isolated API fixture: exercising viewport changes never modifies the local workspace.
 // The UBL ontology is imported first so that it opens first.
@@ -266,6 +266,7 @@ try {
    ['Metrics', async p => { await openFile(p, 'sales.ossie.yaml'); await p.locator('.tabs').getByRole('button', { name: /^Metrics/ }).click(); }],
    ['Contract', async p => { await openFile(p, 'commerce.odcs.yaml'); await tab(p, 'Contract'); await expect(p.getByRole('region', { name: 'Contract overview' })).toBeVisible(); }],
    ['Dataset page', async p => { await p.getByRole('button', { name: 'Open orders', exact: true }).click(); await expect(p.getByRole('region', { name: 'Dataset orders' })).toBeVisible(); }],
+   ['Lineage', async p => { await openFile(p, 'commerce.odcs.yaml'); await tab(p, 'Graph'); await expect(p.getByRole('region', { name: 'Lineage graph' }).locator('.lineage-card').first()).toBeVisible({ timeout: 10_000 }); }],
    ['Source control', async p => { await sidebarNav(p, /^Source control/); await expect(p.getByRole('region', { name: 'Source Control' })).toBeVisible(); }],
   ];
   for (const [view, show] of views) {
@@ -291,6 +292,26 @@ try {
   // A workspace drawer left open by a narrow size would cover the page after resizing.
   const closeDrawer = async (p: Page) => { if (await p.locator('#workspace-sidebar[role=dialog]').count()) await p.keyboard.press('Escape'); };
   const closeDetails = async (p: Page) => { const close = p.getByRole('button', { name: 'Close details', exact: true }); if (await close.count()) await close.first().click(); };
+  // Lineage cards and canvas (T038): at the four reference sizes, with and without a selected path.
+  await check('lineage: cards, rows, badges, pager and toolbar fit; cards never overlap; the canvas stays usable beside the path panel', async () => {
+   const found: string[] = [];
+   await sweep.setViewportSize({ width: 1440, height: 900 });
+   await openFile(sweep, 'commerce.odcs.yaml'); await tab(sweep, 'Graph');
+   const graph = sweep.getByRole('region', { name: 'Lineage graph' });
+   for (const [width, height] of [[390, 844], [1280, 720], [1440, 900], [2560, 1440]] as const) {
+    await closeDrawer(sweep);
+    await sweep.setViewportSize({ width, height }); await sweep.waitForTimeout(300);
+    await graph.getByRole('button', { name: 'Fit' }).click(); await sweep.waitForTimeout(300);
+    for (const problem of await lineageProblems(sweep)) found.push(`${width}×${height}: ${problem}`);
+    await graph.getByRole('group', { name: 'Contract object orders' }).getByRole('button', { name: 'orders.amount', exact: true }).click({ force: true });
+    await expect(graph.getByRole('region', { name: 'Selected path' })).toBeVisible(); await sweep.waitForTimeout(300);
+    for (const problem of await lineageProblems(sweep)) found.push(`${width}×${height} with a path: ${problem}`);
+    for (const problem of await layoutProblems(sweep)) found.push(`${width}×${height} with a path: ${problem}`);
+    await sweep.screenshot({ path: `/tmp/workbench-lineage-path-${width}.png` });
+    await graph.getByRole('button', { name: 'Clear the selected path' }).click();
+   }
+   expect(found).toEqual([]);
+  });
   // Opens the inspector on an entity where the view allows selecting one.
   const details: Record<string, (p: Page) => Promise<void>> = {
    Graph: async p => { await p.locator('.react-flow__node-entity').first().click(); },

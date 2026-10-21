@@ -1,13 +1,13 @@
 import React,{useEffect,useMemo,useState} from 'react';
 import {parse} from 'yaml';
-import {ArrowLeft,ArrowDown,ArrowUp,ArrowUpDown,Database,Gauge,Search,Table2,Columns3,Target} from 'lucide-react';
+import {ArrowLeft,ArrowDown,ArrowUp,ArrowUpDown,Search,Table2} from 'lucide-react';
 import {odcsForeignKeys} from '../odcs';
-import {rdfSyntax} from '../rdf';
 import {scm,type Doc,type GitCommit as Commit} from '../projects/api';
 import {diffObject,flattenProperties,lastChange,type ObjectDiff} from './odcs-diff';
-import {odcsLineage,type Lineage,type LineageNode} from './lineage';
+import {buildLineage,closure,objectId,cardOfNode,type LineageCard} from './lineage';
+import {LineageCanvas} from './LineageCanvas';
+import {projectFiles,projectRevision} from './project-files';
 import {rulesOf} from './ContractOverview';
-import {LineageLegend} from '../graph/LineageLegend';
 import {Badge,badge,type BadgeInfo} from '../PropertyBadges';
 import './odcs.css';
 // Marquez-style dataset page for one ODCS schema object (FR-057): a header with key facts, then
@@ -16,7 +16,9 @@ import './odcs.css';
 const list=(v:unknown):any[]=>Array.isArray(v)?v:[];
 const text=(v:unknown)=>v===undefined||v===null?'':typeof v==='string'?v:typeof v==='number'||typeof v==='boolean'?String(v):JSON.stringify(v);
 type Version=Commit&{source:string;data:any};
-type Tab='Schema'|'Lineage'|'History'|'Quality';
+// v0.3.0 asset page (FR-011): Lineage, Relationships, Data Quality, Properties, History.
+type Tab='Lineage'|'Relationships'|'Data Quality'|'Properties'|'History';
+const TABS:Tab[]=['Lineage','Relationships','Data Quality','Properties','History'];
 export type PropertyCellProps={objectIndex:number;path:string;property:Record<string,any>;column:Column};
 type Column={key:string;label:string;value:(p:Record<string,any>)=>string|number|boolean|undefined};
 export const COLUMNS:Column[]=[
@@ -31,16 +33,16 @@ export const COLUMNS:Column[]=[
  {key:'tags',label:'Tags',value:p=>list(p.tags).join(', ')},
  {key:'foreignKeys',label:'Foreign keys',value:()=>undefined},
 ];
-type Props={doc:Doc;data:any;objectName:string;projectDocs:Doc[];onBack:()=>void;onOpenObject:(name:string)=>void;
+type Props={doc:Doc;data:any;objectName:string;projectDocs:Doc[];onBack:()=>void;onOpenObject:(name:string)=>void;onOpenInLineage?:(name:string)=>void;onNeighborhood?:(card:LineageCard)=>void;
  // Changes when Git reports a commit, switch or pull, so History follows commits made elsewhere.
  gitVersion?:number;
  // T143: cells that can be edited in place; null renders the value read-only.
  editor?:(cell:PropertyCellProps)=>React.ReactNode|null};
-export function DatasetPage({doc,data,objectName,projectDocs,onBack,onOpenObject,editor,gitVersion=0}:Props){
+export function DatasetPage({doc,data,objectName,projectDocs,onBack,onOpenObject,onOpenInLineage,onNeighborhood,editor,gitVersion=0}:Props){
  const schema=list(data?.schema),index=schema.findIndex((o:any)=>o?.name===objectName),object=schema[index];
- const [tab,setTab]=useState<Tab>('Schema');
+ const [tab,setTab]=useState<Tab>('Properties');
  const [versions,setVersions]=useState<Version[]|null>(null),[historyError,setHistoryError]=useState('');
- useEffect(()=>{setTab('Schema');},[objectName]);
+ useEffect(()=>{setTab('Properties');},[objectName]);
  // The file's committed versions: last change in the header and the History tab.
  useEffect(()=>{let live=true;setHistoryError('');scm.versions(doc.project,doc.path,20).then(vs=>{if(!live)return;setVersions(vs.map(v=>{let parsed:any=null;try{parsed=parse(v.source);}catch{}return {...v,data:parsed};}));}).catch(e=>{if(live){setVersions([]);setHistoryError(e.message);}});return()=>{live=false;};},[doc.project,doc.path,doc.hash,gitVersion]);
  if(!object)return <section className="odcs-page" aria-label={`Dataset ${objectName}`}><button className="odcs-back" onClick={onBack}><ArrowLeft size={14}/>All objects</button><p className="odcs-note">{objectName} is no longer in this contract.</p></section>;
@@ -58,14 +60,16 @@ export function DatasetPage({doc,data,objectName,projectDocs,onBack,onOpenObject
    </div>
    {object.description&&<p className="odcs-description">{text(object.description)}</p>}
   </header>
-  <div className="odcs-tabs" role="tablist" aria-label="Dataset views">
-   {(['Schema','Lineage','History','Quality'] as Tab[]).map(t=><button key={t} role="tab" aria-selected={tab===t} className={tab===t?'selected':''} onClick={()=>setTab(t)}>{t}{t==='Quality'&&rules.length>0&&<small>{rules.length}</small>}</button>)}
+  <div className="odcs-tabs" role="tablist" aria-label="Asset views">
+   {TABS.map(t=><button key={t} role="tab" aria-selected={tab===t} className={tab===t?'selected':''} onClick={()=>setTab(t)}>{t}{t==='Data Quality'&&rules.length>0&&<small>{rules.length}</small>}</button>)}
+   {onOpenInLineage&&<button className="odcs-tab-action" onClick={()=>onOpenInLineage(objectName)}>Open {objectName} in lineage</button>}
   </div>
   <div className="odcs-panel" role="tabpanel" aria-label={tab}>
-   {tab==='Schema'&&<SchemaTab data={data} objectIndex={index} onOpenObject={onOpenObject} editor={editor}/>}
-   {tab==='Lineage'&&<LineageTab doc={doc} projectDocs={projectDocs} objectName={objectName}/>}
+   {tab==='Properties'&&<SchemaTab data={data} objectIndex={index} onOpenObject={onOpenObject} editor={editor}/>}
+   {tab==='Lineage'&&<LineageTab doc={doc} projectDocs={projectDocs} objectName={objectName} onOpenObject={onOpenObject} onNeighborhood={onNeighborhood}/>}
+   {tab==='Relationships'&&<RelationshipsTab data={data} objectIndex={index} onOpenObject={onOpenObject}/>}
    {tab==='History'&&<HistoryTab versions={versions} error={historyError} objectName={objectName}/>}
-   {tab==='Quality'&&<QualityTab object={object}/>}
+   {tab==='Data Quality'&&<QualityTab object={object}/>}
   </div>
  </section>;
 }
@@ -109,59 +113,46 @@ function PropertyRow({objectIndex,path,property,targets,onOpenObject,editor}:{ob
   return <td key={c.key} className={`col-${c.key}`}>{c.key==='tags'&&v?String(v).split(', ').map(t=><em key={t} className="odcs-tag">{t}</em>):text(v)}</td>;
  })}</tr>;
 }
-// Project files parsed once per content hash (RDF files are not YAML/JSON and are skipped).
-const parsedCache=new Map<string,any>();
-function projectFiles(docs:Doc[]){
- return docs.flatMap(d=>{
-  if(rdfSyntax(d.source,d.filename))return [];
-  const key=d.id+'#'+d.hash;if(!parsedCache.has(key)){let v:any=null;try{v=parse(d.source);}catch{}parsedCache.set(key,v);}
-  const data=parsedCache.get(key);return data&&typeof data==='object'?[{path:d.path,data}]:[];
- });
-}
-const KIND_LABEL:Record<LineageNode['kind'],string>={object:'Contract object',dataset:'Semantic dataset',field:'Field',metric:'Metric',kpi:'KPI'};
-const KIND_ICON:Record<LineageNode['kind'],React.ReactNode>={object:<Table2 size={12}/>,dataset:<Database size={12}/>,field:<Columns3 size={12}/>,metric:<Gauge size={12}/>,kpi:<Gauge size={12}/>};
-const NODE_W=196,NODE_H=40,COL_GAP=64,ROW_GAP=10;
-function LineageTab({doc,projectDocs,objectName}:{doc:Doc;projectDocs:Doc[];objectName:string}){
- const files=useMemo(()=>projectFiles(projectDocs),[projectDocs.map(d=>d.id+d.hash).join('|')]);
- const full=useMemo(()=>{try{return odcsLineage(files,doc.path,objectName,99);}catch{return null;}},[files,objectName,doc.path]);
- const [depth,setDepth]=useState(2);
- const max=Math.max(1,full?.maxDepth??1),shownDepth=Math.min(depth,max);
- const lineage=useMemo(()=>{try{return odcsLineage(files,doc.path,objectName,shownDepth);}catch{return null;}},[files,objectName,doc.path,shownDepth]);
- if(!lineage||!full)return <p className="odcs-note">No lineage for this object.</p>;
+// The asset's Lineage tab (FR-011): the lineage canvas centred on this object, and per property
+// the fields that read it and the metrics downstream of it, read from the same lineage graph.
+function LineageTab({doc,projectDocs,objectName,onOpenObject,onNeighborhood}:{doc:Doc;projectDocs:Doc[];objectName:string;onOpenObject:(n:string)=>void;onNeighborhood?:(card:LineageCard)=>void}){
+ const rev=projectRevision(projectDocs);
+ const graph=useMemo(()=>buildLineage(projectFiles(projectDocs),doc.path,rev),[rev,doc.path]);
+ const id=objectId(doc.path,objectName),card=graph.cards.get(id);
+ const rows=useMemo(()=>(card?.columns??[]).map(col=>{
+  const down=closure(graph,[col.id],'down'),fields:string[]=[],metrics:string[]=[];
+  for(const n of down.nodes){if(n===col.id)continue;const c=graph.cards.get(cardOfNode(graph,n));if(!c)continue;if(c.kind==='dataset'&&n!==c.id)fields.push(`${c.label}.${n.slice(c.id.length+1)}`);if(c.kind==='metric')metrics.push(c.label);}
+  return {path:col.path,fields:[...new Set(fields)].sort(),metrics:[...new Set(metrics)].sort()};
+ }),[graph,card]);
+ if(!card)return <p className="odcs-note">No lineage for this object.</p>;
  return <>
-  <div className="odcs-toolbar">
-   <label className="odcs-depth"><span>Depth</span><select aria-label="Lineage depth" value={String(shownDepth)} onChange={e=>setDepth(Number(e.target.value))}>{Array.from({length:max},(_,i)=><option key={i+1} value={i+1}>{i+1}</option>)}</select></label>
-   <LineageLegend/>
-  </div>
-  <p className="odcs-note">Downstream links are matched by declared names: a semantic dataset whose <code>source</code> is this object's physical name, fields whose expressions read its columns, and the metrics over those fields.</p>
-  <LineageGraph lineage={lineage}/>
+  <div className="odcs-lineage-host"><LineageCanvas graph={graph} center={id} compact ariaLabel="Lineage graph" storageKey={`workbench:lineage-steps:${doc.id}`} onOpenAsset={c=>onOpenObject(c.label)} onNeighborhood={onNeighborhood}/></div>
   <h3 className="odcs-subhead">Property lineage</h3>
   <div className="odcs-table-wrap"><table className="odcs-table compact" aria-label="Property lineage">
-   <thead><tr><th>Property</th><th>Read by fields</th><th>Used by metrics</th></tr></thead>
-   <tbody>{flattenProperties(projectFiles([doc]).find(f=>f.path===doc.path)?.data?.schema?.find((o:any)=>o?.name===objectName)?.properties).map(({path})=>{const l=full.properties[path];return <tr key={path}><td><code>{path}</code></td><td>{l?.fields.map(f=><code key={f} className="odcs-chip">{f}</code>)??<span className="muted">—</span>}</td><td>{l?.metrics.length?l.metrics.map(m=><span key={m} className="odcs-chip metric">{m}</span>):<span className="muted">—</span>}</td></tr>;})}</tbody>
+   <thead><tr><th>Property</th><th>Read by fields</th><th>Metrics downstream</th></tr></thead>
+   <tbody>{rows.map(r=><tr key={r.path}><td><code>{r.path}</code></td><td>{r.fields.length?r.fields.map(f=><code key={f} className="odcs-chip">{f}</code>):<span className="muted">—</span>}</td><td>{r.metrics.length?r.metrics.map(m=><span key={m} className="odcs-chip metric">{m}</span>):<span className="muted">—</span>}</td></tr>)}</tbody>
   </table></div>
  </>;
 }
-// Columns by distance from the object; edges drawn as curves (foreign keys dashed). The region
-// scrolls on its own so large lineages never widen the page.
-function LineageGraph({lineage}:{lineage:Lineage}){
- const layout=useMemo(()=>{
-  const order:Record<string,number>={object:0,dataset:1,field:2,kpi:3,metric:4};
-  const columns=new Map<number,LineageNode[]>();for(const n of lineage.nodes){const c=columns.get(n.depth)??[];c.push(n);columns.set(n.depth,c);}
-  const pos=new Map<string,{x:number;y:number}>();let height=0;
-  for(const [d,nodes] of [...columns].sort((a,b)=>a[0]-b[0])){nodes.sort((a,b)=>order[a.kind]-order[b.kind]||a.label.localeCompare(b.label));nodes.forEach((n,i)=>pos.set(n.id,{x:d*(NODE_W+COL_GAP),y:i*(NODE_H+ROW_GAP)}));height=Math.max(height,nodes.length*(NODE_H+ROW_GAP));}
-  return {pos,width:(Math.max(0,...columns.keys())+1)*(NODE_W+COL_GAP)-COL_GAP,height:Math.max(height-ROW_GAP,NODE_H)};
- },[lineage]);
- const path=(a:{x:number;y:number},b:{x:number;y:number})=>{
-  if(a.x===b.x){const x=a.x+NODE_W,y1=a.y+NODE_H/2,y2=b.y+NODE_H/2;return `M${x} ${y1} C${x+36} ${y1},${x+36} ${y2},${x} ${y2}`;}
-  const [l,r]=a.x<b.x?[a,b]:[b,a],x1=l.x+NODE_W,y1=l.y+NODE_H/2,x2=r.x,y2=r.y+NODE_H/2,mid=(x1+x2)/2;return `M${x1} ${y1} C${mid} ${y1},${mid} ${y2},${x2} ${y2}`;
- };
- return <div className="odcs-lineage" role="region" aria-label="Lineage graph" tabIndex={0}>
-  <div className="lineage-canvas" style={{width:layout.width,height:layout.height}}>
-   <svg width={layout.width} height={layout.height} aria-hidden="true">{lineage.edges.map((e,i)=>{const a=layout.pos.get(e.from),b=layout.pos.get(e.to);return a&&b?<path key={i} d={path(a,b)} className={e.kind==='foreign-key'?'edge fk':'edge'}/>:null;})}</svg>
-   {lineage.nodes.map(n=>{const p=layout.pos.get(n.id)!;return <div key={n.id} className={`lineage-node k-${n.kind}${n.id===lineage.center?' center':''}`} data-lineage-kind={n.kind} title={`${KIND_LABEL[n.kind]}: ${n.label}${n.detail?`\n${n.detail}`:''}\n${n.file}`} style={{left:p.x,top:p.y,width:NODE_W,height:NODE_H}}>{KIND_ICON[n.kind]}<span>{n.label}</span></div>;})}
-  </div>
- </div>;
+// Relationships (FR-011): foreign keys out of and into each column, both directions, with links.
+function RelationshipsTab({data,objectIndex,onOpenObject}:{data:any;objectIndex:number;onOpenObject:(n:string)=>void}){
+ const schema=list(data?.schema),name=String(schema[objectIndex]?.name);
+ const rows=useMemo(()=>{
+  const out:{column:string;direction:'out'|'in';other:string;otherColumn:string;label:string}[]=[];
+  for(const k of odcsForeignKeys(data))k.fromColumns.forEach((c,i)=>{
+   if(k.from===objectIndex)out.push({column:c,direction:'out',other:String(schema[k.to]?.name),otherColumn:k.toColumns[i],label:k.label});
+   if(k.to===objectIndex)out.push({column:k.toColumns[i],direction:'in',other:String(schema[k.from]?.name),otherColumn:c,label:k.label});
+  });
+  return out.sort((a,b)=>a.column.localeCompare(b.column)||a.direction.localeCompare(b.direction)||a.other.localeCompare(b.other));
+ },[data,objectIndex]);
+ if(!rows.length)return <p className="odcs-note">{name} has no foreign keys and no other object references it.</p>;
+ return <>
+  <p className="odcs-note">Foreign keys as declared in the contract. In lineage they are drawn from the referenced column to the referencing one (the workbench's reading).</p>
+  <div className="odcs-table-wrap"><table className="odcs-table compact" aria-label="Relationships">
+   <thead><tr><th>Column</th><th>Direction</th><th>Other object</th><th>Other column</th></tr></thead>
+   <tbody>{rows.map((r,i)=><tr key={i}><td><code>{r.column}</code></td><td>{r.direction==='out'?<span className="odcs-dir out">references</span>:<span className="odcs-dir in">referenced by</span>}</td><td><button className="odcs-link fk" aria-label={`Open ${r.other}`} onClick={()=>onOpenObject(r.other)}>{r.other}</button></td><td><code>{r.otherColumn}</code></td></tr>)}</tbody>
+  </table></div>
+ </>;
 }
 function HistoryTab({versions,error,objectName}:{versions:Version[]|null;error:string;objectName:string}){
  const [from,setFrom]=useState(''),[to,setTo]=useState('');

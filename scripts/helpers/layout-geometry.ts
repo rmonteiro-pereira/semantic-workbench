@@ -52,3 +52,31 @@ export async function layoutProblems(page:Page,options:{overlays?:string[];ignor
   return [...new Set(out)];
  },{overlays:options.overlays??[],ignore:options.ignore??''});
 }
+// Lineage cards (T038, ui-contracts "Lineage canvas"): every header, row, badge and pager control
+// stays inside its card, row text is not cut (names may ellipsize only with a title), cards never
+// overlap each other, the toolbar's controls never overlap, and the canvas keeps a usable size
+// beside the path panel. Coordinates are on screen, so they hold at any zoom.
+export async function lineageProblems(page:Page):Promise<string[]>{
+ return page.evaluate(()=>{
+  const out:string[]=[],hit=(a:DOMRect,b:DOMRect)=>Math.min(a.right,b.right)-Math.max(a.left,b.left)>1&&Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>1;
+  const inside=(a:DOMRect,b:DOMRect)=>a.left>=b.left-1&&a.right<=b.right+1&&a.top>=b.top-1&&a.bottom<=b.bottom+1;
+  const view=document.querySelector('.lineage-view');if(!view)return ['no lineage canvas'];
+  const cards=[...view.querySelectorAll('.lineage-card')];
+  for(const c of cards){
+   const r=c.getBoundingClientRect(),label=c.getAttribute('aria-label');
+   for(const el of c.querySelectorAll('.lineage-card-head > *, .lineage-rows li, .lineage-row > *, .property-badge, .lineage-pager > *, .lineage-more span')){const e=el.getBoundingClientRect();if(e.width<1)continue;if(!inside(e,r))out.push(`${label}: ${el.className||el.tagName} "${(el.textContent??'').slice(0,30)}" sticks out of the card`);}
+   for(const el of c.querySelectorAll('.lineage-row-name, .lineage-card-title strong')){const h=el as HTMLElement;if(h.scrollWidth>h.clientWidth+1&&getComputedStyle(h).textOverflow!=='ellipsis')out.push(`${label}: "${h.textContent}" is cut without an ellipsis`);}
+   // badges in a row never overlap the column name
+   for(const row of c.querySelectorAll('.lineage-row')){const n=row.querySelector('.lineage-row-name')?.getBoundingClientRect();if(!n)continue;for(const b of row.querySelectorAll('.property-badge'))if(hit(n,b.getBoundingClientRect()))out.push(`${label}: badge "${b.textContent}" overlaps "${row.querySelector('.lineage-row-name')!.textContent}"`);}
+  }
+  for(let i=0;i<cards.length;i++)for(let j=i+1;j<cards.length;j++)if(hit(cards[i].getBoundingClientRect(),cards[j].getBoundingClientRect()))out.push(`cards "${cards[i].getAttribute('aria-label')}" and "${cards[j].getAttribute('aria-label')}" overlap`);
+  const tools=[...view.querySelectorAll('.lineage-toolbar > *, .lineage-trail > button')].filter(e=>e.getBoundingClientRect().width>0);
+  for(let i=0;i<tools.length;i++)for(let j=i+1;j<tools.length;j++)if(hit(tools[i].getBoundingClientRect(),tools[j].getBoundingClientRect()))out.push(`toolbar controls "${tools[i].textContent||tools[i].getAttribute('aria-label')}" and "${tools[j].textContent||tools[j].getAttribute('aria-label')}" overlap`);
+  const flow=view.querySelector('.lineage-flow')?.getBoundingClientRect();
+  if(flow&&(flow.width<Math.min(300,innerWidth-40)||flow.height<240))out.push(`the canvas is only ${Math.round(flow.width)}×${Math.round(flow.height)}`);
+  const panel=view.querySelector('.lineage-path')?.getBoundingClientRect();
+  if(panel&&flow&&hit(panel,flow))out.push('the Selected path panel covers the canvas');
+  const foot=view.querySelector('.lineage-foot');if(foot&&(foot as HTMLElement).scrollWidth>(foot as HTMLElement).clientWidth+1)out.push('the legend footer overflows');
+  return out;
+ });
+}

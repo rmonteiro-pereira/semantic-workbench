@@ -56,6 +56,9 @@ import {SourceControl} from './scm/SourceControl';
 import {useFullscreen} from './graph/fullscreen';
 import {ContractOverview} from './odcs/ContractOverview';
 import {DatasetPage} from './odcs/DatasetPage';
+import {LineageCanvas} from './odcs/LineageCanvas';
+import {buildLineage,defaultCenter,type LineageCard} from './odcs/lineage';
+import {projectFiles,projectRevision} from './odcs/project-files';
 import {propertyEditor} from './odcs/PropertyEditors';
 import {isGitignore} from './scm/gitignore';
 import {scm as scmApi} from './projects/api';
@@ -192,6 +195,25 @@ function App() {
   // ODCS contract overview and dataset pages (Phase 9): the object whose page is open, per document.
   const isContract=model?.kind==='ODCS';
   const [contractObject,setContractObject]=useState<string|null>(null);
+  // Column-level lineage of the open contract (FR-001), built from the project's saved files.
+  const lineageDocs=isContract&&current?docs.filter(d=>d.project===current.project):[];
+  const lineageRev=isContract&&current?projectRevision(lineageDocs):'';
+  const lineage=useMemo(()=>isContract&&current?buildLineage(projectFiles(lineageDocs),current.path,lineageRev):null,[isContract,current?.project,current?.path,lineageRev]);
+  const lineageKey=current?`workbench:lineage-center:${current.id}`:'';
+  const [lineageCenter,setLineageCenter]=useState('');
+  useEffect(()=>{if(!lineage){setLineageCenter('');return;}let stored='';try{stored=localStorage.getItem(lineageKey)??'';}catch{}setLineageCenter(lineage.cards.has(stored)?stored:defaultCenter(lineage));},[lineage?.contract,current?.id,!!lineage]);
+  // The stored centre belongs to the previous contract for one render after switching files.
+  const lineageCenterId=lineage?(lineage.cards.has(lineageCenter)?lineageCenter:defaultCenter(lineage)):'';
+  const lineageShown=tab==='fullgraph'&&isContract&&!!lineage&&!!lineageCenterId;
+  function lineageCenterChanged(id:string){try{localStorage.setItem(lineageKey,id);}catch{}}
+  function openInLineage(name:string){if(!lineage||!current)return;const id=`object:${current.path}#${name}`;try{localStorage.setItem(lineageKey,id);}catch{}setLineageCenter(id);setTab('fullgraph');}
+  // Walking into a semantic model or metric continues in that file's Neighborhood (FR-009).
+  function continueInNeighborhood(card:LineageCard){
+    const d=docs.find(x=>x.project===current?.project&&x.path===card.file);if(!d||!open(d))return;
+    const name=card.kind==='metric'?card.id.slice(card.id.lastIndexOf('/')+1):card.label;
+    const target=parsedDoc(d).model?.entities.find(e=>e.name===name&&(e.kind==='Dataset'||e.kind==='Metric'));
+    setTab('neighborhood');if(target){dispatchWalk({type:'push',step:{doc:d.id,center:target.id,name:target.name}});setSelected(target.id);}
+  }
   useEffect(()=>setContractObject(null),[current?.id]);
   useEffect(()=>{if(tab==='contract'&&model&&!isContract)setTab('fullgraph');},[tab,isContract,!!model]);
   const groupingOverview=useMemo(()=>model?modelOverview(model.entities,model.edges,model.name,false,grouping.value):null,[model,grouping.value]);
@@ -533,20 +555,21 @@ function App() {
             <button className={tab==='mappings'?'selected':''} aria-current={tab==='mappings'?'page':undefined} onClick={()=>setTab('mappings')}><Layers size={16}/> Mappings</button>
             <button className={tab==='metrics'?'selected':''} aria-current={tab==='metrics'?'page':undefined} onClick={()=>setTab('metrics')}><Gauge size={16}/> Metrics{kpis.length>0&&<span className="tab-count">{kpis.length}</span>}</button>
           </ScrollStrip>
-          {groupingOverview&&(tab==='fullgraph'||(tab==='overview'))&&<GroupingControls overview={groupingOverview} value={grouping.value} onChange={grouping.change} example={model!.name.includes('UBL')} error={grouping.error}/>}
-          <label className="search">
+          {groupingOverview&&((tab==='fullgraph'&&!lineageShown)||(tab==='overview'))&&<GroupingControls overview={groupingOverview} value={grouping.value} onChange={grouping.change} example={model!.name.includes('UBL')} error={grouping.error}/>}
+          {/* The lineage canvas has its own Find assets (FR-005). */}
+          {!lineageShown&&<label className="search">
             <Search size={16} />
             <input
               placeholder="Find an entity…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-          </label>
+          </label>}
         </div>
         {tab!=='scm'&&(source||current)&&(showValidation||!!result.error)&&<details className="validation-details" open><summary onClick={e=>{e.preventDefault();setShowValidation(false);}}>Validation findings</summary><ValidationPanel source={source} issues={validation.issues} onLocate={issue=>{setTab('source');setTimeout(()=>{sourceEditor.current?.locate(issue);},0);}}/></details>}
         <div ref={canvasRow} className={`canvas-row${inspectorVisible?' has-inspector':''}${pageDetails?' page-details':''}${fullscreen.active?' is-fullscreen':''}${fullscreen.fallback?' window-fill':''}`}>
           <section className="canvas" inert={pageDetails}>
-            {tab==='contract'&&isContract&&current ? (contractObject?<DatasetPage key={contractObject} doc={current} data={(model as any).document} objectName={contractObject} projectDocs={docs.filter(d=>d.project===current.project)} onBack={()=>setContractObject(null)} onOpenObject={setContractObject} gitVersion={gitVersion} editor={propertyEditor({doc:current,base:docText(current.id),onSaved:applySaved,onError:setMessage})}/>:<ContractOverview data={(model as any).document} onOpen={setContractObject}/>) : tab==='scm' ? (scmSlug?<SourceControl onBusy={setGitBusy} onCommit={()=>{void autosave.flush();setCommitting(true);}} projects={projects} project={scmSlug} version={gitVersion} unsaved={current&&current.project===scmSlug&&source!==current.source?[current.path]:[]} historyPath={historyPath} onProject={slug=>{setMessage('');setScmProject(slug);setHistoryPath(undefined);}} onChanged={()=>void refresh().catch(()=>{})} onOpen={(project,path)=>{const d=docsRef.current.get(`${project}/${path}`);if(d&&open(d))setTab('source');}}/>:<p className="hint">Import definitions or load an example to start a project.</p>) : tab==='metrics' ? <MetricsView project={kpiProject} projectName={projects.find(p=>p.slug===kpiProject)?.name} kpis={kpis} error={kpiError} loading={kpiLoading} selected={selectedKpi} onSelect={setSelectedKpi} filter={kpiFilter} onNew={()=>setWizard(true)} onEdit={editKpi}/> : tab==='mappings' ? <MappingExplorer onEditItem={editMappingItem} currentId={current?.id} revisionKey={docs.map(d=>d.id+':'+d.hash).join('|')} dirty={!!current&&source!==current.source}/> : !source && !current ? (
+            {tab==='contract'&&isContract&&current ? (contractObject?<DatasetPage key={contractObject} doc={current} data={(model as any).document} objectName={contractObject} projectDocs={docs.filter(d=>d.project===current.project)} onBack={()=>setContractObject(null)} onOpenObject={setContractObject} onOpenInLineage={openInLineage} onNeighborhood={continueInNeighborhood} gitVersion={gitVersion} editor={propertyEditor({doc:current,base:docText(current.id),onSaved:applySaved,onError:setMessage})}/>:<ContractOverview data={(model as any).document} onOpen={setContractObject} onOpenInLineage={openInLineage}/>) : tab==='scm' ? (scmSlug?<SourceControl onBusy={setGitBusy} onCommit={()=>{void autosave.flush();setCommitting(true);}} projects={projects} project={scmSlug} version={gitVersion} unsaved={current&&current.project===scmSlug&&source!==current.source?[current.path]:[]} historyPath={historyPath} onProject={slug=>{setMessage('');setScmProject(slug);setHistoryPath(undefined);}} onChanged={()=>void refresh().catch(()=>{})} onOpen={(project,path)=>{const d=docsRef.current.get(`${project}/${path}`);if(d&&open(d))setTab('source');}}/>:<p className="hint">Import definitions or load an example to start a project.</p>) : tab==='metrics' ? <MetricsView project={kpiProject} projectName={projects.find(p=>p.slug===kpiProject)?.name} kpis={kpis} error={kpiError} loading={kpiLoading} selected={selectedKpi} onSelect={setSelectedKpi} filter={kpiFilter} onNew={()=>setWizard(true)} onEdit={editKpi}/> : tab==='mappings' ? <MappingExplorer onEditItem={editMappingItem} currentId={current?.id} revisionKey={docs.map(d=>d.id+':'+d.hash).join('|')} dirty={!!current&&source!==current.source}/> : !source && !current ? (
               <div className="empty">
                 <div className="empty-icon">
                   <Network size={36} />
@@ -589,7 +612,7 @@ function App() {
                     </div>
                   ))}
               </div>
-            ) : tab==='fullgraph' && model ? <FullGraph fullscreen={fullscreen} kpiBadges={kpiBadges} grouping={grouping.value} onGroupingChange={grouping.change} groupingError={grouping.error} key={current?.id} name={model.name} entities={model.entities} edges={model.edges} selected={selected} selectedEdge={selectedEdge} search={search} onSelectEntity={selectEntity} onSelectEdge={id=>{setSelectedEdge(id);setSelected('')}} onOverview={()=>{setTab('overview');setSearch('')}} onNeighborhood={()=>showNeighborhood()}/> : (
+            ) : tab==='fullgraph' && isContract && lineage && lineageCenterId ? <LineageCanvas key={current?.id} graph={lineage} center={lineageCenterId} fullscreen={fullscreen} storageKey={current?`workbench:lineage-steps:${current.id}`:undefined} onCenterChange={lineageCenterChanged} onOpenAsset={c=>{setTab('contract');setContractObject(c.label);}} onNeighborhood={continueInNeighborhood}/> : tab==='fullgraph' && model ? <FullGraph fullscreen={fullscreen} kpiBadges={kpiBadges} grouping={grouping.value} onGroupingChange={grouping.change} groupingError={grouping.error} key={current?.id} name={model.name} entities={model.entities} edges={model.edges} selected={selected} selectedEdge={selectedEdge} search={search} onSelectEntity={selectEntity} onSelectEdge={id=>{setSelectedEdge(id);setSelected('')}} onOverview={()=>{setTab('overview');setSearch('')}} onNeighborhood={()=>showNeighborhood()}/> : (
               tab==='overview' && model ? <ModelOverview grouping={grouping.value} onGroupingChange={grouping.change} groupingError={grouping.error} key={current?.id} name={model.name} entities={model.entities} edges={model.edges} search={search} selected={selected} onSelectEntity={selectEntity} onSelectRelationship={id=>{setSelectedEdge(id);setSelected('')}} onClose={()=>showNeighborhood()} onOpenGraph={()=>{setTab('fullgraph')}}/> : <NeighborhoodGraph fullscreen={fullscreen} kpiBadges={kpiBadges} key={current?.id} docId={current!.id} docLabel={id=>docsRef.current.get(id)?.path??id} entities={model?.entities??[]} edges={model?.edges??[]} search={search} walk={walk} selected={selected} selectedEdge={selectedEdge} onWalk={(steps:WalkStep[])=>{for(const step of steps)dispatchWalk({type:'push',step});}} onWalkTo={walkTo} onClearSearch={()=>setSearch('')} onSelectEntity={id=>{setSelected(id);setSelectedEdge('');}} onSelectEdge={id=>{setSelectedEdge(id);}} onOverview={()=>{setSearch('');setTab('overview')}} onFullGraph={()=>{setSearch('');setTab('fullgraph')}} onOpenKpis={concept=>{setKpiFilter(concept+'\u0000'+Date.now());setSelectedKpi('');setTab('metrics');}} crossFile={crossFile} onCrossFile={crossTo}/>
             )}
           </section>

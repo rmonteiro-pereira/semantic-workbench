@@ -23,7 +23,7 @@ const contractTab=()=>page.locator('.tabs').getByRole('button',{name:'Contract'}
 const overview=()=>page.getByRole('region',{name:'Contract overview'});
 const dataset=(name:string)=>page.getByRole('region',{name:`Dataset ${name}`});
 async function openDataset(name:string){await overview().getByRole('button',{name:`Open ${name}`,exact:true}).click();await expect(dataset(name)).toBeVisible();}
-const views=(name:string)=>dataset(name).getByRole('tablist',{name:'Dataset views'});
+const views=(name:string)=>dataset(name).getByRole('tablist',{name:'Asset views'});
 const noHorizontalScroll=async()=>expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth)).toBe(true);
 try{
  await page.goto(process.env.UI_URL??'http://127.0.0.1:5173/');
@@ -46,7 +46,9 @@ try{
   await expect(d.getByRole('heading',{level:2})).toHaveText('orders');
   const header=d.getByRole('group',{name:'Dataset facts'});
   for(const fact of ['table','6 properties','0 quality rules','Add currency'])await expect(header).toContainText(fact);
-  await expect(views('orders').getByRole('tab',{name:'Schema'})).toHaveAttribute('aria-selected','true');
+  // v0.3.0 asset page tabs (FR-011): Properties is the v0.2.0 Schema table and opens first.
+  expect(await views('orders').getByRole('tab').allTextContents()).toEqual(['Lineage','Relationships','Data Quality','Properties','History']);
+  await expect(views('orders').getByRole('tab',{name:'Properties'})).toHaveAttribute('aria-selected','true');
   const table=d.getByRole('table',{name:'Properties'});
   const headers=await table.getByRole('columnheader').allTextContents();
   for(const h of ['Name','Logical type','Physical type','Required','Unique','Primary key','Classification','Description','Tags','Foreign keys'])expect(headers.some(x=>x.includes(h))).toBe(true);
@@ -63,17 +65,20 @@ try{
   await expect(dataset('customers')).toBeVisible();
   await dataset('customers').getByRole('button',{name:'All objects'}).click();await expect(overview()).toBeVisible();
  });
- await check('Lineage tab: foreign-key neighbors and, with more depth, the sales metrics; property-level lineage',async()=>{
+ // v0.3.0: the asset page's Lineage tab hosts the column-level lineage canvas (FR-011).
+ await check('Lineage tab: the lineage canvas centred on the object, foreign-key neighbours, the sales metrics; property lineage; Relationships',async()=>{
   await openDataset('orders');await views('orders').getByRole('tab',{name:'Lineage'}).click();
   const graph=dataset('orders').getByRole('region',{name:'Lineage graph'});await expect(graph).toBeVisible();
-  const nodes=(kind:string)=>graph.locator(`[data-lineage-kind="${kind}"]`);
-  const depth=dataset('orders').getByLabel('Lineage depth');
-  await depth.selectOption('1');await expect(nodes('object')).toHaveCount(3);await expect(nodes('metric')).toHaveCount(0);
-  await expect(graph).toContainText('customers');await expect(graph).toContainText('order_lines');
-  await depth.selectOption('3');for(const m of ['gross_revenue','order_count','average_order_value'])await expect(nodes('metric').filter({hasText:m})).toHaveCount(1);
+  for(const name of ['Contract object orders','Contract object customers','Contract object order_lines','Semantic dataset orders'])await expect(graph.getByRole('group',{name}).first()).toBeVisible({timeout:8000});
+  await expect(graph.locator('.lineage-card.k-metric')).toHaveCount(3);
+  await expect(graph.getByRole('group',{name:'Contract object orders'})).toHaveClass(/center/);
   const props=dataset('orders').getByRole('table',{name:'Property lineage'});
   await expect(props.getByRole('row').filter({hasText:'amount'})).toContainText('gross_revenue');await expect(props.getByRole('row').filter({hasText:'amount'})).toContainText('orders.amount');
   await page.screenshot({path:'/tmp/workbench-odcs-lineage.png'});
+  await views('orders').getByRole('tab',{name:'Relationships'}).click();
+  const rel=dataset('orders').getByRole('table',{name:'Relationships'});
+  await expect(rel.getByRole('row').filter({hasText:'customer_id'})).toContainText('references');await expect(rel.getByRole('row').filter({hasText:'customer_id'})).toContainText('customers');
+  await expect(rel.getByRole('row').filter({hasText:'order_lines'})).toContainText('referenced by');
  });
  await check('History tab: versions from Git with property-level changes between two versions',async()=>{
   await views('orders').getByRole('tab',{name:'History'}).click();
@@ -94,7 +99,7 @@ try{
   const withRules=parse(read(mall.slug,'mall.odcs.yaml')).schema.filter((o:any)=>o.quality||o.properties?.some((p:any)=>p.quality));
   expect(withRules.length).toBeGreaterThan(0);
   const target=withRules[0].name;await overview().getByRole('searchbox',{name:'Find an object'}).fill(target);await openDataset(target);
-  await views(target).getByRole('tab',{name:'Quality'}).click();
+  await views(target).getByRole('tab',{name:'Data Quality'}).click();
   const rules=dataset(target).getByRole('table',{name:'Quality rules'});await expect(rules.getByRole('row').nth(1)).toBeVisible();
   const declared=[...(withRules[0].quality??[]),...withRules[0].properties.flatMap((p:any)=>p.quality??[])];
   await expect(rules.getByRole('row')).toHaveCount(declared.length+1);
