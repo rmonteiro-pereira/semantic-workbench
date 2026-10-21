@@ -93,3 +93,10 @@ select.odcs-edit{cursor:pointer;padding-right:2px}
 .odcs-edit.text{width:100%;min-width:90px;resize:vertical;field-sizing:content}
 textarea.odcs-edit.text{min-width:200px;line-height:1.4;font-family:inherit;resize:none}
 .odcs-edit-check{width:15px;height:15px;accent-color:#1e6a4f;cursor:pointer}
+
+.odcs-purpose dd,.odcs-note{max-width:90ch}
+@media (min-width:1920px){
+ .odcs-purpose{grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
+ .odcs-sections{grid-template-columns:repeat(auto-fit,minmax(420px,1fr));align-items:start}
+ .odcs-compare label{flex:0 1 640px}
+}

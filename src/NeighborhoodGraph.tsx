@@ -1,3 +1,4 @@
+import {ScrollStrip} from './ScrollStrip';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {ReactFlow,ReactFlowProvider,Background,Controls,Position,MarkerType,useNodesState,useReactFlow,type Node} from '@xyflow/react';
 import {ArrowLeft,ArrowRight,Crosshair,FileSymlink,Gauge,LocateFixed} from 'lucide-react';
@@ -97,7 +98,7 @@ function NeighborhoodCanvas(props:NeighborhoodGraphProps){
  const cross=centerEntity&&props.crossFile?props.crossFile(centerEntity):[];
  const kpiFor=centerEntity?kpiBadges?.get(centerEntity.name)??[]:[];
  return <div className="neighborhood-graph">
-  <div className="neighborhood-tools">
+  <ScrollStrip className="neighborhood-tools">
    <div className="center-picker" role="combobox" aria-expanded={pickOpen&&pickResults.length>0} aria-haspopup="listbox" aria-owns="center-picker-results">
     <LocateFixed size={14}/>
     <input aria-label="Find a center" aria-controls="center-picker-results" aria-autocomplete="list" placeholder={centerEntity?`Center: ${centerEntity.name}`:'Find a center'} value={pick}
@@ -116,7 +117,7 @@ function NeighborhoodCanvas(props:NeighborhoodGraphProps){
    <button onClick={()=>{setNodes(build());setFitted('');}} title="Put every node back in its column">Re-center</button>
    <button onClick={props.onOverview}>Model overview</button><button onClick={props.onFullGraph}>Full graph</button>{props.fullscreen&&<FullscreenButton fullscreen={props.fullscreen}/>}
    <span className="neighborhood-legend" aria-hidden="true"><span className="in">Incoming</span><span className="out">Outgoing</span>{lateral&&<span className="lateral">Between neighbors</span>}</span>
-  </div>
+  </ScrollStrip>
   <div className="neighborhood-links">
    <nav className="walk-trail" aria-label="Walk">
     <button aria-label="Back" title="Back" disabled={walk.index<=0} onClick={()=>props.onWalkTo(walk.index-1)}><ArrowLeft size={14}/></button>

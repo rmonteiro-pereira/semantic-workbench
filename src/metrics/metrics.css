@@ -189,3 +189,10 @@
 }
 .metrics-title{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.metrics-title h2{min-width:0}
 .metrics-new,.kpi-edit{flex-shrink:0;font-size:12px;padding:7px 11px;gap:5px}.kpi-edit{background:white}
+
+/* Keep the tabular list readable even with no detail selected on a wide monitor. */
+@media (min-width: 1920px) {
+ .metrics-view:not(.has-detail) .metrics-list { width: 100%; max-width: 1600px; justify-self: center; }
+ .metrics-filters { max-width: 1100px; }
+ .metrics-search { max-width: 640px; }
+}

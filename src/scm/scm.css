@@ -64,3 +64,18 @@
 .stale-save .diff-view{max-height:52vh}
 .scm.scm-message{display:block;padding:16px;height:auto}
 .branch-picker label>span{font-size:12px;color:#4d6660}
+
+/* Keep actions above independently scrolling history and give stacked diffs real space; on narrow
+   screens the whole page scrolls, so the side panel is never cut mid-line. */
+.scm-side > * { flex-shrink: 0; }
+.scm p { max-width: 90ch; }
+@media (min-width: 1920px) {
+ .scm { grid-template-columns: minmax(360px, 440px) minmax(0, 1fr); }
+}
+@media (max-width: 900px) {
+ .scm { height: 100%; overflow: auto; grid-template-rows: auto minmax(360px, 1fr); align-content: start; }
+ .scm-side { overflow: visible; }
+ .scm-main { min-height: 360px; }
+ .scm-main .diff-view { min-height: 320px; }
+ .scm-history ol { max-height: 160px; }
+}
