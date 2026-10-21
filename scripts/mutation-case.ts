@@ -157,3 +157,20 @@ if(category==='suggestions'){
  assert.equal(m.inferSuggestions([own,f('q','m.yaml',{refs:['Flightz']})],new Set()).length,0);
 }
 if(category==='references'){const entity={id:'ontology/0',name:'P',kind:'EntityType',path:[],description:'',fields:[],definition:{iri:'core:P'}};assert(m.entityKeys(entity,{entities:[entity],document:{prefixes:{core:'https://example.org/core#'}}}).includes('https://example.org/core#P'));}
+// Metrics read side (Phase 3): rollup refusal, lineage by exact physical names, both Ossie layouts.
+if(category==='explain'){
+ const docs=await Promise.all(['mall.mapping.yaml','mall.ontology.yaml','mall.semantic.yaml','mall.odcs.yaml'].map(async f=>({id:'mall/'+f,project:'mall',path:f,filename:f,revision:1,source:await Bun.file('public/examples/mall/'+f).text()})));
+ assert.match(m.explainMetric(docs,'mall','mall.semantic.yaml','occupancy_rate',{rollup:'sum'}).sqlPreview.refused??'',/Summing ratios/);
+ assert.deepEqual(m.explainMetric(docs,'mall','mall.semantic.yaml','billed_amount').inputs[0].fields[0].odcs.map((o:any)=>o.property),['amount']);
+ const flights=[{id:'f/flights.yaml',project:'f',path:'flights.yaml',filename:'flights.yaml',revision:1,source:(await Bun.file('public/examples/ossie/flights.yaml').text()).replace(/^(    datasets:)/m,'    metrics:\n      - name: n\n        expression: {dialects: [{dialect: ANSI_SQL, expression: "COUNT(FLIGHT.id)"}]}\n$1')}];
+ assert.deepEqual(m.projectMetrics(flights,'f').map((k:any)=>k.name),['n']);
+}
+if(category==='metric-extension'){
+ const metric=(data:any)=>({custom_extensions:[{vendor_name:'SEMANTIC_WORKBENCH',data:JSON.stringify(data)}]});
+ assert.equal(m.readMetricExtension(metric({schema:'semantic-workbench/metric/v1',type:'simple'})).issues.length,0);
+ assert(m.readMetricExtension(metric({schema:'semantic-workbench/metric/v1',type:'simple',additivity:'sometimes'})).issues.length>0);
+}
+if(category==='model-layout'){
+ const model=m.inspect(await Bun.file('public/examples/ossie/flights.yaml').text(),'flights.yaml');
+ assert.equal(model.layout,'embedded (deprecated)');assert(model.entities.filter((e:any)=>e.kind==='Dataset').length>=6);
+}
