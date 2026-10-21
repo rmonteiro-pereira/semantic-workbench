@@ -23,6 +23,18 @@ data/
 
 The SQLite cache moves to `SW_CACHE_DIR` when set (container local disk); default unchanged.
 
+## Instance lock (`state/instance.lock`, written atomically)
+
+| Field | Type | Rule |
+| --- | --- | --- |
+| `host`, `pid` | string, number | holder |
+| `revision` | string | `CONTAINER_APP_REVISION`, else `SW_VERSION+SW_COMMIT` (two containers of one image are the same revision), else `dev` |
+| `heartbeat` | ISO time | refreshed every 10 s; stale after 30 s |
+| `state` | `serving` | written by the holder; removed in the SIGTERM handler |
+
+Same revision and fresh heartbeat → refuse: not ready, no data served, re-checked every 10 s (FR-122); different revision and fresh heartbeat →
+hand-over wait (FR-123); stale or absent → take the lock.
+
 ## Principal (in memory, per request)
 
 | Field | Type | Rule |
