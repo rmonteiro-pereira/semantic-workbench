@@ -86,33 +86,61 @@ below come from that probe.
   `hasgroups` or `_claim_names.groups`, the server calls Microsoft Graph
   `POST /users/{oid}/checkMemberGroups` with the configured group ids (at most 20 per call) using
   an app-only token (application permission `GroupMember.Read.All`, admin consent). Failure →
-  no domain membership, message shown, audit entry.
+  no domain membership, message shown, audit entry. The Graph base URL is configurable
+  (`SW_GRAPH_URL`, default `https://graph.microsoft.com`) so the mock OpenID provider's stand-in
+  can answer in tests.
 - Stable id `tid:oid` (`sub` is pairwise per application). `tid` must equal `SW_ENTRA_TENANT_ID`.
   Optional claims `email`, `upn`; display name from `name`.
 - Scopes at sign-in: `openid profile email offline_access api://<client-id>/access_as_user` so
   the session holds an access token for the workbench API usable for on-behalf-of (R8).
 
-## R6 Keycloak and automated tests
+## R6 Test identity providers: mock OpenID provider (gate and pipeline), Keycloak (compatibility)
 
-- Keycloak 26 container (`quay.io/keycloak/keycloak:26.4`, pinned by digest in the test script)
-  started with `start-dev --import-realm` and `tests/fixtures/keycloak/realm.json`: confidential
-  client `semantic-workbench` (PKCE S256 required), client roles Viewer/Editor/Steward/Admin,
-  group membership mapper (`groups`, full path off), client `sw-agent` and `sw-agent-ungranted`
-  with service accounts holding client role `Agent`.
-- Test users: `alice` (Sales, Editor), `bob` (Sales, Steward), `carol` (HR, Viewer),
-  `dave` (Admin), `erin` (no role), `frank` (Sales + Finance group, Editor).
-- `bun run test:auth:keycloak` starts Keycloak with Docker or Podman (`docker run`, realm mounted
-  read-only, port on `127.0.0.1:8080`), waits for
-  `/realms/workbench/.well-known/openid-configuration`, then runs the Playwright check (sign-in
-  form, role header, sign-out, live updates, agent client credentials) and removes the container.
-  Run alone without a container runtime it skips with a clear message; under `ci:validate`
-  (`--require-container`) it fails instead. The pipeline's `keycloak` job runs the same step on
-  the agent, so the Keycloak container is started by the script, not declared as an Azure
-  Pipelines service container: a service container takes an image, options, environment, ports
-  and volumes but no start command, and the Keycloak image needs `start-dev --import-realm`
-  (a derived test image would have to be built and published before the job starts). Unit tests
-  use an in-process stub provider (`jose` keys).
-- Entra: manual checklist in quickstart.md, results recorded in verification.md.
+- **Owner decision (OP-9)**: the target uses Microsoft Entra ID only; the target pipeline must not
+  start or depend on Keycloak. So the automated sign-in tests of `ci:validate` and of the pipeline
+  run against a mock OpenID provider shipped in the repository, and Keycloak becomes a
+  compatibility suite on the owner's machine.
+- **Mock OpenID provider** (`tests/helpers/mock-oidc.ts`, runner `scripts/mock-oidc.ts`), built on
+  `jose` (already a dependency) and `Bun.serve`, no new dependency. Used in process by unit tests
+  and as a loopback `http://` server started and stopped by the browser checks, the container
+  check (server group, host networking so the container reaches it on `127.0.0.1`) and the smoke
+  test's loopback run. Endpoints: discovery, JWKS (two keys, rotation on demand to test the
+  unknown-`kid` refresh), `authorize` (a test-user chooser page that Playwright drives; PKCE S256
+  required, `state`, `nonce`, exact redirect URI), `token` (authorization code with verifier
+  check, `refresh_token` returning current roles and groups so role changes are testable,
+  `client_credentials` for agent clients, and the on-behalf-of grant used by the stubbed token
+  issuance of the remote-credential tests), `end_session`, and a Graph stand-in
+  `POST /v1.0/users/{oid}/checkMemberGroups` (answers from the fixture, can be told to fail).
+  Claim shapes: `entra` (default: issuer `http://127.0.0.1:<port>/<tid>/v2.0`, `oid`, `tid`,
+  pairwise `sub`, `name`, `preferred_username`, `email`, `roles` from app roles, `groups` as
+  GUIDs, `idtyp=app` and `azp` for applications, overage through `hasgroups` or
+  `_claim_names`/`_claim_sources` for the overage user), `keycloak`
+  (`resource_access.<client>.roles`, group names) and `generic`. Controls for tests: user
+  roles/groups changes, token lifetimes, clock offset, forced errors. Never in the image; server
+  mode refuses an `http://` issuer unless the public URL is loopback (FR-141).
+- **Test users** (mock and Keycloak realm alike): `alice` (Sales, Editor), `bob` (Sales, Steward),
+  `carol` (HR, Viewer), `dave` (Admin), `erin` (no role), `frank` (Sales + Finance group,
+  Editor), `olga` (Sales Editor with group overage, mock only); agent clients `sw-agent`
+  (granted) and `sw-agent-ungranted`.
+- **What the mock does not cover**: conditional access, consent and multi-factor prompts,
+  tenant token lifetimes, the real Graph permissions and admin consent, on-behalf-of to Azure
+  DevOps. These are in the manual Entra checklist (quickstart §5), run by the owner on the real
+  tenant.
+- **Keycloak compatibility suite** (`bun run test:auth:keycloak`): Keycloak 26
+  (`quay.io/keycloak/keycloak:26.4`, pinned by digest) started with Docker or Podman
+  (`start-dev --import-realm`, `tests/fixtures/keycloak/realm.json` mounted read-only, port on
+  `127.0.0.1:8080`), confidential client `semantic-workbench` (PKCE S256 required), client roles
+  Viewer/Editor/Steward/Admin, group membership mapper (`groups`, full path off), clients
+  `sw-agent` and `sw-agent-ungranted` with service accounts holding client role `Agent`. The
+  script waits for `/realms/workbench/.well-known/openid-configuration`, runs the Playwright
+  check (sign-in form, role header, sign-out, live updates, agent client credentials) and removes
+  the container; without a container runtime it fails. It is outside `ci:validate` and the
+  pipeline (a recorded exclusion of the pipeline check) and runs on the owner's machine before
+  each release; the Compose `keycloak` profile gives the same setup for manual runs.
+- **Rejected**: Keycloak in the target pipeline (owner decision; it would also need a derived
+  image or a script-started container on the agent); an external test tenant in the pipeline
+  (secrets and network dependency on the agent, flaky); a third-party mock OpenID server image
+  (another pinned image to scan, and no Entra overage or Graph stand-in).
 
 ## R7 Per-person Git working copies
 
@@ -274,10 +302,11 @@ below come from that probe.
 - Authorization test matrix: `tests/auth/matrix.test.ts` enumerates every route (table in
   [contracts/http-api.md](./contracts/http-api.md)) × users (anonymous, Viewer, Editor, Steward,
   Admin, deactivated, agent granted/ungranted) × target (readable, unreadable, guarded) using the
-  stub provider and a fixture workspace with three domains; asserts status codes and scans every
+  mock OpenID provider in process and a fixture workspace with three domains; asserts status codes and scans every
   body and SSE frame for marker strings planted in unreadable files.
-- Browser: `test:auth` (stub provider), `test:auth:keycloak` (real Keycloak), `test:admin`,
-  `test:two-editors`, all on isolated data roots.
+- Browser: `test:auth` (mock OpenID provider, Entra shape), `test:admin`, `test:two-editors`, all
+  on isolated data roots; `test:auth:keycloak` (real Keycloak) is the compatibility suite outside
+  the gate (R6).
 - Mutants: listed in plan.md Constitution Check VI.
 
 ## R17 Container image and Docker Compose
@@ -311,7 +340,7 @@ below come from that probe.
 - **Writable data root check**: at start-up the server writes and removes a probe file under the
   data root; failure stops start-up naming the path and the uid (FR-125).
 - **Compose** (`compose.yaml`): profile `local` → service `workbench` (image built from the
-  Dockerfile, `network_mode: host`, `SW_MODE=local`, `./.data:/data`); profile `server` →
+  Dockerfile, `network_mode: host`, `SW_MODE=local`, `./.data:/data`); profile `keycloak` (compatibility, owner's machine) →
   `keycloak` (`quay.io/keycloak/keycloak:26.4` pinned by digest, `start-dev --import-realm`, the
   test realm mounted read-only, port published on `127.0.0.1:8080` only) and `workbench-server`
   (`network_mode: host`, `SW_MODE=server`, `SW_HOST=127.0.0.1`, `SW_PUBLIC_URL=http://localhost:4310`,
@@ -321,8 +350,11 @@ below come from that probe.
 - **Running the suites against the image**: browser checks read their base URL from
   `SW_BASE_URL` (default the dev server); `scripts/container-check.ts` builds or takes an image,
   starts it with a temporary data folder, waits for `/readyz`, and runs the suites listed in
-  `scripts/container-suites.ts` against it (local mode suites, and from US1 on the server suites
-  through the compose server profile).
+  `scripts/container-suites.ts` against it (local mode suites, and from US1 on the server suites:
+  the check starts the mock OpenID provider on host loopback and the image in server mode with
+  host networking against it, so no Keycloak and no Compose profile is involved and the same
+  check runs on the target's agents). It also starts a second image revision (different
+  `SW_COMMIT` build argument) on the same volume to measure the hand-over (SC-017).
 
 ## R18 Local build scripts and the Azure DevOps pipeline
 
@@ -335,8 +367,9 @@ below come from that probe.
 - **`ci:validate`** (`scripts/ci-validate.ts`): runs the steps `verify` (`check`, `bun test`,
   `build`), `mutation`, `browser` (every suite listed in `scripts/gate-suites.ts`, the single list
   of quality-gate browser suites, each on an isolated data root with its own dev server port),
-  `keycloak`, `image` (`image:build`, `image:scan`, `image:sbom`), `container` (`test:container`,
-  then `deploy:smoke --loopback` against the Compose server profile) and `pipeline`
+  `image` (`image:build`, `image:scan`, `image:sbom`), `container` (`test:container`, then
+  `deploy:smoke --loopback` against the server-mode container with the mock OpenID provider) and
+  `pipeline`
   (`pipeline:lint`, `pipeline:dry-run`). Steps run in that order and stop at the first failing
   step unless `--keep-going`; `--step` and `--suite` select a subset, which is how the pipeline
   splits Validate into parallel jobs. It writes JUnit XML (for `PublishTestResults@2`) and a JSON
@@ -352,7 +385,8 @@ below come from that probe.
 - **Pipeline definition** (`azure-pipelines.yml`, multi-stage YAML, templates under
   `deploy/azure-devops/templates/`): `Validate` (jobs `verify`, `mutation`, `browser` literal
   matrix kept equal to `scripts/gate-suites.ts` by the pipeline check because Azure DevOps compiles
-  the matrix before any script runs, `keycloak`, `pipeline`; each one `ci:validate` step), `Image`
+  the matrix before any script runs, `pipeline`; each one `ci:validate` step; no Keycloak and no
+  service containers, sign-in runs against the mock OpenID provider, R6), `Image`
   (on tag runs first a `check` job with `deploy:check-version`, so a wrong tag fails before any push
   and before approval; Azure DevOps evaluates an environment's approvals and checks before the
   stage that uses it starts, so the check cannot sit in the Deploy stage; then image steps and
@@ -375,7 +409,7 @@ below come from that probe.
 - **Triggers**: CI trigger on `main` and tags `v*` of the target's Azure Repos mirror of this
   repository; pull-request validation through the target's branch policy on `main`; `pr: none`.
   The pipeline is never connected to this GitHub repository, so pushes here trigger nothing
-  (FR-130).
+  (FR-130); releases reach the mirror by the hand-over of R21.
 - **One deployment at a time**: the environment's exclusive lock check plus `lockBehavior:
   runLatest` declared at stage level on `Deploy` and `Rollback` (the check has no such option)
   serialise deployments and rollbacks and drop older waiting runs.
@@ -390,7 +424,7 @@ below come from that probe.
   local steps and the Azure steps against the fake Azure client. When the target has imported the
   pipeline, Azure DevOps' preview run (`previewRun: true` of the Runs API) returns the fully
   expanded YAML without running it; the guide lists it as the target's first check.
-- **Smoke test** (`deploy:smoke`, also run against the Compose server profile in the `container`
+- **Smoke test** (`deploy:smoke`, also run against the server-mode container in the `container`
   step so its logic runs on every validation): `/readyz` reports state `serving` within 3 minutes
   (state `handover` is waited out); `/healthz` commit equals the deployed commit and version equals
   the `package.json` version; `GET /api/projects` without a cookie → 401 with no project names;
@@ -407,7 +441,8 @@ below come from that probe.
   results) as part of each release.
 - **Rejected**: GitHub Actions (owner decision: the repository runs nothing); rebuilding the image
   in the Deploy stage (the deployed digest would not be the scanned and tested one); an Azure
-  Pipelines service container for Keycloak (no start command, R6); pipeline-only logic in inline
+  Pipelines service container for Keycloak (Keycloak is not used by the target, R6);
+  pipeline-only logic in inline
   scripts (could not be run or tested locally).
 
 ## R19 Registry: the target's Azure Container Registry
@@ -433,7 +468,7 @@ below come from that probe.
   (`AcrPush` on the registry and Contributor on the container app resource only; if the update
   also needs the Container Apps environment's join action, a custom role limited to that action on
   the environment, and Managed Identity Operator on `id-sw-app` if assigning the user-assigned
-  identity requires it; the final set is recorded by T133). `AzureCLI@2` uses them with
+  identity requires it; the final set is recorded in the owner's trial report, R21). `AzureCLI@2` uses them with
   `addSpnToEnvironment: false`, so no token reaches the scripts' environment beyond the Azure CLI
   session.
 - **Protection**: each service connection and the variable group grant pipeline permission only
@@ -456,3 +491,28 @@ below come from that probe.
 - **Parameters versus variables**: service connection, environment and variable group names are
   compile-time parameters (Azure DevOps authorises protected resources when the run is compiled,
   so runtime variables cannot name them); every other target value is a variable of the group.
+
+## R21 Release hand-over to the mirror and owner acceptance
+
+- **Owner decisions (OP-10, OP-11)**: the target imports from its own Azure Repos mirror and
+  nothing connects to this GitHub repository; the implementer has no access to the trial
+  organisation and subscription, so the real trial is an owner acceptance step.
+- **Hand-over**: (1) push the release commit to a `release/vX.Y.Z` branch of the mirror, merge it
+  into `main` through a pull request (the branch policy on `main` forbids direct pushes and runs
+  Validate and Image), then push the tag, which points to the release commit whatever merge type
+  was used; or (2) a Git bundle of the tag (`git bundle create … vX.Y.Z`) with a SHA-256 checksum,
+  verified with `git bundle verify` and handed over the same way by someone with mirror access. Both keep the commit
+  identifiers, so the image's `sha-` tag, its `revision` label and `/healthz` name the same
+  commit as this repository, and the version check reads the same `package.json`. (3) A source
+  archive is a fallback only: it creates a different commit in the mirror, recorded in the tag
+  message. Rejected: a pipeline or service connection that reads this GitHub repository (owner
+  decision; FR-130); a scheduled mirror sync (would run something automatically from this
+  repository).
+- **Done criteria for the implementer**: `pipeline:lint`, `pipeline:dry-run --execute` for `pr`,
+  `main` and a tag (deploy, smoke failure and rollback paths on the fake Azure client) and the
+  container suites (local and server groups, smoke `--loopback`, hand-over) green inside
+  `ci:validate`. The trial runbook (`deploy/trial-runbook.md`, contract in
+  [delivery-pipeline.md](./contracts/delivery-pipeline.md)) gives the owner numbered steps with
+  expected outputs and a report block with identifiers replaced by placeholders; the filled
+  report is recorded in verification.md and each failed step becomes a follow-up task. SC-015
+  and the final deploy role set are known only after that report.
