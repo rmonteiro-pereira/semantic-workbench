@@ -10,6 +10,8 @@ export type Registry={formatVersion:1;projects:ProjectEntry[]};
 export type ViewState={formatVersion:1;files:Record<string,unknown>};
 export type Patch={from:number;to:number;insert:string};
 export type Draft={formatVersion:1;project:string;path:string;baseHash:string|null;text:string;patches:Patch[];updatedAt:string};
+export type RejectedSuggestion={hash:string;target:string;project:string;path:string;rejectedAt:string};
+export type SuggestionState={formatVersion:1;rejected:RejectedSuggestion[]};
 export type LegacyIds={formatVersion:1;ids:Record<string,{project:string;path:string}>};
 function load<T extends {formatVersion:number}>(path:string,empty:()=>T):T{
  const value=readJsonFile<T>(path);if(value===null)return empty();
@@ -20,6 +22,7 @@ export function createState(layout:DataLayout){
  const viewFile=(slug:string)=>join(layout.views,assertSlug(slug)+'.json');
  const draftFile=(slug:string,path:string)=>join(layout.drafts,assertSlug(slug),sha256(projectPath(path))+'.json');
  return {
+  viewFile,draftFile,draftDir:(slug:string)=>join(layout.drafts,assertSlug(slug)),
   registry:()=>load<Registry>(layout.registry,()=>({formatVersion:STATE_FORMAT,projects:[]})),
   hasRegistry:()=>readJsonFile(layout.registry)!==null,
   writeRegistry:(projects:ProjectEntry[])=>atomicWriteJson(layout.registry,{formatVersion:STATE_FORMAT,projects}),
@@ -30,6 +33,8 @@ export function createState(layout:DataLayout){
   deleteDraft:(slug:string,path:string)=>rmSync(draftFile(slug,path),{force:true}),
   drafts:():Draft[]=>{let slugs:string[]=[];try{slugs=readdirSync(layout.drafts);}catch{return [];}
    return slugs.flatMap(slug=>readdirSync(join(layout.drafts,slug)).filter(f=>f.endsWith('.json')).map(f=>readJsonFile<Draft>(join(layout.drafts,slug,f))!).filter(d=>d?.formatVersion===STATE_FORMAT));},
+  suggestions:()=>load<SuggestionState>(join(layout.state,'suggestions.json'),()=>({formatVersion:STATE_FORMAT,rejected:[]})),
+  writeSuggestions:(rejected:RejectedSuggestion[])=>atomicWriteJson(join(layout.state,'suggestions.json'),{formatVersion:STATE_FORMAT,rejected}),
   legacyIds:()=>load<LegacyIds>(layout.legacyIds,()=>({formatVersion:STATE_FORMAT,ids:{}})),
   writeLegacyIds:(ids:LegacyIds['ids'])=>atomicWriteJson(layout.legacyIds,{formatVersion:STATE_FORMAT,ids}),
  };
