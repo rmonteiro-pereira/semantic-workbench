@@ -240,7 +240,7 @@ export async function openWorkspace(options:WorkspaceOptions={}){
  }
  return {
   layout,state,cache,events,git,journal,gitAvailable,identityConfigured,recovery,migration,
-  lock,rescan,registrySteps,readFile,saveFile,documents,resolveId,preflight,trash,moveFile,importInto,deleteImpact,suggestions,acceptSuggestion,rejectSuggestion,
+  lock,rescan,project:entry,registrySteps,readFile,saveFile,documents,resolveId,preflight,trash,moveFile,importInto,deleteImpact,suggestions,acceptSuggestion,rejectSuggestion,
   async listProjects(){
    return Promise.all(projects().map(async p=>{
     let gitInfo={branch:'',ahead:0,behind:0,changes:0};
