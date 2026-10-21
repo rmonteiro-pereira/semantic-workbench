@@ -310,12 +310,12 @@ to concepts and ODCS.
 - [X] T138 [P] [US8] Property diff in src/odcs/odcs-diff.ts
 - [X] T139 [P] [US8] Lineage builder in src/odcs/lineage.ts
 - [X] T140 [US8] Write the Codex brief for phase 9 layout (FR-056–058, ui-contracts, Marquez concepts, suites to pass) in specs/001-workbench-improvements/codex/phase-09.md
-- [ ] T141 [US8] [CODEX] Contract overview page in src/odcs/ContractOverview.tsx
-- [ ] T142 [US8] [CODEX] Dataset page with header and tabs Schema/Lineage/History/Quality in src/odcs/DatasetPage.tsx
-- [ ] T143 [US8] In-place property edits from the schema table via src/edit/yaml-patch.ts and src/edit/json-patch.ts in src/odcs/DatasetPage.tsx
-- [ ] T144 [US8] Browser check scripts/odcs-browser-check.ts
-- [ ] T145 [US8] Add mutant: property diff ignores type changes
-- [ ] T146 [US8] Update README.md ODCS section
+- [X] T141 [US8] [CODEX] Contract overview page in src/odcs/ContractOverview.tsx (implemented without Codex by owner decision)
+- [X] T142 [US8] [CODEX] Dataset page with header and tabs Schema/Lineage/History/Quality in src/odcs/DatasetPage.tsx (implemented without Codex by owner decision)
+- [X] T143 [US8] In-place property edits from the schema table via src/edit/yaml-patch.ts and src/edit/json-patch.ts in src/odcs/DatasetPage.tsx
+- [X] T144 [US8] Browser check scripts/odcs-browser-check.ts
+- [X] T145 [US8] Add mutant: property diff ignores type changes
+- [X] T146 [US8] Update README.md ODCS section
 
 ---
 
