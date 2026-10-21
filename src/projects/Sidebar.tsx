@@ -1,5 +1,5 @@
 import React,{useEffect,useRef,useState} from 'react';
-import {ChevronDown,ChevronRight,FileCode,FolderGit2,MoreHorizontal} from 'lucide-react';
+import {ChevronDown,ChevronRight,FileCode,FolderGit2,MoreHorizontal,Trash2} from 'lucide-react';
 import type {ProjectInfo} from './api';
 // Project → files tree (FR-017, ui-contracts "Sidebar"). Each file shows its document type and
 // whether it passed validation; invalid files stay listed so they can be repaired in Source.
@@ -13,6 +13,10 @@ function ItemMenu({label,items}:{label:string;items:{label:string;run:()=>void}[
   {open&&<div role="menu" aria-label={`Actions for ${label}`} className="item-menu-list">{items.map(i=><button key={i.label} role="menuitem" onClick={()=>{setOpen(false);i.run();}}>{i.label}</button>)}</div>}
  </span>;
 }
+// Direct delete on every row: same confirmation → undo → trash flow as the menu's Delete.
+function DeleteButton({label,onClick}:{label:string;onClick:()=>void}){
+ return <button className="row-action row-delete" aria-label={label} title={label} onClick={onClick}><Trash2 size={15} aria-hidden="true"/></button>;
+}
 const typeLabel=(docType:string)=>docType==='unknown'?'Unrecognized':docType==='gitignore'?'.gitignore':docType;
 export function ProjectTree({projects,currentId,onOpen,onAction}:{projects:ProjectInfo[];currentId?:string;onOpen:(project:string,path:string)=>void;onAction:(a:TreeAction)=>void}){
  const [collapsed,setCollapsed]=useState<Set<string>>(()=>new Set());
@@ -20,13 +24,15 @@ export function ProjectTree({projects,currentId,onOpen,onAction}:{projects:Proje
  if(!projects.length)return <p className="projects-empty">No projects yet. Import definitions or load an example.</p>;
  return <ul className="project-tree" role="tree" aria-label="Projects">
   {projects.map(p=>{const open=!collapsed.has(p.slug);return <li key={p.slug} role="treeitem" aria-expanded={open} aria-label={p.name} className="project">
-   <button className="project-toggle" aria-label={`${p.name}, ${p.files.length} file${p.files.length===1?'':'s'}`} onClick={()=>toggle(p.slug)} onKeyDown={e=>{if(e.key==='ArrowLeft'&&open){e.preventDefault();toggle(p.slug);}if(e.key==='ArrowRight'&&!open){e.preventDefault();toggle(p.slug);}}}>
+   <div className="tree-row"><button className="project-toggle" aria-label={`${p.name}, ${p.files.length} file${p.files.length===1?'':'s'}`} onClick={()=>toggle(p.slug)} onKeyDown={e=>{if(e.key==='ArrowLeft'&&open){e.preventDefault();toggle(p.slug);}if(e.key==='ArrowRight'&&!open){e.preventDefault();toggle(p.slug);}}}>
     {open?<ChevronDown size={14}/>:<ChevronRight size={14}/>}<FolderGit2 size={15}/><span>{p.name}</span><small>{p.files.length}</small>
    </button>
-   <ItemMenu label={p.name} items={[{label:'Rename',run:()=>onAction({action:'rename',project:p.slug})},{label:'Import files into this project',run:()=>onAction({action:'import',project:p.slug})},{label:'Delete',run:()=>onAction({action:'delete-project',project:p.slug})}]}/>
+   <DeleteButton label={`Delete project ${p.name}`} onClick={()=>onAction({action:'delete-project',project:p.slug})}/>
+   <ItemMenu label={p.name} items={[{label:'Rename',run:()=>onAction({action:'rename',project:p.slug})},{label:'Import files into this project',run:()=>onAction({action:'import',project:p.slug})},{label:'Delete',run:()=>onAction({action:'delete-project',project:p.slug})}]}/></div>
    {open&&<ul role="group">{p.files.map(f=>{const id=`${p.slug}/${f.path}`;return <li key={f.path} role="treeitem" aria-selected={currentId===id} aria-label={f.path} className={`project-file ${f.valid?'':'invalid'}`}>
-    <span className="file-row"><button className={`document ${currentId===id?'chosen':''}`} onClick={()=>onOpen(p.slug,f.path)}><FileCode size={15}/><span>{f.path}</span></button>
-    <ItemMenu label={`${f.path} in ${p.name}`} items={[{label:'Move',run:()=>onAction({action:'move',project:p.slug,path:f.path})},{label:'Delete',run:()=>onAction({action:'delete-file',project:p.slug,path:f.path})}]}/></span>
+    <div className="tree-row file-row"><button className={`document ${currentId===id?'chosen':''}`} onClick={()=>onOpen(p.slug,f.path)}><FileCode size={15}/><span>{f.path}</span></button>
+    <DeleteButton label={`Delete ${f.path}`} onClick={()=>onAction({action:'delete-file',project:p.slug,path:f.path})}/>
+    <ItemMenu label={`${f.path} in ${p.name}`} items={[{label:'Move',run:()=>onAction({action:'move',project:p.slug,path:f.path})},{label:'Delete',run:()=>onAction({action:'delete-file',project:p.slug,path:f.path})}]}/></div>
     <small className="file-meta">{typeLabel(f.docType)}{!f.valid&&<em className="file-invalid"> · invalid</em>}{f.gitState!=='clean'&&f.gitState!=='unknown'&&<> · {f.gitState}</>}</small>
    </li>;})}</ul>}
   </li>;})}

@@ -380,3 +380,10 @@ and recorded here so later phases build on them.
 - **Imports into an existing project and moves are not committed**; they appear as changes for
   Source Control (Phase 8). "Replace" overwrites only after the user chose it in the conflict
   dialog; the replaced bytes remain recoverable only from Git history if they were committed.
+- **Row delete icons (owner request).** Every file and project row in the Projects tree has a
+  Trash2 icon button (aria-label "Delete <path>" / "Delete project <name>", tooltip, 28 px hit
+  area) before its actions menu. It is muted (opacity 0.4) until the row is hovered or focused,
+  red on hover, and always fully visible where `(hover: none)` or `(pointer: coarse)` matches. It
+  opens the same confirmation as the menu's Delete. The filename ellipsizes before the icons;
+  `scripts/helpers/tree-geometry.ts` asserts this in the responsive suite at all six viewports
+  and in test:trash at 390 and 2560 px and with touch emulation.
