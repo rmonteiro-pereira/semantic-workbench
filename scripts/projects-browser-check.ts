@@ -1,6 +1,7 @@
 import {chromium,expect} from '@playwright/test';
 import {appendFileSync,readFileSync,writeFileSync} from 'node:fs';
 import {join} from 'node:path';
+import {expectEditorValue,fillEditor} from './helpers/code-editor';
 import {startIsolatedApi,routeApi} from './helpers/isolated-api';
 // Phase 1 browser check (T035; SC-015, SC-017): project tree, live refresh after external edits,
 // two-tab stale save, cache deletion and restart. Runs against an isolated temporary data root.
@@ -31,12 +32,12 @@ try{
  });
  await check('an invalid file opens in Source for repair',async()=>{
   await fileButton(a,'broken.yaml').click();await expect(a.locator('.invalid-definition, .code')).toBeVisible();
-  await a.locator('.tabs').getByRole('button',{name:'Source',exact:true}).click();await expect(sourceText(a)).toHaveValue('name: [unclosed');
+  await a.locator('.tabs').getByRole('button',{name:'Source',exact:true}).click();await expectEditorValue(sourceText(a),'name: [unclosed');
  });
  await check('an external edit appears in the open tab within 2 s without a reload (SC-017)',async()=>{
-  await fileButton(a,'shop.yaml').click();await expect(sourceText(a)).toHaveValue(shop);
+  await fileButton(a,'shop.yaml').click();await expectEditorValue(sourceText(a),shop);
   const started=Date.now();appendFileSync(join(api.root,'projects/shop/shop.yaml'),'# edited in a terminal\n');
-  await expect(sourceText(a)).toHaveValue(shop+'# edited in a terminal\n',{timeout:2000});
+  await expectEditorValue(sourceText(a),shop+'# edited in a terminal\n',{timeout:2000});
   console.log(`  external edit visible after ${Date.now()-started} ms`);
   writeFileSync(join(api.root,'projects/shop/added.yaml'),'name: Added\nontology: [{concept: Added}]\n');
   await expect(fileButton(a,'added.yaml')).toBeVisible({timeout:2000});
@@ -44,9 +45,9 @@ try{
  await check('a save based on an older version is rejected with both versions shown (two tabs)',async()=>{
   const b=await openPage();
   await fileButton(b,'shop.yaml').click();await b.locator('.tabs').getByRole('button',{name:'Source',exact:true}).click();
-  const base=readFileSync(join(api.root,'projects/shop/shop.yaml'),'utf8');await expect(sourceText(b)).toHaveValue(base);
-  await sourceText(b).fill(base.replace('A buyer.','Edited in tab B.'));
-  await sourceText(a).fill(base.replace('A buyer.','Saved from tab A.'));
+  const base=readFileSync(join(api.root,'projects/shop/shop.yaml'),'utf8');await expectEditorValue(sourceText(b),base);
+  await fillEditor(sourceText(b),base.replace('A buyer.','Edited in tab B.'));
+  await fillEditor(sourceText(a),base.replace('A buyer.','Saved from tab A.'));
   await a.getByRole('button',{name:'Save changes',exact:true}).click();await expect(a.getByRole('status')).toContainText('Saved to the project folder');
   expect(readFileSync(join(api.root,'projects/shop/shop.yaml'),'utf8')).toContain('Saved from tab A.');
   await b.getByRole('button',{name:'Save changes',exact:true}).click();
@@ -54,17 +55,17 @@ try{
   await expect(dialog).toBeVisible();await expect(dialog.getByLabel('Your version (not saved)')).toContainText('Edited in tab B.');await expect(dialog.getByLabel('Current file on disk')).toContainText('Saved from tab A.');
   await b.screenshot({path:'/tmp/workbench-projects-stale.png'});
   expect(readFileSync(join(api.root,'projects/shop/shop.yaml'),'utf8')).toContain('Saved from tab A.');
-  await dialog.getByRole('button',{name:'Keep editing'}).click();await expect(dialog).toHaveCount(0);await expect(sourceText(b)).toHaveValue(/Edited in tab B\./);
+  await dialog.getByRole('button',{name:'Keep editing'}).click();await expect(dialog).toHaveCount(0);await expectEditorValue(sourceText(b),/Edited in tab B\./);
   await b.getByRole('button',{name:'Save changes',exact:true}).click();
   await b.getByRole('dialog').getByRole('button',{name:'Discard my edits and load the current file'}).click();
-  await expect(sourceText(b)).toHaveValue(/Saved from tab A\./);
-  await sourceText(b).fill(base.replace('A buyer.','Second edit in B.'));
+  await expectEditorValue(sourceText(b),/Saved from tab A\./);
+  await fillEditor(sourceText(b),base.replace('A buyer.','Second edit in B.'));
   appendFileSync(join(api.root,'projects/shop/shop.yaml'),'# another external change\n');
   await b.getByRole('button',{name:'Save changes',exact:true}).click();
   await b.getByRole('dialog').getByRole('button',{name:'Keep my version and save over it'}).click();
   await expect(b.getByRole('status')).toContainText('Saved to the project folder');
   expect(readFileSync(join(api.root,'projects/shop/shop.yaml'),'utf8')).toBe(base.replace('A buyer.','Second edit in B.'));
-  await expect(sourceText(a)).toHaveValue(base.replace('A buyer.','Second edit in B.'),{timeout:2000});
+  await expectEditorValue(sourceText(a),base.replace('A buyer.','Second edit in B.'),{timeout:2000});
   await b.close();
  });
  await check('deleting the cache and restarting restores projects, files, view settings and drafts (SC-015)',async()=>{

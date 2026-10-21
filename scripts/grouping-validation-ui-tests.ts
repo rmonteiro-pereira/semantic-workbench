@@ -1,6 +1,7 @@
 import { chromium, expect, type Locator } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
+import { editorSelection, expectEditorValue, fillEditor } from './helpers/code-editor';
 import { inspect } from '../src/model';
 import { groupRelationships } from '../src/graph-view';
 
@@ -58,9 +59,7 @@ async function unchangedExport(filename: string) {
   expect(await readFile(path!, 'utf8')).toBe(originals.get(filename)!);
   expect(store.list().find(doc => doc.filename === filename)?.source).toBe(originals.get(filename)!);
 }
-async function selectedText(editor: Locator) {
-  return editor.evaluate((node: HTMLTextAreaElement) => node.value.slice(node.selectionStart, node.selectionEnd));
-}
+const selectedText = (editor: Locator) => editorSelection(editor);
 async function attachedFlights() {
   const links = groupRelationships(inspect(originals.get('flights.ontology.yaml')!, 'flights.ontology.yaml').edges)
     .map(edge => ({ id: edge.id, source: edge.source, target: edge.target }));
@@ -159,9 +158,9 @@ try {
     await page.locator('.tabs').getByRole('button', { name: 'Source', exact: true }).click();
     const editor = page.getByLabel('Definition source', { exact: true });
     const invalid = 'name: Source diagnostics\nontology:\n  - concept: Airport\n    type: EntityType\n    extends: [MissingSourceParent]\n';
-    await editor.fill(invalid);
+    await fillEditor(editor, invalid);
     await expect(page.getByRole('button', { name: 'Save changes', exact: true })).toBeDisabled();
-    const highlight = page.locator('.source-editor-line.line-error').filter({ hasText: 'MissingSourceParent' });
+    const highlight = page.locator('.cm-lintRange-error').filter({ hasText: 'MissingSourceParent' });
     await expect(highlight).toHaveCount(1);
     const finding = page.locator('.validation-report li').filter({ hasText: 'Unknown parent concept' }).first();
     await expect(finding).toContainText('Affected feature');
@@ -174,7 +173,7 @@ try {
     expect(await selectedText(editor)).toContain('MissingSourceParent');
     expect(store.list().find(doc => doc.filename === 'ubl.ontology.yaml')?.source).toBe(originals.get('ubl.ontology.yaml')!);
     await page.screenshot({ path: '/tmp/workbench-validation-line-focus.png' });
-    await editor.fill(originals.get('ubl.ontology.yaml')!);
+    await fillEditor(editor, originals.get('ubl.ontology.yaml')!);
   });
   await check('mixed import repair highlights and locates the faulty file without modifying saved documents', async () => {
     const count = store.list().length;
@@ -187,8 +186,8 @@ try {
     await expect(dialog).toBeVisible();
     await dialog.getByLabel('File to review').selectOption('1');
     const editor = dialog.getByLabel('Repair definition', { exact: true });
-    await expect(editor).toHaveValue(invalid);
-    await expect(dialog.locator('.source-editor-line.line-error').filter({ hasText: 'MissingRepairParent' })).toHaveCount(1);
+    await expectEditorValue(editor, invalid);
+    await expect(dialog.locator('.cm-lintRange-error').filter({ hasText: 'MissingRepairParent' })).toHaveCount(1);
     const finding = dialog.locator('.validation-report li').filter({ hasText: 'Unknown parent concept' }).first();
     await finding.getByRole('button', { name: /Go to line 5/ }).click();
     await expect(editor).toBeFocused();
@@ -197,11 +196,11 @@ try {
     expect(store.list().length).toBe(count);
     await page.screenshot({ path: '/tmp/workbench-validation-import-line.png' });
     await dialog.getByLabel('File to review').selectOption('0');
-    await expect(dialog.locator('.source-editor-line.line-error')).toHaveCount(0);
+    await expect(dialog.locator('.cm-lintRange-error')).toHaveCount(0);
     await dialog.getByRole('button', { name: 'Cancel import', exact: true }).click();
     await expect(dialog).toHaveCount(0);
     expect(store.list().length).toBe(count);
-    await expect(page.getByLabel('Definition source', { exact: true })).toHaveValue(originals.get('ubl.ontology.yaml')!);
+    await expectEditorValue(page.getByLabel('Definition source', { exact: true }), originals.get('ubl.ontology.yaml')!);
   });
   await check('fixture exports preserve exact upstream Flights and UBL source', async () => {
     for (const fixture of [...fixtures].reverse()) {

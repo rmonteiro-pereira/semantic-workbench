@@ -185,3 +185,10 @@ if(category==='model-layout'){
  const model=m.inspect(await Bun.file('public/examples/ossie/flights.yaml').text(),'flights.yaml');
  assert.equal(model.layout,'embedded (deprecated)');assert(model.entities.filter((e:any)=>e.kind==='Dataset').length>=6);
 }
+// Source editor (Phase 5): CRLF-preserving patches, lint ranges, patch-based saves.
+if(category==='patch'){const {EditorState}=await import('@codemirror/state');const original='a: 1\r\nb: 2\r\n',state=EditorState.create({doc:original});const tr=state.update({changes:{from:4,insert:'\nz: 9'}});
+ assert.equal(m.applyPatches(original,m.changesToPatches(original,state.doc,tr.changes)),'a: 1\r\nz: 9\r\nb: 2\r\n');
+ const q=m.diffPatches('x\r\ny','x\ny');assert.equal(m.applyPatches('x\r\ny',q),'x\ny');assert.equal(q[0].from,1);}
+if(category==='lint'){const {Text}=await import('@codemirror/state');const r=m.toDiagnostics([{severity:'error',code:'x',path:'/',message:'m',line:1,column:1}],Text.of(['abc']));assert.equal(r.diagnostics.length,1);assert.equal(r.documentLevel.length,0);}
+if(category==='save-client'){let body:any;(globalThis as any).fetch=async(_u:string,init:any)=>{body=JSON.parse(init.body);return new Response(JSON.stringify({path:'a',hash:'h'}),{status:200});};
+ await m.api.save('p','a.yaml','a'.repeat(64),'new',[{from:0,to:1,insert:'x'}]);assert.deepEqual(body,{baseHash:'a'.repeat(64),patches:[{from:0,to:1,insert:'x'}]});}
