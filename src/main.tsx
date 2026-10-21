@@ -199,7 +199,7 @@ function App() {
   useEffect(()=>{
     const dirty=!!current&&source!==current.source;
     if(!dirty){const d=draftOf.current;if(d){draftOf.current=null;void scmApi.deleteDraft(d.project,d.path).catch(()=>{});}return;}
-    const t=setTimeout(()=>{const prev=draftOf.current;if(prev&&(prev.project!==current!.project||prev.path!==current!.path))void scmApi.deleteDraft(prev.project,prev.path).catch(()=>{});draftOf.current={project:current!.project,path:current!.path};void scmApi.saveDraft(current!.project,current!.path,current!.hash,source).catch(()=>{});},400);
+    const t=setTimeout(()=>{const prev=draftOf.current;if(prev&&(prev.project!==current!.project||prev.path!==current!.path))void scmApi.deleteDraft(prev.project,prev.path).catch(()=>{});draftOf.current={project:current!.project,path:current!.path};void scmApi.saveDraft(current!.project,current!.path,current!.hash,source).catch(()=>{});},1500);
     return()=>clearTimeout(t);
   },[source,current?.id,current?.hash]);
   // RDF, OWL and SHACL resources are edited by IRI (Phase 7); blank nodes go with their parent.

@@ -622,7 +622,7 @@ and recorded here so later phases build on them.
   to the contract). Read-only commands (status, diff texts, log, branches) skip the per-repository
   queue so the panel stays live while a push waits for a credential window.
 - **Blocking (FR-065).** Pull, sync and switch answer `409 {error:'drafts'|'dirty', paths}`. Drafts
-  are the server-side drafts; the open file's unsaved text is now stored as a draft (after a 400 ms
+  are the server-side drafts; the open file's unsaved text is now stored as a draft (after a 1.5 s
   pause, removed when saved or discarded), so the server sees it. "Dirty" means any tracked change,
   staged or not; untracked files do not block because Git refuses to overwrite them. Nothing is
   stashed. Push and fetch do not touch the working tree and are not blocked.
