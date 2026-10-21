@@ -141,7 +141,7 @@ specs/003-authn-authz/
 
 ```text
 server/
-├── index.ts                      # mode selection, binding rules, static dist/ in server mode, instance lock
+├── index.ts                      # mode selection, binding rules, static dist/ when SW_SERVE_STATIC=1, instance lock
 ├── handler.ts                    # authentication middleware, CSRF, route → action, 401/403/404 mapping
 ├── config.ts                     # new: environment parsing and validation (contracts/configuration.md)
 ├── auth/                         # new

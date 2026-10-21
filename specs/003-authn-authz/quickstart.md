@@ -56,9 +56,10 @@ bun run test:container                            # builds the image, runs every
 Server profile (from Phase 5): `cp .env.server.example .env.server`, then
 
 ```sh
-docker compose --profile server up --build        # Keycloak on 127.0.0.1:8080 + workbench in server mode
+export SW_VERSION=$(bun -e 'console.log(require("./package.json").version)') SW_COMMIT=$(git rev-parse HEAD)
+docker compose --profile server up --build -d     # Keycloak on 127.0.0.1:8080 + workbench in server mode
 curl -fsS localhost:4310/healthz && curl -fsS localhost:4310/readyz
-bun scripts/deploy-smoke.ts http://localhost:4310 dev $(git rev-parse HEAD) --loopback
+bun run deploy:smoke -- http://localhost:4310 "$SW_VERSION" "$SW_COMMIT" --loopback
 ```
 
 Sign in as `alice` (password `test`). Restart the `workbench-server` service and confirm the
