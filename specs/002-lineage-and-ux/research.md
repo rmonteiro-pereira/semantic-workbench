@@ -292,3 +292,30 @@ rendered with `<wbr>` after `.` and `_` and `overflow-wrap: break-word` (not `an
 arrow is drawn as a pseudo-element of the following step so it never wraps alone; composer moved
 to **Compose a query…**; bindings get the full width minus the concept list; pluralisation
 helper. A geometry check with synthetic long identifiers is added (FR-063).
+
+## R15. Concept-mapping graph
+
+**Decision**: The Graph tab of a mapping document (and of a consolidated file's embedded
+mappings) renders a mapping canvas from the existing resolver output
+(`server/agent/runtime.ts` `buildContext`, served by `GET /api/agent/context`), not from
+`inspect()`. The resolver gains two additive fields: `bindings[].kind` (`object` · `referent` ·
+`link`, from the task kind it already tracks at `runtime.ts:106-130`) and `metricBindings`
+(`readKpiBindings` of the mapping root extension, resolved to metric ids, with findings). A pure
+builder `src/mappings/mapping-graph.ts` turns the context into the lineage card model (R1):
+concept cards (rows = relationships and attributes referenced by referent mappings), dataset
+cards (rows = fields), metric cards; edges of kinds `object`, `referent`, `link` (through the join
+fields of the declared dataset relationship), `measures`, `of`. It reuses `LineageCard`,
+`LineageCanvas` (layout worker, highlight, paging, pierce, walk), `PropertyBadges` (adds
+`Identifying` and `Unmapped`) and the shared legend (adds mapping line kinds). `src/model.ts`
+stops projecting concept mappings as unconnected entities: the mapping canvas is the Graph view
+for mapping documents; Neighborhood for a mapping document centers on concepts of the mapping
+graph. The canvas follows the saved revision like the Mappings tab and says so when the open
+file has unsaved edits (autosave makes this brief).
+
+**Rationale**: the resolver already implements the official mapping semantics, findings and
+cross-document references; a second reading in the browser would drift. The lineage components
+give the same visual language the owner asked for.
+
+**Alternatives**: extend `inspect()` to load other project files (rejected: `inspect` is
+per-document and runs on the main thread for every view); a new server endpoint (rejected: the
+agent context already carries everything except two additive fields).

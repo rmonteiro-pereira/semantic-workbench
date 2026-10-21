@@ -47,6 +47,12 @@ serialization. Remote Git commands run only from the endpoints marked **remote**
 | `POST /api/projects/:slug/metrics` | body of v0.2.0 `…/kpis` | same response; `…/kpis` is a deprecated alias |
 | `POST /api/projects/:slug/metrics/preview` | as `…/kpis/preview` | same; `…/kpis/preview` is a deprecated alias |
 
+## Agent context (additive)
+
+| Method & path | Change |
+| --- | --- |
+| `GET /api/agent/context` | `bindings[].kind`: `'object'\|'referent'\|'link'`; new `metricBindings: [{metric, measures, of?, evidence, findings}]` from the mapping root `SEMANTIC_WORKBENCH` extension. Existing fields unchanged; `/api/agent/plan` unchanged |
+
 ## Validation findings
 
 `findings` in file responses, imports and saves may now include `{severity: 'warning', code:

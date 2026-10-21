@@ -48,6 +48,14 @@ Only new or changed entities. Everything else keeps the v0.2.0 model
 Validation rules: a card appears once; composite keys pair by position, unequal arity gives no
 edge (existing finding); external references produce a stub card, never a fetch.
 
+### MappingGraph (`src/mappings/mapping-graph.ts`)
+
+Built from the agent context. Reuses `LineageCard`/`LineageColumn`/`LineageEdge` with card kinds
+`concept` · `dataset` · `metric` and edge kinds `object` · `referent` · `link` · `measures` ·
+`of`. Each edge carries `binding` (resolver id), `evidence` (`{documentId, path}`) and
+`findings[]`; rows carry `identifying` and `unmapped` flags. Card ids: `concept:<name>`,
+`dataset:<model>/<name>`, `metric:<model>/<name>`.
+
 ### ExpansionState (`src/graph/expansion.ts`, shared by Neighborhood and lineage)
 
 | Field | Type | Notes |

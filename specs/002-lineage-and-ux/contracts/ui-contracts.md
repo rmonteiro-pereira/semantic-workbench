@@ -51,6 +51,15 @@ textbox `Commit message`, buttons `Commit`, `Commit & push`, `Revert <path> to l
 - Edge DOM carries `data-edge-kind` (`foreign-key`, `reads`, `aggregates`, `uses`,
   `transform`) and `data-on-path` for checks.
 
+## Mapping canvas (Graph tab, mapping documents and consolidated files)
+
+- Region `Mapping graph`; cards named `Concept <name>`, `Dataset <name>`, `Metric <name>`.
+- Rows: `<card>.<row>` buttons; badges `Identifying`, `Unmapped`; warning markers named
+  `Mapping finding: <message>` with `Edit item`.
+- Toolbar: `Unmapped only` checkbox, `Ontology graph` / `Mapping graph` switch (consolidated
+  files), plus the lineage toolbar (Full pierce, direction, Stop, Undo expansion, Fit).
+- Edge DOM `data-edge-kind` in `object`, `referent`, `link`, `measures`, `of`.
+
 ## Neighborhood (pierce)
 
 - Node buttons `Expand <name>`, `Collapse <name>`; existing `Walk to <name>` kept.

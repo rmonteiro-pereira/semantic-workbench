@@ -23,7 +23,9 @@ is shippable: it ends with every existing suite (`bun test`, `check`, `build`, `
 
 - **[P]**: can run in parallel (different files, no dependency on an unfinished task)
 - **[USn]**: user story from spec.md (US1 lineage, US2 metric vocabulary, US3 save/commit, US4
-  SQL, US5 main screen, US6 Group by, US7 Git setup, US8 monorepo, US9 Mappings, US10 pierce)
+  SQL, US5 main screen, US6 Group by, US7 Git setup, US8 monorepo, US9 Mappings, US10 pierce,
+  US11 concept-mapping graph). Task ids T101–T110 (US11) were added after the first numbering;
+  T101–T109 sit in Phase 5 and T110 in Phase 6.
 - **[CODEX]**: pure UI layout/polish task, implemented with the Codex CLI from a written brief;
   reviewed and gated like any other task
 - Paths are repository-relative
@@ -112,7 +114,33 @@ is shippable: it ends with every existing suite (`bun test`, `check`, `build`, `
 
 ---
 
-## Phase 5: User Story 10 - Pierce through relationships (Priority: P1)
+## Phase 5: User Story 11 - A real concept-mapping graph (Priority: P1)
+
+**Goal**: mapping documents show concepts, datasets, fields and metrics connected per binding.
+
+**Independent Test**: open Flights (standalone and consolidated), mapped commerce, billing and the
+shopping center mapping in Graph; `bun run test:mapping-graph`.
+
+### Tests
+
+- [ ] T101 [P] [US11] Handler tests: `/api/agent/context` returns `bindings[].kind` and `metricBindings` (with findings) for standalone and embedded mappings, other fields unchanged, in tests/agent-context-kinds.test.ts
+- [ ] T102 [P] [US11] Unit tests for `buildMappingGraph` on Flights (both forms), mapped commerce, billing and mall: every binding becomes exactly one line of the right kind, link mappings pass through join fields, metric bindings `measures`/`of`, identifying and unmapped flags, findings attached to the right edge or card (SC-012) in tests/mapping-graph.test.ts
+- [ ] T103 [US11] Mutants: link mapping drawn without join fields; unmapped flag inverted; finding attached to the wrong binding; metric binding `of` drawn as `measures`
+
+### Implementation
+
+- [ ] T104 [US11] Record binding kind and add `metricBindings` in server/agent/runtime.ts (additive) and document in docs/agent-runtime.md (FR-028)
+- [ ] T105 [US11] Pure builder src/mappings/mapping-graph.ts producing the lineage card model (FR-029, FR-030)
+- [ ] T106 [US11] Mapping canvas src/mappings/MappingCanvas.tsx on LineageCanvas/LineageCard with selection summary and Edit item, Unmapped filter and badges, warning markers, legend entries for mapping kinds, walk trail (FR-031, FR-032)
+- [ ] T107 [US11] Graph tab routing in src/main.tsx: mapping documents and consolidated files show the mapping canvas, consolidated files get the Ontology graph / Mapping graph switch; stop projecting concept mappings as unconnected entities in src/model.ts:92-94 while keeping catalog and Neighborhood working (FR-034)
+- [ ] T108 [US11] Browser check scripts/mapping-graph-browser-check.ts on the five examples: lines vs resolver bindings, selection dims the rest, unmapped filter, warning markers, no area box of unconnected nodes (SC-012); add `test:mapping-graph` to package.json
+- [ ] T109 [US11] [CODEX] Mapping card styling (concept vs dataset columns, identifying/unmapped badges, warning markers) in src/odcs/odcs.css with geometry assertions in scripts/responsive-ui-tests.ts
+
+**Checkpoint**: lineage and mapping graphs shippable.
+
+---
+
+## Phase 6: User Story 10 - Pierce through relationships (Priority: P1)
 
 **Goal**: expand in place, collapse, undo, Full pierce with budgets in Neighborhood and lineage.
 
@@ -131,13 +159,14 @@ is shippable: it ends with every existing suite (`bun test`, `check`, `build`, `
 - [ ] T044 [US10] src/graph/pierce.ts and worker src/graph/pierce.worker.ts with Stop (FR-020–FR-022)
 - [ ] T045 [US10] Neighborhood: Expand/Collapse per node, relationship activation expands its far end, Full pierce toolbar (direction, Stop, Undo expansion), a Value types switch sharing Graph's per-model setting, banner with Expand further, trail steps "expanded X" in src/NeighborhoodGraph.tsx and src/layout.ts (FR-018–FR-024)
 - [ ] T046 [US10] Lineage: Expand/Collapse on cards, Full pierce on a column or card through to metrics, incremental placement for expansions, ELK for pierce in src/odcs/LineageCanvas.tsx (FR-023)
+- [ ] T110 [US10] [US11] Expand, Collapse and Full pierce on the mapping canvas (concept relationships and mappings) in src/mappings/MappingCanvas.tsx, with a pierce case added to scripts/mapping-graph-browser-check.ts (FR-033)
 - [ ] T047 [US10] Browser checks: Neighborhood scenarios on UBL (`Order` → `OrderLine` → `Item` → `Price`, Full pierce Both from `Invoice` with budget banner) and shopping center (`Lease`, Outgoing) in scripts/graph-browser-check.ts; lineage pierce on UBL `invoice_line.line_extension_amount` in scripts/lineage-browser-check.ts; input never blocked > 100 ms
 
 **Checkpoint**: all P1 stories shippable.
 
 ---
 
-## Phase 6: User Story 2 - One name: Metric (Priority: P1)
+## Phase 7: User Story 2 - One name: Metric (Priority: P1)
 
 **Goal**: "Metric" everywhere; stored data unchanged; all metrics listed.
 
@@ -153,7 +182,7 @@ is shippable: it ends with every existing suite (`bun test`, `check`, `build`, `
 
 ---
 
-## Phase 7: User Story 4 - SQL coloring and lint inside definitions (Priority: P2)
+## Phase 8: User Story 4 - SQL coloring and lint inside definitions (Priority: P2)
 
 **Goal**: SQL in YAML/JSON colored and linted with exact positions everywhere.
 
@@ -176,7 +205,7 @@ is shippable: it ends with every existing suite (`bun test`, `check`, `build`, `
 
 ---
 
-## Phase 8: User Story 5 - Calmer main screen with dialogs (Priority: P2)
+## Phase 9: User Story 5 - Calmer main screen with dialogs (Priority: P2)
 
 **Goal**: the main screen holds navigation, the view and primary actions; Appendix B moves to dialogs.
 
@@ -194,7 +223,7 @@ is shippable: it ends with every existing suite (`bun test`, `check`, `build`, `
 
 ---
 
-## Phase 9: User Story 6 - Group by that groups (Priority: P2)
+## Phase 10: User Story 6 - Group by that groups (Priority: P2)
 
 **Goal**: meaningful groups for every document kind; honest disabled modes.
 
@@ -209,7 +238,7 @@ is shippable: it ends with every existing suite (`bun test`, `check`, `build`, `
 
 ---
 
-## Phase 10: User Story 7 - Remotes, clone, identity, credentials (Priority: P2)
+## Phase 11: User Story 7 - Remotes, clone, identity, credentials (Priority: P2)
 
 **Goal**: Git setup entirely from the app (credential setup excepted).
 
@@ -230,7 +259,7 @@ is shippable: it ends with every existing suite (`bun test`, `check`, `build`, `
 
 ---
 
-## Phase 11: User Story 8 - Several projects in one repository (Priority: P3)
+## Phase 12: User Story 8 - Several projects in one repository (Priority: P3)
 
 **Goal**: subfolder projects sharing a repository's Source Control.
 
@@ -252,7 +281,7 @@ is shippable: it ends with every existing suite (`bun test`, `check`, `build`, `
 
 ---
 
-## Phase 12: User Story 9 - Mappings that fit (Priority: P3)
+## Phase 13: User Story 9 - Mappings that fit (Priority: P3)
 
 **Goal**: bindings never overflow; composer in a dialog.
 
@@ -264,7 +293,7 @@ is shippable: it ends with every existing suite (`bun test`, `check`, `build`, `
 
 ---
 
-## Phase 13: Polish and cross-cutting
+## Phase 14: Polish and cross-cutting
 
 - [ ] T097 [P] README: lineage (reading of declared names, foreign-key direction), pierce budgets, Metric vocabulary and `kpi_bindings`, autosave and Commit, import commits, clone among network operations, repository-local identity, credential guide, manifest format, SQL lint coverage and warnings, Group by modes; counts from tests (constitution VII)
 - [ ] T098 [P] Update docs/graph-design.md with the lineage canvas, ports, paging and incremental placement
@@ -279,7 +308,8 @@ is shippable: it ends with every existing suite (`bun test`, `check`, `build`, `
   T010 blocks US10.
 - US3 (Phase 3) before every phase that edits files from the UI (US1 Properties edits, US2
   wizard, US4 item editor, US5 dialogs).
-- US1 before US10 lineage tasks (T046); US10 Neighborhood tasks (T045) only need Phase 2.
+- US1 before US10 lineage tasks (T046) and before US11 (T105–T107 reuse LineageCard/Canvas);
+  US11 pierce (T110, in Phase 6) after US10 core (T043–T044); US10 Neighborhood tasks (T045) only need Phase 2.
 - US2 after US1 (lineage labels) and before US4 (wizard renamed before SqlField).
 - US7 before US8 (clone feeds repository registration).
 - US5 sidebar/header (T066–T067, T072) after US3 header change (T023).
@@ -291,7 +321,7 @@ is shippable: it ends with every existing suite (`bun test`, `check`, `build`, `
 - Phase 1: T002, T003, T004, T005 together.
 - Phase 2: T006, T008, T009, T010, T012 together; T007 after T006; T011 alone (touches Git core).
 - Each story: its [P] test tasks together; e.g. US1 T025–T027, US10 T039–T041, US4 T055–T057,
-  US7 T079–T080, US8 T086–T087.
+  US7 T079–T080, US8 T086–T087, US11 T101–T102.
 - After US3 lands: US1 and US10-Neighborhood (T039–T045) in parallel; US6 and US9 in parallel
   with US7.
 
@@ -299,7 +329,7 @@ is shippable: it ends with every existing suite (`bun test`, `check`, `build`, `
 
 - **MVP**: Phases 1–4 (setup, foundations, save/commit, lineage). Demonstrable: edit → saved →
   Commit…; contract lineage to metrics.
-- **P1 complete**: add Phases 5–6 (pierce, Metric vocabulary). Tag a pre-release if useful.
-- **Increment 2**: Phases 7–9 (SQL, dialogs, Group by).
-- **Increment 3**: Phases 10–12 (Git setup, monorepo, Mappings).
-- **Release v0.3.0** after Phase 13 with every suite green and the README updated.
+- **P1 complete**: add Phases 5–7 (concept-mapping graph, pierce, Metric vocabulary). Tag a pre-release if useful.
+- **Increment 2**: Phases 8–10 (SQL, dialogs, Group by).
+- **Increment 3**: Phases 11–13 (Git setup, monorepo, Mappings).
+- **Release v0.3.0** after Phase 14 with every suite green and the README updated.
