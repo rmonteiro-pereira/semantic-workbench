@@ -467,3 +467,39 @@ and recorded here so later phases build on them.
   still click **Auto align**; they already failed on v0.1.0 (reported in Phase 0) and are not in the
   gate. `scripts/graph-browser-check.ts` now runs on an isolated data root and is `test:graph`.
 
+## R17. Implementation decisions taken in Phase 5
+
+- **Patches per transaction.** The editor component keeps the file's exact text; each CodeMirror
+  transaction is mapped onto it (`src/editor/patch.ts`): normalized positions become original
+  offsets through the original's line starts (a line break is `\r\n`, `\n` or a lone `\r`, as in
+  CodeMirror), and inserted `\n` becomes the dominant style (ties go to LF). A file without `\r`
+  takes a direct path with no mapping, so typing in a 1.9 MB file costs about one frame per key
+  (16 ms measured in the browser check). The save sends one patch, the common prefix and suffix
+  kept, never splitting a `\r\n` or surrogate pair; an overwrite after a stale-save conflict still
+  sends the whole text, because its base is not the text the edits started from.
+- **Highlighting.** Lezer grammars for YAML, JSON and XML; one application tokenizer for Turtle,
+  N3 and N-Triples instead of the legacy Turtle mode, which colors local names by their first
+  letter (capitalized names as comments) and numbers as keywords. Colors follow VS Code Light+
+  (YAML keys and XML tags `#800000`, YAML values and keywords `#0000ff`, JSON keys `#0451a5`,
+  strings `#a31515`, numbers `#098658`, comments `#008000`, IRIs and prefixes `#267f99`). The app has
+  no dark theme, so only the light palette exists; screenshots are light only.
+- **Nested JSON** in a `SEMANTIC_WORKBENCH` block is parsed with `parseMixed` when the block scalar
+  is the `data` value of a mapping that also names `SEMANTIC_WORKBENCH`.
+- **Validation off the main thread.** The editor's findings come from a worker after a 300 ms pause.
+  While Source is open, the app shows those findings (save gating, findings panel) and rebuilds the
+  model only when another view needs it; the textarea version validated the whole file on the main
+  thread on every keystroke.
+- **Lint ranges.** A finding with a line covers the token at its column (from the column to the next
+  whitespace), or the whole line without a column; lines outside the document fall back to
+  document-level, listed above the editor.
+- **Go to line** is a field in the editor bar bound to Ctrl+G (as in VS Code), not CodeMirror's
+  panel, because the panel's keyboard binding conflicts with find-next and the field is labelled for
+  screen readers; it selects the line with the cursor at its start. Tab is not captured for
+  indentation, so keyboard users can leave the editor with Tab (Enter keeps the indentation).
+- **Browser checks** read and set the editor text through a property on the content element
+  (`workbenchEditor`), since CodeMirror renders only the visible lines; the earlier suites that used
+  textarea APIs now use `scripts/helpers/code-editor.ts`.
+- **Mutants.** The "inserted line breaks use LF" mutant and "drop lint ranges" and "save sends full
+  text" are killed; moving the patch start off a `\r\n` boundary was tried as a mutant and is
+  equivalent (the patched text is identical), so it is not listed.
+

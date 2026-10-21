@@ -132,6 +132,7 @@ bun run test:projects
 bun run test:trash
 bun run test:metrics
 bun run test:graph
+bun run test:editor
 bun run test:mutation
 bun scripts/live-inspect.ts
 ```
@@ -224,7 +225,7 @@ All five [official Apache Ossie examples](tests/fixtures/ossie-mapping/README.md
 
 The graph and overview share a grouping selector: declared domains, suggested communities, definition types, and the explicitly curated UBL example areas. Flights has no declared domains: its suggested communities derive from a deterministic, bounded modularity pass over business relationships. Inheritance, direction, duplicate links and primitive hubs do not influence those suggestions. Shared values remain separate; every relationship stays available. Grouping details explain the basis and offer per-entity corrections saved as view settings in `data/state/views/`. Original definitions and exports are unchanged. ODCS contract-level domain declarations are retained.
 
-Source and import-repair editors show numbered lines, red error highlights and amber warning highlights. Findings include named feature paths, offending source snippets and correction guidance. Go to line selects and scrolls to the affected line. Findings without a reliable location remain explicitly document-level. `bun run test:grouping-validation` verifies mode changes, persisted corrections, byte-exact exports, line highlighting and safe repair cancellation in an isolated browser workspace.
+Source and import-repair editors share one editor (CodeMirror 6). Colors follow VS Code's Light+ theme for the detected serialization: YAML, JSON, Turtle, N3, N-Triples and RDF/XML (`.gitignore` and unknown text stay plain); the JSON inside a `SEMANTIC_WORKBENCH` extension block is colored as JSON. After a 300 ms pause, findings appear inline from the shared validation rules, run in a background worker: a wavy underline on the offending token, a gutter marker and the message on hover (Ctrl+Shift+M lists them). Findings without a reliable location are listed above the editor as document-level. The bar shows the serialization, the file's line endings, the cursor position, **Find** (Ctrl+F, with replace) and **Go to line** (Ctrl+G); undo/redo, folding and keyboard operation work as usual, and the editor is named "Definition source" (or "Repair definition") for screen readers. **Go to line** in a finding selects the affected line. Edits never rewrite untouched bytes: each change is mapped onto the file as it is on disk, so CRLF, mixed line endings, tabs and the trailing newline stay as they were, new line breaks take the file's main style, and **Save** sends only the changed range (`patches`) against the version it started from. `bun run test:editor` checks colors per serialization, inline findings within 500 ms of a pause, Go to line, the repair dialog, a byte-exact CRLF save and typing latency in a 1.9 MB file.
 
 ## Shopping center administration example
 

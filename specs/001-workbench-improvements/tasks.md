@@ -194,20 +194,20 @@ to concepts and ODCS.
 
 ### Tests
 
-- [ ] T084 [P] [US5] Patch mapping tests in tests/patch.test.ts: CRLF, mixed endings, tabs, trailing newline; inserted breaks use the dominant style
-- [ ] T085 [P] [US5] Lint range mapping and document-level fallback tests in tests/lint-ranges.test.ts
+- [X] T084 [P] [US5] Patch mapping tests in tests/patch.test.ts: CRLF, mixed endings, tabs, trailing newline; inserted breaks use the dominant style
+- [X] T085 [P] [US5] Lint range mapping and document-level fallback tests in tests/lint-ranges.test.ts
 
 ### Implementation
 
-- [ ] T086 [US5] Editor change set → source-range patches in src/editor/patch.ts
-- [ ] T087 [P] [US5] Languages (YAML, JSON, XML for RDF/XML, Turtle also for N3, N-Triples, `.gitignore`; nested JSON inside the `SEMANTIC_WORKBENCH` block scalar) in src/editor/languages.ts
-- [ ] T088 [P] [US5] Validation worker with 300 ms debounce in src/editor/lint.worker.ts and src/editor/lint.ts
-- [ ] T089 [US5] CodeEditor component (line numbers, search, undo/redo, Go to line, accessible name "Definition source") in src/editor/CodeEditor.tsx
-- [ ] T090 [US5] Replace the textarea editor in src/main.tsx and the import-repair editor in src/ValidationPanel.tsx; retire src/SourceEditor.tsx and adapt tests/source-editor.test.ts
-- [ ] T091 [US5] Save through `PUT` with patches in src/main.tsx
-- [ ] T092 [US5] Browser check scripts/editor-browser-check.ts: colors per serialization, inline markers ≤ 500 ms, Go to line, repair dialog, CRLF byte check
-- [ ] T093 [US5] Add mutants: patch inserts LF in a CRLF file; lint drops ranges; save sends full text
-- [ ] T094 [US5] Update README.md (editor, lint)
+- [X] T086 [US5] Editor change set → source-range patches in src/editor/patch.ts
+- [X] T087 [P] [US5] Languages (YAML, JSON, XML for RDF/XML, Turtle also for N3, N-Triples, `.gitignore`; nested JSON inside the `SEMANTIC_WORKBENCH` block scalar) in src/editor/languages.ts
+- [X] T088 [P] [US5] Validation worker with 300 ms debounce in src/editor/lint.worker.ts and src/editor/lint.ts
+- [X] T089 [US5] CodeEditor component (line numbers, search, undo/redo, Go to line, accessible name "Definition source") in src/editor/CodeEditor.tsx
+- [X] T090 [US5] Replace the textarea editor in src/main.tsx and the import-repair editor in src/ValidationPanel.tsx; retire src/SourceEditor.tsx and adapt tests/source-editor.test.ts
+- [X] T091 [US5] Save through `PUT` with patches in src/main.tsx
+- [X] T092 [US5] Browser check scripts/editor-browser-check.ts: colors per serialization, inline markers ≤ 500 ms, Go to line, repair dialog, CRLF byte check
+- [X] T093 [US5] Add mutants: patch inserts LF in a CRLF file; lint drops ranges; save sends full text
+- [X] T094 [US5] Update README.md (editor, lint)
 
 **Checkpoint**: Story 5 complete.
 
