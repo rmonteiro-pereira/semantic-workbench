@@ -194,3 +194,23 @@ test('the cancel endpoint reports a cancelled push without an error status', asy
     p.dispose();
   }
 });
+
+test('saving the masked form of a credentialed address keeps the original address', async () => {
+  const p = await scmProject({ remote: false });
+  try {
+    const real = 'https://ana:secret@example.invalid/shop.git';
+    await ok(call(p.t, 'PUT', p.base + '/git/remote', { name: 'origin', url: real }));
+    const shown = (await ok(call(p.t, 'GET', p.base + '/git/status'))).remotes.origin;
+    expect(shown).toBe('https://***@example.invalid/shop.git');
+    await ok(call(p.t, 'PUT', p.base + '/git/remote', { name: 'origin', url: shown }));
+    expect(sh(p.dir, ['remote', 'get-url', 'origin']).trim()).toBe(real);
+    const masked = await call(p.t, 'PUT', p.base + '/git/remote', {
+      name: 'origin',
+      url: 'https://***@example.invalid/other.git',
+    });
+    expect(masked.status).toBe(400);
+    expect(sh(p.dir, ['remote', 'get-url', 'origin']).trim()).toBe(real);
+  } finally {
+    p.dispose();
+  }
+});

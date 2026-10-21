@@ -7,6 +7,9 @@ import { appendIgnore } from '../../src/scm/gitignore';
 import type { Route } from './http';
 /** Handles source control requests, including explicitly requested remote actions. */
 export const gitRoutes: Route = async (ws, req, url) => {
+  // The credential helper set in the user's or system Git settings; credentials are never read.
+  if (url.pathname === '/api/git/credential-helper' && req.method === 'GET')
+    return Response.json(await ws.credentialHelper());
   const m = url.pathname.match(/^\/api\/projects\/([^/]+)\/(git\/[a-z-]+|gitignore)$/);
   if (!m) return null;
   const slug = decodeURIComponent(m[1]);
@@ -26,6 +29,7 @@ export const gitRoutes: Route = async (ws, req, url) => {
   };
   if (req.method === 'GET') {
     if (action === 'git/status') return Response.json(await scm.status(slug));
+    if (action === 'git/identity') return Response.json(await ws.identity(slug));
     if (action === 'git/diff') {
       const path = q.get('path');
       if (!path) throw Error('path is required.');
@@ -121,6 +125,16 @@ export const gitRoutes: Route = async (ws, req, url) => {
   if (req.method === 'PUT' && action === 'git/remote') {
     const b = await body(['name', 'url']);
     return Response.json(await scm.setRemote(slug, b.name, b.url));
+  }
+  if (req.method === 'DELETE' && action === 'git/remote') {
+    const b = await body(['name']);
+    return Response.json(await scm.removeRemote(slug, b.name));
+  }
+  if (req.method === 'PUT' && action === 'git/identity') {
+    const b = await body(['name', 'email', 'allRepositories']);
+    if (b.allRepositories !== undefined && typeof b.allRepositories !== 'boolean')
+      throw Error('allRepositories must be true or false.');
+    return Response.json(await ws.setIdentity(slug, b.name, b.email, b.allRepositories === true));
   }
   return null;
 };

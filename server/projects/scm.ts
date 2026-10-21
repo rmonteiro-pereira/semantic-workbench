@@ -2,7 +2,14 @@
 // detect bytes rewritten by hooks or filters.
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { GitError, redactCredentials, type Git, type StatusEntry } from './git';
+import {
+  GitError,
+  redactCredentials,
+  remoteAddress,
+  remoteName,
+  type Git,
+  type StatusEntry,
+} from './git';
 import { MergingError } from './errors';
 import { decode, sha256 } from './atomic';
 import { assertNoLinks, projectPath, projectPrefix, repoDir, type DataLayout } from './paths';
@@ -36,7 +43,6 @@ export type ScmDeps = {
   layout: DataLayout;
   git: Git;
   gitAvailable: boolean;
-  identityConfigured: boolean;
   drafts: (slug: string) => string[];
   rescan: (slug: string) => Promise<unknown>;
   emit: (event: string, data: unknown) => void;
@@ -99,7 +105,7 @@ export function createScm(deps: ScmDeps) {
       ahead: s.ahead,
       behind: s.behind,
       gitAvailable: true,
-      identityConfigured: deps.identityConfigured,
+      identityConfigured: await git.identity(d),
       merging,
       remotes: Object.fromEntries(
         [...(await git.remotes(d))].map(([n, u]) => [n, redactCredentials(u)]),
@@ -408,31 +414,33 @@ export function createScm(deps: ScmDeps) {
       await after(slug, altered);
       return { branch: local, altered };
     },
-    async setRemote(slug: string, name: unknown, url: unknown) {
-      if (typeof name !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/.test(name))
-        throw Error('A remote name uses letters, digits, dot, dash or underscore.');
-      if (
-        typeof url !== 'string' ||
-        !url.trim() ||
-        url.trim().startsWith('-') ||
-        /[\r\n]/.test(url) ||
-        url.length > 2000
-      )
-        throw Error('Give the remote URL or path.');
-      // `<transport>::<address>` runs a helper program (`ext::` runs any command); only URLs, scp-
-      // like addresses and local paths are accepted.
-      if (/^[A-Za-z][A-Za-z0-9+.-]*::/.test(url.trim()))
-        throw Error('Remote helper addresses (transport::address) are not accepted.');
+    async setRemote(slug: string, requestedName: unknown, url: unknown) {
+      const name = remoteName(requestedName);
       const d = dir(slug);
       const remotes = await git.remotes(d);
+      const current = remotes.get(name);
+      // The panel shows addresses with credentials masked; saving one unchanged keeps the original.
+      if (
+        current !== undefined &&
+        typeof url === 'string' &&
+        url.trim() === redactCredentials(current)
+      )
+        return { name, url: url.trim() };
+      const address = remoteAddress(url);
       await git.run(
         d,
-        remotes.has(name)
-          ? ['remote', 'set-url', name, url.trim()]
-          : ['remote', 'add', name, url.trim()],
+        remotes.has(name) ? ['remote', 'set-url', name, address] : ['remote', 'add', name, address],
       );
       await after(slug);
-      return { name, url: url.trim() };
+      return { name, url: address };
+    },
+    async removeRemote(slug: string, requestedName: unknown) {
+      const name = remoteName(requestedName);
+      const d = dir(slug);
+      if (!(await git.remotes(d)).has(name)) throw Error(`There is no remote named ${name}.`);
+      await git.run(d, ['remote', 'remove', name]);
+      await after(slug);
+      return { removed: name };
     },
     fetch: (slug: string) => remoteAction(slug, 'fetch'),
     pull: (slug: string) => remoteAction(slug, 'pull'),

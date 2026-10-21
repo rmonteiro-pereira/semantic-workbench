@@ -8,7 +8,7 @@ import { exampleSet } from '../../src/projects/examples';
 import { atomicWrite, atomicWriteJson, decode, encode, sha256 } from './atomic';
 import { createCache, type Cache } from './cache';
 import { createEvents } from './events';
-import { createGit } from './git';
+import { createGit, hasControlCharacters } from './git';
 import { createJournal, type JournalHooks, type RecoveryOutcome } from './journal';
 import {
   dataLayout,
@@ -32,6 +32,7 @@ import { createWatcher } from './watcher';
 import { migrateLegacy, type MigrationReport } from './migration';
 import { createTrash } from './trash';
 import { createScm } from './scm';
+import { createCloner, rollBackInterruptedClones } from './clone';
 import { factsOf, inferSuggestions, type FileFacts, type IndexedFile } from './suggestions';
 import { ConflictError, OccupiedError } from './errors';
 import { StaleError, NotFoundError } from './errors';
@@ -100,6 +101,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   const gitAvailable = await git.available();
   const identityConfigured = gitAvailable && (await git.identity());
   const recovery: RecoveryOutcome[] = journal.recover();
+  recovery.push(...rollBackInterruptedClones(layout));
   const migration: MigrationReport | null = await migrateLegacy(
     { layout, state, journal, git, gitAvailable, identityConfigured },
     options.migrationHooks,
@@ -521,7 +523,6 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     layout,
     git,
     gitAvailable,
-    identityConfigured,
     project: slug => entry(slug),
     drafts: slug =>
       state
@@ -728,6 +729,59 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     notifySuggestions();
     events.emit('suggestions', { open: suggestions().length });
   }
+  const cloner = createCloner({
+    layout,
+    git,
+    journal,
+    projects,
+    lock,
+    registrySteps,
+    scan: slug => scanner.scan(slug),
+    invalidFiles: slug =>
+      cache
+        .files(slug)
+        .filter(f => f.visible && !f.valid)
+        .map(f => f.path),
+    added: slug => {
+      watcher?.add(slug);
+      notifySuggestions();
+      events.emit('projects', { added: [slug], removed: [], renamed: [] });
+    },
+    emit: event => events.emit('clone', event),
+  });
+  // Each repository folder under data/projects/ with the projects it holds.
+  function repositories() {
+    const byRepo = new Map<string, { dir: string; projects: string[] }>();
+    for (const project of projects()) {
+      const repo = locationOf(project).repo;
+      const known = byRepo.get(repo) ?? { dir: repoDir(layout, project.slug), projects: [] };
+      known.projects.push(project.slug);
+      byRepo.set(repo, known);
+    }
+    return byRepo;
+  }
+  function checkIdentityText(value: unknown, label: string, min: number, max: number) {
+    if (
+      typeof value !== 'string' ||
+      value.trim().length < min ||
+      value.length > max ||
+      hasControlCharacters(value)
+    )
+      throw Error(`${label} must be ${min}–${max} characters without control characters.`);
+    return value.trim();
+  }
+  // Every repository with whether Git has an identity for it, checked now.
+  async function repositoryStatus() {
+    if (!gitAvailable) return [];
+    const out = [];
+    for (const [repo, known] of repositories())
+      out.push({
+        repo,
+        identityConfigured: await git.identity(known.dir),
+        projects: known.projects,
+      });
+    return out;
+  }
   return {
     layout,
     state,
@@ -737,9 +791,57 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     scm,
     journal,
     gitAvailable,
-    identityConfigured,
     recovery,
     migration,
+    repositoryStatus,
+    /** Git availability, per-repository identity (checked now), and start-up reports. */
+    async status() {
+      const repositories = await repositoryStatus();
+      // Without projects there is no repository to check, so Git's global identity decides.
+      const identityConfigured = repositories.length
+        ? repositories.every(repository => repository.identityConfigured)
+        : gitAvailable && (await git.identity());
+      return {
+        gitAvailable,
+        identityConfigured,
+        repositories,
+        dataRoot: layout.root,
+        migration,
+        recovery,
+      };
+    },
+    /** The identity a commit in this project's repository would use. */
+    async identity(slug: string) {
+      entry(slug);
+      if (!gitAvailable) throw Error('Git is not available on this machine.');
+      return git.identityOf(repoDir(layout, slug));
+    },
+    /** Writes user.name and user.email into this project's repository, or into every repository. */
+    async setIdentity(slug: string, name: unknown, email: unknown, allRepositories = false) {
+      entry(slug);
+      if (!gitAvailable) throw Error('Git is not available on this machine.');
+      const userName = checkIdentityText(name, 'The name', 1, 200);
+      const userEmail = checkIdentityText(email, 'The email', 3, 320);
+      const own = locationOf(entry(slug)).repo;
+      // "Every repository" fills in the ones without an identity; it never replaces another
+      // author that a repository has on purpose.
+      const targets = [];
+      for (const [repo, known] of repositories())
+        if (repo === own || (allRepositories && !(await git.identity(known.dir))))
+          targets.push([repo, known] as const);
+      for (const [repo, known] of targets) {
+        await git.setIdentity(known.dir, userName, userEmail);
+        events.emit('identity', { repo });
+      }
+      return { repositories: targets.map(([repo]) => repo) };
+    },
+    /** The configured credential helper's name; credentials themselves are never read. */
+    async credentialHelper() {
+      if (!gitAvailable) return { helper: null };
+      return { helper: await git.configValue(layout.projects, 'credential.helper') };
+    },
+    clone: cloner.start,
+    cancelClone: cloner.cancel,
     // Restore committed bytes through a journaled trash operation so the current version is
     // recoverable.
     async revertFile(slug: string, path: string, baseHash: unknown) {

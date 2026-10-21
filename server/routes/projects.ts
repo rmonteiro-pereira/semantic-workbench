@@ -5,14 +5,7 @@ const IMPORT_LIMIT = 64_000_000;
 /** Handles project management and imports, creating one project per new import batch. */
 export const projectRoutes: Route = async (ws, req, url) => {
   const p = url.pathname;
-  if (p === '/api/status' && req.method === 'GET')
-    return Response.json({
-      gitAvailable: ws.gitAvailable,
-      identityConfigured: ws.identityConfigured,
-      dataRoot: ws.layout.root,
-      migration: ws.migration,
-      recovery: ws.recovery,
-    });
+  if (p === '/api/status' && req.method === 'GET') return Response.json(await ws.status());
   if (p === '/api/projects' && req.method === 'GET') return Response.json(await ws.listProjects());
   if (p === '/api/projects' && req.method === 'POST') {
     const body = await readJson(req, 16_000);

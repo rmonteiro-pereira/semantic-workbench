@@ -15,8 +15,15 @@ if (!ws.gitAvailable)
   console.log(
     '[git] Git 2.40 or newer was not found; projects are not version-controlled until it is installed.',
   );
-else if (!ws.identityConfigured)
-  console.log('[git] Git user.name/user.email are not configured; commits are disabled.');
+else {
+  const missing = (await ws.repositoryStatus()).filter(
+    repository => !repository.identityConfigured,
+  );
+  if (missing.length)
+    console.log(
+      `[git] ${missing.length} repositories have no user.name/user.email; set them in the app to commit there.`,
+    );
+}
 // SSE connections stay open; heartbeats every 15 s keep them alive, so disable the idle timeout.
 Bun.serve({ hostname: '127.0.0.1', port: 4310, idleTimeout: 0, fetch: createHandler(ws) });
 console.log(`Workbench API: http://127.0.0.1:4310 (data root ${ws.layout.root})`);

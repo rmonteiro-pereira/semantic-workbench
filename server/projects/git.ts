@@ -61,6 +61,33 @@ const REMOTE_COMMANDS = new Set(['fetch', 'pull', 'push', 'ls-remote', 'clone', 
 export function redactCredentials(text: string) {
   return text.replace(/([A-Za-z][A-Za-z0-9+.-]*:\/\/)[^@/\s]+@/g, '$1***@');
 }
+/** Tells whether text holds a control character (a newline, a tab, NUL, DEL and the like). */
+export const hasControlCharacters = (text: string) =>
+  [...text].some(char => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127);
+/** Checks a remote's name: letters, digits, dot, dash or underscore. */
+export function remoteName(name: unknown) {
+  if (typeof name !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/.test(name))
+    throw Error('A remote name uses letters, digits, dot, dash or underscore.');
+  return name;
+}
+/** Checks a remote URL or path and returns it trimmed. Helper addresses (`transport::address`)
+ * are refused because they run a program; so are values Git could read as an option, and the
+ * masked form the app shows, which would replace a working address with one that cannot sign in. */
+export function remoteAddress(url: unknown) {
+  if (
+    typeof url !== 'string' ||
+    !url.trim() ||
+    url.trim().startsWith('-') ||
+    hasControlCharacters(url) ||
+    url.length > 2000
+  )
+    throw Error('Give the remote URL or path.');
+  if (/^[A-Za-z][A-Za-z0-9+.-]*::/.test(url.trim()))
+    throw Error('Remote helper addresses (transport::address) are not accepted.');
+  if (url.includes('://***@'))
+    throw Error('This address shows *** in place of credentials; give the full address.');
+  return url.trim();
+}
 /** Finds the Git subcommand after global options, recognizing remote update separately. */
 export function subcommandOf(args: string[]) {
   for (let i = 0; i < args.length; i++) {
@@ -188,17 +215,33 @@ export function createGit(options: GitOptions) {
       readOnly: true,
       allowFailure,
     });
-  // user.name and user.email as Git sees them in this working directory (repository-local or global
-  // configuration), read each time so an identity set meanwhile is seen without a restart.
-  async function identity(cwd = root) {
+  // One configuration value as Git sees it here; `scope` limits the lookup to one file.
+  async function configValue(cwd: string, key: string, scope?: 'local' | 'global') {
     try {
-      const [name, email] = await Promise.all(
-        ['user.name', 'user.email'].map(k => spawnGit(cwd, ['config', '--get', k])),
-      );
-      return name.code === 0 && !!name.stdout.trim() && email.code === 0 && !!email.stdout.trim();
+      const r = await spawnGit(cwd, ['config', ...(scope ? [`--${scope}`] : []), '--get', key]);
+      const value = r.stdout.trim();
+      return r.code === 0 && value ? value : null;
     } catch {
-      return false;
+      return null;
     }
+  }
+  // The identity a commit in this repository would use, and which configuration file sets it.
+  async function identityOf(cwd: string): Promise<GitIdentity> {
+    const name = await configValue(cwd, 'user.name');
+    const email = await configValue(cwd, 'user.email');
+    if (!name || !email) return { name, email, scope: 'none' };
+    const local =
+      (await configValue(cwd, 'user.name', 'local')) &&
+      (await configValue(cwd, 'user.email', 'local'));
+    return { name, email, scope: local ? 'local' : 'global' };
+  }
+  // Whether commits here have an author, read each time so an identity set meanwhile counts.
+  const identity = async (cwd = root) => (await identityOf(cwd)).scope !== 'none';
+  // Writes the identity into this repository's own configuration, never the user's global one,
+  // so every write stays inside the data folder.
+  async function setIdentity(cwd: string, name: string, email: string) {
+    await run(cwd, ['config', '--local', 'user.name', name]);
+    await run(cwd, ['config', '--local', 'user.email', email]);
   }
   const merging = async (cwd: string) =>
     (await read(cwd, ['rev-parse', '-q', '--verify', 'MERGE_HEAD'], true)).code === 0;
@@ -260,6 +303,33 @@ export function createGit(options: GitOptions) {
       }
     },
     identity,
+    identityOf,
+    setIdentity,
+    configValue,
+    // Clones into `folder` inside `parent` (a staging folder under data/projects/). Line endings are
+    // kept as committed, symbolic links arrive as plain files and submodules are not fetched.
+    async clone(parent: string, url: string, folder: string) {
+      await run(
+        parent,
+        [
+          '-c',
+          'core.autocrlf=false',
+          '-c',
+          'core.symlinks=false',
+          'clone',
+          '-q',
+          '--no-recurse-submodules',
+          '--',
+          url,
+          folder,
+        ],
+        { remote: true },
+      );
+      const dir = resolve(parent, folder);
+      await run(dir, ['config', 'core.autocrlf', 'false']);
+      await run(dir, ['config', 'core.safecrlf', 'false']);
+      await run(dir, ['config', 'core.symlinks', 'false']);
+    },
     async init(cwd: string) {
       await run(cwd, ['init', '-q', '-b', 'main']);
       // Managed repositories keep committed bytes equal to saved bytes.
@@ -389,6 +459,12 @@ export function createGit(options: GitOptions) {
     },
   };
 }
+/** A repository's user.name and user.email and the configuration that sets them. */
+export type GitIdentity = {
+  name: string | null;
+  email: string | null;
+  scope: 'local' | 'global' | 'none';
+};
 /** Repository operations backed by the installed Git executable. */
 export type Git = ReturnType<typeof createGit>;
 /** A selected-path commit result or the reason no commit was made. */
