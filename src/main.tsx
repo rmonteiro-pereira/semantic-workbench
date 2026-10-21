@@ -266,7 +266,6 @@ function App() {
           groupingOverview={groupingOverview}
           lineageShown={lineageState.lineageShown}
           grouping={grouping}
-          model={validationState.model}
           search={search}
         />
         <div ref={inspector.canvasRow} className={canvasClassName}>
@@ -329,6 +328,7 @@ function App() {
             lineage={lineageState.lineage}
             lineageCenterId={lineageState.lineageCenterId}
             lineageCenterChanged={lineageState.lineageCenterChanged}
+            groupingOverview={groupingOverview}
             grouping={grouping}
             selected={selected}
             selectedEdge={selectedEdge}

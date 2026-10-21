@@ -8,6 +8,8 @@ import { groupRelationships } from '../src/graph-view';
 import { exportFile } from './helpers/header';
 
 const fixtures = [
+  { filename: 'mall.semantic.yaml', path: 'public/examples/mall/mall.semantic.yaml' },
+  { filename: 'ubl.odcs.yaml', path: 'public/examples/ubl/ubl.odcs.yaml' },
   { filename: 'ubl.ontology.yaml', path: 'public/examples/ubl/ubl.ontology.yaml' },
   { filename: 'flights.ontology.yaml', path: 'public/examples/ossie/flights.ontology.yaml' },
 ];
@@ -149,7 +151,13 @@ try {
     'Flights grouping modes state provenance honestly and retain all graph connections',
     async () => {
       const mode = page.getByLabel('Group model by', { exact: true });
-      for (const value of ['suggested', 'types', 'declared', 'auto']) {
+      // Flights declares no domains and no IRIs, so those modes are disabled with the reason.
+      await expect(mode.locator('option[value="declared"]')).toHaveJSProperty('disabled', true);
+      await expect(mode.locator('option[value="declared"]')).toContainText('No domains declared');
+      await expect(mode.locator('option[value="namespaces"]')).toHaveJSProperty('disabled', true);
+      await expect(mode.locator('option[value="namespaces"]')).toContainText('No IRIs declared');
+      await expect(mode.locator('option[value="example"]')).toHaveCount(0);
+      for (const value of ['suggested', 'types', 'auto']) {
         await mode.selectOption(value);
         await graphReady();
         await expect(page.locator('.full-graph-status')).toHaveAttribute('data-entity-count', '49');
@@ -193,13 +201,26 @@ try {
         originals.get('flights.ontology.yaml')!,
         'flights.ontology.yaml',
       ).entities.find(entity => entity.name === 'Airport')!;
-      await page.getByLabel('Group model by', { exact: true }).selectOption('suggested');
+      const mode = page.getByLabel('Group model by', { exact: true });
+      await mode.selectOption('types');
+      // After an explicit choice, Auto still names its own choice.
+      await expect(mode.locator('option[value="auto"]')).toHaveText('Auto: communities');
+      await mode.selectOption('suggested');
       await groupingDetails();
-      const adjustment = page.locator('.grouping-panel > details');
-      await adjustment.locator('summary').click();
-      await page.getByLabel('Entity to regroup', { exact: true }).selectOption(airport.id);
-      await page.getByLabel('New group name', { exact: true }).fill('Flight operations review');
-      await page.getByRole('button', { name: 'Apply grouping correction', exact: true }).click();
+      await page.getByRole('button', { name: 'Adjust grouping…', exact: true }).click();
+      const dialog = page.getByRole('dialog', { name: 'Adjust grouping' });
+      await expect(dialog).toBeVisible();
+      await expect(
+        dialog.getByRole('list', { name: 'Current groups' }).getByRole('listitem'),
+      ).not.toHaveCount(0);
+      await dialog.getByLabel('Entity to regroup', { exact: true }).selectOption(airport.id);
+      await dialog.getByLabel('New group name', { exact: true }).fill('Flight operations review');
+      await dialog.getByRole('button', { name: 'Apply grouping correction', exact: true }).click();
+      await expect(dialog.getByRole('list', { name: 'Grouping corrections' })).toContainText(
+        'Airport → Flight operations review',
+      );
+      await dialog.getByRole('button', { name: 'Close', exact: true }).click();
+      await expect(dialog).toHaveCount(0);
       await graphReady();
       await page.locator('.tabs').getByRole('button', { name: 'Overview', exact: true }).click();
       const custom = page.locator('.business-area').filter({
@@ -231,6 +252,40 @@ try {
       await expect(page.locator('.grouping-explanation')).toContainText(/example|curated|UBL/i);
       await expect(page.locator('.area-entities button')).toHaveCount(45);
       await unchangedExport('ubl.ontology.yaml');
+    },
+  );
+  await check(
+    'contracts and semantic models group into communities; lineage cards carry the group tint',
+    async () => {
+      await page.getByRole('button', { name: 'ubl.odcs.yaml', exact: true }).click();
+      await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
+      const mode = page.getByLabel('Group model by', { exact: true });
+      await expect(mode).toBeVisible();
+      // The contract-level domain alone is not a grouping, and the contract has no IRIs.
+      await expect(mode.locator('option[value="declared"]')).toHaveJSProperty('disabled', true);
+      await expect(mode.locator('option[value="declared"]')).toContainText(
+        'Only the contract-level domain is declared',
+      );
+      await expect(mode.locator('option[value="namespaces"]')).toContainText('No IRIs declared');
+      await expect(mode.locator('option[value="auto"]')).toHaveText('Auto: example areas');
+      await mode.selectOption('suggested');
+      const canvas = page.getByRole('region', { name: 'Lineage graph' });
+      await expect(
+        canvas.locator('.lineage-card.k-object[style*="--card-tint"]').first(),
+      ).toBeVisible();
+      await page.locator('.tabs').getByRole('button', { name: 'Overview', exact: true }).click();
+      await expect.poll(() => page.locator('.business-area').count()).toBeGreaterThan(1);
+      await unchangedExport('ubl.odcs.yaml');
+      await page.getByRole('button', { name: 'mall.semantic.yaml', exact: true }).click();
+      await page.locator('.tabs').getByRole('button', { name: 'Overview', exact: true }).click();
+      await page.getByLabel('Group model by', { exact: true }).selectOption('suggested');
+      await expect.poll(() => page.locator('.business-area').count()).toBeGreaterThan(1);
+      await unchangedExport('mall.semantic.yaml');
+      await page.screenshot({ path: '/tmp/workbench-grouping-semantic.png' });
+      // The following checks edit the UBL ontology, so leave it open.
+      const ubl = page.getByRole('button', { name: 'ubl.ontology.yaml', exact: true });
+      await ubl.click();
+      await expect(ubl).toHaveClass(/chosen/);
     },
   );
   await check(
@@ -316,9 +371,11 @@ try {
       );
     },
   );
-  await check('fixture exports preserve exact upstream Flights and UBL source', async () => {
+  await check('fixture exports preserve the exact upstream source of every fixture', async () => {
     for (const fixture of [...fixtures].reverse()) {
-      await page.getByRole('button', { name: fixture.filename, exact: true }).click();
+      const file = page.getByRole('button', { name: fixture.filename, exact: true });
+      await file.click();
+      await expect(file).toHaveClass(/chosen/);
       await unchangedExport(fixture.filename);
     }
   });

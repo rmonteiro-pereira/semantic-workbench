@@ -82,6 +82,8 @@ export type NeighborhoodGraphProps = {
   onFullGraph: () => void;
   modelName?: string;
   kpiBadges?: Map<string, string[]>;
+  /** The colour of an entity's group under the current Group by choice. */
+  groupColorOf?: (entityId: string) => string | undefined;
   fullscreen?: Fullscreen;
   onOpenKpis?: (concept: string) => void;
   crossFile?: (entity: Entity) => CrossFileTarget[];
@@ -128,6 +130,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
     selected,
     selectedEdge,
     kpiBadges,
+    groupColorOf,
   } = props;
   const [hideKpis, setHideKpis] = useState(false);
   const [lateralChoice, setLateral] = useState<boolean | null>(null);
@@ -434,8 +437,12 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
         const e = n.data.entity as Entity;
         const kpis = kpiBadges?.get(e.name) ?? [];
         const isCenter = n.id === center;
+        const groupColor = groupColorOf?.(e.id);
         return {
           ...n,
+          style: groupColor
+            ? ({ ...n.style, '--group-color': groupColor } as React.CSSProperties)
+            : n.style,
           className: `neighborhood-node${isCenter ? ' center' : ''}${n.id === previous ? ' origin' : ''}${n.id === selected ? ' selected-entity' : ''}`,
           data: {
             ...n.data,
@@ -529,7 +536,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
           },
         };
       }),
-    [nodes, center, previous, selected, kpiBadges, view, canvasState, pierceSet],
+    [nodes, center, previous, selected, kpiBadges, groupColorOf, view, canvasState, pierceSet],
   );
   const labelText = (g: (typeof groups)[number]) =>
     g.data.relationships.length > 1 ? `${g.data.relationships.length} relationships` : g.label;

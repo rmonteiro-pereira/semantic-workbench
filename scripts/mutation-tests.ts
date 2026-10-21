@@ -72,13 +72,13 @@ const mutants: [string, string, string, string][] = [
   [
     'overview',
     'src/overview.ts',
-    "namespaces.size >= 2\n            ? 'namespaces'\n            :",
-    '',
+    "if (mode === 'namespaces') return distinct(visible.map(e => e.namespace?.iri));",
+    "if (mode === 'namespaces') return 0;",
   ],
   [
     'overview',
     'src/overview.ts',
-    "if (ns) {\n        const id = 'namespace:' + ns.iri",
+    "if (ns) {\n    const id = 'namespace:' + ns.iri",
     "if(false){const id='namespace:'+ns.iri;",
   ],
   ['diagnostics', 'src/diagnostics.ts', '> MAX_INPUT_BYTES', '> MAX_INPUT_BYTES * 10'],
@@ -115,8 +115,17 @@ const mutants: [string, string, string, string][] = [
   [
     'overview',
     'src/overview.ts',
-    'suggested.membership.size >= 2 && suggested.backboneEdges > 0',
-    'false',
+    'return context.suggested.backboneEdges',
+    'return 0 && context.suggested.backboneEdges',
+  ],
+  // Auto must skip a mode that yields a single group.
+  ['overview', 'src/overview.ts', 'basisCount(mode, visible, context) >= 2', 'true'],
+  // Contract communities come from foreign keys.
+  [
+    'overview',
+    'src/overview.ts',
+    'suggestCommunities(visible, [...links,',
+    "suggestCommunities(visible, [...links.filter(e => e.data.kind !== 'Foreign key'),",
   ],
   [
     'overview',

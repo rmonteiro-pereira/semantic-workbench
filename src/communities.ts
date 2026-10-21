@@ -1,8 +1,19 @@
 /** Suggests model groups from relationships between business entities. */
 import type { Entity, Relationship } from './model';
+// The main definitions of each document kind: ontology concepts and classes, contract objects,
+// semantic datasets and metrics, and concept mappings. Value types and primitives stay out, so
+// they cannot turn into hubs that pull every community together.
+const BUSINESS_KINDS = new Set([
+  'EntityType',
+  'OWL class',
+  'Object',
+  'Dataset',
+  'Metric',
+  'Concept mapping',
+]);
+
 /** Checks whether an entity belongs in the business graph used for grouping. */
-export const isBusinessEntity = (entity: Entity) =>
-  entity.kind === 'EntityType' || entity.kind === 'OWL class';
+export const isBusinessEntity = (entity: Entity) => BUSINESS_KINDS.has(entity.kind);
 /** Checks whether a relationship expresses inheritance. */
 export const isInheritance = (edge: Relationship) =>
   /inheritance|subclass/i.test(edge.data.kind) ||
@@ -73,4 +84,40 @@ export function suggestCommunities(entities: Entity[], edges: Relationship[]) {
     for (const id of ids) anchors.set(id, anchor);
   }
   return { membership: anchors, degree, passes, backboneEdges: twiceEdges / 2 };
+}
+
+// Concepts named anywhere inside a mapping (link targets, nested object mappings), except the
+// mapping's own concept.
+function mappedConcepts(value: unknown, found: Set<string>, root = true) {
+  if (Array.isArray(value)) {
+    for (const item of value) mappedConcepts(item, found, false);
+    return found;
+  }
+  if (!value || typeof value !== 'object') return found;
+  for (const [key, item] of Object.entries(value)) {
+    if (key === 'concept' && !root && typeof item === 'string') found.add(item);
+    else mappedConcepts(item, found, false);
+  }
+  return found;
+}
+
+/** Links concept mappings whose mapped links point at another mapped concept. A mapping
+ * document has no relationships of its own, so these links are its community backbone. */
+export function conceptMappingLinks(entities: Entity[]): Relationship[] {
+  const mappings = entities.filter(e => e.kind === 'Concept mapping');
+  const byConcept = new Map(mappings.map(e => [e.name, e.id]));
+  const links: Relationship[] = [];
+  for (const mapping of mappings)
+    for (const concept of mappedConcepts(mapping.definition, new Set())) {
+      const target = byConcept.get(concept);
+      if (!target || target === mapping.id) continue;
+      links.push({
+        id: `concept-link:${mapping.id}>${target}`,
+        source: mapping.id,
+        target,
+        label: concept,
+        data: { path: mapping.path, definition: {}, kind: 'Concept relationship' },
+      });
+    }
+  return links;
 }
