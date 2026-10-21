@@ -2,9 +2,14 @@ import{GroupingControls}from'./GroupingControls';
 import{modelOverview}from'./overview';
 import{useGrouping}from'./useGrouping';
 import{SourceEditor,locateSourceIssue}from'./SourceEditor';
-import{api,loadWorkspace,StaleSave,type Doc,type ProjectInfo,type WorkspaceStatus}from'./projects/api';
+import{api,loadWorkspace,StaleSave,type Doc,type ProjectInfo,type WorkspaceStatus,type Deleted,type Suggestion}from'./projects/api';
 import{useEvents}from'./projects/useEvents';
-import{ProjectTree}from'./projects/Sidebar';
+import{ProjectTree,type TreeAction}from'./projects/Sidebar';
+import{DeleteDialog,type DeleteTarget}from'./projects/DeleteDialog';
+import{UndoToast}from'./projects/UndoToast';
+import{TrashDialog}from'./projects/Trash';
+import{Suggestions}from'./projects/Suggestions';
+import{RenameDialog,MoveDialog,ImportConflictDialog}from'./projects/ProjectDialogs';
 import{GitBanner}from'./projects/GitBanner';
 import{StaleSaveDialog}from'./projects/StaleSave';
 import{exampleSet}from'./projects/examples';
@@ -48,6 +53,10 @@ function App() {
   const [pendingImport,setPendingImport]=useState<ImportDraft[]|null>(null);
   const [projects,setProjects]=useState<ProjectInfo[]>([]),[status,setStatus]=useState<WorkspaceStatus|null>(null);
   const [stale,setStale]=useState<{current:string|null;currentHash:string|null}|null>(null);
+  const [deleteTarget,setDeleteTarget]=useState<DeleteTarget|null>(null),[deleted,setDeleted]=useState<Deleted|null>(null),[trashOpen,setTrashOpen]=useState(false),[trashVersion,setTrashVersion]=useState(0);
+  const [renaming,setRenaming]=useState<ProjectInfo|null>(null),[moving,setMoving]=useState<{project:string;path:string}|null>(null),[suggestions,setSuggestions]=useState<Suggestion[]>([]);
+  const [importConflict,setImportConflict]=useState<{project:ProjectInfo;files:{path:string;source:string}[];conflicts:string[]}|null>(null);
+  const importInto=useRef<string>('');
   const docsRef=useRef(new Map<string,Doc>()),currentRef=useRef<Doc|null>(null),sourceRef=useRef('');
   currentRef.current=current;sourceRef.current=source;
   const [showValidation,setShowValidation]=useState(false);
@@ -79,13 +88,16 @@ function App() {
         // An open file that changed on disk follows the disk unless it has unsaved edits.
         const open=currentRef.current,fresh=open&&docsRef.current.get(open.id);
         if(open&&fresh&&fresh.hash!==open.hash&&sourceRef.current===open.source){setCurrent(fresh);setSource(fresh.source);}
+        // The open file was deleted, moved or cleared: open another one unless it has unsaved edits.
+        if(open&&!fresh&&sourceRef.current===open.source){const next=loaded.docs[0]??null;setCurrent(next);setSource(next?.source??'');setSelected('');setSelectedEdge('');setNeighborhoodFocus('');}
+        api.suggestions().then(setSuggestions).catch(()=>{});
         return loaded.docs;
       }finally{refreshing.current=null;if(again.current){again.current=false;void refresh();}}
     })();
     refreshing.current=run;return run;
   }
   const refreshTimer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined);
-  useEvents(()=>{clearTimeout(refreshTimer.current);refreshTimer.current=setTimeout(()=>{void refresh().catch(()=>{});},80);});
+  useEvents(event=>{if(event==='trash')setTrashVersion(v=>v+1);clearTimeout(refreshTimer.current);refreshTimer.current=setTimeout(()=>{void refresh().catch(()=>{});},80);});
   useEffect(() => {
     api.status().then(setStatus).catch(()=>{});
     refresh()
@@ -177,6 +189,28 @@ function App() {
       await commitImports(drafts);
     }catch(e){setMessage((e as Error).message);}
   }
+  function treeAction(a:TreeAction){
+    const project=projects.find(p=>p.slug===a.project);if(!project)return;
+    if(a.action==='rename')setRenaming(project);
+    else if(a.action==='move')setMoving({project:a.project,path:a.path});
+    else if(a.action==='delete-file')setDeleteTarget({kind:'file',project:a.project,path:a.path});
+    else if(a.action==='delete-project')setDeleteTarget({kind:'project',project:a.project});
+    else{
+      // A detached file input, so the page keeps a single "Import definitions" file field.
+      importInto.current=a.project;const input=document.createElement('input');input.type='file';input.multiple=true;
+      input.onchange=async()=>{const files=await Promise.all(Array.from(input.files??[]).map(async f=>({path:f.name,source:await f.text()})));if(files.length)void importIntoProject(files);};input.click();
+    }
+  }
+  async function importIntoProject(files:{path:string;source:string}[],onConflict?:'replace'|'keep-both'){
+    const project=projects.find(p=>p.slug===importInto.current);if(!project)return;
+    try{const r=await api.importInto(project.slug,files,onConflict);setImportConflict(null);await refresh();setMessage(`Imported ${r.written.length} file${r.written.length===1?'':'s'} into ${project.name}.`);}
+    catch(e:any){if(e.status===409&&e.body?.conflicts)setImportConflict({project,files,conflicts:e.body.conflicts});else{setImportConflict(null);setMessage(e.message);}}
+  }
+  async function undoDelete(){
+    const d=deleted;setDeleted(null);if(!d)return;
+    try{for(const id of d.entryIds)await api.undo(id);await refresh();setMessage(`Restored ${d.label}.`);}
+    catch(e){await refresh().catch(()=>{});setMessage(`${(e as Error).message} Open Trash to restore it.`);}
+  }
   function download() {
     const exported=exportDocument(source,current?.filename??'ontology.ossie.yaml');
     const url = URL.createObjectURL(exported.blob);
@@ -189,6 +223,15 @@ function App() {
   return (
     <div className={`shell ${sidebarOpen?'workspace-open':'workspace-closed'}`}>
       {stale&&current&&<StaleSaveDialog filename={current.path} mine={source} current={stale.current} onCancel={()=>setStale(null)} onLoadCurrent={()=>{if(stale.current===null||stale.currentHash===null)return;const doc={...current,source:stale.current,hash:stale.currentHash};docsRef.current.set(doc.id,doc);setCurrent(doc);setSource(doc.source);setStale(null);setMessage('Loaded the current file from disk.');}} onKeepMine={()=>{const base=stale.currentHash;setStale(null);void save(base);}}/>}
+      {deleteTarget&&<DeleteDialog target={deleteTarget} projects={projects} dirty={current&&source!==current.source?{project:current.project,path:current.path}:null} onCancel={()=>setDeleteTarget(null)} onDeleted={(entryIds,undoUntil,label)=>{
+        // The user confirmed losing unsaved edits of a removed file: drop them before refreshing.
+        const target=deleteTarget;if(current&&source!==current.source&&(target.kind==='clear'||current.project===target.project&&(target.kind==='project'||current.path===target.path)))setSource(current.source);
+        sourceRef.current=current?.source??'';setDeleteTarget(null);setDeleted({entryIds,undoUntil,label});void refresh();}}/>}
+      {trashOpen&&<TrashDialog version={trashVersion} onClose={()=>{setTrashOpen(false);void refresh();}}/>}
+      {renaming&&<RenameDialog project={renaming} onClose={()=>setRenaming(null)} onDone={name=>{setRenaming(null);setMessage(`Renamed the project to ${name}.`);void refresh();}}/>}
+      {moving&&<MoveDialog project={moving.project} path={moving.path} projects={projects} onClose={()=>setMoving(null)} onDone={to=>{setMoving(null);setMessage(`Moved ${moving.path} to ${projects.find(p=>p.slug===to.project)?.name}.`);void refresh().then(d=>{const doc=d.find(x=>x.project===to.project&&x.path===to.path);if(doc&&currentRef.current?.project===moving.project&&currentRef.current.path===moving.path){setCurrent(doc);setSource(doc.source);}});}}/>}
+      {importConflict&&<ImportConflictDialog project={importConflict.project} conflicts={importConflict.conflicts} onClose={()=>setImportConflict(null)} onChoose={choice=>void importIntoProject(importConflict.files,choice)}/>}
+      {deleted&&<UndoToast deleted={deleted} onUndo={()=>void undoDelete()} onExpire={()=>setDeleted(null)}/>}
       {pendingImport&&<ImportRepair initial={pendingImport} onCancel={()=>setPendingImport(null)} onImport={commitImports}/>}
       {compact&&sidebarOpen&&<button className="workspace-scrim" aria-label="Dismiss workspace drawer" tabIndex={-1} onClick={closeWorkspace}/>}
       <aside id="workspace-sidebar" className="sidebar workspace-sidebar" ref={sidebarRef} inert={!sidebarOpen} role={compact&&sidebarOpen?'dialog':undefined} aria-modal={compact&&sidebarOpen?true:undefined} aria-label="Workspace documents">
@@ -212,8 +255,10 @@ function App() {
           PROJECTS <span>{projects.length}</span>
         </div>
         <div className="documents">
-          <ProjectTree projects={projects} currentId={current?.id} onOpen={(project,path)=>{const d=docs.find(x=>x.project===project&&x.path===path);if(d)open(d);}}/>
+          <ProjectTree projects={projects} currentId={current?.id} onAction={treeAction} onOpen={(project,path)=>{const d=docs.find(x=>x.project===project&&x.path===path);if(d)open(d);}}/>
         </div>
+        <div className="workspace-actions"><button onClick={()=>setDeleteTarget({kind:'clear'})} disabled={!projects.length}>Clear workspace</button><button onClick={()=>setTrashOpen(true)}>Trash</button></div>
+        <Suggestions items={suggestions} projects={projects} onAccept={id=>void api.acceptSuggestion(id).then(r=>{setMessage(`Moved ${r.path} into ${projects.find(p=>p.slug===r.project)?.name}.`);return refresh();}).catch(e=>setMessage(e.message))} onReject={id=>void api.rejectSuggestion(id).then(()=>refresh()).catch(e=>setMessage(e.message))}/>
         <button className="scale-example" onClick={()=>loadExample('ubl')} disabled={busy}><Layers size={16}/><span>Load UBL business model<small>45 entities · 277 relationships</small></span></button>
         <button className="scale-example" onClick={()=>loadExample('commerce')} disabled={busy}><Layers size={16}/><span>Load commerce workspace<small>ODCS · Ossie · OWL · SHACL · RDF</small></span></button>
         <button className="scale-example" onClick={()=>loadExample('commerce-scale')} disabled={busy}><Network size={16}/><span>Load commerce scale data<small>1,000 entities · 5,000 relationships</small></span></button>
