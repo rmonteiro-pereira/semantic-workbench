@@ -1,4 +1,4 @@
-export type Issue = { severity: 'error' | 'warning'; code: string; path: string; message: string; line?: number; column?: number };
+export type Issue = { severity: 'error' | 'warning'; code: string; path: string; message: string; line?: number; column?: number; innerPath?: string };
 export class InputError extends Error {
   constructor(public issues: Issue[]) {
     super(issues.map(i => `${i.path}: ${i.message}`).join('\n'));

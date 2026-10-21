@@ -245,7 +245,7 @@ export async function openWorkspace(options:WorkspaceOptions={}){
    return Promise.all(projects().map(async p=>{
     let gitInfo={branch:'',ahead:0,behind:0,changes:0};
     if(gitAvailable&&existsSync(projectDir(layout,p.slug)))try{const s=await git.status(projectDir(layout,p.slug));gitInfo={branch:s.branch,ahead:s.ahead,behind:s.behind,changes:s.changes};}catch{}
-    return {slug:p.slug,name:p.name,origin:p.origin,createdAt:p.createdAt,...gitInfo,files:cache.files(p.slug).filter(f=>f.visible).map(f=>({path:f.path,docType:f.docType,valid:f.valid,visible:f.visible,gitState:f.gitState,hash:f.hash}))};
+    return {slug:p.slug,name:p.name,origin:p.origin,createdAt:p.createdAt,...gitInfo,files:cache.files(p.slug).filter(f=>f.visible).map(f=>({path:f.path,docType:f.docType,layout:f.layout,valid:f.valid,visible:f.visible,gitState:f.gitState,hash:f.hash}))};
    }));
   },
   createProject:(name:unknown)=>createProjectFolder(projectName(name,projects().map(p=>p.name)),'import',[]),

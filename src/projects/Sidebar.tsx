@@ -33,7 +33,7 @@ export function ProjectTree({projects,currentId,onOpen,onAction}:{projects:Proje
     <div className="tree-row file-row"><button className={`document ${currentId===id?'chosen':''}`} onClick={()=>onOpen(p.slug,f.path)}><FileCode size={15}/><span>{f.path}</span></button>
     <DeleteButton label={`Delete ${f.path}`} onClick={()=>onAction({action:'delete-file',project:p.slug,path:f.path})}/>
     <ItemMenu label={`${f.path} in ${p.name}`} items={[{label:'Move',run:()=>onAction({action:'move',project:p.slug,path:f.path})},{label:'Delete',run:()=>onAction({action:'delete-file',project:p.slug,path:f.path})}]}/></div>
-    <small className="file-meta">{typeLabel(f.docType)}{!f.valid&&<em className="file-invalid"> · invalid</em>}{f.gitState!=='clean'&&f.gitState!=='unknown'&&<> · {f.gitState}</>}</small>
+    <small className="file-meta">{typeLabel(f.docType)}{f.layout==='embedded (deprecated)'&&<span title="Consolidated Ossie file: the ontology embeds its semantic model in ontology_mappings. Apache Ossie deprecates this layout in favour of split files."> · consolidated (deprecated upstream)</span>}{!f.valid&&<em className="file-invalid"> · invalid</em>}{f.gitState!=='clean'&&f.gitState!=='unknown'&&<> · {f.gitState}</>}</small>
    </li>;})}</ul>}
   </li>;})}
  </ul>;

@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "semantic-workbench/mapping/v1",
+  "title": "Semantic Workbench mapping extension (application schema, not part of Apache Ossie)",
+  "description": "Content of the JSON string in the root custom_extensions entry with vendor_name SEMANTIC_WORKBENCH of a standalone Ossie mapping document (or of the embedded semantic_model root in a consolidated file). Binds KPIs (metrics of the referenced semantic model) to ontology concepts. Written with one binding per line, sorted by metric name.",
+  "type": "object",
+  "required": [
+    "schema",
+    "kpi_bindings"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "semantic-workbench/mapping/v1"
+    },
+    "kpi_bindings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "metric",
+          "measures"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "metric": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Name of a metric in the semantic model named by semantic_model_ref"
+          },
+          "measures": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Concept name, IRI or declared QName of the ontology concept the KPI measures"
+          },
+          "of": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Concept the KPI is about (for example the entity it is computed per)"
+          }
+        }
+      }
+    }
+  }
+}
