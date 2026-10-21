@@ -1,0 +1,95 @@
+/* ODCS contract overview and dataset pages (Phase 9): a header with key facts, then sections or
+   tabs; tables scroll inside their own wrapper so the page never scrolls sideways. */
+.odcs-page{height:100%;overflow:auto;padding:18px 22px 28px;display:flex;flex-direction:column;gap:14px;min-width:0;box-sizing:border-box}
+.odcs-page .odcs-head{height:auto;flex:0 0 auto;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:10px;background:#fff;border:1px solid #dbe3e4;border-radius:10px;padding:14px 16px}
+.odcs-title{display:flex;align-items:center;gap:10px;min-width:0;color:#1e6a4f}
+.odcs-title h2{margin:0;font-size:20px;color:#243936;overflow-wrap:anywhere}.odcs-title small{color:#6f8881;font-size:12px}
+.odcs-title>div{min-width:0}
+.odcs-facts{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0}
+.odcs-facts>div,.odcs-facts>span{display:flex;flex-direction:column;gap:2px;min-width:0;font-size:13px}
+.odcs-facts dt,.odcs-facts b{font-size:10px;letter-spacing:.7px;text-transform:uppercase;color:#6f8881;font-weight:600}
+.odcs-facts dd{margin:0;overflow-wrap:anywhere}
+.dataset-facts>span{flex-direction:column}.dataset-facts code{font-size:11px;background:#eef3f1;border-radius:4px;padding:0 4px}
+.odcs-status{display:inline-block;border-radius:9px;padding:0 8px;background:#eef3f1;color:#3a5a50;font-size:12px}
+.odcs-status.s-active{background:#e2f3ea;color:#1e6a4f}.odcs-status.s-deprecated,.odcs-status.s-retired{background:#fbeceb;color:#a3392f}
+.odcs-description{margin:0;font-size:13px;color:#3f5650;max-width:90ch}
+.odcs-purpose{display:grid;gap:6px;margin:0;font-size:13px}.odcs-purpose dt{font-size:10px;letter-spacing:.7px;text-transform:uppercase;color:#6f8881;font-weight:600}.odcs-purpose dd{margin:0;color:#3f5650}
+.odcs-sections{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:12px}
+.odcs-section{background:#fff;border:1px solid #dbe3e4;border-radius:10px;padding:12px 14px;min-width:0;display:flex;flex-direction:column;gap:8px}
+.odcs-section h3,.odcs-objects h3,.odcs-subhead{margin:0;font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:#4d6660;display:flex;align-items:center;gap:6px}
+.odcs-objects{display:flex;flex-direction:column;gap:8px;min-width:0}
+.odcs-objects-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
+.odcs-objects h3 small{font-weight:500;letter-spacing:0;text-transform:none;color:#6f8881}
+.odcs-search{display:flex;align-items:center;gap:6px;border:1px solid #dbe3e4;border-radius:7px;background:#fff;padding:0 8px;color:#6f8881;min-width:0;flex:0 1 280px}
+.odcs-search input{border:0;outline:0;padding:7px 0;font-size:13px;min-width:0;width:100%;background:none}
+.odcs-search:focus-within{border-color:#7fb3a0;box-shadow:0 0 0 2px #dcefe7}
+.odcs-table-wrap{border:1px solid #dbe3e4;border-radius:8px;background:#fff;overflow:auto;max-width:100%}
+.odcs-table{width:100%;border-collapse:collapse;font-size:12px}
+.odcs-table th{text-align:left;font-size:10px;letter-spacing:.7px;text-transform:uppercase;color:#6f8881;font-weight:600;padding:8px 10px;background:#f3f7f5;border-bottom:1px solid #dbe3e4;white-space:nowrap;position:sticky;top:0;z-index:1}
+.odcs-table td{padding:7px 10px;border-bottom:1px solid #edf2ef;vertical-align:top}
+.odcs-table tbody tr:last-child td{border-bottom:0}.odcs-table tbody tr:hover td{background:#f5faf7}
+.odcs-table tr.selected td{background:#e9f6f1}
+.odcs-table.compact td{padding:5px 10px}
+.odcs-table .num{text-align:right;font-variant-numeric:tabular-nums}
+.odcs-table code{font-size:11px;overflow-wrap:anywhere}
+.odcs-desc{color:#4f655f;min-width:220px}
+.odcs-overview .odcs-table-wrap{max-height:min(70vh,720px)}
+button.odcs-link{border:0;background:none;padding:0;color:#1e6a4f;font-weight:600;font-size:12px;text-decoration:underline;text-underline-offset:2px;text-align:left;justify-content:flex-start}
+button.odcs-link.fk{display:inline-flex;gap:3px;margin:0 6px 2px 0;font-weight:500;text-decoration:none;background:#eaf4ef;border-radius:5px;padding:1px 6px}
+button.odcs-link:hover{background:none;color:#14513b}button.odcs-link.fk:hover{background:#d8ece3}
+.odcs-back{align-self:flex-start;font-size:12px;padding:5px 10px;gap:5px}
+.odcs-tabs{display:flex;gap:3px;background:#eaf0ed;padding:3px;border-radius:8px;width:fit-content;max-width:100%;overflow:auto}
+.odcs-tabs button{border:0;background:none;font-size:13px;padding:6px 14px;border-radius:6px;white-space:nowrap}
+.odcs-tabs .selected{background:#fff;color:#246e58;box-shadow:0 1px 4px #314d3a14;font-weight:600}
+.odcs-tabs small{margin-left:5px;font-size:10px;background:#dcebe5;border-radius:8px;padding:0 5px}
+.odcs-panel{display:flex;flex-direction:column;gap:10px;min-width:0}
+.odcs-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+.odcs-toolbar small{color:#6f8881;font-size:12px}
+.odcs-sort{border:0;background:none;padding:0;font:inherit;color:inherit;text-transform:inherit;letter-spacing:inherit;gap:4px}
+.odcs-sort:hover{background:none;color:#243936}.odcs-sort .idle{opacity:.35}
+.col-name code{font-weight:600;color:#243936;font-size:12px}
+.col-description{min-width:200px;color:#4f655f}
+.odcs-yes{font-weight:600;color:#1e6a4f}
+.odcs-tag{display:inline-block;font-style:normal;font-size:11px;background:#eef3f1;border-radius:4px;padding:0 6px;margin:0 4px 2px 0}
+.odcs-note{margin:0;font-size:12px;color:#5d736c}
+.odcs-depth{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#3a5a50}
+.odcs-depth select{font-size:13px;padding:4px 6px;border:1px solid #dbe3e4;border-radius:6px;background:#fff}
+.odcs-legend{display:flex;flex-wrap:wrap;gap:4px 12px;margin:0;padding:0;list-style:none;font-size:11px;color:#4d6660}
+.odcs-legend li{display:flex;align-items:center;gap:4px}
+.odcs-legend .fk-line::before,.odcs-legend .flow-line::before{content:'';width:18px;border-top:2px solid #7d9c91}
+.odcs-legend .fk-line::before{border-top-style:dashed;border-color:#b07a2a}
+.odcs-lineage{border:1px solid #dbe3e4;border-radius:10px;background:#fbfdfc;overflow:auto;max-height:min(62vh,640px);padding:14px;min-height:80px}
+.lineage-canvas{position:relative}
+.lineage-canvas>svg{position:absolute;inset:0;overflow:visible}
+.lineage-node svg{flex:none}
+.lineage-canvas .edge{fill:none;stroke:#9bb8ad;stroke-width:1.4}.lineage-canvas .edge.fk{stroke:#b07a2a;stroke-dasharray:5 4}
+.lineage-node{position:absolute;box-sizing:border-box;display:flex;align-items:center;gap:6px;padding:0 10px;border:1px solid #cfe0d9;border-left-width:4px;border-radius:7px;background:#fff;font-size:12px;box-shadow:0 1px 2px #23393610}
+.lineage-node span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.lineage-node.k-object{border-left-color:#2a6c95}.lineage-node.k-dataset{border-left-color:#1e6a4f}.lineage-node.k-field{border-left-color:#8aa79c}.lineage-node.k-metric{border-left-color:#8a5ad1}.lineage-node.k-kpi{border-left-color:#c2410c;background:#fff8f3}
+.lineage-node.center{background:#2a6c95;color:#fff;border-color:#2a6c95;font-weight:600}
+.odcs-legend .k-object svg{color:#2a6c95}.odcs-legend .k-dataset svg{color:#1e6a4f}.odcs-legend .k-field svg{color:#8aa79c}.odcs-legend .k-metric svg{color:#8a5ad1}.odcs-legend .k-kpi svg{color:#c2410c}
+.odcs-chip{display:inline-block;font-size:11px;background:#eef3f1;border-radius:4px;padding:0 5px;margin:0 4px 2px 0}
+.odcs-chip.metric{background:#f1ebfb;color:#5b3a94}
+.odcs-compare{display:flex;flex-wrap:wrap;gap:8px 16px}
+.odcs-compare label{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#3a5a50;min-width:0;flex:1 1 260px}
+.odcs-compare select{min-width:0;flex:1;font-size:12px;padding:5px;border:1px solid #dbe3e4;border-radius:6px;background:#fff}
+.odcs-changes{background:#fff;border:1px solid #dbe3e4;border-radius:10px;padding:12px 14px;font-size:13px}
+.odcs-change-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.odcs-change-list ul{list-style:none;margin:4px 0 0 18px;padding:0;display:flex;flex-direction:column;gap:3px;font-size:12px}
+.odcs-change{display:inline-block;min-width:62px;text-align:center;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;border-radius:4px;padding:1px 5px;margin-right:8px}
+.odcs-change.added{background:#e2f3ea;color:#1e6a4f}.odcs-change.removed{background:#fbeceb;color:#a3392f}.odcs-change.changed{background:#fdf3dc;color:#8a5a12}
+.odcs-values{overflow-wrap:anywhere}.odcs-values del{color:#a3392f}.odcs-values ins{color:#1e6a4f;text-decoration:none}
+.odcs-severity{font-size:11px;border-radius:4px;padding:0 6px;background:#eef3f1}.odcs-severity.s-error{background:#fbeceb;color:#a3392f}.odcs-severity.s-warning{background:#fdf3dc;color:#8a5a12}
+.odcs-query{display:block;margin-top:2px;white-space:pre-wrap}
+.muted{color:#93a8a1}
+@media (max-width:700px){.odcs-page{padding:12px}.odcs-search{flex:1 1 100%}.odcs-page .odcs-head{padding:12px}}
+.odcs-page>*{flex-shrink:0}
+.dataset-facts>span>span{display:block;overflow-wrap:anywhere}
+.odcs-table td.nowrap,.odcs-table td.nowrap code,.col-name code,.col-logicalType,.col-physicalType{white-space:nowrap}
+/* In-place edits (T143): controls that read as table text until hovered or focused. */
+.odcs-edit{font:inherit;font-size:12px;color:inherit;border:1px solid transparent;border-radius:5px;background:transparent;padding:3px 5px;margin:-4px -6px;max-width:100%;box-sizing:border-box}
+.odcs-edit:hover{border-color:#dbe3e4;background:#fff}.odcs-edit:focus{outline:0;border-color:#7fb3a0;background:#fff;box-shadow:0 0 0 2px #dcefe7}
+select.odcs-edit{cursor:pointer;padding-right:2px}
+.odcs-edit.text{width:100%;min-width:90px;resize:vertical;field-sizing:content}
+textarea.odcs-edit.text{min-width:200px;line-height:1.4;font-family:inherit;resize:none}
+.odcs-edit-check{width:15px;height:15px;accent-color:#1e6a4f;cursor:pointer}

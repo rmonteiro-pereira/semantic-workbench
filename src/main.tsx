@@ -42,13 +42,16 @@ import {
   FileCode,
   Box,
   CheckCircle2,
-  Menu, X, Focus, Gauge, Pencil, Plus, Trash2, GitBranch,
+  Menu, X, Focus, Gauge, Pencil, Plus, Trash2, GitBranch, FileCheck2,
 } from "lucide-react";
 import {validateInput} from "./input";
 import {documentKeys,entityKeys} from './references';
 import type {Entity,Relationship} from './model';
 import type {Issue} from './diagnostics';
 import {SourceControl} from './scm/SourceControl';
+import {ContractOverview} from './odcs/ContractOverview';
+import {DatasetPage} from './odcs/DatasetPage';
+import {propertyEditor} from './odcs/PropertyEditors';
 import {isGitignore} from './scm/gitignore';
 import {scm as scmApi} from './projects/api';
 import {ValidationPanel, ImportRepair, type ImportDraft} from "./ValidationPanel";
@@ -160,6 +163,11 @@ function App() {
   const result = {model:validation.model,error:(source||current)&&!validation.valid?validation.issues.filter(i=>i.severity==='error').map(i=>i.message).join('\n'):''};
   const model = result.model;
   const [showAll,setShowAll]=useState(false);
+  // ODCS contract overview and dataset pages (Phase 9): the object whose page is open, per document.
+  const isContract=model?.kind==='ODCS';
+  const [contractObject,setContractObject]=useState<string|null>(null);
+  useEffect(()=>setContractObject(null),[current?.id]);
+  useEffect(()=>{if(tab==='contract'&&model&&!isContract)setTab('fullgraph');},[tab,isContract,!!model]);
   const groupingOverview=useMemo(()=>model?modelOverview(model.entities,model.edges,model.name,false,grouping.value):null,[model,grouping.value]);
   const entity = model?.entities.find((e) => e.id === selected);
   const documentIdentities=useMemo(()=>new Map(docs.map(d=>{let keys=new Set<string>();try{keys=documentKeys(validateInput(d.source,d.filename).model);}catch{}return [d.id,keys];})),[docs]);
@@ -436,6 +444,7 @@ function App() {
         </header>
         <div className="toolbar">
           <div className="tabs">
+            {isContract&&<button className={tab==='contract'?'selected':''} onClick={()=>setTab('contract')}><FileCheck2 size={16}/> Contract</button>}
             <button className={showAll && tab==='graph'?'selected':''} onClick={()=>{setTab('graph');setShowAll(true);setSearch('')}}><Layers size={16}/> Overview</button>
             <button className={tab==='fullgraph' ? "selected" : ""} onClick={() => {setTab("fullgraph");setShowAll(false);setSearch('')}}>
               <Network size={16} /> Graph
@@ -466,7 +475,7 @@ function App() {
         {tab!=='scm'&&(source||current)&&(showValidation||!!result.error)&&<details className="validation-details" open><summary onClick={e=>{e.preventDefault();setShowValidation(false);}}>Validation findings</summary><ValidationPanel source={source} issues={validation.issues} onLocate={issue=>{setTab('source');setTimeout(()=>{sourceEditor.current?.locate(issue);},0);}}/></details>}
         <div className="canvas-row">
           <section className="canvas">
-            {tab==='scm' ? (scmSlug?<SourceControl projects={projects} project={scmSlug} version={gitVersion} unsaved={current&&current.project===scmSlug&&source!==current.source?[current.path]:[]} historyPath={historyPath} onProject={slug=>{setScmProject(slug);setHistoryPath(undefined);}} onChanged={()=>void refresh().catch(()=>{})} onOpen={(project,path)=>{const d=docsRef.current.get(`${project}/${path}`);if(d&&open(d))setTab('source');}}/>:<p className="hint">Import definitions or load an example to start a project.</p>) : tab==='metrics' ? <MetricsView project={kpiProject} projectName={projects.find(p=>p.slug===kpiProject)?.name} kpis={kpis} error={kpiError} loading={kpiLoading} selected={selectedKpi} onSelect={setSelectedKpi} filter={kpiFilter} onNew={()=>setWizard(true)} onEdit={editKpi}/> : tab==='mappings' ? <MappingExplorer currentId={current?.id} revisionKey={docs.map(d=>d.id+':'+d.hash).join('|')} dirty={!!current&&source!==current.source}/> : !source && !current ? (
+            {tab==='contract'&&isContract&&current ? (contractObject?<DatasetPage key={contractObject} doc={current} data={(model as any).document} objectName={contractObject} projectDocs={docs.filter(d=>d.project===current.project)} onBack={()=>setContractObject(null)} onOpenObject={setContractObject} gitVersion={gitVersion} editor={propertyEditor({doc:current,base:docText(current.id),onSaved:applySaved,onError:setMessage})}/>:<ContractOverview data={(model as any).document} onOpen={setContractObject}/>) : tab==='scm' ? (scmSlug?<SourceControl projects={projects} project={scmSlug} version={gitVersion} unsaved={current&&current.project===scmSlug&&source!==current.source?[current.path]:[]} historyPath={historyPath} onProject={slug=>{setScmProject(slug);setHistoryPath(undefined);}} onChanged={()=>void refresh().catch(()=>{})} onOpen={(project,path)=>{const d=docsRef.current.get(`${project}/${path}`);if(d&&open(d))setTab('source');}}/>:<p className="hint">Import definitions or load an example to start a project.</p>) : tab==='metrics' ? <MetricsView project={kpiProject} projectName={projects.find(p=>p.slug===kpiProject)?.name} kpis={kpis} error={kpiError} loading={kpiLoading} selected={selectedKpi} onSelect={setSelectedKpi} filter={kpiFilter} onNew={()=>setWizard(true)} onEdit={editKpi}/> : tab==='mappings' ? <MappingExplorer currentId={current?.id} revisionKey={docs.map(d=>d.id+':'+d.hash).join('|')} dirty={!!current&&source!==current.source}/> : !source && !current ? (
               <div className="empty">
                 <div className="empty-icon">
                   <Network size={36} />
