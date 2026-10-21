@@ -2,6 +2,12 @@ import{GroupingControls}from'./GroupingControls';
 import{modelOverview}from'./overview';
 import{useGrouping}from'./useGrouping';
 import{SourceEditor,locateSourceIssue}from'./SourceEditor';
+import{api,loadWorkspace,StaleSave,type Doc,type ProjectInfo,type WorkspaceStatus}from'./projects/api';
+import{useEvents}from'./projects/useEvents';
+import{ProjectTree}from'./projects/Sidebar';
+import{GitBanner}from'./projects/GitBanner';
+import{StaleSaveDialog}from'./projects/StaleSave';
+import{exampleSet}from'./projects/examples';
 import {NeighborhoodGraph} from './NeighborhoodGraph';
 import {MappingExplorer} from './MappingExplorer';
 import React, { useEffect, useMemo, useState, useRef } from "react";
@@ -28,7 +34,6 @@ import {ModelOverview} from "./ModelOverview";
 import {FullGraph} from "./FullGraph";
 import "@xyflow/react/dist/style.css";
 import "./style.css";
-type Doc = { id: string; filename: string; source: string; revision: number };
 const sample = `name: Commerce\nontology:\n  - concept: Customer\n    type: EntityType\n    description: A person who purchases products.\n    relationships:\n      - name: places\n        roles:\n          - concept: Order\n        verbalizes: ['{Customer} places {Order}']\n  - concept: Order\n    type: EntityType\n    description: A purchase made by a customer.\n    relationships:\n      - name: contains\n        roles:\n          - concept: Product\n        verbalizes: ['{Order} contains {Product}']\n  - concept: Product\n    type: EntityType\n    description: An item available for purchase.\n`;
 function App() {
   const [docs, setDocs] = useState<Doc[]>([]),
@@ -41,6 +46,10 @@ function App() {
     [message, setMessage] = useState(""),
     [busy, setBusy] = useState(false);
   const [pendingImport,setPendingImport]=useState<ImportDraft[]|null>(null);
+  const [projects,setProjects]=useState<ProjectInfo[]>([]),[status,setStatus]=useState<WorkspaceStatus|null>(null);
+  const [stale,setStale]=useState<{current:string|null;currentHash:string|null}|null>(null);
+  const docsRef=useRef(new Map<string,Doc>()),currentRef=useRef<Doc|null>(null),sourceRef=useRef('');
+  currentRef.current=current;sourceRef.current=source;
   const [showValidation,setShowValidation]=useState(false);
   const grouping=useGrouping(current?.id);
   const sourceEditor=useRef<HTMLTextAreaElement|null>(null);
@@ -58,13 +67,29 @@ function App() {
     const keyboard=(event:KeyboardEvent)=>{if(event.key==='Escape'){event.preventDefault();closeWorkspace();}else if(event.key==='Tab'){const nodes=focusable(),first=nodes[0],last=nodes.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}};
     el.addEventListener('keydown',keyboard);return()=>el.removeEventListener('keydown',keyboard);
   },[compact,sidebarOpen]);
+  // The folder store is the source of truth: refetch on start and whenever the server reports a change.
+  const refreshing=useRef<Promise<Doc[]>|null>(null),again=useRef(false);
+  async function refresh():Promise<Doc[]>{
+    if(refreshing.current){again.current=true;return refreshing.current;}
+    const run=(async()=>{
+      try{
+        const loaded=await loadWorkspace(docsRef.current);
+        docsRef.current=new Map(loaded.docs.map(d=>[d.id,d]));
+        setProjects(loaded.projects);setDocs(loaded.docs);
+        // An open file that changed on disk follows the disk unless it has unsaved edits.
+        const open=currentRef.current,fresh=open&&docsRef.current.get(open.id);
+        if(open&&fresh&&fresh.hash!==open.hash&&sourceRef.current===open.source){setCurrent(fresh);setSource(fresh.source);}
+        return loaded.docs;
+      }finally{refreshing.current=null;if(again.current){again.current=false;void refresh();}}
+    })();
+    refreshing.current=run;return run;
+  }
+  const refreshTimer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined);
+  useEvents(()=>{clearTimeout(refreshTimer.current);refreshTimer.current=setTimeout(()=>{void refresh().catch(()=>{});},80);});
   useEffect(() => {
-    fetch("/api/documents")
-      .then((r) => r.json())
-      .then((d) => {
-        setDocs(d);
-        if (d[0]) open(d[0]);
-      })
+    api.status().then(setStatus).catch(()=>{});
+    refresh()
+      .then((d) => { if (d[0]) open(d[0]); })
       .catch(() => setMessage("Cannot reach local API"));
   }, []);
   function open(d: Doc) {
@@ -95,62 +120,52 @@ function App() {
   const activeGroup=globalGroups.find(e=>e.data.relationships.some(r=>r.id===selectedEdge));
   function showNeighborhood(id=selected||relationship?.source||neighborhoodFocus){setNeighborhoodFocus(id);setSearch('');setTab('graph');setShowAll(false);}
   function selectEntity(id:string){setSelected(id);setSelectedEdge('');if(tab==='graph'&&!showAll){setNeighborhoodFocus(id);setSearch('');}}
-  async function loadExamples(scale:boolean|'ubl'|'mapped'|'billing'|'flights'|'mall'=false) {
+  async function loadExample(id:string) {
+    const set=exampleSet(id)!;
     if(current && source !== current.source && !confirm('Discard unsaved changes and open examples?'))return;
     setBusy(true);setMessage('Loading example documents…');
     try {
-      const flights=scale==='flights';
-      const billing=scale==='billing';
-      const mall=scale==='mall';
-      const mapped=scale==='mapped';
-      const ubl=scale==='ubl';
-      const files=mall?['mall.ontology.yaml','mall.semantic.yaml','mall.mapping.yaml','mall.odcs.yaml','mall.owl.ttl','mall.shacl.ttl','mall-data.ttl']:flights?['flights.ontology.yaml','flights.semantic_model.yaml','flights.mapping.yaml','flights.yaml']:billing?['billing.mapping.yaml','billing.ontology.yaml','billing.semantic.yaml']:mapped?['commerce.mapping.yaml','commerce.mapped-ontology.yaml','commerce.mapped-semantic.yaml']:ubl?['ubl.ontology.yaml','ubl.owl.ttl','ubl.odcs.yaml','ubl.semantic.yaml','ubl.shacl.ttl']:scale?['commerce-scale.ttl']:['commerce.odcs.yaml','sales.ossie.yaml','commerce-business.ossie.yaml','commerce.owl.ttl','commerce.owl','commerce.shacl.ttl','commerce-data.ttl'];
-      const loaded:Doc[]=[];
-      for(const filename of files){
-        const existing=docs.find(d=>d.filename===filename);if(existing){loaded.push(existing);continue;}
-        const response=await fetch(`/examples/${mall?'mall':flights?'ossie':billing?'billing':ubl?'ubl':'commerce'}/${filename}`);if(!response.ok)throw Error(`Cannot load ${filename}`);
-        const source=await response.text();
-        const saved=await fetch('/api/documents',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filename,source})});
-        const doc=await saved.json();if(!saved.ok)throw Error(doc.error);loaded.push(doc);setDocs(old=>[doc,...old]);
-      }
-      setCurrent(loaded[0]);setSource(loaded[0].source);setNeighborhoodFocus('');if(compact)closeWorkspace();setSelected('');setSelectedEdge('');setSearch('');setShowAll(false);setTab(flights?'fullgraph':mapped||billing?'mappings':'graph');
-      setMessage(mall?'Loaded shopping center administration: 145 entity types in 11 namespaces, 259 joins, 1,056 bindings and 25 governed KPIs, with OWL, SHACL, ODCS and RDF data.':flights?'Loaded official Apache Ossie Flights: ontology, semantic model, standalone and embedded mappings.':billing?'Loaded subscription billing: 36 business entities, 46 joins, 119 bindings, and 4 governed metrics.':mapped?'Loaded mapped commerce: ontology, semantic model, governed metrics, and explicit mappings.':ubl?'Loaded UBL: 45 business entities, 277 roles; OWL, SHACL, ODCS, and semantic datasets.':scale?'Loaded 1,000 business resources and 5,000 links. Showing a neighborhood; search to explore.':'Loaded commerce contracts, semantic model, ontology, OWL, SHACL, and RDF data. Select a document in the sidebar.');
+      const {slug}=await api.example(id);
+      const loaded=await refresh();
+      const first=loaded.find(d=>d.project===slug&&d.path===set.files[0])??loaded.find(d=>d.project===slug);
+      if(first){setCurrent(first);setSource(first.source);}
+      setNeighborhoodFocus('');if(compact)closeWorkspace();setSelected('');setSelectedEdge('');setSearch('');setShowAll(false);setTab(set.tab);
+      setMessage(set.message);
     }catch(e){setMessage((e as Error).message)}finally{setBusy(false)}
   }
-  async function save(
-    text = source,
-    filename = current?.filename ?? "ontology.ossie.yaml",
-    fresh = false,
-  ) {
+  async function save(baseHash=current?.hash??null) {
+    if(!current)return false;
     setBusy(true);
     setMessage("");
     try {
-      const r = await fetch("/api/documents", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          source: text,
-          filename,
-          ...(!fresh && current ? { id: current.id, revision: current.revision } : {}),
-        }),
-      });
-      const d = await r.json();
-      if (!r.ok) throw Error(d.error);
-      setDocs((old) => [d, ...old.filter((x) => x.id !== d.id)]);
-      setCurrent(d);
-      setSource(d.source);
-      setMessage("Saved to SQLite");
+      const saved=await api.save(current.project,current.path,baseHash,source);
+      const doc:Doc={...current,source,hash:saved.hash};
+      docsRef.current.set(doc.id,doc);
+      setDocs((old) => old.map((x) => x.id === doc.id ? doc : x));
+      setCurrent(doc);setStale(null);
+      setMessage("Saved to the project folder");
+      void refresh().catch(()=>{});
       return true;
     } catch (e) {
+      if(e instanceof StaleSave){setStale({current:e.currentSource,currentHash:e.currentHash});setMessage('Not saved: the file changed since you opened it.');return false;}
       setMessage((e as Error).message);
       return false;
     } finally {
       setBusy(false);
     }
   }
+  // One import batch becomes one project (FR-018).
   async function commitImports(drafts:ImportDraft[]) {
-    for(const draft of drafts)if(!await save(draft.source,draft.filename,true))throw Error(`Could not save ${draft.filename}. Previously imported files remain in Documents; retry only the failed files.`);
-    setPendingImport(null);setNeighborhoodFocus('');if(compact)closeWorkspace();setSelected('');setSelectedEdge('');setSearch('');setShowAll(false);setTab('graph');
+    let created;
+    try{created=await api.importBatch(drafts.map(d=>({path:d.filename,source:d.source})));}
+    catch(e){throw Error(`Could not save ${drafts.map(d=>d.filename).join(', ')}: ${(e as Error).message} Nothing from this batch was imported; retry when ready.`);}
+    setPendingImport(null);
+    // Open the batch's last file, as the one-by-one import of earlier versions did.
+    const loaded=await refresh(),last=drafts[drafts.length-1].filename;
+    const opened=loaded.find(d=>d.project===created.slug&&d.path===last)??loaded.find(d=>d.project===created.slug);
+    if(opened){setCurrent(opened);setSource(opened.source);}
+    setMessage(`Imported ${created.written.length} file${created.written.length===1?'':'s'} into project ${created.name}.`);
+    setNeighborhoodFocus('');if(compact)closeWorkspace();setSelected('');setSelectedEdge('');setSearch('');setShowAll(false);setTab('graph');
   }
   async function importFiles(files: File[]) {
     if (!files.length) return;
@@ -173,6 +188,7 @@ function App() {
   }
   return (
     <div className={`shell ${sidebarOpen?'workspace-open':'workspace-closed'}`}>
+      {stale&&current&&<StaleSaveDialog filename={current.path} mine={source} current={stale.current} onCancel={()=>setStale(null)} onLoadCurrent={()=>{if(stale.current===null||stale.currentHash===null)return;const doc={...current,source:stale.current,hash:stale.currentHash};docsRef.current.set(doc.id,doc);setCurrent(doc);setSource(doc.source);setStale(null);setMessage('Loaded the current file from disk.');}} onKeepMine={()=>{const base=stale.currentHash;setStale(null);void save(base);}}/>}
       {pendingImport&&<ImportRepair initial={pendingImport} onCancel={()=>setPendingImport(null)} onImport={commitImports}/>}
       {compact&&sidebarOpen&&<button className="workspace-scrim" aria-label="Dismiss workspace drawer" tabIndex={-1} onClick={closeWorkspace}/>}
       <aside id="workspace-sidebar" className="sidebar workspace-sidebar" ref={sidebarRef} inert={!sidebarOpen} role={compact&&sidebarOpen?'dialog':undefined} aria-modal={compact&&sidebarOpen?true:undefined} aria-label="Workspace documents">
@@ -193,27 +209,18 @@ function App() {
           <FileCode size={18} /> Source editor
         </button>
         <div className="section-label">
-          DOCUMENTS <span>{docs.length}</span>
+          PROJECTS <span>{projects.length}</span>
         </div>
         <div className="documents">
-          {docs.map((d) => (
-            <button
-              className={`document ${current?.id === d.id ? "chosen" : ""}`}
-              key={d.id}
-              onClick={() => open(d)}
-            >
-              <FileCode size={16} />
-              <span>{d.filename}</span>
-            </button>
-          ))}
+          <ProjectTree projects={projects} currentId={current?.id} onOpen={(project,path)=>{const d=docs.find(x=>x.project===project&&x.path===path);if(d)open(d);}}/>
         </div>
-        <button className="scale-example" onClick={()=>loadExamples('ubl')} disabled={busy}><Layers size={16}/><span>Load UBL business model<small>45 entities · 277 relationships</small></span></button>
-        <button className="scale-example" onClick={()=>loadExamples()} disabled={busy}><Layers size={16}/><span>Load commerce workspace<small>ODCS · Ossie · OWL · SHACL · RDF</small></span></button>
-        <button className="scale-example" onClick={()=>loadExamples(true)} disabled={busy}><Network size={16}/><span>Load commerce scale data<small>1,000 entities · 5,000 relationships</small></span></button>
-        <button className="scale-example" onClick={()=>loadExamples('mapped')} disabled={busy}><Layers size={16}/><span>Load mapped commerce<small>Ontology → mappings → governed queries</small></span></button>
-        <button className="scale-example" onClick={()=>loadExamples('flights')} disabled={busy}><Network size={16}/><span>Load Ossie Flights<small>Official ontology · semantic model · mappings</small></span></button>
-        <button className="scale-example" onClick={()=>loadExamples('billing')} disabled={busy}><Layers size={16}/><span>Load subscription billing<small>36 business entities · 4 governed metrics</small></span></button>
-        <button className="scale-example" onClick={()=>loadExamples('mall')} disabled={busy}><Layers size={16}/><span>Load shopping center administration<small>145 entity types · 11 namespaces · 25 KPIs</small></span></button>
+        <button className="scale-example" onClick={()=>loadExample('ubl')} disabled={busy}><Layers size={16}/><span>Load UBL business model<small>45 entities · 277 relationships</small></span></button>
+        <button className="scale-example" onClick={()=>loadExample('commerce')} disabled={busy}><Layers size={16}/><span>Load commerce workspace<small>ODCS · Ossie · OWL · SHACL · RDF</small></span></button>
+        <button className="scale-example" onClick={()=>loadExample('commerce-scale')} disabled={busy}><Network size={16}/><span>Load commerce scale data<small>1,000 entities · 5,000 relationships</small></span></button>
+        <button className="scale-example" onClick={()=>loadExample('mapped-commerce')} disabled={busy}><Layers size={16}/><span>Load mapped commerce<small>Ontology → mappings → governed queries</small></span></button>
+        <button className="scale-example" onClick={()=>loadExample('flights')} disabled={busy}><Network size={16}/><span>Load Ossie Flights<small>Official ontology · semantic model · mappings</small></span></button>
+        <button className="scale-example" onClick={()=>loadExample('billing')} disabled={busy}><Layers size={16}/><span>Load subscription billing<small>36 business entities · 4 governed metrics</small></span></button>
+        <button className="scale-example" onClick={()=>loadExample('mall')} disabled={busy}><Layers size={16}/><span>Load shopping center administration<small>145 entity types · 11 namespaces · 25 KPIs</small></span></button>
         <label className="import" tabIndex={0} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.currentTarget.querySelector('input')?.click();}}}>
           <Upload size={16} /> Import definitions
           <input
@@ -227,11 +234,12 @@ function App() {
           />
         </label>
         <div className="local">
-          <span className="dot" /> SQLite · on your machine
+          <span className="dot" /> Project folders · on your machine
           <small>Your definitions stay local.</small>
         </div>
       </aside>
       <main inert={compact&&sidebarOpen}>
+        <GitBanner status={status}/>
         <header className="workspace-header">
           <button ref={workspaceToggle} className="workspace-toggle" aria-label={sidebarOpen?'Close workspace':'Open workspace'} aria-expanded={sidebarOpen} aria-controls="workspace-sidebar" onClick={()=>setSidebarOpen(v=>!v)}>{sidebarOpen?<X size={18}/>:<Menu size={18}/>}</button>
           <div className="workspace-title"><h1 title={model?.name??current?.filename??'Semantic Workbench'}>{model?.name??current?.filename??'Semantic Workbench'}</h1><span className="badge"><span className="dot"/>{model?.kind??'ODCS + Apache Ossie'}</span></div>
@@ -281,7 +289,7 @@ function App() {
         {(source||current)&&(showValidation||!!result.error)&&<details className="validation-details" open><summary onClick={e=>{e.preventDefault();setShowValidation(false);}}>Validation findings</summary><ValidationPanel source={source} issues={validation.issues} onLocate={issue=>{setTab('source');setTimeout(()=>{const editor=sourceEditor.current;if(!editor)return;locateSourceIssue(editor,issue);},0);}}/></details>}
         <div className="canvas-row">
           <section className="canvas">
-            {tab==='mappings' ? <MappingExplorer currentId={current?.id} revisionKey={docs.map(d=>d.id+':'+d.revision).join('|')} dirty={!!current&&source!==current.source}/> : !source && !current ? (
+            {tab==='mappings' ? <MappingExplorer currentId={current?.id} revisionKey={docs.map(d=>d.id+':'+d.hash).join('|')} dirty={!!current&&source!==current.source}/> : !source && !current ? (
               <div className="empty">
                 <div className="empty-icon">
                   <Network size={36} />
@@ -294,7 +302,7 @@ function App() {
                 </p>
                 <button
                   className="primary"
-                  onClick={() => save(sample, "commerce-business.ossie.yaml", true)}
+                  onClick={() => void commitImports([{filename:"commerce-business.ossie.yaml",source:sample}]).catch(e=>setMessage((e as Error).message))}
                 >
                   Open example ontology
                 </button>

@@ -162,6 +162,10 @@ export async function openWorkspace(options:WorkspaceOptions={}){
    const existing=projects().find(p=>p.origin===`example:${id}`);
    if(existing&&existsSync(projectDir(layout,existing.slug)))return {slug:existing.slug,name:existing.name,created:false};
    const files=set.files.map(name=>({path:name,source:readFileSync(join(examplesDir,set.folder,name),'utf8')}));
+   // A project that already holds every example file with identical bytes is opened, not duplicated.
+   const hashes=new Map(files.map(f=>[f.path,sha256(encode(f.source))]));
+   const same=projects().find(p=>files.every(f=>cache.file(p.slug,f.path)?.hash===hashes.get(f.path)));
+   if(same)return {slug:same.slug,name:same.name,created:false};
    const project=await createProjectFolder(set.name,`example:${id}`,files,set.id);
    return {slug:project.slug,name:project.name,created:true};
   },

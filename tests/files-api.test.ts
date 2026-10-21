@@ -136,3 +136,13 @@ test('the legacy /api/documents facade keeps its shapes over the folder store (R
   expect((await api(t,'POST','/api/documents',{id:d.id,filename:'shop.yaml',source:ontology,baseHash:saved.hash})).status).toBe(200);
  }finally{t.dispose();}
 });
+test('an example loader opens a project that already holds the identical example files',async()=>{
+ const t=await testWorkspace();
+ try{
+  const files=await Promise.all(['commerce.mapping.yaml','commerce.mapped-ontology.yaml','commerce.mapped-semantic.yaml'].map(async path=>({path,source:await example('commerce',path)})));
+  const imported=await t.ws.importBatch({files});
+  expect(await t.ws.loadExample('mapped-commerce')).toEqual({slug:imported.slug,name:imported.name,created:false});
+  await t.ws.saveFile(imported.slug,'commerce.mapping.yaml',{baseHash:sha256(files[0].source),source:files[0].source+'# changed\n'});
+  expect((await t.ws.loadExample('mapped-commerce')).created).toBe(true);
+ }finally{t.dispose();}
+});
