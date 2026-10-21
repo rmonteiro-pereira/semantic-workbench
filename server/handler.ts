@@ -11,6 +11,7 @@ import {trashRoutes} from './routes/trash';
 import {suggestionRoutes} from './routes/suggestions';
 import {metricRoutes} from './routes/metrics';
 import {kpiRoutes} from './routes/kpis';
+import {gitRoutes} from './routes/git';
 export const ALLOWED_ORIGINS=['http://127.0.0.1:5173','http://localhost:5173','http://127.0.0.1:4310'];
 // Legacy facade (research R9): flat documents and the agent endpoints keep their v0.1.0 shapes over
 // the folder store. Ids are `<project>/<path>`; v0.1.0 ids resolve through legacy-ids.json.
@@ -60,7 +61,7 @@ const legacyRoutes:Route=async(ws,req,url)=>{
  }
  return null;
 };
-const routes:Route[]=[eventRoutes,trashRoutes,suggestionRoutes,projectRoutes,metricRoutes,kpiRoutes,fileRoutes,draftRoutes,legacyRoutes];
+const routes:Route[]=[eventRoutes,trashRoutes,suggestionRoutes,projectRoutes,metricRoutes,kpiRoutes,gitRoutes,fileRoutes,draftRoutes,legacyRoutes];
 export function createHandler(ws:Workspace){
  return async(req:Request)=>{
   const url=new URL(req.url);
