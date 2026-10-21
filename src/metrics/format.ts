@@ -1,11 +1,11 @@
 import type {ConceptLink,KpiSummary} from '../../server/agent/explain';
 import {expressionRefs} from './deps';
-// Wording shared by the Metrics view, the KPI detail and the graph badges.
+// Wording shared by the Metrics view, the metric detail and the graph badges.
 export const typeLabel:Record<KpiSummary['type'],string>={simple:'Simple',ratio:'Ratio',derived:'Derived',cumulative:'Cumulative',filtered:'Filtered'};
 export const additivityLabel={additive:'Additive',semi_additive:'Semi-additive',non_additive:'Non-additive'} as const;
 export const conceptText=(links:ConceptLink[])=>{const m=links.find(c=>c.role==='measures'),of=links.find(c=>c.role==='of');return [m?(m.concept??m.input):null,of?`of ${of.concept??of.input}`:null].filter(Boolean).join(' ');};
 export const humanize=(name:string)=>name.replace(/_/g,' ').replace(/([a-z])([A-Z])/g,'$1 $2');
-// A KPI expression as readable parts: governed metrics become their labels, NULLIF guards and
+// A metric expression as readable parts: governed metrics become their labels, NULLIF guards and
 // operators are shown as arithmetic. Anything else stays as written.
 export type FormulaPart={kind:'metric'|'op'|'text';text:string;name?:string};
 export function readableFormula(sql:string,labels:Map<string,string>):FormulaPart[]{

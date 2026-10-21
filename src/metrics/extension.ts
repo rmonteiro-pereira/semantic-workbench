@@ -3,7 +3,7 @@ import metricSchema from '../../schemas/semantic-workbench-metric-v1.json';
 import mappingSchema from '../../schemas/semantic-workbench-mapping-v1.json';
 import type {Issue} from '../diagnostics';
 import {ansiExpression,expressionRefs,metricDependencies} from './deps';
-// KPI attributes in Ossie `custom_extensions` (research R1, R12): an entry with
+// metric attributes in Ossie `custom_extensions` (research R1, R12): an entry with
 // vendor_name SEMANTIC_WORKBENCH whose `data` is a JSON string. Validated against the pinned
 // application schemas by the same code in the browser, the file store and the API (FR-003).
 export const VENDOR='SEMANTIC_WORKBENCH',METRIC_SCHEMA='semantic-workbench/metric/v1',MAPPING_SCHEMA='semantic-workbench/mapping/v1';
@@ -29,10 +29,10 @@ const pointer=(segments:(string|number)[])=>segments.map(s=>'/'+String(s).replac
 // Rules stated in plain language; the schema's if/then branches would otherwise report bare `required`.
 function metricRules(v:any):{inner:string;message:string}[]{
  const out:{inner:string;message:string}[]=[];if(!object(v))return out;
- if(v.type==='ratio'&&(v.numerator===undefined||v.denominator===undefined))out.push({inner:'/type',message:'A ratio KPI requires numerator and denominator.'});
- if(v.additivity==='semi_additive'&&(v.non_additive_over===undefined||v.period_aggregation===undefined))out.push({inner:'/additivity',message:'A semi_additive KPI requires non_additive_over and period_aggregation.'});
- if(v.status==='deprecated'&&v.replaced_by===undefined&&v.deprecation_reason===undefined)out.push({inner:'/status',message:'A deprecated KPI requires replaced_by or deprecation_reason.'});
- if(v.type==='ratio'&&v.additivity!==undefined&&v.additivity!=='non_additive')out.push({inner:'/additivity',message:'A ratio KPI is non_additive: summing ratios gives a wrong result.'});
+ if(v.type==='ratio'&&(v.numerator===undefined||v.denominator===undefined))out.push({inner:'/type',message:'A ratio metric requires numerator and denominator.'});
+ if(v.additivity==='semi_additive'&&(v.non_additive_over===undefined||v.period_aggregation===undefined))out.push({inner:'/additivity',message:'A semi_additive metric requires non_additive_over and period_aggregation.'});
+ if(v.status==='deprecated'&&v.replaced_by===undefined&&v.deprecation_reason===undefined)out.push({inner:'/status',message:'A deprecated metric requires replaced_by or deprecation_reason.'});
+ if(v.type==='ratio'&&v.additivity!==undefined&&v.additivity!=='non_additive')out.push({inner:'/additivity',message:'A ratio metric is non_additive: summing ratios gives a wrong result.'});
  return out;
 }
 function schemaIssues(validate:ReturnType<typeof ajv.compile>,value:unknown,path:string,rules:{inner:string;message:string}[]):Issue[]{
@@ -52,16 +52,16 @@ export function readMetricExtension(metric:any,path=''):{value:MetricExtension|n
  const issues=schemaIssues(checkMetric,parsed.value,dataPath,metricRules(parsed.value));
  return {value:issues.length?null:parsed.value,issues};
 }
-// Parse and validate KPI bindings in a mapping document root (or an embedded semantic model root).
+// Parse and validate metric bindings in a mapping document root (or an embedded semantic model root).
 export function readKpiBindings(owner:any,path='',mappingDocument=true):{value:KpiBinding[];issues:Issue[]}{
  const entry=workbenchEntry(owner);if(!entry)return {value:[],issues:[]};
  const dataPath=`${path}/custom_extensions/${entry.index}/data`,parsed=parseData(entry.data,dataPath);
  if(parsed.issues.length)return {value:[],issues:parsed.issues};
- // On a semantic model root the entry may hold model defaults instead of KPI bindings.
+ // On a semantic model root the entry may hold model defaults instead of metric bindings.
  if(!mappingDocument&&!(object(parsed.value)&&parsed.value.schema===MAPPING_SCHEMA))return {value:[],issues:[]};
  const issues=schemaIssues(checkMapping,parsed.value,dataPath,[]);
  const seen=new Set<string>();
- (Array.isArray(parsed.value?.kpi_bindings)?parsed.value.kpi_bindings:[]).forEach((b:any,i:number)=>{if(typeof b?.metric==='string'){if(seen.has(b.metric))issues.push({severity:'error',code:'extension',path:dataPath,innerPath:`/kpi_bindings/${i}/metric`,message:`KPI "${b.metric}" is bound more than once; keep one binding per metric.`});seen.add(b.metric);}});
+ (Array.isArray(parsed.value?.kpi_bindings)?parsed.value.kpi_bindings:[]).forEach((b:any,i:number)=>{if(typeof b?.metric==='string'){if(seen.has(b.metric))issues.push({severity:'error',code:'extension',path:dataPath,innerPath:`/kpi_bindings/${i}/metric`,message:`Metric "${b.metric}" is bound more than once; keep one binding per metric.`});seen.add(b.metric);}});
  return {value:issues.length?[]:parsed.value.kpi_bindings,issues};
 }
 // Offset of an inner JSON key inside a block scalar's source range, for line/column reporting.
@@ -78,7 +78,7 @@ export function ratioParts(sql:string,metricNames:Set<string>):{numerator:string
  if(!m)return null;const numerator=m[1],denominator=m[2]??m[3];
  return metricNames.has(numerator)&&metricNames.has(denominator)?{numerator,denominator,guarded:!!m[2]}:null;
 }
-// The KPI type an expression shows, used when no type is declared and to check a declared one.
+// The metric type an expression shows, used when no type is declared and to check a declared one.
 export function inferredType(sql:string|undefined,metricNames:Set<string>):{type:KpiType;numerator?:string;denominator?:string;inputs?:string[]}{
  if(!sql)return {type:'simple'};
  const ratio=ratioParts(sql,metricNames);if(ratio)return {type:'ratio',numerator:ratio.numerator,denominator:ratio.denominator};

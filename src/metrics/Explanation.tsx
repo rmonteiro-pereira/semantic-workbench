@@ -5,14 +5,14 @@ import type {ExplainQuery} from '../projects/api';
 import {additivityLabel,readableFormula,typeLabel} from './format';
 const GRAINS=['day','week','month','quarter','year'];
 const roleLabel={numerator:'Numerator',denominator:'Denominator',input:'Input'} as const;
-// "How it is calculated" (FR-002, FR-006, FR-007): the formula in words, the composition tree down to
+// "How this metric is calculated" (FR-002, FR-006, FR-007): the formula in words, the composition tree down to
 // fields, the rules that govern rollups, and a SQL preview that is never executed.
 export function Explanation({explanation:e,all,query,onQuery,loading}:{explanation:KpiExplanation;all:KpiSummary[];query:ExplainQuery;onQuery:(q:ExplainQuery)=>void;loading:boolean}){
  const labels=new Map(all.filter(k=>k.file===e.kpi.file).map(k=>[k.name,k.label]));
  const parts=readableFormula(e.formula,labels);
  const aggregation=e.inputs.length===1&&e.inputs[0].metric===e.kpi.name?e.inputs[0]:null;
  return <section className="kpi-explanation" aria-labelledby="how-calculated">
-  <h3 id="how-calculated">How it is calculated</h3>
+  <h3 id="how-calculated">How this metric is calculated</h3>
   <div className="explain-step">
    <span className="step-number">1</span>
    <div className="step-body"><h4>Formula</h4>
@@ -67,7 +67,7 @@ function Preview({e,query,onQuery,loading}:{e:KpiExplanation;query:ExplainQuery;
   <div className="preview-controls">
    {grains.length>0&&<label>Time grain<select aria-label="Time grain" value={query.grain??p.grain??''} onChange={ev=>onQuery({...query,grain:ev.target.value})}>{grains.map(g=><option key={g} value={g} disabled={!e.time!.allowedGrains.includes(g as any)&&g!==query.grain}>{g}{e.time!.allowedGrains.includes(g as any)?'':' · not allowed'}</option>)}</select></label>}
    {e.dimensions.length>0&&<fieldset><legend>Break down by</legend>{e.dimensions.map(d=><label key={d} className="check"><input type="checkbox" checked={dims.includes(d)} onChange={()=>toggle(d)}/>{d}</label>)}</fieldset>}
-   <label className="check rollup"><input type="checkbox" aria-label="Sum the KPI values" checked={query.rollup==='sum'} onChange={ev=>onQuery({...query,rollup:ev.target.checked?'sum':undefined})}/>Sum the KPI values</label>
+   <label className="check rollup"><input type="checkbox" aria-label="Sum the metric values" checked={query.rollup==='sum'} onChange={ev=>onQuery({...query,rollup:ev.target.checked?'sum':undefined})}/>Sum the metric values</label>
   </div>
   {'refused'in p?<div className="preview-refused" role="alert"><Ban size={18}/><div><strong>No SQL for this request</strong><p>{p.refused}</p></div></div>:<>
    <div className="preview-head"><span className="not-executed">Preview · not executed</span>{p.joins.length>0&&<span className="muted">Joins: {p.joins.join(', ')}</span>}<button className="copy-sql" onClick={()=>{void navigator.clipboard?.writeText(p.sql).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),1500);}).catch(()=>{});}}>{copied?<Check size={14}/>:<Copy size={14}/>}{copied?'Copied':'Copy SQL'}</button></div>

@@ -3,7 +3,7 @@ import {Boxes,Columns3,Database,Gauge,Table2,Link2} from 'lucide-react';
 import {LEGEND_LINES,type LegendLine} from './edge-styles';
 import './legend.css';
 // The legend of the v0.2.0 dataset Lineage tab as one shared component (FR-025): kind icons and the
-// line styles of edge-styles.ts. "KPI" is now Metric.
+// line styles of edge-styles.ts.
 export type LegendKind='object'|'dataset'|'field'|'metric'|'concept'|'external';
 export const KIND_LABEL:Record<LegendKind,string>={object:'Contract object',dataset:'Semantic dataset',field:'Field',metric:'Metric',concept:'Concept',external:'External reference'};
 export const KindIcon=({kind,size=12}:{kind:LegendKind;size?:number})=>kind==='object'?<Table2 size={size}/>:kind==='dataset'?<Database size={size}/>:kind==='field'?<Columns3 size={size}/>:kind==='metric'?<Gauge size={size}/>:kind==='concept'?<Boxes size={size}/>:<Link2 size={size}/>;

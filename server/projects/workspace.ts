@@ -162,7 +162,7 @@ export async function openWorkspace(options:WorkspaceOptions={}){
    return {path:p,hash,findings:indexed.findings};
   });
  }
- // Several files of one project in one journaled operation (FR-083: KPI saves, deletes with
+ // Several files of one project in one journaled operation (FR-083: metric saves, deletes with
  // dependents, confirmed rename rewrites). Every base hash is checked first; the new contents are
  // staged and validated, then each current file is moved aside and the staged one moved in.
  async function saveFiles(slug:string,writes:{path:string;baseHash:string|null;source?:string;patches?:Patch[]}[],kind='save-files'){

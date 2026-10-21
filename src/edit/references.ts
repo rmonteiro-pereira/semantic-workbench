@@ -56,7 +56,7 @@ export function findReferences(target:Target,docs:ProjectDoc[]):Reference[]{
    const {path,node,value}=s,key=path.at(-1);
    // The item itself (and what it contains) is not a reference to itself.
    if(self&&startsWith(path,target.path))continue;
-   // KPI bindings and metric extensions: JSON inside a SEMANTIC_WORKBENCH block.
+   // metric bindings and metric extensions: JSON inside a SEMANTIC_WORKBENCH block.
    if(key==='data'&&path.at(-3)==='custom_extensions'){
     const owner=path.slice(0,-3),entry=path.slice(0,-1).reduce((x:any,k)=>x?.[k],data);if(entry?.vendor_name!==VENDOR)continue;
     let json:any;try{json=JSON.parse(value);}catch{continue;}
@@ -64,7 +64,7 @@ export function findReferences(target:Target,docs:ProjectDoc[]):Reference[]{
      const hit=target.kind==='metric'?b.metric===name:target.kind==='concept'?b.measures===name||b.of===name:false;if(!hit)continue;
      const [a,z]=node.range,text=src.slice(a,z),at=text.indexOf(`${JSON.stringify(b.metric)}`)>=0?text.indexOf(JSON.stringify(b.metric)):0;
      const spans:[number,number][]=[];let i=text.indexOf(quoted,at);const end=text.indexOf('}',at);while(i>=0&&(end<0||i<end)){spans.push([a+i+1,a+i+1+name.length]);i=text.indexOf(quoted,i+1);}
-     add(path,spans.length?spans:[[a,a]],{path:owner,label:`KPI binding of ${b.metric}`,binding:{dataPath:path,metric:b.metric}});
+     add(path,spans.length?spans:[[a,a]],{path:owner,label:`metric binding of ${b.metric}`,binding:{dataPath:path,metric:b.metric}});
     }
     else if(target.kind==='metric'||target.kind==='dataset'||target.kind==='field'){
      const pattern=target.kind==='metric'?new RegExp(`"(${escape(name)})"`,'g'):target.kind==='dataset'?new RegExp(`"(${escape(name)})\\.`,'g'):new RegExp(`"${escape(target.owner??'')}\\.(${escape(name)})"`,'g');

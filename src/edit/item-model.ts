@@ -25,7 +25,7 @@ export function itemKindAt(document:any,path:Path):ItemKind|null{
 export const nameKey=(kind:ItemKind)=>kind==='concept'||kind==='concept-mapping'?'concept':kind==='odcs-foreign-key'?'to':'name';
 export function itemName(kind:ItemKind,item:any){const v=item?.[nameKey(kind)];return typeof v==='string'?v:Array.isArray(v)?v.join(', '):'';}
 export const STATUSES=['draft','proposed','approved','deprecated'] as const;
-// FR-015: draft → proposed → approved → deprecated; a proposed KPI can go back to draft and a
+// FR-015: draft → proposed → approved → deprecated; a proposed metric can go back to draft and a
 // deprecated one can be proposed again.
 export function allowedStatuses(current?:string):string[]{
  if(current==='proposed')return ['draft','proposed','approved'];
@@ -45,7 +45,7 @@ export function fieldsFor(kind:ItemKind,choices:Choices):FieldSpec[]{
   case 'field':return [f('name','Name','text',{required:true}),f('expression','Expression (ANSI SQL)','code',{at:ansi,required:true}),f('datatype','Data type','select',{options:['','String','Integer','Decimal','Float','Boolean','Date','Time','DateTime','DateTimeTz','Opaque']}),f('description','Description','textarea')];
   case 'join':return [f('name','Name','text',{required:true}),f('from','From dataset (many side)','select',{options:choices.datasets,required:true}),f('from_columns','From columns','list',{required:true}),f('to','To dataset (one side)','select',{options:choices.datasets,required:true}),f('to_columns','To columns','list',{required:true})];
   case 'metric':return [f('name','Name','text',{required:true}),ext('label','Label','text'),f('description','Description','textarea'),f('expression','Expression (ANSI SQL)','code',{at:ansi,required:true}),
-   ext('type','KPI type','select',{options:['','simple','ratio','derived','cumulative','filtered']}),ext('numerator','Numerator','select',{options:choices.metrics,when:i=>i?.type==='ratio'}),ext('denominator','Denominator','select',{options:choices.metrics,when:i=>i?.type==='ratio'}),ext('inputs','Inputs','list',{options:choices.metrics,when:i=>i?.type==='derived'||i?.type==='cumulative'||i?.type==='filtered'}),
+   ext('type','Metric type','select',{options:['','simple','ratio','derived','cumulative','filtered']}),ext('numerator','Numerator','select',{options:choices.metrics,when:i=>i?.type==='ratio'}),ext('denominator','Denominator','select',{options:choices.metrics,when:i=>i?.type==='ratio'}),ext('inputs','Inputs','list',{options:choices.metrics,when:i=>i?.type==='derived'||i?.type==='cumulative'||i?.type==='filtered'}),
    ext('additivity','Additivity','select',{options:['','additive','semi_additive','non_additive']}),ext('unit','Unit','text'),ext('format','Format','text',{hint:'For example 0.0% or #,##0'}),
    ext('time.dimension','Time dimension','text',{at:['time','dimension'],hint:'dataset.field'}),ext('time.min_grain','Minimum grain','select',{at:['time','min_grain'],options:['',...GRAINS]}),ext('dimensions','Breakdowns','list',{hint:'dataset.field, separated by commas'}),
    ext('owner','Owner','text'),ext('steward','Steward','text'),ext('status','Status','select',{options:[...STATUSES]}),ext('replaced_by','Replaced by','select',{options:['',...choices.metrics],when:i=>i?.status==='deprecated'}),ext('deprecation_reason','Deprecation reason','textarea',{when:i=>i?.status==='deprecated'})];
@@ -96,10 +96,10 @@ export function writeExtension(item:any,data:any){
  if(ext)list[ext.index]={...list[ext.index],data:text};else list.push({vendor_name:VENDOR,data:text});
  return {...item,custom_extensions:list};
 }
-// --- KPI status rules (FR-015) --------------------------------------------------------------------
+// --- metric status rules (FR-015) --------------------------------------------------------------------
 const GOVERNANCE=new Set(['status','replaced_by','deprecation_reason','owner','steward','label']);
 const definition=(item:any)=>{const ext=extensionOf(item)?.value??{};return JSON.stringify([item?.expression,Object.fromEntries(Object.entries(ext).filter(([k])=>!GOVERNANCE.has(k)).sort())]);};
-// An approved KPI whose definition (expression or extension attributes other than governance)
+// An approved metric whose definition (expression or extension attributes other than governance)
 // changes returns to proposed.
 export function applyStatusRules(before:any,after:any):{item:any;reopened:boolean}{
  const was=extensionOf(before)?.value?.status,now=extensionOf(after)?.value;

@@ -11,7 +11,7 @@ import {openFragment,splice,fragmentValue,fragmentIssues,setField} from './fragm
 import {allowedStatuses,childLists,extensionOf,fieldsFor,itemName,kindLabel,nameKey,readField,type Choices,type FieldSpec,type ItemKind,type Path} from './item-model';
 import {findReferences,rewriteReferences,type Reference} from './references';
 import './edit.css';
-// Item editor (FR-048, FR-051–FR-053, FR-015): the selected entity, relationship or KPI only, as a
+// Item editor (FR-048, FR-051–FR-053, FR-015): the selected entity, relationship or metric only, as a
 // form of its attributes or as its own source lines, with the shared validation shown inline. The
 // change is a draft in this dialog until Save, which writes it in place (base-hash checked).
 export type Saved={docId:string;source:string;hash:string};
@@ -28,7 +28,7 @@ export function ItemEditor({doc,base,path,kind,projectDocs,choices,onClose,onSav
  const draft=useMemo(()=>splice(base,fragment,text),[text]);
  const oldName=itemName(kind,original),newName=parsed.value?itemName(kind,parsed.value):oldName;
  const ownerName=useMemo(()=>kind==='field'||kind==='odcs-property'?String(itemValue(base,path.slice(0,-2))?.name??''):undefined,[]);
- // A KPI's dependents are listed before any change is saved (FR-015); found after the first paint.
+ // A metric's dependents are listed before any change is saved (FR-015); found after the first paint.
  useEffect(()=>{if(kind!=='metric')return;const t=setTimeout(()=>setDependents(findReferences({kind,name:oldName,docId:doc.id,path},projectDocs).filter(r=>r.dependent)),30);return()=>clearTimeout(t);},[]);
  // A rename: what still names the old name (rewritten only where ticked).
  const renamed=!!oldName&&!!newName&&newName!==oldName;
@@ -76,7 +76,7 @@ export function ItemEditor({doc,base,path,kind,projectDocs,choices,onClose,onSav
  useEffect(()=>{firstField.current?.focus();},[]);
  return <Modal title={title} onCancel={onClose} className="item-editor">
   <p className="item-editor-where"><span className="item-kind">{kindLabel[kind]}</span><span>{doc.path} · line {fragment.line}</span><button type="button" className="link" onClick={()=>onOpenSource(fragment.line)}><FileCode size={13}/>Open in Source</button></p>
-  {kind==='metric'&&reopened&&<p role="status" className="item-note"><AlertTriangle size={13}/>This KPI was approved. Changing its definition returns it to proposed for review.</p>}
+  {kind==='metric'&&reopened&&<p role="status" className="item-note"><AlertTriangle size={13}/>This metric was approved. Changing its definition returns it to proposed for review.</p>}
   {kind==='metric'&&dependents&&dependents.length>0&&<p className="item-dependents"><strong>Used by</strong> {[...new Set(dependents.map(d=>`${d.dependent!.label} (${d.file})`))].join(' · ')}. Saving changes what these show.</p>}
   <div className="item-tabs" role="tablist" aria-label="Edit as">
    <button role="tab" aria-selected={tab==='fields'} className={tab==='fields'?'selected':''} onClick={()=>{setTab('fields');setTexts({});}} disabled={!!parsed.error}>Fields</button>

@@ -25,7 +25,7 @@ test('bindings are validated: schema, measures required, metric unique, metric a
  const source=await mall('mall.mapping.yaml'),errors=(data:string)=>validateInput(withBindings(source,data),'mall.mapping.yaml').issues.filter(i=>i.severity==='error').map(i=>i.message);
  expect(errors(bindingsData([{metric:'visitors'}])).join(' ')).toContain('measures');
  expect(errors(bindingsData([{metric:'visitors',measures:'kpi:Visitors',colour:'red'}])).join(' ')).toContain('colour');
- expect(errors(bindingsData([{metric:'visitors',measures:'kpi:Visitors'},{metric:'visitors',measures:'kpi:Visitors',of:'Property'}]))).toContain('KPI "visitors" is bound more than once; keep one binding per metric.');
+ expect(errors(bindingsData([{metric:'visitors',measures:'kpi:Visitors'},{metric:'visitors',measures:'kpi:Visitors',of:'Property'}]))).toContain('Metric "visitors" is bound more than once; keep one binding per metric.');
  expect(errors(bindingsData([{metric:'visitors',measures:'kpi:Visitors'}]))).toEqual([]);
  expect(errors('{"schema":"semantic-workbench/mapping/v1",').join(' ')).toContain('not valid JSON');
  const problems=resolveBindings([{metric:'ghost',measures:'kpi:Nothing',of:'Nowhere'}],parseDocument(await mall('mall.ontology.yaml')).toJS(),new Set(['visitors']))[0].problems;

@@ -25,7 +25,7 @@ async function json<T>(response:Response):Promise<T>{
  return body as T;
 }
 const send=(method:string,body?:unknown)=>({method,headers:{'Content-Type':'application/json'},...(body!==undefined?{body:JSON.stringify(body)}:{})});
-export type KpiSaveRequest={semanticPath:string;modelPath?:(string|number)[];metric:{name:string;expression:string;description?:string;datatype?:string};extension:Record<string,any>;binding?:{measures:string;of?:string}};
+export type KpiSaveRequest={semanticPath:string;modelPath?:(string|number)[];existing?:boolean;metric:{name:string;expression:string;description?:string;datatype?:string};extension:Record<string,any>;binding?:{measures:string;of?:string}};
 export type ExplainQuery={grain?:string;dimensions?:string[];rollup?:string};
 const explainQuery=(q:ExplainQuery)=>{const p=new URLSearchParams();if(q.grain)p.set('grain',q.grain);for(const d of q.dimensions??[])p.append('dimension',d);if(q.rollup)p.set('rollup',q.rollup);const s=p.toString();return s?'?'+s:'';};
 export const api={
@@ -46,9 +46,9 @@ export const api={
   if(response.status===409){const body=await response.json();throw new StaleSave(body.currentHash,body.currentSource);}
   return json<{written:{path:string;hash:string;created:boolean}[]}>(response);
  },
- previewKpi:(project:string,body:KpiSaveRequest)=>fetch(`/api/projects/${encodeURIComponent(project)}/kpis/preview`,send('POST',body)).then(r=>json<{changes:{path:string;created:boolean;added:string[];removed:string[]}[];explanation:KpiExplanation}>(r)),
+ previewKpi:(project:string,body:KpiSaveRequest)=>fetch(`/api/projects/${encodeURIComponent(project)}/metrics/preview`,send('POST',body)).then(r=>json<{changes:{path:string;created:boolean;added:string[];removed:string[]}[];explanation:KpiExplanation}>(r)),
  async saveKpi(project:string,body:KpiSaveRequest&{baseHashes:Record<string,string>}){
-  const response=await fetch(`/api/projects/${encodeURIComponent(project)}/kpis`,send('POST',body));
+  const response=await fetch(`/api/projects/${encodeURIComponent(project)}/metrics`,send('POST',body));
   if(response.status===409){const b=await response.json();throw new StaleSave(b.currentHash,b.currentSource);}
   return json<{written:{path:string;hash:string;created:boolean}[]}>(response);
  },

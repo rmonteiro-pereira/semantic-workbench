@@ -13,7 +13,7 @@ import './edit.css';
 // preview of the text that will be inserted in the document's own style, the shared validation,
 // and Save. Nothing is written before Save.
 type Props={doc:Doc;base:string;document:any;kind?:ItemKind;owner?:Path;preset?:Record<string,any>;choices:Choices;onClose:()=>void;onSaved:(saved:Saved,path:Path,kind:ItemKind)=>void};
-// The form of a new item: the editable fields of the kind (not the KPI extension, which the KPI
+// The form of a new item: the editable fields of the kind (not the metric extension, which the metric
 // wizard writes), plus the first property of a new contract object.
 function createFields(kind:ItemKind,choices:Choices):FieldSpec[]{
  const base=fieldsFor(kind,choices).filter(f=>!f.extension);

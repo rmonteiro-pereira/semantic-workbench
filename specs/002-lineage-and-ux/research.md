@@ -541,3 +541,39 @@ agent context already carries everything except two additive fields).
 - **Find assets** now also lists contract object columns (kind *Column*) and concept
   relationships, so a column can be found and pierced directly (FR-007 already named columns).
 
+
+## R21. Implementation decisions taken in Phase 7 (one name: Metric)
+
+- **Wording.** Every rendered text, accessible name, tooltip, placeholder and status message says
+  "metric" (FR-014): `KPI · Metric` in the catalog became `Metric`, `KPIs shown/hidden` became
+  `Metrics shown/hidden`, `New KPI` became `New metric`, the detail region is `Metric <label>`, and
+  validation messages say "metric" (`A ratio metric requires numerator and denominator.`,
+  `Metric "x" is bound more than once…`). Stored data is unchanged: the extension key
+  `kpi_bindings`, the schema ids and the `kpi` module of the shopping center keep their names. The
+  explanation heading is `How this metric is calculated`, as in the UI contract.
+- **Code names.** The four modules are renamed (`MetricWizard`, `MetricDetail`, `metric-save`,
+  `metric-draft`); exported `Kpi*` types and `planKpiSave` stay, with `Metric*` aliases, so the
+  v0.2.0 tests and the mutation suite's category names are untouched.
+- **Routes.** `metrics` and `metrics/preview` are served by the same handler as the v0.2.0 `kpis`
+  paths (one regular expression in server/routes/kpis.ts) rather than a second file, so the aliases
+  cannot drift; tests/metrics-api.test.ts compares both byte for byte.
+- **Non-governed items.** The http contract lists the fields a non-governed metric has. The list
+  also carries what the workbench infers without attributes (type with `typeDeclared: false`,
+  inputs, concepts from bindings, findings); attribute fields (owner, status, unit, targets) are
+  absent. The table needs the inferred type, and Add attributes prefills from it.
+- **Add attributes.** `POST metrics` accepts `existing: true`: the metric must exist and have no
+  extension; only its `custom_extensions` entry is added (the expression and every other line keep
+  their bytes). The wizard opens as `Add attributes to <label>`, prefilled (label, type, numerator
+  and denominator or inputs, aggregation, concepts, unit); name and expression are read-only. A
+  metric already bound to a concept keeps its binding and none is added.
+- **Test changes required by the spec (FR-014).** Expected strings changed from "KPI" to
+  "metric" in tests/kpi-save.test.ts (deprecation message, `metric binding of`),
+  tests/metric-extension.test.ts (four extension messages), tests/kpi-bindings.test.ts (duplicate
+  binding message), scripts/metrics-browser-check.ts (counts `25 metrics`, `Find a metric`,
+  `Group metrics by`, `Metric <label>` regions, `Sum the metric values`, `Metrics shown/hidden`,
+  the `Metric` badge and catalog tag, `How this metric is calculated`),
+  scripts/item-edit-browser-check.ts (`New metric`, `Metric type`, `Metric Vacancy rate`,
+  `Find a metric`) and scripts/graph-browser-check.ts (`Open N metrics for Property`, `Find a
+  metric`). Each assertion checks the same behaviour as before; only the wording differs. The mall
+  example has 25 metrics, all with attributes, so its count is unchanged.
+

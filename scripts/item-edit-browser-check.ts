@@ -3,7 +3,7 @@ import{startIsolatedApi,routeApi}from'./helpers/isolated-api';import{projectDir,
 import{editorValue,fillEditor}from'./helpers/code-editor';
 // Phase 6 browser check (T107; SC-002, SC-010 YAML/JSON): click-to-edit from the catalog, the graph
 // inspector and the Metrics view; Fields and Source; add and delete with dependents; rename
-// references; the KPI wizard; status rules. After each save `git diff` is limited to the item.
+// references; the metric wizard; status rules. After each save `git diff` is limited to the item.
 // Isolated data root; screenshots in /tmp/workbench-item-*.png.
 const api=await startIsolatedApi();
 const commerce=await api.ws.loadExample('commerce'),mall=await api.ws.loadExample('mall');
@@ -117,14 +117,14 @@ try{
   const text=read(commerce.slug,'commerce-business.ossie.yaml');expect(text).toContain('  - concept: LineItem\n');expect(text).toContain('          - concept: LineItem\n');expect(text).not.toMatch(/concept: OrderLine\n/);
   await git(commerce.slug,['checkout','--','.']);
  });
- await check('KPI wizard (mall): a ratio KPI in eight steps; the semantic model gains the metric, the mapping one binding line',async()=>{
+ await check('metric wizard (mall): a ratio metric in eight steps; the semantic model gains the metric, the mapping one binding line',async()=>{
   const started=Date.now();
   await openFile('mall.semantic.yaml');await tabs().getByRole('button',{name:/Metrics/}).click();
-  await page.getByRole('button',{name:'New KPI'}).click();const w=page.getByRole('dialog',{name:'New KPI'});
+  await page.getByRole('button',{name:'New metric'}).click();const w=page.getByRole('dialog',{name:'New metric'});
   await w.getByLabel('Concept measured').fill('Property');await w.getByLabel('Concept it is about').fill('Property');await w.getByRole('button',{name:'Next'}).click();
   await expect(w.getByLabel('Semantic model')).toHaveValue('mall.semantic.yaml');await w.getByRole('button',{name:'Next'}).click();
   await w.getByLabel('Label').fill('Vacancy rate');await expect(w.getByRole('textbox',{name:'Name',exact:true})).toHaveValue('vacancy_rate');
-  await w.getByLabel('KPI type').selectOption('ratio');await w.getByLabel('Numerator').selectOption('vacant_gla');await w.getByLabel('Denominator').selectOption('total_gla');
+  await w.getByLabel('Metric type').selectOption('ratio');await w.getByLabel('Numerator').selectOption('vacant_gla');await w.getByLabel('Denominator').selectOption('total_gla');
   await expect(w.locator('.formula-line code')).toHaveText('vacant_gla / NULLIF(total_gla, 0)');await w.getByRole('button',{name:'Next'}).click();
   await w.getByLabel('Time dimension').selectOption('calendar_months.first_day');await w.getByRole('button',{name:'Next'}).click();
   await w.getByLabel('Target direction').selectOption('lower_is_better');await w.getByLabel('Target value').fill('0.05');await w.getByLabel('Warning threshold').fill('0.08');await w.getByRole('button',{name:'Next'}).click();
@@ -136,12 +136,12 @@ try{
   console.log(`  wizard completed in ${((Date.now()-started)/1000).toFixed(1)} s of scripted use`);
   const m=await changed(mall.slug,'mall.mapping.yaml');expect(m).toEqual({removed:[],added:['        {"metric":"vacancy_rate","measures":"Property","of":"Property"},'],hunks:1});
   const s=await changed(mall.slug,'mall.semantic.yaml');expect(s.removed).toEqual([]);expect(s.hunks).toBe(1);expect(s.added[0]).toBe('  - name: vacancy_rate');expect(s.added.filter(l=>l.includes('NULLIF'))).toEqual(['          expression: vacant_gla / NULLIF(total_gla, 0)']);
-  await expect(page.getByRole('region',{name:'KPI Vacancy rate'})).toBeVisible({timeout:10000});
+  await expect(page.getByRole('region',{name:'Metric Vacancy rate'})).toBeVisible({timeout:10000});
   await page.screenshot({path:'/tmp/workbench-item-wizard-saved.png'});
-  await commit(mall.slug,'new KPI');
+  await commit(mall.slug,'new metric');
  });
- await check('KPI edit: changing an approved KPI returns it to proposed and lists its dependents before saving',async()=>{
-  await page.getByRole('button',{name:'Find a KPI'}).or(page.getByLabel('Find a KPI')).fill('Total GLA');
+ await check('metric edit: changing an approved metric returns it to proposed and lists its dependents before saving',async()=>{
+  await page.getByRole('button',{name:'Find a metric'}).or(page.getByLabel('Find a metric')).fill('Total GLA');
   await page.getByRole('button',{name:'Total GLA: explain'}).click();await page.getByRole('button',{name:'Edit Total GLA'}).click();
   const d=editor('Total GLA');await expect(d.locator('.item-dependents')).toContainText('metric occupancy_rate');
   await d.getByLabel('Expression (ANSI SQL)').fill('SUM(occupancy_snapshots.gla_m2) + 0');
@@ -150,8 +150,8 @@ try{
   await saveDialog(d);
   const s=await changed(mall.slug,'mall.semantic.yaml');expect(s.added.map(l=>l.trim())).toEqual(['expression: SUM(occupancy_snapshots.gla_m2) + 0','"status": "proposed",']);expect(s.hunks).toBe(2);
  });
- await check('KPI deprecation needs a replacement or a reason before Save is allowed',async()=>{
-  await page.getByLabel('Find a KPI').fill('Visitors');await page.getByRole('button',{name:/^Visitors: explain/}).click();await page.getByRole('button',{name:'Edit Visitors'}).click();
+ await check('metric deprecation needs a replacement or a reason before Save is allowed',async()=>{
+  await page.getByLabel('Find a metric').fill('Visitors');await page.getByRole('button',{name:/^Visitors: explain/}).click();await page.getByRole('button',{name:'Edit Visitors'}).click();
   const d=editor('Visitors');await d.getByLabel('Status').selectOption('deprecated');
   await expect(d.getByLabel('Findings')).toContainText('requires replaced_by or deprecation_reason',{timeout:5000});await expect(d.getByRole('button',{name:'Save to file',exact:true})).toBeDisabled();
   await d.getByLabel('Deprecation reason').fill('Footfall counters were replaced in 2025.');

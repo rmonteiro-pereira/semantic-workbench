@@ -1,5 +1,5 @@
 import type {KpiType} from './extension';
-// The KPI wizard's draft → the metric expression and the SEMANTIC_WORKBENCH extension it saves.
+// The metric wizard's draft → the metric expression and the SEMANTIC_WORKBENCH extension it saves.
 export type Draft={measures:string;of:string;file:string;name:string;label:string;description:string;type:KpiType;aggregation:string;field:string;numerator:string;denominator:string;inputs:string;expression:string;window:string;windowLength:string;windowGrain:string;filterField:string;filterOperator:string;filterValue:string;
  additivity:string;timeDimension:string;minGrain:string;grains:string[];dimensions:string[];direction:string;target:string;targetGrain:string;warning:string;critical:string;owner:string;steward:string;status:string;unit:string;format:string};
 export function expressionFor(d:Draft){

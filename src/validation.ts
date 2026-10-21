@@ -104,7 +104,7 @@ export function validateStructured(data:any, applyPinnedSchema=true): Issue[] {
         const expressions=i<ds.length?arr(x.fields,q+'/fields').filter(object).map((f,j)=>({value:f.expression,path:`${q}/fields/${j}/expression`})):[{value:x.expression,path:q+'/expression'}];
         for(const {value,path}of expressions)if(obj(value,path))arr(value.dialects,path+'/dialects',true).forEach((d,j)=>{if(obj(d,`${path}/dialects/${j}`)){str(d.dialect,`${path}/dialects/${j}/dialect`);str(d.expression,`${path}/dialects/${j}/expression`);}});
       }
-      // Metrics-layer extensions and KPI bindings on this model (application schemas, FR-003/FR-004).
+      // Metrics-layer extensions and metric bindings on this model (application schemas, FR-003/FR-004).
       issues.push(...metricLayerIssues(m,p,fieldNames),...readKpiBindings(m,p,false).issues);
     });
     if(data.version!=='0.2.0.dev0')warn('/version',`No pinned Ossie schema for ${String(data.version??'unspecified version')}; only structural checks apply.`);

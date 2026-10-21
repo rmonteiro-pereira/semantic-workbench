@@ -8,12 +8,18 @@ import {validateInput} from '../input';
 import {semanticModelPrefix,STATUSES,type Path} from '../edit/item-model';
 import {GRAINS,VENDOR,readMetricExtension,type KpiType} from './extension';
 import {typeLabel} from './format';
-import {expressionFor,extensionFor,list,type Draft} from './kpi-draft';
+import {expressionFor,extensionFor,list,type Draft} from './metric-draft';
 import '../edit/edit.css';
-// New KPI (FR-009, SC-002): concept → data → type and inputs → time and breakdowns → targets →
+// New metric (FR-009, SC-002): concept → data → type and inputs → time and breakdowns → targets →
 // governance → explanation and SQL preview → save. Each step is checked before the next opens; the
 // preview comes from the server's planner and is never executed. Save writes the metric and its
-// extension into the semantic model and the KPI binding into the mapping document (FR-010).
+// extension into the semantic model and the metric binding into the mapping document (FR-010).
+function prefill(k:KpiSummary):Partial<Draft>{
+ const agg=aggregationOf(k.expression);
+ return {file:k.file,name:k.name,label:k.label,description:k.description??'',type:k.type,expression:k.expression??'',inputs:k.inputs.join(', '),
+  ...(k.type==='ratio'?{numerator:k.inputs[0]??'',denominator:k.inputs[1]??''}:{}),...(agg?{aggregation:agg.aggregation,field:agg.field}:{}),
+  measures:k.concepts.find(c=>c.role==='measures')?.concept??'',of:k.concepts.find(c=>c.role==='of')?.concept??'',unit:k.unit??'',format:k.format??''};
+}
 const STEPS=['Concept','Data','Type and inputs','Time and breakdowns','Targets','Governance','Explanation and SQL','Save'] as const;
 type Model={file:string;path:Path;name:string;datasets:{name:string;fields:string[]}[];metrics:string[]};
 const AGGREGATIONS=['SUM','COUNT','COUNT DISTINCT','AVG','MIN','MAX'];
@@ -27,25 +33,33 @@ function modelsOf(docs:Doc[]):Model[]{
  });
 }
 const conceptsOf=(docs:Doc[])=>[...new Set(docs.flatMap(d=>{const v=validateInput(d.source,d.filename);return v.valid&&'document'in v.model&&Array.isArray(v.model.document.ontology)?v.model.document.ontology.map((c:any)=>c?.concept).filter(Boolean):[];}))].sort() as string[];
-export function KpiWizard({project,docs,kpis,onClose,onSaved}:{project:string;docs:Doc[];kpis:KpiSummary[];onClose:()=>void;onSaved:(file:string,modelPath:Path,name:string)=>void}){
+// `existing` (FR-017 Add attributes): a metric of the model without workbench attributes. The wizard
+// opens prefilled from it; its name and expression stay as written and only the attributes (and, when
+// it has none yet, the concept binding) are saved.
+const aggregationOf=(expression='')=>{const m=/^\s*(SUM|COUNT|AVG|MIN|MAX)\s*\(\s*(DISTINCT\s+)?([^()]+?)\s*\)\s*$/i.exec(expression);return m?{aggregation:m[1].toUpperCase()==='COUNT'&&m[2]?'COUNT DISTINCT':m[1].toUpperCase(),field:m[3]}:null;};
+export function MetricWizard({project,docs,kpis,onClose,onSaved,existing}:{project:string;docs:Doc[];kpis:KpiSummary[];onClose:()=>void;onSaved:(file:string,modelPath:Path,name:string)=>void;existing?:KpiSummary}){
  const models=useMemo(()=>modelsOf(docs),[]),concepts=useMemo(()=>conceptsOf(docs),[]);
  const [step,setStep]=useState(0),[done,setDone]=useState(0);
  const [d,setD]=useState<Draft>({measures:'',of:'',file:models[0]?.file??'',name:'',label:'',description:'',type:'ratio',aggregation:'SUM',field:'',numerator:'',denominator:'',inputs:'',expression:'',window:'to_date',windowLength:'',windowGrain:'',filterField:'',filterOperator:'equals',filterValue:'',
-  additivity:'',timeDimension:'',minGrain:'month',grains:['month','quarter','year'],dimensions:[],direction:'',target:'',targetGrain:'month',warning:'',critical:'',owner:'',steward:'',status:'proposed',unit:'',format:''});
+  additivity:'',timeDimension:'',minGrain:'month',grains:['month','quarter','year'],dimensions:[],direction:'',target:'',targetGrain:'month',warning:'',critical:'',owner:'',steward:'',status:'proposed',unit:'',format:'',...(existing?prefill(existing):{})});
  const set=(patch:Partial<Draft>)=>{setD(x=>({...x,...patch}));setPreview(null);};
  const model=models.find(m=>m.file===d.file),fields=model?.datasets.flatMap(ds=>ds.fields.map(f=>`${ds.name}.${f}`))??[];
  const labelOf=(name:string)=>kpis.find(k=>k.name===name&&k.file===d.file)?.label;
  const metricOption=(name:string)=><option key={name} value={name}>{labelOf(name)?`${labelOf(name)} (${name})`:name}</option>;
- const expression=expressionFor(d),extension=extensionFor(d);
- const request:KpiSaveRequest={semanticPath:d.file,modelPath:model?.path,metric:{name:d.name,expression,...(d.description.trim()?{description:d.description.trim()}:{})},extension,...(d.measures?{binding:{measures:d.measures,...(d.of?{of:d.of}:{})}}:{})};
+ // An existing metric keeps its expression; one already bound to concepts keeps its binding.
+ const bound=!!existing?.concepts.length;
+ const expression=existing?existing.expression??'':expressionFor(d),extension=extensionFor(d);
+ const request:KpiSaveRequest={semanticPath:d.file,modelPath:existing?existing.modelPath:model?.path,...(existing?{existing:true}:{}),metric:{name:d.name,expression,...(d.description.trim()?{description:d.description.trim()}:{})},extension,...(d.measures&&!bound?{binding:{measures:d.measures,...(d.of?{of:d.of}:{})}}:{})};
  // What blocks each step.
  const problems=(i:number):string[]=>{
   const out:string[]=[];
   if(i===1&&!model)out.push('Choose the semantic model that holds the data.');
   if(i===2){
-   if(!/^[A-Za-z_][A-Za-z0-9_]*$/.test(d.name))out.push('Give the KPI a name of letters, digits and underscores.');
-   else if(model?.metrics.includes(d.name))out.push(`${d.name} already exists in ${model.name}.`);
-   if(!d.label.trim())out.push('Give the KPI a label people will read.');
+   if(!/^[A-Za-z_][A-Za-z0-9_]*$/.test(d.name))out.push('Give the metric a name of letters, digits and underscores.');
+   else if(!existing&&model?.metrics.includes(d.name))out.push(`${d.name} already exists in ${model.name}.`);
+   if(!d.label.trim())out.push('Give the metric a label people will read.');
+  }
+  if(i===2&&!existing){
    if(d.type==='simple'&&!d.field)out.push('Choose the field to aggregate.');
    if(d.type==='ratio'&&(!d.numerator||!d.denominator))out.push('Choose the numerator and the denominator.');
    if(d.type==='ratio'&&d.numerator&&d.numerator===d.denominator)out.push('Numerator and denominator must differ.');
@@ -57,7 +71,7 @@ export function KpiWizard({project,docs,kpis,onClose,onSaved}:{project:string;do
   if(i===3&&d.minGrain&&d.grains.length&&!d.grains.includes(d.minGrain))out.push('The allowed grains must include the minimum grain.');
   if(i===4&&d.direction&&(d.target.trim()===''||Number.isNaN(Number(d.target))))out.push('The target is a number.');
   if(i===4&&[d.warning,d.critical].some(v=>v.trim()!==''&&Number.isNaN(Number(v))))out.push('Thresholds are numbers.');
-  if(i===5&&!d.owner.trim())out.push('Name the owner who answers for this KPI.');
+  if(i===5&&!d.owner.trim())out.push('Name the owner who answers for this metric.');
   if(i>=2&&i<=5){const checked=readMetricExtension({custom_extensions:[{vendor_name:VENDOR,data:JSON.stringify({schema:'semantic-workbench/metric/v1',...extension})}]});if(i===5)out.push(...checked.issues.map(x=>x.message));}
   return out;
  };
@@ -76,24 +90,34 @@ export function KpiWizard({project,docs,kpis,onClose,onSaved}:{project:string;do
  const field=(label:string,control:React.ReactNode,hint?:string,wide=false)=><label className={wide?'wide':''}><span>{label}</span>{control}{hint&&<small>{hint}</small>}</label>;
  const select=(value:string,onChange:(v:string)=>void,options:React.ReactNode,aria:string,empty='—')=><select aria-label={aria} value={value} onChange={e=>onChange(e.target.value)}><option value="">{empty}</option>{options}</select>;
  const multi=(values:string[],options:string[],onChange:(v:string[])=>void,aria:string)=><div className="wizard-checks" role="group" aria-label={aria}>{options.map(o=><label key={o} className="item-check"><input type="checkbox" checked={values.includes(o)} onChange={e=>onChange(e.target.checked?[...values,o]:values.filter(x=>x!==o))}/>{o}</label>)}</div>;
- return <Modal title="New KPI" onCancel={onClose} className="item-editor kpi-wizard">
+ return <Modal title={existing?`Add attributes to ${existing.label}`:'New metric'} onCancel={onClose} className="item-editor kpi-wizard">
   <ol className="wizard-steps" aria-label="Steps">{STEPS.map((s,i)=><li key={s}><button type="button" aria-current={i===step?'step':undefined} className={i===step?'current':i<done?'done':''} disabled={i>done} onClick={()=>setStep(i)}><span>{i<step?<Check size={11}/>:i+1}</span>{s}</button></li>)}</ol>
   <section className="wizard-body" aria-label={STEPS[step]}>
    <h3>{step+1}. {STEPS[step]}</h3>
-   {step===0&&<><p>Which business concept does this KPI measure, and what is it about? The binding is stored in the project's mapping document.</p><div className="item-fields">
-    {field('Measures',<input list="kpi-concepts" aria-label="Concept measured" value={d.measures} onChange={e=>set({measures:e.target.value})} placeholder="Concept name"/>,'Leave empty to save the KPI without concepts')}
+   {step===0&&bound&&<p>{existing!.label} is already bound: it measures <strong>{d.measures||'—'}</strong>{d.of&&<> of <strong>{d.of}</strong></>}. The binding stays as it is.</p>}
+   {step===0&&!bound&&<><p>Which business concept does this metric measure, and what is it about? The binding is stored in the project's mapping document.</p><div className="item-fields">
+    {field('Measures',<input list="kpi-concepts" aria-label="Concept measured" value={d.measures} onChange={e=>set({measures:e.target.value})} placeholder="Concept name"/>,'Leave empty to save the metric without concepts')}
     {field('About',<input list="kpi-concepts" aria-label="Concept it is about" value={d.of} onChange={e=>set({of:e.target.value})} placeholder="For example Property"/>,'The entity it is computed per (optional)')}
     <datalist id="kpi-concepts">{concepts.map(c=><option key={c} value={c}/>)}</datalist>
-    {d.measures&&!concepts.includes(d.measures)&&<p className="item-note wide"><AlertTriangle size={13}/>{d.measures} is not a concept of the project's ontology; the KPI will show a finding until it exists.</p>}
+    {d.measures&&!concepts.includes(d.measures)&&<p className="item-note wide"><AlertTriangle size={13}/>{d.measures} is not a concept of the project's ontology; the metric will show a finding until it exists.</p>}
    </div></>}
-   {step===1&&<><p>The semantic model whose datasets and metrics this KPI reads.</p><div className="item-fields">
-    {field('Semantic model',select(d.file,v=>set({file:v,field:'',numerator:'',denominator:'',inputs:''}),models.map(m=><option key={m.file+m.path.join('/')} value={m.file}>{m.name} ({m.file})</option>),'Semantic model','Choose…'),undefined,true)}
+   {step===1&&<><p>The semantic model whose datasets and metrics this metric reads.</p><div className="item-fields">
+    {existing?<p className="wide">{existing.model} ({existing.file})</p>:field('Semantic model',select(d.file,v=>set({file:v,field:'',numerator:'',denominator:'',inputs:''}),models.map(m=><option key={m.file+m.path.join('/')} value={m.file}>{m.name} ({m.file})</option>),'Semantic model','Choose…'),undefined,true)}
     {model&&<p className="wide">{model.datasets.length} datasets · {model.metrics.length} metrics: {model.datasets.map(x=>x.name).join(', ')}</p>}
    </div></>}
-   {step===2&&<div className="item-fields">
+   {step===2&&existing&&<div className="item-fields">
+    {field('Label',<input aria-label="Label" value={d.label} onChange={e=>set({label:e.target.value})}/>)}
+    {field('Name',<input aria-label="Name" value={d.name} readOnly/>,'As written in the semantic model')}
+    {field('Type',select(d.type,v=>set({type:(v||'simple') as KpiType}),(['simple','ratio','derived','cumulative','filtered'] as KpiType[]).map(t=><option key={t} value={t}>{typeLabel[t]}</option>),'Metric type'),existing.typeDeclared?undefined:'Read from the expression')}
+    {d.type==='ratio'&&<>{field('Numerator',select(d.numerator,v=>set({numerator:v}),model?.metrics.map(metricOption),'Numerator','Choose…'))}{field('Denominator',select(d.denominator,v=>set({denominator:v}),model?.metrics.map(metricOption),'Denominator','Choose…'))}</>}
+    {['derived','cumulative','filtered'].includes(d.type)&&field('Input metrics',<input aria-label="Input metrics" value={d.inputs} onChange={e=>set({inputs:e.target.value})}/>,'Metric names, separated by commas')}
+    {field('Additivity',select(d.additivity,v=>set({additivity:v}),['additive','semi_additive','non_additive'].map(a=><option key={a}>{a}</option>),'Additivity','From the type'))}
+    <p className="wide formula-line">Expression (kept as written): <code>{expression||'—'}</code></p>
+   </div>}
+   {step===2&&!existing&&<div className="item-fields">
     {field('Label',<input aria-label="Label" value={d.label} onChange={e=>set({label:e.target.value,...(d.name===snake(d.label)||!d.name?{name:snake(e.target.value)}:{})})} placeholder="Vacancy rate"/>)}
     {field('Name',<input aria-label="Name" value={d.name} onChange={e=>set({name:e.target.value})}/>,'The metric name in the semantic model')}
-    {field('Type',select(d.type,v=>set({type:(v||'simple') as KpiType}),(['simple','ratio','derived','cumulative','filtered'] as KpiType[]).map(t=><option key={t} value={t}>{typeLabel[t]}</option>),'KPI type'))}
+    {field('Type',select(d.type,v=>set({type:(v||'simple') as KpiType}),(['simple','ratio','derived','cumulative','filtered'] as KpiType[]).map(t=><option key={t} value={t}>{typeLabel[t]}</option>),'Metric type'))}
     {d.type==='simple'&&<>{field('Aggregation',select(d.aggregation,v=>set({aggregation:v||'SUM'}),AGGREGATIONS.map(a=><option key={a}>{a}</option>),'Aggregation'))}{field('Field',select(d.field,v=>set({field:v}),fields.map(f=><option key={f}>{f}</option>),'Field to aggregate','Choose…'))}</>}
     {d.type==='ratio'&&<>{field('Numerator',select(d.numerator,v=>set({numerator:v}),model?.metrics.map(metricOption),'Numerator','Choose…'))}{field('Denominator',select(d.denominator,v=>set({denominator:v}),model?.metrics.map(metricOption),'Denominator','Choose…'),'Division by zero gives no value (NULLIF)')}</>}
     {['derived','cumulative','filtered'].includes(d.type)&&<>{field('Input metrics',<input aria-label="Input metrics" list="kpi-metrics" value={d.inputs} onChange={e=>set({inputs:e.target.value,...(!d.expression&&d.type!=='derived'?{expression:list(e.target.value)[0]??''}:{})})}/>,'Metric names, separated by commas')}
@@ -106,10 +130,10 @@ export function KpiWizard({project,docs,kpis,onClose,onSaved}:{project:string;do
     <p className="wide formula-line">Expression: <code>{expression||'—'}</code></p>
    </div>}
    {step===3&&<div className="item-fields">
-    {field('Time dimension',select(d.timeDimension,v=>set({timeDimension:v}),fields.map(f=><option key={f}>{f}</option>),'Time dimension','None'),'The date field the KPI is reported over')}
+    {field('Time dimension',select(d.timeDimension,v=>set({timeDimension:v}),fields.map(f=><option key={f}>{f}</option>),'Time dimension','None'),'The date field the metric is reported over')}
     {field('Minimum grain',select(d.minGrain,v=>set({minGrain:v}),GRAINS.map(g=><option key={g}>{g}</option>),'Minimum grain'))}
     {field('Allowed grains',multi(d.grains,[...GRAINS],v=>set({grains:v}),'Allowed grains'),undefined,true)}
-    {field('Breakdowns',multi(d.dimensions,fields,v=>set({dimensions:v}),'Breakdowns'),'Fields the KPI may be broken down by',true)}
+    {field('Breakdowns',multi(d.dimensions,fields,v=>set({dimensions:v}),'Breakdowns'),'Fields the metric may be broken down by',true)}
    </div>}
    {step===4&&<div className="item-fields">
     {field('Direction',select(d.direction,v=>set({direction:v}),[['higher_is_better','Higher is better'],['lower_is_better','Lower is better']].map(([v,l])=><option key={v} value={v}>{l}</option>),'Target direction','No target'))}
@@ -121,11 +145,11 @@ export function KpiWizard({project,docs,kpis,onClose,onSaved}:{project:string;do
    {step===5&&<div className="item-fields">
     {field('Owner',<input aria-label="Owner" value={d.owner} onChange={e=>set({owner:e.target.value})}/>)}
     {field('Steward',<input aria-label="Steward" value={d.steward} onChange={e=>set({steward:e.target.value})}/>)}
-    {field('Status',select(d.status,v=>set({status:v||'proposed'}),STATUSES.slice(0,2).map(s=><option key={s}>{s}</option>),'Status'),'A new KPI is a draft or proposed for review')}
+    {field('Status',select(d.status,v=>set({status:v||'proposed'}),STATUSES.slice(0,2).map(s=><option key={s}>{s}</option>),'Status'),'A new metric is a draft or proposed for review')}
     {field('Unit',<input aria-label="Unit" value={d.unit} onChange={e=>set({unit:e.target.value})} placeholder="ratio, m², BRL"/>)}
     {field('Format',<input aria-label="Format" value={d.format} onChange={e=>set({format:e.target.value})} placeholder="0.0%"/>)}
    </div>}
-   {step===6&&(busy&&!preview?<p role="status">Explaining the new KPI…</p>:preview&&<div className="wizard-preview">
+   {step===6&&(busy&&!preview?<p role="status">Explaining the {existing?'metric':'new metric'}…</p>:preview&&<div className="wizard-preview">
     <p><strong>{d.label}</strong> = <code>{preview.explanation.formula}</code></p>
     <h4>Built from</h4><CompositionTree className="wizard-tree" node={preview.explanation.tree}/>
     <h4>SQL preview</h4>{'refused'in preview.explanation.sqlPreview?<p className="item-note">{preview.explanation.sqlPreview.refused}</p>:<pre aria-label="Preview · not executed"><code>{preview.explanation.sqlPreview.sql}</code></pre>}
