@@ -686,6 +686,7 @@ export function LineageCanvas({
   }, [lines, result, path, graph, mapping]);
   const flow = useRef<ReactFlowInstance<any, any> | null>(null);
   const fitted = useRef('');
+  const firstViewTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const stage = useRef<HTMLDivElement | null>(null);
   // Keep column names at least 12 px on entry by fitting the nearest readable neighborhood. Fall
   // back to the center alone when needed; explicit Fit may zoom out further.
@@ -726,9 +727,15 @@ export function LineageCanvas({
     const k = center + '|' + steps;
     if (fitted.current === k) return;
     fitted.current = k;
-    // After React Flow has measured the pane and the cards (ResizeObserver)
-    setTimeout(() => requestAnimationFrame(() => void firstView()), 80);
+    // Wait until React Flow has measured the pane and the cards with its ResizeObserver.
+    firstViewTimer.current = setTimeout(() => requestAnimationFrame(() => void firstView()), 80);
   }, [result, center, steps, nodes.length]);
+  useEffect(() => () => clearTimeout(firstViewTimer.current), []);
+  // An explicit Fit wins over a first view that is still waiting to run.
+  function fitAll() {
+    clearTimeout(firstViewTimer.current);
+    void flow.current?.fitView({ padding: 0.12, maxZoom: 1, duration: 200 });
+  }
   // After an expansion or pierce, bring its cards into a readable view around its origin.
   const focused = useRef('');
   useEffect(() => {
@@ -918,11 +925,7 @@ export function LineageCanvas({
           <SlidersHorizontal size={14} />
           <span className="tool-label">Lineage options…</span>
         </button>
-        <button
-          onClick={() => flow.current?.fitView({ padding: 0.12, maxZoom: 1, duration: 200 })}
-          aria-label="Fit"
-          title="Fit the graph"
-        >
+        <button onClick={fitAll} aria-label="Fit" title="Fit the graph">
           <Scan size={14} />
         </button>
         {fullscreen && (

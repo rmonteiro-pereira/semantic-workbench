@@ -1,0 +1,73 @@
+/** Loads example projects while preserving workspace navigation preferences. */
+import React from 'react';
+import { api, type Doc } from '../projects/api';
+import { exampleSet } from '../projects/examples';
+
+type Options = {
+  setExamplesChoice: React.Dispatch<React.SetStateAction<boolean | null>>;
+  examplesOpen: boolean;
+  getLeaveCurrent: () => () => Promise<void>;
+  setBusy: React.Dispatch<React.SetStateAction<boolean>>;
+  setMessage: React.Dispatch<React.SetStateAction<string>>;
+  refresh: () => Promise<Doc[]>;
+  setCurrent: (next: Doc | null) => void;
+  setSource: React.Dispatch<React.SetStateAction<string>>;
+  setNeighborhoodFocus: (id: string) => void;
+  compact: boolean;
+  closeWorkspace: () => void;
+  setSelected: React.Dispatch<React.SetStateAction<string>>;
+  setSelectedEdge: React.Dispatch<React.SetStateAction<string>>;
+  setSearch: React.Dispatch<React.SetStateAction<string>>;
+  setTab: (next: string) => void;
+};
+/** Manages examples. */
+export function useExamples({
+  setExamplesChoice,
+  examplesOpen,
+  getLeaveCurrent,
+  setBusy,
+  setMessage,
+  refresh,
+  setCurrent,
+  setSource,
+  setNeighborhoodFocus,
+  compact,
+  closeWorkspace,
+  setSelected,
+  setSelectedEdge,
+  setSearch,
+  setTab,
+}: Options) {
+  async function loadExample(id: string) {
+    // Loading from the Examples group keeps it as the user left it (open) instead of collapsing it.
+    setExamplesChoice(c => c ?? examplesOpen);
+    const set = exampleSet(id)!;
+    await getLeaveCurrent()();
+    setBusy(true);
+    setMessage('Loading example documents…');
+    try {
+      const { slug } = await api.example(id);
+      const loaded = await refresh();
+      const first =
+        loaded.find(d => d.project === slug && d.path === set.files[0]) ??
+        loaded.find(d => d.project === slug);
+      if (first) {
+        setCurrent(first);
+        setSource(first.source);
+      }
+      setNeighborhoodFocus('');
+      if (compact) closeWorkspace();
+      setSelected('');
+      setSelectedEdge('');
+      setSearch('');
+      setTab(set.tab);
+      setMessage(set.message);
+    } catch (e) {
+      setMessage((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return { loadExample };
+}
