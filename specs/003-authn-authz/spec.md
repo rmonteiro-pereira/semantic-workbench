@@ -551,7 +551,7 @@ no credential is stored.
    Validate and Image stages, **Then** the image is pushed to the target's registry tagged with the
    commit, and the bill of materials and scan report are kept as pipeline artifacts.
 6. **Given** a version tag `v*` whose version core equals the `package.json` version of its commit
-   and is not older than the version deployed last, **When** the environment's approvals and checks
+   and is not older than the highest version ever promoted, **When** the environment's approvals and checks
    pass, **Then** the pipeline signs in to Azure through the service connection with a short-lived
    federated token, rescans the image, tags the same digest with the version and deploys it by
    digest as a new revision; without approval nothing is deployed; a tag that fails the version
@@ -615,18 +615,19 @@ no credential is stored.
   smoke test too, the run fails, says so, and the app is left on the previous revision for a
   person to investigate.
 - A version tag whose version core differs from `package.json`, or that is older than the version
-  deployed last: the Deploy stage fails before any approval request, naming the reason.
+  promoted earlier: the run fails in the Image stage, before any push or approval request, naming
+  the reason.
 - A new critical vulnerability is published between the image build and the deployment: the
   rescan in the Deploy stage fails, nothing is deployed, and the fix is a new commit and tag.
 - Two version tags are pushed in quick succession: the environment's exclusive-lock check lets one
   deployment or rollback run at a time and keeps only the newest waiting run; the version rule
-  refuses a tag older than the version deployed last.
+  refuses a tag older than the highest version ever promoted.
 - `ci:validate` on a machine without Docker or Podman: the Keycloak, image and container steps
   fail with a message saying a container runtime is required (they never pass by skipping); each
   other step can still be run alone with `--step`.
 - The pipeline is imported with an incomplete variable group or missing service connection: the
-  first step that needs a value fails naming the variable, before any image is pushed or anything
-  is deployed.
+  first step that needs a value fails naming the variable (the Image stage's push step checks the
+  whole variable group), before any image is pushed or anything is deployed.
 - A person is signed in during a deployment: sessions are persisted under the data root and
   survive the new revision; requests during the hand-over get 503 and the browser retries.
 - Pre-release tags (for example `v0.4.0-alpha.1`) deploy to the same environment; until the
@@ -936,7 +937,8 @@ no credential is stored.
 
 - **FR-130**: The repository MUST run nothing automatically on its hosting service: it MUST contain
   no GitHub Actions workflow, no Dependabot or other bot configuration and no deployment from the
-  repository. A repository test MUST fail when such a file is added.
+  repository. A repository test MUST fail when such a file is added. The target runs the pipeline
+  from its own Azure Repos mirror; the guide never connects a pipeline to this GitHub repository.
 - **FR-131**: The repository MUST provide package scripts that run every verification and build
   step on the owner's machine with Docker or Podman: `ci:validate` (type check, unit and API tests,
   production build, mutation suite, every browser suite of the quality gate, the Keycloak sign-in
@@ -953,18 +955,20 @@ no credential is stored.
   (`azure-pipelines.yml`) for the target organisation to import, with the stages **Validate**,
   **Image** and **Deploy** (deployment, smoke test and automatic rollback). Every step MUST either
   call a package script of FR-131 or be a built-in Azure DevOps task used only to sign in to Azure,
-  publish test results or publish artifacts; no verification, build or deployment logic may exist
-  only in the pipeline.
+  publish test results or publish artifacts; the only other steps allowed are the shared setup
+  (checkout, pinned Bun install, frozen dependency install, Playwright browser install). No
+  verification, build or deployment logic may exist only in the pipeline.
 - **FR-134**: Validate MUST run on every run (pull-request validation through the target's branch
-  policy, pushes to `main`, version tags) with the same steps as `ci:validate`, the Keycloak
+  policy, pushes to `main`, version tags) with the steps of `ci:validate` other than `image` and
+  `container`, which Image runs, so the two stages together run every `ci:validate` step; the Keycloak
   sign-in tests running against a Keycloak container on the agent. Image MUST build, scan and
   inventory the image, run the suites against it, keep the bill of materials and scan report as
   pipeline artifacts, and push the image to the target's Azure Container Registry tagged with the
   commit only for runs of `main` and of version tags.
 - **FR-135**: Deploy MUST run only for version tags `v*`, refuse before any approval a tag whose
   version without a pre-release suffix differs from the `package.json` version of its commit or is
-  older than the version deployed last (the highest version tag in the registry, since only
-  deployments add version tags), run as a deployment to an Azure DevOps environment (name
+  older than the highest version ever promoted (the highest version tag in the registry; only
+  deployments add version tags, rollbacks add none), run as a deployment to an Azure DevOps environment (name
   set by a parameter, `production` by default) whose approvals and checks the target configures,
   one deployment at a time, rescan the image, tag the same digest with the version (no rebuild)
   and deploy it by digest.

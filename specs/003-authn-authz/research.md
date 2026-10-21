@@ -347,28 +347,38 @@ below come from that probe.
   `trivy` binary or else the `aquasec/trivy` image pinned by digest (so the owner needs only a
   container runtime), `--severity CRITICAL,HIGH --ignore-unfixed --exit-code 1`, `.trivyignore`
   entries with `# reason; expires YYYY-MM-DD` checked by the pipeline check; `push` to a registry
-  given on the command line after `az acr login`.
+  given on the command line; `push` and `scan --ref` sign in to the registry themselves with the
+  current Azure CLI session (`az acr login`), so the pipeline needs no inline Azure commands.
 - **Pipeline definition** (`azure-pipelines.yml`, multi-stage YAML, templates under
-  `deploy/azure-devops/templates/`): `Validate` (jobs `verify`, `mutation`, `browser` matrix,
-  `keycloak`, each one `ci:validate` step), `Image` (image steps and container suites; on `main` and
-  `v*` runs, `AzureCLI@2` with the push service connection, `az acr login` and `image:push`; the
-  digest becomes an output variable), `Deploy` (only `refs/tags/v*`: a `check` job before any
-  approval, then a deployment job on the environment, which applies the target's approvals and
-  checks before the job starts: rescan by digest, then `deploy:azure`, which runs the preflight,
-  promotes the version tag on the same digest with `az acr import` inside the registry, and
-  deploys). A tag run builds its own image in `Image`
-  (same commit as the `main` run that preceded it, so the build is reproducible from the lock file
-  and pinned bases); the deployed digest is the one this run built, scanned and tested.
+  `deploy/azure-devops/templates/`): `Validate` (jobs `verify`, `mutation`, `browser` literal
+  matrix kept equal to `scripts/gate-suites.ts` by the pipeline check because Azure DevOps compiles
+  the matrix before any script runs, `keycloak`, `pipeline`; each one `ci:validate` step), `Image`
+  (on tag runs first a `check` job with `deploy:check-version`, so a wrong tag fails before any push
+  and before approval; Azure DevOps evaluates an environment's approvals and checks before the
+  stage that uses it starts, so the check cannot sit in the Deploy stage; then image steps and
+  container suites; on `main` and `v*` runs, `AzureCLI@2` with the push service connection and
+  `image:push`; the digest becomes an output variable), `Deploy` (only `refs/tags/v*`: a
+  deployment job on the environment, which checks out the repository explicitly since deployment
+  jobs do not, then rescan by digest and `deploy:azure`, which runs the preflight, promotes the
+  version tag on the same digest with `docker buildx imagetools create` (needs only `AcrPush`;
+  `az acr import` would need the import action, which `AcrPush` lacks), and deploys). A tag run
+  builds its own image in `Image`; the deployed digest is the one this run built, scanned and
+  tested (the digest differs from the `main` run's because of the creation label, which is why
+  promotion uses this run's digest).
   `azure-pipelines-rollback.yml` (manual) is queued on the tag ref of the version to restore, so
   the environment's branch control (`refs/tags/v*`) admits it, and deploys that version, or with
-  `target: previous` the revision before the active one, through the same environment. Bun is installed at a pinned version by the shared setup template; Playwright
+  `target: previous` the revision before the active one, through the same environment. The YAML
+  and scripts come from that tag ref, so it works for tags from `v0.4.0-alpha.1` on; for
+  `previous` it is queued on the tag of the version currently deployed and the smoke test expects
+  the restored image's own version and commit labels. Bun is installed at a pinned version by the shared setup template; Playwright
   Chromium is installed with its system dependencies.
-- **Triggers**: CI trigger on `main` and tags `v*`; pull-request validation is configured by the
-  target (Azure Repos branch policy on `main` requiring the pipeline, or the `pr:` trigger when the
-  target connects a GitHub repository). The target chooses where the code lives (an Azure Repos
-  mirror of this repository or a GitHub connection); nothing runs on this GitHub repository.
-- **One deployment at a time**: the environment's exclusive lock check and the Deploy stage's
-  `lockBehavior: runLatest` serialise deployments and rollbacks and drop older waiting runs.
+- **Triggers**: CI trigger on `main` and tags `v*` of the target's Azure Repos mirror of this
+  repository; pull-request validation through the target's branch policy on `main`; `pr: none`.
+  The pipeline is never connected to this GitHub repository, so pushes here trigger nothing
+  (FR-130).
+- **One deployment at a time**: the environment's exclusive lock check plus `lockBehavior:
+  runLatest` declared at stage level on `Deploy` and `Rollback` (the check has no such option)
+  serialise deployments and rollbacks and drop older waiting runs.
 - **Local validation of the definition**: `pipeline:lint` validates the YAML files against a pinned
   copy of the published Azure Pipelines schema (Ajv, as for the other pinned schemas) and applies
   the repository rules (stage order, steps call package scripts, tasks pinned to a major version,
@@ -414,14 +424,16 @@ below come from that probe.
 ## R20 Azure DevOps to Azure trust and what the target sets up
 
 - **Workload identity federation**: Azure Resource Manager service connections of type workload
-  identity federation (issuer `https://vstoken.dev.azure.com/<organisation id>`, subject
-  `sc://<organisation>/<project>/<service connection>`); Azure DevOps creates the federated
+  identity federation; Azure DevOps shows the issuer and subject to use on the service connection
+  page (their format has changed over time, so the guide tells the target to copy them rather than
+  build them); Azure DevOps creates the federated
   credential on an app registration it manages (automatic) or the target points the connection
   at its own app registration or user-assigned managed identity (manual). No secret is stored.
   Two connections by default: `sw-azure-push` (`AcrPush` on the registry) and `sw-azure-deploy`
   (`AcrPush` on the registry and Contributor on the container app resource only; if the update
   also needs the Container Apps environment's join action, a custom role limited to that action on
-  the environment; the final set is recorded by T133). `AzureCLI@2` uses them with
+  the environment, and Managed Identity Operator on `id-sw-app` if assigning the user-assigned
+  identity requires it; the final set is recorded by T133). `AzureCLI@2` uses them with
   `addSpnToEnvironment: false`, so no token reaches the scripts' environment beyond the Azure CLI
   session.
 - **Protection**: each service connection and the variable group grant pipeline permission only
