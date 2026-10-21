@@ -1,0 +1,217 @@
+/** Presentation and event handling for graph views. */
+import React from 'react';
+import { FullGraph } from '../FullGraph';
+import { MappingCanvas } from '../mappings/MappingCanvas';
+import { ModelOverview } from '../ModelOverview';
+import { NeighborhoodGraph } from '../NeighborhoodGraph';
+import { LineageCanvas } from '../odcs/LineageCanvas';
+
+type Props = {
+  tab: string;
+  mappingId: string;
+  mappingView: 'mapping' | 'ontology';
+  docs: import('../projects/api').Doc[];
+  current: import('../projects/api').Doc | null;
+  source: string;
+  fullscreen: import('../graph/fullscreen').Fullscreen;
+  graphViewSwitch: React.JSX.Element | null;
+  editMappingItem: (docId: string, path: import('../edit/item-model').Path) => void;
+  isContract: boolean;
+  lineage: import('../odcs/lineage').LineageGraph | null;
+  lineageCenterId: string;
+  lineageCenterChanged: (id: string) => void;
+  handleLineageCanvasOpenAsset: (c: import('../odcs/lineage').LineageCard) => void;
+  continueInNeighborhood: (card: import('../odcs/lineage').LineageCard) => void;
+  model:
+    | {
+        kind: string;
+        name: any;
+        entities: import('../model').Entity[];
+        edges: import('../model').Relationship[];
+        issues: import('../diagnostics').Issue[];
+      }
+    | {
+        kind: string;
+        layout: string | undefined;
+        name: any;
+        entities: import('../model').Entity[];
+        edges: import('../model').Relationship[];
+        issues: import('../diagnostics').Issue[];
+        document: any;
+      }
+    | null;
+  kpiBadges: Map<string, string[]>;
+  grouping: {
+    value: import('../overview').GroupingOptions;
+    error: string;
+    change: (value: import('../overview').GroupingOptions) => void;
+  };
+  selected: string;
+  selectedEdge: string;
+  search: string;
+  selectEntity: (id: string) => void;
+  handleFullGraphSelectEdge: (id: string) => void;
+  setTab: (next: string) => void;
+  setSearch: React.Dispatch<React.SetStateAction<string>>;
+  showNeighborhood: (id?: string | undefined) => void;
+  handleModelOverviewSelectRelationship: (id: string) => void;
+  docsRef: React.RefObject<Map<string, import('../projects/api').Doc>>;
+  walk: import('../graph/walk').Walk;
+  handleNeighborhoodGraphWalk: (steps: import('../graph/walk').WalkStep[]) => void;
+  walkTo: (index: number) => void;
+  handleNeighborhoodGraphSelectEntity: (id: string) => void;
+  setSelectedEdge: React.Dispatch<React.SetStateAction<string>>;
+  handleNeighborhoodGraphFullGraph: () => void;
+  handleNeighborhoodGraphOpenKpis: (concept: string) => void;
+  crossFile: (e: import('../model').Entity) => import('../NeighborhoodGraph').CrossFileTarget[];
+  crossTo: (t: import('../NeighborhoodGraph').CrossFileTarget) => void;
+};
+/** Renders graph views. */
+export function GraphViews({
+  tab,
+  mappingId,
+  mappingView,
+  docs,
+  current,
+  source,
+  fullscreen,
+  graphViewSwitch,
+  editMappingItem,
+  isContract,
+  lineage,
+  lineageCenterId,
+  lineageCenterChanged,
+  handleLineageCanvasOpenAsset,
+  continueInNeighborhood,
+  model,
+  kpiBadges,
+  grouping,
+  selected,
+  selectedEdge,
+  search,
+  selectEntity,
+  handleFullGraphSelectEdge,
+  setTab,
+  setSearch,
+  showNeighborhood,
+  handleModelOverviewSelectRelationship,
+  docsRef,
+  walk,
+  handleNeighborhoodGraphWalk,
+  walkTo,
+  handleNeighborhoodGraphSelectEntity,
+  setSelectedEdge,
+  handleNeighborhoodGraphFullGraph,
+  handleNeighborhoodGraphOpenKpis,
+  crossFile,
+  crossTo,
+}: Props) {
+  if (tab === 'fullgraph' && mappingId && mappingView === 'mapping') {
+    return (
+      <MappingCanvas
+        key={mappingId}
+        mappingId={mappingId}
+        revisionKey={docs
+          .filter(d => d.project === current?.project)
+          .map(d => d.id + ':' + d.hash)
+          .join('|')}
+        dirty={!!current && source !== current.source}
+        fullscreen={fullscreen}
+        toolbarExtra={graphViewSwitch}
+        onEditItem={editMappingItem}
+      />
+    );
+  }
+  if (tab === 'fullgraph' && isContract && lineage && lineageCenterId) {
+    return (
+      <LineageCanvas
+        key={current?.id}
+        graph={lineage}
+        center={lineageCenterId}
+        fullscreen={fullscreen}
+        storageKey={current ? `workbench:lineage-steps:${current.id}` : undefined}
+        onCenterChange={lineageCenterChanged}
+        onOpenAsset={handleLineageCanvasOpenAsset}
+        onNeighborhood={continueInNeighborhood}
+      />
+    );
+  }
+  if (tab === 'fullgraph' && model) {
+    return (
+      <FullGraph
+        toolbarExtra={graphViewSwitch}
+        fullscreen={fullscreen}
+        kpiBadges={kpiBadges}
+        grouping={grouping.value}
+        onGroupingChange={grouping.change}
+        groupingError={grouping.error}
+        key={current?.id}
+        name={model.name}
+        entities={model.entities}
+        edges={model.edges}
+        selected={selected}
+        selectedEdge={selectedEdge}
+        search={search}
+        onSelectEntity={selectEntity}
+        onSelectEdge={handleFullGraphSelectEdge}
+        onOverview={() => {
+          setTab('overview');
+          setSearch('');
+        }}
+        onNeighborhood={() => showNeighborhood()}
+      />
+    );
+  }
+  if (tab === 'overview' && model) {
+    return (
+      <ModelOverview
+        grouping={grouping.value}
+        onGroupingChange={grouping.change}
+        groupingError={grouping.error}
+        key={current?.id}
+        name={model.name}
+        entities={model.entities}
+        edges={model.edges}
+        search={search}
+        selected={selected}
+        onSelectEntity={selectEntity}
+        onSelectRelationship={handleModelOverviewSelectRelationship}
+        onClose={() => showNeighborhood()}
+        onOpenGraph={() => {
+          setTab('fullgraph');
+        }}
+      />
+    );
+  }
+  return (
+    <NeighborhoodGraph
+      modelName={model?.name}
+      fullscreen={fullscreen}
+      kpiBadges={kpiBadges}
+      key={current?.id}
+      docId={current!.id}
+      docLabel={id => docsRef.current.get(id)?.path ?? id}
+      entities={model?.entities ?? []}
+      edges={model?.edges ?? []}
+      search={search}
+      walk={walk}
+      selected={selected}
+      selectedEdge={selectedEdge}
+      onWalk={handleNeighborhoodGraphWalk}
+      onWalkTo={walkTo}
+      onClearSearch={() => setSearch('')}
+      onSelectEntity={handleNeighborhoodGraphSelectEntity}
+      onSelectEdge={id => {
+        setSelectedEdge(id);
+      }}
+      onOverview={() => {
+        setSearch('');
+        setTab('overview');
+      }}
+      onFullGraph={handleNeighborhoodGraphFullGraph}
+      onOpenKpis={handleNeighborhoodGraphOpenKpis}
+      crossFile={crossFile}
+      onCrossFile={crossTo}
+    />
+  );
+}
