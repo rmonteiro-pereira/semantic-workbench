@@ -23,6 +23,15 @@
 | `SW_COMMITTER_NAME`, `SW_COMMITTER_EMAIL` | server | no | committer identity of server commits |
 | `SW_GITHUB_HOST`, `SW_GITHUB_CLIENT_ID`, `SW_GITHUB_CLIENT_SECRET` | server | no | GitHub OAuth/App for user tokens |
 | `SW_ADO_OBO` | server/entra | no (`true`) | Azure DevOps on-behalf-of |
+| `SW_SERVE_STATIC` | both | no (`0`; `1` in the image) | the Bun server serves `dist/` itself (always in server mode and in the container) |
+| `SW_VERSION`, `SW_COMMIT` | both | no (set by the image build) | reported by `/healthz`; checked by the smoke test |
+| `CONTAINER_APP_REVISION` | server | no (set by Azure Container Apps) | revision recorded in `instance.lock`; `SW_VERSION+SW_COMMIT` (else `dev`) when absent (FR-122, FR-123) |
+
+Container image defaults: `DATA_DIR=/data`, `SW_CACHE_DIR=/tmp/sw-cache`, `SW_SERVE_STATIC=1`,
+`SW_PORT=4310`. Local mode in the container keeps `SW_HOST=127.0.0.1` and runs with host
+networking (OP-8); on Azure Container Apps server mode sets `SW_HOST=0.0.0.0` (checked by the
+deploy preflight). Pipeline variables (GitHub, not read by the server) are listed in
+[delivery-pipeline.md](./delivery-pipeline.md).
 
 Start-up refuses server mode when a required variable is missing or invalid, naming it. Secrets
 are read once and never logged; on Azure they are Key Vault references resolved by the platform.

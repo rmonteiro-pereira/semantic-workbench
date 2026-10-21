@@ -99,7 +99,7 @@ below come from that probe.
   with service accounts holding client role `Agent`.
 - Test users: `alice` (Sales, Editor), `bob` (Sales, Steward), `carol` (HR, Viewer),
   `dave` (Admin), `erin` (no role), `frank` (Sales + Finance group, Editor).
-- CI: GitHub Actions workflow `.github/workflows/auth-keycloak.yml` runs `docker run` for
+- CI: the `keycloak` job of `.github/workflows/ci.yml` (R18) runs `docker run` for
   Keycloak (service containers cannot pass `start-dev` arguments), waits for
   `/realms/workbench/.well-known/openid-configuration`, then `bun run test:auth:keycloak`
   (Playwright: sign-in form, role header, sign-out, live updates, agent client credentials).
@@ -218,20 +218,33 @@ below come from that probe.
 - **Primary**: Azure Container Apps, one container app, revision mode single, `minReplicas = 1`,
   `maxReplicas = 1`, external HTTPS ingress to port 4310, session affinity irrelevant (one
   replica). System-assigned managed identity reads Key Vault secrets (`SW_SESSION_KEY`, provider
-  client secret if used, GitHub app secret) and is the federated credential of the Entra app.
+  client secret if used, GitHub app secret), pulls from Azure Container Registry (`AcrPull`, R19)
+  and is the federated credential of the Entra app. Liveness probe `/healthz`, readiness probe
+  `/readyz`, termination grace period 30 s.
 - **Storage**: data root on an Azure Files share mounted at `/data` (NFS on a premium storage
-  account where the region supports it for Container Apps; SMB otherwise, with
+  account where the region supports it for Container Apps; SMB otherwise, with mount options
+  `uid=1000,gid=1000,dir_mode=0750,file_mode=0640` so the non-root user owns the files, and
   `core.filemode=false` set on managed repositories). The SQLite cache lives on the container's
   local disk (`SW_CACHE_DIR=/tmp/sw-cache`): it is rebuildable (Principle IV), and SQLite file
   locking on network shares is unreliable.
-- **Image**: `oven/bun:1.4` base plus Git ≥ 2.40, built frontend in `dist/`, non-root user,
-  `HEALTHCHECK` on `/healthz`; `/readyz` turns ready after recovery and the first scan.
-- **Single instance**: `data/state/instance.lock` with host, pid and a heartbeat every 10 s; a
-  second instance seeing a heartbeat younger than 30 s refuses to serve (FR-122). During a
-  revision update the new revision becomes ready only after the old one stops (SIGTERM handler
-  releases the lock), which gives a short planned downtime.
+- **Image**: see R17.
+- **Single instance and revision updates**: `data/state/instance.lock` holds host, pid, revision
+  (`CONTAINER_APP_REVISION`, set by the platform; elsewhere `SW_VERSION+SW_COMMIT` of the image,
+  else `dev`, so two containers of one image count as the same revision) and a heartbeat every
+  10 s. In single revision mode Container Apps starts the new revision and waits until it is
+  ready before it stops the old one; a new instance that refused to become ready while the old
+  one holds the lock would block the update forever. Therefore (FR-122, FR-123): a live lock of
+  the **same** revision means a second replica → refuse to serve and stay not-ready; a live lock
+  of a **different** revision means a revision update → report ready, answer 503 with
+  `Retry-After: 5` on every non-health route, and take the lock as soon as the old instance
+  releases it in its SIGTERM handler or its heartbeat is older than 30 s. Two instances never
+  serve one data root; the interruption is the old instance's shutdown plus at most 30 s
+  (SC-017). The deploy job also refuses to deploy unless min and max replicas are 1 (FR-139).
+- **No infrastructure as code** (owner decision): the resources are created by hand following
+  `deploy/azure/README.md`, which lists them (R20) with portal and Azure CLI steps; the deploy job
+  checks the settings that matter before every deployment.
 - **Alternative**: App Service (Web App for Containers), Azure Storage mount (SMB), Always On,
-  one instance, same environment variables.
+  one instance, same environment variables; not covered by the pipeline.
 - **Scale path (documented only)**: move locks to a lease service (for example blob leases),
   events to a shared bus, sessions to a shared store, keep per-instance caches; per-person copies
   stay on the shared volume.
@@ -255,3 +268,137 @@ below come from that probe.
 - Browser: `test:auth` (stub provider), `test:auth:keycloak` (real Keycloak), `test:admin`,
   `test:two-editors`, all on isolated data roots.
 - Mutants: listed in plan.md Constitution Check VI.
+
+## R17 Container image and Docker Compose
+
+- **Image** (`Dockerfile`, multi-stage, every base pinned by digest):
+  1. `deps`: `oven/bun:1.4` with `bun install --frozen-lockfile`.
+  2. `build`: copies the sources, runs `bun --bun run build` (frontend to `dist/`).
+  3. `prod-deps`: `bun install --frozen-lockfile --production`.
+  4. `runtime`: `oven/bun:1.4-slim` plus the distribution's `git` package, provided its version is
+     2.40 or later (the build runs `git --version` and fails below 2.40; if the Debian base ships an
+     older Git, the Alpine variant `oven/bun:1.4-alpine` is used instead, which the WASM policy
+     engine supports since it needs no native code). Copies `server/`, `src/` modules the server
+     imports, `policies/`, `schemas/`, `dist/` and the production `node_modules`. `USER bun`
+     (uid 1000), `ENV DATA_DIR=/data SW_CACHE_DIR=/tmp/sw-cache SW_SERVE_STATIC=1`, `VOLUME /data`,
+     `EXPOSE 4310`, labels `org.opencontainers.image.{version,revision,source,created}` and the
+     same values as `SW_VERSION`/`SW_COMMIT` from build arguments. `HEALTHCHECK` runs a two-line
+     Bun `fetch` of `/healthz` (no curl in the image). Entry point `bun server/index.ts`, receiving
+     SIGTERM directly (exec form) so the instance lock is released.
+- **Local mode in the container**: Principle I keeps local mode on loopback; with Docker's default
+  bridge network a process bound to the container's `127.0.0.1` cannot be reached through a
+  published port. Host networking (`network_mode: host`) makes the container share the host's
+  loopback, so the unchanged loopback rule applies (OP-8). Docker Engine and Podman support it;
+  Docker Desktop needs its host networking option. Rejected: binding `0.0.0.0` in local mode when
+  a container is detected (violates Principle I; the server cannot see the host publish address).
+- **Writable data root check**: at start-up the server writes and removes a probe file under the
+  data root; failure stops start-up naming the path and the uid (FR-125).
+- **Compose** (`compose.yaml`): profile `local` → service `workbench` (image built from the
+  Dockerfile, `network_mode: host`, `SW_MODE=local`, `./.data:/data`); profile `server` →
+  `keycloak` (`quay.io/keycloak/keycloak:26.4` pinned by digest, `start-dev --import-realm`, the
+  test realm mounted read-only, port published on `127.0.0.1:8080` only) and `workbench-server`
+  (`network_mode: host`, `SW_MODE=server`, `SW_HOST=127.0.0.1`, `SW_PUBLIC_URL=http://localhost:4310`,
+  issuer `http://localhost:8080/realms/workbench`, secrets from `.env.server`, which is ignored by
+  Git and created from `.env.server.example`). Both the browser and the server reach Keycloak at
+  the same `localhost` URL, so the issuer matches.
+- **Running the suites against the image**: browser checks read their base URL from
+  `SW_BASE_URL` (default the dev server); `scripts/container-check.ts` builds or takes an image,
+  starts it with a temporary data folder, waits for `/readyz`, and runs the suites listed in
+  `scripts/container-suites.ts` against it (local mode suites, and from US1 on the server suites
+  through the compose server profile).
+
+## R18 Continuous integration and delivery with GitHub Actions
+
+- **`ci.yml`** (pull requests, pushes to any branch but not tags): jobs
+  `verify` (Bun pinned to 1.4.x, `bun install --frozen-lockfile`, `bun --bun run check`,
+  `bun test`, `bun --bun run build`), `mutation` (`bun run test:mutation`), `browser` (matrix over
+  the browser suites, Playwright Chromium installed with its system dependencies, dev server
+  started in the job, screenshots uploaded on failure), `keycloak` (R6), `image` (Buildx with the
+  GitHub Actions cache, image exported to the job, Trivy scan with `--severity CRITICAL,HIGH
+  --ignore-unfixed --exit-code 1` and `.trivyignore` entries carrying a reason and an expiry that
+  a test checks, Trivy SPDX JSON bill of materials uploaded as an artifact), `container` (needs
+  `image`; runs `scripts/container-check.ts` for local and server suites against that image) and
+  `publish` (push to `main` only, after every other job; R19, R20). Concurrency cancels superseded
+  pull-request runs. Default permissions `contents: read`; `id-token: write` only on `publish`.
+- **`release.yml`** (tags `v*`): `check` without Azure access (tag commit is an ancestor of
+  `origin/main` and its `ci.yml` run on `main` succeeded including the `publish` job, read
+  through the GitHub API, so a tag without a published image fails before any approval), then
+  `deploy` in environment `production` (required reviewers; concurrency group `production`, never
+  cancelled). Only after approval, with the deployer identity: image `sha-<commit>` exists in the
+  registry, Trivy rescan of its digest, promotion to `vX.Y.Z` on the same digest with `docker
+  buildx imagetools create` (no rebuild), preflight of the container app settings (FR-139), record
+  of the running image digest, `az containerapp update --image
+  <registry>/semantic-workbench@<digest>`, wait for the new revision to run and be ready,
+  `scripts/deploy-smoke.ts`, and on failure redeploy of the recorded digest and a second smoke
+  test, then fail. A last job `github-release` (contents write) creates the release with the
+  bill of materials and the scan report. The job summary lists both digests and results. Registry
+  steps sit after the approval because a tag push gets the OIDC subject
+  `ref:refs/tags/<tag>`, which no federated credential matches; only the environment subject
+  does.
+- **`rollback.yml`** (manual dispatch with input `version`, environment `production`): resolves the
+  version tag to its digest and runs the same deploy and smoke steps.
+- **Smoke test** (`scripts/deploy-smoke.ts`, also run against the compose server profile in the
+  `container` job so its logic is tested on every change): `/healthz` version and commit equal the
+  release; `/readyz` 200 within 3 minutes; `GET /api/projects` without a cookie → 401 with no
+  project names; `/auth/login` → 302 to the configured issuer with `code_challenge_method=S256`;
+  HSTS, CSP, `X-Content-Type-Options` present; the sign-in cookie is `Secure; HttpOnly`.
+- **Hardening**: actions pinned by commit with Dependabot (`github-actions`, `docker`, `npm`
+  ecosystems) proposing updates; no `pull_request_target`; fork pull requests get no secrets and
+  no token issuance, and `publish`/`deploy` never run for them; `tests/ci/workflows.test.ts` parses
+  the workflows and fails on an unpinned action, a job with write permissions it does not need, a
+  `secrets.` reference in an Azure sign-in, or a quality-gate script missing from the `browser`
+  matrix or the container suite list.
+- **Rejected**: one workflow file for everything (release approval would block the whole run);
+  rebuilding the image on tag (the released digest would not be the tested one); Azure DevOps
+  Pipelines (the code and reviews live on GitHub).
+
+## R19 Registry: Azure Container Registry
+
+- **Decision**: Azure Container Registry, Basic tier, admin user disabled, repository
+  `semantic-workbench`. Tags: `sha-<commit>` (immutable by convention), `main` (moving), `vX.Y.Z`
+  (promoted). The container app pulls with its managed identity (`AcrPull`); the publish identity
+  holds `AcrPush`; the deploy identity holds `AcrPush` (to add version tags) and rights on the
+  container app only.
+- **Why**: the GitHub repository is private, so a GHCR package would be private too, and Azure
+  Container Apps can pull a private GHCR image only with a stored personal access token, a
+  long-lived secret the owner excluded. ACR keeps every pull and push on federated or managed
+  identities, inside the same tenant as the deployment.
+- **Cost and retention**: Basic tier has a monthly fee and a storage quota; a retention rule
+  (documented manual step) removes untagged manifests, and commit tags older than 90 days that no
+  version tag points to may be deleted by hand.
+- **Rejected**: GHCR (stored token for private pulls; free and simpler if the repository and image
+  become public, in which case anonymous pulls need no credential); Docker Hub (external account,
+  rate limits).
+- Open for the owner: OP-6 (accept the registry's cost, or make the repository public and use
+  GHCR).
+
+## R20 GitHub to Azure trust and the resources the pipeline expects
+
+- **Workload identity federation**: two user-assigned managed identities with federated
+  credentials (issuer `https://token.actions.githubusercontent.com`, audience
+  `api://AzureADTokenExchange`):
+  - `id-sw-publisher`, subject `repo:rmonteiro-pereira/semantic-workbench:ref:refs/heads/main`;
+    role `AcrPush` on the registry.
+  - `id-sw-deployer`, subject `repo:rmonteiro-pereira/semantic-workbench:environment:production`;
+    roles `AcrPush` on the registry and Contributor on the container app resource only (no
+    subscription or resource-group write). If the update also needs the Container Apps
+    environment's join action, a custom role limited to that action is added on the environment;
+    the final role set is recorded by T133 and written in the guide.
+  `azure/login` receives client id, tenant id and subscription id from repository variables
+  (`AZURE_CLIENT_ID_PUBLISHER`, `AZURE_CLIENT_ID_DEPLOYER`, `AZURE_TENANT_ID`,
+  `AZURE_SUBSCRIPTION_ID`), none of which is a secret. Environment-based subjects avoid the exact
+  match limits of tag subjects (`v*` cannot be expressed as one subject). Under the OP-7 fallback
+  (no required reviewers on the plan) the deploy workflow runs by manual dispatch on `main` and the
+  deployer's federated subject is `ref:refs/heads/main`; the workflow then checks that the actor
+  is listed in `SW_DEPLOYERS` before any Azure step.
+- **Resources** (manual, `deploy/azure/README.md`): resource group; Log Analytics workspace;
+  Container Apps environment (consumption profile) with the Azure Files storage registered;
+  storage account and file share; Key Vault (RBAC mode) with `SW_SESSION_KEY` and provider and
+  GitHub secrets; container registry; container app (single revision mode, one replica, ingress
+  4310, system identity with `AcrPull` and Key Vault Secrets User, volume at `/data`, probes,
+  environment variables of contracts/configuration.md with secret references); the two pipeline
+  identities; the Entra app registration for sign-in (quickstart §5).
+- **GitHub settings** (manual, same guide): ruleset on `main` requiring the `ci.yml` checks and a
+  pull request; ruleset restricting creation of `v*` tags to the owner; environment `production`
+  with required reviewers and a deployment rule for `v*` tags (or the OP-7 fallback); repository
+  variables above plus `ACR_NAME`, `ACA_NAME`, `ACA_RESOURCE_GROUP`, `SW_PUBLIC_URL`.

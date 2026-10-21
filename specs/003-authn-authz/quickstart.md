@@ -42,16 +42,30 @@ SW_BOOTSTRAP_ADMINS=dave@example.org DATA_DIR=$(mktemp -d) bun run build && bun 
 drops `Secure` and the `__Host-` prefix, for development only.) Sign in as `alice`, `bob`,
 `carol`, `dave`, `erin` (password `test`); compare with the spec's role matrix.
 
-## 4. Container
+## 4. Container (available from Phase 3)
 
 ```sh
-docker build -t semantic-workbench:0.4.0 .
-docker run --rm -p 4310:4310 -v "$PWD/.data:/data" --env-file .env.server semantic-workbench:0.4.0
-curl -fsS localhost:4310/healthz && curl -fsS localhost:4310/readyz
+docker compose --profile local up --build         # local mode from the image, host networking
+# http://127.0.0.1:4310, no sign-in, workspace in ./.data
+SW_BASE_URL=http://127.0.0.1:4310 bun run test:ui # same suite against the image
+bun run test:container                            # builds the image, runs every suite of scripts/container-suites.ts
 ```
 
-Restart the container and confirm the session and data survive (SC-009); start a second
-container on the same volume and confirm it refuses to serve (FR-122).
+Server profile (from Phase 5): `cp .env.server.example .env.server`, then
+
+```sh
+docker compose --profile server up --build        # Keycloak on 127.0.0.1:8080 + workbench in server mode
+curl -fsS localhost:4310/healthz && curl -fsS localhost:4310/readyz
+bun scripts/deploy-smoke.ts http://localhost:4310 dev $(git rev-parse HEAD) --loopback
+```
+
+Sign in as `alice` (password `test`). Restart the `workbench-server` service and confirm the
+session and data survive (SC-009); start a second container of the same revision on the same
+volume and confirm it refuses to serve (FR-122). Check `docker compose exec workbench-server id -u`
+is not 0.
+
+Without host networking (Docker Desktop with the option off) local mode is unreachable by design
+(OP-8); use server mode or enable host networking.
 
 ## 5. Microsoft Entra ID (manual, recorded in verification.md)
 
@@ -64,11 +78,29 @@ container on the same volume and confirm it refuses to serve (FR-122).
    consent.
 4. Credential: federated credential for the Container App's managed identity (or a secret in Key
    Vault).
-5. Deploy to Azure Container Apps (one replica, Azure Files at `/data`, cache on local disk),
-   sign in with users of each role, push to Azure DevOps as an Editor and check the push author.
+5. Create the Azure resources of [delivery-pipeline.md](./contracts/delivery-pipeline.md) by hand
+   following `deploy/azure/README.md`, deploy through the pipeline (§7), sign in with users of
+   each role, push to Azure DevOps as an Editor and check the push author.
 
 ## 6. Admin panel
 
 As `dave`: assign a project to a domain, map a group to Steward, run **Access check** for
 `alice`, edit a rule with **Dry run**, roll back, try to deactivate the last Admin (refused),
 export the audit log filtered to today.
+
+## 7. Pipeline (from Phase 4; delivery from Phase 6)
+
+1. Open a pull request: `ci.yml` runs `verify`, `mutation`, `browser`, `keycloak`, `image`,
+   `container`; all must pass before merge. A failing unit test or an unignored fixable
+   critical/high finding fails the run.
+2. Merge: `publish` pushes `sha-<commit>` and `main` to the registry (check with
+   `az acr repository show-tags -n <acr> --repository semantic-workbench`).
+3. `git tag v0.4.0-alpha.1 && git push origin v0.4.0-alpha.1`: `release.yml` checks the tag,
+   waits for approval in `production`, then rescans, promotes, deploys and smoke-tests; the job
+   summary shows the digest and the smoke result.
+4. Rollback drill: run `rollback.yml` with the previous version and confirm the smoke test passes
+   on it. The automatic rollback path is covered on every change by `tests/ci/deploy.test.ts`
+   (`scripts/deploy.ts` against a fake Azure client) and recorded once on Azure in
+   verification.md.
+5. Confirm the repository, its environments and variables hold no Azure or registry secret
+   (SC-016).
