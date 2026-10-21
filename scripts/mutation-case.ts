@@ -233,4 +233,5 @@ if(category==='odcs-diff'){const v=(t:string,p='VARCHAR')=>({schema:[{name:'o',p
  assert.deepEqual(m.diffObject(v('string'),v('integer'),'o')?.properties[0]?.changes,[{attribute:'logicalType',before:'string',after:'integer'}]);
  assert.deepEqual(m.diffObject(v('string'),v('string','TEXT'),'o')?.properties[0]?.changes,[{attribute:'physicalType',before:'VARCHAR',after:'TEXT'}]);
  assert.equal(m.diffObject(v('string'),v('string'),'o'),null);}
+if(category==='fullscreen'){const m1=m.createViewMemory();assert.equal(m1.exit(),null);m1.enter({x:10,y:-5,zoom:0.4});assert.equal(m1.pending,true);assert.deepEqual(m1.exit(),{x:10,y:-5,zoom:0.4});assert.equal(m1.exit(),null);}
 

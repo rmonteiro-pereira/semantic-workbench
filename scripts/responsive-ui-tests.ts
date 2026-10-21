@@ -3,6 +3,7 @@ import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { treeRowProblems } from './helpers/tree-geometry';
 import { neighborhoodEdgeProblems, neighborhoodState, pickCenter } from './helpers/edge-geometry';
 import { inspect } from '../src/model';
+import { layoutProblems } from './helpers/layout-geometry';
 
 // Isolated API fixture: exercising viewport changes never modifies the local workspace.
 // The UBL ontology is imported first so that it opens first.
@@ -165,6 +166,104 @@ try {
     }
   });
   await page.close();
+  // Full screen (FR-066): Graph and Neighborhood fill the screen, details open over the graph, and
+  // Escape (or the exit control) restores the earlier layout, zoom and selection.
+  const transform = (p: Page) => p.locator('.react-flow__viewport').first().evaluate(el => getComputedStyle(el).transform);
+  const fsPage = await openPage(1440, 900);
+  await check('full screen: Graph fills the screen, details overlay it, Escape restores zoom and selection', async () => {
+   await fsPage.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
+   await expect(fsPage.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60_000 });
+   await fsPage.getByRole('button', { name: 'Fit model' }).click();
+   await fsPage.mouse.move(700, 500); await fsPage.mouse.wheel(0, -240);
+   await expect.poll(() => transform(fsPage)).not.toBe('none');
+   await fsPage.waitForTimeout(400);
+   const before = await transform(fsPage);
+   await fsPage.getByRole('button', { name: 'Enter full screen' }).click();
+   await expect(fsPage.locator('.canvas-row.is-fullscreen')).toBeVisible();
+   await expect.poll(async () => { const b = (await fsPage.locator('.canvas-row').boundingBox())!; return Math.round(b.width) >= 1438 && Math.round(b.height) >= 898; }).toBe(true);
+   await expect.poll(() => transform(fsPage)).not.toBe(before);
+   await fsPage.locator('.react-flow__node-entity').first().click();
+   const inspector = fsPage.locator('.inspector');
+   await expect(inspector).toBeVisible();
+   const selectedName = await fsPage.locator('.inspector h2').textContent();
+   // Details sit over the graph: the graph keeps the full width.
+   expect((await fsPage.locator('.react-flow').boundingBox())!.width).toBeGreaterThan(1400);
+   expect(await layoutProblems(fsPage)).toEqual([]);
+   await fsPage.screenshot({ path: '/tmp/workbench-fullscreen-graph.png' });
+   await fsPage.keyboard.press('Escape');
+   await expect(fsPage.locator('.canvas-row.is-fullscreen')).toHaveCount(0);
+   await expect.poll(() => transform(fsPage), { timeout: 3000 }).toBe(before);
+   await expect(fsPage.locator('.inspector h2')).toHaveText(selectedName!);
+   await fsPage.getByRole('button', { name: 'Close details', exact: true }).click();
+  });
+  await check('full screen: the F key works in Neighborhood, and the exit control restores the view', async () => {
+   await fsPage.locator('.tabs').getByRole('button', { name: 'Neighborhood', exact: true }).click();
+   await pickCenter(fsPage, name40);
+   await expect.poll(() => centerOf(fsPage)).toBe('ontology/40');
+   await fsPage.waitForTimeout(400);
+   const before = await transform(fsPage);
+   await fsPage.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+   await fsPage.keyboard.press('f');
+   await expect(fsPage.locator('.canvas-row.is-fullscreen')).toBeVisible();
+   await expect.poll(() => neighborhoodEdgeProblems(fsPage)).toEqual([]);
+   await fsPage.screenshot({ path: '/tmp/workbench-fullscreen-neighborhood.png' });
+   await fsPage.getByRole('button', { name: 'Exit full screen' }).click();
+   await expect(fsPage.locator('.canvas-row.is-fullscreen')).toHaveCount(0);
+   await expect.poll(() => transform(fsPage), { timeout: 3000 }).toBe(before);
+   await expect.poll(() => centerOf(fsPage)).toBe('ontology/40');
+   // Full screen belongs to the graph views: other tabs have no control and F does nothing there.
+   await fsPage.locator('.tabs').getByRole('button', { name: 'Catalog', exact: true }).click();
+   await expect(fsPage.getByRole('button', { name: 'Enter full screen' })).toHaveCount(0);
+   await fsPage.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+   await fsPage.keyboard.press('f');
+   await expect(fsPage.locator('.canvas-row.is-fullscreen')).toHaveCount(0);
+  });
+  await fsPage.close();
+  // Resize sweep (FR-067): every view reflows across the viewport matrix and on resize between
+  // sizes, with no horizontal page scroll and no control cut off.
+  const sweep = await openPage(1440, 900);
+  const sizes: [number, number][] = [[2560, 1440], [1920, 1080], [1440, 900], [1366, 768], [1280, 720], [1024, 768], [800, 900], [390, 844], [1440, 900]];
+  async function tab(p: Page, name: string) {
+   if (!(await p.locator('.tabs').isVisible())) return;
+   await p.locator('.tabs').getByRole('button', { name, exact: true }).click();
+  }
+  async function sidebarNav(p: Page, name: RegExp) {
+   const open = p.getByRole('button', { name: 'Open workspace', exact: true });
+   if (await open.isVisible()) await open.click();
+   await p.getByRole('button', { name }).click();
+  }
+  async function openFile(p: Page, path: string) {
+   const open = p.getByRole('button', { name: 'Open workspace', exact: true });
+   if (await open.isVisible()) await open.click();
+   await p.getByRole('button', { name: path, exact: true }).click();
+  }
+  const views: [string, (p: Page) => Promise<void>][] = [
+   ['Graph', async p => { await openFile(p, 'ubl.ontology.yaml'); await tab(p, 'Graph'); await expect(p.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60_000 }); }],
+   ['Neighborhood', async p => tab(p, 'Neighborhood')],
+   ['Overview', async p => tab(p, 'Overview')],
+   ['Catalog', async p => tab(p, 'Catalog')],
+   ['Source', async p => tab(p, 'Source')],
+   ['Mappings', async p => tab(p, 'Mappings')],
+   ['Metrics', async p => { await openFile(p, 'sales.ossie.yaml'); await p.locator('.tabs').getByRole('button', { name: /^Metrics/ }).click(); }],
+   ['Contract', async p => { await openFile(p, 'commerce.odcs.yaml'); await tab(p, 'Contract'); await expect(p.getByRole('region', { name: 'Contract overview' })).toBeVisible(); }],
+   ['Dataset page', async p => { await p.getByRole('button', { name: 'Open orders', exact: true }).click(); await expect(p.getByRole('region', { name: 'Dataset orders' })).toBeVisible(); }],
+   ['Source control', async p => { await sidebarNav(p, /^Source control/); await expect(p.getByRole('region', { name: 'Source Control' })).toBeVisible(); }],
+  ];
+  for (const [view, show] of views) {
+   await check(`resize sweep: ${view} reflows at every size without horizontal scroll or cut-off controls`, async () => {
+    await sweep.setViewportSize({ width: 1440, height: 900 });
+    await show(sweep);
+    const found: string[] = [];
+    for (const [width, height] of sizes) {
+     await sweep.setViewportSize({ width, height });
+     await sweep.waitForTimeout(250);
+     for (const problem of await layoutProblems(sweep)) found.push(`${width}×${height}: ${problem}`);
+     if (width === 390 || width === 2560) await sweep.screenshot({ path: `/tmp/workbench-sweep-${view.toLowerCase().replace(/ /g, '-')}-${width}.png` });
+    }
+    expect(found).toEqual([]);
+   });
+  }
+  await sweep.close();
   await check('no uncaught browser errors', async () => expect(errors).toEqual([]));
   console.log(`${passed} responsive UI checks passed`);
 } finally {
