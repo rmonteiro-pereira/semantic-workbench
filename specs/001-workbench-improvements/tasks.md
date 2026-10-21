@@ -31,13 +31,13 @@ suite (`bun test`, `check`, `build`, `test:ui`, `test:responsive`, `test:edges`,
 
 **Purpose**: protect the owner's data and prepare isolation, dependencies and scripts.
 
-- [ ] T001 Back up the owner's real workspace before any migration code runs against it: stop the app, copy `data/` to a dated folder outside the repository (for example `../semantic-workbench-data-backup-YYYYMMDD/`), record `sha256sum data/workbench.sqlite` in a `BACKUP.txt` beside the copy, and confirm with `cmp` that the copied database is identical
-- [ ] T002 [P] Add pinned CodeMirror 6 dependencies (`@codemirror/state`, `view@6.43.15`, `commands`, `search`, `language`, `lint`, `lang-yaml@6.1.3`, `lang-json`, `lang-xml`, `legacy-modes@6.5.5`, `merge@6.12.3`) to package.json and bun.lock
-- [ ] T003 [P] Create server/projects/paths.ts with `DATA_DIR` (env, default `data/`) and the layout of data-model.md (`projects/`, `state/`, `trash/`, `backup/`, `cache.sqlite`); read it in server/index.ts
-- [ ] T004 [P] Create tests/helpers/temp-data-dir.ts that creates an isolated `DATA_DIR` with Git `user.name`/`user.email` set for the test process
-- [ ] T005 [P] Create scripts/helpers/isolated-api.ts that starts the API on a temporary `DATA_DIR` for browser checks (never the user's `data/`)
-- [ ] T006 Add package.json scripts `test:projects`, `test:trash`, `test:metrics`, `test:editor`, `test:item-edit`, `test:rdf-edit`, `test:scm`, `test:odcs` pointing to the browser checks created in later phases
-- [ ] T007 [P] Document prerequisites (Git ≥ 2.40, configured identity, `DATA_DIR`) in README.md
+- [X] T001 Back up the owner's real workspace before any migration code runs against it: stop the app, copy `data/` to a dated folder outside the repository (for example `../semantic-workbench-data-backup-YYYYMMDD/`), record `sha256sum data/workbench.sqlite` in a `BACKUP.txt` beside the copy, and confirm with `cmp` that the copied database is identical
+- [X] T002 [P] Add pinned CodeMirror 6 dependencies (`@codemirror/state`, `view@6.43.15`, `commands`, `search`, `language`, `lint`, `lang-yaml@6.1.3`, `lang-json`, `lang-xml`, `legacy-modes@6.5.5`, `merge@6.12.3`) to package.json and bun.lock
+- [X] T003 [P] Create server/projects/paths.ts with `DATA_DIR` (env, default `data/`) and the layout of data-model.md (`projects/`, `state/`, `trash/`, `backup/`, `cache.sqlite`); read it in server/index.ts
+- [X] T004 [P] Create tests/helpers/temp-data-dir.ts that creates an isolated `DATA_DIR` with Git `user.name`/`user.email` set for the test process
+- [X] T005 [P] Create scripts/helpers/isolated-api.ts that starts the API on a temporary `DATA_DIR` for browser checks (never the user's `data/`)
+- [X] T006 Add package.json scripts `test:projects`, `test:trash`, `test:metrics`, `test:editor`, `test:item-edit`, `test:rdf-edit`, `test:scm`, `test:odcs` pointing to the browser checks created in later phases
+- [X] T007 [P] Document prerequisites (Git ≥ 2.40, configured identity, `DATA_DIR`) in README.md
 
 **Checkpoint**: backup verified; isolation helpers available.
 
@@ -53,39 +53,39 @@ deletion loses nothing, two-tab stale save).
 
 ### Tests (write first)
 
-- [ ] T008 [P] Unit tests for atomic write (temp → fsync → rename → fsync dir, simulated crash keeps the original) and SHA-256 hashing in tests/atomic.test.ts
-- [ ] T009 [P] Path validation tests in tests/paths.test.ts: reject `..`, absolute paths and anything under `.git/`; slug must match `^[a-z0-9][a-z0-9-]{0,62}$`; project name 1–200 chars, unique case-insensitively
-- [ ] T010 [P] State file tests (each file carries `formatVersion`; atomic replace; projects.json, views/<slug>.json, drafts, legacy-ids.json) in tests/state.test.ts
-- [ ] T011 [P] Journal tests in tests/journal.test.ts: unfinished journal rolled forward when every source exists and every destination is free, otherwise rolled back; outcome reported
-- [ ] T012 [P] Scanner tests in tests/scanner.test.ts: listing via `git ls-files -co --exclude-standard -z` honours `.gitignore`; unsupported types hidden; supported files with syntax errors shown invalid (FR-079, FR-092)
-- [ ] T013 [P] Cache tests in tests/cache.test.ts: delete `cache.sqlite` → rebuild yields identical files/entities/findings; `PRAGMA user_version` mismatch triggers rebuild (SC-015)
-- [ ] T014 [P] SSE tests in tests/events.test.ts: increasing ids, `Last-Event-ID` replay from a 1,000-event ring, `resync` when older, 15 s heartbeat, origin check on `/api/events`
-- [ ] T015 [P] Migration tests in tests/migration.test.ts with a v0.1.0 SQLite fixture: backup created; every source exported byte-for-byte and SHA-256 verified; duplicate filenames become `name (2).ext`; example sets grouped, others in "Ungrouped"; `git init -b main` + initial commit per project; legacy ids mapped; `document_views` carried to views/<slug>.json; a failed verification aborts and leaves the database untouched (FR-089, SC-016)
-- [ ] T016 [P] File API tests in tests/files-api.test.ts: `PUT` with `baseHash` returns `409 {error:'stale', currentHash, currentSource}` on mismatch; patches apply to base bytes; invalid source → 400 with issues and no write; legacy `/api/documents` facade keeps its shapes (R9)
-- [ ] T017 [P] Git plumbing tests in tests/git.test.ts: argument arrays only, explicit `cwd` inside `DATA_DIR/projects/`, per-repository serialization, 30 s local timeout, `core.autocrlf=false` in managed repos, `GIT_TERMINAL_PROMPT=0` set, missing Git / missing identity detected (FR-084, FR-085, FR-090)
+- [X] T008 [P] Unit tests for atomic write (temp → fsync → rename → fsync dir, simulated crash keeps the original) and SHA-256 hashing in tests/atomic.test.ts
+- [X] T009 [P] Path validation tests in tests/paths.test.ts: reject `..`, absolute paths and anything under `.git/`; slug must match `^[a-z0-9][a-z0-9-]{0,62}$`; project name 1–200 chars, unique case-insensitively
+- [X] T010 [P] State file tests (each file carries `formatVersion`; atomic replace; projects.json, views/<slug>.json, drafts, legacy-ids.json) in tests/state.test.ts
+- [X] T011 [P] Journal tests in tests/journal.test.ts: unfinished journal rolled forward when every source exists and every destination is free, otherwise rolled back; outcome reported
+- [X] T012 [P] Scanner tests in tests/scanner.test.ts: listing via `git ls-files -co --exclude-standard -z` honours `.gitignore`; unsupported types hidden; supported files with syntax errors shown invalid (FR-079, FR-092)
+- [X] T013 [P] Cache tests in tests/cache.test.ts: delete `cache.sqlite` → rebuild yields identical files/entities/findings; `PRAGMA user_version` mismatch triggers rebuild (SC-015)
+- [X] T014 [P] SSE tests in tests/events.test.ts: increasing ids, `Last-Event-ID` replay from a 1,000-event ring, `resync` when older, 15 s heartbeat, origin check on `/api/events`
+- [X] T015 [P] Migration tests in tests/migration.test.ts with a v0.1.0 SQLite fixture: backup created; every source exported byte-for-byte and SHA-256 verified; duplicate filenames become `name (2).ext`; example sets grouped, others in "Ungrouped"; `git init -b main` + initial commit per project; legacy ids mapped; `document_views` carried to views/<slug>.json; a failed verification aborts and leaves the database untouched (FR-089, SC-016)
+- [X] T016 [P] File API tests in tests/files-api.test.ts: `PUT` with `baseHash` returns `409 {error:'stale', currentHash, currentSource}` on mismatch; patches apply to base bytes; invalid source → 400 with issues and no write; legacy `/api/documents` facade keeps its shapes (R9)
+- [X] T017 [P] Git plumbing tests in tests/git.test.ts: argument arrays only, explicit `cwd` inside `DATA_DIR/projects/`, per-repository serialization, 30 s local timeout, `core.autocrlf=false` in managed repos, `GIT_TERMINAL_PROMPT=0` set, missing Git / missing identity detected (FR-084, FR-085, FR-090)
 
 ### Implementation
 
-- [ ] T018 Implement path helpers and validation in server/projects/paths.ts
-- [ ] T019 [P] Implement atomic write and hashing in server/projects/atomic.ts
-- [ ] T020 [P] Implement state files (registry, views, drafts with base hash, legacy ids) in server/projects/state.ts
-- [ ] T021 Implement operation journal and start-up recovery in server/projects/journal.ts (depends on T019, T020)
-- [ ] T022 Implement the Git wrapper (Bun.spawn, inherited environment plus `GIT_TERMINAL_PROMPT=0`, `LC_ALL=C`, per-repo queue, timeouts; init, config, add, commit, ls-files, minimal status) in server/projects/git.ts
-- [ ] T023 [P] Implement the SQLite cache (`files`, `entities`, `findings`, `suggestions` tables of data-model.md) in server/projects/cache.ts
-- [ ] T024 Implement the scanner (list, hash, serialization sniffing, shared validation from src/input.ts, index into cache) in server/projects/scanner.ts (depends on T022, T023)
-- [ ] T025 Implement the watcher (recursive `fs.watch`, 150 ms debounce per project, reconcile after Git operations, 60 s safety rescan) in server/projects/watcher.ts
-- [ ] T026 Implement the SSE hub and `GET /api/events` per contracts/sse-events.md in server/projects/events.ts and server/routes/events.ts
-- [ ] T027 Implement project routes (`GET/POST/PATCH /api/projects`, `POST /api/import` one project per batch, `POST /api/examples/:id`) in server/routes/projects.ts
-- [ ] T028 Implement file and draft routes (`GET/PUT` files with `baseHash`/patches, drafts) in server/routes/files.ts and server/routes/drafts.ts
-- [ ] T029 Implement migration (research R8) in server/projects/migration.ts and run it, then journal recovery, on start in server/index.ts
-- [ ] T030 Rework server/handler.ts into a router over server/routes/*, keep the legacy facade (`/api/documents`, grouping, `/api/agent/*` with ids from legacy-ids.json or `<project>/<path>`), adapt server/agent/runtime.ts to read the folder store, and retire server/store.ts
-- [ ] T031 [P] [US2] Implement the API client and EventSource subscription with resync in src/projects/api.ts and src/projects/useEvents.ts
-- [ ] T032 [US2] Implement the project tree sidebar (tree "Projects", per-file type and validity) in src/projects/Sidebar.tsx and replace the flat list and example loaders in src/main.tsx
-- [ ] T033 [US2] Handle stale saves (409) with a basic before/after view and add the Git/identity banner in src/main.tsx and src/projects/GitBanner.tsx
-- [ ] T034 Move every existing suite onto isolated data (tests/api-validation.test.ts, tests/store.test.ts → cache/facade, scripts/ui-tests.ts, scripts/examples-ui-tests.ts, scripts/grouping-validation-ui-tests.ts, scripts/responsive-ui-tests.ts, scripts/edge-attachment-ui-tests.ts) via T004/T005
-- [ ] T035 Browser check scripts/projects-browser-check.ts: tree, live update after an external edit within 2 s, two-tab stale save, cache deletion and restart (SC-015, SC-017)
-- [ ] T036 Add mutants in scripts/mutation-tests.ts: drop the base-hash check; write in place instead of temp+rename; skip migration hash verification; accept `..` paths; omit the origin check on `/api/events`; journal always rolls forward
-- [ ] T037 Update README.md: folder layout under `data/`, migration and backup, live refresh
+- [X] T018 Implement path helpers and validation in server/projects/paths.ts
+- [X] T019 [P] Implement atomic write and hashing in server/projects/atomic.ts
+- [X] T020 [P] Implement state files (registry, views, drafts with base hash, legacy ids) in server/projects/state.ts
+- [X] T021 Implement operation journal and start-up recovery in server/projects/journal.ts (depends on T019, T020)
+- [X] T022 Implement the Git wrapper (Bun.spawn, inherited environment plus `GIT_TERMINAL_PROMPT=0`, `LC_ALL=C`, per-repo queue, timeouts; init, config, add, commit, ls-files, minimal status) in server/projects/git.ts
+- [X] T023 [P] Implement the SQLite cache (`files`, `entities`, `findings`, `suggestions` tables of data-model.md) in server/projects/cache.ts
+- [X] T024 Implement the scanner (list, hash, serialization sniffing, shared validation from src/input.ts, index into cache) in server/projects/scanner.ts (depends on T022, T023)
+- [X] T025 Implement the watcher (recursive `fs.watch`, 150 ms debounce per project, reconcile after Git operations, 60 s safety rescan) in server/projects/watcher.ts
+- [X] T026 Implement the SSE hub and `GET /api/events` per contracts/sse-events.md in server/projects/events.ts and server/routes/events.ts
+- [X] T027 Implement project routes (`GET/POST/PATCH /api/projects`, `POST /api/import` one project per batch, `POST /api/examples/:id`) in server/routes/projects.ts
+- [X] T028 Implement file and draft routes (`GET/PUT` files with `baseHash`/patches, drafts) in server/routes/files.ts and server/routes/drafts.ts
+- [X] T029 Implement migration (research R8) in server/projects/migration.ts and run it, then journal recovery, on start in server/index.ts
+- [X] T030 Rework server/handler.ts into a router over server/routes/*, keep the legacy facade (`/api/documents`, grouping, `/api/agent/*` with ids from legacy-ids.json or `<project>/<path>`), adapt server/agent/runtime.ts to read the folder store, and retire server/store.ts
+- [X] T031 [P] [US2] Implement the API client and EventSource subscription with resync in src/projects/api.ts and src/projects/useEvents.ts
+- [X] T032 [US2] Implement the project tree sidebar (tree "Projects", per-file type and validity) in src/projects/Sidebar.tsx and replace the flat list and example loaders in src/main.tsx
+- [X] T033 [US2] Handle stale saves (409) with a basic before/after view and add the Git/identity banner in src/main.tsx and src/projects/GitBanner.tsx
+- [X] T034 Move every existing suite onto isolated data (tests/api-validation.test.ts, tests/store.test.ts → cache/facade, scripts/ui-tests.ts, scripts/examples-ui-tests.ts, scripts/grouping-validation-ui-tests.ts, scripts/responsive-ui-tests.ts, scripts/edge-attachment-ui-tests.ts) via T004/T005
+- [X] T035 Browser check scripts/projects-browser-check.ts: tree, live update after an external edit within 2 s, two-tab stale save, cache deletion and restart (SC-015, SC-017)
+- [X] T036 Add mutants in scripts/mutation-tests.ts: drop the base-hash check; write in place instead of temp+rename; skip migration hash verification; accept `..` paths; omit the origin check on `/api/events`; journal always rolls forward
+- [X] T037 Update README.md: folder layout under `data/`, migration and backup, live refresh
 
 **Checkpoint**: storage foundation shippable; all suites green.
 

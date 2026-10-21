@@ -1,17 +1,41 @@
 # Semantic Workbench
 
-Standalone React + TypeScript + Vite+ application with a local Bun API and SQLite persistence. Explore and edit data contracts, semantic models, ontology definitions and RDF graphs.
+Standalone React + TypeScript + Vite+ application with a local Bun API that stores each project as a Git-backed folder. Explore and edit data contracts, semantic models, ontology definitions and RDF graphs.
 
 ## Run
 
-Requires Bun 1.4+:
+Requires Bun 1.4+ and, for version control of projects, Git 2.40+ with `user.name` and `user.email` configured (`git config --global user.name "Your Name"`, `git config --global user.email you@example.com`):
 
 ```sh
 bun install
 bun run dev
 ```
 
-Open http://127.0.0.1:5173. API: http://127.0.0.1:4310. Both bind to loopback. Original document sources and indexed entities are saved together in SQLite transactions. Updates check revisions to prevent overwrites. Data is in `data/workbench.sqlite`; back up `data/` with the app stopped.
+Open http://127.0.0.1:5173. API: http://127.0.0.1:4310. Both bind to loopback. Without Git, or without a Git identity, the workspace still opens and edits files; a banner explains what is missing, and projects are not committed until it is fixed and the API is restarted.
+
+## Where your data lives
+
+Everything stays under the data root, `data/` by default. Set `DATA_DIR` to use another folder (the tests and browser checks always use temporary ones):
+
+```text
+data/
+├── projects/<project>/   one folder per project: your files, byte for byte, in a Git working tree
+├── state/                projects.json (project registry), views/ (grouping corrections per file),
+│                         drafts/, journal/ (unfinished multi-file operations), legacy-ids.json
+├── trash/                reserved for deleted files and projects (deletion arrives in a later release)
+├── backup/               the v0.1.0 database copied before migration
+└── cache.sqlite          index of hashes, entities and findings; safe to delete
+```
+
+The files in `data/projects/` are the only copy of your definitions. `cache.sqlite` is rebuilt from them on the next start if it is deleted or out of date; the project registry, view settings and drafts live in the JSON files under `state/`, which are always replaced atomically. Back up `data/` with the app stopped, or push projects to a Git remote.
+
+Every save sends the SHA-256 of the version it started from. If the file changed in the meantime (another tab, an external editor, a Git command), the save is refused and both versions are shown side by side: keep editing, load the current file, or explicitly save your version over it. Saves write a temporary file and rename it over the original, so a crash leaves either the old or the new bytes. Imports and project creation are staged and moved into place through a journal; an operation interrupted by a crash is completed or rolled back on the next start, and the outcome is shown.
+
+The API watches every project folder. Files you change, add or delete outside the workbench (an editor, a terminal, a Git checkout) appear in every open tab within about two seconds without a reload; an open file follows the disk unless it has unsaved edits. A full rescan also runs every 60 seconds. Files that `.gitignore` excludes and file types the workbench does not read (for example `.csv` or `.md`) are not listed; files of a supported type that fail validation are listed as invalid and open in Source for repair. As in Git, a file that is already committed stays listed even if `.gitignore` matches it.
+
+**Upgrading from v0.1.0.** On the first start with a `data/workbench.sqlite` from v0.1.0, the API copies that database (with its `-wal` and `-shm` files) to `data/backup/`, reads the copy, and writes every stored document's exact bytes into project folders: documents of a shipped example set go to that example's project, everything else to **Ungrouped**; duplicate filenames become `name (2).ext`. Each written file is read back and its SHA-256 compared with the stored bytes; any mismatch stops the migration before anything is moved into place, and it is retried on the next start. Each project then gets `git init` and one commit, "Import from Semantic Workbench v0.1.0". Old document ids keep resolving through `state/legacy-ids.json`, and saved grouping corrections move to `state/views/`. The original database is never opened or modified. The migration needs Git and a Git identity; without them it waits, leaves everything untouched and says so.
+
+The workbench only opens folders under `data/projects/` and never contacts a network for these operations: Git runs locally with prompts disabled, and no remote is configured or contacted.
 
 ## Supported inputs
 
@@ -27,11 +51,11 @@ Open http://127.0.0.1:5173. API: http://127.0.0.1:4310. Both bind to loopback. O
 
 File extensions help choose parsers; `.owl` is not treated as a serialization by itself. RDF/XML requires valid RDF/XML, not OWL/XML. JSON-LD, TriG, N-Quads, OWL Functional Syntax and Manchester syntax are not yet supported. Imported RDF is parsed locally without fetching `owl:imports` or remote documents. SHACL shapes are inspectable definitions; this application does not execute SHACL validation or OWL reasoning.
 
-Select multiple files with **Import definitions**. Documents are saved individually. The source editor always preserves the imported text until you edit it. RDF form descriptions are read-only; edit RDF in Source. YAML form changes retain comments and unknown fields; JSON form changes retain JSON syntax. Versioned contract/semantic documents receive their available official schema checks; other formats receive syntax and selected structural checks, not blanket conformance certification.
+Select multiple files with **Import definitions**. One selection becomes one project, named after the ontology or semantic model it contains, and is committed as one Git commit. The sidebar's **Projects** tree lists each project's files with their document type and whether they are valid. The source editor always preserves the imported text until you edit it. RDF form descriptions are read-only; edit RDF in Source. YAML form changes retain comments and unknown fields; JSON form changes retain JSON syntax. Versioned contract/semantic documents receive their available official schema checks; other formats receive syntax and selected structural checks, not blanket conformance certification.
 
 ## Commerce example workspace
 
-Click **Load commerce workspace** in the sidebar. It loads seven related documents into SQLite:
+Click **Load commerce workspace** in the sidebar. It creates the project "Commerce workspace" with seven related documents (clicking again opens the existing project):
 
 - `commerce.odcs.yaml`: a contract for customers, orders, order lines and products, with types, primary and foreign keys, ownership and business-definition IRIs.
 - `sales.ossie.yaml`: four datasets, three joins and three sales metrics; physical sources match the contract exactly.
@@ -69,7 +93,7 @@ bun scripts/relationship-browser-check.ts
 bun scripts/browser-check.ts
 ```
 
-Checks cover all commerce input formats, exact scale counts, native RDF identity and typed constraints, RDF/XML/Turtle OWL IRI equivalence, malformed inputs, official schemas, transactional saves, graph cycles, 5,000 entities / 15,000 links, relationship selection/editing, multi-format uploads and browser errors. Browser checks mock the API to protect user data. Screenshots go to `/tmp/`.
+Checks cover all commerce input formats, exact scale counts, native RDF identity and typed constraints, RDF/XML/Turtle OWL IRI equivalence, malformed inputs, official schemas, transactional saves, graph cycles, 5,000 entities / 15,000 links, relationship selection/editing, multi-format uploads and browser errors. Browser checks run the API on a temporary data root and send the page's `/api` requests there, so they never touch your workspace. `commerce-browser-check.ts`, `relationship-browser-check.ts` and `browser-check.ts` predate the current layout and also fail on v0.1.0 (stale selectors); they are kept for reference until they are updated. Screenshots go to `/tmp/`.
 
 ## Established complex business model: OASIS UBL 2.3
 
@@ -88,17 +112,20 @@ bun run test:ui
 bun run test:responsive
 bun run test:edges
 bun run test:grouping-validation
+bun run test:projects
 bun run test:mutation
 bun scripts/live-inspect.ts
 ```
 
-The UI suite uses real browser downloads and an isolated in-memory SQLite store. It checks reopening existing examples (the previous blank-graph regression), grouped relationship selection, unobstructed controls, all UBL exports plus RDF/XML, unsaved edits, JSON export, re-import, document switching and alignment. `live-inspect.ts` uses the real running API and user workspace read-only, captures screenshots, and compares the live exported document with its SQLite source.
+`bun run test:projects` checks the project tree, an external edit appearing in an open tab within 2 seconds, a stale save from a second tab, and a restart after deleting `cache.sqlite` (projects, files, view settings and drafts are restored).
+
+The UI suite uses real browser downloads and an API on a temporary data root. It checks reopening existing examples (the previous blank-graph regression), grouped relationship selection, unobstructed controls, all UBL exports plus RDF/XML, unsaved edits, JSON export, re-import, document switching and alignment. `live-inspect.ts` uses the real running API and workspace read-only (every non-GET request is refused), captures screenshots, and compares the live exported document with its project file.
 
 The responsive suite checks six viewports from 390×844 through 2560×1440, including 1280×720 and 1366×768 desktops. It verifies canvas space, contained controls, workspace drawer keyboard access, selection-centered neighborhoods, relationship details, repeated view changes and resizing. Screenshots go to `/tmp/workbench-responsive-*.png`. The compact header and collapsible workspace preserve canvas space; details appear only when selected.
 
 `bun run test:edges` measures Flights SVG endpoints against rendered entity borders during entity and business-area dragging, zooming, selection, and both layout modes. Worker routes render only when their endpoints match the current React Flow handles; live curves keep connections attached while dragging or waiting for a fresh route.
 
-The mutation suite is **targeted**, not a whole-project mutation score. It checks 41 deliberate logic faults in validation, RDF definitions, size limits, layout, neighborhood filtering, grouping, exports, form edits and SQLite validation/revision checks, plus a browser-injected empty neighborhood node projection. Unmodified module baselines must pass, and every mutant must be detected. It writes temporary candidate modules under `/tmp`, never changes application sources, and removes temporary files afterward.
+The mutation suite is **targeted**, not a whole-project mutation score. It checks 56 deliberate logic faults in validation, RDF definitions, size limits, layout, neighborhood filtering, grouping, exports, form edits and the folder store (a dropped base-hash check, an invalid save accepted, a write in place instead of temporary file and rename, skipped migration hash verification, `..` and `.git` paths accepted, no origin check on the event stream, journal recovery that always rolls forward), plus a browser-injected empty neighborhood node projection. Unmodified module baselines must pass, and every mutant must be detected. It writes temporary candidate modules under `/tmp`, never changes application sources, and removes temporary files afterward.
 
 **Group by → IRI namespaces** places each definition in the namespace of its IRI, labelled with the declared prefix of the longest matching namespace (Ossie `prefixes`, or the RDF document's prefixes). Definitions without an IRI are listed under **No IRI**. Auto grouping picks namespaces when business entities use at least two declared prefixes and no domains are declared.
 
@@ -118,11 +145,11 @@ bun scripts/large-graph-browser-check.ts
 EXPAND_ALL=1 bun scripts/large-graph-browser-check.ts
 ```
 
-The large browser check covers the 1,000-entity / 5,000-relationship fixture, model preservation, cancellation back to overview, area expansion, all-node expansion, zoom, selection and worker routing. It uses an API fixture to protect user documents; the graph check uses the real SQLite workspace read-only. Screenshots are written to `/tmp/real-graph-*.png`.
+The large browser check covers the 1,000-entity / 5,000-relationship fixture, model preservation, cancellation back to overview, area expansion, all-node expansion, zoom, selection and worker routing. It uses an API on a temporary data root; the graph check reads the real workspace without changing it. Screenshots are written to `/tmp/real-graph-*.png`.
 
 ## Input validation and repair
 
-The browser, inspector, SQLite store, and HTTP save endpoint share the same validation rules. Invalid documents are rejected before database writes. All imports in a selected batch are preflighted before saving; a batch containing errors opens **Review import**. Choose a file, inspect errors and warnings, edit the source or filename, and import when all errors are resolved. Cancel or Escape returns to the untouched open document. Saving a valid batch still uses individual document transactions; an unexpected API failure can leave earlier successful documents imported.
+The browser, inspector, folder store, and HTTP save endpoint share the same validation rules. Invalid documents are rejected before any file is written. All imports in a selected batch are preflighted before saving; a batch containing errors opens **Review import**. Choose a file, inspect errors and warnings, edit the source or filename, and import when all errors are resolved. Cancel or Escape returns to the untouched open document. A batch is written all or nothing: if the API fails, nothing from the batch is imported and the repaired drafts stay in the dialog for a retry.
 
 Invalid edits remain in **Source**, with Save disabled and findings showing JSON-pointer paths and YAML/JSON line/column locations. **Validation details** exposes coverage warnings even on valid documents. **Go to line** focuses the source editor. Export continues to preserve draft bytes, including invalid drafts, so work can be recovered externally. A valid file's graph, overview, catalog, relationship inspector, and export controls retain their existing behavior.
 
@@ -137,7 +164,7 @@ Checks include:
 
 These are input and supported-definition validators. They do not certify full OWL profile conformance or logical satisfiability, execute SQL, fetch imports, or apply SHACL shapes to a separate data graph. SHACL advanced/SPARQL constraints are preserved but not evaluated. Full standards reasoning needs a separate engine.
 
-`tests/validation.test.ts` includes malformed and positive cases for every supported input family and revalidates all shipped examples. `tests/api-validation.test.ts` exercises the actual HTTP handler against isolated SQLite. `bun run test:ui` covers repair, mixed batches, cancellation, invalid source/save recovery, original graph navigation, and byte-exact exports; screenshots are written to `/tmp/workbench-validation-*.png`. `bun run test:mutation` includes deliberate removal of duplicate, reference, cycle, join, schema, size, SHACL, and OWL checks.
+`tests/validation.test.ts` includes malformed and positive cases for every supported input family and revalidates all shipped examples. `tests/api-validation.test.ts` and `tests/files-api.test.ts` exercise the actual HTTP handler against a temporary data root. `bun run test:ui` covers repair, mixed batches, cancellation, invalid source/save recovery, original graph navigation, and byte-exact exports; screenshots are written to `/tmp/workbench-validation-*.png`. `bun run test:mutation` includes deliberate removal of duplicate, reference, cycle, join, schema, size, SHACL, and OWL checks.
 
 Standards references: [ODCS schema](https://github.com/bitol-io/open-data-contract-standard/blob/main/schema/odcs-json-schema-v3.1.0.json), [Ossie semantic specification](https://github.com/apache/ossie/blob/main/core-spec/spec.md), [W3C SHACL](https://www.w3.org/TR/shacl/).
 
@@ -162,7 +189,7 @@ All five [official Apache Ossie examples](tests/fixtures/ossie-mapping/README.md
 
 ## Grouping and validation navigation
 
-The graph and overview share a grouping selector: declared domains, suggested communities, definition types, and the explicitly curated UBL example areas. Flights has no declared domains: its suggested communities derive from a deterministic, bounded modularity pass over business relationships. Inheritance, direction, duplicate links and primitive hubs do not influence those suggestions. Shared values remain separate; every relationship stays available. Grouping details explain the basis and offer per-entity corrections saved in SQLite as document view settings. Original definitions and exports are unchanged. ODCS contract-level domain declarations are retained.
+The graph and overview share a grouping selector: declared domains, suggested communities, definition types, and the explicitly curated UBL example areas. Flights has no declared domains: its suggested communities derive from a deterministic, bounded modularity pass over business relationships. Inheritance, direction, duplicate links and primitive hubs do not influence those suggestions. Shared values remain separate; every relationship stays available. Grouping details explain the basis and offer per-entity corrections saved as view settings in `data/state/views/`. Original definitions and exports are unchanged. ODCS contract-level domain declarations are retained.
 
 Source and import-repair editors show numbered lines, red error highlights and amber warning highlights. Findings include named feature paths, offending source snippets and correction guidance. Go to line selects and scrolls to the affected line. Findings without a reliable location remain explicitly document-level. `bun run test:grouping-validation` verifies mode changes, persisted corrections, byte-exact exports, line highlighting and safe repair cancellation in an isolated browser workspace.
 

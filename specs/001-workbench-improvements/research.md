@@ -306,3 +306,50 @@ temporary `DATA_DIR`; browser checks (Playwright) start the API with an isolated
 `DATA_DIR` (never the user's `data/`); new targeted mutants per phase in
 `scripts/mutation-tests.ts`; geometry assertions in the responsive suite. A `DATA_DIR` environment
 variable (default `data/`) is introduced in Phase 1 for this isolation.
+
+---
+
+## R13. Implementation decisions taken in Phases 0–1
+
+Small decisions made while implementing the storage foundation, consistent with the constitution
+and recorded here so later phases build on them.
+
+- **Migration needs Git and an identity.** FR-075 requires every project to be a Git working tree
+  and FR-089 an initial commit. Without Git ≥ 2.40 or without `user.name`/`user.email`, the
+  migration is postponed: nothing is written, the database is untouched, the banner explains, and
+  it is retried on the next start. Completion is marked by `state/legacy-ids.json` (not by the
+  registry), so projects created while a migration was failing or postponed are kept and the
+  migrated projects are added beside them (names made unique).
+- **The v0.1.0 database is never opened.** The database and its `-wal`/`-shm` files are copied to
+  `data/backup/` and hash-checked; a second copy of the backup is read. Sources are read as
+  `CAST(source AS BLOB)`, so the exported bytes are the stored bytes, not a decoded and re-encoded
+  string. (Bun's SQLite binding drops a leading byte order mark when text is inserted, so v0.1.0
+  never stored one.)
+- **Example origins.** Migrated example sets get `origin: example:<id>` so the example loaders open
+  them instead of creating duplicates; everything else is "Ungrouped" with `origin: migration`.
+  An example loader also opens any project that already holds every example file with identical
+  bytes; this replaces v0.1.0's reuse of documents by filename.
+- **Journal steps are renames only.** Content is written to staging folders first
+  (`data/projects/.staging-<opId>/`, so Git runs inside `data/projects/`, and
+  `data/state/.staging-<opId>/`); the journal then moves finished folders and state files into place.
+  Replacing the registry is two renames (current → staging, new → current). Recovery checks the
+  remaining steps in order against the file system as earlier steps would leave it, and settles a
+  rename whose `done` flag was not yet written.
+- **Patch offsets** are UTF-16 code-unit offsets into the base text decoded from UTF-8 (the unit of
+  JavaScript strings and CodeMirror). Files must be valid UTF-8; a leading BOM is kept. Files that
+  are not valid UTF-8 are listed as invalid and cannot be saved through the API.
+- **Legacy facade versions.** `/api/documents` keeps an integer `revision`, now derived from the
+  content hash (first 48 bits + 1), and also accepts `baseHash`; both are hash-checked. Documents
+  created through the facade go to the "Ungrouped" project. Facade and agent errors keep the
+  v0.1.0 status 400.
+- **`GET /api/status`** (added to contracts/http-api.md) reports Git availability, identity,
+  the migration report and recovery outcomes for the banner (FR-090), since these are facts of
+  the start-up, not of one project.
+- **Read-only Git calls** (`ls-files`, `status`) use `--no-optional-locks`, so they do not refresh
+  `.git/index` and the watcher does not react to the workbench's own scans.
+- **First file opened** is the first file of the tree (registry order, then path) rather than the
+  most recently updated document; after an import the batch's last file opens, as before.
+- **Older browser scripts.** `commerce-browser-check.ts`, `relationship-browser-check.ts` and
+  `browser-check.ts` fail on v0.1.0 as well (stale selectors, verified in a v0.1.0 worktree); they
+  were moved to isolated data roots so they can no longer write to a real workspace, but are not
+  part of the gate.
