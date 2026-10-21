@@ -567,3 +567,45 @@ and recorded here so later phases build on them.
   (whole-item rewrite), delete without dependents, wizard and server copying the formula into the
   extension, binding lines appended unsorted, approved KPI kept approved after a change. The
   existing `model` mutant now targets the patcher call. 83/83 killed.
+
+## R19. Implementation decisions taken in Phase 7
+
+- **The graph gate (FR-055).** Every RDF item edit, addition, deletion and Source fragment edit is
+  parsed back and compared with the original: the triples not describing the edited resource
+  (its own statements plus the blank nodes reachable from them) must be isomorphic before and after,
+  and the resource's description must be isomorphic to the intended statements. Otherwise Save is
+  refused with the reason. Ground triples are compared as sets; blank nodes by colour refinement
+  (hashing each node with its neighbourhood until stable) followed by a backtracking match when
+  classes stay ambiguous. Above 200 ambiguous blank nodes the refined hashes are accepted without
+  the search (no shipped example comes near; the bound keeps the check interactive).
+- **No new dependency.** `n3` (already used) reads Turtle, N-Triples and N3; RDF/XML is read with
+  `rdflib` (already used) and patched with a small offset-keeping XML scanner, so the patchers know
+  exact byte ranges.
+- **Where text goes.** N-Triples: whole lines; new lines after the resource's last line. Turtle and
+  N3: the statement block is rewritten in place one predicate-object segment at a time (removed
+  segments take their separator; a value added to an existing predicate is `, value`; a new
+  predicate goes after the last one with the block's own separator and indentation; a resource
+  without statements gets a new block at the end of the file in the file's layout). Additions go to
+  the resource's first block when it has several. Prefixes the new text needs are declared after
+  the existing directives only for well-known vocabularies; other IRIs are written in full.
+  RDF/XML: the node element stays where it is, property elements are replaced, removed or added
+  with the element's indentation, a self-closing element is opened when it gains a child, and new
+  IRIs are written absolute (`rdf:resource`) rather than relative to `xml:base`.
+- **What is refused (jump to Source).** N3: resources that appear inside a formula or rule, and
+  statements the tokenizer cannot split. RDF/XML: `rdf:parseType="Collection"`, reification
+  (`rdf:ID` on a property), `rdf:li`, and resources also described in a nested element elsewhere.
+  The RDF/XML typed node name (`<owl:Class …>`) is the resource's type and is shown locked; a
+  nested description can only be removed as a whole. Nested blank nodes (`[ … ]`) are edited as one
+  object value in Turtle syntax; labelled blank nodes (`_:x`) are followed through the graph.
+- **Object values are written and read in Turtle syntax** for every serialization (the item editor
+  shows `"text"@en`, `c:Order`, `<…>`), so one editor serves all four formats; N-Triples and
+  RDF/XML get them converted. Prefixed names use the file's prefixes plus the well-known ones.
+- **Comments.** Removing statements that carry or are followed by a comment inside the removed
+  range shows the comment and needs a ticked confirmation before Save.
+- **Delete.** Removes the resource's statements and, in the same file, the statements that name it
+  (listed first); other project files that mention its IRI are listed to fix in Source, not edited.
+- **Separate components.** RDF uses `RdfItemEditor` and `RdfAddItem` (same drawer, actions and
+  validation as the Phase 6 editor) instead of extending the YAML form model, whose item paths do not
+  apply to graphs. Add offers OWL class, object and datatype property, SHACL node and property
+  shape, and any RDF resource.
+
