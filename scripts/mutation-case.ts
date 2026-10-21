@@ -159,7 +159,11 @@ if(category==='agent'){
  assert.throws(()=>plan(change(2,d=>delete d.datasets[1].primary_key)));
 }
 if(category==='iri'){assert.deepEqual(m.expandIri('ex:A',{ex:'https://example.org/'}),{iri:'https://example.org/A',prefix:'ex'});assert('error'in m.expandIri('zz:A',{ex:'https://example.org/'}));assert.deepEqual(m.expandIri('https://x.example/A'),{iri:'https://x.example/A'});}
-if(category==='odcs'){const data={schema:[{name:'a',properties:[{name:'id'}]},{name:'b',properties:[{name:'a_id',relationships:[{to:'a.id'}]},{name:'x_id',relationships:[{to:'x.id'}]}]}]};assert.equal(m.odcsForeignKeys(data).length,1);assert.equal(m.odcsReferenceIssues(data).length,1);}
+if(category==='odcs'){const data={schema:[{name:'a',properties:[{name:'id'}]},{name:'b',properties:[{name:'a_id',relationships:[{to:'a.id'}]},{name:'x_id',relationships:[{to:'x.id'}]}]}]};assert.equal(m.odcsForeignKeys(data).length,1);assert.equal(m.odcsReferenceIssues(data).length,1);
+ // v0.3.0 column pairs (T007): referenced column kept; unequal composite arity pairs nothing.
+ assert.deepEqual([m.odcsForeignKeys(data)[0].fromColumns,m.odcsForeignKeys(data)[0].toColumns],[['a_id'],['id']]);
+ const composite={schema:[{name:'a',properties:[{name:'x'},{name:'y'}]},{name:'b',properties:[{name:'ax'}],relationships:[{from:['b.ax'],to:['a.x','a.y']}]}]};
+ assert.deepEqual(m.odcsForeignKeys(composite)[0].toColumns,[]);assert.equal(m.odcsReferenceIssues(composite).length,1);}
 if(category==='suggestions'){
  const f=(project:string,path:string,facts:any)=>({project,path,hash:path,facts:{names:[],refs:[],iris:[],physical:[],sources:[],...facts}});
  const own=f('p','o.yaml',{names:['Flights']});

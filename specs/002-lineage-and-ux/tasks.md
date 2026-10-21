@@ -44,13 +44,13 @@ is shippable: it ends with every existing suite (`bun test`, `check`, `build`, `
 
 ## Phase 2: Foundational (blocking prerequisites)
 
-- [ ] T006 [P] Unit tests for foreign keys with column pairs (property-level, schema-level, composite, qualified ids, unequal arity, external) in tests/odcs-foreign-keys.test.ts
-- [ ] T007 Extend `odcsForeignKeys` with `fromColumns`/`toColumns` in src/odcs.ts without changing existing fields (research R2)
-- [ ] T008 [P] Shared edge styles map in src/graph/edge-styles.ts and shared legend component src/graph/LineageLegend.tsx moved from src/odcs/DatasetPage.tsx:115-128 and src/odcs/odcs.css:57-70, "KPI" kind renamed Metric (FR-025, FR-026)
-- [ ] T009 [P] Shared `PropertyBadges` component in src/PropertyBadges.tsx (PK, FK with target, Required, Unique, classification) used by the Properties table in src/odcs/DatasetPage.tsx (FR-027)
-- [ ] T010 [P] Unit tests for the walk step kind `expand` and v0.2.0 compatibility in tests/walk.test.ts; extend src/graph/walk.ts (data-model WalkStep)
-- [ ] T011 Generalise Git serialization key from project to repository: `repoDir(entry)` and `projectDir` resolved through the registry with defaults `folder = repo = slug` in server/projects/paths.ts, server/projects/git.ts, server/projects/scm.ts; tests in tests/paths-registry.test.ts prove v0.2.0 registries load unchanged (research R10)
-- [ ] T012 [P] Dialog conventions: extend src/projects/Modal.tsx with size variants and a footer slot; add tests/modal.test.tsx for Escape and focus return
+- [X] T006 [P] Unit tests for foreign keys with column pairs (property-level, schema-level, composite, qualified ids, unequal arity, external) in tests/odcs-foreign-keys.test.ts
+- [X] T007 Extend `odcsForeignKeys` with `fromColumns`/`toColumns` in src/odcs.ts without changing existing fields (research R2)
+- [X] T008 [P] Shared edge styles map in src/graph/edge-styles.ts and shared legend component src/graph/LineageLegend.tsx moved from src/odcs/DatasetPage.tsx:115-128 and src/odcs/odcs.css:57-70, "KPI" kind renamed Metric (FR-025, FR-026)
+- [X] T009 [P] Shared `PropertyBadges` component in src/PropertyBadges.tsx (PK, FK with target, Required, Unique, classification) used by the Properties table in src/odcs/DatasetPage.tsx (FR-027)
+- [X] T010 [P] Unit tests for the walk step kind `expand` and v0.2.0 compatibility in tests/walk.test.ts; extend src/graph/walk.ts (data-model WalkStep)
+- [X] T011 Generalise Git serialization key from project to repository: `repoDir(entry)` and `projectDir` resolved through the registry with defaults `folder = repo = slug` in server/projects/paths.ts, server/projects/git.ts, server/projects/scm.ts; tests in tests/paths-registry.test.ts prove v0.2.0 registries load unchanged (research R10)
+- [X] T012 [P] Dialog conventions: extend src/projects/Modal.tsx with size variants and a footer slot; add tests/modal.test.tsx for Escape and focus return
 
 **Checkpoint**: shared pieces in place; all existing suites green.
 

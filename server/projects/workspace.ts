@@ -8,7 +8,7 @@ import {createCache,type Cache} from './cache';
 import {createEvents} from './events';
 import {createGit} from './git';
 import {createJournal,type RecoveryOutcome} from './journal';
-import {dataLayout,disambiguate,projectDir,projectFile,projectName,projectPath,slugify,uniqueName,assertSlug,PathError,type DataLayout} from './paths';
+import {dataLayout,disambiguate,locationOf,projectDir,repoDir,projectFile,projectName,projectPath,slugify,uniqueName,assertSlug,PathError,type DataLayout} from './paths';
 import {createScanner,indexBytes} from './scanner';
 import {createState,type ProjectEntry,type Patch} from './state';
 import {createWatcher} from './watcher';
@@ -40,6 +40,8 @@ export async function openWorkspace(options:WorkspaceOptions={}){
  const layout:DataLayout=dataLayout(options.root);
  for(const dir of [layout.projects,layout.state,layout.trash,layout.backup])mkdirSync(dir,{recursive:true});
  const state=createState(layout),journal=createJournal(layout),events=createEvents();
+ // Project folders resolve through the registry (research R10); unregistered slugs are their own folder.
+ layout.locate=slug=>{const e=state.registry().projects.find(p=>p.slug===slug);return e?locationOf(e):undefined;};
  const git=createGit({projectsRoot:layout.projects,binary:options.gitBinary});
  const gitAvailable=await git.available(),identityConfigured=gitAvailable&&await git.identity();
  const recovery:RecoveryOutcome[]=journal.recover();
@@ -187,7 +189,7 @@ export async function openWorkspace(options:WorkspaceOptions={}){
  const watcher=options.watch?createWatcher(layout,{debounceMs:options.debounceMs,rescanMs:options.rescanMs,onChange:async(slug,gitChanged)=>{
   if(!projects().some(p=>p.slug===slug)||!existsSync(projectDir(layout,slug)))return;
   await rescan(slug);
-  if(gitChanged&&gitAvailable)try{const s=await git.status(projectDir(layout,slug));events.emit('git',{project:slug,branch:s.branch,ahead:s.ahead,behind:s.behind,changes:s.changes,altered:[]});}catch{}
+  if(gitChanged&&gitAvailable)try{const s=await git.status(repoDir(layout,slug));events.emit('git',{project:slug,branch:s.branch,ahead:s.ahead,behind:s.behind,changes:s.changes,altered:[]});}catch{}
  },all:()=>projects().map(p=>p.slug)}):null;
  for(const p of projects())if(existsSync(projectDir(layout,p.slug))){await scanner.scan(p.slug);watcher?.add(p.slug);}
  for(const r of recovery)events.emit('recovery',r);
@@ -277,7 +279,7 @@ export async function openWorkspace(options:WorkspaceOptions={}){
   async listProjects(){
    return Promise.all(projects().map(async p=>{
     let gitInfo={branch:'',ahead:0,behind:0,changes:0};
-    if(gitAvailable&&existsSync(projectDir(layout,p.slug)))try{const s=await git.status(projectDir(layout,p.slug));gitInfo={branch:s.branch,ahead:s.ahead,behind:s.behind,changes:s.changes};}catch{}
+    if(gitAvailable&&existsSync(projectDir(layout,p.slug)))try{const s=await git.status(repoDir(layout,p.slug));gitInfo={branch:s.branch,ahead:s.ahead,behind:s.behind,changes:s.changes};}catch{}
     return {slug:p.slug,name:p.name,origin:p.origin,createdAt:p.createdAt,...gitInfo,files:cache.files(p.slug).filter(f=>f.visible).map(f=>({path:f.path,docType:f.docType,layout:f.layout,valid:f.valid,visible:f.visible,gitState:f.gitState,hash:f.hash}))};
    }));
   },

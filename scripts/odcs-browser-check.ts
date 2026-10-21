@@ -128,6 +128,9 @@ try{
   await expect(page.locator('main > .status')).toContainText('Saved required of status');
   const desc=table.getByLabel('Description of amount');await desc.fill('Order total in USD, after discounts.');await desc.press('Enter');
   await expect.poll(diff).toEqual({removed:['        description: Order amount in USD.','        required: true'],added:['        description: Order total in USD, after discounts.']});
+  // Wait until the page has the saved version's hash before the next edit (the file on disk can
+  // change before the save response arrives; an edit in between is correctly refused as stale).
+  await expect(page.locator('main > .status')).toContainText('Saved description of amount');
   await table.getByLabel('Logical type of currency').selectOption('date');
   await expect.poll(async()=>(await diff()).added).toContain('        logicalType: date');
   await table.getByLabel('Classification of customer_id').fill('internal');await table.getByLabel('Classification of customer_id').press('Enter');

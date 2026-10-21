@@ -2,7 +2,10 @@ import {lstatSync} from 'node:fs';
 import {resolve,sep,join,posix} from 'node:path';
 // Data root layout (data-model.md). DATA_DIR overrides `data/` so tests and browser checks never
 // touch the owner's workspace.
-export type DataLayout={root:string;projects:string;state:string;views:string;drafts:string;journal:string;trash:string;backup:string;cache:string;legacyDb:string;registry:string;legacyIds:string};
+// `locate` resolves a project's folder and repository through the registry (research R10); set by
+// the workspace. Without it, or for unregistered slugs, both are the slug (v0.2.0 layout).
+export type ProjectLocation={folder:string;repo:string};
+export type DataLayout={root:string;projects:string;state:string;views:string;drafts:string;journal:string;trash:string;backup:string;cache:string;legacyDb:string;registry:string;legacyIds:string;locate?:(slug:string)=>ProjectLocation|undefined};
 export function dataLayout(root=process.env.DATA_DIR||'data'):DataLayout{
  const r=resolve(root),state=join(r,'state');
  return {root:r,projects:join(r,'projects'),state,views:join(state,'views'),drafts:join(state,'drafts'),journal:join(state,'journal'),trash:join(r,'trash'),backup:join(r,'backup'),cache:join(r,'cache.sqlite'),legacyDb:join(r,'workbench.sqlite'),registry:join(state,'projects.json'),legacyIds:join(state,'legacy-ids.json')};
@@ -19,7 +22,22 @@ export function projectPath(path:unknown):string{
  if(parts.some(p=>p.toLowerCase()==='.git'))throw new PathError('Paths under .git are not allowed.');
  return posix.normalize(path);
 }
-export function projectDir(layout:DataLayout,slug:string){return join(layout.projects,assertSlug(slug));}
+// A registry entry's folder and repository under data/projects/: v0.2.0 entries (no `folder`/`repo`)
+// are `slug`; a subfolder project's folder lies inside its repository folder.
+export function locationOf(entry:{slug:string;folder?:string;repo?:string}):ProjectLocation{
+ assertSlug(entry.slug);
+ if(entry.folder===undefined&&entry.repo===undefined)return {folder:entry.slug,repo:entry.slug};
+ const folder=projectPath(entry.folder??entry.repo),repo=projectPath(entry.repo??folder);
+ if(folder!==repo&&!folder.startsWith(repo+'/'))throw new PathError('A project folder must be its repository folder or lie inside it.');
+ return {folder,repo};
+}
+const located=(layout:DataLayout,slug:string)=>layout.locate?.(assertSlug(slug))??{folder:slug,repo:slug};
+export function projectDir(layout:DataLayout,slug:string){return join(layout.projects,located(layout,slug).folder);}
+// The Git working tree a project belongs to; Git commands for the project run here.
+export function repoDir(layout:DataLayout,slug:string){return join(layout.projects,located(layout,slug).repo);}
+// The project folder relative to its repository root, with a trailing slash ('' at the root):
+// project paths gain it on the way into Git and lose it on the way out.
+export function projectPrefix(layout:DataLayout,slug:string){const {folder,repo}=located(layout,slug);return folder===repo?'':folder.slice(repo.length+1)+'/';}
 // Absolute location of a project file, re-checked to stay inside the project folder. A symbolic
 // link anywhere on the way (for example one checked out from a pulled repository) could lead
 // outside it, so no existing segment may be a link; reads and writes both go through here.

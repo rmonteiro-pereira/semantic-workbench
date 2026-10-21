@@ -5,7 +5,9 @@ import {assertSlug,projectPath,type DataLayout} from './paths';
 // Durable application state (research R6): one human-readable JSON file per concern, each with a
 // formatVersion, always replaced atomically. The SQLite cache never holds anything listed here.
 export const STATE_FORMAT=1;
-export type ProjectEntry={slug:string;name:string;createdAt:string;origin:string};
+// `folder`/`repo` (v0.3.0, optional): the project's folder and Git repository folder under
+// data/projects/; absent means both are the slug. `remoteAddress`: the address a clone came from.
+export type ProjectEntry={slug:string;name:string;createdAt:string;origin:string;folder?:string;repo?:string;remoteAddress?:string};
 export type Registry={formatVersion:1;projects:ProjectEntry[]};
 export type ViewState={formatVersion:1;files:Record<string,unknown>};
 export type Patch={from:number;to:number;insert:string};

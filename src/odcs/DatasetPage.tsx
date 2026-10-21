@@ -7,6 +7,8 @@ import {scm,type Doc,type GitCommit as Commit} from '../projects/api';
 import {diffObject,flattenProperties,lastChange,type ObjectDiff} from './odcs-diff';
 import {odcsLineage,type Lineage,type LineageNode} from './lineage';
 import {rulesOf} from './ContractOverview';
+import {LineageLegend} from '../graph/LineageLegend';
+import {Badge,badge,type BadgeInfo} from '../PropertyBadges';
 import './odcs.css';
 // Marquez-style dataset page for one ODCS schema object (FR-057): a header with key facts, then
 // Schema (property table), Lineage (graph with depth control and property-level lineage), History
@@ -92,15 +94,19 @@ function SchemaTab({data,objectIndex,onOpenObject,editor}:{data:any;objectIndex:
   {!shown.length&&<p className="odcs-note">No property matches “{filter}”.</p>}
  </>;
 }
+// The boolean columns render the shared badges (FR-027), so the table and lineage cards match.
+const BOOLEAN_BADGE:Record<string,BadgeInfo>={primaryKey:badge('pk'),required:badge('required'),unique:badge('unique')};
 function PropertyRow({objectIndex,path,property,targets,onOpenObject,editor}:{objectIndex:number;path:string;property:Record<string,any>;targets:string[];onOpenObject:(n:string)=>void;editor?:Props['editor']}){
  const depth=path.split('.').length-1+(path.match(/\[\]/g)?.length??0);
  return <tr>{COLUMNS.map(c=>{
   const custom=editor?.({objectIndex,path,property,column:c});
   if(custom!==undefined&&custom!==null)return <td key={c.key} className={`col-${c.key}`}>{custom}</td>;
   if(c.key==='name')return <td key={c.key} className="col-name" style={depth?{paddingLeft:10+depth*14}:undefined}><code>{path}</code></td>;
-  if(c.key==='foreignKeys')return <td key={c.key}>{targets.map(t=><button key={t} className="odcs-link fk" aria-label={`Open ${t}`} onClick={()=>onOpenObject(t)}><Target size={11}/>{t}</button>)}</td>;
-  const v=c.value(property);
-  return <td key={c.key} className={`col-${c.key}`}>{typeof v==='boolean'?(v?<span className="odcs-yes">Yes</span>:''):c.key==='tags'&&v?String(v).split(', ').map(t=><em key={t} className="odcs-tag">{t}</em>):text(v)}</td>;
+  if(c.key==='foreignKeys')return <td key={c.key}>{targets.map(t=><button key={t} className="odcs-link fk" aria-label={`Open ${t}`} title={`Foreign key to ${t}`} onClick={()=>onOpenObject(t)}><Badge kind="fk"/>{t}</button>)}</td>;
+  const v=c.value(property),flag=BOOLEAN_BADGE[c.key];
+  if(flag)return <td key={c.key} className={`col-${c.key}`}>{v===true?<Badge kind={flag.kind} title={flag.title}>{flag.label}</Badge>:''}</td>;
+  if(c.key==='classification')return <td key={c.key} className={`col-${c.key}`}>{text(v)?<Badge kind="classification" title={`Classification: ${text(v)}`}>{text(v)}</Badge>:''}</td>;
+  return <td key={c.key} className={`col-${c.key}`}>{c.key==='tags'&&v?String(v).split(', ').map(t=><em key={t} className="odcs-tag">{t}</em>):text(v)}</td>;
  })}</tr>;
 }
 // Project files parsed once per content hash (RDF files are not YAML/JSON and are skipped).
@@ -125,7 +131,7 @@ function LineageTab({doc,projectDocs,objectName}:{doc:Doc;projectDocs:Doc[];obje
  return <>
   <div className="odcs-toolbar">
    <label className="odcs-depth"><span>Depth</span><select aria-label="Lineage depth" value={String(shownDepth)} onChange={e=>setDepth(Number(e.target.value))}>{Array.from({length:max},(_,i)=><option key={i+1} value={i+1}>{i+1}</option>)}</select></label>
-   <ul className="odcs-legend" aria-label="Legend">{(['object','dataset','field','metric','kpi'] as const).map(k=><li key={k} className={`k-${k}`}>{KIND_ICON[k]}{KIND_LABEL[k]}</li>)}<li className="fk-line">Foreign key</li><li className="flow-line">Feeds</li></ul>
+   <LineageLegend/>
   </div>
   <p className="odcs-note">Downstream links are matched by declared names: a semantic dataset whose <code>source</code> is this object's physical name, fields whose expressions read its columns, and the metrics over those fields.</p>
   <LineageGraph lineage={lineage}/>

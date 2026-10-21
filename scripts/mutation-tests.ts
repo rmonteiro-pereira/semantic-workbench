@@ -21,6 +21,8 @@ const mutants:[string,string,string,string][]=[
  ['validation','src/validation.ts','if(iris.has(iri))fail','if(false)fail'],
  ['odcs','src/odcs.ts','if(target===undefined){issues.push','if(false){issues.push'],
  ['odcs','src/odcs.ts','keys.push({from,to:target','if(false)keys.push({from,to:target'],
+ ['odcs','src/odcs.ts','if(toColumns.length!==fromColumns.length){','if(false){'],
+ ['odcs','src/odcs.ts',"return object===undefined?undefined:{object,column:ref.slice(dot+1)};","return object===undefined?undefined:{object,column:undefined};"],
  ['references','src/references.ts',"if('iri'in r)keys.push(r.iri);",''],
  ['iri','src/iri.ts','if(Object.hasOwn(prefixes,prefix))return','if(false)return'],
  ['agent','server/agent/runtime.ts',"return Array.isArray(p.data.semantic_model)?","return false?"],
