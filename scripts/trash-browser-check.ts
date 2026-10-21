@@ -3,6 +3,7 @@ import {existsSync} from 'node:fs';
 import {join} from 'node:path';
 import {startIsolatedApi,routeApi} from './helpers/isolated-api';
 import {treeRowProblems} from './helpers/tree-geometry';
+import {expectEditorValue,fillEditor} from './helpers/code-editor';
 // Phase 2 browser check (T051; SC-005, SC-006): suggestions accept/dismiss, delete with
 // confirmation, undo, trash restore and purge, project delete, Clear, without any page reload.
 // Runs against an isolated temporary data root.
@@ -81,21 +82,21 @@ try{
  await check('delete names the file, warns about unsaved edits and broken references; Cancel keeps it',async()=>{
   await fileButton('flights.ontology.yaml').first().click();
   await page.locator('.tabs').getByRole('button',{name:'Source',exact:true}).click();
-  await page.getByLabel('Definition source').fill((await read('flights.ontology.yaml'))+'# unsaved\n');
+  await fillEditor(page.getByLabel('Definition source'),(await read('flights.ontology.yaml'))+'# unsaved\n');
   await menu('flights.ontology.yaml in Flights','Delete');
   const dialog=page.getByRole('dialog',{name:'Delete flights.ontology.yaml?'});
   await expect(dialog).toContainText('flights.ontology.yaml in Flights');await expect(dialog).toContainText('Unsaved edits will be lost');
   await expect(dialog).toContainText('flights.mapping.yaml (Flights) refers to "Flights"');
   await page.screenshot({path:'/tmp/workbench-trash-confirm.png'});
   await dialog.getByRole('button',{name:'Cancel',exact:true}).click();await expect(dialog).toHaveCount(0);
-  await expect(page.getByLabel('Definition source')).toHaveValue(/# unsaved/);expect(existsSync(join(api.root,'projects/flights/flights.ontology.yaml'))).toBe(true);
+  await expectEditorValue(page.getByLabel('Definition source'),/# unsaved/);expect(existsSync(join(api.root,'projects/flights/flights.ontology.yaml'))).toBe(true);
  });
  await check('confirmed delete updates every view; Undo within 10 s restores the exact file',async()=>{
   await menu('flights.ontology.yaml in Flights','Delete');
   await page.getByRole('dialog',{name:'Delete flights.ontology.yaml?'}).getByRole('button',{name:'Delete',exact:true}).click();
   await expect(toast()).toContainText('Deleted flights.ontology.yaml');
   await expect(tree().getByRole('treeitem',{name:'Flights',exact:true}).getByRole('button',{name:'flights.ontology.yaml',exact:true})).toHaveCount(0);
-  await expect(page.getByLabel('Definition source')).not.toHaveValue(/# unsaved/);
+  await expectEditorValue(page.getByLabel('Definition source'),/# unsaved/,{not:true});
   await toast().getByRole('button',{name:'Undo'}).click();
   await expect(tree().getByRole('treeitem',{name:'Flights',exact:true}).getByRole('button',{name:'flights.ontology.yaml',exact:true})).toBeVisible();
   expect(await Bun.file(join(api.root,'projects/flights/flights.ontology.yaml')).text()).toBe(await read('flights.ontology.yaml'));

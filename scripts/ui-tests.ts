@@ -1,4 +1,4 @@
-import{chromium,expect}from'@playwright/test';import{startIsolatedApi,routeApi}from'./helpers/isolated-api';import{inspect}from'../src/model';import{readFile}from'node:fs/promises';
+import{chromium,expect}from'@playwright/test';import{startIsolatedApi,routeApi}from'./helpers/isolated-api';import{inspect}from'../src/model';import{readFile}from'node:fs/promises';import{editorValue,expectEditorValue,fillEditor}from'./helpers/code-editor';
 // Isolated data root: the UBL example project plus commerce.owl imported as its own project.
 const api=await startIsolatedApi();const store={list:()=>api.ws.documents(),save:(filename:string,source:string)=>api.ws.saveDocument(filename,source)};const files=['ubl.ontology.yaml','ubl.owl.ttl','ubl.odcs.yaml','ubl.semantic.yaml','ubl.shacl.ttl','commerce.owl'];const asset=(filename:string)=>'public/examples/'+(filename==='commerce.owl'?'commerce/':'ubl/')+filename;await api.ws.loadExample('ubl');await api.ws.importBatch({files:[{path:'commerce.owl',source:await Bun.file(asset('commerce.owl')).text()}]});
 const browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1600,height:1000},acceptDownloads:true});const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));let passed=0;
@@ -22,7 +22,7 @@ await check('existing example opens repeatedly without clearing graph',async()=>
 await check('canvas is calm and graph controls remain visible',async()=>{await page.mouse.move(250,100);await expectNeighborhood();await expect(page.locator('.react-flow__edge-text')).toHaveCount(0);await expect(page.getByRole('button',{name:/Load UBL business model/})).toBeInViewport();await expect(page.getByRole('button',{name:'Re-center',exact:true})).toBeInViewport();});
 await check('grouped connection exposes all original relationships',async()=>{const edge=page.locator('.react-flow__edge').first();await page.waitForTimeout(350);const point=await edge.locator('.react-flow__edge-interaction').evaluate((path:any)=>{const group=path.closest('.react-flow__edge');const t=path.getScreenCTM();for(let i=1;i<100;i++){const p=path.getPointAtLength(path.getTotalLength()*i/100);const x=t.a*p.x+t.c*p.y+t.e,y=t.b*p.x+t.d*p.y+t.f;if(document.elementFromPoint(x,y)?.closest('.react-flow__edge')===group)return{x,y};}return null;});if(!point)throw Error('No unobstructed point on relationship hit area');await page.mouse.click(point.x,point.y);await expect(page.locator('.inspector h2')).toBeVisible();const combo=page.getByLabel('Connection relationship');if(await combo.count()){const options=await combo.locator('option').allTextContents();if(options.length<2)throw Error('Grouping lost relationships');await combo.selectOption({index:1});await expect(page.locator('.inspector h2')).toHaveText(options[1]);}});
 await check('every UBL export downloads original bytes and round-trips',async()=>{for(const filename of files){await page.getByRole('button',{name:filename,exact:true}).click();await expect(page.locator('.react-flow__node').first()).toBeVisible();const [download]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'Export',exact:true}).click()]);if(download.suggestedFilename()!==filename)throw Error('Wrong filename');const path=await download.path();if(!path)throw Error('No downloaded file');const bytes=await readFile(path);const original=await Bun.file(asset(filename)).text();if(bytes.toString()!==original)throw Error('Export changed source');inspect(bytes.toString(),filename);}});
-await check('source edit exports unsaved text and reimport persists to the project folder',async()=>{await page.getByRole('button',{name:'ubl.ontology.yaml',exact:true}).click();await page.getByRole('button',{name:'Source',exact:true}).click();const source=await page.getByLabel('Definition source').inputValue();const edited=source+'\n# unsaved export regression\n';await page.getByLabel('Definition source').fill(edited);const[download]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'Export',exact:true}).click()]);const path=await download.path();if(!path||(await readFile(path,'utf8'))!==edited)throw Error('Unsaved source was not exported');page.once('dialog',d=>d.accept());await page.locator('input[type=file]').setInputFiles({name:'roundtrip.ontology.yaml',mimeType:'application/yaml',buffer:Buffer.from(edited)});await expect(page.getByRole('button',{name:'roundtrip.ontology.yaml',exact:true})).toBeVisible();const saved=store.list().find((d:any)=>d.filename==='roundtrip.ontology.yaml')as any;if(saved?.source!==edited)throw Error('Reimport did not persist exact bytes');await expect(page.locator('.react-flow__node').first()).toBeVisible();});
+await check('source edit exports unsaved text and reimport persists to the project folder',async()=>{await page.getByRole('button',{name:'ubl.ontology.yaml',exact:true}).click();await page.getByRole('button',{name:'Source',exact:true}).click();const source=await editorValue(page.getByLabel('Definition source'));const edited=source+'\n# unsaved export regression\n';await fillEditor(page.getByLabel('Definition source'),edited);const[download]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'Export',exact:true}).click()]);const path=await download.path();if(!path||(await readFile(path,'utf8'))!==edited)throw Error('Unsaved source was not exported');page.once('dialog',d=>d.accept());await page.locator('input[type=file]').setInputFiles({name:'roundtrip.ontology.yaml',mimeType:'application/yaml',buffer:Buffer.from(edited)});await expect(page.getByRole('button',{name:'roundtrip.ontology.yaml',exact:true})).toBeVisible();const saved=store.list().find((d:any)=>d.filename==='roundtrip.ontology.yaml')as any;if(saved?.source!==edited)throw Error('Reimport did not persist exact bytes');await expect(page.locator('.react-flow__node').first()).toBeVisible();});
 await check('switching documents and loading example after import rebuilds the graph',async()=>{await page.getByRole('button',{name:/Load UBL business model/}).click();await expectNeighborhood();await page.getByPlaceholder('Find an entity…').fill('Invoice');await expect(page.locator('.react-flow__node').first()).toBeVisible();await page.getByRole('button',{name:'Re-center',exact:true}).click();await expect(page.getByRole('button',{name:'Re-center',exact:true})).toBeEnabled();});
 await check('full model shows all entities and every matrix count opens real relationships',async()=>{
  await page.getByRole('button',{name:'ubl.ontology.yaml',exact:true}).click();
@@ -102,12 +102,12 @@ await check('mixed batch preflights all files and repairs without losing valid s
  const dialog=page.getByRole('dialog',{name:'Review import'});await expect(dialog).toBeVisible();
  if(store.list().length!==before)throw Error('Mixed batch partially saved before repair');
  await dialog.getByLabel('File to review').selectOption('1');
- await expect(dialog.getByLabel('Repair definition')).toHaveValue('{"ontology":[');
- await dialog.getByLabel('Repair definition').fill('{"name":"Repaired","ontology":[{"concept":"Fixed"}]}');
+ await expectEditorValue(dialog.getByLabel('Repair definition'),'{"ontology":[');
+ await fillEditor(dialog.getByLabel('Repair definition'),'{"name":"Repaired","ontology":[{"concept":"Fixed"}]}');
  await expect(dialog.getByRole('button',{name:'Import repaired files'})).toBeEnabled();
  await dialog.getByLabel('Import filename').fill('../bad.json');await expect(dialog.getByRole('button',{name:'Import repaired files'})).toBeDisabled();
  await dialog.getByLabel('Import filename').fill('batch-repaired.json');
- await dialog.getByLabel('File to review').selectOption('0');await expect(dialog.getByLabel('Repair definition')).toHaveValue(good);
+ await dialog.getByLabel('File to review').selectOption('0');await expectEditorValue(dialog.getByLabel('Repair definition'),good);
  await dialog.getByRole('button',{name:'Import repaired files'}).click();await expect(dialog).toHaveCount(0);
  await expect(page.locator('h1')).toHaveText('Repaired');
  if(store.list().length!==before+2)throw Error('Repaired batch not saved');
@@ -116,17 +116,17 @@ await check('mixed batch preflights all files and repairs without losing valid s
 });
 await check('invalid source blocks save, retains saved bytes and recovers in the same editor',async()=>{
  await page.locator('.tabs').getByRole('button',{name:'Source',exact:true}).click();
- const editor=page.getByLabel('Definition source');const original=await editor.inputValue();
+ const editor=page.getByLabel('Definition source');const original=await editorValue(editor);
  const saved=store.list().find((d:any)=>d.filename==='batch-repaired.json')as any;
- await editor.fill('');await expect(editor).toBeVisible();await expect(page.getByRole('button',{name:'Save changes',exact:true})).toBeDisabled();await expect(page.locator('.validation-details')).toContainText('definition is empty');
- await editor.fill('{"name":"Invalid","ontology":[{"concept":"A","extends":["A"]}]}');
+ await fillEditor(editor,'');await expect(editor).toBeVisible();await expect(page.getByRole('button',{name:'Save changes',exact:true})).toBeDisabled();await expect(page.locator('.validation-details')).toContainText('definition is empty');
+ await fillEditor(editor,'{"name":"Invalid","ontology":[{"concept":"A","extends":["A"]}]}');
  await expect(page.getByRole('button',{name:'Save changes',exact:true})).toBeDisabled();
  await expect(page.locator('.validation-details')).toContainText('Cyclic inheritance');
  await page.locator('.validation-details').getByRole('button',{name:'Go to line 1'}).first().click();await expect(editor).toBeFocused();
  if((store.list().find((d:any)=>d.id===saved.id)as any).source!==original)throw Error('Invalid edit overwrote saved source');
  await page.locator('.tabs').getByRole('button',{name:'Graph',exact:true}).click();await expect(page.getByRole('button',{name:'Repair in Source'})).toBeVisible();
  await page.getByRole('button',{name:'Repair in Source'}).click();await expect(editor).toContainText('Invalid');
- await editor.fill(original);await expect(page.getByRole('button',{name:'Save changes',exact:true})).toBeEnabled();
+ await fillEditor(editor,original);await expect(page.getByRole('button',{name:'Save changes',exact:true})).toBeEnabled();
  await page.getByRole('button',{name:'Save changes',exact:true}).click();await expect(page.getByRole('status')).toContainText('Saved to the project folder');
  await page.getByRole('button',{name:/^Validation details/}).click();await expect(page.locator('.validation-details')).toBeVisible();
  await page.getByRole('button',{name:/^Validation details/}).click();
@@ -156,7 +156,7 @@ await check('API failure retains repaired draft and permits retry',async()=>{
  const before=store.list().length;const heading=await page.locator('h1').innerText();
  await page.locator('input[type=file]').setInputFiles({name:'retry.ttl',mimeType:'text/turtle',buffer:Buffer.from('@prefix ex:')});
  const dialog=page.getByRole('dialog',{name:'Review import'});
- await dialog.getByLabel('Repair definition').fill('<https://example.org/a> <https://example.org/p> "Recovered" .');
+ await fillEditor(dialog.getByLabel('Repair definition'),'<https://example.org/a> <https://example.org/p> "Recovered" .');
  failNextSave=true;await dialog.getByRole('button',{name:'Import repaired files'}).click();
  await expect(dialog.getByRole('alert')).toContainText('Could not save retry.ttl');
  await expect(dialog.getByLabel('Repair definition')).toContainText('Recovered');
@@ -191,15 +191,15 @@ await check('agent context download retains mapping provenance and governed form
 });
 await check('mapping runtime reports missing targets and refreshes on repaired saved references',async()=>{
  await page.getByRole('button',{name:'commerce.mapping.yaml',exact:true}).click();
- await page.locator('.tabs').getByRole('button',{name:'Source',exact:true}).click();const editor=page.getByLabel('Definition source');const original=await editor.inputValue();
- await editor.fill(original.replace('Mapped commerce ontology','Missing ontology'));
+ await page.locator('.tabs').getByRole('button',{name:'Source',exact:true}).click();const editor=page.getByLabel('Definition source');const original=await editorValue(editor);
+ await fillEditor(editor,original.replace('Mapped commerce ontology','Missing ontology'));
  await page.locator('.tabs').getByRole('button',{name:'Mappings',exact:true}).click();await expect(page.locator('.mapping-explorer')).toContainText('uses saved document revisions');
  await page.locator('.tabs').getByRole('button',{name:'Source',exact:true}).click();await page.getByRole('button',{name:'Save changes',exact:true}).click();
  await expect(page.getByRole('status')).toContainText('Saved to the project folder');
  await page.locator('.tabs').getByRole('button',{name:'Mappings',exact:true}).click();await expect(page.locator('.mapping-findings')).toContainText('0 local documents');
  await expect(page.getByRole('button',{name:'Preview governed query',exact:true})).toBeDisabled();
  await page.screenshot({path:'/tmp/workbench-mapping-unresolved.png'});
- await page.locator('.tabs').getByRole('button',{name:'Source',exact:true}).click();await editor.fill(original);await page.getByRole('button',{name:'Save changes',exact:true}).click();await expect(page.getByRole('status')).toContainText('Saved to the project folder');
+ await page.locator('.tabs').getByRole('button',{name:'Source',exact:true}).click();await fillEditor(editor,original);await page.getByRole('button',{name:'Save changes',exact:true}).click();await expect(page.getByRole('status')).toContainText('Saved to the project folder');
  await page.locator('.tabs').getByRole('button',{name:'Mappings',exact:true}).click();await expect(page.locator('.mapping-binding')).toHaveCount(9);await expect(page.locator('.mapping-findings')).toHaveCount(0);
  await page.getByRole('button',{name:'ubl.ontology.yaml',exact:true}).click();await page.locator('.tabs').getByRole('button',{name:'Graph',exact:true}).click();
  await expect(page.locator('.full-graph-loading')).toHaveCount(0,{timeout:60000});await expect(page.locator('.full-graph-status')).toHaveAttribute('data-entity-count','45');
