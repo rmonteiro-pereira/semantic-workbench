@@ -2,90 +2,380 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "semantic-workbench/metric/v1",
   "title": "Semantic Workbench metric extension (application schema, not part of Apache Ossie)",
-  "description": "Content of the JSON string in an Ossie metric's custom_extensions entry with vendor_name SEMANTIC_WORKBENCH. Draft; the pinned copy will live in schemas/semantic-workbench-metric-v1.json.",
+  "description": "Content of the JSON string in an Ossie metric's custom_extensions entry with vendor_name SEMANTIC_WORKBENCH. Draft; the pinned copy will live in schemas/semantic-workbench-metric-v1.json. Ontology concepts are not stored here; see mapping-extension.schema.json.",
   "type": "object",
-  "required": ["schema", "type"],
+  "required": [
+    "schema",
+    "type"
+  ],
   "additionalProperties": false,
   "$defs": {
-    "metricName": {"type": "string", "minLength": 1},
-    "fieldRef": {"type": "string", "pattern": "^[^.\\s]+\\.[^.\\s]+$"},
-    "grain": {"enum": ["day", "week", "month", "quarter", "year"]},
+    "metricName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "fieldRef": {
+      "type": "string",
+      "pattern": "^[^.\\s]+\\.[^.\\s]+$"
+    },
+    "grain": {
+      "enum": [
+        "day",
+        "week",
+        "month",
+        "quarter",
+        "year"
+      ]
+    },
     "operatorSet": {
       "type": "object",
       "minProperties": 1,
       "additionalProperties": false,
       "properties": {
-        "mustBe": {}, "mustNotBe": {},
-        "mustBeGreaterThan": {"type": "number"}, "mustBeGreaterOrEqualTo": {"type": "number"},
-        "mustBeLessThan": {"type": "number"}, "mustBeLessOrEqualTo": {"type": "number"},
-        "mustBeBetween": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
-        "mustNotBeBetween": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}
+        "mustBe": {},
+        "mustNotBe": {},
+        "mustBeGreaterThan": {
+          "type": "number"
+        },
+        "mustBeGreaterOrEqualTo": {
+          "type": "number"
+        },
+        "mustBeLessThan": {
+          "type": "number"
+        },
+        "mustBeLessOrEqualTo": {
+          "type": "number"
+        },
+        "mustBeBetween": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "mustNotBeBetween": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        }
       }
     }
   },
   "properties": {
-    "schema": {"const": "semantic-workbench/metric/v1"},
-    "label": {"type": "string"},
-    "type": {"enum": ["simple", "ratio", "derived", "cumulative", "filtered"]},
-    "numerator": {"$ref": "#/$defs/metricName"},
-    "denominator": {"$ref": "#/$defs/metricName"},
-    "inputs": {"type": "array", "items": {"$ref": "#/$defs/metricName"}, "minItems": 1, "uniqueItems": true},
+    "schema": {
+      "const": "semantic-workbench/metric/v1"
+    },
+    "label": {
+      "type": "string"
+    },
+    "type": {
+      "enum": [
+        "simple",
+        "ratio",
+        "derived",
+        "cumulative",
+        "filtered"
+      ]
+    },
+    "numerator": {
+      "$ref": "#/$defs/metricName"
+    },
+    "denominator": {
+      "$ref": "#/$defs/metricName"
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/metricName"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
     "window": {
-      "type": "object", "required": ["kind"], "additionalProperties": false,
-      "properties": {"kind": {"enum": ["rolling", "to_date", "all"]}, "length": {"type": "integer", "minimum": 1}, "grain": {"$ref": "#/$defs/grain"}}
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "rolling",
+            "to_date",
+            "all"
+          ]
+        },
+        "length": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "grain": {
+          "$ref": "#/$defs/grain"
+        }
+      }
     },
-    "additivity": {"enum": ["additive", "semi_additive", "non_additive"]},
-    "non_additive_over": {"const": "time"},
-    "period_aggregation": {"enum": ["last", "first", "average"]},
+    "additivity": {
+      "enum": [
+        "additive",
+        "semi_additive",
+        "non_additive"
+      ]
+    },
+    "non_additive_over": {
+      "const": "time"
+    },
+    "period_aggregation": {
+      "enum": [
+        "last",
+        "first",
+        "average"
+      ]
+    },
     "time": {
-      "type": "object", "required": ["dimension"], "additionalProperties": false,
-      "properties": {"dimension": {"$ref": "#/$defs/fieldRef"}, "min_grain": {"$ref": "#/$defs/grain"}, "allowed_grains": {"type": "array", "items": {"$ref": "#/$defs/grain"}, "uniqueItems": true}}
+      "type": "object",
+      "required": [
+        "dimension"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "dimension": {
+          "$ref": "#/$defs/fieldRef"
+        },
+        "min_grain": {
+          "$ref": "#/$defs/grain"
+        },
+        "allowed_grains": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/grain"
+          },
+          "uniqueItems": true
+        }
+      }
     },
-    "dimensions": {"type": "array", "items": {"$ref": "#/$defs/fieldRef"}, "uniqueItems": true},
+    "dimensions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/fieldRef"
+      },
+      "uniqueItems": true
+    },
     "filters": {
       "type": "array",
       "items": {
-        "type": "object", "required": ["field", "operator"], "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "field",
+          "operator"
+        ],
+        "additionalProperties": false,
         "properties": {
-          "field": {"$ref": "#/$defs/fieldRef"},
-          "operator": {"enum": ["equals", "not_equals", "in", "not_in", "gt", "gte", "lt", "lte", "between", "is_null", "is_not_null"]},
+          "field": {
+            "$ref": "#/$defs/fieldRef"
+          },
+          "operator": {
+            "enum": [
+              "equals",
+              "not_equals",
+              "in",
+              "not_in",
+              "gt",
+              "gte",
+              "lt",
+              "lte",
+              "between",
+              "is_null",
+              "is_not_null"
+            ]
+          },
           "value": {}
         }
       }
     },
-    "unit": {"type": "string"},
-    "format": {"type": "string"},
-    "concept": {"type": "string", "minLength": 1},
-    "of": {"type": "string", "minLength": 1},
+    "unit": {
+      "type": "string"
+    },
+    "format": {
+      "type": "string"
+    },
     "targets": {
       "type": "array",
       "items": {
-        "type": "object", "required": ["direction"], "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "direction"
+        ],
+        "additionalProperties": false,
         "properties": {
-          "grain": {"$ref": "#/$defs/grain"},
-          "period": {"type": "string"},
-          "direction": {"enum": ["higher_is_better", "lower_is_better", "in_range"]},
-          "value": {"type": "number"},
-          "range": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
+          "grain": {
+            "$ref": "#/$defs/grain"
+          },
+          "period": {
+            "type": "string"
+          },
+          "direction": {
+            "enum": [
+              "higher_is_better",
+              "lower_is_better",
+              "in_range"
+            ]
+          },
+          "value": {
+            "type": "number"
+          },
+          "range": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
           "thresholds": {
-            "type": "object", "additionalProperties": false,
-            "properties": {"warning": {"$ref": "#/$defs/operatorSet"}, "critical": {"$ref": "#/$defs/operatorSet"}}
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "warning": {
+                "$ref": "#/$defs/operatorSet"
+              },
+              "critical": {
+                "$ref": "#/$defs/operatorSet"
+              }
+            }
           }
         }
       }
     },
-    "owner": {"type": "string"},
-    "steward": {"type": "string"},
-    "status": {"enum": ["draft", "proposed", "approved", "deprecated"]},
-    "replaced_by": {"$ref": "#/$defs/metricName"},
-    "deprecation_reason": {"type": "string"}
+    "owner": {
+      "type": "string"
+    },
+    "steward": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "proposed",
+        "approved",
+        "deprecated"
+      ]
+    },
+    "replaced_by": {
+      "$ref": "#/$defs/metricName"
+    },
+    "deprecation_reason": {
+      "type": "string"
+    }
   },
   "allOf": [
-    {"if": {"properties": {"type": {"const": "ratio"}}}, "then": {"required": ["numerator", "denominator"]}},
-    {"if": {"properties": {"type": {"enum": ["derived", "filtered"]}}}, "then": {"required": ["inputs"]}},
-    {"if": {"properties": {"type": {"const": "cumulative"}}}, "then": {"required": ["inputs", "window"]}},
-    {"if": {"properties": {"type": {"const": "filtered"}}}, "then": {"required": ["filters"]}},
-    {"if": {"properties": {"additivity": {"const": "semi_additive"}}, "required": ["additivity"]}, "then": {"required": ["non_additive_over", "period_aggregation"]}},
-    {"if": {"properties": {"status": {"const": "deprecated"}}, "required": ["status"]}, "then": {"anyOf": [{"required": ["replaced_by"]}, {"required": ["deprecation_reason"]}]}}
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "ratio"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "numerator",
+          "denominator"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "enum": [
+              "derived",
+              "filtered"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "inputs"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "cumulative"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "inputs",
+          "window"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "filtered"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "filters"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "additivity": {
+            "const": "semi_additive"
+          }
+        },
+        "required": [
+          "additivity"
+        ]
+      },
+      "then": {
+        "required": [
+          "non_additive_over",
+          "period_aggregation"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "deprecated"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "anyOf": [
+          {
+            "required": [
+              "replaced_by"
+            ]
+          },
+          {
+            "required": [
+              "deprecation_reason"
+            ]
+          }
+        ]
+      }
+    }
   ]
 }

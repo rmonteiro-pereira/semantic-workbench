@@ -73,7 +73,8 @@ line (`cmp`).
 ## Phase 6: item editing, add/delete, KPI wizard (YAML/JSON)
 
 Edit a concept in UBL ontology and a property in `commerce.odcs.yaml`: `git diff` shows only the
-item; create a ratio KPI via the wizard (SC-002) → diff shows one metric and its extension block.
+item; create a ratio KPI via the wizard (SC-002) → diff shows one metric with its extension block
+in the semantic model and one added binding line in the mapping document's extension.
 
 ## Phase 7: RDF item editing
 
