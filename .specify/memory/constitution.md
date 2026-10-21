@@ -1,20 +1,19 @@
 <!--
 Sync Impact Report
-- Version change: 1.0.0 → 2.0.0 (MAJOR: Principle IV redefined; SQLite becomes a cache)
-- Modified principles: I. Local-Only Operation (data layout under data/, workbench limited to
-  data/projects/, explicit Git remote rule); II. Byte-Exact Source Preservation (file on disk is
-  the source); III. One Validation Rule Set (file store wording, validation of files arriving by
-  Git or external edits); IV. Transactional, Revision-Checked Persistence → Atomic, Hash-Checked
-  File Persistence (redefined); VI. Verification Gate (new mutant areas); VII. Honest Claims
-  (data layout and Git network use documented)
+- Version change: 2.0.1 → 2.1.0 (MINOR: materially expanded guidance in Principle I)
+- Modified principles: I. Local-Only Operation (clone added to the user-triggered Git network
+  operations; a clone is created only inside data/projects/ and the address entered becomes the
+  project's configured remote); VI. Verification Gate (remote-operation mutants include clone);
+  VII. Honest Claims (README lists clone among network operations)
 - Added principles: none
 - Removed principles: none
-- Modified sections: Technical Constraints (store of record, Git requirement)
+- Modified sections: none
 - Templates requiring updates: .specify/templates/plan-template.md (✅ no change needed: its
   "Constitution Check" gate reads this file); spec-template.md (✅ no change needed);
   tasks-template.md (✅ no change needed)
-- Source: specs/001-workbench-improvements/constitution-amendment-proposal.md (approved)
-- Follow-up TODOs: none
+- Source: specs/002-lineage-and-ux/spec.md (Dependencies; owner approval 2026-10-21)
+- Follow-up TODOs: README documents clone when it ships (feature 002)
+- Earlier: 1.0.0 → 2.0.0 (Principle IV redefined), 2.0.0 → 2.0.1 (wording)
 -->
 
 # Semantic Workbench Constitution
@@ -35,8 +34,10 @@ Sync Impact Report
   configured data root (`data/` by default; tests use an isolated temporary root). The workbench
   MUST NOT open project folders or repositories outside `data/projects/`, and MUST NOT write
   outside the data root. No feature may send document content
-  off the machine, except Git remote operations (fetch, pull, push, sync) that the user triggers
-  explicitly, against a remote the user configured for that project. These use the machine's
+  off the machine, except Git remote operations (clone, fetch, pull, push, sync) that the user
+  triggers explicitly, against a remote the user configured for that project. A clone is
+  created only in a new folder inside `data/projects/`, and the address the user entered becomes
+  that project's configured remote. These use the machine's
   own Git installation and credential configuration; the workbench never stores, prompts for or
   transmits credentials itself, and never contacts a remote automatically or in the background.
 
@@ -113,8 +114,8 @@ reformatting breaks diffs, reviews and downstream tooling.
   a mocked API or an isolated in-memory store. Browser checks MUST NOT modify the user's real
   workspace; read-only live inspection is the only exception.
 - New decision logic (validation rules, persistence guards, base-hash rejection, journal
-  recovery, trash restore without overwrite, Git argument handling, remote operations only on
-  explicit action, deletion, version diffing, graph filtering, planning) MUST add targeted
+  recovery, trash restore without overwrite, Git argument handling, remote operations, clone
+  included, only on explicit action, deletion, version diffing, graph filtering, planning) MUST add targeted
   mutants to `scripts/mutation-tests.ts`. The unmodified
   baseline MUST pass and every mutant MUST be detected.
 - Layout and UI work MUST include geometry assertions (no overlapping controls, contained panels)
@@ -127,8 +128,8 @@ reformatting breaks diffs, reviews and downstream tooling.
 - Counts quoted in documentation (entities, relationships, bindings, checks, mutants) MUST be
   produced by the code or tests, and updated when they change.
 - Performance or scale claims MUST name the fixture and the check that measures them.
-- The README MUST document the folder layout under `data/`, which Git operations contact a
-  network, and that credentials come from the machine's Git configuration.
+- The README MUST document the folder layout under `data/`, which Git operations (clone,
+  fetch, pull, push, sync) contact a network, and that credentials come from the machine's Git configuration.
 
 ## Technical Constraints
 
@@ -168,4 +169,4 @@ reformatting breaks diffs, reviews and downstream tooling.
 - Exceptions MUST be recorded in the feature's plan under "Complexity Tracking" with the reason
   and the simpler alternative that was rejected.
 
-**Version**: 2.0.1 | **Ratified**: 2026-10-20 | **Last Amended**: 2026-10-20
+**Version**: 2.1.0 | **Ratified**: 2026-10-20 | **Last Amended**: 2026-10-21
