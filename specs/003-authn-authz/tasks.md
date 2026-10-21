@@ -18,18 +18,28 @@ check per user-visible change, targeted mutants for new decision logic, geometry
 layout work, and the authorization test matrix. Test tasks come first in each phase and must fail
 before the implementation tasks that follow.
 
-**Organization**: Setup and foundations, then one phase per user story in priority order (P1:
-US1, US2, US3, US8; P2: US4, US5, US6, US7; P3: US9). Each phase ends with every existing suite
-green in local mode (`bun test`, `check`, `build`, `test:ui`, `test:responsive`, `test:edges`,
+**Organization**: Setup and foundations, then the container (US9 part 1) and CI (US10 part 1),
+sign-in (US1), Azure delivery (US9 part 2, US10 part 2), then the remaining stories in priority
+order (P1: US2, US3, US8; P2: US4, US5, US6, US7). Each phase ends with every existing suite green
+in local mode (`bun test`, `check`, `build`, `test:ui`, `test:responsive`, `test:edges`,
 `test:grouping-validation`, `test:examples:ui`, the 002 suites, `test:mutation`) plus its own
-checks.
+checks. From Phase 4 on, each phase also ends with the CI run green, including the `container`
+job: every browser check a phase adds is registered in `scripts/container-suites.ts` (local or
+server group) and runs against the image; `tests/ci/workflows.test.ts` (T120) fails when a
+`test:*` script is missing from the CI matrix or the container suite list without a recorded
+reason.
+
+**Task IDs**: IDs T001–T114 are unchanged from the first task list; the container and pipeline
+revision moved T104–T110 (former Phase 11) into Phases 3, 5 and 6, reworded T032 and T104–T110,
+and added T115–T133 (133 tasks in 15 phases). Phases are therefore no longer in numeric ID order; the phase headings
+give the order of work. Former Phases 3–10 are now Phases 5 and 7–13; former Phase 12 is Phase 14.
 
 ## Format: `[ID] [P?] [Story?] Description`
 
 - **[P]**: can run in parallel (different files, no dependency on an unfinished task)
 - **[USn]**: US1 sign-in, US2 read filtering, US3 role enforcement, US4 working copies, US5
-  governance guards, US6 remote credentials, US7 agent clients, US8 Admin panel, US9 Azure
-  deployment
+  governance guards, US6 remote credentials, US7 agent clients, US8 Admin panel, US9 container
+  and Azure, US10 CI/CD pipeline
 - Paths are repository-relative
 
 ---
@@ -77,7 +87,48 @@ implicit Admin.
 
 ---
 
-## Phase 3: User Story 1 - Sign in to a team workbench, and nothing changes locally (Priority: P1) 🎯 MVP
+## Phase 3: User Story 9 (part 1) - Container image and local Compose (Priority: P1)
+
+**Goal**: one image that runs local mode (and, from Phase 5, server mode), with health, a
+non-root user, the data root as a volume, single-instance lock with revision hand-over, and the
+existing browser suites runnable against it.
+
+**Independent Test**: `bun test tests/auth/instance-lock.test.ts tests/server/health-static.test.ts`
+and `bun run test:container` (local group).
+
+- [ ] T104 [P] [US9] Single-instance lock tests in tests/auth/instance-lock.test.ts: revision identity (`CONTAINER_APP_REVISION`, else `SW_VERSION+SW_COMMIT`, else `dev`), heartbeat every 10 s, refusing instance re-checks every 10 s, stale lock (older than 30 s) taken over, live lock of the same revision → refuse and not ready (FR-122), live lock of a different revision → ready, 503 with `Retry-After` on non-health routes, take-over on release or staleness (FR-123), release on SIGTERM
+- [ ] T115 [P] [US9] Tests in tests/server/health-static.test.ts: `/healthz` returns `{ok, version, commit}` and no workspace data without sign-in; `/readyz` 503 until recovery, lock and first scan, `state` serving/handover; `SW_SERVE_STATIC=1` serves `dist/` with SPA fallback and keeps the local-mode origin and host checks; non-writable data root stops start-up naming path and uid (FR-124, FR-125)
+- [ ] T105 [US9] Instance lock with revision hand-over in server/projects/instance-lock.ts and server/index.ts (revision identity as in T104; data-model Instance lock)
+- [ ] T116 [US9] Static serving of `dist/` in server/static.ts (both modes when `SW_SERVE_STATIC=1`), `/healthz` and `/readyz` in server/routes/health.ts, writable data root probe at start-up in server/index.ts (FR-124, FR-125; moved out of T032)
+- [ ] T106 [US9] Dockerfile and .dockerignore: multi-stage (`deps`, `build`, `prod-deps`, `runtime`), bases pinned by digest, runtime `oven/bun:1.4-slim` or `-alpine` with Git ≥ 2.40 asserted at build, `USER bun`, `VOLUME /data`, `DATA_DIR=/data`, `SW_CACHE_DIR=/tmp/sw-cache`, `SW_SERVE_STATIC=1`, OCI labels and `SW_VERSION`/`SW_COMMIT` from build arguments, `HEALTHCHECK` with a Bun fetch of `/healthz`, exec-form entry point (research R17, FR-120)
+- [ ] T117 [P] [US9] compose.yaml with profile `local` (`network_mode: host`, `SW_MODE=local`, `./.data:/data`); `.data/` and `.env.server` added to .gitignore (OP-8, FR-126)
+- [ ] T118 [US9] Browser checks read `SW_BASE_URL` (default the dev server) through scripts/browser-check.ts; replace hard-coded `http://127.0.0.1:5173` in scripts/*.ts; no behaviour change against the dev server
+- [ ] T110 [US9] Container check scripts/container-check.ts and suite list scripts/container-suites.ts, script `test:container` in package.json: build (or take `--image`), run local mode with host networking and a temporary data folder, assert uid ≠ 0, `git --version` ≥ 2.40, labels, health and ready, run the local suite group against `http://127.0.0.1:4310`, restart keeps data, a second container of the same revision refuses to serve (SC-009 local part)
+- [ ] T119 [US9] Mutants: second instance of the same revision not refused; hand-over serves data before taking the lock; `/readyz` ready before recovery; `/healthz` includes workspace data — in scripts/mutation-tests.ts
+
+**Checkpoint**: the image runs local mode and passes the local browser suites.
+
+---
+
+## Phase 4: User Story 10 (part 1) - Continuous integration on every change (Priority: P1)
+
+**Goal**: every pull request and push runs the whole quality gate, builds, scans and inventories
+the image and reruns the suites against it.
+
+**Independent Test**: `bun test tests/ci/workflows.test.ts`; a pull request with a failing unit
+test is blocked; a green pull request shows every required check.
+
+- [ ] T120 [P] [US10] Workflow rules test tests/ci/workflows.test.ts (parses .github/workflows/*.yml with `yaml`): every third-party `uses:` pinned to a 40-hex commit; top-level permissions read-only; `id-token: write` only on `publish` and `deploy` jobs; no `pull_request_target`; `azure/login` takes ids from `vars.` and never `secrets.`; every quality-gate `test:*` script of package.json appears in the `browser` matrix and in scripts/container-suites.ts or in a recorded exclusion with reason; `.trivyignore` entries carry a reason and an unexpired date (FR-130, FR-131, FR-138)
+- [ ] T121 [US10] .github/workflows/ci.yml jobs `verify` (Bun 1.4.x pinned, frozen install, `check`, `bun test`, `build`), `mutation`, `browser` (matrix over the gate suites, Playwright Chromium with system dependencies, dev server started in the job, screenshots uploaded on failure); triggers `pull_request`, `push` on branches only (tags belong to release.yml); concurrency cancels superseded pull-request runs (FR-130)
+- [ ] T122 [US10] ci.yml jobs `image` (Buildx with the Actions cache, version and commit build arguments, image exported for later jobs, Trivy `--severity CRITICAL,HIGH --ignore-unfixed --exit-code 1` with .trivyignore, SARIF and SPDX JSON bill of materials uploaded as artifacts) and `container` (needs `image`; `bun run test:container --image <built>`) (FR-131, contracts/delivery-pipeline.md)
+- [ ] T123 [P] [US10] .github/dependabot.yml for `github-actions`, `docker` and `npm`, weekly, grouped (FR-138)
+- [ ] T124 [US10] Make the `ci.yml` checks required on `main` (ruleset, manual step written in deploy/azure/README.md §GitHub); record the first full run's job durations against SC-013 in specs/003-authn-authz/verification.md
+
+**Checkpoint**: CI is the gate for every later phase.
+
+---
+
+## Phase 5: User Story 1 - Sign in to a team workbench, and nothing changes locally (Priority: P1) 🎯 MVP
 
 **Goal**: server mode with OIDC sign-in, encrypted server sessions, cookie-authenticated live
 updates; local mode unchanged.
@@ -91,18 +142,44 @@ updates; local mode unchanged.
 - [ ] T029 [US1] Session store server/auth/sessions.ts
 - [ ] T030 [US1] OIDC client server/auth/oidc.ts with `openid-client` (discovery, login, callback, refresh, logout; client secret, private key or managed-identity client assertion) and routes `/auth/login`, `/auth/callback`, `/auth/logout` in server/routes/auth.ts
 - [ ] T031 [US1] Entra group overage: `checkMemberGroups` for configured group ids with an app-only token, failure → no membership plus message and audit, in server/auth/principal.ts (FR-022)
-- [ ] T032 [US1] Mode selection and binding in server/index.ts: local refuses non-loopback, server requires valid config and policies, serves `dist/` with CSP and security headers (research R15), `/healthz` and `/readyz` in server/routes/health.ts (FR-003 to FR-005)
+- [ ] T032 [US1] Mode selection and binding in server/index.ts: local refuses non-loopback, server requires valid config and policies, always serves `dist/` (T116) with CSP and security headers (research R15) (FR-003 to FR-005)
 - [ ] T033 [US1] `GET /api/me` in server/routes/me.ts (contracts/http-api.md)
 - [ ] T034 [US1] Live-update stream authenticates by cookie and closes on sign-out, expiry or End session (`access` event) in server/projects/events.ts and server/routes/events.ts (FR-014)
 - [ ] T035 [US1] Frontend: fetch wrapper adds `X-SW-Request: 1` and sends 401 to `/auth/login?returnTo=` in src/projects/api.ts; `useMe` hook src/auth/useMe.ts; person menu with name, role, **Sign out** in src/main.tsx; no-access page
 - [ ] T036 [US1] Browser check scripts/auth-browser-check.ts (part 1): sign-in for each test user via the stub provider, header role, no token in `document.cookie`/storage/responses, live updates arrive, sign-out closes the stream, session expiry returns to sign-in; local-mode smoke unchanged
 - [ ] T037 [US1] Mutants: cookie without HttpOnly or Secure; CSRF header not required; nonce unchecked; `tid` unchecked; overage failure grants membership; session not expired after absolute lifetime — in scripts/mutation-tests.ts
+- [ ] T108 [US1] Keycloak browser check scripts/auth-keycloak-check.ts (start Keycloak 26 with tests/fixtures/keycloak/realm.json via Docker or Podman, skip with a message when absent; sign-in for each user, roles, sign-out, live updates, agent client credentials; SC-005)
+- [ ] T109 [US1] ci.yml job `keycloak` (Keycloak pinned by digest via `docker run`, readiness wait on the realm discovery document, frozen install, build, `bun run test:auth:keycloak`) (research R6, FR-130)
+- [ ] T125 [US1] Compose profile `server` in compose.yaml (`keycloak` with the test realm on `127.0.0.1:8080`, `workbench-server` with host networking, loopback public URL) and .env.server.example with development-only values; server group in scripts/container-suites.ts (sign-in as each test user, restart keeps the session and data, second container refused) run by the `container` job (FR-126, SC-009)
 
-**Checkpoint**: sign-in works with the stub provider; local mode unchanged.
+**Checkpoint**: sign-in works with the stub provider, with Keycloak and in the container; local
+mode unchanged.
 
 ---
 
-## Phase 4: User Story 2 - See only what you may see (Priority: P1)
+## Phase 6: User Story 9 (part 2) and User Story 10 (part 2) - Azure delivery (Priority: P1)
+
+**Goal**: images published on `main`; version tags promoted, approved, deployed to Azure Container
+Apps through federated identities, smoke-tested and rolled back on failure.
+
+**Independent Test**: `bun test tests/ci/` and quickstart §7 on a test subscription.
+
+- [ ] T126 [P] [US10] Deploy logic tests in tests/ci/deploy.test.ts with a fake Azure client: preflight refuses each wrong setting by name (revision mode, replicas, volume, identity, mode, host, port); the running digest is recorded before the update; the update uses the digest; smoke failure redeploys the recorded digest, smoke-tests it and fails; manual rollback resolves a version to its digest (FR-134, FR-137, FR-139)
+- [ ] T127 [P] [US10] Smoke test tests in tests/ci/deploy-smoke.test.ts against a local Bun server: each check of contracts/delivery-pipeline.md failing alone fails the smoke; `--loopback` relaxes only HSTS and the `Secure` flag (FR-136)
+- [ ] T128 [US10] Smoke test scripts/deploy-smoke.ts (one line per check, JSON summary); the `container` job also runs it with `--loopback` against the Compose server profile
+- [ ] T129 [US10] Deploy script scripts/deploy.ts (preflight, record, update, wait for running and ready revision, smoke, automatic rollback; Azure CLI client)
+- [ ] T130 [US10] ci.yml job `publish` (pushes to `main` only, after every other job; `azure/login` with the publisher identity; push `sha-<commit>` and `main`; digest in the job summary) (FR-132, FR-135)
+- [ ] T131 [US10] .github/workflows/release.yml (`check` without Azure access: tag on `main`, green `ci.yml` run with `publish`; `deploy` in environment `production` with concurrency group `production`: rescan, promote with `docker buildx imagetools create`, `scripts/deploy.ts`; `github-release` with bill of materials and scan report) and .github/workflows/rollback.yml (dispatch with `version`, same environment); OP-7 fallback variant as a commented, documented switch (FR-133, FR-134, FR-137)
+- [ ] T107 [P] [US9] Manual setup guide deploy/azure/README.md (no infrastructure as code, FR-139): every resource, setting and role of contracts/delivery-pipeline.md with portal and Azure CLI steps (resource group, Log Analytics, Container Apps environment, storage account and share with mount options, Key Vault, registry with retention rule, container app in single revision mode with one replica, probes, volume and identity, the two federated pipeline identities), GitHub settings (rulesets, `production` environment or the OP-7 fallback, variables), App Service alternative, scale path
+- [ ] T132 [US10] Mutants: smoke test ignores a version mismatch; smoke test accepts an unauthenticated 200; rollback skipped after a failed smoke; preflight accepts more than one replica — in scripts/mutation-tests.ts
+- [ ] T133 [US9] First pre-release deployment `v0.4.0-alpha.1` on a test subscription with the fixture workspace: approval, smoke, Entra sign-in, restart keeps sessions and data, revision update hand-over measured (SC-017), rollback drill (SC-015), no stored Azure or registry secret (SC-016); recorded in specs/003-authn-authz/verification.md
+
+**Checkpoint**: the team environment is deployable and reversible; it holds only fixture data until
+Phases 7–9 are done.
+
+---
+
+## Phase 7: User Story 2 - See only what you may see (Priority: P1)
 
 **Goal**: the server never sends unreadable files, paths, events or counts.
 
@@ -127,7 +204,7 @@ updates; local mode unchanged.
 
 ---
 
-## Phase 5: User Story 3 - Roles decide what you can do (Priority: P1)
+## Phase 8: User Story 3 - Roles decide what you can do (Priority: P1)
 
 **Goal**: every write authorised by role and scope; UI follows capabilities.
 
@@ -145,7 +222,7 @@ updates; local mode unchanged.
 
 ---
 
-## Phase 6: User Story 8 - Admin panel: control roles, policies and access (Priority: P1)
+## Phase 9: User Story 8 - Admin panel: control roles, policies and access (Priority: P1)
 
 **Goal**: Admins manage users, role mappings, assignments, project access, policies (structured
 and raw, dry run, history, rollback), check access, review and export audit, and see settings,
@@ -178,7 +255,7 @@ without being able to remove the last Admin.
 
 ---
 
-## Phase 7: User Story 4 - Your own working copy in server mode (Priority: P2)
+## Phase 10: User Story 4 - Your own working copy in server mode (Priority: P2)
 
 **Goal**: per-person worktrees, personal branches, per-person state, publish, authored commits.
 
@@ -198,7 +275,7 @@ without being able to remove the last Admin.
 
 ---
 
-## Phase 8: User Story 5 - Governed metrics and protected classifications (Priority: P2)
+## Phase 11: User Story 5 - Governed metrics and protected classifications (Priority: P2)
 
 **Goal**: server-side metric lifecycle and classification guards on every write path.
 
@@ -214,7 +291,7 @@ without being able to remove the last Admin.
 
 ---
 
-## Phase 9: User Story 6 - Remote Git with your own credentials (Priority: P2)
+## Phase 12: User Story 6 - Remote Git with your own credentials (Priority: P2)
 
 **Goal**: delegated credentials per person and command; Admin-only remote changes with host
 allow-list.
@@ -230,7 +307,7 @@ allow-list.
 
 ---
 
-## Phase 10: User Story 7 - Agents call the API with their own identity (Priority: P2)
+## Phase 13: User Story 7 - Agents call the API with their own identity (Priority: P2)
 
 **Goal**: client-credentials access to the agent routes, scoped by Admin grants.
 
@@ -243,58 +320,53 @@ allow-list.
 
 ---
 
-## Phase 11: User Story 9 - Run it as a container on Azure (Priority: P3)
+## Phase 14: Polish and cross-cutting
 
-**Goal**: reproducible image, Azure deployment template and guide, Keycloak CI.
-
-**Independent Test**: quickstart §3 and §4.
-
-- [ ] T104 [P] [US9] Single-instance lock tests in tests/auth/instance-lock.test.ts (heartbeat, stale lock taken over after 30 s, second live instance refused, release on SIGTERM) (FR-122)
-- [ ] T105 [US9] Instance lock in server/index.ts and server/projects/instance-lock.ts; mutant "second instance not refused" in scripts/mutation-tests.ts
-- [ ] T106 [P] [US9] Dockerfile and .dockerignore: `oven/bun:1.4` base, Git ≥ 2.40, `vp build` output, non-root user, `/data` volume, `SW_CACHE_DIR=/tmp/sw-cache`, `HEALTHCHECK` on `/healthz` (research R14, FR-120)
-- [ ] T107 [P] [US9] Azure template deploy/azure/containerapp.bicep (Container Apps environment, app with min=max replicas 1, external ingress to 4310, system-assigned identity, Key Vault secret references, Azure Files mount at `/data`) and deploy/azure/README.md (App Service alternative, scale path)
-- [ ] T108 [US9] Keycloak browser check scripts/auth-keycloak-check.ts (start Keycloak 26 with tests/fixtures/keycloak/realm.json via Docker or Podman, skip with a message when absent; sign-in for each user, roles, sign-out, live updates, agent client credentials; SC-005)
-- [ ] T109 [US9] GitHub Actions workflow .github/workflows/auth-keycloak.yml (Keycloak pinned by digest via `docker run`, readiness wait, `bun install`, `bun run build`, `bun run test:auth:keycloak`)
-- [ ] T110 [US9] Container smoke check scripts/container-smoke.ts: build, run with a temp volume, health and ready, sign-in with the stub provider, restart keeps session and data, second container refused (SC-009)
-
----
-
-## Phase 12: Polish and cross-cutting
-
-- [ ] T111 [P] README: both modes, configuration table, Entra guide (app roles, groups claim, overage permission, federated credential, Azure DevOps permission), Keycloak guide, role matrix and what each role sees, Admin panel, bootstrap Admin break-glass recovery, outbound calls of server mode, delegated credentials, per-person working copies and publishing, audit log, single-instance limit and scale path, residual exposure of commit messages; counts from tests (constitution VII, FR-121)
+- [ ] T111 [P] README: both modes, configuration table, Entra guide (app roles, groups claim, overage permission, federated credential, Azure DevOps permission), Keycloak guide, role matrix and what each role sees, Admin panel, bootstrap Admin break-glass recovery, outbound calls of server mode, delegated credentials, per-person working copies and publishing, audit log, single-instance limit and scale path, residual exposure of commit messages; running the image with Compose (both profiles, host networking), the delivery pipeline and the link to deploy/azure/README.md; counts from tests (constitution VII, FR-121)
 - [ ] T112 [P] docs/agent-runtime.md: authentication for agent clients and project grants
-- [ ] T113 Full authorization matrix and mutation run; record commands, counts, durations and the manual Entra checklist results in specs/003-authn-authz/verification.md (SC-001 to SC-012)
-- [ ] T114 Security review of the diff (cookie flags, CSRF, redirects, token handling, path rules, Git argument handling) with findings fixed or recorded in specs/003-authn-authz/verification.md
+- [ ] T113 Full authorization matrix and mutation run; record commands, counts, durations and the manual Entra checklist results in specs/003-authn-authz/verification.md (SC-001 to SC-017)
+- [ ] T114 Security review of the diff (cookie flags, CSRF, redirects, token handling, path rules, Git argument handling, image user and contents, workflow permissions, federated subjects) with findings fixed or recorded in specs/003-authn-authz/verification.md
 
 ---
 
 ## Dependencies & Execution Order
 
-- Phase 0 (after 002 merges) → Phase 1 → Phase 2 → stories.
-- US1 (Phase 3) before every server-mode story; local-mode work in Phase 2 needs no sign-in.
-- US2 and US3 after US1; US2 before US3's matrix write part only for the shared matrix file
-  (T051 extends T038).
+- Phase 0 (after 002 merges) → Phase 1 → Phase 2 → Phase 3 (container) → Phase 4 (CI) → Phase 5
+  (US1) → Phase 6 (Azure delivery) → Phases 7–13 → Phase 14.
+- Phase 3 needs Phase 2 only (local mode through the boundary); T118 before T110.
+- Phase 4 needs Phase 3 (the `image` and `container` jobs build and run the image).
+- US1 (Phase 5) before every server-mode story; T125 needs T110 and T030.
+- Phase 6 needs US1 (server mode cannot start without a provider) and Phase 4; T128 and T129
+  follow their tests T127 and T126; T130–T131 need T129; T133 needs T107 and T131.
+- US2 and US3 after Phase 6 (or after US1 if Azure access is not yet available: Phase 6 does not
+  block code work, only T133 needs the subscription); T051 extends T038 (shared matrix file).
 - US8 after US3 (Admin API reuses the write authorization and the matrix); earlier phases seed
   `data/admin/` from the fixture.
 - US4 after US3; US5 after US4 (guards on pull and pull-default use the copy model); US6 after
-  US4 (remote operations run in copies); US7 after US2 (agent filtering); US9 after US1 (can run
-  in parallel with P2 stories once US1 is done).
-- Phase 12 last.
+  US4 (remote operations run in copies); US7 after US2 (agent filtering).
+- Phase 14 last.
 
 ### Parallel opportunities
 
 - Phase 1: T004–T009 together after T003.
 - Phase 2: T010, T012, T013, T016, T017, T019, T021, T023 together; implementations follow their
   tests.
-- US1: T026–T028 together. US2: T038–T040 together. US8: T057–T059 together, then dialogs
-  T065–T072 in parallel with the API tasks T060–T064.
-- After US3: US7 (Phase 10) and US9 (Phase 11) in parallel with US8 and US4.
+- Phase 3: T104, T115, T117 together; T106 in parallel with T105/T116.
+- Phase 4: T120 and T123 together, then T121–T122.
+- US1: T026–T028 together; T108 in parallel with T029–T035. Phase 6: T126, T127, T107 together.
+  US2: T038–T040 together. US8: T057–T059 together, then dialogs T065–T072 in parallel with the
+  API tasks T060–T064.
+- After US3: US7 (Phase 13) in parallel with US8 and US4.
 
 ## Implementation Strategy
 
-- **MVP**: Phases 0–5 (rebase, setup, foundations, sign-in, read filtering, role enforcement)
-  with access seeded from files: a secure but file-administered team deployment.
-- **P1 complete**: add Phase 6 (Admin panel). Tag a pre-release.
-- **Increment 2**: Phases 7–10 (working copies, governance guards, remote credentials, agents).
-- **Release v0.4.0** after Phase 11 (Azure, Keycloak CI) and Phase 12 with every suite green and
-  the README updated.
+- **Container first**: Phases 0–4 give an image that runs today's product, verified by CI on every
+  change.
+- **MVP**: add Phases 5–8 (sign-in, Azure delivery with fixture data, read filtering, role
+  enforcement) with access seeded from files: a secure, deployable but file-administered team
+  deployment.
+- **P1 complete**: add Phase 9 (Admin panel). Tag a pre-release; from here real contracts may be
+  loaded in the Azure environment.
+- **Increment 2**: Phases 10–13 (working copies, governance guards, remote credentials, agents).
+- **Release v0.4.0** after Phase 14 with every suite green in CI and against the image, the README
+  updated, and the tag deployed through the pipeline.
