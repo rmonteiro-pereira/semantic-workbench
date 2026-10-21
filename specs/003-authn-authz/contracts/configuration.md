@@ -10,7 +10,7 @@
 | `SW_OIDC_ISSUER` | server | yes | provider issuer URL (Entra: `https://login.microsoftonline.com/<tid>/v2.0`) |
 | `SW_OIDC_CLIENT_ID` | server | yes | |
 | `SW_OIDC_CLIENT_SECRET` | server | one of | secret reference |
-| `SW_OIDC_CLIENT_ASSERTION` | server | one of | `managed-identity` (Entra federated credential) or a private key path |
+| `SW_OIDC_CLIENT_ASSERTION` | server | one of | `managed-identity` (Entra federated credential of `id-sw-app`; uses the platform identity endpoint) or a private key path |
 | `SW_OIDC_SCOPES` | server | no | default `openid profile email offline_access` (+ `api://<client>/access_as_user` for Entra) |
 | `SW_OIDC_PROVIDER` | server | no (`generic`) | `entra`, `keycloak`, `generic` (claim mapping preset) |
 | `SW_ENTRA_TENANT_ID` | server/entra | yes for Entra | `tid` allow-list |
@@ -23,6 +23,7 @@
 | `SW_COMMITTER_NAME`, `SW_COMMITTER_EMAIL` | server | no | committer identity of server commits |
 | `SW_GITHUB_HOST`, `SW_GITHUB_CLIENT_ID`, `SW_GITHUB_CLIENT_SECRET` | server | no | GitHub OAuth/App for user tokens |
 | `SW_ADO_OBO` | server/entra | no (`true`) | Azure DevOps on-behalf-of |
+| `SW_IN_CONTAINER` | both | no (`1` in the image) | local mode logs that host networking is required (OP-8) |
 | `SW_SERVE_STATIC` | both | no (`0`; `1` in the image) | the Bun server serves `dist/` itself (always in server mode and in the container) |
 | `SW_VERSION`, `SW_COMMIT` | both | no (set by the image build) | reported by `/healthz`; checked by the smoke test |
 | `CONTAINER_APP_REVISION` | server | no (set by Azure Container Apps) | revision recorded in `instance.lock`; `SW_VERSION+SW_COMMIT` (else `dev`) when absent (FR-122, FR-123) |

@@ -27,7 +27,7 @@ rule there. Server mode adds the rules below.
 | `GET /auth/github/start` | signed in | `?returnTo=` | 302 to GitHub authorize with `state` bound to the session |
 | `GET /auth/github/callback` | signed in | | stores token in session, 302 to `returnTo` |
 | `GET /healthz` | anyone | | `200 {ok: true, version, commit}` (liveness; no workspace data; FR-124) |
-| `GET /readyz` | anyone | | `200 {ready: true, state: "serving" \| "handover"}` after recovery, lock (or hand-over wait for a different revision, FR-123) and first scan; `503` otherwise, including a live lock of the same revision (FR-122) |
+| `GET /readyz` | anyone | | `200 {ready: true, state: "serving"}` after lock, recovery and first scan; `200 {ready: true, state: "handover"}` while waiting for a different revision's lock, before any recovery or scan (FR-123); `503` otherwise, including a live lock of the same revision (FR-122) |
 | `GET /api/me` | signed in | | `{mode, id, name, email, kind, roles: {global?, domains, projects}, roleSources, groupsResolved, connected: {azureDevOps, github}, can: {admin, audit}}`; local mode returns the implicit Admin |
 | `POST /api/projects/:slug/git/publish` | Steward(d)/Admin | `{branch?: default}` | fast-forwards the branch to the copy's `HEAD` → `{published, commit}`; `409 {notFastForward: true}` |
 | `POST /api/projects/:slug/git/pull-default` | Editor(d)+ | | merges the default branch into the copy's branch → as `git/pull` |

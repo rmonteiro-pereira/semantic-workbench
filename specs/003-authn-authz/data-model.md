@@ -33,7 +33,8 @@ The SQLite cache moves to `SW_CACHE_DIR` when set (container local disk); defaul
 | `state` | `serving` | written by the holder; removed in the SIGTERM handler |
 
 Same revision and fresh heartbeat → refuse: not ready, no data served, re-checked every 10 s (FR-122); different revision and fresh heartbeat →
-hand-over wait (FR-123); stale or absent → take the lock.
+hand-over wait with no recovery, scan or write (FR-123); stale or absent → take the lock, then
+recover and scan.
 
 ## Principal (in memory, per request)
 
