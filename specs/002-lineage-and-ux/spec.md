@@ -4,9 +4,7 @@
 
 **Created**: 2026-10-21
 
-**Status**: Draft. Clarify pass done: 9 points resolved in this spec, 5 open questions marked
-`[NEEDS CLARIFICATION]`, each with a provisional answer that planning may assume until the owner
-decides. Constitution 2.0.1 applies; one amendment is needed (see Dependencies).
+**Status**: Clarified; all questions answered by the owner. Constitution 2.1.0 applies.
 
 **Input**: Owner's list for the release after v0.2.0 (`main` at `e768efa`; feature 001 complete):
 
@@ -79,25 +77,26 @@ decides. Constitution 2.0.1 applies; one amendment is needed (see Dependencies).
   the requirement stands as a geometry check over all shipped mapping files, plus the concrete
   layout faults that were found.
 
-### Open questions (provisional answers in effect until the owner decides)
+### Session 2026-10-21 (owner answers)
 
-- Q1 Save flow: [NEEDS CLARIFICATION: auto-save valid edits to the file after a pause, with
-  **Commit…** as the primary action (provisional, FR-040–FR-047), or keep an explicit save
-  button renamed "Save to file" next to Commit…?]
-- Q2 Monorepo declaration: [NEEDS CLARIFICATION: how a subfolder becomes a project. Provisional:
-  a committed `.semantic-workbench.json` manifest at the repository root listing project
-  folders is honoured if present; otherwise the app proposes folders that contain supported
-  files and the user confirms; the confirmed list is kept in workspace state (FR-064).]
-- Q3 Deleting a subfolder project: [NEEDS CLARIFICATION: provisional: **Remove from workspace**
-  (default, deletes nothing) and **Delete folder** (moves the subfolder to the trash; Git shows
-  the deletion as uncommitted changes in the shared repository) (FR-066).]
-- Q4 SQL lint severity: [NEEDS CLARIFICATION: provisional: SQL syntax findings are warnings,
-  never block saving, because the parser does not cover every vendor dialect; the alternative
-  is errors for `ANSI_SQL` only.]
-- Q5 Metrics list scope: [NEEDS CLARIFICATION: provisional: the Metrics tab lists every metric
-  of the project; metrics without workbench attributes are shown with an "Add attributes"
-  action, and a filter shows only metrics with attributes. The alternative keeps the v0.2.0
-  scope (only metrics with attributes, formerly "KPIs").]
+- Q1: Save flow? → A: Auto-save valid edits to the file after a pause; **Commit…** is the
+  header's primary action (FR-040–FR-048).
+- Q2: How does a subfolder become a project? → A: A committed `.semantic-workbench.json`
+  manifest at the repository root is honoured when present; otherwise the app proposes folders
+  that contain supported files and the user confirms; the confirmed list is kept in workspace
+  state (FR-064).
+- Q3: Deleting a subfolder project? → A: Both: **Remove from workspace** (default; deletes
+  nothing) and **Delete folder** (moves the subfolder to the trash; the shared repository shows
+  the deletion as uncommitted changes) (FR-066).
+- Q4: SQL lint severity? → A: Warnings that never block saving (FR-053).
+- Q5: Metrics list scope? → A: The Metrics tab lists every metric of the project; a filter
+  shows only metrics with workbench attributes ("governed"); metrics without attributes offer
+  **Add attributes** (FR-017).
+- Constitution amendment approved: 2.1.0 (MINOR) adds clone, into `data/projects/` only, to the
+  user-triggered Git network operations.
+- Mappings overflow: the concrete layout faults of Appendix A.3 are the requirements (no
+  mid-word breaks, no orphan arrows, wider binding layout, pluralisation), plus a browser check
+  that measures overflow with long identifiers (FR-063).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -393,8 +392,10 @@ the tree, Source Control, commits, branch switches and delete behaviour for each
 2. **Given** two projects of one repository, **When** the user opens Source Control from
    either, **Then** it shows the whole repository's changes, marking which project each file
    belongs to, and a commit or branch switch affects both projects, which both rescan.
-3. **Given** a subfolder project, **When** the user removes or deletes it, **Then** the
-   behaviour follows Q3, never touches other projects' files, and never rewrites history.
+3. **Given** a subfolder project, **When** the user removes or deletes it, **Then** **Remove
+   from workspace** (default) unregisters it and deletes nothing, **Delete folder** moves only
+   that subfolder to the trash, other projects' files are untouched and history is never
+   rewritten.
 
 ---
 
@@ -590,11 +591,12 @@ nodes and the "hidden" counts with the closure computed from the files.
   including `kpi_bindings`, are kept; v0.2.0 files validate and round-trip byte-exact.
 - **FR-016**: HTTP endpoints MUST offer `metrics` names for create and preview; the v0.2.0
   `kpis` paths remain as documented aliases in this release.
-- **FR-017**: The Metrics tab scope follows Q5.
+- **FR-017**: The Metrics tab MUST list every metric of the project, with a filter for metrics
+  with workbench attributes ("governed") and **Add attributes** on metrics without them.
 
 **Save, commit and import (Story 3)**
 
-- **FR-040**: Per Q1 (provisional), a valid edit in Source MUST be written to the file 1 second
+- **FR-040**: A valid edit in Source MUST be written to the file 1 second
   after the last keystroke, through the same validation, size limit, base-hash check and
   atomic write as v0.2.0; only the changed ranges are sent.
 - **FR-041**: Automatic saving MUST NOT write while the text has validation errors; the text is
@@ -635,7 +637,7 @@ nodes and the "hidden" counts with the closure computed from the files.
   finding MUST carry the exact file line and column, mapped through YAML indentation and
   folding, quotes and escapes; when the position cannot be mapped reliably the finding is
   attached to the expression's first character.
-- **FR-053**: Severity follows Q4.
+- **FR-053**: SQL findings MUST be warnings and MUST NOT block saving or automatic saving.
 - **FR-054**: The same coloring and findings MUST appear in item editor expression fields, the
   metric wizard's expression and filter inputs, and all SQL previews.
 - **FR-055**: Lint MUST NOT change any byte of the file; nothing is executed.
@@ -653,15 +655,20 @@ nodes and the "hidden" counts with the closure computed from the files.
   button appears only in drawer mode.
 - **FR-063**: Mappings: no binding element outside its card at any viewport; identifiers break
   preferentially at `.`, `_` and spaces; arrows never orphaned; correct singular/plural; the
-  query composer opens in a dialog.
+  query composer opens in a dialog; a browser check measures binding overflow with
+  synthetic long identifiers (80-character names without separators and dotted paths) at the six
+  viewports.
 
 **Git setup and monorepos (Stories 7, 8)**
 
 - **FR-064**: Clone a repository by URL or path into a new folder under `data/projects/`, only
   on explicit user action, with progress, Cancel, the 10-minute limit and redacted errors of
-  v0.2.0; then disable line-ending conversion and scan. Subfolder projects are declared per Q2.
+  v0.2.0; then disable line-ending conversion and scan. Subfolder projects are declared by a
+  root `.semantic-workbench.json` manifest when present, otherwise proposed by detection and
+  confirmed by the user; the confirmed list is stored in workspace state.
 - **FR-065**: Add, change and remove a project's remote in a dialog (existing validation).
-- **FR-066**: Remove/delete of a subfolder project follows Q3; Clear workspace moves whole
+- **FR-066**: A subfolder project MUST offer **Remove from workspace** (default, deletes
+  nothing) and **Delete folder** (to the trash; uncommitted deletion in the shared repository); Clear workspace moves whole
   repositories to the trash; Undo and Trash restore keep v0.2.0 guarantees.
 - **FR-067**: Git identity MUST be checked per repository, live (no restart), and set
   repository-locally from the app (C4).
@@ -747,10 +754,9 @@ nodes and the "hidden" counts with the closure computed from the files.
 
 ## Dependencies
 
-- **Constitution amendment (MINOR)**: principle I lists the remote operations allowed
-  (fetch, pull, push, sync); **clone** must be added, under the same rules (explicit user
-  action, machine's Git and credentials, never in the background). Principle IV's Git rules
-  already cover it. Subfolder projects stay inside `data/projects/` and need no amendment.
+- **Constitution 2.1.0 (approved, MINOR)**: principle I adds **clone**, into `data/projects/`
+  only, to the user-triggered Git network operations. Subfolder projects stay inside
+  `data/projects/` and need no amendment.
 - v0.2.0 modules reused: walk model, validation worker, base-hash save, journal, trash, Source
   Control, metric extension readers, SQL expression parser.
 

@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,9 +31,7 @@
 
 ## Notes
 
-- Five questions remain open (Q1 save flow, Q2 monorepo declaration, Q3 subfolder project
-  delete, Q4 SQL lint severity, Q5 Metrics list scope). Each has a provisional answer written
-  into the requirements, so planning can start; the owner's answers replace them.
+- All five questions were answered by the owner on 2026-10-21 and folded into the requirements.
 - Appendix A cites source files and line numbers of v0.2.0 (`e768efa`) to anchor the defects;
   this is evidence of current behaviour, not a design prescription. FR-022 (work off the main
   thread) and FR-052 (shared validation rules) restate constitution constraints rather than
