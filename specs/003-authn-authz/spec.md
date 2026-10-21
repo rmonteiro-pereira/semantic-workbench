@@ -4,7 +4,8 @@
 
 **Created**: 2026-10-21
 
-**Status**: Draft (specified from the owner's binding decisions; clarify pass pending)
+**Status**: Clarified (five open points resolved with recommended defaults, OP-1 to OP-5; owner to
+confirm). Constitution 3.0.0 applies.
 
 **Builds on**: feature 002 (`002-lineage-and-ux`, v0.3.0). This branch starts from
 `origin/002-lineage-and-ux` and is rebased onto `main` after 002 merges; every route, dialog and
@@ -59,6 +60,48 @@ repository projects, subfolder projects, metrics routes) is in scope for the acc
 Evidence for the current state: the authorization inventory of the 002 working tree (38 resource
 types, 57 implemented and 9 planned routes, 45 UI action groups, 42 policy attributes) is
 summarised in Appendix A.
+
+## Clarifications
+
+### Session 2026-10-21 (clarify pass, resolved with recommended defaults; owner to confirm)
+
+The owner's decisions above settle modes, provider, session model, roles, rule coverage, read
+granularity, policy engine, per-person worktrees, remote credentials, audit and the Admin panel.
+Five points were left open; each is resolved with the recommended option and listed for the
+owner (OP-1 to OP-5).
+
+- Q: How do people share work when each has a personal working copy, including in repositories
+  without a remote? → A (OP-1): Each working copy starts on a personal branch `work/<handle>`
+  (handle from the email's local part, made unique) created from the default branch. A person may
+  switch to any branch that no other working copy has checked out; a branch in use elsewhere is
+  shown as "in use by <display name>". **Publish** fast-forwards the default (or another
+  protected) branch to the person's commit inside the repository, with no network; if it is not a
+  fast-forward the person first runs **Pull from default branch** (a merge into their branch) and
+  repairs conflicts. With a remote, pushing the default branch also fast-forwards the local
+  default branch, and a pull that fetches it fast-forwards it when possible. The published state
+  (base checkout, detached at the default branch tip) is refreshed after every such update.
+- Q: What exactly does "classification restricts editing" mean? → A (OP-2): Two guards. (1)
+  Changing a classification, critical-data-element, team or roles value needs Steward of the
+  domain. (2) Changing anything inside a property classified at or above the protected level
+  (default `confidential`, levels `public < internal < confidential < restricted`, other values
+  mapped by Admins, unmapped treated as `internal`) needs Steward of the domain. Reading is never
+  affected. An Admin may set a per-project protected level.
+- Q: Are projects the person cannot read counted ("3 projects you cannot open")? → A (OP-3): No.
+  Unreadable projects are absent, without count, so people outside a domain learn nothing about
+  it; counts appear only for hidden files inside a readable project, hidden commits in history and
+  references in delete impact. Admins see all projects.
+- Q: How are metric `owner` and `steward` matched to people for the no-self-approval rule? → A
+  (OP-4): Case-insensitive match against the principal's email or username. Existing free-text
+  values that match nobody are shown as "unverified" and count as no owner; the wizard offers
+  people from the Users list. Approval also requires Steward role in the metric's domain; a named
+  `steward` value is informative, not a grant.
+- Q: Where do policies, role mappings and assignments live? → A (OP-5): In an administration Git
+  repository at `data/admin/` (outside `data/projects/`, never listed as a project, never given a
+  remote). One commit per Admin change, authored by the Admin, gives history, diff and rollback
+  with the Git machinery the workbench already has, keeps files reviewable as text, and survives
+  the cache being deleted. Rejected: JSON state files with a hand-made version log (re-implements
+  history), and the policies inside project repositories (a project's editors could grant
+  themselves access).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -528,7 +571,7 @@ survive; follow the Azure guide on a test subscription (manual, recorded).
   paths are readable by the person; drafts MUST be visible only to their owner.
 - **FR-045**: Where a listing within a readable project omits files, the response MUST include the
   number omitted; conflicts with unreadable occupants MUST be reported without their names.
-  Projects the person cannot read MUST NOT be counted or named anywhere.
+  Projects the person cannot read MUST NOT be counted or named anywhere (OP-3).
 - **FR-046**: Exports and the agent-context export MUST contain only what the person could read
   through the API at that moment.
 - **FR-047**: `/api/status` MUST return paths, recovery details and migration details only to
@@ -559,13 +602,16 @@ survive; follow the Azure guide on a test subscription (manual, recorded).
 - **FR-064**: Changing the value of an ODCS `classification`, `criticalDataElement`, contract
   `team` or `roles` MUST require Steward in the project's domain or Admin.
 - **FR-065**: Changing any part of an ODCS property (and its quality rules) whose classification
-  is at or above the protected level (default: `confidential`; ordered levels configurable)
-  MUST require Steward in the project's domain or Admin.
+  is at or above the protected level (default: `confidential`; levels `public < internal <
+  confidential < restricted`; other values mapped by Admins, unmapped values count as
+  `internal`; per-project level settable by Admins) MUST require Steward in the project's domain
+  or Admin (OP-2).
 - **FR-066**: A guarded change refused inside a multi-file operation (save-batch, pull, revert,
   import) MUST refuse the whole operation and name the guarded pointers.
 - **FR-067**: Metric `owner` and `steward` values MUST be matched against the principal's email or
   username (case-insensitive); values that match no person are treated as "no owner" for the
-  self-approval rule and shown as unverified.
+  self-approval rule and shown as unverified (OP-4). A `steward` value is informative and never
+  grants approval rights.
 
 #### Per-person working copies (server mode)
 
@@ -581,10 +627,13 @@ survive; follow the Azure guide on a test subscription (manual, recorded).
   person's stable id. The Git identity dialog MUST be available only in local mode.
 - **FR-074**: Publishing to the default branch or any protected branch MUST require Steward in the
   project's domain or Admin and MUST be a fast-forward; the published state MUST update for all
-  readers after a publish.
+  readers after a publish (OP-1).
 - **FR-075**: Git operations MUST stay serialised per repository across all working copies.
 - **FR-076**: Working copies idle for a configured period MUST release their file watchers and
   cache memory without losing files or drafts.
+- **FR-077**: Each working copy MUST start on a personal branch `work/<handle>`; a branch checked
+  out in another working copy MUST NOT be switched to and MUST be shown as in use by that person;
+  **Pull from default branch** MUST merge the default branch into the person's branch (OP-1).
 
 #### Remote credentials
 
@@ -678,7 +727,7 @@ survive; follow the Azure guide on a test subscription (manual, recorded).
   settings MUST be stored as text files in an administration Git repository under the data root,
   outside `data/projects/`, never listed as a project and never pushed anywhere. Each Admin change
   MUST be one commit authored by the Admin, written through the same atomic, hash-checked save as
-  project files; the server MUST load the active configuration from that repository's latest
+  project files (OP-5); the server MUST load the active configuration from that repository's latest
   commit at start-up and after each change.
 
 #### Deployment
