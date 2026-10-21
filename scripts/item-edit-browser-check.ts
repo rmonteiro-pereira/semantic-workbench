@@ -1,6 +1,7 @@
 import{chromium,expect,type Page}from'@playwright/test';import{readFileSync}from'node:fs';import{parse}from'yaml';
 import{startIsolatedApi,routeApi}from'./helpers/isolated-api';import{projectDir,projectFile}from'../server/projects/paths';
 import{editorValue,fillEditor}from'./helpers/code-editor';
+import {newItem} from './helpers/header';
 // Phase 6 browser check (T107; SC-002, SC-010 YAML/JSON): click-to-edit from the catalog, the graph
 // inspector and the Metrics view; Fields and Source; add and delete with dependents; rename
 // references; the metric wizard; status rules. After each save `git diff` is limited to the item.
@@ -86,7 +87,7 @@ try{
  });
  await check('add a concept and a relationship to it, then delete both: the file is back to its last commit',async()=>{
   await openFile('commerce-business.ossie.yaml');const before=read(commerce.slug,'commerce-business.ossie.yaml');
-  await page.getByRole('button',{name:'Add item'}).click();const a=page.getByRole('dialog',{name:/^Add concept/});
+  await newItem(page,'Add concept…');const a=page.getByRole('dialog',{name:/^Add concept/});
   await a.getByRole('textbox',{name:'Name',exact:true}).fill('Supplier');await a.getByLabel('Type').selectOption('EntityType');await a.getByLabel('Description').fill('Sells products to us.');
   await expect(a.getByLabel('Text to insert')).toHaveText('  - concept: Supplier\n    type: EntityType\n    description: Sells products to us.\n');
   await page.screenshot({path:'/tmp/workbench-item-add.png'});

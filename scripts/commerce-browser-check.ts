@@ -1,15 +1,16 @@
 import{chromium}from'@playwright/test';import{startIsolatedApi,routeApi}from'./helpers/isolated-api';
+import {example} from './helpers/examples';
 const browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1600,height:1000}});const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));const api=await startIsolatedApi({watch:false});const docs={get length(){return api.ws.documents().length;},some:(f:(d:any)=>boolean)=>api.ws.documents().some(f)};
 await routeApi(page,api);
 await page.goto('http://127.0.0.1:5173/');
-await page.getByRole('button',{name:/Load commerce workspace/}).click();await page.getByRole('status').filter({hasText:'Loaded commerce contracts'}).waitFor({timeout:60000});
+await (await example(page,/Load commerce workspace/)).click();await page.getByRole('status').filter({hasText:'Loaded commerce contracts'}).waitFor({timeout:60000});
 if(docs.length!==7)throw Error(`Expected 7 documents, got ${docs.length}`);
 for(const [filename,kind]of [['commerce.odcs.yaml','ODCS'],['sales.ossie.yaml','Ossie semantic'],['commerce-business.ossie.yaml','Ossie ontology'],['commerce.owl.ttl','OWL'],['commerce.owl','OWL'],['commerce.shacl.ttl','SHACL'],['commerce-data.ttl','RDF']]){
  await page.getByRole('button',{name:filename,exact:true}).click();await page.locator('.heading .badge').filter({hasText:kind}).waitFor();await page.waitForTimeout(400);
  if(await page.locator('.react-flow__node').count()===0)throw Error(`No nodes for ${filename}`);
  await page.screenshot({path:`/tmp/commerce-${filename.replaceAll('.','-')}.png`});
 }
-await page.getByRole('button',{name:/Load commerce scale data/}).click();await page.getByText('1000 entities · 5000 relationships',{exact:true}).waitFor({timeout:60000});await page.waitForTimeout(500);
+await (await example(page,/Load commerce scale data/)).click();await page.getByText('1000 entities · 5000 relationships',{exact:true}).waitFor({timeout:60000});await page.waitForTimeout(500);
 const visible=await page.locator('.react-flow__node').count();if(visible>16||visible===0)throw Error(`Bad neighborhood size ${visible}`);
 await page.screenshot({path:'/tmp/commerce-scale.png'});
 await page.getByPlaceholder('Find an entity…').fill('Order 10199');await page.waitForTimeout(500);if(await page.locator('.react-flow__node').count()===0)throw Error('Search did not find order');

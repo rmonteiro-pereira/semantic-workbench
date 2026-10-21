@@ -4,6 +4,7 @@ import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { editorSelection, expectEditorValue, fillEditor } from './helpers/code-editor';
 import { inspect } from '../src/model';
 import { groupRelationships } from '../src/graph-view';
+import {exportFile} from './helpers/header';
 
 const fixtures = [
   { filename: 'ubl.ontology.yaml', path: 'public/examples/ubl/ubl.ontology.yaml' },
@@ -51,7 +52,7 @@ async function allFlightsContained() {
 async function unchangedExport(filename: string) {
   const [download] = await Promise.all([
     page.waitForEvent('download'),
-    page.getByRole('button', { name: 'Export', exact: true }).click(),
+    exportFile(page),
   ]);
   expect(download.suggestedFilename()).toBe(filename);
   const path = await download.path();
@@ -162,7 +163,9 @@ try {
     await expect(page.getByRole('status', { name: 'Save state' })).toHaveText(/^Not saved: \d+ errors?$/, { timeout: 5000 });
     const highlight = page.locator('.cm-lintRange-error').filter({ hasText: 'MissingSourceParent' });
     await expect(highlight).toHaveCount(1);
-    const finding = page.locator('.validation-report li').filter({ hasText: 'Unknown parent concept' }).first();
+    // v0.3.0 (FR-060): the findings open in the Validation details dialog from the Save state indicator.
+    await page.getByRole('status', { name: 'Save state' }).click();
+    const finding = page.getByRole('dialog', { name: 'Validation details' }).locator('.validation-report li').filter({ hasText: 'Unknown parent concept' }).first();
     await expect(finding).toContainText('Affected feature');
     await expect(finding.locator('.validation-feature')).toContainText('Airport');
     await expect(finding.locator('.validation-source-line')).toContainText('MissingSourceParent');

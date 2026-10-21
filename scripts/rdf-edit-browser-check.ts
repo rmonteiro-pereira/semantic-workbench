@@ -1,6 +1,7 @@
 import{chromium,expect,type Locator}from'@playwright/test';import{readFileSync}from'node:fs';import{Parser,Writer}from'n3';
 import{startIsolatedApi,routeApi}from'./helpers/isolated-api';import{projectDir,projectFile}from'../server/projects/paths';
 import{editorValue,fillEditor}from'./helpers/code-editor';
+import {newItem} from './helpers/header';
 // Phase 7 browser check (T119; FR-055, SC-010 RDF): per-item editing of Turtle, RDF/XML, N-Triples and
 // N3 resources from the catalog and the inspector; add and delete with dependents; a Source edit that
 // touches another resource is refused; an N3 rule is refused with a jump to Source. After each save
@@ -108,7 +109,7 @@ try{
  });
  await check('add an OWL class, refer to it, then delete it with its dependents: the file is back to its last commit',async()=>{
   await openFile('commerce.owl.ttl');const before=read(commerce.slug,'commerce.owl.ttl');
-  await page.getByRole('button',{name:'Add item'}).click();const a=page.getByRole('dialog',{name:/^Add to commerce\.owl\.ttl/});
+  await newItem(page,/^Add RDF resource/);const a=page.getByRole('dialog',{name:/^Add to commerce\.owl\.ttl/});
   await a.getByLabel('Item type').selectOption('class');await a.getByLabel('IRI').fill('c:Supplier');await a.getByLabel('Label').fill('Supplier');await a.getByLabel('Subclass of').fill('c:Customer');
   await expect(a.getByLabel('Text to insert')).toHaveText('c:Supplier a owl:Class ; rdfs:label "Supplier" ; rdfs:subClassOf c:Customer .\n');
   await page.screenshot({path:'/tmp/workbench-rdf-add.png'});

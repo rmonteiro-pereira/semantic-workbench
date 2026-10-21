@@ -57,7 +57,8 @@ try{
     const icon=p.getByRole('button',{name:'Delete scratch.yaml',exact:true});await expect(icon).toBeVisible();
     expect(await treeRowProblems(p)).toEqual([]);
     const long=p.getByRole('tree',{name:'Projects'}).getByRole('button',{name:longName,exact:true}).locator('span');
-    if(width===390)expect(await long.evaluate(el=>el.scrollWidth>el.clientWidth)).toBe(true);
+    // v0.3.0 (FR-061): long names wrap to at most two lines and keep the full name as a tooltip.
+    if(width===390){expect(await long.getAttribute('title')).toBe(longName);expect(await long.evaluate(el=>el.getBoundingClientRect().height<=2*parseFloat(getComputedStyle(el).lineHeight)+1)).toBe(true);}
     if(touch)await expect(icon).toHaveCSS('opacity','1');
     await p.screenshot({path:`/tmp/workbench-trash-rows-${width}${touch?'-touch':''}.png`});
    }finally{await context.close();}
@@ -65,17 +66,20 @@ try{
  });
  await check('a mapping imported on its own is suggested for Flights with evidence, and accepting moves it',async()=>{
   await page.locator('input[type=file]').setInputFiles({name:'flights.mapping.yaml',mimeType:'application/yaml',buffer:Buffer.from(await read('flights.mapping.yaml'))});
-  const region=page.getByRole('region',{name:'Grouping suggestions'});
+  // v0.3.0 (FR-060): a one-line count in the sidebar opens the Grouping suggestions dialog.
+  await page.getByRole('button',{name:'1 grouping suggestion'}).click();
+  const region=page.getByRole('dialog',{name:'Grouping suggestions'});
   await expect(region).toContainText('flights.mapping.yaml');await expect(region).toContainText('references "Flights"');
   await page.screenshot({path:'/tmp/workbench-trash-suggestion.png'});
   await region.getByRole('button',{name:'Add to project'}).click();
-  await expect(region).toHaveCount(0);
+  await expect(region).toHaveCount(0);await expect(page.getByRole('button',{name:/grouping suggestion/})).toHaveCount(0);
   await expect(tree().getByRole('treeitem',{name:'Flights',exact:true}).getByRole('button',{name:'flights.mapping.yaml',exact:true})).toBeVisible();
   expect(existsSync(join(api.root,'projects/flights/flights.mapping.yaml'))).toBe(true);
  });
  await check('a dismissed suggestion is not offered again',async()=>{
   await page.locator('input[type=file]').setInputFiles({name:'flights.semantic_model.yaml',mimeType:'application/yaml',buffer:Buffer.from(await read('flights.semantic_model.yaml'))});
-  const region=page.getByRole('region',{name:'Grouping suggestions'});await expect(region).toBeVisible();
+  await page.getByRole('button',{name:'1 grouping suggestion'}).click();
+  const region=page.getByRole('dialog',{name:'Grouping suggestions'});await expect(region).toBeVisible();
   await region.getByRole('button',{name:'Dismiss'}).click();await expect(region).toHaveCount(0);
   expect(api.ws.state.suggestions().rejected).toHaveLength(1);
  });

@@ -26,8 +26,8 @@ try{
   await expect(tree.getByRole('treeitem',{name:'models/ref.ttl',exact:true})).toContainText('RDF');
   await expect(tree.getByRole('treeitem',{name:'broken.yaml',exact:true})).toContainText('invalid');
   await expect(tree.getByRole('treeitem',{name:'notes.csv'})).toHaveCount(0);
-  await tree.getByRole('button',{name:/^Shop, 3 files/}).click();await expect(fileButton(a,'shop.yaml')).toHaveCount(0);
-  await tree.getByRole('button',{name:/^Shop, 3 files/}).click();await expect(fileButton(a,'shop.yaml')).toBeVisible();
+  await tree.getByRole('button',{name:'Shop',exact:true}).click();await expect(fileButton(a,'shop.yaml')).toHaveCount(0);
+  await tree.getByRole('button',{name:'Shop',exact:true}).click();await expect(fileButton(a,'shop.yaml')).toBeVisible();
   await a.screenshot({path:'/tmp/workbench-projects-tree.png'});
  });
  await check('an invalid file opens in Source for repair',async()=>{

@@ -1,5 +1,6 @@
 import{chromium,expect,type Page}from'@playwright/test';import{readFileSync}from'node:fs';
 import{startIsolatedApi,routeApi}from'./helpers/isolated-api';import{projectFile}from'../server/projects/paths';
+import {exportFile} from './helpers/header';
 // SQL inside definitions (T063; FR-050–FR-055, SC-006): SQL colors in the Source editor (YAML and
 // JSON), a warning at the exact position within 500 ms of a typing pause, the JSON escape case, the
 // item editor's and the wizard's SQL fields, colored previews, and export bytes unchanged.
@@ -93,7 +94,7 @@ try{
  });
  await check('lint never changes bytes: exported files equal the files on disk',async()=>{
   for(const path of ['case-when-broken.ossie.yaml','escaped.semantic.json','folded.ossie.yaml']){
-   await open(path);const [download]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'Export',exact:true}).click()]);
+   await open(path);const [download]=await Promise.all([page.waitForEvent('download'),exportFile(page)]);
    const file=await download.path();expect(readFileSync(file!,'utf8')).toBe(fixture(path));
    expect(readFileSync(projectFile(api.ws.layout,sql.slug,path),'utf8')).toBe(fixture(path));
   }

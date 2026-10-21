@@ -71,6 +71,8 @@ try{
   await expect(card('Contract object orders').getByRole('button',{name:'orders.customer_id'})).toContainText('FK');
  });
  await check('selecting a column emphasises its whole path within 200 ms and dims the rest; the path panel lists it in order',async()=>{
+  // The readable first view may leave outer cards off screen (they are not rendered); Fit shows the whole path.
+  await graph().getByRole('button',{name:'Fit'}).click();await page.waitForTimeout(300);
   const ms=await page.evaluate(()=>new Promise<number>(res=>{const b=[...document.querySelectorAll('button')].find(x=>x.getAttribute('aria-label')==='orders.amount')!;const t=performance.now();
    const obs=new MutationObserver(()=>{if(document.querySelector('[aria-label="Lineage graph"] g[data-on-path="true"]')){obs.disconnect();res(performance.now()-t);}});obs.observe(document.body,{subtree:true,attributes:true,childList:true});b.click();}));
   console.log(`  highlight ${ms.toFixed(0)} ms`);expect(ms).toBeLessThanOrEqual(200);
