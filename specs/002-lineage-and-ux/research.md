@@ -259,6 +259,12 @@ Lezer-only lint (rejected: Lezer SQL is tolerant and reports no syntax errors).
 about 30 KB minified, no runtime network access, same release line as the other CodeMirror
 packages already used. No other new dependency.
 
+**Recorded at install (T001)**: `@codemirror/lang-sql` pinned at exactly `6.10.0` (published
+2025-09-16), MIT licence. Measured with `bun build --minify` and the CodeMirror/Lezer packages
+it shares with the app left external: 32.6 KB minified, 13.0 KB gzip. Its dependencies
+(`@codemirror/autocomplete`, `language`, `state`, `@lezer/common`, `highlight`, `lr`) were
+already installed; no network access at runtime.
+
 ## R12. Metric vocabulary
 
 **Decision**: UI strings, accessible names, README and docs use "metric"; components and files
@@ -319,3 +325,4 @@ give the same visual language the owner asked for.
 **Alternatives**: extend `inspect()` to load other project files (rejected: `inspect` is
 per-document and runs on the main thread for every view); a new server endpoint (rejected: the
 agent context already carries everything except two additive fields).
+

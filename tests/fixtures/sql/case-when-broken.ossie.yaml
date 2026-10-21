@@ -1,0 +1,24 @@
+version: 0.2.0.dev0
+name: Occupancy
+datasets:
+  - name: units
+    source: mall.units
+    fields:
+      - name: status
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: status
+      - name: gla_m2
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: gla_m2
+metrics:
+  - name: occupancy_rate
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: |
+            SUM(CASE WHEN units.status = 'occupied' THEN units.gla_m2 ELSE 0)
+            / NULLIF(SUM(units.gla_m2), 0)

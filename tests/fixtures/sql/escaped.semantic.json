@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0.dev0",
+  "name": "Escaped",
+  "datasets": [
+    {
+      "name": "tickets",
+      "source": "support.tickets",
+      "fields": [
+        {"name": "status", "expression": {"dialects": [{"dialect": "ANSI_SQL", "expression": "status"}]}}
+      ]
+    }
+  ],
+  "metrics": [
+    {"name": "open_tickets", "expression": {"dialects": [{"dialect": "ANSI_SQL", "expression": "SUM(CASE WHEN status = \"open\" THEN 1 END)"}]}},
+    {"name": "open_tickets_broken", "expression": {"dialects": [{"dialect": "ANSI_SQL", "expression": "SUM(CASE WHEN status = \"open\" THEN 1 \"x\" END)"}]}}
+  ]
+}

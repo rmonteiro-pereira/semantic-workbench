@@ -24,11 +24,20 @@
     "test:item-edit": "bun scripts/item-edit-browser-check.ts",
     "test:rdf-edit": "bun scripts/rdf-edit-browser-check.ts",
     "test:scm": "bun scripts/scm-browser-check.ts",
-    "test:odcs": "bun scripts/odcs-browser-check.ts"
+    "test:odcs": "bun scripts/odcs-browser-check.ts",
+    "test:lineage": "bun scripts/lineage-browser-check.ts",
+    "test:autosave": "bun scripts/autosave-browser-check.ts",
+    "test:sql": "bun scripts/sql-browser-check.ts",
+    "test:git-setup": "bun scripts/git-setup-browser-check.ts",
+    "test:monorepo": "bun scripts/monorepo-browser-check.ts",
+    "test:dialogs": "bun scripts/dialogs-browser-check.ts",
+    "test:terminology": "bun scripts/terminology-check.ts",
+    "test:mappings-layout": "bun scripts/mappings-layout-check.ts"
   },
   "dependencies": {
     "@codemirror/commands": "6.11.1",
     "@codemirror/lang-json": "6.0.2",
+    "@codemirror/lang-sql": "6.10.0",
     "@codemirror/lang-xml": "6.1.0",
     "@codemirror/lang-yaml": "6.1.3",
     "@codemirror/language": "6.13.1",

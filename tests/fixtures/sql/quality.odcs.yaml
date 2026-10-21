@@ -1,0 +1,35 @@
+apiVersion: v3.1.0
+kind: DataContract
+id: 5b2f8f0e-3f7c-4d39-9a51-0f4f8c1d2e01
+name: Quality rules
+version: 1.0.0
+status: active
+servers:
+  - server: warehouse
+    type: postgres
+    host: localhost
+    port: 5432
+    database: shop
+    schema: public
+schema:
+  - name: customers
+    physicalName: shop.customers
+    logicalType: object
+    properties:
+      - name: email
+        logicalType: string
+        quality:
+          - type: sql
+            description: No missing email.
+            query: SELECT COUNT(*) FROM ${table} WHERE ${column} IS NULL
+            mustBe: 0
+      - name: lifetime_value
+        logicalType: number
+        transformLogic: SELECT SUM(amount) FROM shop.orders GROUP BY customer_id
+    quality:
+      - type: sql
+        description: Customers exist.
+        query: |
+          SELECT COUNT(*)
+          FROM ${table}
+        mustBeGreaterThan: 0

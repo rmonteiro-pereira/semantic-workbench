@@ -1,0 +1,19 @@
+version: 0.2.0.dev0
+name: Dax
+datasets:
+  - name: sales
+    source: bi.sales
+    fields:
+      - name: amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amount
+metrics:
+  - name: total_sales
+    expression:
+      dialects:
+        - dialect: DAX
+          expression: SUM ( 'Sales'[Amount] ) +
+        - dialect: ANSI_SQL
+          expression: SUM(sales.amount)

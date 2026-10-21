@@ -34,11 +34,11 @@ is shippable: it ends with every existing suite (`bun test`, `check`, `build`, `
 
 ## Phase 1: Setup
 
-- [ ] T001 Add `@codemirror/lang-sql` (pinned exact version) to package.json and bun.lock; record size and licence in specs/002-lineage-and-ux/research.md R11
-- [ ] T002 [P] Create SQL fixtures of contracts/sql-regions.md in tests/fixtures/sql/ (case-when, case-when-broken, escaped JSON, folded YAML, ODCS quality with placeholders and a DAX expression)
-- [ ] T003 [P] Create Git fixtures helper tests/helpers/git-fixtures.ts: bare repository with two project folders and a manifest, one without manifest, one with a symbolic link and an oversized file
-- [ ] T004 [P] Add script entries test:lineage, test:autosave, test:sql, test:git-setup, test:monorepo, test:dialogs, test:terminology, test:mappings-layout to package.json (pointing to scripts created in later phases)
-- [ ] T005 [P] Pin schemas/semantic-workbench-repository-v1.json from contracts/repository-manifest.schema.json and list it in schemas/README.md as an application schema
+- [X] T001 Add `@codemirror/lang-sql` (pinned exact version) to package.json and bun.lock; record size and licence in specs/002-lineage-and-ux/research.md R11
+- [X] T002 [P] Create SQL fixtures of contracts/sql-regions.md in tests/fixtures/sql/ (case-when, case-when-broken, escaped JSON, folded YAML, ODCS quality with placeholders and a DAX expression)
+- [X] T003 [P] Create Git fixtures helper tests/helpers/git-fixtures.ts: bare repository with two project folders and a manifest, one without manifest, one with a symbolic link and an oversized file
+- [X] T004 [P] Add script entries test:lineage, test:autosave, test:sql, test:git-setup, test:monorepo, test:dialogs, test:terminology, test:mappings-layout to package.json (pointing to scripts created in later phases)
+- [X] T005 [P] Pin schemas/semantic-workbench-repository-v1.json from contracts/repository-manifest.schema.json and list it in schemas/README.md as an application schema
 
 ---
 

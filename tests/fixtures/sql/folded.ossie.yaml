@@ -1,0 +1,20 @@
+version: 0.2.0.dev0
+name: Folded
+datasets:
+  - name: orders
+    source: shop.orders
+    fields:
+      - name: amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amount
+metrics:
+  - name: big_order_revenue
+    expression:
+      dialects:
+        - dialect: SNOWFLAKE
+          expression: >
+            SUM(CASE WHEN orders.amount > 100
+              THEN orders.amount
+              ELSE 0 END END)
