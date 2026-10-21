@@ -88,6 +88,7 @@ export const scm={
  remote:(p:string,action:'fetch'|'pull'|'push'|'sync')=>gitPost<RemoteResult>(p,'git/'+action),
  cancel:(p:string)=>gitPost<{cancelled:boolean}>(p,'git/cancel'),
  log:(p:string,path?:string,limit=50)=>fetch(gitUrl(p,'git/log')+`?limit=${limit}${path?'&path='+encodeURIComponent(path):''}`).then(r=>json<GitCommit[]>(r)),
+ versions:(p:string,path:string,limit=20)=>fetch(gitUrl(p,'git/versions')+`?path=${encodeURIComponent(path)}&limit=${limit}`).then(r=>json<(GitCommit&{source:string})[]>(r)),
  ignore:(p:string,pattern:string)=>gitPost<{hash:string;added:boolean;tracked:string[]}>(p,'gitignore',{pattern}),
  saveDraft:(p:string,path:string,baseHash:string|null,text:string)=>fetch(`/api/drafts/${encodeURIComponent(p)}/${path.split('/').map(encodeURIComponent).join('/')}`,send('PUT',{baseHash,text,patches:[]})),
  deleteDraft:(p:string,path:string)=>fetch(`/api/drafts/${encodeURIComponent(p)}/${path.split('/').map(encodeURIComponent).join('/')}`,{method:'DELETE'}),

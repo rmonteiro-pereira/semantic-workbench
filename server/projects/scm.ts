@@ -136,6 +136,14 @@ export function createScm(deps:ScmDeps){
    const bytes=await git.blob(dir(slug),commit,projectPath(path));if(!bytes)return {source:'',exists:false};
    return {source:decode(bytes),exists:true,hash:sha256(bytes)};
   },
+  // A file's committed versions, newest first, with their text (ODCS History, FR-057). Binary or
+  // missing versions are skipped.
+  async versions(slug:string,path:string,limit=20){
+   const d=dir(slug),p=projectPath(path),log=await git.log(d,p,Math.max(1,Math.min(50,limit)));
+   const out:{commit:string;author:string;date:string;message:string;source:string}[]=[];
+   for(const c of log){const bytes=await git.blob(d,c.commit,p);if(!bytes)continue;try{out.push({...c,source:decode(bytes)});}catch{}}
+   return out;
+  },
   // Tracked files that a .gitignore pattern now matches: Git keeps tracking them.
   async ignoredButTracked(slug:string){const r=await git.run(dir(slug),['--no-optional-locks','-c','core.quotepath=off','ls-files','-ci','--exclude-standard','-z'],{readOnly:true,allowFailure:true});return r.stdout.split('\0').filter(Boolean);},
  };
