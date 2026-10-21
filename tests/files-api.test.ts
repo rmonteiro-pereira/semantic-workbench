@@ -116,7 +116,7 @@ test('projects can be created empty and renamed; names stay unique',async()=>{
 test('example loaders create the example project once and reopen it afterwards',async()=>{
  const t=await testWorkspace();
  try{
-  expect(await(await api(t,'POST','/api/examples/flights')).json()).toEqual({slug:'flights',name:'Ossie Flights',created:true});
+  expect(await(await api(t,'POST','/api/examples/flights')).json()).toMatchObject({slug:'flights',name:'Ossie Flights',created:true,commit:{committed:true,message:'Import 4 files'}});
   expect(await(await api(t,'POST','/api/examples/flights')).json()).toEqual({slug:'flights',name:'Ossie Flights',created:false});
   expect(readFileSync(join(t.root,'projects/flights/flights.yaml'),'utf8')).toBe(await example('ossie','flights.yaml'));
   expect((await api(t,'POST','/api/examples/unknown')).status).toBe(404);

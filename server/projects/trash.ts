@@ -1,9 +1,9 @@
 import {existsSync,readFileSync,readdirSync,rmSync} from 'node:fs';
 import {join,posix} from 'node:path';
 import {randomBytes} from 'node:crypto';
-import {atomicWriteJson,decode,readJsonFile,sha256} from './atomic';
-import {GoneError,NotFoundError,OccupiedError} from './errors';
-import type {Journal} from './journal';
+import {atomicWrite,atomicWriteJson,decode,readJsonFile,sha256} from './atomic';
+import {GoneError,NotFoundError,OccupiedError,StaleError} from './errors';
+import {JournalCrash,type Journal} from './journal';
 import {assertSlug,disambiguate,projectDir,projectFile,projectPath,slugify,uniqueName,type DataLayout} from './paths';
 import type {ProjectEntry,State} from './state';
 // Delete, undo, restore, purge and Clear (FR-021–FR-026, FR-086–FR-088). Deleting moves the file or
@@ -43,6 +43,37 @@ export function createTrash(ctx:TrashContext){
    await ctx.afterFiles(slug);
    ctx.emit('trash',{entries:[e.entryId],undoUntil:e.undoUntil});
    return {entryId:e.entryId,undoUntil:e.undoUntil};
+  });
+ }
+ // Revert to last commit (FR-046, research R7): one journaled operation. The base hash is checked,
+ // the committed bytes are staged, then the current file moves into a new trash entry and the
+ // staged bytes move into its place. A file absent from the last commit just goes to the trash.
+ async function revertFile(slug:string,path:string,baseHash:string|null,committed:Uint8Array|null){
+  const p=projectPath(path),project=registryEntry(assertSlug(slug));
+  return lock('project:'+slug,async()=>{
+   const file=projectFile(layout,slug,p);let current:Uint8Array|null=null;try{current=readFileSync(file);}catch{}
+   const currentHash=current?sha256(current):null;
+   if(baseHash!==currentHash)throw new StaleError(currentHash,current?decode(current):null);
+   if(!current&&!committed)throw new NotFoundError('The file is neither on disk nor in the last commit.');
+   const at=now(),opId=journal.newId(),staging=join(layout.projects,`.staging-${opId}`),steps:{from:string;to:string}[]=[];
+   let entry:TrashEntry|null=null,entryDir='';
+   try{
+    if(current){
+     const view=state.view(slug).files[p];
+     entry=newEntry({kind:'file',project:slug,projectName:project.name,path:p,hash:currentHash!,batchId:null,...(view!==undefined?{view}:{})},at);
+     entryDir=dirOf(entry.entryId);atomicWriteJson(join(entryDir,'entry.json'),entry);
+     steps.push({from:file,to:join(entryDir,'payload',posix.basename(p))});
+    }
+    if(committed){const staged=join(staging,'head');atomicWrite(staged,committed);steps.push({from:staged,to:file});}
+    journal.run('revert',steps,[staging],opId);
+   }catch(err){
+    if(err instanceof JournalCrash)throw err;
+    rmSync(staging,{recursive:true,force:true});if(entryDir)rmSync(entryDir,{recursive:true,force:true});throw err;
+   }
+   state.deleteDraft(slug,p);
+   await ctx.afterFiles(slug);
+   if(entry)ctx.emit('trash',{entries:[entry.entryId],undoUntil:entry.undoUntil});
+   return {hash:committed?sha256(committed):null,trashEntry:entry?.entryId??null};
   });
  }
  // Projects (and Clear) are removed together with their registry entries in one journal.
@@ -124,7 +155,7 @@ export function createTrash(ctx:TrashContext){
    .map(e=>({entryId:e.entryId,kind:e.kind,project:e.project,projectName:e.projectName,path:e.path,deletedAt:e.deletedAt,undoUntil:e.undoUntil,batchId:e.batchId,hash:e.hash}));
  }
  return {
-  deleteFile,list,
+  deleteFile,list,revertFile,
   deleteProject:async(slug:string)=>{const [e]=await deleteProjects([assertSlug(slug)],null);return {entryId:e.entryId,undoUntil:e.undoUntil};},
   async clear(){
    const slugs=ctx.projects().map(p=>p.slug);if(!slugs.length)return {batchId:null,entries:[],undoUntil:null};

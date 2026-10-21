@@ -1,6 +1,7 @@
 import {existsSync,readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {GitError,redactCredentials,type Git,type StatusEntry} from './git';
+import {MergingError} from './errors';
 import {decode,sha256} from './atomic';
 import {assertNoLinks,projectPath,projectPrefix,repoDir,type DataLayout} from './paths';
 import {serializationOf} from './scanner';
@@ -85,18 +86,8 @@ export function createScm(deps:ScmDeps){
   return git.blob(d,rev==='index'?'':rev,path);
  }
  const asText=(bytes:Uint8Array|null)=>{if(!bytes)return {text:'',binary:false};if(bytes.subarray(0,8000).includes(0))return {text:'',binary:true};try{return {text:decode(bytes),binary:false};}catch{return {text:'',binary:true};}};
- return {
-  status,
-  async diff(slug:string,path:string,from='HEAD',to='worktree'){
-   const d=dir(slug),p=projectPath(path),[a,b]=await Promise.all([content(d,from,prefix(slug)+p),content(d,to,prefix(slug)+p)]),before=asText(a),after=asText(b);
-   return {path:p,from,to,before:before.text,after:after.text,binary:before.binary||after.binary,beforeExists:!!a,afterExists:!!b};
-  },
-  async stage(slug:string,list:unknown){const d=dir(slug);await git.stage(d,paths(slug,list));await after(slug);return status(slug);},
-  async unstage(slug:string,list:unknown){const d=dir(slug);await git.unstage(d,paths(slug,list));await after(slug);return status(slug);},
-  async stageAll(slug:string,stage:boolean){const d=dir(slug),s=await git.status(d),list=s.entries.filter(e=>stage?e.worktree!=='.':e.index!=='.'&&!e.untracked).map(e=>e.path);if(list.length)await (stage?git.stage(d,list):git.unstage(d,list));await after(slug);return status(slug);},
-  async commit(slug:string,message:unknown){
-   if(typeof message!=='string'||!message.trim())throw new GitError('A commit message is required.');
-   const d=dir(slug),s=await git.status(d);
+ async function commitIndex(slug:string,message:string){
+  const d=dir(slug),s=await git.status(d);
    if(s.entries.some(e=>e.conflicted))throw new GitError('Resolve the conflicted files and stage them before committing.');
    const staged=s.entries.filter(e=>e.index!=='.'&&!e.untracked);
    if(!staged.length&&!await git.merging(d))throw new GitError('Nothing is staged. Stage the changes to include, then commit.');
@@ -109,7 +100,40 @@ export function createScm(deps:ScmDeps){
    const altered=checked.filter(p=>disk.get(p)!==before.get(p)||(tree.has(p)&&disk.get(p)!==tree.get(p)));
    await after(slug,altered);
    return {commit:head,altered};
+ }
+ async function commitChosen(slug:string,message:string,list:unknown){
+  const d=dir(slug),chosen=paths(slug,list);
+  if(await git.merging(d)){const s=await git.status(d);throw new MergingError(s.entries.filter(e=>e.conflicted).map(e=>fromRepo(slug,e.path).path));}
+  const clean=chosen.filter(p=>existsSync(join(d,p))),before=await git.worktreeIds(d,clean);
+  const r=await git.commitPaths(d,chosen,message);
+  if(!r.committed)throw new GitError(r.reason==='no-identity'?'Not committed: set your Git identity (user.name and user.email) for this repository.':r.reason==='merging'?'A merge is in progress.':'Nothing to commit: the chosen files match the last commit.');
+  const checked=clean.filter(p=>before.has(p)),[disk,tree]=await Promise.all([git.worktreeIds(d,checked.filter(p=>existsSync(join(d,p)))),git.treeIds(d,'HEAD',checked)]);
+  const altered=checked.filter(p=>disk.get(p)!==before.get(p)||(tree.has(p)&&disk.get(p)!==tree.get(p))).map(p=>fromRepo(slug,p).path);
+  await after(slug,altered);
+  return {commit:r.commit,altered};
+ }
+ return {
+  status,
+  async diff(slug:string,path:string,from='HEAD',to='worktree'){
+   const d=dir(slug),p=projectPath(path),[a,b]=await Promise.all([content(d,from,prefix(slug)+p),content(d,to,prefix(slug)+p)]),before=asText(a),after=asText(b);
+   return {path:p,from,to,before:before.text,after:after.text,binary:before.binary||after.binary,beforeExists:!!a,afterExists:!!b};
   },
+  async stage(slug:string,list:unknown){const d=dir(slug);await git.stage(d,paths(slug,list));await after(slug);return status(slug);},
+  async unstage(slug:string,list:unknown){const d=dir(slug);await git.unstage(d,paths(slug,list));await after(slug);return status(slug);},
+  async stageAll(slug:string,stage:boolean){const d=dir(slug),s=await git.status(d),list=s.entries.filter(e=>stage?e.worktree!=='.':e.index!=='.'&&!e.untracked).map(e=>e.path);if(list.length)await (stage?git.stage(d,list):git.unstage(d,list));await after(slug);return status(slug);},
+  // `paths` (FR-045): commit exactly those project files with `git commit --only`, leaving other
+  // staged and unstaged work alone; refused during a merge. Without `paths`, the index is committed
+  // (v0.2.0). `push` then pushes; its outcome is reported, never thrown, as the commit is made.
+  async commit(slug:string,message:unknown,options:{paths?:unknown;push?:boolean}={}){
+   if(typeof message!=='string'||!message.trim())throw new GitError('A commit message is required.');
+   const result=options.paths===undefined?await commitIndex(slug,message):await commitChosen(slug,message,options.paths);
+   if(!options.push)return result;
+   let pushed:{ok:boolean;message:string};
+   try{const r=await remoteAction(slug,'push');pushed={ok:r.ok,message:r.stderr||(r.ok?'Pushed.':'Push failed.')};}
+   catch(e){pushed={ok:false,message:(e as Error).message};}
+   return {...result,pushed};
+  },
+  refresh:(slug:string)=>after(slug),
   async branches(slug:string){const d=dir(slug),b=await git.branches(d),s=await git.status(d);return {current:s.branch,...b};},
   async switchBranch(slug:string,branch:unknown,create=false){
    // Trimmed before any check, so a leading space cannot smuggle an option such as `--detach`.

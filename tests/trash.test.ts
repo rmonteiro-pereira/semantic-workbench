@@ -71,7 +71,7 @@ test('deleting a project moves its folder with .git and registry entry; restore 
   expect((await api(t,'POST',`/api/trash/${entryId}/undo`)).status).toBe(200);
   expect(t.ws.state.registry().projects.map(p=>[p.slug,p.name])).toEqual([['alpha','Alpha'],['beta','Beta']]);
   expect(t.ws.grouping('beta/c.yaml')).toEqual({mode:'types'});
-  expect((await t.ws.git.run(join(t.root,'projects/beta'),['log','--format=%s'])).stdout.trim()).toBe('Import 1 file');
+  expect((await t.ws.git.run(join(t.root,'projects/beta'),['log','--format=%s'])).stdout.trim()).toBe('Import c.yaml');
   expect(t.ws.cache.files('beta').map(f=>f.path)).toEqual(['c.yaml']);
  }finally{t.dispose();}
 });

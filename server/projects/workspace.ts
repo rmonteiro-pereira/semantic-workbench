@@ -7,8 +7,8 @@ import {atomicWrite,atomicWriteJson,decode,encode,sha256} from './atomic';
 import {createCache,type Cache} from './cache';
 import {createEvents} from './events';
 import {createGit} from './git';
-import {createJournal,type RecoveryOutcome} from './journal';
-import {dataLayout,disambiguate,locationOf,projectDir,repoDir,projectFile,projectName,projectPath,slugify,uniqueName,assertSlug,PathError,type DataLayout} from './paths';
+import {createJournal,type JournalHooks,type RecoveryOutcome} from './journal';
+import {dataLayout,disambiguate,locationOf,projectDir,projectPrefix,repoDir,projectFile,projectName,projectPath,slugify,uniqueName,assertSlug,PathError,type DataLayout} from './paths';
 import {createScanner,indexBytes} from './scanner';
 import {createState,type ProjectEntry,type Patch} from './state';
 import {createWatcher} from './watcher';
@@ -22,7 +22,14 @@ import {ConflictError,OccupiedError} from './errors';
 import {StaleError,NotFoundError} from './errors';
 export {StaleError,NotFoundError,GoneError,OccupiedError,ConflictError} from './errors';
 export type ImportFile={path:string;source:string};
-export type WorkspaceOptions={root?:string;gitBinary?:string;watch?:boolean;examplesDir?:string;rescanMs?:number;debounceMs?:number;now?:()=>number;migrationHooks?:Parameters<typeof migrateLegacy>[1]};
+export type WorkspaceOptions={root?:string;gitBinary?:string;watch?:boolean;examplesDir?:string;rescanMs?:number;debounceMs?:number;now?:()=>number;migrationHooks?:Parameters<typeof migrateLegacy>[1];journalHooks?:JournalHooks};
+// What an import's commit did (FR-049, contracts/http-api.md): the commit, or why there is none.
+export type ImportCommit={committed:true;commit:string;message:string}|{committed:false;reason:'no-git'|'no-identity'|'merging'|'nothing'};
+// C6: "Import N files" (one file: "Import <name>"), "… into <subfolder>" in a subfolder project.
+export function importMessage(paths:string[],subfolder=''){
+ const what=paths.length===1?posix.basename(paths[0]):`${paths.length} files`;
+ return `Import ${what}${subfolder?` into ${subfolder}`:''}`;
+}
 // Apply source-range patches (UTF-16 offsets into the base text) from the end so offsets stay valid.
 export function applyPatches(base:string,patches:Patch[]){
  if(!Array.isArray(patches)||patches.length>10_000)throw Error('Patches must be an array.');
@@ -39,7 +46,7 @@ export const revisionOf=(hash:string)=>parseInt(hash.slice(0,12),16)+1;
 export async function openWorkspace(options:WorkspaceOptions={}){
  const layout:DataLayout=dataLayout(options.root);
  for(const dir of [layout.projects,layout.state,layout.trash,layout.backup])mkdirSync(dir,{recursive:true});
- const state=createState(layout),journal=createJournal(layout),events=createEvents();
+ const state=createState(layout),journal=createJournal(layout,options.journalHooks),events=createEvents();
  // Project folders resolve through the registry (research R10); unregistered slugs are their own folder.
  layout.locate=slug=>{const e=state.registry().projects.find(p=>p.slug===slug);return e?locationOf(e):undefined;};
  const git=createGit({projectsRoot:layout.projects,binary:options.gitBinary});
@@ -89,15 +96,27 @@ export async function openWorkspace(options:WorkspaceOptions={}){
    try{
     mkdirSync(stagedProject,{recursive:true});
     for(const f of files){const bytes=encode(f.source),file=join(stagedProject,f.path);atomicWrite(file,bytes);if(sha256(readFileSync(file))!==sha256(bytes))throw Error(`Could not verify ${f.path} after writing.`);}
-    if(gitAvailable){await git.init(stagedProject);if(identityConfigured){await git.addAll(stagedProject);await git.commit(stagedProject,files.length?`Import ${files.length} file${files.length===1?'':'s'}`:'Create project',!files.length);}}
+    let commit:ImportCommit={committed:false,reason:'no-git'};
+    if(gitAvailable){
+     await git.init(stagedProject);
+     if(files.length)commit=await commitFiles(stagedProject,files.map(f=>f.path));
+     else if(await git.identity(stagedProject))await git.commit(stagedProject,'Create project',true);
+    }
     const project:ProjectEntry={slug,name:finalName,createdAt:new Date().toISOString(),origin};
     const steps=[{from:stagedProject,to:projectDir(layout,slug)},...registrySteps(stateStaging,[...current,project])];
     journal.run(origin==='import'?'import':'create',steps,[staging,stateStaging],opId);
     await scanner.scan(slug);watcher?.add(slug);notifySuggestions();
     events.emit('projects',{added:[slug],removed:[],renamed:[]});
-    return project;
+    return Object.assign({},project,{commit});
    }catch(e){rmSync(staging,{recursive:true,force:true});rmSync(stateStaging,{recursive:true,force:true});throw e;}
   });
+ }
+ // Commit exactly the imported paths (FR-049); `prefix` is the project folder inside its repository.
+ async function commitFiles(repo:string,paths:string[],prefix=''):Promise<ImportCommit>{
+  if(!gitAvailable)return {committed:false,reason:'no-git'};
+  const message=importMessage(paths,prefix.replace(/\/$/,''));
+  const r=await git.commitPaths(repo,paths.map(p=>prefix+p),message);
+  return r.committed?{committed:true,commit:r.commit,message}:r;
  }
  function preflight(files:ImportFile[]){
   if(!Array.isArray(files)||!files.length||files.length>500)throw Error('Expected 1–500 files.');
@@ -243,8 +262,12 @@ export async function openWorkspace(options:WorkspaceOptions={}){
     }
     journal.run('import',steps,[staging],opId);
    }catch(e){rmSync(staging,{recursive:true,force:true});throw e;}
+   let commit:ImportCommit;
+   try{commit=await commitFiles(repoDir(layout,slug),written.map(w=>w.path),projectPrefix(layout,slug));}
+   catch(e){console.error(`[import] commit failed: ${(e as Error).message}`);commit={committed:false,reason:'nothing'};}
    await rescan(slug);
-   return {written};
+   if(commit.committed)try{await scm.refresh(slug);}catch{}
+   return {written,commit};
   });
  }
  // What a delete would remove and break (FR-022): unsaved drafts and Ossie references that would
@@ -275,6 +298,15 @@ export async function openWorkspace(options:WorkspaceOptions={}){
  }
  return {
   layout,state,cache,events,git,scm,journal,gitAvailable,identityConfigured,recovery,migration,
+  // Revert to last commit (FR-046): the committed bytes, then one journaled replace via the trash.
+  async revertFile(slug:string,path:string,baseHash:unknown){
+   entry(slug);if(baseHash!==null&&(typeof baseHash!=='string'||!/^[0-9a-f]{64}$/.test(baseHash)))throw Error('baseHash must be a SHA-256 hex digest or null.');
+   if(!gitAvailable)throw Error('Git is not available on this machine.');
+   const p=projectPath(path),committed=await git.blob(repoDir(layout,slug),'HEAD',projectPrefix(layout,slug)+p);
+   const r=await trash.revertFile(slug,p,baseHash as string|null,committed);
+   try{await scm.refresh(slug);}catch{}
+   return r;
+  },
   lock,rescan,project:entry,registrySteps,readFile,saveFile,saveFiles,documents,resolveId,preflight,trash,moveFile,importInto,deleteImpact,suggestions,acceptSuggestion,rejectSuggestion,
   async listProjects(){
    return Promise.all(projects().map(async p=>{
@@ -288,7 +320,7 @@ export async function openWorkspace(options:WorkspaceOptions={}){
    const files=preflight(body.files);
    const name=body.name===undefined?batchName(files):projectName(body.name);
    const project=await createProjectFolder(name,'import',files);
-   return {slug:project.slug,name:project.name,written:files.map(f=>({path:f.path,hash:sha256(encode(f.source))}))};
+   return {slug:project.slug,name:project.name,written:files.map(f=>({path:f.path,hash:sha256(encode(f.source))})),commit:project.commit};
   },
   async loadExample(id:string){
    const set=exampleSet(id);if(!set)throw new NotFoundError('Unknown example.');
@@ -300,7 +332,7 @@ export async function openWorkspace(options:WorkspaceOptions={}){
    const same=projects().find(p=>files.every(f=>cache.file(p.slug,f.path)?.hash===hashes.get(f.path)));
    if(same)return {slug:same.slug,name:same.name,created:false};
    const project=await createProjectFolder(set.name,`example:${id}`,files,set.id);
-   return {slug:project.slug,name:project.name,created:true};
+   return {slug:project.slug,name:project.name,created:true,commit:project.commit};
   },
   renameProject:(slug:string,name:unknown)=>lock('registry',()=>{
    const current=projects(),p=entry(slug),value=projectName(name,current.map(x=>x.name),p.name);

@@ -9,7 +9,11 @@ import type {DataLayout} from './paths';
 export type JournalStep={action:'rename';from:string;to:string;done:boolean};
 export type JournalFile={formatVersion:1;opId:string;kind:string;steps:JournalStep[];cleanup:string[];startedAt:string};
 export type RecoveryOutcome={opId:string;kind:string;outcome:'completed'|'rolled-back';paths:string[]};
-export function createJournal(layout:DataLayout){
+// Test hook: `crashAfter(kind, step)` returning true stops right after that step as a crash would
+// (no roll-back, no clean-up), so recovery on the next start can be tested.
+export class JournalCrash extends Error{constructor(){super('Simulated crash (test hook).');this.name='JournalCrash';}}
+export type JournalHooks={crashAfter?:(kind:string,step:number)=>boolean};
+export function createJournal(layout:DataLayout,hooks:JournalHooks={}){
  const abs=(path:string)=>{const p=resolve(layout.root,path);if(p!==layout.root&&!p.startsWith(layout.root+sep))throw Error('Journal path escapes the data root.');return p;};
  const newId=()=>`${Date.now().toString(36)}-${randomBytes(4).toString('hex')}`;
  const rel=(path:string)=>relative(layout.root,path).split(sep).join('/');
@@ -30,8 +34,8 @@ export function createJournal(layout:DataLayout){
   run(kind:string,steps:{from:string;to:string}[],cleanup:string[]=[],opId=newId()){
    const j:JournalFile={formatVersion:1,opId,kind,steps:steps.map(s=>({action:'rename',from:rel(abs(s.from)),to:rel(abs(s.to)),done:false})),cleanup:cleanup.map(c=>rel(abs(c))),startedAt:new Date().toISOString()};
    save(j);
-   try{for(const step of j.steps){if(existsSync(abs(step.to)))throw Error(`Destination already exists: ${step.to}`);move(step.from,step.to);step.done=true;save(j);}}
-   catch(e){rollBack(j);finish(j);throw e;}
+   try{for(const [i,step] of j.steps.entries()){if(existsSync(abs(step.to)))throw Error(`Destination already exists: ${step.to}`);move(step.from,step.to);step.done=true;save(j);if(hooks.crashAfter?.(kind,i))throw new JournalCrash();}}
+   catch(e){if(e instanceof JournalCrash)throw e;rollBack(j);finish(j);throw e;}
    finish(j);return j;
   },
   pending,
