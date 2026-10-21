@@ -69,6 +69,8 @@ try{
  await check('Lineage tab: the lineage canvas centred on the object, foreign-key neighbours, the sales metrics; property lineage; Relationships',async()=>{
   await openDataset('orders');await views('orders').getByRole('tab',{name:'Lineage'}).click();
   const graph=dataset('orders').getByRole('region',{name:'Lineage graph'});await expect(graph).toBeVisible();
+  // the first view is a readable zoom that may leave outer cards off screen; Fit shows them all
+  await expect(graph.locator('.lineage-card.center')).toBeVisible({timeout:8000});await graph.getByRole('button',{name:'Fit'}).click();await page.waitForTimeout(300);
   for(const name of ['Contract object orders','Contract object customers','Contract object order_lines','Semantic dataset orders'])await expect(graph.getByRole('group',{name}).first()).toBeVisible({timeout:8000});
   await expect(graph.locator('.lineage-card.k-metric')).toHaveCount(3);
   await expect(graph.getByRole('group',{name:'Contract object orders'})).toHaveClass(/center/);

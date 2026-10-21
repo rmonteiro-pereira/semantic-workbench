@@ -273,3 +273,21 @@ if(category==='lineage'){
  const card={id:'k',kind:'object',label:'k',file:'',columns:Array.from({length:12},(_,i)=>({id:`k/c${i}`,path:`c${i}`,badges:[]}))};
  assert.equal(m.pageColumns(card,0,new Set()).port('k/c11'),m.moreRowId('k'));
 }
+if(category==='mapping-graph'){
+ const {buildContext,agentCatalog}=await import(new URL('../server/agent/runtime.ts',import.meta.url).href);const {readFileSync}=await import('node:fs');
+ const dir=new URL('../public/examples/commerce/',import.meta.url).pathname;
+ const docs=(edit:(f:string,s:string)=>string=(_f,s)=>s)=>['commerce.mapping.yaml','commerce.mapped-ontology.yaml','commerce.mapped-semantic.yaml'].map((f,i)=>({id:'p/'+f,filename:f,source:edit(f,readFileSync(dir+f,'utf8')),revision:i+1,project:'p'}));
+ const ctx=(d:any[])=>buildContext(d,agentCatalog(d).mappings[0].id);
+ const g=m.buildMappingGraph(ctx(docs()));
+ // link Order.customer passes through the join fields
+ assert.deepEqual(g.edges.find((e:any)=>e.kind==='link'&&e.from==='concept:Order/customer').via,['dataset:orders/customer_id','dataset:customers/customer_id']);
+ // a field nothing reads is unmapped, a mapped one is not
+ const g2=m.buildMappingGraph(ctx(docs((f,s)=>f==='commerce.mapped-semantic.yaml'?s.replace('    fields:\n','    fields:\n      - {name: notes, expression: {dialects: [{dialect: ANSI_SQL, expression: notes}]}}\n'):s)));
+ const orders=g2.cards.get('dataset:orders');assert(orders.columns.find((c:any)=>c.path==='notes').badges.some((b:any)=>b.label==='Unmapped'));assert(!orders.columns.find((c:any)=>c.path==='order_id').badges.some((b:any)=>b.label==='Unmapped'));
+ // a finding sits on the concept mapping it comes from
+ const g3=m.buildMappingGraph(ctx(docs((f,s)=>f==='commerce.mapping.yaml'?s.replace('            - relationship: id\n              expression: orders.order_id','            - relationship: id\n              expression: orders.no_such_field'):s)));
+ assert((g3.cards.get('concept:Order').findings??[]).join().includes('no_such_field'));assert.deepEqual(g3.cards.get('concept:Revenue').findings??[],[]);
+ // a KPI binding's `of` is dashed `of`, not `measures`
+ const g4=m.buildMappingGraph(ctx(docs((f,s)=>f==='commerce.mapping.yaml'?s+'custom_extensions:\n  - vendor_name: SEMANTIC_WORKBENCH\n    data: \'{"schema": "semantic-workbench/mapping/v1", "kpi_bindings": [{"metric":"gross_revenue","measures":"Revenue","of":"Customer"}]}\'\n':s)));
+ assert.deepEqual(g4.edges.filter((e:any)=>e.to==='metric:gross_revenue'&&e.kind!=='object').map((e:any)=>[e.kind,e.from]).sort(),[['measures','concept:Revenue'],['of','concept:Customer']]);
+}

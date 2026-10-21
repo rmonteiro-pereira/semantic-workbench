@@ -444,3 +444,63 @@ agent context already carries everything except two additive fields).
   `data-count` besides `data-edge-kind`/`data-on-path`, so `scripts/lineage-browser-check.ts`
   compares drawn lines with the golden lists both ways.
 
+## R19. Implementation decisions taken in Phase 5 (concept-mapping graph)
+
+- **Binding kinds** (`server/agent/runtime.ts`): every binding produced under a `link_mappings`
+  entry is `link` (the link's anchor object mapping, the linked objects and their identifying
+  referents); outside links a referent mapping is `referent` and an object mapping `object`.
+  `metricBindings` reads the mapping's `SEMANTIC_WORKBENCH` extension (a standalone mapping's root,
+  or the embedded semantic model's root, as the KPI explanation does) and resolves it with the
+  existing `resolveBindings`; unresolved concepts or metrics become warning findings on that
+  binding only, so the context's `findings` and every other field are unchanged (pinned by a
+  digest of the v0.2.0 output in `tests/fixtures/agent-context/digests.json`).
+- **Cards** (`src/mappings/mapping-graph.ts`): every ontology concept that is not an Ossie
+  built-in (rows: its declared relationships in order, plus nested referent paths such as
+  `airport.code`), every semantic dataset (rows: fields), and metric cards reached by an object
+  mapping's expression or a KPI binding. Ids are `concept:<name>`, `dataset:<name>`,
+  `metric:<name>`; rows `<card>/<path>`.
+- **Lines**: an object mapping draws concept card → dataset card for each dataset its identifying
+  referents read (fields of referents whose first relationship is in `identify_by` get the
+  Identifying badge), and concept → field/metric for its own expression. A referent mapping draws
+  the concept's relationship row → each field or metric it reads. A link child draws the owner's
+  relationship row → the related concept card, labelled with the relationship; the field rows it
+  passes through (`via`) are the child's fields plus their partners in declared semantic joins
+  (`orders.customer_id → customers.customer_id`). The `via` rows are highlighted with the line
+  rather than drawn as extra segments, because a line back from a dataset (right) to a concept
+  (left) would cross the whole canvas. A link's anchor bindings are listed on its child lines.
+  KPI bindings draw concept → metric, `measures` solid and `of` dashed. A concept mapping whose
+  object expression is a metric and a KPI binding of the same metric are two bindings and draw two
+  lines (`object` and `measures`).
+- **Unmapped and findings**: a concept no binding, link or KPI binding names, and a field no
+  binding reads, carry the Unmapped badge. Resolver findings attach to the concept card of the
+  concept mapping their evidence path is in (a failed binding has no line to attach to), metric
+  findings to the metric card, KPI binding problems to the metric card; anything else (reference
+  resolution) is listed above the canvas.
+- **Reach**: the mapping canvas shows the cards within *Steps* lines of the centre in any
+  direction (plus the dataset cards a shown link passes through); a mall-sized mapping (190
+  concepts, 426 datasets) is never drawn whole. Expand adds every neighbour of a card.
+- **Model projection** (FR-034): concept mappings stay entities in `inspect()` because item
+  editing, the catalog, validation navigation and Source lines use them, but no Graph view draws
+  them any more: Graph shows the mapping canvas. Neighborhood keeps its v0.2.0 entity view for a
+  mapping document (a concept mapping and the items around it), which the existing graph checks
+  cover; the mapping canvas is the place for the mapping's lines. On a consolidated file the switch
+  (`Mapping graph` / `Ontology graph`, role group "Graph view") sits in the canvas toolbar and in
+  the entity graph's toolbar.
+- **Readable views** (owner review of the Phase 4 screenshots, applies to both canvases): cards
+  are 400 px wide with 30 px rows, column names 13 px and types/badges 11 px. The first view fits
+  everything only when column names stay at 12 px or more (zoom ≥ 0.93); otherwise it fits the
+  centre and its direct neighbours, otherwise it shows the centre card alone at that zoom. When a
+  path is selected the view brings the path's cards into a readable view; **Fit** still shows
+  everything at any zoom. More than six leaf cards of one kind hanging off one card (UBL
+  consignment's bridge tables) show as one dashed "N more objects" card that opens on request;
+  grouping is off while a path is selected. `scripts/lineage-browser-check.ts` and
+  `scripts/mapping-graph-browser-check.ts` assert the 12 px rule at 1280×720 and 1440×900.
+  Mapping link lines carry the relationship as a label; lineage lines are unlabelled (column
+  names are already on the rows). Two lines between the same ports (an object mapping and a KPI
+  binding of the same metric) are drawn 7 px apart.
+- **Checks changed by the spec**: `scripts/metrics-browser-check.ts` opens the consolidated Flights
+  file's Graph tab to look at KPI nodes; since FR-034 that tab opens on the mapping graph, so the
+  check switches to **Ontology graph** first (its assertions are unchanged).
+  `scripts/odcs-browser-check.ts` and `scripts/lineage-browser-check.ts` press **Fit** before
+  counting cards, because the readable first view may leave outer cards off screen. The mapping
+  canvas keeps the Graph view switch reachable while the mapping resolves or fails to resolve.

@@ -57,6 +57,7 @@ import {useFullscreen} from './graph/fullscreen';
 import {ContractOverview} from './odcs/ContractOverview';
 import {DatasetPage} from './odcs/DatasetPage';
 import {LineageCanvas} from './odcs/LineageCanvas';
+import {MappingCanvas} from './mappings/MappingCanvas';
 import {buildLineage,defaultCenter,type LineageCard} from './odcs/lineage';
 import {projectFiles,projectRevision} from './odcs/project-files';
 import {propertyEditor} from './odcs/PropertyEditors';
@@ -194,6 +195,13 @@ function App() {
 
   // ODCS contract overview and dataset pages (Phase 9): the object whose page is open, per document.
   const isContract=model?.kind==='ODCS';
+  // Mapping documents and consolidated files (embedded ontology_mappings) get the mapping canvas
+  // on the Graph tab (FR-028, FR-034); a consolidated file can switch to its ontology graph.
+  const isMappingDoc=model?.kind==='Ossie mappings',isConsolidated=!isMappingDoc&&Array.isArray((model as any)?.document?.ontology_mappings)&&(model as any).document.ontology_mappings.length>0;
+  const [mappingView,setMappingView]=useState<'mapping'|'ontology'>('mapping');
+  useEffect(()=>setMappingView('mapping'),[current?.id]);
+  const mappingId=current&&(isMappingDoc||isConsolidated)?(isMappingDoc?current.id:`${current.id}#ontology_mappings/0`):'';
+  const graphViewSwitch=isConsolidated?<span className="graph-view-switch" role="group" aria-label="Graph view">{(['mapping','ontology'] as const).map(v=><button key={v} aria-pressed={mappingView===v} onClick={()=>setMappingView(v)}>{v==='mapping'?'Mapping graph':'Ontology graph'}</button>)}</span>:null;
   const [contractObject,setContractObject]=useState<string|null>(null);
   // Column-level lineage of the open contract (FR-001), built from the project's saved files.
   const lineageDocs=isContract&&current?docs.filter(d=>d.project===current.project):[];
@@ -204,7 +212,7 @@ function App() {
   useEffect(()=>{if(!lineage){setLineageCenter('');return;}let stored='';try{stored=localStorage.getItem(lineageKey)??'';}catch{}setLineageCenter(lineage.cards.has(stored)?stored:defaultCenter(lineage));},[lineage?.contract,current?.id,!!lineage]);
   // The stored centre belongs to the previous contract for one render after switching files.
   const lineageCenterId=lineage?(lineage.cards.has(lineageCenter)?lineageCenter:defaultCenter(lineage)):'';
-  const lineageShown=tab==='fullgraph'&&isContract&&!!lineage&&!!lineageCenterId;
+  const lineageShown=tab==='fullgraph'&&((isContract&&!!lineage&&!!lineageCenterId)||(!!mappingId&&mappingView==='mapping'));
   function lineageCenterChanged(id:string){try{localStorage.setItem(lineageKey,id);}catch{}}
   function openInLineage(name:string){if(!lineage||!current)return;const id=`object:${current.path}#${name}`;try{localStorage.setItem(lineageKey,id);}catch{}setLineageCenter(id);setTab('fullgraph');}
   // Walking into a semantic model or metric continues in that file's Neighborhood (FR-009).
@@ -612,7 +620,8 @@ function App() {
                     </div>
                   ))}
               </div>
-            ) : tab==='fullgraph' && isContract && lineage && lineageCenterId ? <LineageCanvas key={current?.id} graph={lineage} center={lineageCenterId} fullscreen={fullscreen} storageKey={current?`workbench:lineage-steps:${current.id}`:undefined} onCenterChange={lineageCenterChanged} onOpenAsset={c=>{setTab('contract');setContractObject(c.label);}} onNeighborhood={continueInNeighborhood}/> : tab==='fullgraph' && model ? <FullGraph fullscreen={fullscreen} kpiBadges={kpiBadges} grouping={grouping.value} onGroupingChange={grouping.change} groupingError={grouping.error} key={current?.id} name={model.name} entities={model.entities} edges={model.edges} selected={selected} selectedEdge={selectedEdge} search={search} onSelectEntity={selectEntity} onSelectEdge={id=>{setSelectedEdge(id);setSelected('')}} onOverview={()=>{setTab('overview');setSearch('')}} onNeighborhood={()=>showNeighborhood()}/> : (
+            ) : tab==='fullgraph' && mappingId && mappingView==='mapping' ? <MappingCanvas key={mappingId} mappingId={mappingId} revisionKey={docs.filter(d=>d.project===current?.project).map(d=>d.id+':'+d.hash).join('|')} dirty={!!current&&source!==current.source} fullscreen={fullscreen} toolbarExtra={graphViewSwitch} onEditItem={editMappingItem}/>
+            : tab==='fullgraph' && isContract && lineage && lineageCenterId ? <LineageCanvas key={current?.id} graph={lineage} center={lineageCenterId} fullscreen={fullscreen} storageKey={current?`workbench:lineage-steps:${current.id}`:undefined} onCenterChange={lineageCenterChanged} onOpenAsset={c=>{setTab('contract');setContractObject(c.label);}} onNeighborhood={continueInNeighborhood}/> : tab==='fullgraph' && model ? <FullGraph toolbarExtra={graphViewSwitch} fullscreen={fullscreen} kpiBadges={kpiBadges} grouping={grouping.value} onGroupingChange={grouping.change} groupingError={grouping.error} key={current?.id} name={model.name} entities={model.entities} edges={model.edges} selected={selected} selectedEdge={selectedEdge} search={search} onSelectEntity={selectEntity} onSelectEdge={id=>{setSelectedEdge(id);setSelected('')}} onOverview={()=>{setTab('overview');setSearch('')}} onNeighborhood={()=>showNeighborhood()}/> : (
               tab==='overview' && model ? <ModelOverview grouping={grouping.value} onGroupingChange={grouping.change} groupingError={grouping.error} key={current?.id} name={model.name} entities={model.entities} edges={model.edges} search={search} selected={selected} onSelectEntity={selectEntity} onSelectRelationship={id=>{setSelectedEdge(id);setSelected('')}} onClose={()=>showNeighborhood()} onOpenGraph={()=>{setTab('fullgraph')}}/> : <NeighborhoodGraph fullscreen={fullscreen} kpiBadges={kpiBadges} key={current?.id} docId={current!.id} docLabel={id=>docsRef.current.get(id)?.path??id} entities={model?.entities??[]} edges={model?.edges??[]} search={search} walk={walk} selected={selected} selectedEdge={selectedEdge} onWalk={(steps:WalkStep[])=>{for(const step of steps)dispatchWalk({type:'push',step});}} onWalkTo={walkTo} onClearSearch={()=>setSearch('')} onSelectEntity={id=>{setSelected(id);setSelectedEdge('');}} onSelectEdge={id=>{setSelectedEdge(id);}} onOverview={()=>{setSearch('');setTab('overview')}} onFullGraph={()=>{setSearch('');setTab('fullgraph')}} onOpenKpis={concept=>{setKpiFilter(concept+'\u0000'+Date.now());setSelectedKpi('');setTab('metrics');}} crossFile={crossFile} onCrossFile={crossTo}/>
             )}
           </section>

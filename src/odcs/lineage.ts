@@ -27,17 +27,19 @@ const columnOf=(p:any)=>typeof p?.physicalName==='string'?p.physicalName:String(
 import {odcsExternalForeignKeys} from '../odcs';
 import {flattenProperties} from './odcs-diff';
 import {propertyBadges,badge,type BadgeInfo} from '../PropertyBadges';
-import type {LineageEdgeKind} from '../graph/edge-styles';
-export type CardKind='object'|'dataset'|'metric'|'external';
+import type {LineageEdgeKind,MappingEdgeKind} from '../graph/edge-styles';
+export type CardKind='object'|'dataset'|'metric'|'external'|'concept';
 export type LineageColumn={id:string;path:string;type?:string;badges:BadgeInfo[];fk?:string[]};
-export type LineageCard={id:string;kind:CardKind;label:string;file:string;detail?:string;columns:LineageColumn[];group?:string;governed?:boolean};
-export type ColumnEdge={from:string;to:string;kind:LineageEdgeKind;source:{file:string;path:(string|number)[]};ambiguous?:boolean;label?:string};
+// Mapping cards (src/mappings/mapping-graph.ts) also carry card badges (Unmapped) and resolver findings.
+export type LineageCard={id:string;kind:CardKind;label:string;file:string;detail?:string;columns:LineageColumn[];group?:string;governed?:boolean;badges?:BadgeInfo[];findings?:string[];missing?:boolean};
+// `via`: rows a mapping link passes through (highlighted with it); `bindings`: resolver binding ids.
+export type ColumnEdge={from:string;to:string;kind:LineageEdgeKind|MappingEdgeKind;source:{file:string;path:(string|number)[]};ambiguous?:boolean;label?:string;via?:string[];bindings?:string[]};
 export type LineageGraph={contract:string;cards:Map<string,LineageCard>;edges:ColumnEdge[];revision:string;unmatchedDatasets:number};
 const datasetCardId=(file:string,key:string,name:string)=>`dataset:${file}#${key}/${name}`;
 const metricCardId=(file:string,key:string,name:string)=>`metric:${file}#${key}/${name}`;
 export const columnId=(card:string,path:string)=>`${card}/${path}`;
 // The card a node (column or card) belongs to. Ids contain file paths, so this is a lookup, not a parse.
-export function cardOfNode(graph:LineageGraph,node:string){if(graph.cards.has(node))return node;return columnOwner.get(graph)?.get(node)??node;}
+export function cardOfNode(graph:LineageGraph,node:string){if(graph.cards.has(node))return node;let owners=columnOwner.get(graph);if(!owners){owners=new Map();for(const c of graph.cards.values())for(const x of c.columns)owners.set(x.id,c.id);columnOwner.set(graph,owners);}return owners.get(node)??node;}
 const columnOwner=new WeakMap<LineageGraph,Map<string,string>>();
 export function buildLineage(files:ProjectFile[],contractPath:string,revision=''):LineageGraph{
  const contract=files.find(f=>f.path===contractPath)?.data,schema=list(contract?.schema);
@@ -142,6 +144,19 @@ export function around(g:LineageGraph,center:string,steps=1){
  for(const c of shown){let n=0;if(g.cards.get(c)?.kind==='object'||g.cards.get(c)?.kind==='external')for(const x of fkNeighbours(c))if(!shown.has(x))n++;if(n)hidden.set(c,n);}
  return {cards:shown,hidden};
 }
+// The mapping canvas' reach (research R19): cards within `steps` lines of the centre in any
+// direction, plus the cards holding rows a shown link passes through; neighbours one line further
+// are counted as hidden on the card they connect to.
+export function aroundHops(g:LineageGraph,center:string,steps=1){
+ const card=(n:string)=>cardOfNode(g,n),links=new Map<string,Set<string>>();
+ const link=(a:string,b:string)=>{if(a===b)return;(links.get(a)??links.set(a,new Set()).get(a)!).add(b);(links.get(b)??links.set(b,new Set()).get(b)!).add(a);};
+ for(const e of g.edges)link(card(e.from),card(e.to));
+ const shown=new Set([center]);let frontier=[center];
+ for(let s=0;s<steps;s++){const next:string[]=[];for(const c of frontier)for(const n of links.get(c)??[])if(!shown.has(n)){shown.add(n);next.push(n);}frontier=next;}
+ for(const e of g.edges)if(e.via&&shown.has(card(e.from))&&shown.has(card(e.to)))for(const v of e.via)shown.add(card(v));
+ const hidden=new Map<string,number>();for(const c of shown){let n=0;for(const x of links.get(c)??[])if(!shown.has(x))n++;if(n)hidden.set(c,n);}
+ return {cards:shown,hidden};
+}
 // Paging (FR-006, research R3): ten columns per page; columns on the highlighted path are pinned
 // above the page; an edge to a column that is not shown attaches to the card's "more" row.
 export const PAGE_SIZE=10;
@@ -161,7 +176,7 @@ export function findAssets(g:LineageGraph,query:string,limit=20){
  const rank=(s:string)=>{const n=norm(s);return n===q?0:n.startsWith(q)?1:n.includes(q)?2:-1;};
  for(const c of g.cards.values()){
   const best=[c.label,c.detail??''].map(rank).filter(x=>x>=0);if(best.length)hits.push({id:c.id,card:c.id,label:c.label,kind:c.kind,rank:Math.min(...best)});
-  if(c.kind==='dataset')for(const col of c.columns){const x=rank(col.path);if(x>=0)hits.push({id:col.id,card:c.id,label:`${c.label}.${col.path}`,kind:'field',rank:x+0.5});}
+  if(c.kind==='dataset'||c.kind==='concept')for(const col of c.columns){const x=rank(col.path);if(x>=0)hits.push({id:col.id,card:c.id,label:`${c.label}.${col.path}`,kind:'field',rank:x+0.5});}
  }
  return hits.sort((a,b)=>a.rank-b.rank||a.label.length-b.label.length||a.label.localeCompare(b.label)).slice(0,limit);
 }

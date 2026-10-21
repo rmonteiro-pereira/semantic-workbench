@@ -20,6 +20,7 @@ async function openContract(path:string,project:string){
  // Timed from opening the file (the Graph tab stays selected between files).
  const t=Date.now();await tree().getByRole('treeitem',{name:project}).getByRole('button',{name:path,exact:true}).click();
  await page.locator('.tabs').getByRole('button',{name:'Graph'}).click();await expect(graph().locator(`.lineage-card[data-id^="object:${path}#"]`).first()).toBeVisible({timeout:8000});
+ await page.waitForTimeout(300);// the first view settles once the pane is measured
  await expect(graph().locator('.lineage-card').first()).toBeVisible({timeout:8000});return Date.now()-t;
 }
 const fit=async()=>{await graph().getByRole('button',{name:'Fit'}).click();await page.waitForTimeout(350);};
@@ -33,10 +34,19 @@ async function compare(name:string){
   ports:[...document.querySelectorAll('[aria-label="Lineage graph"] [data-id]')].map(e=>e.getAttribute('data-id')!)}));
  expect(lines.length).toBeGreaterThan(0);
  const drawn=new Set<string>();
- for(const l of lines){if(l.count>1||l.from.endsWith('/#more')||l.to.endsWith('/#more'))continue;const k=`${l.from}>${l.to}>${l.kind}`;drawn.add(k);if(!g.has(k))throw new Error(`${name}: unexpected line ${k}`);}
+ for(const l of lines){if(l.from.startsWith('group:')||l.to.startsWith('group:'))continue;if(l.count>1||l.from.endsWith('/#more')||l.to.endsWith('/#more'))continue;const k=`${l.from}>${l.to}>${l.kind}`;drawn.add(k);if(!g.has(k))throw new Error(`${name}: unexpected line ${k}`);}
  const shown=new Set(ports),bundled=lines.some(l=>l.count>1);
  for(const k of g){const [from,to]=k.split('>');if(shown.has(from)&&shown.has(to)&&!drawn.has(k)&&!bundled)throw new Error(`${name}: missing line ${k}`);}
  return drawn.size;
+}
+// Readability (owner review): a column name in the centre card renders at 12 px or more in the
+// first view, at 1280×720 and 1440×900.
+async function renderedRowPx(){return page.evaluate(()=>{const v=document.querySelector('[aria-label="Lineage graph"] .react-flow__viewport') as HTMLElement;const m=v.style.transform.match(/scale\(([\d.]+)\)/);const scale=m?Number(m[1]):1;
+ const name=document.querySelector('[aria-label="Lineage graph"] .lineage-card.center .lineage-row-name') as HTMLElement|null;return name?parseFloat(getComputedStyle(name).fontSize)*scale:0;});}
+async function firstViewReadable(path:string,project:string,label:string){
+ for(const [w,h] of [[1280,720],[1440,900]]){await page.setViewportSize({width:w,height:h});await page.locator('.tabs').getByRole('button',{name:'Overview'}).click();await openContract(path,project);await page.waitForTimeout(500);
+  await page.screenshot({path:`/tmp/workbench-lineage-${label.toLowerCase()}-first-${w}.png`});const px=await renderedRowPx();console.log(`  ${label} ${w}×${h}: column names at ${px.toFixed(1)} px`);expect(px).toBeGreaterThanOrEqual(12);}
+ await page.setViewportSize({width:1440,height:900});
 }
 async function shots(name:string){
  for(const [w,h] of [[390,844],[1280,720],[1440,900],[2560,1440]]){await page.setViewportSize({width:w,height:h});await page.waitForTimeout(300);await fit();await page.screenshot({path:`/tmp/workbench-lineage-${name}-${w}.png`});
@@ -48,9 +58,11 @@ try{
  await check('commerce: the Graph tab opens the lineage canvas centred on orders; drawn lines match the expected edges both ways',async()=>{
   await openContract('commerce.odcs.yaml','Commerce workspace');
   await expect(card('Contract object orders')).toHaveClass(/center/);
-  for(const n of ['Contract object customers','Contract object order_lines','Semantic dataset orders','Metric gross_revenue'])await expect(card(n)).toBeVisible();
+  // the first view may leave outer cards off screen at a readable zoom; Fit shows them all
   expect(await compare('commerce')).toBeGreaterThan(5);
+  for(const n of ['Contract object customers','Contract object order_lines','Semantic dataset orders','Metric gross_revenue'])await expect(card(n)).toBeVisible();
  });
+ await check('commerce: the first view is readable (column names ≥ 12 px) at 1280×720 and 1440×900',async()=>{await firstViewReadable('commerce.odcs.yaml','Commerce workspace','commerce');});
  await check('legend and badges: kinds and line styles in the footer; PK, FK and Required on the rows',async()=>{
   const legend=graph().getByRole('list',{name:'Legend'});for(const t of ['Contract object','Metric'])await expect(legend).toContainText(t);
   await expect(legend.locator('li').filter({hasText:'Foreign key'})).toHaveCount(1);
@@ -93,6 +105,10 @@ try{
  await check('UBL (169 objects): first view within 2 s, centred on consignment; drawn lines match; paging shows the next columns',async()=>{
   const ms=await openContract('ubl.odcs.yaml',examples.ubl.name);console.log(`  first view ${ms} ms`);expect(ms).toBeLessThanOrEqual(2000);
   const center=graph().locator('.lineage-card.center');await expect(center).toHaveAttribute('aria-label','Contract object consignment');
+  expect(await renderedRowPx()).toBeGreaterThanOrEqual(12);
+  // the fan-out of bridge tables is one "N more objects" card, which opens on request
+  await fit();const group=graph().locator('.lineage-card.group').first();await expect(group).toContainText('more objects');
+  const before=await graph().locator('.lineage-card').count();await group.getByRole('button',{name:/^Expand /}).click();await expect.poll(()=>graph().locator('.lineage-card').count()).toBeGreaterThan(before);
   await compare('ubl');
   const pager=center.getByRole('navigation');await expect(pager).toBeVisible();
   const first=await center.locator('li[data-id]').first().getAttribute('data-id');
@@ -101,6 +117,7 @@ try{
   await expect(center.locator('.lineage-more')).toBeVisible();
   await compare('ubl');await shots('ubl');
  });
+ await check('UBL: the first view is readable (column names ≥ 12 px) at 1280×720 and 1440×900',async()=>{await firstViewReadable('ubl.odcs.yaml',examples.ubl.name,'UBL');});
  await check('no browser errors',async()=>{expect(errors).toEqual([]);});
  console.log(`${passed} lineage checks passed on isolated data root ${api.root}.`);
 }catch(e){await page.screenshot({path:"/tmp/workbench-lineage-failure.png"});console.log("browser errors:",errors.join("\n").slice(0,3000));throw e;}finally{await browser.close();await api.stop();}

@@ -477,6 +477,29 @@ try {
    await tab(sweep, 'Overview'); await expect(sweep.locator('.area-entities button').first()).toBeVisible();
    await tab(sweep, 'Neighborhood'); await expect.poll(() => centerOf(sweep)).toBe('ontology/40');
   });
+  // Mapping canvas (T109): same card geometry rules on the mapped commerce mapping, with a selection.
+  await check('mapping graph: cards, rows, badges, finding markers and toolbar fit; cards never overlap; the canvas stays usable beside the path panel', async () => {
+   await api.ws.loadExample('mapped-commerce');
+   await sweep.setViewportSize({ width: 1440, height: 900 }); await sweep.reload();
+   await openFile(sweep, 'commerce.mapping.yaml'); await tab(sweep, 'Graph');
+   const graph = sweep.getByRole('region', { name: 'Mapping graph' });
+   await expect(graph.locator('.lineage-card').first()).toBeVisible({ timeout: 15_000 });
+   const found: string[] = [];
+   for (const [width, height] of [[390, 844], [1280, 720], [1440, 900], [2560, 1440]] as const) {
+    await closeDrawer(sweep);
+    await sweep.setViewportSize({ width, height }); await sweep.waitForTimeout(300);
+    await graph.getByRole('button', { name: 'Fit' }).click(); await sweep.waitForTimeout(300);
+    for (const problem of await lineageProblems(sweep)) found.push(`${width}×${height}: ${problem}`);
+    for (const problem of await layoutProblems(sweep)) found.push(`${width}×${height}: ${problem}`);
+    await graph.getByRole('group', { name: 'Concept Customer' }).locator('.lineage-card-title').click({ force: true });
+    await expect(graph.getByRole('region', { name: 'Selected path' })).toBeVisible(); await sweep.waitForTimeout(300);
+    for (const problem of await lineageProblems(sweep)) found.push(`${width}×${height} with a selection: ${problem}`);
+    for (const problem of await layoutProblems(sweep)) found.push(`${width}×${height} with a selection: ${problem}`);
+    await sweep.screenshot({ path: `/tmp/workbench-mapping-graph-path-${width}.png` });
+    await graph.getByRole('button', { name: 'Clear the selected path' }).click();
+   }
+   expect(found).toEqual([]);
+  });
   await sweep.close();
   await check('no uncaught browser errors', async () => expect(errors).toEqual([]));
   console.log(`${passed} responsive UI checks passed`);

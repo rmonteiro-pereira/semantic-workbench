@@ -6,5 +6,5 @@
 .prop-badge.b-required{background:#e2f3ea;color:#1e6a4f;border-color:#c3e3d1}
 .prop-badge.b-unique{background:#eef0fb;color:#3e4a94;border-color:#d4d9f2}
 .prop-badge.b-classification{background:#f6eaf0;color:#86304f;border-color:#ebcfdc;font-weight:600}
-.prop-badge.b-identifying{background:#e4eef7;color:#1f5476;border-color:#c5d9ea}
-.prop-badge.b-unmapped{background:#f3f4f4;color:#5c6664;border-color:#dfe3e2;font-weight:600}
+.prop-badge.b-identifying{background:#e4eef7;color:#1f5476;border-color:#c5d9ea;font-size:11px;line-height:17px}
+.prop-badge.b-unmapped{background:#f1f3f2;color:#485b54;border-color:#cbd6d1;font-weight:600;font-size:11px;line-height:17px}
