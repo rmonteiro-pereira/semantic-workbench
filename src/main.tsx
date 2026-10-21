@@ -21,6 +21,10 @@ import {KpiWizard} from './metrics/KpiWizard';
 import {ItemEditor,type Saved} from './edit/ItemEditor';
 import {AddItem} from './edit/AddItem';
 import {DeleteItem} from './edit/DeleteItem';
+import {RdfItemEditor} from './edit/RdfItemEditor';
+import {RdfAddItem,RdfDeleteItem} from './edit/RdfAddItem';
+import {isIri} from './edit/rdf-patch/index';
+import {rdfSyntax} from './rdf';
 import {itemKindAt,itemName,addableKinds,type ItemKind,type Path,type Choices} from './edit/item-model';
 import {itemValue} from './edit/yaml-patch';
 import type {KpiSummary} from '../server/agent/explain';
@@ -182,6 +186,12 @@ function App() {
   // Item editing (FR-048–FR-052): the editor, add and delete dialogs work on one file of a project.
   type ItemTarget={docId:string;path:Path;kind:ItemKind};
   const [editing,setEditing]=useState<ItemTarget|null>(null),[adding,setAdding]=useState<{docId:string;kind?:ItemKind;owner?:Path;preset?:Record<string,any>}|null>(null),[deleting,setDeleting]=useState<ItemTarget|null>(null),[wizard,setWizard]=useState(false);
+  // RDF, OWL and SHACL resources are edited by IRI (Phase 7); blank nodes go with their parent.
+  type RdfTarget={docId:string;subject:string;label:string;kind:string};
+  const [rdfEditing,setRdfEditing]=useState<RdfTarget|null>(null),[rdfAdding,setRdfAdding]=useState<string|null>(null),[rdfDeleting,setRdfDeleting]=useState<RdfTarget|null>(null);
+  const currentIsRdf=!!current&&!!rdfSyntax(source,current.filename);
+  function rdfTarget(e:Entity):RdfTarget|null{return current&&currentIsRdf&&e.readOnlyForm&&isIri(e.id)&&e.kind!=='Built-in concept'?{docId:current.id,subject:e.id,label:e.name,kind:e.kind}:null;}
+  function rdfEdgeTarget(r:Relationship):RdfTarget|null{if(!current||!currentIsRdf)return null;const d=r.data.definition,subject=r.data.kind==='OWL object property'?d?.iri:d?.subject;const e=model?.entities.find(x=>x.id===subject);return subject&&isIri(subject)?{docId:current.id,subject,label:e?.name??subject,kind:e?.kind??'RDF resource'}:null;}
   const docText=(id:string)=>id===current?.id?source:docsRef.current.get(id)?.source??'';
   const modelOf=(id:string)=>id===current?.id?model:projectModels.get(id)??(()=>{const d=docsRef.current.get(id);try{return d?validateInput(d.source,d.filename).model:null;}catch{return null;}})();
   const documentOf=(id:string)=>(modelOf(id) as any)?.document;
@@ -206,7 +216,7 @@ function App() {
     if(i>=0)setEditing({docId:id,path:[...k.modelPath,'metrics',i],kind:'metric'});
   }
   const latest=useRef<()=>void>(()=>{});
-  latest.current=()=>{const t=entity?entityTarget(entity):relationship?relationshipTarget(relationship):null;if(t)setEditing(t);};
+  latest.current=()=>{const t=entity?entityTarget(entity):relationship?relationshipTarget(relationship):null;if(t){setEditing(t);return;}const r=entity?rdfTarget(entity):relationship?rdfEdgeTarget(relationship):null;if(r)setRdfEditing(r);};
   // "e" opens the editor of the selected item (outside text fields and dialogs).
   useEffect(()=>{const key=(e:KeyboardEvent)=>{const el=e.target as HTMLElement;if(e.key!=='e'||e.ctrlKey||e.metaKey||e.altKey||el.closest('input,textarea,select,[contenteditable=true],dialog'))return;e.preventDefault();latest.current();};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[]);
   function selectEntity(id:string){setSelected(id);setSelectedEdge('');if(tab==='graph'&&!showAll){setNeighborhoodFocus(id);setSearch('');}}
@@ -318,6 +328,10 @@ function App() {
         onSaved={(saved,path,kind)=>{setAdding(null);applySaved([saved],`Added to ${docsRef.current.get(saved.docId)?.path}.`);if(saved.docId===current?.id&&!['ontology-relationship','join','odcs-foreign-key'].includes(kind)){setSelected(path.join('/'));setSelectedEdge('');}}}/>}
       {deleting&&docsRef.current.get(deleting.docId)&&(()=>{const base=docText(deleting.docId),item=itemValue(base,deleting.path),owner=deleting.kind==='field'||deleting.kind==='odcs-property'?String(itemValue(base,deleting.path.slice(0,-2))?.name??''):undefined;
         return <DeleteItem doc={docsRef.current.get(deleting.docId)!} base={base} path={deleting.path} kind={deleting.kind} name={itemName(deleting.kind,item)||'this item'} owner={owner} projectDocs={projectDocsOf(deleting.docId)} onClose={()=>setDeleting(null)} onDeleted={saved=>{setDeleting(null);setSelected('');setSelectedEdge('');applySaved(saved,`Deleted ${itemName(deleting.kind,item)} and saved ${saved.length} file${saved.length===1?'':'s'}.`);}}/>;})()}
+      {rdfEditing&&docsRef.current.get(rdfEditing.docId)&&<RdfItemEditor key={rdfEditing.docId+'#'+rdfEditing.subject} doc={docsRef.current.get(rdfEditing.docId)!} base={docText(rdfEditing.docId)} subject={rdfEditing.subject} label={rdfEditing.label} kind={rdfEditing.kind}
+        onClose={()=>setRdfEditing(null)} onSaved={saved=>{const file=docsRef.current.get(rdfEditing.docId)?.path;setRdfEditing(null);applySaved(saved,`Saved to ${file}.`);}} onDelete={()=>{setRdfDeleting(rdfEditing);setRdfEditing(null);}} onOpenSource={line=>{const id=rdfEditing.docId;setRdfEditing(null);openSourceAt(id,line);}}/>}
+      {rdfAdding&&docsRef.current.get(rdfAdding)&&<RdfAddItem doc={docsRef.current.get(rdfAdding)!} base={docText(rdfAdding)} onClose={()=>setRdfAdding(null)} onSaved={(saved,subject)=>{setRdfAdding(null);applySaved([saved],`Added to ${docsRef.current.get(saved.docId)?.path}.`);if(saved.docId===current?.id){setSelected(subject);setSelectedEdge('');}}}/>}
+      {rdfDeleting&&docsRef.current.get(rdfDeleting.docId)&&<RdfDeleteItem doc={docsRef.current.get(rdfDeleting.docId)!} base={docText(rdfDeleting.docId)} subject={rdfDeleting.subject} label={rdfDeleting.label} projectDocs={projectDocsOf(rdfDeleting.docId)} onClose={()=>setRdfDeleting(null)} onDeleted={saved=>{const label=rdfDeleting.label;setRdfDeleting(null);setSelected('');setSelectedEdge('');applySaved(saved,`Deleted ${label}.`);}}/>}
       {wizard&&kpiProject&&<KpiWizard project={kpiProject} docs={docs.filter(d=>d.project===kpiProject)} kpis={kpis} onClose={()=>setWizard(false)} onSaved={(file,modelPath,name)=>{setWizard(false);setMessage(`Created KPI ${name} in ${file}.`);setSelectedKpi(`${file}#${modelPath.join('/')}#${name}`);setTab('metrics');void refresh().catch(()=>{});}}/>}
       {pendingImport&&<ImportRepair initial={pendingImport} onCancel={()=>setPendingImport(null)} onImport={commitImports}/>}
       {compact&&sidebarOpen&&<button className="workspace-scrim" aria-label="Dismiss workspace drawer" tabIndex={-1} onClick={closeWorkspace}/>}
@@ -376,7 +390,7 @@ function App() {
           <button ref={workspaceToggle} className="workspace-toggle" aria-label={sidebarOpen?'Close workspace':'Open workspace'} aria-expanded={sidebarOpen} aria-controls="workspace-sidebar" onClick={()=>setSidebarOpen(v=>!v)}>{sidebarOpen?<X size={18}/>:<Menu size={18}/>}</button>
           <div className="workspace-title"><h1 title={model?.name??current?.filename??'Semantic Workbench'}>{model?.name??current?.filename??'Semantic Workbench'}</h1><span className="badge"><span className="dot"/>{model?.kind??'ODCS + Apache Ossie'}</span></div>
           <div className="header-actions">
-            <button aria-label="Add item" onClick={()=>current&&setAdding({docId:current.id})} disabled={!current||!model||!addableKinds((model as any).document).length} title="Add an entity or relationship to this file">
+            <button aria-label="Add item" onClick={()=>{if(!current)return;if(currentIsRdf)setRdfAdding(current.id);else setAdding({docId:current.id});}} disabled={!current||!model||(!currentIsRdf&&!addableKinds((model as any).document).length)} title="Add an entity or relationship to this file">
               <Plus size={15} /> <span className="action-label">Add</span>
             </button>
             <button aria-label="Export" onClick={download} disabled={!source}>
@@ -464,7 +478,7 @@ function App() {
                       <strong>{e.name}</strong>
                       <p>{e.description || "No description yet"}</p>
                     </button>
-                    {entityTarget(e)&&<button className="catalog-edit" aria-label={`Edit ${e.name}`} onClick={()=>setEditing(entityTarget(e))}><Pencil size={11}/>Edit</button>}
+                    {(entityTarget(e)||rdfTarget(e))&&<button className="catalog-edit" aria-label={`Edit ${e.name}`} onClick={()=>{const t=entityTarget(e);if(t)setEditing(t);else setRdfEditing(rdfTarget(e));}}><Pencil size={11}/>Edit</button>}
                     </div>
                   ))}
               </div>
@@ -480,7 +494,7 @@ function App() {
                 {activeGroup && activeGroup.data.relationships.length>1 && <label>Relationships on this connection<select aria-label="Connection relationship" value={selectedEdge} onChange={e=>setSelectedEdge(e.target.value)}>{activeGroup.data.relationships.map(r=><option key={r.id} value={r.id}>{r.label}</option>)}</select></label>}
                 <h2>{relationship.label}</h2>
                 <div className="badge">{relationship.data.kind}</div>
-                {(()=>{const t=relationshipTarget(relationship);if(!t)return <p className="hint">Edit this relationship in Source.</p>;const whole=relationship.data.kind==='Inheritance'||relationship.data.kind==='Metric expression reference';const owner=whole?itemName(t.kind,itemValue(source,t.path)):relationship.label;
+                {(()=>{const t=relationshipTarget(relationship);const rt=t?null:rdfEdgeTarget(relationship);if(rt)return <div className="inspector-actions"><button className="primary" onClick={()=>setRdfEditing(rt)} aria-label={`Edit ${rt.label}`}><Pencil size={13}/>Edit {rt.label}</button></div>;if(!t)return <p className="hint">Edit this relationship in Source.</p>;const whole=relationship.data.kind==='Inheritance'||relationship.data.kind==='Metric expression reference';const owner=whole?itemName(t.kind,itemValue(source,t.path)):relationship.label;
                   return <div className="inspector-actions"><button className="primary" onClick={()=>setEditing(t)} aria-label={`Edit ${owner}`}><Pencil size={13}/>{whole?`Edit ${owner}`:'Edit'}</button>{!whole&&<button onClick={()=>setDeleting(t)} aria-label={`Delete ${relationship.label}`}><Trash2 size={13}/>Delete</button>}</div>;})()}
                 <dl className="relationship-details">
                   <dt>From</dt><dd>{model?.entities.find(e=>e.id===relationship.source)?.name}</dd>
@@ -502,9 +516,10 @@ function App() {
                 <h2>{entity.name}</h2>
                 <button className="inspect-neighborhood" onClick={()=>showNeighborhood(entity.id)}><Focus size={14}/>Explore neighborhood</button>
                 <div className="badge">{entity.kind}</div>
+                {(()=>{const rt=rdfTarget(entity);if(rt)return <div className="inspector-actions"><button className="primary" onClick={()=>setRdfEditing(rt)} aria-label={`Edit ${entity.name}`} title="Edit (E)"><Pencil size={13}/>Edit</button><button onClick={()=>setRdfDeleting(rt)} aria-label={`Delete ${entity.name}`}><Trash2 size={13}/>Delete</button></div>;return null;})()}
                 {(()=>{const t=entityTarget(entity);if(!t)return null;const add=t.kind==='concept'?{kind:'ontology-relationship' as ItemKind,owner:t.path,label:'Add relationship'}:t.kind==='dataset'?{kind:'join' as ItemKind,preset:{from:entity.name},label:'Add relationship'}:t.kind==='odcs-object'?{kind:'odcs-property' as ItemKind,owner:t.path,label:'Add property'}:null;
                   return <div className="inspector-actions"><button className="primary" onClick={()=>setEditing(t)} aria-label={`Edit ${entity.name}`} title="Edit (E)"><Pencil size={13}/>Edit</button>{add&&<button onClick={()=>setAdding({docId:t.docId,kind:add.kind,owner:add.owner,preset:add.preset})}><Plus size={13}/>{add.label}</button>}<button onClick={()=>setDeleting(t)} aria-label={`Delete ${entity.name}`}><Trash2 size={13}/>Delete</button></div>;})()}
-                {entity.readOnlyForm ? <p className="hint">{entity.description || 'Edit this RDF resource in Source. Original serialization is preserved.'}</p> : <label>
+                {entity.readOnlyForm ? <p className="hint">{entity.description || (rdfTarget(entity)?'Edit its statements with Edit; the file keeps its serialization and layout.':'A blank node is edited with the resource that contains it.')}</p> : <label>
                   Description
                   <textarea
                     value={entity.description}

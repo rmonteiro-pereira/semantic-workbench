@@ -52,3 +52,18 @@ button.link{border:0;background:none;padding:2px 4px;color:#1e6a4f;font-size:12p
 .formula-line code{background:#f6faf8;padding:2px 6px;border-radius:4px}
 .wizard-preview pre{background:#f6faf8;border:1px solid #e3ece7;border-radius:6px;padding:8px 10px;font-size:12px;max-height:240px;overflow:auto;white-space:pre-wrap}
 .wizard-tree{font-size:12px;margin:0;padding-left:18px}.wizard-tree small{color:#7d9188}
+/* RDF item editor: statements as predicate–object rows. */
+.item-subject{margin:0;font-size:11px;overflow-wrap:anywhere}.item-subject code{color:#52656b}
+.item-refusal{flex-wrap:wrap}.item-refusal button{margin-left:auto;font-size:12px;padding:4px 9px}
+.rdf-rows{display:flex;flex-direction:column;gap:6px}
+.rdf-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr) 30px;gap:6px;align-items:start}
+.rdf-row input,.rdf-row textarea{width:100%;box-sizing:border-box;font-size:12px;padding:6px 8px;border:1px solid #dbe3e4;border-radius:5px;background:white}
+.rdf-row textarea{resize:vertical;font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace}
+.rdf-row .code-field{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.rdf-row button{padding:5px;justify-content:center}
+.rdf-row.locked input,.rdf-row.locked textarea{background:#f6f8f7;color:#52656b}
+.rdf-lock{grid-column:1/-1;color:#7d9188;font-size:11px;margin-top:-3px}
+.rdf-head{font-size:11px;font-weight:600;color:#3a5a50}
+.rdf-add{align-self:flex-start;font-size:12px;padding:6px 10px;gap:5px}
+.item-gate{font-size:12px!important;color:#1e6a4f!important;margin:2px 0}
+@media(max-width:700px){.rdf-row{grid-template-columns:minmax(0,1fr) 30px}.rdf-row>:nth-child(2){grid-column:1/2;grid-row:2}}
