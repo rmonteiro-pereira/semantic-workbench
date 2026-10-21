@@ -87,6 +87,10 @@ const mutants:[string,string,string,string][]=[
  ['metric-extension','src/metrics/extension.ts',"if(!validate(value))for(","if(false)for("],
  ['model-layout','src/model.ts',"(Array.isArray(data.ontology_mappings)?data.ontology_mappings:[]).forEach(","([] as any[]).forEach("],
  ['rdf-gate','src/edit/rdf-patch/isomorphism.ts',"if(!isomorphic(restBefore,restAfter))return","if(false)return"],
+ ['scm-block','server/projects/scm.ts',"if(drafts.length)return new BlockedError('drafts',drafts);",''],
+ ['git-exec','server/projects/git.ts','Bun.spawn([binary,...args],',"Bun.spawn(['sh','-c',[binary,...args].join(' ')],"],
+ ['git-exec','server/projects/git.ts','if(REMOTE_COMMANDS.has(subcommandOf(args))&&!opts.remote)throw','if(false)throw'],
+ ['git-exec','server/projects/git.ts',"if(typeof message!=='string'||!message.trim())throw new GitError('A commit message is required.');",''],
  ['rdf-lines','src/edit/rdf-patch/ntriples.ts',"else if(replaced.has(i))patches.push({from:l.start,to:l.start+l.text.length,insert:replaced.get(i)!});","else if(l.triple)patches.push({from:l.start,to:l.start+l.text.length,insert:replaced.get(i)??ntLine(l.triple.s.value,l.triple.p.value,l.triple.o)});"],
 ];
 let killed=0;

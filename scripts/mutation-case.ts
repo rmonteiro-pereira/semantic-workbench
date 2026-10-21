@@ -212,3 +212,21 @@ if(category==='rdf-gate'){const t=(s:string,o:string)=>({s:{termType:'NamedNode'
  assert.equal(m.gate([t('https://e/a','1'),t('https://e/b','2')],[t('https://e/a','9'),t('https://e/b','3')],['https://e/a']).ok,false);}
 if(category==='rdf-lines'){const {applyPatches}=await import('../src/editor/patch');const src='<https://e/a> <https://e/p> "1" .\n<https://e/b>   <https://e/p>  "2" .   # kept\n';
  const out=applyPatches(src,m.ntPatches(src,m.readLines(src),'https://e/a',new Set(),new Map([[0,'<https://e/a> <https://e/p> "9" .']]),[],'\n'));assert.equal(out,src.replace('"1"','"9"'));}
+if(category==='scm-block'){const e=(path:string)=>({path,index:'.',worktree:'M',conflicted:false,untracked:false});
+ assert.equal(m.blockers(['a.yaml'],[])?.reason,'drafts');assert.deepEqual(m.blockers(['a.yaml'],[])?.paths,['a.yaml']);assert.equal(m.blockers([],[e('b.yaml')])?.reason,'dirty');assert.equal(m.blockers([],[]),null);}
+if(category==='git-exec'){const fs=await import('node:fs'),os=await import('node:os'),path=await import('node:path');
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'workbench-mutations-git-')),dir=path.join(root,'p');fs.mkdirSync(dir);
+ try{
+  const git=m.createGit({projectsRoot:root,env:{...process.env,GIT_CONFIG_GLOBAL:path.join(root,'gitconfig'),GIT_CONFIG_NOSYSTEM:'1'}});
+  fs.writeFileSync(path.join(root,'gitconfig'),'[user]\n\tname = T\n\temail = t@example.invalid\n');
+  await git.init(dir);
+  // Arguments reach Git literally: no shell splits or runs them.
+  const r=await git.run(dir,['-c','user.name=a b; touch PWNED','config','user.name']);assert.equal(r.stdout,'a b; touch PWNED\n');assert(!fs.existsSync(path.join(dir,'PWNED')));
+  // Remote commands only from the explicit actions.
+  for(const args of [['fetch'],['push'],['pull']])await assert.rejects(git.run(dir,args),/explicit/);
+  // No commit without a message.
+  fs.writeFileSync(path.join(dir,'a.yaml'),'a: 1\n');await git.addAll(dir);
+  await assert.rejects(git.commit(dir,'  '),(e:any)=>e.message==='A commit message is required.');assert.equal(await git.head(dir),null);
+  await git.commit(dir,'ok');assert(await git.head(dir));
+ }finally{fs.rmSync(root,{recursive:true,force:true});}}
+
