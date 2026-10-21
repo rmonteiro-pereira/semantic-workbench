@@ -503,3 +503,67 @@ and recorded here so later phases build on them.
   text" are killed; moving the patch start off a `\r\n` boundary was tried as a mutant and is
   equivalent (the patched text is identical), so it is not listed.
 
+
+## R18. Implementation decisions taken in Phase 6
+
+- **One patcher for YAML and JSON.** Both are parsed with the `yaml` library's syntax tree (JSON is
+  read as flow collections), and an edit is a structural diff of the old and new item value:
+  unchanged values keep their bytes, a changed scalar is rewritten in its own quoting style (a
+  block literal stays a block literal), new keys go after the item's last key and new list entries
+  after the last entry or before the next unchanged one, removed entries take their own lines (or
+  their comma in JSON). New text follows the file: line breaks, indentation unit, list indentation
+  (`key:\n- a` or indented), flow lists for keys that are flow lists elsewhere in the file, `[x]`
+  versus `[ x ]`, and in JSON the container's `:` / `,` spacing and whether nested values sit on one
+  line. A YAML flow collection that changes is rewritten as a whole (it is one line); an emptied
+  block list is written `key: []`. The inspector's description field uses the same patcher, which
+  fixes baseline defect 22 (JSON re-serialized on every edit).
+- **KPI extension JSON is patched as JSON.** A `SEMANTIC_WORKBENCH` block scalar is mapped line by
+  line to its JSON text; a changed attribute is one changed line (plus the comma when appended
+  last), never a re-printed block. Applies to metric extensions and mapping KPI bindings alike.
+- **The item editor edits the item's own lines.** Its text is the item from the start of its line
+  (so a list item keeps its `- `) without the common indentation; edits are put back with that
+  indentation and the file around it untouched, and the whole file is validated in the worker.
+  Findings outside the item are shown only when they are errors (they block Save); warnings about
+  the rest of the file are left out of the item editor.
+- **Drafts until Save, per dialog.** Item edits, additions and deletions live in their dialog
+  (validated live, nothing written) until Save or Delete, which write through the base-hash
+  checked save. If the open file had unsaved Source edits, the dialog starts from them and saving
+  includes them. Edits that touch several files (delete with dependents in other files, ticked
+  rename rewrites) use a new journaled `POST /api/projects/:slug/save-batch`; a stale hash or an
+  invalid result rejects the whole batch.
+- **Dependents and references** are found by structure, not by text search: roles and `extends`
+  naming a concept, concept mappings, KPI bindings (`measures`, `of`, `metric`), joins naming a
+  dataset, expressions reading `dataset.` or a metric name (with the syntax-aware tokenizer's
+  rules), foreign keys to `object` or `object.property`, `identify_by` entries. On delete, items
+  that depend on the target are removed with it, from the last position to the first; expression
+  references in mapping files cannot be removed safely and are listed for Source. If any resulting
+  file would be invalid, Delete stays off and says why. A rename never rewrites anything unless the
+  occurrence is ticked; unticked broken references keep Save off through validation.
+- **KPI save** is planned by one shared function (`src/metrics/kpi-save.ts`) used by
+  `POST /kpis` and `POST /kpis/preview`: metric appended to the model's metrics (or a `metrics`
+  key added), extension validated against the pinned schema with `schema` first, binding inserted
+  in sorted position (R12), a minimal mapping document created next to the semantic model when
+  none references it (named `<model stem>.mapping.yaml`, `ontology_ref` to the project's first
+  standalone Ossie ontology; refused with a message when there is none), the embedded semantic
+  model's root used in a consolidated file. Two mapping documents drawing from the same model are
+  refused rather than guessed. The request takes an optional `modelPath` (contract updated).
+- **Wizard preview** is a server call that applies the plan in memory and returns the planner's
+  explanation and the added and removed lines per file; the wizard shows the formula, composition
+  tree, SQL preview ("Preview, not executed") and the exact lines before Save.
+- **Status rules (FR-015).** Allowed transitions: draft → draft/proposed; proposed →
+  draft/proposed/approved; approved → approved/proposed/deprecated; deprecated →
+  deprecated/proposed. "Definition" means the expression and every extension attribute except
+  governance ones (`status`, `replaced_by`, `deprecation_reason`, `owner`, `steward`, `label`) and
+  the description; changing it on an approved KPI sets `proposed` and says so. A new KPI is draft or
+  proposed. Deprecation without `replaced_by` or `deprecation_reason` is the existing extension
+  finding, which keeps Save off. Dependents (metrics using the KPI, its binding, mappings whose
+  expression is the metric name) are listed at the top of the editor before any change is saved.
+- **Where the editor opens.** Details panel **Edit** (and the **E** key) for any selected entity or
+  relationship in Graph, Neighborhood, Overview or Catalog; an **Edit** button on each catalog
+  card; **Edit KPI** in the KPI detail. For inheritance and metric-reference edges the editor opens
+  the concept or metric that holds them. Graph double-click keeps its existing zoom-to-node meaning.
+  RDF items and built-in concepts have no item editor yet (Phase 7); Source remains.
+- **Mutants.** JSON container diff disabled (whole-node re-serialization), YAML map diff disabled
+  (whole-item rewrite), delete without dependents, wizard and server copying the formula into the
+  extension, binding lines appended unsorted, approved KPI kept approved after a change. The
+  existing `model` mutant now targets the patcher call. 83/83 killed.
