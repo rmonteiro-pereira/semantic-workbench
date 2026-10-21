@@ -335,8 +335,8 @@ to concepts and ODCS.
 
 - [X] T152 [US11] Write the Codex brief (FR-068–070, baseline defect 21) in specs/001-workbench-improvements/codex/phase-11.md
 - [X] T153 [US11] Add mapping chain assertions to scripts/examples-ui-tests.ts (written before the Codex work)
-- [ ] T154 [US11] [CODEX] Binding chains, grouping by dataset, separated fields/sources/metrics, side-by-side composer in src/MappingExplorer.tsx
-- [ ] T155 [US11] [CODEX] Findings linking to the item editor in src/MappingExplorer.tsx
+- [X] T154 [US11] [CODEX] Binding chains, grouping by dataset, separated fields/sources/metrics, side-by-side composer in src/MappingExplorer.tsx (done by Codex from codex/phase-11.md; reviewed, column widths and step padding adjusted)
+- [X] T155 [US11] [CODEX] Findings linking to the item editor in src/MappingExplorer.tsx (done by Codex; reviewed)
 
 ---
 

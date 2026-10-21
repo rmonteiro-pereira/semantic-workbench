@@ -44,7 +44,7 @@ try{
   expect(await chainProblems()).toEqual([]);
   const groups=await groupCounts();expect(groups.length).toBeGreaterThan(0);expect(groups.reduce((a,g)=>a+g.bindings,0)).toBe(n);
   for(const g of groups){expect(g.summary).toContain(g.dataset||'Metrics');expect(g.summary).toMatch(new RegExp(`${g.bindings} binding`));}
-  const first=page.locator('details.mapping-group').first();await first.locator('summary').click();await expect(first.locator('.mapping-binding').first()).toBeHidden();await first.locator('summary').click();await expect(first.locator('.mapping-binding').first()).toBeVisible();
+  const first=page.locator('details.mapping-group').first();await first.locator(':scope > summary').click();await expect(first.locator('.mapping-binding').first()).toBeHidden();await first.locator(':scope > summary').click();await expect(first.locator('.mapping-binding').first()).toBeVisible();
   const evidence=(await page.locator('.mapping-bindings').boundingBox())!,composer=(await page.locator('.mapping-query').boundingBox())!,concepts=(await page.locator('.mapping-concepts').boundingBox())!;
   expect(concepts.x+concepts.width).toBeLessThanOrEqual(evidence.x+1);expect(evidence.x+evidence.width).toBeLessThanOrEqual(composer.x+1);expect(composer.y).toBeLessThan(evidence.y+evidence.height);
   await page.screenshot({path:'/tmp/workbench-mapping-chains.png'});
