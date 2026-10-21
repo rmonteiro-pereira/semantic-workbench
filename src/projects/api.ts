@@ -5,6 +5,7 @@ export type ProjectInfo={slug:string;name:string;origin:string;branch:string;ahe
 export type TrashItem={entryId:string;kind:'file'|'project';project:string;projectName:string;path?:string;deletedAt:string;undoUntil:string;batchId:string|null};
 export type Impact={removes:{project:string;name?:string;files:string[]};unsavedDrafts:{project:string;path:string}[];brokenReferences:{from:{project:string;path:string};to:{project:string;path:string};kind:string;name:string}[]};
 export type Suggestion={id:string;file:{project:string;path:string;hash:string};targetProject:string;evidence:{kind:string;detail:string;otherFile:{project:string;path:string}}[]};
+export type ImportCommit={committed:true;commit:string;message:string}|{committed:false;reason:'no-git'|'no-identity'|'merging'|'nothing'};
 export type Deleted={entryIds:string[];undoUntil:string;label:string};
 export type Doc={id:string;project:string;path:string;filename:string;source:string;hash:string};
 export type WorkspaceStatus={gitAvailable:boolean;identityConfigured:boolean;migration:null|{status:'completed'|'postponed'|'failed';reason?:string;backup?:string;projects:{slug:string;name:string;files:number}[];files:number;verified:number};recovery:{opId:string;kind:string;outcome:string;paths:string[]}[]};
@@ -51,7 +52,7 @@ export const api={
   if(response.status===409){const b=await response.json();throw new StaleSave(b.currentHash,b.currentSource);}
   return json<{written:{path:string;hash:string;created:boolean}[]}>(response);
  },
- importBatch:(files:{path:string;source:string}[],name?:string)=>fetch('/api/import',send('POST',{files,...(name?{name}:{})})).then(r=>json<{slug:string;name:string;written:{path:string;hash:string}[]}>(r)),
+ importBatch:(files:{path:string;source:string}[],name?:string)=>fetch('/api/import',send('POST',{files,...(name?{name}:{})})).then(r=>json<{slug:string;name:string;written:{path:string;hash:string}[];commit?:ImportCommit}>(r)),
  deleteImpact:(project:string,path?:string)=>fetch(`/api/projects/${encodeURIComponent(project)}/delete-impact${path!==undefined?'?path='+encodeURIComponent(path):''}`).then(r=>json<Impact>(r)),
  deleteFile:(project:string,path:string)=>fetch(fileUrl(project,path),send('DELETE',{confirm:true})).then(r=>json<{entryId:string;undoUntil:string}>(r)),
  deleteProject:(project:string)=>fetch(`/api/projects/${encodeURIComponent(project)}`,send('DELETE',{confirm:true})).then(r=>json<{entryId:string;undoUntil:string}>(r)),
@@ -64,11 +65,11 @@ export const api={
  drafts:()=>fetch('/api/drafts').then(r=>json<{project:string;path:string}[]>(r)),
  rename:(project:string,name:string)=>fetch(`/api/projects/${encodeURIComponent(project)}`,send('PATCH',{name})).then(r=>json<{slug:string;name:string}>(r)),
  move:(project:string,path:string,toProject:string,toPath?:string)=>fetch(`/api/projects/${encodeURIComponent(project)}/move`,send('POST',{path,toProject,...(toPath?{toPath}:{})})).then(r=>json<{project:string;path:string}>(r)),
- importInto:(project:string,files:{path:string;source:string}[],onConflict?:'replace'|'keep-both')=>fetch(`/api/projects/${encodeURIComponent(project)}/import`,send('POST',{files,...(onConflict?{onConflict}:{})})).then(r=>json<{written:{path:string;hash:string}[]}>(r)),
+ importInto:(project:string,files:{path:string;source:string}[],onConflict?:'replace'|'keep-both')=>fetch(`/api/projects/${encodeURIComponent(project)}/import`,send('POST',{files,...(onConflict?{onConflict}:{})})).then(r=>json<{written:{path:string;hash:string}[];commit?:ImportCommit}>(r)),
  suggestions:()=>fetch('/api/suggestions').then(r=>json<Suggestion[]>(r)),
  acceptSuggestion:(id:string)=>fetch(`/api/suggestions/${id}/accept`,send('POST')).then(r=>json<{project:string;path:string}>(r)),
  rejectSuggestion:(id:string)=>fetch(`/api/suggestions/${id}/reject`,send('POST')).then(r=>json<unknown>(r)),
- example:(id:string)=>fetch(`/api/examples/${encodeURIComponent(id)}`,send('POST')).then(r=>json<{slug:string;name:string;created:boolean}>(r)),
+ example:(id:string)=>fetch(`/api/examples/${encodeURIComponent(id)}`,send('POST')).then(r=>json<{slug:string;name:string;created:boolean;commit?:ImportCommit}>(r)),
 };
 const gitUrl=(project:string,action:string)=>`/api/projects/${encodeURIComponent(project)}/${action}`;
 async function gitPost<T>(project:string,action:string,body?:unknown):Promise<T>{
@@ -81,7 +82,18 @@ export const scm={
  diff:(p:string,path:string,from='HEAD',to='worktree')=>fetch(gitUrl(p,'git/diff')+`?path=${encodeURIComponent(path)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`).then(r=>json<GitDiff>(r)),
  stage:(p:string,paths:string[]|'all')=>gitPost<GitStatus>(p,'git/stage',paths==='all'?{all:true}:{paths}),
  unstage:(p:string,paths:string[]|'all')=>gitPost<GitStatus>(p,'git/unstage',paths==='all'?{all:true}:{paths}),
- commit:(p:string,message:string)=>gitPost<{commit:string;altered:string[]}>(p,'git/commit',{message}),
+ // `paths`: commit exactly these files (git commit --only); `push`: then push and report the outcome.
+ async commit(p:string,message:string,options:{paths?:string[];push?:boolean}={}){
+  const response=await fetch(gitUrl(p,'git/commit'),send('POST',{message,...options}));
+  if(response.status===409){const b=await response.json();throw Object.assign(Error(b.message??b.error),{status:409,body:b});}
+  return json<{commit:string;altered:string[];pushed?:{ok:boolean;message:string}}>(response);
+ },
+ // Revert to last commit (FR-046): `baseHash` is the hash of the file now on disk (null if absent).
+ async revert(p:string,path:string,baseHash:string|null){
+  const response=await fetch(gitUrl(p,'git/revert'),send('POST',{path,baseHash}));
+  if(response.status===409){const b=await response.json();throw new StaleSave(b.currentHash,b.currentSource);}
+  return json<{hash:string|null;trashEntry:string|null}>(response);
+ },
  branches:(p:string)=>fetch(gitUrl(p,'git/branches')).then(r=>json<{current:string;local:string[];remote:string[]}>(r)),
  switch:(p:string,branch:string,create=false)=>gitPost<{branch:string;altered:string[]}>(p,'git/switch',{branch,create}),
  setRemote:(p:string,name:string,url:string)=>fetch(gitUrl(p,'git/remote'),send('PUT',{name,url})).then(r=>json<{name:string;url:string}>(r)),

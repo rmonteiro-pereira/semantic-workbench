@@ -119,7 +119,7 @@ export function ItemEditor({doc,base,path,kind,projectDocs,choices,onClose,onSav
    <button type="button" className="item-delete" onClick={onDelete} disabled={saving}><Trash2 size={13}/>Delete…</button>
    <span className="item-state" role="status">{pending&&changed?'Checking…':parsed.error?'Not one item':errors.length?`${errors.length} finding${errors.length===1?'':'s'} to fix`:changed?'Unsaved changes':'No changes'}</span>
    <button type="button" onClick={onClose} disabled={saving}>Cancel</button>
-   <button type="button" className="primary" onClick={save} disabled={!canSave}>{saving?'Saving…':'Save'}</button>
+   <button type="button" className="primary" onClick={save} disabled={!canSave}>{saving?'Saving…':'Save to file'}</button>
   </div>
  </Modal>;
 }

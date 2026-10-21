@@ -18,9 +18,11 @@ function groupsOf(changes:GitChange[]){
 // Which two versions a change compares, as VS Code does: staged = last commit → index; changes =
 // index → working tree; conflicts = last commit → working tree (with the markers).
 const rangeOf=(g:Group,c:GitChange)=>g==='staged'?['HEAD','index']:g==='conflicts'?['HEAD','worktree']:c.untracked?['index','worktree']:['index','worktree'];
-type Props={projects:ProjectInfo[];project:string;version:number;unsaved:string[];historyPath?:string;onProject:(slug:string)=>void;onOpen:(project:string,path:string)=>void;onChanged:()=>void};
-export function SourceControl({projects,project,version,unsaved,historyPath,onProject,onOpen,onChanged}:Props){
- const [status,setStatus]=useState<GitStatus|null>(null),[error,setError]=useState(''),[note,setNote]=useState<{tone:'info'|'warning';text:string;paths?:string[]}|null>(null);
+// `onBusy` tells the editor that a pull, sync or branch switch runs (automatic saving waits);
+// `onCommit` opens the Commit dialog, offered when a pull, sync or switch is refused (FR-048).
+type Props={projects:ProjectInfo[];project:string;version:number;unsaved:string[];historyPath?:string;onProject:(slug:string)=>void;onOpen:(project:string,path:string)=>void;onChanged:()=>void;onBusy?:(busy:boolean)=>void;onCommit?:()=>void};
+export function SourceControl({projects,project,version,unsaved,historyPath,onProject,onOpen,onChanged,onBusy,onCommit}:Props){
+ const [status,setStatus]=useState<GitStatus|null>(null),[error,setError]=useState(''),[note,setNote]=useState<{tone:'info'|'warning';text:string;paths?:string[];commit?:boolean}|null>(null);
  const [selected,setSelected]=useState<Selection>(null),[diff,setDiff]=useState<GitDiff|null>(null),[message,setMessage]=useState('');
  const [waiting,setWaiting]=useState<string|null>(null),[busy,setBusy]=useState(false),[ignoring,setIgnoring]=useState<string|null>(null),[remoteUrl,setRemoteUrl]=useState(''),[editRemote,setEditRemote]=useState(false);
  const [historyFile,setHistoryFile]=useState<string|undefined>(historyPath),[log,setLog]=useState<Commit[]>([]),[range,setRange]=useState<{from:string;to:string}|null>(null);
@@ -43,24 +45,25 @@ export function SourceControl({projects,project,version,unsaved,historyPath,onPr
  async function act<T>(run:()=>Promise<T>,done?:(r:T)=>void){
   setBusy(true);setError('');setNote(null);
   try{const r=await run();done?.(r);}
-  catch(e){if(e instanceof Blocked)setNote({tone:'warning',text:e.reason==='drafts'?'Save or discard your unsaved edits first:':'Commit or discard these changes first (nothing is stashed automatically):',paths:e.paths});else setError((e as Error).message);}
+  catch(e){if(e instanceof Blocked)setNote({tone:'warning',text:e.reason==='drafts'?'These files have edits that are not saved to file yet (repair them in Source, or discard them), then commit:':'Commit or discard these changes first (nothing is stashed automatically):',paths:e.paths,commit:true});else setError((e as Error).message);}
   finally{setBusy(false);reload();onChanged();}
  }
  const altered=(paths:string[],what:string)=>paths.length?setNote({tone:'warning',text:`A Git hook or filter changed these files during the ${what}; their bytes on disk differ from what was saved or committed:`,paths}):undefined;
- function guard(kind:string){if(unsaved.length){setNote({tone:'warning',text:`Save or discard your unsaved edits before you ${kind}:`,paths:unsaved});return false;}return true;}
+ function guard(kind:string){if(unsaved.length){setNote({tone:'warning',text:`These edits are not saved to file yet; let them save (or repair them) and commit before you ${kind}:`,paths:unsaved,commit:true});return false;}return true;}
  async function remote(action:'fetch'|'pull'|'push'|'sync'){
   if((action==='pull'||action==='sync')&&!guard(action))return;
-  const id=++local.current;setWaiting(action);
-  await act(()=>scm.remote(project,action),(r:RemoteResult)=>{
+  const id=++local.current;setWaiting(action);onBusy?.(action!=='fetch'&&action!=='push');
+  try{await act(()=>scm.remote(project,action),(r:RemoteResult)=>{
    if(r.cancelled)setNote({tone:'info',text:`${title(action)} cancelled.`});
    else if(r.conflicted.length)setNote({tone:'warning',text:'The pull stopped on conflicts. Open each file, repair it, stage it, then commit the merge:',paths:r.conflicted});
    else if(!r.ok)setError(r.stderr||`${title(action)} failed.`);
    else if(r.altered.length)altered(r.altered,action);
    else setNote({tone:'info',text:`${title(action)} finished${r.ahead||r.behind?` · ${r.ahead} to push, ${r.behind} to pull`:''}.`});
   });
+  }finally{onBusy?.(false);}
   if(local.current===id)setWaiting(null);
  }
- const switchTo=(branch:string,create:boolean)=>{if(!guard('switch branches'))return;void act(()=>scm.switch(project,branch,create),r=>{setSelected(null);if(r.altered.length)altered(r.altered,'switch');else setNote({tone:'info',text:`${create?'Created and switched to':'Switched to'} ${r.branch}.`});});};
+ const switchTo=(branch:string,create:boolean)=>{if(!guard('switch branches'))return;onBusy?.(true);void act(()=>scm.switch(project,branch,create),r=>{setSelected(null);if(r.altered.length)altered(r.altered,'switch');else setNote({tone:'info',text:`${create?'Created and switched to':'Switched to'} ${r.branch}.`});}).finally(()=>onBusy?.(false));};
  const commit=()=>act(()=>scm.commit(project,message),r=>{setMessage('');setSelected(null);if(r.altered.length)altered(r.altered,'commit');else setNote({tone:'info',text:`Committed ${r.commit.slice(0,7)}.`});});
  if(error&&!status)return <section className="scm scm-message" aria-label="Source Control"><p role="alert" className="scm-error">{error}</p></section>;
  if(!status)return <section className="scm scm-message" aria-label="Source Control"><p className="scm-empty">Loading Source Control…</p></section>;
@@ -106,7 +109,7 @@ export function SourceControl({projects,project,version,unsaved,historyPath,onPr
     </form>}
    </div>
    {waiting&&<div role="status" className="scm-note waiting"><span className="spinner" aria-hidden/><span>Waiting for Git (credentials may be requested in a separate window)…</span><button onClick={()=>void scm.cancel(project)}>Cancel</button></div>}
-   {note&&<div role={note.tone==='warning'?'alert':'status'} className={`scm-note ${note.tone}`}>{note.tone==='warning'?<AlertTriangle size={14}/>:<Check size={14}/>}<div><span>{note.text}</span>{note.paths&&<ul>{note.paths.map(p=><li key={p}><code>{p}</code></li>)}</ul>}</div><button aria-label="Dismiss" onClick={()=>setNote(null)}><X size={13}/></button></div>}
+   {note&&<div role={note.tone==='warning'?'alert':'status'} className={`scm-note ${note.tone}`}>{note.tone==='warning'?<AlertTriangle size={14}/>:<Check size={14}/>}<div><span>{note.text}</span>{note.paths&&<ul>{note.paths.map(p=><li key={p}><code>{p}</code></li>)}</ul>}{note.commit&&onCommit&&<button className="scm-note-action" onClick={onCommit}>Commit…</button>}</div><button aria-label="Dismiss" onClick={()=>setNote(null)}><X size={13}/></button></div>}
    {error&&<pre role="alert" className="scm-error">{error}</pre>}
    {status.merging&&!note&&<p className="scm-note warning"><AlertTriangle size={14}/><span>A merge is in progress. Repair each conflicted file in Source, stage it, then commit.</span></p>}
    <div className="scm-commit">

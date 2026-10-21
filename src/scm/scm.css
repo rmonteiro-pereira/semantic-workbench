@@ -79,3 +79,25 @@
  .scm-main .diff-view { min-height: 320px; }
  .scm-history ol { max-height: 160px; }
 }
+/* Commit dialog (FR-045): files left, diff right; one column on narrow screens. */
+.commit-dialog .commit-scope{margin:0 0 10px;font-size:12px;color:#5c716b}
+.commit-dialog .commit-body{display:grid;grid-template-columns:minmax(200px,280px) minmax(0,1fr);gap:12px;min-height:0;height:min(52vh,520px)}
+.commit-dialog .commit-files{list-style:none;margin:0;padding:4px;border:1px solid #dbe3e4;border-radius:8px;overflow:auto;min-width:0}
+.commit-dialog .commit-files li{display:flex;align-items:center;gap:6px;border-radius:6px;padding:2px 4px}
+.commit-dialog .commit-files li.selected{background:#eaf3f0}
+.commit-dialog .commit-files input{flex:none;margin:0;width:16px;height:16px}
+.commit-dialog .commit-file{flex:1;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:6px;border:0;background:none;padding:5px 2px;text-align:left;cursor:pointer;font-size:12px}
+.commit-dialog .commit-path{min-width:0;overflow-wrap:anywhere}
+.commit-dialog .commit-kind{flex:none;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:#6a7d78}
+.commit-dialog .commit-kind.k-new,.commit-dialog .commit-kind.k-added{color:#1e6a4f}.commit-dialog .commit-kind.k-deleted{color:#a3392f}.commit-dialog .commit-kind.k-conflicted{color:#b45309}
+.commit-dialog .commit-diff{min-width:0;min-height:0;overflow:auto;border:1px solid #dbe3e4;border-radius:8px}
+.commit-dialog .commit-diff .diff-view{margin:0}
+.commit-dialog .commit-message{margin:12px 0 0}
+.commit-dialog .commit-message textarea{width:100%;box-sizing:border-box;font:inherit;font-size:13px;padding:8px;border:1px solid #dbe3e4;border-radius:6px;resize:vertical}
+.commit-dialog .dialog-footer .commit-spacer{flex:1}
+.commit-dialog .dialog-footer button{display:inline-flex;align-items:center;gap:5px}
+.commit-dialog .commit-confirm{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12px;color:#7a2e25;min-width:0}
+.commit-dialog .commit-confirm>span{overflow-wrap:anywhere}
+.commit-dialog .scm-note{margin:0 0 10px}
+.scm-note .scm-note-action{margin-top:6px}
+@media(max-width:700px){.commit-dialog .commit-body{grid-template-columns:1fr;grid-template-rows:auto auto;height:auto}.commit-dialog .commit-files{max-height:132px}.commit-dialog .commit-diff{height:min(34vh,300px)}.commit-dialog .dialog-footer .commit-spacer{display:none}}

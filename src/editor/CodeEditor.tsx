@@ -18,7 +18,7 @@ import './editor.css';
 // newline never change.
 export type CodeEditorHandle={focus:()=>void;goToLine:(line:number,column?:number)=>void;locate:(issue:Issue)=>void};
 // `validate` replaces the whole-file check, for an editor that shows one item of a larger file.
-type Props={value:string;filename:string;onChange:(next:string)=>void;ariaLabel:string;disabled?:boolean;className?:string;onIssues?:(issues:Issue[])=>void;validate?:(text:string)=>Promise<Issue[]>};
+type Props={value:string;filename:string;onChange:(next:string)=>void;ariaLabel:string;disabled?:boolean;className?:string;onIssues?:(issues:Issue[],text:string)=>void;validate?:(text:string)=>Promise<Issue[]>};
 const external=Annotation.define<boolean>();
 // Shown when a file is loaded; new line breaks take the file's main style, so the label stays true.
 const lineEndingLabel=(text:string)=>{const crlf=/\r\n/.test(text),lf=/(^|[^\r])\n/.test(text),cr=/\r(?!\n)/.test(text),kind=[crlf,lf,cr].filter(Boolean).length>1?'Mixed line endings':crlf?'CRLF':cr?'CR':'LF';return kind==='Mixed line endings'?`${kind} · new lines ${({'\r\n':'CRLF','\n':'LF','\r':'CR'} as const)[dominantLineBreak(text)]}`:kind;};
@@ -32,7 +32,7 @@ export const CodeEditor=forwardRef<CodeEditorHandle,Props>(function CodeEditor({
  const head=value.slice(0,400),syntax=useMemo(()=>syntaxFor(filename,head),[filename,head]);
  useEffect(()=>{
   const lint=linter(async v=>{setChecking(true);const text=v.state.doc.toString(),issues=await (props.current.validate?props.current.validate(text):validateInWorker(text,props.current.filename));setChecking(false);
-   if(v.state.doc.toString()!==text)return [];const {diagnostics,documentLevel}=toDiagnostics(issues,v.state.doc);setDocumentLevel(documentLevel);props.current.onIssues?.(issues);return diagnostics;},{delay:300});
+   if(v.state.doc.toString()!==text)return [];const {diagnostics,documentLevel}=toDiagnostics(issues,v.state.doc);setDocumentLevel(documentLevel);props.current.onIssues?.(issues,text);return diagnostics;},{delay:300});
   const state=EditorState.create({doc:value,extensions:[
    lineNumbers(),foldGutter(),lintGutter(),highlightActiveLineGutter(),highlightSpecialChars(),history(),drawSelection(),indentOnInput(),bracketMatching(),highlightActiveLine(),
    search({top:true}),highlighting,language.current.of(languageFor(syntax)),editable.current.of([EditorView.editable.of(!disabled),EditorState.readOnly.of(disabled)]),lint,

@@ -3,7 +3,10 @@ import{GroupingControls}from'./GroupingControls';
 import{modelOverview}from'./overview';
 import{useGrouping}from'./useGrouping';
 import{CodeEditor,type CodeEditorHandle}from'./editor/CodeEditor';
-import{diffPatches}from'./editor/patch';
+import{diffPatches,normalize}from'./editor/patch';
+import{validateInWorker}from'./editor/lint';
+import{useAutosave,saveStateLabel}from'./projects/autosave';
+import{CommitDialog}from'./scm/CommitDialog';
 import{api,loadWorkspace,StaleSave,type Doc,type ProjectInfo,type WorkspaceStatus,type Deleted,type Suggestion}from'./projects/api';
 import{useEvents}from'./projects/useEvents';
 import{ProjectTree,type TreeAction}from'./projects/Sidebar';
@@ -38,13 +41,12 @@ import {
   Layers,
   Upload,
   Download,
-  Save,
   Search,
   Network,
   FileCode,
   Box,
   CheckCircle2,
-  Menu, X, Focus, Gauge, Pencil, Plus, Trash2, GitBranch, FileCheck2,
+  Menu, X, Focus, Gauge, Pencil, Plus, Trash2, GitBranch, FileCheck2, GitCommit as GitCommitIcon,
 } from "lucide-react";
 import {validateInput} from "./input";
 import {documentKeys,entityKeys} from './references';
@@ -65,6 +67,15 @@ import {ModelOverview} from "./ModelOverview";
 import {FullGraph} from "./FullGraph";
 import "@xyflow/react/dist/style.css";
 import "./style.css";
+// Parsed project files, memoized by content hash: an automatic save of one file changes only that
+// file's entry, so other views never re-parse the whole project (FR-043 typing latency).
+const parsedDocs=new Map<string,{hash:string;model:ReturnType<typeof validateInput>['model'];keys:Set<string>}>();
+function parsedDoc(d:Doc){
+  const hit=parsedDocs.get(d.id);if(hit&&hit.hash===d.hash)return hit;
+  let model:ReturnType<typeof validateInput>['model']=null,keys=new Set<string>();
+  try{model=validateInput(d.source,d.filename).model;keys=documentKeys(model);}catch{}
+  const value={hash:d.hash,model,keys};parsedDocs.set(d.id,value);return value;
+}
 const sample = `name: Commerce\nontology:\n  - concept: Customer\n    type: EntityType\n    description: A person who purchases products.\n    relationships:\n      - name: places\n        roles:\n          - concept: Order\n        verbalizes: ['{Customer} places {Order}']\n  - concept: Order\n    type: EntityType\n    description: A purchase made by a customer.\n    relationships:\n      - name: contains\n        roles:\n          - concept: Product\n        verbalizes: ['{Order} contains {Product}']\n  - concept: Product\n    type: EntityType\n    description: An item available for purchase.\n`;
 function App() {
   const [docs, setDocs] = useState<Doc[]>([]),
@@ -77,7 +88,8 @@ function App() {
     [message, setMessage] = useState(""),
     [busy, setBusy] = useState(false);
   function setCurrent(next:Doc|null){if(next?.id!==current?.id)setMessage('');setCurrentState(next);}
-  function setTab(next:string){setMessage('');setTabState(next==='graph'?'neighborhood':next);}
+  // Switching views writes a due valid save first (FR-040 flush on view switch).
+  function setTab(next:string){setMessage('');void autosave.flush();setTabState(next==='graph'?'neighborhood':next);}
   useEffect(()=>{if(!message)return;const timer=setTimeout(()=>setMessage(''),5000);return()=>clearTimeout(timer);},[message]);
   const [pendingImport,setPendingImport]=useState<ImportDraft[]|null>(null);
   const [projects,setProjects]=useState<ProjectInfo[]>([]),[status,setStatus]=useState<WorkspaceStatus|null>(null);
@@ -146,9 +158,10 @@ function App() {
   function open(d: Doc):boolean {
     setMessage('');
     if(current?.id===d.id){if(compact)closeWorkspace();return true;}
-    if (current && source !== current.source && !confirm("Discard unsaved changes?")) return false;
+    if(current&&source!==current.source)void leaveCurrent();
     setCurrent(d);
     setSource(d.source);
+    void restoreDraft(d);
     setNeighborhoodFocus('');if(compact)closeWorkspace();
     setSelected("");
     setSelectedEdge("");
@@ -156,11 +169,17 @@ function App() {
     if(tab!=='neighborhood'&&validateInput(d.source,d.filename).model?.kind==='Ossie mappings')setTab('mappings');
     return true;
   }
+  // A draft kept for this file (invalid or not yet saved text) comes back when the file opens.
+  async function restoreDraft(d:Doc){
+    try{const r=await fetch(`/api/drafts/${encodeURIComponent(d.project)}/${d.path.split('/').map(encodeURIComponent).join('/')}`);if(!r.ok)return;const draft=await r.json();
+      if(currentRef.current?.id===d.id&&sourceRef.current===d.source&&typeof draft.text==='string'){draftOf.current={project:d.project,path:d.path};if(draft.text===d.source){void scmApi.deleteDraft(d.project,d.path).catch(()=>{});return;}setSource(draft.text);setMessage(`Restored unsaved edits to ${d.path} from a draft.`);}}catch{}
+  }
   // While typing in Source, findings come from the editor's validation worker (after a 300 ms pause)
   // and the whole model is rebuilt only when another view needs it, so keystrokes never wait for a
   // parse on the main thread (FR-045). A newly opened file is checked at once.
   const [settled,setSettled]=useState({id:current?.id,text:source});
-  const [editorIssues,setEditorIssues]=useState<{id?:string;issues:Issue[]}|null>(null);
+  const [editorIssues,setEditorIssues]=useState<{id?:string;issues:Issue[];text?:string}|null>(null);
+  const editorIssuesRef=useRef(editorIssues);editorIssuesRef.current=editorIssues;
   useEffect(()=>{if(tab!=='source'||settled.id!==current?.id)setSettled({id:current?.id,text:source});},[source,tab,current?.id]);
   const checkedSource=tab==='source'&&settled.id===current?.id?settled.text:source;
   const plainText=!!current&&isGitignore(current.filename);
@@ -177,7 +196,8 @@ function App() {
   useEffect(()=>{if(tab==='contract'&&model&&!isContract)setTab('fullgraph');},[tab,isContract,!!model]);
   const groupingOverview=useMemo(()=>model?modelOverview(model.entities,model.edges,model.name,false,grouping.value):null,[model,grouping.value]);
   const entity = model?.entities.find((e) => e.id === selected);
-  const documentIdentities=useMemo(()=>new Map(docs.map(d=>{let keys=new Set<string>();try{keys=documentKeys(validateInput(d.source,d.filename).model);}catch{}return [d.id,keys];})),[docs]);
+  // Other documents only: the open file's own identities are never looked up here.
+  const documentIdentities=useMemo(()=>new Map(docs.filter(d=>d.id!==current?.id).map(d=>[d.id,parsedDoc(d).keys])),[docs,current?.id]);
   const relatedDocuments=useMemo(()=>{
     if(!entity?.definition)return [];
     const keys=entityKeys(entity,model);
@@ -188,7 +208,7 @@ function App() {
   const activeGroup=globalGroups.find(e=>e.data.relationships.some(r=>r.id===selectedEdge));
   // Other files of the project that define the same thing: a shared IRI, physical name or business
   // definition, or an Ossie concept mapping and the ontology concept it maps (FR-037).
-  const projectModels=useMemo(()=>new Map(docs.filter(d=>d.project===current?.project&&d.id!==current?.id).flatMap(d=>{try{const m=validateInput(d.source,d.filename).model;return m?[[d.id,m] as const]:[];}catch{return [];}})),[docs,current?.project,current?.id]);
+  const projectModels=useMemo(()=>new Map(docs.filter(d=>d.project===current?.project&&d.id!==current?.id).flatMap(d=>{try{const m=parsedDoc(d).model;return m?[[d.id,m] as const]:[];}catch{return [];}})),[docs,current?.project,current?.id]);
   const conceptKinds=new Set(['EntityType','ValueType','Built-in concept','OWL class']);
   function crossFile(e:Entity):CrossFileTarget[]{
     const keys=new Set(entityKeys(e,model)),out:CrossFileTarget[]=[];
@@ -224,7 +244,7 @@ function App() {
   function rdfTarget(e:Entity):RdfTarget|null{return current&&currentIsRdf&&e.readOnlyForm&&isIri(e.id)&&e.kind!=='Built-in concept'?{docId:current.id,subject:e.id,label:e.name,kind:e.kind}:null;}
   function rdfEdgeTarget(r:Relationship):RdfTarget|null{if(!current||!currentIsRdf)return null;const d=r.data.definition,subject=r.data.kind==='OWL object property'?d?.iri:d?.subject;const e=model?.entities.find(x=>x.id===subject);return subject&&isIri(subject)?{docId:current.id,subject,label:e?.name??subject,kind:e?.kind??'RDF resource'}:null;}
   const docText=(id:string)=>id===current?.id?source:docsRef.current.get(id)?.source??'';
-  const modelOf=(id:string)=>id===current?.id?model:projectModels.get(id)??(()=>{const d=docsRef.current.get(id);try{return d?validateInput(d.source,d.filename).model:null;}catch{return null;}})();
+  const modelOf=(id:string)=>id===current?.id?model:projectModels.get(id)??(()=>{const d=docsRef.current.get(id);return d?parsedDoc(d).model:null;})();
   const documentOf=(id:string)=>(modelOf(id) as any)?.document;
   function entityTarget(e:Entity):ItemTarget|null{if(!current||e.readOnlyForm||!e.path.length)return null;const kind=itemKindAt(documentOf(current.id),e.path);return kind?{docId:current.id,path:e.path,kind}:null;}
   function relationshipTarget(r:Relationship):ItemTarget|null{if(!current||r.data.readOnlyForm||!r.data.path.length)return null;const kind=itemKindAt(documentOf(current.id),r.data.path);return kind?{docId:current.id,path:r.data.path,kind}:null;}
@@ -293,7 +313,7 @@ function App() {
   function selectEntity(id:string){setSelected(id);setSelectedEdge('');if(tab==='neighborhood'){setNeighborhoodFocus(id);setSearch('');}}
   async function loadExample(id:string) {
     const set=exampleSet(id)!;
-    if(current && source !== current.source && !confirm('Discard unsaved changes and open examples?'))return;
+    await leaveCurrent();
     setBusy(true);setMessage('Loading example documents…');
     try {
       const {slug}=await api.example(id);
@@ -304,28 +324,33 @@ function App() {
       setMessage(set.message);
     }catch(e){setMessage((e as Error).message)}finally{setBusy(false)}
   }
-  async function save(baseHash=current?.hash??null) {
-    if(!current)return false;
-    setBusy(true);
-    setMessage("");
-    try {
-      // Unchanged base: send only the changed range, so untouched bytes are never re-sent.
-      const saved=await api.save(current.project,current.path,baseHash,source,baseHash===current.hash?diffPatches(current.source,source):undefined);
-      const doc:Doc={...current,source,hash:saved.hash};
-      docsRef.current.set(doc.id,doc);
-      setDocs((old) => old.map((x) => x.id === doc.id ? doc : x));
-      setCurrent(doc);setStale(null);
-      setMessage("Saved to the project folder");
-      void refresh().catch(()=>{});
-      return true;
-    } catch (e) {
-      if(e instanceof StaleSave){setStale({current:e.currentSource,currentHash:e.currentHash});setMessage('Not saved: the file changed since you opened it.');return false;}
-      setMessage((e as Error).message);
-      return false;
-    } finally {
-      setBusy(false);
-    }
+  // Automatic saving of valid edits (FR-040–FR-043): 1 s after the last edit, through the usual
+  // hash-checked save with only the changed range; invalid text stays a server draft.
+  const [gitBusy,setGitBusy]=useState(false),[committing,setCommitting]=useState(false);
+  const itemHints=useRef<Record<string,Record<string,string>>>({});
+  const autosave=useAutosave({file:current?.id??null,hash:current?.hash??null,saved:current?.source??'',text:source,gitBusy,
+    validate:async text=>{
+      const d=currentRef.current;if(!d||isGitignore(d.filename))return 0;
+      const ei=editorIssuesRef.current,errors=(issues:Issue[])=>issues.filter(i=>i.severity==='error').length;
+      if(ei&&ei.id===d.id&&ei.text!==undefined&&ei.text===normalize(text))return errors(ei.issues);
+      return errors(await validateInWorker(text,d.filename));
+    },
+    save:r=>{const d=docsRef.current.get(r.file);if(!d)return Promise.reject(Error('The file is no longer in the workspace.'));return api.save(d.project,d.path,r.baseHash,r.to,diffPatches(r.from,r.to));},
+    onSaved:(file,text,hash)=>{const d=docsRef.current.get(file);if(!d)return;const next={...d,source:text,hash};docsRef.current.set(file,next);setDocs(old=>old.map(x=>x.id===file?next:x));if(currentRef.current?.id===file)setCurrentState(next);/* the server's file event refreshes the tree and counts */},
+    isStale:e=>e instanceof StaleSave,
+    onStale:(file,e)=>{if(currentRef.current?.id===file&&e instanceof StaleSave)setStale({current:e.currentSource,currentHash:e.currentHash});},
+    onFailed:(_file,m)=>setMessage(`Not saved: ${m}`)});
+  const uncommitted=projects.find(p=>p.slug===current?.project)?.changes??0;
+  const saveState=saveStateLabel(autosave.state,uncommitted);
+  // Leaving a file or view: a due valid save is written first; invalid text stays a server draft
+  // (no "Discard unsaved changes?" prompt; the draft is announced instead).
+  async function leaveCurrent(){
+    const d=currentRef.current;if(!d||sourceRef.current===d.source)return;
+    await autosave.flush();
+    const now=currentRef.current;
+    if(now&&sourceRef.current!==now.source){draftOf.current={project:now.project,path:now.path};await scmApi.saveDraft(now.project,now.path,now.hash,sourceRef.current).catch(()=>{});setMessage(`Unsaved edits to ${now.path} are kept as a draft.`);}
   }
+  async function openStale(){const d=currentRef.current;if(!d)return;try{const f=await api.file(d.project,d.path);setStale({current:f.source,currentHash:f.hash});}catch{setStale({current:null,currentHash:null});}}
   // One import batch becomes one project (FR-018).
   async function commitImports(drafts:ImportDraft[]) {
     let created;
@@ -342,7 +367,7 @@ function App() {
   async function importFiles(files: File[]) {
     if (!files.length) return;
     if(compact)closeWorkspace();
-    if (current && source !== current.source && !confirm("Discard unsaved changes and import?"))return;
+    await leaveCurrent();
     try{
       const drafts=await Promise.all(files.map(async file=>({filename:file.name,source:await file.text()})));
       if(drafts.some(d=>!validateInput(d.source,d.filename).valid)){setPendingImport(drafts);return;}
@@ -390,18 +415,18 @@ function App() {
   }
   return (
     <div className={`shell ${sidebarOpen?'workspace-open':'workspace-closed'}`}>
-      {stale&&current&&<StaleSaveDialog filename={current.path} mine={source} current={stale.current} onCancel={()=>setStale(null)} onLoadCurrent={()=>{if(stale.current===null||stale.currentHash===null)return;const doc={...current,source:stale.current,hash:stale.currentHash};docsRef.current.set(doc.id,doc);setCurrent(doc);setSource(doc.source);setStale(null);setMessage('Loaded the current file from disk.');}} onKeepMine={()=>{const base=stale.currentHash;setStale(null);void save(base);}}/>}
+      {stale&&current&&<StaleSaveDialog filename={current.path} mine={source} current={stale.current} onCancel={()=>setStale(null)} onLoadCurrent={()=>{if(stale.current===null||stale.currentHash===null)return;autosave.resolved(stale.currentHash,stale.current);const doc={...current,source:stale.current,hash:stale.currentHash};docsRef.current.set(doc.id,doc);setCurrent(doc);setSource(doc.source);setStale(null);setMessage('Loaded the current file from disk.');}} onKeepMine={()=>{autosave.resolved(stale.currentHash,stale.current??'');setStale(null);}}/>}
       {deleteTarget&&<DeleteDialog target={deleteTarget} projects={projects} dirty={current&&source!==current.source?{project:current.project,path:current.path}:null} onCancel={()=>setDeleteTarget(null)} onDeleted={(entryIds,undoUntil,label)=>{
         // The user confirmed losing unsaved edits of a removed file: drop them before refreshing.
-        const target=deleteTarget;if(current&&source!==current.source&&(target.kind==='clear'||current.project===target.project&&(target.kind==='project'||current.path===target.path)))setSource(current.source);
+        const target=deleteTarget;if(current&&(target.kind==='clear'||current.project===target.project&&(target.kind==='project'||current.path===target.path))){autosave.cancel();if(source!==current.source)setSource(current.source);}
         sourceRef.current=current?.source??'';setDeleteTarget(null);setDeleted({entryIds,undoUntil,label});void refresh();}}/>}
       {trashOpen&&<TrashDialog version={trashVersion} onClose={()=>{setTrashOpen(false);void refresh();}}/>}
       {renaming&&<RenameDialog project={renaming} onClose={()=>setRenaming(null)} onDone={name=>{setRenaming(null);setMessage(`Renamed the project to ${name}.`);void refresh();}}/>}
-      {moving&&<MoveDialog project={moving.project} path={moving.path} projects={projects} onClose={()=>setMoving(null)} onDone={to=>{setMoving(null);setMessage(`Moved ${moving.path} to ${projects.find(p=>p.slug===to.project)?.name}.`);void refresh().then(d=>{const doc=d.find(x=>x.project===to.project&&x.path===to.path);if(doc&&currentRef.current?.project===moving.project&&currentRef.current.path===moving.path){setCurrent(doc);setSource(doc.source);}});}}/>}
+      {moving&&<MoveDialog project={moving.project} path={moving.path} projects={projects} onClose={()=>setMoving(null)} onDone={to=>{if(currentRef.current?.project===moving.project&&currentRef.current.path===moving.path)autosave.cancel();setMoving(null);setMessage(`Moved ${moving.path} to ${projects.find(p=>p.slug===to.project)?.name}.`);void refresh().then(d=>{const doc=d.find(x=>x.project===to.project&&x.path===to.path);if(doc&&currentRef.current?.project===moving.project&&currentRef.current.path===moving.path){setCurrent(doc);setSource(doc.source);}});}}/>}
       {importConflict&&<ImportConflictDialog project={importConflict.project} conflicts={importConflict.conflicts} onClose={()=>setImportConflict(null)} onChoose={choice=>void importIntoProject(importConflict.files,choice)}/>}
       {deleted&&<UndoToast deleted={deleted} onUndo={()=>void undoDelete()} onExpire={()=>setDeleted(null)}/>}
       {editing&&docsRef.current.get(editing.docId)&&<ItemEditor key={editing.docId+'#'+editing.path.join('/')} doc={docsRef.current.get(editing.docId)!} base={docText(editing.docId)} path={editing.path} kind={editing.kind} projectDocs={projectDocsOf(editing.docId)} choices={choicesFor(editing.docId)}
-        onClose={()=>setEditing(null)} onSaved={saved=>{const file=docsRef.current.get(editing.docId)?.path;setEditing(null);applySaved(saved,`Saved to ${file}${saved.length>1?` and ${saved.length-1} other file${saved.length>2?'s':''}`:''}.`);}}
+        onClose={()=>setEditing(null)} onSaved={saved=>{const file=docsRef.current.get(editing.docId)?.path,d=docsRef.current.get(editing.docId);if(d&&file){const name=itemName(editing.kind,itemValue(docText(editing.docId),editing.path));if(name)(itemHints.current[d.project]??={})[file]=name;}setEditing(null);applySaved(saved,`Saved to ${file}${saved.length>1?` and ${saved.length-1} other file${saved.length>2?'s':''}`:''}.`);}}
         onOpenItem={(path,kind)=>setEditing({docId:editing.docId,path,kind})} onAddChild={(kind,owner)=>{setAdding({docId:editing.docId,kind,owner});setEditing(null);}} onDelete={()=>{setDeleting(editing);setEditing(null);}} onOpenSource={line=>{const id=editing.docId;setEditing(null);openSourceAt(id,line);}}/>}
       {adding&&docsRef.current.get(adding.docId)&&<AddItem doc={docsRef.current.get(adding.docId)!} base={docText(adding.docId)} document={documentOf(adding.docId)} kind={adding.kind} owner={adding.owner} preset={adding.preset} choices={choicesFor(adding.docId)} onClose={()=>setAdding(null)}
         onSaved={(saved,path,kind)=>{setAdding(null);applySaved([saved],`Added to ${docsRef.current.get(saved.docId)?.path}.`);if(saved.docId===current?.id&&!['ontology-relationship','join','odcs-foreign-key'].includes(kind)){setSelected(path.join('/'));setSelectedEdge('');}}}/>}
@@ -412,6 +437,9 @@ function App() {
       {rdfAdding&&docsRef.current.get(rdfAdding)&&<RdfAddItem doc={docsRef.current.get(rdfAdding)!} base={docText(rdfAdding)} onClose={()=>setRdfAdding(null)} onSaved={(saved,subject)=>{setRdfAdding(null);applySaved([saved],`Added to ${docsRef.current.get(saved.docId)?.path}.`);if(saved.docId===current?.id){setSelected(subject);setSelectedEdge('');}}}/>}
       {rdfDeleting&&docsRef.current.get(rdfDeleting.docId)&&<RdfDeleteItem doc={docsRef.current.get(rdfDeleting.docId)!} base={docText(rdfDeleting.docId)} subject={rdfDeleting.subject} label={rdfDeleting.label} projectDocs={projectDocsOf(rdfDeleting.docId)} onClose={()=>setRdfDeleting(null)} onDeleted={saved=>{const label=rdfDeleting.label;setRdfDeleting(null);setSelected('');setSelectedEdge('');applySaved(saved,`Deleted ${label}.`);}}/>}
       {wizard&&kpiProject&&<KpiWizard project={kpiProject} docs={docs.filter(d=>d.project===kpiProject)} kpis={kpis} onClose={()=>setWizard(false)} onSaved={(file,modelPath,name)=>{setWizard(false);setSelectedKpi(`${file}#${modelPath.join('/')}#${name}`);setTab('metrics');setMessage(`Created KPI ${name} in ${file}.`);void refresh().catch(()=>{});}}/>}
+      {committing&&current&&<CommitDialog project={current.project} projectName={projects.find(p=>p.slug===current.project)?.name} itemHints={itemHints.current[current.project]} unsaved={source!==current.source?[current.path]:[]} onClose={()=>setCommitting(false)}
+        onCommitted={r=>{setCommitting(false);itemHints.current[current.project]={};setMessage(`Committed ${r.commit.slice(0,7)} (${r.files.length} file${r.files.length===1?'':'s'})${r.pushed?r.pushed.ok?' and pushed.':`; push failed: ${r.pushed.message}`:'.'}`);setGitVersion(v=>v+1);void refresh().catch(()=>{});}}
+        onReverted={(path,hash)=>{setMessage(hash?`Reverted ${path} to the last commit; the replaced version is in the trash.`:`Moved ${path} to the trash.`);setTrashVersion(v=>v+1);void refresh().then(d=>{const doc=d.find(x=>x.project===current.project&&x.path===path);if(doc&&currentRef.current?.project===current.project&&currentRef.current.path===path){autosave.resolved(doc.hash,doc.source);setCurrent(doc);setSource(doc.source);}}).catch(()=>{});}}/>}
       {pendingImport&&<ImportRepair initial={pendingImport} onCancel={()=>setPendingImport(null)} onImport={commitImports}/>}
       {compact&&sidebarOpen&&<button className="workspace-scrim" aria-label="Dismiss workspace drawer" tabIndex={-1} onClick={closeWorkspace}/>}
       <aside id="workspace-sidebar" className="sidebar workspace-sidebar" ref={sidebarRef} inert={!sidebarOpen} role={compact&&sidebarOpen?'dialog':undefined} aria-modal={compact&&sidebarOpen?true:undefined} aria-label="Workspace documents">
@@ -478,14 +506,10 @@ function App() {
             <button aria-label="Export" onClick={download} disabled={!source}>
               <Download size={15} /> <span className="action-label">Export</span>
             </button>
-            <button
-              className="primary"
-              aria-label={busy?"Saving…":"Save changes"}
-              onClick={() => save()}
-              disabled={!source || !!result.error || busy}
-            >
-              <Save size={15} />
-              <span className="action-label">{busy ? "Saving…" : "Save changes"}</span>
+            <button className={`save-state s-${autosave.state.status}`} role="status" aria-label="Save state" disabled={!current} title={`${current?saveState:'No file open'} — ${autosave.state.status==='invalid'?'show the validation findings':autosave.state.status==='stale'?'compare with the file on disk':'open Commit'}`} onClick={()=>{const st=autosave.state.status;if(st==='invalid')setShowValidation(true);else if(st==='stale')void openStale();else setCommitting(true);}}><span className="save-state-text">{current?saveState:'No file open'}</span></button>
+            <button className="primary" onClick={()=>{void autosave.flush();setCommitting(true);}} disabled={!current||status?.gitAvailable===false} title={status?.gitAvailable===false?'Git is not available on this machine':'Commit changed files of this project'}>
+              <GitCommitIcon size={15} />
+              <span className="action-label">Commit…</span>
             </button>
           </div>
         </header>
@@ -522,7 +546,7 @@ function App() {
         {tab!=='scm'&&(source||current)&&(showValidation||!!result.error)&&<details className="validation-details" open><summary onClick={e=>{e.preventDefault();setShowValidation(false);}}>Validation findings</summary><ValidationPanel source={source} issues={validation.issues} onLocate={issue=>{setTab('source');setTimeout(()=>{sourceEditor.current?.locate(issue);},0);}}/></details>}
         <div ref={canvasRow} className={`canvas-row${inspectorVisible?' has-inspector':''}${pageDetails?' page-details':''}${fullscreen.active?' is-fullscreen':''}${fullscreen.fallback?' window-fill':''}`}>
           <section className="canvas" inert={pageDetails}>
-            {tab==='contract'&&isContract&&current ? (contractObject?<DatasetPage key={contractObject} doc={current} data={(model as any).document} objectName={contractObject} projectDocs={docs.filter(d=>d.project===current.project)} onBack={()=>setContractObject(null)} onOpenObject={setContractObject} gitVersion={gitVersion} editor={propertyEditor({doc:current,base:docText(current.id),onSaved:applySaved,onError:setMessage})}/>:<ContractOverview data={(model as any).document} onOpen={setContractObject}/>) : tab==='scm' ? (scmSlug?<SourceControl projects={projects} project={scmSlug} version={gitVersion} unsaved={current&&current.project===scmSlug&&source!==current.source?[current.path]:[]} historyPath={historyPath} onProject={slug=>{setMessage('');setScmProject(slug);setHistoryPath(undefined);}} onChanged={()=>void refresh().catch(()=>{})} onOpen={(project,path)=>{const d=docsRef.current.get(`${project}/${path}`);if(d&&open(d))setTab('source');}}/>:<p className="hint">Import definitions or load an example to start a project.</p>) : tab==='metrics' ? <MetricsView project={kpiProject} projectName={projects.find(p=>p.slug===kpiProject)?.name} kpis={kpis} error={kpiError} loading={kpiLoading} selected={selectedKpi} onSelect={setSelectedKpi} filter={kpiFilter} onNew={()=>setWizard(true)} onEdit={editKpi}/> : tab==='mappings' ? <MappingExplorer onEditItem={editMappingItem} currentId={current?.id} revisionKey={docs.map(d=>d.id+':'+d.hash).join('|')} dirty={!!current&&source!==current.source}/> : !source && !current ? (
+            {tab==='contract'&&isContract&&current ? (contractObject?<DatasetPage key={contractObject} doc={current} data={(model as any).document} objectName={contractObject} projectDocs={docs.filter(d=>d.project===current.project)} onBack={()=>setContractObject(null)} onOpenObject={setContractObject} gitVersion={gitVersion} editor={propertyEditor({doc:current,base:docText(current.id),onSaved:applySaved,onError:setMessage})}/>:<ContractOverview data={(model as any).document} onOpen={setContractObject}/>) : tab==='scm' ? (scmSlug?<SourceControl onBusy={setGitBusy} onCommit={()=>{void autosave.flush();setCommitting(true);}} projects={projects} project={scmSlug} version={gitVersion} unsaved={current&&current.project===scmSlug&&source!==current.source?[current.path]:[]} historyPath={historyPath} onProject={slug=>{setMessage('');setScmProject(slug);setHistoryPath(undefined);}} onChanged={()=>void refresh().catch(()=>{})} onOpen={(project,path)=>{const d=docsRef.current.get(`${project}/${path}`);if(d&&open(d))setTab('source');}}/>:<p className="hint">Import definitions or load an example to start a project.</p>) : tab==='metrics' ? <MetricsView project={kpiProject} projectName={projects.find(p=>p.slug===kpiProject)?.name} kpis={kpis} error={kpiError} loading={kpiLoading} selected={selectedKpi} onSelect={setSelectedKpi} filter={kpiFilter} onNew={()=>setWizard(true)} onEdit={editKpi}/> : tab==='mappings' ? <MappingExplorer onEditItem={editMappingItem} currentId={current?.id} revisionKey={docs.map(d=>d.id+':'+d.hash).join('|')} dirty={!!current&&source!==current.source}/> : !source && !current ? (
               <div className="empty">
                 <div className="empty-icon">
                   <Network size={36} />
@@ -548,7 +572,7 @@ function App() {
                 filename={current?.filename??'definition.yaml'}
                 value={source}
                 onChange={setSource}
-                onIssues={issues=>setEditorIssues({id:current?.id,issues})}
+                onIssues={(issues,text)=>setEditorIssues({id:current?.id,issues,text})}
               />
             ) : plainText ? <div className="invalid-definition"><h2>Git ignore rules</h2><p>{current?.path} is plain text: one pattern per line, read by Git. Files it matches are not shown in the workspace or in Source Control.</p><button onClick={()=>setTab("source")}>Edit in Source</button></div> : result.error ? <div className="invalid-definition"><h2>This definition needs repair</h2><p>Your saved document is unchanged. Open Source to fix the validation findings.</p><button onClick={()=>setTab("source")}>Repair in Source</button></div> : tab === "catalog" ? (
               <div className="catalog">
@@ -644,7 +668,7 @@ function App() {
             <CheckCircle2 size={14} />
             {result.error ? "Validation failed" : source ? "Structure checked" : "Ready to import"}
             {(source||current)&&<button className="validation-toggle" onClick={()=>setShowValidation(v=>!v)}>Validation details{validation.issues.length?` (${validation.issues.length})`:""}</button>}
-            {current && source !== current.source ? " · Unsaved changes" : ""}
+            {current && source !== current.source ? " · Not saved to file yet" : ""}
           </span>
           <span>
             {model?.entities.length ?? 0} entities · {model?.edges.length ?? 0} relationships

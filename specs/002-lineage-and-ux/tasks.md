@@ -64,21 +64,21 @@ is shippable: it ends with every existing suite (`bun test`, `check`, `build`, `
 
 ### Tests
 
-- [ ] T013 [P] [US3] Unit tests for the autosave state machine (pending → saving → saved/stale/failed/invalid, one save in flight, queued text uses returned hash, cancel on delete/move, wait during a Git operation) in tests/autosave.test.ts
-- [ ] T014 [P] [US3] Handler tests for `commitPaths` (`--only` commits only listed paths, untracked added, other staged work untouched, merge refusal, no identity → `{committed:false}`) in tests/git-commit-paths.test.ts
-- [ ] T015 [P] [US3] Handler tests: import into a new project, into an existing project and example load each commit exactly the written paths with "Import N files"/"Import <name>", and report the reason when Git, the identity or a clean merge state is missing (FR-049) in tests/import-commit.test.ts
-- [ ] T016 [P] [US3] Handler tests for `POST git/commit` with `paths` and `push`, and `POST git/revert` (journaled: trash entry + restore from HEAD, interrupted revert recovered on restart, stale base 409), and commit refusal with conflicts during a merge in tests/git-commit-api.test.ts
-- [ ] T017 [US3] Mutants in scripts/mutation-tests.ts: autosave writes invalid text; autosave ignores stale base; `--only` dropped; import commit includes unrelated paths; revert skips the trash copy
+- [X] T013 [P] [US3] Unit tests for the autosave state machine (pending → saving → saved/stale/failed/invalid, one save in flight, queued text uses returned hash, cancel on delete/move, wait during a Git operation) in tests/autosave.test.ts
+- [X] T014 [P] [US3] Handler tests for `commitPaths` (`--only` commits only listed paths, untracked added, other staged work untouched, merge refusal, no identity → `{committed:false}`) in tests/git-commit-paths.test.ts
+- [X] T015 [P] [US3] Handler tests: import into a new project, into an existing project and example load each commit exactly the written paths with "Import N files"/"Import <name>", and report the reason when Git, the identity or a clean merge state is missing (FR-049) in tests/import-commit.test.ts
+- [X] T016 [P] [US3] Handler tests for `POST git/commit` with `paths` and `push`, and `POST git/revert` (journaled: trash entry + restore from HEAD, interrupted revert recovered on restart, stale base 409), and commit refusal with conflicts during a merge in tests/git-commit-api.test.ts
+- [X] T017 [US3] Mutants in scripts/mutation-tests.ts: autosave writes invalid text; autosave ignores stale base; `--only` dropped; import commit includes unrelated paths; revert skips the trash copy
 
 ### Implementation
 
-- [ ] T018 [US3] `commitPaths(repoDir, paths, message)` in server/projects/git.ts; use it in createProjectFolder, importInto and loadExample in server/projects/workspace.ts; responses carry `commit` (contracts/http-api.md)
-- [ ] T019 [US3] Extend `scm.commit` with `paths` and `push`; add `revert` as one journaled operation (stage HEAD bytes, move current file into a trash entry, move staged bytes in) in server/projects/scm.ts, server/projects/trash.ts and server/routes/git.ts
-- [ ] T020 [US3] Autosave controller src/projects/autosave.ts (pure machine + `useAutosave` hook) using editor worker issues and `diffPatches` in idle time (research R7)
-- [ ] T021 [US3] Wire autosave in src/main.tsx: flush on file/view switch, drafts for invalid text without the "Discard unsaved changes?" prompt, pause on stale save with StaleSaveDialog, cancel on delete/move/trash; wait while a pull, branch switch or merge of the repository runs, then re-check the base hash; Pull/Sync/switch refusals offer Commit… (FR-040–FR-043, FR-048)
-- [ ] T022 [US3] Commit dialog src/scm/CommitDialog.tsx reusing Source Control status/diff views: ticked files, diff, pre-filled message, Commit, Commit & push, Revert to last commit (FR-045, FR-046)
-- [ ] T023 [US3] Header: replace Save changes with `Commit…` and the `Save state` status indicator (FR-044); item editors, add/delete and wizard buttons read "Save to file" (FR-047) in src/main.tsx, src/edit/*.tsx, src/metrics/KpiWizard.tsx
-- [ ] T024 [US3] Browser check scripts/autosave-browser-check.ts: autosave bytes (`git diff` one line), invalid text not written, stale diff, Commit dialog commits ticked files, import commit, refusal offers Commit…; add the autosave-on typing-latency case to scripts/editor-browser-check.ts (SC-005)
+- [X] T018 [US3] `commitPaths(repoDir, paths, message)` in server/projects/git.ts; use it in createProjectFolder, importInto and loadExample in server/projects/workspace.ts; responses carry `commit` (contracts/http-api.md)
+- [X] T019 [US3] Extend `scm.commit` with `paths` and `push`; add `revert` as one journaled operation (stage HEAD bytes, move current file into a trash entry, move staged bytes in) in server/projects/scm.ts, server/projects/trash.ts and server/routes/git.ts
+- [X] T020 [US3] Autosave controller src/projects/autosave.ts (pure machine + `useAutosave` hook) using editor worker issues and `diffPatches` in idle time (research R7)
+- [X] T021 [US3] Wire autosave in src/main.tsx: flush on file/view switch, drafts for invalid text without the "Discard unsaved changes?" prompt, pause on stale save with StaleSaveDialog, cancel on delete/move/trash; wait while a pull, branch switch or merge of the repository runs, then re-check the base hash; Pull/Sync/switch refusals offer Commit… (FR-040–FR-043, FR-048)
+- [X] T022 [US3] Commit dialog src/scm/CommitDialog.tsx reusing Source Control status/diff views: ticked files, diff, pre-filled message, Commit, Commit & push, Revert to last commit (FR-045, FR-046)
+- [X] T023 [US3] Header: replace Save changes with `Commit…` and the `Save state` status indicator (FR-044); item editors, add/delete and wizard buttons read "Save to file" (FR-047) in src/main.tsx, src/edit/*.tsx, src/metrics/KpiWizard.tsx
+- [X] T024 [US3] Browser check scripts/autosave-browser-check.ts: autosave bytes (`git diff` one line), invalid text not written, stale diff, Commit dialog commits ticked files, import commit, refusal offers Commit…; add the autosave-on typing-latency case to scripts/editor-browser-check.ts (SC-005)
 
 **Checkpoint**: US3 shippable.
 

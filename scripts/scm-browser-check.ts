@@ -29,7 +29,8 @@ async function editInSource(path:string,change:(text:string)=>string){
  const editor=page.getByRole('textbox',{name:'Definition source'});await fillEditor(editor,change(await editorValue(editor)));
  return editor;
 }
-async function saveSource(){await page.getByRole('button',{name:'Save changes'}).click();await expect(page.locator('main > .status')).toContainText(/Saved/);}
+// v0.3.0: valid edits are saved automatically after a 1 s pause (FR-040).
+async function saveSource(){await page.waitForResponse(r=>r.request().method()==='PUT'&&r.url().includes('/files/'),{timeout:5000});await expect(page.getByRole('status',{name:'Save state'})).toHaveText(/^Saved to file/,{timeout:5000});}
 try{
  await check('commit from the panel: the diff shows exactly the changed line; staged, committed with a message',async()=>{
   await editInSource(file,t=>t.replace('description: Customer in the order-to-cash process.','description: Person or company that buys from us.'));await saveSource();
@@ -88,16 +89,23 @@ try{
   expect(read(file)).toContain('Order placed elsewhere.');
   await page.screenshot({path:'/tmp/workbench-scm-pulled.png'});
  });
- await check('pull is refused while the open file has unsaved edits; nothing is stashed',async()=>{
-  await editInSource(file,t=>t.replace('Order placed elsewhere.','Unsaved wording.'));
+ // v0.3.0: valid edits are saved automatically, so the edit that stays unsaved is an invalid one (a
+ // server draft); the refusal lists it and offers Commit… (FR-048).
+ await check('pull is refused while the open file has edits not saved to file; nothing is stashed; Commit… is offered',async()=>{
+  let original='';
+  await editInSource(file,t=>{original=t;return t.replace('Order placed elsewhere.','"Unsaved wording.');});
+  await expect(page.getByRole('status',{name:'Save state'})).toHaveText(/^Not saved: \d+ errors?$/,{timeout:5000});
   await openScm();await panel().getByRole('group',{name:'Remote'}).getByRole('button',{name:'Pull'}).click();
-  await expect(panel().getByRole('alert').filter({hasText:'Save or discard your unsaved edits'})).toContainText(file);
+  const refusal=panel().getByRole('alert').filter({hasText:'not saved to file yet'});
+  await expect(refusal).toContainText(file);await expect(refusal.getByRole('button',{name:'Commit…'})).toBeVisible();
   // The server refuses too, from the stored draft (FR-065).
   await expect.poll(()=>api.ws.state.drafts().map(d=>d.path)).toEqual([file]);
   const r=await api.handler(new Request(`http://127.0.0.1/api/projects/${commerce.slug}/git/pull`,{method:'POST'}));expect(r.status).toBe(409);expect((await r.json()).error).toBe('drafts');
   expect(sh(dir,['stash','list'])).toBe('');
-  await openFile(file);page.once('dialog',d=>void d.accept());await openFile('commerce.odcs.yaml');
-  await expect.poll(()=>api.ws.state.drafts().length).toBe(0);
+  await refusal.getByRole('button',{name:'Commit…'}).click();await expect(page.getByRole('dialog',{name:'Commit'})).toBeVisible();
+  await page.keyboard.press('Escape');await expect(page.getByRole('dialog',{name:'Commit'})).toHaveCount(0);
+  await editInSource(file,()=>original);
+  await expect.poll(()=>api.ws.state.drafts().length,{timeout:5000}).toBe(0);
  });
  await check('conflict: the pull stops, the file is listed and repaired in Source, staged and committed',async()=>{
   writeFileSync(join(other,file),readFileSync(join(other,file),'utf8').replace('Order placed elsewhere.','Their wording.'));sh(other,['commit','-qam','Theirs']);sh(other,['push','-q']);
@@ -147,7 +155,7 @@ try{
    await p.getByRole('button',{name:/^Source control/}).click();await expect(p.getByRole('region',{name:'Source Control'})).toContainText('Git was not found on this machine');
    await p.screenshot({path:'/tmp/workbench-scm-no-git.png'});
    await openFile(file,p);await p.locator('.tabs').getByRole('button',{name:'Source'}).click();const editor=p.getByRole('textbox',{name:'Definition source'});
-   await fillEditor(editor,(await editorValue(editor)).replace('Customer in the order-to-cash process.','Saved without Git.'));await p.getByRole('button',{name:'Save changes'}).click();
+   await fillEditor(editor,(await editorValue(editor)).replace('Customer in the order-to-cash process.','Saved without Git.'));
    await expect.poll(()=>readFileSync(projectFile(noGit.ws.layout,'commerce',file),'utf8')).toContain('Saved without Git.');
    await p.close();
   }finally{await noGit.stop();}
