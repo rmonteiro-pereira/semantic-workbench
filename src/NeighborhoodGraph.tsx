@@ -6,6 +6,8 @@ import {groupRelationships,neighborhood,searchEntities,projectModel,NEIGHBOR_PAG
 import {neighborhoodLayout} from './layout';
 import {assignRoutes,placeLabels,routePoints,relationshipEdgeTypes,type Box} from './RelationshipEdge';
 import type {Walk,WalkStep} from './graph/walk';
+import {useViewRestore,type Fullscreen} from './graph/fullscreen';
+import {FullscreenButton} from './FullGraph';
 // Neighborhood of one center (FR-034–FR-041): the center in the middle, incoming neighbors on the
 // left and outgoing on the right, counts of shown and hidden neighbors, relationships among
 // neighbors on request, and a walk: activating a neighbor or relationship moves the center across
@@ -13,7 +15,7 @@ import type {Walk,WalkStep} from './graph/walk';
 export type CrossFileTarget={doc:string;file:string;entity:string;name:string;reason:string};
 export type NeighborhoodGraphProps={docId:string;docLabel:(doc:string)=>string;entities:Entity[];edges:Relationship[];search:string;walk:Walk;selected:string;selectedEdge:string;
  onWalk:(steps:WalkStep[])=>void;onWalkTo:(index:number)=>void;onClearSearch:()=>void;onSelectEntity:(id:string)=>void;onSelectEdge:(id:string)=>void;onOverview:()=>void;onFullGraph:()=>void;
- kpiBadges?:Map<string,string[]>;onOpenKpis?:(concept:string)=>void;crossFile?:(entity:Entity)=>CrossFileTarget[];onCrossFile?:(target:CrossFileTarget)=>void};
+ kpiBadges?:Map<string,string[]>;fullscreen?:Fullscreen;onOpenKpis?:(concept:string)=>void;crossFile?:(entity:Entity)=>CrossFileTarget[];onCrossFile?:(target:CrossFileTarget)=>void};
 export function NeighborhoodGraph(props:NeighborhoodGraphProps){return <ReactFlowProvider><NeighborhoodCanvas {...props}/></ReactFlowProvider>}
 const NODE={width:250,height:96},LATERAL_DEFAULT_MAX=10;
 const COLORS={out:'#237c68',in:'#5b4fa8',lateral:'#93a8a0'};
@@ -72,7 +74,8 @@ function NeighborhoodCanvas(props:NeighborhoodGraphProps){
    markerEnd:{type:MarkerType.ArrowClosed,color,width:14,height:14},className:`edge-${kind}`,
    style:{stroke:color,strokeOpacity:kind==='lateral'?0.55:0.85,strokeWidth:active?2.6:kind==='lateral'?1.1:1.5,strokeDasharray:kind==='lateral'?'5 4':undefined}};});
  // Fit once the nodes of a new membership are measured; refit when the canvas is resized.
- const canvas=useRef<HTMLDivElement>(null),{fitBounds}=useReactFlow(),[fitted,setFitted]=useState('');
+ const canvas=useRef<HTMLDivElement>(null),{fitBounds,getViewport,setViewport}=useReactFlow(),[fitted,setFitted]=useState('');
+ const held=useViewRestore(!!props.fullscreen?.active,()=>getViewport(),v=>{void setViewport(v);});
  const measured=nodes.length>0&&nodes.every(n=>n.measured?.width)&&JSON.stringify([center,nodes.map(n=>n.id)])===membership;
  // The fitted area is symmetric around the center node, so the center sits in the middle of the
  // canvas even when one side has more columns; it leaves room for the lanes above and below.
@@ -81,7 +84,7 @@ function NeighborhoodCanvas(props:NeighborhoodGraphProps){
   const halfW=Math.max(...all.map(b=>Math.max(cx-b.x,b.x+b.width-cx))),lanes=[...routes.values()].filter(r=>r.route==='lane'||r.route==='loop').length,halfH=Math.max(...all.map(b=>Math.max(cy-b.y,b.y+b.height-cy)))+Math.min(160,30+lanes*16);
   void fitBounds({x:cx-halfW,y:cy-halfH,width:2*halfW,height:2*halfH},{padding:0.06,duration:0});};
  useEffect(()=>{if(!measured||fitted===membership)return;const frame=requestAnimationFrame(()=>{fitRef.current();setFitted(membership);});return()=>cancelAnimationFrame(frame);},[measured,membership,fitted]);
- useEffect(()=>{if(!canvas.current)return;let frame=0;const observer=new ResizeObserver(()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>fitRef.current());});observer.observe(canvas.current);return()=>{cancelAnimationFrame(frame);observer.disconnect();};},[]);
+ useEffect(()=>{if(!canvas.current)return;let frame=0;const observer=new ResizeObserver(()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{if(!held())fitRef.current();});});observer.observe(canvas.current);return()=>{cancelAnimationFrame(frame);observer.disconnect();};},[]);
  // Center picker (searchable; exact matches first) and toolbar search results.
  const projected=useMemo(()=>projectModel(entities,edges,technical).entities,[entities,edges,technical]);
  const [pick,setPick]=useState(''),[pickOpen,setPickOpen]=useState(false),[active,setActive]=useState(0);
@@ -111,7 +114,7 @@ function NeighborhoodCanvas(props:NeighborhoodGraphProps){
    <button onClick={()=>setLabels(v=>!v)} aria-pressed={labels}>Labels {labels?'on':'off'}</button>
    {kpiCount>0&&<button onClick={()=>setHideKpis(v=>!v)} aria-pressed={hideKpis} title={`${kpiCount} KPI nodes`}><Gauge size={14}/>KPIs {hideKpis?'hidden':'shown'}</button>}
    <button onClick={()=>{setNodes(build());setFitted('');}} title="Put every node back in its column">Re-center</button>
-   <button onClick={props.onOverview}>Model overview</button><button onClick={props.onFullGraph}>Full graph</button>
+   <button onClick={props.onOverview}>Model overview</button><button onClick={props.onFullGraph}>Full graph</button>{props.fullscreen&&<FullscreenButton fullscreen={props.fullscreen}/>}
    <span className="neighborhood-legend" aria-hidden="true"><span className="in">Incoming</span><span className="out">Outgoing</span>{lateral&&<span className="lateral">Between neighbors</span>}</span>
   </div>
   <div className="neighborhood-links">

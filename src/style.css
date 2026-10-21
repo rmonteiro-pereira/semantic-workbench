@@ -695,3 +695,11 @@ button.danger{background:#a3392f;color:white;border-color:#a3392f}button.danger:
 .react-flow__node.neighborhood-node:hover .walk-button,.walk-button:focus-visible{opacity:1;background:#e9f4ef}
 .node-actions .kpi-badge{margin-left:0;cursor:pointer}
 .react-flow__edge.edge-lateral .react-flow__edge-text{fill:#7b8f87}
+/* Full screen (FR-066): the canvas row fills the screen (or the window when the browser refuses);
+   details open over the graph instead of beside it. */
+.canvas-row.is-fullscreen { margin: 0; border: 0; border-radius: 0; background: #f9fbfa; }
+.canvas-row.window-fill { position: fixed; inset: 0; z-index: 900; }
+.canvas-row:fullscreen { width: 100vw; height: 100vh; }
+.canvas-row.is-fullscreen .inspector { position: absolute; top: auto; max-height: calc(100% - 140px); right: 10px; bottom: 10px; z-index: 40; width: min(360px, calc(100% - 20px)); border: 1px solid #dce6df; border-radius: 10px; box-shadow: -8px 0 28px #24393620; }
+@media (max-width: 650px) { .canvas-row.is-fullscreen .inspector { top: auto; left: 0; right: 0; bottom: 0; width: 100%; max-height: 62%; border-radius: 10px 10px 0 0; } }
+.fullscreen-toggle { gap: 5px; }
