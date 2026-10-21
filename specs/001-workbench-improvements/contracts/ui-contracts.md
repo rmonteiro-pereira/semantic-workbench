@@ -12,6 +12,7 @@ contract; layout is not).
 | Suggestions | `region` "Grouping suggestions" with evidence and "Add to project" / "Dismiss" |
 | Source editor | `textbox` "Definition source" (CodeMirror content element), lint gutter markers with tooltips, "Go to line" |
 | Item editor | `dialog` or panel "Edit <item name>" with fields per type, inline findings, "Save" disabled while invalid |
+| RDF item editor | `dialog` "Edit <label>": `region` "Statements" with "Predicate N" / "Object N" fields, "Remove statement N", "Add statement"; tabs Statements / Source; `status` with the graph check; an `alert` with "Open line N in Source" when the item cannot be edited in place |
 | Metrics view | tab "Metrics"; `table` of KPIs (Label, Type, Unit, Status, Owner, Concept); filters; "New KPI" wizard with numbered steps |
 | KPI explanation | region "How it is calculated": composition `tree`, inputs list, rules, concepts, SQL preview `code` labelled "Preview · not executed" |
 | Neighborhood | center picker `combobox` "Neighborhood center"; breadcrumb `navigation` "Walk"; Back/Forward buttons; "Show links between neighbors" toggle; "N more neighbors" control |

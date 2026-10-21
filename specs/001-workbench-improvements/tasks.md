@@ -248,21 +248,21 @@ to concepts and ODCS.
 
 ### Tests
 
-- [ ] T110 [P] [US6] Isomorphism gate tests (parsed graph = original − removed + added) in tests/rdf-isomorphism.test.ts
-- [ ] T111 [P] [US6] N-Triples line-edit tests in tests/rdf-patch-ntriples.test.ts
-- [ ] T112 [P] [US6] Turtle/N3 block-rewrite tests (multiple blocks, new prefixes, comment warnings, N3 formulae refused) in tests/rdf-patch-turtle.test.ts
-- [ ] T113 [P] [US6] RDF/XML element-edit tests (refusal of parse-type collections and reification) in tests/rdf-patch-rdfxml.test.ts
+- [X] T110 [P] [US6] Isomorphism gate tests (parsed graph = original − removed + added) in tests/rdf-isomorphism.test.ts
+- [X] T111 [P] [US6] N-Triples line-edit tests in tests/rdf-patch-ntriples.test.ts
+- [X] T112 [P] [US6] Turtle/N3 block-rewrite tests (multiple blocks, new prefixes, comment warnings, N3 formulae refused) in tests/rdf-patch-turtle.test.ts
+- [X] T113 [P] [US6] RDF/XML element-edit tests (refusal of parse-type collections and reification) in tests/rdf-patch-rdfxml.test.ts
 
 ### Implementation
 
-- [ ] T114 [US6] Isomorphism check in src/edit/rdf-patch/isomorphism.ts
-- [ ] T115 [P] [US6] N-Triples patcher in src/edit/rdf-patch/ntriples.ts
-- [ ] T116 [P] [US6] Turtle and N3 patcher in src/edit/rdf-patch/turtle.ts
-- [ ] T117 [P] [US6] RDF/XML patcher in src/edit/rdf-patch/rdfxml.ts
-- [ ] T118 [US7] RDF item forms and add/delete (OWL class/property, SHACL shape, RDF resource) in src/edit/ItemEditor.tsx and src/edit/AddItem.tsx
-- [ ] T119 [US6] Browser check scripts/rdf-edit-browser-check.ts
-- [ ] T120 [US6] Add mutants: skip isomorphism check; rewrite the whole document
-- [ ] T121 [US6] Update README.md with per-serialization edit guarantees
+- [X] T114 [US6] Isomorphism check in src/edit/rdf-patch/isomorphism.ts
+- [X] T115 [P] [US6] N-Triples patcher in src/edit/rdf-patch/ntriples.ts
+- [X] T116 [P] [US6] Turtle and N3 patcher in src/edit/rdf-patch/turtle.ts
+- [X] T117 [P] [US6] RDF/XML patcher in src/edit/rdf-patch/rdfxml.ts
+- [X] T118 [US7] RDF item forms and add/delete (OWL class/property, SHACL shape, RDF resource) in src/edit/ItemEditor.tsx and src/edit/AddItem.tsx
+- [X] T119 [US6] Browser check scripts/rdf-edit-browser-check.ts
+- [X] T120 [US6] Add mutants: skip isomorphism check; rewrite the whole document
+- [X] T121 [US6] Update README.md with per-serialization edit guarantees
 
 **Checkpoint**: all formats editable per item.
 
