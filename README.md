@@ -11,7 +11,7 @@ bun install
 bun run dev
 ```
 
-Open http://127.0.0.1:5173. API: http://127.0.0.1:4310. Both bind to loopback. Without Git, or without a Git identity, the workspace still opens and edits files; a banner explains what is missing, and projects are not committed until it is fixed and the API is restarted.
+Open http://127.0.0.1:5173. API: http://127.0.0.1:4310. Both bind to loopback. The API answers only requests addressed to a loopback name (so a web page cannot reach it through DNS rebinding), refuses writes from other origins, and never follows a symbolic link inside a project folder. Without Git, or without a Git identity, the workspace still opens and edits files; a banner explains what is missing, and projects are not committed until it is fixed and the API is restarted.
 
 ## Where your data lives
 
@@ -202,7 +202,7 @@ Checks include:
 
 These are input and supported-definition validators. They do not certify full OWL profile conformance or logical satisfiability, execute SQL, fetch imports, or apply SHACL shapes to a separate data graph. SHACL advanced/SPARQL constraints are preserved but not evaluated. Full standards reasoning needs a separate engine.
 
-`tests/validation.test.ts` includes malformed and positive cases for every supported input family and revalidates all shipped examples. `tests/api-validation.test.ts` and `tests/files-api.test.ts` exercise the actual HTTP handler against a temporary data root. `bun run test:ui` covers repair, mixed batches, cancellation, invalid source/save recovery, original graph navigation, and byte-exact exports; screenshots are written to `/tmp/workbench-validation-*.png`. `bun run test:mutation` includes deliberate removal of duplicate, reference, cycle, join, schema, size, SHACL, and OWL checks.
+`tests/validation.test.ts` includes malformed and positive cases for every supported input family and revalidates all shipped examples. `tests/route-security.test.ts` covers symbolic links, host names, branch names, Git remote helpers and credential redaction. `tests/api-validation.test.ts` and `tests/files-api.test.ts` exercise the actual HTTP handler against a temporary data root. `bun run test:ui` covers repair, mixed batches, cancellation, invalid source/save recovery, original graph navigation, and byte-exact exports; screenshots are written to `/tmp/workbench-validation-*.png`. `bun run test:mutation` includes deliberate removal of duplicate, reference, cycle, join, schema, size, SHACL, and OWL checks.
 
 Standards references: [ODCS schema](https://github.com/bitol-io/open-data-contract-standard/blob/main/schema/odcs-json-schema-v3.1.0.json), [Ossie semantic specification](https://github.com/apache/ossie/blob/main/core-spec/spec.md), [W3C SHACL](https://www.w3.org/TR/shacl/).
 
