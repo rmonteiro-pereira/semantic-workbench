@@ -27,7 +27,10 @@ person's delegated token (Entra on-behalf-of for Azure DevOps, GitHub user token
 run, versioned in an administration Git repository with rollback), an access simulator, the audit
 log and settings. A multi-stage, non-root container image runs both modes (local mode through
 host networking), is built right after the foundations with a Docker Compose setup (local profile;
-server profile with a development Keycloak), and every later phase is verified against it. The
+`keycloak` compatibility profile), and every later phase is verified against it. The target uses
+Microsoft Entra ID only: automated sign-in tests, in the local gate and in the target pipeline,
+run against a mock OpenID provider shipped in the repository (Entra-shaped claims, overage, a
+Graph stand-in); Keycloak is a compatibility suite on the owner's machine. The
 GitHub repository runs nothing automatically: the owner runs the whole quality gate, the image
 build, the Trivy scan and the SPDX bill of materials locally through package scripts
 (`ci:validate`, `image:build`, `image:scan`, `image:sbom`, `test:container`). The CI/CD pipeline
@@ -38,8 +41,11 @@ tags to Azure Container Apps (one replica, Azure Files data root, Key Vault, man
 through Azure Resource Manager service connections with workload identity federation, gated by an
 Azure DevOps environment with approvals and checks. Target values are parameters and one variable
 group; the definition is checked locally by a schema and rules lint and a dry run. Azure resources
-and Azure DevOps items are created by hand from a guide; no infrastructure as code
-([research.md](./research.md) R14, R17–R20).
+and Azure DevOps items are created by hand from a guide; no infrastructure as code. Releases reach
+the target's Azure Repos mirror by a documented hand-over (push, or Git bundle); the real trial
+deployment is an owner acceptance step run from a runbook, and the implementation is done when
+`pipeline:lint`, `pipeline:dry-run` and the container suites pass locally ([research.md](./research.md)
+R6, R14, R17–R21).
 
 ## Technical Context
 
@@ -58,9 +64,11 @@ Principle I. Machine Git ≥ 2.40.
 state under `data/state/users/`, encrypted sessions, append-only audit JSONL, instance lock
 ([data-model.md](./data-model.md)). Cache optionally on container local disk (`SW_CACHE_DIR`).
 
-**Testing**: `bun test` (unit + HTTP on temp `DATA_DIR` with a stub OIDC provider built on
-`jose`), authorization test matrix (`tests/auth/matrix.test.ts`), Playwright suites `test:auth`,
-`test:auth:keycloak` (Keycloak 26 container), `test:admin`, `test:two-editors`; mutation suite
+**Testing**: `bun test` (unit + HTTP on temp `DATA_DIR` with the mock OpenID provider built on
+`jose`, in process), authorization test matrix (`tests/auth/matrix.test.ts`), Playwright suites
+`test:auth` (mock OpenID provider on loopback, Entra shape), `test:admin`, `test:two-editors`;
+Keycloak compatibility suite `test:auth:keycloak` (Keycloak 26 container, owner's machine, outside
+the gate and the pipeline); mutation suite
 additions; container checks (`test:container`: the suites of `scripts/container-suites.ts`
 against the image); pipeline tests (`tests/pipeline/`: pipeline rules against the pinned Azure
 Pipelines schema, deploy, version check and rollback logic with a fake Azure client, smoke test,
@@ -78,20 +86,22 @@ pipeline: the target's Azure DevOps Linux agents with Docker (`ubuntu-latest` by
 
 **Performance Goals**: filtering ≤ 150 ms on the project listing and ≤ 10% on full load for
 5,000 files / 20 projects (SC-006; preparsed Cedar decision ≈ 0.07 ms, memoised per rule class);
-sign-in ≤ 5 s against local Keycloak (SC-005); container ready ≤ 30 s on the examples (SC-009).
+sign-in ≤ 5 s against the mock provider and local Keycloak (SC-005); container ready ≤ 30 s on the examples (SC-009).
 
 **Constraints**: constitution 3.0.0; byte-exact files (no redaction); nothing executed; tokens
 never in the browser; single instance per data root; no plain-text credentials; local mode
 unchanged.
 
-**Scale/Scope**: teams of tens of people, tens of repositories; 10 user stories, 92 FRs, 18
+**Scale/Scope**: teams of tens of people, tens of repositories; 10 user stories, 95 FRs, 19
 success criteria; 66 routes in the matrix (57 implemented + 9 planned by 002) plus about 30 new.
 
 No NEEDS CLARIFICATION remain: owner decisions are binding; OP-1 to OP-5 resolved with
 recommended defaults awaiting owner confirmation; OP-8 (host networking for local mode in a
 container, Docker Desktop setting documented) accepted by the owner; the former OP-6 (registry)
 and OP-7 (GitHub approval gate) are withdrawn by the decision to run nothing on GitHub and deliver
-an Azure DevOps pipeline (spec Clarifications).
+an Azure DevOps pipeline (spec Clarifications); OP-9 (Entra only on the target, Keycloak as a
+local compatibility suite, mock OpenID provider in the pipeline), OP-10 (trial run by the owner
+from a runbook) and OP-11 (Azure Repos mirror, release hand-over) are decided by the owner.
 
 ## Constitution Check (v3.0.0)
 
@@ -104,8 +114,8 @@ an Azure DevOps pipeline (spec Clarifications).
 | III. One Validation Rule Set | Guards reuse the shared parsers from `src/`; the browser uses the same guard module to disable controls; access JSON validated with a pinned application schema through the same Ajv setup | ✅ | ✅ |
 | IV. Atomic, Hash-Checked File Persistence | Saves unchanged (hash-checked, atomic) in each working copy; per-person drafts/views/suggestion state; trash entries record `owner` and keep unpublished work on project delete (journaled); sessions and users state atomic; audit append-only with hash chain; access configuration in `data/admin/` Git, one commit per change. Git queue keyed by base repository covers all worktrees; argument arrays, prompts off, timeouts; `core.autocrlf=false` and (SMB) `core.filemode=false` | ✅ | ✅ |
 | V. Pinned Official Standards | No standard schema changes; new application schema `schemas/semantic-workbench-access-v1.json` pinned and labelled; classification level ordering labelled as an application reading of ODCS free text | ✅ | ✅ |
-| VI. Verification Gate | Unit, matrix, browser suites per story; geometry checks for Admin dialogs and header menu. New mutants: decision ignores domain; filter returns unfiltered list; 404 replaced by 403 (existence leak); SSE send skips filter; replay skips filter; draft served to non-owner; trash lists others' entries; git show ignores path rule; agent context falls back to unreadable project; bearer accepted outside agent routes; cookie without HttpOnly/Secure; CSRF header not required; ID-token nonce unchecked; `tid` unchecked; overage failure grants membership; self-approval allowed; approved metric edit not demoted; classification change allowed to Editor; guard skipped in save-batch/pull/revert; push to protected branch by Editor; publish not fast-forward; commit author not principal; credential written to `.git/config`; remote change by non-Admin; last-Admin guard off; invalid policy activated; deactivated principal allowed; audit entry missing for denial; second instance not refused; hand-over serves before the lock is taken; readiness before recovery; smoke test ignores a version mismatch; smoke test accepts an unauthenticated 200; rollback skipped on smoke failure; preflight accepts more than one replica; version check accepts a tag older than the last deployed version; pipeline lint accepts a step that is not a package script. `bun run ci:validate` runs the whole gate on the owner's machine (its `container` step reruns the browser suites against the image) and the target pipeline's Validate and Image stages call the same steps | ✅ | ✅ |
-| VII. Honest Claims | README: both modes, configuration, Entra and Keycloak guides, role matrix and what each role sees, outbound calls, delegated credentials, single-instance limit and scale path, the documented residual exposure of commit messages; container and Compose use (Docker Desktop host networking setting); the local build scripts; the Azure DevOps pipeline, the Azure resources and Azure DevOps items the target sets up by hand; counts from tests | ✅ | ✅ |
+| VI. Verification Gate | Unit, matrix, browser suites per story; geometry checks for Admin dialogs and header menu. New mutants: decision ignores domain; filter returns unfiltered list; 404 replaced by 403 (existence leak); SSE send skips filter; replay skips filter; draft served to non-owner; trash lists others' entries; git show ignores path rule; agent context falls back to unreadable project; bearer accepted outside agent routes; cookie without HttpOnly/Secure; CSRF header not required; ID-token nonce unchecked; `tid` unchecked; overage failure grants membership; self-approval allowed; approved metric edit not demoted; classification change allowed to Editor; guard skipped in save-batch/pull/revert; push to protected branch by Editor; publish not fast-forward; commit author not principal; credential written to `.git/config`; remote change by non-Admin; last-Admin guard off; invalid policy activated; deactivated principal allowed; audit entry missing for denial; second instance not refused; hand-over serves before the lock is taken; readiness before recovery; smoke test ignores a version mismatch; smoke test accepts an unauthenticated 200; rollback skipped on smoke failure; preflight accepts more than one replica; version check accepts a tag older than the last deployed version; pipeline lint accepts a step that is not a package script; pipeline lint accepts a Keycloak reference; server accepts an `http://` issuer with a non-loopback public URL; server accepts a directory URL other than Microsoft Graph. `bun run ci:validate` runs the whole gate on the owner's machine (its `container` step reruns the browser suites against the image) and the target pipeline's Validate and Image stages call the same steps | ✅ | ✅ |
+| VII. Honest Claims | README: both modes, configuration, Entra (primary, the target's provider) and Keycloak (compatibility) guides, what the mock OpenID provider does and does not cover, role matrix and what each role sees, outbound calls, delegated credentials, single-instance limit and scale path, the documented residual exposure of commit messages; container and Compose use (Docker Desktop host networking setting); the local build scripts; the Azure DevOps pipeline, the Azure resources and Azure DevOps items the target sets up by hand, the release hand-over to the mirror; the trial is reported as owner acceptance, not claimed before the owner's report; counts from tests | ✅ | ✅ |
 
 Technical Constraints: one authorization boundary (`server/auth/authorize.ts`) used by every
 route (enforced by the route→action table test); Cedar evaluated in-process; single instance per
@@ -176,12 +186,14 @@ src/
 ├── metrics/ (Approve/Deprecate actions, unverified owner), odcs/PropertyEditors.tsx (guard-aware)
 └── main.tsx (person menu, Admin entry, hide/disable by capability)
 tests/auth/ (principal, sessions, bearer, authorize, filter-perf, guards, worktrees, admin-repo, audit, matrix, route-actions)
+tests/helpers/mock-oidc.ts          # mock OpenID provider (Entra/Keycloak/generic shapes, Graph stand-in)
 tests/fixtures/{auth-workspace/, keycloak/realm.json}
-scripts/{auth-browser-check.ts,auth-keycloak-check.ts,admin-browser-check.ts,two-editors-check.ts; mutation-tests.ts additions}
+scripts/{mock-oidc.ts (loopback runner),auth-browser-check.ts,auth-keycloak-check.ts (compatibility),admin-browser-check.ts,two-editors-check.ts; mutation-tests.ts additions}
 server/{routes/health.ts,projects/instance-lock.ts,static.ts}   # health with version, hand-over lock, dist/ serving
 Dockerfile, .dockerignore, compose.yaml, .env.server.example, .trivyignore
 azure-pipelines.yml, azure-pipelines-rollback.yml   # for the target's Azure DevOps; never run here
-deploy/README.md                  # target setup: Azure resources, Azure DevOps items (no infrastructure as code)
+deploy/README.md                  # target setup: Azure resources, Azure DevOps items, release hand-over (no infrastructure as code)
+deploy/trial-runbook.md           # owner trial: steps, expected outputs, report block (owner acceptance)
 deploy/azure-devops/{templates/{setup-steps,validate-jobs,image-jobs,deploy-steps}.yml,
                      schema/service-schema.json, sample-variables.yml}
 scripts/{ci-validate.ts,gate-suites.ts,image.ts,pipeline-lint.ts,pipeline-dry-run.ts,
@@ -198,7 +210,7 @@ modules for unit and mutation tests.
 ## Delivery phases (detail in tasks.md)
 
 0. Prerequisite: 002 merged; rebase; refresh route inventory.
-1. Setup: dependencies, config, fixtures (auth workspace, Keycloak realm), stub provider.
+1. Setup: dependencies, config, fixtures (auth workspace, Keycloak realm), mock OpenID provider.
 2. Foundations: principal model, decision boundary with Cedar and baseline policies, route →
    action table, request middleware with local implicit Admin, audit writer, admin repository
    loader with bootstrap Admins. Local mode suites green.
@@ -207,13 +219,13 @@ modules for unit and mutation tests.
 4. US10 part 1 (P1): local build scripts and the Azure DevOps pipeline definition: `ci:validate`,
    `image:build|scan|sbom|push`, gate suite list, `azure-pipelines.yml` stages Validate and Image,
    pipeline rules test, `pipeline:lint` and `pipeline:dry-run`.
-5. US1 sign-in and sessions (server mode skeleton, live updates); Compose server profile with
-   Keycloak, Keycloak step of `ci:validate` and the Validate stage, server suites in the container
-   step.
+5. US1 sign-in and sessions (server mode skeleton, live updates) against the mock OpenID
+   provider; server suites in the container step against the mock; Keycloak compatibility suite
+   and Compose `keycloak` profile (owner's machine, outside the gate and the pipeline).
 6. US9 part 2 + US10 part 2 (P1): Azure delivery definition: deploy, version check, smoke test and
    rollback scripts (tested against a fake Azure client), Deploy stage, rollback pipeline, target
-   setup guide; trial run on an Azure DevOps organisation and subscription when one is available,
-   with the test fixture workspace.
+   setup guide with the release hand-over, and the owner trial runbook. The trial itself is owner
+   acceptance (the implementer has no access), run with the test fixture workspace.
 7. US2 read filtering everywhere (lists, derivations, SSE, Git history, trash, drafts).
 8. US3 role enforcement on every write and capability-driven UI.
 9. US8 Admin panel (users, roles, projects, policies with dry run and history, access check,
@@ -245,4 +257,5 @@ panel manages (the fixture can seed `data/admin/` directly for earlier phases).
 | Revision hand-over in the instance lock | single revision mode waits for the new revision to be ready before stopping the old one; a plain refusal would block every update | stopping the app before each deployment (manual downtime, not automatable without extra rights) |
 | Host networking for local mode in a container | keeps the loopback rule of Principle I unchanged (OP-8, accepted) | binding `0.0.0.0` in local mode inside a container needs a constitution amendment |
 | Package scripts as the only implementation of pipeline steps | the owner builds and tests locally and the target's pipeline must run exactly the same steps (R18) | inline pipeline scripts cannot be run or tested on the owner's machine |
+| Mock OpenID provider in the repository | the target pipeline must not depend on Keycloak or any external provider, yet must cover the sign-in flow and Entra claim mapping (OP-9) | Keycloak in the pipeline (rejected by the owner); a real test tenant (secrets and network on the agents); a third-party mock image (no Entra overage or Graph stand-in) |
 | Pipeline definition shipped but never run from this repository; checked by schema lint and dry run | the target uses Azure DevOps; the repository runs nothing automatically (owner decision) | GitHub Actions (rejected by the owner); an untested definition (would fail first at the target) |

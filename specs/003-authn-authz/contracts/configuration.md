@@ -7,7 +7,7 @@
 | `SW_CACHE_DIR` | both | no (data root) | SQLite cache folder; container local disk recommended |
 | `SW_HOST`, `SW_PORT` | both | no (`127.0.0.1`, 4310) | local mode refuses non-loopback `SW_HOST` |
 | `SW_PUBLIC_URL` | server | yes | external HTTPS origin, e.g. `https://workbench.example.org` |
-| `SW_OIDC_ISSUER` | server | yes | provider issuer URL (Entra: `https://login.microsoftonline.com/<tid>/v2.0`) |
+| `SW_OIDC_ISSUER` | server | yes | provider issuer URL (Entra: `https://login.microsoftonline.com/<tid>/v2.0`); an `http://` issuer is refused unless `SW_PUBLIC_URL` is a loopback URL (mock OpenID provider and Keycloak compatibility only, FR-141) |
 | `SW_OIDC_CLIENT_ID` | server | yes | |
 | `SW_OIDC_CLIENT_SECRET` | server | one of | secret reference |
 | `SW_OIDC_CLIENT_ASSERTION` | server | one of | `managed-identity` (Entra federated credential of `id-sw-app`; uses the platform identity endpoint) or a private key path |
@@ -17,6 +17,7 @@
 | `SW_ROLE_CLAIM` | server | no | override claim path for roles |
 | `SW_GROUP_CLAIM` | server | no (`groups`) | |
 | `SW_GROUP_OVERAGE` | server/entra | no (`directory`) | `directory` (Graph checkMemberGroups) or `off` |
+| `SW_GRAPH_URL` | server/entra | no (`https://graph.microsoft.com`) | Microsoft Graph base URL for overage resolution (an app-only token is sent there); accepted values: the Microsoft Graph endpoints of the public and national clouds, or a loopback `http://` URL when `SW_PUBLIC_URL` is loopback (the mock OpenID provider's stand-in in tests); anything else refuses start-up |
 | `SW_API_AUDIENCE` | server | yes for agents | expected `aud` of bearer tokens |
 | `SW_SESSION_KEY` | server | yes | 32 bytes base64; encrypts sessions |
 | `SW_BOOTSTRAP_ADMINS` | server | yes (≥ 1) | comma-separated emails or stable ids that always hold Admin (break-glass) |

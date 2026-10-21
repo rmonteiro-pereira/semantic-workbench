@@ -1,7 +1,7 @@
 # Quickstart: validating v0.4.0
 
 Prerequisites: Bun 1.4+, Git 2.40+, Docker Engine, Docker Desktop (host networking enabled, §4)
-or Podman (Keycloak checks, image, container suites), Playwright browsers. Everything below runs on
+or Podman (image, container suites, Keycloak compatibility suite), Playwright browsers. Everything below runs on
 your own machine; nothing runs on the GitHub repository.
 Contracts: [http-api.md](./contracts/http-api.md), [configuration.md](./contracts/configuration.md).
 
@@ -16,22 +16,30 @@ bun run test:ui && bun run test:responsive && bun run test:mutation
 
 Expected: every v0.3.0 suite passes; `SW_HOST=0.0.0.0 bun server/index.ts` refuses to start.
 
-## 2. Server mode with the stub provider (no container)
+## 2. Server mode with the mock OpenID provider (no container, no external provider)
 
 ```sh
-bun test tests/auth            # claims, sessions, guards, filters, matrix with the stub provider
-bun run test:auth              # browser: sign-in, roles, hidden files, Admin panel, two editors
+bun test tests/auth            # claims (Entra, Keycloak, overage), sessions, guards, filters, matrix
+bun run test:auth              # browser: starts the mock provider (Entra shape) on loopback; sign-in,
+                               # refresh, sign-out, roles, overage user olga, hidden files
 ```
 
-Expected: matrix reports 0 mismatches and 0 leaked markers (SC-001, SC-002).
+Expected: matrix reports 0 mismatches and 0 leaked markers (SC-001, SC-002); every sign-in case of
+SC-019 passes. This is what the target pipeline runs; it needs no network.
 
-## 3. Server mode against Keycloak
+Manual run against the mock: `bun run mock-oidc -- --port 8081 --shape entra` prints its issuer
+(`http://127.0.0.1:8081/<tenant-id>/v2.0`), client id and secret; start the server as below with
+`SW_OIDC_PROVIDER=entra`, that issuer, `SW_ENTRA_TENANT_ID=<tenant-id>` and
+`SW_GRAPH_URL=http://127.0.0.1:8081`, and pick a test user on the chooser page.
+
+## 3. Keycloak compatibility suite (owner's machine; not in `ci:validate` or the pipeline)
 
 ```sh
 bun run test:auth:keycloak     # starts quay.io/keycloak/keycloak:26.4 with tests/fixtures/keycloak/realm.json
 ```
 
-Manual run: start Keycloak with the realm, then
+Run it before each release and record the result in verification.md. Manual run: start Keycloak
+with the realm (or `docker compose --profile keycloak up -d keycloak`), then
 
 ```sh
 SW_MODE=server SW_PUBLIC_URL=http://localhost:4310 SW_OIDC_PROVIDER=keycloak \
@@ -53,26 +61,34 @@ bun run test:container                            # builds the image, runs every
                                                   # against a container with a temporary data folder
 ```
 
-Server profile (from Phase 5): `cp .env.server.example .env.server`, then
+Server mode in the container (from Phase 5): `bun run test:container` also runs the server group:
+it starts the mock OpenID provider on host loopback and the image in server mode against it, signs
+in as each test user, restarts the container (sessions and data survive, SC-009), starts a second
+container of the same image on the same volume with `SW_PORT=4311` (`/readyz` 503, log names the
+single-replica constraint, FR-122), starts a container of a different revision on the same volume
+(hand-over within shutdown + 30 s, SC-017), checks the user id is not 0, and runs
+`deploy:smoke --loopback`.
+
+Keycloak compatibility profile (owner's machine): `cp .env.server.example .env.server`, then
 
 ```sh
 export SW_VERSION=$(bun -e 'console.log(require("./package.json").version)') SW_COMMIT=$(git rev-parse HEAD)
-docker compose --profile server up --build -d     # Keycloak on 127.0.0.1:8080 + workbench in server mode
+docker compose --profile keycloak up --build -d   # Keycloak on 127.0.0.1:8080 + workbench in server mode
 curl -fsS localhost:4310/healthz && curl -fsS localhost:4310/readyz
 bun run deploy:smoke -- http://localhost:4310 "$SW_VERSION" "$SW_COMMIT" --loopback
 ```
 
-Sign in as `alice` (password `test`). Restart the `workbench-server` service and confirm the
-session and data survive (SC-009); start a second container of the same image on the same
-volume with `SW_PORT=4311` and confirm `/readyz` on 4311 is 503 and its log names the
-single-replica constraint (FR-122). Check `docker compose exec workbench-server id -u`
-is not 0.
+Sign in as `alice` (password `test`).
 
 Without host networking local mode is unreachable by design (OP-8). Docker Desktop: 4.34 or
 later, **Settings → Resources → Network → Enable host networking**, then **Apply & restart**
 (Linux containers only). Docker Engine on Linux or WSL2 and Podman need no setting.
 
-## 5. Microsoft Entra ID (manual, recorded in verification.md)
+## 5. Microsoft Entra ID on the real tenant (manual checklist, run by the owner, recorded in verification.md)
+
+The target uses Entra only. The mock covers the flow and claim mapping; this checklist covers
+what the mock cannot (conditional access, consent, tenant token lifetimes, real Graph and Azure
+DevOps permissions).
 
 1. App registration (single tenant), redirect `https://<host>/auth/callback`, app roles Viewer,
    Editor, Steward, Admin (users/groups) and Agent (applications); assign roles to groups.
@@ -87,6 +103,11 @@ later, **Settings → Resources → Network → Enable host networking**, then *
    [delivery-pipeline.md](./contracts/delivery-pipeline.md) by hand following `deploy/README.md`,
    deploy through the target's pipeline (§7), sign in with users of each role, push to Azure
    DevOps as an Editor and check the push author.
+6. Overage: a user in more groups than the token carries signs in and gets the domain of a
+   configured group (Graph `checkMemberGroups`); with the Graph permission removed, the person
+   sees the no-membership message and an audit entry is written.
+7. Remove a user's app role in Entra: after the next token refresh (or **End session**), the
+   role is gone.
 
 ## 6. Admin panel
 
@@ -112,18 +133,18 @@ that is not a package script fails the run and names the step; the dry run shows
 Image for a pull request, Image push for `main`, and Deploy only for the tag, with the deploy and
 rollback decisions taken against the fake Azure client. `ls .github/workflows` finds nothing.
 
-In the target (trial organisation and subscription, recorded in verification.md):
+`pipeline:lint` also confirms that no pipeline file mentions Keycloak or a service container
+(SC-019). These local results, with the container suites, are the implementation's done criteria
+for delivery.
 
-1. Set up the items of `deploy/README.md`: service connections with workload identity federation,
-   environment `production` with approvals, branch control and exclusive lock, variable group
-   `semantic-workbench-target`, agent pool; import `azure-pipelines.yml` and
-   `azure-pipelines-rollback.yml`; run a preview run to check the expansion.
-2. Run the pipeline on `main`: Validate and Image pass, `sha-<commit>` appears in the registry
-   (`az acr repository show-tags -n <acr> --repository semantic-workbench`), the bill of materials
-   and scan report are pipeline artifacts.
-3. Push tag `v0.4.0-alpha.1`: the version check passes, the run waits for approval, then rescans,
-   tags, deploys by digest and smoke-tests; the summary shows the digest and the smoke result.
-4. Rollback drill: run the rollback pipeline with `previous` and confirm the smoke test passes. The
-   automatic rollback path is covered locally by `tests/pipeline/deploy.test.ts` and the dry run.
-5. Confirm the repository, the pipeline definition and the variable group hold no secret and that
-   every Azure sign-in used the federated service connections (SC-016).
+Release hand-over (owner): tag the release, then push it to a `release/vX.Y.Z` branch of the
+target's Azure Repos mirror, merge that into `main` by pull request and push the tag, or send a
+Git bundle with its checksum (`git bundle create semantic-workbench-vX.Y.Z.bundle vX.Y.Z`) to
+someone with mirror access; details in `deploy/README.md`.
+
+In the target (owner acceptance; the implementer has no access): follow
+`deploy/trial-runbook.md` step by step on the trial organisation and subscription (set-up,
+hand-over, preview run, `main` run, tag run with approval and smoke test, Entra checklist of §5,
+restart and hand-over, rollback drill, no stored credential), tick each expected output, and
+return the filled report block; it is recorded in verification.md under "Owner trial", and each
+failed step becomes a follow-up task.
