@@ -51,8 +51,8 @@ try{
   const headers=await table.getByRole('columnheader').allTextContents();
   for(const h of ['Name','Logical type','Physical type','Required','Unique','Primary key','Classification','Description','Tags','Foreign keys'])expect(headers.some(x=>x.includes(h))).toBe(true);
   await expect(table.getByRole('row')).toHaveCount(7);
-  const id=table.getByRole('row').filter({hasText:'order_id'}).first();await expect(id.getByRole('cell').nth(1)).toHaveText('integer');
-  await expect(id.getByRole('cell').nth(5)).toContainText('Yes');// primary key
+  const id=table.getByRole('row').filter({hasText:'order_id'}).first();await expect(id.getByRole('cell').nth(1).getByRole('combobox')).toHaveValue('integer');
+  await expect(id.getByLabel('Primary key of order_id')).toBeChecked();await expect(id.getByLabel('Required of order_id')).toBeChecked();await expect(table.getByLabel('Primary key of amount')).not.toBeChecked();
   const names=async()=>(await table.getByRole('row').locator('td:first-child').allTextContents()).map(s=>s.trim());
   expect(await names()).toEqual(['order_id','customer_id','order_date','amount','status','currency']);
   await table.getByRole('button',{name:'Sort by Name'}).click();expect(await names()).toEqual(['amount','currency','customer_id','order_date','order_id','status']);
@@ -117,6 +117,27 @@ try{
   await page.setViewportSize({width:390,height:844});await noHorizontalScroll();
   await page.screenshot({path:'/tmp/workbench-odcs-narrow.png'});
   await page.setViewportSize({width:1440,height:900});
+ });
+ await check('in-place property edits change only the edited value and are saved against the base hash',async()=>{
+  await git(commerce.slug,['commit','-qam','before edits','--allow-empty']);
+  await openFile('commerce.odcs.yaml','Commerce workspace');await contractTab().click();await openDataset('orders');
+  const table=dataset('orders').getByRole('table',{name:'Properties'});
+  const diff=async()=>{const d=await git(commerce.slug,['diff','-U0','--','commerce.odcs.yaml']);return {removed:d.split('\n').filter(l=>/^-(?!--)/.test(l)).map(l=>l.slice(1)),added:d.split('\n').filter(l=>/^\+(?!\+\+)/.test(l)).map(l=>l.slice(1))};};
+  await table.getByLabel('Required of status').uncheck();
+  await expect.poll(diff).toEqual({removed:['        required: true'],added:[]});
+  await expect(page.locator('main > .status')).toContainText('Saved required of status');
+  const desc=table.getByLabel('Description of amount');await desc.fill('Order total in USD, after discounts.');await desc.press('Enter');
+  await expect.poll(diff).toEqual({removed:['        description: Order amount in USD.','        required: true'],added:['        description: Order total in USD, after discounts.']});
+  await table.getByLabel('Logical type of currency').selectOption('date');
+  await expect.poll(async()=>(await diff()).added).toContain('        logicalType: date');
+  await table.getByLabel('Classification of customer_id').fill('internal');await table.getByLabel('Classification of customer_id').press('Enter');
+  await expect.poll(async()=>(await diff()).added).toContain('        classification: internal');
+  // Escape restores the value without saving.
+  const before=read(commerce.slug,'commerce.odcs.yaml');await desc.fill('Discarded');await desc.press('Escape');await expect(desc).toHaveValue('Order total in USD, after discounts.');expect(read(commerce.slug,'commerce.odcs.yaml')).toBe(before);
+  await page.screenshot({path:'/tmp/workbench-odcs-edit.png'});
+  // The History tab sees the saved edits once committed.
+  await git(commerce.slug,['commit','-qam','Edit orders in place']);await views('orders').getByRole('tab',{name:'History'}).click();
+  await expect(dataset('orders').getByRole('region',{name:'Changes between versions'})).toContainText('classification');
  });
  await check('no browser errors',async()=>{expect(errors).toEqual([]);});
  console.log(`${passed} ODCS checks passed on isolated data root ${api.root}.`);
