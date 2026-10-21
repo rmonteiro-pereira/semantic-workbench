@@ -32,6 +32,9 @@ if(['files','atomic','migration','paths','events-origin','journal','trash','conf
     await assert.rejects(()=>ws.saveFile('sample','a.yaml',{baseHash:hash(source),source:source.replace('Customer','Other')}),/changed/);
     await assert.rejects(()=>ws.saveFile('sample','a.yaml',{baseHash:hash(source.replace('Customer','Buyer')),source:'ontology: []'}));
     assert.equal(fs.readFileSync(join(d.root,'projects/sample/a.yaml'),'utf8'),source.replace('Customer','Buyer'));
+    // v0.3.0 import commits (T017): only the imported paths, never the user's other changes.
+    const r=await ws.importInto('sample',[{path:'b.yaml',source}]);assert.equal(r.commit.committed,true);
+    const shown=(await ws.git.run(join(d.root,'projects/sample'),['show','--name-only','--format=','HEAD'])).stdout.trim();assert.equal(shown,'b.yaml');
    }finally{ws.close();}
   }
   if(category==='atomic'){
@@ -65,6 +68,11 @@ if(['files','atomic','migration','paths','events-origin','journal','trash','conf
     fs.writeFileSync(join(d.root,'projects/sample/a.yaml'),'name: Newer\nontology: [{concept: N}]\n');
     await assert.rejects(()=>trash.restore(first.entryId),(e:any)=>e.name==='OccupiedError'&&e.suggestion.toPath==='a (2).yaml');
     assert.equal(fs.readFileSync(join(d.root,'projects/sample/a.yaml'),'utf8'),'name: Newer\nontology: [{concept: N}]\n');
+    // v0.3.0 revert (T017): the replaced version goes to a trash entry, the committed bytes come back.
+    const newer='name: Newer\nontology: [{concept: N}]\n';
+    const rv=await trash.revertFile('sample','a.yaml',hash(newer),new TextEncoder().encode(source));
+    assert.equal(fs.readFileSync(join(d.root,'projects/sample/a.yaml'),'utf8'),source);
+    assert.equal(fs.readFileSync(join(d.root,'trash',rv.trashEntry,'payload','a.yaml'),'utf8'),newer);
    }finally{ws.close();}
   }
   if(category==='confirm'){
@@ -232,6 +240,11 @@ if(category==='git-exec'){const fs=await import('node:fs'),os=await import('node
   fs.writeFileSync(path.join(dir,'a.yaml'),'a: 1\n');await git.addAll(dir);
   await assert.rejects(git.commit(dir,'  '),(e:any)=>e.message==='A commit message is required.');assert.equal(await git.head(dir),null);
   await git.commit(dir,'ok');assert(await git.head(dir));
+  // v0.3.0 commitPaths (T017): only the listed paths; other staged work stays staged.
+  fs.writeFileSync(path.join(dir,'a.yaml'),'a: 2\n');fs.writeFileSync(path.join(dir,'b.yaml'),'b: 1\n');await git.run(dir,['add','b.yaml']);fs.writeFileSync(path.join(dir,'c.yaml'),'c: 1\n');
+  const out=await git.commitPaths(dir,['a.yaml','c.yaml'],'Only a and c');assert.equal(out.committed,true);
+  assert.deepEqual((await git.run(dir,['show','--name-only','--format=','HEAD'])).stdout.trim().split('\n').sort(),['a.yaml','c.yaml']);
+  assert.equal((await git.run(dir,['status','--porcelain'])).stdout.trim(),'A  b.yaml');
  }finally{fs.rmSync(root,{recursive:true,force:true});}}
 if(category==='odcs-diff'){const v=(t:string,p='VARCHAR')=>({schema:[{name:'o',properties:[{name:'a',logicalType:t,physicalType:p}]}]});
  assert.deepEqual(m.diffObject(v('string'),v('integer'),'o')?.properties[0]?.changes,[{attribute:'logicalType',before:'string',after:'integer'}]);
@@ -239,3 +252,9 @@ if(category==='odcs-diff'){const v=(t:string,p='VARCHAR')=>({schema:[{name:'o',p
  assert.equal(m.diffObject(v('string'),v('string'),'o'),null);}
 if(category==='fullscreen'){const m1=m.createViewMemory();assert.equal(m1.exit(),null);m1.enter({x:10,y:-5,zoom:0.4});assert.equal(m1.pending,true);assert.deepEqual(m1.exit(),{x:10,y:-5,zoom:0.4});assert.equal(m1.exit(),null);}
 
+if(category==='autosave'){
+ let s=m.initialAutosave;const step=(e:any)=>{const r=m.autosave(s,e);s=r.state;return r.effect;};
+ step({type:'open',file:'f',hash:'h0',text:'a'});step({type:'edit',text:'broken'});
+ assert.equal(step({type:'idle',text:'broken',errors:2}),null);assert.equal(s.status,'invalid');
+ step({type:'edit',text:'ok'});assert.equal(step({type:'idle',text:'ok',errors:0}).type,'save');step({type:'stale'});
+ step({type:'edit',text:'ok2'});assert.equal(step({type:'idle',text:'ok2',errors:0}),null);assert.equal(s.status,'stale');}

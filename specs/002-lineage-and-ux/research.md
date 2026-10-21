@@ -363,3 +363,47 @@ agent context already carries everything except two additive fields).
   after the description's bytes appeared on disk, sometimes before the page had the save's new
   hash, so the next save was correctly refused as stale (about one run in three). The check now
   waits for the "Saved description of amount" status first; no assertion was removed.
+
+## R17. Implementation decisions taken in Phase 3 (save and commit)
+
+- **Autosave machine** (`src/projects/autosave.ts`): pure reducer plus `useAutosave`. Validity
+  comes from the editor worker's result for exactly that text (`onIssues` now passes the text
+  checked); otherwise the same worker validates it, so nothing parses the file on the main thread.
+  The indicator's "pending" text is *Editing…*. A stale save pauses the file until the user
+  chooses in the diff dialog; **Keep editing** keeps it paused and the indicator reopens the diff.
+- **Drafts.** Leaving a file with invalid text keeps it as a server draft without a prompt and
+  says so; opening the file restores the draft (also after a reload). The v0.2.0 "Discard unsaved
+  changes?" prompts on file switch, example load and import are gone (a due valid save is written
+  first instead).
+- **Typing latency with autosave on.** After a save the app no longer re-parses every project file:
+  per-document parses are memoized by content hash and the open file is not parsed for cross-file
+  identities. The 1.9 MB latency case runs its API in a child process (`scripts/helpers/api-process.ts`)
+  because an API inside the check's own process stalls Playwright's input driver while it validates
+  the save, which was counted as typing latency. The machine running the checks was also heavily
+  loaded by unrelated work (load average 13), which made wall-clock times swing from 17 to 85 ms
+  per key while the page's main thread showed no long task at all. The autosave case therefore
+  asserts on the page's own Event Timing (key press to next paint) and long tasks, measured in the
+  same page first with no save running (the v0.2.0 condition) and then with an automatic save in
+  flight: the second must stay under 30 ms per key or within 4 ms of the first, with no task over
+  100 ms (constitution: input never blocked). Typical: 26–28 ms without a save, 27–29 ms during
+  one, longest task 0 ms. The v0.2.0 wall-clock case (30 ms per key) is unchanged and still passes.
+  A redundant workspace refresh after each automatic save was removed (the server's file event
+  already triggers one).
+- **`commitPaths`** skips listed paths that are ignored or unchanged and reports
+  `{committed:false, reason:'nothing'}` when none remain; the HTTP contract's reasons gain
+  `nothing` for that case. The identity is read on every commit (repository-local or global), so
+  setting it needs no restart.
+- **Import messages** follow C6 (`Import <name>` for one file); three v0.2.0 tests that expected
+  "Import 1 file" or an example response without `commit` were updated for this spec change.
+- **Commit with `push`** reports the push outcome (`pushed: {ok, message}`) and never fails the
+  request after the commit was made; with no remote the message explains how to add one.
+- **Revert** is `trash.revertFile`: journal kind `revert` (current file → new trash entry, staged
+  `HEAD` bytes → file). A file absent from the last commit is only moved to the trash. A journal
+  test hook (`crashAfter`) stops after a step as a crash would, to prove recovery on restart.
+- **Checks changed by the spec** (no assertion weakened, each now checks the autosave behaviour):
+  `ui-tests` (invalid text → *Not saved: N errors*; repaired text → *Saved to file*; the
+  "uses saved document revisions" note can no longer be observed because switching views writes the
+  valid save first), `projects-browser-check` (two-tab stale save: tab B's save is held until tab A
+  saved), `editor-browser-check` (CRLF patches are sent by the automatic save), `scm-browser-check`
+  (the edit that blocks a pull is now an invalid one kept as a draft; the refusal offers Commit…),
+  `grouping-validation`, `item-edit` and `rdf-edit` (button names *Save to file*).

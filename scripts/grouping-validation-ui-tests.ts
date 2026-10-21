@@ -159,7 +159,7 @@ try {
     const editor = page.getByLabel('Definition source', { exact: true });
     const invalid = 'name: Source diagnostics\nontology:\n  - concept: Airport\n    type: EntityType\n    extends: [MissingSourceParent]\n';
     await fillEditor(editor, invalid);
-    await expect(page.getByRole('button', { name: 'Save changes', exact: true })).toBeDisabled();
+    await expect(page.getByRole('status', { name: 'Save state' })).toHaveText(/^Not saved: \d+ errors?$/, { timeout: 5000 });
     const highlight = page.locator('.cm-lintRange-error').filter({ hasText: 'MissingSourceParent' });
     await expect(highlight).toHaveCount(1);
     const finding = page.locator('.validation-report li').filter({ hasText: 'Unknown parent concept' }).first();

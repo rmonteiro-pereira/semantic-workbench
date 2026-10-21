@@ -815,3 +815,14 @@ main > .status { position: static; flex: 0 0 auto; width: auto; max-width: none;
  .canvas-row.has-inspector .react-flow__controls, .canvas-row.has-inspector .full-graph-status { display: none; }
  .canvas-row.page-details > .inspector { position: absolute; inset: auto 0 0; max-height: 85%; width: 100%; z-index: 20; }
 }
+/* Save state indicator (FR-044): a pill next to Commit…; it opens Commit, the findings or the diff. */
+.header-actions .save-state{display:inline-flex;align-items:center;gap:6px;min-width:0;max-width:min(300px,34vw);border:1px solid #d6e5df;background:#f2f8f5;color:#285146;font-size:12px;font-weight:600;border-radius:999px;padding:5px 11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.header-actions .save-state::before{content:'';flex:none;width:7px;height:7px;border-radius:50%;background:#2f8f6b}
+.header-actions .save-state.s-pending::before,.header-actions .save-state.s-saving::before,.header-actions .save-state.s-waiting::before{background:#c79a2b}
+.header-actions .save-state.s-invalid,.header-actions .save-state.s-stale,.header-actions .save-state.s-failed,.header-actions .save-state.s-cancelled{background:#fdf1ef;border-color:#f1cfc9;color:#9b3328}
+.header-actions .save-state.s-invalid::before,.header-actions .save-state.s-stale::before,.header-actions .save-state.s-failed::before,.header-actions .save-state.s-cancelled::before{background:#c2483a}
+.header-actions .save-state:disabled{opacity:.6;cursor:default}
+.header-actions .save-state .save-state-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Narrow headers: the indicator becomes its coloured dot; the text stays for assistive technology
+   and in the tooltip. */
+@media(max-width:650px){.header-actions .save-state{width:34px;height:34px;padding:0;justify-content:center;flex:none}.header-actions .save-state::before{width:10px;height:10px}.header-actions .save-state .save-state-text{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}

@@ -22,7 +22,7 @@ const tree=()=>page.getByRole('tree',{name:'Projects'});
 async function openFile(path:string){await tree().getByRole('button',{name:path,exact:true}).first().click();await expect(page.locator('h1')).not.toHaveText('Semantic Workbench');}
 const tabs=()=>page.locator('.tabs');
 const editor=(name:string|RegExp)=>page.getByRole('dialog',{name:typeof name==='string'?`Edit ${name}`:name});
-async function saveDialog(d:ReturnType<typeof editor>){await expect(d.getByRole('button',{name:'Save',exact:true})).toBeEnabled({timeout:5000});await d.getByRole('button',{name:'Save',exact:true}).click();await expect(d).toHaveCount(0,{timeout:5000});}
+async function saveDialog(d:ReturnType<typeof editor>){await expect(d.getByRole('button',{name:'Save to file',exact:true})).toBeEnabled({timeout:5000});await d.getByRole('button',{name:'Save to file',exact:true}).click();await expect(d).toHaveCount(0,{timeout:5000});}
 try{
  await page.goto(process.env.UI_URL??'http://127.0.0.1:5173/');
  await check('catalog → Edit a concept: one field changes one line of the YAML file',async()=>{
@@ -46,7 +46,7 @@ try{
   const fragment=await editorValue(source);expect(fragment.startsWith('- concept: Order\n  type: EntityType\n')).toBe(true);expect(fragment).not.toContain('concept: Customer');
   await fillEditor(source,fragment.replace('  type: EntityType\n','  type: EntityType\n  extends: [Nowhere]\n'));
   await expect(d.locator('.cm-lintRange-error')).toBeVisible({timeout:3000});
-  await expect(d.getByRole('button',{name:'Save',exact:true})).toBeDisabled();
+  await expect(d.getByRole('button',{name:'Save to file',exact:true})).toBeDisabled();
   await page.screenshot({path:'/tmp/workbench-item-source-invalid.png'});
   await fillEditor(source,fragment.replace('      verbalizes:\n        - "{Order} contains {OrderLine}"','      multiplicity: OneToOne\n      verbalizes:\n        - "{Order} contains {OrderLine}"'));
   await saveDialog(d);
@@ -90,11 +90,11 @@ try{
   await a.getByRole('textbox',{name:'Name',exact:true}).fill('Supplier');await a.getByLabel('Type').selectOption('EntityType');await a.getByLabel('Description').fill('Sells products to us.');
   await expect(a.getByLabel('Text to insert')).toHaveText('  - concept: Supplier\n    type: EntityType\n    description: Sells products to us.\n');
   await page.screenshot({path:'/tmp/workbench-item-add.png'});
-  await a.getByRole('button',{name:'Save'}).click();await expect(a).toHaveCount(0);
+  await a.getByRole('button',{name:'Save to file'}).click();await expect(a).toHaveCount(0);
   await tabs().getByRole('button',{name:'Catalog'}).click();await page.locator('.catalog-card').filter({hasText:/^EntityTypeProduct/}).locator('button').first().click();
   await page.getByRole('complementary',{name:'Definition details'}).getByRole('button',{name:'Add relationship'}).click();
   const r=page.getByRole('dialog',{name:/^Add relationship/});await r.getByRole('textbox',{name:'Name',exact:true}).fill('supplied_by');await r.getByLabel('Related concept').selectOption('Supplier');
-  await r.getByRole('button',{name:'Save'}).click();await expect(r).toHaveCount(0);
+  await r.getByRole('button',{name:'Save to file'}).click();await expect(r).toHaveCount(0);
   expect(read(commerce.slug,'commerce-business.ossie.yaml')).toContain('    relationships:\n      - name: supplied_by\n        roles:\n          - concept: Supplier\n');
   // Deleting Supplier lists the relationship that names it and removes it too.
   await tabs().getByRole('button',{name:'Catalog'}).click();await page.locator('.catalog-card').filter({hasText:/^EntityTypeSupplier/}).locator('button').first().click();
@@ -110,7 +110,7 @@ try{
   const d=editor('OrderLine');await d.getByRole('textbox',{name:'Name',exact:true}).fill('LineItem');
   const refs=d.getByRole('region',{name:'References to the old name'});await expect(refs).toContainText('reference');
   // Unticked, the relationship that names OrderLine no longer resolves: the finding blocks Save.
-  await expect(d.getByLabel('Findings')).toContainText('OrderLine',{timeout:5000});await expect(d.getByRole('button',{name:'Save',exact:true})).toBeDisabled();
+  await expect(d.getByLabel('Findings')).toContainText('OrderLine',{timeout:5000});await expect(d.getByRole('button',{name:'Save to file',exact:true})).toBeDisabled();
   const boxes=refs.getByRole('checkbox');const n=await boxes.count();expect(n).toBeGreaterThan(0);for(let i=0;i<n;i++)await boxes.nth(i).check();
   await page.screenshot({path:'/tmp/workbench-item-rename.png'});
   await saveDialog(d);
@@ -132,7 +132,7 @@ try{
   await expect(w.getByRole('tree',{name:'Composition tree'})).toContainText('Vacant GLA');await expect(w.getByLabel('Preview · not executed')).toContainText('SELECT');
   await page.screenshot({path:'/tmp/workbench-item-wizard-preview.png'});
   await w.getByRole('button',{name:'Next'}).click();await expect(w.getByLabel('Changes to mall.mapping.yaml')).toContainText('vacancy_rate');
-  await w.getByRole('button',{name:'Save KPI'}).click();await expect(w).toHaveCount(0,{timeout:10000});
+  await w.getByRole('button',{name:'Save to file'}).click();await expect(w).toHaveCount(0,{timeout:10000});
   console.log(`  wizard completed in ${((Date.now()-started)/1000).toFixed(1)} s of scripted use`);
   const m=await changed(mall.slug,'mall.mapping.yaml');expect(m).toEqual({removed:[],added:['        {"metric":"vacancy_rate","measures":"Property","of":"Property"},'],hunks:1});
   const s=await changed(mall.slug,'mall.semantic.yaml');expect(s.removed).toEqual([]);expect(s.hunks).toBe(1);expect(s.added[0]).toBe('  - name: vacancy_rate');expect(s.added.filter(l=>l.includes('NULLIF'))).toEqual(['          expression: vacant_gla / NULLIF(total_gla, 0)']);
@@ -153,7 +153,7 @@ try{
  await check('KPI deprecation needs a replacement or a reason before Save is allowed',async()=>{
   await page.getByLabel('Find a KPI').fill('Visitors');await page.getByRole('button',{name:/^Visitors: explain/}).click();await page.getByRole('button',{name:'Edit Visitors'}).click();
   const d=editor('Visitors');await d.getByLabel('Status').selectOption('deprecated');
-  await expect(d.getByLabel('Findings')).toContainText('requires replaced_by or deprecation_reason',{timeout:5000});await expect(d.getByRole('button',{name:'Save',exact:true})).toBeDisabled();
+  await expect(d.getByLabel('Findings')).toContainText('requires replaced_by or deprecation_reason',{timeout:5000});await expect(d.getByRole('button',{name:'Save to file',exact:true})).toBeDisabled();
   await d.getByLabel('Deprecation reason').fill('Footfall counters were replaced in 2025.');
   await saveDialog(d);
   expect(read(mall.slug,'mall.semantic.yaml')).toContain('"deprecation_reason": "Footfall counters were replaced in 2025."');

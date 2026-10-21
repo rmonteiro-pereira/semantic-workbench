@@ -27,7 +27,7 @@ async function catalogEdit(name:string){await tabs().getByRole('button',{name:'C
 const card=(name:string)=>page.locator('.catalog-card').filter({has:page.locator('strong',{hasText:new RegExp(`^${name}$`)})}).first().locator('button').first().click();
 // The statement row whose object reads `text` (1-based, as the row labels count).
 async function row(d:Locator,text:string){const values=await d.locator('[aria-label^="Object "]').evaluateAll(els=>els.map(e=>(e as HTMLInputElement).value));const i=values.indexOf(text);expect(i,`row ${text} in ${values.join(' | ')}`).toBeGreaterThanOrEqual(0);return i+1;}
-async function saveDialog(d:Locator){await expect(d.getByRole('button',{name:'Save',exact:true})).toBeEnabled({timeout:5000});await d.getByRole('button',{name:'Save',exact:true}).click();await expect(d).toHaveCount(0,{timeout:5000});}
+async function saveDialog(d:Locator){await expect(d.getByRole('button',{name:'Save to file',exact:true})).toBeEnabled({timeout:5000});await d.getByRole('button',{name:'Save to file',exact:true}).click();await expect(d).toHaveCount(0,{timeout:5000});}
 try{
  await page.goto(process.env.UI_URL??'http://127.0.0.1:5173/');
  await check('Turtle (catalog → Edit): changing one object rewrites only that statement line',async()=>{
@@ -61,7 +61,7 @@ try{
   expect(fragment.startsWith('c:Customer a owl:Class')).toBe(true);expect(fragment).not.toContain('c:Order a');
   await fillEditor(source,fragment+'\nc:Order rdfs:label "Purchase order" .');
   await expect(d.getByRole('alert').filter({hasText:'change statements of other resources'})).toBeVisible({timeout:5000});
-  await expect(d.getByRole('button',{name:'Save',exact:true})).toBeDisabled();
+  await expect(d.getByRole('button',{name:'Save to file',exact:true})).toBeDisabled();
   await page.screenshot({path:'/tmp/workbench-rdf-refused.png'});
   await fillEditor(source,fragment.replace('rdfs:label "Customer"','rdfs:label "Customer" , "Client"@en'));
   await saveDialog(d);
@@ -89,7 +89,7 @@ try{
  await check('N3: a resource used in a rule is refused, with a jump to the rule in Source',async()=>{
   await openFile('commerce.n3');const d=await catalogEdit('PaidOrder');
   const note=d.locator('.item-refusal');await expect(note).toContainText('N3 formula or rule');
-  await expect(d.getByRole('button',{name:'Save',exact:true})).toBeDisabled();await expect(d.getByRole('button',{name:'Add statement'})).toBeDisabled();
+  await expect(d.getByRole('button',{name:'Save to file',exact:true})).toBeDisabled();await expect(d.getByRole('button',{name:'Add statement'})).toBeDisabled();
   await page.screenshot({path:'/tmp/workbench-rdf-n3-refused.png'});
   await note.getByRole('button',{name:/^Open line \d+ in Source$/}).click();await expect(d).toHaveCount(0);
   await expect(page.locator('.cm-activeLine')).toContainText('=>');
@@ -112,7 +112,7 @@ try{
   await a.getByLabel('Item type').selectOption('class');await a.getByLabel('IRI').fill('c:Supplier');await a.getByLabel('Label').fill('Supplier');await a.getByLabel('Subclass of').fill('c:Customer');
   await expect(a.getByLabel('Text to insert')).toHaveText('c:Supplier a owl:Class ; rdfs:label "Supplier" ; rdfs:subClassOf c:Customer .\n');
   await page.screenshot({path:'/tmp/workbench-rdf-add.png'});
-  await a.getByRole('button',{name:'Save'}).click();await expect(a).toHaveCount(0,{timeout:5000});
+  await a.getByRole('button',{name:'Save to file'}).click();await expect(a).toHaveCount(0,{timeout:5000});
   await expect(page.getByRole('complementary',{name:'Definition details'})).toContainText('Supplier');
   const d=await catalogEdit('Product');await d.getByRole('button',{name:'Add statement'}).click();const m=await d.locator('[aria-label^="Object "]').count();
   await d.getByLabel(`Predicate ${m}`).fill('rdfs:seeAlso');await d.getByLabel(`Object ${m}`,{exact:true}).fill('c:Supplier');await saveDialog(d);

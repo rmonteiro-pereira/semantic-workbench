@@ -84,7 +84,7 @@ export function RdfItemEditor({doc,base,subject,label,kind,onClose,onSaved,onDel
    <button type="button" className="item-delete" onClick={onDelete} disabled={saving||!!refusal}><Trash2 size={13}/>Delete…</button>
    <span className="item-state" role="status">{pending?'Checking…':result&&!result.ok?'Not applied':errors.length?`${errors.length} finding${errors.length===1?'':'s'} to fix`:rowsChanged||textChanged?'Unsaved changes':'No changes'}</span>
    <button type="button" onClick={onClose} disabled={saving}>Cancel</button>
-   <button type="button" className="primary" onClick={save} disabled={!canSave}>{saving?'Saving…':'Save'}</button>
+   <button type="button" className="primary" onClick={save} disabled={!canSave}>{saving?'Saving…':'Save to file'}</button>
   </div>
  </Modal>;
 }

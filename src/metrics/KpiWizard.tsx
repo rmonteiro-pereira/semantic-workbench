@@ -139,7 +139,7 @@ export function KpiWizard({project,docs,kpis,onClose,onSaved}:{project:string;do
    <button type="button" onClick={onClose} disabled={busy&&step===7}>Cancel</button>
    <button type="button" onClick={()=>setStep(s=>s-1)} disabled={step===0}>Back</button>
    {step<7?<button type="button" className="primary" onClick={()=>go(step+1)} disabled={blocking.length>0||(step===6&&!preview)}>Next</button>
-    :<button type="button" className="primary" onClick={save} disabled={busy||!preview}>{busy?'Saving…':'Save KPI'}</button>}
+    :<button type="button" className="primary" onClick={save} disabled={busy||!preview}>{busy?'Saving…':'Save to file'}</button>}
   </div>
  </Modal>;
 }

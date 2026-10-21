@@ -1,5 +1,5 @@
-import{chromium,expect,type Page}from'@playwright/test';import{readFileSync}from'node:fs';
-import{startIsolatedApi,routeApi}from'./helpers/isolated-api';import{projectFile}from'../server/projects/paths';
+import{chromium,expect,type Page}from'@playwright/test';import{mkdtempSync,readFileSync,rmSync}from'node:fs';import{tmpdir}from'node:os';import{join}from'node:path';
+import{startIsolatedApi,routeApi}from'./helpers/isolated-api';import{projectFile}from'../server/projects/paths';import{startApiProcess}from'./helpers/api-process';
 // Phase 5 browser check (T092; SC-009, SC-010 Source part): syntax colors per serialization, inline
 // findings within 500 ms of a pause, Go to line, the import-repair editor, and a byte-exact save of
 // a CRLF/mixed-ending file sent as patches. Isolated data root; screenshots in /tmp/workbench-editor-*.png.
@@ -68,15 +68,17 @@ try{
  });
  await check('a CRLF/mixed-ending file: one edited line changes only that line, and the save sends a patch',async()=>{
   await openSource('endings.yaml');await expect(page.locator('.code-editor-eol')).toContainText('Mixed line endings');
-  await goTo(5);await page.keyboard.press('End');await page.keyboard.type('s and sellers');
-  await page.getByRole('button',{name:'Save changes'}).click();await expect(page.locator('main > .status')).toContainText('Saved',{timeout:5000});
+  // v0.3.0: the valid edit is saved automatically after the pause.
+  await goTo(5);await page.keyboard.press('End');
+  await Promise.all([page.waitForResponse(r=>r.request().method()==='PUT',{timeout:5000}),page.keyboard.type('s and sellers')]);
+  await expect(page.getByRole('status',{name:'Save state'})).toHaveText(/^Saved to file/,{timeout:5000});
   const saved=readFileSync(projectFile(api.ws.layout,formats.slug,'endings.yaml'),'utf8');
   expect(saved).toBe(crlf.replace('description: Buyer\n','description: Buyers and sellers\n'));
   const body=puts.at(-1);expect(body.source).toBeUndefined();expect(body.patches).toEqual([{from:crlf.indexOf('Buyer')+5,to:crlf.indexOf('Buyer')+5,insert:'s and sellers'}]);
   // A typed line break takes the file's dominant style (CRLF).
-  await goTo(2);await page.keyboard.press('End');await page.keyboard.type('\n  # added');
-  await Promise.all([page.waitForResponse(r=>r.request().method()==='PUT'),page.getByRole('button',{name:'Save changes'}).click()]);
-  await expect(page.locator('footer')).not.toContainText('Unsaved changes');
+  await goTo(2);await page.keyboard.press('End');
+  await Promise.all([page.waitForResponse(r=>r.request().method()==='PUT',{timeout:5000}),page.keyboard.type('\n  # added')]);
+  await expect(page.locator('footer')).not.toContainText('Not saved to file yet');
   await expect.poll(()=>readFileSync(projectFile(api.ws.layout,formats.slug,'endings.yaml'),'utf8')).toBe(crlf.replace('description: Buyer\n','description: Buyers and sellers\n').replace('ontology:\r\n','ontology:\r\n  # added\r\n'));
  });
  await check('the import-repair dialog uses the same editor: findings, Go to line from the report, repair and import',async()=>{
@@ -99,9 +101,49 @@ try{
  });
  await check('typing in a 1.9 MB file stays responsive (FR-045)',async()=>{
   await openSource('large.yaml');await goTo(3);await page.keyboard.press('End');
+  await page.evaluate(()=>{const w=window as any;w.__keys0=[];new PerformanceObserver(l=>{for(const e of l.getEntries() as any[])if(e.name==='keydown')w.__keys0.push(e.duration);}).observe({type:'event',durationThreshold:16} as any);});
   const start=Date.now();await page.keyboard.type(' plus forty more typed characters here.',{delay:0});
   await expect(page.locator('.cm-activeLine')).toContainText('plus forty more typed characters here.');const ms=Date.now()-start;
   console.log(`  ${ms} ms for 39 keystrokes (${Math.round(ms/39)} ms each)`);expect(ms/39).toBeLessThan(30);
+  await page.waitForTimeout(300);const keys=await page.evaluate(()=>(window as any).__keys0 as number[]);
+  console.log(`  in the page: ${((keys.reduce((a,b)=>a+b,0)+(39-keys.length)*16)/39).toFixed(1)} ms mean per key without a save running`);
+ });
+ // v0.3.0 (FR-043): automatic saving runs off the typing path. Pause so an autosave of the 1.9 MB
+ // file starts (diff, request, server validation), then type while it is in flight: same budget.
+ // v0.3.0 (FR-043): automatic saving runs off the typing path. Pause so an autosave of the 1.9 MB
+ // file starts (diff, request, server validation), then type while it is in flight: same budget.
+ // The API runs in its own process here, as in the app, so its work does not stall the input driver.
+ await check('typing in a 1.9 MB file stays responsive while an automatic save runs (FR-043)',async()=>{
+  const root=mkdtempSync(join(tmpdir(),'workbench-latency-')),child=await startApiProcess(root);
+  const p=await browser.newPage({viewport:{width:1440,height:900}});
+  try{
+   const created=await (await fetch(child.url+'/api/import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'Latency',files:[{path:'large.yaml',source:large}]})})).json();
+   await routeApi(p,{url:child.url} as any);await p.goto(process.env.UI_URL??'http://127.0.0.1:5173/');
+   await p.getByRole('tree',{name:'Projects'}).getByRole('button',{name:'large.yaml',exact:true}).click();await p.locator('.tabs').getByRole('button',{name:'Source'}).click();
+   await expect(p.getByRole('textbox',{name:'Definition source'})).toBeVisible();
+   await p.getByRole('spinbutton',{name:'Go to line'}).fill('4');await p.keyboard.press('Enter');await p.keyboard.press('End');
+   // The page's own timing of each keystroke (Event Timing: key press to the next paint) and long
+   // tasks, measured first with no save running (the v0.2.0 condition) and then while an automatic
+   // save is in flight, in the same page, so load on the machine affects both alike.
+   await p.evaluate(()=>{const w=window as any;w.__keys=[];w.__long=[];new PerformanceObserver(l=>{for(const e of l.getEntries() as any[])if(e.name==='keydown')w.__keys.push(e.duration);}).observe({type:'event',durationThreshold:16} as any);new PerformanceObserver(l=>{for(const e of l.getEntries())w.__long.push(e.duration);}).observe({type:'longtask'});});
+   const typed=' plus forty more typed characters here.';
+   const measure=async(label:string)=>{
+    await p.evaluate(()=>{(window as any).__keys=[];(window as any).__long=[];});
+    const start=Date.now();await p.keyboard.type(typed,{delay:0});await expect(p.locator('.cm-activeLine')).toContainText(typed);const ms=Date.now()-start;await p.waitForTimeout(300);
+    const {keys,long}=await p.evaluate(()=>({keys:(window as any).__keys as number[],long:(window as any).__long as number[]}));
+    const mean=(keys.reduce((a,b)=>a+b,0)+(39-keys.length)*16)/39,longest=Math.max(0,...long);
+    console.log(`  ${label}: ${ms} ms wall clock for 39 keystrokes; in the page ${mean.toFixed(1)} ms mean per key, longest task ${Math.round(longest)} ms`);
+    return {mean,longest};
+   };
+   const before=await measure('no save running');
+   await expect(p.getByRole('status',{name:'Save state'})).toHaveText(/^Saved to file/,{timeout:15000});
+   const put=p.waitForRequest(r=>r.method()==='PUT'&&r.url().includes('large.yaml'),{timeout:8000});
+   await p.keyboard.type(' first.',{delay:0});await put;
+   const during=await measure('automatic save in flight');
+   expect(during.mean).toBeLessThan(Math.max(30,before.mean+4));expect(during.longest).toBeLessThan(100);
+   await expect(p.getByRole('status',{name:'Save state'})).toHaveText(/^Saved to file/,{timeout:15000});
+   await expect.poll(()=>readFileSync(join(root,'projects',created.slug,'large.yaml'),'utf8').includes(' plus forty more typed characters here. first. plus forty more typed characters here.'),{timeout:10000}).toBe(true);
+  }finally{await p.close();await child.stop();rmSync(root,{recursive:true,force:true});}
  });
  await check('no browser errors',async()=>{expect(errors).toEqual([]);});
  console.log(`${passed} editor checks passed on isolated data root ${api.root}.`);

@@ -46,24 +46,30 @@ try{
   const b=await openPage();
   await fileButton(b,'shop.yaml').click();await b.locator('.tabs').getByRole('button',{name:'Source',exact:true}).click();
   const base=readFileSync(join(api.root,'projects/shop/shop.yaml'),'utf8');await expectEditorValue(sourceText(b),base);
+  // v0.3.0 saves automatically: tab B's save is held until tab A has saved, so B's save is based on
+  // the older version and must be refused with both versions shown.
+  let release:()=>void=()=>{};const held=new Promise<void>(r=>{release=r;});let holding=true;
+  await b.route('**/api/projects/shop/files/shop.yaml',async route=>{if(holding&&route.request().method()==='PUT')await held;await route.fallback();});
   await fillEditor(sourceText(b),base.replace('A buyer.','Edited in tab B.'));
   await fillEditor(sourceText(a),base.replace('A buyer.','Saved from tab A.'));
-  await a.getByRole('button',{name:'Save changes',exact:true}).click();await expect(a.getByRole('status')).toContainText('Saved to the project folder');
-  expect(readFileSync(join(api.root,'projects/shop/shop.yaml'),'utf8')).toContain('Saved from tab A.');
-  await b.getByRole('button',{name:'Save changes',exact:true}).click();
+  await expect(a.getByRole('status',{name:'Save state'})).toHaveText(/^Saved to file/,{timeout:5000});
+  await expect.poll(()=>readFileSync(join(api.root,'projects/shop/shop.yaml'),'utf8')).toContain('Saved from tab A.');
+  holding=false;release();
   const dialog=b.getByRole('dialog',{name:/shop\.yaml changed since you opened it/});
-  await expect(dialog).toBeVisible();const diff=dialog.getByRole('group',{name:'Your version and the current file'});await expect(diff).toContainText('Edited in tab B.');await expect(diff).toContainText('Saved from tab A.');await expect(diff.locator('.cm-changedLine').first()).toBeVisible();
+  await expect(dialog).toBeVisible({timeout:5000});const diff=dialog.getByRole('group',{name:'Your version and the current file'});await expect(diff).toContainText('Edited in tab B.');await expect(diff).toContainText('Saved from tab A.');await expect(diff.locator('.cm-changedLine').first()).toBeVisible();
   await b.screenshot({path:'/tmp/workbench-projects-stale.png'});
   expect(readFileSync(join(api.root,'projects/shop/shop.yaml'),'utf8')).toContain('Saved from tab A.');
+  // Keep editing: automatic saving of the file stays paused until the user chooses.
   await dialog.getByRole('button',{name:'Keep editing'}).click();await expect(dialog).toHaveCount(0);await expectEditorValue(sourceText(b),/Edited in tab B\./);
-  await b.getByRole('button',{name:'Save changes',exact:true}).click();
+  await expect(b.getByRole('status',{name:'Save state'})).toHaveText('Not saved: file changed on disk');
+  await b.waitForTimeout(1500);expect(readFileSync(join(api.root,'projects/shop/shop.yaml'),'utf8')).toContain('Saved from tab A.');
+  await b.getByRole('status',{name:'Save state'}).click();
   await b.getByRole('dialog').getByRole('button',{name:'Discard my edits and load the current file'}).click();
   await expectEditorValue(sourceText(b),/Saved from tab A\./);
+  await b.route('**/api/projects/shop/files/shop.yaml',async route=>{if(route.request().method()==='PUT')appendFileSync(join(api.root,'projects/shop/shop.yaml'),'# another external change\n');await route.fallback();},{times:1});
   await fillEditor(sourceText(b),base.replace('A buyer.','Second edit in B.'));
-  appendFileSync(join(api.root,'projects/shop/shop.yaml'),'# another external change\n');
-  await b.getByRole('button',{name:'Save changes',exact:true}).click();
-  await b.getByRole('dialog').getByRole('button',{name:'Keep my version and save over it'}).click();
-  await expect(b.getByRole('status')).toContainText('Saved to the project folder');
+  await b.getByRole('dialog').getByRole('button',{name:'Keep my version and save over it'}).click({timeout:5000});
+  await expect(b.getByRole('status',{name:'Save state'})).toHaveText(/^Saved to file/,{timeout:5000});
   expect(readFileSync(join(api.root,'projects/shop/shop.yaml'),'utf8')).toBe(base.replace('A buyer.','Second edit in B.'));
   await expectEditorValue(sourceText(a),base.replace('A buyer.','Second edit in B.'),{timeout:2000});
   await b.close();

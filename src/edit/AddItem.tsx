@@ -68,6 +68,6 @@ export function AddItem({doc,base,document,kind:fixed,owner,preset={},choices,on
   {plan.error!==undefined?<p className="item-note">{plan.error}</p>:<div className="item-preview"><strong>Will be added at line {plan.line}</strong><pre aria-label="Text to insert">{plan.inserted.replace(/^\r?\n/,'')}</pre></div>}
   {errors.length>0&&<ul className="item-findings" aria-label="Findings">{errors.map((i,n)=><li key={n} className="error"><AlertTriangle size={12}/>{i.line?`Line ${i.line}: `:''}{i.message}</li>)}</ul>}
   {error&&<p role="alert" className="dialog-error">{error}</p>}
-  <div className="repair-actions"><button type="button" onClick={onClose} disabled={saving}>Cancel</button><button type="button" className="primary" onClick={save} disabled={plan.text===undefined||pending||errors.length>0||saving}>{saving?'Saving…':pending?'Checking…':'Save'}</button></div>
+  <div className="repair-actions"><button type="button" onClick={onClose} disabled={saving}>Cancel</button><button type="button" className="primary" onClick={save} disabled={plan.text===undefined||pending||errors.length>0||saving}>{saving?'Saving…':pending?'Checking…':'Save to file'}</button></div>
  </Modal>;
 }
