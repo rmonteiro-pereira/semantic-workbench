@@ -123,18 +123,18 @@ shopping center mapping in Graph; `bun run test:mapping-graph`.
 
 ### Tests
 
-- [ ] T101 [P] [US11] Handler tests: `/api/agent/context` returns `bindings[].kind` and `metricBindings` (with findings) for standalone and embedded mappings, other fields unchanged, in tests/agent-context-kinds.test.ts
-- [ ] T102 [P] [US11] Unit tests for `buildMappingGraph` on Flights (both forms), mapped commerce, billing and mall: every binding becomes exactly one line of the right kind, link mappings pass through join fields, metric bindings `measures`/`of`, identifying and unmapped flags, findings attached to the right edge or card (SC-012) in tests/mapping-graph.test.ts
-- [ ] T103 [US11] Mutants: link mapping drawn without join fields; unmapped flag inverted; finding attached to the wrong binding; metric binding `of` drawn as `measures`
+- [X] T101 [P] [US11] Handler tests: `/api/agent/context` returns `bindings[].kind` and `metricBindings` (with findings) for standalone and embedded mappings, other fields unchanged, in tests/agent-context-kinds.test.ts
+- [X] T102 [P] [US11] Unit tests for `buildMappingGraph` on Flights (both forms), mapped commerce, billing and mall: every binding becomes exactly one line of the right kind, link mappings pass through join fields, metric bindings `measures`/`of`, identifying and unmapped flags, findings attached to the right edge or card (SC-012) in tests/mapping-graph.test.ts
+- [X] T103 [US11] Mutants: link mapping drawn without join fields; unmapped flag inverted; finding attached to the wrong binding; metric binding `of` drawn as `measures`
 
 ### Implementation
 
-- [ ] T104 [US11] Record binding kind and add `metricBindings` in server/agent/runtime.ts (additive) and document in docs/agent-runtime.md (FR-028)
-- [ ] T105 [US11] Pure builder src/mappings/mapping-graph.ts producing the lineage card model (FR-029, FR-030)
-- [ ] T106 [US11] Mapping canvas src/mappings/MappingCanvas.tsx on LineageCanvas/LineageCard with selection summary and Edit item, Unmapped filter and badges, warning markers, legend entries for mapping kinds, walk trail (FR-031, FR-032)
-- [ ] T107 [US11] Graph tab routing in src/main.tsx: mapping documents and consolidated files show the mapping canvas, consolidated files get the Ontology graph / Mapping graph switch; stop projecting concept mappings as unconnected entities in src/model.ts:92-94 while keeping catalog and Neighborhood working (FR-034)
-- [ ] T108 [US11] Browser check scripts/mapping-graph-browser-check.ts on the five examples: lines vs resolver bindings, selection dims the rest, unmapped filter, warning markers, no area box of unconnected nodes (SC-012); add `test:mapping-graph` to package.json
-- [ ] T109 [US11] [CODEX] Mapping card styling (concept vs dataset columns, identifying/unmapped badges, warning markers) in src/odcs/odcs.css with geometry assertions in scripts/responsive-ui-tests.ts
+- [X] T104 [US11] Record binding kind and add `metricBindings` in server/agent/runtime.ts (additive) and document in docs/agent-runtime.md (FR-028)
+- [X] T105 [US11] Pure builder src/mappings/mapping-graph.ts producing the lineage card model (FR-029, FR-030)
+- [X] T106 [US11] Mapping canvas src/mappings/MappingCanvas.tsx on LineageCanvas/LineageCard with selection summary and Edit item, Unmapped filter and badges, warning markers, legend entries for mapping kinds, walk trail (FR-031, FR-032)
+- [X] T107 [US11] Graph tab routing in src/main.tsx: mapping documents and consolidated files show the mapping canvas, consolidated files get the Ontology graph / Mapping graph switch; stop projecting concept mappings as unconnected entities in src/model.ts:92-94 while keeping catalog and Neighborhood working (FR-034)
+- [X] T108 [US11] Browser check scripts/mapping-graph-browser-check.ts on the five examples: lines vs resolver bindings, selection dims the rest, unmapped filter, warning markers, no area box of unconnected nodes (SC-012); add `test:mapping-graph` to package.json
+- [X] T109 [US11] [CODEX] Mapping card styling (concept vs dataset columns, identifying/unmapped badges, warning markers) in src/odcs/odcs.css with geometry assertions in scripts/responsive-ui-tests.ts
 
 **Checkpoint**: lineage and mapping graphs shippable.
 

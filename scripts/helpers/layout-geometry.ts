@@ -64,11 +64,14 @@ export async function lineageProblems(page:Page):Promise<string[]>{
   const cards=[...view.querySelectorAll('.lineage-card')];
   for(const c of cards){
    const r=c.getBoundingClientRect(),label=c.getAttribute('aria-label');
-   for(const el of c.querySelectorAll('.lineage-card-head > *, .lineage-rows li, .lineage-row > *, .property-badge, .lineage-pager > *, .lineage-more span')){const e=el.getBoundingClientRect();if(e.width<1)continue;if(!inside(e,r))out.push(`${label}: ${el.className||el.tagName} "${(el.textContent??'').slice(0,30)}" sticks out of the card`);}
+   for(const el of c.querySelectorAll('.lineage-card-head > *, .lineage-card-marks > *, .lineage-rows li, .lineage-row > *, .property-badge, .lineage-pager > *, .lineage-more span')){const e=el.getBoundingClientRect();if(e.width<1)continue;if(!inside(e,r))out.push(`${label}: ${el.className||el.tagName} "${(el.textContent??'').slice(0,30)}" sticks out of the card`);}
    for(const el of c.querySelectorAll('.lineage-row-name, .lineage-card-title strong')){const h=el as HTMLElement;if(h.scrollWidth>h.clientWidth+1&&getComputedStyle(h).textOverflow!=='ellipsis')out.push(`${label}: "${h.textContent}" is cut without an ellipsis`);}
    // badges in a row never overlap the column name
    for(const row of c.querySelectorAll('.lineage-row')){const n=row.querySelector('.lineage-row-name')?.getBoundingClientRect();if(!n)continue;for(const b of row.querySelectorAll('.property-badge'))if(hit(n,b.getBoundingClientRect()))out.push(`${label}: badge "${b.textContent}" overlaps "${row.querySelector('.lineage-row-name')!.textContent}"`);}
   }
+  // header marks (Unmapped badge, finding markers) never overlap the title or the actions
+  for(const c of cards){const t=c.querySelector('.lineage-card-title strong')?.getBoundingClientRect(),m=c.querySelector('.lineage-card-marks')?.getBoundingClientRect(),a=c.querySelector('.lineage-card-actions')?.getBoundingClientRect();
+   if(t&&m&&m.width>0&&hit(t,m))out.push(`${c.getAttribute('aria-label')}: header badges overlap the title`);if(a&&m&&m.width>0&&a.width>0&&hit(a,m))out.push(`${c.getAttribute('aria-label')}: header badges overlap the actions`);}
   for(let i=0;i<cards.length;i++)for(let j=i+1;j<cards.length;j++)if(hit(cards[i].getBoundingClientRect(),cards[j].getBoundingClientRect()))out.push(`cards "${cards[i].getAttribute('aria-label')}" and "${cards[j].getAttribute('aria-label')}" overlap`);
   const tools=[...view.querySelectorAll('.lineage-toolbar > *, .lineage-trail > button')].filter(e=>e.getBoundingClientRect().width>0);
   for(let i=0;i<tools.length;i++)for(let j=i+1;j<tools.length;j++)if(hit(tools[i].getBoundingClientRect(),tools[j].getBoundingClientRect()))out.push(`toolbar controls "${tools[i].textContent||tools[i].getAttribute('aria-label')}" and "${tools[j].textContent||tools[j].getAttribute('aria-label')}" overlap`);

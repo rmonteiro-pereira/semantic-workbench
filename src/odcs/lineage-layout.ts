@@ -1,7 +1,7 @@
 // Layout of the lineage canvas (research R3): ELK `layered`, left to right, one port per visible
 // row on each side of a card (FIXED_POS, so lines leave and enter at their rows). Pure geometry
 // here; the ELK run happens in ELK's own worker (elk-worker), off the main thread.
-export const CARD_W=360,HEADER_H=58,ROW_H=26,PAGER_H=30,MORE_H=26;
+export const CARD_W=400,HEADER_H=64,ROW_H=30,PAGER_H=32,MORE_H=28;
 export type LayoutCard={id:string;rows:string[];pager:boolean;more:boolean};
 export type LayoutEdge={id:string;from:string;to:string;fromCard:string;toCard:string};
 export const cardHeight=(c:LayoutCard)=>HEADER_H+c.rows.length*ROW_H+(c.more?MORE_H:0)+(c.pager?PAGER_H:0);

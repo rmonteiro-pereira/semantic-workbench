@@ -25,6 +25,10 @@ All endpoints use the loopback API (`http://127.0.0.1:4310`) or Vite's `/api` pr
 
 Mapping IDs come from the catalog: the document id for a standalone mapping, and the document id plus a fragment (`<project>/<path>#ontology_mappings/0`) for an embedded one. Field IDs are opaque identifiers returned by context; clients must not fabricate them from physical column names. Metric IDs are scoped to the referenced semantic model.
 
+### Binding kinds and KPI bindings (v0.3.0, additive)
+
+Each entry of `bindings` carries `kind`: `object` for an object mapping, `referent` for a referent mapping, and `link` for everything under a link mapping (its anchor object, the linked object and the referents that identify it). The context also carries `metricBindings`: the KPI bindings of the mapping's `SEMANTIC_WORKBENCH` extension (a standalone mapping's root, or an embedded semantic model's root), each `{metric, measures: {input, concept}, of?: {input, concept}, findings, evidence}`. A concept or metric that does not resolve leaves `concept` null and adds a warning finding on that binding only; the context's own `findings` are unchanged. Without the extension, `metricBindings` is an empty list. All other fields keep their v0.2.0 shape and values (`tests/agent-context-kinds.test.ts` pins a digest of them). The Graph tab's mapping canvas is drawn from this context.
+
 ### Standalone mapping header and reference identity
 
 A standalone mapping document requires `version`, `name`, `ontology_ref`, `semantic_model_ref` and `concept_mappings` (Apache Ossie `ontology/mapping.json`). A document missing any of these fails the import schema check instead of failing later at resolution.

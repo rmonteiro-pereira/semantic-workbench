@@ -92,7 +92,9 @@ try{
  });
  await check('graph: KPI nodes can be hidden, and concepts measured by a KPI carry a badge (graph and catalog)',async()=>{
   await page.locator('.tabs').getByRole('button',{name:'Graph',exact:true}).click();
-  const toggle=page.getByRole('button',{name:/^KPIs (shown|hidden)$/});await expect(toggle).toHaveText('KPIs shown');
+  // v0.3.0 (FR-034): the consolidated Flights file opens on its mapping graph; the KPI nodes are in its ontology graph.
+  const views=page.getByRole('group',{name:'Graph view'}),toggle=page.getByRole('button',{name:/^KPIs (shown|hidden)$/});
+  await expect(views.or(toggle).first()).toBeVisible();if(await views.count())await views.getByRole('button',{name:'Ontology graph'}).click();await expect(toggle).toHaveText('KPIs shown');
   await expect(page.locator('.full-entity.kpi-node')).toHaveCount(1);
   await expect(page.locator('.full-entity').filter({hasText:/^Delay/}).locator('.node-kpi-badge')).toHaveText('KPI');
   await toggle.click();await expect(toggle).toHaveText('KPIs hidden');await expect(page.locator('.full-entity.kpi-node')).toHaveCount(0);
