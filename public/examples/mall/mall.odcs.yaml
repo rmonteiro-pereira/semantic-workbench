@@ -292,6 +292,10 @@ schema:
         logicalType: string
         required: false
         description: Calendar quarter, for example 2026-Q3.
+      - name: first_day
+        logicalType: date
+        required: true
+        description: First day of the month; the time dimension of monthly KPIs.
   - name: price_indices
     physicalName: mall.price_indices
     physicalType: table
@@ -4696,6 +4700,14 @@ schema:
         logicalType: number
         required: true
         description: Billed amount; negative for credits.
+        quality:
+          - name: amount_not_null
+            type: library
+            metric: nullValues
+            mustBe: 0
+            dimension: completeness
+            severity: error
+            description: Every charge has an amount.
       - name: paid_amount
         logicalType: number
         required: false
@@ -5705,6 +5717,12 @@ schema:
         logicalType: number
         required: true
         description: Area under an active lease at month end.
+        quality:
+          - name: occupied_within_gla
+            type: text
+            dimension: accuracy
+            severity: error
+            description: Occupied area is between zero and the unit gross leasable area.
       - name: contracted_minimum_rent
         logicalType: number
         required: false
@@ -5730,6 +5748,12 @@ schema:
         relationships:
           - type: foreignKey
             to: leases.id
+    quality:
+      - name: one_snapshot_per_unit_month
+        type: text
+        dimension: uniqueness
+        severity: error
+        description: Exactly one snapshot per unit and month.
   - name: sales_reports
     physicalName: mall.sales_reports
     physicalType: table
@@ -5749,6 +5773,12 @@ schema:
         logicalType: number
         required: true
         description: Declared gross sales.
+        quality:
+          - name: sales_reported_by_day_10
+            type: text
+            dimension: timeliness
+            severity: warning
+            description: Tenants report monthly gross sales by the tenth day of the following month.
       - name: reported_gla_m2
         logicalType: number
         required: true
@@ -5905,3 +5935,14 @@ schema:
         relationships:
           - type: foreignKey
             to: calendar_months.id
+slaProperties:
+  - property: latency
+    value: 1
+    unit: d
+    element: mall.charges.amount
+  - property: frequency
+    value: 1
+    unit: d
+  - property: retention
+    value: 10
+    unit: y

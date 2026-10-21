@@ -236,6 +236,10 @@ concept_mappings:
             object_mapping:
               concept: Code
               expression: calendar_months.quarter
+          - relationship: first_day
+            object_mapping:
+              concept: CalendarDate
+              expression: calendar_months.first_day
   - concept: PriceIndex
     object_mappings:
       - &a9
@@ -4867,3 +4871,33 @@ concept_mappings:
   - concept: PayablesOutstanding
     object_mappings:
       - expression: payables_outstanding
+custom_extensions:
+  - vendor_name: SEMANTIC_WORKBENCH
+    data: |
+      {"schema": "semantic-workbench/mapping/v1", "kpi_bindings": [
+        {"metric":"billed_amount","measures":"kpi:BilledAmount","of":"Lease"},
+        {"metric":"collected_amount","measures":"kpi:CollectedAmount","of":"Lease"},
+        {"metric":"contracted_minimum_rent","measures":"kpi:ContractedMinimumRent","of":"Lease"},
+        {"metric":"delinquency_rate","measures":"kpi:DelinquencyRate","of":"Lease"},
+        {"metric":"headcount","measures":"kpi:Headcount","of":"Employee"},
+        {"metric":"minimum_rent_per_m2","measures":"kpi:MinimumRentPerM2","of":"Property"},
+        {"metric":"net_operating_income","measures":"kpi:NetOperatingIncome","of":"Property"},
+        {"metric":"noi_margin","measures":"kpi:NoiMargin","of":"Property"},
+        {"metric":"occupancy_cost","measures":"kpi:OccupancyCost","of":"Tenant"},
+        {"metric":"occupancy_cost_ratio","measures":"kpi:OccupancyCostRatio","of":"Tenant"},
+        {"metric":"occupancy_rate","measures":"kpi:OccupancyRate","of":"Property"},
+        {"metric":"occupied_gla","measures":"kpi:OccupiedGla","of":"Property"},
+        {"metric":"open_amount","measures":"kpi:OpenAmount","of":"Lease"},
+        {"metric":"operating_expense_total","measures":"kpi:OperatingExpenseTotal","of":"Property"},
+        {"metric":"operating_revenue","measures":"kpi:OperatingRevenue","of":"Property"},
+        {"metric":"parking_revenue","measures":"kpi:ParkingRevenue","of":"ParkingFacility"},
+        {"metric":"payables_outstanding","measures":"kpi:PayablesOutstanding","of":"Supplier"},
+        {"metric":"payroll_cost","measures":"kpi:PayrollCost","of":"CostCenter"},
+        {"metric":"purchase_spend","measures":"kpi:PurchaseSpend","of":"Supplier"},
+        {"metric":"reporting_area","measures":"kpi:ReportingArea","of":"Tenant"},
+        {"metric":"sales_per_m2","measures":"kpi:SalesPerM2","of":"Tenant"},
+        {"metric":"tenant_sales","measures":"kpi:TenantSales","of":"Tenant"},
+        {"metric":"total_gla","measures":"kpi:TotalGla","of":"Property"},
+        {"metric":"vacant_gla","measures":"kpi:VacantGla","of":"Property"},
+        {"metric":"visitors","measures":"kpi:Visitors","of":"Property"}
+      ]}

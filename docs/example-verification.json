@@ -25,7 +25,7 @@
     {
       "file": "flights.yaml",
       "kind": "Ossie ontology",
-      "entities": 49,
+      "entities": 55,
       "relationships": 90,
       "warnings": []
     },
@@ -64,7 +64,7 @@
       "joins": 259,
       "metrics": 25,
       "modules": 11,
-      "bindings": 1056
+      "bindings": 1057
     },
     "imports": [
       {
@@ -77,13 +77,13 @@
         "file": "mall.ontology.yaml",
         "kind": "Ossie ontology",
         "entities": 195,
-        "relationships": 895
+        "relationships": 896
       },
       {
         "file": "mall.semantic.yaml",
         "kind": "Ossie semantic",
         "entities": 167,
-        "relationships": 278
+        "relationships": 277
       },
       {
         "file": "mall.odcs.yaml",
@@ -94,14 +94,14 @@
       {
         "file": "mall.owl.ttl",
         "kind": "OWL",
-        "entities": 1032,
-        "relationships": 1758
+        "entities": 1033,
+        "relationships": 1759
       },
       {
         "file": "mall.shacl.ttl",
         "kind": "SHACL",
-        "entities": 850,
-        "relationships": 705
+        "entities": 851,
+        "relationships": 706
       },
       {
         "file": "mall-data.ttl",

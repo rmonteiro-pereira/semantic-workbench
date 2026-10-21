@@ -9,7 +9,7 @@ A fictional, end-to-end model for administering shopping centers and other retai
 | KPI concepts and governed metrics | 25 |
 | Namespaced modules | 11 |
 | Datasets / declared joins | 142 / 259 |
-| Resolved mapping bindings | 1,056 |
+| Resolved mapping bindings | 1,057 |
 
 Every concept and relationship has a description and a global identifier (`iri`) expressed as a QName over the ontology's `prefixes`, so the **Overview** groups the model by module. The namespaces are under `https://example.org/mall/` and are illustrative.
 

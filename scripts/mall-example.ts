@@ -29,7 +29,7 @@ const defs:Def[]=[
  {concept:'StateProvince',module:'core',table:'state_provinces',description:'State, province or other first-level administrative region.',attrs:['name|Name|!|State name.','code|Code||Abbreviation.'],links:['country>Country|!|is in|Country of the region.']},
  {concept:'Country',module:'core',table:'countries',description:'Country.',attrs:['name|Name|!|Country name.','iso_code|Code|!|ISO 3166-1 alpha-2 code.']},
  {concept:'Currency',module:'core',table:'currencies',description:'Currency in which leases, invoices and accounts are denominated.',attrs:['name|Name|!|Currency name.','iso_code|Code|!|ISO 4217 code.']},
- {concept:'CalendarMonth',module:'core',table:'calendar_months',description:'Reporting and billing period. Charges, sales reports, occupancy snapshots and ledger entries are stated per month.',attrs:['year_month|YearMonth|!|Month in YYYY-MM form.','year|Year|!|Calendar year.','month_number|Count|!|Month of the year, 1 to 12.','quarter|Code||Calendar quarter, for example 2026-Q3.']},
+ {concept:'CalendarMonth',module:'core',table:'calendar_months',description:'Reporting and billing period. Charges, sales reports, occupancy snapshots and ledger entries are stated per month.',attrs:['year_month|YearMonth|!|Month in YYYY-MM form.','year|Year|!|Calendar year.','month_number|Count|!|Month of the year, 1 to 12.','quarter|Code||Calendar quarter, for example 2026-Q3.','first_day|CalendarDate|!|First day of the month; the time dimension of monthly KPIs.']},
  {concept:'PriceIndex',module:'core',table:'price_indices',description:'Inflation index used to adjust rents, such as IGP-M or IPCA in Brazil or a consumer price index elsewhere.',attrs:['name|Name|!|Index name.','code|Code|!|Index code.','publisher|Name||Publishing institution.']},
  {concept:'PriceIndexValue',module:'core',table:'price_index_values',description:'Published level and monthly change of a price index.',attrs:['index_level|IndexNumber|!+|Index level for the month.','monthly_change|Rate||Change against the previous month as a fraction.'],links:['price_index>PriceIndex|!|is a value of|Index being published.','month>CalendarMonth|!|is published for|Reference month.']},
  // asset
@@ -203,6 +203,42 @@ const metrics:{name:string;concept:string;description:string;expression:string}[
  {name:'purchase_spend',concept:'PurchaseSpend',description:'Ordered quantity times unit price on purchase-order lines.',expression:'SUM(purchase_order_lines.line_amount)'},
  {name:'payables_outstanding',concept:'PayablesOutstanding',description:'Supplier invoice amounts not yet paid at the reporting date, net of withheld taxes.',expression:'SUM(supplier_invoices.open_amount)'},
 ];
+// KPI attributes stored as SEMANTIC_WORKBENCH extensions (research R1, R12): label, type, additivity,
+// unit, owner, status, time dimension and the concept each KPI is about (`of`, in the mapping).
+const month={dimension:'calendar_months.first_day',min_grain:'month',allowed_grains:['month','quarter','year']};
+const stock={additivity:'semi_additive',non_additive_over:'time',period_aggregation:'last'};
+const atProperty=['properties.name','calendar_months.year_month'];
+const kpis:Record<string,{of:string;ext:any}>={
+ total_gla:{of:'Property',ext:{label:'Total GLA',type:'simple',...stock,unit:'m²',format:'#,##0',owner:'Leasing',status:'approved',time:month,dimensions:atProperty}},
+ occupied_gla:{of:'Property',ext:{label:'Occupied GLA',type:'simple',...stock,unit:'m²',format:'#,##0',owner:'Leasing',status:'approved',time:month,dimensions:atProperty}},
+ vacant_gla:{of:'Property',ext:{label:'Vacant GLA',type:'simple',...stock,unit:'m²',format:'#,##0',owner:'Leasing',status:'approved',time:month,dimensions:atProperty}},
+ occupancy_rate:{of:'Property',ext:{label:'Occupancy rate',type:'ratio',numerator:'occupied_gla',denominator:'total_gla',additivity:'non_additive',unit:'ratio',format:'0.0%',owner:'Leasing',status:'approved',time:month,dimensions:atProperty,targets:[{grain:'month',direction:'higher_is_better',value:0.95}]}},
+ contracted_minimum_rent:{of:'Lease',ext:{label:'Contracted minimum rent',type:'simple',...stock,unit:'BRL',format:'#,##0.00',owner:'Leasing',status:'approved',time:month,dimensions:atProperty}},
+ minimum_rent_per_m2:{of:'Property',ext:{label:'Minimum rent per m²',type:'ratio',numerator:'contracted_minimum_rent',denominator:'occupied_gla',additivity:'non_additive',unit:'BRL/m²',format:'#,##0.00',owner:'Leasing',status:'approved',time:month,dimensions:atProperty}},
+ billed_amount:{of:'Lease',ext:{label:'Billed amount',type:'simple',additivity:'additive',unit:'BRL',format:'#,##0.00',owner:'Finance',status:'approved',time:month,dimensions:['charge_types.name','calendar_months.year_month']}},
+ collected_amount:{of:'Lease',ext:{label:'Collected amount',type:'simple',additivity:'additive',unit:'BRL',format:'#,##0.00',owner:'Finance',status:'approved',time:month,dimensions:['charge_types.name','calendar_months.year_month']}},
+ open_amount:{of:'Lease',ext:{label:'Open amount',type:'simple',...stock,unit:'BRL',format:'#,##0.00',owner:'Finance',status:'approved',time:month,dimensions:['charge_types.name','calendar_months.year_month']}},
+ delinquency_rate:{of:'Lease',ext:{label:'Delinquency rate',type:'ratio',numerator:'open_amount',denominator:'billed_amount',additivity:'non_additive',unit:'ratio',format:'0.0%',owner:'Finance',status:'approved',time:month,dimensions:['charge_types.name','calendar_months.year_month'],targets:[{grain:'month',direction:'lower_is_better',value:0.05}]}},
+ tenant_sales:{of:'Tenant',ext:{label:'Tenant sales',type:'simple',additivity:'additive',unit:'BRL',format:'#,##0.00',owner:'Leasing',status:'approved',time:month,dimensions:['merchandise_categories.name','calendar_months.year_month']}},
+ reporting_area:{of:'Tenant',ext:{label:'Reporting area',type:'simple',...stock,unit:'m²',format:'#,##0',owner:'Leasing',status:'approved',time:month,dimensions:['merchandise_categories.name','calendar_months.year_month']}},
+ sales_per_m2:{of:'Tenant',ext:{label:'Sales per m²',type:'ratio',numerator:'tenant_sales',denominator:'reporting_area',additivity:'non_additive',unit:'BRL/m²',format:'#,##0.00',owner:'Leasing',status:'approved',time:month,dimensions:['merchandise_categories.name','calendar_months.year_month']}},
+ occupancy_cost:{of:'Tenant',ext:{label:'Occupancy cost',type:'simple',additivity:'additive',unit:'BRL',format:'#,##0.00',owner:'Leasing',status:'approved',time:month,dimensions:atProperty}},
+ occupancy_cost_ratio:{of:'Tenant',ext:{label:'Occupancy cost ratio',type:'ratio',numerator:'occupancy_cost',denominator:'tenant_sales',additivity:'non_additive',unit:'ratio',format:'0.0%',owner:'Leasing',status:'approved',time:month,dimensions:atProperty,targets:[{direction:'lower_is_better',value:0.12}]}},
+ visitors:{of:'Property',ext:{label:'Visitors',type:'simple',additivity:'additive',unit:'visitors',format:'#,##0',owner:'Marketing',status:'approved',time:month,dimensions:atProperty}},
+ operating_revenue:{of:'Property',ext:{label:'Operating revenue',type:'simple',additivity:'additive',unit:'BRL',format:'#,##0.00',owner:'Finance',status:'approved',time:month,dimensions:atProperty}},
+ operating_expense_total:{of:'Property',ext:{label:'Operating expenses',type:'simple',additivity:'additive',unit:'BRL',format:'#,##0.00',owner:'Finance',status:'approved',time:month,dimensions:atProperty}},
+ net_operating_income:{of:'Property',ext:{label:'Net operating income (NOI)',type:'derived',inputs:['operating_revenue','operating_expense_total'],additivity:'additive',unit:'BRL',format:'#,##0.00',owner:'Finance',status:'approved',time:month,dimensions:atProperty}},
+ noi_margin:{of:'Property',ext:{label:'NOI margin',type:'ratio',numerator:'net_operating_income',denominator:'operating_revenue',additivity:'non_additive',unit:'ratio',format:'0.0%',owner:'Finance',status:'approved',time:month,dimensions:atProperty}},
+ parking_revenue:{of:'ParkingFacility',ext:{label:'Parking revenue',type:'simple',additivity:'additive',unit:'BRL',format:'#,##0.00',owner:'Operations',status:'approved',time:month}},
+ payroll_cost:{of:'CostCenter',ext:{label:'Payroll cost',type:'simple',additivity:'additive',unit:'BRL',format:'#,##0.00',owner:'People',status:'approved',time:month,dimensions:['departments.name','calendar_months.year_month']}},
+ headcount:{of:'Employee',ext:{label:'Headcount',type:'simple',additivity:'non_additive',unit:'people',format:'#,##0',owner:'People',status:'approved',time:month,dimensions:['departments.name','calendar_months.year_month']}},
+ purchase_spend:{of:'Supplier',ext:{label:'Purchase spend',type:'simple',additivity:'additive',unit:'BRL',format:'#,##0.00',owner:'Procurement',status:'proposed',time:{dimension:'purchase_orders.order_date',min_grain:'day',allowed_grains:['day','week','month','quarter','year']},dimensions:['expense_categories.name']}},
+ payables_outstanding:{of:'Supplier',ext:{label:'Payables outstanding',type:'simple',...stock,unit:'BRL',format:'#,##0.00',owner:'Procurement',status:'approved',time:month}},
+};
+// Metric extensions are pretty-printed JSON; KPI bindings are one binding per line, sorted by metric.
+const extension=(data:string)=>[{vendor_name:'SEMANTIC_WORKBENCH',data:data+'\n'}];
+const keyPerLine=(data:Record<string,unknown>)=>`{\n${Object.entries(data).map(([k,v])=>`  ${JSON.stringify(k)}: ${JSON.stringify(v)}`).join(',\n')}\n}`;
+const bindingsJson=(schema:string,list:any[])=>`{"schema": ${JSON.stringify(schema)}, "kpi_bindings": [\n${list.map(b=>'  '+JSON.stringify(b)).join(',\n')}\n]}`;
 const computed:Record<string,[string,string,string]>={occupancy_snapshots:['vacant_gla_m2','gla_m2 - occupied_gla_m2','Gross leasable area without an active lease.'],charges:['open_amount','amount - paid_amount','Billed amount not yet collected.'],purchase_order_lines:['line_amount','quantity * unit_price','Ordered amount.'],supplier_invoices:['open_amount','gross_amount - withheld_taxes - paid_amount','Amount still payable to the supplier.']};
 
 // ---------- spec parsing ----------
@@ -240,7 +276,7 @@ for(const m of metrics)ontology.ontology.push({concept:m.concept,type:'ValueType
 const expr=(expression:string)=>({dialects:[{dialect:'ANSI_SQL',expression}]});
 const columnsOf=(d:Def)=>['id',...allAttrs(d).map(a=>a.name),...allLinks(d).map(l=>l.name+'_id')];
 const semantic:any={version:'0.2.0.dev0',name:'Shopping center administration semantic model',description:'One dataset per concrete business concept. Facts: occupancy_snapshots (unit-month), charges (lease-charge type-month), sales_reports (lease-month), footfall_counts (entrance-period), journal_lines (ledger line) and parking_activity (facility-month).',
- ai_context:{instructions:'Use governed metrics by name. Area metrics are month-end stocks: filter or group by month. A charge reaches tenants through its lease (contracted tenant) and through its invoice (billed tenant); choose the role explicitly. Properties are reached from occupancy through unit, zone, floor and building.'},datasets:[],relationships:[],metrics:metrics.map(m=>({name:m.name,description:m.description,expression:expr(m.expression)}))};
+ ai_context:{instructions:'Use governed metrics by name. Area metrics are month-end stocks: filter or group by month. A charge reaches tenants through its lease (contracted tenant) and through its invoice (billed tenant); choose the role explicitly. Properties are reached from occupancy through unit, zone, floor and building.'},datasets:[],relationships:[],metrics:metrics.map(m=>({name:m.name,description:m.description,expression:expr(m.expression),custom_extensions:extension(keyPerLine({schema:'semantic-workbench/metric/v1',...kpis[m.name].ext}))}))};
 for(const d of concrete){
  const fields:any[]=columnsOf(d).map(name=>({name,expression:expr(name)}));
  const extra=computed[d.table!];if(extra)fields.push({name:extra[0],description:extra[2],expression:expr(extra[1])});
@@ -258,9 +294,10 @@ for(const d of concrete){
  ]}]});
 }
 for(const m of metrics)mapping.concept_mappings.push({concept:m.concept,object_mappings:[{expression:m.name}]});
+mapping.custom_extensions=extension(bindingsJson('semantic-workbench/mapping/v1',[...metrics].sort((a,b)=>a.name.localeCompare(b.name)).map(m=>({metric:m.name,measures:`kpi:${m.concept}`,of:kpis[m.name].of}))));
 
 // ---------- fixture rows ----------
-const months=[{id:1,year_month:'2026-08',year:2026,month_number:8,quarter:'2026-Q3'},{id:2,year_month:'2026-09',year:2026,month_number:9,quarter:'2026-Q3'}];
+const months=[{id:1,year_month:'2026-08',year:2026,month_number:8,quarter:'2026-Q3',first_day:'2026-08-01'},{id:2,year_month:'2026-09',year:2026,month_number:9,quarter:'2026-Q3',first_day:'2026-09-01'}];
 const monthEnd:Record<number,string>={1:'2026-08-31',2:'2026-09-30'},monthStart:Record<number,string>={1:'2026-08-01',2:'2026-09-01'};
 const rows:Record<string,Record<string,any>[]>={
  countries:[{id:1,name:'Brazil',iso_code:'BR'}],state_provinces:[{id:1,name:'São Paulo',code:'SP',country_id:1}],cities:[{id:1,name:'Campinas',state_id:1},{id:2,name:'Sorocaba',state_id:1}],
@@ -430,6 +467,15 @@ const contract:any={apiVersion:'v3.1.0',kind:'DataContract',id:'5f0b8a3e-2c41-4d
  description:{purpose:'Governed tables for leasing, billing, operations and performance reporting of shopping centers.',limitations:'Fictional demonstration data in BRL. No real tenants, people or properties.'},schema:concrete.map(d=>({name:d.table,physicalName:`mall.${d.table}`,physicalType:'table',logicalType:'object',description:d.description,
  authoritativeDefinitions:[{type:'businessDefinition',url:`${prefixes[d.module]}${d.concept}`}],
  properties:columnsOf(d).map(column=>{const attr=allAttrs(d).find(a=>a.name===column),link=allLinks(d).find(l=>l.name+'_id'===column);return {name:column,logicalType:logical[fieldType(d,column)],required:column==='id'||!!(attr??link)?.flags.includes('!'),...(column==='id'?{primaryKey:true,unique:true}:{}),description:column==='id'?`Identifier of the ${words(d.concept)}.`:attr?attr.description:`Reference to ${words(link!.target)}: ${link!.description}`,...(link?{relationships:[{type:'foreignKey',to:`${byConcept.get(link.target)!.table}.id`}]}:{})};})}))};
+
+// Declared quality rules and service levels: trust indicators shown in KPI lineage. Declarations only;
+// the workbench never runs them.
+contract.slaProperties=[{property:'latency',value:1,unit:'d',element:'mall.charges.amount'},{property:'frequency',value:1,unit:'d'},{property:'retention',value:10,unit:'y'}];
+const quality=(table:string,column:string|null,rules:any[])=>{const object=contract.schema.find((o:any)=>o.name===table);(column?object.properties.find((p:any)=>p.name===column):object).quality=rules;};
+quality('occupancy_snapshots',null,[{name:'one_snapshot_per_unit_month',type:'text',dimension:'uniqueness',severity:'error',description:'Exactly one snapshot per unit and month.'}]);
+quality('occupancy_snapshots','occupied_gla_m2',[{name:'occupied_within_gla',type:'text',dimension:'accuracy',severity:'error',description:'Occupied area is between zero and the unit gross leasable area.'}]);
+quality('charges','amount',[{name:'amount_not_null',type:'library',metric:'nullValues',mustBe:0,dimension:'completeness',severity:'error',description:'Every charge has an amount.'}]);
+quality('sales_reports','gross_sales',[{name:'sales_reported_by_day_10',type:'text',dimension:'timeliness',severity:'warning',description:'Tenants report monthly gross sales by the tenth day of the following month.'}]);
 
 // ---------- SQLite fixture ----------
 const sqlLiteral=(value:any)=>value==null?'NULL':typeof value==='number'?String(value):"'"+String(value).replaceAll("'","''")+"'";

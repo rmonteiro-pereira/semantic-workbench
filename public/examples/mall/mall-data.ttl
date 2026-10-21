@@ -106,13 +106,15 @@ data:calendar_months-1 a core:CalendarMonth ;
   core:calendarMonthYearMonth "2026-08"^^xsd:gYearMonth ;
   core:calendarMonthYear "2026"^^xsd:integer ;
   core:calendarMonthMonthNumber "8"^^xsd:integer ;
-  core:calendarMonthQuarter "2026-Q3" .
+  core:calendarMonthQuarter "2026-Q3" ;
+  core:calendarMonthFirstDay "2026-08-01"^^xsd:date .
 data:calendar_months-2 a core:CalendarMonth ;
   rdfs:label "2026-Q3" ;
   core:calendarMonthYearMonth "2026-09"^^xsd:gYearMonth ;
   core:calendarMonthYear "2026"^^xsd:integer ;
   core:calendarMonthMonthNumber "9"^^xsd:integer ;
-  core:calendarMonthQuarter "2026-Q3" .
+  core:calendarMonthQuarter "2026-Q3" ;
+  core:calendarMonthFirstDay "2026-09-01"^^xsd:date .
 data:portfolios-1 a asset:Portfolio ;
   rdfs:label "Aurora Retail Portfolio" ;
   asset:portfolioName "Aurora Retail Portfolio" ;

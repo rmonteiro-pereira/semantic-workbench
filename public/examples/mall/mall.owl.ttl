@@ -410,6 +410,7 @@ core:calendarMonthYearMonth a owl:DatatypeProperty, owl:FunctionalProperty ; rdf
 core:calendarMonthYear a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "year" ; rdfs:comment "Calendar year." ; rdfs:domain core:CalendarMonth ; rdfs:range xsd:integer .
 core:calendarMonthMonthNumber a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "month number" ; rdfs:comment "Month of the year, 1 to 12." ; rdfs:domain core:CalendarMonth ; rdfs:range xsd:integer .
 core:calendarMonthQuarter a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "quarter" ; rdfs:comment "Calendar quarter, for example 2026-Q3." ; rdfs:domain core:CalendarMonth ; rdfs:range xsd:string .
+core:calendarMonthFirstDay a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "first day" ; rdfs:comment "First day of the month; the time dimension of monthly KPIs." ; rdfs:domain core:CalendarMonth ; rdfs:range xsd:date .
 core:priceIndexName a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "name" ; rdfs:comment "Index name." ; rdfs:domain core:PriceIndex ; rdfs:range xsd:string .
 core:priceIndexCode a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "code" ; rdfs:comment "Index code." ; rdfs:domain core:PriceIndex ; rdfs:range xsd:string .
 core:priceIndexPublisher a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label "publisher" ; rdfs:comment "Publishing institution." ; rdfs:domain core:PriceIndex ; rdfs:range xsd:string .
