@@ -1,0 +1,25 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 100,
+  "tabWidth": 2,
+  "useTabs": false,
+  "semi": true,
+  "singleQuote": true,
+  "jsxSingleQuote": false,
+  "trailingComma": "all",
+  "arrowParens": "avoid",
+  "bracketSpacing": true,
+  "endOfLine": "lf",
+  "ignorePatterns": [
+    "data/**",
+    "dist/**",
+    "public/**",
+    "schemas/**",
+    "specs/**",
+    "docs/**",
+    "tests/fixtures/**",
+    "graphify-out/**",
+    "*.md",
+    "bun.lock"
+  ]
+}

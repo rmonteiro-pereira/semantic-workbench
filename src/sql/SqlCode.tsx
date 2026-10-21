@@ -1,16 +1,44 @@
-import React,{useMemo} from 'react';
-import {highlightCode} from '@lezer/highlight';
-import {StandardSQL} from '@codemirror/lang-sql';
-import {lightHighlight} from '../editor/languages';
+import React, { useMemo } from 'react';
+import { highlightCode } from '@lezer/highlight';
+import { StandardSQL } from '@codemirror/lang-sql';
+import { lightHighlight } from '../editor/languages';
 // Read-only SQL previews (FR-054): the same SQL grammar and colors as the Source editor, drawn as
 // spans inside the preview's <code> so its text stays exactly the SQL.
-let mounted=false;
-export function SqlCode({sql}:{sql:string}){
- if(!mounted&&typeof document!=='undefined'&&lightHighlight.module){const style=document.createElement('style');style.dataset.sqlHighlight='';style.textContent=lightHighlight.module.getRules();document.head.appendChild(style);mounted=true;}
- const parts=useMemo(()=>{
-  const out:{text:string;cls:string}[]=[];
-  try{highlightCode(sql,StandardSQL.language.parser.parse(sql),lightHighlight,(text,cls)=>out.push({text,cls}),()=>out.push({text:'\n',cls:''}));}catch{return [{text:sql,cls:''}];}
-  return out;
- },[sql]);
- return <>{parts.map((p,i)=>p.cls?<span key={i} className={p.cls}>{p.text}</span>:p.text)}</>;
+let mounted = false;
+export function SqlCode({ sql }: { sql: string }) {
+  if (!mounted && typeof document !== 'undefined' && lightHighlight.module) {
+    const style = document.createElement('style');
+    style.dataset.sqlHighlight = '';
+    style.textContent = lightHighlight.module.getRules();
+    document.head.appendChild(style);
+    mounted = true;
+  }
+  const parts = useMemo(() => {
+    const out: { text: string; cls: string }[] = [];
+    try {
+      highlightCode(
+        sql,
+        StandardSQL.language.parser.parse(sql),
+        lightHighlight,
+        (text, cls) => out.push({ text, cls }),
+        () => out.push({ text: '\n', cls: '' }),
+      );
+    } catch {
+      return [{ text: sql, cls: '' }];
+    }
+    return out;
+  }, [sql]);
+  return (
+    <>
+      {parts.map((p, i) =>
+        p.cls ? (
+          <span key={i} className={p.cls}>
+            {p.text}
+          </span>
+        ) : (
+          p.text
+        ),
+      )}
+    </>
+  );
 }
