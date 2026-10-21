@@ -18,5 +18,5 @@ contract; layout is not).
 | Neighborhood | center picker `combobox` "Neighborhood center"; breadcrumb `navigation` "Walk"; Back/Forward buttons; "Show links between neighbors" toggle; "N more neighbors" control |
 | Full screen | button "Full screen" / "Exit full screen"; Escape exits |
 | ODCS dataset page | header facts; tabs "Schema", "Lineage", "History", "Quality"; property `table` |
-| Source Control | panel "Source Control" per project: changes list (labels for hidden files), Stage/Unstage, message `textbox` + "Commit", branch `combobox`, "Create branch", Fetch/Pull/Push/Sync, "Add to .gitignore" in the item menu, diff view |
+| Source Control | region "Source Control" per project (sidebar "Source control"): groups "Merge conflicts", "Staged changes", "Changes" (hidden files labelled "not shown in workspace"), per-row "Stage/Unstage/Open/Add <path> to .gitignore", `textbox` "Commit message" + "Commit", `combobox` "Branch" + "New branch", group "Remote" with Fetch/Pull/Push/Sync, `status` "Waiting for Git (credentials may be requested in a separate window)" with "Cancel", group "History"; diff view `group` "Changes in <path>" / "Versions of <path>" |
 | Status messages | `status` regions auto-dismiss (≤ 6 s) or clear on next action; never overlap graph controls |

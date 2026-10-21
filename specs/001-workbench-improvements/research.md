@@ -609,3 +609,44 @@ and recorded here so later phases build on them.
   apply to graphs. Add offers OWL class, object and datatype property, SHACL node and property
   shape, and any RDF resource.
 
+## R20. Implementation decisions taken in Phase 8
+
+- **Where the logic lives.** `server/projects/git.ts` gained the Git commands (status entries with
+  index and worktree columns, stage/unstage, blobs, branches, remotes, log, raw blob ids);
+  `server/projects/scm.ts` composes them per project (blocking, conflicts, altered-bytes check,
+  rescan and `git` event after every operation); `server/routes/git.ts` maps the contract.
+- **Remote commands are fenced in.** `run()` refuses `fetch`, `pull`, `push`, `ls-remote`, `clone`
+  and `remote update` unless the caller is one of the explicit fetch/pull/push/sync actions, so no
+  other code path (status, project list, watcher) can contact a remote. Remote actions get the
+  10-minute limit; a per-repository Cancel kills the running Git process (`POST …/git/cancel`, added
+  to the contract). Read-only commands (status, diff texts, log, branches) skip the per-repository
+  queue so the panel stays live while a push waits for a credential window.
+- **Blocking (FR-065).** Pull, sync and switch answer `409 {error:'drafts'|'dirty', paths}`. Drafts
+  are the server-side drafts; the open file's unsaved text is now stored as a draft (after a 400 ms
+  pause, removed when saved or discarded), so the server sees it. "Dirty" means any tracked change,
+  staged or not; untracked files do not block because Git refuses to overwrite them. Nothing is
+  stashed. Push and fetch do not touch the working tree and are not blocked.
+- **Which remote.** The upstream's remote, else `origin`, else the first remote. Push uses
+  `push -u <remote> <branch>` (so the first push sets the upstream); pull uses
+  `pull --no-rebase --no-edit` with `<remote> <branch>` when there is no upstream yet; sync pulls
+  (when an upstream exists) and then pushes. Choosing a remote-only branch switches to the local
+  tracking branch of the same name.
+- **Altered bytes (FR-096)** are compared as raw blob ids (`hash-object --no-filters` against the
+  tree entry), never by decoding text. After a commit: committed files whose bytes changed during
+  the commit (a hook) or whose committed bytes differ from the file on disk (a clean filter or an
+  end-of-line attribute), counting only files with no unstaged edits. After a pull or switch: the
+  files the operation changed whose bytes on disk differ from the new commit (a smudge filter).
+- **Diffs** compare as VS Code does: staged = last commit → index, changes = index → working tree,
+  conflicts = last commit → working tree (with markers). Binary files (a NUL byte or invalid UTF-8)
+  are listed without a text diff. The stale-save dialog uses the same diff view.
+- **Conflicts** stay files: the scanner marks a conflicted file invalid, it opens in Source, the
+  normal validated save stores the repair, staging marks it resolved, and Commit stays off until no
+  conflicted entry remains. The merge commit takes the user's message.
+- **`.gitignore`** is plain text: no model validation in the views or the lint worker. It is listed
+  in the tree when it exists; **Edit .gitignore** in the project menu creates it empty when missing.
+  "Add to .gitignore" escapes wildcard characters and a leading `#`/`!` so the exact path is meant
+  literally, appends with the file's line endings, skips a line already present, and reports
+  committed files that the rules now match.
+- **Panel placement.** Source Control is a main-area view opened from the sidebar (like the Metrics
+  view), with the changes column beside the diff; on narrow screens the diff goes below.
+
