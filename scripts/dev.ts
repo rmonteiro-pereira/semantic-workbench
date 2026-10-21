@@ -1,5 +1,5 @@
-import { spawn, type ChildProcess } from "node:child_process";
-import process from "node:process";
+import { spawn, type ChildProcess } from 'node:child_process';
+import process from 'node:process';
 
 type Service = {
   name: string;
@@ -8,10 +8,10 @@ type Service = {
 
 function start(name: string, args: string[]): Service {
   console.log(`[dev] Starting ${name}`);
-  console.log(`[dev] Command: bun ${args.join(" ")}`);
+  console.log(`[dev] Command: bun ${args.join(' ')}`);
 
   const child = spawn(process.execPath, args, {
-    stdio: "inherit",
+    stdio: 'inherit',
     detached: false,
     windowsHide: true,
   });
@@ -20,19 +20,9 @@ function start(name: string, args: string[]): Service {
 }
 
 const services: Service[] = [
-  start("API", [
-    "--hot",
-    "server/index.ts",
-  ]),
+  start('API', ['--hot', 'server/index.ts']),
 
-  start("Vite++", [
-    "x",
-    "vite-plus",
-    "dev",
-    "--host",
-    "127.0.0.1",
-    "--strictPort",
-  ]),
+  start('Vite++', ['x', 'vite-plus', 'dev', '--host', '127.0.0.1', '--strictPort']),
 ];
 
 let stopping = false;
@@ -41,12 +31,12 @@ function stop(code = 0): void {
   if (stopping) return;
   stopping = true;
 
-  console.log("\n[dev] Stopping services...");
+  console.log('\n[dev] Stopping services...');
 
   for (const { name, child } of services) {
     if (child.exitCode === null && !child.killed) {
       console.log(`[dev] Stopping ${name} (PID ${child.pid})`);
-      child.kill("SIGTERM");
+      child.kill('SIGTERM');
     }
   }
 
@@ -54,20 +44,18 @@ function stop(code = 0): void {
 }
 
 for (const { name, child } of services) {
-  child.on("spawn", () => {
+  child.on('spawn', () => {
     console.log(`[dev] ${name} started (PID ${child.pid})`);
   });
 
-  child.on("error", (error) => {
+  child.on('error', error => {
     console.error(`[dev] ${name} failed to start:`);
     console.error(error);
     stop(1);
   });
 
-  child.on("exit", (code, signal) => {
-    console.log(
-      `[dev] ${name} exited: code=${code ?? "none"}, signal=${signal ?? "none"}`,
-    );
+  child.on('exit', (code, signal) => {
+    console.log(`[dev] ${name} exited: code=${code ?? 'none'}, signal=${signal ?? 'none'}`);
 
     if (!stopping) {
       stop(code ?? 1);
@@ -75,24 +63,24 @@ for (const { name, child } of services) {
   });
 }
 
-process.on("SIGINT", () => {
-  console.log("\n[dev] Ctrl+C received");
+process.on('SIGINT', () => {
+  console.log('\n[dev] Ctrl+C received');
   stop(0);
 });
 
-process.on("SIGTERM", () => {
-  console.log("\n[dev] SIGTERM received");
+process.on('SIGTERM', () => {
+  console.log('\n[dev] SIGTERM received');
   stop(0);
 });
 
-process.on("uncaughtException", (error) => {
-  console.error("[dev] Uncaught exception:");
+process.on('uncaughtException', error => {
+  console.error('[dev] Uncaught exception:');
   console.error(error);
   stop(1);
 });
 
-process.on("unhandledRejection", (reason) => {
-  console.error("[dev] Unhandled rejection:");
+process.on('unhandledRejection', reason => {
+  console.error('[dev] Unhandled rejection:');
   console.error(reason);
   stop(1);
 });

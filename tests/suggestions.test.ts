@@ -1,57 +1,142 @@
-import {test,expect} from 'bun:test';
-import {existsSync} from 'node:fs';
-import {join} from 'node:path';
-import {factsOf,inferSuggestions,evidenceBetween} from '../server/projects/suggestions';
-import {testWorkspace,example} from './helpers/temp-data-dir';
-const api=(t:{handler:(r:Request)=>Promise<Response>},method:string,path:string)=>t.handler(new Request('http://127.0.0.1:4310'+path,{method}));
-test('facts come from declared names, references, IRIs and physical names only',async()=>{
- const mapping=factsOf(await example('ossie','flights.mapping.yaml'),'flights.mapping.yaml');
- expect(mapping.refs.sort()).toEqual(['Flights','Flights semantic model']);
- expect(factsOf(await example('ossie','flights.ontology.yaml'),'flights.ontology.yaml').names).toEqual(['Flights']);
- expect(factsOf(await example('commerce','commerce.odcs.yaml'),'commerce.odcs.yaml').physical).toContain('analytics.commerce.orders');
- expect(factsOf(await example('commerce','sales.ossie.yaml'),'sales.ossie.yaml').sources).toContain('analytics.commerce.orders');
- expect(factsOf(await example('commerce','commerce.owl.ttl'),'commerce.owl.ttl').iris.length).toBeGreaterThan(5);
- expect(factsOf('not: [valid','x.yaml')).toEqual({names:[],refs:[],iris:[],physical:[],sources:[]});
+import { test, expect } from 'bun:test';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { factsOf, inferSuggestions, evidenceBetween } from '../server/projects/suggestions';
+import { testWorkspace, example } from './helpers/temp-data-dir';
+const api = (t: { handler: (r: Request) => Promise<Response> }, method: string, path: string) =>
+  t.handler(new Request('http://127.0.0.1:4310' + path, { method }));
+test('facts come from declared names, references, IRIs and physical names only', async () => {
+  const mapping = factsOf(await example('ossie', 'flights.mapping.yaml'), 'flights.mapping.yaml');
+  expect(mapping.refs.sort()).toEqual(['Flights', 'Flights semantic model']);
+  expect(
+    factsOf(await example('ossie', 'flights.ontology.yaml'), 'flights.ontology.yaml').names,
+  ).toEqual(['Flights']);
+  expect(
+    factsOf(await example('commerce', 'commerce.odcs.yaml'), 'commerce.odcs.yaml').physical,
+  ).toContain('analytics.commerce.orders');
+  expect(
+    factsOf(await example('commerce', 'sales.ossie.yaml'), 'sales.ossie.yaml').sources,
+  ).toContain('analytics.commerce.orders');
+  expect(
+    factsOf(await example('commerce', 'commerce.owl.ttl'), 'commerce.owl.ttl').iris.length,
+  ).toBeGreaterThan(5);
+  expect(factsOf('not: [valid', 'x.yaml')).toEqual({
+    names: [],
+    refs: [],
+    iris: [],
+    physical: [],
+    sources: [],
+  });
 });
-test('evidence kinds: ossie-ref-name, shared-iri, odcs-physical-name; never similar names',()=>{
- const f=(project:string,path:string,facts:Partial<ReturnType<typeof factsOf>>)=>({project,path,hash:path,facts:{names:[],refs:[],iris:[],physical:[],sources:[],...facts}});
- const a=f('p','m.yaml',{refs:['Flights']}),b=f('q','o.yaml',{names:['Flights']});
- expect(evidenceBetween(a,b).map(e=>e.kind)).toEqual(['ossie-ref-name']);expect(evidenceBetween(b,a).map(e=>e.kind)).toEqual(['ossie-ref-name']);
- expect(evidenceBetween(f('p','x',{refs:['Flight']}),b)).toEqual([]);
- expect(evidenceBetween(f('p','x',{refs:['flights']}),b)).toEqual([]);
- expect(evidenceBetween(f('p','x',{names:['Flights semantic']}),b)).toEqual([]);
- expect(evidenceBetween(f('p','x',{iris:['https://e/A']}),f('q','y',{iris:['https://e/A','https://e/B']}))[0].kind).toBe('shared-iri');
- expect(evidenceBetween(f('p','x',{physical:['db.orders']}),f('q','y',{sources:['db.orders']}))[0].kind).toBe('odcs-physical-name');
- // q/o.yaml (alone) joins p, which already holds a related file; never the reverse.
- expect(inferSuggestions([a,b,f('p','sibling.yaml',{names:['Flights']})],new Set())).toEqual(
-  [{id:expect.any(String),file:{project:'q',path:'o.yaml',hash:'o.yaml'},targetProject:'p',evidence:expect.any(Array)}]);
- expect(inferSuggestions([a,b],new Set(),['q','p']).map(s=>s.file.path)).toEqual(['m.yaml']);
- expect(inferSuggestions([a,b],new Set(['o.yaml:p']),['p','q'])).toEqual([]);
+test('evidence kinds: ossie-ref-name, shared-iri, odcs-physical-name; never similar names', () => {
+  const f = (project: string, path: string, facts: Partial<ReturnType<typeof factsOf>>) => ({
+    project,
+    path,
+    hash: path,
+    facts: { names: [], refs: [], iris: [], physical: [], sources: [], ...facts },
+  });
+  const a = f('p', 'm.yaml', { refs: ['Flights'] }),
+    b = f('q', 'o.yaml', { names: ['Flights'] });
+  expect(evidenceBetween(a, b).map(e => e.kind)).toEqual(['ossie-ref-name']);
+  expect(evidenceBetween(b, a).map(e => e.kind)).toEqual(['ossie-ref-name']);
+  expect(evidenceBetween(f('p', 'x', { refs: ['Flight'] }), b)).toEqual([]);
+  expect(evidenceBetween(f('p', 'x', { refs: ['flights'] }), b)).toEqual([]);
+  expect(evidenceBetween(f('p', 'x', { names: ['Flights semantic'] }), b)).toEqual([]);
+  expect(
+    evidenceBetween(
+      f('p', 'x', { iris: ['https://e/A'] }),
+      f('q', 'y', { iris: ['https://e/A', 'https://e/B'] }),
+    )[0].kind,
+  ).toBe('shared-iri');
+  expect(
+    evidenceBetween(
+      f('p', 'x', { physical: ['db.orders'] }),
+      f('q', 'y', { sources: ['db.orders'] }),
+    )[0].kind,
+  ).toBe('odcs-physical-name');
+  // q/o.yaml (alone) joins p, which already holds a related file; never the reverse.
+  expect(
+    inferSuggestions([a, b, f('p', 'sibling.yaml', { names: ['Flights'] })], new Set()),
+  ).toEqual([
+    {
+      id: expect.any(String),
+      file: { project: 'q', path: 'o.yaml', hash: 'o.yaml' },
+      targetProject: 'p',
+      evidence: expect.any(Array),
+    },
+  ]);
+  expect(inferSuggestions([a, b], new Set(), ['q', 'p']).map(s => s.file.path)).toEqual(['m.yaml']);
+  expect(inferSuggestions([a, b], new Set(['o.yaml:p']), ['p', 'q'])).toEqual([]);
 });
-test('a file imported alone is offered to the project it references; accept moves it, reject is remembered',async()=>{
- const t=await testWorkspace();
- try{
-  await t.ws.importBatch({name:'Flights',files:await Promise.all(['flights.ontology.yaml','flights.semantic_model.yaml'].map(async path=>({path,source:await example('ossie',path)})))});
-  await t.ws.importBatch({files:[{path:'tpcds_semantic_model.yaml',source:await Bun.file('tests/fixtures/ossie-mapping/tpcds_semantic_model.yaml').text()}]});
-  expect(await(await api(t,'GET','/api/suggestions')).json()).toEqual([]);
-  const mapping=await t.ws.importBatch({files:[{path:'flights.mapping.yaml',source:await example('ossie','flights.mapping.yaml')}]});
-  const list=await(await api(t,'GET','/api/suggestions')).json();
-  expect(list).toHaveLength(1);expect(list[0]).toMatchObject({file:{project:mapping.slug,path:'flights.mapping.yaml'},targetProject:'flights'});
-  expect(list[0].evidence.map((e:any)=>e.kind)).toEqual(['ossie-ref-name','ossie-ref-name']);
-  expect(list[0].evidence[0].detail).toContain('"Flights"');
-  const accepted=await(await api(t,'POST',`/api/suggestions/${list[0].id}/accept`)).json();
-  expect(accepted).toEqual({project:'flights',path:'flights.mapping.yaml'});
-  expect(existsSync(join(t.root,'projects/flights/flights.mapping.yaml'))).toBe(true);
-  expect(await(await api(t,'GET','/api/suggestions')).json()).toEqual([]);
-  // Rejected: the same bytes are not offered to the same project again, even after a re-import.
-  const again=await t.ws.importBatch({name:'Separate',files:[{path:'flights.semantic_model.yaml',source:await example('ossie','flights.semantic_model.yaml')}]});
-  const offer=(await(await api(t,'GET','/api/suggestions')).json()).find((s:any)=>s.file.project===again.slug);
-  expect(offer.targetProject).toBe('flights');
-  expect((await api(t,'POST',`/api/suggestions/${offer.id}/reject`)).status).toBe(200);
-  expect(t.ws.state.suggestions().rejected).toMatchObject([{target:'flights',project:again.slug,path:'flights.semantic_model.yaml'}]);
-  await t.ws.trash.deleteProject(again.slug);
-  await t.ws.importBatch({name:'Separate again',files:[{path:'flights.semantic_model.yaml',source:await example('ossie','flights.semantic_model.yaml')}]});
-  expect(await(await api(t,'GET','/api/suggestions')).json()).toEqual([]);
-  expect((await api(t,'POST','/api/suggestions/0123456789abcdef0123/accept')).status).toBe(404);
- }finally{t.dispose();}
+test('a file imported alone is offered to the project it references; accept moves it, reject is remembered', async () => {
+  const t = await testWorkspace();
+  try {
+    await t.ws.importBatch({
+      name: 'Flights',
+      files: await Promise.all(
+        ['flights.ontology.yaml', 'flights.semantic_model.yaml'].map(async path => ({
+          path,
+          source: await example('ossie', path),
+        })),
+      ),
+    });
+    await t.ws.importBatch({
+      files: [
+        {
+          path: 'tpcds_semantic_model.yaml',
+          source: await Bun.file('tests/fixtures/ossie-mapping/tpcds_semantic_model.yaml').text(),
+        },
+      ],
+    });
+    expect(await (await api(t, 'GET', '/api/suggestions')).json()).toEqual([]);
+    const mapping = await t.ws.importBatch({
+      files: [
+        { path: 'flights.mapping.yaml', source: await example('ossie', 'flights.mapping.yaml') },
+      ],
+    });
+    const list = await (await api(t, 'GET', '/api/suggestions')).json();
+    expect(list).toHaveLength(1);
+    expect(list[0]).toMatchObject({
+      file: { project: mapping.slug, path: 'flights.mapping.yaml' },
+      targetProject: 'flights',
+    });
+    expect(list[0].evidence.map((e: any) => e.kind)).toEqual(['ossie-ref-name', 'ossie-ref-name']);
+    expect(list[0].evidence[0].detail).toContain('"Flights"');
+    const accepted = await (await api(t, 'POST', `/api/suggestions/${list[0].id}/accept`)).json();
+    expect(accepted).toEqual({ project: 'flights', path: 'flights.mapping.yaml' });
+    expect(existsSync(join(t.root, 'projects/flights/flights.mapping.yaml'))).toBe(true);
+    expect(await (await api(t, 'GET', '/api/suggestions')).json()).toEqual([]);
+    // Rejected: the same bytes are not offered to the same project again, even after a re-import.
+    const again = await t.ws.importBatch({
+      name: 'Separate',
+      files: [
+        {
+          path: 'flights.semantic_model.yaml',
+          source: await example('ossie', 'flights.semantic_model.yaml'),
+        },
+      ],
+    });
+    const offer = (await (await api(t, 'GET', '/api/suggestions')).json()).find(
+      (s: any) => s.file.project === again.slug,
+    );
+    expect(offer.targetProject).toBe('flights');
+    expect((await api(t, 'POST', `/api/suggestions/${offer.id}/reject`)).status).toBe(200);
+    expect(t.ws.state.suggestions().rejected).toMatchObject([
+      { target: 'flights', project: again.slug, path: 'flights.semantic_model.yaml' },
+    ]);
+    await t.ws.trash.deleteProject(again.slug);
+    await t.ws.importBatch({
+      name: 'Separate again',
+      files: [
+        {
+          path: 'flights.semantic_model.yaml',
+          source: await example('ossie', 'flights.semantic_model.yaml'),
+        },
+      ],
+    });
+    expect(await (await api(t, 'GET', '/api/suggestions')).json()).toEqual([]);
+    expect((await api(t, 'POST', '/api/suggestions/0123456789abcdef0123/accept')).status).toBe(404);
+  } finally {
+    t.dispose();
+  }
 });

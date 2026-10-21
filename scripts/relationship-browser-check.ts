@@ -1,29 +1,67 @@
-import {chromium} from '@playwright/test';
-import {startIsolatedApi,routeApi} from './helpers/isolated-api';
-import {example} from './helpers/examples';
-const browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1440,height:900}});
-const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
-const source=JSON.stringify({name:'Commerce',ontology:[{concept:'Customer',type:'EntityType',relationships:[{name:'places',multiplicity:'ManyToOne',description:'Customer places an order',roles:[{concept:'Order'}],verbalizes:['{Customer} places {Order}']}]},{concept:'Order',type:'EntityType'}]});
-const api=await startIsolatedApi({watch:false});await api.ws.importBatch({files:[{path:'commerce.yaml',source}]});
-const savedSource=()=>api.ws.documents().find(d=>d.filename==='commerce.yaml')?.source;
-await routeApi(page,api);
+import { chromium } from '@playwright/test';
+import { startIsolatedApi, routeApi } from './helpers/isolated-api';
+import { example } from './helpers/examples';
+const browser = await chromium.launch({ headless: true });
+const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+const errors: string[] = [];
+page.on('pageerror', e => errors.push(e.message));
+const source = JSON.stringify({
+  name: 'Commerce',
+  ontology: [
+    {
+      concept: 'Customer',
+      type: 'EntityType',
+      relationships: [
+        {
+          name: 'places',
+          multiplicity: 'ManyToOne',
+          description: 'Customer places an order',
+          roles: [{ concept: 'Order' }],
+          verbalizes: ['{Customer} places {Order}'],
+        },
+      ],
+    },
+    { concept: 'Order', type: 'EntityType' },
+  ],
+});
+const api = await startIsolatedApi({ watch: false });
+await api.ws.importBatch({ files: [{ path: 'commerce.yaml', source }] });
+const savedSource = () => api.ws.documents().find(d => d.filename === 'commerce.yaml')?.source;
+await routeApi(page, api);
 await page.goto('http://127.0.0.1:5173/');
-const edge=page.locator('.react-flow__edge').first();await edge.waitFor();
+const edge = page.locator('.react-flow__edge').first();
+await edge.waitFor();
 await page.waitForTimeout(600);
-const bounds=await edge.locator('.react-flow__edge-interaction').boundingBox();
-if(!bounds)throw Error('Missing edge hit area');
-await page.mouse.click(bounds.x+bounds.width/2,bounds.y+bounds.height/2);
-await page.getByRole('heading',{name:'places',exact:true}).waitFor();
-await page.getByText('ManyToOne',{exact:true}).waitFor();
+const bounds = await edge.locator('.react-flow__edge-interaction').boundingBox();
+if (!bounds) throw Error('Missing edge hit area');
+await page.mouse.click(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+await page.getByRole('heading', { name: 'places', exact: true }).waitFor();
+await page.getByText('ManyToOne', { exact: true }).waitFor();
 await page.getByLabel('Relationship description').fill('Updated relationship description');
-await page.getByRole('button',{name:'Save changes'}).click();
-await page.getByRole('status').filter({hasText:'Saved to the project folder'}).waitFor();
-if(!savedSource()?.includes('Updated relationship description'))throw Error('Relationship edit was not saved');
-await page.screenshot({path:'/tmp/semantic-workbench-relationship.png'});
-await (await example(page,/Load commerce scale data/)).click();
-await page.getByText('1000 entities · 5000 relationships',{exact:true}).waitFor({timeout:60000});
-await page.getByRole('button',{name:'Auto align',exact:true}).click();
-await page.waitForTimeout(1500);await page.getByRole('button',{name:'Auto align',exact:true}).waitFor({state:'visible',timeout:60000});
-if(!api.ws.documents().some(d=>d.filename==='commerce-scale.ttl'))throw Error('Example was not saved to workspace');
-console.log(JSON.stringify({relationshipSelection:true,relationshipEditSaved:true,exampleLoaded:'1000 entities / 5000 relationships',errors}));
-if(errors.length)throw Error(errors.join('\n'));await browser.close();await api.stop();
+await page.getByRole('button', { name: 'Save changes' }).click();
+await page.getByRole('status').filter({ hasText: 'Saved to the project folder' }).waitFor();
+if (!savedSource()?.includes('Updated relationship description'))
+  throw Error('Relationship edit was not saved');
+await page.screenshot({ path: '/tmp/semantic-workbench-relationship.png' });
+await (await example(page, /Load commerce scale data/)).click();
+await page
+  .getByText('1000 entities · 5000 relationships', { exact: true })
+  .waitFor({ timeout: 60000 });
+await page.getByRole('button', { name: 'Auto align', exact: true }).click();
+await page.waitForTimeout(1500);
+await page
+  .getByRole('button', { name: 'Auto align', exact: true })
+  .waitFor({ state: 'visible', timeout: 60000 });
+if (!api.ws.documents().some(d => d.filename === 'commerce-scale.ttl'))
+  throw Error('Example was not saved to workspace');
+console.log(
+  JSON.stringify({
+    relationshipSelection: true,
+    relationshipEditSaved: true,
+    exampleLoaded: '1000 entities / 5000 relationships',
+    errors,
+  }),
+);
+if (errors.length) throw Error(errors.join('\n'));
+await browser.close();
+await api.stop();

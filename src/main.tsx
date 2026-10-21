@@ -1,45 +1,62 @@
-import {ScrollStrip} from './ScrollStrip';
-import{GroupingControls}from'./GroupingControls';
-import{modelOverview}from'./overview';
-import{useGrouping}from'./useGrouping';
-import{CodeEditor,type CodeEditorHandle}from'./editor/CodeEditor';
-import{diffPatches,normalize}from'./editor/patch';
-import{validateInWorker}from'./editor/lint';
-import{useAutosave,saveStateLabel}from'./projects/autosave';
-import{CommitDialog}from'./scm/CommitDialog';
-import{api,loadWorkspace,StaleSave,type Doc,type ProjectInfo,type WorkspaceStatus,type Deleted,type Suggestion}from'./projects/api';
-import{useEvents}from'./projects/useEvents';
-import{ProjectTree,type TreeAction}from'./projects/Sidebar';
-import{DeleteDialog,type DeleteTarget}from'./projects/DeleteDialog';
-import{UndoToast}from'./projects/UndoToast';
-import{TrashDialog}from'./projects/Trash';
-import{Suggestions}from'./projects/Suggestions';
-import {MenuButton,type MenuItem} from './projects/Menu';
-import {ImportDialog} from './projects/ImportDialog';
-import {Modal} from './projects/Modal';
-import{RenameDialog,MoveDialog,ImportConflictDialog}from'./projects/ProjectDialogs';
-import{GitBanner}from'./projects/GitBanner';
-import{StaleSaveDialog}from'./projects/StaleSave';
-import{exampleSet}from'./projects/examples';
-import {NeighborhoodGraph} from './NeighborhoodGraph';
-import {MappingExplorer} from './MappingExplorer';
-import {MetricsView} from './metrics/MetricsView';
-import {MetricWizard} from './metrics/MetricWizard';
-import {ItemEditor,type Saved} from './edit/ItemEditor';
-import {AddItem} from './edit/AddItem';
-import {DeleteItem} from './edit/DeleteItem';
-import {RdfItemEditor} from './edit/RdfItemEditor';
-import {RdfAddItem,RdfDeleteItem} from './edit/RdfAddItem';
-import {isIri} from './edit/rdf-patch/index';
-import {rdfSyntax} from './rdf';
-import {itemKindAt,itemName,addableKinds,kindLabel,type ItemKind,type Path,type Choices} from './edit/item-model';
-import {itemValue} from './edit/yaml-patch';
-import {openFragment} from './edit/fragment';
-import type {KpiSummary} from '../server/agent/explain';
-import React, { useEffect, useMemo, useState, useRef, useReducer } from "react";
-import {walkReducer,emptyWalk,type WalkStep} from './graph/walk';
-import type {CrossFileTarget} from './NeighborhoodGraph';
-import { createRoot } from "react-dom/client";
+import { ScrollStrip } from './ScrollStrip';
+import { GroupingControls } from './GroupingControls';
+import { modelOverview } from './overview';
+import { useGrouping } from './useGrouping';
+import { CodeEditor, type CodeEditorHandle } from './editor/CodeEditor';
+import { diffPatches, normalize } from './editor/patch';
+import { validateInWorker } from './editor/lint';
+import { useAutosave, saveStateLabel } from './projects/autosave';
+import { CommitDialog } from './scm/CommitDialog';
+import {
+  api,
+  loadWorkspace,
+  StaleSave,
+  type Doc,
+  type ProjectInfo,
+  type WorkspaceStatus,
+  type Deleted,
+  type Suggestion,
+} from './projects/api';
+import { useEvents } from './projects/useEvents';
+import { ProjectTree, type TreeAction } from './projects/Sidebar';
+import { DeleteDialog, type DeleteTarget } from './projects/DeleteDialog';
+import { UndoToast } from './projects/UndoToast';
+import { TrashDialog } from './projects/Trash';
+import { Suggestions } from './projects/Suggestions';
+import { MenuButton, type MenuItem } from './projects/Menu';
+import { ImportDialog } from './projects/ImportDialog';
+import { Modal } from './projects/Modal';
+import { RenameDialog, MoveDialog, ImportConflictDialog } from './projects/ProjectDialogs';
+import { GitBanner } from './projects/GitBanner';
+import { StaleSaveDialog } from './projects/StaleSave';
+import { exampleSet } from './projects/examples';
+import { NeighborhoodGraph } from './NeighborhoodGraph';
+import { MappingExplorer } from './MappingExplorer';
+import { MetricsView } from './metrics/MetricsView';
+import { MetricWizard } from './metrics/MetricWizard';
+import { ItemEditor, type Saved } from './edit/ItemEditor';
+import { AddItem } from './edit/AddItem';
+import { DeleteItem } from './edit/DeleteItem';
+import { RdfItemEditor } from './edit/RdfItemEditor';
+import { RdfAddItem, RdfDeleteItem } from './edit/RdfAddItem';
+import { isIri } from './edit/rdf-patch/index';
+import { rdfSyntax } from './rdf';
+import {
+  itemKindAt,
+  itemName,
+  addableKinds,
+  kindLabel,
+  type ItemKind,
+  type Path,
+  type Choices,
+} from './edit/item-model';
+import { itemValue } from './edit/yaml-patch';
+import { openFragment } from './edit/fragment';
+import type { KpiSummary } from '../server/agent/explain';
+import React, { useEffect, useMemo, useState, useRef, useReducer } from 'react';
+import { walkReducer, emptyWalk, type WalkStep } from './graph/walk';
+import type { CrossFileTarget } from './NeighborhoodGraph';
+import { createRoot } from 'react-dom/client';
 import {
   Layers,
   Upload,
@@ -49,470 +66,1560 @@ import {
   FileCode,
   Box,
   CheckCircle2,
-  Menu, X, Braces, MoreHorizontal, PanelLeftClose, PanelLeftOpen, Focus, Gauge, Pencil, Plus, Trash2, GitBranch, FileCheck2, GitCommit as GitCommitIcon,
-} from "lucide-react";
-import {validateInput} from "./input";
-import {documentKeys,entityKeys} from './references';
-import type {Entity,Relationship} from './model';
-import type {Issue} from './diagnostics';
-import {SourceControl} from './scm/SourceControl';
-import {useFullscreen} from './graph/fullscreen';
-import {ContractOverview} from './odcs/ContractOverview';
-import {DatasetPage} from './odcs/DatasetPage';
-import {LineageCanvas} from './odcs/LineageCanvas';
-import {MappingCanvas} from './mappings/MappingCanvas';
-import {buildLineage,defaultCenter,type LineageCard} from './odcs/lineage';
-import {projectFiles,projectRevision} from './odcs/project-files';
-import {propertyEditor} from './odcs/PropertyEditors';
-import {isGitignore} from './scm/gitignore';
-import {scm as scmApi} from './projects/api';
-import {ValidationPanel, ImportRepair, type ImportDraft} from "./ValidationPanel";
-import { editEntity } from "./model";
-import {groupRelationships} from "./graph-view";
-import {exportDocument} from "./export";
-import {ModelOverview} from "./ModelOverview";
-import {FullGraph} from "./FullGraph";
-import "@xyflow/react/dist/style.css";
-import "./style.css";
+  Menu,
+  X,
+  Braces,
+  MoreHorizontal,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Focus,
+  Gauge,
+  Pencil,
+  Plus,
+  Trash2,
+  GitBranch,
+  FileCheck2,
+  GitCommit as GitCommitIcon,
+} from 'lucide-react';
+import { validateInput } from './input';
+import { documentKeys, entityKeys } from './references';
+import type { Entity, Relationship } from './model';
+import type { Issue } from './diagnostics';
+import { SourceControl } from './scm/SourceControl';
+import { useFullscreen } from './graph/fullscreen';
+import { ContractOverview } from './odcs/ContractOverview';
+import { DatasetPage } from './odcs/DatasetPage';
+import { LineageCanvas } from './odcs/LineageCanvas';
+import { MappingCanvas } from './mappings/MappingCanvas';
+import { buildLineage, defaultCenter, type LineageCard } from './odcs/lineage';
+import { projectFiles, projectRevision } from './odcs/project-files';
+import { propertyEditor } from './odcs/PropertyEditors';
+import { isGitignore } from './scm/gitignore';
+import { scm as scmApi } from './projects/api';
+import { ValidationPanel, ImportRepair, type ImportDraft } from './ValidationPanel';
+import { editEntity } from './model';
+import { groupRelationships } from './graph-view';
+import { exportDocument } from './export';
+import { ModelOverview } from './ModelOverview';
+import { FullGraph } from './FullGraph';
+import '@xyflow/react/dist/style.css';
+import './style.css';
 // Parsed project files, memoized by content hash: an automatic save of one file changes only that
 // file's entry, so other views never re-parse the whole project (FR-043 typing latency).
-const parsedDocs=new Map<string,{hash:string;model:ReturnType<typeof validateInput>['model'];keys:Set<string>}>();
-function parsedDoc(d:Doc){
-  const hit=parsedDocs.get(d.id);if(hit&&hit.hash===d.hash)return hit;
-  let model:ReturnType<typeof validateInput>['model']=null,keys=new Set<string>();
-  try{model=validateInput(d.source,d.filename).model;keys=documentKeys(model);}catch{}
-  const value={hash:d.hash,model,keys};parsedDocs.set(d.id,value);return value;
+const parsedDocs = new Map<
+  string,
+  { hash: string; model: ReturnType<typeof validateInput>['model']; keys: Set<string> }
+>();
+function parsedDoc(d: Doc) {
+  const hit = parsedDocs.get(d.id);
+  if (hit && hit.hash === d.hash) return hit;
+  let model: ReturnType<typeof validateInput>['model'] = null,
+    keys = new Set<string>();
+  try {
+    model = validateInput(d.source, d.filename).model;
+    keys = documentKeys(model);
+  } catch {}
+  const value = { hash: d.hash, model, keys };
+  parsedDocs.set(d.id, value);
+  return value;
 }
 const sample = `name: Commerce\nontology:\n  - concept: Customer\n    type: EntityType\n    description: A person who purchases products.\n    relationships:\n      - name: places\n        roles:\n          - concept: Order\n        verbalizes: ['{Customer} places {Order}']\n  - concept: Order\n    type: EntityType\n    description: A purchase made by a customer.\n    relationships:\n      - name: contains\n        roles:\n          - concept: Product\n        verbalizes: ['{Order} contains {Product}']\n  - concept: Product\n    type: EntityType\n    description: An item available for purchase.\n`;
-const clampSidebarWidth=(width:number)=>Math.max(220,Math.min(520,Math.round(width)));
-function readSidebarWidth(){
-  try{const stored=localStorage.getItem('workbench.sidebarWidth');const width=Number(stored);if(stored?.trim()&&Number.isFinite(width))return clampSidebarWidth(width);}catch{}
+const clampSidebarWidth = (width: number) => Math.max(220, Math.min(520, Math.round(width)));
+function readSidebarWidth() {
+  try {
+    const stored = localStorage.getItem('workbench.sidebarWidth');
+    const width = Number(stored);
+    if (stored?.trim() && Number.isFinite(width)) return clampSidebarWidth(width);
+  } catch {}
   return 300;
 }
 function App() {
   const [docs, setDocs] = useState<Doc[]>([]),
     [current, setCurrentState] = useState<Doc | null>(null),
-    [source, setSource] = useState(""),
-    [selected, setSelected] = useState(""),
-    [selectedEdge, setSelectedEdge] = useState(""),
-    [tab, setTabState] = useState("fullgraph"),
-    [search, setSearch] = useState(""),
-    [message, setMessage] = useState(""),
+    [source, setSource] = useState(''),
+    [selected, setSelected] = useState(''),
+    [selectedEdge, setSelectedEdge] = useState(''),
+    [tab, setTabState] = useState('fullgraph'),
+    [search, setSearch] = useState(''),
+    [message, setMessage] = useState(''),
     [busy, setBusy] = useState(false);
-  function setCurrent(next:Doc|null){if(next?.id!==current?.id)setMessage('');setCurrentState(next);}
-  // Switching views writes a due valid save first (FR-040 flush on view switch).
-  function setTab(next:string){setMessage('');void autosave.flush();setTabState(next==='graph'?'neighborhood':next);}
-  useEffect(()=>{if(!message)return;const timer=setTimeout(()=>setMessage(''),5000);return()=>clearTimeout(timer);},[message]);
-  const [pendingImport,setPendingImport]=useState<ImportDraft[]|null>(null);
-  const [projects,setProjects]=useState<ProjectInfo[]>([]),[status,setStatus]=useState<WorkspaceStatus|null>(null);
-  const [stale,setStale]=useState<{current:string|null;currentHash:string|null}|null>(null);
-  const [deleteTarget,setDeleteTarget]=useState<DeleteTarget|null>(null),[deleted,setDeleted]=useState<Deleted|null>(null),[trashOpen,setTrashOpen]=useState(false),[trashVersion,setTrashVersion]=useState(0);
-  const [renaming,setRenaming]=useState<ProjectInfo|null>(null),[moving,setMoving]=useState<{project:string;path:string}|null>(null),[suggestions,setSuggestions]=useState<Suggestion[]>([]);
-  const [importConflict,setImportConflict]=useState<{project:ProjectInfo;files:{path:string;source:string}[];conflicts:string[]}|null>(null);
-  const importInto=useRef<string>(''),importInput=useRef<HTMLInputElement|null>(null);
-  const docsRef=useRef(new Map<string,Doc>()),currentRef=useRef<Doc|null>(null),sourceRef=useRef('');
-  currentRef.current=current;sourceRef.current=source;
-  const [showValidation,setShowValidation]=useState(false);
-  // View definition (FR-060): the item's full definition as read, in a dialog.
-  const [definition,setDefinition]=useState<{title:string;value:unknown}|null>(null);
-  const [importing,setImporting]=useState<{project?:string}|null>(null);
-  const grouping=useGrouping(current?.id);
-  // metrics of the open file's project, for the Metrics tab and the metric badges on concepts.
-  const [kpis,setKpis]=useState<KpiSummary[]>([]),[kpiError,setKpiError]=useState(''),[kpiLoading,setKpiLoading]=useState(false),[selectedKpi,setSelectedKpi]=useState(''),[kpiFilter,setKpiFilter]=useState('');
-  const kpiProject=current?.project??null,kpiRevision=docs.filter(d=>d.project===kpiProject).map(d=>d.path+':'+d.hash).join('|');
-  useEffect(()=>{if(!kpiProject){setKpis([]);return;}let live=true;setKpiLoading(true);api.metrics(kpiProject).then(k=>{if(live){setKpis(k);setKpiError('');}}).catch(e=>{if(live){setKpis([]);setKpiError(e.message);}}).finally(()=>{if(live)setKpiLoading(false);});return()=>{live=false;};},[kpiProject,kpiRevision]);
-  useEffect(()=>setSelectedKpi(''),[kpiProject]);
-  const kpiBadges=useMemo(()=>{const map=new Map<string,string[]>();for(const k of kpis)for(const c of k.concepts){const name=c.concept??c.input;const list=map.get(name)??[];if(!list.includes(k.label))list.push(k.label);map.set(name,list);}return map;},[kpis]);
-  const sourceEditor=useRef<CodeEditorHandle|null>(null);
-  // Neighborhood walk across centers and files (FR-037).
-  const [walk,dispatchWalk]=useReducer(walkReducer,emptyWalk);
-  const walkStep=walk.steps[walk.index],neighborhoodFocus=walkStep&&walkStep.doc===current?.id?walkStep.center:'';
-  const setNeighborhoodFocus=(id:string)=>{if(id&&current)dispatchWalk({type:'push',step:{doc:current.id,center:id,name:model?.entities.find(e=>e.id===id)?.name??id}});};
-  const [compact,setCompact]=useState(()=>window.innerWidth<1100);
-  const [drawerOpen,setSidebarOpen]=useState(false);
-  const [sidebarHidden,setSidebarHidden]=useState(()=>{try{return localStorage.getItem('workbench.sidebarHidden')==='true';}catch{return false;}});
-  const sidebarOpen=compact?drawerOpen:!sidebarHidden;
-  const [sidebarWidth,setSidebarWidth]=useState(readSidebarWidth);
-  const [resizingSidebar,setResizingSidebar]=useState(false);
-  const sidebarDrag=useRef<{pointerId:number;x:number;width:number}|null>(null);
-  const [examplesChoice,setExamplesChoice]=useState<boolean|null>(null);
-  const examplesOpen=examplesChoice??projects.length===0;
-  useEffect(()=>{try{localStorage.setItem('workbench.sidebarWidth',String(sidebarWidth));}catch{}},[sidebarWidth]);
-  useEffect(()=>{try{localStorage.setItem('workbench.sidebarHidden',String(sidebarHidden));}catch{}},[sidebarHidden]);
-  useEffect(()=>{if(compact||!sidebarOpen){sidebarDrag.current=null;setResizingSidebar(false);}},[compact,sidebarOpen]);
-  const sidebarRef=useRef<HTMLElement|null>(null),workspaceToggle=useRef<HTMLButtonElement|null>(null);
-  useEffect(()=>{const media=window.matchMedia('(max-width: 1099px)');const change=()=>{setCompact(media.matches);setSidebarOpen(false);};media.addEventListener('change',change);return()=>media.removeEventListener('change',change)},[]);
-  function closeWorkspace(){setSidebarOpen(false);requestAnimationFrame(()=>workspaceToggle.current?.focus());}
-  useEffect(()=>{
-    if(!compact||!sidebarOpen)return;
-    const el=sidebarRef.current;if(!el)return;
-    const focusable=()=>Array.from(el.querySelectorAll<HTMLElement>('button:not([disabled]),input:not([disabled]),select:not([disabled]),summary,[tabindex="0"]')).filter(node=>node.getClientRects().length>0);
-    focusable()[0]?.focus();
-    const keyboard=(event:KeyboardEvent)=>{if(event.key==='Escape'){event.preventDefault();closeWorkspace();}else if(event.key==='Tab'){const nodes=focusable(),first=nodes[0],last=nodes.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}};
-    el.addEventListener('keydown',keyboard);return()=>el.removeEventListener('keydown',keyboard);
-  },[compact,sidebarOpen]);
-  // The folder store is the source of truth: refetch on start and whenever the server reports a change.
-  const refreshing=useRef<Promise<Doc[]>|null>(null),again=useRef(false);
-  async function refresh():Promise<Doc[]>{
-    if(refreshing.current){again.current=true;return refreshing.current;}
-    const run=(async()=>{
-      try{
-        const loaded=await loadWorkspace(docsRef.current);
-        docsRef.current=new Map(loaded.docs.map(d=>[d.id,d]));
-        setProjects(loaded.projects);setDocs(loaded.docs);
-        // An open file that changed on disk follows the disk unless it has unsaved edits.
-        const open=currentRef.current,fresh=open&&docsRef.current.get(open.id);
-        if(open&&fresh&&fresh.hash!==open.hash&&sourceRef.current===open.source){setCurrent(fresh);setSource(fresh.source);}
-        // The open file was deleted, moved or cleared: open another one unless it has unsaved edits.
-        if(open&&!fresh&&sourceRef.current===open.source){const next=loaded.docs[0]??null;setCurrent(next);setSource(next?.source??'');setSelected('');setSelectedEdge('');setNeighborhoodFocus('');}
-        api.suggestions().then(setSuggestions).catch(()=>{});
-        return loaded.docs;
-      }finally{refreshing.current=null;if(again.current){again.current=false;void refresh();}}
-    })();
-    refreshing.current=run;return run;
+  function setCurrent(next: Doc | null) {
+    if (next?.id !== current?.id) setMessage('');
+    setCurrentState(next);
   }
-  const refreshTimer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined);
-  const [gitVersion,setGitVersion]=useState(0);
-  useEvents(event=>{if(event==='trash')setTrashVersion(v=>v+1);if(event==='git'||event==='files'||event==='resync')setGitVersion(v=>v+1);clearTimeout(refreshTimer.current);refreshTimer.current=setTimeout(()=>{void refresh().catch(()=>{});},80);});
-  useEffect(() => {
-    api.status().then(setStatus).catch(()=>{});
-    refresh()
-      .then((d) => { if (d[0]) open(d[0]); })
-      .catch(() => setMessage("Cannot reach local API"));
-  }, []);
-  function open(d: Doc):boolean {
+  // Switching views writes a due valid save first (FR-040 flush on view switch).
+  function setTab(next: string) {
     setMessage('');
-    if(current?.id===d.id){if(compact)closeWorkspace();return true;}
-    if(current&&source!==current.source)void leaveCurrent();
+    void autosave.flush();
+    setTabState(next === 'graph' ? 'neighborhood' : next);
+  }
+  useEffect(() => {
+    if (!message) return;
+    const timer = setTimeout(() => setMessage(''), 5000);
+    return () => clearTimeout(timer);
+  }, [message]);
+  const [pendingImport, setPendingImport] = useState<ImportDraft[] | null>(null);
+  const [projects, setProjects] = useState<ProjectInfo[]>([]),
+    [status, setStatus] = useState<WorkspaceStatus | null>(null);
+  const [stale, setStale] = useState<{ current: string | null; currentHash: string | null } | null>(
+    null,
+  );
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null),
+    [deleted, setDeleted] = useState<Deleted | null>(null),
+    [trashOpen, setTrashOpen] = useState(false),
+    [trashVersion, setTrashVersion] = useState(0);
+  const [renaming, setRenaming] = useState<ProjectInfo | null>(null),
+    [moving, setMoving] = useState<{ project: string; path: string } | null>(null),
+    [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [importConflict, setImportConflict] = useState<{
+    project: ProjectInfo;
+    files: { path: string; source: string }[];
+    conflicts: string[];
+  } | null>(null);
+  const importInto = useRef<string>(''),
+    importInput = useRef<HTMLInputElement | null>(null);
+  const docsRef = useRef(new Map<string, Doc>()),
+    currentRef = useRef<Doc | null>(null),
+    sourceRef = useRef('');
+  currentRef.current = current;
+  sourceRef.current = source;
+  const [showValidation, setShowValidation] = useState(false);
+  // View definition (FR-060): the item's full definition as read, in a dialog.
+  const [definition, setDefinition] = useState<{ title: string; value: unknown } | null>(null);
+  const [importing, setImporting] = useState<{ project?: string } | null>(null);
+  const grouping = useGrouping(current?.id);
+  // metrics of the open file's project, for the Metrics tab and the metric badges on concepts.
+  const [kpis, setKpis] = useState<KpiSummary[]>([]),
+    [kpiError, setKpiError] = useState(''),
+    [kpiLoading, setKpiLoading] = useState(false),
+    [selectedKpi, setSelectedKpi] = useState(''),
+    [kpiFilter, setKpiFilter] = useState('');
+  const kpiProject = current?.project ?? null,
+    kpiRevision = docs
+      .filter(d => d.project === kpiProject)
+      .map(d => d.path + ':' + d.hash)
+      .join('|');
+  useEffect(() => {
+    if (!kpiProject) {
+      setKpis([]);
+      return;
+    }
+    let live = true;
+    setKpiLoading(true);
+    api
+      .metrics(kpiProject)
+      .then(k => {
+        if (live) {
+          setKpis(k);
+          setKpiError('');
+        }
+      })
+      .catch(e => {
+        if (live) {
+          setKpis([]);
+          setKpiError(e.message);
+        }
+      })
+      .finally(() => {
+        if (live) setKpiLoading(false);
+      });
+    return () => {
+      live = false;
+    };
+  }, [kpiProject, kpiRevision]);
+  useEffect(() => setSelectedKpi(''), [kpiProject]);
+  const kpiBadges = useMemo(() => {
+    const map = new Map<string, string[]>();
+    for (const k of kpis)
+      for (const c of k.concepts) {
+        const name = c.concept ?? c.input;
+        const list = map.get(name) ?? [];
+        if (!list.includes(k.label)) list.push(k.label);
+        map.set(name, list);
+      }
+    return map;
+  }, [kpis]);
+  const sourceEditor = useRef<CodeEditorHandle | null>(null);
+  // Neighborhood walk across centers and files (FR-037).
+  const [walk, dispatchWalk] = useReducer(walkReducer, emptyWalk);
+  const walkStep = walk.steps[walk.index],
+    neighborhoodFocus = walkStep && walkStep.doc === current?.id ? walkStep.center : '';
+  const setNeighborhoodFocus = (id: string) => {
+    if (id && current)
+      dispatchWalk({
+        type: 'push',
+        step: {
+          doc: current.id,
+          center: id,
+          name: model?.entities.find(e => e.id === id)?.name ?? id,
+        },
+      });
+  };
+  const [compact, setCompact] = useState(() => window.innerWidth < 1100);
+  const [drawerOpen, setSidebarOpen] = useState(false);
+  const [sidebarHidden, setSidebarHidden] = useState(() => {
+    try {
+      return localStorage.getItem('workbench.sidebarHidden') === 'true';
+    } catch {
+      return false;
+    }
+  });
+  const sidebarOpen = compact ? drawerOpen : !sidebarHidden;
+  const [sidebarWidth, setSidebarWidth] = useState(readSidebarWidth);
+  const [resizingSidebar, setResizingSidebar] = useState(false);
+  const sidebarDrag = useRef<{ pointerId: number; x: number; width: number } | null>(null);
+  const [examplesChoice, setExamplesChoice] = useState<boolean | null>(null);
+  const examplesOpen = examplesChoice ?? projects.length === 0;
+  useEffect(() => {
+    try {
+      localStorage.setItem('workbench.sidebarWidth', String(sidebarWidth));
+    } catch {}
+  }, [sidebarWidth]);
+  useEffect(() => {
+    try {
+      localStorage.setItem('workbench.sidebarHidden', String(sidebarHidden));
+    } catch {}
+  }, [sidebarHidden]);
+  useEffect(() => {
+    if (compact || !sidebarOpen) {
+      sidebarDrag.current = null;
+      setResizingSidebar(false);
+    }
+  }, [compact, sidebarOpen]);
+  const sidebarRef = useRef<HTMLElement | null>(null),
+    workspaceToggle = useRef<HTMLButtonElement | null>(null);
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 1099px)');
+    const change = () => {
+      setCompact(media.matches);
+      setSidebarOpen(false);
+    };
+    media.addEventListener('change', change);
+    return () => media.removeEventListener('change', change);
+  }, []);
+  function closeWorkspace() {
+    setSidebarOpen(false);
+    requestAnimationFrame(() => workspaceToggle.current?.focus());
+  }
+  useEffect(() => {
+    if (!compact || !sidebarOpen) return;
+    const el = sidebarRef.current;
+    if (!el) return;
+    const focusable = () =>
+      Array.from(
+        el.querySelectorAll<HTMLElement>(
+          'button:not([disabled]),input:not([disabled]),select:not([disabled]),summary,[tabindex="0"]',
+        ),
+      ).filter(node => node.getClientRects().length > 0);
+    focusable()[0]?.focus();
+    const keyboard = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeWorkspace();
+      } else if (event.key === 'Tab') {
+        const nodes = focusable(),
+          first = nodes[0],
+          last = nodes.at(-1);
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first?.focus();
+        }
+      }
+    };
+    el.addEventListener('keydown', keyboard);
+    return () => el.removeEventListener('keydown', keyboard);
+  }, [compact, sidebarOpen]);
+  // The folder store is the source of truth: refetch on start and whenever the server reports a change.
+  const refreshing = useRef<Promise<Doc[]> | null>(null),
+    again = useRef(false);
+  async function refresh(): Promise<Doc[]> {
+    if (refreshing.current) {
+      again.current = true;
+      return refreshing.current;
+    }
+    const run = (async () => {
+      try {
+        const loaded = await loadWorkspace(docsRef.current);
+        docsRef.current = new Map(loaded.docs.map(d => [d.id, d]));
+        setProjects(loaded.projects);
+        setDocs(loaded.docs);
+        // An open file that changed on disk follows the disk unless it has unsaved edits.
+        const open = currentRef.current,
+          fresh = open && docsRef.current.get(open.id);
+        if (open && fresh && fresh.hash !== open.hash && sourceRef.current === open.source) {
+          setCurrent(fresh);
+          setSource(fresh.source);
+        }
+        // The open file was deleted, moved or cleared: open another one unless it has unsaved edits.
+        if (open && !fresh && sourceRef.current === open.source) {
+          const next = loaded.docs[0] ?? null;
+          setCurrent(next);
+          setSource(next?.source ?? '');
+          setSelected('');
+          setSelectedEdge('');
+          setNeighborhoodFocus('');
+        }
+        api
+          .suggestions()
+          .then(setSuggestions)
+          .catch(() => {});
+        return loaded.docs;
+      } finally {
+        refreshing.current = null;
+        if (again.current) {
+          again.current = false;
+          void refresh();
+        }
+      }
+    })();
+    refreshing.current = run;
+    return run;
+  }
+  const refreshTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const [gitVersion, setGitVersion] = useState(0);
+  useEvents(event => {
+    if (event === 'trash') setTrashVersion(v => v + 1);
+    if (event === 'git' || event === 'files' || event === 'resync') setGitVersion(v => v + 1);
+    clearTimeout(refreshTimer.current);
+    refreshTimer.current = setTimeout(() => {
+      void refresh().catch(() => {});
+    }, 80);
+  });
+  useEffect(() => {
+    api
+      .status()
+      .then(setStatus)
+      .catch(() => {});
+    refresh()
+      .then(d => {
+        if (d[0]) open(d[0]);
+      })
+      .catch(() => setMessage('Cannot reach local API'));
+  }, []);
+  function open(d: Doc): boolean {
+    setMessage('');
+    if (current?.id === d.id) {
+      if (compact) closeWorkspace();
+      return true;
+    }
+    if (current && source !== current.source) void leaveCurrent();
     setCurrent(d);
     setSource(d.source);
     void restoreDraft(d);
-    setNeighborhoodFocus('');if(compact)closeWorkspace();
-    setSelected("");
-    setSelectedEdge("");
-    setSearch("");
-    if(tab!=='neighborhood'&&validateInput(d.source,d.filename).model?.kind==='Ossie mappings')setTab('mappings');
+    setNeighborhoodFocus('');
+    if (compact) closeWorkspace();
+    setSelected('');
+    setSelectedEdge('');
+    setSearch('');
+    if (
+      tab !== 'neighborhood' &&
+      validateInput(d.source, d.filename).model?.kind === 'Ossie mappings'
+    )
+      setTab('mappings');
     return true;
   }
   // A draft kept for this file (invalid or not yet saved text) comes back when the file opens.
-  async function restoreDraft(d:Doc){
-    try{const r=await fetch(`/api/drafts/${encodeURIComponent(d.project)}/${d.path.split('/').map(encodeURIComponent).join('/')}`);if(!r.ok)return;const draft=await r.json();
-      if(currentRef.current?.id===d.id&&sourceRef.current===d.source&&typeof draft.text==='string'){draftOf.current={project:d.project,path:d.path};if(draft.text===d.source){void scmApi.deleteDraft(d.project,d.path).catch(()=>{});return;}setSource(draft.text);setMessage(`Restored unsaved edits to ${d.path} from a draft.`);}}catch{}
+  async function restoreDraft(d: Doc) {
+    try {
+      const r = await fetch(
+        `/api/drafts/${encodeURIComponent(d.project)}/${d.path.split('/').map(encodeURIComponent).join('/')}`,
+      );
+      if (!r.ok) return;
+      const draft = await r.json();
+      if (
+        currentRef.current?.id === d.id &&
+        sourceRef.current === d.source &&
+        typeof draft.text === 'string'
+      ) {
+        draftOf.current = { project: d.project, path: d.path };
+        if (draft.text === d.source) {
+          void scmApi.deleteDraft(d.project, d.path).catch(() => {});
+          return;
+        }
+        setSource(draft.text);
+        setMessage(`Restored unsaved edits to ${d.path} from a draft.`);
+      }
+    } catch {}
   }
   // While typing in Source, findings come from the editor's validation worker (after a 300 ms pause)
   // and the whole model is rebuilt only when another view needs it, so keystrokes never wait for a
   // parse on the main thread (FR-045). A newly opened file is checked at once.
-  const [settled,setSettled]=useState({id:current?.id,text:source});
-  const [editorIssues,setEditorIssues]=useState<{id?:string;issues:Issue[];text?:string}|null>(null);
-  const editorIssuesRef=useRef(editorIssues);editorIssuesRef.current=editorIssues;
-  useEffect(()=>{if(tab!=='source'||settled.id!==current?.id)setSettled({id:current?.id,text:source});},[source,tab,current?.id]);
-  const checkedSource=tab==='source'&&settled.id===current?.id?settled.text:source;
-  const plainText=!!current&&isGitignore(current.filename);
-  const checked = useMemo(()=>plainText?{valid:true as const,model:null,issues:[] as Issue[]}:validateInput(checkedSource,current?.filename??'definition.yaml'),[checkedSource,current?.filename,plainText]);
-  const live=tab==='source'&&checkedSource!==source&&editorIssues?.id===current?.id?editorIssues!.issues:null;
-  const validation=live?{...checked,issues:live,valid:!live.some(i=>i.severity==='error')}:checked;
-  const result = {model:validation.model,error:(source||current)&&!validation.valid?validation.issues.filter(i=>i.severity==='error').map(i=>i.message).join('\n'):''};
+  const [settled, setSettled] = useState({ id: current?.id, text: source });
+  const [editorIssues, setEditorIssues] = useState<{
+    id?: string;
+    issues: Issue[];
+    text?: string;
+  } | null>(null);
+  const editorIssuesRef = useRef(editorIssues);
+  editorIssuesRef.current = editorIssues;
+  useEffect(() => {
+    if (tab !== 'source' || settled.id !== current?.id)
+      setSettled({ id: current?.id, text: source });
+  }, [source, tab, current?.id]);
+  const checkedSource = tab === 'source' && settled.id === current?.id ? settled.text : source;
+  const plainText = !!current && isGitignore(current.filename);
+  const checked = useMemo(
+    () =>
+      plainText
+        ? { valid: true as const, model: null, issues: [] as Issue[] }
+        : validateInput(checkedSource, current?.filename ?? 'definition.yaml'),
+    [checkedSource, current?.filename, plainText],
+  );
+  const live =
+    tab === 'source' && checkedSource !== source && editorIssues?.id === current?.id
+      ? editorIssues!.issues
+      : null;
+  const validation = live
+    ? { ...checked, issues: live, valid: !live.some(i => i.severity === 'error') }
+    : checked;
+  const result = {
+    model: validation.model,
+    error:
+      (source || current) && !validation.valid
+        ? validation.issues
+            .filter(i => i.severity === 'error')
+            .map(i => i.message)
+            .join('\n')
+        : '',
+  };
   const model = result.model;
 
   // ODCS contract overview and dataset pages (Phase 9): the object whose page is open, per document.
-  const isContract=model?.kind==='ODCS';
+  const isContract = model?.kind === 'ODCS';
   // Mapping documents and consolidated files (embedded ontology_mappings) get the mapping canvas
   // on the Graph tab (FR-028, FR-034); a consolidated file can switch to its ontology graph.
-  const isMappingDoc=model?.kind==='Ossie mappings',isConsolidated=!isMappingDoc&&Array.isArray((model as any)?.document?.ontology_mappings)&&(model as any).document.ontology_mappings.length>0;
-  const [mappingView,setMappingView]=useState<'mapping'|'ontology'>('mapping');
-  useEffect(()=>setMappingView('mapping'),[current?.id]);
-  const mappingId=current&&(isMappingDoc||isConsolidated)?(isMappingDoc?current.id:`${current.id}#ontology_mappings/0`):'';
-  const graphViewSwitch=isConsolidated?<span className="graph-view-switch" role="group" aria-label="Graph view">{(['mapping','ontology'] as const).map(v=><button key={v} aria-pressed={mappingView===v} onClick={()=>setMappingView(v)}>{v==='mapping'?'Mapping graph':'Ontology graph'}</button>)}</span>:null;
-  const [contractObject,setContractObject]=useState<string|null>(null);
+  const isMappingDoc = model?.kind === 'Ossie mappings',
+    isConsolidated =
+      !isMappingDoc &&
+      Array.isArray((model as any)?.document?.ontology_mappings) &&
+      (model as any).document.ontology_mappings.length > 0;
+  const [mappingView, setMappingView] = useState<'mapping' | 'ontology'>('mapping');
+  useEffect(() => setMappingView('mapping'), [current?.id]);
+  const mappingId =
+    current && (isMappingDoc || isConsolidated)
+      ? isMappingDoc
+        ? current.id
+        : `${current.id}#ontology_mappings/0`
+      : '';
+  const graphViewSwitch = isConsolidated ? (
+    <span className="graph-view-switch" role="group" aria-label="Graph view">
+      {(['mapping', 'ontology'] as const).map(v => (
+        <button key={v} aria-pressed={mappingView === v} onClick={() => setMappingView(v)}>
+          {v === 'mapping' ? 'Mapping graph' : 'Ontology graph'}
+        </button>
+      ))}
+    </span>
+  ) : null;
+  const [contractObject, setContractObject] = useState<string | null>(null);
   // Column-level lineage of the open contract (FR-001), built from the project's saved files.
-  const lineageDocs=isContract&&current?docs.filter(d=>d.project===current.project):[];
-  const lineageRev=isContract&&current?projectRevision(lineageDocs):'';
-  const lineage=useMemo(()=>isContract&&current?buildLineage(projectFiles(lineageDocs),current.path,lineageRev):null,[isContract,current?.project,current?.path,lineageRev]);
-  const lineageKey=current?`workbench:lineage-center:${current.id}`:'';
-  const [lineageCenter,setLineageCenter]=useState('');
-  useEffect(()=>{if(!lineage){setLineageCenter('');return;}let stored='';try{stored=localStorage.getItem(lineageKey)??'';}catch{}setLineageCenter(lineage.cards.has(stored)?stored:defaultCenter(lineage));},[lineage?.contract,current?.id,!!lineage]);
+  const lineageDocs = isContract && current ? docs.filter(d => d.project === current.project) : [];
+  const lineageRev = isContract && current ? projectRevision(lineageDocs) : '';
+  const lineage = useMemo(
+    () =>
+      isContract && current
+        ? buildLineage(projectFiles(lineageDocs), current.path, lineageRev)
+        : null,
+    [isContract, current?.project, current?.path, lineageRev],
+  );
+  const lineageKey = current ? `workbench:lineage-center:${current.id}` : '';
+  const [lineageCenter, setLineageCenter] = useState('');
+  useEffect(() => {
+    if (!lineage) {
+      setLineageCenter('');
+      return;
+    }
+    let stored = '';
+    try {
+      stored = localStorage.getItem(lineageKey) ?? '';
+    } catch {}
+    setLineageCenter(lineage.cards.has(stored) ? stored : defaultCenter(lineage));
+  }, [lineage?.contract, current?.id, !!lineage]);
   // The stored centre belongs to the previous contract for one render after switching files.
-  const lineageCenterId=lineage?(lineage.cards.has(lineageCenter)?lineageCenter:defaultCenter(lineage)):'';
-  const lineageShown=tab==='fullgraph'&&((isContract&&!!lineage&&!!lineageCenterId)||(!!mappingId&&mappingView==='mapping'));
-  function lineageCenterChanged(id:string){try{localStorage.setItem(lineageKey,id);}catch{}}
-  function openInLineage(name:string){if(!lineage||!current)return;const id=`object:${current.path}#${name}`;try{localStorage.setItem(lineageKey,id);}catch{}setLineageCenter(id);setTab('fullgraph');}
-  // Walking into a semantic model or metric continues in that file's Neighborhood (FR-009).
-  function continueInNeighborhood(card:LineageCard){
-    const d=docs.find(x=>x.project===current?.project&&x.path===card.file);if(!d||!open(d))return;
-    const name=card.kind==='metric'?card.id.slice(card.id.lastIndexOf('/')+1):card.label;
-    const target=parsedDoc(d).model?.entities.find(e=>e.name===name&&(e.kind==='Dataset'||e.kind==='Metric'));
-    setTab('neighborhood');if(target){dispatchWalk({type:'push',step:{doc:d.id,center:target.id,name:target.name}});setSelected(target.id);}
+  const lineageCenterId = lineage
+    ? lineage.cards.has(lineageCenter)
+      ? lineageCenter
+      : defaultCenter(lineage)
+    : '';
+  const lineageShown =
+    tab === 'fullgraph' &&
+    ((isContract && !!lineage && !!lineageCenterId) || (!!mappingId && mappingView === 'mapping'));
+  function lineageCenterChanged(id: string) {
+    try {
+      localStorage.setItem(lineageKey, id);
+    } catch {}
   }
-  useEffect(()=>setContractObject(null),[current?.id]);
-  useEffect(()=>{if(tab==='contract'&&model&&!isContract)setTab('fullgraph');},[tab,isContract,!!model]);
-  const groupingOverview=useMemo(()=>model?modelOverview(model.entities,model.edges,model.name,false,grouping.value):null,[model,grouping.value]);
-  const entity = model?.entities.find((e) => e.id === selected);
+  function openInLineage(name: string) {
+    if (!lineage || !current) return;
+    const id = `object:${current.path}#${name}`;
+    try {
+      localStorage.setItem(lineageKey, id);
+    } catch {}
+    setLineageCenter(id);
+    setTab('fullgraph');
+  }
+  // Walking into a semantic model or metric continues in that file's Neighborhood (FR-009).
+  function continueInNeighborhood(card: LineageCard) {
+    const d = docs.find(x => x.project === current?.project && x.path === card.file);
+    if (!d || !open(d)) return;
+    const name = card.kind === 'metric' ? card.id.slice(card.id.lastIndexOf('/') + 1) : card.label;
+    const target = parsedDoc(d).model?.entities.find(
+      e => e.name === name && (e.kind === 'Dataset' || e.kind === 'Metric'),
+    );
+    setTab('neighborhood');
+    if (target) {
+      dispatchWalk({ type: 'push', step: { doc: d.id, center: target.id, name: target.name } });
+      setSelected(target.id);
+    }
+  }
+  useEffect(() => setContractObject(null), [current?.id]);
+  useEffect(() => {
+    if (tab === 'contract' && model && !isContract) setTab('fullgraph');
+  }, [tab, isContract, !!model]);
+  const groupingOverview = useMemo(
+    () =>
+      model ? modelOverview(model.entities, model.edges, model.name, false, grouping.value) : null,
+    [model, grouping.value],
+  );
+  const entity = model?.entities.find(e => e.id === selected);
   // Other documents only: the open file's own identities are never looked up here.
-  const documentIdentities=useMemo(()=>new Map(docs.filter(d=>d.id!==current?.id).map(d=>[d.id,parsedDoc(d).keys])),[docs,current?.id]);
-  const relatedDocuments=useMemo(()=>{
-    if(!entity?.definition)return [];
-    const keys=entityKeys(entity,model);
-    return docs.filter(d=>d.id!==current?.id&&keys.some((key:string)=>documentIdentities.get(d.id)?.has(key)||d.source.includes(key)));
-  },[entity,model,docs,documentIdentities,current?.id]);
+  const documentIdentities = useMemo(
+    () => new Map(docs.filter(d => d.id !== current?.id).map(d => [d.id, parsedDoc(d).keys])),
+    [docs, current?.id],
+  );
+  const relatedDocuments = useMemo(() => {
+    if (!entity?.definition) return [];
+    const keys = entityKeys(entity, model);
+    return docs.filter(
+      d =>
+        d.id !== current?.id &&
+        keys.some(
+          (key: string) => documentIdentities.get(d.id)?.has(key) || d.source.includes(key),
+        ),
+    );
+  }, [entity, model, docs, documentIdentities, current?.id]);
   const relationship = model?.edges.find(e => e.id === selectedEdge);
-  const globalGroups=useMemo(()=>groupRelationships(model?.edges??[]),[model]);
-  const activeGroup=globalGroups.find(e=>e.data.relationships.some(r=>r.id===selectedEdge));
+  const globalGroups = useMemo(() => groupRelationships(model?.edges ?? []), [model]);
+  const activeGroup = globalGroups.find(e => e.data.relationships.some(r => r.id === selectedEdge));
   // Other files of the project that define the same thing: a shared IRI, physical name or business
   // definition, or an Ossie concept mapping and the ontology concept it maps (FR-037).
-  const projectModels=useMemo(()=>new Map(docs.filter(d=>d.project===current?.project&&d.id!==current?.id).flatMap(d=>{try{const m=parsedDoc(d).model;return m?[[d.id,m] as const]:[];}catch{return [];}})),[docs,current?.project,current?.id]);
-  const conceptKinds=new Set(['EntityType','ValueType','Built-in concept','OWL class']);
-  function crossFile(e:Entity):CrossFileTarget[]{
-    const keys=new Set(entityKeys(e,model)),out:CrossFileTarget[]=[];
-    for(const [id,m] of projectModels){const d=docsRef.current.get(id);if(!d)continue;
-      const hit=m.entities.find(x=>entityKeys(x,m).some(k=>keys.has(k)));
-      const mapped=!hit&&(e.kind==='Concept mapping'?m.entities.find(x=>x.name===e.name&&conceptKinds.has(x.kind)):conceptKinds.has(e.kind)?m.entities.find(x=>x.name===e.name&&x.kind==='Concept mapping'):undefined);
-      const target=hit??mapped;if(target)out.push({doc:id,file:d.path,entity:target.id,name:target.name,reason:hit?'Same identity (IRI, physical name or business definition)':'Ossie mapping reference'});}
+  const projectModels = useMemo(
+    () =>
+      new Map(
+        docs
+          .filter(d => d.project === current?.project && d.id !== current?.id)
+          .flatMap(d => {
+            try {
+              const m = parsedDoc(d).model;
+              return m ? [[d.id, m] as const] : [];
+            } catch {
+              return [];
+            }
+          }),
+      ),
+    [docs, current?.project, current?.id],
+  );
+  const conceptKinds = new Set(['EntityType', 'ValueType', 'Built-in concept', 'OWL class']);
+  function crossFile(e: Entity): CrossFileTarget[] {
+    const keys = new Set(entityKeys(e, model)),
+      out: CrossFileTarget[] = [];
+    for (const [id, m] of projectModels) {
+      const d = docsRef.current.get(id);
+      if (!d) continue;
+      const hit = m.entities.find(x => entityKeys(x, m).some(k => keys.has(k)));
+      const mapped =
+        !hit &&
+        (e.kind === 'Concept mapping'
+          ? m.entities.find(x => x.name === e.name && conceptKinds.has(x.kind))
+          : conceptKinds.has(e.kind)
+            ? m.entities.find(x => x.name === e.name && x.kind === 'Concept mapping')
+            : undefined);
+      const target = hit ?? mapped;
+      if (target)
+        out.push({
+          doc: id,
+          file: d.path,
+          entity: target.id,
+          name: target.name,
+          reason: hit
+            ? 'Same identity (IRI, physical name or business definition)'
+            : 'Ossie mapping reference',
+        });
+    }
     return out;
   }
-  function walkTo(index:number){const step=walk.steps[index];if(!step)return;if(step.doc!==current?.id){const d=docsRef.current.get(step.doc);if(!d||!open(d))return;setTab('neighborhood');}setSelected(step.center);setSelectedEdge('');dispatchWalk({type:'jump',index});}
-  function crossTo(t:CrossFileTarget){const d=docsRef.current.get(t.doc);if(!d||!current)return;const from=walk.steps[walk.index];if(!open(d))return;
-    if(!from||from.doc!==current.id||from.center!==neighborhoodFocus){const c=model?.entities.find(e=>e.id===(neighborhoodFocus||selected));if(c)dispatchWalk({type:'push',step:{doc:current.id,center:c.id,name:c.name}});}
-    dispatchWalk({type:'push',step:{doc:t.doc,center:t.entity,name:t.name,via:{id:'file',label:'same definition'}}});setTab('neighborhood');setSelected(t.entity);setSelectedEdge('');}
-  function showNeighborhood(id=selected||relationship?.source||neighborhoodFocus){setNeighborhoodFocus(id);setSearch('');setTab('neighborhood');}
+  function walkTo(index: number) {
+    const step = walk.steps[index];
+    if (!step) return;
+    if (step.doc !== current?.id) {
+      const d = docsRef.current.get(step.doc);
+      if (!d || !open(d)) return;
+      setTab('neighborhood');
+    }
+    setSelected(step.center);
+    setSelectedEdge('');
+    dispatchWalk({ type: 'jump', index });
+  }
+  function crossTo(t: CrossFileTarget) {
+    const d = docsRef.current.get(t.doc);
+    if (!d || !current) return;
+    const from = walk.steps[walk.index];
+    if (!open(d)) return;
+    if (!from || from.doc !== current.id || from.center !== neighborhoodFocus) {
+      const c = model?.entities.find(e => e.id === (neighborhoodFocus || selected));
+      if (c) dispatchWalk({ type: 'push', step: { doc: current.id, center: c.id, name: c.name } });
+    }
+    dispatchWalk({
+      type: 'push',
+      step: {
+        doc: t.doc,
+        center: t.entity,
+        name: t.name,
+        via: { id: 'file', label: 'same definition' },
+      },
+    });
+    setTab('neighborhood');
+    setSelected(t.entity);
+    setSelectedEdge('');
+  }
+  function showNeighborhood(id = selected || relationship?.source || neighborhoodFocus) {
+    setNeighborhoodFocus(id);
+    setSearch('');
+    setTab('neighborhood');
+  }
   // Item editing (FR-048–FR-052): the editor, add and delete dialogs work on one file of a project.
-  type ItemTarget={docId:string;path:Path;kind:ItemKind};
-  const [editing,setEditing]=useState<ItemTarget|null>(null),[adding,setAdding]=useState<{docId:string;kind?:ItemKind;owner?:Path;preset?:Record<string,any>}|null>(null),[deleting,setDeleting]=useState<ItemTarget|null>(null),[wizard,setWizard]=useState<boolean|KpiSummary>(false);
+  type ItemTarget = { docId: string; path: Path; kind: ItemKind };
+  const [editing, setEditing] = useState<ItemTarget | null>(null),
+    [adding, setAdding] = useState<{
+      docId: string;
+      kind?: ItemKind;
+      owner?: Path;
+      preset?: Record<string, any>;
+    } | null>(null),
+    [deleting, setDeleting] = useState<ItemTarget | null>(null),
+    [wizard, setWizard] = useState<boolean | KpiSummary>(false);
   // Source Control (Phase 8): the project shown, a file whose history is open, and the open file's
   // unsaved text kept as a server draft so pull and switch are refused while it exists (FR-065).
-  const [scmProject,setScmProject]=useState<string|null>(null),[historyPath,setHistoryPath]=useState<string|undefined>(undefined);
-  const scmSlug=scmProject&&projects.some(p=>p.slug===scmProject)?scmProject:current?.project??projects[0]?.slug??null;
-  const draftOf=useRef<{project:string;path:string}|null>(null);
-  useEffect(()=>{
-    const dirty=!!current&&source!==current.source;
-    if(!dirty){const d=draftOf.current;if(d){draftOf.current=null;void scmApi.deleteDraft(d.project,d.path).catch(()=>{});}return;}
-    const t=setTimeout(()=>{const prev=draftOf.current;if(prev&&(prev.project!==current!.project||prev.path!==current!.path))void scmApi.deleteDraft(prev.project,prev.path).catch(()=>{});draftOf.current={project:current!.project,path:current!.path};void scmApi.saveDraft(current!.project,current!.path,current!.hash,source).catch(()=>{});},1500);
-    return()=>clearTimeout(t);
-  },[source,current?.id,current?.hash]);
+  const [scmProject, setScmProject] = useState<string | null>(null),
+    [historyPath, setHistoryPath] = useState<string | undefined>(undefined);
+  const scmSlug =
+    scmProject && projects.some(p => p.slug === scmProject)
+      ? scmProject
+      : (current?.project ?? projects[0]?.slug ?? null);
+  const draftOf = useRef<{ project: string; path: string } | null>(null);
+  useEffect(() => {
+    const dirty = !!current && source !== current.source;
+    if (!dirty) {
+      const d = draftOf.current;
+      if (d) {
+        draftOf.current = null;
+        void scmApi.deleteDraft(d.project, d.path).catch(() => {});
+      }
+      return;
+    }
+    const t = setTimeout(() => {
+      const prev = draftOf.current;
+      if (prev && (prev.project !== current!.project || prev.path !== current!.path))
+        void scmApi.deleteDraft(prev.project, prev.path).catch(() => {});
+      draftOf.current = { project: current!.project, path: current!.path };
+      void scmApi.saveDraft(current!.project, current!.path, current!.hash, source).catch(() => {});
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [source, current?.id, current?.hash]);
   // RDF, OWL and SHACL resources are edited by IRI (Phase 7); blank nodes go with their parent.
-  type RdfTarget={docId:string;subject:string;label:string;kind:string};
-  const [rdfEditing,setRdfEditing]=useState<RdfTarget|null>(null),[rdfAdding,setRdfAdding]=useState<string|null>(null),[rdfDeleting,setRdfDeleting]=useState<RdfTarget|null>(null);
-  const currentIsRdf=!!current&&!!rdfSyntax(source,current.filename);
-  function rdfTarget(e:Entity):RdfTarget|null{return current&&currentIsRdf&&e.readOnlyForm&&isIri(e.id)&&e.kind!=='Built-in concept'?{docId:current.id,subject:e.id,label:e.name,kind:e.kind}:null;}
-  function rdfEdgeTarget(r:Relationship):RdfTarget|null{if(!current||!currentIsRdf)return null;const d=r.data.definition,subject=r.data.kind==='OWL object property'?d?.iri:d?.subject;const e=model?.entities.find(x=>x.id===subject);return subject&&isIri(subject)?{docId:current.id,subject,label:e?.name??subject,kind:e?.kind??'RDF resource'}:null;}
-  const docText=(id:string)=>id===current?.id?source:docsRef.current.get(id)?.source??'';
-  const modelOf=(id:string)=>id===current?.id?model:projectModels.get(id)??(()=>{const d=docsRef.current.get(id);return d?parsedDoc(d).model:null;})();
-  const documentOf=(id:string)=>(modelOf(id) as any)?.document;
-  function entityTarget(e:Entity):ItemTarget|null{if(!current||e.readOnlyForm||!e.path.length)return null;const kind=itemKindAt(documentOf(current.id),e.path);return kind?{docId:current.id,path:e.path,kind}:null;}
-  function relationshipTarget(r:Relationship):ItemTarget|null{if(!current||r.data.readOnlyForm||!r.data.path.length)return null;const kind=itemKindAt(documentOf(current.id),r.data.path);return kind?{docId:current.id,path:r.data.path,kind}:null;}
-  function choicesFor(id:string):Choices{
-    const own=modelOf(id),project=docsRef.current.get(id)?.project;
-    const models=[...docs.filter(d=>d.project===project).map(d=>modelOf(d.id))].filter(Boolean) as NonNullable<typeof model>[];
-    const names=(m:typeof model,kinds:string[])=>(m?.entities??[]).filter(e=>kinds.includes(e.kind)).map(e=>e.name);
-    return {concepts:[...new Set(models.flatMap(m=>names(m,['EntityType','ValueType','Concept'])))].sort(),datasets:names(own,['Dataset']),metrics:names(own,['Metric'])};
+  type RdfTarget = { docId: string; subject: string; label: string; kind: string };
+  const [rdfEditing, setRdfEditing] = useState<RdfTarget | null>(null),
+    [rdfAdding, setRdfAdding] = useState<string | null>(null),
+    [rdfDeleting, setRdfDeleting] = useState<RdfTarget | null>(null);
+  const currentIsRdf = !!current && !!rdfSyntax(source, current.filename);
+  function rdfTarget(e: Entity): RdfTarget | null {
+    return current && currentIsRdf && e.readOnlyForm && isIri(e.id) && e.kind !== 'Built-in concept'
+      ? { docId: current.id, subject: e.id, label: e.name, kind: e.kind }
+      : null;
   }
-  const projectDocsOf=(id:string)=>docs.filter(d=>d.project===docsRef.current.get(id)?.project);
+  function rdfEdgeTarget(r: Relationship): RdfTarget | null {
+    if (!current || !currentIsRdf) return null;
+    const d = r.data.definition,
+      subject = r.data.kind === 'OWL object property' ? d?.iri : d?.subject;
+    const e = model?.entities.find(x => x.id === subject);
+    return subject && isIri(subject)
+      ? { docId: current.id, subject, label: e?.name ?? subject, kind: e?.kind ?? 'RDF resource' }
+      : null;
+  }
+  const docText = (id: string) =>
+    id === current?.id ? source : (docsRef.current.get(id)?.source ?? '');
+  const modelOf = (id: string) =>
+    id === current?.id
+      ? model
+      : (projectModels.get(id) ??
+        (() => {
+          const d = docsRef.current.get(id);
+          return d ? parsedDoc(d).model : null;
+        })());
+  const documentOf = (id: string) => (modelOf(id) as any)?.document;
+  function entityTarget(e: Entity): ItemTarget | null {
+    if (!current || e.readOnlyForm || !e.path.length) return null;
+    const kind = itemKindAt(documentOf(current.id), e.path);
+    return kind ? { docId: current.id, path: e.path, kind } : null;
+  }
+  function relationshipTarget(r: Relationship): ItemTarget | null {
+    if (!current || r.data.readOnlyForm || !r.data.path.length) return null;
+    const kind = itemKindAt(documentOf(current.id), r.data.path);
+    return kind ? { docId: current.id, path: r.data.path, kind } : null;
+  }
+  function choicesFor(id: string): Choices {
+    const own = modelOf(id),
+      project = docsRef.current.get(id)?.project;
+    const models = [...docs.filter(d => d.project === project).map(d => modelOf(d.id))].filter(
+      Boolean,
+    ) as NonNullable<typeof model>[];
+    const names = (m: typeof model, kinds: string[]) =>
+      (m?.entities ?? []).filter(e => kinds.includes(e.kind)).map(e => e.name);
+    return {
+      concepts: [
+        ...new Set(models.flatMap(m => names(m, ['EntityType', 'ValueType', 'Concept']))),
+      ].sort(),
+      datasets: names(own, ['Dataset']),
+      metrics: names(own, ['Metric']),
+    };
+  }
+  const projectDocsOf = (id: string) =>
+    docs.filter(d => d.project === docsRef.current.get(id)?.project);
   // Saved item changes: every view follows the new bytes at once, then the folder scan confirms.
-  function applySaved(saved:Saved[],label:string){
-    for(const x of saved){const d=docsRef.current.get(x.docId);if(!d)continue;const next={...d,source:x.source,hash:x.hash};docsRef.current.set(d.id,next);if(currentRef.current?.id===d.id){setCurrent(next);setSource(x.source);}}
-    setDocs(old=>old.map(d=>docsRef.current.get(d.id)??d));setMessage(label);void refresh().catch(()=>{});
+  function applySaved(saved: Saved[], label: string) {
+    for (const x of saved) {
+      const d = docsRef.current.get(x.docId);
+      if (!d) continue;
+      const next = { ...d, source: x.source, hash: x.hash };
+      docsRef.current.set(d.id, next);
+      if (currentRef.current?.id === d.id) {
+        setCurrent(next);
+        setSource(x.source);
+      }
+    }
+    setDocs(old => old.map(d => docsRef.current.get(d.id) ?? d));
+    setMessage(label);
+    void refresh().catch(() => {});
   }
-  function openSourceAt(id:string,line:number){const d=docsRef.current.get(id);if(d&&d.id!==current?.id&&!open(d))return;setTab('source');setTimeout(()=>sourceEditor.current?.goToLine(line),60);}
-  function editMappingItem(docId:string,path:Path){
-    const d=docsRef.current.get(docId);if(!d)return;
-    const document=documentOf(docId),text=docText(docId);
-    for(let length=path.length;length>0;length--){
-      const prefix=path.slice(0,length),kind=itemKindAt(document,prefix);
-      if(kind&&prefix.reduce((value,key)=>value?.[key],document)!=null){
-        if(d.id!==current?.id&&!open(d))return;
-        setEditing({docId,path:prefix,kind});return;
+  function openSourceAt(id: string, line: number) {
+    const d = docsRef.current.get(id);
+    if (d && d.id !== current?.id && !open(d)) return;
+    setTab('source');
+    setTimeout(() => sourceEditor.current?.goToLine(line), 60);
+  }
+  function editMappingItem(docId: string, path: Path) {
+    const d = docsRef.current.get(docId);
+    if (!d) return;
+    const document = documentOf(docId),
+      text = docText(docId);
+    for (let length = path.length; length > 0; length--) {
+      const prefix = path.slice(0, length),
+        kind = itemKindAt(document, prefix);
+      if (kind && prefix.reduce((value, key) => value?.[key], document) != null) {
+        if (d.id !== current?.id && !open(d)) return;
+        setEditing({ docId, path: prefix, kind });
+        return;
       }
     }
     // A non-editable finding still leads to the nearest source location available.
-    for(let length=path.length;length>0;length--){
-      try{const fragment=openFragment(text,path.slice(0,length));openSourceAt(docId,fragment.line);return;}catch{}
+    for (let length = path.length; length > 0; length--) {
+      try {
+        const fragment = openFragment(text, path.slice(0, length));
+        openSourceAt(docId, fragment.line);
+        return;
+      } catch {}
     }
-    openSourceAt(docId,1);
+    openSourceAt(docId, 1);
   }
-  function editKpi(k:KpiSummary){
-    const id=`${kpiProject}/${k.file}`,d=docsRef.current.get(id);if(!d)return;
-    const metrics=itemValue(docText(id),[...k.modelPath,'metrics']);const i=Array.isArray(metrics)?metrics.findIndex((m:any)=>m?.name===k.name):-1;
-    if(i>=0)setEditing({docId:id,path:[...k.modelPath,'metrics',i],kind:'metric'});
+  function editKpi(k: KpiSummary) {
+    const id = `${kpiProject}/${k.file}`,
+      d = docsRef.current.get(id);
+    if (!d) return;
+    const metrics = itemValue(docText(id), [...k.modelPath, 'metrics']);
+    const i = Array.isArray(metrics) ? metrics.findIndex((m: any) => m?.name === k.name) : -1;
+    if (i >= 0) setEditing({ docId: id, path: [...k.modelPath, 'metrics', i], kind: 'metric' });
   }
-  const latest=useRef<()=>void>(()=>{});
-  latest.current=()=>{const t=entity?entityTarget(entity):relationship?relationshipTarget(relationship):null;if(t){setEditing(t);return;}const r=entity?rdfTarget(entity):relationship?rdfEdgeTarget(relationship):null;if(r)setRdfEditing(r);};
+  const latest = useRef<() => void>(() => {});
+  latest.current = () => {
+    const t = entity
+      ? entityTarget(entity)
+      : relationship
+        ? relationshipTarget(relationship)
+        : null;
+    if (t) {
+      setEditing(t);
+      return;
+    }
+    const r = entity ? rdfTarget(entity) : relationship ? rdfEdgeTarget(relationship) : null;
+    if (r) setRdfEditing(r);
+  };
   // "e" opens the editor of the selected item (outside text fields and dialogs).
   // Full screen for Graph and Neighborhood (FR-066): the canvas row (graph and details) fills the screen.
-  const inspectorVisible=tab!=='mappings'&&tab!=='metrics'&&!!(entity||relationship);
-  const [phone,setPhone]=useState(()=>window.innerWidth<=650);
-  useEffect(()=>{const update=()=>setPhone(window.innerWidth<=650);window.addEventListener('resize',update);return()=>window.removeEventListener('resize',update);},[]);
-  const pageDetails=phone&&inspectorVisible&&(tab==='overview'||tab==='catalog');
-  const canvasRow=useRef<HTMLDivElement|null>(null),graphView=tab==='fullgraph'||(tab==='neighborhood');
-  useEffect(()=>{
-    if(!pageDetails)return;
-    const previous=document.activeElement as HTMLElement|null;
-    const panel=canvasRow.current?.querySelector<HTMLElement>('.inspector');
+  const inspectorVisible = tab !== 'mappings' && tab !== 'metrics' && !!(entity || relationship);
+  const [phone, setPhone] = useState(() => window.innerWidth <= 650);
+  useEffect(() => {
+    const update = () => setPhone(window.innerWidth <= 650);
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+  const pageDetails = phone && inspectorVisible && (tab === 'overview' || tab === 'catalog');
+  const canvasRow = useRef<HTMLDivElement | null>(null),
+    graphView = tab === 'fullgraph' || tab === 'neighborhood';
+  useEffect(() => {
+    if (!pageDetails) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const panel = canvasRow.current?.querySelector<HTMLElement>('.inspector');
     panel?.querySelector<HTMLButtonElement>('.inspector-close')?.focus();
-    const key=(event:KeyboardEvent)=>{
-      if(event.key==='Escape'){setSelected('');setSelectedEdge('');return;}
-      if(event.key!=='Tab'||!panel)return;
-      const controls=Array.from(panel.querySelectorAll<HTMLElement>('button:not(:disabled),input,select,textarea,a[href]')).filter(el=>el.getClientRects().length);
-      const first=controls[0],last=controls.at(-1);
-      if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}
-      else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}
+    const key = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setSelected('');
+        setSelectedEdge('');
+        return;
+      }
+      if (event.key !== 'Tab' || !panel) return;
+      const controls = Array.from(
+        panel.querySelectorAll<HTMLElement>('button:not(:disabled),input,select,textarea,a[href]'),
+      ).filter(el => el.getClientRects().length);
+      const first = controls[0],
+        last = controls.at(-1);
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
     };
-    document.addEventListener('keydown',key);return()=>{document.removeEventListener('keydown',key);if(previous?.isConnected)previous.focus();};
-  },[pageDetails]);
-  const fullscreen=useFullscreen(canvasRow,graphView&&!!model);
-  const toggleFull=useRef(()=>{});toggleFull.current=fullscreen.toggle;
-  useEffect(()=>{const key=(e:KeyboardEvent)=>{const el=e.target as HTMLElement;if(e.key!=='f'||e.ctrlKey||e.metaKey||e.altKey||el.closest('input,textarea,select,[contenteditable=true],dialog,.cm-editor'))return;e.preventDefault();toggleFull.current();};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[]);
-  useEffect(()=>{const key=(e:KeyboardEvent)=>{const el=e.target as HTMLElement;if(e.key!=='e'||e.ctrlKey||e.metaKey||e.altKey||el.closest('input,textarea,select,[contenteditable=true],dialog'))return;e.preventDefault();latest.current();};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[]);
-  function selectEntity(id:string){setSelected(id);setSelectedEdge('');if(tab==='neighborhood'){setNeighborhoodFocus(id);setSearch('');}}
-  async function loadExample(id:string) {
+    document.addEventListener('keydown', key);
+    return () => {
+      document.removeEventListener('keydown', key);
+      if (previous?.isConnected) previous.focus();
+    };
+  }, [pageDetails]);
+  const fullscreen = useFullscreen(canvasRow, graphView && !!model);
+  const toggleFull = useRef(() => {});
+  toggleFull.current = fullscreen.toggle;
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement;
+      if (
+        e.key !== 'f' ||
+        e.ctrlKey ||
+        e.metaKey ||
+        e.altKey ||
+        el.closest('input,textarea,select,[contenteditable=true],dialog,.cm-editor')
+      )
+        return;
+      e.preventDefault();
+      toggleFull.current();
+    };
+    window.addEventListener('keydown', key);
+    return () => window.removeEventListener('keydown', key);
+  }, []);
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement;
+      if (
+        e.key !== 'e' ||
+        e.ctrlKey ||
+        e.metaKey ||
+        e.altKey ||
+        el.closest('input,textarea,select,[contenteditable=true],dialog')
+      )
+        return;
+      e.preventDefault();
+      latest.current();
+    };
+    window.addEventListener('keydown', key);
+    return () => window.removeEventListener('keydown', key);
+  }, []);
+  function selectEntity(id: string) {
+    setSelected(id);
+    setSelectedEdge('');
+    if (tab === 'neighborhood') {
+      setNeighborhoodFocus(id);
+      setSearch('');
+    }
+  }
+  async function loadExample(id: string) {
     // Loading from the Examples group keeps it as the user left it (open) instead of collapsing it.
-    setExamplesChoice(c=>c??examplesOpen);
-    const set=exampleSet(id)!;
+    setExamplesChoice(c => c ?? examplesOpen);
+    const set = exampleSet(id)!;
     await leaveCurrent();
-    setBusy(true);setMessage('Loading example documents…');
+    setBusy(true);
+    setMessage('Loading example documents…');
     try {
-      const {slug}=await api.example(id);
-      const loaded=await refresh();
-      const first=loaded.find(d=>d.project===slug&&d.path===set.files[0])??loaded.find(d=>d.project===slug);
-      if(first){setCurrent(first);setSource(first.source);}
-      setNeighborhoodFocus('');if(compact)closeWorkspace();setSelected('');setSelectedEdge('');setSearch('');setTab(set.tab);
+      const { slug } = await api.example(id);
+      const loaded = await refresh();
+      const first =
+        loaded.find(d => d.project === slug && d.path === set.files[0]) ??
+        loaded.find(d => d.project === slug);
+      if (first) {
+        setCurrent(first);
+        setSource(first.source);
+      }
+      setNeighborhoodFocus('');
+      if (compact) closeWorkspace();
+      setSelected('');
+      setSelectedEdge('');
+      setSearch('');
+      setTab(set.tab);
       setMessage(set.message);
-    }catch(e){setMessage((e as Error).message)}finally{setBusy(false)}
+    } catch (e) {
+      setMessage((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
   }
   // Automatic saving of valid edits (FR-040–FR-043): 1 s after the last edit, through the usual
   // hash-checked save with only the changed range; invalid text stays a server draft.
-  const [gitBusy,setGitBusy]=useState(false),[committing,setCommitting]=useState(false);
-  const itemHints=useRef<Record<string,Record<string,string>>>({});
-  const autosave=useAutosave({file:current?.id??null,hash:current?.hash??null,saved:current?.source??'',text:source,gitBusy,
-    validate:async text=>{
-      const d=currentRef.current;if(!d||isGitignore(d.filename))return 0;
-      const ei=editorIssuesRef.current,errors=(issues:Issue[])=>issues.filter(i=>i.severity==='error').length;
-      if(ei&&ei.id===d.id&&ei.text!==undefined&&ei.text===normalize(text))return errors(ei.issues);
-      return errors(await validateInWorker(text,d.filename));
+  const [gitBusy, setGitBusy] = useState(false),
+    [committing, setCommitting] = useState(false);
+  const itemHints = useRef<Record<string, Record<string, string>>>({});
+  const autosave = useAutosave({
+    file: current?.id ?? null,
+    hash: current?.hash ?? null,
+    saved: current?.source ?? '',
+    text: source,
+    gitBusy,
+    validate: async text => {
+      const d = currentRef.current;
+      if (!d || isGitignore(d.filename)) return 0;
+      const ei = editorIssuesRef.current,
+        errors = (issues: Issue[]) => issues.filter(i => i.severity === 'error').length;
+      if (ei && ei.id === d.id && ei.text !== undefined && ei.text === normalize(text))
+        return errors(ei.issues);
+      return errors(await validateInWorker(text, d.filename));
     },
-    save:r=>{const d=docsRef.current.get(r.file);if(!d)return Promise.reject(Error('The file is no longer in the workspace.'));return api.save(d.project,d.path,r.baseHash,r.to,diffPatches(r.from,r.to));},
-    onSaved:(file,text,hash)=>{const d=docsRef.current.get(file);if(!d)return;const next={...d,source:text,hash};docsRef.current.set(file,next);setDocs(old=>old.map(x=>x.id===file?next:x));if(currentRef.current?.id===file)setCurrentState(next);/* the server's file event refreshes the tree and counts */},
-    isStale:e=>e instanceof StaleSave,
-    onStale:(file,e)=>{if(currentRef.current?.id===file&&e instanceof StaleSave)setStale({current:e.currentSource,currentHash:e.currentHash});},
-    onFailed:(_file,m)=>setMessage(`Not saved: ${m}`)});
-  const uncommitted=projects.find(p=>p.slug===current?.project)?.changes??0;
-  const saveState=saveStateLabel(autosave.state,uncommitted);
+    save: r => {
+      const d = docsRef.current.get(r.file);
+      if (!d) return Promise.reject(Error('The file is no longer in the workspace.'));
+      return api.save(d.project, d.path, r.baseHash, r.to, diffPatches(r.from, r.to));
+    },
+    onSaved: (file, text, hash) => {
+      const d = docsRef.current.get(file);
+      if (!d) return;
+      const next = { ...d, source: text, hash };
+      docsRef.current.set(file, next);
+      setDocs(old => old.map(x => (x.id === file ? next : x)));
+      if (currentRef.current?.id === file)
+        setCurrentState(next); /* the server's file event refreshes the tree and counts */
+    },
+    isStale: e => e instanceof StaleSave,
+    onStale: (file, e) => {
+      if (currentRef.current?.id === file && e instanceof StaleSave)
+        setStale({ current: e.currentSource, currentHash: e.currentHash });
+    },
+    onFailed: (_file, m) => setMessage(`Not saved: ${m}`),
+  });
+  const uncommitted = projects.find(p => p.slug === current?.project)?.changes ?? 0;
+  const saveState = saveStateLabel(autosave.state, uncommitted);
   // Leaving a file or view: a due valid save is written first; invalid text stays a server draft
   // (no "Discard unsaved changes?" prompt; the draft is announced instead).
-  async function leaveCurrent(){
-    const d=currentRef.current;if(!d||sourceRef.current===d.source)return;
+  async function leaveCurrent() {
+    const d = currentRef.current;
+    if (!d || sourceRef.current === d.source) return;
     await autosave.flush();
-    const now=currentRef.current;
-    if(now&&sourceRef.current!==now.source){draftOf.current={project:now.project,path:now.path};await scmApi.saveDraft(now.project,now.path,now.hash,sourceRef.current).catch(()=>{});setMessage(`Unsaved edits to ${now.path} are kept as a draft.`);}
+    const now = currentRef.current;
+    if (now && sourceRef.current !== now.source) {
+      draftOf.current = { project: now.project, path: now.path };
+      await scmApi.saveDraft(now.project, now.path, now.hash, sourceRef.current).catch(() => {});
+      setMessage(`Unsaved edits to ${now.path} are kept as a draft.`);
+    }
   }
-  async function openStale(){const d=currentRef.current;if(!d)return;try{const f=await api.file(d.project,d.path);setStale({current:f.source,currentHash:f.hash});}catch{setStale({current:null,currentHash:null});}}
+  async function openStale() {
+    const d = currentRef.current;
+    if (!d) return;
+    try {
+      const f = await api.file(d.project, d.path);
+      setStale({ current: f.source, currentHash: f.hash });
+    } catch {
+      setStale({ current: null, currentHash: null });
+    }
+  }
   // One import batch becomes one project (FR-018).
-  async function commitImports(drafts:ImportDraft[]) {
+  async function commitImports(drafts: ImportDraft[]) {
     let created;
-    try{created=await api.importBatch(drafts.map(d=>({path:d.filename,source:d.source})));}
-    catch(e){throw Error(`Could not save ${drafts.map(d=>d.filename).join(', ')}: ${(e as Error).message} Nothing from this batch was imported; retry when ready.`);}
+    try {
+      created = await api.importBatch(drafts.map(d => ({ path: d.filename, source: d.source })));
+    } catch (e) {
+      throw Error(
+        `Could not save ${drafts.map(d => d.filename).join(', ')}: ${(e as Error).message} Nothing from this batch was imported; retry when ready.`,
+      );
+    }
     setPendingImport(null);
     // Open the batch's last file, as the one-by-one import of earlier versions did.
-    const loaded=await refresh(),last=drafts[drafts.length-1].filename;
-    const opened=loaded.find(d=>d.project===created.slug&&d.path===last)??loaded.find(d=>d.project===created.slug);
-    if(opened){setCurrent(opened);setSource(opened.source);}
-    setNeighborhoodFocus('');if(compact)closeWorkspace();setSelected('');setSelectedEdge('');setSearch('');setTab('neighborhood');
-    setMessage(`Imported ${created.written.length} file${created.written.length===1?'':'s'} into project ${created.name}.`);
+    const loaded = await refresh(),
+      last = drafts[drafts.length - 1].filename;
+    const opened =
+      loaded.find(d => d.project === created.slug && d.path === last) ??
+      loaded.find(d => d.project === created.slug);
+    if (opened) {
+      setCurrent(opened);
+      setSource(opened.source);
+    }
+    setNeighborhoodFocus('');
+    if (compact) closeWorkspace();
+    setSelected('');
+    setSelectedEdge('');
+    setSearch('');
+    setTab('neighborhood');
+    setMessage(
+      `Imported ${created.written.length} file${created.written.length === 1 ? '' : 's'} into project ${created.name}.`,
+    );
   }
   async function importFiles(files: File[]) {
     if (!files.length) return;
-    if(compact)closeWorkspace();
+    if (compact) closeWorkspace();
     await leaveCurrent();
-    try{
-      const drafts=await Promise.all(files.map(async file=>({filename:file.name,source:await file.text()})));
-      if(drafts.some(d=>!validateInput(d.source,d.filename).valid)){setPendingImport(drafts);return;}
+    try {
+      const drafts = await Promise.all(
+        files.map(async file => ({ filename: file.name, source: await file.text() })),
+      );
+      if (drafts.some(d => !validateInput(d.source, d.filename).valid)) {
+        setPendingImport(drafts);
+        return;
+      }
       await commitImports(drafts);
-    }catch(e){setMessage((e as Error).message);}
+    } catch (e) {
+      setMessage((e as Error).message);
+    }
   }
-  function treeAction(a:TreeAction){
-    const project=projects.find(p=>p.slug===a.project);if(!project)return;
-    if(a.action==='rename')setRenaming(project);
-    else if(a.action==='move')setMoving({project:a.project,path:a.path});
-    else if(a.action==='delete-file')setDeleteTarget({kind:'file',project:a.project,path:a.path});
-    else if(a.action==='delete-project')setDeleteTarget({kind:'project',project:a.project});
-    else if(a.action==='history'){setScmProject(a.project);setHistoryPath(a.path);setTab('scm');if(compact)closeWorkspace();}
-    else if(a.action==='gitignore')void editGitignore(a.project);
-    else{
-      setImporting({project:a.project});
+  function treeAction(a: TreeAction) {
+    const project = projects.find(p => p.slug === a.project);
+    if (!project) return;
+    if (a.action === 'rename') setRenaming(project);
+    else if (a.action === 'move') setMoving({ project: a.project, path: a.path });
+    else if (a.action === 'delete-file')
+      setDeleteTarget({ kind: 'file', project: a.project, path: a.path });
+    else if (a.action === 'delete-project')
+      setDeleteTarget({ kind: 'project', project: a.project });
+    else if (a.action === 'history') {
+      setScmProject(a.project);
+      setHistoryPath(a.path);
+      setTab('scm');
+      if (compact) closeWorkspace();
+    } else if (a.action === 'gitignore') void editGitignore(a.project);
+    else {
+      setImporting({ project: a.project });
     }
   }
   // FR-094: `.gitignore` opens in Source; it is created empty when the project has none.
-  async function editGitignore(slug:string){
-    let d=docsRef.current.get(`${slug}/.gitignore`);
-    if(!d){try{await api.save(slug,'.gitignore',null,'');d=(await refresh()).find(x=>x.id===`${slug}/.gitignore`);}catch(e){setMessage((e as Error).message);return;}}
-    if(d&&open(d))setTab('source');
+  async function editGitignore(slug: string) {
+    let d = docsRef.current.get(`${slug}/.gitignore`);
+    if (!d) {
+      try {
+        await api.save(slug, '.gitignore', null, '');
+        d = (await refresh()).find(x => x.id === `${slug}/.gitignore`);
+      } catch (e) {
+        setMessage((e as Error).message);
+        return;
+      }
+    }
+    if (d && open(d)) setTab('source');
   }
-  async function importIntoProject(files:{path:string;source:string}[],onConflict?:'replace'|'keep-both',slug?:string){
-    const project=projects.find(p=>p.slug===(slug??importConflict?.project.slug));if(!project)return;
-    try{const r=await api.importInto(project.slug,files,onConflict);setImportConflict(null);await refresh();setMessage(`Imported ${r.written.length} file${r.written.length===1?'':'s'} into ${project.name}.`);}
-    catch(e:any){if(e.status===409&&e.body?.conflicts)setImportConflict({project,files,conflicts:e.body.conflicts});else{setImportConflict(null);setMessage(e.message);}}
+  async function importIntoProject(
+    files: { path: string; source: string }[],
+    onConflict?: 'replace' | 'keep-both',
+    slug?: string,
+  ) {
+    const project = projects.find(p => p.slug === (slug ?? importConflict?.project.slug));
+    if (!project) return;
+    try {
+      const r = await api.importInto(project.slug, files, onConflict);
+      setImportConflict(null);
+      await refresh();
+      setMessage(
+        `Imported ${r.written.length} file${r.written.length === 1 ? '' : 's'} into ${project.name}.`,
+      );
+    } catch (e: any) {
+      if (e.status === 409 && e.body?.conflicts)
+        setImportConflict({ project, files, conflicts: e.body.conflicts });
+      else {
+        setImportConflict(null);
+        setMessage(e.message);
+      }
+    }
   }
-  async function undoDelete(){
-    const d=deleted;setDeleted(null);if(!d)return;
-    try{for(const id of d.entryIds)await api.undo(id);await refresh();setMessage(`Restored ${d.label}.`);}
-    catch(e){await refresh().catch(()=>{});setMessage(`${(e as Error).message} Open Trash to restore it.`);}
+  async function undoDelete() {
+    const d = deleted;
+    setDeleted(null);
+    if (!d) return;
+    try {
+      for (const id of d.entryIds) await api.undo(id);
+      await refresh();
+      setMessage(`Restored ${d.label}.`);
+    } catch (e) {
+      await refresh().catch(() => {});
+      setMessage(`${(e as Error).message} Open Trash to restore it.`);
+    }
   }
   function download() {
-    const exported=exportDocument(source,current?.filename??'ontology.ossie.yaml');
+    const exported = exportDocument(source, current?.filename ?? 'ontology.ossie.yaml');
     const url = URL.createObjectURL(exported.blob);
-    const a = document.createElement("a");
+    const a = document.createElement('a');
     a.href = url;
     a.download = exported.filename;
     a.click();
-    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   // New ▾ (FR-060): one Add dialog per kind; kinds the open file cannot hold stay listed with the reason.
-  function newItems():MenuItem[]{
-    const doc=(model as any)?.document,kinds=current&&model&&!currentIsRdf?addableKinds(doc):[];
-    const none=!current?'Open a file first.':!model?'The open file has errors; repair it in Source first.':'';
-    const item=(kind:ItemKind,why:string):MenuItem=>({label:`Add ${kindLabel[kind].toLowerCase()}…`,disabled:none||(kinds.includes(kind)?false:why),run:()=>{if(current)setAdding({docId:current.id,kind});}});
+  function newItems(): MenuItem[] {
+    const doc = (model as any)?.document,
+      kinds = current && model && !currentIsRdf ? addableKinds(doc) : [];
+    const none = !current
+      ? 'Open a file first.'
+      : !model
+        ? 'The open file has errors; repair it in Source first.'
+        : '';
+    const item = (kind: ItemKind, why: string): MenuItem => ({
+      label: `Add ${kindLabel[kind].toLowerCase()}…`,
+      disabled: none || (kinds.includes(kind) ? false : why),
+      run: () => {
+        if (current) setAdding({ docId: current.id, kind });
+      },
+    });
     return [
-      item('concept','Open an Ossie ontology to add a concept.'),
-      item('dataset','Open an Ossie semantic model to add a dataset.'),
-      item('join','Open an Ossie semantic model to add a dataset relationship.'),
-      item('metric','Open an Ossie semantic model to add a metric.'),
-      item('odcs-object','Open an ODCS contract to add a contract object.'),
-      item('concept-mapping','Open an Ossie mapping document to add a concept mapping.'),
-      {label:'Add RDF resource…',disabled:none||(currentIsRdf?false:'Open a Turtle, N-Triples, RDF/XML or N3 file to add a resource.'),run:()=>{if(current)setRdfAdding(current.id);}},
+      item('concept', 'Open an Ossie ontology to add a concept.'),
+      item('dataset', 'Open an Ossie semantic model to add a dataset.'),
+      item('join', 'Open an Ossie semantic model to add a dataset relationship.'),
+      item('metric', 'Open an Ossie semantic model to add a metric.'),
+      item('odcs-object', 'Open an ODCS contract to add a contract object.'),
+      item('concept-mapping', 'Open an Ossie mapping document to add a concept mapping.'),
+      {
+        label: 'Add RDF resource…',
+        disabled:
+          none ||
+          (currentIsRdf
+            ? false
+            : 'Open a Turtle, N-Triples, RDF/XML or N3 file to add a resource.'),
+        run: () => {
+          if (current) setRdfAdding(current.id);
+        },
+      },
     ];
   }
   return (
-    <div className={`shell ${sidebarOpen?'workspace-open':'workspace-closed'}${resizingSidebar?' sidebar-resizing':''}`} style={{'--sidebar-width':`${sidebarWidth}px`} as React.CSSProperties}>
-      {stale&&current&&<StaleSaveDialog filename={current.path} mine={source} current={stale.current} onCancel={()=>setStale(null)} onLoadCurrent={()=>{if(stale.current===null||stale.currentHash===null)return;autosave.resolved(stale.currentHash,stale.current);const doc={...current,source:stale.current,hash:stale.currentHash};docsRef.current.set(doc.id,doc);setCurrent(doc);setSource(doc.source);setStale(null);setMessage('Loaded the current file from disk.');}} onKeepMine={()=>{autosave.resolved(stale.currentHash,stale.current??'');setStale(null);}}/>}
-      {deleteTarget&&<DeleteDialog target={deleteTarget} projects={projects} dirty={current&&source!==current.source?{project:current.project,path:current.path}:null} onCancel={()=>setDeleteTarget(null)} onDeleted={(entryIds,undoUntil,label)=>{
-        // The user confirmed losing unsaved edits of a removed file: drop them before refreshing.
-        const target=deleteTarget;if(current&&(target.kind==='clear'||current.project===target.project&&(target.kind==='project'||current.path===target.path))){autosave.cancel();if(source!==current.source)setSource(current.source);}
-        sourceRef.current=current?.source??'';setDeleteTarget(null);setDeleted({entryIds,undoUntil,label});void refresh();}}/>}
-      {trashOpen&&<TrashDialog version={trashVersion} onClose={()=>{setTrashOpen(false);void refresh();}}/>}
-      {renaming&&<RenameDialog project={renaming} onClose={()=>setRenaming(null)} onDone={name=>{setRenaming(null);setMessage(`Renamed the project to ${name}.`);void refresh();}}/>}
-      {moving&&<MoveDialog project={moving.project} path={moving.path} projects={projects} onClose={()=>setMoving(null)} onDone={to=>{if(currentRef.current?.project===moving.project&&currentRef.current.path===moving.path)autosave.cancel();setMoving(null);setMessage(`Moved ${moving.path} to ${projects.find(p=>p.slug===to.project)?.name}.`);void refresh().then(d=>{const doc=d.find(x=>x.project===to.project&&x.path===to.path);if(doc&&currentRef.current?.project===moving.project&&currentRef.current.path===moving.path){setCurrent(doc);setSource(doc.source);}});}}/>}
-      {importConflict&&<ImportConflictDialog project={importConflict.project} conflicts={importConflict.conflicts} onClose={()=>setImportConflict(null)} onChoose={choice=>void importIntoProject(importConflict.files,choice)}/>}
-      {deleted&&<UndoToast deleted={deleted} onUndo={()=>void undoDelete()} onExpire={()=>setDeleted(null)}/>}
-      {editing&&docsRef.current.get(editing.docId)&&<ItemEditor key={editing.docId+'#'+editing.path.join('/')} doc={docsRef.current.get(editing.docId)!} base={docText(editing.docId)} path={editing.path} kind={editing.kind} projectDocs={projectDocsOf(editing.docId)} choices={choicesFor(editing.docId)}
-        onClose={()=>setEditing(null)} onSaved={saved=>{const file=docsRef.current.get(editing.docId)?.path,d=docsRef.current.get(editing.docId);if(d&&file){const name=itemName(editing.kind,itemValue(docText(editing.docId),editing.path));if(name)(itemHints.current[d.project]??={})[file]=name;}setEditing(null);applySaved(saved,`Saved to ${file}${saved.length>1?` and ${saved.length-1} other file${saved.length>2?'s':''}`:''}.`);}}
-        onOpenItem={(path,kind)=>setEditing({docId:editing.docId,path,kind})} onAddChild={(kind,owner)=>{setAdding({docId:editing.docId,kind,owner});setEditing(null);}} onDelete={()=>{setDeleting(editing);setEditing(null);}} onOpenSource={line=>{const id=editing.docId;setEditing(null);openSourceAt(id,line);}}/>}
-      {adding&&docsRef.current.get(adding.docId)&&<AddItem doc={docsRef.current.get(adding.docId)!} base={docText(adding.docId)} document={documentOf(adding.docId)} kind={adding.kind} owner={adding.owner} preset={adding.preset} choices={choicesFor(adding.docId)} onClose={()=>setAdding(null)}
-        onSaved={(saved,path,kind)=>{setAdding(null);applySaved([saved],`Added to ${docsRef.current.get(saved.docId)?.path}.`);if(saved.docId===current?.id&&!['ontology-relationship','join','odcs-foreign-key'].includes(kind)){setSelected(path.join('/'));setSelectedEdge('');}}}/>}
-      {deleting&&docsRef.current.get(deleting.docId)&&(()=>{const base=docText(deleting.docId),item=itemValue(base,deleting.path),owner=deleting.kind==='field'||deleting.kind==='odcs-property'?String(itemValue(base,deleting.path.slice(0,-2))?.name??''):undefined;
-        return <DeleteItem doc={docsRef.current.get(deleting.docId)!} base={base} path={deleting.path} kind={deleting.kind} name={itemName(deleting.kind,item)||'this item'} owner={owner} projectDocs={projectDocsOf(deleting.docId)} onClose={()=>setDeleting(null)} onDeleted={saved=>{setDeleting(null);setSelected('');setSelectedEdge('');applySaved(saved,`Deleted ${itemName(deleting.kind,item)} and saved ${saved.length} file${saved.length===1?'':'s'}.`);}}/>;})()}
-      {rdfEditing&&docsRef.current.get(rdfEditing.docId)&&<RdfItemEditor key={rdfEditing.docId+'#'+rdfEditing.subject} doc={docsRef.current.get(rdfEditing.docId)!} base={docText(rdfEditing.docId)} subject={rdfEditing.subject} label={rdfEditing.label} kind={rdfEditing.kind}
-        onClose={()=>setRdfEditing(null)} onSaved={saved=>{const file=docsRef.current.get(rdfEditing.docId)?.path;setRdfEditing(null);applySaved(saved,`Saved to ${file}.`);}} onDelete={()=>{setRdfDeleting(rdfEditing);setRdfEditing(null);}} onOpenSource={line=>{const id=rdfEditing.docId;setRdfEditing(null);openSourceAt(id,line);}}/>}
-      {rdfAdding&&docsRef.current.get(rdfAdding)&&<RdfAddItem doc={docsRef.current.get(rdfAdding)!} base={docText(rdfAdding)} onClose={()=>setRdfAdding(null)} onSaved={(saved,subject)=>{setRdfAdding(null);applySaved([saved],`Added to ${docsRef.current.get(saved.docId)?.path}.`);if(saved.docId===current?.id){setSelected(subject);setSelectedEdge('');}}}/>}
-      {rdfDeleting&&docsRef.current.get(rdfDeleting.docId)&&<RdfDeleteItem doc={docsRef.current.get(rdfDeleting.docId)!} base={docText(rdfDeleting.docId)} subject={rdfDeleting.subject} label={rdfDeleting.label} projectDocs={projectDocsOf(rdfDeleting.docId)} onClose={()=>setRdfDeleting(null)} onDeleted={saved=>{const label=rdfDeleting.label;setRdfDeleting(null);setSelected('');setSelectedEdge('');applySaved(saved,`Deleted ${label}.`);}}/>}
-      {wizard&&kpiProject&&<MetricWizard project={kpiProject} docs={docs.filter(d=>d.project===kpiProject)} kpis={kpis} existing={typeof wizard==='object'?wizard:undefined} onClose={()=>setWizard(false)} onSaved={(file,modelPath,name)=>{const added=typeof wizard==='object';setWizard(false);setSelectedKpi(`${file}#${modelPath.join('/')}#${name}`);setTab('metrics');setMessage(added?`Added attributes to metric ${name} in ${file}.`:`Created metric ${name} in ${file}.`);void refresh().catch(()=>{});}}/>}
-      {committing&&current&&<CommitDialog project={current.project} projectName={projects.find(p=>p.slug===current.project)?.name} itemHints={itemHints.current[current.project]} unsaved={source!==current.source?[current.path]:[]} onClose={()=>setCommitting(false)}
-        onCommitted={r=>{setCommitting(false);itemHints.current[current.project]={};setMessage(`Committed ${r.commit.slice(0,7)} (${r.files.length} file${r.files.length===1?'':'s'})${r.pushed?r.pushed.ok?' and pushed.':`; push failed: ${r.pushed.message}`:'.'}`);setGitVersion(v=>v+1);void refresh().catch(()=>{});}}
-        onReverted={(path,hash)=>{setMessage(hash?`Reverted ${path} to the last commit; the replaced version is in the trash.`:`Moved ${path} to the trash.`);setTrashVersion(v=>v+1);void refresh().then(d=>{const doc=d.find(x=>x.project===current.project&&x.path===path);if(doc&&currentRef.current?.project===current.project&&currentRef.current.path===path){autosave.resolved(doc.hash,doc.source);setCurrent(doc);setSource(doc.source);}}).catch(()=>{});}}/>}
-      {showValidation&&(source||current)&&<Modal title="Validation details" size="large" onCancel={()=>setShowValidation(false)} className="validation-details" footer={<button type="button" onClick={()=>setShowValidation(false)}>Close</button>}><ValidationPanel source={source} issues={validation.issues} onLocate={issue=>{setShowValidation(false);setTab('source');setTimeout(()=>{sourceEditor.current?.locate(issue);},0);}}/></Modal>}
-      {definition&&<Modal title={definition.title} size="large" onCancel={()=>setDefinition(null)} className="definition-dialog" footer={<button type="button" onClick={()=>setDefinition(null)}>Close</button>}><pre className="definition-json" aria-label="Definition">{JSON.stringify(definition.value,null,2)}</pre></Modal>}
-      {importing&&<ImportDialog projects={projects} initialProject={importing.project} onClose={()=>setImporting(null)} onPick={project=>{importInto.current=project??'';setImporting(null);requestAnimationFrame(()=>importInput.current?.click());}}/>}
-      {pendingImport&&<ImportRepair initial={pendingImport} onCancel={()=>setPendingImport(null)} onImport={commitImports}/>}
-      {compact&&sidebarOpen&&<button className="workspace-scrim" aria-label="Dismiss workspace drawer" tabIndex={-1} onClick={closeWorkspace}/>}
-      <aside id="workspace-sidebar" className="sidebar workspace-sidebar" ref={sidebarRef} inert={!sidebarOpen} role={compact&&sidebarOpen?'dialog':undefined} aria-modal={compact&&sidebarOpen?true:undefined} aria-label="Workspace documents">
-        {compact&&<button className="workspace-close" aria-label="Close workspace drawer" onClick={closeWorkspace}><X size={18}/></button>}
+    <div
+      className={`shell ${sidebarOpen ? 'workspace-open' : 'workspace-closed'}${resizingSidebar ? ' sidebar-resizing' : ''}`}
+      style={{ '--sidebar-width': `${sidebarWidth}px` } as React.CSSProperties}
+    >
+      {stale && current && (
+        <StaleSaveDialog
+          filename={current.path}
+          mine={source}
+          current={stale.current}
+          onCancel={() => setStale(null)}
+          onLoadCurrent={() => {
+            if (stale.current === null || stale.currentHash === null) return;
+            autosave.resolved(stale.currentHash, stale.current);
+            const doc = { ...current, source: stale.current, hash: stale.currentHash };
+            docsRef.current.set(doc.id, doc);
+            setCurrent(doc);
+            setSource(doc.source);
+            setStale(null);
+            setMessage('Loaded the current file from disk.');
+          }}
+          onKeepMine={() => {
+            autosave.resolved(stale.currentHash, stale.current ?? '');
+            setStale(null);
+          }}
+        />
+      )}
+      {deleteTarget && (
+        <DeleteDialog
+          target={deleteTarget}
+          projects={projects}
+          dirty={
+            current && source !== current.source
+              ? { project: current.project, path: current.path }
+              : null
+          }
+          onCancel={() => setDeleteTarget(null)}
+          onDeleted={(entryIds, undoUntil, label) => {
+            // The user confirmed losing unsaved edits of a removed file: drop them before refreshing.
+            const target = deleteTarget;
+            if (
+              current &&
+              (target.kind === 'clear' ||
+                (current.project === target.project &&
+                  (target.kind === 'project' || current.path === target.path)))
+            ) {
+              autosave.cancel();
+              if (source !== current.source) setSource(current.source);
+            }
+            sourceRef.current = current?.source ?? '';
+            setDeleteTarget(null);
+            setDeleted({ entryIds, undoUntil, label });
+            void refresh();
+          }}
+        />
+      )}
+      {trashOpen && (
+        <TrashDialog
+          version={trashVersion}
+          onClose={() => {
+            setTrashOpen(false);
+            void refresh();
+          }}
+        />
+      )}
+      {renaming && (
+        <RenameDialog
+          project={renaming}
+          onClose={() => setRenaming(null)}
+          onDone={name => {
+            setRenaming(null);
+            setMessage(`Renamed the project to ${name}.`);
+            void refresh();
+          }}
+        />
+      )}
+      {moving && (
+        <MoveDialog
+          project={moving.project}
+          path={moving.path}
+          projects={projects}
+          onClose={() => setMoving(null)}
+          onDone={to => {
+            if (
+              currentRef.current?.project === moving.project &&
+              currentRef.current.path === moving.path
+            )
+              autosave.cancel();
+            setMoving(null);
+            setMessage(
+              `Moved ${moving.path} to ${projects.find(p => p.slug === to.project)?.name}.`,
+            );
+            void refresh().then(d => {
+              const doc = d.find(x => x.project === to.project && x.path === to.path);
+              if (
+                doc &&
+                currentRef.current?.project === moving.project &&
+                currentRef.current.path === moving.path
+              ) {
+                setCurrent(doc);
+                setSource(doc.source);
+              }
+            });
+          }}
+        />
+      )}
+      {importConflict && (
+        <ImportConflictDialog
+          project={importConflict.project}
+          conflicts={importConflict.conflicts}
+          onClose={() => setImportConflict(null)}
+          onChoose={choice => void importIntoProject(importConflict.files, choice)}
+        />
+      )}
+      {deleted && (
+        <UndoToast
+          deleted={deleted}
+          onUndo={() => void undoDelete()}
+          onExpire={() => setDeleted(null)}
+        />
+      )}
+      {editing && docsRef.current.get(editing.docId) && (
+        <ItemEditor
+          key={editing.docId + '#' + editing.path.join('/')}
+          doc={docsRef.current.get(editing.docId)!}
+          base={docText(editing.docId)}
+          path={editing.path}
+          kind={editing.kind}
+          projectDocs={projectDocsOf(editing.docId)}
+          choices={choicesFor(editing.docId)}
+          onClose={() => setEditing(null)}
+          onSaved={saved => {
+            const file = docsRef.current.get(editing.docId)?.path,
+              d = docsRef.current.get(editing.docId);
+            if (d && file) {
+              const name = itemName(editing.kind, itemValue(docText(editing.docId), editing.path));
+              if (name) (itemHints.current[d.project] ??= {})[file] = name;
+            }
+            setEditing(null);
+            applySaved(
+              saved,
+              `Saved to ${file}${saved.length > 1 ? ` and ${saved.length - 1} other file${saved.length > 2 ? 's' : ''}` : ''}.`,
+            );
+          }}
+          onOpenItem={(path, kind) => setEditing({ docId: editing.docId, path, kind })}
+          onAddChild={(kind, owner) => {
+            setAdding({ docId: editing.docId, kind, owner });
+            setEditing(null);
+          }}
+          onDelete={() => {
+            setDeleting(editing);
+            setEditing(null);
+          }}
+          onOpenSource={line => {
+            const id = editing.docId;
+            setEditing(null);
+            openSourceAt(id, line);
+          }}
+        />
+      )}
+      {adding && docsRef.current.get(adding.docId) && (
+        <AddItem
+          doc={docsRef.current.get(adding.docId)!}
+          base={docText(adding.docId)}
+          document={documentOf(adding.docId)}
+          kind={adding.kind}
+          owner={adding.owner}
+          preset={adding.preset}
+          choices={choicesFor(adding.docId)}
+          onClose={() => setAdding(null)}
+          onSaved={(saved, path, kind) => {
+            setAdding(null);
+            applySaved([saved], `Added to ${docsRef.current.get(saved.docId)?.path}.`);
+            if (
+              saved.docId === current?.id &&
+              !['ontology-relationship', 'join', 'odcs-foreign-key'].includes(kind)
+            ) {
+              setSelected(path.join('/'));
+              setSelectedEdge('');
+            }
+          }}
+        />
+      )}
+      {deleting &&
+        docsRef.current.get(deleting.docId) &&
+        (() => {
+          const base = docText(deleting.docId),
+            item = itemValue(base, deleting.path),
+            owner =
+              deleting.kind === 'field' || deleting.kind === 'odcs-property'
+                ? String(itemValue(base, deleting.path.slice(0, -2))?.name ?? '')
+                : undefined;
+          return (
+            <DeleteItem
+              doc={docsRef.current.get(deleting.docId)!}
+              base={base}
+              path={deleting.path}
+              kind={deleting.kind}
+              name={itemName(deleting.kind, item) || 'this item'}
+              owner={owner}
+              projectDocs={projectDocsOf(deleting.docId)}
+              onClose={() => setDeleting(null)}
+              onDeleted={saved => {
+                setDeleting(null);
+                setSelected('');
+                setSelectedEdge('');
+                applySaved(
+                  saved,
+                  `Deleted ${itemName(deleting.kind, item)} and saved ${saved.length} file${saved.length === 1 ? '' : 's'}.`,
+                );
+              }}
+            />
+          );
+        })()}
+      {rdfEditing && docsRef.current.get(rdfEditing.docId) && (
+        <RdfItemEditor
+          key={rdfEditing.docId + '#' + rdfEditing.subject}
+          doc={docsRef.current.get(rdfEditing.docId)!}
+          base={docText(rdfEditing.docId)}
+          subject={rdfEditing.subject}
+          label={rdfEditing.label}
+          kind={rdfEditing.kind}
+          onClose={() => setRdfEditing(null)}
+          onSaved={saved => {
+            const file = docsRef.current.get(rdfEditing.docId)?.path;
+            setRdfEditing(null);
+            applySaved(saved, `Saved to ${file}.`);
+          }}
+          onDelete={() => {
+            setRdfDeleting(rdfEditing);
+            setRdfEditing(null);
+          }}
+          onOpenSource={line => {
+            const id = rdfEditing.docId;
+            setRdfEditing(null);
+            openSourceAt(id, line);
+          }}
+        />
+      )}
+      {rdfAdding && docsRef.current.get(rdfAdding) && (
+        <RdfAddItem
+          doc={docsRef.current.get(rdfAdding)!}
+          base={docText(rdfAdding)}
+          onClose={() => setRdfAdding(null)}
+          onSaved={(saved, subject) => {
+            setRdfAdding(null);
+            applySaved([saved], `Added to ${docsRef.current.get(saved.docId)?.path}.`);
+            if (saved.docId === current?.id) {
+              setSelected(subject);
+              setSelectedEdge('');
+            }
+          }}
+        />
+      )}
+      {rdfDeleting && docsRef.current.get(rdfDeleting.docId) && (
+        <RdfDeleteItem
+          doc={docsRef.current.get(rdfDeleting.docId)!}
+          base={docText(rdfDeleting.docId)}
+          subject={rdfDeleting.subject}
+          label={rdfDeleting.label}
+          projectDocs={projectDocsOf(rdfDeleting.docId)}
+          onClose={() => setRdfDeleting(null)}
+          onDeleted={saved => {
+            const label = rdfDeleting.label;
+            setRdfDeleting(null);
+            setSelected('');
+            setSelectedEdge('');
+            applySaved(saved, `Deleted ${label}.`);
+          }}
+        />
+      )}
+      {wizard && kpiProject && (
+        <MetricWizard
+          project={kpiProject}
+          docs={docs.filter(d => d.project === kpiProject)}
+          kpis={kpis}
+          existing={typeof wizard === 'object' ? wizard : undefined}
+          onClose={() => setWizard(false)}
+          onSaved={(file, modelPath, name) => {
+            const added = typeof wizard === 'object';
+            setWizard(false);
+            setSelectedKpi(`${file}#${modelPath.join('/')}#${name}`);
+            setTab('metrics');
+            setMessage(
+              added
+                ? `Added attributes to metric ${name} in ${file}.`
+                : `Created metric ${name} in ${file}.`,
+            );
+            void refresh().catch(() => {});
+          }}
+        />
+      )}
+      {committing && current && (
+        <CommitDialog
+          project={current.project}
+          projectName={projects.find(p => p.slug === current.project)?.name}
+          itemHints={itemHints.current[current.project]}
+          unsaved={source !== current.source ? [current.path] : []}
+          onClose={() => setCommitting(false)}
+          onCommitted={r => {
+            setCommitting(false);
+            itemHints.current[current.project] = {};
+            setMessage(
+              `Committed ${r.commit.slice(0, 7)} (${r.files.length} file${r.files.length === 1 ? '' : 's'})${r.pushed ? (r.pushed.ok ? ' and pushed.' : `; push failed: ${r.pushed.message}`) : '.'}`,
+            );
+            setGitVersion(v => v + 1);
+            void refresh().catch(() => {});
+          }}
+          onReverted={(path, hash) => {
+            setMessage(
+              hash
+                ? `Reverted ${path} to the last commit; the replaced version is in the trash.`
+                : `Moved ${path} to the trash.`,
+            );
+            setTrashVersion(v => v + 1);
+            void refresh()
+              .then(d => {
+                const doc = d.find(x => x.project === current.project && x.path === path);
+                if (
+                  doc &&
+                  currentRef.current?.project === current.project &&
+                  currentRef.current.path === path
+                ) {
+                  autosave.resolved(doc.hash, doc.source);
+                  setCurrent(doc);
+                  setSource(doc.source);
+                }
+              })
+              .catch(() => {});
+          }}
+        />
+      )}
+      {showValidation && (source || current) && (
+        <Modal
+          title="Validation details"
+          size="large"
+          onCancel={() => setShowValidation(false)}
+          className="validation-details"
+          footer={
+            <button type="button" onClick={() => setShowValidation(false)}>
+              Close
+            </button>
+          }
+        >
+          <ValidationPanel
+            source={source}
+            issues={validation.issues}
+            onLocate={issue => {
+              setShowValidation(false);
+              setTab('source');
+              setTimeout(() => {
+                sourceEditor.current?.locate(issue);
+              }, 0);
+            }}
+          />
+        </Modal>
+      )}
+      {definition && (
+        <Modal
+          title={definition.title}
+          size="large"
+          onCancel={() => setDefinition(null)}
+          className="definition-dialog"
+          footer={
+            <button type="button" onClick={() => setDefinition(null)}>
+              Close
+            </button>
+          }
+        >
+          <pre className="definition-json" aria-label="Definition">
+            {JSON.stringify(definition.value, null, 2)}
+          </pre>
+        </Modal>
+      )}
+      {importing && (
+        <ImportDialog
+          projects={projects}
+          initialProject={importing.project}
+          onClose={() => setImporting(null)}
+          onPick={project => {
+            importInto.current = project ?? '';
+            setImporting(null);
+            requestAnimationFrame(() => importInput.current?.click());
+          }}
+        />
+      )}
+      {pendingImport && (
+        <ImportRepair
+          initial={pendingImport}
+          onCancel={() => setPendingImport(null)}
+          onImport={commitImports}
+        />
+      )}
+      {compact && sidebarOpen && (
+        <button
+          className="workspace-scrim"
+          aria-label="Dismiss workspace drawer"
+          tabIndex={-1}
+          onClick={closeWorkspace}
+        />
+      )}
+      <aside
+        id="workspace-sidebar"
+        className="sidebar workspace-sidebar"
+        ref={sidebarRef}
+        inert={!sidebarOpen}
+        role={compact && sidebarOpen ? 'dialog' : undefined}
+        aria-modal={compact && sidebarOpen ? true : undefined}
+        aria-label="Workspace documents"
+      >
+        {compact && (
+          <button
+            className="workspace-close"
+            aria-label="Close workspace drawer"
+            onClick={closeWorkspace}
+          >
+            <X size={18} />
+          </button>
+        )}
         <div className="brand">
           <Layers size={26} />
           <span>
@@ -522,40 +1629,172 @@ function App() {
         <div className="workspace-label">
           LOCAL WORKSPACE <span className="dot" />
         </div>
-        <button className={`nav${tab!=='scm'&&tab!=='source'?' active':''}`} aria-current={tab!=='scm'&&tab!=='source'?'page':undefined} onClick={() => {setTab('fullgraph');if(compact)closeWorkspace();}}>
+        <button
+          className={`nav${tab !== 'scm' && tab !== 'source' ? ' active' : ''}`}
+          aria-current={tab !== 'scm' && tab !== 'source' ? 'page' : undefined}
+          onClick={() => {
+            setTab('fullgraph');
+            if (compact) closeWorkspace();
+          }}
+        >
           <Network size={18} /> Model explorer
         </button>
-        <button className={`nav${tab==='source'?' active':''}`} aria-current={tab==='source'?'page':undefined} onClick={() => {setTab("source");if(compact)closeWorkspace();}}>
+        <button
+          className={`nav${tab === 'source' ? ' active' : ''}`}
+          aria-current={tab === 'source' ? 'page' : undefined}
+          onClick={() => {
+            setTab('source');
+            if (compact) closeWorkspace();
+          }}
+        >
           <FileCode size={18} /> Source editor
         </button>
-        <button className={`nav${tab==='scm'?' active':''}`} aria-current={tab==='scm'?'page':undefined} onClick={() => {setHistoryPath(undefined);setTab("scm");if(compact)closeWorkspace();}}>
-          <GitBranch size={18} /> Source control{(()=>{const n=projects.find(p=>p.slug===scmSlug)?.changes??0;return n>0&&<span className="nav-count" aria-label={`${n} changed files`}>{n}</span>;})()}
+        <button
+          className={`nav${tab === 'scm' ? ' active' : ''}`}
+          aria-current={tab === 'scm' ? 'page' : undefined}
+          onClick={() => {
+            setHistoryPath(undefined);
+            setTab('scm');
+            if (compact) closeWorkspace();
+          }}
+        >
+          <GitBranch size={18} /> Source control
+          {(() => {
+            const n = projects.find(p => p.slug === scmSlug)?.changes ?? 0;
+            return (
+              n > 0 && (
+                <span className="nav-count" aria-label={`${n} changed files`}>
+                  {n}
+                </span>
+              )
+            );
+          })()}
         </button>
         <div className="section-label">
           PROJECTS <span>{projects.length}</span>
         </div>
         <div className="documents">
-          <ProjectTree projects={projects} currentId={current?.id} onAction={treeAction} onOpen={(project,path)=>{const d=docs.find(x=>x.project===project&&x.path===path);if(d)open(d);}}/>
+          <ProjectTree
+            projects={projects}
+            currentId={current?.id}
+            onAction={treeAction}
+            onOpen={(project, path) => {
+              const d = docs.find(x => x.project === project && x.path === path);
+              if (d) open(d);
+            }}
+          />
         </div>
-        <div className="workspace-actions"><button onClick={()=>setDeleteTarget({kind:'clear'})} disabled={!projects.length}>Clear workspace</button><button onClick={()=>setTrashOpen(true)}>Trash</button></div>
-        <Suggestions items={suggestions} projects={projects} onAccept={id=>void api.acceptSuggestion(id).then(r=>{setMessage(`Moved ${r.path} into ${projects.find(p=>p.slug===r.project)?.name}.`);return refresh();}).catch(e=>setMessage(e.message))} onReject={id=>void api.rejectSuggestion(id).then(()=>refresh()).catch(e=>setMessage(e.message))}/>
+        <div className="workspace-actions">
+          <button onClick={() => setDeleteTarget({ kind: 'clear' })} disabled={!projects.length}>
+            Clear workspace
+          </button>
+          <button onClick={() => setTrashOpen(true)}>Trash</button>
+        </div>
+        <Suggestions
+          items={suggestions}
+          projects={projects}
+          onAccept={id =>
+            void api
+              .acceptSuggestion(id)
+              .then(r => {
+                setMessage(
+                  `Moved ${r.path} into ${projects.find(p => p.slug === r.project)?.name}.`,
+                );
+                return refresh();
+              })
+              .catch(e => setMessage(e.message))
+          }
+          onReject={id =>
+            void api
+              .rejectSuggestion(id)
+              .then(() => refresh())
+              .catch(e => setMessage(e.message))
+          }
+        />
         <details className="examples" aria-label="Examples" open={examplesOpen}>
-          <summary onClick={e=>{e.preventDefault();setExamplesChoice(!examplesOpen);}}>Examples</summary>
-        <button className="scale-example" onClick={()=>loadExample('ubl')} disabled={busy}><Layers size={16}/><span>Load UBL business model<small>45 entities · 277 relationships</small></span></button>
-        <button className="scale-example" onClick={()=>loadExample('commerce')} disabled={busy}><Layers size={16}/><span>Load commerce workspace<small>ODCS · Ossie · OWL · SHACL · RDF</small></span></button>
-        <button className="scale-example" onClick={()=>loadExample('commerce-scale')} disabled={busy}><Network size={16}/><span>Load commerce scale data<small>1,000 entities · 5,000 relationships</small></span></button>
-        <button className="scale-example" onClick={()=>loadExample('mapped-commerce')} disabled={busy}><Layers size={16}/><span>Load mapped commerce<small>Ontology → mappings → governed queries</small></span></button>
-        <button className="scale-example" onClick={()=>loadExample('flights')} disabled={busy}><Network size={16}/><span>Load Ossie Flights<small>Official ontology · semantic model · mappings</small></span></button>
-        <button className="scale-example" onClick={()=>loadExample('billing')} disabled={busy}><Layers size={16}/><span>Load subscription billing<small>36 business entities · 4 governed metrics</small></span></button>
-        <button className="scale-example" onClick={()=>loadExample('mall')} disabled={busy}><Layers size={16}/><span>Load shopping center administration<small>145 entity types · 11 namespaces · 25 metrics</small></span></button>
+          <summary
+            onClick={e => {
+              e.preventDefault();
+              setExamplesChoice(!examplesOpen);
+            }}
+          >
+            Examples
+          </summary>
+          <button className="scale-example" onClick={() => loadExample('ubl')} disabled={busy}>
+            <Layers size={16} />
+            <span>
+              Load UBL business model<small>45 entities · 277 relationships</small>
+            </span>
+          </button>
+          <button className="scale-example" onClick={() => loadExample('commerce')} disabled={busy}>
+            <Layers size={16} />
+            <span>
+              Load commerce workspace<small>ODCS · Ossie · OWL · SHACL · RDF</small>
+            </span>
+          </button>
+          <button
+            className="scale-example"
+            onClick={() => loadExample('commerce-scale')}
+            disabled={busy}
+          >
+            <Network size={16} />
+            <span>
+              Load commerce scale data<small>1,000 entities · 5,000 relationships</small>
+            </span>
+          </button>
+          <button
+            className="scale-example"
+            onClick={() => loadExample('mapped-commerce')}
+            disabled={busy}
+          >
+            <Layers size={16} />
+            <span>
+              Load mapped commerce<small>Ontology → mappings → governed queries</small>
+            </span>
+          </button>
+          <button className="scale-example" onClick={() => loadExample('flights')} disabled={busy}>
+            <Network size={16} />
+            <span>
+              Load Ossie Flights<small>Official ontology · semantic model · mappings</small>
+            </span>
+          </button>
+          <button className="scale-example" onClick={() => loadExample('billing')} disabled={busy}>
+            <Layers size={16} />
+            <span>
+              Load subscription billing<small>36 business entities · 4 governed metrics</small>
+            </span>
+          </button>
+          <button className="scale-example" onClick={() => loadExample('mall')} disabled={busy}>
+            <Layers size={16} />
+            <span>
+              Load shopping center administration
+              <small>145 entity types · 11 namespaces · 25 metrics</small>
+            </span>
+          </button>
         </details>
-        <button className="import" onClick={()=>setImporting({})}><Upload size={16} /> Import…</button>
+        <button className="import" onClick={() => setImporting({})}>
+          <Upload size={16} /> Import…
+        </button>
         {/* The one file field: the Import dialog opens it for a new or an existing project. */}
-        <input ref={importInput} className="import-input" type="file" multiple tabIndex={-1} aria-hidden="true"
+        <input
+          ref={importInput}
+          className="import-input"
+          type="file"
+          multiple
+          tabIndex={-1}
+          aria-hidden="true"
           accept=".yaml,.yml,.json,.odcs,.ossie,.ttl,.nt,.rdf,.owl,.xml,.shacl,.n3"
-          onChange={(e) => {
-            const files=Array.from(e.target.files??[]),into=importInto.current;importInto.current='';e.target.value='';
-            if(into)void Promise.all(files.map(async f=>({path:f.name,source:await f.text()}))).then(list=>{if(list.length)void importIntoProject(list,undefined,into);});
+          onChange={e => {
+            const files = Array.from(e.target.files ?? []),
+              into = importInto.current;
+            importInto.current = '';
+            e.target.value = '';
+            if (into)
+              void Promise.all(
+                files.map(async f => ({ path: f.name, source: await f.text() })),
+              ).then(list => {
+                if (list.length) void importIntoProject(list, undefined, into);
+              });
             else void importFiles(files);
           }}
         />
@@ -564,24 +1803,151 @@ function App() {
           <small>Your definitions stay local.</small>
         </div>
       </aside>
-      {!compact&&sidebarOpen&&<div className="sidebar-separator" role="separator" aria-label="Resize sidebar" aria-orientation="vertical" aria-valuemin={220} aria-valuemax={520} aria-valuenow={sidebarWidth} tabIndex={0}
-        onPointerDown={e=>{if(e.button!==0)return;e.preventDefault();e.currentTarget.focus();e.currentTarget.setPointerCapture(e.pointerId);sidebarDrag.current={pointerId:e.pointerId,x:e.clientX,width:sidebarWidth};setResizingSidebar(true);}}
-        onPointerMove={e=>{const drag=sidebarDrag.current;if(drag?.pointerId===e.pointerId)setSidebarWidth(clampSidebarWidth(drag.width+e.clientX-drag.x));}}
-        onPointerUp={e=>{if(sidebarDrag.current?.pointerId!==e.pointerId)return;sidebarDrag.current=null;setResizingSidebar(false);e.currentTarget.releasePointerCapture(e.pointerId);}}
-        onPointerCancel={()=>{sidebarDrag.current=null;setResizingSidebar(false);}}
-        onLostPointerCapture={()=>{sidebarDrag.current=null;setResizingSidebar(false);}}
-        onKeyDown={e=>{const width=e.key==='Home'?220:e.key==='End'?520:e.key==='ArrowLeft'?sidebarWidth-16:e.key==='ArrowRight'?sidebarWidth+16:null;if(width!==null){e.preventDefault();setSidebarWidth(clampSidebarWidth(width));}}}
-      />}
-      <main inert={compact&&sidebarOpen}>
-        <GitBanner status={status}/>
+      {!compact && sidebarOpen && (
+        <div
+          className="sidebar-separator"
+          role="separator"
+          aria-label="Resize sidebar"
+          aria-orientation="vertical"
+          aria-valuemin={220}
+          aria-valuemax={520}
+          aria-valuenow={sidebarWidth}
+          tabIndex={0}
+          onPointerDown={e => {
+            if (e.button !== 0) return;
+            e.preventDefault();
+            e.currentTarget.focus();
+            e.currentTarget.setPointerCapture(e.pointerId);
+            sidebarDrag.current = { pointerId: e.pointerId, x: e.clientX, width: sidebarWidth };
+            setResizingSidebar(true);
+          }}
+          onPointerMove={e => {
+            const drag = sidebarDrag.current;
+            if (drag?.pointerId === e.pointerId)
+              setSidebarWidth(clampSidebarWidth(drag.width + e.clientX - drag.x));
+          }}
+          onPointerUp={e => {
+            if (sidebarDrag.current?.pointerId !== e.pointerId) return;
+            sidebarDrag.current = null;
+            setResizingSidebar(false);
+            e.currentTarget.releasePointerCapture(e.pointerId);
+          }}
+          onPointerCancel={() => {
+            sidebarDrag.current = null;
+            setResizingSidebar(false);
+          }}
+          onLostPointerCapture={() => {
+            sidebarDrag.current = null;
+            setResizingSidebar(false);
+          }}
+          onKeyDown={e => {
+            const width =
+              e.key === 'Home'
+                ? 220
+                : e.key === 'End'
+                  ? 520
+                  : e.key === 'ArrowLeft'
+                    ? sidebarWidth - 16
+                    : e.key === 'ArrowRight'
+                      ? sidebarWidth + 16
+                      : null;
+            if (width !== null) {
+              e.preventDefault();
+              setSidebarWidth(clampSidebarWidth(width));
+            }
+          }}
+        />
+      )}
+      <main inert={compact && sidebarOpen}>
+        <GitBanner status={status} />
         <header className="workspace-header">
-          <button ref={workspaceToggle} className="workspace-toggle" aria-label={compact?(sidebarOpen?'Close workspace':'Open workspace'):(sidebarOpen?'Hide sidebar':'Show sidebar')} aria-expanded={sidebarOpen} aria-controls="workspace-sidebar" onClick={()=>compact?setSidebarOpen(v=>!v):setSidebarHidden(v=>!v)}>{compact?(sidebarOpen?<X size={18}/>:<Menu size={18}/>):(sidebarOpen?<PanelLeftClose size={18}/>:<PanelLeftOpen size={18}/>)}</button>
-          <div className="workspace-title"><h1 title={model?.name??current?.filename??'Semantic Workbench'}>{model?.name??current?.filename??'Semantic Workbench'}</h1><span className="badge"><span className="dot"/>{model?.kind??'ODCS + Apache Ossie'}</span></div>
+          <button
+            ref={workspaceToggle}
+            className="workspace-toggle"
+            aria-label={
+              compact
+                ? sidebarOpen
+                  ? 'Close workspace'
+                  : 'Open workspace'
+                : sidebarOpen
+                  ? 'Hide sidebar'
+                  : 'Show sidebar'
+            }
+            aria-expanded={sidebarOpen}
+            aria-controls="workspace-sidebar"
+            onClick={() => (compact ? setSidebarOpen(v => !v) : setSidebarHidden(v => !v))}
+          >
+            {compact ? (
+              sidebarOpen ? (
+                <X size={18} />
+              ) : (
+                <Menu size={18} />
+              )
+            ) : sidebarOpen ? (
+              <PanelLeftClose size={18} />
+            ) : (
+              <PanelLeftOpen size={18} />
+            )}
+          </button>
+          <div className="workspace-title">
+            <h1 title={model?.name ?? current?.filename ?? 'Semantic Workbench'}>
+              {model?.name ?? current?.filename ?? 'Semantic Workbench'}
+            </h1>
+            <span className="badge">
+              <span className="dot" />
+              {model?.kind ?? 'ODCS + Apache Ossie'}
+            </span>
+          </div>
           <div className="header-actions">
-            <MenuButton ariaLabel="New" label={<span className="action-label">New</span>} icon={<Plus size={15}/>} buttonClassName="new-menu" items={newItems()}/>
-            <MenuButton ariaLabel="More actions" title="More actions" icon={<MoreHorizontal size={16}/>} items={[{label:'Export',icon:<Download size={14}/>,run:download,disabled:source?false:'Open a file to export it.',hint:'Download the file exactly as it is'}]}/>
-            <button className={`save-state s-${autosave.state.status}`} role="status" aria-label="Save state" disabled={!current} title={`${current?saveState:'No file open'} — ${autosave.state.status==='invalid'?'show the validation findings':autosave.state.status==='stale'?'compare with the file on disk':'open Commit'}`} onClick={()=>{const st=autosave.state.status;if(st==='invalid'||!!result.error)setShowValidation(true);else if(st==='stale')void openStale();else setCommitting(true);}}><span className="save-state-text">{current?saveState:'No file open'}</span></button>
-            <button className="primary" onClick={()=>{void autosave.flush();setCommitting(true);}} disabled={!current||status?.gitAvailable===false} title={status?.gitAvailable===false?'Git is not available on this machine':'Commit changed files of this project'}>
+            <MenuButton
+              ariaLabel="New"
+              label={<span className="action-label">New</span>}
+              icon={<Plus size={15} />}
+              buttonClassName="new-menu"
+              items={newItems()}
+            />
+            <MenuButton
+              ariaLabel="More actions"
+              title="More actions"
+              icon={<MoreHorizontal size={16} />}
+              items={[
+                {
+                  label: 'Export',
+                  icon: <Download size={14} />,
+                  run: download,
+                  disabled: source ? false : 'Open a file to export it.',
+                  hint: 'Download the file exactly as it is',
+                },
+              ]}
+            />
+            <button
+              className={`save-state s-${autosave.state.status}`}
+              role="status"
+              aria-label="Save state"
+              disabled={!current}
+              title={`${current ? saveState : 'No file open'} — ${autosave.state.status === 'invalid' ? 'show the validation findings' : autosave.state.status === 'stale' ? 'compare with the file on disk' : 'open Commit'}`}
+              onClick={() => {
+                const st = autosave.state.status;
+                if (st === 'invalid' || !!result.error) setShowValidation(true);
+                else if (st === 'stale') void openStale();
+                else setCommitting(true);
+              }}
+            >
+              <span className="save-state-text">{current ? saveState : 'No file open'}</span>
+            </button>
+            <button
+              className="primary"
+              onClick={() => {
+                void autosave.flush();
+                setCommitting(true);
+              }}
+              disabled={!current || status?.gitAvailable === false}
+              title={
+                status?.gitAvailable === false
+                  ? 'Git is not available on this machine'
+                  : 'Commit changed files of this project'
+              }
+            >
               <GitCommitIcon size={15} />
               <span className="action-label">Commit…</span>
             </button>
@@ -589,39 +1955,184 @@ function App() {
         </header>
         <div className="toolbar">
           <ScrollStrip className="tabs" selection={tab}>
-            {isContract&&<button className={tab==='contract'?'selected':''} aria-current={tab==='contract'?'page':undefined} onClick={()=>setTab('contract')}><FileCheck2 size={16}/> Contract</button>}
-            <button className={tab==='overview'?'selected':''} aria-current={tab==='overview'?'page':undefined} onClick={()=>{setTab('overview');setSearch('')}}><Layers size={16}/> Overview</button>
-            <button className={tab==='fullgraph' ? "selected" : ""} aria-current={tab==='fullgraph' ?'page':undefined} onClick={() => {setTab("fullgraph");setSearch('')}}>
+            {isContract && (
+              <button
+                className={tab === 'contract' ? 'selected' : ''}
+                aria-current={tab === 'contract' ? 'page' : undefined}
+                onClick={() => setTab('contract')}
+              >
+                <FileCheck2 size={16} /> Contract
+              </button>
+            )}
+            <button
+              className={tab === 'overview' ? 'selected' : ''}
+              aria-current={tab === 'overview' ? 'page' : undefined}
+              onClick={() => {
+                setTab('overview');
+                setSearch('');
+              }}
+            >
+              <Layers size={16} /> Overview
+            </button>
+            <button
+              className={tab === 'fullgraph' ? 'selected' : ''}
+              aria-current={tab === 'fullgraph' ? 'page' : undefined}
+              onClick={() => {
+                setTab('fullgraph');
+                setSearch('');
+              }}
+            >
               <Network size={16} /> Graph
             </button>
-            <button className={tab==='neighborhood'?'selected':''} aria-current={tab==='neighborhood'?'page':undefined} onClick={()=>showNeighborhood(neighborhoodFocus||selected||relationship?.source||'')}><Focus size={16}/> Neighborhood</button>
             <button
-              className={tab === "catalog" ? "selected" : ""} aria-current={tab === "catalog" ?'page':undefined}
-              onClick={() => setTab("catalog")}
+              className={tab === 'neighborhood' ? 'selected' : ''}
+              aria-current={tab === 'neighborhood' ? 'page' : undefined}
+              onClick={() =>
+                showNeighborhood(neighborhoodFocus || selected || relationship?.source || '')
+              }
+            >
+              <Focus size={16} /> Neighborhood
+            </button>
+            <button
+              className={tab === 'catalog' ? 'selected' : ''}
+              aria-current={tab === 'catalog' ? 'page' : undefined}
+              onClick={() => setTab('catalog')}
             >
               <Box size={16} /> Catalog
             </button>
-            <button className={tab === "source" ? "selected" : ""} aria-current={tab === "source" ?'page':undefined} onClick={() => {setTab("source");if(compact)closeWorkspace();}}>
+            <button
+              className={tab === 'source' ? 'selected' : ''}
+              aria-current={tab === 'source' ? 'page' : undefined}
+              onClick={() => {
+                setTab('source');
+                if (compact) closeWorkspace();
+              }}
+            >
               <FileCode size={16} /> Source
             </button>
-            <button className={tab==='mappings'?'selected':''} aria-current={tab==='mappings'?'page':undefined} onClick={()=>setTab('mappings')}><Layers size={16}/> Mappings</button>
-            <button className={tab==='metrics'?'selected':''} aria-current={tab==='metrics'?'page':undefined} onClick={()=>setTab('metrics')}><Gauge size={16}/> Metrics{kpis.length>0&&<span className="tab-count">{kpis.length}</span>}</button>
+            <button
+              className={tab === 'mappings' ? 'selected' : ''}
+              aria-current={tab === 'mappings' ? 'page' : undefined}
+              onClick={() => setTab('mappings')}
+            >
+              <Layers size={16} /> Mappings
+            </button>
+            <button
+              className={tab === 'metrics' ? 'selected' : ''}
+              aria-current={tab === 'metrics' ? 'page' : undefined}
+              onClick={() => setTab('metrics')}
+            >
+              <Gauge size={16} /> Metrics
+              {kpis.length > 0 && <span className="tab-count">{kpis.length}</span>}
+            </button>
           </ScrollStrip>
-          {groupingOverview&&((tab==='fullgraph'&&!lineageShown)||(tab==='overview'))&&<GroupingControls overview={groupingOverview} value={grouping.value} onChange={grouping.change} example={model!.name.includes('UBL')} error={grouping.error}/>}
-          {/* The lineage canvas has its own Find assets (FR-005). */}
-          {!lineageShown&&<label className="search">
-            <Search size={16} />
-            <input
-              placeholder="Find an entity…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+          {groupingOverview && ((tab === 'fullgraph' && !lineageShown) || tab === 'overview') && (
+            <GroupingControls
+              overview={groupingOverview}
+              value={grouping.value}
+              onChange={grouping.change}
+              example={model!.name.includes('UBL')}
+              error={grouping.error}
             />
-          </label>}
+          )}
+          {/* The lineage canvas has its own Find assets (FR-005). */}
+          {!lineageShown && (
+            <label className="search">
+              <Search size={16} />
+              <input
+                placeholder="Find an entity…"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+            </label>
+          )}
         </div>
 
-        <div ref={canvasRow} className={`canvas-row${inspectorVisible?' has-inspector':''}${pageDetails?' page-details':''}${fullscreen.active?' is-fullscreen':''}${fullscreen.fallback?' window-fill':''}`}>
+        <div
+          ref={canvasRow}
+          className={`canvas-row${inspectorVisible ? ' has-inspector' : ''}${pageDetails ? ' page-details' : ''}${fullscreen.active ? ' is-fullscreen' : ''}${fullscreen.fallback ? ' window-fill' : ''}`}
+        >
           <section className="canvas" inert={pageDetails}>
-            {tab==='contract'&&isContract&&current ? (contractObject?<DatasetPage key={contractObject} doc={current} data={(model as any).document} objectName={contractObject} projectDocs={docs.filter(d=>d.project===current.project)} onBack={()=>setContractObject(null)} onOpenObject={setContractObject} onOpenInLineage={openInLineage} onNeighborhood={continueInNeighborhood} gitVersion={gitVersion} editor={propertyEditor({doc:current,base:docText(current.id),onSaved:applySaved,onError:setMessage})}/>:<ContractOverview data={(model as any).document} onOpen={setContractObject} onOpenInLineage={openInLineage}/>) : tab==='scm' ? (scmSlug?<SourceControl onBusy={setGitBusy} onCommit={()=>{void autosave.flush();setCommitting(true);}} projects={projects} project={scmSlug} version={gitVersion} unsaved={current&&current.project===scmSlug&&source!==current.source?[current.path]:[]} historyPath={historyPath} onProject={slug=>{setMessage('');setScmProject(slug);setHistoryPath(undefined);}} onChanged={()=>void refresh().catch(()=>{})} onOpen={(project,path)=>{const d=docsRef.current.get(`${project}/${path}`);if(d&&open(d))setTab('source');}}/>:<p className="hint">Import definitions or load an example to start a project.</p>) : tab==='metrics' ? <MetricsView project={kpiProject} projectName={projects.find(p=>p.slug===kpiProject)?.name} kpis={kpis} error={kpiError} loading={kpiLoading} selected={selectedKpi} onSelect={setSelectedKpi} filter={kpiFilter} onNew={()=>setWizard(true)} onEdit={editKpi} onAddAttributes={k=>setWizard(k)}/> : tab==='mappings' ? <MappingExplorer onEditItem={editMappingItem} currentId={current?.id} revisionKey={docs.map(d=>d.id+':'+d.hash).join('|')} dirty={!!current&&source!==current.source}/> : !source && !current ? (
+            {tab === 'contract' && isContract && current ? (
+              contractObject ? (
+                <DatasetPage
+                  key={contractObject}
+                  doc={current}
+                  data={(model as any).document}
+                  objectName={contractObject}
+                  projectDocs={docs.filter(d => d.project === current.project)}
+                  onBack={() => setContractObject(null)}
+                  onOpenObject={setContractObject}
+                  onOpenInLineage={openInLineage}
+                  onNeighborhood={continueInNeighborhood}
+                  gitVersion={gitVersion}
+                  editor={propertyEditor({
+                    doc: current,
+                    base: docText(current.id),
+                    onSaved: applySaved,
+                    onError: setMessage,
+                  })}
+                />
+              ) : (
+                <ContractOverview
+                  data={(model as any).document}
+                  onOpen={setContractObject}
+                  onOpenInLineage={openInLineage}
+                />
+              )
+            ) : tab === 'scm' ? (
+              scmSlug ? (
+                <SourceControl
+                  onBusy={setGitBusy}
+                  onCommit={() => {
+                    void autosave.flush();
+                    setCommitting(true);
+                  }}
+                  projects={projects}
+                  project={scmSlug}
+                  version={gitVersion}
+                  unsaved={
+                    current && current.project === scmSlug && source !== current.source
+                      ? [current.path]
+                      : []
+                  }
+                  historyPath={historyPath}
+                  onProject={slug => {
+                    setMessage('');
+                    setScmProject(slug);
+                    setHistoryPath(undefined);
+                  }}
+                  onChanged={() => void refresh().catch(() => {})}
+                  onOpen={(project, path) => {
+                    const d = docsRef.current.get(`${project}/${path}`);
+                    if (d && open(d)) setTab('source');
+                  }}
+                />
+              ) : (
+                <p className="hint">Import definitions or load an example to start a project.</p>
+              )
+            ) : tab === 'metrics' ? (
+              <MetricsView
+                project={kpiProject}
+                projectName={projects.find(p => p.slug === kpiProject)?.name}
+                kpis={kpis}
+                error={kpiError}
+                loading={kpiLoading}
+                selected={selectedKpi}
+                onSelect={setSelectedKpi}
+                filter={kpiFilter}
+                onNew={() => setWizard(true)}
+                onEdit={editKpi}
+                onAddAttributes={k => setWizard(k)}
+              />
+            ) : tab === 'mappings' ? (
+              <MappingExplorer
+                onEditItem={editMappingItem}
+                currentId={current?.id}
+                revisionKey={docs.map(d => d.id + ':' + d.hash).join('|')}
+                dirty={!!current && source !== current.source}
+              />
+            ) : !source && !current ? (
               <div className="empty">
                 <div className="empty-icon">
                   <Network size={36} />
@@ -634,129 +2145,585 @@ function App() {
                 </p>
                 <button
                   className="primary"
-                  onClick={() => void commitImports([{filename:"commerce-business.ossie.yaml",source:sample}]).catch(e=>setMessage((e as Error).message))}
+                  onClick={() =>
+                    void commitImports([
+                      { filename: 'commerce-business.ossie.yaml', source: sample },
+                    ]).catch(e => setMessage((e as Error).message))
+                  }
                 >
                   Open example ontology
                 </button>
               </div>
-            ) : tab === "source" ? (
+            ) : tab === 'source' ? (
               <CodeEditor
                 ref={sourceEditor}
                 ariaLabel="Definition source"
                 className="code"
-                filename={current?.filename??'definition.yaml'}
+                filename={current?.filename ?? 'definition.yaml'}
                 value={source}
                 onChange={setSource}
-                onIssues={(issues,text)=>setEditorIssues({id:current?.id,issues,text})}
+                onIssues={(issues, text) => setEditorIssues({ id: current?.id, issues, text })}
               />
-            ) : plainText ? <div className="invalid-definition"><h2>Git ignore rules</h2><p>{current?.path} is plain text: one pattern per line, read by Git. Files it matches are not shown in the workspace or in Source Control.</p><button onClick={()=>setTab("source")}>Edit in Source</button></div> : result.error ? <div className="invalid-definition"><h2>This definition needs repair</h2><p>Your saved document is unchanged. Open Source to fix the validation findings.</p><button onClick={()=>setTab("source")}>Repair in Source</button></div> : tab === "catalog" ? (
+            ) : plainText ? (
+              <div className="invalid-definition">
+                <h2>Git ignore rules</h2>
+                <p>
+                  {current?.path} is plain text: one pattern per line, read by Git. Files it matches
+                  are not shown in the workspace or in Source Control.
+                </p>
+                <button onClick={() => setTab('source')}>Edit in Source</button>
+              </div>
+            ) : result.error ? (
+              <div className="invalid-definition">
+                <h2>This definition needs repair</h2>
+                <p>Your saved document is unchanged. Open Source to fix the validation findings.</p>
+                <button onClick={() => setTab('source')}>Repair in Source</button>
+              </div>
+            ) : tab === 'catalog' ? (
               <div className="catalog">
                 {model?.entities
-                  .filter((e) => e.name.toLowerCase().includes(search.toLowerCase()))
-                  .map((e) => (
+                  .filter(e => e.name.toLowerCase().includes(search.toLowerCase()))
+                  .map(e => (
                     <div className="catalog-card" key={e.id}>
-                    <button onClick={() => selectEntity(e.id)}>
-                      <small>{e.kind==='Metric'?'Metric':e.kind}{(kpiBadges.get(e.name)?.length??0)>0&&<span className="kpi-badge" title={`Metrics: ${kpiBadges.get(e.name)!.join(', ')}`}><Gauge size={10}/>{kpiBadges.get(e.name)!.length===1?'Metric':`${kpiBadges.get(e.name)!.length} metrics`}</span>}</small>
-                      <strong>{e.name}</strong>
-                      <p>{e.description || "No description yet"}</p>
-                    </button>
-                    {(entityTarget(e)||rdfTarget(e))&&<button className="catalog-edit" aria-label={`Edit ${e.name}`} onClick={()=>{const t=entityTarget(e);if(t)setEditing(t);else setRdfEditing(rdfTarget(e));}}><Pencil size={11}/>Edit</button>}
+                      <button onClick={() => selectEntity(e.id)}>
+                        <small>
+                          {e.kind === 'Metric' ? 'Metric' : e.kind}
+                          {(kpiBadges.get(e.name)?.length ?? 0) > 0 && (
+                            <span
+                              className="kpi-badge"
+                              title={`Metrics: ${kpiBadges.get(e.name)!.join(', ')}`}
+                            >
+                              <Gauge size={10} />
+                              {kpiBadges.get(e.name)!.length === 1
+                                ? 'Metric'
+                                : `${kpiBadges.get(e.name)!.length} metrics`}
+                            </span>
+                          )}
+                        </small>
+                        <strong>{e.name}</strong>
+                        <p>{e.description || 'No description yet'}</p>
+                      </button>
+                      {(entityTarget(e) || rdfTarget(e)) && (
+                        <button
+                          className="catalog-edit"
+                          aria-label={`Edit ${e.name}`}
+                          onClick={() => {
+                            const t = entityTarget(e);
+                            if (t) setEditing(t);
+                            else setRdfEditing(rdfTarget(e));
+                          }}
+                        >
+                          <Pencil size={11} />
+                          Edit
+                        </button>
+                      )}
                     </div>
                   ))}
               </div>
-            ) : tab==='fullgraph' && mappingId && mappingView==='mapping' ? <MappingCanvas key={mappingId} mappingId={mappingId} revisionKey={docs.filter(d=>d.project===current?.project).map(d=>d.id+':'+d.hash).join('|')} dirty={!!current&&source!==current.source} fullscreen={fullscreen} toolbarExtra={graphViewSwitch} onEditItem={editMappingItem}/>
-            : tab==='fullgraph' && isContract && lineage && lineageCenterId ? <LineageCanvas key={current?.id} graph={lineage} center={lineageCenterId} fullscreen={fullscreen} storageKey={current?`workbench:lineage-steps:${current.id}`:undefined} onCenterChange={lineageCenterChanged} onOpenAsset={c=>{setTab('contract');setContractObject(c.label);}} onNeighborhood={continueInNeighborhood}/> : tab==='fullgraph' && model ? <FullGraph toolbarExtra={graphViewSwitch} fullscreen={fullscreen} kpiBadges={kpiBadges} grouping={grouping.value} onGroupingChange={grouping.change} groupingError={grouping.error} key={current?.id} name={model.name} entities={model.entities} edges={model.edges} selected={selected} selectedEdge={selectedEdge} search={search} onSelectEntity={selectEntity} onSelectEdge={id=>{setSelectedEdge(id);setSelected('')}} onOverview={()=>{setTab('overview');setSearch('')}} onNeighborhood={()=>showNeighborhood()}/> : (
-              tab==='overview' && model ? <ModelOverview grouping={grouping.value} onGroupingChange={grouping.change} groupingError={grouping.error} key={current?.id} name={model.name} entities={model.entities} edges={model.edges} search={search} selected={selected} onSelectEntity={selectEntity} onSelectRelationship={id=>{setSelectedEdge(id);setSelected('')}} onClose={()=>showNeighborhood()} onOpenGraph={()=>{setTab('fullgraph')}}/> : <NeighborhoodGraph modelName={model?.name} fullscreen={fullscreen} kpiBadges={kpiBadges} key={current?.id} docId={current!.id} docLabel={id=>docsRef.current.get(id)?.path??id} entities={model?.entities??[]} edges={model?.edges??[]} search={search} walk={walk} selected={selected} selectedEdge={selectedEdge} onWalk={(steps:WalkStep[])=>{for(const step of steps)dispatchWalk({type:'push',step});}} onWalkTo={walkTo} onClearSearch={()=>setSearch('')} onSelectEntity={id=>{setSelected(id);setSelectedEdge('');}} onSelectEdge={id=>{setSelectedEdge(id);}} onOverview={()=>{setSearch('');setTab('overview')}} onFullGraph={()=>{setSearch('');setTab('fullgraph')}} onOpenKpis={concept=>{setKpiFilter(concept+'\u0000'+Date.now());setSelectedKpi('');setTab('metrics');}} crossFile={crossFile} onCrossFile={crossTo}/>
+            ) : tab === 'fullgraph' && mappingId && mappingView === 'mapping' ? (
+              <MappingCanvas
+                key={mappingId}
+                mappingId={mappingId}
+                revisionKey={docs
+                  .filter(d => d.project === current?.project)
+                  .map(d => d.id + ':' + d.hash)
+                  .join('|')}
+                dirty={!!current && source !== current.source}
+                fullscreen={fullscreen}
+                toolbarExtra={graphViewSwitch}
+                onEditItem={editMappingItem}
+              />
+            ) : tab === 'fullgraph' && isContract && lineage && lineageCenterId ? (
+              <LineageCanvas
+                key={current?.id}
+                graph={lineage}
+                center={lineageCenterId}
+                fullscreen={fullscreen}
+                storageKey={current ? `workbench:lineage-steps:${current.id}` : undefined}
+                onCenterChange={lineageCenterChanged}
+                onOpenAsset={c => {
+                  setTab('contract');
+                  setContractObject(c.label);
+                }}
+                onNeighborhood={continueInNeighborhood}
+              />
+            ) : tab === 'fullgraph' && model ? (
+              <FullGraph
+                toolbarExtra={graphViewSwitch}
+                fullscreen={fullscreen}
+                kpiBadges={kpiBadges}
+                grouping={grouping.value}
+                onGroupingChange={grouping.change}
+                groupingError={grouping.error}
+                key={current?.id}
+                name={model.name}
+                entities={model.entities}
+                edges={model.edges}
+                selected={selected}
+                selectedEdge={selectedEdge}
+                search={search}
+                onSelectEntity={selectEntity}
+                onSelectEdge={id => {
+                  setSelectedEdge(id);
+                  setSelected('');
+                }}
+                onOverview={() => {
+                  setTab('overview');
+                  setSearch('');
+                }}
+                onNeighborhood={() => showNeighborhood()}
+              />
+            ) : tab === 'overview' && model ? (
+              <ModelOverview
+                grouping={grouping.value}
+                onGroupingChange={grouping.change}
+                groupingError={grouping.error}
+                key={current?.id}
+                name={model.name}
+                entities={model.entities}
+                edges={model.edges}
+                search={search}
+                selected={selected}
+                onSelectEntity={selectEntity}
+                onSelectRelationship={id => {
+                  setSelectedEdge(id);
+                  setSelected('');
+                }}
+                onClose={() => showNeighborhood()}
+                onOpenGraph={() => {
+                  setTab('fullgraph');
+                }}
+              />
+            ) : (
+              <NeighborhoodGraph
+                modelName={model?.name}
+                fullscreen={fullscreen}
+                kpiBadges={kpiBadges}
+                key={current?.id}
+                docId={current!.id}
+                docLabel={id => docsRef.current.get(id)?.path ?? id}
+                entities={model?.entities ?? []}
+                edges={model?.edges ?? []}
+                search={search}
+                walk={walk}
+                selected={selected}
+                selectedEdge={selectedEdge}
+                onWalk={(steps: WalkStep[]) => {
+                  for (const step of steps) dispatchWalk({ type: 'push', step });
+                }}
+                onWalkTo={walkTo}
+                onClearSearch={() => setSearch('')}
+                onSelectEntity={id => {
+                  setSelected(id);
+                  setSelectedEdge('');
+                }}
+                onSelectEdge={id => {
+                  setSelectedEdge(id);
+                }}
+                onOverview={() => {
+                  setSearch('');
+                  setTab('overview');
+                }}
+                onFullGraph={() => {
+                  setSearch('');
+                  setTab('fullgraph');
+                }}
+                onOpenKpis={concept => {
+                  setKpiFilter(concept + '\u0000' + Date.now());
+                  setSelectedKpi('');
+                  setTab('metrics');
+                }}
+                crossFile={crossFile}
+                onCrossFile={crossTo}
+              />
             )}
           </section>
-          {inspectorVisible && <aside className="inspector" aria-label="Definition details" role={pageDetails?'dialog':undefined} aria-modal={pageDetails||undefined}>
-            <div className="section-label">DEFINITION DETAILS{(entity||relationship)&&<button className="inspector-close" aria-label="Close details" onClick={()=>{setSelected('');setSelectedEdge('')}}>×</button>}</div>
-            {relationship ? (
-              <>
-                <div className="entity-icon"><Network /></div>
-                {activeGroup && activeGroup.data.relationships.length>1 && <label>Relationships on this connection<select aria-label="Connection relationship" value={selectedEdge} onChange={e=>setSelectedEdge(e.target.value)}>{activeGroup.data.relationships.map(r=><option key={r.id} value={r.id}>{r.label}</option>)}</select></label>}
-                <h2>{relationship.label}</h2>
-                <div className="badge">{relationship.data.kind}</div>
-                {(()=>{const t=relationshipTarget(relationship);const rt=t?null:rdfEdgeTarget(relationship);if(rt)return <div className="inspector-actions"><button className="primary" onClick={()=>setRdfEditing(rt)} aria-label={`Edit ${rt.label}`}><Pencil size={13}/>Edit {rt.label}</button></div>;if(!t)return <p className="hint">Edit this relationship in Source.</p>;const whole=relationship.data.kind==='Inheritance'||relationship.data.kind==='Metric expression reference';const owner=whole?itemName(t.kind,itemValue(source,t.path)):relationship.label;
-                  return <div className="inspector-actions"><button className="primary" onClick={()=>setEditing(t)} aria-label={`Edit ${owner}`}><Pencil size={13}/>{whole?`Edit ${owner}`:'Edit'}</button>{!whole&&<button onClick={()=>setDeleting(t)} aria-label={`Delete ${relationship.label}`}><Trash2 size={13}/>Delete</button>}</div>;})()}
-                <dl className="relationship-details">
-                  <dt>From</dt><dd>{model?.entities.find(e=>e.id===relationship.source)?.name}</dd>
-                  <dt>To</dt><dd>{model?.entities.find(e=>e.id===relationship.target)?.name}</dd>
-                  {relationship.data.definition.multiplicity && <><dt>Multiplicity</dt><dd>{relationship.data.definition.multiplicity}</dd></>}
-                  {relationship.data.definition.from_columns && <><dt>Join keys</dt><dd>{relationship.data.definition.from_columns.map((key:string,i:number)=><div key={i}>{key} → {relationship.data.definition.to_columns[i]}</div>)}</dd></>}
-                  {relationship.data.definition.roles && <><dt>Roles</dt><dd>{relationship.data.definition.roles.map((role:any,i:number)=><div key={i}>{role.concept}{role.name ? ` (${role.name})` : ''}</div>)}</dd></>}
-                  {relationship.data.definition.verbalizes && <><dt>Verbalizations</dt><dd>{relationship.data.definition.verbalizes.join(' · ')}</dd></>}
-                </dl>
-                {relationship.data.kind !== 'Inheritance' && !relationship.data.readOnlyForm && <label>Description<textarea aria-label="Relationship description" value={relationship.data.definition.description ?? ''} onChange={e=>setSource(editEntity(source,relationship.data.path,e.target.value,current?.filename))}/></label>}
-                <button className="view-definition" onClick={()=>setDefinition({title:`Definition of ${relationship.label}`,value:relationship.data.definition})}><Braces size={13}/>View definition</button>
-                <p className="hint">Edit the description here or the full definition in Source. Save to persist changes.</p>
-              </>
-            ) : entity ? (
-              <>
-                <div className="entity-icon">
-                  <Box />
-                </div>
-                <h2>{entity.name}</h2>
-                <button className="inspect-neighborhood" onClick={()=>showNeighborhood(entity.id)}><Focus size={14}/>Explore neighborhood</button>
-                <div className="badge">{entity.kind}</div>
-                {(()=>{const rt=rdfTarget(entity);if(rt)return <div className="inspector-actions"><button className="primary" onClick={()=>setRdfEditing(rt)} aria-label={`Edit ${entity.name}`} title="Edit (E)"><Pencil size={13}/>Edit</button><button onClick={()=>setRdfDeleting(rt)} aria-label={`Delete ${entity.name}`}><Trash2 size={13}/>Delete</button></div>;return null;})()}
-                {(()=>{const t=entityTarget(entity);if(!t)return null;const add=t.kind==='concept'?{kind:'ontology-relationship' as ItemKind,owner:t.path,label:'Add relationship'}:t.kind==='dataset'?{kind:'join' as ItemKind,preset:{from:entity.name},label:'Add relationship'}:t.kind==='odcs-object'?{kind:'odcs-property' as ItemKind,owner:t.path,label:'Add property'}:null;
-                  return <div className="inspector-actions"><button className="primary" onClick={()=>setEditing(t)} aria-label={`Edit ${entity.name}`} title="Edit (E)"><Pencil size={13}/>Edit</button>{add&&<button onClick={()=>setAdding({docId:t.docId,kind:add.kind,owner:add.owner,preset:add.preset})}><Plus size={13}/>{add.label}</button>}<button onClick={()=>setDeleting(t)} aria-label={`Delete ${entity.name}`}><Trash2 size={13}/>Delete</button></div>;})()}
-                {entity.readOnlyForm ? <p className="hint">{entity.description || (rdfTarget(entity)?'Edit its statements with Edit; the file keeps its serialization and layout.':'A blank node is edited with the resource that contains it.')}</p> : <label>
-                  Description
-                  <textarea
-                    value={entity.description}
-                    onChange={(e) => setSource(editEntity(source, entity.path, e.target.value, current?.filename))}
-                  />
-                </label>}
-                {relatedDocuments.length>0 && <><div className="section-label">SHARED REFERENCES</div>{relatedDocuments.map(d=><button className="document" key={d.id} onClick={()=>open(d)}><FileCode size={14}/>{d.filename}</button>)}</>}
-                <div className="section-label">RELATIONSHIPS</div>
-                <div className="related-edges">{model?.edges.filter(e=>e.source===entity.id||e.target===entity.id).map(e=><button key={e.id} onClick={()=>{setSelectedEdge(e.id);setSelected('')}}><span>{e.label}</span><small>{model.entities.find(n=>n.id===(e.source===entity.id?e.target:e.source))?.name}</small></button>)}</div>
-                {entity.definition&&<button className="view-definition" onClick={()=>setDefinition({title:`Definition of ${entity.name}`,value:entity.definition})}><Braces size={13}/>View definition</button>}
-                {entity.fields.length > 0 && (
-                  <>
-                    <div className="section-label">FIELDS</div>
-                    {entity.fields.map((f, i) => (
-                      <div className="field" key={i}>
-                        {f}
-                      </div>
-                    ))}
-                  </>
+          {inspectorVisible && (
+            <aside
+              className="inspector"
+              aria-label="Definition details"
+              role={pageDetails ? 'dialog' : undefined}
+              aria-modal={pageDetails || undefined}
+            >
+              <div className="section-label">
+                DEFINITION DETAILS
+                {(entity || relationship) && (
+                  <button
+                    className="inspector-close"
+                    aria-label="Close details"
+                    onClick={() => {
+                      setSelected('');
+                      setSelectedEdge('');
+                    }}
+                  >
+                    ×
+                  </button>
                 )}
-                <p className="hint">
-                  Edit all properties and relationships in the Source tab. Save to persist changes.
-                </p>
-              </>
-            ) : (
-              <div className="inspect-empty">
-                <Box size={30} />
-                <p>
-                  Select an entity or relationship to explore
-                  <br />
-                  its definition and fields.
-                </p>
               </div>
-            )}
-          </aside>}
+              {relationship ? (
+                <>
+                  <div className="entity-icon">
+                    <Network />
+                  </div>
+                  {activeGroup && activeGroup.data.relationships.length > 1 && (
+                    <label>
+                      Relationships on this connection
+                      <select
+                        aria-label="Connection relationship"
+                        value={selectedEdge}
+                        onChange={e => setSelectedEdge(e.target.value)}
+                      >
+                        {activeGroup.data.relationships.map(r => (
+                          <option key={r.id} value={r.id}>
+                            {r.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
+                  <h2>{relationship.label}</h2>
+                  <div className="badge">{relationship.data.kind}</div>
+                  {(() => {
+                    const t = relationshipTarget(relationship);
+                    const rt = t ? null : rdfEdgeTarget(relationship);
+                    if (rt)
+                      return (
+                        <div className="inspector-actions">
+                          <button
+                            className="primary"
+                            onClick={() => setRdfEditing(rt)}
+                            aria-label={`Edit ${rt.label}`}
+                          >
+                            <Pencil size={13} />
+                            Edit {rt.label}
+                          </button>
+                        </div>
+                      );
+                    if (!t) return <p className="hint">Edit this relationship in Source.</p>;
+                    const whole =
+                      relationship.data.kind === 'Inheritance' ||
+                      relationship.data.kind === 'Metric expression reference';
+                    const owner = whole
+                      ? itemName(t.kind, itemValue(source, t.path))
+                      : relationship.label;
+                    return (
+                      <div className="inspector-actions">
+                        <button
+                          className="primary"
+                          onClick={() => setEditing(t)}
+                          aria-label={`Edit ${owner}`}
+                        >
+                          <Pencil size={13} />
+                          {whole ? `Edit ${owner}` : 'Edit'}
+                        </button>
+                        {!whole && (
+                          <button
+                            onClick={() => setDeleting(t)}
+                            aria-label={`Delete ${relationship.label}`}
+                          >
+                            <Trash2 size={13} />
+                            Delete
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })()}
+                  <dl className="relationship-details">
+                    <dt>From</dt>
+                    <dd>{model?.entities.find(e => e.id === relationship.source)?.name}</dd>
+                    <dt>To</dt>
+                    <dd>{model?.entities.find(e => e.id === relationship.target)?.name}</dd>
+                    {relationship.data.definition.multiplicity && (
+                      <>
+                        <dt>Multiplicity</dt>
+                        <dd>{relationship.data.definition.multiplicity}</dd>
+                      </>
+                    )}
+                    {relationship.data.definition.from_columns && (
+                      <>
+                        <dt>Join keys</dt>
+                        <dd>
+                          {relationship.data.definition.from_columns.map(
+                            (key: string, i: number) => (
+                              <div key={i}>
+                                {key} → {relationship.data.definition.to_columns[i]}
+                              </div>
+                            ),
+                          )}
+                        </dd>
+                      </>
+                    )}
+                    {relationship.data.definition.roles && (
+                      <>
+                        <dt>Roles</dt>
+                        <dd>
+                          {relationship.data.definition.roles.map((role: any, i: number) => (
+                            <div key={i}>
+                              {role.concept}
+                              {role.name ? ` (${role.name})` : ''}
+                            </div>
+                          ))}
+                        </dd>
+                      </>
+                    )}
+                    {relationship.data.definition.verbalizes && (
+                      <>
+                        <dt>Verbalizations</dt>
+                        <dd>{relationship.data.definition.verbalizes.join(' · ')}</dd>
+                      </>
+                    )}
+                  </dl>
+                  {relationship.data.kind !== 'Inheritance' && !relationship.data.readOnlyForm && (
+                    <label>
+                      Description
+                      <textarea
+                        aria-label="Relationship description"
+                        value={relationship.data.definition.description ?? ''}
+                        onChange={e =>
+                          setSource(
+                            editEntity(
+                              source,
+                              relationship.data.path,
+                              e.target.value,
+                              current?.filename,
+                            ),
+                          )
+                        }
+                      />
+                    </label>
+                  )}
+                  <button
+                    className="view-definition"
+                    onClick={() =>
+                      setDefinition({
+                        title: `Definition of ${relationship.label}`,
+                        value: relationship.data.definition,
+                      })
+                    }
+                  >
+                    <Braces size={13} />
+                    View definition
+                  </button>
+                  <p className="hint">
+                    Edit the description here or the full definition in Source. Save to persist
+                    changes.
+                  </p>
+                </>
+              ) : entity ? (
+                <>
+                  <div className="entity-icon">
+                    <Box />
+                  </div>
+                  <h2>{entity.name}</h2>
+                  <button
+                    className="inspect-neighborhood"
+                    onClick={() => showNeighborhood(entity.id)}
+                  >
+                    <Focus size={14} />
+                    Explore neighborhood
+                  </button>
+                  <div className="badge">{entity.kind}</div>
+                  {(() => {
+                    const rt = rdfTarget(entity);
+                    if (rt)
+                      return (
+                        <div className="inspector-actions">
+                          <button
+                            className="primary"
+                            onClick={() => setRdfEditing(rt)}
+                            aria-label={`Edit ${entity.name}`}
+                            title="Edit (E)"
+                          >
+                            <Pencil size={13} />
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => setRdfDeleting(rt)}
+                            aria-label={`Delete ${entity.name}`}
+                          >
+                            <Trash2 size={13} />
+                            Delete
+                          </button>
+                        </div>
+                      );
+                    return null;
+                  })()}
+                  {(() => {
+                    const t = entityTarget(entity);
+                    if (!t) return null;
+                    const add =
+                      t.kind === 'concept'
+                        ? {
+                            kind: 'ontology-relationship' as ItemKind,
+                            owner: t.path,
+                            label: 'Add relationship',
+                          }
+                        : t.kind === 'dataset'
+                          ? {
+                              kind: 'join' as ItemKind,
+                              preset: { from: entity.name },
+                              label: 'Add relationship',
+                            }
+                          : t.kind === 'odcs-object'
+                            ? {
+                                kind: 'odcs-property' as ItemKind,
+                                owner: t.path,
+                                label: 'Add property',
+                              }
+                            : null;
+                    return (
+                      <div className="inspector-actions">
+                        <button
+                          className="primary"
+                          onClick={() => setEditing(t)}
+                          aria-label={`Edit ${entity.name}`}
+                          title="Edit (E)"
+                        >
+                          <Pencil size={13} />
+                          Edit
+                        </button>
+                        {add && (
+                          <button
+                            onClick={() =>
+                              setAdding({
+                                docId: t.docId,
+                                kind: add.kind,
+                                owner: add.owner,
+                                preset: add.preset,
+                              })
+                            }
+                          >
+                            <Plus size={13} />
+                            {add.label}
+                          </button>
+                        )}
+                        <button onClick={() => setDeleting(t)} aria-label={`Delete ${entity.name}`}>
+                          <Trash2 size={13} />
+                          Delete
+                        </button>
+                      </div>
+                    );
+                  })()}
+                  {entity.readOnlyForm ? (
+                    <p className="hint">
+                      {entity.description ||
+                        (rdfTarget(entity)
+                          ? 'Edit its statements with Edit; the file keeps its serialization and layout.'
+                          : 'A blank node is edited with the resource that contains it.')}
+                    </p>
+                  ) : (
+                    <label>
+                      Description
+                      <textarea
+                        value={entity.description}
+                        onChange={e =>
+                          setSource(
+                            editEntity(source, entity.path, e.target.value, current?.filename),
+                          )
+                        }
+                      />
+                    </label>
+                  )}
+                  {relatedDocuments.length > 0 && (
+                    <>
+                      <div className="section-label">SHARED REFERENCES</div>
+                      {relatedDocuments.map(d => (
+                        <button className="document" key={d.id} onClick={() => open(d)}>
+                          <FileCode size={14} />
+                          {d.filename}
+                        </button>
+                      ))}
+                    </>
+                  )}
+                  <div className="section-label">RELATIONSHIPS</div>
+                  <div className="related-edges">
+                    {model?.edges
+                      .filter(e => e.source === entity.id || e.target === entity.id)
+                      .map(e => (
+                        <button
+                          key={e.id}
+                          onClick={() => {
+                            setSelectedEdge(e.id);
+                            setSelected('');
+                          }}
+                        >
+                          <span>{e.label}</span>
+                          <small>
+                            {
+                              model.entities.find(
+                                n => n.id === (e.source === entity.id ? e.target : e.source),
+                              )?.name
+                            }
+                          </small>
+                        </button>
+                      ))}
+                  </div>
+                  {entity.definition && (
+                    <button
+                      className="view-definition"
+                      onClick={() =>
+                        setDefinition({
+                          title: `Definition of ${entity.name}`,
+                          value: entity.definition,
+                        })
+                      }
+                    >
+                      <Braces size={13} />
+                      View definition
+                    </button>
+                  )}
+                  {entity.fields.length > 0 && (
+                    <>
+                      <div className="section-label">FIELDS</div>
+                      {entity.fields.map((f, i) => (
+                        <div className="field" key={i}>
+                          {f}
+                        </div>
+                      ))}
+                    </>
+                  )}
+                  <p className="hint">
+                    Edit all properties and relationships in the Source tab. Save to persist
+                    changes.
+                  </p>
+                </>
+              ) : (
+                <div className="inspect-empty">
+                  <Box size={30} />
+                  <p>
+                    Select an entity or relationship to explore
+                    <br />
+                    its definition and fields.
+                  </p>
+                </div>
+              )}
+            </aside>
+          )}
         </div>
         <footer>
           <span>
             <CheckCircle2 size={14} />
-            {result.error ? "Validation failed" : source ? "Structure checked" : "Ready to import"}
-            {(source||current)&&<button className="validation-toggle" onClick={()=>setShowValidation(v=>!v)}>Validation details{validation.issues.length?` (${validation.issues.length})`:""}</button>}
-            {current && source !== current.source ? " · Not saved to file yet" : ""}
+            {result.error ? 'Validation failed' : source ? 'Structure checked' : 'Ready to import'}
+            {(source || current) && (
+              <button className="validation-toggle" onClick={() => setShowValidation(v => !v)}>
+                Validation details{validation.issues.length ? ` (${validation.issues.length})` : ''}
+              </button>
+            )}
+            {current && source !== current.source ? ' · Not saved to file yet' : ''}
           </span>
           <span>
             {model?.entities.length ?? 0} entities · {model?.edges.length ?? 0} relationships
           </span>
         </footer>
-        {(message || (result.error&&tab!=='scm')) && (
-          <div role="status" className={`status ${result.error&&tab!=='scm' ? "error" : ""}`}>
-            {result.error&&tab!=='scm' ? "Validation failed. Review the findings and repair in Source." : message}
+        {(message || (result.error && tab !== 'scm')) && (
+          <div role="status" className={`status ${result.error && tab !== 'scm' ? 'error' : ''}`}>
+            {result.error && tab !== 'scm'
+              ? 'Validation failed. Review the findings and repair in Source.'
+              : message}
           </div>
         )}
       </main>
     </div>
   );
 }
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById('root')!).render(<App />);

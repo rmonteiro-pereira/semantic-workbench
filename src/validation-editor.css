@@ -1,7 +1,37 @@
-.validation-report .validation-feature { font-weight:600; color:#6b3e35; }.validation-report .validation-location { font-size:11px; color:#6d7e75; overflow-wrap:anywhere; }
-.validation-report .validation-feature-label { font-size:10px; text-transform:uppercase; letter-spacing:.7px; color:#916c60; margin-top:8px; }
-.validation-report .validation-fix { color:#4b6758; margin:6px 0; }
-.validation-report li button { font-size:11px; padding:5px 8px; margin-top:4px; }
-.repair-editor { display:flex; flex-direction:column; gap:6px; min-width:0; }
-.repair-editor-title { font-size:13px; }
-.repair-editor > .code-editor { height:360px; }
+.validation-report .validation-feature {
+  font-weight: 600;
+  color: #6b3e35;
+}
+.validation-report .validation-location {
+  font-size: 11px;
+  color: #6d7e75;
+  overflow-wrap: anywhere;
+}
+.validation-report .validation-feature-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: #916c60;
+  margin-top: 8px;
+}
+.validation-report .validation-fix {
+  color: #4b6758;
+  margin: 6px 0;
+}
+.validation-report li button {
+  font-size: 11px;
+  padding: 5px 8px;
+  margin-top: 4px;
+}
+.repair-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.repair-editor-title {
+  font-size: 13px;
+}
+.repair-editor > .code-editor {
+  height: 360px;
+}
