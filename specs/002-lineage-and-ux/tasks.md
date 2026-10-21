@@ -62,18 +62,18 @@ is shippable: it ends with every existing suite (`bun test`, `check`, `build`, `
 
 ### Tests
 
-- [ ] T013 [P] [US3] Unit tests for the autosave state machine (pending → saving → saved/stale/failed/invalid, one save in flight, queued text uses returned hash, cancel on delete/move) in tests/autosave.test.ts
+- [ ] T013 [P] [US3] Unit tests for the autosave state machine (pending → saving → saved/stale/failed/invalid, one save in flight, queued text uses returned hash, cancel on delete/move, wait during a Git operation) in tests/autosave.test.ts
 - [ ] T014 [P] [US3] Handler tests for `commitPaths` (`--only` commits only listed paths, untracked added, other staged work untouched, merge refusal, no identity → `{committed:false}`) in tests/git-commit-paths.test.ts
-- [ ] T015 [P] [US3] Handler tests: import into a new project, into an existing project and example load each commit exactly the written paths with "Import N files"/"Import <name>" in tests/import-commit.test.ts
-- [ ] T016 [P] [US3] Handler tests for `POST git/commit` with `paths` and `push`, and `POST git/revert` (trash entry + restore from HEAD, stale base 409) in tests/git-commit-api.test.ts
+- [ ] T015 [P] [US3] Handler tests: import into a new project, into an existing project and example load each commit exactly the written paths with "Import N files"/"Import <name>", and report the reason when Git, the identity or a clean merge state is missing (FR-049) in tests/import-commit.test.ts
+- [ ] T016 [P] [US3] Handler tests for `POST git/commit` with `paths` and `push`, and `POST git/revert` (journaled: trash entry + restore from HEAD, interrupted revert recovered on restart, stale base 409), and commit refusal with conflicts during a merge in tests/git-commit-api.test.ts
 - [ ] T017 [US3] Mutants in scripts/mutation-tests.ts: autosave writes invalid text; autosave ignores stale base; `--only` dropped; import commit includes unrelated paths; revert skips the trash copy
 
 ### Implementation
 
 - [ ] T018 [US3] `commitPaths(repoDir, paths, message)` in server/projects/git.ts; use it in createProjectFolder, importInto and loadExample in server/projects/workspace.ts; responses carry `commit` (contracts/http-api.md)
-- [ ] T019 [US3] Extend `scm.commit` with `paths` and `push`, add `revert` in server/projects/scm.ts and server/routes/git.ts
+- [ ] T019 [US3] Extend `scm.commit` with `paths` and `push`; add `revert` as one journaled operation (stage HEAD bytes, move current file into a trash entry, move staged bytes in) in server/projects/scm.ts, server/projects/trash.ts and server/routes/git.ts
 - [ ] T020 [US3] Autosave controller src/projects/autosave.ts (pure machine + `useAutosave` hook) using editor worker issues and `diffPatches` in idle time (research R7)
-- [ ] T021 [US3] Wire autosave in src/main.tsx: flush on file/view switch, drafts for invalid text without the "Discard unsaved changes?" prompt, pause on stale save with StaleSaveDialog, cancel on delete/move/trash; Pull/Sync/switch refusals offer Commit… (FR-040–FR-043, FR-048)
+- [ ] T021 [US3] Wire autosave in src/main.tsx: flush on file/view switch, drafts for invalid text without the "Discard unsaved changes?" prompt, pause on stale save with StaleSaveDialog, cancel on delete/move/trash; wait while a pull, branch switch or merge of the repository runs, then re-check the base hash; Pull/Sync/switch refusals offer Commit… (FR-040–FR-043, FR-048)
 - [ ] T022 [US3] Commit dialog src/scm/CommitDialog.tsx reusing Source Control status/diff views: ticked files, diff, pre-filled message, Commit, Commit & push, Revert to last commit (FR-045, FR-046)
 - [ ] T023 [US3] Header: replace Save changes with `Commit…` and the `Save state` status indicator (FR-044); item editors, add/delete and wizard buttons read "Save to file" (FR-047) in src/main.tsx, src/edit/*.tsx, src/metrics/KpiWizard.tsx
 - [ ] T024 [US3] Browser check scripts/autosave-browser-check.ts: autosave bytes (`git diff` one line), invalid text not written, stale diff, Commit dialog commits ticked files, import commit, refusal offers Commit…; add the autosave-on typing-latency case to scripts/editor-browser-check.ts (SC-005)
@@ -129,7 +129,7 @@ is shippable: it ends with every existing suite (`bun test`, `check`, `build`, `
 
 - [ ] T043 [US10] src/graph/expansion.ts and src/graph/incremental-layout.ts (pure) (FR-018, FR-019)
 - [ ] T044 [US10] src/graph/pierce.ts and worker src/graph/pierce.worker.ts with Stop (FR-020–FR-022)
-- [ ] T045 [US10] Neighborhood: Expand/Collapse per node, relationship activation expands its far end, Full pierce toolbar (direction, Stop, Undo expansion), banner with Expand further, trail steps "expanded X" in src/NeighborhoodGraph.tsx and src/layout.ts (FR-018–FR-024)
+- [ ] T045 [US10] Neighborhood: Expand/Collapse per node, relationship activation expands its far end, Full pierce toolbar (direction, Stop, Undo expansion), a Value types switch sharing Graph's per-model setting, banner with Expand further, trail steps "expanded X" in src/NeighborhoodGraph.tsx and src/layout.ts (FR-018–FR-024)
 - [ ] T046 [US10] Lineage: Expand/Collapse on cards, Full pierce on a column or card through to metrics, incremental placement for expansions, ELK for pierce in src/odcs/LineageCanvas.tsx (FR-023)
 - [ ] T047 [US10] Browser checks: Neighborhood scenarios on UBL (`Order` → `OrderLine` → `Item` → `Price`, Full pierce Both from `Invoice` with budget banner) and shopping center (`Lease`, Outgoing) in scripts/graph-browser-check.ts; lineage pierce on UBL `invoice_line.line_extension_amount` in scripts/lineage-browser-check.ts; input never blocked > 100 ms
 
@@ -223,7 +223,7 @@ is shippable: it ends with every existing suite (`bun test`, `check`, `build`, `
 
 ### Implementation
 
-- [ ] T082 [US7] Per-repository live identity in server/projects/git.ts, server/projects/workspace.ts, server/routes/projects.ts (`/api/status` repositories) and routes `git/identity`, `git/credential-helper` (FR-067)
+- [ ] T082 [US7] Per-repository live identity in server/projects/git.ts, server/projects/workspace.ts, server/routes/projects.ts (`/api/status` repositories) and routes `git/identity`, `git/credential-helper`, emitting the SSE `identity` event (FR-067)
 - [ ] T083 [US7] Clone flow server/routes/clone.ts and workspace `cloneRepository` with SSE `clone` events (FR-064)
 - [ ] T084 [US7] Dialogs: Set Git identity (banner, commit dialog and import failures link to it), Remote, Clone repository with progress and Cancel, Credential setup guide (static text per OS, helper check) in src/scm/*.tsx and src/projects/GitBanner.tsx (FR-065, FR-068)
 - [ ] T085 [US7] Browser check scripts/git-setup-browser-check.ts: identity, remote, clone from bare repository, guide from a failed push, no network remote (SC-009)

@@ -19,7 +19,7 @@ serialization. Remote Git commands run only from the endpoints marked **remote**
 | Method & path | Request | Response |
 | --- | --- | --- |
 | `POST /api/projects/:slug/git/commit` | `{message, paths?: [path], push?: boolean}` | `paths` given: commits exactly those project paths with `git add -- <untracked>` + `git commit --only -F - -- <paths>`; absent: v0.2.0 behaviour (commit the index). `push: true` then runs push (**remote**). → `{commit, altered, pushed?: {ok, message}}`; 409 during a merge unless `paths` is absent; 400 empty message |
-| `POST /api/projects/:slug/git/revert` | `{path, baseHash}` | moves the current bytes to the trash (file entry), restores the file from `HEAD` through a hash-checked save → `{hash, trashEntry}`; 409 stale base |
+| `POST /api/projects/:slug/git/revert` | `{path, baseHash}` | one journaled operation: base hash checked, `HEAD` bytes staged, current file moved into a new trash file entry and the staged bytes moved into place → `{hash, trashEntry}`; 409 stale base |
 | `POST /api/import`, `POST /api/projects/:slug/import`, `POST /api/examples/:id` | unchanged | response adds `commit: {committed: true, commit, message} \| {committed: false, reason: 'no-git'\|'no-identity'\|'merging'}`; the commit contains only the written paths |
 
 ## Clone and repositories
