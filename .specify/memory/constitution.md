@@ -31,8 +31,10 @@ Sync Impact Report
   supply deterministic context and planning; language interpretation and query execution belong
   to the caller.
 - User data stays on this machine, under `data/`: project folders in `data/projects/`,
-  application state in `data/state/`, the trash in `data/trash/`. The workbench MUST NOT open or
-  write folders or repositories outside `data/projects/`. No feature may send document content
+  application state in `data/state/`, the trash in `data/trash/`. All paths are relative to the
+  configured data root (`data/` by default; tests use an isolated temporary root). The workbench
+  MUST NOT open project folders or repositories outside `data/projects/`, and MUST NOT write
+  outside the data root. No feature may send document content
   off the machine, except Git remote operations (fetch, pull, push, sync) that the user triggers
   explicitly, against a remote the user configured for that project. These use the machine's
   own Git installation and credential configuration; the workbench never stores, prompts for or
@@ -86,7 +88,8 @@ reformatting breaks diffs, reviews and downstream tooling.
 - The SQLite database is a rebuildable cache (hashes, entities, diagnostics, suggestions).
   Deleting it MUST lose nothing; it MUST be rebuilt by rescanning project folders.
 - Git MUST be invoked with argument lists (never a shell string), an explicit working directory
-  inside `data/projects/`, prompts disabled and timeouts, serialized per repository. Managed
+  inside `data/projects/`, terminal prompts disabled (a configured credential helper may show
+  its own window) and timeouts, serialized per repository. Managed
   repositories MUST disable line-ending conversion so committed bytes equal saved bytes. Delete
   operations MUST NOT rewrite Git history.
 - Migrations of stored content MUST back up the previous store, verify every migrated file's
@@ -165,4 +168,4 @@ reformatting breaks diffs, reviews and downstream tooling.
 - Exceptions MUST be recorded in the feature's plan under "Complexity Tracking" with the reason
   and the simpler alternative that was rejected.
 
-**Version**: 2.0.0 | **Ratified**: 2026-10-20 | **Last Amended**: 2026-10-20
+**Version**: 2.0.1 | **Ratified**: 2026-10-20 | **Last Amended**: 2026-10-20
