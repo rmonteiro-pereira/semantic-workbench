@@ -24,7 +24,7 @@ export function ProjectTree({projects,currentId,onOpen,onAction}:{projects:Proje
  if(!projects.length)return <p className="projects-empty">No projects yet. Import definitions or load an example.</p>;
  return <ul className="project-tree" role="tree" aria-label="Projects">
   {projects.map(p=>{const open=!collapsed.has(p.slug);return <li key={p.slug} role="treeitem" aria-expanded={open} aria-label={p.name} className="project">
-   <div className="tree-row"><button className="project-toggle" aria-label={`${p.name}, ${p.files.length} file${p.files.length===1?'':'s'}`} onClick={()=>toggle(p.slug)} onKeyDown={e=>{if(e.key==='ArrowLeft'&&open){e.preventDefault();toggle(p.slug);}if(e.key==='ArrowRight'&&!open){e.preventDefault();toggle(p.slug);}}}>
+   <div className="tree-row"><button className="project-toggle" title={p.name} aria-label={`${p.name}, ${p.files.length} file${p.files.length===1?'':'s'}`} onClick={()=>toggle(p.slug)} onKeyDown={e=>{if(e.key==='ArrowLeft'&&open){e.preventDefault();toggle(p.slug);}if(e.key==='ArrowRight'&&!open){e.preventDefault();toggle(p.slug);}}}>
     {open?<ChevronDown size={14}/>:<ChevronRight size={14}/>}<FolderGit2 size={15}/><span>{p.name}</span><small>{p.files.length}</small>
    </button>
    <DeleteButton label={`Delete project ${p.name}`} onClick={()=>onAction({action:'delete-project',project:p.slug})}/>

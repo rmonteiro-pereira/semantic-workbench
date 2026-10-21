@@ -1,6 +1,7 @@
+import {CompositionTree} from './Explanation';
 import React,{useEffect,useMemo,useState} from 'react';
 import {AlertTriangle,Check} from 'lucide-react';
-import type {KpiExplanation,KpiSummary,TreeNode} from '../../server/agent/explain';
+import type {KpiExplanation,KpiSummary} from '../../server/agent/explain';
 import {Modal} from '../projects/Modal';
 import {api,StaleSave,type Doc,type KpiSaveRequest} from '../projects/api';
 import {validateInput} from '../input';
@@ -26,7 +27,6 @@ function modelsOf(docs:Doc[]):Model[]{
  });
 }
 const conceptsOf=(docs:Doc[])=>[...new Set(docs.flatMap(d=>{const v=validateInput(d.source,d.filename);return v.valid&&'document'in v.model&&Array.isArray(v.model.document.ontology)?v.model.document.ontology.map((c:any)=>c?.concept).filter(Boolean):[];}))].sort() as string[];
-function TreeView({node}:{node:TreeNode}){return <li><span>{node.label??node.name}{node.role&&<small> · {node.role}</small>}</span>{node.children.length>0&&<ul>{node.children.map((c,i)=><TreeView key={i} node={c}/>)}</ul>}</li>;}
 export function KpiWizard({project,docs,kpis,onClose,onSaved}:{project:string;docs:Doc[];kpis:KpiSummary[];onClose:()=>void;onSaved:(file:string,modelPath:Path,name:string)=>void}){
  const models=useMemo(()=>modelsOf(docs),[]),concepts=useMemo(()=>conceptsOf(docs),[]);
  const [step,setStep]=useState(0),[done,setDone]=useState(0);
@@ -127,7 +127,7 @@ export function KpiWizard({project,docs,kpis,onClose,onSaved}:{project:string;do
    </div>}
    {step===6&&(busy&&!preview?<p role="status">Explaining the new KPI…</p>:preview&&<div className="wizard-preview">
     <p><strong>{d.label}</strong> = <code>{preview.explanation.formula}</code></p>
-    <h4>Built from</h4><ul className="wizard-tree" role="tree" aria-label="Composition tree"><TreeView node={preview.explanation.tree}/></ul>
+    <h4>Built from</h4><CompositionTree className="wizard-tree" node={preview.explanation.tree}/>
     <h4>SQL preview</h4>{'refused'in preview.explanation.sqlPreview?<p className="item-note">{preview.explanation.sqlPreview.refused}</p>:<pre aria-label="Preview · not executed"><code>{preview.explanation.sqlPreview.sql}</code></pre>}
     <small>Preview, not executed.</small>
    </div>)}

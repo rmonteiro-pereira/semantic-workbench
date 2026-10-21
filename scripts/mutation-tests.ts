@@ -105,5 +105,13 @@ try{
  if(code===0)throw Error('Surviving UI mutant: empty neighborhood node projection');
  if(!output.includes('INJECTED_CLEAR_NODES_MUTATION')||!error.includes('react-flow__node'))throw Error('Invalid UI mutant: '+output+error);
  killed++;console.log('KILLED UI: empty neighborhood node projection');
- console.log(`${killed}/${mutants.length+1} targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.`);
+ // Layout mutants (T161): each must fail the responsive checks that guard it.
+ for(const [mutation,only,label] of [['overlay','overlaps: Graph','status line drawn over the mini-map and zoom controls'],['status-stays','status messages','status messages never dismiss']] as const){
+  const child=Bun.spawn([process.execPath,resolve(root,'scripts/responsive-ui-tests.ts')],{env:{...process.env,RESPONSIVE_MUTATION:mutation,RESPONSIVE_ONLY:only},stdout:'pipe',stderr:'pipe'});
+  const code=await child.exited,output=await new Response(child.stdout).text(),error=await new Response(child.stderr).text();
+  if(code===0)throw Error('Surviving UI mutant: '+label);
+  if(!output.includes(mutation==='overlay'?'INJECTED_OVERLAY_MUTATION':'INJECTED_STATUS_MUTATION')||!/expect|Expected|toHaveCount/.test(error))throw Error('Invalid UI mutant: '+label+'\n'+output+error);
+  killed++;console.log('KILLED UI: '+label);
+ }
+ console.log(`${killed}/${mutants.length+3} targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.`);
 }finally{await rm(temp,{recursive:true,force:true});}

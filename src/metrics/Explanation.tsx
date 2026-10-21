@@ -24,7 +24,7 @@ export function Explanation({explanation:e,all,query,onQuery,loading}:{explanati
   <div className="explain-step">
    <span className="step-number">2</span>
    <div className="step-body"><h4>Built from</h4>
-    <ul className="kpi-tree" role="tree" aria-label="Composition tree"><Node node={e.tree} root/></ul>
+    <CompositionTree node={e.tree}/>
    </div>
   </div>
   <div className="explain-step">
@@ -47,6 +47,7 @@ export function Explanation({explanation:e,all,query,onQuery,loading}:{explanati
  </section>;
 }
 function Rule({icon,title,tone='plain',children}:{icon:React.ReactNode;title:string;tone?:'ok'|'warn'|'bad'|'muted'|'plain';children:React.ReactNode}){return <div className={`rule tone-${tone}`}><strong>{icon}{title}</strong><div>{children}</div></div>;}
+export function CompositionTree({node,className=''}:{node:TreeNode;className?:string}){return <ul className={`kpi-tree ${className}`} role="tree" aria-label="Composition tree"><Node node={node} root/></ul>;}
 function Node({node,root=false}:{node:TreeNode;root?:boolean}){
  const children=node.children.length>0;
  return <li role="treeitem" aria-expanded={children?true:undefined} aria-label={`${node.role?roleLabel[node.role]+': ':''}${node.label??node.name}`} className={`tree-node kind-${node.kind}${root?' root':''}`}>
