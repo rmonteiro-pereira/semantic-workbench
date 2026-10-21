@@ -112,7 +112,7 @@ function NeighborhoodCanvas(props:NeighborhoodGraphProps){
  const rendered=useMemo(()=>nodes.map(n=>{const e=n.data.entity as Entity,kpis=kpiBadges?.get(e.name)??[],isCenter=n.id===center;
   return {...n,className:`neighborhood-node${isCenter?' center':''}${n.id===previous?' origin':''}${n.id===selected?' selected-entity':''}`,
    data:{...n.data,label:<div className={`node${e.kind==='Metric'?' kpi-node':''}`}>
-    <small>{isCenter?<span className="center-tag"><Crosshair size={10}/>Center</span>:n.id===previous?<span className="origin-tag">Previous center</span>:null}{e.kind==='Metric'?<><Gauge size={10}/> KPI · Metric</>:e.kind}</small>
+    <small>{isCenter?<span className="center-tag"><Crosshair size={10}/>Center</span>:n.id===previous?<span className="origin-tag">Previous center</span>:null}{e.kind==='Metric'?<><Gauge size={10}/> Metric</>:e.kind}</small>
     <strong>{e.name}</strong>
     <span>{e.fields.length?`${e.fields.length} ${e.fields.length===1?'field':'fields'}`:e.description||'Select to inspect'}</span>
     <div className="node-actions">
@@ -120,7 +120,7 @@ function NeighborhoodCanvas(props:NeighborhoodGraphProps){
       :<button className="expand-button nodrag" aria-label={`Expand ${e.name}`} title="Add its neighbours here" onClick={ev=>{ev.stopPropagation();expand(e.id);}}><Plus size={12}/></button>)}
      {pierceSet?.frontier[e.id]?<span className="frontier-marker" title="Reachable but not shown">+{pierceSet.frontier[e.id]} hidden</span>:null}
      {!isCenter&&<button className="walk-button nodrag" aria-label={`Walk to ${e.name}`} onClick={ev=>{ev.stopPropagation();walkTo(e.id,viaFor(e.id));}}><ArrowRight size={12}/>Walk here</button>}
-     {kpis.length>0&&<button className="kpi-badge nodrag" title={`KPIs: ${kpis.join(', ')}`} aria-label={`Open ${kpis.length} KPI${kpis.length===1?'':'s'} for ${e.name}`} onClick={ev=>{ev.stopPropagation();props.onOpenKpis?.(e.name);}}><Gauge size={10}/>{kpis.length===1?'KPI':`${kpis.length} KPIs`}</button>}
+     {kpis.length>0&&<button className="kpi-badge nodrag" title={`Metrics: ${kpis.join(', ')}`} aria-label={`Open ${kpis.length} metric${kpis.length===1?'':'s'} for ${e.name}`} onClick={ev=>{ev.stopPropagation();props.onOpenKpis?.(e.name);}}><Gauge size={10}/>{kpis.length===1?'Metric':`${kpis.length} metrics`}</button>}
     </div>
    </div>}};}),[nodes,center,previous,selected,kpiBadges,view,canvasState,pierceSet]);
  const labelText=(g:typeof groups[number])=>g.data.relationships.length>1?`${g.data.relationships.length} relationships`:g.label;
@@ -183,7 +183,7 @@ function NeighborhoodCanvas(props:NeighborhoodGraphProps){
    <button onClick={()=>setLabels(v=>!v)} aria-pressed={labels}>Labels {labels?'on':'off'}</button>
    {valueCount>0&&<button onClick={()=>setHideValues(v=>{writeHideValues(props.modelName,!v);return !v;})} aria-pressed={hideValues} title={`${valueCount} value types and built-in concepts`}>Value types {hideValues?'hidden':'shown'}</button>}
    <PierceControls direction={direction} onDirection={setDirection} running={pierce.running} onPierce={()=>void fullPierce()} onStop={pierce.stop} canUndo={undoable} onUndo={()=>props.onWalkTo(walk.index-1)} title={`Expand everything reachable from ${selected&&canvasState.nodes.includes(selected)?nameOf(selected):'the center'}`}/>
-   {kpiCount>0&&<button onClick={()=>setHideKpis(v=>!v)} aria-pressed={hideKpis} title={`${kpiCount} KPI nodes`}><Gauge size={14}/>KPIs {hideKpis?'hidden':'shown'}</button>}
+   {kpiCount>0&&<button onClick={()=>setHideKpis(v=>!v)} aria-pressed={hideKpis} title={`${kpiCount} metric nodes`}><Gauge size={14}/>Metrics {hideKpis?'hidden':'shown'}</button>}
    <button onClick={()=>{setNodes(build());setFitted('');}} title="Put every node back in its column">Re-center</button>
    <button onClick={props.onOverview}>Model overview</button><button onClick={props.onFullGraph}>Full graph</button>{props.fullscreen&&<FullscreenButton fullscreen={props.fullscreen}/>}
    <span className="neighborhood-legend" aria-hidden="true"><span className="in">Incoming</span><span className="out">Outgoing</span>{lateral&&<span className="lateral">Between neighbors</span>}</span>
@@ -195,7 +195,7 @@ function NeighborhoodCanvas(props:NeighborhoodGraphProps){
     <ol>{walk.steps.map((s,i)=><li key={i}>{s.via&&<span className="via" title={`through ${s.via.label}`}>{s.via.label} →</span>}<button aria-current={i===walk.index&&!offTrail?'step':undefined} onClick={()=>props.onWalkTo(i)} title={s.doc===docId?s.name:`${s.name} in ${props.docLabel(s.doc)}`}>{s.name}{s.doc!==docId&&<small> · {props.docLabel(s.doc)}</small>}</button></li>)}{offTrail&&centerEntity&&<li><button aria-current="step" title="Current center">{centerEntity.name}</button></li>}</ol>
    </nav>
    {cross.map(t=><button key={t.doc+t.entity} onClick={()=>props.onCrossFile?.(t)} title={t.reason}><FileSymlink size={13}/>Continue in <strong>{t.file}</strong> · {t.name}</button>)}
-   {kpiFor.length>0&&centerEntity&&<button onClick={()=>props.onOpenKpis?.(centerEntity.name)}><Gauge size={13}/>{kpiFor.length} KPI{kpiFor.length===1?'':'s'} for {centerEntity.name}</button>}
+   {kpiFor.length>0&&centerEntity&&<button onClick={()=>props.onOpenKpis?.(centerEntity.name)}><Gauge size={13}/>{kpiFor.length} metric{kpiFor.length===1?'':'s'} for {centerEntity.name}</button>}
   </div>
   {pierceSet&&walk.steps[walk.index]?.set===pierceSet.id&&<PierceBanner result={{shown:pierceSet.nodes.length+1,total:pierceSet.total,maxStep:Math.max(0,...Object.values(pierceSet.steps??{}))}} budget={pierceSet.budget} max={PIERCE_MAX} running={pierce.running} onStop={pierce.stop} onFurther={()=>void fullPierce(Math.min(PIERCE_MAX,pierceSet.budget+PIERCE_BUDGET))}/>}
   <div className="neighborhood-canvas" ref={canvas} data-canvas-nodes={canvasState.nodes.length}>

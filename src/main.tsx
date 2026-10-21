@@ -21,7 +21,7 @@ import{exampleSet}from'./projects/examples';
 import {NeighborhoodGraph} from './NeighborhoodGraph';
 import {MappingExplorer} from './MappingExplorer';
 import {MetricsView} from './metrics/MetricsView';
-import {KpiWizard} from './metrics/KpiWizard';
+import {MetricWizard} from './metrics/MetricWizard';
 import {ItemEditor,type Saved} from './edit/ItemEditor';
 import {AddItem} from './edit/AddItem';
 import {DeleteItem} from './edit/DeleteItem';
@@ -106,7 +106,7 @@ function App() {
   currentRef.current=current;sourceRef.current=source;
   const [showValidation,setShowValidation]=useState(false);
   const grouping=useGrouping(current?.id);
-  // KPIs of the open file's project, for the Metrics tab and the KPI badges on concepts.
+  // metrics of the open file's project, for the Metrics tab and the metric badges on concepts.
   const [kpis,setKpis]=useState<KpiSummary[]>([]),[kpiError,setKpiError]=useState(''),[kpiLoading,setKpiLoading]=useState(false),[selectedKpi,setSelectedKpi]=useState(''),[kpiFilter,setKpiFilter]=useState('');
   const kpiProject=current?.project??null,kpiRevision=docs.filter(d=>d.project===kpiProject).map(d=>d.path+':'+d.hash).join('|');
   useEffect(()=>{if(!kpiProject){setKpis([]);return;}let live=true;setKpiLoading(true);api.metrics(kpiProject).then(k=>{if(live){setKpis(k);setKpiError('');}}).catch(e=>{if(live){setKpis([]);setKpiError(e.message);}}).finally(()=>{if(live)setKpiLoading(false);});return()=>{live=false;};},[kpiProject,kpiRevision]);
@@ -255,7 +255,7 @@ function App() {
   function showNeighborhood(id=selected||relationship?.source||neighborhoodFocus){setNeighborhoodFocus(id);setSearch('');setTab('neighborhood');}
   // Item editing (FR-048–FR-052): the editor, add and delete dialogs work on one file of a project.
   type ItemTarget={docId:string;path:Path;kind:ItemKind};
-  const [editing,setEditing]=useState<ItemTarget|null>(null),[adding,setAdding]=useState<{docId:string;kind?:ItemKind;owner?:Path;preset?:Record<string,any>}|null>(null),[deleting,setDeleting]=useState<ItemTarget|null>(null),[wizard,setWizard]=useState(false);
+  const [editing,setEditing]=useState<ItemTarget|null>(null),[adding,setAdding]=useState<{docId:string;kind?:ItemKind;owner?:Path;preset?:Record<string,any>}|null>(null),[deleting,setDeleting]=useState<ItemTarget|null>(null),[wizard,setWizard]=useState<boolean|KpiSummary>(false);
   // Source Control (Phase 8): the project shown, a file whose history is open, and the open file's
   // unsaved text kept as a server draft so pull and switch are refused while it exists (FR-065).
   const [scmProject,setScmProject]=useState<string|null>(null),[historyPath,setHistoryPath]=useState<string|undefined>(undefined);
@@ -466,7 +466,7 @@ function App() {
         onClose={()=>setRdfEditing(null)} onSaved={saved=>{const file=docsRef.current.get(rdfEditing.docId)?.path;setRdfEditing(null);applySaved(saved,`Saved to ${file}.`);}} onDelete={()=>{setRdfDeleting(rdfEditing);setRdfEditing(null);}} onOpenSource={line=>{const id=rdfEditing.docId;setRdfEditing(null);openSourceAt(id,line);}}/>}
       {rdfAdding&&docsRef.current.get(rdfAdding)&&<RdfAddItem doc={docsRef.current.get(rdfAdding)!} base={docText(rdfAdding)} onClose={()=>setRdfAdding(null)} onSaved={(saved,subject)=>{setRdfAdding(null);applySaved([saved],`Added to ${docsRef.current.get(saved.docId)?.path}.`);if(saved.docId===current?.id){setSelected(subject);setSelectedEdge('');}}}/>}
       {rdfDeleting&&docsRef.current.get(rdfDeleting.docId)&&<RdfDeleteItem doc={docsRef.current.get(rdfDeleting.docId)!} base={docText(rdfDeleting.docId)} subject={rdfDeleting.subject} label={rdfDeleting.label} projectDocs={projectDocsOf(rdfDeleting.docId)} onClose={()=>setRdfDeleting(null)} onDeleted={saved=>{const label=rdfDeleting.label;setRdfDeleting(null);setSelected('');setSelectedEdge('');applySaved(saved,`Deleted ${label}.`);}}/>}
-      {wizard&&kpiProject&&<KpiWizard project={kpiProject} docs={docs.filter(d=>d.project===kpiProject)} kpis={kpis} onClose={()=>setWizard(false)} onSaved={(file,modelPath,name)=>{setWizard(false);setSelectedKpi(`${file}#${modelPath.join('/')}#${name}`);setTab('metrics');setMessage(`Created KPI ${name} in ${file}.`);void refresh().catch(()=>{});}}/>}
+      {wizard&&kpiProject&&<MetricWizard project={kpiProject} docs={docs.filter(d=>d.project===kpiProject)} kpis={kpis} existing={typeof wizard==='object'?wizard:undefined} onClose={()=>setWizard(false)} onSaved={(file,modelPath,name)=>{const added=typeof wizard==='object';setWizard(false);setSelectedKpi(`${file}#${modelPath.join('/')}#${name}`);setTab('metrics');setMessage(added?`Added attributes to metric ${name} in ${file}.`:`Created metric ${name} in ${file}.`);void refresh().catch(()=>{});}}/>}
       {committing&&current&&<CommitDialog project={current.project} projectName={projects.find(p=>p.slug===current.project)?.name} itemHints={itemHints.current[current.project]} unsaved={source!==current.source?[current.path]:[]} onClose={()=>setCommitting(false)}
         onCommitted={r=>{setCommitting(false);itemHints.current[current.project]={};setMessage(`Committed ${r.commit.slice(0,7)} (${r.files.length} file${r.files.length===1?'':'s'})${r.pushed?r.pushed.ok?' and pushed.':`; push failed: ${r.pushed.message}`:'.'}`);setGitVersion(v=>v+1);void refresh().catch(()=>{});}}
         onReverted={(path,hash)=>{setMessage(hash?`Reverted ${path} to the last commit; the replaced version is in the trash.`:`Moved ${path} to the trash.`);setTrashVersion(v=>v+1);void refresh().then(d=>{const doc=d.find(x=>x.project===current.project&&x.path===path);if(doc&&currentRef.current?.project===current.project&&currentRef.current.path===path){autosave.resolved(doc.hash,doc.source);setCurrent(doc);setSource(doc.source);}}).catch(()=>{});}}/>}
@@ -506,7 +506,7 @@ function App() {
         <button className="scale-example" onClick={()=>loadExample('mapped-commerce')} disabled={busy}><Layers size={16}/><span>Load mapped commerce<small>Ontology → mappings → governed queries</small></span></button>
         <button className="scale-example" onClick={()=>loadExample('flights')} disabled={busy}><Network size={16}/><span>Load Ossie Flights<small>Official ontology · semantic model · mappings</small></span></button>
         <button className="scale-example" onClick={()=>loadExample('billing')} disabled={busy}><Layers size={16}/><span>Load subscription billing<small>36 business entities · 4 governed metrics</small></span></button>
-        <button className="scale-example" onClick={()=>loadExample('mall')} disabled={busy}><Layers size={16}/><span>Load shopping center administration<small>145 entity types · 11 namespaces · 25 KPIs</small></span></button>
+        <button className="scale-example" onClick={()=>loadExample('mall')} disabled={busy}><Layers size={16}/><span>Load shopping center administration<small>145 entity types · 11 namespaces · 25 metrics</small></span></button>
         <label className="import" tabIndex={0} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.currentTarget.querySelector('input')?.click();}}}>
           <Upload size={16} /> Import definitions
           <input
@@ -577,7 +577,7 @@ function App() {
         {tab!=='scm'&&(source||current)&&(showValidation||!!result.error)&&<details className="validation-details" open><summary onClick={e=>{e.preventDefault();setShowValidation(false);}}>Validation findings</summary><ValidationPanel source={source} issues={validation.issues} onLocate={issue=>{setTab('source');setTimeout(()=>{sourceEditor.current?.locate(issue);},0);}}/></details>}
         <div ref={canvasRow} className={`canvas-row${inspectorVisible?' has-inspector':''}${pageDetails?' page-details':''}${fullscreen.active?' is-fullscreen':''}${fullscreen.fallback?' window-fill':''}`}>
           <section className="canvas" inert={pageDetails}>
-            {tab==='contract'&&isContract&&current ? (contractObject?<DatasetPage key={contractObject} doc={current} data={(model as any).document} objectName={contractObject} projectDocs={docs.filter(d=>d.project===current.project)} onBack={()=>setContractObject(null)} onOpenObject={setContractObject} onOpenInLineage={openInLineage} onNeighborhood={continueInNeighborhood} gitVersion={gitVersion} editor={propertyEditor({doc:current,base:docText(current.id),onSaved:applySaved,onError:setMessage})}/>:<ContractOverview data={(model as any).document} onOpen={setContractObject} onOpenInLineage={openInLineage}/>) : tab==='scm' ? (scmSlug?<SourceControl onBusy={setGitBusy} onCommit={()=>{void autosave.flush();setCommitting(true);}} projects={projects} project={scmSlug} version={gitVersion} unsaved={current&&current.project===scmSlug&&source!==current.source?[current.path]:[]} historyPath={historyPath} onProject={slug=>{setMessage('');setScmProject(slug);setHistoryPath(undefined);}} onChanged={()=>void refresh().catch(()=>{})} onOpen={(project,path)=>{const d=docsRef.current.get(`${project}/${path}`);if(d&&open(d))setTab('source');}}/>:<p className="hint">Import definitions or load an example to start a project.</p>) : tab==='metrics' ? <MetricsView project={kpiProject} projectName={projects.find(p=>p.slug===kpiProject)?.name} kpis={kpis} error={kpiError} loading={kpiLoading} selected={selectedKpi} onSelect={setSelectedKpi} filter={kpiFilter} onNew={()=>setWizard(true)} onEdit={editKpi}/> : tab==='mappings' ? <MappingExplorer onEditItem={editMappingItem} currentId={current?.id} revisionKey={docs.map(d=>d.id+':'+d.hash).join('|')} dirty={!!current&&source!==current.source}/> : !source && !current ? (
+            {tab==='contract'&&isContract&&current ? (contractObject?<DatasetPage key={contractObject} doc={current} data={(model as any).document} objectName={contractObject} projectDocs={docs.filter(d=>d.project===current.project)} onBack={()=>setContractObject(null)} onOpenObject={setContractObject} onOpenInLineage={openInLineage} onNeighborhood={continueInNeighborhood} gitVersion={gitVersion} editor={propertyEditor({doc:current,base:docText(current.id),onSaved:applySaved,onError:setMessage})}/>:<ContractOverview data={(model as any).document} onOpen={setContractObject} onOpenInLineage={openInLineage}/>) : tab==='scm' ? (scmSlug?<SourceControl onBusy={setGitBusy} onCommit={()=>{void autosave.flush();setCommitting(true);}} projects={projects} project={scmSlug} version={gitVersion} unsaved={current&&current.project===scmSlug&&source!==current.source?[current.path]:[]} historyPath={historyPath} onProject={slug=>{setMessage('');setScmProject(slug);setHistoryPath(undefined);}} onChanged={()=>void refresh().catch(()=>{})} onOpen={(project,path)=>{const d=docsRef.current.get(`${project}/${path}`);if(d&&open(d))setTab('source');}}/>:<p className="hint">Import definitions or load an example to start a project.</p>) : tab==='metrics' ? <MetricsView project={kpiProject} projectName={projects.find(p=>p.slug===kpiProject)?.name} kpis={kpis} error={kpiError} loading={kpiLoading} selected={selectedKpi} onSelect={setSelectedKpi} filter={kpiFilter} onNew={()=>setWizard(true)} onEdit={editKpi} onAddAttributes={k=>setWizard(k)}/> : tab==='mappings' ? <MappingExplorer onEditItem={editMappingItem} currentId={current?.id} revisionKey={docs.map(d=>d.id+':'+d.hash).join('|')} dirty={!!current&&source!==current.source}/> : !source && !current ? (
               <div className="empty">
                 <div className="empty-icon">
                   <Network size={36} />
@@ -612,7 +612,7 @@ function App() {
                   .map((e) => (
                     <div className="catalog-card" key={e.id}>
                     <button onClick={() => selectEntity(e.id)}>
-                      <small>{e.kind==='Metric'?'KPI · Metric':e.kind}{(kpiBadges.get(e.name)?.length??0)>0&&<span className="kpi-badge" title={`KPIs: ${kpiBadges.get(e.name)!.join(', ')}`}><Gauge size={10}/>{kpiBadges.get(e.name)!.length===1?'KPI':`${kpiBadges.get(e.name)!.length} KPIs`}</span>}</small>
+                      <small>{e.kind==='Metric'?'Metric':e.kind}{(kpiBadges.get(e.name)?.length??0)>0&&<span className="kpi-badge" title={`Metrics: ${kpiBadges.get(e.name)!.join(', ')}`}><Gauge size={10}/>{kpiBadges.get(e.name)!.length===1?'Metric':`${kpiBadges.get(e.name)!.length} metrics`}</span>}</small>
                       <strong>{e.name}</strong>
                       <p>{e.description || "No description yet"}</p>
                     </button>

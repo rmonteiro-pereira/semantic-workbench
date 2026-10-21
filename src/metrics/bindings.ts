@@ -1,6 +1,6 @@
 import {expandIri,prefixMap} from '../iri';
 import {readKpiBindings,type KpiBinding} from './extension';
-// KPI-to-concept bindings (research R12): stored in the mapping document's root extension (or the
+// metric-to-concept bindings (research R12): stored in the mapping document's root extension (or the
 // embedded semantic model's root in a consolidated file). Resolved against the ontology and the
 // semantic model the mapping references. Standard concept mappings whose expression is exactly a
 // metric name are read as evidence too, labelled as such, but never written.

@@ -7,7 +7,7 @@ import {columnOf,deepEqual,isObject,leadingSpace,lineEndAfter,lineStart,textStyl
 // bytes; new keys and entries are written in the document's own style (indentation, list
 // indentation, flow or block for the same key in sibling items). JSON files use the JSON rules in
 // json-patch.ts on the same syntax tree. The JSON inside a block scalar (a SEMANTIC_WORKBENCH
-// extension) is patched as JSON, line by line, so one changed KPI attribute is one changed line.
+// extension) is patched as JSON, line by line, so one changed metric attribute is one changed line.
 type Ctx=TextStyle&{src:string;indentSeq:boolean;flowKeys:Set<string>;flowPad:boolean};
 const range=(n:any):[number,number,number]=>n.range;
 const isCollection=(v:unknown)=>Array.isArray(v)||isObject(v);

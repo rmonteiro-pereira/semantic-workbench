@@ -5,9 +5,9 @@ import {api,type ExplainQuery} from '../projects/api';
 import {Explanation} from './Explanation';
 import {Lineage} from './Lineage';
 import {additivityLabel,targetText,typeLabel} from './format';
-// One KPI: what it is (label, type, unit, status, owner, concepts), then how it is calculated and
+// One metric: what it is (label, type, unit, status, owner, concepts), then how it is calculated and
 // where its data comes from. The explanation is fetched from the server, never computed by running SQL.
-export function KpiDetail({project,kpi,all,onEdit}:{project:string;kpi:KpiSummary;all:KpiSummary[];onEdit?:()=>void}){
+export function MetricDetail({project,kpi,all,onEdit}:{project:string;kpi:KpiSummary;all:KpiSummary[];onEdit?:()=>void}){
  const [query,setQuery]=useState<ExplainQuery>({}),[explanation,setExplanation]=useState<KpiExplanation|null>(null),[error,setError]=useState(''),[loading,setLoading]=useState(true);
  useEffect(()=>{const abort=new AbortController();setLoading(true);setError('');
   api.explain(project,kpi.file,kpi.name,query,abort.signal).then(e=>{setExplanation(e);setLoading(false);}).catch(e=>{if(e.name!=='AbortError'){setError(e.message);setLoading(false);}});
@@ -16,8 +16,8 @@ export function KpiDetail({project,kpi,all,onEdit}:{project:string;kpi:KpiSummar
  const problems=[...new Set(kpi.concepts.flatMap(c=>c.problems))];
  return <article className="kpi-detail">
   <header className="kpi-header">
-   <small>KPI · {kpi.model}</small>
-   <div className="metrics-title"><h2>{kpi.label}</h2>{onEdit&&<button className="kpi-edit" onClick={onEdit} aria-label={`Edit ${kpi.label}`}><Pencil size={13}/>Edit KPI</button>}</div>
+   <small>Metric · {kpi.model}</small>
+   <div className="metrics-title"><h2>{kpi.label}</h2>{onEdit&&<button className="kpi-edit" onClick={onEdit} aria-label={`Edit ${kpi.label}`}><Pencil size={13}/>Edit metric</button>}</div>
    <code className="kpi-name">{kpi.name}</code>
    {kpi.description&&<p className="kpi-description">{kpi.description}</p>}
    <div className="kpi-badges">
@@ -27,7 +27,7 @@ export function KpiDetail({project,kpi,all,onEdit}:{project:string;kpi:KpiSummar
     {kpi.unit&&<span className="kpi-pill unit">{kpi.unit}</span>}
    </div>
    <dl className="kpi-facts">
-    <div><dt>Measures</dt><dd>{measures.length?measures.map((c,i)=><span key={i} className="concept-chip" title={c.source==='mapping-expression'?`From a concept mapping in ${c.file} whose expression is this metric’s name`:`KPI binding in ${c.file}`}>{c.concept??c.input}{c.source==='mapping-expression'&&<small>mapping</small>}</span>):<span className="muted">No concept bound</span>}</dd></div>
+    <div><dt>Measures</dt><dd>{measures.length?measures.map((c,i)=><span key={i} className="concept-chip" title={c.source==='mapping-expression'?`From a concept mapping in ${c.file} whose expression is this metric’s name`:`Metric binding in ${c.file}`}>{c.concept??c.input}{c.source==='mapping-expression'&&<small>mapping</small>}</span>):<span className="muted">No concept bound</span>}</dd></div>
     <div><dt>About</dt><dd>{of.length?of.map((c,i)=><span key={i} className="concept-chip of">{c.concept??c.input}</span>):<span className="muted">—</span>}</dd></div>
     <div><dt><UserRound size={13}/>Owner</dt><dd>{kpi.owner??<span className="muted">—</span>}{kpi.steward&&<small> · steward {kpi.steward}</small>}</dd></div>
     <div><dt><FileCode size={13}/>Defined in</dt><dd><code>{kpi.file}</code>{kpi.layout==='embedded (deprecated)'&&<small className="layout-note" title="The consolidated Ossie layout embeds the semantic model in the ontology file; deprecated upstream">consolidated layout</small>}</dd></div>

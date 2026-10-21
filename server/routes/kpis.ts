@@ -1,12 +1,12 @@
 import {readJson} from '../request';
 import {MAX_INPUT_BYTES} from '../../src/diagnostics';
 import {explainMetric} from '../agent/explain';
-import {planKpiSave,KpiError,type KpiRequest} from '../../src/metrics/kpi-save';
+import {planKpiSave,KpiError,type KpiRequest} from '../../src/metrics/metric-save';
 import {InputError} from '../../src/diagnostics';
 import type {Route} from './http';
 const HASH=/^[0-9a-f]{64}$/;
 const object=(v:unknown):v is Record<string,any>=>!!v&&typeof v==='object'&&!Array.isArray(v);
-// POST /api/projects/:slug/kpis (FR-010): the wizard's KPI as one journaled save of the semantic
+// POST /api/projects/:slug/metrics (FR-010, FR-016; alias …/kpis): the wizard's metric as one journaled save of the semantic
 // model and the mapping document. `…/kpis/preview` returns the same plan and its explanation
 // without writing anything; neither executes SQL. POST /api/projects/:slug/save-batch saves several
 // files of a project in one journaled operation (deletes with dependents, confirmed rewrites).
@@ -19,10 +19,11 @@ export const kpiRoutes:Route=async(ws,req,url)=>{
   for(const f of body.files)if(!object(f)||typeof f.path!=='string'||(f.baseHash!==null&&(typeof f.baseHash!=='string'||!HASH.test(f.baseHash)))||(f.source===undefined)===(f.patches===undefined)||(f.source!==undefined&&typeof f.source!=='string'))throw Error('Each file needs a path, the SHA-256 of the version the edit started from (null for a new file), and either source or patches.');
   return Response.json(await ws.saveFiles(slug,body.files,'save-batch'));
  }
- const m=url.pathname.match(/^\/api\/projects\/([^/]+)\/kpis(\/preview)?$/);if(!m)return null;
+ // v0.3.0: `metrics` names; the v0.2.0 `kpis` paths stay as documented aliases (FR-016).
+ const m=url.pathname.match(/^\/api\/projects\/([^/]+)\/(?:metrics|kpis)(\/preview)?$/);if(!m)return null;
  const slug=decodeURIComponent(m[1]),preview=!!m[2];ws.project(slug);
  const body=await readJson(req,256_000);
- if(!object(body)||Object.keys(body).some(k=>!['semanticPath','modelPath','metric','extension','binding','baseHashes'].includes(k))||typeof body.semanticPath!=='string'||!object(body.metric)||!object(body.extension)||(body.binding!==undefined&&!object(body.binding))||(body.modelPath!==undefined&&!Array.isArray(body.modelPath))||(!preview&&!object(body.baseHashes)))
+ if(!object(body)||Object.keys(body).some(k=>!['semanticPath','modelPath','existing','metric','extension','binding','baseHashes'].includes(k))||typeof body.semanticPath!=='string'||(body.existing!==undefined&&typeof body.existing!=='boolean')||!object(body.metric)||!object(body.extension)||(body.binding!==undefined&&!object(body.binding))||(body.modelPath!==undefined&&!Array.isArray(body.modelPath))||(!preview&&!object(body.baseHashes)))
   throw Error('Expected {semanticPath, metric: {name, expression, description?, datatype?}, extension, binding?: {measures, of?}, baseHashes}.');
  const documents=ws.documents().filter(d=>d.project===slug);
  let plan;try{plan=planKpiSave(documents.map(d=>({path:d.path,source:d.source})),body as KpiRequest);}

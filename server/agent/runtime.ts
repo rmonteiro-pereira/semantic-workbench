@@ -16,7 +16,7 @@ export type BindingKind='object'|'referent'|'link';
 export type Binding={id:string;kind:BindingKind;concept:string;rootConcept:string;relationships:string[];expression:string;condition:unknown;fields:string[];metrics:string[];evidence:Evidence};
 export type RuntimeField={id:string;dataset:string;name:string;definition:any;evidence:Evidence};
 export type RuntimeMetric={id:string;name:string;definition:any;fields:string[];datasets:string[];dependsOn:string[];evidence:Evidence};
-// KPI bindings of the mapping's SEMANTIC_WORKBENCH extension (v0.3.0, additive), resolved against
+// metric bindings of the mapping's SEMANTIC_WORKBENCH extension (v0.3.0, additive), resolved against
 // the ontology and the semantic model's metrics; problems stay on the binding as findings.
 export type MetricBinding={metric:string;measures:ConceptRef;of?:ConceptRef;findings:Finding[];evidence:Evidence};
 export type RuntimeContext={mappingId:string;name:string;documents:Evidence[];mapping:any;ontology:any;semanticModel:any;concepts:any[];bindings:Binding[];fields:RuntimeField[];metrics:RuntimeMetric[];datasets:any[];joins:any[];aiContext:any[];findings:Finding[];metricBindings:MetricBinding[];policy:typeof policy};
@@ -44,7 +44,7 @@ export function buildContext(documents:StoredDocument[],mappingId:string):Runtim
  return assemble(parsed,entry);
 }
 type Entry=ReturnType<typeof mappingEntries>[number]&{semanticPath?:(string|number)[]};
-// Fields, metrics, datasets and joins of one semantic model without any mapping (KPI explanation
+// Fields, metrics, datasets and joins of one semantic model without any mapping (metric explanation
 // of a model that no mapping references). `path` locates the model inside its document.
 export function modelContext(documents:StoredDocument[],documentId:string,path:(string|number)[]=[]):RuntimeContext{
  const parsed=parseDocuments(documents),p=parsed.find(x=>x.doc.id===documentId);if(!p?.data)throw Error('Semantic model not found.');
@@ -136,7 +136,7 @@ function assemble(parsed:Parsed[],entry:Entry):RuntimeContext{
    for(const [j,child]of(node.referent_mappings??[]).entries())queue.push({...task,node:child,path:[...path,'referent_mappings',j],concept,relationships,kind:'referent',depth:task.depth+1});
   }catch(e){problem('mapping-reference',(e as Error).message,path);}
  }
- // KPI bindings: a mapping document's root extension, or an embedded semantic model's (FR-028).
+ // metric bindings: a mapping document's root extension, or an embedded semantic model's (FR-028).
  const kpiOwner=entry.ontology?entry.data.semantic_model:entry.data,kpiPath=entry.ontology?[...entry.path,'semantic_model']:entry.path;
  const kpi=readKpiBindings(kpiOwner,'',!entry.ontology);
  const extIndex=workbenchEntry(kpiOwner)?.index??0;

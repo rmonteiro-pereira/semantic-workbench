@@ -23,7 +23,7 @@ import './odcs.css';
 const nodeTypes={card:LineageCardNode};
 const LineageEdge=memo((p:EdgeProps)=>{
  const d=p.data as {kind:EdgeKind;onPath:boolean;dim:boolean;count?:number;ambiguous?:boolean;from:string;to:string;label?:string;lane?:number};
- // Parallel lines between the same two ports (an object mapping and a KPI binding of one metric) fan out.
+ // Parallel lines between the same two ports (an object mapping and a metric binding of one metric) fan out.
  const shift=(d.lane??0)*7,[path,lx,ly]=getBezierPath({...p,sourceY:p.sourceY+shift,targetY:p.targetY+shift});
  return <g className={`lineage-edge${d.onPath?' on-path':''}${d.dim?' dim':''}`} data-edge-kind={d.kind} data-on-path={d.onPath?'true':'false'} data-from={d.from} data-to={d.to} data-count={d.count??1}>
   <BaseEdge id={p.id} path={path} style={{...edgeSvgStyle(d.kind,d.onPath),opacity:d.dim?0.14:1,...(d.onPath?{stroke:undefined}:{})}} interactionWidth={12}/>

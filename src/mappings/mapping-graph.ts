@@ -10,7 +10,7 @@ import type {MappingEdgeKind} from '../graph/edge-styles';
 //  referent concept row (the relationship path) → field row or metric card;
 //  link     relationship row → related concept card, through the join field rows (`via`),
 //           labelled with the relationship;
-//  measures / of  concept card → metric card (KPI bindings of the mapping's extension).
+//  measures / of  concept card → metric card (metric bindings of the mapping's extension).
 // Nothing here parses the mapping again: the tree is only walked to find a link child's relationship.
 type Evidence={path:(string|number)[];documentId?:string};
 type Binding={id:string;kind:'object'|'referent'|'link';concept:string;rootConcept:string;relationships:string[];expression:string;fields:string[];metrics:string[];evidence:Evidence};
@@ -116,7 +116,7 @@ export function buildMappingGraph(context:MappingContext,revision=''):MappingGra
  // A link mapping with only an anchor (no children) still shows its bindings, as referent-like lines.
  for(const [key,list] of linkAnchors)if(![...linkChildren.values()].some(c=>JSON.stringify(c.path.slice(0,c.path.indexOf('link_mappings')+2))===key))
   for(const b of list)for(const t of targets(b))add({from:row(b.rootConcept,b.relationships.join('.')||'(object)'),to:t,kind:'link',bindings:[b.id],source:source(b.evidence.path)});
- // KPI bindings.
+ // metric bindings.
  for(const m of context.metricBindings){
   const metric=metricCard(m.metric);
   for(const [role,ref] of [['measures',m.measures],['of',m.of]] as const){if(!ref)continue;const name=ref.concept??ref.input;mapped.add(name);

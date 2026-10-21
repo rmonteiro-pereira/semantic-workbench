@@ -6,14 +6,16 @@ import {ansiExpression,expressionRefs,metricDependencies} from '../../src/metric
 import {GRAINS,inferredAdditivity,inferredType,metricLayerIssues,ratioParts,readKpiBindings,readMetricExtension,type Additivity,type Grain,type KpiType,type MetricExtension} from '../../src/metrics/extension';
 import {mappingExpressionBindings,resolveBindings,type ResolvedBinding} from '../../src/metrics/bindings';
 import {modelContext,planQuery,type StoredDocument} from './runtime';
-// KPI catalog and explanation (FR-001–FR-007): reads the semantic model, its extensions, the KPI
+// metric catalog and explanation (FR-001–FR-007): reads the semantic model, its extensions, the metric
 // bindings and the ODCS contracts of one project. Everything here explains; nothing executes. The
 // SQL preview comes from the governed planner and is labelled as not executed.
 type ProjectDocument=StoredDocument&{path:string};
 type Parsed={doc:ProjectDocument;data:any};
 type ModelRef={doc:ProjectDocument;path:(string|number)[];model:any;ontology?:any;embeddedMapping?:any};
 export type ConceptLink={concept:string|null;input:string;role:'measures'|'of';source:ResolvedBinding['source'];file:string;problems:string[]};
-export type KpiSummary={file:string;modelPath:(string|number)[];model:string;layout:'split'|'embedded (deprecated)';name:string;label:string;description?:string;expression?:string;type:KpiType;typeDeclared:boolean;additivity:Additivity|null;additivityDeclared:boolean;unit?:string;format?:string;status?:string;owner?:string;steward?:string;inputs:string[];concepts:ConceptLink[];extension:MetricExtension|null;findings:Issue[]};
+export type KpiSummary={file:string;modelPath:(string|number)[];model:string;layout:'split'|'embedded (deprecated)';name:string;label:string;description?:string;expression?:string;type:KpiType;typeDeclared:boolean;additivity:Additivity|null;additivityDeclared:boolean;unit?:string;format?:string;status?:string;owner?:string;steward?:string;inputs:string[];concepts:ConceptLink[];extension:MetricExtension|null;findings:Issue[];
+ // v0.3.0 (FR-017): true when the metric has workbench attributes (a SEMANTIC_WORKBENCH extension).
+ governed:boolean};
 export type TreeNode={kind:'metric'|'field';name:string;label?:string;role?:'numerator'|'denominator'|'input';type?:KpiType;additivity?:Additivity|null;expression?:string;dataset?:string;children:TreeNode[];repeated?:boolean};
 export type Trust={kind:'quality'|'sla';name?:string;dimension?:string;severity?:string;description?:string;property?:string;value?:unknown;unit?:string;element?:string};
 export type OdcsLink={file:string;contract:string;object:string;physicalName:string;property:string|null;logicalType?:string;quality:Trust[]};
@@ -36,7 +38,7 @@ function semanticModels(parsed:Parsed[]):ModelRef[]{
 }
 const pointerOf=(path:(string|number)[])=>path.map(p=>'/'+p).join('');
 const fieldNamesOf=(model:any)=>new Map<string,Set<string>>(list(model.datasets).filter(object).map((d:any)=>[d.name,new Set(list(d.fields).map((f:any)=>f?.name))]));
-// KPI bindings for one model: the mapping documents of the project that reference it, or the
+// metric bindings for one model: the mapping documents of the project that reference it, or the
 // consolidated file's embedded semantic model root. Standard mappings whose expression is a metric
 // name are added as evidence for metrics the extension does not bind.
 function conceptLinks(parsed:Parsed[],ref:ModelRef,names:Set<string>):Map<string,ConceptLink[]>{
@@ -65,7 +67,7 @@ function summaries(parsed:Parsed[],ref:ModelRef):KpiSummary[]{
  return metrics.map((m:any,i:number)=>{
   const ext=declared.get(m.name)??null,sql=ansiExpression(m),shape=inferredType(sql,names);
   const own=issues.filter(x=>x.path===`${prefix}/metrics/${i}`||x.path.startsWith(`${prefix}/metrics/${i}/`));
-  return {file:ref.doc.path,modelPath:ref.path,model:ref.model.name??'(unnamed)',layout,name:m.name,label:ext?.label??m.name,description:m.description,expression:sql,type:ext?.type??shape.type,typeDeclared:!!ext,additivity:additivity(m.name),additivityDeclared:!!ext?.additivity,unit:ext?.unit,format:ext?.format,status:ext?.status,owner:ext?.owner,steward:ext?.steward,inputs:sql?metricDependencies(sql,names):[],concepts:links.get(m.name)??[],extension:ext,findings:own};
+  return {file:ref.doc.path,modelPath:ref.path,model:ref.model.name??'(unnamed)',layout,name:m.name,label:ext?.label??m.name,description:m.description,expression:sql,type:ext?.type??shape.type,typeDeclared:!!ext,additivity:additivity(m.name),additivityDeclared:!!ext?.additivity,unit:ext?.unit,format:ext?.format,status:ext?.status,owner:ext?.owner,steward:ext?.steward,inputs:sql?metricDependencies(sql,names):[],concepts:links.get(m.name)??[],extension:ext,findings:own,governed:!!ext};
  });
 }
 export function projectMetrics(documents:StoredDocument[],slug:string):KpiSummary[]{const parsed=parseProject(documents,slug);return semanticModels(parsed).flatMap(ref=>summaries(parsed,ref));}
@@ -129,9 +131,9 @@ export function explainMetric(documents:StoredDocument[],slug:string,path:string
  return {kpi,formula:kpi.expression??'',tree:root,inputs,time,dimensions:ext?.dimensions??[],
   filters:(ext?.filters??[]).map(f=>({...f,text:`${f.field} ${operatorText[f.operator]??f.operator}${f.value===undefined?'':' '+JSON.stringify(f.value)}`})),
   additivityText:additivityText[kpi.additivity??'unknown']+(kpi.additivity&&!kpi.additivityDeclared?' (inferred from the expression)':'')+(kpi.additivity==='semi_additive'&&ext?.period_aggregation?` Period aggregation: ${ext.period_aggregation}.`:''),
-  divisionByZero:division,divisionText:division==='handled'?'Division by zero is guarded: NULLIF turns a zero denominator into NULL, so the KPI is empty rather than an error or infinity.':division==='unhandled'?'Division by zero is not guarded: a zero denominator makes the query fail or return infinity, depending on the engine. Wrap the denominator in NULLIF(…, 0).':'The expression divides by nothing.',
+  divisionByZero:division,divisionText:division==='handled'?'Division by zero is guarded: NULLIF turns a zero denominator into NULL, so the metric is empty rather than an error or infinity.':division==='unhandled'?'Division by zero is not guarded: a zero denominator makes the query fail or return infinity, depending on the engine. Wrap the denominator in NULLIF(…, 0).':'The expression divides by nothing.',
   missingValues:'SUM and COUNT skip NULL values; rows without a value do not count'+(division==='handled'?'. An empty result means the denominator was zero or missing.':'.')+(stocks.length&&stocks.length<bases.length?` ${stocks.join(', ')} ${stocks.length>1?'are':'is a'} point-in-time stock${stocks.length>1?'s':''}.`:''),
-  concepts:kpi.concepts,targets:ext?.targets??[],sqlPreview:preview(documents,ref,kpi,byName,time,options),policy:'Semantic Workbench explains KPIs and previews SQL. It never executes queries.'};
+  concepts:kpi.concepts,targets:ext?.targets??[],sqlPreview:preview(documents,ref,kpi,byName,time,options),policy:'Semantic Workbench explains metrics and previews SQL. It never executes queries.'};
 }
 function preview(documents:StoredDocument[],ref:ModelRef,kpi:KpiSummary,byName:Map<string,KpiSummary>,time:KpiExplanation['time'],options:{grain?:string|null;dimensions?:string[];rollup?:string|null}):SqlPreview{
  const dimensions=options.dimensions??[],rollup=options.rollup??null,requested=options.grain??null;

@@ -94,7 +94,7 @@ test('status rules: an edited approved KPI returns to proposed; deprecation need
  expect(applyStatusRules(approved,owner)).toEqual({item:owner,reopened:false});
  expect(allowedStatuses('draft')).toEqual(['draft','proposed']);expect(allowedStatuses('approved')).not.toContain('draft');
  const deprecated=writeExtension(approved,{...extensionOf(approved)!.value,status:'deprecated'});
- expect(readMetricExtension(deprecated).issues.map(i=>i.message)).toEqual(['A deprecated KPI requires replaced_by or deprecation_reason.']);
+ expect(readMetricExtension(deprecated).issues.map(i=>i.message)).toEqual(['A deprecated metric requires replaced_by or deprecation_reason.']);
  expect(readMetricExtension(writeExtension(approved,{...extensionOf(approved)!.value,status:'deprecated',deprecation_reason:'Replaced by the board report.'})).issues).toEqual([]);
  expect(approved.custom_extensions[0].vendor_name).toBe(VENDOR);
 });
@@ -103,10 +103,10 @@ test('dependents of a KPI are listed: metrics that use it and its binding',()=>{
  const metrics=itemValue(docs[0].source,['metrics']) as any[],i=metrics.findIndex(m=>m.name==='total_gla');
  const refs=findReferences({kind:'metric',name:'total_gla',docId:docs[0].id,path:['metrics',i]},docs);
  const labels=[...new Set(refs.map(r=>r.dependent?.label))];
- expect(labels).toContain('metric occupancy_rate');expect(labels).toContain('KPI binding of total_gla');
+ expect(labels).toContain('metric occupancy_rate');expect(labels).toContain('metric binding of total_gla');
  expect(existsSync('data')).toBeDefined();
 });
-import {expressionFor,extensionFor,type Draft} from '../src/metrics/kpi-draft';
+import {expressionFor,extensionFor,type Draft} from '../src/metrics/metric-draft';
 test('the wizard writes the formula once, as the expression; the extension names inputs and rules',()=>{
  const d:Draft={measures:'Property',of:'',file:'m.yaml',name:'vacancy_rate',label:'Vacancy rate',description:'',type:'ratio',aggregation:'SUM',field:'',numerator:'vacant_gla',denominator:'total_gla',inputs:'',expression:'',window:'to_date',windowLength:'',windowGrain:'',filterField:'',filterOperator:'equals',filterValue:'',
   additivity:'',timeDimension:'calendar_months.first_day',minGrain:'month',grains:['month','year'],dimensions:['properties.name'],direction:'lower_is_better',target:'0.05',targetGrain:'month',warning:'0.08',critical:'',owner:'Leasing',steward:'',status:'proposed',unit:'ratio',format:'0.0%'};

@@ -44,10 +44,10 @@ test('plain-language rules: ratio, semi-additive and deprecated',()=>{
   ['stock','SUM(orders.amount)',{type:'simple',additivity:'semi_additive'}],
   ['old','SUM(orders.amount)',{type:'simple',status:'deprecated'}],
   ['summed_ratio','revenue / NULLIF(count, 0)',{type:'ratio',numerator:'revenue',denominator:'count',additivity:'additive'}]]));
- expect(m).toContain('error:extension:A ratio KPI requires numerator and denominator.');
- expect(m).toContain('error:extension:A semi_additive KPI requires non_additive_over and period_aggregation.');
- expect(m).toContain('error:extension:A deprecated KPI requires replaced_by or deprecation_reason.');
- expect(m).toContain('error:extension:A ratio KPI is non_additive: summing ratios gives a wrong result.');
+ expect(m).toContain('error:extension:A ratio metric requires numerator and denominator.');
+ expect(m).toContain('error:extension:A semi_additive metric requires non_additive_over and period_aggregation.');
+ expect(m).toContain('error:extension:A deprecated metric requires replaced_by or deprecation_reason.');
+ expect(m).toContain('error:extension:A ratio metric is non_additive: summing ratios gives a wrong result.');
  // Unknown keys and malformed JSON are reported, not ignored.
  expect(messages(model([['a','SUM(orders.amount)',{type:'simple',colour:'red'}]])).some(x=>x.includes('colour'))).toBe(true);
  const bad=model([['a','SUM(orders.amount)',{type:'simple'}]]).replace('"type": "simple"','"type": "simple",');

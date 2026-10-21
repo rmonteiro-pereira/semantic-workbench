@@ -1,7 +1,7 @@
 import React from 'react';
 import {ArrowRight,Database,FileCheck2,Gauge,Table2} from 'lucide-react';
 import type {KpiExplanation,Trust} from '../../server/agent/explain';
-// Where a KPI's data comes from (FR-007): each base input, the fields it reads, the dataset's physical
+// Where a metric's data comes from (FR-007): each base input, the fields it reads, the dataset's physical
 // source and the ODCS object and property that source is contracted as, matched by physical name.
 // Quality rules and service levels are shown as declared in the contract; they are not checked here.
 const slaText=(s:Trust)=>`${s.property}${s.value!==undefined?` ${s.value}`:''}${s.unit?` ${s.unit}`:''}`;

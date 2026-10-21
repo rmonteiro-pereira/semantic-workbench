@@ -172,13 +172,13 @@ shopping center mapping in Graph; `bun run test:mapping-graph`.
 
 **Independent Test**: `bun run test:terminology`; v0.2.0 example files round-trip.
 
-- [ ] T048 [P] [US2] Terminology check scripts/terminology-check.ts: rendered text, accessible names, tooltips and status messages of every view plus README contain no "KPI" (allow-list: quoted user data, `kpi_bindings`) (SC-003)
-- [ ] T049 [P] [US2] Round-trip tests: every v0.2.0 example with metric extensions validates and saves byte-exact after a metric edit, `kpi_bindings` kept, in tests/metric-compat.test.ts (SC-004)
-- [ ] T050 [P] [US2] Handler tests: `GET metrics` lists all metrics with `governed`; `POST metrics` and `metrics/preview` equal the `kpis` aliases in tests/metrics-api.test.ts
-- [ ] T051 [US2] Rename UI strings and components (MetricWizard, MetricDetail, metric-save, metric-draft) in src/metrics/*, src/main.tsx, src/FullGraph.tsx, src/NeighborhoodGraph.tsx, src/odcs/*, src/edit/item-model.ts; keep type aliases where tests import old names (FR-014)
-- [ ] T052 [US2] Server: `metrics` create/preview routes, `kpis` aliases, `governed` flag and non-governed metrics in server/routes/metrics.ts, server/routes/kpis.ts, server/agent/explain.ts (FR-015–FR-017)
-- [ ] T053 [US2] Metrics tab: all metrics, `Governed only` filter, `Add attributes` opening the wizard prefilled for an existing metric in src/metrics/MetricsView.tsx and src/metrics/MetricWizard.tsx (FR-017)
-- [ ] T054 [US2] Update scripts/metrics-browser-check.ts and scripts/item-edit-browser-check.ts selectors to the new names
+- [X] T048 [P] [US2] Terminology check scripts/terminology-check.ts: rendered text, accessible names, tooltips and status messages of every view plus README contain no "KPI" (allow-list: quoted user data, `kpi_bindings`) (SC-003)
+- [X] T049 [P] [US2] Round-trip tests: every v0.2.0 example with metric extensions validates and saves byte-exact after a metric edit, `kpi_bindings` kept, in tests/metric-compat.test.ts (SC-004)
+- [X] T050 [P] [US2] Handler tests: `GET metrics` lists all metrics with `governed`; `POST metrics` and `metrics/preview` equal the `kpis` aliases in tests/metrics-api.test.ts
+- [X] T051 [US2] Rename UI strings and components (MetricWizard, MetricDetail, metric-save, metric-draft) in src/metrics/*, src/main.tsx, src/FullGraph.tsx, src/NeighborhoodGraph.tsx, src/odcs/*, src/edit/item-model.ts; keep type aliases where tests import old names (FR-014)
+- [X] T052 [US2] Server: `metrics` create/preview routes, `kpis` aliases, `governed` flag and non-governed metrics in server/routes/metrics.ts, server/routes/kpis.ts, server/agent/explain.ts (FR-015–FR-017)
+- [X] T053 [US2] Metrics tab: all metrics, `Governed only` filter, `Add attributes` opening the wizard prefilled for an existing metric in src/metrics/MetricsView.tsx and src/metrics/MetricWizard.tsx (FR-017)
+- [X] T054 [US2] Update scripts/metrics-browser-check.ts and scripts/item-edit-browser-check.ts selectors to the new names
 
 ---
 

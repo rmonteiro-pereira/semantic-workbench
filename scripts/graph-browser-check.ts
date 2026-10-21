@@ -86,11 +86,11 @@ try{
   const technical=page.getByRole('button',{name:/^Technical resources hidden/});await expect(technical).toBeVisible();await technical.click();
   await expect(page.getByRole('button',{name:'Technical resources shown',exact:true})).toBeVisible();await shot('owl');
  });
- await check('shopping center: Property with its KPI indicator; the indicator opens the KPI list for Property',async()=>{
+ await check('shopping center: Property with its metric indicator; the indicator opens the metric list for Property',async()=>{
   await openFile('mall.ontology.yaml');await tab('Neighborhood').click();await pickCenter(page,'Property');
   await expectState(mall,id(mall,'Property'));await expectCentered();expect(await neighborhoodEdgeProblems(page)).toEqual([]);await shot('mall');
-  await page.getByRole('button',{name:/^\d+ KPIs for Property$/}).click();
-  await expect(page.getByRole('textbox',{name:'Find a KPI'})).toHaveValue('Property');await expect(page.getByRole('region',{name:'Metrics'})).toContainText('Occupancy rate');
+  await page.getByRole('button',{name:/^Open \d+ metrics for Property$/}).click();
+  await expect(page.getByRole('textbox',{name:'Find a metric'})).toHaveValue('Property');await expect(page.getByRole('region',{name:'Metrics'})).toContainText('Occupancy rate');
  });
  await check('shopping center: the walk continues into the mapping file that maps Property, and Back returns to the ontology',async()=>{
   await tab('Neighborhood').click();await expect.poll(async()=>(await neighborhoodState(page)).center).toBe(id(mall,'Property'));
