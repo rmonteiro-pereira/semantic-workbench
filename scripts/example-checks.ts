@@ -2,8 +2,7 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {Database} from 'bun:sqlite';
 import {parse} from 'yaml';
-import {createStore} from '../server/store';
-import {createHandler} from '../server/handler';
+import {testWorkspace} from '../tests/helpers/temp-data-dir';
 import {validateInput} from '../src/input';
 import {exportDocument} from '../src/export';
 import {agentCatalog,buildContext,planQuery,type StoredDocument} from '../server/agent/runtime';
@@ -11,9 +10,9 @@ import manifest from '../tests/fixtures/ossie-mapping/manifest.json';
 import {checkMall} from './mall-checks';
 export async function checkExamples(){
  const upstream:StoredDocument[]=[];const imports:any[]=[];const sqlExecutions:any[]=[];const plans:any[]=[];
- const store=createStore(':memory:');
+ const t=await testWorkspace();
  try{
-  const handler=createHandler(store);
+  const handler=t.handler;
   for(const file of manifest.files){
    const source=await Bun.file('tests/fixtures/ossie-mapping/'+file.filename).text();
    assert.equal(createHash('sha256').update(source).digest('hex'),file.sha256,'Upstream fixture was edited: '+file.filename);
@@ -39,7 +38,7 @@ export async function checkExamples(){
    }
   }finally{flightDb.close();}
   const billing:StoredDocument[]=await Promise.all(['billing.mapping.yaml','billing.ontology.yaml','billing.semantic.yaml'].map(async(filename,i)=>({id:'billing-'+i,filename,revision:1,source:await Bun.file('public/examples/billing/'+filename).text()})));
-  for(const d of billing){assert(validateInput(d.source,d.filename).valid);const saved=store.save(d.filename,d.source)as any;assert.equal(saved.source,d.source);assert.equal(await exportDocument(saved.source,d.filename).blob.text(),d.source);}
+  for(const d of billing){assert(validateInput(d.source,d.filename).valid);const saved=await t.ws.saveDocument(d.filename,d.source);assert.equal(saved.source,d.source);assert.equal(await exportDocument(saved.source,d.filename).blob.text(),d.source);}
   const context=buildContext(billing,'billing-0');assert.deepEqual(context.findings,[]);assert.equal(context.datasets.length,36);assert.equal(context.joins.length,46);assert.equal(context.bindings.length,119);
   for(const join of context.joins)assert(context.bindings.some(b=>b.expression===`${join.from}.${join.from_columns[0]}`&&b.relationships.length>=2),`Business relationship ${join.name} lacks a link mapping`);
   const ontology=parse(billing[1].source);assert.equal(ontology.ontology.filter((c:any)=>c.type==='EntityType').length,36);
@@ -65,5 +64,5 @@ export async function checkExamples(){
   }finally{db.close();}
   const mall=await checkMall();
   return {upstreamCommit:manifest.commit,imports,generated:{businessEntities:36,datasets:36,joins:46,bindings:119,governedMetrics:4},shoppingCenter:{counts:mall.counts,imports:mall.imports,sqlExecutions:mall.executions,blockedCases:mall.blockedCases},sqlExecutions,blockedCases:['Flights conditional population mapping needs explicit interpretation','BillingCycle has billed-cycle and subscribed-cycle paths; no role was guessed'],governedDefinitionsUnchanged:true,plans:plans.map(p=>({sql:p.sql,metrics:p.metrics,dimensions:p.dimensions,joins:p.joins.map((j:any)=>j.name),documents:p.documents}))};
- }finally{store.db.close();}
+ }finally{t.dispose();}
 }
