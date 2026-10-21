@@ -264,6 +264,170 @@ try {
     expect(found).toEqual([]);
    });
   }
+  // Overlaps (FR-071): floating overlays never cover each other or a control, in every view, at the
+  // six supported viewports, with and without the inspector. Popovers stay anchored below their
+  // control and inside the viewport; area titles stay inside their area.
+  const overlays = ['.react-flow__minimap', '.react-flow__controls', '.full-graph-status', '.graph-bundle-choice', 'main > .status', '.full-graph-tools', '.neighborhood-tools', '.inspector'];
+  const six: [number, number][] = [[1280, 720], [1366, 768], [1920, 1080], [2560, 1440], [1024, 768], [390, 844]];
+  // A workspace drawer left open by a narrow size would cover the page after resizing.
+  const closeDrawer = async (p: Page) => { if (await p.locator('#workspace-sidebar[role=dialog]').count()) await p.keyboard.press('Escape'); };
+  const closeDetails = async (p: Page) => { const close = p.getByRole('button', { name: 'Close details', exact: true }); if (await close.count()) await close.first().click(); };
+  // Opens the inspector on an entity where the view allows selecting one.
+  const details: Record<string, (p: Page) => Promise<void>> = {
+   Graph: async p => { await p.locator('.react-flow__node-entity').first().click(); },
+   Neighborhood: async p => { await p.locator('.react-flow__node').last().click(); },
+   Overview: async p => { await p.locator('.area-entities button').first().click(); },
+   Catalog: async p => { await p.locator('.catalog-card > button').first().click(); },
+  };
+  async function overlapProblems(p: Page, where: string) {
+   const found = (await layoutProblems(p, { overlays })).filter(problem => problem.startsWith('overlay '));
+   return found.map(problem => `${where}: ${problem}`);
+  }
+  for (const [view, show] of views) {
+   await check(`overlaps: ${view} has no overlay over another overlay or a control at the six viewports, with and without details`, async () => {
+    await sweep.setViewportSize({ width: 1440, height: 900 });
+    await closeDrawer(sweep);
+    await show(sweep);
+    const found: string[] = [];
+    for (const [width, height] of six) {
+     await sweep.setViewportSize({ width, height });
+     await closeDrawer(sweep);
+     await closeDetails(sweep);
+     await sweep.waitForTimeout(250);
+     found.push(...await overlapProblems(sweep, `${width}×${height}`));
+     if (details[view]) {
+      // The workspace drawer covers the page on narrow screens; close it before selecting.
+      await details[view](sweep);
+      await expect(sweep.locator('.inspector')).toBeVisible();
+      await sweep.waitForTimeout(250);
+      found.push(...await overlapProblems(sweep, `${width}×${height} with details`));
+      if (width === 1280 || width === 390) await sweep.screenshot({ path: `/tmp/workbench-overlap-${view.toLowerCase().replace(/ /g, '-')}-${width}.png` });
+      await closeDetails(sweep);
+     }
+    }
+    expect(found).toEqual([]);
+   });
+  }
+  await check('overlaps: the graph bundle selector, status line, mini-map and zoom controls stay apart at the six viewports', async () => {
+   await sweep.setViewportSize({ width: 1440, height: 900 });
+   await closeDrawer(sweep);
+   await openFile(sweep, 'ubl.ontology.yaml'); await tab(sweep, 'Graph');
+   await expect(sweep.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60_000 });
+   await sweep.getByRole('button', { name: /^Labels (off|on)$/ }).first().evaluate(b => { if (b.textContent?.includes('off')) (b as HTMLButtonElement).click(); });
+   // With areas collapsed, select a bundled connection (its label counts its relationships) to
+   // show the bundle selector.
+   await sweep.getByRole('button', { name: 'Collapse areas', exact: true }).click();
+   await expect(sweep.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60_000 });
+   await sweep.getByRole('button', { name: 'Fit model', exact: true }).click(); await sweep.waitForTimeout(450);
+   // Click a visible point of an edge labelled "N relationships" (a bundled connection).
+   const point = await sweep.locator('.react-flow__edge').evaluateAll(edges => {
+    for (const edge of edges) {
+     if (!/\d+ relationships/.test(edge.textContent ?? '')) continue;
+     const path = edge.querySelector('.react-flow__edge-interaction') as SVGPathElement | null, m = path?.getScreenCTM();
+     if (!path || !m) continue;
+     for (let i = 1; i < 30; i++) {
+      const local = path.getPointAtLength(path.getTotalLength() * i / 30), x = m.a * local.x + m.c * local.y + m.e, y = m.b * local.x + m.d * local.y + m.f;
+      if (document.elementFromPoint(x, y)?.closest('.react-flow__edge') === edge) return { x, y };
+     }
+    }
+    return null;
+   });
+   expect(point).not.toBeNull();
+   await sweep.mouse.click(point!.x, point!.y);
+   await expect(sweep.locator('.graph-bundle-choice')).toBeVisible();
+   const found: string[] = [];
+   for (const [width, height] of six) {
+    await sweep.setViewportSize({ width, height });
+    await sweep.waitForTimeout(250);
+    if (await sweep.locator('.graph-bundle-choice').isVisible()) found.push(...await overlapProblems(sweep, `${width}×${height}`));
+    else found.push(`${width}×${height}: bundle selector not visible`);
+    if (width === 390 || width === 1280) await sweep.screenshot({ path: `/tmp/workbench-overlap-bundle-${width}.png` });
+   }
+   await closeDetails(sweep);
+   await sweep.getByRole('button', { name: 'Expand all', exact: true }).click();
+   expect(found).toEqual([]);
+  });
+  await check('overlaps: business-area titles stay inside their area and long names keep a tooltip', async () => {
+   const found: string[] = [];
+   for (const [width, height] of [[1280, 720], [390, 844]] as const) {
+    await sweep.setViewportSize({ width, height });
+    await sweep.getByRole('button', { name: 'Fit model', exact: true }).click(); await sweep.waitForTimeout(450);
+    expect(await sweep.locator('.full-area-title').count()).toBeGreaterThan(0);
+    found.push(...await sweep.locator('.full-area-title').evaluateAll((titles, size) => titles.flatMap(title => {
+     const node = title.closest('.react-flow__node')!.getBoundingClientRect(), box = title.getBoundingClientRect(), name = title.querySelector('strong')!;
+     const out: string[] = [];
+     if (box.left < node.left - 1 || box.right > node.right + 1) out.push(`${size}: area title "${name.textContent}" spills out of its area`);
+     if (name.scrollWidth > name.clientWidth + 1 && !title.closest('[title]')) out.push(`${size}: area title "${name.textContent}" is cut without a tooltip`);
+     return out;
+    }), `${width}×${height}`));
+   }
+   expect(found).toEqual([]);
+  });
+  await check('popovers: the grouping details stay anchored below their control and inside the viewport', async () => {
+   const found: string[] = [];
+   for (const [width, height] of six) {
+    await sweep.setViewportSize({ width, height });
+    await sweep.waitForTimeout(250);
+    const summary = sweep.getByRole('button', { name: 'Grouping details' }).or(sweep.locator('summary[aria-label="Grouping details"]')).first();
+    await summary.click();
+    const pop = sweep.locator('.grouping-details[open]');
+    await expect(pop).toBeVisible();
+    const s = (await sweep.locator('summary[aria-label="Grouping details"]').boundingBox())!, b = (await pop.boundingBox())!;
+    const header = (await sweep.locator('main > header.workspace-header').boundingBox())!;
+    if (b.left < -1 || b.right > width + 1 || b.bottom > height + 1) found.push(`${width}×${height}: grouping details outside the viewport`);
+    if (b.top < header.y + header.height - 1) found.push(`${width}×${height}: grouping details cover the header`);
+    if (b.top < s.y - 1) found.push(`${width}×${height}: grouping details open above their control`);
+    if (width === 390) await sweep.screenshot({ path: '/tmp/workbench-grouping-popover-390.png' });
+    await sweep.locator('summary[aria-label="Grouping details"]').click();
+    await expect(pop).toHaveCount(0);
+   }
+   expect(found).toEqual([]);
+  });
+  // Status messages (FR-072): a message never covers a control, disappears by itself within six
+  // seconds, and clears on the next action.
+  await check('status messages: never cover a control, auto-dismiss within 6 s and clear on the next action', async () => {
+   for (const [width, height] of [[1280, 720], [390, 844]] as const) {
+    await sweep.setViewportSize({ width, height });
+    const open = sweep.getByRole('button', { name: 'Open workspace', exact: true });
+    if (await open.isVisible()) await open.click();
+    await sweep.getByRole('button', { name: /Load commerce workspace/ }).click();
+    const status = sweep.locator('main > .status');
+    await expect(status).toBeVisible();
+    if (await sweep.locator('#workspace-sidebar[role=dialog]').count()) await sweep.keyboard.press('Escape');
+    expect(await overlapProblems(sweep, `${width}×${height}`)).toEqual([]);
+    await expect(status).toHaveCount(0, { timeout: 6_500 });
+   }
+   await sweep.setViewportSize({ width: 1440, height: 900 });
+   await sweep.getByRole('button', { name: /Load commerce workspace/ }).click();
+   await expect(sweep.locator('main > .status')).toBeVisible();
+   await tab(sweep, 'Catalog');
+   await expect(sweep.locator('main > .status')).toHaveCount(0, { timeout: 1_000 });
+  });
+  // Navigation state (FR-073): exactly one sidebar item and one tab are current, and they match.
+  await check('navigation: the sidebar item and the tab marked current match the view shown', async () => {
+   await sweep.setViewportSize({ width: 1440, height: 900 });
+   const nav = async () => sweep.locator('#workspace-sidebar button.nav[aria-current="page"]').allTextContents();
+   const tabs = async () => sweep.locator('.tabs [aria-current="page"]').allTextContents();
+   await openFile(sweep, 'ubl.ontology.yaml');
+   await sweep.getByRole('button', { name: 'Model explorer', exact: true }).click();
+   await expect.poll(async () => (await nav()).map(t => t.trim())).toEqual(['Model explorer']);
+   await expect.poll(async () => (await tabs()).map(t => t.trim())).toEqual(['Graph']);
+   for (const name of ['Overview', 'Neighborhood', 'Overview', 'Catalog', 'Mappings']) {
+    await tab(sweep, name);
+    await expect.poll(async () => (await tabs()).map(t => t.trim())).toEqual([name]);
+    await expect.poll(async () => (await nav()).map(t => t.trim())).toEqual(['Model explorer']);
+   }
+   await sweep.getByRole('button', { name: 'Source editor', exact: true }).click();
+   await expect.poll(async () => (await nav()).map(t => t.trim())).toEqual(['Source editor']);
+   await expect.poll(async () => (await tabs()).map(t => t.trim())).toEqual(['Source']);
+   await sidebarNav(sweep, /^Source control/);
+   await expect.poll(async () => (await nav()).map(t => t.trim().replace(/\d+$/, ''))).toEqual(['Source control']);
+   await expect.poll(tabs).toEqual([]);
+   // Neighborhood and Overview are separate views: each keeps its own state.
+   await tab(sweep, 'Neighborhood'); await pickCenter(sweep, name40); await expect.poll(() => centerOf(sweep)).toBe('ontology/40');
+   await tab(sweep, 'Overview'); await expect(sweep.locator('.area-entities button').first()).toBeVisible();
+   await tab(sweep, 'Neighborhood'); await expect.poll(() => centerOf(sweep)).toBe('ontology/40');
+  });
   await sweep.close();
   await check('no uncaught browser errors', async () => expect(errors).toEqual([]));
   console.log(`${passed} responsive UI checks passed`);
