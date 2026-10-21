@@ -598,3 +598,24 @@ main > .status { position: absolute; bottom: 40px; left: 20px; right: 20px; widt
 .toolbar .tabs{flex:1 1 420px}.toolbar .search{flex-basis:150px}
 @media(min-width:1100px) and (max-width:1450px){.toolbar{gap:6px}.toolbar .tabs button{padding-left:6px;padding-right:6px;font-size:11px}.grouping-controls>label{font-size:0;gap:0}.grouping-controls>label>select{width:140px}.toolbar .search{flex-basis:135px}}
 .node strong{overflow-wrap:anywhere}
+/* Project tree (Phase 1) */
+.project-tree,.project-tree ul{list-style:none;margin:0;padding:0}
+.project-tree .project{margin:2px 0}
+.project-toggle{width:100%;border:0;justify-content:flex-start;gap:6px;font-size:12px;font-weight:650;padding:8px 6px;background:transparent;color:#28463d}
+.project-toggle span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;text-align:left}
+.project-toggle small{color:#7d9188;font-weight:500}
+.project-tree ul[role=group]{padding-left:14px}
+.project-file .document{margin:1px 0 0;padding:7px 7px 2px}
+.project-file .file-meta{display:block;padding:0 7px 6px 30px;font-size:9.5px;color:#7d9188;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.project-file.invalid .document{color:#a3392f}.file-invalid{color:#a3392f;font-style:normal;font-weight:650}
+.projects-empty{font-size:11px;color:#7d9188;margin:4px 8px}
+.git-banners{display:flex;flex-direction:column;gap:6px;padding:8px 16px 0}
+.git-banner{display:flex;align-items:flex-start;gap:10px;font-size:12px;line-height:1.45;padding:9px 12px;border-radius:7px;border:1px solid #e3d6a4;background:#fbf6e2;color:#5a4a12}
+.git-banner.info{border-color:#cfe2d9;background:#eef7f2;color:#24493d}
+.git-banner span{flex:1;overflow-wrap:anywhere}.git-banner button{border:0;background:transparent;padding:0 4px;font-size:16px;line-height:1}
+.stale-save{background:white;border:1px solid #dbe3e4;border-radius:14px;box-shadow:0 20px 80px #17323a33;padding:24px;width:min(1100px,100%);max-height:92vh;overflow:auto}
+.stale-save h2{margin:0 0 8px;overflow-wrap:anywhere}.stale-save>p{color:#52656b;font-size:13px}
+.stale-columns{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.stale-columns figure{margin:0;min-width:0}.stale-columns figcaption{font-size:11px;font-weight:650;margin-bottom:4px;color:#3a5a50}
+.stale-columns pre{margin:0;max-height:50vh;overflow:auto;font:11px/1.55 monospace;border:1px solid #dbe3e4;border-radius:6px;padding:8px;background:#f8fbfa}
+.stale-columns pre .changed{background:#fdeccf;display:inline-block;min-width:100%}
