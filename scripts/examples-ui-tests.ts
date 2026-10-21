@@ -5,15 +5,18 @@ import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import manifest from '../tests/fixtures/ossie-mapping/manifest.json';
 import { example } from './helpers/examples';
 import { exportFile } from './helpers/header';
-const api = await startIsolatedApi(),
-  store = { list: () => api.ws.documents() },
-  db = new Database(':memory:');
+const api = await startIsolatedApi();
+const store = { list: () => api.ws.documents() };
+const db = new Database(':memory:');
 db.exec(await Bun.file('public/examples/billing/fixture.sql').text());
 const mallDb = new Database(':memory:');
 mallDb.exec(await Bun.file('public/examples/mall/fixture.sql').text());
 const mallExpected = await Bun.file('public/examples/mall/expected.json').json();
-const browser = await chromium.launch(),
-  page = await browser.newPage({ viewport: { width: 1600, height: 1000 }, acceptDownloads: true });
+const browser = await chromium.launch();
+const page = await browser.newPage({
+  viewport: { width: 1600, height: 1000 },
+  acceptDownloads: true,
+});
 const errors: string[] = [];
 page.on('pageerror', e => errors.push(e.message));
 let passed = 0;
@@ -25,17 +28,15 @@ async function check(name: string, run: () => Promise<void>) {
 }
 // One selection is one import batch, and one batch becomes one project.
 async function upload(files: [string, string][]) {
-  await page
-    .locator('input[type=file]')
-    .setInputFiles(
-      await Promise.all(
-        files.map(async ([filename, path]) => ({
-          name: filename,
-          mimeType: 'application/yaml',
-          buffer: Buffer.from(await Bun.file(path).text()),
-        })),
-      ),
-    );
+  await page.locator('input[type=file]').setInputFiles(
+    await Promise.all(
+      files.map(async ([filename, path]) => ({
+        name: filename,
+        mimeType: 'application/yaml',
+        buffer: Buffer.from(await Bun.file(path).text()),
+      })),
+    ),
+  );
   for (const [filename] of files)
     await expect(page.getByRole('button', { name: filename, exact: true })).toBeVisible();
   await expect(page.getByRole('dialog', { name: 'Review import' })).toHaveCount(0);
@@ -96,6 +97,8 @@ try {
     'both official standalone and embedded Flights mappings render 60 bindings and export their context',
     async () => {
       await page.locator('.tabs').getByRole('button', { name: 'Mappings', exact: true }).click();
+      // The mapping list loads from the server; wait for it before reading the options.
+      await expect(page.getByLabel('Mapping document').locator('option')).toHaveCount(3);
       const ids = await page
         .getByLabel('Mapping document')
         .locator('option')
@@ -171,7 +174,7 @@ try {
           const kinds = steps.map(s => s.getAttribute('data-step')!);
           if (
             b.getAttribute('role') !== 'group' ||
-            !/^Binding /.test(b.getAttribute('aria-label') ?? '')
+            !(b.getAttribute('aria-label') ?? '').startsWith('Binding ')
           )
             out.push(`binding ${i}: not a labelled group`);
           if (kinds[0] !== 'concept')
@@ -193,15 +196,13 @@ try {
     );
   }
   async function groupCounts() {
-    return page
-      .locator('details.mapping-group')
-      .evaluateAll(gs =>
-        gs.map(g => ({
-          dataset: g.getAttribute('data-dataset'),
-          summary: g.querySelector('summary')?.textContent ?? '',
-          bindings: g.querySelectorAll('.mapping-binding').length,
-        })),
-      );
+    return page.locator('details.mapping-group').evaluateAll(gs =>
+      gs.map(g => ({
+        dataset: g.getAttribute('data-dataset'),
+        summary: g.querySelector('summary')?.textContent ?? '',
+        bindings: g.querySelectorAll('.mapping-binding').length,
+      })),
+    );
   }
   await check(
     'Flights Airport: every binding is a chain of labelled steps, grouped by dataset with counts; composer beside the evidence',
@@ -226,17 +227,17 @@ try {
       await expect(first.locator('.mapping-binding').first()).toBeHidden();
       await first.locator(':scope > summary').click();
       await expect(first.locator('.mapping-binding').first()).toBeVisible();
-      const evidence = (await page.locator('.mapping-bindings').boundingBox())!,
-        composer = (await page.locator('.mapping-query').boundingBox())!,
-        concepts = (await page.locator('.mapping-concepts').boundingBox())!;
+      const evidence = (await page.locator('.mapping-bindings').boundingBox())!;
+      const composer = (await page.locator('.mapping-query').boundingBox())!;
+      const concepts = (await page.locator('.mapping-concepts').boundingBox())!;
       expect(concepts.x + concepts.width).toBeLessThanOrEqual(evidence.x + 1);
       expect(evidence.x + evidence.width).toBeLessThanOrEqual(composer.x + 1);
       expect(composer.y).toBeLessThan(evidence.y + evidence.height);
       await page.screenshot({ path: '/tmp/workbench-mapping-chains.png' });
       await page.setViewportSize({ width: 390, height: 844 });
-      const e2 = (await page.locator('.mapping-bindings').boundingBox())!,
-        c2 = (await page.locator('.mapping-query').boundingBox())!,
-        k2 = (await page.locator('.mapping-concepts').boundingBox())!;
+      const e2 = (await page.locator('.mapping-bindings').boundingBox())!;
+      const c2 = (await page.locator('.mapping-query').boundingBox())!;
+      const k2 = (await page.locator('.mapping-concepts').boundingBox())!;
       expect(k2.y).toBeLessThan(e2.y);
       expect(e2.y).toBeLessThan(c2.y);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
@@ -472,10 +473,9 @@ try {
         if ((await page.locator('.react-flow__node').count()) < 2)
           throw Error(file + ' neighborhood has no connected tables');
         for (const node of await page.locator('.react-flow__node .node').all()) {
-          const box = await node.boundingBox(),
-            title = await node
-              .locator('strong')
-              .evaluate(el => ({ scroll: el.scrollWidth, client: el.clientWidth }));
+          const title = await node
+            .locator('strong')
+            .evaluate(el => ({ scroll: el.scrollWidth, client: el.clientWidth }));
           if (title.scroll > title.client + 1)
             throw Error(file + ': node title overflows its card');
         }

@@ -94,10 +94,10 @@ export function NeighborhoodGraph(props: NeighborhoodGraphProps) {
   );
 }
 // Large canvases (a pierce) render only what is on screen, so the main thread stays responsive.
-const NODE = { width: 250, height: 96 },
-  LATERAL_DEFAULT_MAX = 10,
-  LARGE_CANVAS = 60,
-  REVEAL_CHUNK = 15;
+const NODE = { width: 250, height: 96 };
+const LATERAL_DEFAULT_MAX = 10;
+const LARGE_CANVAS = 60;
+const REVEAL_CHUNK = 15;
 const COLORS = { out: '#237c68', in: '#5b4fa8', lateral: '#93a8a0' };
 // Value types share the Graph view's per-model setting (FR-021).
 const VALUE_KINDS = new Set(['ValueType', 'Built-in concept']);
@@ -127,13 +127,13 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
     selectedEdge,
     kpiBadges,
   } = props;
-  const [hideKpis, setHideKpis] = useState(false),
-    [lateralChoice, setLateral] = useState<boolean | null>(null),
-    [technical, setTechnical] = useState(false),
-    [labels, setLabels] = useState(false),
-    [hovered, setHovered] = useState('');
-  const [limit, setLimit] = useState(NEIGHBOR_PAGE),
-    [relationship, setRelationship] = useState('');
+  const [hideKpis, setHideKpis] = useState(false);
+  const [lateralChoice, setLateral] = useState<boolean | null>(null);
+  const [technical, setTechnical] = useState(false);
+  const [labels, setLabels] = useState(false);
+  const [hovered, setHovered] = useState('');
+  const [limit, setLimit] = useState(NEIGHBOR_PAGE);
+  const [relationship, setRelationship] = useState('');
   const kpiCount = useMemo(() => all.filter(e => e.kind === 'Metric').length, [all]);
   const [hideValues, setHideValues] = useState(() => readHideValues(props.modelName));
   const valueCount = useMemo(() => all.filter(e => VALUE_KINDS.has(e.kind)).length, [all]);
@@ -150,11 +150,11 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
     return allEdges.filter(e => ids.has(e.source) && ids.has(e.target));
   }, [allEdges, entities, hideKpis, hideValues]);
   // The canvas at this point of the walk: its re-centring step and the expansions after it (FR-019).
-  const walkCanvas = useMemo(() => canvasAt(walk), [walk]),
-    step = walkCanvas.center,
-    requested = step?.doc === docId ? step.center : undefined;
-  const stepIndex = step ? walk.steps.lastIndexOf(step) : -1,
-    before = stepIndex > 0 ? walk.steps[stepIndex - 1] : undefined;
+  const walkCanvas = useMemo(() => canvasAt(walk), [walk]);
+  const step = walkCanvas.center;
+  const requested = step?.doc === docId ? step.center : undefined;
+  const stepIndex = step ? walk.steps.lastIndexOf(step) : -1;
+  const before = stepIndex > 0 ? walk.steps[stepIndex - 1] : undefined;
   const previous = before && before.doc === docId ? before.center : undefined;
   // Links among neighbors are shown by default unless there are so many that they bury the center's own
   // relationships; the toggle states how many there are either way.
@@ -186,8 +186,8 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
         : base,
     [base, lateral],
   );
-  const center = view.center,
-    byId = useMemo(() => new Map(all.map(e => [e.id, e])), [all]);
+  const center = view.center;
+  const byId = useMemo(() => new Map(all.map(e => [e.id, e])), [all]);
   // Expansions in place (FR-018) on top of the centre's view; a walk to another centre starts afresh.
   const projection = useMemo(
     () => projectModel(entities, edges, technical),
@@ -215,9 +215,9 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   }, [canvasState, view, byId]);
   const shownEdges = useMemo(() => {
     if (!sets.length) return view.edges;
-    const ids = new Set(canvasState.nodes),
-      own = new Set(canvasState.active.flatMap(s => s.edges)),
-      base = new Set(view.edges.map(e => e.id));
+    const ids = new Set(canvasState.nodes);
+    const own = new Set(canvasState.active.flatMap(s => s.edges));
+    const base = new Set(view.edges.map(e => e.id));
     return [
       ...view.edges,
       ...projection.edges.filter(
@@ -277,16 +277,14 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   // A large addition (a pierce) is revealed in chunks, one per frame, so no frame blocks input.
   const [reveal, setReveal] = useState(Infinity);
   const build = (limit = reveal) =>
-    shownEntities
-      .slice(0, limit)
-      .map((e): Node => ({
-        id: e.id,
-        position: positions.get(e.id) ?? { x: 0, y: 0 },
-        sourcePosition: Position.Right,
-        targetPosition: Position.Left,
-        style: { width: NODE.width },
-        data: { entity: e },
-      }));
+    shownEntities.slice(0, limit).map((e): Node => ({
+      id: e.id,
+      position: positions.get(e.id) ?? { x: 0, y: 0 },
+      sourcePosition: Position.Right,
+      targetPosition: Position.Left,
+      style: { width: NODE.width },
+      data: { entity: e },
+    }));
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>(build());
   const built = useRef(membership);
   useEffect(() => {
@@ -298,8 +296,8 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
       setNodes(build(Infinity));
       return;
     }
-    let n = have,
-      frame = 0;
+    let n = have;
+    let frame = 0;
     const tick = () => {
       n += REVEAL_CHUNK;
       const done = n >= shownEntities.length;
@@ -389,8 +387,8 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
         `collapsed ${nameOf(id)}`,
       );
   };
-  const [direction, setDirection] = useState<Direction>('out'),
-    pierce = usePierce();
+  const [direction, setDirection] = useState<Direction>('out');
+  const pierce = usePierce();
   const fullPierce = async (budget = PIERCE_BUDGET) => {
     const from = selected && canvasState.nodes.includes(selected) ? selected : center;
     if (!from) return;
@@ -430,9 +428,9 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   const rendered = useMemo(
     () =>
       nodes.map(n => {
-        const e = n.data.entity as Entity,
-          kpis = kpiBadges?.get(e.name) ?? [],
-          isCenter = n.id === center;
+        const e = n.data.entity as Entity;
+        const kpis = kpiBadges?.get(e.name) ?? [];
+        const isCenter = n.id === center;
         return {
           ...n,
           className: `neighborhood-node${isCenter ? ' center' : ''}${n.id === previous ? ' origin' : ''}${n.id === selected ? ' selected-entity' : ''}`,
@@ -539,9 +537,9 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
     () =>
       placeLabels(
         shownLabels.flatMap(g => {
-          const s = boxes.get(g.source),
-            t = boxes.get(g.target),
-            r = routes.get(g.id);
+          const s = boxes.get(g.source);
+          const t = boxes.get(g.target);
+          const r = routes.get(g.id);
           if (!s || !t || !r) return [];
           return [
             {
@@ -560,15 +558,15 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   const visibleEdges = groups
     .filter(g => renderedIds.has(g.source) && renderedIds.has(g.target))
     .map(g => {
-      const active = g.data.relationships.some(r => r.id === selectedEdge),
-        kind =
-          g.source === center && g.target !== center
-            ? 'out'
-            : g.target === center && g.source !== center
-              ? 'in'
-              : g.source === center
-                ? 'out'
-                : 'lateral';
+      const active = g.data.relationships.some(r => r.id === selectedEdge);
+      const kind =
+        g.source === center && g.target !== center
+          ? 'out'
+          : g.target === center && g.source !== center
+            ? 'in'
+            : g.source === center
+              ? 'out'
+              : 'lateral';
       const color = COLORS[kind as keyof typeof COLORS];
       return {
         ...g,
@@ -588,9 +586,9 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
       };
     });
   // Fit once the nodes of a new membership are measured; refit when the canvas is resized.
-  const canvas = useRef<HTMLDivElement>(null),
-    { fitBounds, getViewport, setViewport, setCenter } = useReactFlow(),
-    [fitted, setFitted] = useState('');
+  const canvas = useRef<HTMLDivElement>(null);
+  const { fitBounds, getViewport, setViewport, setCenter } = useReactFlow();
+  const [fitted, setFitted] = useState('');
   const held = useViewRestore(
     !!props.fullscreen?.active,
     () => getViewport(),
@@ -608,14 +606,14 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   fitRef.current = () => {
     const c = boxes.get(center ?? '');
     if (!c || !boxes.size) return;
-    const all = [...boxes.values()],
-      cx = c.x + c.width / 2,
-      cy = c.y + c.height / 2;
-    const halfW = Math.max(...all.map(b => Math.max(cx - b.x, b.x + b.width - cx))),
-      lanes = [...routes.values()].filter(r => r.route === 'lane' || r.route === 'loop').length,
-      halfH =
-        Math.max(...all.map(b => Math.max(cy - b.y, b.y + b.height - cy))) +
-        Math.min(160, 30 + lanes * 16);
+    const all = [...boxes.values()];
+    const cx = c.x + c.width / 2;
+    const cy = c.y + c.height / 2;
+    const halfW = Math.max(...all.map(b => Math.max(cx - b.x, b.x + b.width - cx)));
+    const lanes = [...routes.values()].filter(r => r.route === 'lane' || r.route === 'loop').length;
+    const halfH =
+      Math.max(...all.map(b => Math.max(cy - b.y, b.y + b.height - cy))) +
+      Math.min(160, 30 + lanes * 16);
     void fitBounds(
       { x: cx - halfW, y: cy - halfH, width: 2 * halfW, height: 2 * halfH },
       { padding: 0.06, duration: 0 },
@@ -630,16 +628,16 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
       fitRef.current();
       return false;
     }
-    const ids = [s.from, ...s.nodes].filter(id => boxes.has(id)),
-      bs = ids.map(id => boxes.get(id)!);
+    const ids = [s.from, ...s.nodes].filter(id => boxes.has(id));
+    const bs = ids.map(id => boxes.get(id)!);
     if (!bs.length) {
       fitRef.current();
       return false;
     }
-    const x0 = Math.min(...bs.map(b => b.x)),
-      y0 = Math.min(...bs.map(b => b.y)),
-      x1 = Math.max(...bs.map(b => b.x + b.width)),
-      y1 = Math.max(...bs.map(b => b.y + b.height));
+    const x0 = Math.min(...bs.map(b => b.x));
+    const y0 = Math.min(...bs.map(b => b.y));
+    const x1 = Math.max(...bs.map(b => b.x + b.width));
+    const y1 = Math.max(...bs.map(b => b.y + b.height));
     void fitBounds(
       { x: x0, y: y0, width: x1 - x0, height: y1 - y0 },
       { padding: 0.08, duration: 0 },
@@ -692,9 +690,9 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
     () => projectModel(entities, edges, technical).entities,
     [entities, edges, technical],
   );
-  const [pick, setPick] = useState(''),
-    [pickOpen, setPickOpen] = useState(false),
-    [active, setActive] = useState(0);
+  const [pick, setPick] = useState('');
+  const [pickOpen, setPickOpen] = useState(false);
+  const [active, setActive] = useState(0);
   const pickResults = useMemo(
     () => (pick.trim() ? searchEntities(projected, pick, 30) : []),
     [projected, pick],
@@ -962,6 +960,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
         className="neighborhood-canvas"
         ref={canvas}
         data-canvas-nodes={canvasState.nodes.length}
+        data-canvas-ids={canvasState.nodes.join(' ')}
       >
         {search.trim() && (
           <div className="neighborhood-search" role="region" aria-label="Search results">
