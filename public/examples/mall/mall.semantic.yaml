@@ -272,6 +272,11 @@ datasets:
           dialects:
             - dialect: ANSI_SQL
               expression: quarter
+      - name: first_day
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: first_day
   - name: price_indices
     source: mall.price_indices
     description: Inflation index used to adjust rents, such as IGP-M or IPCA in Brazil or a consumer price index elsewhere.
@@ -7146,147 +7151,550 @@ metrics:
       dialects:
         - dialect: ANSI_SQL
           expression: SUM(occupancy_snapshots.gla_m2)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Total GLA",
+            "type": "simple",
+            "additivity": "semi_additive",
+            "non_additive_over": "time",
+            "period_aggregation": "last",
+            "unit": "m²",
+            "format": "#,##0",
+            "owner": "Leasing",
+            "status": "approved",
+            "time": {"dimension":"calendar_months.first_day","min_grain":"month","allowed_grains":["month","quarter","year"]},
+            "dimensions": ["properties.name","calendar_months.year_month"]
+          }
   - name: occupied_gla
     description: Gross leasable area under an active lease at month end (m²).
     expression:
       dialects:
         - dialect: ANSI_SQL
           expression: SUM(occupancy_snapshots.occupied_gla_m2)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Occupied GLA",
+            "type": "simple",
+            "additivity": "semi_additive",
+            "non_additive_over": "time",
+            "period_aggregation": "last",
+            "unit": "m²",
+            "format": "#,##0",
+            "owner": "Leasing",
+            "status": "approved",
+            "time": {"dimension":"calendar_months.first_day","min_grain":"month","allowed_grains":["month","quarter","year"]},
+            "dimensions": ["properties.name","calendar_months.year_month"]
+          }
   - name: vacant_gla
     description: Gross leasable area without an active lease at month end (m²).
     expression:
       dialects:
         - dialect: ANSI_SQL
           expression: SUM(occupancy_snapshots.vacant_gla_m2)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Vacant GLA",
+            "type": "simple",
+            "additivity": "semi_additive",
+            "non_additive_over": "time",
+            "period_aggregation": "last",
+            "unit": "m²",
+            "format": "#,##0",
+            "owner": "Leasing",
+            "status": "approved",
+            "time": {"dimension":"calendar_months.first_day","min_grain":"month","allowed_grains":["month","quarter","year"]},
+            "dimensions": ["properties.name","calendar_months.year_month"]
+          }
   - name: occupancy_rate
     description: Occupied over total gross leasable area.
     expression:
       dialects:
         - dialect: ANSI_SQL
           expression: occupied_gla / NULLIF(total_gla, 0)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Occupancy rate",
+            "type": "ratio",
+            "numerator": "occupied_gla",
+            "denominator": "total_gla",
+            "additivity": "non_additive",
+            "unit": "ratio",
+            "format": "0.0%",
+            "owner": "Leasing",
+            "status": "approved",
+            "time": {"dimension":"calendar_months.first_day","min_grain":"month","allowed_grains":["month","quarter","year"]},
+            "dimensions": ["properties.name","calendar_months.year_month"],
+            "targets": [{"grain":"month","direction":"higher_is_better","value":0.95}]
+          }
   - name: contracted_minimum_rent
     description: Monthly minimum rent in force at month end.
     expression:
       dialects:
         - dialect: ANSI_SQL
           expression: SUM(occupancy_snapshots.contracted_minimum_rent)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Contracted minimum rent",
+            "type": "simple",
+            "additivity": "semi_additive",
+            "non_additive_over": "time",
+            "period_aggregation": "last",
+            "unit": "BRL",
+            "format": "#,##0.00",
+            "owner": "Leasing",
+            "status": "approved",
+            "time": {"dimension":"calendar_months.first_day","min_grain":"month","allowed_grains":["month","quarter","year"]},
+            "dimensions": ["properties.name","calendar_months.year_month"]
+          }
   - name: minimum_rent_per_m2
     description: Contracted minimum rent per occupied square metre per month.
     expression:
       dialects:
         - dialect: ANSI_SQL
           expression: contracted_minimum_rent / NULLIF(occupied_gla, 0)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Minimum rent per m²",
+            "type": "ratio",
+            "numerator": "contracted_minimum_rent",
+            "denominator": "occupied_gla",
+            "additivity": "non_additive",
+            "unit": "BRL/m²",
+            "format": "#,##0.00",
+            "owner": "Leasing",
+            "status": "approved",
+            "time": {"dimension":"calendar_months.first_day","min_grain":"month","allowed_grains":["month","quarter","year"]},
+            "dimensions": ["properties.name","calendar_months.year_month"]
+          }
   - name: billed_amount
     description: Charges billed for the competence month, all charge types.
     expression:
       dialects:
         - dialect: ANSI_SQL
           expression: SUM(charges.amount)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Billed amount",
+            "type": "simple",
+            "additivity": "additive",
+            "unit": "BRL",
+            "format": "#,##0.00",
+            "owner": "Finance",
+            "status": "approved",
+            "time": {"dimension":"calendar_months.first_day","min_grain":"month","allowed_grains":["month","quarter","year"]},
+            "dimensions": ["charge_types.name","calendar_months.year_month"]
+          }
   - name: collected_amount
     description: Payments allocated to the selected charges at the reporting date.
     expression:
       dialects:
         - dialect: ANSI_SQL
           expression: SUM(charges.paid_amount)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Collected amount",
+            "type": "simple",
+            "additivity": "additive",
+            "unit": "BRL",
+            "format": "#,##0.00",
+            "owner": "Finance",
+            "status": "approved",
+            "time": {"dimension":"calendar_months.first_day","min_grain":"month","allowed_grains":["month","quarter","year"]},
+            "dimensions": ["charge_types.name","calendar_months.year_month"]
+          }
   - name: open_amount
     description: Billed minus collected at the reporting date.
     expression:
       dialects:
         - dialect: ANSI_SQL
           expression: SUM(charges.open_amount)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Open amount",
+            "type": "simple",
+            "additivity": "semi_additive",
+            "non_additive_over": "time",
+            "period_aggregation": "last",
+            "unit": "BRL",
+            "format": "#,##0.00",
+            "owner": "Finance",
+            "status": "approved",
+            "time": {"dimension":"calendar_months.first_day","min_grain":"month","allowed_grains":["month","quarter","year"]},
+            "dimensions": ["charge_types.name","calendar_months.year_month"]
+          }
   - name: delinquency_rate
     description: Open over billed amount at the reporting date.
     expression:
       dialects:
         - dialect: ANSI_SQL
           expression: open_amount / NULLIF(billed_amount, 0)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Delinquency rate",
+            "type": "ratio",
+            "numerator": "open_amount",
+            "denominator": "billed_amount",
+            "additivity": "non_additive",
+            "unit": "ratio",
+            "format": "0.0%",
+            "owner": "Finance",
+            "status": "approved",
+            "time": {"dimension":"calendar_months.first_day","min_grain":"month","allowed_grains":["month","quarter","year"]},
+            "dimensions": ["charge_types.name","calendar_months.year_month"],
+            "targets": [{"grain":"month","direction":"lower_is_better","value":0.05}]
+          }
   - name: tenant_sales
     description: Gross sales declared by tenants.
     expression:
       dialects:
         - dialect: ANSI_SQL
           expression: SUM(sales_reports.gross_sales)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Tenant sales",
+            "type": "simple",
+            "additivity": "additive",
+            "unit": "BRL",
+            "format": "#,##0.00",
+            "owner": "Leasing",
+            "status": "approved",
+            "time": {"dimension":"calendar_months.first_day","min_grain":"month","allowed_grains":["month","quarter","year"]},
+            "dimensions": ["merchandise_categories.name","calendar_months.year_month"]
+          }
   - name: reporting_area
     description: Area of the units whose sales are reported (m²). Sum over one month only.
     expression:
       dialects:
         - dialect: ANSI_SQL
           expression: SUM(sales_reports.reported_gla_m2)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Reporting area",
+            "type": "simple",
+            "additivity": "semi_additive",
+            "non_additive_over": "time",
+            "period_aggregation": "last",
+            "unit": "m²",
+            "format": "#,##0",
+            "owner": "Leasing",
+            "status": "approved",
+            "time": {"dimension":"calendar_months.first_day","min_grain":"month","allowed_grains":["month","quarter","year"]},
+            "dimensions": ["merchandise_categories.name","calendar_months.year_month"]
+          }
   - name: sales_per_m2
     description: Monthly tenant sales per reporting square metre.
     expression:
       dialects:
         - dialect: ANSI_SQL
           expression: tenant_sales / NULLIF(reporting_area, 0)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Sales per m²",
+            "type": "ratio",
+            "numerator": "tenant_sales",
+            "denominator": "reporting_area",
+            "additivity": "non_additive",
+            "unit": "BRL/m²",
+            "format": "#,##0.00",
+            "owner": "Leasing",
+            "status": "approved",
+            "time": {"dimension":"calendar_months.first_day","min_grain":"month","allowed_grains":["month","quarter","year"]},
+            "dimensions": ["merchandise_categories.name","calendar_months.year_month"]
+          }
   - name: occupancy_cost
     description: Rent, service charge and marketing fund billed to reporting tenants.
     expression:
       dialects:
         - dialect: ANSI_SQL
           expression: SUM(sales_reports.occupancy_cost)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Occupancy cost",
+            "type": "simple",
+            "additivity": "additive",
+            "unit": "BRL",
+            "format": "#,##0.00",
+            "owner": "Leasing",
+            "status": "approved",
+            "time": {"dimension":"calendar_months.first_day","min_grain":"month","allowed_grains":["month","quarter","year"]},
+            "dimensions": ["properties.name","calendar_months.year_month"]
+          }
   - name: occupancy_cost_ratio
     description: Occupancy cost over tenant sales; the main affordability indicator for tenants.
     expression:
       dialects:
         - dialect: ANSI_SQL
           expression: occupancy_cost / NULLIF(tenant_sales, 0)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Occupancy cost ratio",
+            "type": "ratio",
+            "numerator": "occupancy_cost",
+            "denominator": "tenant_sales",
+            "additivity": "non_additive",
+            "unit": "ratio",
+            "format": "0.0%",
+            "owner": "Leasing",
+            "status": "approved",
+            "time": {"dimension":"calendar_months.first_day","min_grain":"month","allowed_grains":["month","quarter","year"]},
+            "dimensions": ["properties.name","calendar_months.year_month"],
+            "targets": [{"direction":"lower_is_better","value":0.12}]
+          }
   - name: visitors
     description: Visitors counted at entrances.
     expression:
       dialects:
         - dialect: ANSI_SQL
           expression: SUM(footfall_counts.visitors)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Visitors",
+            "type": "simple",
+            "additivity": "additive",
+            "unit": "visitors",
+            "format": "#,##0",
+            "owner": "Marketing",
+            "status": "approved",
+            "time": {"dimension":"calendar_months.first_day","min_grain":"month","allowed_grains":["month","quarter","year"]},
+            "dimensions": ["properties.name","calendar_months.year_month"]
+          }
   - name: operating_revenue
     description: Ledger income classified as operating revenue.
     expression:
       dialects:
         - dialect: ANSI_SQL
           expression: SUM(CASE WHEN journal_lines.noi_class = 'revenue' THEN journal_lines.amount ELSE 0 END)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Operating revenue",
+            "type": "simple",
+            "additivity": "additive",
+            "unit": "BRL",
+            "format": "#,##0.00",
+            "owner": "Finance",
+            "status": "approved",
+            "time": {"dimension":"calendar_months.first_day","min_grain":"month","allowed_grains":["month","quarter","year"]},
+            "dimensions": ["properties.name","calendar_months.year_month"]
+          }
   - name: operating_expense_total
     description: Ledger operating expenses as a positive amount.
     expression:
       dialects:
         - dialect: ANSI_SQL
           expression: SUM(CASE WHEN journal_lines.noi_class = 'opex' THEN -journal_lines.amount ELSE 0 END)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Operating expenses",
+            "type": "simple",
+            "additivity": "additive",
+            "unit": "BRL",
+            "format": "#,##0.00",
+            "owner": "Finance",
+            "status": "approved",
+            "time": {"dimension":"calendar_months.first_day","min_grain":"month","allowed_grains":["month","quarter","year"]},
+            "dimensions": ["properties.name","calendar_months.year_month"]
+          }
   - name: net_operating_income
     description: Operating revenue minus operating expenses. Depreciation, financing and other excluded lines do not count.
     expression:
       dialects:
         - dialect: ANSI_SQL
           expression: operating_revenue - operating_expense_total
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Net operating income (NOI)",
+            "type": "derived",
+            "inputs": ["operating_revenue","operating_expense_total"],
+            "additivity": "additive",
+            "unit": "BRL",
+            "format": "#,##0.00",
+            "owner": "Finance",
+            "status": "approved",
+            "time": {"dimension":"calendar_months.first_day","min_grain":"month","allowed_grains":["month","quarter","year"]},
+            "dimensions": ["properties.name","calendar_months.year_month"]
+          }
   - name: noi_margin
     description: Net operating income over operating revenue.
     expression:
       dialects:
         - dialect: ANSI_SQL
           expression: net_operating_income / NULLIF(operating_revenue, 0)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "NOI margin",
+            "type": "ratio",
+            "numerator": "net_operating_income",
+            "denominator": "operating_revenue",
+            "additivity": "non_additive",
+            "unit": "ratio",
+            "format": "0.0%",
+            "owner": "Finance",
+            "status": "approved",
+            "time": {"dimension":"calendar_months.first_day","min_grain":"month","allowed_grains":["month","quarter","year"]},
+            "dimensions": ["properties.name","calendar_months.year_month"]
+          }
   - name: parking_revenue
     description: Parking revenue.
     expression:
       dialects:
         - dialect: ANSI_SQL
           expression: SUM(parking_activity.revenue)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Parking revenue",
+            "type": "simple",
+            "additivity": "additive",
+            "unit": "BRL",
+            "format": "#,##0.00",
+            "owner": "Operations",
+            "status": "approved",
+            "time": {"dimension":"calendar_months.first_day","min_grain":"month","allowed_grains":["month","quarter","year"]}
+          }
   - name: payroll_cost
     description: "Payroll amounts borne by the employer: salary, overtime, benefits and employer social charges. Employee deductions are excluded."
     expression:
       dialects:
         - dialect: ANSI_SQL
           expression: SUM(CASE WHEN payroll_lines.employer_cost = 1 THEN payroll_lines.amount ELSE 0 END)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Payroll cost",
+            "type": "simple",
+            "additivity": "additive",
+            "unit": "BRL",
+            "format": "#,##0.00",
+            "owner": "People",
+            "status": "approved",
+            "time": {"dimension":"calendar_months.first_day","min_grain":"month","allowed_grains":["month","quarter","year"]},
+            "dimensions": ["departments.name","calendar_months.year_month"]
+          }
   - name: headcount
     description: Distinct employees paid. Not additive across months or departments that share employees.
     expression:
       dialects:
         - dialect: ANSI_SQL
           expression: COUNT(DISTINCT payroll_lines.employee_id)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Headcount",
+            "type": "simple",
+            "additivity": "non_additive",
+            "unit": "people",
+            "format": "#,##0",
+            "owner": "People",
+            "status": "approved",
+            "time": {"dimension":"calendar_months.first_day","min_grain":"month","allowed_grains":["month","quarter","year"]},
+            "dimensions": ["departments.name","calendar_months.year_month"]
+          }
   - name: purchase_spend
     description: Ordered quantity times unit price on purchase-order lines.
     expression:
       dialects:
         - dialect: ANSI_SQL
           expression: SUM(purchase_order_lines.line_amount)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Purchase spend",
+            "type": "simple",
+            "additivity": "additive",
+            "unit": "BRL",
+            "format": "#,##0.00",
+            "owner": "Procurement",
+            "status": "proposed",
+            "time": {"dimension":"purchase_orders.order_date","min_grain":"day","allowed_grains":["day","week","month","quarter","year"]},
+            "dimensions": ["expense_categories.name"]
+          }
   - name: payables_outstanding
     description: Supplier invoice amounts not yet paid at the reporting date, net of withheld taxes.
     expression:
       dialects:
         - dialect: ANSI_SQL
           expression: SUM(supplier_invoices.open_amount)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Payables outstanding",
+            "type": "simple",
+            "additivity": "semi_additive",
+            "non_additive_over": "time",
+            "period_aggregation": "last",
+            "unit": "BRL",
+            "format": "#,##0.00",
+            "owner": "Procurement",
+            "status": "approved",
+            "time": {"dimension":"calendar_months.first_day","min_grain":"month","allowed_grains":["month","quarter","year"]}
+          }

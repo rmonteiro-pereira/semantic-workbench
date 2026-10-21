@@ -78,11 +78,13 @@ core:CalendarMonthShape a sh:NodeShape ; rdfs:label "Calendar Month requirements
   sh:property core:CalendarMonth_yearMonthShape ,
     core:CalendarMonth_yearShape ,
     core:CalendarMonth_monthNumberShape ,
-    core:CalendarMonth_quarterShape .
+    core:CalendarMonth_quarterShape ,
+    core:CalendarMonth_firstDayShape .
 core:CalendarMonth_yearMonthShape a sh:PropertyShape ; rdfs:label "Calendar Month: year month" ; sh:path core:calendarMonthYearMonth ; sh:name "year month" ; sh:datatype xsd:gYearMonth ; sh:maxCount 1 ; sh:minCount 1 .
 core:CalendarMonth_yearShape a sh:PropertyShape ; rdfs:label "Calendar Month: year" ; sh:path core:calendarMonthYear ; sh:name "year" ; sh:datatype xsd:integer ; sh:maxCount 1 ; sh:minCount 1 .
 core:CalendarMonth_monthNumberShape a sh:PropertyShape ; rdfs:label "Calendar Month: month number" ; sh:path core:calendarMonthMonthNumber ; sh:name "month number" ; sh:datatype xsd:integer ; sh:maxCount 1 ; sh:minCount 1 .
 core:CalendarMonth_quarterShape a sh:PropertyShape ; rdfs:label "Calendar Month: quarter" ; sh:path core:calendarMonthQuarter ; sh:name "quarter" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:minLength 1 .
+core:CalendarMonth_firstDayShape a sh:PropertyShape ; rdfs:label "Calendar Month: first day" ; sh:path core:calendarMonthFirstDay ; sh:name "first day" ; sh:datatype xsd:date ; sh:maxCount 1 ; sh:minCount 1 .
 core:PriceIndexShape a sh:NodeShape ; rdfs:label "Price Index requirements" ; sh:targetClass core:PriceIndex ;
   sh:property core:PriceIndex_nameShape ,
     core:PriceIndex_codeShape ,

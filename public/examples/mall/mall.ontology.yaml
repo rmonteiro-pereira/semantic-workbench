@@ -383,6 +383,14 @@ ontology:
         multiplicity: ManyToOne
         verbalizes:
           - "{CalendarMonth} has quarter {Code}"
+      - name: first_day
+        iri: core:calendarMonthFirstDay
+        description: First day of the month; the time dimension of monthly KPIs.
+        roles:
+          - concept: CalendarDate
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{CalendarMonth} has first day {CalendarDate}"
   - concept: PriceIndex
     type: EntityType
     iri: core:PriceIndex
