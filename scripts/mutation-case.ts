@@ -309,3 +309,17 @@ if(category==='pierce'){
  // outgoing from the middle never reaches the start of the chain
  const mid=m.boundedClosure(nodes,edges,['n15'],{...o,budget:100});assert(!mid.nodes.includes('n14'));assert(mid.nodes.includes('n29'));
 }
+if(category==='sql-regions'){
+ const {readFileSync}=await import('node:fs');const root=process.cwd();
+ const json=readFileSync(root+'/tests/fixtures/sql/escaped.semantic.json','utf8'),r=m.sqlRegions(json,'escaped.semantic.json')[2];
+ assert(r.exact);const at=r.offsets[r.value.indexOf('"x"')];assert.deepEqual(m.lineColumn(json,at),{line:15,column:143});
+ const dax=m.sqlRegions(readFileSync(root+'/tests/fixtures/sql/dax.ossie.yaml','utf8'),'dax.ossie.yaml');assert.deepEqual(dax.map((x:any)=>x.grammar),['postgresql',null,'postgresql']);
+ const folded=m.sqlRegions(readFileSync(root+'/tests/fixtures/sql/folded.ossie.yaml','utf8'),'folded.ossie.yaml');assert.equal(folded[1].grammar,'snowflake');
+ const flights=m.sqlRegions(readFileSync(root+'/public/examples/ossie/flights.yaml','utf8'),'flights.yaml');assert(flights.some((x:any)=>/^\/ontology_mappings\/0\/semantic_model\/datasets\//.test(x.pointer)));
+}
+if(category==='sql-lint'){
+ const {readFileSync}=await import('node:fs');const {Parser}=await import('node-sql-parser');const p=new Parser();
+ const src=readFileSync(process.cwd()+'/tests/fixtures/sql/case-when-broken.ossie.yaml','utf8');
+ const f=m.lintSql(src,'case-when-broken.ossie.yaml',(sql:string,g:string)=>{p.astify(sql,{database:g});});
+ assert.equal(f.length,1);assert.equal(f[0].severity,'warning');assert.deepEqual([f[0].line,f[0].column],[23,77]);
+}
