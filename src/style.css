@@ -657,3 +657,41 @@ button.danger{background:#a3392f;color:white;border-color:#a3392f}button.danger:
 .kpi-badge{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-weight:700;letter-spacing:.4px;padding:1px 6px;border-radius:8px;background:#fbf6e2;color:#5a4a12;border:1px solid #e3d6a4;white-space:nowrap;margin-left:6px;text-transform:none}
 .node.kpi-node{background:#fffdf4}.node small{display:flex;align-items:center;gap:4px;flex-wrap:wrap}.catalog small{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
 .tab-count{font-size:10px;background:#e9f4ef;color:#1e6a4f;border-radius:8px;padding:0 6px;margin-left:2px}
+/* Neighborhood walk (Phase 4): center picker, trail, counts, center and origin styling, legend. */
+.center-picker{position:relative;display:flex;align-items:center;gap:6px;border:1px solid #dbe3e4;border-radius:6px;background:#fff;padding:0 8px;min-width:200px;flex:0 1 260px;color:#5c7c68}
+.center-picker input{border:0;outline:none;padding:6px 0;font:11px system-ui,sans-serif;width:100%;min-width:0;background:none}
+.center-picker:focus-within{border-color:#50cbb0;box-shadow:0 0 0 2px #50cbb033}
+.center-picker ul,.neighborhood-search ul{list-style:none;margin:0;padding:4px}
+.center-picker ul{position:absolute;top:calc(100% + 4px);left:0;z-index:30;min-width:100%;width:max-content;max-width:min(380px,90vw);max-height:320px;overflow:auto;background:#fff;border:1px solid #dbe3e4;border-radius:8px;box-shadow:0 8px 24px #24393622}
+.center-picker li{display:flex;justify-content:space-between;gap:14px;padding:6px 8px;border-radius:5px;cursor:pointer;font-size:12px}
+.center-picker li[aria-selected=true],.center-picker li:hover{background:#e9f4ef}
+.center-picker li small,.neighborhood-search small{color:#84958e;font-size:10px}
+.walk-trail{display:flex;align-items:center;gap:4px;min-width:0;flex:1 1 200px}
+.walk-trail>button{padding:5px 6px}
+.walk-trail ol{list-style:none;display:flex;align-items:center;gap:2px;margin:0;padding:0;overflow-x:auto;min-width:0;scrollbar-width:thin}
+.walk-trail li{display:flex;align-items:center;gap:3px;white-space:nowrap;font-size:11px}
+.walk-trail li+li::before{content:"›";color:#a0b2aa;margin:0 2px}
+.walk-trail li button{padding:3px 7px;font-size:11px;border-color:transparent;background:none}
+.walk-trail li button[aria-current=step]{background:#e9f4ef;border-color:#cfe6da;color:#1e6a4f;font-weight:600}
+.walk-trail .via{color:#8b9c95;font-size:10px;font-style:italic}
+.neighborhood-counts{font-size:11px;color:#5c7c68;white-space:nowrap}.neighborhood-counts strong{color:#8a6d12}
+.neighborhood-links{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:5px 9px;border-bottom:1px solid #e3eae5;background:#fbfdfc;min-height:38px}.neighborhood-links .walk-trail{flex:1 1 320px}
+.neighborhood-links button{font-size:11px;padding:4px 9px;gap:5px}
+.neighborhood-search{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:20;background:#fff;border:1px solid #dbe3e4;border-radius:8px;box-shadow:0 8px 24px #24393622;padding:8px;width:min(420px,calc(100% - 24px));max-height:60%;overflow:auto}
+.neighborhood-search button{width:100%;justify-content:space-between;border:0;padding:6px 8px;font-size:12px}
+.neighborhood-legend{display:flex;gap:10px;font-size:10px;color:#5c7c68;white-space:nowrap;margin-left:auto}
+.neighborhood-legend span::before{content:"";display:inline-block;width:16px;height:0;border-top:2px solid;margin-right:5px;vertical-align:middle}
+.neighborhood-legend .in::before{border-color:#5b4fa8}.neighborhood-legend .out::before{border-color:#237c68}.neighborhood-legend .lateral::before{border-top:2px dashed #93a8a0}
+.react-flow__node.neighborhood-node{width:250px !important;padding:0;border-radius:9px;border:1px solid #dbe3e4;background:#fff}
+.react-flow__node.neighborhood-node .node{width:auto;padding:12px 14px;overflow:hidden}.react-flow__node.neighborhood-node .node span{max-width:100%}
+.react-flow__node.neighborhood-node.center{border:2px solid #237c68;background:#f1faf6;box-shadow:0 0 0 4px #237c6822}
+.react-flow__node.neighborhood-node.origin{border:1px dashed #5b4fa8}
+.react-flow__node.neighborhood-node.selected-entity:not(.center){border-color:#50cbb0}
+.center-tag,.origin-tag{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:1px 6px;border-radius:8px;margin-right:6px}
+.center-tag{background:#237c68;color:#fff}.origin-tag{background:#eeebf8;color:#5b4fa8}
+.node-actions{display:flex;gap:6px;margin-top:6px;min-height:0}
+.node-actions:empty{display:none}
+.walk-button{font-size:10px;padding:3px 7px;gap:4px;border-radius:5px;opacity:.75}
+.react-flow__node.neighborhood-node:hover .walk-button,.walk-button:focus-visible{opacity:1;background:#e9f4ef}
+.node-actions .kpi-badge{margin-left:0;cursor:pointer}
+.react-flow__edge.edge-lateral .react-flow__edge-text{fill:#7b8f87}
