@@ -167,20 +167,20 @@ to concepts and ODCS.
 
 ### Tests
 
-- [ ] T073 [P] [US4] Rewrite tests/graph-view.test.ts: projection independent of focus (replace the test codifying the bypass), lateral-link toggle, shown/hidden counts, deterministic neighbor ranking, exact-match-first search
-- [ ] T074 [P] [US4] Walk reducer tests (push, back, forward, truncation) in tests/walk.test.ts
-- [ ] T075 [P] [US4] Layout tests in tests/neighborhood-layout.test.ts: center in a middle column (incoming left, outgoing right); unique edge offsets so no two edges share a path
+- [X] T073 [P] [US4] Rewrite tests/graph-view.test.ts: projection independent of focus (replace the test codifying the bypass), lateral-link toggle, shown/hidden counts, deterministic neighbor ranking, exact-match-first search
+- [X] T074 [P] [US4] Walk reducer tests (push, back, forward, truncation) in tests/walk.test.ts
+- [X] T075 [P] [US4] Layout tests in tests/neighborhood-layout.test.ts: center in a middle column (incoming left, outgoing right); unique edge offsets so no two edges share a path
 
 ### Implementation
 
-- [ ] T076 [US4] Rewrite the neighborhood projection in src/graph-view.ts
-- [ ] T077 [P] [US4] Walk state in src/graph/walk.ts
-- [ ] T078 [US4] Centered neighborhood layout in src/layout.ts
-- [ ] T079 [US4] Per-edge offsets and correct backward routing in src/RelationshipEdge.tsx
-- [ ] T080 [US4] Neighborhood UI in src/NeighborhoodGraph.tsx: searchable center picker, breadcrumb "Walk" with Back/Forward, "N more neighbors", lateral toggle, center styling, no empty-state flash, fit after measurement, KPI indicator; continue the walk into another file of the same project when the target is defined there by shared IRI or mapping reference (FR-037, SHOULD)
-- [ ] T081 [US4] Extend scripts/graph-browser-check.ts (five-hop UBL walk, counts, no flash) and overlap assertions for neighborhood edges in scripts/responsive-ui-tests.ts
-- [ ] T082 [US4] Add mutants: star-only filter restored; neighbor cap without count; shared route line
-- [ ] T083 [US4] Update README.md graph section
+- [X] T076 [US4] Rewrite the neighborhood projection in src/graph-view.ts
+- [X] T077 [P] [US4] Walk state in src/graph/walk.ts
+- [X] T078 [US4] Centered neighborhood layout in src/layout.ts
+- [X] T079 [US4] Per-edge offsets and correct backward routing in src/RelationshipEdge.tsx
+- [X] T080 [US4] Neighborhood UI in src/NeighborhoodGraph.tsx: searchable center picker, breadcrumb "Walk" with Back/Forward, "N more neighbors", lateral toggle, center styling, no empty-state flash, fit after measurement, KPI indicator; continue the walk into another file of the same project when the target is defined there by shared IRI or mapping reference (FR-037, SHOULD)
+- [X] T081 [US4] Extend scripts/graph-browser-check.ts (five-hop UBL walk, counts, no flash) and overlap assertions for neighborhood edges in scripts/responsive-ui-tests.ts
+- [X] T082 [US4] Add mutants: star-only filter restored; neighbor cap without count; shared route line
+- [X] T083 [US4] Update README.md graph section
 
 **Checkpoint**: Story 4 complete.
 

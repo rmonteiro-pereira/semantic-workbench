@@ -428,3 +428,42 @@ and recorded here so later phases build on them.
   model like value types); concepts named by a KPI binding (`measures` or `of`) carry a KPI badge
   in the graph, the neighborhood and the catalog.
 
+## R16. Implementation decisions taken in Phase 4
+
+- **Projection API.** `neighborhood()` in `src/graph-view.ts` replaces the star-only filter; the old
+  `graphView()` remains as a thin wrapper for imports and tests. Neighbors are ranked by the
+  relationship's `data.kind`, then name, then id; the page size is 12 (the toolbar adds 12 at a
+  time). The previous center of the walk is always kept visible even beyond the page.
+- **Default center.** With no center chosen, the most connected entity that is not a value type or
+  built-in concept (ties by name), instead of the first declared entity; on the shopping center
+  model the first declared hub was the `Identifier` value type with 134 neighbors.
+- **Links between neighbors** are on by default only when there are at most ten of them; beyond that
+  they bury the center's own relationships. The toggle always states the count (FR-036).
+- **Two-way neighbors** (relationships in both directions) join the shorter side of the layout.
+  The fitted area is symmetric around the center so it stays in the middle of the canvas even when
+  one side has more columns (FR-034).
+- **Routing** is computed by the application (`src/graph/routes.ts`), not React Flow's step paths:
+  edge ends are spread along each node side, every vertical segment gets its own x within its gap,
+  long and backward edges get their own lane above or below, edges between nodes of one column run
+  along the column's right side, and self-relationships loop over their node. Labels are placed by a
+  greedy search over segment midpoints so they neither overlap each other nor nodes. Browser checks
+  read the rendered SVG paths and label boxes (`scripts/helpers/edge-geometry.ts`).
+- **Auto align removed.** Its layered layout put the center in the first or last column (defect 9)
+  and was terminated by selection changes (defect 5). **Re-center** restores the column layout
+  instantly; `src/layout.worker.ts` was deleted.
+- **Walk state** lives in the app (`src/graph/walk.ts`, a reducer of `{doc, center, name, via}`
+  steps, at most 100), so Back can reopen another file. A center reached without a step (default
+  center, newly opened file) is shown as an unsaved last crumb and recorded as the origin when the
+  first step is taken. Choosing a center from the picker or search is a step.
+- **Cross-file continuation (FR-037, SHOULD).** Targets are other files of the same project whose
+  entities share an identity key (`entityKeys`: IRI, expanded QName, physical name, source,
+  business-definition URL) or, between an Ossie ontology and a mapping, a concept mapping of the
+  same concept name. Matching by plain names elsewhere is not attempted.
+- **Search.** The toolbar search no longer jumps the neighborhood to the first substring match; it
+  lists matches ranked exact name, name prefix, word prefix (camelCase aware), substring, then IRI,
+  ties by shorter name. An "exact first" mutant was dropped as equivalent (exact matches already
+  win on prefix plus length); the word-prefix rule is mutated instead.
+- **Legacy browser scripts.** `scripts/browser-check.ts` and `scripts/relationship-browser-check.ts`
+  still click **Auto align**; they already failed on v0.1.0 (reported in Phase 0) and are not in the
+  gate. `scripts/graph-browser-check.ts` now runs on an isolated data root and is `test:graph`.
+

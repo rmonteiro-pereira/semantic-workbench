@@ -84,9 +84,13 @@ Example files are under `public/examples/commerce/` and downloadable at `/exampl
 
 ## Graph exploration
 
-Large graphs open a bounded neighborhood of up to 8 resources. Search uses names and IRIs and includes connected resources. **Graph** opens the complete interactive model; **Overview** retains the business-area map and relationship matrix. Large graphs support collapsing and expanding areas. The catalog exposes all definitions; OWL's default graph projects class-to-class property links while the full graph also shows property resources and restrictions. RDF literals remain in entity definitions rather than becoming nodes. Blank nodes retain their identity within each parsed document.
+**Neighborhood** shows one center and what it is connected to. The center sits in the middle column, marked *Center*; entities that point at it are on the left (purple links), entities it points at are on the right (green links). Up to 12 neighbors are shown, ranked by relationship kind and then name; the toolbar states how many are shown and hidden, **N more neighbors** reveals the next page, and **Relationship** narrows the neighbors to one relationship. **Links between neighbors** shows or hides relationships among the visible neighbors (shown by default unless there are more than ten). No two edges share a line: each link bends at its own position, long and backward links travel on their own lane above or below, and visible labels are placed apart.
 
-Click nodes or relationships to inspect their source definitions. Relationship inspection includes endpoints, roles, multiplicity, verbalizations, join keys or RDF predicates. **Auto align** runs a deterministic layered traversal in a Web Worker and fits the visible graph. It handles cycles and disconnected components in linear time but does not minimize crossings. Ontology n-ary relationships expand into navigation edges referring to the same original definition. Metric edges show explicit dataset references in expressions, not observed execution lineage.
+Walk the model by activating a neighbor (**Walk here**, click, or keyboard) or a relationship: the other end becomes the center and the previous center stays visible, marked *Previous center*. The **Walk** trail lists every center with the relationship it was reached through; **Back** and **Forward** move along it, and any crumb jumps back. When the center is defined in another file of the project as well (a shared IRI, physical name or business definition, or an Ossie concept mapping of the same concept), **Continue in <file>** carries the walk into that file; Back returns. Concepts with KPIs carry a KPI badge, and **N KPIs for <concept>** opens the Metrics list filtered to that concept.
+
+Choose a center with **Find a center**, a searchable picker that ranks exact names first (also for the 1,000-entity scale model); toolbar search lists matches and the chosen one stays the center after the search is cleared. OWL models show classes only, with or without a center; **Technical resources** adds property resources, restrictions and other RDF resources on request. **Re-center** puts dragged nodes back in their columns. **Graph** opens the complete interactive model; **Overview** retains the business-area map and relationship matrix. The catalog exposes all definitions. RDF literals remain in entity definitions rather than becoming nodes. Blank nodes retain their identity within each parsed document.
+
+Click nodes or relationships to inspect their source definitions. Relationship inspection includes endpoints, roles, multiplicity, verbalizations, join keys or RDF predicates. Ontology n-ary relationships expand into navigation edges referring to the same original definition. Metric edges show explicit dataset references in expressions, not observed execution lineage.
 
 ## Verification
 
@@ -127,6 +131,7 @@ bun run test:grouping-validation
 bun run test:projects
 bun run test:trash
 bun run test:metrics
+bun run test:graph
 bun run test:mutation
 bun scripts/live-inspect.ts
 ```
@@ -154,12 +159,12 @@ Detailed edge routing uses React Flow Smart Edge's shared background worker. At 
 Research and architectural choices, including React Flow, ELK, Cytoscape/fCoSE and Sigma, are recorded in [docs/graph-design.md](docs/graph-design.md).
 
 ```sh
-bun scripts/graph-browser-check.ts
+bun run test:graph
 bun scripts/large-graph-browser-check.ts
 EXPAND_ALL=1 bun scripts/large-graph-browser-check.ts
 ```
 
-The large browser check covers the 1,000-entity / 5,000-relationship fixture, model preservation, cancellation back to overview, area expansion, all-node expansion, zoom, selection and worker routing. It uses an API on a temporary data root; the graph check reads the real workspace without changing it. Screenshots are written to `/tmp/real-graph-*.png`.
+The large browser check covers the 1,000-entity / 5,000-relationship fixture, model preservation, cancellation back to overview, area expansion, all-node expansion, zoom, selection and worker routing. `bun run test:graph` (`scripts/graph-browser-check.ts`) checks the full UBL graph and the neighborhood in a real browser on the UBL, shopping center and 1,000-entity models: exact-first center picking, a five-step walk with Back and Forward, the counts at every step against the projection, centering, no shared edge lines or overlapping labels, the OWL projection, KPI badges, a walk into another file, and that the empty state never flashes. Both use an API on a temporary data root. Screenshots are written to `/tmp/real-graph-*.png` and `/tmp/workbench-neighborhood-*.png`.
 
 ## Input validation and repair
 
