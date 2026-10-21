@@ -1,5 +1,6 @@
 import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
+import { treeRowProblems } from './helpers/tree-geometry';
 
 // Isolated API fixture: exercising viewport changes never modifies the local workspace.
 // The UBL ontology is imported first so that it opens first.
@@ -84,6 +85,9 @@ try {
       await expect(page.getByRole('button', { name: 'ubl.ontology.yaml', exact: true })).toBeInViewport();
       await expect(page.getByRole('button', { name: /Load UBL business model/ })).toBeVisible();
       await expect(page.locator('input[type=file]')).toHaveCount(1);
+      // Project tree rows: name, delete icon and menu stay side by side at every viewport.
+      await expect(page.getByRole('button', { name: 'Delete ubl.ontology.yaml', exact: true })).toBeVisible();
+      expect(await treeRowProblems(page)).toEqual([]);
       if (width === 390) await page.screenshot({ path: '/tmp/workbench-responsive-drawer-390.png' });
       if (desktop) await page.getByRole('button', { name: 'Close workspace', exact: true }).click();
       else await page.keyboard.press('Escape');
