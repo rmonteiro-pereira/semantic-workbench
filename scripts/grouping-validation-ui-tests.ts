@@ -1,7 +1,6 @@
 import { chromium, expect, type Locator } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
-import { createStore } from '../server/store';
-import { createHandler } from '../server/handler';
+import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { inspect } from '../src/model';
 import { groupRelationships } from '../src/graph-view';
 
@@ -10,25 +9,19 @@ const fixtures = [
   { filename: 'flights.ontology.yaml', path: 'public/examples/ossie/flights.ontology.yaml' },
 ];
 const originals = new Map<string, string>();
-const store = createStore(':memory:');
-for (const fixture of fixtures) {
+// Isolated data root; Flights is imported first so its project opens first.
+const api = await startIsolatedApi();
+const store = { list: () => api.ws.documents() };
+for (const fixture of [...fixtures].reverse()) {
   const source = await Bun.file(fixture.path).text();
   originals.set(fixture.filename, source);
-  store.save(fixture.filename, source);
+  await api.ws.importBatch({ files: [{ path: fixture.filename, source }] });
 }
-const handler = createHandler(store);
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1600, height: 1000 }, acceptDownloads: true });
 const errors: string[] = [];
 page.on('pageerror', error => errors.push(error.message));
-await page.route('**/api/**', async route => {
-  const request = route.request();
-  const method = request.method();
-  const response = await handler(new Request(request.url(), {
-    method, ...(method === 'GET' || method === 'HEAD' ? {} : { body: request.postData() }),
-  }));
-  await route.fulfill({ status: response.status, body: await response.text(), contentType: 'application/json' });
-});
+await routeApi(page, api);
 let passed = 0;
 async function check(name: string, action: () => Promise<void>) {
   await action(); passed++; console.log('PASS', name);
@@ -220,4 +213,5 @@ try {
   console.log(`${passed} grouping and validation UI checks passed`);
 } finally {
   await browser.close();
+  await api.stop();
 }

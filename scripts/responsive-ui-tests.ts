@@ -1,15 +1,11 @@
 import { chromium, expect, type Page } from '@playwright/test';
-import { createStore } from '../server/store';
-import { createHandler } from '../server/handler';
+import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 
 // Isolated API fixture: exercising viewport changes never modifies the local workspace.
-const store = createStore(':memory:');
-for (const [folder, filename] of [
-  ['commerce', 'commerce.odcs.yaml'],
-  ['commerce', 'sales.ossie.yaml'],
-  ['ubl', 'ubl.ontology.yaml'],
-] as const) store.save(filename, await Bun.file(`public/examples/${folder}/${filename}`).text());
-const handler = createHandler(store);
+// The UBL ontology is imported first so that it opens first.
+const api = await startIsolatedApi();
+await api.ws.importBatch({ files: [{ path: 'ubl.ontology.yaml', source: await Bun.file('public/examples/ubl/ubl.ontology.yaml').text() }] });
+await api.ws.importBatch({ files: await Promise.all(['commerce.odcs.yaml', 'sales.ossie.yaml'].map(async path => ({ path, source: await Bun.file(`public/examples/commerce/${path}`).text() }))) });
 const browser = await chromium.launch({ headless: true });
 const errors: string[] = [];
 let passed = 0;
@@ -21,14 +17,7 @@ async function check(name: string, action: () => Promise<void>) {
 async function openPage(width: number, height: number) {
   const page = await browser.newPage({ viewport: { width, height } });
   page.on('pageerror', error => errors.push(`${width}×${height}: ${error.message}`));
-  await page.route('**/api/**', async route => {
-    const request = route.request();
-    const method = request.method();
-    const response = await handler(new Request(request.url(), {
-      method, ...(method === 'GET' || method === 'HEAD' ? {} : { body: request.postData() }),
-    }));
-    await route.fulfill({ status: response.status, body: await response.text(), contentType: 'application/json' });
-  });
+  await routeApi(page, api);
   await page.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
   await expect(page.locator('h1')).toContainText('UBL');
   await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60_000 });
@@ -164,4 +153,5 @@ try {
   console.log(`${passed} responsive UI checks passed`);
 } finally {
   await browser.close();
+  await api.stop();
 }

@@ -1,10 +1,11 @@
 import {chromium} from '@playwright/test';
+import {startIsolatedApi,routeApi} from './helpers/isolated-api';
 const browser=await chromium.launch({headless:true});
 const page=await browser.newPage({viewport:{width:1440,height:900}});
 const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
 const count=Number(process.env.SCALE_COUNT??3000);
 const source=JSON.stringify({name:'Browser scale test',ontology:Array.from({length:count},(_,i)=>({concept:`Entity_${i}`,type:'EntityType',relationships:[1,7,31].map(k=>({name:`link_${k}`,roles:[{concept:`Entity_${(i+k)%count}`}],verbalizes:['links']}))}))});
-await page.route('**/api/documents',r=>r.fulfill({json:[{id:'scale',filename:'scale.ossie.json',source,revision:1}]}));
+const api=await startIsolatedApi({watch:false});await api.ws.importBatch({files:[{path:'scale.ossie.json',source}]});await routeApi(page,api);
 const start=performance.now();await page.goto('http://127.0.0.1:5173/');
 await page.getByRole('button',{name:'Auto align',exact:true}).waitFor({timeout:60000});
 await page.getByText(`${count} entities · ${count*3} relationships`,{exact:true}).waitFor();
@@ -31,4 +32,4 @@ if(await page.getByRole('button', {name:'Auto align', exact:true}).count())throw
 
 console.log(JSON.stringify({entities:count,relationships:count*3,loadMs:Math.round(loaded-start),alignAndPaintMs:Math.round(aligned-loaded),renderedNodes,errors}));
 if(errors.length)throw Error(errors.join('\n'));
-await browser.close();
+await browser.close();await api.stop();

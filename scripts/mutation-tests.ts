@@ -52,8 +52,14 @@ const mutants:[string,string,string,string][]=[
  ['export','src/export.ts','return {filename,blob:',"return {filename:'wrong.yaml',blob:"],
  ['export','src/export.ts','new Blob([source]','new Blob([\'\']'],
  ['model','src/model.ts',"doc.setIn([...path, \"description\"], description)","doc.setIn(['unrelated'], description)"],
- ['store','server/store.ts','if (old && revision !== old.revision)','if (false)'],
- ['store','server/store.ts','const model = inspect(source, filename);','const model = {entities:[]};'],
+ ['files','server/projects/workspace.ts','if(body.baseHash!==currentHash)throw new StaleError','if(false)throw new StaleError'],
+ ['files','server/projects/workspace.ts','if(!indexed.file.valid)throw new InputError(indexed.findings);',''],
+ ['atomic','server/projects/atomic.ts','const temp=tempPath(path);','const temp=path;'],
+ ['migration','server/projects/migration.ts','if(sha256(readFileSync(file))!==expected)throw','if(false)throw'],
+ ['paths','server/projects/paths.ts',"if(parts.some(p=>p===''||p==='.'||p==='..'))throw","if(false)throw"],
+ ['paths','server/projects/paths.ts',"if(parts.some(p=>p.toLowerCase()==='.git'))throw","if(false)throw"],
+ ['events-origin','server/handler.ts',"if(origin&&!ALLOWED_ORIGINS.includes(origin))return","if(origin&&!ALLOWED_ORIGINS.includes(origin)&&url.pathname!=='/api/events')return"],
+ ['journal','server/projects/journal.ts','const forward=remaining.every(','const forward=true||remaining.every('],
 ];
 let killed=0;
 async function run(category:string,file:string,source:string,index:string){const rewritten=source.replace(/\bfrom\s*(['"])(\.[^'"]+)\1/g,(_all,q,path)=>`from ${q}${resolve(dirname(resolve(root,file)),path)}${q}`);const target=resolve(temp,index+'.ts');await Bun.write(target,rewritten);const child=Bun.spawn([process.execPath,resolve(root,'scripts/mutation-case.ts'),target,category],{stdout:'pipe',stderr:'pipe'});const timer=setTimeout(()=>child.kill(),10000);const code=await child.exited;clearTimeout(timer);const error=await new Response(child.stderr).text();return{code,error};}
