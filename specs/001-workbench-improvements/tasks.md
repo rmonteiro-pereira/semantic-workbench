@@ -342,8 +342,8 @@ to concepts and ODCS.
 
 ## Phase 12: User Story 12 — UI polish and overlaps (plan phase 12, P3) — Codex
 
-- [ ] T156 [US12] Write the Codex brief (FR-071–074, baseline defects 10–16) in specs/001-workbench-improvements/codex/phase-12.md
-- [ ] T157 [US12] Add pairwise overlap assertions for every overlay in every view to scripts/responsive-ui-tests.ts (written before the Codex work)
+- [X] T156 [US12] Write the Codex brief (FR-071–074, baseline defects 10–16) in specs/001-workbench-improvements/codex/phase-12.md
+- [X] T157 [US12] Add pairwise overlap assertions for every overlay in every view to scripts/responsive-ui-tests.ts (written before the Codex work)
 - [ ] T158 [US12] [CODEX] Fix overlaps of bundle selector, status line, mini-map, controls, popovers and area titles in src/style.css and src/FullGraph.tsx
 - [ ] T159 [US12] [CODEX] Auto-dismiss status messages (≤ 6 s or next action) in src/main.tsx
 - [ ] T160 [US12] [CODEX] Correct sidebar and tab active state; separate Neighborhood and Overview view state in src/main.tsx
