@@ -15,6 +15,8 @@ import{StaleSaveDialog}from'./projects/StaleSave';
 import{exampleSet}from'./projects/examples';
 import {NeighborhoodGraph} from './NeighborhoodGraph';
 import {MappingExplorer} from './MappingExplorer';
+import {MetricsView} from './metrics/MetricsView';
+import type {KpiSummary} from '../server/agent/explain';
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import {
@@ -27,7 +29,7 @@ import {
   FileCode,
   Box,
   CheckCircle2,
-  Menu, X, Focus,
+  Menu, X, Focus, Gauge,
 } from "lucide-react";
 import {validateInput} from "./input";
 import {documentKeys,entityKeys} from './references';
@@ -61,6 +63,12 @@ function App() {
   currentRef.current=current;sourceRef.current=source;
   const [showValidation,setShowValidation]=useState(false);
   const grouping=useGrouping(current?.id);
+  // KPIs of the open file's project, for the Metrics tab and the KPI badges on concepts.
+  const [kpis,setKpis]=useState<KpiSummary[]>([]),[kpiError,setKpiError]=useState(''),[kpiLoading,setKpiLoading]=useState(false),[selectedKpi,setSelectedKpi]=useState('');
+  const kpiProject=current?.project??null,kpiRevision=docs.filter(d=>d.project===kpiProject).map(d=>d.path+':'+d.hash).join('|');
+  useEffect(()=>{if(!kpiProject){setKpis([]);return;}let live=true;setKpiLoading(true);api.metrics(kpiProject).then(k=>{if(live){setKpis(k);setKpiError('');}}).catch(e=>{if(live){setKpis([]);setKpiError(e.message);}}).finally(()=>{if(live)setKpiLoading(false);});return()=>{live=false;};},[kpiProject,kpiRevision]);
+  useEffect(()=>setSelectedKpi(''),[kpiProject]);
+  const kpiBadges=useMemo(()=>{const map=new Map<string,string[]>();for(const k of kpis)for(const c of k.concepts){const name=c.concept??c.input;const list=map.get(name)??[];if(!list.includes(k.label))list.push(k.label);map.set(name,list);}return map;},[kpis]);
   const sourceEditor=useRef<HTMLTextAreaElement|null>(null);
   const [neighborhoodFocus,setNeighborhoodFocus]=useState('');
   const [compact,setCompact]=useState(()=>window.innerWidth<1100);
@@ -320,6 +328,7 @@ function App() {
               <FileCode size={16} /> Source
             </button>
             <button className={tab==='mappings'?'selected':''} onClick={()=>setTab('mappings')}><Layers size={16}/> Mappings</button>
+            <button className={tab==='metrics'?'selected':''} onClick={()=>setTab('metrics')}><Gauge size={16}/> Metrics{kpis.length>0&&<span className="tab-count">{kpis.length}</span>}</button>
           </div>
           {groupingOverview&&(tab==='fullgraph'||(tab==='graph'&&showAll))&&<GroupingControls overview={groupingOverview} value={grouping.value} onChange={grouping.change} example={model!.name.includes('UBL')} error={grouping.error}/>}
           <label className="search">
@@ -334,7 +343,7 @@ function App() {
         {(source||current)&&(showValidation||!!result.error)&&<details className="validation-details" open><summary onClick={e=>{e.preventDefault();setShowValidation(false);}}>Validation findings</summary><ValidationPanel source={source} issues={validation.issues} onLocate={issue=>{setTab('source');setTimeout(()=>{const editor=sourceEditor.current;if(!editor)return;locateSourceIssue(editor,issue);},0);}}/></details>}
         <div className="canvas-row">
           <section className="canvas">
-            {tab==='mappings' ? <MappingExplorer currentId={current?.id} revisionKey={docs.map(d=>d.id+':'+d.hash).join('|')} dirty={!!current&&source!==current.source}/> : !source && !current ? (
+            {tab==='metrics' ? <MetricsView project={kpiProject} projectName={projects.find(p=>p.slug===kpiProject)?.name} kpis={kpis} error={kpiError} loading={kpiLoading} selected={selectedKpi} onSelect={setSelectedKpi}/> : tab==='mappings' ? <MappingExplorer currentId={current?.id} revisionKey={docs.map(d=>d.id+':'+d.hash).join('|')} dirty={!!current&&source!==current.source}/> : !source && !current ? (
               <div className="empty">
                 <div className="empty-icon">
                   <Network size={36} />
@@ -368,17 +377,17 @@ function App() {
                   .filter((e) => e.name.toLowerCase().includes(search.toLowerCase()))
                   .map((e) => (
                     <button key={e.id} onClick={() => selectEntity(e.id)}>
-                      <small>{e.kind}</small>
+                      <small>{e.kind==='Metric'?'KPI · Metric':e.kind}{(kpiBadges.get(e.name)?.length??0)>0&&<span className="kpi-badge" title={`KPIs: ${kpiBadges.get(e.name)!.join(', ')}`}><Gauge size={10}/>{kpiBadges.get(e.name)!.length===1?'KPI':`${kpiBadges.get(e.name)!.length} KPIs`}</span>}</small>
                       <strong>{e.name}</strong>
                       <p>{e.description || "No description yet"}</p>
                     </button>
                   ))}
               </div>
-            ) : tab==='fullgraph' && model ? <FullGraph grouping={grouping.value} onGroupingChange={grouping.change} groupingError={grouping.error} key={current?.id} name={model.name} entities={model.entities} edges={model.edges} selected={selected} selectedEdge={selectedEdge} search={search} onSelectEntity={selectEntity} onSelectEdge={id=>{setSelectedEdge(id);setSelected('')}} onOverview={()=>{setTab('graph');setShowAll(true);setSearch('')}} onNeighborhood={()=>showNeighborhood()}/> : (
-              showAll && model ? <ModelOverview grouping={grouping.value} onGroupingChange={grouping.change} groupingError={grouping.error} key={current?.id} name={model.name} entities={model.entities} edges={model.edges} search={search} selected={selected} onSelectEntity={selectEntity} onSelectRelationship={id=>{setSelectedEdge(id);setSelected('')}} onClose={()=>showNeighborhood()} onOpenGraph={()=>{setShowAll(false);setTab('fullgraph')}}/> : <NeighborhoodGraph key={current?.id} entities={model?.entities??[]} edges={model?.edges??[]} search={search} focusId={neighborhoodFocus} selected={selected} selectedEdge={selectedEdge} onFocus={id=>{setNeighborhoodFocus(id);setSearch('')}} onSelectEntity={selectEntity} onSelectEdge={id=>{setSelectedEdge(id);setSelected('')}} onOverview={()=>{setSearch('');setTab('graph');setShowAll(true)}} onFullGraph={()=>{setSearch('');setShowAll(false);setTab('fullgraph')}}/>
+            ) : tab==='fullgraph' && model ? <FullGraph kpiBadges={kpiBadges} grouping={grouping.value} onGroupingChange={grouping.change} groupingError={grouping.error} key={current?.id} name={model.name} entities={model.entities} edges={model.edges} selected={selected} selectedEdge={selectedEdge} search={search} onSelectEntity={selectEntity} onSelectEdge={id=>{setSelectedEdge(id);setSelected('')}} onOverview={()=>{setTab('graph');setShowAll(true);setSearch('')}} onNeighborhood={()=>showNeighborhood()}/> : (
+              showAll && model ? <ModelOverview grouping={grouping.value} onGroupingChange={grouping.change} groupingError={grouping.error} key={current?.id} name={model.name} entities={model.entities} edges={model.edges} search={search} selected={selected} onSelectEntity={selectEntity} onSelectRelationship={id=>{setSelectedEdge(id);setSelected('')}} onClose={()=>showNeighborhood()} onOpenGraph={()=>{setShowAll(false);setTab('fullgraph')}}/> : <NeighborhoodGraph kpiBadges={kpiBadges} key={current?.id} entities={model?.entities??[]} edges={model?.edges??[]} search={search} focusId={neighborhoodFocus} selected={selected} selectedEdge={selectedEdge} onFocus={id=>{setNeighborhoodFocus(id);setSearch('')}} onSelectEntity={selectEntity} onSelectEdge={id=>{setSelectedEdge(id);setSelected('')}} onOverview={()=>{setSearch('');setTab('graph');setShowAll(true)}} onFullGraph={()=>{setSearch('');setShowAll(false);setTab('fullgraph')}}/>
             )}
           </section>
-          {tab!=='mappings'&&(entity || relationship) && <aside className="inspector" aria-label="Definition details">
+          {tab!=='mappings'&&tab!=='metrics'&&(entity || relationship) && <aside className="inspector" aria-label="Definition details">
             <div className="section-label">DEFINITION DETAILS{(entity||relationship)&&<button className="inspector-close" aria-label="Close details" onClick={()=>{setSelected('');setSelectedEdge('')}}>×</button>}</div>
             {relationship ? (
               <>
