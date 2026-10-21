@@ -1,5 +1,5 @@
 import React,{useEffect,useState} from 'react';
-import {Target,UserRound,FileCode,AlertTriangle} from 'lucide-react';
+import {Target,UserRound,FileCode,AlertTriangle,Pencil} from 'lucide-react';
 import type {KpiExplanation,KpiSummary} from '../../server/agent/explain';
 import {api,type ExplainQuery} from '../projects/api';
 import {Explanation} from './Explanation';
@@ -7,7 +7,7 @@ import {Lineage} from './Lineage';
 import {additivityLabel,targetText,typeLabel} from './format';
 // One KPI: what it is (label, type, unit, status, owner, concepts), then how it is calculated and
 // where its data comes from. The explanation is fetched from the server, never computed by running SQL.
-export function KpiDetail({project,kpi,all}:{project:string;kpi:KpiSummary;all:KpiSummary[]}){
+export function KpiDetail({project,kpi,all,onEdit}:{project:string;kpi:KpiSummary;all:KpiSummary[];onEdit?:()=>void}){
  const [query,setQuery]=useState<ExplainQuery>({}),[explanation,setExplanation]=useState<KpiExplanation|null>(null),[error,setError]=useState(''),[loading,setLoading]=useState(true);
  useEffect(()=>{const abort=new AbortController();setLoading(true);setError('');
   api.explain(project,kpi.file,kpi.name,query,abort.signal).then(e=>{setExplanation(e);setLoading(false);}).catch(e=>{if(e.name!=='AbortError'){setError(e.message);setLoading(false);}});
@@ -17,7 +17,7 @@ export function KpiDetail({project,kpi,all}:{project:string;kpi:KpiSummary;all:K
  return <article className="kpi-detail">
   <header className="kpi-header">
    <small>KPI · {kpi.model}</small>
-   <h2>{kpi.label}</h2>
+   <div className="metrics-title"><h2>{kpi.label}</h2>{onEdit&&<button className="kpi-edit" onClick={onEdit} aria-label={`Edit ${kpi.label}`}><Pencil size={13}/>Edit KPI</button>}</div>
    <code className="kpi-name">{kpi.name}</code>
    {kpi.description&&<p className="kpi-description">{kpi.description}</p>}
    <div className="kpi-badges">

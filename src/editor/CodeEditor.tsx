@@ -17,20 +17,21 @@ import './editor.css';
 // to a patch on those bytes (src/editor/patch.ts), so untouched line endings, tabs and the trailing
 // newline never change.
 export type CodeEditorHandle={focus:()=>void;goToLine:(line:number,column?:number)=>void;locate:(issue:Issue)=>void};
-type Props={value:string;filename:string;onChange:(next:string)=>void;ariaLabel:string;disabled?:boolean;className?:string;onIssues?:(issues:Issue[])=>void};
+// `validate` replaces the whole-file check, for an editor that shows one item of a larger file.
+type Props={value:string;filename:string;onChange:(next:string)=>void;ariaLabel:string;disabled?:boolean;className?:string;onIssues?:(issues:Issue[])=>void;validate?:(text:string)=>Promise<Issue[]>};
 const external=Annotation.define<boolean>();
 // Shown when a file is loaded; new line breaks take the file's main style, so the label stays true.
 const lineEndingLabel=(text:string)=>{const crlf=/\r\n/.test(text),lf=/(^|[^\r])\n/.test(text),cr=/\r(?!\n)/.test(text),kind=[crlf,lf,cr].filter(Boolean).length>1?'Mixed line endings':crlf?'CRLF':cr?'CR':'LF';return kind==='Mixed line endings'?`${kind} · new lines ${({'\r\n':'CRLF','\n':'LF','\r':'CR'} as const)[dominantLineBreak(text)]}`:kind;};
-export const CodeEditor=forwardRef<CodeEditorHandle,Props>(function CodeEditor({value,filename,onChange,ariaLabel,disabled=false,className='',onIssues},ref){
+export const CodeEditor=forwardRef<CodeEditorHandle,Props>(function CodeEditor({value,filename,onChange,ariaLabel,disabled=false,className='',onIssues,validate},ref){
  const host=useRef<HTMLDivElement>(null),view=useRef<EditorView|null>(null),lineInput=useRef<HTMLInputElement>(null);
  const bytes=useRef(value),hasCR=useRef(value.includes('\r'));
  const [eol,setEol]=useState(()=>lineEndingLabel(value));
- const props=useRef({onChange,onIssues,filename});props.current={onChange,onIssues,filename};
+ const props=useRef({onChange,onIssues,filename,validate});props.current={onChange,onIssues,filename,validate};
  const language=useRef(new Compartment()),editable=useRef(new Compartment());
  const [documentLevel,setDocumentLevel]=useState<Issue[]>([]),[cursor,setCursor]=useState({line:1,column:1}),[checking,setChecking]=useState(false);
  const head=value.slice(0,400),syntax=useMemo(()=>syntaxFor(filename,head),[filename,head]);
  useEffect(()=>{
-  const lint=linter(async v=>{setChecking(true);const text=v.state.doc.toString(),issues=await validateInWorker(text,props.current.filename);setChecking(false);
+  const lint=linter(async v=>{setChecking(true);const text=v.state.doc.toString(),issues=await (props.current.validate?props.current.validate(text):validateInWorker(text,props.current.filename));setChecking(false);
    if(v.state.doc.toString()!==text)return [];const {diagnostics,documentLevel}=toDiagnostics(issues,v.state.doc);setDocumentLevel(documentLevel);props.current.onIssues?.(issues);return diagnostics;},{delay:300});
   const state=EditorState.create({doc:value,extensions:[
    lineNumbers(),foldGutter(),lintGutter(),highlightActiveLineGutter(),highlightSpecialChars(),history(),drawSelection(),indentOnInput(),bracketMatching(),highlightActiveLine(),
