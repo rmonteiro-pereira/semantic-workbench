@@ -63,17 +63,18 @@ Paths in URLs are URL-encoded relative POSIX paths; `..`, absolute paths and `.g
 
 | Method & path | Request | Response |
 | --- | --- | --- |
-| `GET /api/projects/:slug/git/status` | | `{branch, upstream, ahead, behind, gitAvailable, identityConfigured, changes: [{path, index, worktree, conflicted, hidden, label?}]}` (`hidden: true` → labelled "not shown in workspace", read-only) |
-| `GET /api/projects/:slug/git/diff` | `path`, `from?`, `to?` (`HEAD`, `index`, `worktree`, commit) | `{path, before, after, binary}` texts for the diff view |
+| `GET /api/projects/:slug/git/status` | | `{branch, upstream, ahead, behind, gitAvailable, identityConfigured, merging, remotes: {name: url}, changes: [{path, orig?, index, worktree, conflicted, untracked, hidden, label?}]}` (`hidden: true` → labelled "not shown in workspace", read-only) |
+| `GET /api/projects/:slug/git/diff` | `path`, `from?`, `to?` (`HEAD`, `index`, `worktree`, commit) | `{path, from, to, before, after, binary, beforeExists, afterExists}` texts for the diff view |
 | `POST /api/projects/:slug/git/stage` / `unstage` | `{paths: [...]}` or `{all: true}` | status |
 | `POST /api/projects/:slug/git/commit` | `{message}` (required, non-empty) | `{commit, altered: [path]}` |
 | `GET /api/projects/:slug/git/branches` | | `{current, local: [...], remote: [...]}` |
 | `POST /api/projects/:slug/git/switch` | `{branch, create?: boolean}` | 200; `409 {error:'dirty'\|'drafts', paths}` |
-| `PUT /api/projects/:slug/git/remote` | `{name, url}` | 200 |
-| `POST /api/projects/:slug/git/fetch` / `pull` / `push` / `sync` | | `{ok, ahead, behind, conflicted: [path], altered: [path], stderr}`; pull/sync `409` with drafts or a dirty tree |
+| `PUT /api/projects/:slug/git/remote` | `{name, url}` | `{name, url}` (adds or changes the URL) |
+| `POST /api/projects/:slug/git/fetch` / `pull` / `push` / `sync` | | `{ok, cancelled?, ahead, behind, conflicted: [path], altered: [path], stderr}`; pull/sync `409 {error:'drafts'\|'dirty', paths}` |
+| `POST /api/projects/:slug/git/cancel` | | `{cancelled}`: kills the running remote action (the UI's Cancel); that action then answers `{ok:false, cancelled:true}` |
 | `GET /api/projects/:slug/git/log` | `path?`, `limit?` | `[{commit, author, date, message}]` |
 | `GET /api/projects/:slug/git/show` | `commit`, `path` | `{source}` |
-| `POST /api/projects/:slug/gitignore` | `{pattern}` | appends via the normal hash-checked save → `{hash}` |
+| `POST /api/projects/:slug/gitignore` | `{pattern}` | appends via the normal hash-checked save → `{hash, added, tracked: [path]}` (`tracked`: committed files the rules now match, which Git keeps tracking) |
 
 Remote operations run only when these endpoints are called; nothing contacts a remote in the
 background.

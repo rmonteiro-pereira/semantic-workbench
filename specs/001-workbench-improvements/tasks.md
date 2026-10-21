@@ -274,23 +274,23 @@ to concepts and ODCS.
 
 ### Tests
 
-- [ ] T122 [P] [US9] Status parsing tests (porcelain v2 `-z`, renames, conflicts, hidden-file labels) in tests/git-status.test.ts
-- [ ] T123 [P] [US9] Remote tests against a local bare remote in tests/git-remote.test.ts: push, pull `--no-rebase --no-edit`, conflicts surfaced, 10-minute remote timeout and cancel, `GIT_TERMINAL_PROMPT=0` set and `GCM_INTERACTIVE`/`GCM_GUI_PROMPT` not overridden
-- [ ] T124 [P] [US9] Blocking tests (pull/switch with drafts or a dirty tree → 409; no auto-stash) in tests/git-blocking.test.ts
-- [ ] T125 [P] [US9] `.gitignore` tests (Add to .gitignore pattern derivation, rescan, tracked-file explanation) in tests/gitignore.test.ts
-- [ ] T126 [P] [US9] Altered-bytes report tests with a hook and a `.gitattributes` filter in tests/altered-bytes.test.ts
+- [X] T122 [P] [US9] Status parsing tests (porcelain v2 `-z`, renames, conflicts, hidden-file labels) in tests/git-status.test.ts
+- [X] T123 [P] [US9] Remote tests against a local bare remote in tests/git-remote.test.ts: push, pull `--no-rebase --no-edit`, conflicts surfaced, 10-minute remote timeout and cancel, `GIT_TERMINAL_PROMPT=0` set and `GCM_INTERACTIVE`/`GCM_GUI_PROMPT` not overridden
+- [X] T124 [P] [US9] Blocking tests (pull/switch with drafts or a dirty tree → 409; no auto-stash) in tests/git-blocking.test.ts
+- [X] T125 [P] [US9] `.gitignore` tests (Add to .gitignore pattern derivation, rescan, tracked-file explanation) in tests/gitignore.test.ts
+- [X] T126 [P] [US9] Altered-bytes report tests with a hook and a `.gitattributes` filter in tests/altered-bytes.test.ts
 
 ### Implementation
 
-- [ ] T127 [US9] Extend server/projects/git.ts: status, diff texts, stage/unstage, `commit -F -`, branches, switch/create, remote, fetch/pull/push/sync, log, show, cancel, post-operation hash check
-- [ ] T128 [US9] Source Control routes per contracts/http-api.md including `POST …/gitignore` in server/routes/git.ts
-- [ ] T129 [P] [US9] Diff view on `@codemirror/merge` in src/scm/DiffView.tsx
-- [ ] T130 [P] [US9] Branch picker and create in src/scm/BranchPicker.tsx
-- [ ] T131 [US9] Source Control panel (changes, hidden-file labels, stage/unstage, commit, remote actions, "Waiting for Git (credentials may be requested in a separate window)" with Cancel, Add to .gitignore) in src/scm/SourceControl.tsx
-- [ ] T132 [US9] Use DiffView for stale saves and file history in src/main.tsx; list and edit `.gitignore` in src/projects/Sidebar.tsx
-- [ ] T133 [US9] Browser check scripts/scm-browser-check.ts: commit, branch, switch, push, pull, conflict repair, Add to .gitignore, missing-git banner
-- [ ] T134 [US9] Add mutants: allow pull with drafts; shell-string invocation; remote call outside an explicit endpoint; commit without message
-- [ ] T135 [US9] Update README.md (Git network use, credential helper window, no stored credentials)
+- [X] T127 [US9] Extend server/projects/git.ts: status, diff texts, stage/unstage, `commit -F -`, branches, switch/create, remote, fetch/pull/push/sync, log, show, cancel, post-operation hash check
+- [X] T128 [US9] Source Control routes per contracts/http-api.md including `POST …/gitignore` in server/routes/git.ts
+- [X] T129 [P] [US9] Diff view on `@codemirror/merge` in src/scm/DiffView.tsx
+- [X] T130 [P] [US9] Branch picker and create in src/scm/BranchPicker.tsx
+- [X] T131 [US9] Source Control panel (changes, hidden-file labels, stage/unstage, commit, remote actions, "Waiting for Git (credentials may be requested in a separate window)" with Cancel, Add to .gitignore) in src/scm/SourceControl.tsx
+- [X] T132 [US9] Use DiffView for stale saves and file history in src/main.tsx; list and edit `.gitignore` in src/projects/Sidebar.tsx
+- [X] T133 [US9] Browser check scripts/scm-browser-check.ts: commit, branch, switch, push, pull, conflict repair, Add to .gitignore, missing-git banner
+- [X] T134 [US9] Add mutants: allow pull with drafts; shell-string invocation; remote call outside an explicit endpoint; commit without message
+- [X] T135 [US9] Update README.md (Git network use, credential helper window, no stored credentials)
 
 **Checkpoint**: Story 9 complete.
 
