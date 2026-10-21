@@ -207,3 +207,8 @@ if(category==='status-rules'){const ext=(status:string,extra:any={})=>({name:'k'
  const r=m.applyStatusRules(ext('approved'),ext('approved',{expr:'b'}));assert.equal(m.extensionOf(r.item).value.status,'proposed');}
 if(category==='save-client'){let body:any;(globalThis as any).fetch=async(_u:string,init:any)=>{body=JSON.parse(init.body);return new Response(JSON.stringify({path:'a',hash:'h'}),{status:200});};
  await m.api.save('p','a.yaml','a'.repeat(64),'new',[{from:0,to:1,insert:'x'}]);assert.deepEqual(body,{baseHash:'a'.repeat(64),patches:[{from:0,to:1,insert:'x'}]});}
+if(category==='rdf-gate'){const t=(s:string,o:string)=>({s:{termType:'NamedNode',value:s},p:{termType:'NamedNode',value:'https://e/p'},o:{termType:'Literal',value:o}});
+ assert.equal(m.gate([t('https://e/a','1'),t('https://e/b','2')],[t('https://e/a','9'),t('https://e/b','2')],['https://e/a']).ok,true);
+ assert.equal(m.gate([t('https://e/a','1'),t('https://e/b','2')],[t('https://e/a','9'),t('https://e/b','3')],['https://e/a']).ok,false);}
+if(category==='rdf-lines'){const {applyPatches}=await import('../src/editor/patch');const src='<https://e/a> <https://e/p> "1" .\n<https://e/b>   <https://e/p>  "2" .   # kept\n';
+ const out=applyPatches(src,m.ntPatches(src,m.readLines(src),'https://e/a',new Set(),new Map([[0,'<https://e/a> <https://e/p> "9" .']]),[],'\n'));assert.equal(out,src.replace('"1"','"9"'));}
