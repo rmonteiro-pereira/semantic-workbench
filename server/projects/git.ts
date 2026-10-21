@@ -62,6 +62,30 @@ export function createGit(options:GitOptions){
   return next;
  }
  const read=(cwd:string,args:string[],allowFailure=false)=>run(cwd,['--no-optional-locks','-c','core.quotepath=off',...args],{readOnly:true,allowFailure});
+ // user.name and user.email as Git sees them in this working directory (repository-local or global
+ // configuration), read each time so an identity set meanwhile is seen without a restart.
+ async function identity(cwd=root){try{const [name,email]=await Promise.all(['user.name','user.email'].map(k=>spawnGit(cwd,['config','--get',k])));return name.code===0&&!!name.stdout.trim()&&email.code===0&&!!email.stdout.trim();}catch{return false;}}
+ const merging=async(cwd:string)=>(await read(cwd,['rev-parse','-q','--verify','MERGE_HEAD'],true)).code===0;
+ // Commit exactly `paths` (research R8): untracked ones are added first, then `git commit --only`
+ // takes those paths from the working tree and leaves every other staged or unstaged change alone.
+ // Ignored paths and paths without changes are skipped. No identity, a merge in progress or nothing
+ // to commit is reported instead of thrown.
+ async function commitPaths(cwd:string,paths:string[],message:string):Promise<CommitPathsResult>{
+  if(typeof message!=='string'||!message.trim())throw new GitError('A commit message is required.');
+  if(!Array.isArray(paths)||!paths.length)throw new GitError('Name the files to commit.');
+  if(!await identity(cwd))return {committed:false,reason:'no-identity'};
+  if(await merging(cwd))return {committed:false,reason:'merging'};
+  const changed=new Set<string>();
+  for(const c of chunks(paths)){const r=await read(cwd,['status','--porcelain=v1','-z','--untracked-files=all','--',...c]);for(const e of r.stdout.split('\0'))if(e.length>3)changed.add(e.slice(3));}
+  const list=paths.filter(p=>changed.has(p));
+  if(!list.length)return {committed:false,reason:'nothing'};
+  const untracked:string[]=[];
+  for(const c of chunks(list)){const r=await read(cwd,['ls-files','-z','--others','--exclude-standard','--',...c]);untracked.push(...r.stdout.split('\0').filter(Boolean));}
+  for(const c of chunks(untracked))await run(cwd,['add','--',...c]);
+  await run(cwd,['commit','-q','--only','-F','-','--',...list],{stdin:message});
+  const head=await read(cwd,['rev-parse','-q','--verify','HEAD']);
+  return {committed:true,commit:head.stdout.trim()};
+ }
  const chunks=<T>(list:T[],n=200)=>Array.from({length:Math.ceil(list.length/n)},(_,i)=>list.slice(i*n,i*n+n));
  return {
   run,
@@ -69,7 +93,7 @@ export function createGit(options:GitOptions){
   cancel(cwd:string){const kill=cancels.get(insideProjects(cwd));if(kill)kill();return !!kill;},
   // Global facts, checked without a repository.
   async available(){try{const r=await spawnGit(root,['--version']);const m=r.stdout.match(/(\d+)\.(\d+)/);return r.code===0&&!!m&&(+m[1]>2||(+m[1]===2&&+m[2]>=40));}catch{return false;}},
-  async identity(cwd=root){try{const [name,email]=await Promise.all(['user.name','user.email'].map(k=>spawnGit(cwd,['config','--get',k])));return name.code===0&&!!name.stdout.trim()&&email.code===0&&!!email.stdout.trim();}catch{return false;}},
+  identity,
   async init(cwd:string){
    await run(cwd,['init','-q','-b','main']);
    // Managed repositories keep committed bytes equal to saved bytes.
@@ -89,7 +113,8 @@ export function createGit(options:GitOptions){
   // A file's bytes at a revision (`HEAD`, a commit, or '' for the index); null when it is absent.
   async blob(cwd:string,rev:string,path:string){const r=await read(cwd,['cat-file','blob',`${rev}:${path}`],true);return r.code===0?r.bytes:null;},
   async head(cwd:string){const r=await read(cwd,['rev-parse','-q','--verify','HEAD'],true);return r.code===0?r.stdout.trim():null;},
-  async merging(cwd:string){return (await read(cwd,['rev-parse','-q','--verify','MERGE_HEAD'],true)).code===0;},
+  merging,
+  commitPaths,
   async branches(cwd:string){
    const r=await read(cwd,['for-each-ref','--format=%(refname)','refs/heads','refs/remotes']);
    const refs=r.stdout.split('\n').filter(Boolean);
@@ -108,6 +133,7 @@ export function createGit(options:GitOptions){
  };
 }
 export type Git=ReturnType<typeof createGit>;
+export type CommitPathsResult={committed:true;commit:string}|{committed:false;reason:'no-identity'|'merging'|'nothing'};
 export type FileGitState='clean'|'modified'|'added'|'deleted'|'renamed'|'untracked'|'conflicted';
 // One changed path: index and worktree columns as Git prints them ('.' unchanged, '?' untracked).
 export type StatusEntry={path:string;orig?:string;index:string;worktree:string;conflicted:boolean;untracked:boolean};

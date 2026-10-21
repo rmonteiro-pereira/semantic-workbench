@@ -46,7 +46,7 @@ test('commit needs a message and staged changes; history and versions between tw
   for(const message of ['','   ',undefined,42])expect((await call(p.t,'POST',p.base+'/git/commit',{message})).body.error).toBe('A commit message is required.');
   const c=await ok(call(p.t,'POST',p.base+'/git/commit',{message:'Describe customers'}));expect(c.commit).toMatch(/^[0-9a-f]{40}$/);expect(c.altered).toEqual([]);
   p.write('shop.yaml',ontology('Third.'));await ok(call(p.t,'POST',p.base+'/git/stage',{paths:['shop.yaml']}));await ok(call(p.t,'POST',p.base+'/git/commit',{message:'Again'}));
-  const log=await ok(call(p.t,'GET',p.base+'/git/log?path=shop.yaml'));expect(log.map((l:any)=>l.message)).toEqual(['Again','Describe customers','Import 1 file']);
+  const log=await ok(call(p.t,'GET',p.base+'/git/log?path=shop.yaml'));expect(log.map((l:any)=>l.message)).toEqual(['Again','Describe customers','Import shop.yaml']);
   expect(log[0]).toMatchObject({author:'Workbench Test'});
   const d=await ok(call(p.t,'GET',`${p.base}/git/diff?path=shop.yaml&from=${log[2].commit}&to=${log[0].commit}`));expect([d.before,d.after]).toEqual([ontology('Buys.'),ontology('Third.')]);
   expect((await ok(call(p.t,'GET',`${p.base}/git/show?commit=${log[1].commit}&path=shop.yaml`))).source).toBe(ontology('Second.'));

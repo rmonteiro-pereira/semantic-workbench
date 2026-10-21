@@ -20,7 +20,8 @@ export const gitRoutes:Route=async(ws,req,url)=>{
  }
  if(req.method==='POST'){
   if(action==='git/stage'||action==='git/unstage'){const b=await body(['paths','all']);const stage=action==='git/stage';return Response.json(b.all===true?await scm.stageAll(slug,stage):stage?await scm.stage(slug,b.paths):await scm.unstage(slug,b.paths));}
-  if(action==='git/commit'){const b=await body(['message']);return Response.json(await scm.commit(slug,b.message));}
+  if(action==='git/commit'){const b=await body(['message','paths','push']);if(b.push!==undefined&&typeof b.push!=='boolean')throw Error('push must be true or false.');return Response.json(await scm.commit(slug,b.message,{paths:b.paths,push:b.push===true}));}
+  if(action==='git/revert'){const b=await body(['path','baseHash']);if(typeof b.path!=='string')throw Error('path is required.');return Response.json(await ws.revertFile(slug,b.path,b.baseHash??null));}
   if(action==='git/switch'){const b=await body(['branch','create']);return Response.json(await scm.switchBranch(slug,b.branch,b.create===true));}
   if(action==='git/fetch')return Response.json(await scm.fetch(slug));
   if(action==='git/pull')return Response.json(await scm.pull(slug));
