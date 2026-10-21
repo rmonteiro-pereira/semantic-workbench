@@ -4,8 +4,9 @@
 
 **Created**: 2026-10-21
 
-**Status**: Clarified (five open points resolved with recommended defaults, OP-1 to OP-5; owner to
-confirm). Constitution 3.0.0 applies.
+**Status**: Clarified (open points OP-1 to OP-8 resolved with recommended defaults; owner to
+confirm). Revised 2026-10-21 for the owner's container and delivery-pipeline changes (US9 raised to
+P1 and moved right after foundations; US10 added). Constitution 3.0.0 applies.
 
 **Builds on**: feature 002 (`002-lineage-and-ux`, v0.3.0). This branch starts from
 `origin/002-lineage-and-ux` and is rebased onto `main` after 002 merges; every route, dialog and
@@ -56,6 +57,21 @@ repository projects, subfolder projects, metrics routes) is in scope for the acc
   provider, session and remote-credential settings. Changes apply at once but can never remove
   the last Admin (guard plus an environment-configured bootstrap Admin for recovery); every change
   is audited; one dialog per area, nothing added to the main screen but its entry.
+- **Revision (same day)**: the container and Azure deployment become P1 and come early. The
+  container image is multi-stage, runs on Bun as a non-root user with a health check, keeps the data
+  root on a mounted volume and also runs in local mode without sign-in; Docker Compose runs it
+  locally, including a Keycloak for development; then Azure Container Apps (single replica, Azure
+  Files, Key Vault, managed identity). The container exists right after the foundations and every
+  later phase is verified in the container as well.
+- **Revision (same day)**: a GitHub Actions pipeline for `github.com/rmonteiro-pereira/semantic-workbench`
+  runs type check, unit tests, build, the mutation suite, the Playwright browser suites and the
+  Keycloak sign-in tests on every pull request and push; builds the image, scans it and produces a
+  software bill of materials; publishes the image on `main` and on version tags; deploys version
+  tags `v*` to Azure Container Apps through workload identity federation from GitHub to Azure (no
+  long-lived secrets) behind a manually approved production environment; runs a smoke test after
+  deployment and rolls back to the previous revision when it fails. Infrastructure as code is out
+  of scope: the Azure resources the pipeline expects are listed and set up by hand from a
+  documented guide.
 
 Evidence for the current state: the authorization inventory of the 002 working tree (38 resource
 types, 57 implemented and 9 planned routes, 45 UI action groups, 42 policy attributes) is
@@ -102,6 +118,30 @@ owner (OP-1 to OP-5).
   the cache being deleted. Rejected: JSON state files with a hand-made version log (re-implements
   history), and the policies inside project repositories (a project's editors could grant
   themselves access).
+
+### Session 2026-10-21 (container and pipeline revision; owner to confirm OP-6 to OP-8)
+
+- Q: Which registry holds the published images? → A (OP-6): **Azure Container Registry** (Basic
+  tier, admin user disabled). The repository is private, so a GitHub Container Registry package
+  would also be private and Azure Container Apps could pull it only with a stored personal access
+  token, a long-lived secret. With Azure Container Registry the container app pulls through its
+  managed identity (`AcrPull`) and the pipeline pushes through workload identity federation
+  (`AcrPush`), so no registry credential exists anywhere. Cost: the registry's monthly fee.
+  Rejected: GitHub Container Registry (needs a stored token for a private package; acceptable only
+  if the repository and the image become public).
+- Q: How is the production approval enforced? → A (OP-7): a GitHub environment `production` with
+  required reviewers and a deployment rule allowing only `v*` tags. GitHub offers required
+  reviewers on private repositories only on its Enterprise plans (on Free, Pro and Team they apply
+  to public repositories). The pipeline is written for the environment; if the plan does not
+  offer required reviewers, the documented fallback is that the deploy workflow runs only on a
+  manual dispatch for an existing tag, by an actor listed in the repository variable
+  `SW_DEPLOYERS`, and the dispatch is the approval.
+- Q: How does local mode run in a container when it may bind only to loopback? → A (OP-8): the
+  container in local mode uses host networking (`network_mode: host`), so the server binds the
+  host's `127.0.0.1` and the constitution's loopback rule holds unchanged. This works with Docker
+  Engine (Linux, WSL2) and Podman; Docker Desktop needs its host networking option enabled.
+  Rejected: binding the container interface and publishing the port only on the host's loopback
+  (the server cannot verify the publish address, so Principle I would need an amendment).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -408,30 +448,98 @@ previous decisions return; find every change in the audit view.
 
 ---
 
-### User Story 9 - Run it as a container on Azure (Priority: P3)
+### User Story 9 - Run it as a container, locally and on Azure (Priority: P1)
 
-An Admin deploys the workbench image to Azure Container Apps with a mounted file share for the
-data root, the provider settings and secrets from Key Vault, and a single replica. The README
-gives the steps for Entra (app registration, app roles, group assignment, optional groups claim)
-and for Keycloak (realm, client, roles, group mapper).
+A developer runs `docker compose --profile local up` and gets the workbench in local mode from the
+image, on `http://127.0.0.1:4310`, without sign-in, with the workspace in a folder on their
+machine. With `--profile server` the same compose file also starts a development Keycloak and runs
+the image in server mode against it. An Admin deploys the same image to Azure Container Apps with
+a mounted file share for the data root, the provider settings and secrets from Key Vault, a
+managed identity and a single replica. The README gives the steps for Entra (app registration,
+app roles, group assignment, optional groups claim), for Keycloak (realm, client, roles, group
+mapper) and the Azure resources to create by hand.
 
-**Why this priority**: the server mode is only useful once it can be deployed reproducibly; the
-deployment itself is configuration and documentation on top of US1–US8.
+**Why this priority**: P1 and early, by owner decision. The container is the shape server mode
+ships in; building it right after the foundations means every later story is verified in the
+image as well as on the developer machine, and image or platform problems (non-root file access,
+network shares, health probes, revision updates) surface while the code is still small.
 
-**Independent Test**: build the image, run it locally with the Keycloak container and a mounted
-data folder, pass health checks, sign in, restart the container and confirm sessions and data
-survive; follow the Azure guide on a test subscription (manual, recorded).
+**Independent Test**: build the image; run it in local mode with a mounted folder and run the
+local browser suites against it; run the compose server profile with Keycloak, sign in, restart
+the container and confirm sessions and data survive; start a second container on the same volume
+and confirm it refuses to serve; follow the Azure guide on a test subscription (manual, recorded).
 
 **Acceptance Scenarios**:
 
-1. **Given** the image and a mounted data folder, **When** the container starts in server mode,
-   **Then** it serves the built frontend and the API on one HTTPS origin behind the platform
-   ingress, and health endpoints answer without sign-in and without workspace data.
-2. **Given** a restart, **When** a signed-in person reloads, **Then** their session is still valid
+1. **Given** the image and a mounted data folder, **When** the container starts in local mode,
+   **Then** it serves the built frontend and the API on `127.0.0.1` of the host without sign-in,
+   as the implicit Admin, and the local browser suites pass against it.
+2. **Given** the image, **When** it is inspected and started, **Then** the process runs as a
+   non-root user, the data root is a volume, the image carries its version and commit, and the
+   container health check calls the liveness endpoint.
+3. **Given** the image in server mode behind the platform ingress, **When** it starts, **Then** it
+   serves the built frontend and the API on one HTTPS origin, and health endpoints answer without
+   sign-in and without workspace data.
+4. **Given** the compose server profile, **When** it starts, **Then** Keycloak loads the test
+   realm and a person can sign in to the containerised workbench with a test user.
+5. **Given** a restart, **When** a signed-in person reloads, **Then** their session is still valid
    (until its normal expiry) and all files, worktrees, drafts and audit entries are intact.
-3. **Given** more than one replica configured, **When** the server starts, **Then** it detects a
-   second live instance on the same data root and refuses to serve, naming the single-replica
-   constraint.
+6. **Given** more than one replica of the same revision, **When** the second starts, **Then** it
+   detects the live instance on the same data root and refuses to serve, naming the
+   single-replica constraint.
+7. **Given** a revision update on Azure Container Apps, **When** the new revision starts while the
+   old one still runs, **Then** the new one waits without serving data, takes over when the old
+   one releases the data root at shutdown, and the interruption lasts at most the shutdown time
+   plus 30 seconds.
+
+---
+
+### User Story 10 - Every change verified, every release deployed through the pipeline (Priority: P1)
+
+A contributor opens a pull request; GitHub Actions runs the type check, unit tests, build,
+mutation suite, Playwright browser suites, the Keycloak sign-in tests, builds the image, scans it,
+produces its software bill of materials and runs the container checks; the pull request cannot
+merge while any of them fails. A merge to `main` publishes the image to the registry. When the
+owner pushes tag `v0.4.0`, the pipeline promotes the image already built and tested for that
+commit, waits for approval in the `production` environment, deploys it to Azure Container Apps
+signing in to Azure through workload identity federation, runs a smoke test and, if the smoke
+test fails, puts the previous revision's image back.
+
+**Why this priority**: P1, by owner decision. The verification gate of the constitution is only
+reliable when it runs on every change, and a reproducible, approved, reversible release is what
+makes the team deployment trustworthy.
+
+**Independent Test**: open a pull request with a deliberately failing unit test and with a
+vulnerable base image and confirm the pipeline blocks both; merge a green change and confirm the
+image appears in the registry with its commit tag and its bill of materials; push a pre-release
+tag, approve, and confirm deployment and smoke test; push a tag whose image fails the smoke test
+and confirm the rollback; confirm no Azure credential is stored in GitHub.
+
+**Acceptance Scenarios**:
+
+1. **Given** a pull request or a push, **When** the pipeline runs, **Then** type check, unit
+   tests, build, mutation suite, browser suites, Keycloak sign-in tests, image build, image scan,
+   bill of materials and container checks all run, and a failure of any of them fails the run.
+2. **Given** the image scan, **When** it finds a critical or high vulnerability that has a fix,
+   **Then** the run fails unless the finding is listed in the ignore file with a reason and an
+   expiry date that has not passed.
+3. **Given** a push to `main` that passes every check, **When** the publish job runs, **Then** the
+   image is pushed to the registry tagged with the commit and `main`, and its bill of materials is
+   kept with the run.
+4. **Given** a version tag `v*` on a commit of `main` whose image was published, **When** the
+   release runs, **Then** that same image (same digest, not rebuilt) is rescanned, tagged with the
+   version, and a GitHub release is created with the bill of materials; a tag on a commit without
+   a published image fails with that reason.
+5. **Given** the release waiting for approval, **When** a required reviewer approves, **Then** the
+   pipeline signs in to Azure with a short-lived federated token, deploys the image by digest as a
+   new revision and runs the smoke test; without approval nothing is deployed.
+6. **Given** a deployed revision whose smoke test fails, **When** the failure is detected, **Then**
+   the previous image is deployed again, the smoke test is repeated on it, and the run fails with
+   both results in its summary.
+7. **Given** an Admin, **When** they run the rollback workflow for an earlier version, **Then** that
+   version's image is deployed after approval and smoke-tested.
+8. **Given** a pull request from a fork, **When** the pipeline runs, **Then** checks run without
+   access to Azure or to repository secrets, and no publish or deploy job runs.
 
 ---
 
@@ -470,7 +578,29 @@ survive; follow the Azure guide on a test subscription (manual, recorded).
 - Remote token expires during a long push: the operation fails with the Git error and the person
   re-runs it; no credential prompt appears in the container.
 - Local mode on a non-loopback address is requested: the server refuses and explains that server
-  mode with sign-in is required.
+  mode with sign-in is required. In a container this includes local mode started without host
+  networking: the server binds loopback inside the container, is unreachable, and its start-up
+  log says to use the compose local profile (OP-8).
+- The mounted data folder is not writable by the container's non-root user (wrong owner on a
+  bind mount or wrong mount options on Azure Files): start-up stops with the path and the user id
+  instead of failing on the first save.
+- A revision update starts the new revision while the old one holds the data root: the new one
+  answers 503 with `Retry-After` on every route except health until the old one releases the lock
+  at shutdown or its heartbeat is older than 30 seconds (FR-123).
+- The smoke test fails after a deployment: the previous image is deployed again; if the previous
+  image fails its smoke test too, the run fails, says so, and the app is left on the previous
+  image for a person to investigate.
+- A version tag is pushed on a commit that is not on `main`, or whose image was never published:
+  the release fails before any approval request, naming the reason.
+- A new critical vulnerability is published between the merge and the release: the release
+  rescan fails, nothing is deployed, and the fix is a new commit and tag.
+- Two version tags are pushed in quick succession: deployments run one at a time in tag order;
+  the later one waits.
+- A person is signed in during a deployment: sessions are persisted under the data root and
+  survive the new revision; requests during the hand-over get 503 and the browser retries.
+- Pre-release tags (for example `v0.4.0-alpha.1`) deploy to the same environment; until the
+  read filtering, role enforcement and Admin panel stories are delivered, that environment holds
+  only the test fixture workspace, never real contracts.
 
 ## Requirements *(mandatory)*
 
@@ -736,16 +866,73 @@ survive; follow the Azure guide on a test subscription (manual, recorded).
   project files (OP-5); the server MUST load the active configuration from that repository's latest
   commit at start-up and after each change.
 
-#### Deployment
+#### Container and deployment
 
-- **FR-120**: The release MUST ship a container image definition that runs server mode, with the
-  data root on a mounted volume, a health endpoint for liveness and readiness, and configuration
-  only through environment variables and secret references.
-- **FR-121**: The README MUST document Azure Container Apps (primary) and App Service (alternative)
-  deployment, Entra and Keycloak setup, both modes, the role matrix, what each role can see, the
-  outbound network calls of server mode, and the single-replica constraint with the path to scale.
-- **FR-122**: The server MUST refuse to serve when it detects another live instance on the same
-  data root.
+- **FR-120**: The release MUST ship a multi-stage container image definition whose runtime stage
+  holds only Bun, Git 2.40 or later, the built frontend and the server; runs as a non-root user;
+  declares the data root as a volume; carries its version and commit; checks health through the
+  liveness endpoint; and takes configuration only through environment variables and secret
+  references. The same image MUST run in local mode and in server mode.
+- **FR-121**: The README MUST document running the image with Docker Compose (local profile, and
+  server profile with a development Keycloak), Azure Container Apps (primary) and App Service
+  (alternative) deployment, the Azure resources the pipeline expects with their manual setup,
+  Entra and Keycloak setup, both modes, the role matrix, what each role can see, the outbound
+  network calls of server mode, and the single-replica constraint with the path to scale.
+- **FR-122**: The server MUST refuse to serve when it detects another live instance of the same
+  revision on the same data root.
+- **FR-123**: When the live instance on the data root belongs to a different revision (a revision
+  update), the starting instance MUST serve only the health endpoints and answer 503 with
+  `Retry-After` elsewhere until the other instance releases the data root or its heartbeat is
+  older than 30 seconds, then take over; it MUST report itself ready to the platform meanwhile so
+  the update can proceed.
+- **FR-124**: In both modes the server MUST be able to serve the built frontend itself (always in
+  the container), and `/healthz` MUST return the version and commit and nothing about the
+  workspace; `/readyz` MUST report ready only after recovery, the instance lock (or the hand-over
+  wait of FR-123) and the first scan.
+- **FR-125**: The container in local mode MUST keep every local-mode rule of FR-002 and FR-003; it
+  is reached through host networking (OP-8). Start-up MUST stop with a clear message when the data
+  root is not writable by the container user.
+- **FR-126**: A Docker Compose file MUST provide a local profile (local mode, data folder of the
+  developer's choice) and a server profile (server mode against a development Keycloak loaded with
+  the test realm, loopback public URL, development-only secrets).
+
+#### Continuous integration and delivery
+
+- **FR-130**: A GitHub Actions pipeline MUST run on every pull request and every push: type check,
+  unit and API tests, production build, mutation suite, every browser suite of the quality gate,
+  the Keycloak sign-in tests, the image build, the image scan, the bill of materials and the
+  container checks (the local and server suites run against the image). Any failure MUST fail the
+  run, and `main` MUST accept only changes whose run passed.
+- **FR-131**: The image scan MUST fail on critical or high vulnerabilities that have a fix, unless
+  each is listed in an ignore file with a reason and an unexpired date. Every built image MUST get
+  a software bill of materials in SPDX JSON.
+- **FR-132**: On a push to `main` that passes every check, the pipeline MUST publish the image to
+  Azure Container Registry tagged with the commit and `main` (OP-6).
+- **FR-133**: On a version tag `v*`, the pipeline MUST promote the image already published for the
+  tagged commit (same digest) to the version tag after a fresh scan, create a GitHub release with
+  the bill of materials, and refuse a tag whose commit is not on `main` or has no published image.
+- **FR-134**: Deployment to Azure Container Apps MUST run only for version tags, in the GitHub
+  environment `production` after manual approval (OP-7), one deployment at a time, and MUST deploy
+  the image by digest.
+- **FR-135**: The pipeline MUST authenticate to Azure only through OpenID Connect workload identity
+  federation, with one identity that may push images (publish) and one that may also update the
+  container app (deploy), each limited to those rights; no Azure or registry credential may be
+  stored in GitHub, and identifiers are kept as repository variables.
+- **FR-136**: After each deployment the pipeline MUST run a smoke test against the public URL:
+  liveness reports the deployed version and commit, readiness is reached, an unauthenticated API
+  call gets 401 with no workspace data, sign-in redirects to the configured provider with PKCE,
+  and the security headers are present.
+- **FR-137**: When the smoke test fails, the pipeline MUST deploy the previously running image
+  again, smoke-test it and fail the run; a manually started rollback workflow MUST deploy a chosen
+  earlier version through the same approval and smoke test.
+- **FR-138**: Workflows MUST pin third-party actions by commit, grant the least permissions per
+  job (read-only by default; token issuance only to publish and deploy jobs), never run publish or
+  deploy for pull requests from forks, and keep dependency updates for actions, images and
+  packages automated.
+- **FR-139**: Infrastructure as code is out of scope: the deployment guide MUST list every Azure
+  resource, role assignment and GitHub setting the pipeline expects and the manual steps to create
+  them, and the deploy job MUST check before deploying that the container app has single revision
+  mode, exactly one replica, the data volume and the managed identity.
 
 ### Key Entities
 
@@ -770,6 +957,14 @@ survive; follow the Azure guide on a test subscription (manual, recorded).
 - **Administration repository**: the Git repository under the data root holding every Admin-edited
   configuration file; each commit is one configuration version.
 - **Bootstrap Admin**: a person named in the environment who always holds Admin (break-glass).
+- **Instance lock**: the record on the data root of the instance (host, process, revision,
+  heartbeat) that may serve it.
+- **Image**: the container image built once per commit, identified by digest, with its version,
+  commit, scan result and bill of materials.
+- **Release**: a version tag, the image digest it promotes, its GitHub release and the deployment
+  it triggers.
+- **Deployment**: a revision of the container app running one image digest, with its smoke-test
+  result and the previous digest kept for rollback.
 
 ## Success Criteria *(mandatory)*
 
@@ -792,7 +987,8 @@ survive; follow the Azure guide on a test subscription (manual, recorded).
 - **SC-008**: 100% of the security-relevant actions performed in the matrix produce exactly one
   audit entry with all required fields; no audit entry contains a token or document content.
 - **SC-009**: The container image starts, passes health checks and accepts a sign-in within 30
-  seconds on a workspace of the shipped examples, and keeps sessions and data across a restart.
+  seconds on a workspace of the shipped examples, and keeps sessions and data across a restart;
+  in local mode the local browser suites pass against the image as against the dev server.
 - **SC-010**: The README's Entra and Keycloak guides let a person who has not seen the project
   reach a signed-in workspace (recorded once for Entra manually, automated for Keycloak).
 - **SC-011**: An Admin can assign a project to a domain, map a group to a role and confirm the
@@ -800,6 +996,16 @@ survive; follow the Azure guide on a test subscription (manual, recorded).
 - **SC-012**: 100% of attempts in the test suite to remove the last Admin, activate an invalid
   policy or weaken a baseline prohibition are refused, and a rollback restores the previous
   decisions for 100% of the matrix cases.
+- **SC-013**: 100% of the quality-gate checks (FR-130) run on every pull request and push, and the
+  pull-request pipeline finishes within 45 minutes on GitHub-hosted runners.
+- **SC-014**: Every published image has a bill of materials, and no released image has an
+  unignored critical or high vulnerability with a fix at release time.
+- **SC-015**: From approval to a smoke-tested revision takes at most 15 minutes; when the smoke
+  test fails, the previous image serves again within 10 minutes.
+- **SC-016**: Zero Azure or registry credentials are stored in the GitHub repository, its
+  environments or its variables; every Azure sign-in of the pipeline uses a federated token.
+- **SC-017**: A revision update interrupts service for at most the old instance's shutdown time
+  plus 30 seconds, and never lets two instances serve one data root.
 
 ## Assumptions
 
@@ -823,6 +1029,12 @@ survive; follow the Azure guide on a test subscription (manual, recorded).
   with the documented steps.
 - People's display names and emails from the provider may be shown to other people who share a
   project (commit authors, "in use by"), as in any Git hosting service.
+- One Azure environment (production) is deployed by the pipeline; pre-release tags use it with the
+  test fixture workspace until the P1 access stories are complete (see Edge Cases).
+- GitHub-hosted Ubuntu runners provide Docker for the image build, the container checks and the
+  Keycloak tests.
+- Released images are kept in the registry so that rollback can reach any earlier version;
+  retention of commit-tagged images is an Admin choice documented in the guide.
 
 ## Dependencies
 
@@ -834,7 +1046,13 @@ survive; follow the Azure guide on a test subscription (manual, recorded).
   app roles, or Keycloak 26 or later).
 - For remote credentials: an Azure DevOps organisation connected to the same Entra tenant, or a
   GitHub OAuth app / GitHub App registered by the Admin.
-- Container runtime for the Keycloak tests (Docker or Podman) on the CI runner.
+- Container runtime for the Keycloak tests and the container checks (Docker or Podman): GitHub-hosted
+  runners in CI, Docker Engine or Podman with host networking locally.
+- For delivery: an Azure subscription with the resources of the deployment guide (resource group,
+  Container Apps environment and app, storage account with an Azure Files share, Key Vault, Azure
+  Container Registry, Log Analytics workspace, two user-assigned identities federated with the
+  GitHub repository), and a GitHub plan that offers required reviewers on the repository's
+  environments or the fallback of OP-7.
 
 ## Appendix A - What exists today (from the authorization inventory)
 
