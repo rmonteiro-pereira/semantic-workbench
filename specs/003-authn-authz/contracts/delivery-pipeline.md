@@ -120,7 +120,7 @@ the `browser` matrix (`test:auth:keycloak` is a recorded exclusion: compatibilit
 | Container registry (admin user off) | repository `semantic-workbench`; retention rule for untagged manifests | `id-sw-app`: `AcrPull`; push and deploy identities: `AcrPush` (pushing and tagging; no import right needed) |
 | Container app | single revision mode, min = max replicas 1, ingress 4310, probes `/healthz` and `/readyz`, volume `/data`, identity `id-sw-app`, env of configuration.md with Key Vault references | deploy identity: Contributor on this resource only, plus, if required, the environment join action and Managed Identity Operator on `id-sw-app` (assigning a user-assigned identity); final set recorded by the owner's trial report |
 | `id-sw-app` | user-assigned identity of the container app (created first); federated credential of the Entra sign-in app | as above |
-| Entra app registration (sign-in) | quickstart §5 | — |
+| Entra app registration (sign-in) | quickstart §5: no app roles; groups claim, optional claims `email`, `upn`, `xms_edov`; application permission `GroupMember.Read.All` with admin consent | — |
 | Service connections `sw-azure-push`, `sw-azure-deploy` | Azure Resource Manager, workload identity federation (automatic, or manual with the target's own app registration or managed identity, copying the issuer and subject shown on the service connection page), scoped as above; pipeline permission granted only to the two pipelines | as above |
 | Environment `production` | approvals, branch control (`refs/tags/v*`), exclusive lock | — |
 | Variable group `semantic-workbench-target` | the variables above, none secret; pipeline permission granted only to the two pipelines | — |
@@ -140,7 +140,8 @@ the variable group's Entra values.
 
 Exit 0 only when: `/readyz` reports state `serving` within 3 minutes (`handover` is waited out);
 `/healthz` reports the commit and the `package.json` version of that commit; `GET /api/projects`
-without cookie → 401 with no project name in the body; `/auth/login` → 302 to the
+without cookie → 401 with no project name in the body; `GET /` without cookie → 302 straight to
+the provider (no workbench sign-in page); `/auth/login` → 302 to the
 `authorization_endpoint` of `<issuer>/.well-known/openid-configuration` with
 `code_challenge_method=S256`; `Strict-Transport-Security`, `Content-Security-Policy` and
 `X-Content-Type-Options` present; the sign-in state cookie is `Secure; HttpOnly`. `--loopback`
@@ -203,8 +204,11 @@ fail box:
 5. Tag run; expected: version check passes, approval requested; after approval rescan, version
    tag on the same digest, new revision, smoke test passes; time from approval to smoke result
    (SC-015).
-6. Entra sign-in with users of each role (quickstart §5 checklist); push to Azure DevOps as an
-   Editor shows the person as author.
+6. Entra checklist (quickstart §5): direct redirect to Entra with no workbench sign-in screen;
+   a bootstrap Admin grants a role to an Entra group and to an e-mail address; members of the
+   group and the person with that address get their roles; a user without a grant sees **No
+   access**; sign-out lands on **Signed out**; push to Azure DevOps as an Editor shows the
+   person as author.
 7. Restart of the revision: sessions and data survive; revision update hand-over interruption
    measured (SC-017).
 8. Rollback drill: rollback pipeline with `previous`; time until the previous revision serves

@@ -43,10 +43,15 @@
   Apps, workload identity federation, local package scripts such as `ci:validate`); the scanner
   and bill-of-materials tool are named only in plan and research. The GitHub repository runs
   nothing automatically (owner decision, FR-130).
-- Five decisions not fixed by the owner are resolved in the clarify pass with recommended
-  defaults and listed for owner confirmation (OP-1 to OP-5); OP-8 (host networking for local mode
+- Five decisions not fixed by the owner were resolved in the clarify pass with recommended
+  defaults and are confirmed by the owner (OP-1 to OP-5); OP-8 (host networking for local mode
   in a container) is accepted by the owner; the former OP-6 and OP-7 are withdrawn.
 - The owner's answers on the target environment are decided (OP-9: Entra only on the target,
   Keycloak as a local compatibility suite, sign-in tested against a mock OpenID provider in the
   gate and pipeline; OP-10: the trial is owner acceptance from a runbook; OP-11: releases are
   handed over to the target's Azure Repos mirror).
+- The owner's decisions on sign-in and access are decided (OP-12: no workbench sign-in screen,
+  only **No access** and signed-out pages; OP-13: access grants by Entra group or e-mail in the
+  Admin panel are the only source of roles, no Entra app roles; OP-14: custom roles with members
+  by group or e-mail). Claim names (`xms_edov`, `upn`, `email_verified`) appear in FR-024 because
+  the verified-address rule is a security requirement.

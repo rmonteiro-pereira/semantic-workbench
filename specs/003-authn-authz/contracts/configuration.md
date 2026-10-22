@@ -14,13 +14,12 @@
 | `SW_OIDC_SCOPES` | server | no | default `openid profile email offline_access` (+ `api://<client>/access_as_user` for Entra) |
 | `SW_OIDC_PROVIDER` | server | no (`generic`) | `entra`, `keycloak`, `generic` (claim mapping preset) |
 | `SW_ENTRA_TENANT_ID` | server/entra | yes for Entra | `tid` allow-list |
-| `SW_ROLE_CLAIM` | server | no | override claim path for roles |
-| `SW_GROUP_CLAIM` | server | no (`groups`) | |
+| `SW_GROUP_CLAIM` | server | no (`groups`) | claim holding group ids (Entra) or names/paths (Keycloak) matched against group grants |
 | `SW_GROUP_OVERAGE` | server/entra | no (`directory`) | `directory` (Graph checkMemberGroups) or `off` |
-| `SW_GRAPH_URL` | server/entra | no (`https://graph.microsoft.com`) | Microsoft Graph base URL for overage resolution (an app-only token is sent there); accepted values: the Microsoft Graph endpoints of the public and national clouds, or a loopback `http://` URL when `SW_PUBLIC_URL` is loopback (the mock OpenID provider's stand-in in tests); anything else refuses start-up |
+| `SW_GRAPH_URL` | server/entra | no (`https://graph.microsoft.com`) | Microsoft Graph base URL for overage resolution and group display-name lookups (an app-only token is sent there); accepted values: the Microsoft Graph endpoints of the public and national clouds, or a loopback `http://` URL when `SW_PUBLIC_URL` is loopback (the mock OpenID provider's stand-in in tests); anything else refuses start-up |
 | `SW_API_AUDIENCE` | server | yes for agents | expected `aud` of bearer tokens |
 | `SW_SESSION_KEY` | server | yes | 32 bytes base64; encrypts sessions |
-| `SW_BOOTSTRAP_ADMINS` | server | yes (≥ 1) | comma-separated emails or stable ids that always hold Admin (break-glass) |
+| `SW_BOOTSTRAP_ADMINS` | server | yes (≥ 1) | comma-separated e-mail addresses (matched case-insensitively against the verified address only) or stable ids (`tid:oid`) that always hold Admin (break-glass) |
 | `SW_COMMITTER_NAME`, `SW_COMMITTER_EMAIL` | server | no | committer identity of server commits |
 | `SW_GITHUB_HOST`, `SW_GITHUB_CLIENT_ID`, `SW_GITHUB_CLIENT_SECRET` | server | no | GitHub OAuth/App for user tokens |
 | `SW_ADO_OBO` | server/entra | no (`true`) | Azure DevOps on-behalf-of |
@@ -35,6 +34,9 @@ networking (OP-8; on Docker Desktop, host networking must be enabled in its sett
 Container Apps server mode sets `SW_HOST=0.0.0.0` (checked by the deploy preflight). The Azure
 DevOps pipeline parameters and variable group, and the variables the local build and deploy
 scripts read (not read by the server), are listed in [delivery-pipeline.md](./delivery-pipeline.md).
+
+No variable configures roles: provider roles are not read for people, and every role comes from
+the access grants in the Admin panel (or `SW_BOOTSTRAP_ADMINS`).
 
 Start-up refuses server mode when a required variable is missing or invalid, naming it. Secrets
 are read once and never logged; on Azure they are Key Vault references resolved by the platform.
