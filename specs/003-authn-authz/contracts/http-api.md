@@ -91,3 +91,72 @@ suggestions reject), `import`, `move` (move, suggestion accept), `delete` (file 
 and `/readyz` are listed as public rows. The matrix test fails if
 a route exists in `server/routes/**` or `server/handler.ts` without a row in
 `tests/auth/route-actions.ts`.
+
+## Route inventory (code of 002, re-run after the rebase)
+
+Every route the server answers today, with the action the boundary checks before the route runs
+and the resource it is checked against (W workspace, P project, F file). `server/auth/route-actions.ts`
+holds the same table; `tests/auth/route-actions.test.ts` fails when a route in `server/routes/**` or
+`server/handler.ts` has no row. All the routes that 002 planned (identity, credential helper, clone,
+repository projects, metric aliases) exist; none was renamed or dropped.
+
+| Method & path | Action | Resource |
+| --- | --- | --- |
+| `GET /api/events` | `read` | W |
+| `GET /api/status` | `read` (details: `readStatus`) | W |
+| `GET /api/projects` | `read` | W (list filtered) |
+| `POST /api/projects` | `createProject` | W |
+| `PATCH /api/projects/:slug` | `renameProject` | P |
+| `DELETE /api/projects/:slug` | `deleteProject` | P |
+| `POST /api/import` | `createProject` | W |
+| `POST /api/projects/:slug/move` | `move` | P (and the target project) |
+| `POST /api/projects/:slug/import` | `import` | P |
+| `POST /api/examples/:name` | `createProject` | W |
+| `GET /api/projects/:slug/files/*` | `read` | F |
+| `PUT /api/projects/:slug/files/*` | `edit` | F |
+| `DELETE /api/projects/:slug/files/*` | `delete` | F |
+| `GET /api/projects/:slug/files/*/explain/:metric` | `read` | F |
+| `GET /api/projects/:slug/metrics` | `read` | P |
+| `POST /api/projects/:slug/metrics`, `…/kpis` | `edit` | P |
+| `POST /api/projects/:slug/metrics/preview`, `…/kpis/preview` | `read` | P |
+| `POST /api/projects/:slug/save-batch` | `edit` | P |
+| `GET /api/projects/:slug/delete-impact` | `read` | P |
+| `POST /api/clear` | `clear` | W |
+| `GET /api/trash` | `read` | W (list filtered) |
+| `DELETE /api/trash` | `purge` | W |
+| `POST /api/trash/:entry/undo`, `…/restore` | `restoreOwn` (another person's entry: `restoreOthers`) | W |
+| `DELETE /api/trash/:entry` | `purge` | W |
+| `GET /api/suggestions` | `read` | W (list filtered) |
+| `POST /api/suggestions/:id/accept` | `move` | W (both projects checked by the route) |
+| `POST /api/suggestions/:id/reject` | `edit` | W |
+| `GET /api/drafts` | `viewOwnState` | W (own drafts only) |
+| `GET /api/drafts/:slug/*` | `viewOwnState` | F |
+| `PUT`, `DELETE /api/drafts/:slug/*` | `edit` | F |
+| `GET /api/git/credential-helper` | `setIdentity` | W |
+| `GET /api/projects/:slug/git/status`, `diff`, `branches`, `log`, `versions`, `show` | `history` | P |
+| `GET /api/projects/:slug/git/identity` | `setIdentity` | P |
+| `POST /api/projects/:slug/git/stage`, `unstage` | `stage` | P |
+| `POST /api/projects/:slug/git/commit` | `commit` | P |
+| `POST /api/projects/:slug/git/revert` | `revert` | P |
+| `POST /api/projects/:slug/git/switch` | `branch` | P |
+| `POST /api/projects/:slug/git/fetch` | `fetch` | P |
+| `POST /api/projects/:slug/git/pull`, `sync` | `pull` | P |
+| `POST /api/projects/:slug/git/push` | `push` | P |
+| `POST /api/projects/:slug/git/cancel` | `cancelOwn` | P |
+| `POST /api/projects/:slug/gitignore` | `edit` | P |
+| `PUT`, `DELETE /api/projects/:slug/git/remote` | `setRemote` | P |
+| `PUT /api/projects/:slug/git/identity` | `setIdentity` | P |
+| `POST /api/clone` | `clone` | W |
+| `POST /api/clone/:operation/cancel` | `clone` | W |
+| `GET /api/repos/:repo/project-candidates` | `registerProjects` | W |
+| `PUT /api/repos/:repo/projects` | `registerProjects` | W |
+| `GET /api/agent/catalog`, `GET /api/agent/context`, `POST /api/agent/plan` | `read` (bearer clients: `agentRead`) | W (computed over readable projects) |
+| `GET`, `PUT /api/documents/:id/grouping` | `viewOwnState` | W (the route resolves the document's project) |
+| `GET /api/documents` | `read` | W (list filtered) |
+| `POST /api/documents` | `edit` | W (the route resolves the document's project) |
+
+Workspace-level `read` and `viewOwnState` are allowed to every person with access (baseline policy
+`B1-workspace-lists`); what such a route returns is filtered to readable projects and the person's
+own state. Rows whose resource is W but whose effect lands in one project (suggestions, legacy
+documents, trash entries) are checked again by the route against that project once the user
+stories that filter them are built.
