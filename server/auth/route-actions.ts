@@ -15,6 +15,8 @@ export type RouteAction = {
   public?: true;
   audited?: true;
   targets?: 'body';
+  /** The action an agent client is decided by on this row; a row without one refuses clients. */
+  clientAction?: 'agentRead';
 };
 const workspace = (): ResourceRef => ({ type: 'workspace' });
 const project = (match: RegExpMatchArray): ResourceRef => ({
@@ -124,9 +126,21 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   row('POST', '/api/clone/:operation/cancel', 'clone', workspace),
   row('GET', '/api/repos/:repo/project-candidates', 'registerProjects', workspace),
   row('PUT', '/api/repos/:repo/projects', 'registerProjects', workspace),
-  { ...row('GET', '/api/agent/catalog', 'read', workspace), audited: true },
-  { ...row('GET', '/api/agent/context', 'read', workspace), audited: true },
-  { ...row('POST', '/api/agent/plan', 'read', workspace), audited: true },
+  {
+    ...row('GET', '/api/agent/catalog', 'read', workspace),
+    audited: true,
+    clientAction: 'agentRead',
+  },
+  {
+    ...row('GET', '/api/agent/context', 'read', workspace),
+    audited: true,
+    clientAction: 'agentRead',
+  },
+  {
+    ...row('POST', '/api/agent/plan', 'read', workspace),
+    audited: true,
+    clientAction: 'agentRead',
+  },
   row('GET', '/api/documents/:id/grouping', 'viewOwnState', workspace),
   // Grouping views are personal; the route resolves the document and refuses a hidden one.
   { ...row('PUT', '/api/documents/:id/grouping', 'viewOwnState', workspace), targets: 'body' },

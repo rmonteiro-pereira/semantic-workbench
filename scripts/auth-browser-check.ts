@@ -4,6 +4,7 @@ import { TEST_GROUPS } from '../tests/helpers/auth-identities';
 import { startMockOidc } from '../tests/helpers/mock-oidc';
 import { freeAuthPort, startAuthApi } from './auth-environment';
 import {
+  agentBearerChecks,
   readVisibilityChecks,
   roleControlChecks,
   signInChecks,
@@ -28,6 +29,7 @@ export async function authBrowserCheck() {
         const target: SignInTarget = { url, issuer: mock.issuer, kind: 'entra' };
         await signInChecks(browser, target);
         await roleControlChecks(browser, target);
+        await agentBearerChecks(browser, target);
         await mockLifecycleChecks(browser, target, mock, api.root);
         await localAuthSmoke(browser);
         mock.setUserGroups('alice', [TEST_GROUPS.salesViewers]);

@@ -348,10 +348,10 @@ allow-list.
 
 **Independent Test**: `bun test tests/auth/bearer.test.ts`.
 
-- [ ] T100 [P] [US7] Tests in tests/auth/bearer.test.ts: granted client sees only granted mappings without any app role in its token; ungranted client (valid token) → 403 and audited; bearer outside `/api/agent/*` → 401; expired, wrong signature, wrong audience, wrong issuer, wrong tenant, not an application token → 401 and audited; context does not resolve ontologies from ungranted projects (FR-015, FR-090, FR-091)
-- [ ] T101 [US7] Bearer validation server/auth/bearer.ts with `jose` remote JWKS (cache, refresh on unknown `kid` at most every 5 minutes, RS256/ES256 only)
-- [ ] T102 [US7] Client principals keyed by `azp`/`appid` and grants from `agents.json` (the only authorisation of a client; no app role read) in server/auth/principal.ts and server/auth/authorize.ts; audit of every agent call
-- [ ] T103 [US7] Mutants: bearer accepted outside agent routes; audience unchecked; client grant ignored — in scripts/mutation-tests.ts
+- [X] T100 [P] [US7] Tests in tests/auth/bearer.test.ts: granted client sees only granted mappings without any app role in its token; ungranted client (valid token) → 403 and audited; bearer outside `/api/agent/*` → 401; expired, wrong signature, wrong audience, wrong issuer, wrong tenant, not an application token → 401 and audited; context does not resolve ontologies from ungranted projects (FR-015, FR-090, FR-091)
+- [X] T101 [US7] Bearer validation server/auth/bearer.ts with `jose` remote JWKS (cache, refresh on unknown `kid` at most every 5 minutes, RS256/ES256 only)
+- [X] T102 [US7] Client principals keyed by `azp`/`appid` and grants from `agents.json` (the only authorisation of a client; no app role read) in server/auth/principal.ts and server/auth/authorize.ts; audit of every agent call
+- [X] T103 [US7] Mutants: bearer accepted outside agent routes; audience unchecked; client grant ignored — in scripts/mutation-tests.ts
 
 ---
 

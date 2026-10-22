@@ -31,8 +31,11 @@ below come from that probe.
 - **Decision**: `jose` 6.2.13 (MIT, 412 KB installed) `jwtVerify` with `createRemoteJWKSet` on the
   provider's `jwks_uri` (cached, refreshed on unknown `kid`, at most once per 5 minutes).
   Checks: signature (RS256/ES256 only), issuer, audience (the workbench API), `exp`/`nbf` with
-  300 s tolerance, Entra `tid` and `idtyp=app`, and a client id (`azp`, or `appid` in v1
-  tokens) that an Admin granted in `agents.json`. No `Agent` app role is required (R22): Entra
+  300 s tolerance, Entra `tid` and `idtyp=app`, and a client id (`azp`) that an Admin granted
+  in `agents.json`. The issuer is pinned to the v2 issuer, so validation is limited to v2 access
+  tokens (v1 tokens carry `https://sts.windows.net/{tid}/` and `appid`): the API app sets
+  `accessTokenAcceptedVersion: 2`, adds the optional claim `idtyp` to access tokens, and
+  `SW_API_AUDIENCE` holds its client id. No `Agent` app role is required (R22): Entra
   issues client-credentials tokens for the workbench API to applications of the tenant without
   any role, which is exactly why the client grant, not the token, decides.
 - **Evidence**: sign/verify round trip with an RS256 key pair under Bun 1.4.0.
@@ -652,6 +655,7 @@ probe: `openid-client` 6.8.8 (MIT, 236 KB) with `oauth4webapi` (MIT, 332 KB), `j
 | Phase 8 on top of Phase 7 (one request-scope module, one `deletedBy` field, `restoreAction()`, personal grouping, hidden write targets answer 404) and the second review round (remote changes checked repository-wide, legacy document save checks the written name, one administration repository that reloads policy after each commit, clone domains in one commit, unknown and hidden domains answer alike, creation decided without a stand-in project, requirement text with the configured role names, no empty domain commits) | Claude (general-purpose subagents, after the Codex usage limit), reviewed by Claude; the Ungrouped slug authorized before the project is created and the grouped Git check parameters by Claude |
 | T057–T075, T140–T142 (administration server and repository, dry run, audit queries, Admin panel UI, browser check, mutants) | Codex (gpt-6-astra) started the server part; finished, joined with the UI and reviewed by Claude general-purpose subagents after the Codex usage limit |
 | Phase 9 on top of Phase 8 (one administration repository with reload on commit, streams closed only for affected people, Steward audit without restricted paths, new projects announced after their domain commit, admin setup retried, one Steward audit decision, one rollback path, one dry-run document shape, dry run outside the save lock, Admin button height) | Claude (general-purpose subagent), reviewed by Claude; grouped dry-run and grant-form parameters by Claude |
+| T100–T103 (bearer validation, client principals from agent grants, agent-call audit, mutants) and two review rounds (Entra v2 audience and issuer, per-row client action, provider failures answered 503, one client constructor, cross-site check skipped for clients, cookie never outranks a token) | Codex (gpt-6-astra) started it; finished, reviewed and merged onto the Admin panel by Claude general-purpose subagents |
 
 ### Test changes not caused by the specification
 
@@ -730,3 +734,9 @@ probe: `openid-client` 6.8.8 (MIT, 236 KB) with `oauth4webapi` (MIT, 332 KB), `j
   started checking restricted paths.
 - `tests/auth/dry-run.test.ts`: the people and audit entries a dry run compares are passed as one
   object; the expectations are unchanged.
+- `tests/auth/principal.test.ts`, `tests/auth/authorize.test.ts` and
+  `tests/auth/access-boundary.test.ts`: sign-in no longer builds agent clients, so the test that an
+  application token becomes a client is replaced by tests of `clientFromToken`, and the other two
+  build their client with it; their assertions are unchanged.
+- `tests/auth/policy-templates.test.ts`: imports the one client constructor from its new home in
+  `principal.ts`; the call and assertions are unchanged.

@@ -153,12 +153,13 @@ Identity settings used by server sign-in:
 | `SW_GRAPH_URL` | Defaults to `https://graph.microsoft.com`; also accepts Microsoft national-cloud Graph endpoints, or loopback HTTP with a loopback public URL. |
 | `SW_SESSION_KEY` | Required 32 random bytes encoded as base64. |
 | `SW_BOOTSTRAP_ADMINS` | Required comma-separated verified e-mail addresses or stable IDs (`tid:oid` for Entra); grants emergency Admin access. |
+| `SW_API_AUDIENCE` | Comma-separated audiences an agent client's bearer token may carry. For Entra, the API app's client id (the `aud` of v2 access tokens). Unset, every bearer token is refused. |
 
 `SW_HOST`, `SW_PORT`, `DATA_DIR`, `SW_CACHE_DIR`, `SW_SERVE_STATIC`, `SW_IN_CONTAINER`,
 `SW_VERSION`, `SW_COMMIT` and `CONTAINER_APP_REVISION` retain the meanings documented above.
 `SW_SERVE_STATIC` is always enabled in server mode. The remaining variables in the
-[configuration contract](specs/003-authn-authz/contracts/configuration.md) configure later agent
-and delegated-credential features; they do not grant browser access.
+[configuration contract](specs/003-authn-authz/contracts/configuration.md) configure
+delegated-credential features; they do not grant browser access.
 
 Entra group overage uses application permission `GroupMember.Read.All` with administrator consent.
 Only group IDs named in grants and restricted paths are checked, in batches of at most 20.
@@ -206,6 +207,71 @@ configuration are unavailable in server mode.
 New projects, imports and examples created by a Steward receive an allowed domain automatically
 when there is only one. With several domains, a dialog asks which one to use. Admins may choose a
 domain or leave the project unassigned. Local mode retains its existing unrestricted workflow.
+
+### Agent clients in server mode
+
+An automation calls `/api/agent/catalog`, `/api/agent/context` and `/api/agent/plan` with its own
+identity: a client-credentials access token from the same provider, sent as
+`Authorization: Bearer <token>`. It sees only the projects an Admin granted to its client id.
+
+1. Prepare the API app registration that exposes the workbench API (usually the workbench's own,
+   `SW_OIDC_CLIENT_ID`). In its manifest set `"accessTokenAcceptedVersion": 2`, so Entra issues
+   v2 access tokens whose issuer matches `SW_OIDC_ISSUER`. Under **Token configuration**, add the
+   optional claim `idtyp` to access tokens; Entra omits it otherwise and every token is refused.
+2. Set `SW_API_AUDIENCE` to that app's client id, which is the `aud` of its v2 access tokens. A
+   comma-separated list accepts several audiences, for example during a move between apps.
+3. Register the automation as an application in the same tenant. It needs no app role.
+4. Grant its client id projects or whole domains in `admin/agents.json`:
+
+```json
+{
+  "formatVersion": 1,
+  "clients": [
+    {
+      "clientId": "my-agent",
+      "name": "Sales automation",
+      "projects": ["sales-contracts"],
+      "domains": []
+    }
+  ]
+}
+```
+
+5. Request a token for the API app's `/.default` scope (its application ID URI, such as
+   `api://<API app client id>/.default`) with the client-credentials grant, then call the
+   workbench:
+
+```sh
+curl "$SW_PUBLIC_URL/api/agent/catalog" -H "Authorization: Bearer $ACCESS_TOKEN"
+curl "$SW_PUBLIC_URL/api/agent/context?mappingId=sales-contracts/sales.mapping.yaml" \
+  -H "Authorization: Bearer $ACCESS_TOKEN"
+curl "$SW_PUBLIC_URL/api/agent/plan" -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H 'Content-Type: application/json' \
+  --data '{"mappingId":"sales-contracts/sales.mapping.yaml","metrics":[],"dimensions":[]}'
+```
+
+What the server accepts and how it answers:
+
+- Tokens are checked against the provider's published keys (RS256 or ES256), issuer,
+  `SW_API_AUDIENCE`, expiry and not-before with five minutes of clock skew. They must be
+  application tokens (`idtyp=app`, no `scp`) of `SW_ENTRA_TENANT_ID`, and the client id comes
+  from `azp`. The issuer check admits v2 tokens only: v1 tokens come from
+  `https://sts.windows.net/<tenant>/` and are refused. An unknown signing key reloads the keys at
+  most once every five minutes.
+- The client's entry in `agents.json` is its only authorization. App roles, groups and addresses
+  in the token grant nothing, and restricted paths stay hidden from every client.
+- An invalid token gets 401 with `WWW-Authenticate: Bearer error="invalid_token"`. When the
+  provider's keys cannot be fetched or read, the call gets 503 without that header and can be
+  retried. A valid token of a client without a grant, or of a deactivated client, gets 403. A document outside the client's projects answers 404 like a missing one, and context
+  never resolves an ontology or semantic model from a project the client cannot read.
+- Bearer tokens are accepted on `/api/agent/*` only; anywhere else they get 401, even next to a
+  valid session cookie. A browser session still works on the agent routes. A client needs no
+  `Origin` or `X-SW-Request` header: those guard cookies a browser sends on its own.
+- Every call of an agent client is audited under `client:<clientId>`. A refused token is
+  recorded as anonymous, with the reason, and never copied into the log.
+
+Bearer validation follows Entra's token shape; a Keycloak or generic provider's client tokens are
+refused.
 
 ## Local build scripts
 
@@ -298,7 +364,8 @@ container gate invokes it against the server group's existing container and mock
 Run `bun run test:auth`; it builds the frontend first. The check starts a mock OpenID
 provider and the API on free loopback ports, seeds temporary fixture grants, and drives the
 built frontend with Chromium. It checks every fixture person, role provenance, refresh, expiry,
-Graph overage and failure, cookie-authenticated events and sign-out. Screenshots of the person
+Graph overage and failure, cookie-authenticated events, sign-out, and agent clients' bearer
+tokens next to a signed-in browser. Screenshots of the person
 menu and the three authentication pages cover 390×844, 1280×720, 1440×900 and 2560×1440.
 `SW_SCREENSHOT_DIR` selects the output folder; otherwise screenshots go to `/tmp`.
 The gate and the pipeline include this suite without an external identity service.

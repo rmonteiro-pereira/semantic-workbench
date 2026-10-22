@@ -4,7 +4,7 @@ import { readJson, requestAuditId, type AuditRequest } from '../request';
 import type { HandlerOptions } from '../auth/middleware';
 import { requestScope } from '../auth/request-scope';
 import { AdminConfigError, withSettingsDefaults } from '../auth/admin-repo';
-import { hypotheticalPrincipal, clientPrincipal } from '../auth/authorize';
+import { hypotheticalPrincipal } from '../auth/authorize';
 import { isAction, ACTIONS, LEVELS, type Level } from '../auth/actions';
 import { roleSource } from '../auth/grants';
 import {
@@ -15,7 +15,7 @@ import {
 } from '../auth/policies';
 import type { AccessAdmin, AdminActor } from '../auth/access-admin';
 import type { AccessConfig } from '../auth/access-config';
-import type { NormalizedPrincipal } from '../auth/principal';
+import { clientPrincipal, type NormalizedPrincipal } from '../auth/principal';
 import type { GroupName } from '../auth/directory';
 import type { ProviderStatus } from '../auth/oidc';
 import type { ResourceRef } from '../auth/resource';

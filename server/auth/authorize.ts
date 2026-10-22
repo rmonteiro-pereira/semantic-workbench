@@ -12,7 +12,12 @@ import builtin from '../../policies/builtin-roles.json';
 import { loadPolicySet, createPolicyEvaluator, PolicyLoadError } from './cedar';
 import { validateAccessConfig, type AccessConfig, type Role } from './access-config';
 import { holdersOfGrant, resolveGrants, type Bootstrap, type GrantOptions } from './grants';
-import { localPrincipal, type NormalizedPrincipal, type Principal } from './principal';
+import {
+  clientPrincipal,
+  localPrincipal,
+  type NormalizedPrincipal,
+  type Principal,
+} from './principal';
 import { ACTIONS, levelNumber, type Action } from './actions';
 import { matchesSegmentGlob, matchesCedarLike } from './path-rules';
 
@@ -195,9 +200,21 @@ export function createAccessControl(options: AccessOptions) {
       return { ...localPrincipal(), deactivated: Boolean(normalized.deactivated) };
     }
     const deactivated = active.config.deactivated.principals.map(principal => principal.id);
+    const isDeactivated = Boolean(normalized.deactivated) || deactivated.includes(normalized.id);
+    // Agent clients: people's grants never apply to one, even a bootstrap id naming it. The
+    // policies decide it from its agents.json entry: B8-agent permits agentRead on its projects,
+    // F4-bearer-scope forbids every other action and F6-restricted hides restricted files, so
+    // accessView lists what agentRead allows. The entry's name is shown and audited for it.
+    if (normalized.kind === 'client') {
+      const entry = active.config.agents.clients.find(
+        client => client.clientId === normalized.clientId,
+      );
+      const name = entry?.name ?? normalized.name;
+      return { ...normalized, name, deactivated: isDeactivated, grants: [] };
+    }
     return {
       ...normalized,
-      deactivated: Boolean(normalized.deactivated) || deactivated.includes(normalized.id),
+      deactivated: isDeactivated,
       grants: resolveGrants(normalized, active.config.grants, {
         bootstrap,
         deactivated,
@@ -397,11 +414,12 @@ function accessView(
     domain: active.config.projects.projects[slug]?.domain ?? null,
   }));
   const grants = principal.grants;
+  const readAction = principal.kind === 'client' ? 'agentRead' : 'read';
   return {
     readableProjects: new Set(
-      active.projects.filter(project => authorize('read', { type: 'project', project }).allow),
+      active.projects.filter(project => authorize(readAction, { type: 'project', project }).allow),
     ),
-    canRead: (project, path) => authorize('read', { type: 'file', project, path }).allow,
+    canRead: (project, path) => authorize(readAction, { type: 'file', project, path }).allow,
     roles: project => [
       ...new Set(
         grants
@@ -429,17 +447,5 @@ export function hypotheticalPrincipal(groups: string[], email: string | null): N
     groups,
     groupsResolved: 'token',
     groupOverage: false,
-  };
-}
-
-/** Builds the same client identity for simulation and dry-run comparisons. */
-export function clientPrincipal(clientId: string, name: string): NormalizedPrincipal {
-  return {
-    ...hypotheticalPrincipal([], null),
-    id: `client:${clientId}`,
-    kind: 'client',
-    key: `client:${clientId}`,
-    clientId,
-    name,
   };
 }

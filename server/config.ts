@@ -50,7 +50,8 @@ export type ServerConfig = CommonConfig & {
     overage: 'directory' | 'off';
     graphUrl: string;
   };
-  apiAudience: string | null;
+  /** Audiences an agent client's token may carry; empty refuses every bearer token. */
+  apiAudience: string[];
   sessionKey: Uint8Array;
   bootstrapAdmins: { emails: string[]; ids: string[] };
   committer: { name: string; email: string };
@@ -176,7 +177,7 @@ function readServer(env: Env, common: CommonConfig, problems: ConfigProblem[]): 
       overage: groupOverage === 'off' ? 'off' : 'directory',
       graphUrl,
     },
-    apiAudience: env.SW_API_AUDIENCE || null,
+    apiAudience: readApiAudiences(env.SW_API_AUDIENCE),
     sessionKey,
     bootstrapAdmins,
     committer: {
@@ -272,6 +273,14 @@ function readSessionKey(value: string, problems: ConfigProblem[]) {
     return new Uint8Array(0);
   }
   return new Uint8Array(key);
+}
+
+/** Reads the comma-separated audiences of agent tokens, such as the API app's client id. */
+function readApiAudiences(value: string | undefined): string[] {
+  return (value ?? '')
+    .split(',')
+    .map(entry => entry.trim())
+    .filter(Boolean);
 }
 
 function readBootstrapAdmins(value: string, problems: ConfigProblem[]) {

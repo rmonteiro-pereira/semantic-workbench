@@ -26,6 +26,7 @@ export function authEnvironment(
     SW_SERVE_STATIC: '1',
     DATA_DIR: root,
     SW_CACHE_DIR: `${root}/cache`,
+    SW_API_AUDIENCE: 'api://semantic-workbench',
     SW_OIDC_ISSUER: provider.issuer,
     SW_OIDC_PROVIDER: provider.kind,
     SW_ENTRA_TENANT_ID: TEST_TENANT_ID,

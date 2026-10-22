@@ -66,21 +66,26 @@ function verifiedAddress(claims: Record<string, unknown>, entra: boolean): strin
   );
 }
 
-function identity(claims: Record<string, unknown>, mapping: ClaimMapping) {
-  if (mapping.provider !== 'entra') {
-    return { id: `${required(claims, 'iss')}|${required(claims, 'sub')}` };
-  }
-  const tenant = required(claims, 'tid');
-  const object = required(claims, 'oid').toLowerCase();
+/** Refuses an Entra tenant other than the configured one. */
+function refuseOtherTenant(tenant: string, mapping: Pick<ClaimMapping, 'tenantId'>): void {
   if (mapping.tenantId && tenant.toLowerCase() !== mapping.tenantId.toLowerCase()) {
     throw new ClaimError(
       'Identity tenant does not match the configured tenant.',
       'tenant-mismatch',
     );
   }
-  if (claims.idtyp !== 'app') return { id: `${tenant}:${object}` };
-  const clientId = string(claims.azp) || required(claims, 'appid');
-  return { id: `client:${clientId}`, clientId };
+}
+
+function identity(claims: Record<string, unknown>, mapping: ClaimMapping) {
+  if (mapping.provider !== 'entra') {
+    return { id: `${required(claims, 'iss')}|${required(claims, 'sub')}` };
+  }
+  const tenant = required(claims, 'tid');
+  const object = required(claims, 'oid').toLowerCase();
+  refuseOtherTenant(tenant, mapping);
+  // Applications sign in only as agent clients, through clientFromToken on the agent API.
+  if (claims.idtyp === 'app') throw new ClaimError('An application cannot sign in.');
+  return { id: `${tenant}:${object}` };
 }
 
 /** Converts validated provider claims into the identity used by access grants. */
@@ -109,7 +114,7 @@ export function normalizeClaims(
   return {
     ...identified,
     key: principalKey(identified.id),
-    kind: identified.clientId ? 'client' : 'person',
+    kind: 'person',
     name: string(claims.name) || username,
     username,
     verifiedEmail: verifiedAddress(claims, entra),
@@ -155,4 +160,44 @@ export async function resolvePrincipalGroups(
 ): Promise<NormalizedPrincipal> {
   if (!principal.groupOverage) return principal;
   return withDirectoryGroups(principal, await lookup(principal.id.split(':')[1]));
+}
+
+/**
+ * The only way to build an agent client principal, used by the bearer path, the Admin panel's
+ * simulator and its dry runs alike. The client starts with no grants: only its entry in
+ * agents.json authorizes it.
+ */
+export function clientPrincipal(clientId: string, name: string = clientId): Principal {
+  const id = `client:${clientId}`;
+  return {
+    id,
+    key: principalKey(id),
+    clientId,
+    kind: 'client',
+    name,
+    username: clientId,
+    verifiedEmail: null,
+    groups: [],
+    groupsResolved: 'token',
+    groupOverage: false,
+    grants: [],
+    deactivated: false,
+  };
+}
+
+/**
+ * Turns a validated application token into its client. App roles, groups and addresses in the
+ * token are never read.
+ */
+export function clientFromToken(
+  claims: Record<string, unknown>,
+  tenantId: string | null,
+): Principal {
+  // Delegated tokens carry `scp`; a person's token must never act as an agent client.
+  if (claims.idtyp !== 'app' || claims.scp !== undefined) {
+    throw new ClaimError('Expected an application token.');
+  }
+  if (tenantId) refuseOtherTenant(required(claims, 'tid'), { tenantId });
+  // Only v2 tokens pass the issuer check, and they name the calling application in `azp`.
+  return clientPrincipal(required(claims, 'azp'));
 }

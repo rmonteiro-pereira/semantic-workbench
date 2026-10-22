@@ -838,6 +838,21 @@ mutants.push(
   ],
 );
 
+// Agent clients: a bearer token outside the agent API, an unchecked audience, an ignored grant,
+// a session cookie that outranks the token, and a delegated token taken for a client.
+mutants.push(
+  ['bearer-scope', 'server/auth/bearer.ts', "pathname.startsWith('/api/agent/')", 'true'],
+  ['bearer-audience', 'server/auth/bearer.ts', '        audience,\n', ''],
+  ['bearer-grants', 'server/auth/cedar.ts', 'client?.projects.includes(slug) ||', 'true ||'],
+  [
+    'bearer-cookie',
+    'server/auth/middleware.ts',
+    'client ?? (await resolve(request))',
+    '(await resolve(request)) ?? client',
+  ],
+  ['bearer-delegated', 'server/auth/principal.ts', ' || claims.scp !== undefined', ''],
+);
+
 let killed = 0;
 // Administration cases extend the existing inventory without changing its categories.
 mutants.push(...adminMutants);

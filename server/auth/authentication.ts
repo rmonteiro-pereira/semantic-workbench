@@ -283,6 +283,7 @@ export async function createServerAuthentication(
   }, 1000);
   timer.unref();
   return {
+    bearer: client.bearer,
     groupName,
     providerStatus: {
       issuer: config.oidc.issuer,

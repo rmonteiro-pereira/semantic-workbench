@@ -1,7 +1,7 @@
 // Shares browser identity assertions across provider and container checks.
 import assert from 'node:assert/strict';
 import { expect, type Browser, type Page, type Route } from '@playwright/test';
-import { TEST_USERS, type TestUserName } from '../../tests/helpers/auth-identities';
+import { TEST_CLIENTS, TEST_USERS, type TestUserName } from '../../tests/helpers/auth-identities';
 import { screenshotPath } from './screenshots';
 import { layoutProblems } from './layout-geometry';
 
@@ -384,5 +384,54 @@ export async function roleControlChecks(browser: Browser, target: SignInTarget) 
     } finally {
       await context.close();
     }
+  }
+}
+
+type AgentClient = (typeof TEST_CLIENTS)[keyof typeof TEST_CLIENTS];
+
+/** Asks the test provider for a client-credentials token, as an automation would. */
+async function agentToken(page: Page, target: SignInTarget, client: AgentClient) {
+  const issued = await page.context().request.post(target.issuer + '/token', {
+    form: {
+      grant_type: 'client_credentials',
+      client_id: client.clientId,
+      client_secret: client.secret,
+      scope: 'api://semantic-workbench/.default',
+    },
+  });
+  assert.equal(issued.status(), 200);
+  const body = await issued.json();
+  return body.access_token as string;
+}
+
+/**
+ * Checks agent clients over HTTP from a browser that is also signed in, so the session cookie
+ * travels with every call and must never widen what the bearer token may do.
+ */
+export async function agentBearerChecks(browser: Browser, target: SignInTarget) {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  try {
+    await signIn(page, target, 'dave');
+    await check('agent client sees only granted projects', async () => {
+      const token = await agentToken(page, target, TEST_CLIENTS.granted);
+      const headers = { Authorization: 'Bearer ' + token };
+      const catalog = await context.request.get(target.url + '/api/agent/catalog', { headers });
+      assert.equal(catalog.status(), 200);
+      const text = await catalog.text();
+      assert(text.includes('sales-contracts/'));
+      assert(!text.includes('hr-people/'));
+      assert(!text.includes('shared-reference/'));
+      const outside = await context.request.get(target.url + '/api/projects', { headers });
+      assert.equal(outside.status(), 401);
+    });
+    await check('ungranted agent client is refused', async () => {
+      const token = await agentToken(page, target, TEST_CLIENTS.ungranted);
+      const headers = { Authorization: 'Bearer ' + token };
+      const refused = await context.request.get(target.url + '/api/agent/catalog', { headers });
+      assert.equal(refused.status(), 403);
+    });
+  } finally {
+    await context.close();
   }
 }

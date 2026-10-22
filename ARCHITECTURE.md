@@ -54,6 +54,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `server/auth/actions.ts` | Action names, built-in role ids and classification levels | Policy evaluation, I/O |
 | `server/auth/resource.ts` | Resource and decision types, boundary path normalization | Policy evaluation, I/O |
 | `server/auth/principal.ts` | Trusted claim normalization and stable principal keys | Provider roles, I/O |
+| `server/auth/bearer.ts` | Agent clients' bearer tokens: the agent-API-only rule, signature, issuer, audience and expiry checks against the provider's cached keys | Grants, HTTP responses |
 | `server/auth/grants.ts` | Pure grant matching and role-holder scope expansion | Policy evaluation, I/O |
 | `server/auth/role-compiler.ts` | Pure role validation and Cedar policy generation | Cedar engine, I/O |
 | `server/auth/role-requirements.ts` | The "Requires …" text `/api/me` gives for each action, in configured role names | Policy decisions |
@@ -412,3 +413,47 @@ whose canned responses follow the HTTP contract; the mock only answers requests 
 reimplements no server rule. `scripts/admin-browser-check.ts` runs the panel against the real
 API with the existing authentication fixtures; `scripts/helpers/admin-browser.ts` holds its
 geometry check, area list and time limit.
+
+### Agent clients (bearer path)
+
+An agent client calls `/api/agent/*` with a client-credentials token instead of a session cookie.
+`auth/middleware.ts` looks at the `Authorization` header before anything else in server mode. A
+bearer header outside `/api/agent/*` (`acceptsBearer` in `auth/bearer.ts`) is refused with 401
+without validating the token. On the agent routes the token replaces the cookie, so a signed-in
+browser cannot widen or rescue a client call, and the cross-site check is skipped because it
+protects only cookies a browser sends on its own.
+
+`createBearerValidator` in `auth/bearer.ts` is built by `auth/oidc.ts` from the discovered
+`jwks_uri`, with its own jose remote key set: unknown key ids reload the keys at most once every
+five minutes, while the sign-in key set reloads at once so rotation never ends sessions. It
+accepts RS256 and ES256, checks issuer, the `SW_API_AUDIENCE` list, expiry and not-before with
+five minutes of skew, and refuses everything when no audience is configured. The pinned issuer
+admits Entra v2 access tokens only. `clientFromToken` in `auth/principal.ts` accepts an
+application token (`idtyp=app`, no `scp`) of the configured tenant and returns `client:<azp>`.
+It builds the principal with `clientPrincipal`, the only client constructor, which the Admin
+panel's simulator and dry runs use too. Sign-in refuses application tokens, so a session is always
+a person.
+
+Token refusals are recorded with an anonymous principal, because nothing in a refused token is
+trusted. Their reason is `token-invalid`, `tenant-mismatch` or `bearer-scope` (wrong route), all
+answered 401, or `provider-unreachable`, answered 503 without a bearer challenge: any failure to
+fetch or read the provider's keys counts as the provider's, while a key id the set lacks stays
+the token's. Refusals after validation carry the client principal.
+
+Each route row says whether a client may use it: the three agent rows declare
+`clientAction: 'agentRead'` in `auth/route-actions.ts`. The middleware decides a client by that
+action instead of the row's own, refuses it with 403 `bearer-scope` on a row without one, and
+with 404 `unmapped-route` where no row matches (`clientRouteRefusal` and `clientRow`). A client is
+granted projects, never the workspace, so `routeDecision` passes a workspace row for it when one
+readable project allows the action, and answers 403 `no-grant` otherwise. The audit records the
+project the decision passed through, so a policy dry run replays the call against it. The
+client's principal carries the name of its `agents.json` entry, which the audit and the Admin
+panel show.
+
+The client's only authorization is its `agents.json` entry. `auth/authorize.ts` gives a client no
+grants, and Cedar's entity builder in `auth/cedar.ts` turns the entry into the client's project
+list, so `B8-agent`, `F4-bearer-scope` and `F6-restricted` in `policies/baseline.cedar` decide
+the rest. The client's view uses `agentRead`, so the agent routes in `handler.ts`, which build
+catalog, context and plan from `ws.documentsFor(requestReader(req))`, never resolve a reference
+into a project the client cannot read. The agent rows are marked `audited`, so every allowed call
+is recorded as well as every refusal.

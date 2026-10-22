@@ -243,3 +243,14 @@ test('the copied server environment requires a generated key', async () => {
   const example = await Bun.file('.env.server.example').text();
   expect(example).toMatch(/^SW_SESSION_KEY=$/m);
 });
+
+test('agent token audiences are a comma-separated list, empty when unset', () => {
+  const unset = readConfig(entraEnvironment()) as ServerConfig;
+  expect(unset.apiAudience).toEqual([]);
+  const audiences = 'a1b2c3d4-0000-4000-8000-000000000001, api://semantic-workbench';
+  const config = readConfig({ ...entraEnvironment(), SW_API_AUDIENCE: audiences }) as ServerConfig;
+  expect(config.apiAudience).toEqual([
+    'a1b2c3d4-0000-4000-8000-000000000001',
+    'api://semantic-workbench',
+  ]);
+});

@@ -1,8 +1,8 @@
 // Compares decisions using the real access boundary without changing the active configuration.
-import { createAccessControl, clientPrincipal, type AccessOptions } from './authorize';
+import { createAccessControl, type AccessOptions } from './authorize';
 import { ACTIONS, FILE_ACTIONS, isAction, type Action } from './actions';
 import type { AccessConfig } from './access-config';
-import type { NormalizedPrincipal } from './principal';
+import { clientPrincipal, type NormalizedPrincipal } from './principal';
 import type { ResourceRef } from './resource';
 import type { AuditEntry } from './audit';
 import matrix from '../../policies/matrix-cases.json';
@@ -58,7 +58,7 @@ function snapshotIdentity(
 ): NormalizedPrincipal {
   const snapshot = entry.snapshot!;
   const known = identities.get(entry.principal.id) ?? {
-    ...clientPrincipal(entry.principal.clientId ?? '', entry.principal.name ?? ''),
+    ...clientPrincipal(entry.principal.clientId ?? '', entry.principal.name),
     id: entry.principal.id,
     kind: entry.principal.kind as NormalizedPrincipal['kind'],
   };

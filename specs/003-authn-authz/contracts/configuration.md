@@ -17,7 +17,7 @@
 | `SW_GROUP_CLAIM` | server | no (`groups`) | claim holding group ids (Entra) or names/paths (Keycloak) matched against group grants |
 | `SW_GROUP_OVERAGE` | server/entra | no (`directory`) | `directory` (Graph checkMemberGroups) or `off` |
 | `SW_GRAPH_URL` | server/entra | no (`https://graph.microsoft.com`) | Microsoft Graph base URL for overage resolution and group display-name lookups (an app-only token is sent there); accepted values: the Microsoft Graph endpoints of the public and national clouds, or a loopback `http://` URL when `SW_PUBLIC_URL` is loopback (the mock OpenID provider's stand-in in tests); anything else refuses start-up |
-| `SW_API_AUDIENCE` | server | yes for agents | expected `aud` of bearer tokens |
+| `SW_API_AUDIENCE` | server | yes for agents | comma-separated accepted `aud` values of bearer tokens; for Entra the API app's client id (v2 access tokens) |
 | `SW_SESSION_KEY` | server | yes | 32 bytes base64; encrypts sessions |
 | `SW_BOOTSTRAP_ADMINS` | server | yes (≥ 1) | comma-separated e-mail addresses (matched case-insensitively against the verified address only) or stable ids (`tid:oid`) that always hold Admin (break-glass) |
 | `SW_COMMITTER_NAME`, `SW_COMMITTER_EMAIL` | server | no | committer identity of server commits |

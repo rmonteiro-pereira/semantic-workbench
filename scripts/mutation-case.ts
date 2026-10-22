@@ -2238,3 +2238,94 @@ if (category === 'admin-save') {
   await assert.rejects(m.adminApi.save('grants', { grants: [] }, 'base', ''));
   assert.equal(requests, 0);
 }
+if (category === 'bearer-scope') {
+  assert(m.acceptsBearer('/api/agent/catalog'));
+  for (const path of ['/api/projects', '/api/events', '/', '/auth/login', '/api/agent-other']) {
+    assert.equal(m.acceptsBearer(path), false);
+  }
+}
+if (category === 'bearer-audience') {
+  const { oidcTransport } = await import('../tests/helpers/oidc-transport');
+  const { SignJWT } = await import('jose');
+  const transport = await oidcTransport();
+  transport.config.apiAudience = [transport.state.apiAudience];
+  const keysUrl = transport.state.issuer + '/keys';
+  const validate = m.createBearerValidator(transport.config, keysUrl, transport.fetch);
+  const key = transport.state.keys[0];
+  const tokenFor = (audience: string) =>
+    new SignJWT({ idtyp: 'app', azp: 'sw-agent', tid: transport.config.oidc.tenantId })
+      .setProtectedHeader({ alg: 'RS256', kid: key.kid })
+      .setIssuer(transport.state.issuer)
+      .setAudience(audience)
+      .setExpirationTime('1h')
+      .sign(key.privateKey);
+  const accepted = await validate('Bearer ' + (await tokenFor(transport.state.apiAudience)));
+  assert.equal(accepted.clientId, 'sw-agent');
+  await assert.rejects(async () => validate('Bearer ' + (await tokenFor('other'))));
+}
+if (category === 'bearer-grants') {
+  const { emptyAccessConfig } = await import('../server/auth/access-config');
+  const { clientFromToken } = await import('../server/auth/principal');
+  const { loadPolicySet } = await import('../server/auth/cedar');
+  const builtin = await import('../policies/builtin-roles.json');
+  const config = emptyAccessConfig();
+  config.agents.clients = [
+    { clientId: 'sw-agent', name: 'Sales agent', projects: ['sales'], domains: [] },
+  ];
+  const policy = loadPolicySet({ builtinRoles: builtin.default.roles, customRoles: [] });
+  const evaluate = m.createPolicyEvaluator(policy, {
+    config,
+    projects: ['sales', 'hr'],
+    groupMatch: 'exact',
+    roles: policy.roles,
+  });
+  const context = { mode: 'server', branch: '', protectedBranch: false, level: 0, guardKind: '' };
+  const decide = (clientId: string, project: string) => {
+    const principal = clientFromToken({ idtyp: 'app', azp: clientId }, null);
+    return evaluate(principal, 'agentRead', { type: 'project', project }, context).allow;
+  };
+  assert.equal(decide('sw-agent', 'sales'), true);
+  assert.equal(decide('sw-agent', 'hr'), false);
+  assert.equal(decide('ungranted', 'sales'), false);
+}
+if (category === 'bearer-cookie') {
+  const { testWorkspace } = await import('../tests/helpers/temp-data-dir');
+  const { createAuditLog } = await import('../server/auth/audit');
+  const { createAccessControl } = await import('../server/auth/authorize');
+  const { clientFromToken } = await import('../server/auth/principal');
+  const { accessFixture, person } = await import('../tests/auth/access-fixture');
+  using workspace = await testWorkspace();
+  const origin = 'http://127.0.0.1:4444';
+  const audit = createAuditLog({ dir: workspace.root + '/audit-bearer' });
+  // The signed-in Admin's cookie travels with the client's token; the token must decide.
+  const callWithAdminCookie = (clientId: string) => {
+    const handler = m.createAccessMiddleware(
+      workspace.ws,
+      {
+        mode: 'server',
+        publicOrigin: origin,
+        access: createAccessControl(accessFixture()),
+        audit,
+        bearer: async () => clientFromToken({ idtyp: 'app', azp: clientId }, null),
+        principal: () => person('dave'),
+      },
+      () => null,
+      async () => new Response('ran'),
+    );
+    const request = new Request(origin + '/api/agent/catalog', {
+      headers: { Authorization: 'Bearer token' },
+    });
+    return handler(request);
+  };
+  const granted = await callWithAdminCookie('sw-agent');
+  assert.equal(granted.status, 200);
+  const entries = audit.entries(new Date().toISOString().slice(0, 7));
+  const entry = entries.find(item => item.requestId === granted.headers.get('X-Request-Id'));
+  assert.equal(entry?.principal.id, 'client:sw-agent');
+  assert.equal((await callWithAdminCookie('sw-agent-ungranted')).status, 403);
+}
+if (category === 'bearer-delegated') {
+  const app = { idtyp: 'app', azp: 'sw-agent' };
+  assert.equal(m.clientFromToken(app, null).id, 'client:sw-agent');
+  assert.throws(() => m.clientFromToken({ ...app, scp: 'access_as_user' }, null));
+}
