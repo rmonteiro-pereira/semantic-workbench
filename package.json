@@ -45,7 +45,15 @@
     "test:admin": "bun scripts/admin-browser-check.ts",
     "test:two-editors": "bun scripts/two-editors-check.ts",
     "test:container": "bun scripts/container-check.ts",
-    "schemas:compile": "bun scripts/compile-schemas.ts"
+    "schemas:compile": "bun scripts/compile-schemas.ts",
+    "ci:validate": "bun scripts/ci-validate.ts",
+    "image:build": "bun scripts/image.ts build",
+    "image:scan": "bun scripts/image.ts scan",
+    "image:sbom": "bun scripts/image.ts sbom",
+    "image:push": "bun scripts/image.ts push",
+    "pipeline:lint": "bun scripts/pipeline-lint.ts",
+    "pipeline:dry-run": "bun scripts/pipeline-dry-run.ts",
+    "deploy:check-version": "bun scripts/deploy-version.ts"
   },
   "dependencies": {
     "@cedar-policy/cedar-wasm": "4.14.0",

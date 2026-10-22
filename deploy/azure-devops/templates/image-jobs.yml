@@ -1,0 +1,39 @@
+parameters:
+  - name: acrServiceConnection
+    type: string
+jobs:
+  - job: check
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
+    steps:
+      - template: setup-steps.yml
+      - task: AzureCLI@2
+        inputs:
+          azureSubscription: ${{ parameters.acrServiceConnection }}
+          scriptType: bash
+          scriptLocation: inlineScript
+          addSpnToEnvironment: false
+          inlineScript: bun run deploy:check-version
+        env:
+          SOURCE_REF: $(Build.SourceBranch)
+  - job: image
+    dependsOn: check
+    condition: in(dependencies.check.result, 'Succeeded', 'Skipped')
+    steps:
+      - template: setup-steps.yml
+      - bash: bun run ci:validate -- --step image --step container
+      - task: PublishPipelineArtifact@1
+        condition: always()
+        inputs:
+          targetPath: out/image/
+          artifact: image
+      - task: AzureCLI@2
+        name: push
+        condition: >-
+          and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'),
+          startsWith(variables['Build.SourceBranch'], 'refs/tags/v')))
+        inputs:
+          azureSubscription: ${{ parameters.acrServiceConnection }}
+          scriptType: bash
+          scriptLocation: inlineScript
+          addSpnToEnvironment: false
+          inlineScript: bun run image:push -- --registry $(ACR_NAME).azurecr.io

@@ -1,0 +1,19 @@
+parameters:
+  variableGroup: semantic-workbench-target
+  acrServiceConnection: sw-azure-push
+  deployServiceConnection: sw-azure-deploy
+  deployEnvironment: production
+  agentPool: ''
+  vmImage: ubuntu-latest
+variables:
+  AZURE_SUBSCRIPTION_ID: 00000000-0000-0000-0000-000000000001
+  AZURE_TENANT_ID: 00000000-0000-0000-0000-000000000002
+  ACR_NAME: swexample
+  ACA_RESOURCE_GROUP: rg-sw-example
+  ACA_ENVIRONMENT: cae-sw-example
+  ACA_NAME: ca-sw-example
+  APP_IDENTITY_NAME: id-sw-app
+  KEY_VAULT_NAME: kv-sw-example
+  ENTRA_TENANT_ID: 00000000-0000-0000-0000-000000000002
+  ENTRA_CLIENT_ID: 00000000-0000-0000-0000-000000000003
+  SW_PUBLIC_URL: https://workbench.example.invalid

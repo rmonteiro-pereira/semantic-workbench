@@ -1806,3 +1806,14 @@ if (category === 'container-lock') {
   assert.equal(lock.state, 'serving');
   await lock.close();
 }
+
+if (category === 'pipeline-script') {
+  assert.throws(() => m.checkScript('bun run nonexistent', { check: 'tsc' }));
+  m.checkScript('bun run check', { check: 'tsc' });
+}
+if (category === 'pipeline-provider') {
+  const input = m.readPipelineInput();
+  m.lintRules(input);
+  input.files['azure-pipelines.yml'] += '\n# Keycloak is forbidden even in comments\n';
+  assert.throws(() => m.lintRules(input), /Keycloak/);
+}

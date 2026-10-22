@@ -3,7 +3,7 @@ import { expect, test } from 'bun:test';
 import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-function harness(root: string, uid: number) {
+function harness(root: string, uid: number, build = false) {
   const preload = `${root}/runtime.ts`;
   writeFileSync(
     preload,
@@ -20,7 +20,11 @@ function harness(root: string, uid: number) {
         return { stdout: new ReadableStream(), stderr: new ReadableStream(),
           exited: new Promise(() => {}) };
       }
-      return { stdout: new Response('').body, stderr: new Response('').body,
+      let output = '';
+      if (args[0] === 'git') {
+        output = args[1] === 'rev-parse' ? 'a'.repeat(40) : ' M README.md';
+      }
+      return { stdout: new Response(output).body, stderr: new Response('').body,
         exited: Promise.resolve(0) };
     };
   `,
@@ -31,8 +35,7 @@ function harness(root: string, uid: number) {
       '--preload',
       preload,
       resolve('scripts/container-check.ts'),
-      '--image',
-      'test-image',
+      ...(build ? ['--build'] : ['--image', 'test-image']),
     ],
     { env: { ...process.env, TMPDIR: root }, stdout: 'pipe', stderr: 'pipe' },
   );
@@ -75,7 +78,35 @@ test('Docker rejects a non-1000 caller before invoking the runtime', async () =>
     expect(await new Response(child.stderr).text()).toContain('owned by uid 1000');
     expect(readdirSync(root)).toEqual(['runtime.ts']);
     const source = readFileSync('scripts/container-check.ts', 'utf8');
-    expect(source.indexOf('process.getuid')).toBeLessThan(source.indexOf("'build',"));
+    expect(source.indexOf('process.getuid')).toBeLessThan(
+      source.indexOf('await command(buildArguments'),
+    );
+  } finally {
+    child.kill();
+    await child.exited;
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('container builds use shared metadata and dirty revision tags', async () => {
+  const root = mkdtempSync('/tmp/workbench-container-build-');
+  const child = harness(root, 1000, true);
+  try {
+    const reader = child.stdout.getReader();
+    expect(new TextDecoder().decode((await reader.read()).value)).toContain('ready');
+    reader.releaseLock();
+    child.kill('SIGTERM');
+    expect(await child.exited).toBe(143);
+    const commands = readFileSync(`${root}/commands`, 'utf8')
+      .trim()
+      .split('\n')
+      .map(line => JSON.parse(line) as string[]);
+    const build = commands.find(args => args[1] === 'build')!;
+    expect(build).toContain(`SW_COMMIT=${'a'.repeat(40)}-dirty`);
+    expect(build).toContain(`semantic-workbench:sha-${'a'.repeat(40)}-dirty`);
+    expect(build).toContain('SW_SOURCE=semantic-workbench');
+    expect(build).toContain('SW_VERSION=dev');
+    expect(build).not.toContain('--format');
   } finally {
     child.kill();
     await child.exited;

@@ -45,9 +45,13 @@ async function check(name: string, run: () => Promise<void>) {
 async function expectNeighborhood() {
   const status = page.getByRole('status', { name: 'Neighbor counts' });
   await expect(status).toContainText(/^\d+ of \d+ neighbors/);
-  const shown = Number((await status.innerText()).match(/^(\d+) of/)![1]);
-  if (!shown) throw Error('Empty neighborhood');
-  await expect(page.locator('.react-flow__node')).toHaveCount(shown + 1);
+  // The counts can still describe the previous document while the new graph renders, so the
+  // counts are re-read until they and the drawn nodes agree.
+  await expect(async () => {
+    const shown = Number((await status.innerText()).match(/^(\d+) of/)![1]);
+    if (!shown) throw Error('Empty neighborhood');
+    await expect(page.locator('.react-flow__node')).toHaveCount(shown + 1, { timeout: 1000 });
+  }).toPass({ timeout: 15_000 });
 }
 let failNextSave = false;
 let holdPlan = false;

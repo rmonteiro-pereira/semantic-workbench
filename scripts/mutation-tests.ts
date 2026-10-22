@@ -7,6 +7,9 @@ const temp = await mkdtemp('/tmp/workbench-mutations-');
 // tree as the real sources, without relying on Bun caches.
 await symlink(resolve(root, 'node_modules'), resolve(temp, 'node_modules'), 'dir');
 const mutants: [string, string, string, string][] = [
+  ['pipeline-script', 'scripts/pipeline-lint.ts', '!Object.hasOwn(scripts, match[1])', 'false'],
+  ['pipeline-provider', 'scripts/pipeline-lint.ts', '/keycloak/i.test(source)', 'false'],
+
   [
     'container-lock',
     'server/projects/instance-lock.ts',
