@@ -16,7 +16,7 @@ acceptance step run from a runbook; the target imports releases into its own Azu
 Revised a fourth time the same day for the owner's decisions on sign-in and access (OP-12 to
 OP-14): there is no sign-in screen in the workbench; access is granted in the Admin panel to Entra
 groups or to individual e-mail addresses, and Entra app roles are not needed; Admins can create
-custom roles. Constitution 3.0.0 applies.
+custom roles. Constitution 3.0.1 applies (3.0.0 plus a wording patch for the group-name lookup).
 
 **Builds on**: feature 002 (`002-lineage-and-ux`, v0.3.0). This branch starts from
 `origin/002-lineage-and-ux` and is rebased onto `main` after 002 merges; every route, dialog and
@@ -514,9 +514,9 @@ an optional scope; **Policies** lists the attribute rules, edits common rules th
 form (classification level, metric ownership, Git limits, branch protection) or
 as raw policy text with validation, with a dry run, version history, diff and rollback; **Access
 check** answers "can X do Y on Z?" with the decision and the rules that produced it, and "who can
-access this project or file?"; **Projects** sets each project's domain, access lists, stewards
-and restricted paths; **Audit** filters and exports the audit log; **Settings** shows the
-provider connection, session settings and remote-credential policy. In local mode the panel is
+access this project or file?"; **Projects** sets each project's domain, restricted paths and
+the Stewards listed for information; **Audit** filters and exports the audit log; **Settings** shows
+the provider connection, session settings and remote-credential policy. In local mode the panel is
 available to the implicit Admin (identity-related areas say they apply to server mode).
 
 **Why this priority**: P1, because every other server-mode story depends on it. Projects without
@@ -856,7 +856,9 @@ credential, Entra sign-in) and returns the filled report.
   (5 minutes clock skew), MUST be application tokens (Entra `idtyp=app` and the configured
   tenant) and MUST come from a client id an Admin granted (FR-090); no app role is required.
 - **FR-016**: State-changing requests in server mode MUST pass the Origin check against the public
-  URL and carry a custom request header that cross-site forms cannot send.
+  URL and carry a custom request header that cross-site forms cannot send. The one exception is
+  sign-out from the script-free pages (**No access**): an HTML form `POST /auth/logout` that
+  passes the Origin check and carries a per-session token embedded in the page.
 - **FR-017**: The provider's ID token and userinfo MUST be validated (issuer, audience, nonce,
   signature, expiry); for Entra the tenant id MUST match the configured tenant.
 - **FR-018**: The workbench MUST NOT have a sign-in screen of its own. In server mode an
@@ -887,10 +889,10 @@ credential, Entra sign-in) and returns the filled report.
   resolve membership of the groups named in grants and restricted paths through the directory
   and MUST treat a failure as no group membership, shown to the person.
 - **FR-023**: Viewer ⊂ Editor ⊂ Steward in allowed actions. Admin holds every action on every
-  project, subject to the rules that apply to everyone (no self-approval, guarded fields still
-  audited). Wherever this specification requires "Steward in the project's domain", a principal
-  whose effective permissions on that project include the action in question (through the
-  built-in Steward role or a custom role) satisfies it.
+  project, including projects without a domain, subject to the rules that apply to everyone (no
+  self-approval, guarded fields still audited). Wherever this specification requires "Steward in the
+  project's domain", a principal whose effective permissions on that project include the action in
+  question (through the built-in Steward role or a custom role) satisfies it.
 - **FR-024**: The verified e-mail address of a person MUST be: for Entra, the `email` claim when
   the token also carries `xms_edov=true`, otherwise the UPN (`upn`, or `preferred_username` of a
   v2 token) unless it is a guest UPN containing `#EXT#`; for Keycloak and generic providers, the
@@ -1096,10 +1098,13 @@ credential, Entra sign-in) and returns the filled report.
 - **FR-107**: Admin rules MUST NOT weaken the baseline: baseline prohibitions (no self-approval,
   default deny for projects without a domain, bearer tokens only on agent routes, no access for
   deactivated people) always prevail over Admin rules.
-- **FR-108**: Before activation every policy change MUST pass schema validation and a dry run over
-  the authorization test matrix and the most recent 1,000 audited decisions; the dry run MUST list
-  the decisions that would change, and the Admin confirms or cancels. A change that fails
-  validation MUST NOT be activated.
+- **FR-108**: Before activation every change to policies, custom roles, access grants, project
+  access and agent client grants MUST pass schema validation (for roles, also compilation of the
+  whole policy set) and a dry run over the authorization test matrix and the most recent 1,000
+  audited decisions; the dry run MUST list the decisions that would change and, for roles,
+  grants, project access and agent grants, what changes for whom (each known person and agent
+  client with the actions gained or lost per project, and whether they gain or lose access);
+  the Admin confirms or cancels. A change that fails validation MUST NOT be activated.
 - **FR-109**: Every change to policies, custom roles, access grants, project access, deactivations
   and settings MUST be versioned with author, time and message; Admins MUST be able to view any
   version, diff two versions and roll back, which creates a new version equal to the chosen one.
@@ -1116,9 +1121,10 @@ credential, Entra sign-in) and returns the filled report.
   used; and, for a project or file, list the groups, e-mail addresses, people and agent clients
   that can read, edit, approve and publish it.
 - **FR-112**: **Projects** MUST let Admins manage the list of domains, set each project's domain,
-  everyone-with-access-can-read flag, named Stewards, restricted path patterns with their groups or
-  people,
-  protected branches and the protected classification level; and grant agent clients projects.
+  everyone-with-access-can-read flag, listed Stewards (informational contacts shown to readers,
+  like a metric's `steward` value; they grant nothing, roles come only from grants), restricted
+  path patterns with their groups or people, protected branches and the protected
+  classification level; and grant agent clients projects or domains.
 - **FR-113**: **Settings** MUST show the provider connection (issuer, client id, discovery status,
   group claim mode, overage handling and directory lookups for group names, last key refresh),
   session settings (inactivity and
@@ -1286,8 +1292,8 @@ credential, Entra sign-in) and returns the filled report.
 - **Domain**: a named area of responsibility (for example Sales) that groups projects; grants can
   be scoped to domains.
 - **Access configuration**: project-to-domain assignments, restricted path patterns with their
-  groups, protected branches, protected classification level, agent client grants, allowed
-  remote hosts.
+  groups or e-mail addresses, protected branches, protected classification level, agent client
+  grants, allowed remote hosts.
 - **Working copy**: a person's Git worktree of a repository, with its personal branch.
 - **Published state**: the base checkout of a repository at the tip of its default branch.
 - **Audit entry**: one security-relevant decision or action.

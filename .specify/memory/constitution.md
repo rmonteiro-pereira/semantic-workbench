@@ -1,6 +1,12 @@
 <!--
 Sync Impact Report
-- Version change: 2.1.0 → 3.0.0 (MAJOR: Principle I redefined into two modes; the technical
+- Version change: 3.0.0 → 3.0.1 (PATCH, wording): Principle I names the second read of the
+  identity provider's directory that granted groups need (their display names, for the Admin
+  panel), still limited to the groups the configuration names; Principle IV names the access
+  configuration as roles and access grants instead of role mappings and assignments. No rule is
+  added or removed. Source: specs/003-authn-authz/spec.md, owner decisions OP-13 and OP-14
+  (2026-10-21). Templates: no change needed.
+- Earlier version change: 2.1.0 → 3.0.0 (MAJOR: Principle I redefined into two modes; the technical
   constraint "single-user, no authentication layer" removed)
 - Modified principles: I. Local-Only Operation → I. Local and Server Modes (local mode as before;
   server mode with OpenID Connect sign-in, data in the container's mounted storage, outbound calls
@@ -56,7 +62,8 @@ The workbench runs in exactly one of two modes, chosen at start.
 - The server MUST refuse to start without a complete identity provider configuration and valid
   policies, and MUST serve the frontend and the API from one origin.
 - Outbound network calls are limited to the configured identity provider (including its
-  directory API, used only to resolve membership of configured groups, and its token endpoint,
+  directory API, used only to resolve membership of configured groups and to read their display
+  names, and its token endpoint,
   used to obtain tokens on behalf of the signed-in person) and to Git remotes and their hosts'
   token endpoints, only when a person explicitly triggers a remote operation or connects an
   account. Remote operations use that person's own delegated credential, passed to Git for one
@@ -133,7 +140,7 @@ reformatting breaks diffs, reviews and downstream tooling.
 - Application state that must survive (project registry, view settings, grouping corrections,
   rejected suggestions, drafts, trash log, sessions, audit log) MUST be kept in durable state
   files written atomically (the audit log append-only), never only in the cache. Access
-  configuration (policies, role mappings, assignments, project access) MUST live in the
+  configuration (policies, roles, access grants, project access) MUST live in the
   administration Git repository, one commit per change.
 - In server mode drafts, view state, grouping corrections and trash entries MUST be owned by a
   person and served only to that person (trash entries also to people allowed to restore them).
@@ -235,4 +242,4 @@ reformatting breaks diffs, reviews and downstream tooling.
 - Exceptions MUST be recorded in the feature's plan under "Complexity Tracking" with the reason
   and the simpler alternative that was rejected.
 
-**Version**: 3.0.0 | **Ratified**: 2026-10-20 | **Last Amended**: 2026-10-21
+**Version**: 3.0.1 | **Ratified**: 2026-10-20 | **Last Amended**: 2026-10-21

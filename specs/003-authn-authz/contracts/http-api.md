@@ -25,7 +25,7 @@ rule there. Server mode adds the rules below.
 | --- | --- | --- | --- |
 | `GET /auth/login` | anyone | `?returnTo=/path` | 302 to provider; sets `__Host-sw-auth` (state, nonce, PKCE verifier); used by **Sign in again**, **Try again** and the smoke test (no page of its own) |
 | `GET /auth/callback` | anyone | provider redirect | validates, creates session, sets `__Host-sw-session`, matches grants; 302 to `returnTo`, or to `/auth/no-access` without a grant; failure → sign-in error page (reason, **Try again**) |
-| `POST /auth/logout` | signed in (also from **No access**) | | ends session, `{redirect: <provider end-session URL with post_logout_redirect_uri=/auth/signed-out, or /auth/signed-out>}` |
+| `POST /auth/logout` | signed in (also from **No access**) | from the app: `X-SW-Request: 1`; from **No access**: an HTML form with the per-session `csrf` field the page embeds (Origin checked either way) | ends session, `{redirect: <provider end-session URL with post_logout_redirect_uri=/auth/signed-out, or /auth/signed-out>}` for the app; `303` to the same address for the form |
 | `GET /auth/no-access` | signed in | | minimal HTML: display name and verified address (or username), "An Admin must grant you access to this workbench", **Sign out**; no workspace data; 302 to `/` when the person has access |
 | `GET /auth/signed-out` | anyone | | minimal HTML: "You are signed out", **Sign in again** (`/auth/login`); never starts a sign-in by itself |
 | `GET /auth/github/start` | signed in | `?returnTo=` | 302 to GitHub authorize with `state` bound to the session |
@@ -41,8 +41,8 @@ rule there. Server mode adds the rules below.
 | `PUT /api/admin/roles` | Admin | `roles.json` + `baseVersion` + `dryRunId` + `confirmDeleteInUse?` | `{version}`; built-in role in the body → 400; `admin` action in a custom role → 400; deleting a role with grants without `confirmDeleteInUse` → `409 {inUse: {roleId, grants, people: [{id, name}]}}`; compiled policies validated; last-Admin guard |
 | `GET/PUT /api/admin/grants` | Admin | `grants.json` + `baseVersion` + `dryRunId` | `{version}`; e-mail lower-cased; unknown role, domain or project → 400; duplicate → 400; `admin` with a non-workspace scope → 400; last-Admin guard |
 | `GET /api/admin/groups/:id` | Admin | | `{id, displayName \| null, resolved: boolean}` from the directory (Graph `GET /groups/{id}?$select=displayName`; Keycloak: the name itself); never fails the grant |
-| `GET/PUT /api/admin/projects` | Admin | `projects.json` + `baseVersion` | `{version}` |
-| `GET/PUT /api/admin/agents` | Admin | `agents.json` + `baseVersion` | `{version}` |
+| `GET/PUT /api/admin/projects` | Admin | `projects.json` + `baseVersion` + `dryRunId` | `{version}` |
+| `GET/PUT /api/admin/agents` | Admin | `agents.json` + `baseVersion` + `dryRunId` | `{version}` |
 | `GET/PUT /api/admin/settings` | Admin | `settings.json` + `baseVersion` | `{version}`; secrets never returned |
 | `GET /api/admin/policies` | Admin | | `{baseline: [{id, text, description}], rules: [{id, text, enabled, template?, description}], schema}` |
 | `POST /api/admin/policies/validate` | Admin | `{rules}` | `{ok, errors: [{id, line, column, message}]}` |

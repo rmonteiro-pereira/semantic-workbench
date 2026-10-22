@@ -27,8 +27,8 @@ Owner's UI rule: dialogs for secondary work; the main screen gains only what is 
 | Users & groups | searchable table (name, verified address, last sign-in, groups with names, roles per domain/project, source chips: group grant with the group name, e-mail grant, bootstrap); filter "no access"; row actions **Grant access** (opens the grant form prefilled with the address), **Deactivate**/**Reactivate**, **End sessions**, **Check access** |
 | Roles & access | tab **Grants**: table (member: group name and object ID, or e-mail; role; scope; added by and when), **Add grant** form (member kind: Entra group → object ID field with the looked-up display name shown beside it, or "name not resolved"; e-mail → address field; role picker with built-in and custom roles; scope: whole workspace, domains or projects), change and remove. Tab **Roles**: built-in roles with their permission matrix (read-only, lock icon, **Duplicate as custom role**); custom roles list with **New role** and edit form (name, description, permissions as a checklist of actions grouped like Appendix B with an optional condition row per action: branch, path, document type, highest classification level; members = the role's grants with the same **Add grant** form, scope optional); **Delete** with a confirmation listing affected people |
 | Policies | list (baseline read-only, Admin rules with enable switch); **New rule** → template form or **Advanced** raw editor (CodeMirror, inline validation); **Dry run** shows changed decisions; **History** with diff and **Roll back** |
-| Access check | form: principal (search or groups/roles), action, resource → decision, deciding rules, attributes; **Who can access** for a project or path |
-| Projects | per project: domain, everyone-can-read, extra readers, stewards, restricted paths, protected branches, protected classification level; agent client grants |
+| Access check | form: principal (search, or a hypothetical person by groups and e-mail address), action, resource → decision, deciding rules, attributes; **Who can access** for a project or path |
+| Projects | domain list; per project: domain, everyone-with-access-can-read, listed Stewards (informational), restricted paths (groups or e-mail addresses), protected branches, protected classification level; agent client grants |
 | Audit | filters (person, action, resource, decision, time), paged table, **Export** (JSONL/CSV) |
 | Settings | provider status (issuer, client id, discovery, group mode, overage, keys refreshed), session lifetimes, remote-credential policy (allowed hosts, Azure DevOps on-behalf-of, GitHub), active sessions |
 
@@ -46,7 +46,9 @@ workbench renders only these minimal server-side pages, with the product name, n
 and no scripts beyond the shared stylesheet:
 
 - **No access** (`/auth/no-access`): "You are signed in as <display name> (<address>)", "An
-  Admin must grant you access to this workbench", **Sign out**. Also shown to deactivated people.
+  Admin must grant you access to this workbench", **Sign out** (a plain form posting to
+  `/auth/logout` with the page's per-session token, so it works without scripts). Also shown to
+  deactivated people.
 - **Signed out** (`/auth/signed-out`): "You are signed out", **Sign in again**.
 - **Sign-in error**: the reason (provider unreachable, tenant mismatch, expired or replayed
   sign-in attempt) and **Try again**.

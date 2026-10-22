@@ -147,7 +147,7 @@ refused), export the audit log filtered to today.
 On your machine:
 
 ```sh
-bun run ci:validate                     # the whole gate: verify, mutation, browser, keycloak,
+bun run ci:validate                     # the whole gate: verify, mutation, browser,
                                         # image (build, scan, sbom), container, pipeline
 bun run ci:validate -- --step verify    # one step; --suite <name> for one browser suite
 bun run image:build && bun run image:scan && bun run image:sbom   # out/image/sbom.spdx.json

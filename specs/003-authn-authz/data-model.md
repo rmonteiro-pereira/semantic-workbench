@@ -52,7 +52,8 @@ recover and scan.
 
 Provider roles (`roles`, `resource_access.<client>.roles`) are not read for people. Effective
 permissions in a project = union of the permissions of every role in `grants` whose scope covers
-the project; Admin (built-in, workspace scope) applies everywhere. The decision itself is taken by
+the project; Admin (built-in, workspace scope only) applies to every project, including projects
+without a domain. The decision itself is taken by
 Cedar from the compiled policies (Policy entities below), never from this list directly; the list
 is for `/api/me`, Users & groups and the access check.
 
@@ -86,6 +87,8 @@ handle (OP-1). Groups and address are those of the last sign-in or refresh; the 
 | `settings.json` | `{session: {idleHours: 8, absoluteHours: 24}, remote: {allowedHosts: [host], azureDevOpsObo: boolean, github: {host, appConfigured: boolean}}, audit: {retentionDays: 400}}` |
 | `policies/<id>.cedar` | one Admin rule; annotations `@id`, `@enabled("true"\|"false")`, `@template(<name>)`, `@description` |
 
+`stewards` are informational contacts shown to readers; they grant nothing.
+
 `Conditions` = `{branch?: glob, path?: glob, docType?: [type], maxLevel?: level}`; every present
 key must hold (AND); a permission without conditions applies to every resource in the grant's
 scope.
@@ -98,7 +101,7 @@ scope.
 | Built-in roles | not in `roles.json`; any change or deletion refused |
 | Custom role actions | any action of the policy model except `admin`; at least one |
 | Grant member | `groupId`: non-empty, ≤ 256 chars (Entra: a GUID); `email`: lower-cased addr-spec; `displayName` from the directory at add time and refreshed when the panel opens; absent → "name not resolved" |
-| Grant scope | `admin` role: `workspace` only; domains and projects must exist; workspace scope covers projects with a domain; a project without a domain is covered only by a `projects` scope naming it |
+| Grant scope | `admin` role: `workspace` only, and its policies are gated by the workspace holder, so Admin reaches every project including those without a domain; domains and projects must exist; for every other role the workspace scope covers projects with a domain; a project without a domain is covered only by a `projects` scope naming it |
 | Duplicates | one grant per (role, member, scope); a second identical grant is refused |
 | Role deletion | refused while grants reference it unless the request carries `confirmDeleteInUse: true`; then role and its grants are removed in one commit |
 
@@ -127,16 +130,17 @@ version's files.
 | `SW::Domain` | — | `name` |
 | `SW::Repository` | — | `remoteHost?` |
 | `SW::Project` | `SW::Repository` | `domain?: Domain`, `everyoneCanRead: Bool`, `protectedLevel: Long`, `holders: {<roleId>: RoleHolder}` (record type generated from the role list), `explicitHolders: RoleHolder` (holders through `projects`-scoped grants) |
-| `SW::File` | `SW::Project` | `path`, `docType`, `level: Long`, `restricted: Bool`, `restrictedTo: SW::AccessSet` |
+| `SW::File` | `SW::Project` | `project: Project`, `path`, `docType`, `level: Long`, `restricted: Bool`, `restrictedTo: SW::AccessSet` |
 | `SW::AccessSet` | — | synthetic per restricted rule class; listed groups and e-mail entities are its members |
-| `SW::Metric` | `SW::File` | `status`, `ownerId?`, `governed: Bool` |
+| `SW::Metric` | `SW::File` | `project: Project`, `path`, `docType` (`metric`), `level: Long`, `status`, `ownerId?`, `governed: Bool` (Cedar does not inherit attributes, so the loader repeats them) |
 | `SW::Branch` | `SW::Repository` | `protected: Bool`, `name` |
 | `SW::TrashEntry` | — | `owner`, `projects: Set<Project>` |
 | `SW::Workspace` | — | singleton for workspace-wide actions; `holders` as on Project |
 
 Grants are data, roles are code: the entity loader expands each grant's scope into
 `RoleHolder` parents of its `Group` or `Email` entity (workspace → every project with a domain
-plus the workspace holder; domains → their projects; projects → those projects), so
+plus the workspace holder; Admin grants → the workspace holder `admin@workspace` only, which the
+Admin policies test directly; domains → their projects; projects → those projects), so
 `principal in resource.project.holders.<roleId>` is true exactly when a matching grant covers the
 project. The role compiler turns each role (built-in and custom) into `permit` policies (see
 [contracts/policy-model.md](./contracts/policy-model.md)). Expansion is recomputed on every grant,
