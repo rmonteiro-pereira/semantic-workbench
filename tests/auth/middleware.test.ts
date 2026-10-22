@@ -9,6 +9,7 @@ import { createAccessControl } from '../../server/auth/authorize';
 import { accessFixture } from './access-fixture';
 import { localPrincipal } from '../../server/auth/principal';
 import { testWorkspace } from '../helpers/temp-data-dir';
+import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 
 test('local reads preserve responses and request ids without audit entries', async () => {
   using workspace = await testWorkspace();
@@ -23,7 +24,11 @@ test('local reads preserve responses and request ids without audit entries', asy
 test('missing identities require sign-in and denied targets are audited with hidden existence', async () => {
   using workspace = await testWorkspace();
   const audit = createAuditLog({ dir: join(workspace.root, 'audit') });
-  const anonymous = createHandler(workspace.ws, { mode: 'server', audit });
+  const anonymous = createHandler(workspace.ws, {
+    mode: 'server',
+    remoteCredentials: allowEveryRemote(),
+    audit,
+  });
   expect((await anonymous(new Request('http://localhost/api/projects'))).status).toBe(401);
   const explicit = createHandler(workspace.ws, { principal: () => null, audit });
   expect((await explicit(new Request('http://localhost/api/projects'))).status).toBe(401);

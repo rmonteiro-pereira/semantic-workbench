@@ -6,6 +6,7 @@ import { createAccessControl } from '../../server/auth/authorize';
 import { createHandler } from '../../server/handler';
 import type { Workspace } from '../../server/projects/workspace';
 import type { TestUserName } from '../helpers/auth-identities';
+import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 import { accessFixture, person } from './access-fixture';
 import { LOCAL_READER } from '../../server/projects/reader';
 
@@ -21,6 +22,7 @@ function serverAs(ws: Workspace, name: TestUserName) {
     access,
     principal: () => principal,
     publicOrigin: origin,
+    remoteCredentials: allowEveryRemote(),
   });
 }
 async function get(handler: ReturnType<typeof createHandler>, path: string) {

@@ -154,12 +154,15 @@ Identity settings used by server sign-in:
 | `SW_SESSION_KEY` | Required 32 random bytes encoded as base64. |
 | `SW_BOOTSTRAP_ADMINS` | Required comma-separated verified e-mail addresses or stable IDs (`tid:oid` for Entra); grants emergency Admin access. |
 | `SW_API_AUDIENCE` | Comma-separated audiences an agent client's bearer token may carry. For Entra, the API app's client id (the `aud` of v2 access tokens). Unset, every bearer token is refused. |
+| `SW_GITHUB_CLIENT_ID`, `SW_GITHUB_CLIENT_SECRET` | Optional GitHub OAuth app (or GitHub App) used by **Connect GitHub**; set both or neither. |
+| `SW_GITHUB_HOST` | GitHub host for those tokens, default `github.com`; a GitHub Enterprise host name otherwise. |
+| `SW_ADO_OBO` | `true` (default) lets the server obtain Azure DevOps tokens on behalf of the signed-in person; `false` turns it off. Only with `SW_OIDC_PROVIDER=entra`; other providers have no on-behalf-of. |
 
 `SW_HOST`, `SW_PORT`, `DATA_DIR`, `SW_CACHE_DIR`, `SW_SERVE_STATIC`, `SW_IN_CONTAINER`,
 `SW_VERSION`, `SW_COMMIT` and `CONTAINER_APP_REVISION` retain the meanings documented above.
 `SW_SERVE_STATIC` is always enabled in server mode. The remaining variables in the
-[configuration contract](specs/003-authn-authz/contracts/configuration.md) configure
-delegated-credential features; they do not grant browser access.
+[configuration contract](specs/003-authn-authz/contracts/configuration.md) configure agent
+and delegated-credential features; they do not grant browser access.
 
 Entra group overage uses application permission `GroupMember.Read.All` with administrator consent.
 Only group IDs named in grants and restricted paths are checked, in batches of at most 20.
@@ -237,6 +240,41 @@ as "unverified owner" and counts as no owner. The metric wizard suggests owners 
 the people who may read the project and signed in with a verified identity: a verified e-mail, or
 an Entra user name of a member (not a guest). Property editors keep protected properties
 read-only for Editors. Local mode is unchanged.
+
+### Remote Git in server mode
+
+Fetch, pull, push, sync and clone run only when someone presses them, and each command uses the
+signed-in person's own credential, so the remote records who pushed:
+
+- **Azure DevOps** (`dev.azure.com`, `*.visualstudio.com`; Entra sign-in only): the server
+  exchanges the person's workbench access token for an Azure DevOps token (on-behalf-of, scope
+  `499b84ac-1321-427f-aa17-267ca6975798/.default`). The app registration needs the delegated API
+  permission *Azure DevOps → user_impersonation* with consent, `SW_ADO_OBO` must not be `false`,
+  and **Azure DevOps on-behalf-of** must be on in `admin/settings.json`
+  (`remote.azureDevOpsObo: true`). If the exchange fails, the request answers
+  `428 {connect: 'azure-devops'}` and the panel offers **Sign in again**.
+- **GitHub**: the person connects once per session from **Person menu → Connected accounts →
+  Connect GitHub** (`/auth/github/start` → `/auth/github/callback`), or from the prompt that a
+  push shows when no account is connected (`428 {connect: 'github'}`); the push then continues on
+  return. Register `<SW_PUBLIC_URL>/auth/github/callback` as the app's callback URL.
+- **Other hosts** on the allowed list are reached without a credential (public remotes).
+
+Tokens live only in the encrypted session and end with it. Git receives them for one command
+through the askpass program `server/bin/sw-askpass` and environment variables of that child
+process, with `-c credential.helper=` so no configured helper is asked or stores anything.
+A pull fetches with the token and then merges as a local command without it, so filters and
+merge drivers configured in the repository never receive it. Nothing is written to `.git/config`, and tokens are masked in error text, logs and audit records.
+
+Only Admins add, change or remove a remote, clone, or register a repository's projects. Server
+mode reaches remotes over HTTPS only, and only hosts listed in `admin/settings.json`
+(`remote.allowedHosts`); any other address answers 400 with the `allowedHosts` list. Entries are
+exact host names, compared without regard to case, with a port when the remote uses one; each
+`<organisation>.visualstudio.com` host is listed separately. A separate push address
+(`remote.<name>.pushurl`) must be on the same allowed host. Addresses are stored in their
+canonical form; an address with a backslash, or with `@` after the host, is refused, because Git
+could read it as another host. Local mode
+keeps using the machine's own Git credential configuration, the credential setup guide and no host
+list.
 
 New projects, imports and examples created by a Steward receive an allowed domain automatically
 when there is only one. With several domains, a dialog asks which one to use. Admins may choose a

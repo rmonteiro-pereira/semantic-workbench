@@ -4,6 +4,7 @@ import { requestReader } from '../auth/request-scope';
 import { creationDomain, assignProjectDomains } from '../auth/project-creation';
 import type { AdminRepository } from '../auth/admin-repo';
 import { readJson } from '../request';
+import { cloneCredential } from '../auth/remote-credentials';
 import type { Route } from './http';
 
 /** Starts and cancels clones; the projects a clone creates get their domain in one commit. */
@@ -21,8 +22,14 @@ export function cloneRoutes(administration: AdminRepository): Route {
         throw Error('Expected {url, name?}.');
       if (!ws.gitAvailable) throw Error('Git is not available on this machine.');
       const domain = creationDomain(req, body.domain);
-      const result = ws.clone(body.url, body.name, requestReader(req), slugs =>
-        assignProjectDomains({ ws, administration }, req, slugs, domain),
+      // Also refuses a host that is not allowed, before anything is cloned.
+      const { address, credential } = await cloneCredential(req, body.url);
+      const result = ws.clone(
+        address,
+        body.name,
+        requestReader(req),
+        slugs => assignProjectDomains({ ws, administration }, req, slugs, domain),
+        credential,
       );
       return Response.json(result);
     }

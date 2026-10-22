@@ -7,6 +7,7 @@ import { createAccessControl } from '../../server/auth/authorize';
 import { createHandler } from '../../server/handler';
 import { accessFixture, person } from './access-fixture';
 import { openAdminRepository } from '../../server/auth/admin-repo';
+import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 
 const origin = 'http://127.0.0.1:4310';
 
@@ -19,6 +20,7 @@ test('Steward creation assigns its single domain and remains readable after relo
   });
   const handler = createHandler(fixture.ws, {
     mode: 'server',
+    remoteCredentials: allowEveryRemote(),
     publicOrigin: origin,
     access,
     principal: () => access.principalFor(person('bob')),
@@ -52,6 +54,7 @@ test('creation refuses another domain, and Admin can choose no domain', async ()
   ] as const) {
     const handler = createHandler(fixture.ws, {
       mode: 'server',
+      remoteCredentials: allowEveryRemote(),
       publicOrigin: origin,
       access,
       principal: () => access.principalFor(person(name)),
@@ -81,6 +84,7 @@ test('several creation domains require an explicit selection, including an empty
   const before = fixture.ws.state.registry().projects.length;
   const handler = createHandler(fixture.ws, {
     mode: 'server',
+    remoteCredentials: allowEveryRemote(),
     publicOrigin: origin,
     access,
     principal: () => access.principalFor(person('bob')),
@@ -101,6 +105,7 @@ test('imported projects receive the Steward domain and local creation stays unre
   const access = createAccessControl(accessFixture());
   const handler = createHandler(fixture.ws, {
     mode: 'server',
+    remoteCredentials: allowEveryRemote(),
     publicOrigin: origin,
     access,
     principal: () => access.principalFor(person('bob')),

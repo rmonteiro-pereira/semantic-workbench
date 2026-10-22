@@ -7,6 +7,7 @@ import { authWorkspace } from '../helpers/auth-workspace';
 import { accessFixture, person } from './access-fixture';
 import type { Role } from '../../server/auth/access-config';
 import { openAdminRepository } from '../../server/auth/admin-repo';
+import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 
 const reviewer: Role = {
   id: 'r_reviewer',
@@ -37,6 +38,7 @@ test('/api/me names the needed role as the workspace calls it', async () => {
   const origin = 'http://127.0.0.1:4310';
   const handler = createHandler(fixture.ws, {
     mode: 'server',
+    remoteCredentials: allowEveryRemote(),
     publicOrigin: origin,
     access,
     roleNames: { viewer: 'Reader', editor: 'Author', steward: 'Domain lead', admin: 'Admin' },
@@ -62,6 +64,7 @@ test('/api/me shows a renamed custom role without a restart', async () => {
   const origin = 'http://127.0.0.1:4310';
   const handler = createHandler(fixture.ws, {
     mode: 'server',
+    remoteCredentials: allowEveryRemote(),
     publicOrigin: origin,
     access,
     administration,

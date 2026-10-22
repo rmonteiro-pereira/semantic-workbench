@@ -1,6 +1,8 @@
-// Runs the installed Git with argument arrays, timeouts, and a queue per repository. Credentials
-// come from Git configuration; terminal prompts are disabled.
+// Runs the installed Git with argument arrays, timeouts, and a queue per repository. In local
+// mode credentials come from Git configuration; in server mode a remote command receives the
+// signed-in person's credential for that command only. Terminal prompts are disabled.
 import { resolve, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 /** Default time limit for local Git commands. */
 export const LOCAL_TIMEOUT_MS = 30_000;
 /** Default time limit for remote Git commands. */
@@ -26,13 +28,54 @@ export type GitOptions = {
   remoteTimeoutMs?: number;
   env?: Record<string, string | undefined>;
 };
-type RunOptions = {
+export type RunOptions = {
   stdin?: string;
   timeout?: number;
   allowFailure?: boolean;
   readOnly?: boolean;
   remote?: boolean;
+  /** Server mode only: the credential this one remote command may use. */
+  credential?: RemoteCredential;
 };
+/**
+ * A server-mode credential for one remote command: a person's token, or none for a public
+ * remote. Local mode passes no credential, so Git's own helpers answer as before.
+ */
+export type RemoteCredential =
+  | { kind: 'token'; username: string; token: string; host: string }
+  | { kind: 'none' };
+/** The fetch and push addresses of one remote, as Git resolves them. */
+export type RemoteAddresses = { name: string; fetchUrl: string; pushUrl: string };
+/** The program Git runs to ask for a username and password; it reads them from its environment. */
+export const ASKPASS_PROGRAM = fileURLToPath(new URL('../bin/sw-askpass', import.meta.url));
+/**
+ * Global options and environment that hand one command its credential. The empty helper list
+ * keeps every configured credential helper from answering or storing anything, and the askpass
+ * program answers from variables that exist only in this child process, and only for the host
+ * the credential belongs to. Redirects and submodules could lead Git to another host, so they
+ * are not followed.
+ */
+export function credentialSetup(credential: RemoteCredential) {
+  const env: Record<string, string> = { GIT_ASKPASS: ASKPASS_PROGRAM };
+  if (credential.kind === 'token') {
+    env.SW_GIT_USERNAME = credential.username;
+    env.SW_GIT_TOKEN = credential.token;
+    env.SW_GIT_HOST = credential.host;
+  }
+  const args = ['-c', 'credential.helper='];
+  args.push('-c', 'http.followRedirects=false');
+  args.push('-c', 'submodule.recurse=false', '-c', 'fetch.recurseSubmodules=false');
+  // The prompt then names only the host, which is what the askpass program checks.
+  args.push('-c', 'credential.useHttpPath=false');
+  // Hooks would inherit the token from this command's environment.
+  args.push('-c', 'core.hooksPath=/dev/null');
+  return { args, env };
+}
+/** Replaces a credential's token wherever Git's output repeats it. */
+export function maskToken(text: string, credential?: RemoteCredential) {
+  if (credential?.kind !== 'token' || !credential.token) return text;
+  return text.replaceAll(credential.token, '***');
+}
 /** Removes repository overrides and injected Git configuration, then disables terminal prompts. */
 export function gitEnv(base: Record<string, string | undefined> = process.env) {
   const env: Record<string, string> = {};
@@ -120,6 +163,7 @@ export function createGit(options: GitOptions) {
     stdin?: string,
     timeout = timeoutMs,
     cancellable = false,
+    credential?: RemoteCredential,
   ): Promise<GitResult> {
     if (!Array.isArray(args) || args.some(a => typeof a !== 'string'))
       throw new GitError('Git arguments must be an array of strings.');
@@ -127,7 +171,9 @@ export function createGit(options: GitOptions) {
     try {
       proc = Bun.spawn([binary, ...args], {
         cwd,
-        env: gitEnv(options.env),
+        env: credential
+          ? { ...gitEnv(options.env), ...credentialSetup(credential).env }
+          : gitEnv(options.env),
         stdin: stdin === undefined ? 'ignore' : new TextEncoder().encode(stdin),
         stdout: 'pipe',
         stderr: 'pipe',
@@ -168,7 +214,7 @@ export function createGit(options: GitOptions) {
     return {
       code,
       stdout: new TextDecoder().decode(bytes),
-      stderr: redactCredentials(stderr),
+      stderr: maskToken(redactCredentials(stderr), credential),
       bytes,
     };
   }
@@ -182,8 +228,13 @@ export function createGit(options: GitOptions) {
       throw new GitError(
         'Remote Git commands run only from an explicit fetch, pull, push or sync.',
       );
+    if (opts.credential && !opts.remote)
+      throw new GitError('A credential is passed only to a remote command.');
     // Remote commands never run transport helpers that execute programs (`ext::`).
-    const argv = opts.remote ? ['-c', 'protocol.ext.allow=never', ...args] : args;
+    const credentialArgs = opts.credential ? credentialSetup(opts.credential).args : [];
+    const argv = opts.remote
+      ? ['-c', 'protocol.ext.allow=never', ...credentialArgs, ...args]
+      : args;
     const exec = async () => {
       const r = await spawnGit(
         dir,
@@ -191,6 +242,7 @@ export function createGit(options: GitOptions) {
         opts.stdin,
         opts.timeout ?? (opts.remote ? remoteTimeoutMs : timeoutMs),
         !!opts.remote,
+        opts.credential,
       );
       if (r.code !== 0 && !opts.allowFailure)
         throw new GitError(
@@ -308,7 +360,7 @@ export function createGit(options: GitOptions) {
     configValue,
     // Clones into `folder` inside `parent` (a staging folder under data/projects/). Line endings are
     // kept as committed, symbolic links arrive as plain files and submodules are not fetched.
-    async clone(parent: string, url: string, folder: string) {
+    async clone(parent: string, url: string, folder: string, credential?: RemoteCredential) {
       await run(
         parent,
         [
@@ -323,7 +375,7 @@ export function createGit(options: GitOptions) {
           url,
           folder,
         ],
-        { remote: true },
+        { remote: true, credential },
       );
       const dir = resolve(parent, folder);
       await run(dir, ['config', 'core.autocrlf', 'false']);
@@ -395,6 +447,20 @@ export function createGit(options: GitOptions) {
           .filter(x => x.startsWith('refs/remotes/') && !x.endsWith('/HEAD'))
           .map(x => x.slice(13)),
       };
+    },
+    // Every remote with the fetch and push addresses Git resolves (`insteadOf`, `pushurl`).
+    async remoteAddresses(cwd: string) {
+      const r = await read(cwd, ['remote', '-v']);
+      const out = new Map<string, RemoteAddresses>();
+      for (const line of r.stdout.split('\n')) {
+        const match = line.match(/^(\S+)\t(.*) \((fetch|push)\)$/);
+        if (!match) continue;
+        const entry = out.get(match[1]) ?? { name: match[1], fetchUrl: '', pushUrl: '' };
+        if (match[3] === 'fetch') entry.fetchUrl = match[2];
+        else entry.pushUrl = match[2];
+        out.set(match[1], entry);
+      }
+      return [...out.values()];
     },
     async remotes(cwd: string) {
       const r = await read(cwd, ['remote', '-v']);

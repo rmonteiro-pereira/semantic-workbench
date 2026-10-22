@@ -9,6 +9,7 @@ import type { Workspace } from '../../server/projects/workspace';
 import type { TestUserName } from '../helpers/auth-identities';
 import { sh } from '../helpers/scm';
 import { LOCAL_READER } from '../../server/projects/reader';
+import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 import { accessFixture, person } from './access-fixture';
 
 /** A write request and the guarded part it must name when an Editor sends it. */
@@ -172,6 +173,7 @@ export function guardHandler(ws: Workspace, name: TestUserName) {
     access,
     principal: () => principal,
     publicOrigin: origin,
+    remoteCredentials: allowEveryRemote(),
   });
 }
 

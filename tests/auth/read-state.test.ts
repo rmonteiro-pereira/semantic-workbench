@@ -4,6 +4,7 @@ import { authWorkspace } from '../helpers/auth-workspace';
 import { accessFixture, boundaryReader, person } from './access-fixture';
 import { createAccessControl } from '../../server/auth/authorize';
 import { createHandler } from '../../server/handler';
+import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 
 test('drafts are owner-only, including listing, reads, replacement and deletion', async () => {
   using fixture = await authWorkspace();
@@ -11,6 +12,7 @@ test('drafts are owner-only, including listing, reads, replacement and deletion'
   const handlers = ['alice', 'frank'].map(name =>
     createHandler(fixture.ws, {
       mode: 'server',
+      remoteCredentials: allowEveryRemote(),
       access,
       publicOrigin: 'http://localhost',
       principal: () => access.principalFor(person(name as 'alice' | 'frank')),
@@ -64,6 +66,7 @@ test('trash hides other owners and restricted original paths from listing and op
   );
   const handler = createHandler(fixture.ws, {
     mode: 'server',
+    remoteCredentials: allowEveryRemote(),
     access,
     publicOrigin: 'http://localhost',
     principal: () => alice,
@@ -90,7 +93,12 @@ test('derived data and basic status do not resolve hidden sources or expose serv
   using fixture = await authWorkspace();
   const access = createAccessControl(accessFixture());
   const principal = access.principalFor(person('alice'));
-  const handler = createHandler(fixture.ws, { mode: 'server', access, principal: () => principal });
+  const handler = createHandler(fixture.ws, {
+    mode: 'server',
+    remoteCredentials: allowEveryRemote(),
+    access,
+    principal: () => principal,
+  });
   const context = await handler(
     new Request('http://localhost/api/agent/context?mappingId=sales-contracts/people.mapping.yaml'),
   );
@@ -114,7 +122,12 @@ test('hidden and absent files return identical responses and conflicts hide dest
   const access = createAccessControl(accessFixture());
   const principal = access.principalFor(person('alice'));
   const view = access.view(principal);
-  const handler = createHandler(fixture.ws, { mode: 'server', access, principal: () => principal });
+  const handler = createHandler(fixture.ws, {
+    mode: 'server',
+    remoteCredentials: allowEveryRemote(),
+    access,
+    principal: () => principal,
+  });
   const missing = await handler(
     new Request('http://localhost/api/projects/sales-contracts/files/missing.yaml'),
   );
@@ -161,7 +174,12 @@ test('grouping reads hide restricted document identifiers with a 404', async () 
   using fixture = await authWorkspace();
   const access = createAccessControl(accessFixture());
   const principal = access.principalFor(person('alice'));
-  const handler = createHandler(fixture.ws, { mode: 'server', access, principal: () => principal });
+  const handler = createHandler(fixture.ws, {
+    mode: 'server',
+    remoteCredentials: allowEveryRemote(),
+    access,
+    principal: () => principal,
+  });
   const id = encodeURIComponent('sales-contracts/finance/revenue-recognition.odcs.yaml');
   const response = await handler(new Request(`http://localhost/api/documents/${id}/grouping`));
   expect(response.status).toBe(404);
@@ -257,6 +275,7 @@ test('ordinary missing drafts are not audited as unreadable denials', async () =
   });
   const handler = createHandler(fixture.ws, {
     mode: 'server',
+    remoteCredentials: allowEveryRemote(),
     access,
     audit,
     publicOrigin: 'http://localhost',
@@ -370,6 +389,7 @@ test('a deleted empty project stays visible to the person who may restore it', a
   const listing = async (principal: typeof alice) => {
     const handler = createHandler(fixture.ws, {
       mode: 'server',
+      remoteCredentials: allowEveryRemote(),
       access,
       publicOrigin: 'http://localhost',
       principal: () => principal,

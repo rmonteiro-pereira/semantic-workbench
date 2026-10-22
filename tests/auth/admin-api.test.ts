@@ -7,6 +7,7 @@ import { openAdminRepository } from '../../server/auth/admin-repo';
 import { person, accessFixture } from './access-fixture';
 import type { HandlerOptions } from '../../server/auth/middleware';
 import type { Bootstrap } from '../../server/auth/grants';
+import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 
 /** Opens an isolated handler with fixture identities and a recent human administrator. */
 export async function adminFixture(
@@ -21,6 +22,7 @@ export async function adminFixture(
   let identity = 'dave' as Parameters<typeof person>[0];
   const handler = createHandler(fixture.ws, {
     mode: 'server',
+    remoteCredentials: allowEveryRemote(),
     publicOrigin: 'http://localhost',
     access,
     principal: () => access.principalFor(person(identity)),
@@ -765,6 +767,7 @@ test('a failed administration setup is retried by the next request', async () =>
   };
   const handler = createHandler(fixture.ws, {
     mode: 'server',
+    remoteCredentials: allowEveryRemote(),
     publicOrigin: 'http://localhost',
     access,
     administration: repository,
@@ -817,6 +820,7 @@ test('a Steward allowed to read audit records is audited with the rule that let 
   const audit = createAuditLog({ dir: fixture.ws.layout.state + '/audit' });
   const handler = createHandler(fixture.ws, {
     mode: 'server',
+    remoteCredentials: allowEveryRemote(),
     publicOrigin: 'http://localhost',
     access,
     audit,

@@ -11,6 +11,7 @@ import { routeExamples } from './route-actions';
 import type { Workspace } from '../../server/projects/workspace';
 import { LOCAL_READER } from '../../server/projects/reader';
 import { projectFile } from '../../server/projects/paths';
+import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 
 const origin = 'http://127.0.0.1:4310';
 function request(path: string, method = 'POST', body: unknown = {}) {
@@ -34,6 +35,7 @@ function server(ws: Workspace, name: Parameters<typeof person>[0] = 'alice') {
   const access = createAccessControl(accessFixture());
   return createHandler(ws, {
     mode: 'server',
+    remoteCredentials: allowEveryRemote(),
     publicOrigin: origin,
     access,
     principal: () => access.principalFor(person(name)),
@@ -210,12 +212,14 @@ test('creation and clone refuse a hidden domain even when the caller has the rou
   const access = createAccessControl(options);
   const handler = createHandler(fixture.ws, {
     mode: 'server',
+    remoteCredentials: allowEveryRemote(),
     publicOrigin: origin,
     access,
     principal: () => access.principalFor(person('alice')),
   });
   const cloneHandler = createHandler(fixture.ws, {
     mode: 'server',
+    remoteCredentials: allowEveryRemote(),
     publicOrigin: origin,
     access,
     principal: () => access.principalFor(person('dave')),
@@ -279,6 +283,7 @@ test('a legacy save without an id is judged under the name it is finally written
   });
   const handler = createHandler(fixture.ws, {
     mode: 'server',
+    remoteCredentials: allowEveryRemote(),
     publicOrigin: origin,
     access,
     principal: () => access.principalFor(person('alice')),

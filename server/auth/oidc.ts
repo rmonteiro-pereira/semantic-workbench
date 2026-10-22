@@ -254,6 +254,19 @@ export async function createOidcClient(
         post_logout_redirect_uri: config.publicUrl + '/auth/signed-out',
       }).href;
     },
+    /** Exchanges the person's workbench API token for one another API accepts on their behalf. */
+    async onBehalfOf(assertion: string, scope: string) {
+      const response = await oidc.genericGrantRequest(
+        client,
+        'urn:ietf:params:oauth:grant-type:jwt-bearer',
+        { assertion, scope, requested_token_use: 'on_behalf_of' },
+      );
+      const lifetime = response.expires_in;
+      if (typeof lifetime !== 'number' || !Number.isFinite(lifetime) || lifetime <= 0) {
+        throw new Error('The on-behalf-of token has no lifetime.');
+      }
+      return { token: response.access_token, expiresAt: now() + lifetime * 1000 };
+    },
     async directoryToken() {
       const scope = isLoopbackHost(new URL(config.directory.graphUrl).hostname)
         ? 'https://graph.microsoft.com/.default'

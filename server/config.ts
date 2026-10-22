@@ -185,7 +185,8 @@ function readServer(env: Env, common: CommonConfig, problems: ConfigProblem[]): 
       email: env.SW_COMMITTER_EMAIL || 'workbench@localhost',
     },
     github: readGitHub(env, problems),
-    adoOnBehalfOf: env.SW_ADO_OBO !== 'false',
+    // On-behalf-of is an Entra grant; other providers cannot issue Azure DevOps tokens.
+    adoOnBehalfOf: provider === 'entra' && env.SW_ADO_OBO !== 'false',
   };
 }
 
@@ -331,7 +332,16 @@ function readGitHub(env: Env, problems: ConfigProblem[]) {
     });
     return null;
   }
-  return { host: env.SW_GITHUB_HOST || 'github.com', clientId, clientSecret };
+  const host = (env.SW_GITHUB_HOST || 'github.com').trim().toLowerCase();
+  // Tokens are requested from this host, so it must be a bare host name, never a URL.
+  if (!/^[a-z0-9.-]+(:\d+)?$/.test(host)) {
+    problems.push({
+      variable: 'SW_GITHUB_HOST',
+      message: 'must be a host name such as github.com or github.example.org.',
+    });
+    return null;
+  }
+  return { host, clientId, clientSecret };
 }
 
 function parseUrl(value: string) {

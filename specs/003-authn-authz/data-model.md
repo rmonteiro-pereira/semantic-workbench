@@ -67,7 +67,7 @@ is for `/api/me`, Users & groups and the access check.
 
 Payload: `{principalId, createdAt, lastSeenAt, expiresAt, idToken, accessToken, accessTokenExpiresAt,
 refreshToken?, claims (normalised principal snapshot), remote: {azureDevOps?: {token, expiresAt},
-github?: {host, token, expiresAt, refreshToken?}}}`. Deleted on sign-out, expiry or End session.
+github?: {host, token, expiresAt?, refreshToken?}, githubAttempt?: {state, returnTo, expiresAt}}}`. Deleted on sign-out, expiry or End session.
 
 ## User record (`state/users.json`)
 

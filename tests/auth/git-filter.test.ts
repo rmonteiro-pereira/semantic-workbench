@@ -4,12 +4,18 @@ import { accessFixture, boundaryReader, person } from './access-fixture';
 import { createAccessControl } from '../../server/auth/authorize';
 import { createHandler } from '../../server/handler';
 import { LOCAL_READER } from '../../server/projects/reader';
+import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 
 test('Git rejects restricted paths even when they no longer exist', async () => {
   using fixture = await authWorkspace();
   const access = createAccessControl(accessFixture());
   const principal = access.principalFor(person('alice'));
-  const handler = createHandler(fixture.ws, { mode: 'server', access, principal: () => principal });
+  const handler = createHandler(fixture.ws, {
+    mode: 'server',
+    remoteCredentials: allowEveryRemote(),
+    access,
+    principal: () => principal,
+  });
   for (const action of ['show', 'diff', 'versions']) {
     for (const path of ['finance/revenue-recognition.odcs.yaml', 'finance/removed.yaml']) {
       const response = await handler(

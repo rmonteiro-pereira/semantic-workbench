@@ -13,6 +13,17 @@ export type SessionTokens = {
   idToken?: string;
   expiresAt: number;
 };
+/** A delegated token for one Git host, kept only inside the encrypted session. */
+export type RemoteToken = { token: string; expiresAt?: number };
+/** Remote Git credentials of one session; they end with it. */
+export type RemoteTokens = {
+  /** Obtained from the provider on the person's behalf. */
+  azureDevOps?: RemoteToken;
+  /** Obtained through the person's own GitHub consent. */
+  github?: RemoteToken & { host: string; refreshToken?: string };
+  /** A GitHub consent in progress, bound to this session by its state value. */
+  githubAttempt?: { state: string; returnTo: string; expiresAt: number };
+};
 /** A decrypted session with its browser identifier supplied separately from disk. */
 export type Session = {
   id: string;
@@ -21,6 +32,7 @@ export type Session = {
   csrf: string;
   createdAt: number;
   lastSeenAt: number;
+  remote?: RemoteTokens;
 };
 /** Persistence, time and lifecycle dependencies of the session store. */
 export type SessionOptions = {
@@ -253,8 +265,24 @@ export function createSessionStore(options: SessionOptions) {
           return false;
         }
         session.lastSeenAt = Math.max(session.lastSeenAt, current.lastSeenAt);
+        // Remote tokens change only through updateRemote, so a stale copy cannot drop a new one.
+        session.remote = current.remote;
         await persist(hash, session);
         return true;
+      }),
+    /** Changes the remote tokens of the latest stored session; null when it has ended. */
+    updateRemote: (id: string, change: (remote: RemoteTokens) => RemoteTokens) =>
+      serialize(sha256(id), async () => {
+        const hash = sha256(id);
+        const current = await load(hash, id);
+        if (!current) return null;
+        if (sessionExpired(current, now(), idle, absolute)) {
+          await remove(hash, 'expired');
+          return null;
+        }
+        current.remote = change(current.remote ?? {});
+        await persist(hash, current);
+        return current.remote;
       }),
     subscribe(id: string, listener: (reason?: 'changed' | 'session-ended') => void) {
       const hash = sha256(id);

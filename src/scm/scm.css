@@ -670,6 +670,10 @@
 .scm-note .scm-note-action {
   margin-top: 6px;
 }
+/* The action of a prompt sits on its own line below the explanation, at every width. */
+.scm-note .scm-note-text {
+  display: block;
+}
 @media (max-width: 700px) {
   .commit-dialog .commit-body {
     grid-template-columns: 1fr;

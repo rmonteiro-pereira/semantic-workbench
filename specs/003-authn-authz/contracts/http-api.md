@@ -39,11 +39,11 @@ rule there. Server mode adds the rules below.
 | `GET /auth/no-access` | signed in | | minimal HTML: display name and verified address (or username), "An Admin must grant you access to this workbench", **Sign out**; no workspace data; 302 to `/` when the person has access |
 | `GET /auth/signed-out` | anyone | | minimal HTML: "You are signed out", **Sign in again** (`/auth/login`); never starts a sign-in by itself |
 | `GET /api/projects/:slug/people` | `edit` on the project (Editor+) | | `[{name, owner}]` people who may read the project, seen at sign-in with a verified e-mail or Entra user name, for the metric owner picker; Viewer → 403; `[]` in local mode |
-| `GET /auth/github/start` | signed in | `?returnTo=` | 302 to GitHub authorize with `state` bound to the session |
-| `GET /auth/github/callback` | signed in | | stores token in session, 302 to `returnTo` |
+| `GET /auth/github/start` | signed in | `?returnTo=` | 302 to GitHub authorize with `state` bound to the session (ten minutes, single use); without a session, starts sign-in; 404 when no GitHub app is configured |
+| `GET /auth/github/callback` | signed in | `?code&state` | stores token in session, 302 to `returnTo`; a state of another session, expired or reused, or a failed token exchange → minimal page "GitHub not connected" with a link back |
 | `GET /healthz` | anyone | | `200 {ok: true, version, commit}` (liveness; no workspace data; FR-124) |
 | `GET /readyz` | anyone | | `200 {ready: true, state: "serving"}` after lock, recovery and first scan; `200 {ready: true, state: "handover"}` while waiting for a different revision's lock, before any recovery or scan (FR-123); `503` otherwise, including a live lock of the same revision (FR-122) |
-| `GET /api/me` | signed in with access | | `{mode, id, name, verifiedEmail, kind, roles: {workspace: [roleId], projects: Record<slug, [roleId]>}, roleNames: Record<roleId, name>, roleSources: [{roleId, scope, via: 'group'\|'email'\|'bootstrap', group?: {id, name?}}], groupsResolved, connected: {azureDevOps, github}, can: Record<Action, boolean> & {admin, audit}, requires: Record<Action, string>, creationDomains: [{id, name}]}`; local mode returns the implicit Admin |
+| `GET /api/me` | signed in with access | | `{mode, id, name, verifiedEmail, kind, roles: {workspace: [roleId], projects: Record<slug, [roleId]>}, roleNames: Record<roleId, name>, roleSources: [{roleId, scope, via: 'group'\|'email'\|'bootstrap', group?: {id, name?}}], groupsResolved, connected: {azureDevOps, github} (azureDevOps: the session holds a valid on-behalf-of token; github: the session holds a GitHub token), azureDevOpsAvailable, githubConfigured, can: Record<Action, boolean> & {admin, audit}, requires: Record<Action, string>, creationDomains: [{id, name}]}`; local mode returns the implicit Admin |
 | `POST /api/projects/:slug/git/publish` | Steward(d)/Admin | `{branch?: default}` | fast-forwards the branch to the copy's `HEAD` → `{published, commit}`; `409 {notFastForward: true}` |
 | `POST /api/projects/:slug/git/pull-default` | Editor(d)+ | | merges the default branch into the copy's branch → as `git/pull` |
 | `GET /api/admin/users` | Admin | `?q=&access=none` | principals with role sources, groups (with names), verified address, last sign-in, access (`granted`/`none`), deactivated |
@@ -83,7 +83,7 @@ rule there. Server mode adds the rules below.
 | `…/git/show`, `…/git/diff`, `…/git/versions` | 404 for unreadable paths |
 | `…/git/commit` | author = principal; trailer `Signed-in-user`; operates on the person's copy |
 | `…/git/switch` | 409 `{inUseBy: name}` when the branch is checked out in another copy |
-| `…/git/fetch|pull|push|sync` | delegated credential (R8); `428 {connect: 'github'\|'azure-devops'}` when missing |
+| `…/git/fetch|pull|push|sync`, `…/git/commit` with `push: true` | delegated credential (R8); `428 {error, connect: 'github'\|'azure-devops'}` when missing (checked before the commit); remote host not allowed → 400 `{allowedHosts}` |
 | `PUT …/git/remote`, `POST /api/clone`, `PUT /api/repos/:repo/projects` | Admin; host allow-list → 400 `{allowedHosts}` |
 | `GET/PUT …/git/identity`, `GET /api/git/credential-helper` | local mode only; 404 in server mode |
 | `POST /api/clear`, `DELETE /api/projects/:slug` | Admin; delete lists `unpublished: [{name, changes}]` in the impact response |

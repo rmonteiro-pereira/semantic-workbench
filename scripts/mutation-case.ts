@@ -1,6 +1,7 @@
 // Runs focused assertions against candidate modules to detect deliberately introduced faults.
 import { LOCAL_READER } from '../server/projects/reader';
 import assert from 'node:assert/strict';
+import { allowEveryRemote } from '../tests/helpers/remote-credentials-fixture';
 const m = await import(process.argv[2]);
 const category = process.argv[3];
 if (category === 'edge-path') {
@@ -2045,6 +2046,7 @@ if (category.startsWith('read-')) {
     if (category === 'read-agent') {
       const handler = m.createHandler(fixture.ws, {
         mode: 'server',
+        remoteCredentials: allowEveryRemote(),
         access,
         principal: () => principal,
       });
@@ -2148,6 +2150,7 @@ if (['write-body-legacy', 'write-body-suggestions', 'write-body-trash'].includes
   if (category === 'write-body-legacy') {
     const handler = m.createHandler(fixture.ws, {
       mode: 'server',
+      remoteCredentials: allowEveryRemote(),
       publicOrigin: origin,
       access,
       principal: () => principal,
@@ -2182,6 +2185,7 @@ if (['write-body-legacy', 'write-body-suggestions', 'write-body-trash'].includes
     const viewer = viewing.principalFor(person('alice'));
     const viewerHandler = m.createHandler(fixture.ws, {
       mode: 'server',
+      remoteCredentials: allowEveryRemote(),
       publicOrigin: origin,
       access: viewing,
       principal: () => viewer,
@@ -2349,7 +2353,7 @@ if (category === 'bearer-delegated') {
 if (category.startsWith('guard-')) {
   const { createAccessControl } = await import('../server/auth/authorize');
   const { accessFixture, person } = await import('../tests/auth/access-fixture');
-  const { requestAccess } = await import('../server/auth/request-scope');
+  const { requestAccess, requestRemote } = await import('../server/auth/request-scope');
   const access = createAccessControl(accessFixture());
   const fs = await import('node:fs');
   const metrics = fs.readFileSync(
@@ -2365,6 +2369,8 @@ if (category.startsWith('guard-')) {
   const scoped = (request: Request, name: 'alice' | 'bob') =>
     Object.assign(request, {
       [requestAccess]: access.forRequest(access.principalFor(person(name))),
+      // These requests act in server mode, so remote commands need the credential service.
+      [requestRemote]: allowEveryRemote(),
     });
   if (category === 'guard-decisions') {
     const guardFor = (name: 'alice' | 'bob') =>
@@ -2523,5 +2529,307 @@ if (category.startsWith('guard-')) {
         remote.dispose();
       }
     }
+  }
+}
+
+// A repository with one commit, an isolated Git configuration and a bare remote beside it.
+async function remoteCaseRepository(createGit: (options: object) => any) {
+  const fs = await import('node:fs');
+  const os = await import('node:os');
+  const path = await import('node:path');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'workbench-mutations-remote-'));
+  const projects = path.join(root, 'projects');
+  const repo = path.join(projects, 'repo');
+  const globalConfig = path.join(root, 'gitconfig');
+  fs.mkdirSync(repo, { recursive: true });
+  fs.writeFileSync(globalConfig, '[user]\n\tname = T\n\temail = t@example.invalid\n');
+  const env = { ...process.env, GIT_CONFIG_GLOBAL: globalConfig, GIT_CONFIG_NOSYSTEM: '1' };
+  const sh = (cwd: string, args: string[]) => {
+    const result = Bun.spawnSync(['git', ...args], { cwd, env });
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+  };
+  const git = createGit({ projectsRoot: projects, env });
+  await git.init(repo);
+  fs.writeFileSync(path.join(repo, 'a.yaml'), 'a: 1\n');
+  sh(repo, ['add', '.']);
+  sh(repo, ['commit', '-qm', 'First']);
+  const bare = path.join(root, 'remote.git');
+  sh(root, ['init', '-q', '--bare', bare]);
+  return { fs, path, root, projects, repo, env, bare, sh, git };
+}
+
+if (category === 'remote-credential') {
+  const setup = await remoteCaseRepository(m.createGit);
+  const { fs, path, root, repo, bare, sh, git } = setup;
+  const credential = {
+    kind: 'token',
+    username: 'person',
+    token: 'SECRET-MUTATION-TOKEN',
+    host: '127.0.0.1',
+  };
+  try {
+    // The token is handed to one command and never written to the repository's configuration.
+    const pushed = await git.run(repo, ['push', bare, 'main'], { remote: true, credential });
+    assert.equal(pushed.code, 0);
+    assert(!fs.readFileSync(path.join(repo, '.git', 'config'), 'utf8').includes(credential.token));
+    // A helper configured in the repository is never asked for, or given, a credential.
+    const marker = path.join(root, 'helper-called');
+    sh(repo, ['config', 'credential.helper', `!f() { echo called >> '${marker}'; }; f`]);
+    const { startCredentialGitServer } = await import('../tests/auth/credential-git-server');
+    const server = startCredentialGitServer(path.join(root, 'served'), async () => null);
+    try {
+      const url = server.repository('refused.git');
+      await git.run(repo, ['push', url, 'main'], { remote: true, credential, allowFailure: true });
+      assert(!fs.existsSync(marker), 'a configured credential helper was used');
+    } finally {
+      await server.stop();
+    }
+    // Output that repeats the token is masked before anyone sees it.
+    const fake = path.join(root, 'fake-git');
+    fs.writeFileSync(fake, '#!/bin/sh\necho "denied $SW_GIT_TOKEN" >&2\nexit 1\n', { mode: 0o755 });
+    const faked = m.createGit({ projectsRoot: setup.projects, env: setup.env, binary: fake });
+    const failed = await faked.run(repo, ['push', 'origin', 'main'], {
+      remote: true,
+      credential,
+      allowFailure: true,
+    });
+    assert(!failed.stderr.includes(credential.token), 'the token appeared in Git output');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+}
+
+if (category === 'remote-explicit') {
+  const { fs, root, repo, bare, git } = await remoteCaseRepository(m.createGit);
+  try {
+    for (const args of [
+      ['fetch', bare],
+      ['pull', bare, 'main'],
+      ['push', bare, 'main'],
+    ]) {
+      await assert.rejects(git.run(repo, args), /explicit/);
+    }
+    await assert.rejects(git.run(repo, ['clone', bare, 'copy']), /explicit/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+}
+
+if (category === 'remote-admin') {
+  const { createAccessControl } = await import('../server/auth/authorize');
+  const { accessFixture, person } = await import('../tests/auth/access-fixture');
+  const access = createAccessControl(accessFixture());
+  // An Editor and a Steward each hold every other permission these rows could be mistaken for.
+  for (const [method, path, username] of [
+    ['PUT', '/api/projects/sales-contracts/git/remote', 'alice'],
+    ['POST', '/api/clone', 'bob'],
+  ] as const) {
+    const route = m.routeFor(method, path);
+    const resource = route.row.resource(route.match, new URL('http://localhost'));
+    const principal = access.principalFor(person(username));
+    assert.equal(access.authorize(principal, route.row.action, resource).allow, false, path);
+  }
+}
+
+if (category === 'remote-hosts') {
+  const allowed = ['github.com', '127.0.0.1:9418'];
+  assert.equal(m.allowedRemoteHost('https://github.com/team/a.git', allowed).host, 'github.com');
+  assert.throws(() => m.allowedRemoteHost('https://evil.example/team/a.git', allowed));
+  assert.throws(() => m.allowedRemoteHost('http://github.com/team/a.git', allowed));
+  assert.throws(() => m.allowedRemoteHost('https://github.com/x@evil.example/a.git', allowed));
+  assert.throws(() => m.allowedRemoteHost('https://u@evil.example@github.com/a.git', allowed));
+  const remote = { name: 'origin', fetchUrl: 'https://github.com/a.git' };
+  assert.throws(() =>
+    m.allowedRemoteAddresses({ ...remote, pushUrl: 'http://127.0.0.1:9418/a.git' }, allowed),
+  );
+}
+
+// Pushes a branch through a remote that redirects at once to another host, and returns the
+// passwords that other host received.
+async function redirectedPasswords(args: string[], env: Record<string, string>) {
+  const fs = await import('node:fs');
+  const os = await import('node:os');
+  const path = await import('node:path');
+  const servers = await import('../tests/auth/credential-git-server');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'workbench-mutations-redirect-'));
+  const elsewhere = servers.startCredentialGitServer(
+    path.join(root, 'elsewhere'),
+    async () => null,
+  );
+  const redirect = servers.startRedirectingServer(elsewhere.origin);
+  try {
+    const repo = path.join(root, 'repo');
+    const git = (...more: string[]) => Bun.spawnSync(['git', ...more], { cwd: root });
+    git('init', '-q', '-b', 'main', repo);
+    fs.writeFileSync(path.join(repo, 'a.yaml'), 'a: 1\n');
+    git('-C', repo, 'add', '.');
+    git(
+      '-C',
+      repo,
+      '-c',
+      'user.name=T',
+      '-c',
+      'user.email=t@example.invalid',
+      'commit',
+      '-qm',
+      'A',
+    );
+    // The servers run in this process, so Git must run without blocking it.
+    const push = Bun.spawn(['git', ...args, 'push', redirect.origin + '/a.git', 'main'], {
+      cwd: repo,
+      env: { ...process.env, GIT_TERMINAL_PROMPT: '0', ...env, SW_GIT_HOST: redirect.host },
+      stdout: 'ignore',
+      stderr: 'ignore',
+    });
+    await push.exited;
+    return [...elsewhere.passwords];
+  } finally {
+    await redirect.stop();
+    await elsewhere.stop();
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+}
+
+const REDIRECT_TOKEN = 'SECRET-REDIRECT-TOKEN';
+
+if (category === 'remote-redirect') {
+  // An askpass program that answers every prompt: only the redirect setting can stop the leak.
+  const fs = await import('node:fs');
+  const os = await import('node:os');
+  const path = await import('node:path');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'workbench-mutations-lax-'));
+  const lax = path.join(dir, 'askpass');
+  fs.writeFileSync(lax, `#!/bin/sh\necho ${REDIRECT_TOKEN}\n`, { mode: 0o755 });
+  try {
+    const credential = { kind: 'token', username: 'u', token: REDIRECT_TOKEN, host: 'unused' };
+    const setup = m.credentialSetup(credential);
+    const leaked = await redirectedPasswords(setup.args, { ...setup.env, GIT_ASKPASS: lax });
+    assert(!leaked.includes(REDIRECT_TOKEN), 'the token followed a redirect to another host');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+if (category === 'askpass') {
+  const askpass = process.env.ASKPASS_UNDER_TEST!;
+  const env = { PATH: process.env.PATH, SW_GIT_USERNAME: 'u', SW_GIT_TOKEN: 'tok' };
+  const ask = (prompt: string, host = 'github.com') =>
+    Bun.spawnSync([askpass, prompt], { env: { ...env, SW_GIT_HOST: host } }).stdout.toString();
+  assert.equal(ask("Password for 'https://u@github.com': "), 'tok\n');
+  assert.equal(ask("Username for 'https://evil.example': "), '\n');
+  assert.equal(ask("Password for 'https://u@evil.example/x@github.com': "), '\n');
+  assert.equal(ask("Password for 'https://u/x@github.com': "), '\n');
+  assert.equal(ask("Username for 'https://': ", ''), '\n');
+  // With redirects followed, the askpass program alone keeps the token from the other host.
+  const credential = { kind: 'token', username: 'u', token: REDIRECT_TOKEN, host: 'unused' };
+  const setup = m.credentialSetup(credential);
+  const args = [...setup.args, '-c', 'http.followRedirects=true'];
+  const leaked = await redirectedPasswords(args, { ...setup.env, GIT_ASKPASS: askpass });
+  assert(!leaked.includes(REDIRECT_TOKEN), 'the askpass program answered another host');
+}
+
+// A guarded pull through the Source control service: the fetch that the guard checks must carry
+// the person's credential, or a remote that requires one refuses it.
+if (category === 'remote-guarded-fetch') {
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const { repoDir } = await import('../server/projects/paths');
+  const { startCredentialGitServer } = await import('../tests/auth/credential-git-server');
+  const team = await teamRepositoryWorkspace();
+  const token = 'SECRET-GUARDED-FETCH';
+  const served = path.join(team.root, 'served');
+  const server = startCredentialGitServer(served, async (_user, password) =>
+    password === token ? 'person' : null,
+  );
+  try {
+    const scm = m.createScm({
+      layout: team.ws.layout,
+      git: team.ws.git,
+      gitAvailable: true,
+      siblings: () => [team.sales, team.finance],
+      project: () => ({}),
+      drafts: () => [],
+      rescan: async () => {},
+      emit: () => {},
+    });
+    const repo = repoDir(team.ws.layout, team.sales);
+    const git = (cwd: string, args: string[]) => {
+      const result = Bun.spawnSync(['git', ...args], { cwd });
+      assert.equal(result.exitCode, 0, result.stderr.toString());
+      return result.stdout.toString().trim();
+    };
+    const url = server.repository('team.git');
+    const branch = git(repo, ['rev-parse', '--abbrev-ref', 'HEAD']);
+    git(repo, ['push', '-q', server.folder('team.git'), `HEAD:${branch}`]);
+    git(repo, ['remote', 'add', 'origin', url]);
+    // One commit that only the remote has, so the pull must fetch it.
+    const clone = path.join(team.root, 'clone');
+    git(team.root, ['clone', '-q', '-b', branch, server.folder('team.git'), clone]);
+    fs.writeFileSync(path.join(clone, 'incoming.md'), 'Incoming.\n');
+    git(clone, ['add', '.']);
+    git(clone, ['-c', 'user.name=T', '-c', 'user.email=t@example.invalid', 'commit', '-qm', 'In']);
+    git(clone, ['push', '-q', 'origin', branch]);
+    const credential = { kind: 'token', username: 'person', token, host: server.host };
+    const reader = { ...LOCAL_READER, guard: () => {} };
+    const pulled = await scm.pull(team.sales, reader, async () => credential);
+    assert(pulled.ok, pulled.stderr);
+    const fetches = server.requests.filter(request => request.service === 'git-upload-pack');
+    assert(fetches.length > 0 && fetches.every(request => request.identity === 'person'));
+  } finally {
+    await server.stop();
+    team.dispose();
+  }
+}
+
+if (category === 'remote-consent') {
+  const fs = await import('node:fs');
+  const os = await import('node:os');
+  const path = await import('node:path');
+  const { createSessionStore } = await import('../server/auth/sessions');
+  const { localPrincipal } = await import('../server/auth/principal');
+  const { oidcConfig } = await import('../tests/helpers/server-auth');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'workbench-mutations-consent-'));
+  try {
+    const sessions = createSessionStore({ dir, key: new Uint8Array(32).fill(3) });
+    const session = await sessions.create({
+      principal: localPrincipal(),
+      tokens: { accessToken: 'access', expiresAt: Date.now() + 3_600_000 },
+    });
+    let now = Date.now();
+    let obo = false;
+    const credentials = m.createRemoteCredentials({
+      config: oidcConfig('http://127.0.0.1:9/issuer', 'http://127.0.0.1:9/graph', 'entra', {
+        SW_GITHUB_HOST: 'github.example',
+        SW_GITHUB_CLIENT_ID: 'client',
+        SW_GITHUB_CLIENT_SECRET: 'secret',
+      }),
+      client: { onBehalfOf: async () => ({ token: 'ado', expiresAt: now + 3_600_000 }) },
+      session: async () => (await sessions.get(session.id))!,
+      sessions,
+      settings: () => ({
+        session: { idleHours: 8, absoluteHours: 24 },
+        remote: { allowedHosts: ['dev.azure.com'], azureDevOpsObo: obo },
+      }),
+      log: () => {},
+      now: () => now,
+      fetch: (async () => Response.json({ access_token: 'gh' })) as unknown as typeof fetch,
+    });
+    const connect = async (state: (real: string) => string, later = 0) => {
+      const location = await credentials.startGitHub((await sessions.get(session.id))!, '/');
+      const real = new URL(location).searchParams.get('state')!;
+      now += later;
+      const params = new URLSearchParams({ code: 'c', state: state(real) });
+      return (await credentials.finishGitHub((await sessions.get(session.id))!, params)).connected;
+    };
+    assert.equal(await connect(() => 'forged'), false);
+    assert.equal(await connect(real => real, 11 * 60_000), false);
+    // A token obtained while on-behalf-of was on is refused once it is turned off.
+    obo = true;
+    const request = new Request('http://127.0.0.1:4310/');
+    await credentials.credentialFor(request, 'dev.azure.com');
+    obo = false;
+    await assert.rejects(credentials.credentialFor(request, 'dev.azure.com'));
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
   }
 }

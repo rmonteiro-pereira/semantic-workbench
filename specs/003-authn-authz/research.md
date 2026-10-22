@@ -657,6 +657,7 @@ probe: `openid-client` 6.8.8 (MIT, 236 KB) with `oauth4webapi` (MIT, 332 KB), `j
 | Phase 9 on top of Phase 8 (one administration repository with reload on commit, streams closed only for affected people, Steward audit without restricted paths, new projects announced after their domain commit, admin setup retried, one Steward audit decision, one rollback path, one dry-run document shape, dry run outside the save lock, Admin button height) | Claude (general-purpose subagent), reviewed by Claude; grouped dry-run and grant-form parameters by Claude |
 | T100–T103 (bearer validation, client principals from agent grants, agent-call audit, mutants) and two review rounds (Entra v2 audience and issuer, per-row client action, provider failures answered 503, one client constructor, cross-site check skipped for clients, cookie never outranks a token) | Codex (gpt-6-astra) started it; finished, reviewed and merged onto the Admin panel by Claude general-purpose subagents |
 | T087–T093 (guards on every content write, metric approval and deprecation, Steward-only classification changes, owner picker, browser check, mutants) and five review rounds (move, switch, delete, restore and new-project import guarded; the guard carried by every server reader so a missing guard is a type error; a fail-closed write-route inventory; owners matched only on verified identities; the committed owner counted for self-approval; the people list limited to project readers) | Claude (general-purpose subagent), reviewed by Claude |
+| T094–T099 (Azure DevOps on-behalf-of and GitHub tokens per person and command, askpass helper, host allow-list, Admin-only remotes and clones, connect prompts, mutants) and four review rounds (whole-prompt askpass match, canonical and unambiguous addresses, fail-closed server mode, one remote choice per request, single-use consent, per-session token lock, guarded merge without the token) | Claude (general-purpose subagent), reviewed by Claude |
 
 ### Test changes not caused by the specification
 
@@ -750,3 +751,7 @@ probe: `openid-client` 6.8.8 (MIT, 236 KB) with `oauth4webapi` (MIT, 332 KB), `j
   these write methods no longer default to it; read-boundary tests build their server reader with
   `boundaryReader`, whose guard lets every change through. No assertion changed.
 - `policies/matrix-cases.json` is regenerated from the route table after the new people route.
+- Server-mode handlers in the auth tests and mutation cases now receive a remote credential service
+  (`allowEveryRemote()` where credentials are not the subject), because server mode refuses to start
+  without one; `tests/auth/reader.test.ts` allows the clone's optional credential;
+  `tests/helpers/server-auth.ts` takes optional extra environment. No assertion changed.

@@ -3,6 +3,7 @@ import type { Principal } from '../auth/principal';
 import { sessionCookie, type Session } from '../auth/sessions';
 import { safeReturnTo } from '../auth/oidc';
 import { SignInError } from '../auth/sign-in-error';
+import type { RemoteCredentials } from '../auth/remote-credentials';
 import type { Route } from './http';
 import { securityHeaders } from '../static';
 
@@ -22,7 +23,9 @@ type AuthPageOptions = {
   returnTo?: string;
 };
 
-function pageContent(page: 'no-access' | 'signed-out' | 'error', options: AuthPageOptions) {
+type AuthPageKind = 'no-access' | 'signed-out' | 'error' | 'connect-failed';
+
+function pageContent(page: AuthPageKind, options: AuthPageOptions) {
   let title = 'Signed out';
   let content = '<p>You are signed out.</p><a href="/auth/login">Sign in again</a>';
   if (page === 'no-access') {
@@ -52,14 +55,19 @@ function pageContent(page: 'no-access' | 'signed-out' | 'error', options: AuthPa
       escapeHtml(encodeURIComponent(safeReturnTo(options.returnTo))) +
       '">Try again</a>';
   }
+  if (page === 'connect-failed') {
+    title = 'GitHub not connected';
+    content =
+      '<p>Your GitHub account could not be connected. Nothing was changed.</p>' +
+      '<a href="' +
+      escapeHtml(safeReturnTo(options.returnTo)) +
+      '">Back to the workbench</a>';
+  }
   return { title, content };
 }
 
 /** Renders minimal authentication pages without scripts or workspace information. */
-export function authPage(
-  page: 'no-access' | 'signed-out' | 'error',
-  options: AuthPageOptions = {},
-) {
+export function authPage(page: AuthPageKind, options: AuthPageOptions = {}) {
   const { title, content } = pageContent(page, options);
   const headers = securityHeaders();
   headers.set('Content-Type', 'text/html; charset=utf-8');
@@ -86,8 +94,34 @@ export type AuthRouteOptions = {
   logout: (request: Request, session: Session | null) => Promise<Response>;
 };
 
+/** The GitHub consent steps of the delegated-credential service. */
+export type GitHubConsent = Pick<RemoteCredentials, 'startGitHub' | 'finishGitHub'>;
+
+const gitHubConsentStep = (request: Request, url: URL) =>
+  request.method === 'GET' && /^\/auth\/github\/(start|callback)$/.test(url.pathname);
+
+// Connect GitHub: the session that starts the consent is the only one that can complete it.
+async function githubRoute(
+  request: Request,
+  url: URL,
+  options: AuthRouteOptions,
+  consent?: GitHubConsent,
+) {
+  const session = await options.session(request);
+  if (!session) return options.login(url.pathname + url.search, request);
+  if (url.pathname === '/auth/github/start') {
+    const location = await consent?.startGitHub(session, url.searchParams.get('returnTo'));
+    if (!location) return Response.json({ error: 'GitHub is not configured.' }, { status: 404 });
+    return new Response(null, { status: 302, headers: { Location: location } });
+  }
+  const finished = await consent?.finishGitHub(session, url.searchParams);
+  if (!finished) return Response.json({ error: 'GitHub is not configured.' }, { status: 404 });
+  if (!finished.connected) return authPage('connect-failed', { returnTo: finished.returnTo });
+  return new Response(null, { status: 302, headers: { Location: finished.returnTo } });
+}
+
 /** Routes the public pages without exposing any workspace service to their renderers. */
-export function createAuthRoutes(options: AuthRouteOptions) {
+export function createAuthRoutes(options: AuthRouteOptions, consent?: GitHubConsent) {
   return async (request: Request): Promise<Response | null> => {
     const url = new URL(request.url);
     if (request.method === 'GET' && url.pathname === '/auth/login') {
@@ -96,6 +130,7 @@ export function createAuthRoutes(options: AuthRouteOptions) {
     if (request.method === 'GET' && url.pathname === '/auth/callback') {
       return options.callback(request);
     }
+    if (gitHubConsentStep(request, url)) return githubRoute(request, url, options, consent);
     if (request.method === 'GET' && url.pathname === '/auth/signed-out') {
       return authPage('signed-out');
     }
@@ -126,8 +161,8 @@ export function createAuthRoutes(options: AuthRouteOptions) {
 }
 
 /** Adapts authentication services to the ordinary HTTP route list. */
-export function authRoutes(options: AuthRouteOptions): Route {
-  const route = createAuthRoutes(options);
+export function authRoutes(options: AuthRouteOptions, consent?: GitHubConsent): Route {
+  const route = createAuthRoutes(options, consent);
   return (_workspace, request) => route(request);
 }
 

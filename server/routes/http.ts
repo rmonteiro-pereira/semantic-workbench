@@ -4,6 +4,8 @@ import { SignInError } from '../auth/sign-in-error';
 import { signInErrorResponse } from './auth';
 import { AdminConfigError, AdminStaleError } from '../auth/admin-repo';
 import { AccessConfigError } from '../auth/access-config';
+import { ConnectRequiredError } from '../auth/remote-credentials';
+import { RemoteHostError } from '../auth/remote-hosts';
 import { InputError } from '../../src/diagnostics';
 import { PathError } from '../projects/paths';
 import { GitError } from '../projects/git';
@@ -45,6 +47,10 @@ export function errorResponse(e: unknown, publicUrl?: string) {
       { error: 'stale', currentHash: e.currentHash, currentSource: e.currentSource },
       { status: 409 },
     );
+  if (e instanceof ConnectRequiredError)
+    return Response.json({ error: e.message, connect: e.connect }, { status: 428 });
+  if (e instanceof RemoteHostError)
+    return Response.json({ error: e.message, allowedHosts: e.allowedHosts }, { status: 400 });
   if (e instanceof GoneError) return Response.json({ error: e.message }, { status: 410 });
   if (e instanceof OccupiedError)
     return Response.json(

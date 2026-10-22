@@ -1,22 +1,34 @@
 // Carries the resolved identity and policy snapshot from the access boundary to route handlers.
 import type { AccessScope } from './authorize';
+import type { RemoteCredentials } from './remote-credentials';
 import { LOCAL_READER, type Reader } from '../projects/reader';
 import { requestAuditId } from '../request';
 import { guardFor } from './guards';
 
 /** Request scope attached after identity resolution, so routes never resolve identity again. */
 export const requestAccess = Symbol('requestAccess');
+/** Server mode's per-person remote Git credentials, or `local`, attached before routes run. */
+export const requestRemote = Symbol('requestRemote');
 /** A request carrying its already resolved access scope. */
 export type AccessRequest = Request & {
   [requestAuditId]?: string;
   [requestAccess]?: AccessScope;
   [requestAuditProjects]?: Set<string> | null;
+  [requestRemote]?: RemoteCredentials | 'local';
 };
 /**
  * The projects whose audit records an audit request may read, decided once by the access
  * boundary: null for an Admin, who reads every project's records.
  */
 export const requestAuditProjects = Symbol('requestAuditProjects');
+
+/**
+ * Makes the server's credential service reachable from the routes of this request; `local` says
+ * Git keeps using the machine's own credential configuration.
+ */
+export function attachRemoteCredentials(request: Request, remote: RemoteCredentials | 'local') {
+  (request as AccessRequest)[requestRemote] = remote;
+}
 
 /** The request's access scope; an unattached request is a programming error. */
 export function requestScope(request: Request): AccessScope {

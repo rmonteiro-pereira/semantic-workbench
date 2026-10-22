@@ -333,12 +333,12 @@ allow-list.
 
 **Independent Test**: `bun test tests/auth/remote-credentials.test.ts`.
 
-- [ ] T094 [P] [US6] Tests in tests/auth/remote-credentials.test.ts with a local credential-checking Git HTTP test server (Bun) and stubbed token issuance: Azure DevOps OBO token used for that person only; GitHub connect flow then push; missing credential → 428 `{connect}`; token absent from .git/config, files under the data root, logs, audit and responses; host not allowed → 400; remote change and clone by non-Admin → 403; local mode unchanged (FR-080 to FR-084)
-- [ ] T095 [US6] OBO and GitHub token handling server/auth/remote-credentials.ts; routes `/auth/github/start` and `/auth/github/callback` in server/routes/auth.ts
-- [ ] T096 [US6] Askpass helper server/bin/sw-askpass and per-command environment (`-c credential.helper=`, `GIT_TERMINAL_PROMPT=0`, `GIT_ASKPASS`) for fetch/pull/push/sync/clone in server/projects/git.ts; masking in error text
-- [ ] T097 [US6] Host allow-list and Admin-only remote/clone/register-projects decisions in server/routes/git.ts, server/routes/clone.ts, server/routes/repos.ts
-- [ ] T098 [US6] UI: **Connect GitHub** / Azure DevOps status in the person menu and a connect prompt on 428 in src/scm/ConnectAccount.tsx and src/scm/SourceControl.tsx; credential guide shown in local mode only
-- [ ] T099 [US6] Mutants: credential written to .git/config; remote change by non-Admin; host allow-list skipped; remote operation without explicit action — in scripts/mutation-tests.ts
+- [X] T094 [P] [US6] Tests in tests/auth/remote-credentials.test.ts with a local credential-checking Git HTTP test server (Bun) and stubbed token issuance: Azure DevOps OBO token used for that person only; GitHub connect flow then push; missing credential → 428 `{connect}`; token absent from .git/config, files under the data root, logs, audit and responses; host not allowed → 400; remote change and clone by non-Admin → 403; local mode unchanged (FR-080 to FR-084)
+- [X] T095 [US6] OBO and GitHub token handling server/auth/remote-credentials.ts; routes `/auth/github/start` and `/auth/github/callback` in server/routes/auth.ts
+- [X] T096 [US6] Askpass helper server/bin/sw-askpass and per-command environment (`-c credential.helper=`, `GIT_TERMINAL_PROMPT=0`, `GIT_ASKPASS`) for fetch/pull/push/sync/clone in server/projects/git.ts; masking in error text
+- [X] T097 [US6] Host allow-list and Admin-only remote/clone/register-projects decisions in server/routes/git.ts, server/routes/clone.ts, server/routes/repos.ts
+- [X] T098 [US6] UI: **Connect GitHub** / Azure DevOps status in the person menu and a connect prompt on 428 in src/scm/ConnectAccount.tsx and src/scm/SourceControl.tsx; credential guide shown in local mode only
+- [X] T099 [US6] Mutants: credential written to .git/config; remote change by non-Admin; host allow-list skipped; remote operation without explicit action — in scripts/mutation-tests.ts
 
 ---
 

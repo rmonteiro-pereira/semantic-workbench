@@ -8,7 +8,7 @@ import { exampleSet } from '../../src/projects/examples';
 import { atomicWrite, atomicWriteJson, decode, encode, sha256 } from './atomic';
 import { createCache, type Cache } from './cache';
 import { createEvents } from './events';
-import { createGit, hasControlCharacters } from './git';
+import { createGit, hasControlCharacters, type RemoteCredential } from './git';
 import { createJournal, type JournalHooks, type RecoveryOutcome } from './journal';
 import {
   dataLayout,
@@ -1176,8 +1176,13 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
      * drafts and view settings stay where they are. */
     /** Takes a subfolder project out of the workspace without deleting anything. */
     removeProject: (slug: string) => repositoryProjects.remove(slug),
-    clone: (url: unknown, name: unknown, { owner }: Reader, assign?: AssignProject) =>
-      cloner.start(url, name, { owner, assign }),
+    clone: (
+      url: unknown,
+      name: unknown,
+      { owner }: Reader,
+      assign?: AssignProject,
+      credential?: RemoteCredential,
+    ) => cloner.start(url, name, { owner, assign, credential }),
     cancelClone: cloner.cancel,
     // Restore committed bytes through a journaled trash operation so the current version is
     // recoverable.
