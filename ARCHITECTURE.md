@@ -19,6 +19,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | Module | What lives here | What must not live here |
 |---|---|---|
 | `server/index.ts`, `server/handler.ts` | Start-up and the HTTP entry point: host and origin checks, then the route list | Workspace logic |
+| `server/config.ts` | Reads and checks the environment once: `readConfig()` returns the typed configuration of local or server mode, or refuses to start naming each variable at fault | Reading `process.env` anywhere else for these settings |
 | `server/routes/` | One file per resource (`projects`, `files`, `git`, `clone`, `repos`, `trash`, `metrics`, ...): parse and check the request, call the workspace, shape the response | File or Git operations |
 | `server/projects/workspace.ts` | `openWorkspace()`, the composition root: registry, saves, imports, moves, scans, events, and the wiring of the services below | HTTP parsing |
 | `server/projects/` (other) | One service per concern: `git.ts` (the only place Git runs), `scm.ts` (Source Control), `clone.ts`, `journal.ts` (all-or-nothing renames), `trash.ts`, `repositories.ts` (which folders of a repository are projects: the `.semantic-workbench.json` manifest and detection) and `repository-projects.ts` (registering them), `scanner.ts` and `cache.ts` (the index), `state.ts` (registry, drafts, view settings), `paths.ts` (every path check), `events.ts` (server-sent events), `watcher.ts` | Browser code |
@@ -35,7 +36,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `src/scm/` | Source Control panel, Commit dialog, Git setup dialogs (`GitSetup.tsx` opens them from anywhere) | Git commands; they run on the server |
 | `schemas/` | Pinned JSON Schemas (ODCS, Ossie, the workbench extensions) | Edits to upstream schemas |
 | `public/examples/` | Shipped example projects | Test fixtures |
-| `tests/` | Unit and handler tests (`bun test`), always on temporary data roots | |
+| `tests/` | Unit and handler tests (`bun test`), always on temporary data roots; `tests/helpers/mock-oidc.ts` is a loopback OpenID provider with Entra, Keycloak and generic claim shapes and a Microsoft Graph stand-in; `tests/fixtures/auth-workspace/` is the access test workspace and `tests/helpers/auth-identities.ts` its people and groups | Calls to a real identity provider |
 | `scripts/` | Browser checks (Playwright against an isolated API), the mutation suite, example generators, `dev.ts` | |
 
 ## Data flow
@@ -93,9 +94,13 @@ editor never receives an older deferred value as an external replacement.
 
 ## Cross-cutting concerns
 
-- **Configuration**: one setting, the data root: `DATA_DIR` (default `data`), read in
-  `dataLayout()` in `server/projects/paths.ts`, or passed to `openWorkspace({ root })`. Tests and
-  browser checks always pass a temporary one.
+- **Configuration**: environment variables are read once by `readConfig()` in `server/config.ts`
+  (mode, host and port, data root, identity provider, session key, bootstrap Admins; the full list
+  is in `specs/003-authn-authz/contracts/configuration.md`). Start-up does not use it yet: the data
+  root still comes from `DATA_DIR` in `dataLayout()` (`server/projects/paths.ts`) or
+  `openWorkspace({ root })`, and the server listens on `127.0.0.1:4310`, until the container and
+  server-mode work wires `readConfig()` into `server/index.ts`. Tests and browser checks always
+  pass a temporary data root.
 - **Errors**: services throw specific errors (`server/projects/errors.ts`, `GitError`,
   `PathError`, `InputError`); `server/routes/http.ts` maps them to status codes in one place.
 - **Events**: the server emits `files`, `projects`, `git`, `clone`, `identity` and others

@@ -1,0 +1,21 @@
+{
+  "formatVersion": 1,
+  "session": {
+    "idleHours": 8,
+    "absoluteHours": 24
+  },
+  "remote": {
+    "allowedHosts": [
+      "github.com",
+      "dev.azure.com"
+    ],
+    "azureDevOpsObo": true,
+    "github": {
+      "host": "github.com",
+      "appConfigured": false
+    }
+  },
+  "audit": {
+    "retentionDays": 400
+  }
+}

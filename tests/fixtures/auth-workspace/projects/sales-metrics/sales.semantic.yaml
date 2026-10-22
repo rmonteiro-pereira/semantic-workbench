@@ -1,0 +1,40 @@
+version: 0.2.0.dev0
+name: Sales semantic model
+description: Sales datasets and governed metrics. LEAK-sales-metrics-sales.semantic.yaml
+datasets:
+  - name: orders
+    source: analytics.sales.orders
+    primary_key: [order_id]
+    fields:
+      - name: order_id
+        expression: {dialects: [{dialect: ANSI_SQL, expression: order_id}]}
+      - name: customer_id
+        expression: {dialects: [{dialect: ANSI_SQL, expression: customer_id}]}
+      - name: amount
+        expression: {dialects: [{dialect: ANSI_SQL, expression: amount}]}
+        datatype: Decimal
+metrics:
+  - name: gross_revenue
+    description: Approved revenue metric owned by Bob.
+    datatype: Decimal
+    expression: {dialects: [{dialect: ANSI_SQL, expression: 'SUM(orders.amount)'}]}
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {"schema": "semantic-workbench/metric/v1", "type": "simple", "owner": "bob@example.org", "status": "approved"}
+  - name: order_count
+    description: Proposed metric owned by Alice.
+    datatype: Integer
+    expression: {dialects: [{dialect: ANSI_SQL, expression: 'COUNT(DISTINCT orders.order_id)'}]}
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {"schema": "semantic-workbench/metric/v1", "type": "simple", "owner": "alice@example.org", "status": "proposed"}
+  - name: average_order_value
+    description: Draft metric owned by Frank.
+    datatype: Decimal
+    expression: {dialects: [{dialect: ANSI_SQL, expression: 'SUM(orders.amount) / COUNT(DISTINCT orders.order_id)'}]}
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {"schema": "semantic-workbench/metric/v1", "type": "simple", "owner": "frank@example.org", "status": "draft"}

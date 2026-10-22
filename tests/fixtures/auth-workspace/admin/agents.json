@@ -1,0 +1,13 @@
+{
+  "formatVersion": 1,
+  "clients": [
+    {
+      "clientId": "sw-agent",
+      "name": "Sales agent",
+      "projects": [
+        "sales-contracts"
+      ],
+      "domains": []
+    }
+  ]
+}

@@ -1,0 +1,146 @@
+{
+  "formatVersion": 1,
+  "grants": [
+    {
+      "id": "g-sales-editors",
+      "roleId": "editor",
+      "member": {
+        "kind": "group",
+        "groupId": "Sales Editors"
+      },
+      "scope": {
+        "kind": "domains",
+        "domains": [
+          "sales"
+        ]
+      },
+      "addedBy": "bootstrap",
+      "addedAt": "2026-10-21T09:00:00Z"
+    },
+    {
+      "id": "g-sales-viewers",
+      "roleId": "viewer",
+      "member": {
+        "kind": "group",
+        "groupId": "Sales Viewers"
+      },
+      "scope": {
+        "kind": "domains",
+        "domains": [
+          "sales"
+        ]
+      },
+      "addedBy": "bootstrap",
+      "addedAt": "2026-10-21T09:00:00Z"
+    },
+    {
+      "id": "g-hr-viewers",
+      "roleId": "viewer",
+      "member": {
+        "kind": "group",
+        "groupId": "HR Viewers"
+      },
+      "scope": {
+        "kind": "domains",
+        "domains": [
+          "hr"
+        ]
+      },
+      "addedBy": "bootstrap",
+      "addedAt": "2026-10-21T09:00:00Z"
+    },
+    {
+      "id": "g-finance",
+      "roleId": "viewer",
+      "member": {
+        "kind": "group",
+        "groupId": "Finance"
+      },
+      "scope": {
+        "kind": "domains",
+        "domains": [
+          "finance"
+        ]
+      },
+      "addedBy": "bootstrap",
+      "addedAt": "2026-10-21T09:00:00Z"
+    },
+    {
+      "id": "g-admins",
+      "roleId": "admin",
+      "member": {
+        "kind": "group",
+        "groupId": "Workbench Admins"
+      },
+      "scope": {
+        "kind": "workspace"
+      },
+      "addedBy": "bootstrap",
+      "addedAt": "2026-10-21T09:00:00Z"
+    },
+    {
+      "id": "g-bob",
+      "roleId": "steward",
+      "member": {
+        "kind": "email",
+        "email": "bob@example.org"
+      },
+      "scope": {
+        "kind": "domains",
+        "domains": [
+          "sales"
+        ]
+      },
+      "addedBy": "bootstrap",
+      "addedAt": "2026-10-21T09:00:00Z"
+    },
+    {
+      "id": "g-gina",
+      "roleId": "viewer",
+      "member": {
+        "kind": "email",
+        "email": "gina@partner.example"
+      },
+      "scope": {
+        "kind": "domains",
+        "domains": [
+          "sales"
+        ]
+      },
+      "addedBy": "bootstrap",
+      "addedAt": "2026-10-21T09:00:00Z"
+    },
+    {
+      "id": "g-hank",
+      "roleId": "r_metric_reviewer",
+      "member": {
+        "kind": "email",
+        "email": "hank@example.org"
+      },
+      "scope": {
+        "kind": "domains",
+        "domains": [
+          "sales"
+        ]
+      },
+      "addedBy": "bootstrap",
+      "addedAt": "2026-10-21T09:00:00Z"
+    },
+    {
+      "id": "g-carol-lab",
+      "roleId": "viewer",
+      "member": {
+        "kind": "email",
+        "email": "carol@example.org"
+      },
+      "scope": {
+        "kind": "projects",
+        "projects": [
+          "lab-notes"
+        ]
+      },
+      "addedBy": "bootstrap",
+      "addedAt": "2026-10-21T09:00:00Z"
+    }
+  ]
+}

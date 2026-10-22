@@ -38,9 +38,15 @@
     "test:dialogs": "bun scripts/dialogs-browser-check.ts",
     "test:terminology": "bun scripts/terminology-check.ts",
     "test:mappings-layout": "bun scripts/mappings-layout-browser-check.ts",
-    "test:mapping-graph": "bun scripts/mapping-graph-browser-check.ts"
+    "test:mapping-graph": "bun scripts/mapping-graph-browser-check.ts",
+    "mock-oidc": "bun scripts/mock-oidc.ts",
+    "test:auth": "bun scripts/auth-browser-check.ts",
+    "test:auth:keycloak": "bun scripts/auth-keycloak-check.ts",
+    "test:admin": "bun scripts/admin-browser-check.ts",
+    "test:two-editors": "bun scripts/two-editors-check.ts"
   },
   "dependencies": {
+    "@cedar-policy/cedar-wasm": "4.14.0",
     "@codemirror/commands": "6.11.1",
     "@codemirror/lang-json": "6.0.2",
     "@codemirror/lang-sql": "6.10.0",
@@ -63,9 +69,11 @@
     "cytoscape": "^3.34.4",
     "cytoscape-fcose": "^2.2.0",
     "elkjs": "^0.12.0",
+    "jose": "6.2.13",
     "lucide-react": "^0.468.0",
     "n3": "^2.13.12",
     "node-sql-parser": "^5.4.0",
+    "openid-client": "6.8.8",
     "rdflib": "^2.4.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

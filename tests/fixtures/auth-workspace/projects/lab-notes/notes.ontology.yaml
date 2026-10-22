@@ -1,0 +1,7 @@
+version: 0.2.0.dev0
+name: Lab notes ontology
+description: A project without a domain, reachable only through a project grant. LEAK-lab-notes-notes.ontology.yaml
+ontology:
+  - concept: Note
+    type: ValueType
+    extends: [String]

@@ -1,0 +1,10 @@
+version: 0.2.0.dev0
+name: People semantic model
+description: Employee dataset. LEAK-hr-people-people.semantic.yaml
+datasets:
+  - name: employees
+    source: hr.people.employees
+    primary_key: [employee_id]
+    fields:
+      - name: employee_id
+        expression: {dialects: [{dialect: ANSI_SQL, expression: employee_id}]}
