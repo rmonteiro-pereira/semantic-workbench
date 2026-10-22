@@ -31,8 +31,10 @@ below come from that probe.
 - **Decision**: `jose` 6.2.13 (MIT, 412 KB installed) `jwtVerify` with `createRemoteJWKSet` on the
   provider's `jwks_uri` (cached, refreshed on unknown `kid`, at most once per 5 minutes).
   Checks: signature (RS256/ES256 only), issuer, audience (the workbench API), `exp`/`nbf` with
-  300 s tolerance, required role `Agent` (Entra app role on the application; Keycloak client role
-  on the service account), Entra `tid` and `idtyp=app`.
+  300 s tolerance, Entra `tid` and `idtyp=app`, and a client id (`azp`, or `appid` in v1
+  tokens) that an Admin granted in `agents.json`. No `Agent` app role is required (R22): Entra
+  issues client-credentials tokens for the workbench API to applications of the tenant without
+  any role, which is exactly why the client grant, not the token, decides.
 - **Evidence**: sign/verify round trip with an RS256 key pair under Bun 1.4.0.
 - **Rejected**: token introspection per call (network call per request, Keycloak-only).
 
@@ -79,18 +81,30 @@ below come from that probe.
 ## R5 Microsoft Entra ID specifics
 
 - App registration (single tenant) with redirect `https://<host>/auth/callback`, front-channel
-  logout URL, app roles `Viewer`, `Editor`, `Steward`, `Admin` (users/groups) and `Agent`
-  (applications). Roles assigned to groups so `roles` carries RBAC and tokens stay small.
-- Groups claim: "Groups assigned to the application" (recommended: emits only assigned groups,
-  avoiding overage); otherwise security groups with overage handling: when the ID token carries
-  `hasgroups` or `_claim_names.groups`, the server calls Microsoft Graph
-  `POST /users/{oid}/checkMemberGroups` with the configured group ids (at most 20 per call) using
-  an app-only token (application permission `GroupMember.Read.All`, admin consent). Failure →
-  no domain membership, message shown, audit entry. The Graph base URL is configurable
-  (`SW_GRAPH_URL`, default `https://graph.microsoft.com`) so the mock OpenID provider's stand-in
-  can answer in tests.
+  logout URL and post-sign-out redirect `https://<host>/auth/signed-out`. No app roles: roles
+  come from the workbench's access grants (R22).
+- Groups claim: "Security groups" (group object IDs) with overage handling, or "Groups assigned
+  to the application" when the target assigns the granted groups to the enterprise application
+  (emits only those groups and avoids overage). On overage, when the ID token carries `hasgroups`
+  or `_claim_names.groups`, the server calls Microsoft Graph `POST /users/{oid}/checkMemberGroups`
+  with the group ids named in grants and restricted paths (at most 20 per call) using an app-only
+  token (application permission `GroupMember.Read.All`, admin consent). Failure → no group
+  membership, message shown, audit entry.
+- Group display names: when an Admin enters a group object ID, the server calls
+  `GET /groups/{id}?$select=displayName` with the same app-only token and permission
+  (`GroupMember.Read.All` includes reading basic group properties), stores the name with the
+  grant and refreshes it when the panel opens; a failed lookup keeps the grant by ID. The Graph base
+  URL is configurable (`SW_GRAPH_URL`, default `https://graph.microsoft.com`) so the mock OpenID
+  provider's stand-in can answer in tests.
 - Stable id `tid:oid` (`sub` is pairwise per application). `tid` must equal `SW_ENTRA_TENANT_ID`.
-  Optional claims `email`, `upn`; display name from `name`.
+  Optional claims `email`, `upn`, `xms_edov`; display name from `name`.
+- Verified address for e-mail grants: Entra's `email` claim is not guaranteed to be verified;
+  Microsoft documents the optional claim `xms_edov` ("email domain owner verified") for that. The
+  server uses `email` only with `xms_edov=true`, otherwise the UPN (`upn`, or `preferred_username`
+  in v2 tokens), which the tenant's administrators control for member accounts, and never a
+  guest UPN (it contains `#EXT#`). Both claims are mutable by tenant administrators, so e-mail
+  grants trust the tenant's address administration; the stable id stays the key for sessions,
+  working copies and audit (README states this).
 - Scopes at sign-in: `openid profile email offline_access api://<client-id>/access_as_user` so
   the session holds an access token for the workbench API usable for on-behalf-of (R8).
 
@@ -107,21 +121,28 @@ below come from that probe.
   test's loopback run. Endpoints: discovery, JWKS (two keys, rotation on demand to test the
   unknown-`kid` refresh), `authorize` (a test-user chooser page that Playwright drives; PKCE S256
   required, `state`, `nonce`, exact redirect URI), `token` (authorization code with verifier
-  check, `refresh_token` returning current roles and groups so role changes are testable,
+  check, `refresh_token` returning current groups and addresses so membership changes are testable,
   `client_credentials` for agent clients, and the on-behalf-of grant used by the stubbed token
-  issuance of the remote-credential tests), `end_session`, and a Graph stand-in
-  `POST /v1.0/users/{oid}/checkMemberGroups` (answers from the fixture, can be told to fail).
-  Claim shapes: `entra` (default: issuer `http://127.0.0.1:<port>/<tid>/v2.0`, `oid`, `tid`,
-  pairwise `sub`, `name`, `preferred_username`, `email`, `roles` from app roles, `groups` as
-  GUIDs, `idtyp=app` and `azp` for applications, overage through `hasgroups` or
-  `_claim_names`/`_claim_sources` for the overage user), `keycloak`
-  (`resource_access.<client>.roles`, group names) and `generic`. Controls for tests: user
-  roles/groups changes, token lifetimes, clock offset, forced errors. Never in the image; server
-  mode refuses an `http://` issuer unless the public URL is loopback (FR-141).
-- **Test users** (mock and Keycloak realm alike): `alice` (Sales, Editor), `bob` (Sales, Steward),
-  `carol` (HR, Viewer), `dave` (Admin), `erin` (no role), `frank` (Sales + Finance group,
-  Editor), `olga` (Sales Editor with group overage, mock only); agent clients `sw-agent`
-  (granted) and `sw-agent-ungranted`.
+  issuance of the remote-credential tests), `end_session` (honours
+  `post_logout_redirect_uri`), and a Graph stand-in for `POST /v1.0/users/{oid}/checkMemberGroups`
+  and `GET /v1.0/groups/{id}` (answers from the fixture, can be told to fail). Claim shapes:
+  `entra` (default: issuer `http://127.0.0.1:<port>/<tid>/v2.0`, `oid`, `tid`, pairwise `sub`,
+  `name`, `preferred_username` and `upn` (guest UPNs with `#EXT#`), `email`, `xms_edov`, `groups`
+  as GUIDs, `roles` only for users that carry app roles to prove they are ignored, `idtyp=app`
+  and `azp` for applications, overage through `hasgroups` or `_claim_names`/`_claim_sources` for
+  the overage user), `keycloak` (`email`, `email_verified`, group names) and `generic`. Controls
+  for tests: user groups and address changes, token lifetimes, clock offset, forced errors. Never in
+  the image; server mode refuses an `http://` issuer unless the public URL is loopback (FR-141).
+- **Test users** (mock and Keycloak realm alike) and the grants seeded in the fixture's
+  `data/admin/grants.json`: `alice` (group grant: Sales Editors → Editor on Sales), `bob` (e-mail
+  grant `bob@example.org` → Steward on Sales; his token says `Bob@Example.org`), `carol` (group
+  grant: HR Viewers → Viewer on HR), `dave` (group grant: Workbench Admins → Admin), `erin` (no
+  grant; her Entra-shaped token carries the app role `Admin`, which is ignored), `frank` (Sales
+  Editors and Finance groups), `gina` (guest: UPN with `#EXT#`, `email` without `xms_edov`;
+  Keycloak `email_verified=false`; an e-mail grant for her address exists and must not match),
+  `hank` (e-mail grant → custom role "Metric reviewer" on Sales), `olga` (Sales Editors through
+  group overage, mock only); agent clients `sw-agent` (granted) and `sw-agent-ungranted`; no app
+  roles anywhere else.
 - **What the mock does not cover**: conditional access, consent and multi-factor prompts,
   tenant token lifetimes, the real Graph permissions and admin consent, on-behalf-of to Azure
   DevOps. These are in the manual Entra checklist (quickstart §5), run by the owner on the real
@@ -129,11 +150,13 @@ below come from that probe.
 - **Keycloak compatibility suite** (`bun run test:auth:keycloak`): Keycloak 26
   (`quay.io/keycloak/keycloak:26.4`, pinned by digest) started with Docker or Podman
   (`start-dev --import-realm`, `tests/fixtures/keycloak/realm.json` mounted read-only, port on
-  `127.0.0.1:8080`), confidential client `semantic-workbench` (PKCE S256 required), client roles
-  Viewer/Editor/Steward/Admin, group membership mapper (`groups`, full path off), clients
-  `sw-agent` and `sw-agent-ungranted` with service accounts holding client role `Agent`. The
-  script waits for `/realms/workbench/.well-known/openid-configuration`, runs the Playwright
-  check (sign-in form, role header, sign-out, live updates, agent client credentials) and removes
+  `127.0.0.1:8080`), confidential client `semantic-workbench` (PKCE S256 required), group
+  membership mapper (`groups`, full path off), users with `email_verified` set as above, clients
+  `sw-agent` and `sw-agent-ungranted` with service accounts. The script waits for
+  `/realms/workbench/.well-known/openid-configuration`, runs the Playwright check (direct
+  redirect to Keycloak's own login form, role header from group and e-mail grants, **No access**
+  for `erin` and `gina`, sign-out to the signed-out page, live updates, agent client
+  credentials) and removes
   the container; without a container runtime it fails. It is outside `ci:validate` and the
   pipeline (a recorded exclusion of the pipeline check) and runs on the owner's machine before
   each release; the Compose `keycloak` profile gives the same setup for manual runs.
@@ -233,17 +256,17 @@ below come from that probe.
 
 - `data/admin/` is a Git repository created at first start in server mode (and in local mode on
   first Admin-panel change). Files: `policies/*.cedar` (Admin rules, one per file with an
-  `@id`/`@enabled` annotation), `roles.json`, `assignments.json`, `projects.json`, `agents.json`,
-  `deactivated.json`, `settings.json`, validated against the pinned application schema
-  `schemas/semantic-workbench-access-v1.json`. Baseline policies and the Cedar schema ship in the
-  product under `policies/` and are read-only.
+  `@id`/`@enabled` annotation), `roles.json` (custom roles), `grants.json`, `projects.json`
+  (domains and project access), `agents.json`, `deactivated.json`, `settings.json`, validated
+  against the pinned application schema `schemas/semantic-workbench-access-v1.json`. Baseline
+  policies and the Cedar schema ship in the product under `policies/` and are read-only.
 - Each change: hash-checked atomic writes, then one commit authored by the Admin with a message
   generated from the change; rollback = new commit restoring the chosen version's files. History,
   diff and versions reuse `server/projects/git.ts` and the diff view.
 - Dry run: evaluate the authorization matrix fixture and the last 1,000 audit snapshots under the
   current and the proposed policy set; report the differences.
-- Last-Admin guard: after applying the change in memory, count active principals whose effective
-  role is Admin among people seen within the session lifetime plus bootstrap Admins
+- Last-Admin guard: after applying the change in memory, count people seen within the session
+  lifetime whose stored groups or verified address match an Admin grant, plus bootstrap Admins
   (`SW_BOOTSTRAP_ADMINS`); zero → refuse.
 - **Rejected**: JSON state files with a hand-made version log; storing policies in project
   repositories (editors could grant themselves access).
@@ -296,14 +319,17 @@ below come from that probe.
 
 ## R16 Testing strategy
 
-- Unit: claim normalisation (Entra, Keycloak, overage), session crypto and expiry, cookie flags,
-  CSRF, decision boundary on the baseline policies, guards, filters, last-Admin guard, admin
-  repository versioning, audit chain.
+- Unit: claim normalisation (Entra, Keycloak, overage, verified address), grant resolution
+  (group, e-mail, case, unverified, scope expansion, union), role compiler (built-in and custom
+  roles, conditions, refusals), session crypto and expiry, cookie flags, CSRF, decision boundary
+  on the compiled set, guards, filters, last-Admin guard, admin repository versioning, audit
+  chain.
 - Authorization test matrix: `tests/auth/matrix.test.ts` enumerates every route (table in
-  [contracts/http-api.md](./contracts/http-api.md)) × users (anonymous, Viewer, Editor, Steward,
-  Admin, deactivated, agent granted/ungranted) × target (readable, unreadable, guarded) using the
-  mock OpenID provider in process and a fixture workspace with three domains; asserts status codes and scans every
-  body and SSE frame for marker strings planted in unreadable files.
+  [contracts/http-api.md](./contracts/http-api.md)) × users (anonymous, signed in without grant,
+  Viewer, Editor, Steward, Admin, custom role, deactivated, agent granted/ungranted) × target
+  (readable, unreadable, guarded) using the mock OpenID provider in process and a fixture workspace
+  with three domains; asserts status codes and scans every body and SSE frame for marker strings
+  planted in unreadable files.
 - Browser: `test:auth` (mock OpenID provider, Entra shape), `test:admin`, `test:two-editors`, all
   on isolated data roots; `test:auth:keycloak` (real Keycloak) is the compatibility suite outside
   the gate (R6).
@@ -516,3 +542,52 @@ below come from that probe.
   expected outputs and a report block with identifiers replaced by placeholders; the filled
   report is recorded in verification.md and each failed step becomes a follow-up task. SC-015
   and the final deploy role set are known only after that report.
+
+## R22 Access grants and custom roles (OP-13, OP-14)
+
+- **Decision**: workbench roles come only from access grants stored in `data/admin/grants.json`
+  and edited in the Admin panel: one role (built-in or custom) for one member, an Entra group by
+  object ID or a person by verified e-mail address, in a scope (workspace, domains, projects).
+  Entra app roles and Keycloak client roles are not read for people; the bootstrap Admins of
+  `SW_BOOTSTRAP_ADMINS` remain the break-glass path. Custom roles (`data/admin/roles.json`) are
+  sets of actions with optional conditions; built-in roles ship read-only in
+  `policies/builtin-roles.json`.
+- **Why**: the owner wants Admins to give access themselves, by group or by e-mail, without an
+  Entra administrator; app roles cannot express project or domain scope, and a second source
+  would need reconciliation rules and double auditing. The target tenant then needs only a
+  groups claim, three optional claims and one Graph permission.
+- **Evaluation**: grants are data and roles are code. The entity loader expands each grant into
+  `RoleHolder` parents (`User → Group | Email → RoleHolder <role>@<project>`), and the role
+  compiler (`server/auth/role-compiler.ts`) emits one Cedar `permit` per role permission, gated by
+  `principal in resource.project.holders.<roleId>` and the permission's conditions. Effective
+  permissions are therefore the union over all roles a person receives, and the baseline
+  `forbid` rules (no self-approval, restricted paths, deactivation, no access, bearer scope) still
+  win. Adding a grant changes entities only; editing a role regenerates policies, which are
+  validated like Admin rules before activation. The `holders` record type of the schema is
+  generated from the role list, so a typo in a role id fails validation instead of silently
+  denying.
+- **Dry run**: role and grant changes run the same dry run as policies (matrix cases, last 1,000
+  audit snapshots) plus a "what changes for whom" pass over `users.json` (stored groups and
+  verified address) and the agent clients, which also provides the affected-people list of a role
+  deletion.
+- **Rejected**: (a) Entra app roles as the source (OP-13); (b) computing roles in TypeScript and
+  passing them to Cedar as attributes (custom role conditions would then live outside the policy
+  language, and the access check could not show the deciding policy); (c) one Cedar policy per
+  grant (policy count grows with people, and every grant change would re-validate the policy
+  set); (d) letting custom roles hold `admin` (a custom role could then remove the last Admin's
+  grant and the last-Admin guard would have to reason about arbitrary roles).
+
+## R23 No workbench sign-in screen (OP-12)
+
+- **Decision**: in server mode an unauthenticated page request starts the authorization code flow
+  at once (sets `__Host-sw-auth`, answers 302 to the provider's `authorization_endpoint`), so the
+  person sees only the provider's single sign-on and returns to the page they asked for. API
+  requests keep answering 401 (the frontend reloads the page, which redirects). The workbench
+  serves three minimal server-rendered pages: **No access**, **Signed out** and a sign-in error
+  page.
+- **Why the two pages are unavoidable**: without **No access** a signed-in person without a grant
+  would loop between the workbench and the provider; without **Signed out**, returning to the
+  workspace after sign-out would sign the person in again silently through single sign-on.
+- **Rejected**: a workbench login page with a "Sign in with Microsoft" button (the owner does not
+  want a sign-in screen; it adds a click and a page to test); `prompt=login` on every sign-in
+  (defeats single sign-on).

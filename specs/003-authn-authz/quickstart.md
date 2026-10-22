@@ -19,9 +19,11 @@ Expected: every v0.3.0 suite passes; `SW_HOST=0.0.0.0 bun server/index.ts` refus
 ## 2. Server mode with the mock OpenID provider (no container, no external provider)
 
 ```sh
-bun test tests/auth            # claims (Entra, Keycloak, overage), sessions, guards, filters, matrix
-bun run test:auth              # browser: starts the mock provider (Entra shape) on loopback; sign-in,
-                               # refresh, sign-out, roles, overage user olga, hidden files
+bun test tests/auth            # claims (Entra, Keycloak, overage, verified e-mail), grants, role
+                               # compiler, sessions, guards, filters, matrix
+bun run test:auth              # browser: starts the mock provider (Entra shape) on loopback; direct
+                               # redirect, sign-in, refresh, sign-out page, No access (erin, gina),
+                               # group and e-mail grants, overage user olga, hidden files
 ```
 
 Expected: matrix reports 0 mismatches and 0 leaked markers (SC-001, SC-002); every sign-in case of
@@ -30,7 +32,12 @@ SC-019 passes. This is what the target pipeline runs; it needs no network.
 Manual run against the mock: `bun run mock-oidc -- --port 8081 --shape entra` prints its issuer
 (`http://127.0.0.1:8081/<tenant-id>/v2.0`), client id and secret; start the server as below with
 `SW_OIDC_PROVIDER=entra`, that issuer, `SW_ENTRA_TENANT_ID=<tenant-id>` and
-`SW_GRAPH_URL=http://127.0.0.1:8081`, and pick a test user on the chooser page.
+`SW_GRAPH_URL=http://127.0.0.1:8081`, and pick a test user on the chooser page (the mock's
+page, standing in for Entra; the workbench has none). Access comes from the grants seeded in the
+fixture's `data/admin/grants.json`: `alice`, `carol`, `frank`, `olga` and `dave` by group, `bob`
+and `hank` by e-mail (bob's token spells his address `Bob@Example.org`); `erin` has no grant and
+an Admin app role in her token, `gina` is a guest whose e-mail grant cannot match an unverified
+address: both see **No access**.
 
 ## 3. Keycloak compatibility suite (owner's machine; not in `ci:validate` or the pipeline)
 
@@ -49,8 +56,10 @@ SW_BOOTSTRAP_ADMINS=dave@example.org DATA_DIR=$(mktemp -d) bun run build && bun 
 ```
 
 (`http://localhost` is accepted only when `SW_PUBLIC_URL` is a loopback URL; the cookie then
-drops `Secure` and the `__Host-` prefix, for development only.) Sign in as `alice`, `bob`,
-`carol`, `dave`, `erin` (password `test`); compare with the spec's role matrix.
+drops `Secure` and the `__Host-` prefix, for development only.) Copy the fixture's `data/admin/`
+into the data folder for the seeded grants (Keycloak group names instead of Entra object IDs).
+Sign in as `alice`, `bob`, `carol`, `dave`, `erin`, `gina` (password `test`; `gina` has
+`email_verified=false`); compare with the spec's role matrix.
 
 ## 4. Container (available from Phase 3)
 
@@ -90,30 +99,48 @@ The target uses Entra only. The mock covers the flow and claim mapping; this che
 what the mock cannot (conditional access, consent, tenant token lifetimes, real Graph and Azure
 DevOps permissions).
 
-1. App registration (single tenant), redirect `https://<host>/auth/callback`, app roles Viewer,
-   Editor, Steward, Admin (users/groups) and Agent (applications); assign roles to groups.
-2. Token configuration: groups claim "Groups assigned to the application"; optional claims
-   `email`, `upn`.
+1. App registration (single tenant), redirect `https://<host>/auth/callback`, front-channel
+   logout URL, post-sign-out redirect `https://<host>/auth/signed-out`. No app roles are needed
+   (roles come from the workbench's access grants).
+2. Token configuration: groups claim "Security groups" emitting group IDs (or "Groups assigned
+   to the application" if the target assigns the granted groups to the enterprise application,
+   which avoids overage); optional claims `email`, `upn` and `xms_edov` on the ID token.
 3. Expose an API `api://<client-id>` with scope `access_as_user`; add API permission Azure DevOps
-   `user_impersonation`; for overage, application permission `GroupMember.Read.All`; grant admin
-   consent.
+   `user_impersonation`; application permission `GroupMember.Read.All` (overage resolution and
+   group display names); grant admin consent.
 4. Credential: federated credential for the container app's user-assigned identity `id-sw-app` (or a secret in Key
    Vault).
 5. Create the Azure resources and Azure DevOps items of
-   [delivery-pipeline.md](./contracts/delivery-pipeline.md) by hand following `deploy/README.md`,
-   deploy through the target's pipeline (§7), sign in with users of each role, push to Azure
-   DevOps as an Editor and check the push author.
-6. Overage: a user in more groups than the token carries signs in and gets the domain of a
-   configured group (Graph `checkMemberGroups`); with the Graph permission removed, the person
-   sees the no-membership message and an audit entry is written.
-7. Remove a user's app role in Entra: after the next token refresh (or **End session**), the
-   role is gone.
+   [delivery-pipeline.md](./contracts/delivery-pipeline.md) by hand following `deploy/README.md`
+   and deploy through the target's pipeline (§7).
+6. Open the workbench URL in a private window: the browser goes straight to the Entra sign-in
+   (no workbench sign-in screen). Sign in as a bootstrap Admin (`SW_BOOTSTRAP_ADMINS`).
+7. In **Admin → Roles & access**, add a grant for an Entra security group by object ID (the
+   group's display name appears beside the ID) and a grant for one person's e-mail address
+   written in mixed case. Members of the group and that person sign in and get their roles; a
+   tenant user with neither sees **No access** with their name and address and can sign out; a
+   guest user granted by e-mail without `xms_edov` sees **No access**.
+8. Create a custom role, add a group as member scoped to one domain, and confirm its permissions
+   in **Access check** and in the member's session.
+9. Overage: a user in more groups than the token carries signs in and gets the roles of a
+   granted group (Graph `checkMemberGroups`); with the Graph permission removed, the person sees
+   the no-membership message, group names show "name not resolved", and an audit entry is
+   written.
+10. Remove a user from a granted group in Entra: after the next token refresh (or **End
+    session**), the role is gone. Sign out: the browser lands on **Signed out** and is not
+    signed in again until **Sign in again**.
+11. Push to Azure DevOps as an Editor and check the push author.
 
 ## 6. Admin panel
 
-As `dave`: assign a project to a domain, map a group to Steward, run **Access check** for
-`alice`, edit a rule with **Dry run**, roll back, try to deactivate the last Admin (refused),
-export the audit log filtered to today.
+As `dave`: assign a project to a domain; in **Roles & access** grant Steward on Sales to a
+group by object ID (display name shown) and Editor on one project to `Erin@Example.org` (erin
+gets access at her next request); create the custom role "Metric reviewer" (approve metrics,
+document type metric) with a group member scoped to Sales and check the "what changes for whom"
+dry run; run **Access check** for `alice` and for a hypothetical person described by groups and
+an address; delete the custom role (confirmation lists the affected people); edit a rule with
+**Dry run**, roll back, try to deactivate the last Admin and to delete a built-in role (both
+refused), export the audit log filtered to today.
 
 ## 7. Local build and the Azure DevOps pipeline (from Phase 4; delivery from Phase 6)
 
