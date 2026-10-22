@@ -636,3 +636,13 @@ probe: `openid-client` 6.8.8 (MIT, 236 KB) with `oauth4webapi` (MIT, 332 KB), `j
 | Review fixes of the access core (overlapping restricted rules, agent clients and restricted paths, live project list, per-request decision scope, Admin rules wired, path normalisation) | Codex (gpt-6-astra) from the architecture review, reviewed by Claude |
 | T017–T025 (route table, middleware, audit log, administration repository, last-Admin guard, mutants) and their review fixes | Codex (gpt-6-astra), reviewed by Claude |
 | T118 (browser checks read `SW_BASE_URL`, `UI_URL` kept as alias) | Codex (gpt-6-astra); harness origin forwarding and the alias by Claude |
+
+### Test changes not caused by the specification
+
+- `scripts/metrics-browser-check.ts` (responsive step): at 390 px the app may open a document right
+  after loading, which closes the drawer the check has just opened; the check now reopens the drawer
+  until the Projects tree shows. Seen intermittently against both the dev server and the image; no
+  assertion changed.
+- `scripts/helpers/isolated-api.ts`: writes reach the isolated API through Playwright's own client
+  with an accepted origin (the browser cannot change a route's Origin), so checks can run on any
+  frontend address; a write whose page closed meanwhile is ignored.

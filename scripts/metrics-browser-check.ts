@@ -109,6 +109,15 @@ const tree = (p: Page = page) => p.getByRole('tree', { name: 'Projects' });
 async function openFile(path: string, p: Page = page) {
   await tree(p).getByRole('button', { name: path, exact: true }).click();
 }
+// On a narrow screen the app may open a document right after loading, which closes the drawer
+// the check has just opened, so the drawer is opened again until the tree shows.
+async function openDrawer(p: Page) {
+  await expect(async () => {
+    if (!(await tree(p).isVisible()))
+      await p.getByRole('button', { name: 'Open workspace', exact: true }).click();
+    await expect(tree(p)).toBeVisible({ timeout: 1000 });
+  }).toPass({ timeout: 15000 });
+}
 const metricsTab = (p: Page = page) => p.locator('.tabs').getByRole('button', { name: /^Metrics/ });
 const list = (p: Page = page) => p.getByRole('region', { name: 'Metrics' });
 try {
@@ -282,8 +291,7 @@ try {
           p.on('pageerror', e => errors.push(`${width}: ${e.message}`));
           await routeApi(p, api);
           await p.goto(appUrl());
-          if (width < 1100)
-            await p.getByRole('button', { name: 'Open workspace', exact: true }).click();
+          if (width < 1100) await openDrawer(p);
           await openFile('mall.odcs.yaml', p);
           await metricsTab(p).click();
           await expect(list(p).getByRole('status')).toHaveText('25 metrics');
