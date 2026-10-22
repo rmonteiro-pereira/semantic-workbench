@@ -64,7 +64,7 @@ WASM loaded; never bundled for the browser). All three verified under Bun 1.4.0 
 Network: only the identity provider (discovery, JWKS, token, end-session, Graph
 `checkMemberGroups` for overage and `GET /groups/{id}` for granted group names; on Azure the
 platform managed-identity endpoint for the Entra client assertion) and Git hosts on explicit action
-— allowed by constitution 3.0.1 Principle I. Machine Git ≥ 2.40.
+— allowed by constitution 3.1.0 Principle I. Machine Git ≥ 2.40.
 
 **Storage**: unchanged project layout plus `data/worktrees/`, `data/admin/` (Git), per-person
 state under `data/state/users/`, encrypted sessions, append-only audit JSONL, instance lock
@@ -94,7 +94,7 @@ pipeline: the target's Azure DevOps Linux agents with Docker (`ubuntu-latest` by
 5,000 files / 20 projects (SC-006; preparsed Cedar decision ≈ 0.07 ms, memoised per rule class);
 sign-in ≤ 5 s against the mock provider and local Keycloak (SC-005); container ready ≤ 30 s on the examples (SC-009).
 
-**Constraints**: constitution 3.0.1; byte-exact files (no redaction); nothing executed; tokens
+**Constraints**: constitution 3.1.0; byte-exact files (no redaction); nothing executed; tokens
 never in the browser; single instance per data root; no plain-text credentials; local mode
 unchanged.
 
@@ -113,7 +113,7 @@ OP-12 (no sign-in screen), OP-13 (Admin-panel grants by Entra group or e-mail as
 source, no app roles) and OP-14 (custom roles with members by group or e-mail) are decided by the
 owner.
 
-## Constitution Check (v3.0.1)
+## Constitution Check (v3.1.0)
 
 *Gate before Phase 0 and re-checked after Phase 1 design.*
 
@@ -126,6 +126,7 @@ owner.
 | V. Pinned Official Standards | No standard schema changes; new application schema `schemas/semantic-workbench-access-v1.json` pinned and labelled; classification level ordering labelled as an application reading of ODCS free text | ✅ | ✅ |
 | VI. Verification Gate | Unit, matrix, browser suites per story; geometry checks for Admin dialogs and header menu. New mutants: decision ignores domain; filter returns unfiltered list; 404 replaced by 403 (existence leak); SSE send skips filter; replay skips filter; draft served to non-owner; trash lists others' entries; git show ignores path rule; agent context falls back to unreadable project; bearer accepted outside agent routes; cookie without HttpOnly/Secure; CSRF header not required; ID-token nonce unchecked; `tid` unchecked; overage failure grants membership; unverified e-mail (or guest UPN) matches an e-mail grant; e-mail compared case-sensitively; provider app role grants a role; signed-in person without a grant admitted; workspace grant reaches a project without a domain; custom role accepts the `admin` action; built-in role deleted; custom role in use deleted without confirmation; custom role condition dropped by the compiler; unauthenticated page served a workbench page instead of the provider redirect; signed-out page starts a sign-in; self-approval allowed; approved metric edit not demoted; classification change allowed to Editor; guard skipped in save-batch/pull/revert; push to protected branch by Editor; publish not fast-forward; commit author not principal; credential written to `.git/config`; remote change by non-Admin; last-Admin guard off; invalid policy activated; deactivated principal allowed; audit entry missing for denial; second instance not refused; hand-over serves before the lock is taken; readiness before recovery; smoke test ignores a version mismatch; smoke test accepts an unauthenticated 200; rollback skipped on smoke failure; preflight accepts more than one replica; version check accepts a tag older than the last deployed version; pipeline lint accepts a step that is not a package script; pipeline lint accepts a Keycloak reference; server accepts an `http://` issuer with a non-loopback public URL; server accepts a directory URL other than Microsoft Graph. `bun run ci:validate` runs the whole gate on the owner's machine (its `container` step reruns the browser suites against the image) and the target pipeline's Validate and Image stages call the same steps | ✅ | ✅ |
 | VII. Honest Claims | README: both modes, configuration, Entra (primary, the target's provider) and Keycloak (compatibility) guides, what the mock OpenID provider does and does not cover, role matrix and what each role sees, outbound calls, delegated credentials, single-instance limit and scale path, the documented residual exposure of commit messages; container and Compose use (Docker Desktop host networking setting); the local build scripts; the Azure DevOps pipeline, the Azure resources and Azure DevOps items the target sets up by hand, the release hand-over to the mirror; the trial is reported as owner acceptance, not claimed before the owner's report; counts from tests | ✅ | ✅ |
+| VIII. Readable Code | New modules are named after the domain (sign-in, sessions, access grants, roles, audit), start with a short header, carry JSDoc on exports and keep functions and components small; Oxfmt layout, Oxlint and the comment-ID check run in `bun --bun run check` and in the pipeline's Validate stage; test names are plain sentences | ✅ | ✅ |
 
 Technical Constraints: one authorization boundary (`server/auth/authorize.ts`) used by every
 route (enforced by the route→action table test); Cedar evaluated in-process; single instance per
