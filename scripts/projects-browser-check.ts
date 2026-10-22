@@ -1,4 +1,5 @@
 // Checks project navigation, external changes and stale saves in an isolated browser workspace.
+import { appUrl } from './helpers/base-url';
 import { chromium, expect } from '@playwright/test';
 import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -32,7 +33,7 @@ async function openPage() {
   const page = await context.newPage();
   page.on('pageerror', e => errors.push(e.message));
   await routeApi(page, api);
-  await page.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
+  await page.goto(appUrl());
   await expect(page.getByRole('tree', { name: 'Projects' })).toBeVisible();
   return page;
 }

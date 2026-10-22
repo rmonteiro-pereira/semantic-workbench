@@ -1,4 +1,5 @@
 // Checks metric terminology in the UI and documentation while allowing verbatim user data.
+import { appUrl } from './helpers/base-url';
 import { chromium, type Page } from '@playwright/test';
 import { readFileSync, readdirSync } from 'node:fs';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
@@ -77,7 +78,7 @@ async function visitTabs(where: string) {
   }
 }
 try {
-  await page.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
+  await page.goto(appUrl());
   await page.waitForTimeout(800);
   await scan(page, 'start');
   const files: [string, string][] = [

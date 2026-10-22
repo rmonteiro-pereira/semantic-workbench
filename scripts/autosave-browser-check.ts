@@ -1,4 +1,5 @@
 // Checks automatic saves, stale drafts and commits using an isolated workspace and local remote.
+import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -33,7 +34,7 @@ page.on('console', m => {
   if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push(m.text());
 });
 await routeApi(page, api);
-await page.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
+await page.goto(appUrl());
 let passed = 0;
 async function check(name: string, run: () => Promise<void>) {
   const t = Date.now();

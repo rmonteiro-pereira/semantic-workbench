@@ -1,4 +1,5 @@
 // Checks RDF item editing and refusal of edits that would change other resources.
+import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Locator } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { Parser, Writer } from 'n3';
@@ -104,7 +105,7 @@ async function saveDialog(d: Locator) {
   await expect(d).toHaveCount(0, { timeout: 5000 });
 }
 try {
-  await page.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
+  await page.goto(appUrl());
   await check(
     'Turtle (catalog → Edit): changing one object rewrites only that statement line',
     async () => {

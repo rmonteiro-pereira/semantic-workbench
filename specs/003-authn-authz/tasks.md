@@ -59,7 +59,7 @@ therefore not in numeric ID order; the phase headings give the order of work.
 
 ## Phase 0: Rebase on 002 (prerequisite)
 
-- [ ] T001 After 002 merges, rebase `003-authn-authz` onto `main`; resolve conflicts only in specs/003-authn-authz/ and .specify/memory/constitution.md (002 must not have changed the constitution beyond 2.1.0; if it did, merge the changes into 3.0.0 and note them in the Sync Impact Report)
+- [X] T001 After 002 merges, rebase `003-authn-authz` onto `main`; resolve conflicts only in specs/003-authn-authz/ and .specify/memory/constitution.md (002 must not have changed the constitution beyond 2.1.0; if it did, merge the changes into 3.0.0 and note them in the Sync Impact Report)
 - [X] T002 Re-run the route inventory against server/routes/** and server/handler.ts and update the route list of specs/003-authn-authz/contracts/http-api.md for any route 002 added, renamed or dropped
 
 ---
@@ -119,7 +119,7 @@ and `bun run test:container` (local group).
 - [ ] T116 [US9] Static serving of `dist/` in server/static.ts (both modes when `SW_SERVE_STATIC=1`), `/healthz` and `/readyz` in server/routes/health.ts, writable data root probe at start-up in server/index.ts, start-up hint in local mode when `SW_IN_CONTAINER=1` (set by the image) that host networking (Compose local profile) is required (FR-124, FR-125; moved out of T032)
 - [ ] T106 [US9] Dockerfile and .dockerignore: multi-stage (`deps`, `build`, `prod-deps`, `runtime`), bases pinned by digest, runtime `oven/bun:1.4-slim` or `-alpine` with Git ≥ 2.40 asserted at build, `USER bun`, `VOLUME /data`, `DATA_DIR=/data`, `SW_CACHE_DIR=/tmp/sw-cache`, `SW_SERVE_STATIC=1`, OCI labels and `SW_VERSION`/`SW_COMMIT` from build arguments, `HEALTHCHECK` with a Bun fetch of `/healthz`, exec-form entry point (research R17, FR-120)
 - [ ] T117 [P] [US9] compose.yaml (build arguments `SW_VERSION` from package.json and `SW_COMMIT` from `git rev-parse HEAD`, passed through the environment by `image:build` and documented for direct `docker compose` use) with profile `local` (`network_mode: host`, `SW_MODE=local`, `./.data:/data`); `.data/` and `.env.server` added to .gitignore (OP-8, FR-126)
-- [ ] T118 [US9] Browser checks read `SW_BASE_URL` (default the dev server) through scripts/browser-check.ts; replace hard-coded `http://127.0.0.1:5173` in scripts/*.ts; no behaviour change against the dev server
+- [X] T118 [US9] Browser checks read `SW_BASE_URL` (default the dev server) through scripts/browser-check.ts; replace hard-coded `http://127.0.0.1:5173` in scripts/*.ts; no behaviour change against the dev server
 - [ ] T110 [US9] Container check scripts/container-check.ts and suite list scripts/container-suites.ts, script `test:container` in package.json: build (or take `--image`), run local mode with host networking and a temporary data folder, assert uid ≠ 0, `git --version` ≥ 2.40, labels, health and ready, run the local suite group against `http://127.0.0.1:4310`, restart keeps data, a second container of the same image on the same volume with `SW_PORT=4311` answers 503 on `/readyz` and logs the single-replica constraint (SC-009 local part)
 - [ ] T119 [US9] Mutants: second instance of the same revision not refused; hand-over serves data before taking the lock; hand-over instance runs recovery before taking the lock; `/readyz` reports `serving` before recovery (outside a hand-over); `/healthz` includes workspace data — in scripts/mutation-tests.ts
 

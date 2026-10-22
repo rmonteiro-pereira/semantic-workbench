@@ -1,4 +1,5 @@
 // Checks browser Source Control actions using isolated workspaces and local Git remotes.
+import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -36,7 +37,7 @@ async function newPage(target: IsolatedApi) {
     if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push(m.text());
   });
   await routeApi(page, target);
-  await page.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
+  await page.goto(appUrl());
   return page;
 }
 const page = await newPage(api);

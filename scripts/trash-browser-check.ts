@@ -1,4 +1,5 @@
 // Checks grouping, deletion, undo and trash recovery in an isolated browser workspace.
+import { appUrl } from './helpers/base-url';
 import { chromium, expect } from '@playwright/test';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -52,7 +53,7 @@ async function menu(label: string, item: string) {
 const toast = () => page.locator('.undo-toast');
 try {
   await routeApi(page, api);
-  await page.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
+  await page.goto(appUrl());
   await expect(tree()).toBeVisible();
   await check(
     'row delete icons are muted, fully visible on hover or focus, red on icon hover, with a tooltip',
@@ -130,7 +131,7 @@ try {
         try {
           p.on('pageerror', e => errors.push(`${width}: ${e.message}`));
           await routeApi(p, api);
-          await p.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
+          await p.goto(appUrl());
           if (width < 1100)
             await p.getByRole('button', { name: 'Open workspace', exact: true }).click();
           const icon = p.getByRole('button', { name: 'Delete scratch.yaml', exact: true });

@@ -1,4 +1,5 @@
 // Checks graph navigation and rendering at multiple scales in an isolated browser workspace.
+import { appUrl } from './helpers/base-url';
 import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { neighborhoodEdgeProblems, neighborhoodState, pickCenter } from './helpers/edge-geometry';
@@ -73,7 +74,7 @@ async function expectCentered() {
 const shot = (name: string) => page.screenshot({ path: `/tmp/workbench-neighborhood-${name}.png` });
 try {
   await routeApi(page, api);
-  await page.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
+  await page.goto(appUrl());
   await check(
     'full graph keeps all 45 UBL entities and 277 relationships; area zoom and layered layout',
     async () => {

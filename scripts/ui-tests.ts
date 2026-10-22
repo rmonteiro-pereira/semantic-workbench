@@ -1,4 +1,5 @@
 // Checks workspace interactions in the browser using isolated example projects.
+import { appUrl } from './helpers/base-url';
 import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { inspect } from '../src/model';
@@ -80,7 +81,7 @@ if (process.env.UI_MUTATION === 'clear-nodes')
     });
   });
 try {
-  await page.goto('http://127.0.0.1:5173/');
+  await page.goto(appUrl());
   await check('existing example opens repeatedly without clearing graph', async () => {
     for (let i = 0; i < 3; i++) {
       await (await example(page, /Load UBL business model/)).click();

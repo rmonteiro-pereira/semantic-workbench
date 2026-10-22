@@ -1,4 +1,5 @@
 // Measures browser loading and alignment of a synthetic large graph in an isolated workspace.
+import { appUrl } from './helpers/base-url';
 import { chromium } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 const browser = await chromium.launch({ headless: true });
@@ -22,7 +23,7 @@ const api = await startIsolatedApi({ watch: false });
 await api.ws.importBatch({ files: [{ path: 'scale.ossie.json', source }] });
 await routeApi(page, api);
 const start = performance.now();
-await page.goto('http://127.0.0.1:5173/');
+await page.goto(appUrl());
 await page.getByRole('button', { name: 'Auto align', exact: true }).waitFor({ timeout: 60000 });
 await page.getByText(`${count} entities · ${count * 3} relationships`, { exact: true }).waitFor();
 const loaded = performance.now();

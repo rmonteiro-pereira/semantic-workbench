@@ -1,4 +1,5 @@
 // Inspects the running workspace while refusing requests that could change it.
+import { appUrl } from './helpers/base-url';
 import { chromium } from '@playwright/test';
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1905, height: 980 } });
@@ -12,7 +13,7 @@ await page.route('**/api/**', route =>
     ? route.continue()
     : route.fulfill({ status: 403, json: { error: 'live-inspect is read-only' } }),
 );
-await page.goto('http://127.0.0.1:5173/');
+await page.goto(appUrl());
 await page.waitForTimeout(2500);
 console.log('INITIAL', await page.locator('body').innerText());
 console.log('NODES', await page.locator('.react-flow__node').count());

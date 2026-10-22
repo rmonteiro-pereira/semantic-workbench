@@ -1,4 +1,5 @@
 // Checks mapping graph bindings, selection and warnings in an isolated browser workspace.
+import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { agentCatalog, buildContext } from '../server/agent/runtime';
@@ -103,7 +104,7 @@ async function shots(name: string) {
   await page.waitForTimeout(200);
 }
 try {
-  await page.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
+  await page.goto(appUrl());
   await check(
     'mapped commerce: concepts left, datasets right, the shared legend; drawn lines are the resolver bindings both ways',
     async () => {

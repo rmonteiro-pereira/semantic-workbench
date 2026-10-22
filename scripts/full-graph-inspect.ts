@@ -1,10 +1,11 @@
 // Captures the UBL overview graph and reports browser errors.
+import { appUrl } from './helpers/base-url';
 import { chromium } from '@playwright/test';
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1905, height: 1000 } });
 const errors: string[] = [];
 page.on('pageerror', e => errors.push(e.message));
-await page.goto('http://127.0.0.1:5173/');
+await page.goto(appUrl());
 await page.getByRole('button', { name: 'ubl.ontology.yaml', exact: true }).click();
 await page.locator('.tabs').getByRole('button', { name: 'Overview', exact: true }).click();
 await page.waitForTimeout(700);

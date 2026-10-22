@@ -1,4 +1,5 @@
 // Checks contract pages, history and byte-preserving property edits in the browser.
+import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { parse } from 'yaml';
@@ -80,7 +81,7 @@ const noHorizontalScroll = async () =>
     ),
   ).toBe(true);
 try {
-  await page.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
+  await page.goto(appUrl());
   await check(
     'contract overview: identity, status, team, and a searchable object list with counts',
     async () => {

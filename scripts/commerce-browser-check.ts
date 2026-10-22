@@ -1,4 +1,5 @@
 // Inspects the commerce example in the browser.
+import { appUrl } from './helpers/base-url';
 import { chromium } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { example } from './helpers/examples';
@@ -14,7 +15,7 @@ const docs = {
   some: (f: (d: any) => boolean) => api.ws.documents().some(f),
 };
 await routeApi(page, api);
-await page.goto('http://127.0.0.1:5173/');
+await page.goto(appUrl());
 await (await example(page, /Load commerce workspace/)).click();
 await page
   .getByRole('status')

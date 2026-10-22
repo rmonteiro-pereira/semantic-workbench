@@ -1,4 +1,5 @@
 // Checks dialog fit, focus trapping and dismissal across supported viewports.
+import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 // Dialogs must fit six viewports, trap focus and return focus to their trigger after Escape.
@@ -138,7 +139,7 @@ try {
           p.on('pageerror', x => errors.push(`${e.name} ${width}: ${x.message}`));
           try {
             await routeApi(p, api);
-            await p.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
+            await p.goto(appUrl());
             await expect(p.locator('.project-tree, .projects-empty').first()).toBeAttached();
             await e.open(p);
             const trigger = e.trigger(p);

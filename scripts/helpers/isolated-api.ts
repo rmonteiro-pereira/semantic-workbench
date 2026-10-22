@@ -2,7 +2,7 @@
 import type { Page, Route } from '@playwright/test';
 import { rmSync } from 'node:fs';
 import { openWorkspace, type Workspace } from '../../server/projects/workspace';
-import { createHandler } from '../../server/handler';
+import { ALLOWED_ORIGINS, createHandler } from '../../server/handler';
 import { tempDataDir } from '../../tests/helpers/temp-data-dir';
 // Browser checks run the API on a temporary DATA_DIR (never the user's data/) and send the page's
 // /api requests there, whatever the dev server's own API points at.
@@ -73,6 +73,20 @@ export async function routeApi(
   await page.route('**/api/**', async route => {
     if (intercept && (await intercept(route))) return;
     const target = new URL(route.request().url());
-    await route.continue({ url: api.url + target.pathname + target.search });
+    const url = api.url + target.pathname + target.search;
+    if (route.request().method() === 'GET') {
+      // Reads carry no Origin, and continuing keeps the event stream streaming.
+      await route.continue({ url });
+      return;
+    }
+    await forwardWrite(route, url);
   });
+}
+// The frontend may run on another port than the ones the local API accepts, and the browser does
+// not let a route change the Origin of a write. The harness sends writes from Playwright's own
+// client with an accepted origin instead, so the API's origin check stays exactly as in production.
+async function forwardWrite(route: Route, url: string) {
+  const headers = { ...route.request().headers(), origin: ALLOWED_ORIGINS[0] };
+  const response = await route.fetch({ url, headers, maxRedirects: 0 });
+  await route.fulfill({ response });
 }

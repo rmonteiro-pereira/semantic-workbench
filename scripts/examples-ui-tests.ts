@@ -1,4 +1,5 @@
 // Checks example loading, mappings and metric composition in the browser.
+import { appUrl } from './helpers/base-url';
 import { chromium, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { Database } from 'bun:sqlite';
@@ -44,7 +45,7 @@ async function upload(files: [string, string][]) {
   await expect(page.getByRole('dialog', { name: 'Review import' })).toHaveCount(0);
 }
 try {
-  await page.goto('http://127.0.0.1:5173/');
+  await page.goto(appUrl());
   await check('all five official Ossie inputs import unchanged through the UI', async () => {
     await upload(
       manifest.files.map(f => [f.filename, 'tests/fixtures/ossie-mapping/' + f.filename]),

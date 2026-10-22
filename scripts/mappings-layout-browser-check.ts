@@ -1,6 +1,7 @@
 // Checks that every binding in the Mappings tab stays inside its card, that arrows stay with the
 // step they lead to, and that counts read "1 binding". It covers every shipped mapping document
 // and a synthetic one with 80-character identifiers and long dotted paths, at six viewports.
+import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
@@ -136,7 +137,7 @@ async function bindingLayoutProblems(target: Page) {
 }
 
 try {
-  await page.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
+  await page.goto(appUrl());
   await page.locator('.tabs').getByRole('button', { name: 'Mappings', exact: true }).click();
   const chooser = page.getByLabel('Mapping document');
   await expect(chooser.locator('option')).toHaveCount(7);
