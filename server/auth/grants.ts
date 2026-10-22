@@ -12,6 +12,18 @@ export type MatchedGrant = {
   via: 'group' | 'email' | 'bootstrap' | 'local';
   group?: string;
 };
+/** Where one of a person's roles comes from, as `/api/me` and the users panel show it. */
+export type RoleSource = Pick<MatchedGrant, 'roleId' | 'scope' | 'via'> & {
+  group?: { id: string; name?: string };
+};
+
+/** Presents a matched grant without its internal ID; a group carries its name when known. */
+export function roleSource(grant: MatchedGrant, groupName?: string | null): RoleSource {
+  const source: RoleSource = { roleId: grant.roleId, scope: grant.scope, via: grant.via };
+  if (grant.group)
+    source.group = groupName ? { id: grant.group, name: groupName } : { id: grant.group };
+  return source;
+}
 /** Emergency Admin identities configured outside the administration repository. */
 export type Bootstrap = { emails: string[]; ids: string[] };
 /** Provider comparison and deactivation rules applied to grant matching. */

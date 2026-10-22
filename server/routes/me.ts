@@ -1,5 +1,7 @@
 // Presents effective identity and grant provenance without provider credentials.
 import { ACTIONS } from '../auth/actions';
+import { auditableProjects } from '../auth/audit';
+import { roleSource } from '../auth/grants';
 import { requestScope } from '../auth/request-scope';
 import { currentRoleNames, roleRequirements } from '../auth/role-requirements';
 import type { HandlerOptions } from '../auth/middleware';
@@ -31,12 +33,7 @@ export async function meResponse(request: Request, options: HandlerOptions): Pro
     kind: principal.kind,
     roles,
     roleNames,
-    roleSources: principal.grants.map(grant => ({
-      roleId: grant.roleId,
-      scope: grant.scope,
-      via: grant.via,
-      ...(grant.group ? { group: { id: grant.group } } : {}),
-    })),
+    roleSources: principal.grants.map(grant => roleSource(grant)),
     groupsResolved: principal.groupsResolved,
     requires: roleRequirements(
       scope.customRoles(),
@@ -50,7 +47,8 @@ export async function meResponse(request: Request, options: HandlerOptions): Pro
         ACTIONS.map(action => [action, scope.authorize(action, { type: 'workspace' }).allow]),
       ),
       admin: scope.authorize('admin', { type: 'workspace' }).allow,
-      audit: scope.authorize('readAudit', { type: 'workspace' }).allow,
+      // Stewards read the audit records of their own projects, which they can always read.
+      audit: auditableProjects(scope, [...view.readableProjects]).size > 0,
     },
   };
   return Response.json(body, { headers: { 'Cache-Control': 'no-store' } });

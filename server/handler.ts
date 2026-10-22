@@ -1,6 +1,7 @@
 // Routes API requests and preserves the legacy document interface. Host and origin checks restrict
 // access to local clients.
 import { HiddenResourceError } from './projects/errors';
+import { join } from 'node:path';
 import { requestReader } from './auth/request-scope';
 import { authorizeWrite, WriteAccessError } from './auth/write-access';
 import {
@@ -9,7 +10,11 @@ import {
   defaultAdministration,
   type HandlerOptions,
 } from './auth/middleware';
+import { createAccessAdmin, type AccessAdmin } from './auth/access-admin';
 import type { AdminRepository } from './auth/admin-repo';
+import { createAuditLog } from './auth/audit';
+import { adminRoutes } from './routes/admin';
+import { auditRoutes } from './routes/audit';
 import { agentCatalog, buildContext, selectContext, planQuery } from './agent/runtime';
 import { readJson } from './request';
 import { InputError, MAX_INPUT_BYTES } from '../src/diagnostics';
@@ -250,7 +255,36 @@ export function loopbackHost(host: string | null) {
 export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
   const access = options.access ?? defaultAccess(ws, options.mode ?? 'local');
   const administration = options.administration ?? defaultAdministration(ws, access);
+  options = {
+    ...options,
+    access,
+    administration,
+    audit: options.audit ?? createAuditLog({ dir: join(ws.layout.state, 'audit') }),
+  };
+  let accessAdmin: Promise<AccessAdmin> | undefined;
+  // The service shares the process's one administration repository, whose commits reload the
+  // policy every request decides with.
+  function adminService() {
+    accessAdmin ??= (async () => {
+      await administration.ensure();
+      return createAccessAdmin({
+        repository: administration,
+        access,
+        audit: options.audit!,
+        users: () => ws.state.users().users,
+        sessions: options.authentication?.sessions,
+        groupName: options.groupName,
+      });
+    })().catch(error => {
+      // A failed setup is not kept, so the next administration request tries again.
+      accessAdmin = undefined;
+      throw error;
+    });
+    return accessAdmin;
+  }
   const routes: Route[] = [
+    adminRoutes(adminService, options),
+    auditRoutes(options),
     ...(options.authentication ? [authRoutes(options.authentication)] : []),
     (_workspace, request, url) =>
       url.pathname === '/api/me' && request.method === 'GET' ? meResponse(request, options) : null,
@@ -301,7 +335,8 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
       return errorResponse(e, options.publicOrigin);
     }
   };
-  const boundary = createAccessMiddleware(ws, { ...options, access }, localCheck, run);
+  const failure = (error: unknown) => errorResponse(error, options.publicOrigin);
+  const boundary = createAccessMiddleware(ws, options, localCheck, run, failure);
   if (options.mode !== 'server') return boundary;
   return async (request: Request) => {
     const response = await boundary(request);

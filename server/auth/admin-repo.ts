@@ -24,6 +24,33 @@ export type WorkbenchSettings = {
   audit?: { retentionDays?: number };
 };
 
+/** The value of every setting a stored settings.json leaves out. */
+const SETTINGS_DEFAULTS = {
+  session: { idleHours: 8, absoluteHours: 24 },
+  remote: {
+    allowedHosts: [] as string[],
+    azureDevOpsObo: false,
+    github: { host: 'github.com', appConfigured: false },
+  },
+  audit: { retentionDays: 400 },
+};
+/** Every setting with its value in force; the schema lets the stored file leave any of them out. */
+export type EffectiveSettings = typeof SETTINGS_DEFAULTS;
+
+/** Fills in the settings a valid settings.json leaves out, so readers always see every value. */
+export function withSettingsDefaults(stored: WorkbenchSettings): EffectiveSettings {
+  const remote = stored.remote ?? {};
+  return {
+    ...stored,
+    session: { ...SETTINGS_DEFAULTS.session, ...stored.session },
+    remote: {
+      ...SETTINGS_DEFAULTS.remote,
+      ...remote,
+      github: { ...SETTINGS_DEFAULTS.remote.github, ...remote.github },
+    },
+    audit: { ...SETTINGS_DEFAULTS.audit, ...stored.audit },
+  };
+}
 /** An invalid administration proposal, with the offending document in its message. */
 export class AdminConfigError extends Error {}
 /** A proposal based on a superseded administration commit. */
@@ -52,15 +79,7 @@ function defaultFiles(): Record<string, string> {
     projects: config.projects,
     agents: config.agents,
     deactivated: config.deactivated,
-    settings: {
-      session: { idleHours: 8, absoluteHours: 24 },
-      remote: {
-        allowedHosts: [],
-        azureDevOpsObo: false,
-        github: { host: 'github.com', appConfigured: false },
-      },
-      audit: { retentionDays: 400 },
-    },
+    settings: SETTINGS_DEFAULTS,
   };
   return Object.fromEntries(
     Object.entries(values).map(([name, value]) => [
@@ -273,17 +292,10 @@ export function openAdminRepository(options: {
     }
     return files;
   }
-  async function rollback(target: string, change: Omit<AdminWrite, 'message'>) {
-    await ensure();
-    return serialized(async () =>
-      replace(await versionFiles(target), {
-        ...change,
-        message: `access: Rollback to ${target}`,
-      }),
-    );
-  }
   async function history(area?: string) {
-    if (area && !validName(area)) throw new AdminConfigError(`${area}: unknown area`);
+    // The policies folder names every rule file; other areas name one document.
+    if (area && area !== 'policies' && !validName(area))
+      throw new AdminConfigError(`${area}: unknown area`);
     const args = ['log', '--format=%H%x00%an%x00%ae%x00%aI%x00%s', '--name-only'];
     if (area) args.push('--', area);
     const output = (await git.run(root, args)).stdout.trim();
@@ -314,20 +326,27 @@ export function openAdminRepository(options: {
     try {
       const value = JSON.parse(readFileSync(join(root, 'settings.json'), 'utf8'));
       validateAccessDocument('settingsFile', value);
-      return { ...value, session: { idleHours: 8, absoluteHours: 24, ...value.session } };
+      return withSettingsDefaults(value);
     } catch (error) {
       throw new AdminConfigError(`settings.json: ${(error as Error).message}`);
     }
   }
   return {
     settings,
+    files: readFiles,
+    snapshot: () => serialized(async () => ({ files: readFiles(), version: await version() })),
+    versionFiles,
+    validate,
+    replace: async (files: Record<string, string>, change: AdminWrite) => {
+      await ensure();
+      return serialized(() => replace(files, change));
+    },
     ensure,
     load: () => validate(readFiles()),
     version,
     write,
     history,
     diff,
-    rollback,
   };
 }
 /** The administration repository of one data root. */

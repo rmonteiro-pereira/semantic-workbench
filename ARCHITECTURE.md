@@ -42,7 +42,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `server/projects/` (other) | One service per concern: `git.ts` (the only place Git runs), `scm.ts` (Source Control), `clone.ts`, `journal.ts` (all-or-nothing renames), `trash.ts`, `repositories.ts` (which folders of a repository are projects: the `.semantic-workbench.json` manifest and detection) and `repository-projects.ts` (registering them), `scanner.ts` and `cache.ts` (the index), `state.ts` (registry, drafts, view settings), `paths.ts` (every path check), `events.ts` (server-sent events), `watcher.ts` | Browser code |
 | `server/auth/sessions.ts`, `server/auth/attempts.ts` | Encrypted session persistence, revocation and signed single-use sign-in attempts | Provider protocol |
 | `server/auth/oidc.ts` | OIDC discovery, code exchange, signature checks, refresh and client authentication | Grant decisions |
-| `server/auth/directory.ts` | App-only group membership requests with bounded batches | Role assignments |
+| `server/auth/directory.ts` | App-only group membership requests with bounded batches, and the short-lived group-name cache with bounded concurrent lookups | Role assignments |
 | `server/auth/sign-in-error.ts` | Safe typed sign-in failure reasons | Display text or provider secrets |
 | `server/auth/csrf.ts` | Public-origin, request-header and logout-form checks | Session persistence |
 | `server/auth/authentication.ts` | Composition of sessions, provider identity, directory resolution and existing grants; owns the one administration repository and reloads policy after its commits; records users through `ws.state` | HTTP route dispatch |
@@ -64,6 +64,9 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `server/auth/route-actions.ts`, `server/auth/middleware.ts` | Route inventory, request scopes, identity resolution and audited HTTP decisions | Resource-specific business logic |
 | `server/auth/audit.ts` | Durable monthly audit records, hash chains and retention | Secrets or document contents |
 | `server/auth/admin-repo.ts`, `server/auth/admin-guard.ts` | Validated Git versions of administration documents and the last human Admin invariant | HTTP parsing |
+| `server/auth/access-admin.ts`, `server/auth/change-summary.ts` | Administration saves: proposals, dry-run receipts, last-Admin and bootstrap checks, one commit per change with its message, affected streams | HTTP parsing |
+| `server/auth/policies.ts`, `server/auth/dry-run.ts` | Admin rule templates and validation; decision replay and "what changes for whom" | Persistence |
+| `server/routes/admin.ts`, `server/routes/audit.ts` | The `/api/admin/*` and `/api/audit*` contract: input checks and response shapes | Access decisions of their own |
 | `server/agent/` | Metric explanations and the SQL preview (`explain.ts`, `runtime.ts`) | Query execution |
 | `src/main.tsx`, `src/app/` | The app shell: `useWorkbench` and the other hooks hold state and handlers; `Workspace*` and `*Dialogs` components lay it out | Parsing or validation rules |
 | `src/model.ts`, `src/validation.ts`, `src/rdf*.ts`, `src/odcs.ts` | Parse a file into `Entity` and `Relationship`, and validate it; pure functions shared with the server | React, fetch |
@@ -166,11 +169,12 @@ editor never receives an older deferred value as an external replacement.
   `directoryLookup` with outcome `degraded`, including during refresh, and the request id.
   The sign-in audit is written before session creation; a failed write returns 503 without
   creating a session. Local mode does not mirror to stdout. Failed denial audits refuse the request; audit failures
-  after an operation log the request id to stderr and preserve its response to avoid retrying writes.
+  after an operation write one `audit-failure` JSON line to stderr (request id, action and, for
+  administration changes, the version) and preserve the response to avoid retrying writes.
   Administration documents live in `admin/`, with validated atomic writes and one Git commit
   per change; failed writes restore the committed tree, while requested rollbacks create new commits.
 - **Errors**: services throw specific errors (`server/projects/errors.ts`, `GitError`,
-  `PathError`, `InputError`, `SignInError`); `server/routes/http.ts` maps them to status codes in one place, including the safe sign-in page and attempt-cookie clearing.
+  `PathError`, `InputError`, `SignInError`); `server/routes/http.ts` maps them to status codes in one place, including the safe sign-in page and attempt-cookie clearing. The handler passes that mapping into the access middleware, so `server/auth/` never imports `server/routes/`.
 - **Events**: the server emits `files`, `projects`, `git`, `clone`, `identity` and others
   through `events.ts`; the browser listens with `useEvents` and refetches.
 - **Testing**: `bun test` for logic and handlers; `scripts/*-browser-check.ts` for the UI against
@@ -259,7 +263,11 @@ Suggestion counts are per person in server mode. The workspace always sends a pa
 and narrows it to each connected principal's view. A failure for one person is logged and does
 not stop the others. Each person receives a count only when it changes. Clients without a
 personal scope (local mode) share one count, also announced only when it changes.
-Access reloads close streams and reload every open tab.
+Without server sessions (local mode), every access reload closes the live-update streams and
+reloads every open tab. With sessions, an administration change closes only the streams of the
+people its dry run lists as affected (see Administration below). A new project is announced
+before its domain is committed, when only Admins can read it, so the domain assignment announces
+it again after its commit and the people of that domain see it without a reload.
 
 `state.forOwner()` exposes only `PersonalState`: drafts, grouping views and suggestion dismissals
 under `state/users/`. Local state paths are unchanged. File saves, imports that replace a file,
@@ -323,3 +331,84 @@ actions to nested controls. Creating components own their domain selection throu
 `src/projects/useProjectDomain.tsx` and pass the chosen domain to their API call. The client shows
 a chooser whenever the server offers more than one choice. Only the server automatically assigns
 a sole domain to non-Admins; local creation remains unrestricted.
+
+## Administration
+
+Administration has one owner per side: `server/auth/access-admin.ts` decides and commits,
+`src/admin/` proposes and reviews. Authorization stays on the server; the panel never computes
+a decision itself.
+
+### Server
+
+`server/routes/admin.ts` parses `/api/admin/*` requests into typed inputs and calls the service;
+The access middleware decides once which projects' audit records a request may read (all for an
+Admin, a Steward's own projects otherwise) and stores them with the request scope
+(`auditProjects()` in `request-scope.ts`). `server/routes/audit.ts` reads that set, and
+`queryAudit` also drops records of paths the reader may not `read`, before paging or export.
+The route inventory fails closed for unknown administration paths.
+
+`server/auth/access-admin.ts` validates each proposal, issues dry-run receipts bound to the
+proposal and the current version, runs the last-Admin and bootstrap guards and makes the single
+administration commit. A rollback is a proposal too: `{rollbackTo}` restores an earlier version's
+files, passes the same checks, and its save needs the receipt of that dry run. Group names of a
+grants proposal are looked up before the save waits for the write lock, through a cache in
+`directory.ts` that the users and grants routes share. The last-Admin guard in `admin-guard.ts`
+loads the proposed configuration into a separate access boundary and requires a recent Admin or a
+bootstrap identity to be allowed `admin`. `admin-repo.ts` owns complete-tree replacement, validation, the settings
+defaults and Git recovery. `change-summary.ts` turns the difference between the active and the
+proposed documents into the one-line commit message. The service writes through the one
+administration repository the handler receives as `administration`, so its commit reloads the
+shared access boundary like every other administration write. It then closes the live-update
+streams of the people the dry run lists as affected, updates session limits and writes an
+`adminChange` audit entry.
+
+`server/auth/policies.ts` owns rule annotations, raw validation and the structured templates;
+the panel gets template text only from `POST /api/admin/policies/template`. Rule text whose
+`forbid` covers every action or names `admin` is refused there.
+Disabled rules must still parse and validate before saving, and Cedar's baseline forbids stay in
+every proposed set. `server/auth/dry-run.ts` evaluates a separate boundary for the proposal and
+leaves the live one untouched until activation. Its shipped matrix is generated from
+`tests/auth/route-actions.ts` by `scripts/generate-access-matrix.ts`; audit snapshots and known
+people and agent clients add replay cases and per-project action changes. The audit snapshots
+come from `audit.recent()`, which reads month files from the newest backwards; audit queries read
+only the months in their time range. `authorize.ts` also
+owns the access-check explanation and who-can. The clock and the direct peer address enter at
+the server composition boundary.
+
+Receipts, the group-name cache and the save lock live in the server process. The workbench
+therefore runs as exactly one replica (see `deploy/README.md`); a second replica would accept
+receipts it never issued and save without the other's lock.
+
+### Panel
+
+`AdminLauncher` shows the **Admin** button from the identity's `can.admin` capability (or local
+mode) and opens one `Modal`-based dialog per area. `api.ts` is the only administration HTTP
+boundary: it uses `src/projects/api.ts` for the session and CSRF header, checks the shape of
+each response, and splits every document response into the document and its `version`. That
+`version` is the `baseVersion` of the next save of that document, so a concurrent change is
+refused as stale instead of overwritten. `problemText` turns a refusal into the sentence a
+dialog shows. The types in `types.ts` reuse the access-configuration types without importing
+server runtime code.
+
+`ReviewChange` binds a dry-run result to the serialized proposal and base version and requires
+explicit confirmation; any edit discards the review. **History** shows the same dry-run result
+for a rollback before **Confirm rollback**. Pure functions in `change-review.ts`,
+`policy-templates.ts` and `version-diff.ts` hold proposal identity, the mapping of template form
+fields to the server's template request (including time windows past midnight) and diff
+presentation. `GrantForm` is shared by users, roles and grants. `RolePermissions` follows
+the action groups and condition applicability of the policy model. The raw policy editor reuses
+`src/editor/CodeEditor.tsx` and history reuses `src/scm/DiffView.tsx`. Small shared pieces:
+`SelectField` labels a select by reference (a select inside its label would take the chosen
+option into its name), `identifiers.ts` makes grant, role and rule IDs without
+`crypto.randomUUID` (missing on plain-HTTP pages), and `when.ts` formats timestamps.
+
+### Tests
+
+`tests/auth/admin-api.test.ts` and `tests/auth/dry-run.test.ts` cover the service and routes.
+`tests/admin-client.test.ts` mocks the fetch edge; `tests/admin-presentation.test.tsx` covers
+pure presentation decisions. `tests/admin-dialogs.test.tsx` and `tests/admin-geometry.test.tsx`
+load `tests/harness/admin-harness.tsx` in Chromium against `tests/helpers/admin-api-mock.ts`,
+whose canned responses follow the HTTP contract; the mock only answers requests and
+reimplements no server rule. `scripts/admin-browser-check.ts` runs the panel against the real
+API with the existing authentication fixtures; `scripts/helpers/admin-browser.ts` holds its
+geometry check, area list and time limit.

@@ -1,4 +1,5 @@
-// Defines shared route handling, HTTP error responses, and URL path decoding.
+// Defines shared route handling and HTTP error responses.
+import { AdminRefusal } from '../auth/access-admin';
 import { SignInError } from '../auth/sign-in-error';
 import { signInErrorResponse } from './auth';
 import { AdminConfigError, AdminStaleError } from '../auth/admin-repo';
@@ -8,6 +9,7 @@ import { PathError } from '../projects/paths';
 import { GitError } from '../projects/git';
 import { BlockedError } from '../projects/scm';
 import type { Workspace } from '../projects/workspace';
+import { hiddenResponses } from '../request';
 import {
   HiddenResourceError,
   NotFoundError,
@@ -23,12 +25,11 @@ export type Route = (
   req: Request,
   url: URL,
 ) => Promise<Response | null> | Response | null;
-/** Tracks hidden denials without adding a wire header. */
-export const hiddenResponses = new WeakSet<Response>();
-// Marks the hidden-resource 404 so the access middleware can audit it as a denial; the body
-// stays identical to an ordinary missing item, so the client cannot tell them apart.
 /** Maps workspace errors to HTTP responses, including current content for stale saves. */
 export function errorResponse(e: unknown, publicUrl?: string) {
+  if (e instanceof AdminRefusal) return Response.json(e.body, { status: e.status });
+  // Marks the hidden-resource 404 so the access middleware can audit it as a denial; the body
+  // stays identical to an ordinary missing item, so the client cannot tell them apart.
   if (e instanceof HiddenResourceError) {
     const response = Response.json({ error: 'Not found.' }, { status: 404 });
     hiddenResponses.add(response);
@@ -68,17 +69,4 @@ export function errorResponse(e: unknown, publicUrl?: string) {
   if (e instanceof GitError) return Response.json({ error: e.message }, { status: 500 });
   if (e instanceof PathError) return Response.json({ error: e.message }, { status: 400 });
   return Response.json({ error: (e as Error).message }, { status: 400 });
-}
-/** Decodes URL path segments; callers must validate the resulting project path. */
-export function decodePath(raw: string) {
-  return raw
-    .split('/')
-    .map(s => {
-      try {
-        return decodeURIComponent(s);
-      } catch {
-        throw new PathError('Malformed path encoding.');
-      }
-    })
-    .join('/');
 }

@@ -181,3 +181,19 @@ function validateReferences(config: AccessConfig): void {
     assignments.add(key);
   }
 }
+
+/** Refuses newly saved client assignments that name nonexistent project or domain scopes. */
+export function validateAgentReferences(config: AccessConfig): void {
+  const domains = new Set(config.projects.domains.map(domain => domain.id));
+  for (const client of config.agents.clients) {
+    const project = client.projects.find(
+      project => !Object.hasOwn(config.projects.projects, project),
+    );
+    const domain = client.domains.find(domain => !domains.has(domain));
+    if (project || domain) {
+      throw new AccessConfigError(
+        `agents.json (${client.clientId}): unknown reference ${project ?? domain}`,
+      );
+    }
+  }
+}

@@ -62,6 +62,13 @@ export function Modal({
       first.focus();
     }
   };
+  // React passes a nested dialog's cancel event on to the dialogs around it, so Escape in a
+  // dialog opened from another dialog would otherwise close both.
+  const cancelThisDialog = (e: React.SyntheticEvent<HTMLDialogElement>) => {
+    if (e.target !== e.currentTarget) return;
+    e.preventDefault();
+    onCancel();
+  };
   return (
     <dialog
       ref={dialog}
@@ -69,10 +76,7 @@ export function Modal({
       aria-labelledby={id}
       aria-describedby={describedBy}
       aria-modal="true"
-      onCancel={e => {
-        e.preventDefault();
-        onCancel();
-      }}
+      onCancel={cancelThisDialog}
       onKeyDown={trap}
     >
       <section

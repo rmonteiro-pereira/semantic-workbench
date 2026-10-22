@@ -2213,3 +2213,28 @@ if (['write-body-legacy', 'write-body-suggestions', 'write-body-trash'].includes
     }
   }
 }
+
+// Admin panel decisions are checked here; every other admin- category is a server mutant.
+const ADMIN_UI_CATEGORIES = new Set(['admin-review', 'admin-save']);
+if (category === 'admin-review') {
+  const key = m.proposalKey({ roles: [] }, 'base');
+  const result = { dryRunId: 'review', changed: [], people: [], matrixCases: 1, auditCases: 0 };
+  assert(m.canConfirm({ key, result }, key));
+  assert(!m.canConfirm(null, key));
+  assert(!m.canConfirm({ key, result }, m.proposalKey({ roles: [] }, 'changed')));
+  assert(!m.canConfirm({ key, result }, m.proposalKey({ grants: [] }, 'base')));
+  assert(!m.canConfirm({ key, result: { ...result, dryRunId: '' } }, key));
+}
+if (category.startsWith('admin-') && !ADMIN_UI_CATEGORIES.has(category)) {
+  const { adminMutationCase } = await import('./admin-mutation-cases');
+  await adminMutationCase(m, category);
+}
+if (category === 'admin-save') {
+  let requests = 0;
+  globalThis.fetch = (async () => {
+    requests++;
+    return Response.json({ version: 'saved' });
+  }) as unknown as typeof fetch;
+  await assert.rejects(m.adminApi.save('grants', { grants: [] }, 'base', ''));
+  assert.equal(requests, 0);
+}

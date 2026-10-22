@@ -7,6 +7,16 @@ import { normalizeClaims, ClaimError } from './principal';
 import type { SessionTokens } from './sessions';
 import { SignInError } from './sign-in-error';
 
+/** Safe provider diagnostics; credentials are never part of this object. */
+export type ProviderStatus = {
+  issuer: string | null;
+  clientId: string | null;
+  discovery: string;
+  groupClaimMode: string;
+  overage: 'directory' | 'off';
+  jwksRefreshedAt: string | null;
+};
+
 /** Maps typed protocol failures to safe, stable sign-in reasons. */
 export function signInError(error: unknown): SignInError {
   if (error instanceof SignInError) return error;
@@ -131,11 +141,20 @@ export async function createOidcClient(
   );
   const jwksUri = client.serverMetadata().jwks_uri;
   if (!jwksUri) throw new Error('The provider has no signing key endpoint.');
+  let jwksRefreshedAt: string | null = null;
   // Reload an unknown key immediately so provider rotation does not end active sessions.
   const keys = createRemoteJWKSet(new URL(jwksUri), {
     cooldownDuration: 0,
     timeoutDuration: 5000,
-    [customFetch]: dependencies.fetch as typeof fetch | undefined,
+    [customFetch]: async (url, init) => {
+      const response = await (dependencies.fetch ?? fetch)(url, {
+        ...init,
+        body: undefined,
+        headers: Object.fromEntries(init.headers),
+      });
+      if (response.ok) jwksRefreshedAt = new Date(now()).toISOString();
+      return response;
+    },
   });
   const mapping = {
     provider: config.oidc.provider,
@@ -184,6 +203,9 @@ export async function createOidcClient(
     };
   }
   return {
+    get jwksRefreshedAt() {
+      return jwksRefreshedAt;
+    },
     async login(returnTo: string) {
       const attempt: SignInAttempt = {
         state: oidc.randomState(),

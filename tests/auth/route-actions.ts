@@ -70,6 +70,36 @@ export const routeExamples: { method: string; path: string; body?: unknown }[] =
   { method: 'POST', path: '/api/agent/plan' },
   { method: 'GET', path: '/api/documents/00000000000000000000/grouping' },
   { method: 'PUT', path: '/api/documents/00000000000000000000/grouping' },
+  // Administration requests, in the same order as their rows.
+  { method: 'GET', path: '/api/admin/users' },
+  { method: 'GET', path: '/api/admin/roles' },
+  { method: 'GET', path: '/api/admin/grants' },
+  { method: 'GET', path: '/api/admin/projects' },
+  { method: 'GET', path: '/api/admin/agents' },
+  { method: 'GET', path: '/api/admin/settings' },
+  { method: 'GET', path: '/api/admin/policies' },
+  { method: 'GET', path: '/api/admin/versions' },
+  { method: 'GET', path: '/api/admin/sessions' },
+  { method: 'GET', path: '/api/admin/provider' },
+  { method: 'GET', path: '/api/admin/who-can' },
+  { method: 'GET', path: '/api/admin/groups/missing' },
+  { method: 'GET', path: '/api/admin/versions/0000000000000000000000000000000000000000/diff' },
+  { method: 'PUT', path: '/api/admin/roles' },
+  { method: 'PUT', path: '/api/admin/grants' },
+  { method: 'PUT', path: '/api/admin/projects' },
+  { method: 'PUT', path: '/api/admin/agents' },
+  { method: 'PUT', path: '/api/admin/settings' },
+  { method: 'PUT', path: '/api/admin/policies' },
+  { method: 'POST', path: '/api/admin/users/missing/deactivate' },
+  { method: 'POST', path: '/api/admin/users/missing/reactivate' },
+  { method: 'POST', path: '/api/admin/policies/validate' },
+  { method: 'POST', path: '/api/admin/policies/template' },
+  { method: 'POST', path: '/api/admin/policies/dry-run' },
+  { method: 'POST', path: '/api/admin/check' },
+  { method: 'POST', path: '/api/admin/versions/0000000000000000000000000000000000000000/rollback' },
+  { method: 'DELETE', path: '/api/admin/sessions/missing' },
+  { method: 'GET', path: '/api/audit' },
+  { method: 'GET', path: '/api/audit/export' },
   { method: 'GET', path: '/auth/login' },
   { method: 'GET', path: '/auth/callback' },
   { method: 'POST', path: '/auth/logout' },
@@ -86,6 +116,8 @@ export const routeExamples: { method: string; path: string; body?: unknown }[] =
 export const readRouteExamples = routeExamples.filter(
   example =>
     example.path.startsWith('/api/') &&
+    // Administration and audit reads are Admin or Steward pages that name no project.
+    !/^\/api\/(admin|audit)(\/|$)/.test(example.path) &&
     (example.method === 'GET' ||
       example.path.endsWith('/preview') ||
       example.path === '/api/agent/plan'),

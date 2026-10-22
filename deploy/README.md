@@ -298,3 +298,15 @@ separate deployment/rollback adapter before using it.
 Scale vertically first. Multiple replicas cannot safely share the Git workspace. A horizontal
 scale design needs repository ownership partitioning or coordinated storage/leases and shared
 session handling; changing the replica count alone is unsafe. Keep SQLite cache on local disk.
+
+Administration state also lives in the server process and is not shared between replicas:
+
+- dry-run receipts, which an Admin's save or rollback must present to the replica that issued
+  them;
+- the administration save lock, which orders concurrent Admin changes;
+- the short-lived cache of directory group names.
+
+A second replica would refuse saves whose dry run ran on the other replica, and two Admins could
+save at once without the lock. The deploy preflight (`bun run deploy:azure`) already refuses a
+container app whose minimum or maximum replica count is not 1, so keep the
+`--min-replicas 1 --max-replicas 1` setting above.

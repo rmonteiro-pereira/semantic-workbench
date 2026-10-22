@@ -4,8 +4,8 @@ import { requestReader, requestScope } from '../auth/request-scope';
 import type { ResourceRef } from '../auth/resource';
 import { readableTrash, restoreAction, type TrashEntry } from '../projects/trash';
 import { authorizeWrite } from '../auth/write-access';
-import { readJson } from '../request';
-import { decodePath, type Route } from './http';
+import { decodePath, readJson } from '../request';
+import type { Route } from './http';
 /** Requires an explicit confirmation flag before a destructive operation. */
 export function requireConfirm(body: any) {
   if (!body || body.confirm !== true)

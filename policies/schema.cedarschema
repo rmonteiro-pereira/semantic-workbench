@@ -134,6 +134,8 @@ namespace SW {
   type RequestContext = {
     // "local" or "server".
     mode: String,
+    hour: Long,
+    sourceIp: ipaddr,
     // Branch the request works on; empty when none.
     branch: String,
     protectedBranch: Bool,

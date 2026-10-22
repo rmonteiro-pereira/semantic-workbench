@@ -37,3 +37,14 @@ sign-in refusal when direct grants still permit access. Protocol failures use `t
 The sign-in record is durable before a session is created. If that audit write fails, the
 request returns 503 and creates no session file. Session removal continues even when its
 `sessionEnded` hook fails; the failure is logged so one record cannot stop expiry of the rest.
+
+When an audit write fails after an operation already ran (an allowed write, or the `adminChange`
+record of a committed administration change), the operation stands and one JSON line goes to
+stderr: `{"type":"audit-failure", at, requestId, action, version?, reason}`, where `version` is the
+administration commit.
+
+Reading records (`GET /api/audit` and its export) is scoped per reader. An Admin reads every
+record. A Steward reads the records of the projects they are allowed `readAudit` on, minus the
+records whose `resource.path` they may not `read`: a restricted path stays hidden from a Steward
+who is not listed on it, because the record names the file and who opened it. Records without a
+path are kept.

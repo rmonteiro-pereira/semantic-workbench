@@ -1,0 +1,848 @@
+{
+  "principals": [
+    {
+      "id": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000001",
+      "key": "u397da12e193ce489d039",
+      "kind": "person",
+      "name": "Alice Andrade",
+      "username": "alice@example.org",
+      "verifiedEmail": "alice@example.org",
+      "groups": [
+        "7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a01"
+      ],
+      "groupsResolved": "token",
+      "groupOverage": false
+    },
+    {
+      "id": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000002",
+      "key": "u36edbab1b823fde0c5f3",
+      "kind": "person",
+      "name": "Bob Barros",
+      "username": "Bob@Example.org",
+      "verifiedEmail": "bob@example.org",
+      "groups": [],
+      "groupsResolved": "token",
+      "groupOverage": false
+    },
+    {
+      "id": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000003",
+      "key": "uece748a0dd2dc48ca5af",
+      "kind": "person",
+      "name": "Carol Costa",
+      "username": "carol@example.org",
+      "verifiedEmail": "carol@example.org",
+      "groups": [
+        "7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a02"
+      ],
+      "groupsResolved": "token",
+      "groupOverage": false
+    },
+    {
+      "id": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000004",
+      "key": "uc2c288f98a00d178f952",
+      "kind": "person",
+      "name": "Dave Dias",
+      "username": "dave@example.org",
+      "verifiedEmail": "dave@example.org",
+      "groups": [
+        "7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a03"
+      ],
+      "groupsResolved": "token",
+      "groupOverage": false
+    },
+    {
+      "id": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000005",
+      "key": "u5fa9ce727ba899922452",
+      "kind": "person",
+      "name": "Erin Esteves",
+      "username": "erin@example.org",
+      "verifiedEmail": "erin@example.org",
+      "groups": [],
+      "groupsResolved": "token",
+      "groupOverage": false
+    },
+    {
+      "id": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000006",
+      "key": "ue6e35c4a65273d80e7b4",
+      "kind": "person",
+      "name": "Frank Freitas",
+      "username": "frank@example.org",
+      "verifiedEmail": "frank@example.org",
+      "groups": [
+        "7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a01",
+        "7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a04"
+      ],
+      "groupsResolved": "token",
+      "groupOverage": false
+    },
+    {
+      "id": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000007",
+      "key": "u7ed579d20bd1578c8f4f",
+      "kind": "person",
+      "name": "Gina Gomes",
+      "username": "gina_partner.example#EXT#@workbenchtest.onmicrosoft.com",
+      "verifiedEmail": null,
+      "groups": [],
+      "groupsResolved": "token",
+      "groupOverage": false
+    },
+    {
+      "id": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008",
+      "key": "u8de636a92e39ee065da5",
+      "kind": "person",
+      "name": "Hank Hall",
+      "username": "hank@example.org",
+      "verifiedEmail": "hank@example.org",
+      "groups": [],
+      "groupsResolved": "token",
+      "groupOverage": false
+    },
+    {
+      "id": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000009",
+      "key": "u13f14dcf0e92d945aa4d",
+      "kind": "person",
+      "name": "Olga Oliveira",
+      "username": "olga@example.org",
+      "verifiedEmail": "olga@example.org",
+      "groups": [
+        "7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a01"
+      ],
+      "groupsResolved": "token",
+      "groupOverage": false
+    }
+  ],
+  "cases": [
+    {
+      "case": "GET /api/me",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/events",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/status",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/projects",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/trash",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/suggestions",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/documents",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/projects",
+      "action": "createProject",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/import",
+      "action": "createProject",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/clear",
+      "action": "clear",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/clone",
+      "action": "clone",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/documents",
+      "action": "edit",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/examples/:name",
+      "action": "createProject",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "PATCH /api/projects/:slug",
+      "action": "renameProject",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "DELETE /api/projects/:slug",
+      "action": "deleteProject",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/move",
+      "action": "move",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/import",
+      "action": "import",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/save-batch",
+      "action": "edit",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/gitignore",
+      "action": "edit",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "GET /api/projects/:slug/metrics",
+      "action": "read",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "GET /api/projects/:slug/delete-impact",
+      "action": "read",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/metrics",
+      "action": "edit",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/metrics/preview",
+      "action": "read",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/kpis",
+      "action": "edit",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/kpis/preview",
+      "action": "read",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "GET /api/projects/:slug/files/*/explain/:metric",
+      "action": "read",
+      "resource": {
+        "type": "file",
+        "project": "sales-metrics",
+        "path": "example.yaml"
+      }
+    },
+    {
+      "case": "GET /api/projects/:slug/files/*",
+      "action": "read",
+      "resource": {
+        "type": "file",
+        "project": "sales-metrics",
+        "path": "example.yaml"
+      }
+    },
+    {
+      "case": "PUT /api/projects/:slug/files/*",
+      "action": "edit",
+      "resource": {
+        "type": "file",
+        "project": "sales-metrics",
+        "path": "example.yaml"
+      }
+    },
+    {
+      "case": "DELETE /api/projects/:slug/files/*",
+      "action": "delete",
+      "resource": {
+        "type": "file",
+        "project": "sales-metrics",
+        "path": "example.yaml"
+      }
+    },
+    {
+      "case": "GET /api/drafts",
+      "action": "viewOwnState",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/drafts/:slug/*",
+      "action": "viewOwnState",
+      "resource": {
+        "type": "file",
+        "project": "sales-metrics",
+        "path": "example.yaml"
+      }
+    },
+    {
+      "case": "PUT /api/drafts/:slug/*",
+      "action": "edit",
+      "resource": {
+        "type": "file",
+        "project": "sales-metrics",
+        "path": "example.yaml"
+      }
+    },
+    {
+      "case": "DELETE /api/drafts/:slug/*",
+      "action": "edit",
+      "resource": {
+        "type": "file",
+        "project": "sales-metrics",
+        "path": "example.yaml"
+      }
+    },
+    {
+      "case": "DELETE /api/trash",
+      "action": "purge",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "DELETE /api/trash/:entry",
+      "action": "purge",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/trash/:entry/undo",
+      "action": "restoreOwn",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/trash/:entry/restore",
+      "action": "restoreOwn",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/suggestions/:id/accept",
+      "action": "move",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/suggestions/:id/reject",
+      "action": "edit",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/git/credential-helper",
+      "action": "setIdentity",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/projects/:slug/git/status",
+      "action": "history",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "GET /api/projects/:slug/git/diff",
+      "action": "history",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "GET /api/projects/:slug/git/branches",
+      "action": "history",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "GET /api/projects/:slug/git/log",
+      "action": "history",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "GET /api/projects/:slug/git/versions",
+      "action": "history",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "GET /api/projects/:slug/git/show",
+      "action": "history",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "GET /api/projects/:slug/git/identity",
+      "action": "setIdentity",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "PUT /api/projects/:slug/git/identity",
+      "action": "setIdentity",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/git/stage",
+      "action": "stage",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/git/unstage",
+      "action": "stage",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/git/commit",
+      "action": "commit",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/git/revert",
+      "action": "revert",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/git/switch",
+      "action": "branch",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/git/fetch",
+      "action": "fetch",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/git/pull",
+      "action": "pull",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/git/sync",
+      "action": "pull",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/git/push",
+      "action": "push",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/git/cancel",
+      "action": "cancelOwn",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "PUT /api/projects/:slug/git/remote",
+      "action": "setRemote",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "DELETE /api/projects/:slug/git/remote",
+      "action": "setRemote",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/clone/:operation/cancel",
+      "action": "clone",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/repos/:repo/project-candidates",
+      "action": "registerProjects",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "PUT /api/repos/:repo/projects",
+      "action": "registerProjects",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/agent/catalog",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/agent/context",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/agent/plan",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/documents/:id/grouping",
+      "action": "viewOwnState",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "PUT /api/documents/:id/grouping",
+      "action": "viewOwnState",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/admin/users",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/admin/roles",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/admin/grants",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/admin/projects",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/admin/agents",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/admin/settings",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/admin/policies",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/admin/versions",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/admin/sessions",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/admin/provider",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/admin/who-can",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/admin/groups/:id",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/admin/versions/:v/diff",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "PUT /api/admin/roles",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "PUT /api/admin/grants",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "PUT /api/admin/projects",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "PUT /api/admin/agents",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "PUT /api/admin/settings",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "PUT /api/admin/policies",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/admin/users/:id/deactivate",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/admin/users/:id/reactivate",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/admin/policies/validate",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/admin/policies/template",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/admin/policies/dry-run",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/admin/check",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/admin/versions/:v/rollback",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "DELETE /api/admin/sessions/:principal",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/audit",
+      "action": "readAudit",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/audit/export",
+      "action": "readAudit",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET/HEAD pages",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    }
+  ]
+}

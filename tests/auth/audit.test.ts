@@ -2,7 +2,7 @@
 import { expect, test } from 'bun:test';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { createAuditLog } from '../../server/auth/audit';
+import { createAuditLog, reportAuditFailure } from '../../server/auth/audit';
 import { sha256 } from '../../server/projects/atomic';
 import { tempDataDir } from '../helpers/temp-data-dir';
 
@@ -90,4 +90,67 @@ test('a thousand appends scale linearly and a new writer continues their chain',
   } finally {
     dir.cleanup();
   }
+});
+
+test('recent reads months newest first and stops once it has enough matching records', () => {
+  const dir = tempDataDir();
+  try {
+    let now = new Date('2026-08-10Z');
+    const log = createAuditLog({ dir: dir.root, now: () => now });
+    log.append({ ...input, requestId: 'august' });
+    now = new Date('2026-09-10Z');
+    log.append({ ...input, requestId: 'september-read', action: 'read' });
+    log.append({ ...input, requestId: 'september' });
+    now = new Date('2026-10-10Z');
+    log.append({ ...input, requestId: 'october' });
+    // An unreadable older month proves that it is never opened.
+    writeFileSync(join(dir.root, '2026-07.jsonl'), 'not json\n');
+    const ids = (entries: { requestId: string }[]) => entries.map(entry => entry.requestId);
+    expect(ids(log.recent(2))).toEqual(['september', 'october']);
+    const edits = log.recent(3, entry => entry.action === 'edit');
+    expect(ids(edits)).toEqual(['august', 'september', 'october']);
+    expect(() => log.recent(10)).toThrow();
+  } finally {
+    dir.cleanup();
+  }
+});
+
+test('between reads only the months from the first through the last time', () => {
+  const dir = tempDataDir();
+  try {
+    let now = new Date('2026-08-10Z');
+    const log = createAuditLog({ dir: dir.root, now: () => now });
+    log.append({ ...input, requestId: 'august' });
+    now = new Date('2026-10-10Z');
+    log.append({ ...input, requestId: 'october' });
+    writeFileSync(join(dir.root, '2026-06.jsonl'), 'not json\n');
+    const ids = (entries: { requestId: string }[]) => entries.map(entry => entry.requestId);
+    expect(ids(log.between('2026-08-01T00:00:00Z', '2026-09-30T00:00:00Z'))).toEqual(['august']);
+    expect(ids(log.between('2026-07-01T00:00:00Z'))).toEqual(['august', 'october']);
+  } finally {
+    dir.cleanup();
+  }
+});
+
+test('a failed audit write after an operation is one JSON line with request and version', () => {
+  const lines: string[] = [];
+  const original = console.error;
+  console.error = (line: string) => lines.push(line);
+  try {
+    reportAuditFailure({
+      requestId: 'request',
+      action: 'adminChange',
+      version: 'abc',
+      error: new Error('disk full'),
+    });
+  } finally {
+    console.error = original;
+  }
+  expect(JSON.parse(lines[0])).toMatchObject({
+    type: 'audit-failure',
+    requestId: 'request',
+    action: 'adminChange',
+    version: 'abc',
+    reason: 'disk full',
+  });
 });

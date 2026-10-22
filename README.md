@@ -53,7 +53,9 @@ and remains not ready. A different revision reports ready with `state: handover`
 503 with `Retry-After: 10` for application requests without opening the workspace. It acquires
 the lock after the previous instance exits or its heartbeat is older than 30 seconds, then
 recovers and scans before serving. SIGTERM and SIGINT close the workspace and release its lock.
-Do not use multiple replicas for throughput.
+Run exactly one replica: dry-run receipts and the administration save lock live in the server
+process, so a second replica would refuse or race Admin changes. Do not use multiple replicas
+for throughput.
 
 Container settings are read once at startup:
 
@@ -179,8 +181,9 @@ commit messages.
 
 Drafts, grouping state and dismissed suggestions belong to the signed-in person. Trash entries
 require readable original paths and permission to restore your own or another person’s entries.
-Live events and reconnect replay are filtered for each reader. An access change closes the stream
-and reloads every open tab. Non-Admins receive only readiness, mode and Git availability from
+Live events and reconnect replay are filtered for each reader. In server mode an administration
+change reloads only the open tabs of the people it affects; in local mode an access change reloads
+every open tab. Non-Admins receive only readiness, mode and Git availability from
 `/api/status`. Local mode retains its existing shared workspace behavior.
 
 ### Roles in server mode
@@ -675,3 +678,101 @@ The code style is part of the project's constitution (principle VIII, Readable C
   the code you touch.
 - `.git-blame-ignore-revs` lists the mechanical reformat; run
   `git config blame.ignoreRevsFile .git-blame-ignore-revs` once to skip it in `git blame`.
+
+## Administering access
+
+Admins open the panel from the header's **Admin** button. In server mode only Admins see it; in
+local mode the implicit Admin does. It has seven areas:
+
+- **Projects**: assign projects to domains, set protected branches, restricted paths and the
+  protected classification level, and grant agent clients their projects or domains.
+- **Roles & access**: on **Grants**, give a built-in or custom role to a group (by object ID) or
+  a verified e-mail address, for the whole workspace, some domains or some projects. Addresses
+  are stored in lower case. The group's directory name is shown when the lookup succeeds; when it
+  fails the grant keeps the ID and says "name not resolved". On **Roles**, the four built-in
+  roles are read-only; duplicate one to make a custom role, pick its actions and optional
+  conditions, save it, then add members through the same grant form. Custom roles cannot hold
+  the `admin` action. Deleting a custom role lists the people who hold it and removes its grants
+  in the same change.
+- **Users & groups**: everyone who has signed in, plus configured agent clients, with their
+  groups and where each role comes from. Filter on **No access** to find people waiting for a
+  grant; **Grant access** opens the grant form with their verified address filled in. People can
+  be deactivated, reactivated and signed out from here.
+- **Policies**: the read-only baseline rules and the Admin rules. New rules start from a template
+  (time window, network range, Git action limits and others) or the raw Cedar editor, and are
+  validated by the server, which reports line and column. The server generates template text.
+  Time rules use UTC; a window such as 22 to 2 runs past midnight. Network rules use the direct
+  socket peer, never forwarded headers: behind Azure Container Apps ingress the peer is the
+  ingress address, not the person's, so a network rule there only tells ingress traffic apart.
+  A `forbid` rule must name its actions and cannot include `admin`: rules that could lock every
+  Admin out are refused, whatever their condition.
+- **Access check**: why a known person or a hypothetical group and address is allowed or denied
+  an action on a project, path or branch, and who can act on a project or path. It evaluates the
+  same Cedar policies as normal requests.
+- **Audit**: filter by person, action, project, decision and time, page through the records and
+  export the filtered set as JSONL or CSV. Without a **From** time the current month is shown.
+  Stewards see only the records of their own projects, and not the records of restricted paths
+  they cannot read.
+- **Settings**: provider health, session lifetimes (applied immediately), the remote-credential
+  policy, and active sessions that can be ended. Provider credentials and session tokens never
+  appear.
+
+Every access change goes through **Dry run** before **Confirm**. The review lists the replayed
+decisions that change and, for each person or agent client, the project actions gained or lost.
+Editing the proposal discards the review. The dry run replays the fixture identities and
+requests in `policies/matrix-cases.json` plus the latest 1,000 audit snapshots; regenerate the
+fixture with `bun scripts/generate-access-matrix.ts` after extending the route inventory.
+
+Each confirmed change is one commit in the administration repository, authored by the signed-in
+Admin, with a message that names what changed (for example
+`grants: Add grant erin-viewer (viewer to erin@example.org)`). **History** in each area compares
+versions with the source diff viewer. **Roll back** shows the dry run of restoring that version,
+including people it reactivates, and **Confirm rollback** creates a new commit; the same checks
+as any other save apply.
+Changes apply on the next request and close the live-update streams of the people whose access
+changed, so their browsers reload. Deactivation and reactivation end that person's sessions.
+
+Refusals stay in the dialog and nothing is saved:
+
+- **stale**: someone else changed access since the area was opened. Close and reopen the area,
+  then dry-run again.
+- **last-admin**: under the proposed grants, roles and rules no Admin who signed in recently and
+  no bootstrap identity would still be allowed to administer.
+- **bootstrap-admin**: bootstrap Admins cannot be deactivated.
+
+Keep `SW_BOOTSTRAP_ADMINS` configured as the break-glass recovery path. Those verified addresses
+or stable identity IDs remain Admins whatever the grants say, and the panel marks a bootstrap
+session. Never use an unverified address as a bootstrap identity.
+
+Scripts and other clients use the same routes: `/api/admin/*` (Admins only) and `/api/audit`,
+`/api/audit/export?format=jsonl|csv`. Preview a proposal with
+`POST /api/admin/policies/dry-run`, then send the same document to its PUT route with the
+`dryRunId` and, as `baseVersion`, the `version` returned by that document's GET. To roll back,
+dry-run `{"rollbackTo": "<version>"}`, then send `{baseVersion, dryRunId}` to
+`POST /api/admin/versions/<version>/rollback`. The full
+contract is in `specs/003-authn-authz/contracts/http-api.md`.
+
+### Checking the Admin panel
+
+`bun run test:admin` builds the app and drives the panel against the real API, a disposable
+fixture workspace and the local mock identity provider; it never contacts a real provider and
+needs sockets and Chromium. It times domain assignment, a group grant, an e-mail grant and an
+access check against the three-minute target, checks that Erin's next request has her new role,
+creates, edits and deletes a custom role, disables a policy and rolls it back after reviewing the
+rollback's dry run, exports the audit,
+and measures every dialog at 390×844, 1280×720, 1440×900 and 2560×1440. Set `SW_SCREENSHOT_DIR`
+to keep the screenshots.
+
+Without a server, the client and dialogs run against canned responses shaped like the contract
+(`tests/helpers/admin-api-mock.ts`):
+
+```bash
+bun test tests/admin-client.test.ts tests/admin-presentation.test.tsx   # client and pure parts
+bun test tests/admin-dialogs.test.tsx                                   # dialog behaviour
+SW_SCREENSHOT_DIR=/tmp/admin-shots bun test tests/admin-geometry.test.tsx  # every dialog, 4 sizes
+```
+
+The administration mutants (invalid policy or unpreviewed change activated, built-in role
+changed, role in use deleted without confirmation or leaving its grants, Admin rule overriding a
+baseline forbid, deactivated principal allowed, Steward reading other domains' audit, and a
+panel that confirms a stale review or saves without one) are part of `bun run test:mutation`.

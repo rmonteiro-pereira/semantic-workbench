@@ -34,6 +34,8 @@ export type Decision = {
 /** Complete context passed to Cedar after request defaults have been applied. */
 export type DecisionContext = {
   mode: 'local' | 'server';
+  hour?: number;
+  sourceIp?: string;
   branch: string;
   protectedBranch: boolean;
   level: number;
