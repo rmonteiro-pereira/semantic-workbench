@@ -9,6 +9,7 @@ import { accessFixture, person } from './access-fixture';
 import { routeExamples } from './route-actions';
 import { routeFor } from '../../server/auth/route-actions';
 import { LOCAL_READER } from '../../server/projects/reader';
+import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 
 function snapshot(root: string, prefix = ''): Record<string, string> {
   const result: Record<string, string> = {};
@@ -35,6 +36,7 @@ test('write route matrix refuses Viewers without changing durable bytes and audi
   const access = createAccessControl(accessFixture());
   const handler = createHandler(fixture.ws, {
     mode: 'server',
+    remoteCredentials: allowEveryRemote(),
     publicOrigin: origin,
     access,
     principal: () => access.principalFor(person('carol')),
@@ -64,6 +66,7 @@ test('move checks the destination before moving any source bytes', async () => {
   const access = createAccessControl(accessFixture());
   const handler = createHandler(fixture.ws, {
     mode: 'server',
+    remoteCredentials: allowEveryRemote(),
     publicOrigin: origin,
     access,
     principal: () => access.principalFor(person('alice')),
@@ -84,6 +87,7 @@ test('server identity configuration is absent even for Admins', async () => {
   const access = createAccessControl(accessFixture());
   const handler = createHandler(fixture.ws, {
     mode: 'server',
+    remoteCredentials: allowEveryRemote(),
     publicOrigin: origin,
     access,
     principal: () => access.principalFor(person('dave')),
@@ -98,6 +102,7 @@ test('batch writes and Git staging cannot bypass restricted file access', async 
   const access = createAccessControl(accessFixture());
   const handler = createHandler(fixture.ws, {
     mode: 'server',
+    remoteCredentials: allowEveryRemote(),
     publicOrigin: origin,
     access,
     principal: () => access.principalFor(person('alice')),
@@ -125,6 +130,7 @@ test('Editors can save their drafts while custom reviewers cannot', async () => 
   for (const name of ['alice', 'hank'] as const) {
     const handler = createHandler(fixture.ws, {
       mode: 'server',
+      remoteCredentials: allowEveryRemote(),
       publicOrigin: origin,
       access,
       principal: () => access.principalFor(person(name)),
@@ -173,6 +179,7 @@ test('Editor and Steward saves succeed in Sales and fail unchanged in HR', async
   for (const name of ['alice', 'bob'] as const) {
     const handler = createHandler(fixture.ws, {
       mode: 'server',
+      remoteCredentials: allowEveryRemote(),
       publicOrigin: origin,
       access,
       principal: () => access.principalFor(person(name)),
@@ -208,6 +215,7 @@ test('keep-both imports authorize the final disambiguated filename before any wr
   const access = createAccessControl(options);
   const handler = createHandler(fixture.ws, {
     mode: 'server',
+    remoteCredentials: allowEveryRemote(),
     publicOrigin: origin,
     access,
     principal: () => access.principalFor(person('alice')),
@@ -231,6 +239,7 @@ test('Admin-only routes refuse every non-Admin without touching durable bytes', 
   for (const name of ['alice', 'bob', 'carol', 'hank'] as const) {
     const handler = createHandler(fixture.ws, {
       mode: 'server',
+      remoteCredentials: allowEveryRemote(),
       publicOrigin: origin,
       access,
       principal: () => access.principalFor(person(name)),
@@ -255,6 +264,7 @@ test('an Editor can move a file when both projects are in its domain', async () 
   const access = createAccessControl(accessFixture());
   const handler = createHandler(fixture.ws, {
     mode: 'server',
+    remoteCredentials: allowEveryRemote(),
     publicOrigin: origin,
     access,
     principal: () => access.principalFor(person('alice')),
@@ -275,6 +285,7 @@ test('restore and undo authorize original paths and cross-project destinations',
   const access = createAccessControl(accessFixture());
   const handler = createHandler(fixture.ws, {
     mode: 'server',
+    remoteCredentials: allowEveryRemote(),
     publicOrigin: origin,
     access,
     principal: () => access.principalFor(person('alice')),

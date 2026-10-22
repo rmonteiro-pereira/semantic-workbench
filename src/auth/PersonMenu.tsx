@@ -1,15 +1,17 @@
 // Uses the shared keyboard menu and a native form for session sign-out.
 import './PersonMenu.css';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { UserRound } from 'lucide-react';
 import { MenuButton } from '../projects/Menu';
 import { startLeavingPage } from '../projects/api';
 import { personRoles, useMe } from './useMe';
+import { accountsSummary, ConnectedAccountsDialog } from './ConnectedAccounts';
 
 /** Shows the server identity and submits sign-out with the session's form token. */
 export function PersonMenu() {
   const { me, error } = useMe();
   const form = useRef<HTMLFormElement>(null);
+  const [accounts, setAccounts] = useState(false);
   if (error) return <span role="status">{error}</span>;
   if (!me || me.mode === 'local') return null;
   function signOut() {
@@ -42,13 +44,13 @@ export function PersonMenu() {
         items={[
           {
             label: 'Connected accounts',
-            hint: 'No accounts connected',
-            run() {},
-            disabled: 'No accounts connected',
+            hint: accountsSummary(me),
+            run: () => setAccounts(true),
           },
           { label: 'Sign out', run: signOut, disabled: !me.csrf && 'Session token unavailable' },
         ]}
       />
+      {accounts && <ConnectedAccountsDialog me={me} onClose={() => setAccounts(false)} />}
       <form ref={form} method="post" action="/auth/logout" hidden>
         <input type="hidden" name="csrf" value={me.csrf ?? ''} />
       </form>

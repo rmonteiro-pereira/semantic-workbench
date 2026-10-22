@@ -37,6 +37,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `scripts/deploy-version.ts` | Release precedence and read-only registry version guard | Version promotion or deployment |
 | `deploy/azure-devops/`, `azure-pipelines.yml` | Target pipeline templates, pinned upstream schema and placeholder variables | GitHub automation or secrets |
 | `server/config.ts` | Reads and checks the environment once: `readConfig()` returns the typed configuration of local or server mode, or refuses to start naming each variable at fault | Reading `process.env` anywhere else for these settings |
+| `server/bin/sw-askpass` | The askpass program Git runs in server mode; it answers from the environment of that one command, for its host only | Stored credentials |
 | `server/routes/` | One file per resource (`projects`, `files`, `git`, `clone`, `repos`, `trash`, `metrics`, ...): parse and check the request, call the workspace, shape the response | File or Git operations |
 | `server/projects/workspace.ts` | `openWorkspace()`, the composition root: registry, saves, imports, moves, scans, events, and the wiring of the services below | HTTP parsing |
 | `server/projects/` (other) | One service per concern: `git.ts` (the only place Git runs), `scm.ts` (Source Control), `clone.ts`, `journal.ts` (all-or-nothing renames), `trash.ts`, `repositories.ts` (which folders of a repository are projects: the `.semantic-workbench.json` manifest and detection) and `repository-projects.ts` (registering them), `scanner.ts` and `cache.ts` (the index), `state.ts` (registry, drafts, view settings), `paths.ts` (every path check), `events.ts` (server-sent events), `watcher.ts` | Browser code |
@@ -45,8 +46,11 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `server/auth/directory.ts` | App-only group membership requests with bounded batches, and the short-lived group-name cache with bounded concurrent lookups | Role assignments |
 | `server/auth/sign-in-error.ts` | Safe typed sign-in failure reasons | Display text or provider secrets |
 | `server/auth/csrf.ts` | Public-origin, request-header and logout-form checks | Session persistence |
+| `server/auth/remote-hosts.ts` | Pure decisions on remote addresses: allowed hosts, canonical addresses, one host per remote, and which credential a host takes | I/O |
+| `server/auth/remote-credentials.ts` | Server-mode remote Git: Azure DevOps on-behalf-of and GitHub consent tokens kept in the session, and the credential for one command | Running Git |
+| `server/auth/github-oauth.ts` | GitHub's OAuth consent address and token requests | Session storage |
 | `server/auth/authentication.ts` | Composition of sessions, provider identity, directory resolution and existing grants; owns the one administration repository and reloads policy after its commits; records users through `ws.state` | HTTP route dispatch |
-| `src/auth/` | Once-per-page identity hook and person menu with native CSRF sign-out form | Provider tokens or grant decisions |
+| `src/auth/` | Once-per-page identity hook, person menu with native CSRF sign-out form, and the Connected accounts dialog | Provider tokens or grant decisions |
 | `scripts/auth-*.ts` | Sign-in orchestration, disposable environments, mock lifecycle checks, Keycloak compatibility and server container checks | Shared browser assertions or generic process lifecycle |
 | `scripts/helpers/sign-in.ts` | Shared identity, storage, native sign-out and responsive browser assertions | Provider startup |
 | `scripts/helpers/processes.ts` | Command execution, loopback ports, bounded readiness and once-only signal cleanup | Suite selection or provider configuration |
@@ -84,7 +88,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `src/graph/`, `src/FullGraph.tsx`, `src/NeighborhoodGraph.tsx` | Entity graph views, layout and routing | |
 | `src/metrics/`, `src/mappings/`, `src/sql/` | Metrics tab and wizard, mapping views, SQL regions and lint | |
 | `src/projects/` | Client API (`api.ts`), autosave, project tree, delete and trash dialogs, the repository's projects dialog, shared dialog chrome (`Modal.tsx`) | |
-| `src/scm/` | Source Control panel, Commit dialog, Git setup dialogs (`GitSetup.tsx` opens them from anywhere) | Git commands; they run on the server |
+| `src/scm/` | Source Control panel, Commit dialog, Git setup dialogs (`GitSetup.tsx` opens them from anywhere), and the server-mode connect prompt that resumes a remote action (`RemoteConnectPrompt.tsx`) | Git commands; they run on the server |
 | `schemas/` | Pinned JSON Schemas (ODCS, Ossie, the workbench extensions) | Edits to upstream schemas |
 | `public/examples/` | Shipped example projects | Test fixtures |
 | `tests/` | Unit and handler tests (`bun test`), always on temporary data roots; `tests/helpers/mock-oidc.ts` is a loopback OpenID provider with Entra, Keycloak and generic claim shapes and a Microsoft Graph stand-in; `tests/fixtures/auth-workspace/` is the access test workspace and `tests/helpers/auth-identities.ts` its people and groups | Calls to a real identity provider |
@@ -111,7 +115,9 @@ the repository.
 
 Git actions run only from explicit requests: `routes/git.ts` → `scm.ts` → `git.ts`. Remote
 commands (fetch, pull, push, clone) need an explicit flag in `git.ts`, run with a 10-minute limit
-and can be cancelled.
+and can be cancelled. In server mode the route first asks `auth/remote-credentials.ts` for the
+caller's credential for the remote's host (the service is attached to each request by
+`handler.ts` through `auth/request-scope.ts`); a missing account answers 428 before Git runs.
 
 The workspace shell memoizes its sidebar, toolbar, header and status footer. Display props carry
 booleans, counts and save status instead of the editor text. `src/app/useStableHandler.ts`
@@ -141,7 +147,12 @@ editor never receives an older deferred value as an external replacement.
 - The index (`cache.sqlite`) can be deleted at any time; the folders and `state/*.json` are the
   truth.
 - No query is executed anywhere. SQL is only parsed, coloured, linted and previewed.
-- The app never asks for, stores or sends credentials; Git's helpers and SSH handle them.
+- Local mode never asks for, stores or sends credentials; Git's helpers and SSH handle them.
+  Server mode passes each person's own token to one Git command through `sw-askpass` and that
+  command's environment, never through `.git/config` or files, and keeps it only in the
+  encrypted session. Hosts are checked when an address is stored and before every command, and
+  redirects are not followed, but the last guard is `sw-askpass` itself: it answers only a
+  prompt naming exactly the credential's host, so a token never reaches another host.
 
 ## Cross-cutting concerns
 

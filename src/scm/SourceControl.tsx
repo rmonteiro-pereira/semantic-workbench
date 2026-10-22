@@ -3,6 +3,13 @@
 import { useCapabilities } from '../auth/Capabilities';
 import { useGitSetup } from './GitSetup';
 import { looksLikeAuthFailure } from './CredentialGuide';
+import {
+  ConnectPrompt,
+  connectRequired,
+  useResumeAfterConnect,
+  type RemoteAction,
+} from './RemoteConnectPrompt';
+import type { ConnectKind } from '../auth/ConnectedAccounts';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle,
@@ -134,6 +141,8 @@ export function SourceControl({
   const [diff, setDiff] = useState<GitDiff | null>(null);
   const [message, setMessage] = useState('');
   const [waiting, setWaiting] = useState<string | null>(null);
+  // A remote action refused until the person connects their own account for that remote.
+  const [connect, setConnect] = useState<{ kind: ConnectKind; action: RemoteAction } | null>(null);
   const [busy, setBusy] = useState(false);
   const [ignoring, setIgnoring] = useState<string | null>(null);
   const openGitSetup = useGitSetup();
@@ -144,10 +153,12 @@ export function SourceControl({
   const local = useRef(0);
   const [tick, setTick] = useState(0);
   const reload = () => setTick(t => t + 1);
+  useResumeAfterConnect(project, status !== null, action => void remote(action));
   useEffect(() => {
     setSelected(null);
     setDiff(null);
     setNote(null);
+    setConnect(null);
     setError('');
     setLoadError('');
     setHistoryFile(historyPath);
@@ -283,15 +294,28 @@ export function SourceControl({
     }
     return true;
   }
-  async function remote(action: 'fetch' | 'pull' | 'push' | 'sync') {
+  // A missing account is not a failure: the panel asks for it and keeps the action to continue.
+  async function remoteOrConnect(action: RemoteAction) {
+    setConnect(null);
+    try {
+      return await scm.remote(project, action);
+    } catch (problem) {
+      const kind = connectRequired(problem);
+      if (!kind) throw problem;
+      setConnect({ kind, action });
+      return null;
+    }
+  }
+  async function remote(action: RemoteAction) {
     if ((action === 'pull' || action === 'sync') && !guard(action)) return;
     const id = ++local.current;
     setWaiting(action);
     onBusy?.(action !== 'fetch' && action !== 'push');
     try {
       await act(
-        () => scm.remote(project, action),
-        (r: RemoteResult) => {
+        () => remoteOrConnect(action),
+        (r: RemoteResult | null) => {
+          if (!r) return;
           if (r.cancelled) setNote({ tone: 'info', text: `${title(action)} cancelled.` });
           else if (r.conflicted.length)
             setNote({
@@ -577,7 +601,11 @@ export function SourceControl({
         {waiting && (
           <div role="status" className="scm-note waiting">
             <span className="spinner" aria-hidden />
-            <span>Waiting for Git (credentials may be requested in a separate window)…</span>
+            <span>
+              {access.local
+                ? 'Waiting for Git (credentials may be requested in a separate window)…'
+                : 'Waiting for Git…'}
+            </span>
             <button hidden={!access.can('cancelOwn')} onClick={() => void scm.cancel(project)}>
               Cancel
             </button>
@@ -610,6 +638,14 @@ export function SourceControl({
               <X size={13} />
             </button>
           </div>
+        )}
+        {connect && (
+          <ConnectPrompt
+            kind={connect.kind}
+            project={project}
+            action={connect.action}
+            onDismiss={() => setConnect(null)}
+          />
         )}
         {error && (
           <div role="alert" className="scm-error">

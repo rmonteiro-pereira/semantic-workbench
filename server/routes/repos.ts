@@ -1,5 +1,6 @@
 // Lists and registers the project folders of a Git repository that holds several projects.
 import { readJson } from '../request';
+import { checkRepositoryRemotes } from '../auth/remote-credentials';
 import type { Route } from './http';
 
 /** Handles the project candidates of a repository and the user's confirmed choice. */
@@ -20,6 +21,7 @@ export const repoRoutes: Route = async (ws, req, url) => {
       throw Error('Expected {projects: [{path, name?}], saveManifest?, manifestBaseHash?}.');
     if (body.saveManifest !== undefined && typeof body.saveManifest !== 'boolean')
       throw Error('saveManifest must be true or false.');
+    await checkRepositoryRemotes(ws, req, repo);
     return Response.json(
       await ws.registerRepositoryProjects(repo, body.projects, {
         saveManifest: body.saveManifest === true,

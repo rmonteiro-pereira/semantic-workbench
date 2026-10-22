@@ -17,6 +17,11 @@ export type Me = {
   roleSources?: { via: 'group' | 'email' | 'bootstrap' }[];
   roles: { workspace: string[]; projects: Record<string, string[]> };
   roleNames: Record<string, string>;
+  /** Server mode: Git host accounts the person can push with now. */
+  connected?: { azureDevOps: boolean; github: boolean };
+  /** Server mode: Azure DevOps tokens can be obtained on the person's behalf. */
+  azureDevOpsAvailable?: boolean;
+  githubConfigured?: boolean;
 };
 
 let identity: Promise<Me> | undefined;

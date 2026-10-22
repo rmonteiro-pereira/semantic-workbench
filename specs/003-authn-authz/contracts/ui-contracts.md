@@ -5,7 +5,12 @@ Owner's UI rule: dialogs for secondary work; the main screen gains only what is 
 ## Header
 
 - Server mode: person menu (display name, verified address, role summary with built-in and
-  custom role names, **Connected accounts**, **Sign out**).
+  custom role names, **Connected accounts**, **Sign out**). **Connected accounts** opens a small
+  dialog: GitHub (connected for this session, not connected with **Connect GitHub**, or not
+  available) and Azure DevOps (uses your sign-in, or not available).
+- Source Control (server mode): a remote action answered with 428 shows a prompt with
+  **Connect GitHub** or **Sign in again**; after consent the browser returns and the same action
+  runs once. The credential setup guide is shown in local mode only.
   Local mode: unchanged.
 - **Admin** button (Admins only; implicit Admin in local mode) opens the Admin panel launcher.
 - Controls the person cannot use are hidden; **Approve**, **Publish**, **Commit…** and

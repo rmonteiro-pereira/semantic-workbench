@@ -42,7 +42,7 @@ export async function meResponse(request: Request, options: HandlerOptions): Pro
       roleNames,
     ),
     creationDomains: scope.creationDomains(),
-    connected: { azureDevOps: false, github: false },
+    ...(await remoteAccounts(request, options)),
     can: {
       ...Object.fromEntries(
         ACTIONS.map(action => [action, scope.authorize(action, { type: 'workspace' }).allow]),
@@ -53,4 +53,14 @@ export async function meResponse(request: Request, options: HandlerOptions): Pro
     },
   };
   return Response.json(body, { headers: { 'Cache-Control': 'no-store' } });
+}
+
+// Local mode uses the machine's own Git credentials, so no account is connected here.
+async function remoteAccounts(request: Request, options: HandlerOptions) {
+  const status = await options.remoteCredentials?.status(request);
+  return {
+    connected: status?.connected ?? { azureDevOps: false, github: false },
+    azureDevOpsAvailable: status?.azureDevOpsAvailable ?? false,
+    githubConfigured: status?.githubConfigured ?? false,
+  };
 }

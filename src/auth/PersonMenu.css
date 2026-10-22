@@ -48,3 +48,17 @@
     display: none;
   }
 }
+
+.connected-accounts {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 6px 12px;
+  margin: 0 0 12px;
+}
+.connected-accounts dt {
+  font-weight: 600;
+}
+.connected-accounts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}

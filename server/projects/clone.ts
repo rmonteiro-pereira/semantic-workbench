@@ -3,7 +3,14 @@
 // cancelled or interrupted clone leaves nothing behind.
 import { existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
-import { GitError, hasControlCharacters, redactCredentials, remoteAddress, type Git } from './git';
+import {
+  GitError,
+  hasControlCharacters,
+  redactCredentials,
+  remoteAddress,
+  type Git,
+  type RemoteCredential,
+} from './git';
 import type { Journal, RecoveryOutcome } from './journal';
 import { projectDir, slugify, uniqueName, type DataLayout } from './paths';
 import type { ProjectEntry } from './state';
@@ -93,21 +100,24 @@ export function rollBackInterruptedClones(layout: DataLayout): RecoveryOutcome[]
 export function createCloner(deps: CloneDeps) {
   const { layout, git, journal } = deps;
   /** The repository address and the project it becomes, with the person who asked. */
-  /** Who receives the clone's events, and how each new project gets its access metadata. */
-  type CloneOptions = { owner?: string; assign?: AssignProject };
+  /**
+   * Who receives the clone's events, how each new project gets its access metadata, and in
+   * server mode the credential the clone command uses.
+   */
+  type CloneOptions = { owner?: string; assign?: AssignProject; credential?: RemoteCredential };
   type CloneRequest = { address: string; slug: string; name: string } & CloneOptions;
   // Clones in progress, so two clones started together never pick the same name or folder.
   const running = new Map<string, { staging: string; slug: string; name: string }>();
 
   // Runs the clone and reports every outcome as an event; it never throws.
   async function cloneInBackground(op: string, request: CloneRequest) {
-    const { address, slug, name, owner, assign } = request;
+    const { address, slug, name, owner, assign, credential } = request;
     const staging = join(layout.projects, CLONE_STAGING + op);
     const stateStaging = join(layout.state, `.staging-${op}`);
     try {
       deps.emit({ op, phase: 'cloning', name }, owner);
       mkdirSync(staging, { recursive: true });
-      await git.clone(staging, address, slug);
+      await git.clone(staging, address, slug, credential);
       deps.emit({ op, phase: 'scanning', name }, owner);
       await deps.lock('registry', async () => {
         const current = deps.projects();

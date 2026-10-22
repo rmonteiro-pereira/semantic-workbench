@@ -52,13 +52,21 @@ export function authProcessEnvironment(
   return { ...base, ...settings };
 }
 
+/** Extra server settings and a change to the data root made before the server starts. */
+export type AuthApiOptions = { env?: Record<string, string>; prepare?: (root: string) => void };
+
 /** Starts the built application with fixture grants and removes it even after startup failure. */
-export async function startAuthApi(url: string, provider: AuthProvider | { mode: 'local' }) {
+export async function startAuthApi(
+  url: string,
+  provider: AuthProvider | { mode: 'local' },
+  options: AuthApiOptions = {},
+) {
   const local = 'mode' in provider;
   const fixture = local
     ? localFixture()
     : await authWorkspace({ keycloak: provider.kind === 'keycloak' });
   fixture.ws?.close();
+  options.prepare?.(fixture.root);
   const env = local
     ? {
         SW_MODE: 'local',
@@ -70,7 +78,7 @@ export async function startAuthApi(url: string, provider: AuthProvider | { mode:
       }
     : authEnvironment(fixture.root, url, provider, randomBytes(32).toString('base64'));
   const child = Bun.spawn([process.execPath, 'server/index.ts'], {
-    env: authProcessEnvironment(process.env, env),
+    env: authProcessEnvironment(process.env, { ...env, ...options.env }),
     stdout: 'inherit',
     stderr: 'inherit',
   });

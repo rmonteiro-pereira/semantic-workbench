@@ -12,6 +12,9 @@ import {
   remoteAddress,
   remoteName,
   type Git,
+  type RemoteAddresses,
+  type RemoteCredential,
+  type RunOptions,
   type StatusEntry,
 } from './git';
 import { MergingError } from './errors';
@@ -45,6 +48,12 @@ export function blockers(drafts: string[], entries: StatusEntry[]): BlockedError
 const REV = /^(HEAD|[0-9a-f]{7,64})$/;
 /** Whether request paths are relative to the project or to its repository root. */
 export type PathBase = 'project' | 'repository';
+/** Picks the credential for the remote a command reaches; server mode only. */
+export type CredentialFor = (remote: RemoteAddresses) => Promise<RemoteCredential>;
+// The remote a request uses, chosen once, with the credential for it.
+type RemoteChoice = { name: string; credential?: RemoteCredential };
+// A remote command's chosen remote, and the content guard that checks what a pull brings in.
+type RemoteRequest = { choice: RemoteChoice | null; guard?: ContentGuard };
 /** Workspace services needed to run Git actions and refresh project state. */
 export type ScmDeps = {
   layout: DataLayout;
@@ -198,16 +207,34 @@ export function createScm(deps: ScmDeps) {
     ]);
     return candidates.filter(p => tree.has(p) && disk.get(p) !== tree.get(p));
   }
-  const remoteOf = async (d: string, upstream: string) => {
-    const remotes = await git.remotes(d);
-    const name = upstream
-      ? upstream.slice(0, upstream.indexOf('/'))
-      : remotes.has('origin')
-        ? 'origin'
-        : [...remotes.keys()][0];
-    if (!name) throw new GitError('This project has no remote. Add one under Remote first.');
-    return name;
-  };
+  // The one choice of remote for fetch, pull and push: the branch's upstream, else origin, else
+  // the first remote, with the addresses Git resolves for it; null without a remote.
+  async function chosenRemote(d: string, upstream: string): Promise<RemoteAddresses | null> {
+    const remotes = await git.remoteAddresses(d);
+    let name = remotes.find(remote => remote.name === 'origin')?.name ?? remotes[0]?.name;
+    if (upstream) name = upstream.slice(0, upstream.indexOf('/'));
+    if (name === undefined) return null;
+    // An upstream whose remote was removed leaves no remote to use.
+    return remotes.find(remote => remote.name === name) ?? null;
+  }
+  async function chosenRemoteAddresses(slug: string) {
+    const d = dir(slug);
+    return chosenRemote(d, (await git.status(d)).upstream);
+  }
+  // Chooses the remote once for the whole request, and its credential when one is needed.
+  async function chooseRemote(
+    slug: string,
+    credentialFor?: CredentialFor,
+  ): Promise<RemoteChoice | null> {
+    const chosen = await chosenRemoteAddresses(slug);
+    if (!chosen) return null;
+    const choice: RemoteChoice = { name: chosen.name, credential: await credentialFor?.(chosen) };
+    return choice;
+  }
+  function chosenName(choice: RemoteChoice | null) {
+    if (!choice) throw new GitError('This project has no remote. Add one under Remote first.');
+    return choice.name;
+  }
   // Text of a document at a revision, or null when it is absent or not text.
   async function textAt(d: string, rev: string | null, path: string) {
     if (!rev) return null;
@@ -243,12 +270,13 @@ export function createScm(deps: ScmDeps) {
   async function guardIncoming(
     slug: string,
     d: string,
-    source: { remote: string; branch: string },
+    source: { remote: string; branch: string; credential?: RemoteCredential },
     guard: ContentGuard,
   ) {
     const fetched = await git.run(d, ['fetch', source.remote, source.branch], {
       remote: true,
       allowFailure: true,
+      credential: source.credential,
     });
     if (fetched.code !== 0) {
       const failed = { ok: false, conflicted: [], altered: [], stderr: fetched.stderr.trim() };
@@ -267,21 +295,25 @@ export function createScm(deps: ScmDeps) {
     guard(await incomingChanges(slug, d, base, tip), { operation: 'pull' });
     return { tip };
   }
-  async function pullIn(slug: string, d: string, guard?: ContentGuard) {
+  async function pullIn(slug: string, d: string, { choice, guard }: RemoteRequest) {
     const s = await git.status(d);
     const blocked = blockers(deps.drafts(slug), s.entries);
     if (blocked) throw blocked;
-    const remote = await remoteOf(d, s.upstream);
+    const remote = chosenName(choice);
+    const credential = choice?.credential;
     let args = ['pull', '--no-rebase', '--no-edit', ...(s.upstream ? [] : [remote, s.branch])];
+    let options: RunOptions = { remote: true, allowFailure: true, credential };
     if (guard) {
       const branch = s.upstream ? s.upstream.slice(remote.length + 1) : s.branch;
-      const checked = await guardIncoming(slug, d, { remote, branch }, guard);
+      const checked = await guardIncoming(slug, d, { remote, branch, credential }, guard);
       if (checked.failed) return checked.failed;
       // Merging the checked commit keeps commits pushed after the check out of this pull.
       args = ['merge', '--no-edit', checked.tip!];
+      // The merge is local: filters and merge drivers it runs never see the person's token.
+      options = { allowFailure: true };
     }
     const before = await git.head(d);
-    const r = await git.run(d, args, { remote: true, allowFailure: true });
+    const r = await git.run(d, args, options);
     const now = await git.status(d);
     const conflicted = now.entries.filter(e => e.conflicted).map(e => e.path);
     const head = await git.head(d);
@@ -296,28 +328,31 @@ export function createScm(deps: ScmDeps) {
   async function remoteAction(
     slug: string,
     kind: 'fetch' | 'pull' | 'push' | 'sync',
-    guard?: ContentGuard,
+    request: RemoteRequest,
   ) {
     const d = dir(slug);
+    const choice = request.choice;
+    const credential = choice?.credential;
     try {
       let result = { ok: true, conflicted: [] as string[], altered: [] as string[], stderr: '' };
       if (kind === 'fetch') {
-        const s = await git.status(d);
-        const r = await git.run(d, ['fetch', '--prune', await remoteOf(d, s.upstream)], {
+        const r = await git.run(d, ['fetch', '--prune', chosenName(choice)], {
           remote: true,
           allowFailure: true,
+          credential,
         });
         result = { ...result, ok: r.code === 0, stderr: r.stderr.trim() };
       }
       if (kind === 'pull' || kind === 'sync') {
         const s = await git.status(d);
-        if (kind === 'pull' || s.upstream) result = await pullIn(slug, d, guard);
+        if (kind === 'pull' || s.upstream) result = await pullIn(slug, d, request);
       }
       if ((kind === 'push' || kind === 'sync') && result.ok) {
         const s = await git.status(d);
-        const r = await git.run(d, ['push', '-u', await remoteOf(d, s.upstream), s.branch], {
+        const r = await git.run(d, ['push', '-u', chosenName(choice), s.branch], {
           remote: true,
           allowFailure: true,
+          credential,
         });
         result = {
           ...result,
@@ -489,10 +524,17 @@ export function createScm(deps: ScmDeps) {
     async commit(
       slug: string,
       message: unknown,
-      options: { paths?: unknown; push?: boolean; base?: PathBase } = {},
+      options: {
+        paths?: unknown;
+        push?: boolean;
+        base?: PathBase;
+        credentialFor?: CredentialFor;
+      } = {},
     ) {
       if (typeof message !== 'string' || !message.trim())
         throw new GitError('A commit message is required.');
+      // A missing credential stops the request before the commit, so a retry commits only once.
+      const choice = options.push ? await chooseRemote(slug, options.credentialFor) : null;
       const result =
         options.paths === undefined
           ? await commitIndex(slug, message)
@@ -500,7 +542,7 @@ export function createScm(deps: ScmDeps) {
       if (!options.push) return result;
       let pushed: { ok: boolean; message: string };
       try {
-        const r = await remoteAction(slug, 'push');
+        const r = await remoteAction(slug, 'push', { choice });
         pushed = { ok: r.ok, message: r.stderr || (r.ok ? 'Pushed.' : 'Push failed.') };
       } catch (e) {
         pushed = { ok: false, message: (e as Error).message };
@@ -580,11 +622,22 @@ export function createScm(deps: ScmDeps) {
       await after(slug);
       return { removed: name };
     },
-    fetch: (slug: string) => remoteAction(slug, 'fetch'),
+    chosenRemoteAddresses,
+    /** Every remote of the project's repository with its fetch and push addresses. */
+    remoteAddresses: (slug: string) => git.remoteAddresses(dir(slug)),
+    fetch: async (slug: string, credentialFor?: CredentialFor) =>
+      remoteAction(slug, 'fetch', { choice: await chooseRemote(slug, credentialFor) }),
     // The reader's guard, given in server mode, refuses a pull that brings in a guarded change.
-    pull: (slug: string, reader: Reader) => remoteAction(slug, 'pull', reader.guard),
-    push: (slug: string) => remoteAction(slug, 'push'),
-    sync: (slug: string, reader: Reader) => remoteAction(slug, 'sync', reader.guard),
+    pull: async (slug: string, reader: Reader, credentialFor?: CredentialFor) => {
+      const choice = await chooseRemote(slug, credentialFor);
+      return remoteAction(slug, 'pull', { choice, guard: reader.guard });
+    },
+    push: async (slug: string, credentialFor?: CredentialFor) =>
+      remoteAction(slug, 'push', { choice: await chooseRemote(slug, credentialFor) }),
+    sync: async (slug: string, reader: Reader, credentialFor?: CredentialFor) => {
+      const choice = await chooseRemote(slug, credentialFor);
+      return remoteAction(slug, 'sync', { choice, guard: reader.guard });
+    },
     cancel: (slug: string) => ({ cancelled: git.cancel(dir(slug)) }),
     async log(slug: string, path: string | undefined, limit: number | undefined, { view }: Reader) {
       if (path) requireReadable(slug, path, view);

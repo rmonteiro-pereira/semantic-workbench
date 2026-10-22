@@ -9,6 +9,7 @@ import { createHandler } from '../../server/handler';
 import { accessFixture, person } from './access-fixture';
 import type { CloneEvent } from '../../server/projects/clone';
 import { LOCAL_READER } from '../../server/projects/reader';
+import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 
 function bytes(root: string, prefix = ''): Record<string, string> {
   return Object.fromEntries(
@@ -59,6 +60,7 @@ test('an Editor of one manifest project cannot switch, fetch, pull, sync or push
     const origin = 'http://127.0.0.1:4310';
     const handler = createHandler(fixture.ws, {
       mode: 'server',
+      remoteCredentials: allowEveryRemote(),
       publicOrigin: origin,
       access,
       principal: () => access.principalFor(person('alice')),
@@ -144,6 +146,7 @@ test('changing a shared remote needs setRemote on every project of the repositor
     const origin = 'http://127.0.0.1:4310';
     const handler = createHandler(fixture.ws, {
       mode: 'server',
+      remoteCredentials: allowEveryRemote(),
       publicOrigin: origin,
       access,
       principal: () => access.principalFor(person('dave')),

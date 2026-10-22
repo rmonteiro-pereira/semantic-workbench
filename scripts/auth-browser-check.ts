@@ -3,6 +3,7 @@ import { chromium } from '@playwright/test';
 import { TEST_GROUPS } from '../tests/helpers/auth-identities';
 import { startMockOidc } from '../tests/helpers/mock-oidc';
 import { freeAuthPort, startAuthApi } from './auth-environment';
+import { freeLoopbackPort } from './helpers/processes';
 import {
   agentBearerChecks,
   readVisibilityChecks,
@@ -12,15 +13,19 @@ import {
 } from './helpers/sign-in';
 import { mockLifecycleChecks, localAuthSmoke } from './auth-lifecycle';
 import { governanceChecks } from './auth-governance';
+import { remoteCredentialChecks } from './auth-remote-check';
 
 /** Runs the mock suite without Vite or an external identity service. */
 export async function authBrowserCheck() {
   const url = `http://127.0.0.1:${freeAuthPort()}`;
+  // Connect GitHub runs against its own server, configured with a GitHub app.
+  const excluded = [5173, 5180, 4310, Number(new URL(url).port)];
+  const remoteUrl = `http://127.0.0.1:${freeLoopbackPort(excluded)}`;
   const mock = await startMockOidc({
     shape: 'entra',
     port: 0,
-    redirectUris: [url + '/auth/callback'],
-    postLogoutRedirectUris: [url + '/auth/signed-out'],
+    redirectUris: [url + '/auth/callback', remoteUrl + '/auth/callback'],
+    postLogoutRedirectUris: [url + '/auth/signed-out', remoteUrl + '/auth/signed-out'],
   });
   try {
     const api = await startAuthApi(url, { ...mock, kind: 'entra' });
@@ -32,6 +37,7 @@ export async function authBrowserCheck() {
         await roleControlChecks(browser, target);
         await agentBearerChecks(browser, target);
         await governanceChecks(browser, target);
+        await remoteCredentialChecks(browser, { ...target, url: remoteUrl });
         await mockLifecycleChecks(browser, target, mock, api.root);
         await localAuthSmoke(browser);
         mock.setUserGroups('alice', [TEST_GROUPS.salesViewers]);

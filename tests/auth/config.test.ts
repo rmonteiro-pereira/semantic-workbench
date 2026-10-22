@@ -254,3 +254,14 @@ test('agent token audiences are a comma-separated list, empty when unset', () =>
     'api://semantic-workbench',
   ]);
 });
+
+test('Azure DevOps on-behalf-of is an Entra grant and can be turned off', () => {
+  const entra = readConfig(entraEnvironment()) as ServerConfig;
+  expect(entra.adoOnBehalfOf).toBe(true);
+  const off = readConfig({ ...entraEnvironment(), SW_ADO_OBO: 'false' }) as ServerConfig;
+  expect(off.adoOnBehalfOf).toBe(false);
+  for (const provider of ['keycloak', 'generic']) {
+    const other = readConfig({ ...entraEnvironment(), SW_OIDC_PROVIDER: provider });
+    expect((other as ServerConfig).adoOnBehalfOf).toBe(false);
+  }
+});

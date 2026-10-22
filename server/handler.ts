@@ -36,6 +36,7 @@ import { cloneRoutes } from './routes/clone';
 import { repoRoutes } from './routes/repos';
 import { peopleRoutes } from './routes/people';
 import type { AccessControl } from './auth/authorize';
+import { attachRemoteCredentials } from './auth/request-scope';
 /** Local browser origins allowed to call the API. */
 export const ALLOWED_ORIGINS = allowedOrigins(4310);
 /** Includes the configured API origin and the Vite development server. */
@@ -256,6 +257,11 @@ export function loopbackHost(host: string | null) {
 }
 /** Creates the API handler with local-access checks and shared error responses. */
 export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
+  // Server mode never falls back to the machine's own Git credentials.
+  if (options.mode === 'server' && !options.remoteCredentials) {
+    throw new Error('Server mode needs the remote credential service.');
+  }
+  const remoteMode = options.remoteCredentials ?? 'local';
   const access = options.access ?? defaultAccess(ws, options.mode ?? 'local');
   const administration = options.administration ?? defaultAdministration(ws, access);
   options = {
@@ -288,7 +294,9 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
   const routes: Route[] = [
     adminRoutes(adminService, options),
     auditRoutes(options),
-    ...(options.authentication ? [authRoutes(options.authentication)] : []),
+    ...(options.authentication
+      ? [authRoutes(options.authentication, options.remoteCredentials)]
+      : []),
     (_workspace, request, url) =>
       url.pathname === '/api/me' && request.method === 'GET' ? meResponse(request, options) : null,
     eventRoutes(options),
@@ -305,6 +313,7 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
   }
   const run = async (req: Request) => {
     const url = new URL(req.url);
+    attachRemoteCredentials(req, remoteMode);
     try {
       if (options.mode === 'server') {
         const staticResponse = await serveStatic(

@@ -25,6 +25,7 @@ import {
   remoteWithReclassification,
   revertCase,
 } from './guard-cases';
+import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 
 describe('read matrix', () => {
   test('listings and file reads contain only the requesting person’s documents', async () => {
@@ -35,6 +36,7 @@ describe('read matrix', () => {
       const view = access.view(principal);
       const handler = createHandler(fixture.ws, {
         mode: 'server',
+        remoteCredentials: allowEveryRemote(),
         access,
         principal: () => principal,
       });
@@ -95,6 +97,7 @@ describe('read route inventory', () => {
       const scope = access.forRequest(principal);
       const handler = createHandler(fixture.ws, {
         mode: 'server',
+        remoteCredentials: allowEveryRemote(),
         access,
         principal: () => principal,
         publicOrigin: 'http://localhost',
@@ -181,6 +184,7 @@ describe('read targets across all fixture paths', () => {
       const view = access.view(principal);
       const handler = createHandler(fixture.ws, {
         mode: 'server',
+        remoteCredentials: allowEveryRemote(),
         access,
         principal: () => principal,
       });
@@ -233,6 +237,7 @@ test('content-echoing writes conceal hidden paths and destination existence', as
   const principal = access.principalFor(person('alice'));
   const handler = createHandler(fixture.ws, {
     mode: 'server',
+    remoteCredentials: allowEveryRemote(),
     access,
     principal: () => principal,
     publicOrigin: 'http://localhost',

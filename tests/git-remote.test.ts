@@ -220,3 +220,17 @@ test('saving the masked form of a credentialed address keeps the original addres
     p.dispose();
   }
 });
+test('an upstream whose remote was removed reports that the project has no remote', async () => {
+  const p = await scmProject();
+  try {
+    // The branch keeps tracking `other/main` after the remote lost its address.
+    sh(p.dir, ['remote', 'add', 'other', p.bare]);
+    sh(p.dir, ['fetch', '-q', 'other']);
+    sh(p.dir, ['branch', '-q', '--set-upstream-to', 'other/main']);
+    sh(p.dir, ['config', '--unset', 'remote.other.url']);
+    const fetched = await call(p.t, 'POST', p.base + '/git/fetch');
+    expect(fetched.body.error).toContain('This project has no remote');
+  } finally {
+    p.dispose();
+  }
+});

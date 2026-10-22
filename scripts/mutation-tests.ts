@@ -1,6 +1,6 @@
 // Introduces faults into temporary source copies and checks that the test suite detects them.
 import { adminMutants } from './admin-mutants';
-import { mkdtemp, rm, symlink } from 'node:fs/promises';
+import { chmod, mkdtemp, rm, symlink } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 const root = process.cwd();
 const temp = await mkdtemp('/tmp/workbench-mutations-');
@@ -760,7 +760,7 @@ const mutants: [string, string, string, string][] = [
     "['config', '--local', 'user.name', name]",
     "['config', '--global', 'user.name', name]",
   ],
-  ['git-setup', 'server/projects/git.ts', '{ remote: true },', '{},'],
+  ['git-setup', 'server/projects/git.ts', '{ remote: true, credential },', '{ credential },'],
   ['git-setup', 'server/projects/git.ts', "'core.symlinks=false',", "'core.symlinks=true',"],
   [
     'clone',
@@ -829,8 +829,8 @@ mutants.push(
   [
     'guard-pull',
     'server/routes/git.ts',
-    'scm.pull(slug, reader)',
-    'scm.pull(slug, { ...reader, guard: undefined })',
+    'scm.pull(slug, reader, credentialFor)',
+    'scm.pull(slug, { ...reader, guard: undefined }, credentialFor)',
   ],
   [
     'guard-revert',
@@ -935,11 +935,108 @@ mutants.push(
   ['bearer-delegated', 'server/auth/principal.ts', ' || claims.scp !== undefined', ''],
 );
 
+// Remote credentials of server mode: a token never lands in Git configuration or output, only
+// Admins change remotes or clone, hosts must be allowed, and remote commands stay explicit.
+mutants.push(
+  [
+    'remote-credential',
+    'server/projects/git.ts',
+    'const credentialArgs = opts.credential ? credentialSetup(opts.credential).args : [];',
+    'const credentialArgs = opts.credential ? credentialSetup(opts.credential).args : [];\n' +
+      "    if (opts.credential?.kind === 'token')\n" +
+      "      await spawnGit(dir, ['config', 'sw.token', opts.credential.token]);",
+  ],
+  [
+    'remote-credential',
+    'server/projects/git.ts',
+    "const args = ['-c', 'credential.helper='];",
+    'const args: string[] = [];',
+  ],
+  [
+    'remote-credential',
+    'server/projects/git.ts',
+    'stderr: maskToken(redactCredentials(stderr), credential),',
+    'stderr: redactCredentials(stderr),',
+  ],
+  [
+    'remote-explicit',
+    'server/projects/git.ts',
+    "new Set(['fetch', 'pull', 'push', 'ls-remote', 'clone', 'remote-update'])",
+    "new Set(['ls-remote', 'remote-update'])",
+  ],
+  [
+    'remote-admin',
+    'server/auth/route-actions.ts',
+    "row('PUT', '/api/projects/:slug/git/remote', 'setRemote', project)",
+    "row('PUT', '/api/projects/:slug/git/remote', 'edit', project)",
+  ],
+  [
+    'remote-admin',
+    'server/auth/route-actions.ts',
+    "row('POST', '/api/clone', 'clone', workspace)",
+    "row('POST', '/api/clone', 'createProject', workspace)",
+  ],
+  [
+    'remote-hosts',
+    'server/auth/remote-hosts.ts',
+    'if (!allowedHosts.some(allowed => allowed.toLowerCase() === host)) {',
+    'if (false) {',
+  ],
+  [
+    'remote-hosts',
+    'server/auth/remote-hosts.ts',
+    "const secure = url?.protocol === 'https:' || (url !== null && isLoopbackHost(url.hostname));",
+    'const secure = url !== null;',
+  ],
+  ['remote-hosts', 'server/auth/remote-hosts.ts', 'if (pushHost !== fetchHost) {', 'if (false) {'],
+  [
+    'remote-hosts',
+    'server/auth/remote-hosts.ts',
+    "return rest.includes('@') || authority.split('@').length > 2;",
+    'return false;',
+  ],
+  [
+    'remote-consent',
+    'server/auth/remote-credentials.ts',
+    "sameText(attempt.state, params.get('state') ?? '')",
+    'true',
+  ],
+  ['remote-consent', 'server/auth/remote-credentials.ts', 'attempt.expiresAt > now() &&', ''],
+  ['remote-consent', 'server/auth/remote-credentials.ts', 'if (!enabled()) {', 'if (false) {'],
+  ['remote-guarded-fetch', 'server/projects/scm.ts', '      credential: source.credential,\n', ''],
+  [
+    'remote-redirect',
+    'server/projects/git.ts',
+    "args.push('-c', 'http.followRedirects=false');",
+    "args.push('-c', 'http.followRedirects=initial');",
+  ],
+);
+
 let killed = 0;
+// The askpass program is a shell script, so its mutants run the askpass case with the mutated
+// script beside an unchanged Git module.
+const ASKPASS = 'server/bin/sw-askpass';
+const askpassMutants: [string, string][] = [
+  [`"Username for 'https://$host': " | "Username for 'http://$host': ")`, `"Username for '"*)`],
+  [`user="\${user%"@$host': "}"`, `user="\${user%%@*}"`],
+  [`"" | */* | *@* | *\\'*) ;;`, `"") ;;`],
+  [`[ -n "$host" ] || { printf '\\n'; exit 0; }`, 'true'],
+  // The password branch answers any prompt, so only the redirect setting would stop a leak.
+  [
+    `"Password for 'https://"*"@$host': " | "Password for 'http://"*"@$host': ")`,
+    `"Password for "*)\n    printf '%s\\n' "\${SW_GIT_TOKEN-}"\n    exit 0\n    ;;\n  "never")`,
+  ],
+];
 // Administration cases extend the existing inventory without changing its categories.
 mutants.push(...adminMutants);
 
-async function run(category: string, file: string, source: string, index: string) {
+async function run(
+  category: string,
+  file: string,
+  source: string,
+  index: string,
+  env: Record<string, string> = {},
+) {
   if (category.startsWith('admin-')) {
     source = source.replaceAll("new URL('../../policies/", `new URL('${root}/policies/`);
   }
@@ -951,13 +1048,37 @@ async function run(category: string, file: string, source: string, index: string
   await Bun.write(target, rewritten);
   const child = Bun.spawn(
     [process.execPath, resolve(root, 'scripts/mutation-case.ts'), target, category],
-    { stdout: 'pipe', stderr: 'pipe' },
+    { stdout: 'pipe', stderr: 'pipe', env: { ...process.env, ...env } },
   );
   const timer = setTimeout(() => child.kill(), 10000);
   const code = await child.exited;
   clearTimeout(timer);
   const error = await new Response(child.stderr).text();
   return { code, error };
+}
+// Runs the askpass case with the script as it is, then with each mutant, which must fail it.
+async function askpassCases() {
+  const gitSource = await Bun.file('server/projects/git.ts').text();
+  const script = await Bun.file(ASKPASS).text();
+  const variants: [string, string][] = [['baseline', script]];
+  for (const [i, [before, after]] of askpassMutants.entries()) {
+    if (!script.includes(before)) throw Error(`Mutation anchor missing: ${before}`);
+    variants.push([`mutant-${i}`, script.replaceAll(before, after)]);
+  }
+  for (const [label, text] of variants) {
+    const path = resolve(temp, `askpass-${label}`);
+    await Bun.write(path, text);
+    await chmod(path, 0o755);
+    const env = { ASKPASS_UNDER_TEST: path };
+    const result = await run('askpass', 'server/projects/git.ts', gitSource, 'askpass-git', env);
+    if (label === 'baseline') {
+      if (result.code !== 0) throw Error(`Baseline failed (askpass): ${result.error}`);
+      continue;
+    }
+    if (result.code === 0) throw Error(`Surviving askpass ${label}`);
+    killed++;
+    console.log(`KILLED askpass: ${label}`);
+  }
 }
 // The baseline includes formatting and lint: unformatted or lint-failing code fails the gate.
 for (const script of ['fmt:check', 'lint']) {
@@ -981,6 +1102,7 @@ try {
     killed++;
     console.log(`KILLED ${category}: ${before} → ${after}`);
   }
+  await askpassCases();
   const ui = Bun.spawn([process.execPath, resolve(root, 'scripts/ui-tests.ts')], {
     env: { ...process.env, UI_MUTATION: 'clear-nodes' },
     stdout: 'pipe',
@@ -1019,7 +1141,7 @@ try {
     console.log('KILLED UI: ' + label);
   }
   console.log(
-    `${killed}/${mutants.length + 3} targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.`,
+    `${killed}/${mutants.length + askpassMutants.length + 3} targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.`,
   );
 } finally {
   await rm(temp, { recursive: true, force: true });

@@ -19,6 +19,7 @@ import {
   type Session,
 } from './sessions';
 import { requestAuditId, type AuditRequest } from '../request';
+import { createRemoteCredentials, type RemoteCredentialOptions } from './remote-credentials';
 
 /** Opens validated server authentication only after the workspace lease has been acquired. */
 /**
@@ -48,6 +49,7 @@ export async function createServerAuthentication(
   ws: Workspace,
   config: ServerConfig,
   suppliedClient?: OidcClient,
+  remoteOptions: RemoteCredentialOptions = {},
 ) {
   const client = suppliedClient ?? (await createOidcClient(config));
   // The process keeps one administration repository: its writes are serialized only within one
@@ -276,6 +278,15 @@ export async function createServerAuthentication(
     if (config.oidc.provider === 'keycloak') return { id, displayName: id, resolved: true };
     return groupDirectory.group(id);
   }
+  const remoteCredentials = createRemoteCredentials({
+    ...remoteOptions,
+    config,
+    client,
+    session,
+    sessions,
+    settings: () => repository.settings(),
+    log: message => logFailure(undefined, new Error(message)),
+  });
   const signOutTarget = client.logout();
   const providerOrigin = URL.canParse(signOutTarget) ? new URL(signOutTarget).origin : undefined;
   const timer = setInterval(() => {
@@ -302,6 +313,7 @@ export async function createServerAuthentication(
     administration: repository,
     audit,
     principal: async (request: Request) => (await session(request))?.principal ?? null,
+    remoteCredentials,
     authentication: { login, callback, logout, session, sessions },
     close: () => clearInterval(timer),
   };

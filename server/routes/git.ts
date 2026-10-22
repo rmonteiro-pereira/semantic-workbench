@@ -1,6 +1,7 @@
 // Exposes project source control operations. Remote actions run only through explicit requests.
 import { requestReader } from '../auth/request-scope';
 import { authorizeGitPaths, authorizeGitPush, authorizeRepository } from '../auth/git-access';
+import { checkRemoteAddress, delegatedCredentials } from '../auth/remote-credentials';
 import { authorizeWrite } from '../auth/write-access';
 import { existsSync, readFileSync } from 'node:fs';
 import { readJson } from '../request';
@@ -114,6 +115,7 @@ export const gitRoutes: Route = async (ws, req, url) => {
           paths: chosen?.list,
           base: chosen?.base,
           push: b.push === true,
+          credentialFor: delegatedCredentials(req),
         }),
       );
     }
@@ -133,11 +135,13 @@ export const gitRoutes: Route = async (ws, req, url) => {
     if (action === 'git/pull' || action === 'git/sync') {
       authorizeRepository(gitTarget, 'pull');
     }
-    if (action === 'git/fetch') return Response.json(await scm.fetch(slug));
-    if (action === 'git/pull') return Response.json(await scm.pull(slug, reader));
+    // Remote commands use the caller's own credential for the remote they reach.
+    const credentialFor = delegatedCredentials(req);
+    if (action === 'git/fetch') return Response.json(await scm.fetch(slug, credentialFor));
+    if (action === 'git/pull') return Response.json(await scm.pull(slug, reader, credentialFor));
     if (action === 'git/push' || action === 'git/sync') await authorizeGitPush(gitTarget);
-    if (action === 'git/push') return Response.json(await scm.push(slug));
-    if (action === 'git/sync') return Response.json(await scm.sync(slug, reader));
+    if (action === 'git/push') return Response.json(await scm.push(slug, credentialFor));
+    if (action === 'git/sync') return Response.json(await scm.sync(slug, reader, credentialFor));
     if (action === 'git/cancel') return Response.json(scm.cancel(slug));
     // Use the hash-checked save so concurrent edits are detected and the project is rescanned.
     if (action === 'gitignore') {
@@ -173,7 +177,9 @@ export const gitRoutes: Route = async (ws, req, url) => {
     const b = await body(['name', 'url']);
     // The remote belongs to the repository, so every project sharing it must allow the change.
     authorizeRepository(gitTarget, 'setRemote');
-    return Response.json(await scm.setRemote(slug, b.name, b.url));
+    // Server mode stores the canonical form of the address it checked.
+    const address = checkRemoteAddress(req, b.url);
+    return Response.json(await scm.setRemote(slug, b.name, address));
   }
   if (req.method === 'DELETE' && action === 'git/remote') {
     const b = await body(['name']);

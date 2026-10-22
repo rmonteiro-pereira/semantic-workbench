@@ -3,7 +3,12 @@ import { readConfig, type ServerConfig } from '../../server/config';
 import { TEST_TENANT_ID, TEST_WORKBENCH_CLIENT } from './auth-identities';
 
 /** Builds server settings that can send tokens only to the mock provider. */
-export function oidcConfig(issuer: string, graphUrl: string, provider = 'entra'): ServerConfig {
+export function oidcConfig(
+  issuer: string,
+  graphUrl: string,
+  provider = 'entra',
+  extra: Record<string, string> = {},
+): ServerConfig {
   return readConfig({
     SW_MODE: 'server',
     SW_PUBLIC_URL: 'http://127.0.0.1:4310',
@@ -15,5 +20,6 @@ export function oidcConfig(issuer: string, graphUrl: string, provider = 'entra')
     SW_GRAPH_URL: graphUrl,
     SW_SESSION_KEY: Buffer.from(Array.from({ length: 32 }, (_, index) => index)).toString('base64'),
     SW_BOOTSTRAP_ADMINS: 'root@example.org',
+    ...extra,
   }) as ServerConfig;
 }

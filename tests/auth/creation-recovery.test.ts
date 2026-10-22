@@ -14,6 +14,7 @@ import { createAccessControl } from '../../server/auth/authorize';
 import { createHandler } from '../../server/handler';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { accessFixture, person } from './access-fixture';
+import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 
 function adminRequest(): AccessRequest {
   const access = createAccessControl(accessFixture());
@@ -105,6 +106,7 @@ test('a failed local clone never assigns a domain', async () => {
   const origin = 'http://127.0.0.1:4310';
   const handler = createHandler(fixture.ws, {
     mode: 'server',
+    remoteCredentials: allowEveryRemote(),
     publicOrigin: origin,
     access,
     principal: () => access.principalFor(person('dave')),
@@ -189,6 +191,7 @@ test('a domain assignment and a grant written together through one repository bo
   const write = spyOn(repository, 'write');
   const handler = createHandler(fixture.ws, {
     mode: 'server',
+    remoteCredentials: allowEveryRemote(),
     publicOrigin: origin,
     access,
     administration: repository,

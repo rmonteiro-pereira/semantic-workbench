@@ -114,6 +114,16 @@ These replace the misses measured under load earlier; no budget was changed.
 | Browser suites | `test:metrics`, `test:odcs`, `test:item-edit`, `test:projects`, `test:trash`, `test:autosave` and `test:ui` passed; `test:odcs` once needed a rerun because Vite did not start while three servers optimised dependencies at once |
 | `test:container` | passed (local, server-mode and smoke groups); one run stopped in `test:monorepo` waiting for a clone in the image and the rerun passed |
 
+## Remote Git with personal credentials (development machine, 2026-10-22)
+
+| Check | Result |
+| --- | --- |
+| `bun test` | 1,285 passed |
+| `ci:validate --step mutation` | 238 of 238 mutants killed |
+| `test:auth` | passed, including the connected-accounts dialog and the connect prompt |
+| Browser suites | `test:scm` and `test:git-setup` passed; `test:git-setup` once stopped at its credential-guide step and passed on rerun |
+| `test:container` | passed (local, server-mode and smoke groups) |
+
 ## Owner trial
 
 The owner records the report of `deploy/trial-runbook.md` here after running it on the target.

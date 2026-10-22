@@ -20,6 +20,7 @@ import { GuardedChangeError } from './guards';
 import { READ_ACTIONS } from './actions';
 import { requestAccess, requestAuditProjects, type AccessRequest } from './request-scope';
 import { hiddenResponses, requestAuditId } from '../request';
+import type { RemoteCredentials } from './remote-credentials';
 
 /** The access boundary instance shared across requests. */
 export type { AccessControl } from './authorize';
@@ -43,6 +44,8 @@ export type HandlerOptions = {
   /** Display names for built-in roles; custom roles always show their current policy name. */
   roleNames?: Record<string, string>;
   staticRoot?: string;
+  /** Server mode: each person's own credentials for remote Git commands. */
+  remoteCredentials?: RemoteCredentials;
 };
 /** The access boundary of a handler that was given none, read from the data root's settings. */
 export function defaultAccess(ws: Workspace, mode: 'local' | 'server'): AccessControl {

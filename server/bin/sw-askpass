@@ -1,0 +1,29 @@
+#!/bin/sh
+# Answers Git's username and password prompts for one remote command in server mode.
+# The workbench sets the values in that command's environment only, so nothing is written to
+# Git configuration or to disk. Git asks "Username for '<scheme>://<host>': " and then
+# "Password for '<scheme>://<user>@<host>': " (paths are left out by credential.useHttpPath).
+# The whole prompt must name the host the credential belongs to; this is the last guard that
+# keeps a token from reaching any other host, so anything else gets an empty answer.
+host="${SW_GIT_HOST-}"
+[ -n "$host" ] || { printf '\n'; exit 0; }
+case "$1" in
+  "Username for 'https://$host': " | "Username for 'http://$host': ")
+    printf '%s\n' "${SW_GIT_USERNAME-}"
+    exit 0
+    ;;
+  "Password for 'https://"*"@$host': " | "Password for 'http://"*"@$host': ")
+    user="${1#Password for \'http}"
+    user="${user#s}"
+    user="${user#://}"
+    user="${user%"@$host': "}"
+    case "$user" in
+      "" | */* | *@* | *\'*) ;;
+      *)
+        printf '%s\n' "${SW_GIT_TOKEN-}"
+        exit 0
+        ;;
+    esac
+    ;;
+esac
+printf '\n'
