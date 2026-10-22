@@ -1,38 +1,28 @@
 <!--
 Sync Impact Report
-- Version change: 3.0.0 → 3.0.1 (PATCH, wording): Principle I names the second read of the
-  identity provider's directory that granted groups need (their display names, for the Admin
-  panel), still limited to the groups the configuration names; Principle IV names the access
-  configuration as roles and access grants instead of role mappings and assignments. No rule is
-  added or removed. Source: specs/003-authn-authz/spec.md, owner decisions OP-13 and OP-14
-  (2026-10-21). Templates: no change needed.
-- Earlier version change: 2.1.0 → 3.0.0 (MAJOR: Principle I redefined into two modes; the technical
-  constraint "single-user, no authentication layer" removed)
-- Modified principles: I. Local-Only Operation → I. Local and Server Modes (local mode as before;
-  server mode with OpenID Connect sign-in, data in the container's mounted storage, outbound calls
-  only to the identity provider and to user-triggered Git remotes with the person's own delegated
-  credentials); II. Byte-Exact Source Preservation (access control never redacts a document: a
-  file is served whole or not at all); IV. Atomic, Hash-Checked File Persistence (per-person
-  drafts, view state, trash ownership and Git working copies in server mode; the administration
-  repository; serialization across working copies); VI. Verification Gate (authorization
-  decisions and list filtering need targeted mutants; an authorization test matrix covers every
-  route, role and scope); VII. Honest Claims (README documents both modes, the roles and what each
-  can see, and server mode's network calls)
-- Added principles: none
+- Version change: 3.0.1 → 3.1.0 (MINOR: principle VIII added and the quality gate expanded)
+- Reason: the 3.x line was drafted on a base without the 2.2.0 amendment (Readable Code) made on
+  branch 002-lineage-and-ux. Rebasing feature 003 onto that branch merges the two lines; both
+  owner-approved amendments are kept unchanged in substance.
+- Modified principles: none
+- Added principles: VIII. Readable Code (formatter-enforced layout, one statement per line,
+  100-column width, descriptive names, small functions and components, plain-English comments
+  without spec or task IDs, JSDoc on exports), carried over from 2.2.0 word for word
 - Removed principles: none
-- Modified sections: Technical Constraints (one authorization boundary replaces "no
-  authentication layer"; single instance per data root in server mode; the new-dependency rule
-  names the policy engine and sign-in libraries); Development Workflow (destructive operations
-  reachable from the UI for the role that holds them)
-- Unchanged on purpose: no query execution, no hosted LLM, byte-exact sources, one validation rule
-  set, pinned standards
+- Modified sections: Development Workflow and Quality Gates (`bun --bun run check` includes
+  TypeScript, `fmt:check`, Oxlint and the comment check), as in 2.2.0
 - Templates requiring updates: .specify/templates/plan-template.md (✅ no change needed: its
-  "Constitution Check" gate reads this file); spec-template.md (✅ no change needed);
-  tasks-template.md (✅ no change needed)
-- Source: specs/003-authn-authz/spec.md (owner decisions and approval 2026-10-21)
-- Follow-up TODOs: README documents both modes, roles and server-mode network calls when feature
-  003 ships (specs/003-authn-authz/tasks.md, final phase)
-- Earlier: 2.0.1 → 2.1.0 (clone), 1.0.0 → 2.0.0 (Principle IV redefined), 2.0.0 → 2.0.1 (wording)
+  "Constitution Check" lists every principle from this file); spec-template.md (✅ no change
+  needed); tasks-template.md (✅ no change needed); README.md (✅ Contributing section already
+  present from 2.2.0); specs/003-authn-authz/plan.md (✅ Constitution Check gains a line for VIII)
+- Source: rebase of 003-authn-authz onto 002-lineage-and-ux (2026-10-21); both amendments were
+  approved by the owner
+- Follow-up TODOs: none
+- Earlier: 3.0.0 → 3.0.1 (PATCH, wording: second directory read for group display names; roles
+  and access grants instead of role mappings and assignments), 2.1.0 → 3.0.0 (MAJOR, drafted on
+  branch 003: Principle I redefined into local and server modes; "single-user, no authentication
+  layer" removed), 2.1.0 → 2.2.0 (Readable Code), 2.0.1 → 2.1.0 (clone),
+  1.0.0 → 2.0.0 (Principle IV redefined), 2.0.0 → 2.0.1 (wording)
 -->
 
 # Semantic Workbench Constitution
@@ -198,6 +188,27 @@ reformatting breaks diffs, reviews and downstream tooling.
   roles and what each can see and do; every outbound call of server mode; and its single-instance
   limit.
 
+### VIII. Readable Code
+
+- Layout is decided by the formatter (Oxfmt, configured in `.oxfmtrc.json`): 100-column lines,
+  2-space indentation, semicolons, trailing commas. `bun run fmt:check` MUST pass; unformatted code
+  fails the gate.
+- One statement per line and one variable per declaration. No line over 100 characters except a
+  string or URL that cannot be split.
+- Names describe what a thing is, in words; single letters only for loop indexes and tiny lambdas.
+  Functions do one thing (about 40 lines); React components stay around 150 lines; long inline
+  handlers are named functions; no nested ternaries.
+- Comments are plain English that a developer new to the repository understands without the
+  spec. They explain why or a non-obvious constraint, one idea per sentence, about three lines per
+  block. Every module starts with a one- or two-sentence header; exported functions, components and
+  types carry a short JSDoc. Comments MUST NOT contain spec, task or research IDs (FR-, SC-, T0xx,
+  R12, US3, phase numbers) or process notes; traceability belongs in commit messages and specs.
+  `scripts/check-comments.ts` enforces the ID rule.
+- Test names are plain sentences describing behaviour.
+
+Rationale: the code is read far more often than it is written, by people who have not read the
+planning documents.
+
 ## Technical Constraints
 
 - Frontend: React 19 + TypeScript + Vite+ in `src/`. API: Bun HTTP server in `server/`; project
@@ -221,7 +232,8 @@ reformatting breaks diffs, reviews and downstream tooling.
 
 - Work happens on feature branches; `main` only receives reviewed merges. Releases are tagged
   (`v0.1.0` is the first).
-- A change is complete when: `bun test`, `bun --bun run check` and `bun --bun run build` pass;
+- A change is complete when: `bun test`, `bun --bun run check` (TypeScript, `fmt:check`, Oxlint and
+  the comment check) and `bun --bun run build` pass;
   the relevant browser suites (`test:ui`, `test:responsive`, `test:edges`,
   `test:grouping-validation`, `test:examples:ui`) pass against the dev server; `test:mutation`
   detects every mutant; and the README reflects the new behaviour.
@@ -242,4 +254,4 @@ reformatting breaks diffs, reviews and downstream tooling.
 - Exceptions MUST be recorded in the feature's plan under "Complexity Tracking" with the reason
   and the simpler alternative that was rejected.
 
-**Version**: 3.0.1 | **Ratified**: 2026-10-20 | **Last Amended**: 2026-10-21
+**Version**: 3.1.0 | **Ratified**: 2026-10-20 | **Last Amended**: 2026-10-21

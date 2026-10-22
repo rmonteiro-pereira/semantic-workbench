@@ -16,7 +16,7 @@ acceptance step run from a runbook; the target imports releases into its own Azu
 Revised a fourth time the same day for the owner's decisions on sign-in and access (OP-12 to
 OP-14): there is no sign-in screen in the workbench; access is granted in the Admin panel to Entra
 groups or to individual e-mail addresses, and Entra app roles are not needed; Admins can create
-custom roles. Constitution 3.0.1 applies (3.0.0 plus a wording patch for the group-name lookup).
+custom roles. Constitution 3.1.0 applies (3.0.0, a wording patch for the group-name lookup, and principle VIII Readable Code carried over from 2.2.0).
 
 **Builds on**: feature 002 (`002-lineage-and-ux`, v0.3.0). This branch starts from
 `origin/002-lineage-and-ux` and is rebased onto `main` after 002 merges; every route, dialog and

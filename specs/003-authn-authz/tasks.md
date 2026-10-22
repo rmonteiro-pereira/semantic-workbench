@@ -13,7 +13,7 @@ description: "Task list for Sign-In, Roles and Access Control for Local and Serv
 > refresh). Every task below assumes the 002 code (commit with paths/push, revert, identity,
 > clone, repository projects, subfolder projects, metrics routes) is present.
 
-**Tests**: Required. Constitution 3.0.1 Principle VI mandates unit/API tests, an isolated browser
+**Tests**: Required. Constitution 3.1.0 Principle VI mandates unit/API tests, an isolated browser
 check per user-visible change, targeted mutants for new decision logic, geometry assertions for
 layout work, and the authorization test matrix. Test tasks come first in each phase and must fail
 before the implementation tasks that follow.
