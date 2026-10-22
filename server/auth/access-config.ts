@@ -2,7 +2,7 @@
 import Ajv2020 from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
 import schema from '../../schemas/semantic-workbench-access-v1.json';
-import { BUILTIN_ROLE_IDS, type Action, type Level } from './actions';
+import { LEVELS, BUILTIN_ROLE_IDS, type Action, type Level } from './actions';
 import { validateCustomRole } from './role-compiler';
 
 /** The workspace, domains, or named projects covered by a grant. */
@@ -98,20 +98,86 @@ export function validateAccessConfig(input: AccessConfig): AccessConfig {
   const ids = new Set<string>(BUILTIN_ROLE_IDS);
   config.adminRules ??= {};
   for (const role of config.roles) {
-    validateCustomRole(role);
-    if (ids.has(role.id)) throw new AccessConfigError(`Duplicate role id: ${role.id}`);
+    try {
+      validateCustomRole(role);
+    } catch (error) {
+      throw new AccessConfigError(`roles.json: ${(error as Error).message}`);
+    }
+    if (ids.has(role.id)) throw new AccessConfigError(`roles.json: duplicate role id: ${role.id}`);
     ids.add(role.id);
     const name = role.name.toLowerCase();
-    if (names.has(name)) throw new AccessConfigError(`Duplicate role name: ${role.name}`);
+    if (names.has(name))
+      throw new AccessConfigError(`roles.json: duplicate role name: ${role.name}`);
     names.add(name);
   }
   for (const grant of config.grants) {
     if (!roleIds.has(grant.roleId)) {
-      throw new AccessConfigError(`${grant.id}: unknown role ${grant.roleId}`);
+      throw new AccessConfigError(`grants.json (${grant.id}): unknown role ${grant.roleId}`);
     }
     if (grant.roleId === 'admin' && grant.scope.kind !== 'workspace') {
-      throw new AccessConfigError(`${grant.id}: Admin requires workspace scope.`);
+      throw new AccessConfigError(`grants.json (${grant.id}): Admin requires workspace scope.`);
     }
   }
+  validateReferences(config);
   return config;
+}
+
+/** Supplies the initial access documents without granting any server identity access. */
+export function emptyAccessConfig(): AccessConfig {
+  return {
+    roles: [],
+    grants: [],
+    adminRules: {},
+    agents: { clients: [] },
+    deactivated: { principals: [] },
+    projects: {
+      domains: [],
+      projects: {},
+      classification: {
+        levels: [...LEVELS],
+        aliases: {},
+        protectedLevel: 'confidential',
+      },
+    },
+  };
+}
+function validateReferences(config: AccessConfig): void {
+  const domains = new Set(config.projects.domains.map(domain => domain.id));
+  const projects = new Set(Object.keys(config.projects.projects));
+  const ids = new Set<string>();
+  const assignments = new Set<string>();
+  function references(file: string, values: string[], known: Set<string>) {
+    for (const value of values) {
+      if (!known.has(value)) throw new AccessConfigError(`${file}: unknown reference ${value}`);
+    }
+  }
+  for (const [slug, project] of Object.entries(config.projects.projects)) {
+    if (project.domain) references(`projects.json (${slug})`, [project.domain], domains);
+  }
+  for (const grant of config.grants) {
+    if (ids.has(grant.id)) throw new AccessConfigError(`grants.json: duplicate id ${grant.id}`);
+    ids.add(grant.id);
+    const member =
+      grant.member.kind === 'email' ? grant.member.email.toLowerCase() : grant.member.groupId;
+    const scope = grant.scope;
+    let values: string[] = [];
+    if (scope.kind === 'domains') {
+      values = scope.domains;
+      references('grants.json', values, domains);
+    }
+    if (scope.kind === 'projects') {
+      values = scope.projects;
+      references('grants.json', values, projects);
+    }
+    const key = JSON.stringify([
+      grant.roleId,
+      grant.member.kind,
+      member,
+      scope.kind,
+      [...values].sort(),
+    ]);
+    if (assignments.has(key))
+      throw new AccessConfigError(`grants.json: duplicate assignment ${grant.id}`);
+    assignments.add(key);
+  }
 }

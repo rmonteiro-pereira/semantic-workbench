@@ -22,13 +22,16 @@ data/
 ├── projects/<project>/   one folder per project: your files, byte for byte, in a Git working tree
 ├── state/                projects.json (project registry), views/ (grouping corrections per file),
 │                         drafts/, journal/ (unfinished multi-file operations), suggestions.json
-│                         (dismissed grouping suggestions), legacy-ids.json
+│                         (dismissed grouping suggestions), legacy-ids.json, audit/ (one
+│                         append-only file per month of access decisions and writes)
+├── admin/                access configuration (roles, grants, project access), a Git repository;
+│                         created when access is first configured
 ├── trash/<entry>/        deleted files and projects (with their .git), each with an entry.json
 ├── backup/               the v0.1.0 database copied before migration
 └── cache.sqlite          index of hashes, entities and findings; safe to delete
 ```
 
-The files in `data/projects/` are the only copy of your definitions. `cache.sqlite` is rebuilt from them on the next start if it is deleted or out of date; the project registry, view settings and drafts live in the JSON files under `state/`, which are always replaced atomically. Back up `data/` with the app stopped, or push projects to a Git remote.
+The files in `data/projects/` are the only copy of your definitions. `cache.sqlite` is rebuilt from them on the next start if it is deleted or out of date; the project registry, view settings and drafts live in the JSON files under `state/`, which are always replaced atomically. Back up `data/` with the app stopped, or push projects to a Git remote. The audit log records every write and every refused request, never document text or credentials; files older than 400 days are deleted at start-up.
 
 **Saving and committing.** There is no Save button: a valid edit is written to its file automatically one second after you stop typing, sending only the changed range. The header's **Save state** indicator reads *Saved to file · N uncommitted changes*, *Saving…*, *Not saved: N errors* (nothing is written while the text has validation errors; it is kept as a draft that survives a reload) or *Not saved: file changed on disk*. Switching files or views writes a due save first. While a pull, sync or branch switch of the repository runs, saving waits and then re-checks the file's version. **Commit…** (the header's primary action) lists the project's changed files, all ticked, with the diff of the selected file and a suggested message (*Update orders in commerce.odcs.yaml*, *Update 3 files*); **Commit** commits only the ticked files (`git commit --only`, so other staged or unstaged work stays as it is) and **Commit & push** then pushes. **Revert to last commit** (with a confirmation) puts the last committed version of a file back and moves the replaced version to the trash, in one journaled operation. Item editors, add and delete dialogs and the metric wizard keep an explicit **Save to file**, which writes the file and never commits.
 

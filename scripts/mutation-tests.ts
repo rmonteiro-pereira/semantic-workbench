@@ -7,6 +7,102 @@ const temp = await mkdtemp('/tmp/workbench-mutations-');
 // tree as the real sources, without relying on Bun caches.
 await symlink(resolve(root, 'node_modules'), resolve(temp, 'node_modules'), 'dir');
 const mutants: [string, string, string, string][] = [
+  [
+    'auth-grants',
+    'server/auth/grants.ts',
+    'project.domain && scope.domains.includes(project.domain)',
+    'project.domain',
+  ],
+  [
+    'auth-grants',
+    'server/auth/grants.ts',
+    'projects.filter(project => project.domain)',
+    'projects.filter(() => true)',
+  ],
+  [
+    'auth-principal',
+    'server/auth/principal.ts',
+    'claims.email_verified === true ? address(claims.email) : null',
+    'address(claims.email)',
+  ],
+  [
+    'auth-principal',
+    'server/auth/principal.ts',
+    "candidate.includes('@') && !candidate.includes('#ext#')",
+    "candidate.includes('@')",
+  ],
+  [
+    'auth-grants',
+    'server/auth/grants.ts',
+    'principal.verifiedEmail?.toLowerCase()',
+    'principal.verifiedEmail ?? undefined',
+  ],
+  [
+    'auth-principal',
+    'server/auth/principal.ts',
+    'const groupClaim = claims[mapping.groupClaim];',
+    'const groupClaim = claims.roles ?? claims[mapping.groupClaim];',
+  ],
+  [
+    'auth-decision',
+    'server/auth/authorize.ts',
+    'const result = active.evaluate(principal, action, resource, context);',
+    'if (!principal.grants.length) return { allow: true, rules: [], status: 200 };\n  const result = active.evaluate(principal, action, resource, context);',
+  ],
+  [
+    'auth-compiler',
+    'server/auth/role-compiler.ts',
+    '...clauses(permission.conditions ?? {}),',
+    '...clauses({}),',
+  ],
+  [
+    'auth-compiler',
+    'server/auth/role-compiler.ts',
+    "role.id.startsWith('r_') && (action === 'admin' || action === 'agentRead')",
+    "role.id.startsWith('r_') && action === 'agentRead'",
+  ],
+  [
+    'auth-decision',
+    'server/auth/authorize.ts',
+    "status: 404, reason: 'not-readable'",
+    "status: 403, reason: 'not-readable'",
+  ],
+  [
+    'auth-decision',
+    'server/auth/authorize.ts',
+    'adminRules: validated.adminRules,',
+    'adminRules: {},',
+  ],
+  [
+    'auth-admin-guard',
+    'server/auth/admin-guard.ts',
+    'holders.ids.length + holders.bootstrapCount > 0',
+    'holders.ids.length + holders.bootstrapCount >= 0',
+  ],
+  [
+    'auth-middleware',
+    'server/auth/middleware.ts',
+    "const failure = auditDenial(audit, { ...input, decision: 'deny' });",
+    'const failure = null;',
+  ],
+
+  [
+    'auth-admin-repo',
+    'server/auth/admin-repo.ts',
+    'if ((await version()) !== change.baseVersion) throw new AdminStaleError();',
+    '',
+  ],
+  ['auth-admin-repo', 'server/auth/admin-repo.ts', ' || /[<>]/.test(value)', ''],
+  ['auth-audit', 'server/auth/audit.ts', 'pick(input.resource, resourceKeys)', 'input.resource'],
+  [
+    'auth-middleware',
+    'server/auth/middleware.ts',
+    "if (!found) return new Response('Not found', { status: 404 });",
+    'if (!found) return run(request);',
+  ],
+  ['auth-middleware', 'server/auth/middleware.ts', "mode === 'server' &&", 'false &&'],
+  ['auth-middleware', 'server/auth/middleware.ts', 'row.audited === true ||', ''],
+
   ['agent', 'server/agent/runtime.ts', 'physical.parentheses = true', 'physical.parentheses=false'],
   ['agent', 'server/agent/runtime.ts', 'if (!fieldMap.has(id))\n          throw', 'if(false)throw'],
   [
