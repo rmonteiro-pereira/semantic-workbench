@@ -37,7 +37,7 @@
     "test:monorepo": "bun scripts/monorepo-browser-check.ts",
     "test:dialogs": "bun scripts/dialogs-browser-check.ts",
     "test:terminology": "bun scripts/terminology-check.ts",
-    "test:mappings-layout": "bun scripts/mappings-layout-check.ts",
+    "test:mappings-layout": "bun scripts/mappings-layout-browser-check.ts",
     "test:mapping-graph": "bun scripts/mapping-graph-browser-check.ts"
   },
   "dependencies": {

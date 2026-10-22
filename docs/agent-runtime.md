@@ -8,7 +8,7 @@ The runtime is an HTTP tool surface for an agent that performs language interpre
 
 1. **Load mapped commerce** imports three separate documents: `commerce.mapped-ontology.yaml`, `commerce.mapped-semantic.yaml`, and `commerce.mapping.yaml`.
 2. In **Mappings**, select **Revenue** to see its binding to `gross_revenue`, whose formula lives only in the semantic model. Select **Customer** or **Region** to see nested referent and link mappings into fields and physical sources. Each binding is shown as a chain of labelled steps (concept, relationship, field or metric, dataset, physical source), grouped by dataset.
-3. Select **All mapped concepts**, check `gross_revenue` and `customers.region`, then **Preview governed query**. The runtime composes a revenue-by-region query using the stored metric and the declared customer join. No predefined query is stored in the model.
+3. Select **All mapped concepts**, open **Compose a query…**, check `gross_revenue` and `customers.region`, then **Preview governed query**. The runtime composes a revenue-by-region query using the stored metric and the declared customer join. No predefined query is stored in the model.
 4. **Export agent context** downloads the resolved layers, raw mapping tree, definitions, AI context, document revisions, and paths. Regular **Export** still exports the original source document byte for byte.
 5. Missing, mismatched or ambiguous references appear as findings and disable query planning. **Edit item** on a finding opens the item editor on the offending mapping item (or Source at its line). Correct it and save; runtime resolution refreshes. Unsaved edits remain separate and the UI explicitly reports that it is showing saved revisions.
 

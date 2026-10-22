@@ -287,9 +287,9 @@ shopping center mapping in Graph; `bun run test:mapping-graph`.
 
 **Independent Test**: `bun run test:mappings-layout`.
 
-- [ ] T094 [P] [US9] Geometry check scripts/mappings-layout-check.ts: all shipped mapping files plus a synthetic mapping with 80-character identifiers without separators and long dotted paths, six viewports, every group expanded; asserts no element past its card, no orphan arrow at line start/end, "1 binding" (FR-063, SC-008)
-- [ ] T095 [US9] [CODEX] Binding chain layout: `<wbr>` after `.`/`_`, `overflow-wrap: break-word`, arrow as a pseudo-element of the following step, two-column layout (concepts, bindings) in src/MappingExplorer.tsx and src/style.css; brief specs/002-lineage-and-ux/codex/phase-12.md
-- [ ] T096 [US9] Compose a query dialog and pluralisation helper in src/MappingExplorer.tsx
+- [x] T094 [P] [US9] Geometry check scripts/mappings-layout-browser-check.ts: all shipped mapping files plus a synthetic mapping with 80-character identifiers without separators and long dotted paths, six viewports, every group expanded; asserts no element past its card, no orphan arrow at line start/end, "1 binding" (FR-063, SC-008)
+- [x] T095 [US9] [CODEX] Binding chain layout: `<wbr>` after `.`/`_`, `overflow-wrap: break-word`, arrow as a pseudo-element of the following step, two-column layout (concepts, bindings) in src/MappingExplorer.tsx and src/style.css; brief specs/002-lineage-and-ux/codex/phase-12.md
+- [x] T096 [US9] Compose a query dialog and pluralisation helper in src/MappingExplorer.tsx
 
 ---
 

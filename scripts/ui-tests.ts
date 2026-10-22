@@ -6,6 +6,7 @@ import { readFile } from 'node:fs/promises';
 import { editorValue, expectEditorValue, fillEditor } from './helpers/code-editor';
 import { example } from './helpers/examples';
 import { exportFile } from './helpers/header';
+import { closeComposer, openComposer } from './helpers/query-composer';
 // Isolated data root: the UBL example project plus commerce.owl imported as its own project.
 const api = await startIsolatedApi();
 const store = {
@@ -452,6 +453,7 @@ try {
       await expect(page.locator('.mapping-binding')).toHaveCount(1);
       await expect(page.locator('.mapping-binding')).toContainText('gross_revenue');
       await page.getByRole('button', { name: 'All mapped concepts', exact: true }).click();
+      await openComposer(page);
       await page.getByRole('checkbox', { name: 'Metric gross_revenue', exact: true }).check();
       await page.getByRole('checkbox', { name: 'Dimension customers.region', exact: true }).check();
       await page.getByRole('button', { name: 'Preview governed query', exact: true }).click();
@@ -462,6 +464,7 @@ try {
       await expect(page.getByLabel('Governed SQL preview')).toContainText('LEFT JOIN');
       await page.getByLabel('Governed SQL preview').scrollIntoViewIfNeeded();
       await page.screenshot({ path: '/tmp/workbench-mapping-query.png' });
+      await closeComposer(page);
     },
   );
   await check(
@@ -510,9 +513,11 @@ try {
       });
       await page.locator('.tabs').getByRole('button', { name: 'Mappings', exact: true }).click();
       await expect(page.locator('.mapping-findings')).toContainText('0 local documents');
+      await openComposer(page);
       await expect(
         page.getByRole('button', { name: 'Preview governed query', exact: true }),
       ).toBeDisabled();
+      await closeComposer(page);
       await page.screenshot({ path: '/tmp/workbench-mapping-unresolved.png' });
       await page.locator('.tabs').getByRole('button', { name: 'Source', exact: true }).click();
       await fillEditor(editor, original);
@@ -551,6 +556,7 @@ try {
     },
   );
   await check('late query responses cannot overwrite a changed concept selection', async () => {
+    await openComposer(page);
     await expect(
       page.getByRole('checkbox', { name: 'Metric gross_revenue', exact: true }),
     ).toBeVisible();
@@ -559,14 +565,18 @@ try {
     releasePlan = null;
     await page.getByRole('button', { name: 'Preview governed query', exact: true }).click();
     await expect.poll(() => releasePlan !== null).toBe(true);
+    await closeComposer(page);
     await page
       .locator('.mapping-concepts')
       .getByRole('button', { name: /^Customer/ })
       .click();
     releasePlan!();
     await page.waitForTimeout(200);
-    await expect(page.getByLabel('Governed SQL preview')).toHaveCount(0);
     await expect(page.locator('.mapping-detail>h3')).toHaveText('Customer');
+    // The late answer was for the previous selection, so the reopened composer shows no SQL.
+    await openComposer(page);
+    await expect(page.getByLabel('Governed SQL preview')).toHaveCount(0);
+    await closeComposer(page);
   });
   await check('no browser runtime errors', async () => {
     if (errors.length) throw Error(errors.join('\n'));

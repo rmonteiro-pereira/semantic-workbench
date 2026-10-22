@@ -1305,6 +1305,12 @@ dialog.validation-backdrop:not([open]) {
   align-items: start;
   gap: 20px;
 }
+.mapping-heading-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
 .mapping-heading small {
   color: #5d8d81;
   letter-spacing: 2px;
@@ -1346,14 +1352,14 @@ dialog.validation-backdrop:not([open]) {
 }
 .mapping-columns {
   display: grid;
-  grid-template-columns: minmax(180px, 230px) minmax(0, 1fr) minmax(280px, 350px);
+  grid-template-columns: minmax(0, 230px) minmax(0, 1fr);
+  grid-template-areas: 'concepts bindings';
   gap: 18px;
   align-items: start;
 }
 .mapping-concepts button {
-  display: flex;
+  display: block;
   width: 100%;
-  justify-content: space-between;
   text-align: left;
   margin: 5px 0;
   padding: 10px;
@@ -1363,23 +1369,27 @@ dialog.validation-backdrop:not([open]) {
   border-color: #66a793;
 }
 .mapping-concepts small {
+  display: block;
+  margin-top: 4px;
   color: #6f8881;
 }
-.mapping-binding,
-.mapping-query {
+.mapping-binding {
   padding: 16px;
   border: 1px solid #dbe3e4;
   border-radius: 8px;
   background: white;
   margin: 12px 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 .mapping-binding > code {
   display: block;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
   margin: 8px 0;
   color: #26745e;
 }
 .mapping-binding > small {
+  display: block;
   color: #81958f;
 }
 .mapping-explorer pre {
@@ -1425,9 +1435,6 @@ dialog.validation-backdrop:not([open]) {
   color: #587a6f;
 }
 @media (max-width: 1099px) {
-  .mapping-columns {
-    grid-template-columns: minmax(0, 1fr);
-  }
   .mapping-layer-chain {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1437,16 +1444,21 @@ dialog.validation-backdrop:not([open]) {
   overflow: auto;
 }
 .mapping-concepts {
+  grid-area: concepts;
+  overflow-wrap: break-word;
   max-height: 65vh;
   overflow: auto;
 }
 .mapping-columns > * {
   min-width: 0;
 }
+.mapping-detail {
+  grid-area: bindings;
+  overflow-wrap: break-word;
+}
 .mapping-query {
-  position: sticky;
-  top: 0;
   min-width: 0;
+  overflow-wrap: break-word;
 }
 .mapping-query fieldset {
   min-width: 0;
@@ -1464,6 +1476,7 @@ dialog.validation-backdrop:not([open]) {
   gap: 7px;
 }
 .mapping-binding-chain [data-step] {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -1478,7 +1491,14 @@ dialog.validation-backdrop:not([open]) {
   font-size: 10px;
   color: #587a6f;
 }
-.mapping-arrow {
+.mapping-binding-chain [data-step] + [data-step] {
+  padding-left: 26px;
+}
+.mapping-binding-chain [data-step] + [data-step]::before {
+  content: '→' / '';
+  position: absolute;
+  left: 8px;
+  top: 5px;
   color: #718881;
 }
 .mapping-group > summary {
@@ -1492,9 +1512,10 @@ dialog.validation-backdrop:not([open]) {
 .mapping-findings button {
   margin-left: 8px;
 }
-@media (max-width: 1099px) {
-  .mapping-query {
-    position: static;
+@media (max-width: 759px) {
+  .mapping-columns {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'concepts' 'bindings';
   }
   .mapping-concepts {
     max-height: 40vh;
@@ -3974,4 +3995,35 @@ button.import {
   margin: 14px 0 0;
   font-size: 13px;
   color: #587264;
+}
+/* The query composer is a dialog: choices read left to right, and field lists use the width. */
+.workbench-dialog .mapping-query label {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px 8px;
+  margin: 0;
+  padding: 6px 4px;
+  font-size: 13px;
+  text-align: left;
+}
+.workbench-dialog .mapping-query input[type='checkbox'] {
+  width: auto;
+  margin: 0;
+}
+.workbench-dialog .mapping-query label code {
+  flex-basis: 100%;
+  padding-left: 22px;
+  overflow-wrap: anywhere;
+}
+.workbench-dialog .mapping-query fieldset {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  align-items: start;
+  gap: 0 12px;
+}
+.workbench-dialog .mapping-query fieldset > legend,
+.workbench-dialog .mapping-query fieldset > p {
+  grid-column: 1 / -1;
 }

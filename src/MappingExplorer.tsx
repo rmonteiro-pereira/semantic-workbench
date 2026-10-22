@@ -1,7 +1,7 @@
 /** Displays resolved concept mappings and their validation findings. */
 import React, { useEffect, useState, useRef } from 'react';
 import type { Binding, Finding, RuntimeContext } from '../server/agent/runtime';
-import { SqlCode } from './sql/SqlCode';
+import { QueryComposer } from './mappings/QueryComposer';
 type MappingOption = { id: string; name: string; filename: string; embedded: boolean };
 const stepLabels = {
   concept: 'Concept',
@@ -11,6 +11,16 @@ const stepLabels = {
   dataset: 'Dataset',
   source: 'Physical source',
 };
+// Offers a line break after each `.` and `_`, so long dotted or snake_case names wrap at their
+// natural seams; the text itself is unchanged.
+function breakableName(text: string) {
+  return text.split(/(?<=[._])/u).map((part, index) => (
+    <React.Fragment key={index}>
+      {part}
+      {/[._]$/u.test(part) && <wbr />}
+    </React.Fragment>
+  ));
+}
 function belongsTo(f: Finding, b: Binding) {
   const e = f.evidence;
   if (!e || e.documentId !== b.evidence.documentId) return false;
@@ -66,8 +76,11 @@ export function MappingExplorer({
   const [metrics, setMetrics] = useState<string[]>([]);
   const [dimensions, setDimensions] = useState<string[]>([]);
   const [plan, setPlan] = useState<any>(null);
-  const [error, setError] = useState('');
+  // A failed load shows on the page; a failed query preview shows in the composer.
+  const [loadError, setLoadError] = useState('');
+  const [planError, setPlanError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [composing, setComposing] = useState(false);
   useEffect(() => {
     const abort = new AbortController();
     fetch('/api/agent/catalog', { signal: abort.signal })
@@ -84,7 +97,7 @@ export function MappingExplorer({
         );
       })
       .catch(e => {
-        if (e.name !== 'AbortError') setError(e.message);
+        if (e.name !== 'AbortError') setLoadError(e.message);
       });
     return () => abort.abort();
   }, [revisionKey, currentId]);
@@ -95,7 +108,9 @@ export function MappingExplorer({
     setMetrics([]);
     setDimensions([]);
     setConcept('');
-    setError('');
+    setLoadError('');
+    setPlanError('');
+    setComposing(false);
     if (!mappingId) return;
     const abort = new AbortController();
     setLoading(true);
@@ -106,7 +121,7 @@ export function MappingExplorer({
         setContext(data);
       })
       .catch(e => {
-        if (e.name !== 'AbortError') setError(e.message);
+        if (e.name !== 'AbortError') setLoadError(e.message);
       })
       .finally(() => {
         if (!abort.signal.aborted) setLoading(false);
@@ -163,7 +178,7 @@ export function MappingExplorer({
     setLoading(false);
     set(values.includes(id) ? values.filter(v => v !== id) : [...values, id]);
     setPlan(null);
-    setError('');
+    setPlanError('');
   };
   const openConcept = (name: string) => {
     requestVersion.current++;
@@ -172,7 +187,7 @@ export function MappingExplorer({
     setMetrics([]);
     setDimensions([]);
     setPlan(null);
-    setError('');
+    setPlanError('');
   };
   function download() {
     if (!context) return;
@@ -189,7 +204,7 @@ export function MappingExplorer({
   async function preview() {
     const version = ++requestVersion.current;
     setLoading(true);
-    setError('');
+    setPlanError('');
     setPlan(null);
     try {
       const r = await fetch('/api/agent/plan', {
@@ -206,7 +221,7 @@ export function MappingExplorer({
       if (!r.ok) throw Error(data.error);
       if (version === requestVersion.current) setPlan(data);
     } catch (e) {
-      if (version === requestVersion.current) setError((e as Error).message);
+      if (version === requestVersion.current) setPlanError((e as Error).message);
     } finally {
       if (version === requestVersion.current) setLoading(false);
     }
@@ -219,9 +234,14 @@ export function MappingExplorer({
           <h2>Ontology mappings</h2>
           <p>Follow business concepts into governed fields, metrics and physical sources.</p>
         </div>
-        <button onClick={download} disabled={!context || loading}>
-          Export agent context
-        </button>
+        <div className="mapping-heading-actions">
+          <button onClick={() => setComposing(true)} disabled={!context}>
+            Compose a query…
+          </button>
+          <button onClick={download} disabled={!context || loading}>
+            Export agent context
+          </button>
+        </div>
       </div>
       {dirty && (
         <p className="mapping-notice">
@@ -244,17 +264,37 @@ export function MappingExplorer({
           ))}
         </select>
       </label>
-      {!options.length && !error && (
+      {!options.length && !loadError && (
         <p>
           Import an Ossie mapping document and its referenced ontology and semantic model, or load
           the mapped commerce example.
         </p>
       )}
       {loading && <p role="status">Resolving saved layers…</p>}
-      {error && (
+      {loadError && (
         <p role="alert" className="mapping-error">
-          {error}
+          {loadError}
         </p>
+      )}
+      {context && composing && (
+        <QueryComposer
+          governed={governed}
+          fields={fields}
+          metrics={metrics}
+          dimensions={dimensions}
+          onToggleMetric={id => toggle(id, metrics, setMetrics)}
+          onToggleDimension={id => toggle(id, dimensions, setDimensions)}
+          canPreview={
+            !loading &&
+            (metrics.length > 0 || dimensions.length > 0) &&
+            !context.findings.some(finding => finding.severity === 'error')
+          }
+          loading={loading}
+          plan={plan}
+          error={planError}
+          onPreview={() => void preview()}
+          onClose={() => setComposing(false)}
+        />
       )}
       {context && (
         <>
@@ -295,23 +335,23 @@ export function MappingExplorer({
               <button aria-pressed={!concept} onClick={() => openConcept('')}>
                 All mapped concepts
               </button>
-              {concepts.map(c => (
-                <button
-                  key={c.concept}
-                  aria-pressed={concept === c.concept}
-                  onClick={() => openConcept(c.concept)}
-                >
-                  {c.concept}
-                  <small>
-                    {
-                      context.bindings.filter(
-                        b => b.rootConcept === c.concept || b.concept === c.concept,
-                      ).length
-                    }{' '}
-                    bindings
-                  </small>
-                </button>
-              ))}
+              {concepts.map(c => {
+                const bindingCount = context.bindings.filter(
+                  binding => binding.rootConcept === c.concept || binding.concept === c.concept,
+                ).length;
+                return (
+                  <button
+                    key={c.concept}
+                    aria-pressed={concept === c.concept}
+                    onClick={() => openConcept(c.concept)}
+                  >
+                    {c.concept}
+                    <small>
+                      {bindingCount} {bindingCount === 1 ? 'binding' : 'bindings'}
+                    </small>
+                  </button>
+                );
+              })}
             </div>
             <div className="mapping-detail">
               <h3>{concept || 'All concepts'}</h3>
@@ -339,17 +379,10 @@ export function MappingExplorer({
                       >
                         <div className="mapping-binding-chain">
                           {bindingSteps(b, context).map((step, i) => (
-                            <React.Fragment key={i}>
-                              {i > 0 && (
-                                <span className="mapping-arrow" aria-hidden="true">
-                                  →
-                                </span>
-                              )}
-                              <span data-step={step.kind}>
-                                <small className="step-label">{stepLabels[step.kind]}</small>
-                                <span>{step.value}</span>
-                              </span>
-                            </React.Fragment>
+                            <span data-step={step.kind} key={i}>
+                              <small className="step-label">{stepLabels[step.kind]}</small>
+                              <span>{breakableName(step.value)}</span>
+                            </span>
                           ))}
                         </div>
                         <code>{b.expression}</code>
@@ -386,69 +419,6 @@ export function MappingExplorer({
                 <summary>AI context · source metadata</summary>
                 <pre>{JSON.stringify(context.aiContext, null, 2)}</pre>
               </details>
-            </div>
-            <div className="mapping-query">
-              <h3>Compose a query</h3>
-              <p>
-                Select mapped building blocks. Governed formulas remain unchanged; joins must be
-                declared in the semantic model.
-              </p>
-              <fieldset>
-                <legend>Governed metrics</legend>
-                {!governed.length && <p>No metrics mapped to this selection.</p>}
-                {governed.map(m => (
-                  <label key={m.id}>
-                    <input
-                      type="checkbox"
-                      aria-label={`Metric ${m.name}`}
-                      checked={metrics.includes(m.id)}
-                      onChange={() => toggle(m.id, metrics, setMetrics)}
-                    />
-                    {m.name}
-                    <code>
-                      {m.definition.expression.dialects.find((d: any) => d.dialect === 'ANSI_SQL')
-                        ?.expression ?? 'No ANSI_SQL expression'}
-                    </code>
-                  </label>
-                ))}
-              </fieldset>
-              <fieldset>
-                <legend>Group by mapped fields</legend>
-                {fields.map(f => (
-                  <label key={f.id}>
-                    <input
-                      type="checkbox"
-                      aria-label={`Dimension ${f.dataset}.${f.name}`}
-                      checked={dimensions.includes(f.id)}
-                      onChange={() => toggle(f.id, dimensions, setDimensions)}
-                    />
-                    {f.dataset}.{f.name}
-                  </label>
-                ))}
-              </fieldset>
-              <button
-                className="primary"
-                onClick={preview}
-                disabled={
-                  loading ||
-                  (!metrics.length && !dimensions.length) ||
-                  context.findings.some(f => f.severity === 'error')
-                }
-              >
-                Preview governed query
-              </button>
-              {plan && (
-                <div className="mapping-plan">
-                  <h4>SQL preview · not executed</h4>
-                  <pre aria-label="Governed SQL preview">
-                    <SqlCode sql={plan.sql} />
-                  </pre>
-                  <details>
-                    <summary>Query provenance</summary>
-                    <pre>{JSON.stringify(plan, null, 2)}</pre>
-                  </details>
-                </div>
-              )}
             </div>
           </div>
         </>
