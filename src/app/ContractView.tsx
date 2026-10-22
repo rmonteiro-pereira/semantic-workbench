@@ -1,4 +1,5 @@
 /** Presentation and event handling for contract view. */
+import { useCapabilities } from '../auth/Capabilities';
 import React from 'react';
 import type { Saved } from '../edit/ItemEditor';
 import { ContractOverview } from '../odcs/ContractOverview';
@@ -35,6 +36,7 @@ export function ContractView({
   applySaved,
   setMessage,
 }: Props) {
+  const access = useCapabilities(current.project);
   return contractObject ? (
     <DatasetPage
       key={contractObject}
@@ -48,6 +50,8 @@ export function ContractView({
       onNeighborhood={continueInNeighborhood}
       gitVersion={gitVersion}
       editor={propertyEditor({
+        canEdit: access.can('edit'),
+        canClassify: access.can('editGuarded'),
         doc: current,
         base: docText(current.id),
         onSaved: applySaved,

@@ -1,10 +1,14 @@
-import { TEST_GROUPS } from '../tests/helpers/auth-identities';
-import { readVisibilityChecks } from './helpers/sign-in';
 // Runs the built application through an isolated loopback identity provider.
 import { chromium } from '@playwright/test';
+import { TEST_GROUPS } from '../tests/helpers/auth-identities';
 import { startMockOidc } from '../tests/helpers/mock-oidc';
 import { freeAuthPort, startAuthApi } from './auth-environment';
-import { signInChecks, type SignInTarget } from './helpers/sign-in';
+import {
+  readVisibilityChecks,
+  roleControlChecks,
+  signInChecks,
+  type SignInTarget,
+} from './helpers/sign-in';
 import { mockLifecycleChecks, localAuthSmoke } from './auth-lifecycle';
 
 /** Runs the mock suite without Vite or an external identity service. */
@@ -23,6 +27,7 @@ export async function authBrowserCheck() {
       try {
         const target: SignInTarget = { url, issuer: mock.issuer, kind: 'entra' };
         await signInChecks(browser, target);
+        await roleControlChecks(browser, target);
         await mockLifecycleChecks(browser, target, mock, api.root);
         await localAuthSmoke(browser);
         mock.setUserGroups('alice', [TEST_GROUPS.salesViewers]);

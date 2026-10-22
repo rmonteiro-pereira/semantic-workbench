@@ -29,6 +29,11 @@ export type CloneEvent = {
   manifestError?: string;
 };
 
+/**
+ * Gives every project a clone created its access metadata, all at once, before the clone reports
+ * done. A failure fails the clone.
+ */
+export type AssignProject = (slugs: string[]) => Promise<void>;
 /** Workspace services a clone needs. */
 export type CloneDeps = {
   layout: DataLayout;
@@ -88,13 +93,15 @@ export function rollBackInterruptedClones(layout: DataLayout): RecoveryOutcome[]
 export function createCloner(deps: CloneDeps) {
   const { layout, git, journal } = deps;
   /** The repository address and the project it becomes, with the person who asked. */
-  type CloneRequest = { address: string; slug: string; name: string; owner?: string };
+  /** Who receives the clone's events, and how each new project gets its access metadata. */
+  type CloneOptions = { owner?: string; assign?: AssignProject };
+  type CloneRequest = { address: string; slug: string; name: string } & CloneOptions;
   // Clones in progress, so two clones started together never pick the same name or folder.
   const running = new Map<string, { staging: string; slug: string; name: string }>();
 
   // Runs the clone and reports every outcome as an event; it never throws.
   async function cloneInBackground(op: string, request: CloneRequest) {
-    const { address, slug, name, owner } = request;
+    const { address, slug, name, owner, assign } = request;
     const staging = join(layout.projects, CLONE_STAGING + op);
     const stateStaging = join(layout.state, `.staging-${op}`);
     try {
@@ -127,6 +134,7 @@ export function createCloner(deps: CloneDeps) {
       deps.added(slug);
       const invalid = deps.invalidFiles(slug);
       const projects = await deps.afterClone(slug);
+      await assign?.(projects.projects ?? [slug]);
       deps.emit({ op, phase: 'done', repo: slug, name, invalid, ...projects }, owner);
     } catch (e) {
       rmSync(staging, { recursive: true, force: true });
@@ -148,7 +156,7 @@ export function createCloner(deps: CloneDeps) {
 
   return {
     /** Starts a clone and returns at once; progress arrives as events. */
-    start(url: unknown, requestedName?: unknown, owner?: string) {
+    start(url: unknown, requestedName?: unknown, options: CloneOptions = {}) {
       const address = remoteAddress(url);
       const current = deps.projects();
       const pending = [...running.values()];
@@ -164,7 +172,7 @@ export function createCloner(deps: CloneDeps) {
       const slug = slugify(name, taken);
       const op = journal.newId();
       running.set(op, { staging: join(layout.projects, CLONE_STAGING + op), slug, name });
-      void cloneInBackground(op, { address, slug, name, owner });
+      void cloneInBackground(op, { address, slug, name, ...options });
       return { op, name, slug };
     },
     /** Stops a running clone; its staging folder is removed. */

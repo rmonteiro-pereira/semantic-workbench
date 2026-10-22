@@ -1,3 +1,4 @@
+import { useProjectDomain } from '../projects/useProjectDomain';
 /** Dialog that clones a repository by URL or path into a new project, with progress and Cancel. */
 import React, { useRef, useState } from 'react';
 import { Modal } from '../projects/Modal';
@@ -180,6 +181,7 @@ function CloneFooter(props: FooterProps) {
 
 /** Clones a repository as a new project; files are checked, never rewritten. */
 export function CloneDialog({ onClose, onOpenProject, onCredentials, onChooseProjects }: Props) {
+  const domainChoice = useProjectDomain();
   const [url, setUrl] = useState('');
   const [name, setName] = useState('');
   const [op, setOp] = useState<{ op: string; name: string } | null>(null);
@@ -198,7 +200,8 @@ export function CloneDialog({ onClose, onOpenProject, onCredentials, onChoosePro
     event?.preventDefault();
     setError('');
     try {
-      const started = await scm.clone(url.trim(), name.trim() || undefined);
+      const domain = await domainChoice.choose();
+      const started = await scm.clone(url.trim(), name.trim() || undefined, domain);
       setOp(started);
       setProgress(
         latest.current.get(started.op) ?? { op: started.op, phase: 'cloning', name: started.name },
@@ -225,6 +228,7 @@ export function CloneDialog({ onClose, onOpenProject, onCredentials, onChoosePro
   );
 
   // While Git runs, Escape does not close the dialog: Cancel stops the clone first.
+  if (domainChoice.dialog) return domainChoice.dialog;
   return (
     <Modal title="Clone repository" onCancel={running ? () => {} : onClose} footer={footer}>
       {op ? (

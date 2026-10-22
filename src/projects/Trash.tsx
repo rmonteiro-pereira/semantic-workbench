@@ -1,5 +1,6 @@
 /** Restores or permanently deletes trash entries, offering alternate paths instead of overwriting
  * files. */
+import { useCapabilities } from '../auth/Capabilities';
 import React, { useEffect, useState } from 'react';
 import { Modal } from './Modal';
 import { api, type TrashItem } from './api';
@@ -14,6 +15,7 @@ function entryLabel(item: TrashItem) {
 }
 /** Reviews trash entries and offers restore or confirmed permanent deletion. */
 export function TrashDialog({ onClose, version }: { onClose: () => void; version: number }) {
+  const access = useCapabilities();
   const [items, setItems] = useState<TrashItem[] | null>(null);
   const [error, setError] = useState('');
   const [confirming, setConfirming] = useState<string | null>(null);
@@ -78,8 +80,15 @@ export function TrashDialog({ onClose, version }: { onClose: () => void; version
                 </span>
               ) : (
                 <span>
-                  <button onClick={() => restore(t.entryId)}>Restore</button>
-                  <button onClick={() => setConfirming(t.entryId)}>Delete permanently</button>
+                  <button
+                    hidden={!access.can('restoreOwn', t.project)}
+                    onClick={() => restore(t.entryId)}
+                  >
+                    Restore
+                  </button>
+                  <button hidden={!access.can('purge')} onClick={() => setConfirming(t.entryId)}>
+                    Delete permanently
+                  </button>
                 </span>
               )}
             </li>
@@ -119,7 +128,11 @@ export function TrashDialog({ onClose, version }: { onClose: () => void; version
           </>
         ) : (
           <>
-            <button onClick={() => setConfirming('*')} disabled={!items?.length}>
+            <button
+              hidden={!access.can('purge')}
+              onClick={() => setConfirming('*')}
+              disabled={!items?.length}
+            >
               Empty trash
             </button>
             <button className="primary" onClick={onClose}>

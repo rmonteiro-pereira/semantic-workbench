@@ -32,7 +32,7 @@ rule there. Server mode adds the rules below.
 | `GET /auth/github/callback` | signed in | | stores token in session, 302 to `returnTo` |
 | `GET /healthz` | anyone | | `200 {ok: true, version, commit}` (liveness; no workspace data; FR-124) |
 | `GET /readyz` | anyone | | `200 {ready: true, state: "serving"}` after lock, recovery and first scan; `200 {ready: true, state: "handover"}` while waiting for a different revision's lock, before any recovery or scan (FR-123); `503` otherwise, including a live lock of the same revision (FR-122) |
-| `GET /api/me` | signed in with access | | `{mode, id, name, verifiedEmail, kind, roles: {workspace: [roleId], projects: Record<slug, [roleId]>}, roleNames: Record<roleId, name>, roleSources: [{roleId, scope, via: 'group'\|'email'\|'bootstrap', group?: {id, name?}}], groupsResolved, connected: {azureDevOps, github}, can: {admin, audit}}`; local mode returns the implicit Admin |
+| `GET /api/me` | signed in with access | | `{mode, id, name, verifiedEmail, kind, roles: {workspace: [roleId], projects: Record<slug, [roleId]>}, roleNames: Record<roleId, name>, roleSources: [{roleId, scope, via: 'group'\|'email'\|'bootstrap', group?: {id, name?}}], groupsResolved, connected: {azureDevOps, github}, can: Record<Action, boolean> & {admin, audit}, requires: Record<Action, string>, creationDomains: [{id, name}]}`; local mode returns the implicit Admin |
 | `POST /api/projects/:slug/git/publish` | Steward(d)/Admin | `{branch?: default}` | fast-forwards the branch to the copy's `HEAD` → `{published, commit}`; `409 {notFastForward: true}` |
 | `POST /api/projects/:slug/git/pull-default` | Editor(d)+ | | merges the default branch into the copy's branch → as `git/pull` |
 | `GET /api/admin/users` | Admin | `?q=&access=none` | principals with role sources, groups (with names), verified address, last sign-in, access (`granted`/`none`), deactivated |
@@ -164,3 +164,15 @@ stories that filter them are built.
 The server-mode `/api/me` response also includes `csrf`, the per-session form token used by
 the person menu's native `POST /auth/logout`. It is absent in local mode. Provider access, ID
 and refresh tokens are never returned.
+
+The `requires` map supplies display text for disabled actions. It names the lowest built-in role
+listing the action in `policies/builtin-roles.json`, or the person's custom roles when those are
+their only permission source. Each role appears under the name `roleNames` gives it.
+`roleNames` follows the current policy: it is built for each request, so a renamed custom role
+shows its new name as soon as the administration commit is loaded, without a restart. Clients
+display these strings without copying the role matrix.
+`creationDomains` contains the permitted domain choices; only the server automatically chooses
+the sole domain for a non-Admin. Admins may omit the domain to create an unassigned project.
+A creation request (`POST /api/projects`, `/api/import`, `/api/examples/:id`, `/api/clone`) that
+names a domain that does not exist answers `404 {error: 'Not found.'}`, exactly like a domain the
+person cannot see, so the answer never reveals which domains exist.

@@ -162,3 +162,47 @@ export function ImportConflictDialog({
     </Modal>
   );
 }
+
+/** Chooses from server-supplied domains before a new project request is sent. */
+export function ProjectDomainDialog({
+  domains,
+  allowUnassigned,
+  onChoose,
+  onClose,
+}: {
+  domains: { id: string; name: string }[];
+  allowUnassigned: boolean;
+  onChoose: (domain: string | undefined) => void;
+  onClose: () => void;
+}) {
+  const [domain, setDomain] = useState(allowUnassigned ? '' : (domains[0]?.id ?? ''));
+  function submit(event: React.FormEvent) {
+    event.preventDefault();
+    onChoose(domain || undefined);
+  }
+  return (
+    <Modal title="New project's domain" onCancel={onClose}>
+      <form onSubmit={submit}>
+        <label>
+          Domain
+          <select value={domain} onChange={event => setDomain(event.target.value)}>
+            {allowUnassigned && <option value="">No domain</option>}
+            {domains.map(item => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="repair-actions">
+          <button type="button" onClick={onClose}>
+            Cancel
+          </button>
+          <button type="submit" disabled={!allowUnassigned && !domain}>
+            Continue
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+}

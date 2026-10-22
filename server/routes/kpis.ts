@@ -1,7 +1,8 @@
 // Previews metric changes and saves related files in one journaled operation. Previews never
 // execute SQL.
 import { OccupiedError } from '../projects/errors';
-import { requestReader } from '../auth/middleware';
+import { requestReader } from '../auth/request-scope';
+import { authorizeWrite } from '../auth/write-access';
 import { readJson } from '../request';
 import { MAX_INPUT_BYTES } from '../../src/diagnostics';
 import { explainMetric } from '../agent/explain';
@@ -31,6 +32,15 @@ export const kpiRoutes: Route = async (ws, req, url) => {
         throw Error(
           'Each file needs a path, the SHA-256 of the version the edit started from (null for a new file), and either source or patches.',
         );
+    authorizeWrite(
+      req,
+      'edit',
+      body.files.map((file: { path: string }) => ({
+        type: 'file',
+        project: slug,
+        path: file.path,
+      })),
+    );
     return Response.json(await ws.saveFiles(slug, body.files, requestReader(req), 'save-batch'));
   }
   // Keep the older `kpis` paths as aliases for existing clients.
@@ -127,5 +137,10 @@ export const kpiRoutes: Route = async (ws, req, url) => {
       throw Error(`baseHashes must include the hash of ${w.path} as you last read it.`);
     return { path: w.path, baseHash: hash, source: w.source };
   });
+  authorizeWrite(
+    req,
+    'edit',
+    writes.map(file => ({ type: 'file', project: slug, path: file.path })),
+  );
   return Response.json(await ws.saveFiles(slug, writes, requestReader(req), 'kpi'));
 };

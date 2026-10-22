@@ -1,4 +1,5 @@
 /** Previews and validates a new entity or relationship before Save writes it to the document. */
+import { useCapabilities } from '../auth/Capabilities';
 import React, { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import type { Issue } from '../diagnostics';
@@ -74,6 +75,7 @@ export function AddItem({
   onClose,
   onSaved,
 }: Props) {
+  const access = useCapabilities(doc.project);
   const kinds = fixed ? [fixed] : addableKinds(document);
   const [kind, setKind] = useState<ItemKind | undefined>(kinds[0]);
   const [raw, setRaw] = useState<Record<string, string | boolean>>(() =>
@@ -297,7 +299,10 @@ export function AddItem({
           type="button"
           className="primary"
           onClick={save}
-          disabled={plan.text === undefined || pending || errors.length > 0 || saving}
+          title={access.control('edit').title}
+          disabled={
+            !access.can('edit') || plan.text === undefined || pending || errors.length > 0 || saving
+          }
         >
           {saving ? 'Saving…' : pending ? 'Checking…' : 'Save to file'}
         </button>

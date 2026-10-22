@@ -1,5 +1,6 @@
 /** Loads example projects while preserving workspace navigation preferences. */
 import React from 'react';
+import { useProjectDomain } from '../projects/useProjectDomain';
 import { api, type Doc } from '../projects/api';
 import { exampleSet } from '../projects/examples';
 
@@ -38,6 +39,7 @@ export function useExamples({
   setSearch,
   setTab,
 }: Options) {
+  const domainChoice = useProjectDomain();
   async function loadExample(id: string) {
     // Loading from the Examples group keeps it as the user left it (open) instead of collapsing it.
     setExamplesChoice(c => c ?? examplesOpen);
@@ -46,7 +48,8 @@ export function useExamples({
     setBusy(true);
     setMessage('Loading example documents…');
     try {
-      const { slug } = await api.example(id);
+      const domain = await domainChoice.choose();
+      const { slug } = await api.example(id, domain);
       const loaded = await refresh();
       const first =
         loaded.find(d => d.project === slug && d.path === set.files[0]) ??
@@ -69,5 +72,5 @@ export function useExamples({
     }
   }
 
-  return { loadExample };
+  return { loadExample, domainDialog: domainChoice.dialog };
 }

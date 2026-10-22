@@ -18,7 +18,7 @@ data/
 │   ├── **sessions/<sha256(id)>.json**   encrypted session records
 │   ├── **audit/YYYY-MM.jsonl** append-only audit log
 │   └── **instance.lock**       single-instance heartbeat
-└── trash/<entry>/              entry.json gains `owner`
+└── trash/<entry>/              entry.json gains `deletedBy`
 ```
 
 The SQLite cache moves to `SW_CACHE_DIR` when set (container local disk); default unchanged.
@@ -135,7 +135,7 @@ version's files.
 | `SW::AccessSet` | — | synthetic per restricted rule class; listed groups and e-mail entities are its members |
 | `SW::Metric` | `SW::File` | `project: Project`, `path`, `docType` (`metric`), `level: Long`, `status`, `ownerId?`, `governed: Bool` (Cedar does not inherit attributes, so the loader repeats them) |
 | `SW::Branch` | `SW::Repository` | `protected: Bool`, `name` |
-| `SW::TrashEntry` | — | `owner`, `projects: Set<Project>` |
+| `SW::TrashEntry` | — | `deletedBy`, `projects: Set<Project>` |
 | `SW::Workspace` | — | singleton for workspace-wide actions; `holders` as on Project |
 
 Grants are data, roles are code: the entity loader expands each grant's scope into

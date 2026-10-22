@@ -8,7 +8,7 @@ import { levelNumber, type Action } from './actions';
 import { matchesSegmentGlob } from './path-rules';
 import type { AccessConfig, Role } from './access-config';
 import type { Principal } from './principal';
-import type { ResourceRef, DecisionContext } from './resource';
+import { NEW_PROJECT, type ResourceRef, type DecisionContext } from './resource';
 import { validateAccessDocument } from './access-config';
 
 /** Policy parsing or validation failure that must never replace the active policy set. */
@@ -118,14 +118,31 @@ type EntityOptions = {
   groupMatch: GrantOptions['groupMatch'];
 };
 
-function memberEntities(options: EntityOptions): cedar.EntityJson[] {
-  const members = new Map<string, cedar.EntityJson>();
-  const normalize = (group: string) =>
-    options.groupMatch === 'exact' ? group : group.toLowerCase();
-  const projects = options.projects.map(slug => ({
+/** A project and the domain whose grants reach it. */
+type ProjectDomain = { slug: string; domain: string | null };
+
+function knownProjectDomains(options: EntityOptions): ProjectDomain[] {
+  return options.projects.map(slug => ({
     slug,
     domain: options.config.projects.projects[slug]?.domain ?? null,
   }));
+}
+
+/**
+ * The project a creation request asks for, before it exists. Its domain comes from the request,
+ * so domain-scoped grants apply to it exactly as they will once the project is created. Only the
+ * reserved new-project name borrows a domain this way; a real slug never does.
+ */
+function prospectiveProject(resource: ResourceRef): ProjectDomain | null {
+  if (resource.type !== 'project' || resource.project !== NEW_PROJECT) return null;
+  if (resource.domain === undefined) return null;
+  return { slug: resource.project, domain: resource.domain };
+}
+
+function memberEntities(options: EntityOptions, projects: ProjectDomain[]): cedar.EntityJson[] {
+  const members = new Map<string, cedar.EntityJson>();
+  const normalize = (group: string) =>
+    options.groupMatch === 'exact' ? group : group.toLowerCase();
   const add = (type: string, id: string, parents: cedar.TypeAndId[]) => {
     const key = `${type}:${id}`;
     const member = members.get(key) ?? entity(type, id, type === 'Group' ? { name: id } : {});
@@ -200,6 +217,7 @@ function principalEntity(principal: Principal, options: EntityOptions): cedar.En
 function resourceEntity(resource: ResourceRef, options: EntityOptions): cedar.EntityJson {
   const slug = resource.type === 'workspace' ? '' : resource.project;
   const project = options.config.projects.projects[slug];
+  const domain = project?.domain ?? prospectiveProject(resource)?.domain ?? '';
   const file = resource.type === 'file' ? resource : undefined;
   const path = file?.path ?? '';
   const restrictedTo = (project?.restricted ?? []).flatMap((rule, index) =>
@@ -214,8 +232,8 @@ function resourceEntity(resource: ResourceRef, options: EntityOptions): cedar.En
   );
   const attrs: cedar.EntityJson['attrs'] = {
     project: slug,
-    domain: project?.domain ?? '',
-    hasDomain: resource.type === 'workspace' || Boolean(project?.domain),
+    domain,
+    hasDomain: resource.type === 'workspace' || Boolean(domain),
     everyoneCanRead: project?.everyoneCanRead ?? false,
     holders,
     explicitHolders: reference('RoleHolder', `explicit@${slug}`),
@@ -240,7 +258,8 @@ function resourceEntity(resource: ResourceRef, options: EntityOptions): cedar.En
 
 /** Builds a reusable membership graph and evaluates requests through prepared Cedar policies. */
 export function createPolicyEvaluator(policy: PolicySet, options: EntityOptions) {
-  const members = memberEntities(options);
+  const known = knownProjectDomains(options);
+  const members = memberEntities(options, known);
   return (
     principal: Principal,
     action: Action,
@@ -249,7 +268,10 @@ export function createPolicyEvaluator(policy: PolicySet, options: EntityOptions)
   ) => {
     const person = principalEntity(principal, options);
     const target = resourceEntity(resource, options);
-    const entities = [...members, person, target];
+    const prospective = prospectiveProject(resource);
+    // Only a project that does not exist yet needs its role holders added for this one question.
+    const graph = prospective ? memberEntities(options, [...known, prospective]) : members;
+    const entities = [...graph, person, target];
     if (resource.type === 'file') {
       entities.push(resourceEntity({ type: 'project', project: resource.project }, options));
     }

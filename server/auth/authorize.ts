@@ -1,6 +1,8 @@
 // The access-decision boundary combines validated configuration with Cedar.
 // Request caches share decisions only for resources no compiled condition can distinguish.
 import {
+  NEW_PROJECT,
+  newProjectIn,
   normalizeResource,
   type ResourceRef,
   type Decision,
@@ -121,6 +123,50 @@ function decisionFor(active: ActiveAccess, request: DecisionRequest): Decision {
   return { allow: false, rules: result.rules, status: 403, reason: result.reason };
 }
 
+/**
+ * Decides whether a person may create a project. A request naming a domain is judged as the new
+ * project in that domain. A request without one passes when some configured domain would allow it.
+ */
+function creationDecision(
+  active: ActiveAccess,
+  principal: Principal,
+  resource: ResourceRef,
+  supplied: Partial<DecisionContext>,
+): Decision {
+  if (resource.type === 'project') return newProjectDecision(active, principal, resource, supplied);
+  const decision = decisionFor(active, {
+    principal,
+    action: 'createProject',
+    resource,
+    context: requestContext(active, 'server', resource, supplied),
+  });
+  if (decision.allow) return decision;
+  for (const domain of active.config.projects.domains) {
+    const candidate = newProjectDecision(active, principal, newProjectIn(domain.id), supplied);
+    if (candidate.allow) return candidate;
+  }
+  return decision;
+}
+
+function newProjectDecision(
+  active: ActiveAccess,
+  principal: Principal,
+  resource: Extract<ResourceRef, { type: 'project' }>,
+  supplied: Partial<DecisionContext>,
+): Decision {
+  // A domain that does not exist answers like one the person cannot see, so the status never
+  // tells which domains exist.
+  if (!active.config.projects.domains.some(domain => domain.id === resource.domain)) {
+    return { allow: false, status: 404, rules: [], reason: 'not-readable' };
+  }
+  return decisionFor(active, {
+    principal,
+    action: 'createProject',
+    resource,
+    context: requestContext(active, 'server', resource, supplied),
+  });
+}
+
 /** Creates the only authority for access decisions, filtered listings, and principal grants. */
 export function createAccessControl(options: AccessOptions) {
   const bootstrap = structuredClone(options.bootstrap);
@@ -180,9 +226,25 @@ export function createAccessControl(options: AccessOptions) {
       const resource = normalizeResource(input);
       const context = requestContext(snapshot, options.mode, resource, supplied);
       const project = resource.type === 'workspace' ? '' : resource.project;
-      const key = JSON.stringify([action, project, ruleClass(snapshot, resource), context]);
+      const key = JSON.stringify([
+        action,
+        project,
+        ruleClass(snapshot, resource),
+        context,
+        resource.type === 'project' ? resource.domain : undefined,
+      ]);
       const previous = decisions.get(key);
       if (previous) return previous;
+      if (
+        action === 'createProject' &&
+        options.mode === 'server' &&
+        (resource.type === 'workspace' ||
+          (resource.type === 'project' && resource.project === NEW_PROJECT))
+      ) {
+        const decision = creationDecision(snapshot, principal, resource, supplied);
+        decisions.set(key, decision);
+        return decision;
+      }
       const decision = decisionFor(snapshot, { principal, action, resource, context });
       decisions.set(key, decision);
       return decision;
@@ -203,6 +265,17 @@ export function createAccessControl(options: AccessOptions) {
         return principal;
       },
       authorize,
+      /** The custom roles of the policy this scope decides with. */
+      customRoles: () => {
+        synchronize();
+        return snapshot.config.roles;
+      },
+      creationDomains: () => {
+        synchronize();
+        return snapshot.config.projects.domains.filter(
+          domain => authorize('createProject', newProjectIn(domain.id)).allow,
+        );
+      },
       filter,
       view,
     };

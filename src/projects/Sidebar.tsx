@@ -1,4 +1,5 @@
 /** Displays project files and validation status, keeping invalid files available for repair. */
+import { useCapabilities } from '../auth/Capabilities';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ChevronDown,
@@ -116,17 +117,25 @@ function foldKeys(open: boolean, toggle: () => void) {
   };
 }
 
-function projectMenu(project: ProjectInfo, onAction: (action: TreeAction) => void) {
+function projectMenu(
+  project: ProjectInfo,
+  onAction: (action: TreeAction) => void,
+  can: (action: string) => boolean,
+) {
   const run = (action: Exclude<TreeAction, { path: string }>['action']) => () =>
     onAction({ action, project: project.slug });
   return [
-    { label: 'Rename', run: run('rename') },
-    { label: 'Import files into this project', run: run('import') },
-    { label: 'Edit .gitignore', run: run('gitignore') },
-    { label: 'Remote…', run: run('remote') },
-    { label: 'Projects in this repository…', run: run('repository-projects') },
-    { label: 'Delete', run: run('delete-project') },
-  ];
+    { action: 'renameProject', label: 'Rename', run: run('rename') },
+    { action: 'import', label: 'Import files into this project', run: run('import') },
+    { action: 'edit', label: 'Edit .gitignore', run: run('gitignore') },
+    { action: 'setRemote', label: 'Remote…', run: run('remote') },
+    {
+      action: 'registerProjects',
+      label: 'Projects in this repository…',
+      run: run('repository-projects'),
+    },
+    { action: 'deleteProject', label: 'Delete', run: run('delete-project') },
+  ].filter(item => can(item.action));
 }
 
 function FileItem({
@@ -136,6 +145,7 @@ function FileItem({
   onOpen,
   onAction,
 }: { project: ProjectInfo; file: ProjectFile } & Omit<TreeProps, 'collapsed' | 'toggle'>) {
+  const access = useCapabilities(project.slug);
   const id = `${project.slug}/${file.path}`;
   const act = (action: 'history' | 'move' | 'delete-file') => () =>
     onAction({ action, project: project.slug, path: file.path });
@@ -156,14 +166,16 @@ function FileItem({
           <FileCode size={15} />
           <span title={file.path}>{file.path}</span>
         </button>
-        <DeleteButton label={`Delete ${file.path}`} onClick={act('delete-file')} />
+        {access.can('delete') && (
+          <DeleteButton label={`Delete ${file.path}`} onClick={act('delete-file')} />
+        )}
         <ItemMenu
           label={`${file.path} in ${project.name}`}
           items={[
-            { label: 'History', run: act('history') },
-            { label: 'Move', run: act('move') },
-            { label: 'Delete', run: act('delete-file') },
-          ]}
+            { action: 'history', label: 'History', run: act('history') },
+            { action: 'move', label: 'Move', run: act('move') },
+            { action: 'delete', label: 'Delete', run: act('delete-file') },
+          ].filter(item => access.can(item.action))}
         />
       </div>
       <small className="file-meta">
@@ -182,6 +194,7 @@ function FileItem({
 }
 
 function ProjectItem({ project, ...props }: { project: ProjectInfo } & TreeProps) {
+  const access = useCapabilities(project.slug);
   const open = !props.collapsed.has(project.slug);
   const toggle = () => props.toggle(project.slug);
   // A subfolder project names its folder, since the repository row above already names the
@@ -202,11 +215,13 @@ function ProjectItem({ project, ...props }: { project: ProjectInfo } & TreeProps
           <span title={where}>{project.name}</span>
           <small>{project.files.length}</small>
         </button>
-        <DeleteButton
-          label={`Delete project ${project.name}`}
-          onClick={() => props.onAction({ action: 'delete-project', project: project.slug })}
-        />
-        <ItemMenu label={project.name} items={projectMenu(project, props.onAction)} />
+        {access.can('deleteProject') && (
+          <DeleteButton
+            label={`Delete project ${project.name}`}
+            onClick={() => props.onAction({ action: 'delete-project', project: project.slug })}
+          />
+        )}
+        <ItemMenu label={project.name} items={projectMenu(project, props.onAction, access.can)} />
       </div>
       {open && (
         <ul role="group">
@@ -226,6 +241,7 @@ function RepositoryItem({
   projects,
   ...props
 }: { repo: string; projects: ProjectInfo[] } & TreeProps) {
+  const access = useCapabilities(projects[0]?.slug);
   const key = 'repository:' + repo;
   const open = !props.collapsed.has(key);
   const toggle = () => props.toggle(key);
@@ -247,13 +263,17 @@ function RepositoryItem({
         </button>
         <ItemMenu
           label={label}
-          items={[
-            {
-              label: 'Projects in this repository…',
-              run: () =>
-                props.onAction({ action: 'repository-projects', project: projects[0].slug }),
-            },
-          ]}
+          items={
+            access.can('registerProjects')
+              ? [
+                  {
+                    label: 'Projects in this repository…',
+                    run: () =>
+                      props.onAction({ action: 'repository-projects', project: projects[0].slug }),
+                  },
+                ]
+              : []
+          }
         />
       </div>
       {open && (

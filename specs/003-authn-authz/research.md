@@ -648,6 +648,8 @@ probe: `openid-client` 6.8.8 (MIT, 236 KB) with `oauth4webapi` (MIT, 332 KB), `j
 | T107, T126–T133 (Deploy stage, rollback pipeline, deploy, Azure client, fake client and smoke scripts, target setup guide, owner trial runbook, mutants) and the review fixes (rollback picks a promoted earlier version and never the failed one, tag rollback rescans and restores on failure, version tag added only after a passing smoke, issuer checked against the target, typed target, no browsers in deploy jobs) | Codex (gpt-6-astra), reviewed by Claude; by Claude: the merge onto the grouped dry-run functions, template parameters resolved before use in the dry run, the Owner trial section |
 | T038–T050 (read matrix, filtered listings, events, Git history, trash, drafts, status, hidden-file count, browser part 2, mutants) and the first review round (no hidden content in save conflicts, identical answers for hidden and missing projects, required reader, event tags, one trash rule, stronger matrix) | Codex (gpt-6-astra), reviewed by Claude |
 | Phase 7 second and third review rounds (removal events reach their readers, personal drafts follow revert and replace-import, one suggestion counting path with local behaviour unchanged, keep-both moves and imports never reveal hidden names, deleted empty projects stay visible to who may restore them, reader required everywhere) | Claude (general-purpose subagents, after the Codex usage limit), reviewed by Claude; status details optional in the client, access-event reload guarded during sign-out, expected roles in the sign-in check, re-anchored mutants by Claude |
+| T051–T056 (write matrix, write checks on every route, repository-wide Git checks, project creation with a domain, role-aware controls, mutants) and their first review round | Codex (gpt-6-astra), reviewed by Claude |
+| Phase 8 on top of Phase 7 (one request-scope module, one `deletedBy` field, `restoreAction()`, personal grouping, hidden write targets answer 404) and the second review round (remote changes checked repository-wide, legacy document save checks the written name, one administration repository that reloads policy after each commit, clone domains in one commit, unknown and hidden domains answer alike, creation decided without a stand-in project, requirement text with the configured role names, no empty domain commits) | Claude (general-purpose subagents, after the Codex usage limit), reviewed by Claude; the Ungrouped slug authorized before the project is created and the grouped Git check parameters by Claude |
 
 ### Test changes not caused by the specification
 
@@ -693,3 +695,24 @@ probe: `openid-client` 6.8.8 (MIT, 236 KB) with `oauth4webapi` (MIT, 332 KB), `j
   `trash`, `events`, `session-lifecycle`, and the scripts `example-checks.ts`, `ui-tests.ts`,
   `projects-browser-check.ts`, `mutation-case.ts`) pass the explicit local reader or the event
   hub's required suggestion options after those parameters became required; no assertion changed.
+- `tests/auth/reader.test.ts`, `tests/auth/write-regressions.test.ts`,
+  `tests/auth/read-state.test.ts` and `tests/auth/events-filter.test.ts`: renamed imports and fields
+  after the two phases' request scopes and trash owners became one (`requestScope`, `deletedBy`); no
+  assertion changed.
+- `scripts/responsive-ui-tests.ts`: the mocked `/api/me` returns `requires`, which the client reads
+  since the role-aware controls; the mock had not been updated.
+- `tests/auth/write-regressions.test.ts`: the test that grouping is shared contradicted FR-071; it
+  now asserts that a Viewer saves her own view and nobody else sees it.
+- `tests/auth/write-regressions.test.ts` (trash): an Editor restoring someone else's entry gets 404,
+  not 403, because the read rules hide that entry from her; the audit entry and unchanged bytes are
+  still asserted.
+- `tests/auth/matrix.test.ts`: writes to a hidden path (save batch, import, move, documents) expect
+  404 instead of 409 or 403, as FR-036 and the contract's "unreadable target" rule say; metric saves
+  keep 409, and the no-leak body checks are unchanged.
+- `scripts/mutation-case.ts`: the grouping write-check mutant is gone with the check it mutated; the
+  documents-save case now also asks an Editor elsewhere who may only view HR, so its mutant is still
+  killed.
+- `tests/auth/creation-recovery.test.ts`: the domain assignment receives the one shared
+  administration repository instead of opening its own, so the spy on `openAdminRepository` is gone;
+  the test about reused creation decisions now asserts that creation compiles no policy at all,
+  since a new project is judged with the loaded policy.

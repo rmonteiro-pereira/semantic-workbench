@@ -335,3 +335,54 @@ export async function readVisibilityChecks(browser: Browser, target: SignInTarge
     await context.close();
   }
 }
+
+async function checkRoleControls(page: Page, target: SignInTarget, username: TestUserName) {
+  const context = page.context();
+  await signIn(page, target, username);
+  const response = await context.request.get(target.url + '/api/projects');
+  const projects = await response.json();
+  const slug = username === 'carol' ? 'hr-people' : 'sales-contracts';
+  const project = projects.find((item: { slug: string }) => item.slug === slug);
+  assert(project);
+  const writes = username !== 'carol' && username !== 'hank';
+  assert.equal(project.actions.includes('edit'), writes);
+  const tree = page.getByRole('treeitem', { name: project.name, exact: true });
+  if ((await tree.getAttribute('aria-expanded')) === 'false') {
+    await tree.getByRole('button', { name: project.name, exact: true }).click();
+  }
+  await tree.getByRole('button', { name: project.files[0].path, exact: true }).click();
+  const remove = tree.getByRole('button', { name: `Delete project ${project.name}`, exact: true });
+  if (username === 'dave') await expect(remove).toBeVisible();
+  else await expect(remove).toHaveCount(0);
+  await page.getByRole('button', { name: 'Source control', exact: false }).click();
+  const remote = page.getByRole('button', { name: 'Remote…', exact: true });
+  if (username === 'dave') await expect(remote).toBeVisible();
+  else await expect(remote).toBeHidden();
+  if (!writes) {
+    const commit = page.getByRole('button', { name: 'Commit', exact: true });
+    await expect(commit).toBeDisabled();
+    await expect(commit).toHaveAttribute('title', /Editor/);
+    const denied = await context.request.put(
+      target.url + `/api/drafts/${slug}/${project.files[0].path}`,
+      {
+        headers: { Origin: target.url, 'X-SW-Request': '1' },
+        data: { baseHash: null, text: 'forged draft', patches: [] },
+      },
+    );
+    assert.equal(denied.status(), 403);
+  }
+  await page.getByRole('button', { name: 'Person menu' }).click();
+  await authGeometry(page, `roles-${username}`);
+}
+
+/** Exercises built-in and custom role controls and forged writes in signed-in browser sessions. */
+export async function roleControlChecks(browser: Browser, target: SignInTarget) {
+  for (const username of ['carol', 'alice', 'bob', 'dave', 'hank'] as const) {
+    const context = await browser.newContext();
+    try {
+      await checkRoleControls(await context.newPage(), target, username);
+    } finally {
+      await context.close();
+    }
+  }
+}

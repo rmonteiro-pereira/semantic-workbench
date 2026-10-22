@@ -2047,7 +2047,7 @@ if (category.startsWith('read-')) {
       assert(!(await response.text()).includes('LEAK-hr-'));
     }
     if (category === 'read-drafts') {
-      const { requestAccess } = await import('../server/auth/middleware');
+      const { requestAccess } = await import('../server/auth/request-scope');
       fixture.ws.state.writeDraft('sales-contracts', 'orders.odcs.yaml', {
         baseHash: null,
         text: 'LEAK-other-owner',
@@ -2059,7 +2059,7 @@ if (category.startsWith('read-')) {
       assert.equal(response.status, 404);
     }
     if (category === 'read-git') {
-      const { requestAccess } = await import('../server/auth/middleware');
+      const { requestAccess } = await import('../server/auth/request-scope');
       const request = new Request(
         'http://localhost/api/projects/sales-contracts/git/show?path=finance/removed.yaml&commit=HEAD',
       );
@@ -2068,6 +2068,148 @@ if (category.startsWith('read-')) {
         () => m.gitRoutes(fixture.ws, request, new URL(request.url)),
         /Not found/,
       );
+    }
+  }
+}
+
+if (category === 'write-targets') {
+  const { createAccessControl } = await import('../server/auth/authorize');
+  const { accessFixture, person } = await import('../tests/auth/access-fixture');
+  const { requestAccess } = await import('../server/auth/request-scope');
+  const scope = createAccessControl(accessFixture()).forRequest({
+    ...person('alice'),
+    grants: [],
+    deactivated: false,
+  });
+  const request = new Request('http://localhost/api');
+  Object.assign(request, { [requestAccess]: scope });
+  assert.throws(() =>
+    m.authorizeWrite(request, 'move', [
+      { type: 'file', project: 'sales-contracts', path: 'orders.odcs.yaml' },
+      { type: 'file', project: 'hr-people', path: 'orders.odcs.yaml' },
+    ]),
+  );
+}
+
+if (category === 'write-drafts') {
+  const { createAccessControl } = await import('../server/auth/authorize');
+  const { accessFixture, person } = await import('../tests/auth/access-fixture');
+  const access = createAccessControl(accessFixture());
+  const route = m.routeFor('PUT', '/api/drafts/hr-people/people.odcs.yaml');
+  const resource = route.row.resource(route.match, new URL('http://localhost'));
+  const decision = access.authorize(
+    access.principalFor(person('carol')),
+    route.row.action,
+    resource,
+  );
+  assert.equal(decision.allow, false);
+}
+
+if (category === 'write-body-flags') {
+  const paths = [
+    ['POST', '/api/documents'],
+    ['PUT', '/api/documents/example/grouping'],
+    ['POST', '/api/suggestions/example/accept'],
+    ['POST', '/api/suggestions/example/reject'],
+    ['POST', '/api/trash/example/undo'],
+    ['POST', '/api/trash/example/restore'],
+  ];
+  for (const [method, path] of paths) assert.equal(m.routeFor(method, path).row.targets, 'body');
+}
+
+if (['write-body-legacy', 'write-body-suggestions', 'write-body-trash'].includes(category)) {
+  const { authWorkspace } = await import('../tests/helpers/auth-workspace');
+  const { createAccessControl } = await import('../server/auth/authorize');
+  const { accessFixture, person } = await import('../tests/auth/access-fixture');
+  const { requestAccess } = await import('../server/auth/request-scope');
+  using fixture = await authWorkspace();
+  const access = createAccessControl(accessFixture());
+  const principal = access.principalFor(person('alice'));
+  const origin = 'http://127.0.0.1:4310';
+  const request = (path: string, method = 'POST', body: unknown = {}) => {
+    const result = new Request(origin + path, {
+      method,
+      headers: { Origin: origin, 'X-SW-Request': '1', 'Content-Type': 'application/json' },
+      ...(method === 'GET' ? {} : { body: JSON.stringify(body) }),
+    });
+    Object.assign(result, { [requestAccess]: access.forRequest(principal) });
+    return result;
+  };
+  if (category === 'write-body-legacy') {
+    const handler = m.createHandler(fixture.ws, {
+      mode: 'server',
+      publicOrigin: origin,
+      access,
+      principal: () => principal,
+    });
+    const id = 'hr-people/people.odcs.yaml';
+    const grouping = await handler(
+      request('/api/documents/' + encodeURIComponent(id) + '/grouping', 'PUT', { mode: 'types' }),
+    );
+    assert.equal(grouping.status, 404);
+    const source = fixture.ws.readFile('hr-people', 'people.odcs.yaml');
+    const document = await handler(
+      request('/api/documents', 'POST', {
+        id,
+        filename: 'people.odcs.yaml',
+        source: source.source,
+        baseHash: source.hash,
+      }),
+    );
+    assert.equal(document.status, 404);
+    // An Editor elsewhere who may only view HR passes the route check; only the target check
+    // refuses her save.
+    const options = accessFixture();
+    options.config.grants.push({
+      id: 'g-alice-hr-viewer',
+      roleId: 'viewer',
+      member: { kind: 'email', email: 'alice@example.org' },
+      scope: { kind: 'projects', projects: ['hr-people'] },
+      addedBy: 'test',
+      addedAt: '2026-10-22T00:00:00Z',
+    } as never);
+    const viewing = createAccessControl(options);
+    const viewer = viewing.principalFor(person('alice'));
+    const viewerHandler = m.createHandler(fixture.ws, {
+      mode: 'server',
+      publicOrigin: origin,
+      access: viewing,
+      principal: () => viewer,
+    });
+    const viewerSave = await viewerHandler(
+      request('/api/documents', 'POST', {
+        id,
+        filename: 'people.odcs.yaml',
+        source: source.source,
+        baseHash: source.hash,
+      }),
+    );
+    assert.equal(viewerSave.status, 403);
+  }
+  if (category === 'write-body-suggestions') {
+    fixture.ws.suggestions = () =>
+      [
+        {
+          id: '00000000000000000000',
+          file: { project: 'hr-people', path: 'people.odcs.yaml', hash: 'hidden' },
+          targetProject: 'sales-contracts',
+          reasons: [],
+        },
+      ] as never;
+    for (const action of ['accept', 'reject']) {
+      const req = request('/api/suggestions/00000000000000000000/' + action);
+      await assert.rejects(m.suggestionRoutes(fixture.ws, req, new URL(req.url)), {
+        name: 'WriteAccessError',
+      });
+    }
+  }
+  if (category === 'write-body-trash') {
+    const entry = await fixture.ws.trash.deleteFile('hr-people', 'people.odcs.yaml');
+    for (const action of ['undo', 'restore']) {
+      const req = request('/api/trash/' + entry.entryId + '/' + action);
+      await assert.rejects(m.trashRoutes(fixture.ws, req, new URL(req.url)), {
+        name: 'WriteAccessError',
+      });
     }
   }
 }

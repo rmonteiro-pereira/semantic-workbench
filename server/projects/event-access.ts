@@ -26,7 +26,8 @@ function readableTrashEvent(event: WorkbenchEvent, access: EventAccess): Workben
   const project = tags.projects?.[0] ?? tags.paths?.[0]?.project ?? '';
   const fixed = tags.readers?.[project];
   if (fixed) return fixed.includes(access.owner) ? event : null;
-  const entry = { project, owner: tags.owner, paths: tags.paths };
+  // A trash event's owner tag is the person who deleted the entry.
+  const entry = { project, deletedBy: tags.owner, paths: tags.paths };
   return readableTrash(entry, access.scope) ? event : null;
 }
 

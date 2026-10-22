@@ -276,7 +276,11 @@ test('trash visibility evaluates restore policy instead of built-in role names',
   const fixture = accessFixture();
   const access = createAccessControl(fixture);
   const scope = access.forRequest(access.principalFor(person('alice')));
-  const entry = { project: 'sales-contracts', path: 'orders.odcs.yaml', owner: scope.principal.id };
+  const entry = {
+    project: 'sales-contracts',
+    path: 'orders.odcs.yaml',
+    deletedBy: scope.principal.id,
+  };
   const actions: string[] = [];
   const denyRestore = {
     ...scope,
@@ -294,7 +298,7 @@ test('trash visibility evaluates restore policy instead of built-in role names',
       return { allow: true, status: 200 as const, rules: [] };
     },
   };
-  expect(readableTrash({ ...entry, owner: 'another-person' }, allowRestore)).toBe(true);
+  expect(readableTrash({ ...entry, deletedBy: 'another-person' }, allowRestore)).toBe(true);
   expect(actions.at(-1)).toBe('restoreOthers');
 });
 

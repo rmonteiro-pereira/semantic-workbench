@@ -1,4 +1,5 @@
 /** Reviews selected file changes before committing, pushing or reverting them. */
+import { useCapabilities } from '../auth/Capabilities';
 import { useEvents } from '../projects/useEvents';
 import React, { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, GitCommit, RotateCcw, Upload } from 'lucide-react';
@@ -57,6 +58,7 @@ export function CommitDialog({
   onReverted,
   onSetIdentity,
 }: Props) {
+  const access = useCapabilities(project);
   const [status, setStatus] = useState<GitStatus | null>(null);
   const [error, setError] = useState('');
   const [ticked, setTicked] = useState<Set<string>>(new Set());
@@ -147,7 +149,11 @@ export function CommitDialog({
   }, [project, change?.repoPath, status]);
   const identity = status?.identityConfigured !== false;
   const canCommit =
-    !!message.trim() && !busy && identity && (merging ? !conflicts.length : tickedPaths.length > 0);
+    access.can('commit') &&
+    !!message.trim() &&
+    !busy &&
+    identity &&
+    (merging ? !conflicts.length : tickedPaths.length > 0);
   async function commit(push: boolean) {
     setBusy(true);
     setError('');
@@ -226,17 +232,23 @@ export function CommitDialog({
       <button onClick={onClose}>Cancel</button>
       <button
         onClick={() => void commit(true)}
-        disabled={!canCommit}
+        disabled={!canCommit || !access.can('push')}
         title={
-          Object.keys(status?.remotes ?? {}).length
+          access.control('commit').title ??
+          (Object.keys(status?.remotes ?? {}).length
             ? 'Commit, then push to the remote'
-            : 'This project has no remote yet; the commit is made and the push explains how to add one'
+            : 'This project has no remote yet; the commit is made and the push explains how to add one')
         }
       >
         <Upload size={13} />
         Commit &amp; push
       </button>
-      <button className="primary" onClick={() => void commit(false)} disabled={!canCommit}>
+      <button
+        className="primary"
+        onClick={() => void commit(false)}
+        disabled={!canCommit}
+        title={access.control('commit').title}
+      >
         <GitCommit size={13} />
         {merging ? 'Commit merge' : 'Commit'}
       </button>
@@ -267,7 +279,9 @@ export function CommitDialog({
           <span>
             Not committed: set your Git identity (user.name and user.email) for this repository.
           </span>
-          {onSetIdentity && <button onClick={onSetIdentity}>Set Git identity…</button>}
+          {access.local && onSetIdentity && (
+            <button onClick={onSetIdentity}>Set Git identity…</button>
+          )}
         </div>
       )}
       {unsaved.length > 0 && (

@@ -14,6 +14,57 @@ const mutants: [string, string, string, string][] = [
   ['deploy-preflight', 'scripts/deploy.ts', 'app.maxReplicas === 1', 'true'],
   ['deploy-version', 'scripts/deploy-version.ts', 'compareReleases(tag, promoted) < 0', 'false'],
   [
+    'write-targets',
+    'server/auth/write-access.ts',
+    'if (!decision.allow) throw new WriteAccessError(action, resource, decision);',
+    'if (false) throw new WriteAccessError(action, resource, decision);',
+  ],
+  [
+    'write-targets',
+    'server/auth/write-access.ts',
+    'for (const resource of resources)',
+    'for (const resource of resources.slice(0, 1))',
+  ],
+  [
+    'write-drafts',
+    'server/auth/route-actions.ts',
+    "row('PUT', '/api/drafts/:slug/*', 'edit', file)",
+    "row('PUT', '/api/drafts/:slug/*', 'viewOwnState', file)",
+  ],
+
+  ['write-body-flags', 'server/auth/route-actions.ts', "targets: 'body'", 'targets: undefined'],
+  [
+    'write-body-legacy',
+    'server/handler.ts',
+    "authorizeWrite(req, 'edit', [\n        {\n          type: 'file',\n          ...reference,\n        },\n      ]);",
+    'void reference;',
+  ],
+  [
+    'write-body-suggestions',
+    'server/routes/suggestions.ts',
+    "import { authorizeWrite } from '../auth/write-access';",
+    "import { authorizeWrite as checkWrite } from '../auth/write-access';\nconst authorizeWrite: typeof checkWrite = (request, ...args) => {\n  if (new URL(request.url).pathname.endsWith('/accept')) return;\n  checkWrite(request, ...args);\n};",
+  ],
+  [
+    'write-body-suggestions',
+    'server/routes/suggestions.ts',
+    "import { authorizeWrite } from '../auth/write-access';",
+    "import { authorizeWrite as checkWrite } from '../auth/write-access';\nconst authorizeWrite: typeof checkWrite = (request, ...args) => {\n  if (new URL(request.url).pathname.endsWith('/reject')) return;\n  checkWrite(request, ...args);\n};",
+  ],
+  [
+    'write-body-trash',
+    'server/routes/trash.ts',
+    "import { authorizeWrite } from '../auth/write-access';",
+    "import { authorizeWrite as checkWrite } from '../auth/write-access';\nconst authorizeWrite: typeof checkWrite = (request, ...args) => {\n  if (new URL(request.url).pathname.endsWith('/undo')) return;\n  checkWrite(request, ...args);\n};",
+  ],
+  [
+    'write-body-trash',
+    'server/routes/trash.ts',
+    "import { authorizeWrite } from '../auth/write-access';",
+    "import { authorizeWrite as checkWrite } from '../auth/write-access';\nconst authorizeWrite: typeof checkWrite = (request, ...args) => {\n  if (new URL(request.url).pathname.endsWith('/restore')) return;\n  checkWrite(request, ...args);\n};",
+  ],
+
+  [
     'signin-sessions',
     'server/auth/sessions.ts',
     '; HttpOnly; SameSite=Lax; Path=/',

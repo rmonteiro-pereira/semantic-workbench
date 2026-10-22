@@ -1,4 +1,5 @@
 /** Confirms item deletion with its dependents and broken references before a journaled save. */
+import { useCapabilities } from '../auth/Capabilities';
 import React, { useEffect, useState } from 'react';
 import { Modal } from '../projects/Modal';
 import { api, StaleSave, type Doc } from '../projects/api';
@@ -40,6 +41,7 @@ export function DeleteItem({
   onClose,
   onDeleted,
 }: Props) {
+  const access = useCapabilities(doc.project);
   const [plan, setPlan] = useState<Plan | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -195,7 +197,8 @@ export function DeleteItem({
           type="button"
           className="danger"
           onClick={confirm}
-          disabled={busy || !plan || plan.invalid.length > 0}
+          title={access.control('edit').title}
+          disabled={!access.can('edit') || busy || !plan || plan.invalid.length > 0}
         >
           {busy ? 'Deleting…' : 'Delete'}
         </button>

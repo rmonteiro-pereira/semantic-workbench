@@ -216,13 +216,15 @@ test('content-echoing writes conceal hidden paths and destination existence', as
   const hidden = 'finance/revenue-recognition.odcs.yaml';
   const source = fixture.ws.readFile('sales-contracts', 'orders.odcs.yaml').source;
   const wrongHash = '0'.repeat(64);
+  // A hidden write target answers 404 like a missing one; a metric save meets the stale hash
+  // while planning over readable files, before it names any target.
   const requests: [string, unknown, number][] = [
     [
       '/api/projects/sales-contracts/save-batch',
       {
         files: [{ path: hidden, baseHash: wrongHash, source }],
       },
-      409,
+      404,
     ],
     [
       '/api/projects/sales-contracts/kpis',
@@ -234,7 +236,7 @@ test('content-echoing writes conceal hidden paths and destination existence', as
       },
       409,
     ],
-    ['/api/projects/sales-contracts/import', { files: [{ path: hidden, source }] }, 409],
+    ['/api/projects/sales-contracts/import', { files: [{ path: hidden, source }] }, 404],
     [
       '/api/projects/sales-contracts/move',
       {
@@ -242,7 +244,7 @@ test('content-echoing writes conceal hidden paths and destination existence', as
         toProject: 'sales-contracts',
         toPath: hidden,
       },
-      409,
+      404,
     ],
     [
       '/api/documents',
@@ -252,7 +254,7 @@ test('content-echoing writes conceal hidden paths and destination existence', as
         source,
         baseHash: wrongHash,
       },
-      403,
+      404,
     ],
   ];
   async function post(path: string, body: unknown) {

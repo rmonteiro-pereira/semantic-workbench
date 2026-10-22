@@ -1,5 +1,7 @@
 // Exposes project source control operations. Remote actions run only through explicit requests.
-import { requestReader } from '../auth/middleware';
+import { requestReader } from '../auth/request-scope';
+import { authorizeGitPaths, authorizeGitPush, authorizeRepository } from '../auth/git-access';
+import { authorizeWrite } from '../auth/write-access';
 import { existsSync, readFileSync } from 'node:fs';
 import { readJson } from '../request';
 import { decode, sha256 } from '../projects/atomic';
@@ -26,6 +28,7 @@ export const gitRoutes: Route = async (ws, req, url) => {
   const q = url.searchParams;
   const scm = ws.scm;
   const reader = requestReader(req);
+  const gitTarget = { ws, request: req, slug };
 
   const body = async (keys: string[]) => {
     const b = await readJson(req, 64_000);
@@ -86,6 +89,10 @@ export const gitRoutes: Route = async (ws, req, url) => {
     if (action === 'git/stage' || action === 'git/unstage') {
       const b = await body(['paths', 'repoPaths', 'all']);
       const stage = action === 'git/stage';
+      await authorizeGitPaths(gitTarget, 'stage', {
+        paths: b.all === true ? undefined : (b.repoPaths ?? b.paths),
+        repository: b.repoPaths !== undefined,
+      });
       if (b.all === true) return Response.json(await scm.stageAll(slug, stage));
       const { list, base } = chosenPaths(b);
       return Response.json(
@@ -96,6 +103,11 @@ export const gitRoutes: Route = async (ws, req, url) => {
       const b = await body(['message', 'paths', 'repoPaths', 'push']);
       if (b.push !== undefined && typeof b.push !== 'boolean')
         throw Error('push must be true or false.');
+      await authorizeGitPaths(gitTarget, 'commit', {
+        paths: b.repoPaths ?? b.paths,
+        repository: b.repoPaths !== undefined,
+      });
+      if (b.push === true) await authorizeGitPush(gitTarget);
       const chosen = b.paths === undefined && b.repoPaths === undefined ? null : chosenPaths(b);
       return Response.json(
         await scm.commit(slug, b.message, {
@@ -108,14 +120,21 @@ export const gitRoutes: Route = async (ws, req, url) => {
     if (action === 'git/revert') {
       const b = await body(['path', 'baseHash']);
       if (typeof b.path !== 'string') throw Error('path is required.');
-      return Response.json(await ws.revertFile(slug, b.path, b.baseHash ?? null));
+      authorizeWrite(req, 'revert', [{ type: 'file', project: slug, path: b.path }]);
+      return Response.json(await ws.revertFile(slug, b.path, b.baseHash ?? null, reader.owner));
     }
     if (action === 'git/switch') {
+      authorizeRepository(gitTarget, 'branch');
       const b = await body(['branch', 'create']);
       return Response.json(await scm.switchBranch(slug, b.branch, b.create === true));
     }
+    if (action === 'git/fetch') authorizeRepository(gitTarget, 'fetch');
+    if (action === 'git/pull' || action === 'git/sync') {
+      authorizeRepository(gitTarget, 'pull');
+    }
     if (action === 'git/fetch') return Response.json(await scm.fetch(slug));
     if (action === 'git/pull') return Response.json(await scm.pull(slug));
+    if (action === 'git/push' || action === 'git/sync') await authorizeGitPush(gitTarget);
     if (action === 'git/push') return Response.json(await scm.push(slug));
     if (action === 'git/sync') return Response.json(await scm.sync(slug));
     if (action === 'git/cancel') return Response.json(scm.cancel(slug));
@@ -124,6 +143,7 @@ export const gitRoutes: Route = async (ws, req, url) => {
       const b = await body(['pattern']);
       if (typeof b.pattern !== 'string' || b.pattern.length > 1000)
         throw Error('pattern must be one line of text.');
+      authorizeWrite(req, 'edit', [{ type: 'file', project: slug, path: '.gitignore' }]);
       ws.project(slug);
       const file = projectFile(ws.layout, slug, '.gitignore');
       const bytes = existsSync(file) ? new Uint8Array(readFileSync(file)) : null;
@@ -148,10 +168,13 @@ export const gitRoutes: Route = async (ws, req, url) => {
   }
   if (req.method === 'PUT' && action === 'git/remote') {
     const b = await body(['name', 'url']);
+    // The remote belongs to the repository, so every project sharing it must allow the change.
+    authorizeRepository(gitTarget, 'setRemote');
     return Response.json(await scm.setRemote(slug, b.name, b.url));
   }
   if (req.method === 'DELETE' && action === 'git/remote') {
     const b = await body(['name']);
+    authorizeRepository(gitTarget, 'setRemote');
     return Response.json(await scm.removeRemote(slug, b.name));
   }
   if (req.method === 'PUT' && action === 'git/identity') {

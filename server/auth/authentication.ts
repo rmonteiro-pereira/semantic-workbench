@@ -19,7 +19,6 @@ import {
   type Session,
 } from './sessions';
 import { requestAuditId, type AuditRequest } from '../request';
-import builtin from '../../policies/builtin-roles.json';
 
 /** Opens validated server authentication only after the workspace lease has been acquired. */
 /**
@@ -51,7 +50,12 @@ export async function createServerAuthentication(
   suppliedClient?: OidcClient,
 ) {
   const client = suppliedClient ?? (await createOidcClient(config));
-  const repository = openAdminRepository({ root: ws.layout.root });
+  // The process keeps one administration repository: its writes are serialized only within one
+  // instance, and each commit replaces the policy every request decides with.
+  const repository = openAdminRepository({
+    root: ws.layout.root,
+    committed: config => access.reload(config),
+  });
   await repository.ensure();
   const policy = repository.load();
   const settings = repository.settings();
@@ -272,12 +276,10 @@ export async function createServerAuthentication(
     publicOrigin: config.publicUrl,
     providerOrigin,
     access,
+    administration: repository,
     audit,
     principal: async (request: Request) => (await session(request))?.principal ?? null,
     authentication: { login, callback, logout, session, sessions },
-    roleNames: Object.fromEntries(
-      [...builtin.roles, ...policy.roles].map(role => [role.id, role.name]),
-    ),
     close: () => clearInterval(timer),
   };
 }

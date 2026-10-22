@@ -1,5 +1,6 @@
-import { useMe } from '../auth/useMe';
 /** Presentation and event handling for workspace sidebar. */
+import { useCapabilities } from '../auth/Capabilities';
+import { useMe } from '../auth/useMe';
 import { useGitSetup } from '../scm/GitSetup';
 import { FileCode, GitBranch, Layers, Network, Upload, X } from 'lucide-react';
 import React from 'react';
@@ -75,6 +76,7 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
   importFiles,
 }: Props) {
   const { me } = useMe();
+  const access = useCapabilities();
   const openGitSetup = useGitSetup();
   function handleButtonClick() {
     setTab('fullgraph');
@@ -217,7 +219,11 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
           />
         </div>
         <div className="workspace-actions">
-          <button onClick={() => setDeleteTarget({ kind: 'clear' })} disabled={!projects.length}>
+          <button
+            onClick={() => setDeleteTarget({ kind: 'clear' })}
+            disabled={!projects.length || !access.can('clear')}
+            title={access.control('clear').title}
+          >
             Clear workspace
           </button>
           <button onClick={() => setTrashOpen(true)}>Trash</button>
@@ -228,13 +234,19 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
           onAccept={handleSuggestionsAccept}
           onReject={handleSuggestionsReject}
         />
-        <ExampleList
-          examplesOpen={examplesOpen}
-          setExamplesChoice={setExamplesChoice}
-          loadExample={loadExample}
-          busy={busy}
-        />
-        <button className="import" onClick={() => setImporting({})}>
+        {access.can('createProject') && (
+          <ExampleList
+            examplesOpen={examplesOpen}
+            setExamplesChoice={setExamplesChoice}
+            loadExample={loadExample}
+            busy={busy}
+          />
+        )}
+        <button
+          hidden={!access.can('createProject')}
+          className="import"
+          onClick={() => setImporting({})}
+        >
           <Upload size={16} /> Import…
         </button>
         {/* The one file field: the Import dialog opens it for a new or an existing project. */}

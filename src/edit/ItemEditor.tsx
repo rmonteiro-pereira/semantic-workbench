@@ -1,4 +1,5 @@
 /** Edits one item's fields or source as a draft, then validates and saves against its base hash. */
+import { useCapabilities } from '../auth/Capabilities';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, FileCode, Pencil, Plus, Trash2 } from 'lucide-react';
 import type { Issue } from '../diagnostics';
@@ -67,6 +68,7 @@ export function ItemEditor({
   onDelete,
   onOpenSource,
 }: Props) {
+  const access = useCapabilities(doc.project);
   const fragment = useMemo(() => openFragment(base, path), []);
   const [text, setText] = useState(fragment.text);
   const [tab, setTab] = useState<'fields' | 'source'>('fields');
@@ -474,7 +476,13 @@ export function ItemEditor({
         </p>
       )}
       <div className="repair-actions item-actions">
-        <button type="button" className="item-delete" onClick={onDelete} disabled={saving}>
+        <button
+          type="button"
+          className="item-delete"
+          hidden={!access.can('edit')}
+          onClick={onDelete}
+          disabled={saving}
+        >
           <Trash2 size={13} />
           Delete…
         </button>
@@ -492,7 +500,13 @@ export function ItemEditor({
         <button type="button" onClick={onClose} disabled={saving}>
           Cancel
         </button>
-        <button type="button" className="primary" onClick={save} disabled={!canSave}>
+        <button
+          type="button"
+          className="primary"
+          onClick={save}
+          title={access.control('edit').title}
+          disabled={!canSave || !access.can('edit')}
+        >
           {saving ? 'Saving…' : 'Save to file'}
         </button>
       </div>

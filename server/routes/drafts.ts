@@ -1,5 +1,5 @@
 // Serves durable drafts, including the source hash needed to detect conflicting edits.
-import { requestReader } from '../auth/middleware';
+import { requestReader } from '../auth/request-scope';
 import { MAX_INPUT_BYTES } from '../../src/diagnostics';
 import { readJson } from '../request';
 import { projectPath, assertSlug } from '../projects/paths';

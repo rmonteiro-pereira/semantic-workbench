@@ -1,8 +1,15 @@
 // Routes API requests and preserves the legacy document interface. Host and origin checks restrict
 // access to local clients.
 import { HiddenResourceError } from './projects/errors';
-import { requestReader } from './auth/middleware';
-import { createAccessMiddleware, type HandlerOptions } from './auth/middleware';
+import { requestReader } from './auth/request-scope';
+import { authorizeWrite, WriteAccessError } from './auth/write-access';
+import {
+  createAccessMiddleware,
+  defaultAccess,
+  defaultAdministration,
+  type HandlerOptions,
+} from './auth/middleware';
+import type { AdminRepository } from './auth/admin-repo';
 import { agentCatalog, buildContext, selectContext, planQuery } from './agent/runtime';
 import { readJson } from './request';
 import { InputError, MAX_INPUT_BYTES } from '../src/diagnostics';
@@ -119,7 +126,8 @@ const legacyRoutes: Route = async (ws, req, url) => {
         return Response.json(await ws.saveGrouping(id, value, reader));
       }
     } catch (e) {
-      if (e instanceof NotFoundError) throw Error('Document not found.');
+      // Legacy local clients expect a 400; server mode answers a missing document like a hidden one.
+      if (e instanceof NotFoundError && !reader.view) throw Error('Document not found.');
       throw e;
     }
   }
@@ -172,12 +180,34 @@ const legacyRoutes: Route = async (ws, req, url) => {
       (typeof body.baseHash !== 'string' || !/^[0-9a-f]{64}$/.test(body.baseHash))
     )
       throw Error('baseHash must be a SHA-256 hex digest.');
+    if (body.id !== undefined) {
+      const reference = ws.resolveId(body.id);
+      authorizeWrite(req, 'edit', [
+        {
+          type: 'file',
+          ...reference,
+        },
+      ]);
+    }
+    // A new document's final name is known only once the workspace has chosen a free one.
+    const authorizeTargets = (targets: { project: string; path: string }[]) => {
+      authorizeWrite(
+        req,
+        'edit',
+        targets.map(target => ({ type: 'file', ...target })),
+      );
+    };
+    const version = { revision: body.revision, baseHash: body.baseHash };
     try {
       return Response.json(
-        await ws.saveDocument(body.filename, body.source, requestReader(req), body.id, {
-          revision: body.revision,
-          baseHash: body.baseHash,
-        }),
+        await ws.saveDocument(
+          body.filename,
+          body.source,
+          requestReader(req),
+          body.id,
+          version,
+          authorizeTargets,
+        ),
       );
     } catch (e) {
       if (e instanceof StaleError) throw Error('Document changed. Reload before saving.');
@@ -193,19 +223,21 @@ function requireReadableDocument(ws: Workspace, request: Request, id: string) {
   const resource = ws.resolveId(id.split('#')[0]);
   if (!view.canRead(resource.project, resource.path)) throw new HiddenResourceError();
 }
-const workspaceRoutes: Route[] = [
-  trashRoutes,
-  suggestionRoutes,
-  projectRoutes,
-  metricRoutes,
-  kpiRoutes,
-  gitRoutes,
-  cloneRoutes,
-  repoRoutes,
-  fileRoutes,
-  draftRoutes,
-  legacyRoutes,
-];
+function workspaceRoutes(administration: AdminRepository): Route[] {
+  return [
+    trashRoutes,
+    suggestionRoutes,
+    projectRoutes(administration),
+    metricRoutes,
+    kpiRoutes,
+    gitRoutes,
+    cloneRoutes(administration),
+    repoRoutes,
+    fileRoutes,
+    draftRoutes,
+    legacyRoutes,
+  ];
+}
 /** Accepts loopback hostnames or a missing Host header. */
 export function loopbackHost(host: string | null) {
   if (host === null) return true;
@@ -216,12 +248,14 @@ export function loopbackHost(host: string | null) {
 }
 /** Creates the API handler with local-access checks and shared error responses. */
 export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
+  const access = options.access ?? defaultAccess(ws, options.mode ?? 'local');
+  const administration = options.administration ?? defaultAdministration(ws, access);
   const routes: Route[] = [
     ...(options.authentication ? [authRoutes(options.authentication)] : []),
     (_workspace, request, url) =>
       url.pathname === '/api/me' && request.method === 'GET' ? meResponse(request, options) : null,
     eventRoutes(options),
-    ...workspaceRoutes,
+    ...workspaceRoutes(administration),
   ];
   function localCheck(req: Request): Response | null {
     const origin = req.headers.get('origin');
@@ -250,6 +284,8 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
       }
       return new Response('Not found', { status: 404 });
     } catch (e) {
+      // The access boundary audits a refused target, so it must see the original error.
+      if (e instanceof WriteAccessError) throw e;
       if (
         options.mode === 'server' &&
         (e instanceof NotFoundError || e instanceof HiddenResourceError)
@@ -265,7 +301,7 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
       return errorResponse(e, options.publicOrigin);
     }
   };
-  const boundary = createAccessMiddleware(ws, options, localCheck, run);
+  const boundary = createAccessMiddleware(ws, { ...options, access }, localCheck, run);
   if (options.mode !== 'server') return boundary;
   return async (request: Request) => {
     const response = await boundary(request);

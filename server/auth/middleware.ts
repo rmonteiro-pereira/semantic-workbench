@@ -1,6 +1,5 @@
 // Applies one request-scoped decision and records outcomes before returning an HTTP response.
-import { readableTrash } from '../projects/trash';
-import { LOCAL_READER, type Reader } from '../projects/reader';
+import { readableTrash, restoreAction } from '../projects/trash';
 import { hiddenResponses } from '../routes/http';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -8,14 +7,16 @@ import type { Workspace } from '../projects/workspace';
 import { errorResponse } from '../routes/http';
 import { createAccessControl, type AccessControl, type AccessScope } from './authorize';
 import { emptyAccessConfig } from './access-config';
-import { openAdminRepository, AdminConfigError } from './admin-repo';
+import { openAdminRepository, AdminConfigError, type AdminRepository } from './admin-repo';
 import { createAuditLog, type AuditLog } from './audit';
 import { localPrincipal, type Principal } from './principal';
 import { routeFor, type RouteAction } from './route-actions';
 import type { ResourceRef, Decision } from './resource';
 import { validCsrf } from './csrf';
 import type { ServerAuthentication } from './authentication';
+import { WriteAccessError } from './write-access';
 import { READ_ACTIONS } from './actions';
+import { requestAccess, type AccessRequest } from './request-scope';
 import { requestAuditId } from '../request';
 
 /** The access boundary instance shared across requests. */
@@ -31,33 +32,14 @@ export type HandlerOptions = {
   providerOrigin?: string;
   port?: number;
   authentication?: ServerAuthentication['authentication'];
+  /** The one administration repository of the process, which project creation writes to. */
+  administration?: AdminRepository;
+  /** Display names for built-in roles; custom roles always show their current policy name. */
   roleNames?: Record<string, string>;
   staticRoot?: string;
 };
-/** Request scope attached for downstream filtering without repeating identity resolution. */
-export const requestAccess = Symbol('requestAccess');
-/** A request carrying its already resolved access scope. */
-export type AccessRequest = Request & {
-  [requestAuditId]?: string;
-  [requestAccess]?: AccessScope;
-};
-
-/** The request's access scope; an unattached request is a programming error. */
-export function requestScope(request: Request): AccessScope {
-  const scope = (request as AccessRequest)[requestAccess];
-  if (!scope) throw Error('Request has no access scope.');
-  return scope;
-}
-
-/** Resolves the read boundary once; an unattached request is a programming error. */
-export function requestReader(request: Request): Reader {
-  const scope = requestScope(request);
-  return scope.principal.kind === 'local'
-    ? LOCAL_READER
-    : { view: scope.view(), owner: scope.principal.id };
-}
-
-function defaultAccess(ws: Workspace, mode: 'local' | 'server'): AccessControl {
+/** The access boundary of a handler that was given none, read from the data root's settings. */
+export function defaultAccess(ws: Workspace, mode: 'local' | 'server'): AccessControl {
   let config = emptyAccessConfig();
   if (existsSync(join(ws.layout.root, 'admin'))) {
     try {
@@ -74,6 +56,13 @@ function defaultAccess(ws: Workspace, mode: 'local' | 'server'): AccessControl {
     groupMatch: 'exact',
     knownProjects: () => ws.state.registry().projects.map(project => project.slug),
   });
+}
+/**
+ * The administration repository of a handler that was given none. Server authentication supplies
+ * its own; this one serves a handler built alone and keeps that handler's decisions current.
+ */
+export function defaultAdministration(ws: Workspace, access: AccessControl): AdminRepository {
+  return openAdminRepository({ root: ws.layout.root, committed: config => access.reload(config) });
 }
 function outcome(status: number): 'ok' | 'refused' | 'failed' {
   if (status >= 200 && status < 300) return 'ok';
@@ -139,6 +128,79 @@ function auditInput(request: {
   };
 }
 
+/** A refusal body that never names a resource the caller may not see. */
+function refusal(decision: Decision): Response {
+  const body =
+    decision.status === 404
+      ? { error: 'Not found.' }
+      : { error: 'forbidden', rule: decision.rules[0] ?? decision.reason };
+  return Response.json(body, { status: decision.status });
+}
+
+/** Audits the target a route refused and answers like a refusal at the boundary. */
+function refusedTarget(
+  audit: AuditLog,
+  requestId: string,
+  scope: AccessScope,
+  error: WriteAccessError,
+): Response {
+  const denied = auditInput({
+    requestId,
+    principal: scope.principal,
+    action: error.action,
+    resource: error.resource,
+    decision: error.decision,
+  });
+  const failure = auditDenial(audit, { ...denied, decision: 'deny' });
+  return failure ?? refusal(error.decision);
+}
+
+/**
+ * Finds the entry a trash route names, so the decision and the audit use its original target.
+ * Local mode leaves the lookup to the route, which keeps its own "not found" message.
+ */
+function trashLookup(ws: Workspace, request: Request) {
+  const trashId = new URL(request.url).pathname.match(/^\/api\/trash\/([^/]+)/)?.[1];
+  if (!trashId) return undefined;
+  return { entry: ws.trash.list().find(candidate => candidate.entryId === trashId) };
+}
+
+function trashResource(entry: { project: string; path?: string }): ResourceRef {
+  if (entry.path) return { type: 'file', project: entry.project, path: entry.path };
+  return { type: 'project', project: entry.project };
+}
+
+/** What one route decision is about: its resource, the server mode, and a found trash entry. */
+interface RouteCheck {
+  resource: ResourceRef;
+  mode: 'local' | 'server';
+  /** True when the route's real target was already resolved, such as a trash entry. */
+  resolvedTarget: boolean;
+}
+
+/**
+ * Decides the route's own action. A row whose targets are named in the body passes when the
+ * action is allowed somewhere the caller can read; the route then checks each actual target.
+ */
+function routeDecision(
+  scope: AccessScope,
+  row: RouteAction,
+  { resource, mode, resolvedTarget }: RouteCheck,
+): Decision {
+  const decision = scope.authorize(row.action, resource);
+  // Identity settings exist only in local mode. Authorization runs first, so a caller without the
+  // permission is refused and audited as for any other route.
+  if (decision.allow && mode === 'server' && row.action === 'setIdentity') {
+    return { allow: false, status: 404, rules: [], reason: 'local-only' };
+  }
+  if (decision.allow || row.targets !== 'body' || resolvedTarget) return decision;
+  for (const project of scope.view().readableProjects) {
+    const candidate = scope.authorize(row.action, { type: 'project', project });
+    if (candidate.allow) return candidate;
+  }
+  return decision;
+}
+
 /** Wraps routing with fail-closed access checks, request ids, and durable audit outcomes. */
 export function createAccessMiddleware(
   ws: Workspace,
@@ -198,33 +260,30 @@ export function createAccessMiddleware(
     target: { row: RouteAction; resource: ResourceRef },
     principal: Principal,
   ): Promise<Response> {
-    let { row, resource } = target;
     const scope = access.forRequest(principal);
     request[requestAccess] = scope;
     const noAccess =
       mode === 'server' && (scope.principal.deactivated || !scope.principal.grants.length);
-    // Local mode leaves trash lookups to the route, which keeps its own "not found" message.
-    const trashId =
-      mode === 'server'
-        ? new URL(request.url).pathname.match(/^\/api\/trash\/([^/]+)/)?.[1]
-        : undefined;
-    const trashEntry = trashId
-      ? ws.trash.list().find(entry => entry.entryId === trashId)
-      : undefined;
-    const hiddenTrash = Boolean(trashId) && (!trashEntry || !readableTrash(trashEntry, scope));
-    if (!noAccess && trashId && !trashEntry) {
-      return Response.json({ error: 'Not found.' }, { status: 404 });
+    const trash = mode === 'server' ? trashLookup(ws, request) : undefined;
+    let row = target.row;
+    let resource = target.resource;
+    if (trash?.entry) {
+      resource = trashResource(trash.entry);
+      if (row.action === 'restoreOwn') row = { ...row, action: restoreAction(trash.entry, scope) };
     }
-    if (trashEntry) {
-      resource = trashEntry.path
-        ? { type: 'file', project: trashEntry.project, path: trashEntry.path }
-        : { type: 'project', project: trashEntry.project };
-      if (row.action === 'restoreOwn' && trashEntry.owner !== scope.principal.id) {
-        row = { ...row, action: 'restoreOthers' };
-      }
+    let decision = routeDecision(scope, row, {
+      resource,
+      mode,
+      resolvedTarget: Boolean(trash?.entry),
+    });
+    if (trash && !trash.entry) {
+      // A missing entry is not a denial; a caller who could not act on any entry still is one.
+      if (decision.allow && !noAccess)
+        return Response.json({ error: 'Not found.' }, { status: 404 });
+      decision = { ...decision, allow: false, status: 404 };
+    } else if (trash?.entry && !readableTrash(trash.entry, scope)) {
+      decision = { allow: false, status: 404, rules: [], reason: 'not-readable' };
     }
-    let decision = scope.authorize(row.action, resource);
-    if (hiddenTrash) decision = { allow: false, status: 404, rules: [], reason: 'not-readable' };
     if (noAccess) decision = { allow: false, status: 403, rules: [], reason: 'no-grant' };
     const input = auditInput({
       requestId,
@@ -241,13 +300,15 @@ export function createAccessMiddleware(
         if (api) return Response.json({ error: 'no access' }, { status: 403 });
         return new Response(null, { status: 302, headers: { Location: '/auth/no-access' } });
       }
-      const body =
-        decision.status === 404
-          ? { error: 'Not found.' }
-          : { error: 'forbidden', rule: decision.rules[0] ?? decision.reason };
-      return Response.json(body, { status: decision.status });
+      return refusal(decision);
     }
-    const response = await run(request);
+    let response: Response;
+    try {
+      response = await run(request);
+    } catch (error) {
+      if (!(error instanceof WriteAccessError)) throw error;
+      return refusedTarget(audit, requestId, scope, error);
+    }
     if (mode === 'server' && hiddenResponses.has(response)) {
       const failure = auditDenial(audit, {
         ...input,
