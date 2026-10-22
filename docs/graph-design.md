@@ -1,6 +1,6 @@
 # Graph rendering and layout decisions
 
-The overview, relationship matrix and actual graph are complementary representations. The overview and matrix remain available; they do not replace the graph. The Graph tab contains the model's entities and directed relationships. Large models can collapse business areas and expand them again.
+The overview, relationship matrix and actual graph are complementary representations. The overview and matrix remain available; they do not replace the graph. For entity models, the Graph tab contains the model's entities and directed relationships. Contracts use the lineage canvas described below. Large models can collapse business areas and expand them again.
 
 ## References reviewed
 
@@ -18,13 +18,29 @@ The overview, relationship matrix and actual graph are complementary representat
 
 1. Preserve original entity IDs and all relationship definitions.
 2. Group parallel directed links by source/target while retaining every original ID and definition in the bundle.
-3. Use the established UBL display groups, or definition types for other inputs. These are display groupings, not new standard semantics.
+3. Use the shared **Group by** selection for area boundaries. Auto chooses an available grouping with multiple groups. These are display groupings, not new standard semantics.
 4. Offer **Network (fCoSE)** and **Layered (ELK)** layouts.
 5. For network layout, remove residual overlaps with ELK SPOrE and pack area rectangles with ELK's box packer. Tests check actual rectangle intersections and containment.
 6. Render compound areas and entity nodes in React Flow, with controlled node state, memoized node/edge components, viewport culling, area zoom, mini-map navigation and manual dragging.
 7. Use inexpensive native routes at whole-model zoom, and route around nodes through a shared background worker for visible or selected connections at detail zoom. Show names on hover/selection, with an optional label toggle. Highlight connected entities without removing the remainder of the model.
 8. Models above 250 visible business entities open with collapsed areas. Area counts expose the folded entities; clicking one expands that area. **Expand all** restores the full graph. Internal relationships are folded into the area count, and remain accessible after expansion; they are not deleted from the source.
 9. Fit the whole model for spatial orientation, then zoom to an area or entity for reading. A finite viewport cannot show arbitrarily many full-size entity labels simultaneously.
+
+## Column-level lineage canvas
+
+For an ODCS contract, the Graph tab and an asset page's Lineage tab use `src/odcs/LineageCanvas.tsx`. The graph builder in `src/odcs/lineage.ts` reads project definitions into contract-object, semantic-dataset, metric and external-reference cards. It matches declared names and expression references without fetching contracts or executing SQL. Each edge retains the file and definition path that supplied it.
+
+The entity graph connects whole entities and offers network or layered layouts inside area boundaries. Lineage connects rows within asset cards in a left-to-right layered layout. Foreign keys run from the referenced column to the referencing column. Reads, aggregations and metric dependencies continue toward their consumers. Declared transforms connect source objects to the affected property. Grouping colours tint contract cards without adding area containers.
+
+`src/odcs/lineage-layout.ts` gives each visible column a fixed incoming port on the left and an outgoing port on the right. Card headers also have ports for references without a column. ELK computes card positions in a worker; React Flow draws the cards and curves between their ports. Column rows show types and property badges.
+
+Long column lists page in groups of ten. Columns on the selected path stay pinned above the current page when needed. Edges to hidden columns attach to a counted more-columns row, so paging does not discard dependencies. Dense connections can bundle into counted lines until a selected path needs their individual endpoints.
+
+Expanding a card places newly revealed cards beside it through `src/graph/incremental-layout.ts`. Existing cards keep their positions. The walk records which cards each expansion introduced, so Collapse and Undo expansion remove only that expansion's contribution. Walking to another centre starts a fresh canvas. Full pierce computes a bounded traversal in a worker and lays out the resulting cards through ELK.
+
+The first view tries to fit the displayed graph while keeping column names readable. If that would shrink the text too far, it focuses on the centre and its neighbours, then on the centre alone if necessary. A tall centre card opens at its header and first rows. **Fit** explicitly fits all displayed cards and can zoom out further. It takes precedence over a pending first-view adjustment.
+
+Selecting a column highlights its upstream and downstream paths and dims unrelated rows and lines. The **Selected path** panel lists the connected objects, fields and metrics in dependency order. Selecting a panel entry changes the highlighted path. **Clear the selected path** restores the unselected view. For semantic datasets and metrics, **Continue in Neighborhood** opens entity exploration.
 
 ## Validation
 
@@ -36,7 +52,7 @@ The overview, relationship matrix and actual graph are complementary representat
 
 ## Storage and identity
 
-Documents live in the folder store: one folder (a Git repository) per project, and an entity's identity is its document id (`<project>/<path>`) plus its path inside the document. Grouping corrections are saved per document as view state in the workbench state folder (outside the project folders, so they are not committed), never in the definitions, so export keeps the original bytes. The Neighborhood center and walk refer to entities by these ids, so they survive renames of other documents and a reload.
+Documents live in the folder store: each project is a repository root or a declared subfolder of a shared repository, and an entity's identity is its document id (`<project>/<path>`) plus its path inside the document. Grouping corrections are saved per document as view state in the workbench state folder (outside the project folders, so they are not committed), never in the definitions, so export keeps the original bytes. The Neighborhood center and walk refer to entities by these ids, so they survive renames of other documents and a reload.
 
 ## Neighborhood, full screen and layout checks
 

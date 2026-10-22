@@ -743,6 +743,257 @@ try {
       expect(found).toEqual([]);
     },
   );
+  const lineageOverlays = [
+    '.lineage-toolbar',
+    '.lineage-trail',
+    '.lineage-busy',
+    '.lineage-path',
+    '.lineage-foot',
+    '.lineage-stage .react-flow__minimap',
+    '.lineage-stage .react-flow__controls',
+  ];
+  async function assertContained(p: Page, selector: string) {
+    for (const element of await p.locator(selector).all()) {
+      if (!(await element.isVisible())) continue;
+      await expect(element).toBeInViewport({ ratio: 1 });
+      const bounds = await element.boundingBox();
+      expect(bounds, selector).not.toBeNull();
+      expect(bounds!.x, selector).toBeGreaterThanOrEqual(-1);
+      expect(bounds!.y, selector).toBeGreaterThanOrEqual(-1);
+      expect(bounds!.x + bounds!.width, selector).toBeLessThanOrEqual(p.viewportSize()!.width + 1);
+      expect(bounds!.y + bounds!.height, selector).toBeLessThanOrEqual(
+        p.viewportSize()!.height + 1,
+      );
+    }
+  }
+  async function assertFinalOverlays(p: Page, selectors: string[]) {
+    await expect.poll(() => layoutProblems(p, { overlays: selectors })).toEqual([]);
+    await assertContained(p, selectors.join(', '));
+    expect(await overlapProblems(p, 'final sweep')).toEqual([]);
+  }
+  async function selectLineagePath(p: Page) {
+    const graph = p.getByRole('region', { name: 'Lineage graph' });
+    await expect(graph.locator('.lineage-card').first()).toBeVisible();
+    await graph.getByRole('button', { name: 'Fit', exact: true }).click();
+    await graph
+      .getByRole('group', { name: 'Contract object orders' })
+      .getByRole('button', { name: 'orders.amount', exact: true })
+      .click({ force: true });
+    await expect(graph.getByRole('region', { name: 'Selected path' })).toBeVisible();
+  }
+  async function sweepLineage(p: Page, width: number) {
+    let releaseLayout = () => {};
+    const layoutGate = new Promise<void>(resolve => {
+      releaseLayout = resolve;
+    });
+    // Hold the real worker response so the transient loading note can be measured reliably.
+    const workerPattern = '**/*elk-worker*';
+    await p.route(workerPattern, async route => {
+      await layoutGate;
+      await route.continue();
+    });
+    try {
+      await openFile(p, 'commerce.odcs.yaml');
+      await closeDrawer(p);
+      await tab(p, 'Graph');
+      await expect(p.locator('.lineage-busy')).toBeVisible();
+      await assertFinalOverlays(p, lineageOverlays);
+    } finally {
+      releaseLayout();
+      await p.unroute(workerPattern);
+    }
+    await expect(p.locator('.lineage-busy')).toHaveCount(0);
+    for (const selector of ['.lineage-toolbar', '.lineage-trail', '.lineage-foot']) {
+      await expect(p.locator(selector)).toBeVisible();
+    }
+    await expect(p.locator('.lineage-stage .react-flow__controls')).toBeVisible();
+    await assertFinalOverlays(p, lineageOverlays);
+    await selectLineagePath(p);
+    await assertFinalOverlays(p, lineageOverlays);
+    await p.screenshot({ path: `/tmp/workbench-final-sweep-lineage-${width}.png` });
+  }
+  async function sweepPierce(p: Page, width: number) {
+    await openFile(p, 'ubl.ontology.yaml');
+    await closeDrawer(p);
+    await tab(p, 'Neighborhood');
+    await pickCenter(p, name40);
+    await closeDetails(p);
+    const tools = p.locator('.neighborhood-tools');
+    await tools.getByRole('button', { name: 'Full pierce', exact: true }).click();
+    await expect(p.locator('.pierce-banner')).toBeVisible();
+    const pierceOverlays = [...overlays, '.pierce-banner'];
+    await assertFinalOverlays(p, pierceOverlays);
+    // Selecting the current center preserves the pierce step and its banner.
+    await p.locator('.react-flow__node[data-id="ontology/40"]').click();
+    await expect(p.locator('.inspector')).toBeVisible();
+    await expect(p.locator('.pierce-banner')).toBeVisible();
+    await assertFinalOverlays(p, pierceOverlays);
+    await p.screenshot({ path: `/tmp/workbench-final-sweep-pierce-${width}.png` });
+    await closeDetails(p);
+  }
+  const dialogNames = [
+    'Commit',
+    'Validation details',
+    'Add concept',
+    'Grouping suggestions',
+    'Import',
+    'View definition',
+    'Export menu',
+    'Lineage options',
+    'Trash',
+  ];
+  async function openSweepDialog(p: Page, name: string) {
+    const header = p.locator('.workspace-header');
+    if (['Grouping suggestions', 'Import', 'Trash'].includes(name)) {
+      await showSidebar(p);
+      const labels = {
+        'Grouping suggestions': /grouping suggestion/,
+        Import: /^Import/,
+        Trash: /^Trash$/,
+      };
+      await p
+        .locator('#workspace-sidebar')
+        .getByRole('button', {
+          name: labels[name as keyof typeof labels],
+        })
+        .click();
+      return;
+    }
+    const file = name === 'Lineage options' ? 'commerce.odcs.yaml' : 'ubl.ontology.yaml';
+    await openFile(p, file);
+    await closeDrawer(p);
+    if (name === 'Lineage options') {
+      await tab(p, 'Graph');
+      await p.getByRole('button', { name: /Lineage options/ }).click();
+    } else if (name === 'View definition') {
+      await tab(p, 'Catalog');
+      await p.locator('.catalog button').first().click();
+      await p.getByRole('button', { name: 'View definition' }).click();
+    } else if (name === 'Add concept') {
+      await header.getByRole('button', { name: 'New', exact: true }).click();
+      await p.getByRole('menuitem', { name: 'Add concept…', exact: true }).click();
+    } else if (name === 'Validation details') {
+      await p.getByRole('button', { name: /^Validation details/ }).click();
+    } else {
+      const label = name === 'Commit' ? /^Commit/ : /^More actions$/;
+      await header.getByRole('button', { name: label }).click();
+    }
+  }
+  async function assertUnclipped(p: Page, selector: string) {
+    await assertContained(p, selector);
+    const problems = await p.locator(selector).evaluateAll(elements => {
+      const found: string[] = [];
+      for (const element of elements) {
+        const bounds = element.getBoundingClientRect();
+        for (let parent = element.parentElement; parent; parent = parent.parentElement) {
+          // A modal dialog sits in the browser's top layer, so elements around it in the
+          // page cannot clip it, wherever it is placed in the DOM.
+          if (parent.matches('dialog[open]:modal')) break;
+          const style = getComputedStyle(parent);
+          const clip = parent.getBoundingClientRect();
+          const clippedX =
+            style.overflowX !== 'visible' &&
+            (bounds.left < clip.left - 1 || bounds.right > clip.right + 1);
+          const clippedY =
+            style.overflowY !== 'visible' &&
+            (bounds.top < clip.top - 1 || bounds.bottom > clip.bottom + 1);
+          if (clippedX || clippedY)
+            found.push(`${element.textContent} clipped by ${parent.className}`);
+        }
+      }
+      return found;
+    });
+    expect(problems).toEqual([]);
+  }
+  async function assertDialogLayout(p: Page) {
+    const box = p.locator('.workbench-dialog');
+    await expect(box).toBeVisible();
+    await expect(box.locator(':scope > h2')).toBeVisible();
+    await assertContained(p, '.workbench-dialog');
+    const footerSelector = '.workbench-dialog > footer, .workbench-dialog > .repair-actions';
+    const footer = p.locator(footerSelector);
+    await expect(footer).toBeVisible();
+    const buttons = footer.getByRole('button');
+    expect(await buttons.count()).toBeGreaterThan(0);
+    for (const button of await buttons.all()) await expect(button).toBeVisible();
+    const chrome =
+      '.workbench-dialog > h2, ' +
+      '.workbench-dialog > footer button, .workbench-dialog > .repair-actions button';
+    await assertUnclipped(p, chrome);
+    const controls = box.locator('button, input:not([type=hidden]), select, textarea, a[href]');
+    for (const control of (await controls.all()).reverse()) {
+      if (!(await control.isVisible())) continue;
+      if (await control.evaluate(element => !!element.closest('footer, .repair-actions'))) continue;
+      await control.scrollIntoViewIfNeeded();
+      const bounds = (await control.boundingBox())!;
+      expect(bounds.y + bounds.height).toBeLessThanOrEqual((await footer.boundingBox())!.y + 1);
+      break;
+    }
+    await assertUnclipped(p, chrome);
+    expect(
+      await layoutProblems(p, {
+        overlays: [footerSelector],
+        ignore: ':not(.workbench-dialog):not(.workbench-dialog *)',
+      }),
+    ).toEqual([]);
+    await noOverflow(p);
+  }
+  async function sweepDialog(p: Page, name: string, width: number) {
+    await openSweepDialog(p, name);
+    if (name === 'Export menu') {
+      await expect(p.getByRole('menu')).toBeVisible();
+      await expect(p.getByRole('menuitem', { name: /^Export/ })).toBeVisible();
+      await assertContained(p, '[role=menu]');
+      await noOverflow(p);
+    } else {
+      await assertDialogLayout(p);
+    }
+    const area = name.toLowerCase().replaceAll(' ', '-');
+    await p.screenshot({ path: `/tmp/workbench-final-sweep-dialog-${area}-${width}.png` });
+    await p.keyboard.press('Escape');
+    await closeDrawer(p);
+    await closeDetails(p);
+  }
+  for (const [width, height] of six) {
+    for (const [area, run] of [
+      ['lineage', sweepLineage],
+      ['pierce', sweepPierce],
+    ] as const) {
+      await check(
+        `overlaps: ${area} stays contained and clear at ${width} by ${height}`,
+        async () => {
+          const finalPage = await openPage(width, height);
+          try {
+            await run(finalPage, width);
+          } finally {
+            await finalPage.close();
+          }
+        },
+      );
+    }
+  }
+  await check(
+    'overlaps: dialogs keep their titles and actions clear at all six viewports',
+    async () => {
+      await api.ws.loadExample('flights');
+      await api.ws.importBatch({
+        files: [
+          {
+            path: 'flights.mapping.yaml',
+            source: await Bun.file('public/examples/ossie/flights.mapping.yaml').text(),
+          },
+        ],
+      });
+      for (const [width, height] of six) {
+        const finalPage = await openPage(width, height);
+        try {
+          for (const name of dialogNames) await sweepDialog(finalPage, name, width);
+        } finally {
+          await finalPage.close();
+        }
+      }
+    },
+  );
   // Status messages: a message never covers a control, disappears by itself within six seconds,
   // and clears on the next action. The sidebar re-opens or closes itself just after a resize; wait
   // for it to settle, then open it only if the loader is not already on screen.

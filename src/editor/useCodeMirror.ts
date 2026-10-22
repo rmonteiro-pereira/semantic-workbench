@@ -13,6 +13,7 @@ import {
   replacementChange,
 } from './editorText';
 import { languageFor, syntaxFor } from './languages';
+import { chooseLargeDocumentMode, resolveDocumentMode, toggleDocumentMode } from './documentMode';
 import { toDiagnostics, validateInWorker } from './lint';
 import type { CodeEditorOptions } from './editorTypes';
 
@@ -20,6 +21,7 @@ import type { CodeEditorOptions } from './editorTypes';
 export function useCodeMirror({
   value,
   filename,
+  documentId,
   onChange,
   ariaLabel,
   disabled = false,
@@ -41,6 +43,21 @@ export function useCodeMirror({
   const [checking, setChecking] = useState(false);
   const head = value.slice(0, 400);
   const syntax = useMemo(() => syntaxFor(filename, head), [filename, head]);
+  const largeDocument = useRef(chooseLargeDocumentMode(value.length));
+  const [largeMode, setLargeMode] = useState(largeDocument.current);
+  const [modeAvailable, setModeAvailable] = useState(largeDocument.current);
+  const modeOverride = useRef<boolean | undefined>(undefined);
+  const openedDocument = useRef(documentId ?? filename);
+
+  function toggleParsingMode() {
+    const nextMode = toggleDocumentMode(largeDocument.current);
+    modeOverride.current = nextMode;
+    largeDocument.current = nextMode;
+    setLargeMode(nextMode);
+    view.current?.dispatch({
+      effects: language.current.reconfigure(languageFor(syntax, nextMode)),
+    });
+  }
   async function validateDocument(editorView: EditorView) {
     setChecking(true);
     const text = editorView.state.doc.toString();
@@ -83,7 +100,7 @@ export function useCodeMirror({
       doc: value,
       extensions: [
         ...baseEditorExtensions(),
-        language.current.of(languageFor(syntax)),
+        language.current.of(languageFor(syntax, largeDocument.current)),
         editable.current.of([EditorView.editable.of(!disabled), EditorState.readOnly.of(disabled)]),
         linter(validateDocument, { delay: 300 }),
         editorKeymap(focusLineInput),
@@ -111,22 +128,39 @@ export function useCodeMirror({
   // External replacements must not be reported back as user edits.
   useEffect(() => {
     const editorView = view.current;
-    if (!editorView || value === bytes.current) return;
+    const identity = documentId ?? filename;
+    const newDocument = identity !== openedDocument.current;
+    if (!editorView || (value === bytes.current && !newDocument)) return;
+    openedDocument.current = identity;
+    if (newDocument) modeOverride.current = undefined;
     bytes.current = value;
     hasCarriageReturn.current = value.includes('\r');
     setLineEnding(lineEndingLabel(value));
+    const nextMode = resolveDocumentMode(
+      value.length,
+      chooseLargeDocumentMode(value.length, largeDocument.current, true),
+      modeOverride.current,
+      newDocument,
+    );
+    setLargeMode(nextMode);
+    setModeAvailable(nextMode || modeOverride.current !== undefined);
+    const modeChanged = nextMode !== largeDocument.current;
+    largeDocument.current = nextMode;
     const next = normalize(value);
     const current = editorView.state.doc.toString();
-    if (next !== current) {
+    if (next !== current || modeChanged) {
       editorView.dispatch({
         changes: replacementChange(current, next),
         annotations: external.of(true),
+        effects: modeChanged ? language.current.reconfigure(languageFor(syntax, nextMode)) : [],
       });
     }
     forceLinting(editorView);
-  }, [value]);
+  }, [value, filename, documentId]);
   useEffect(() => {
-    view.current?.dispatch({ effects: language.current.reconfigure(languageFor(syntax)) });
+    view.current?.dispatch({
+      effects: language.current.reconfigure(languageFor(syntax, largeDocument.current)),
+    });
   }, [syntax]);
   useEffect(() => {
     view.current?.dispatch({
@@ -136,5 +170,17 @@ export function useCodeMirror({
       ]),
     });
   }, [disabled]);
-  return { host, view, lineInput, lineEnding, documentLevel, cursor, checking, syntax };
+  return {
+    host,
+    view,
+    lineInput,
+    lineEnding,
+    documentLevel,
+    cursor,
+    checking,
+    syntax,
+    largeMode,
+    modeAvailable: syntax === 'YAML' && modeAvailable,
+    toggleParsingMode,
+  };
 }

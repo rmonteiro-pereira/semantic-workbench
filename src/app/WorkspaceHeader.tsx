@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import React from 'react';
 import type { Doc, WorkspaceStatus } from '../projects/api';
-import type { AutosaveState } from '../projects/autosave';
+import type { AutosaveStatus } from '../projects/autosave';
 import type { MenuItem } from '../projects/Menu';
 import { MenuButton } from '../projects/Menu';
 import type { ValidatedModel } from './types';
@@ -26,22 +26,18 @@ type Props = {
   current: Doc | null;
   newItems: () => MenuItem[];
   download: () => void;
-  source: string;
-  autosave: {
-    state: AutosaveState;
-    flush(): Promise<void>;
-    resolved: (hash: string | null, text: string) => void;
-    cancel: () => void;
-  };
+  hasSource: boolean;
+  saveStatus: AutosaveStatus;
+  flush: () => Promise<void>;
   saveState: string;
-  result: { model: ValidatedModel; error: string };
+  error: string;
   setShowValidation: React.Dispatch<React.SetStateAction<boolean>>;
   openStale: () => Promise<void>;
   setCommitting: React.Dispatch<React.SetStateAction<boolean>>;
   status: WorkspaceStatus | null;
 };
 /** Renders workspace header. */
-export function WorkspaceHeader({
+export const WorkspaceHeader = React.memo(function WorkspaceHeader({
   workspaceToggle,
   compact,
   sidebarOpen,
@@ -51,10 +47,11 @@ export function WorkspaceHeader({
   current,
   newItems,
   download,
-  source,
-  autosave,
+  hasSource,
+  saveStatus,
+  flush,
   saveState,
-  result,
+  error,
   setShowValidation,
   openStale,
   setCommitting,
@@ -87,24 +84,23 @@ export function WorkspaceHeader({
   }
 
   function getSaveStateAction() {
-    if (autosave.state.status === 'invalid') {
+    if (saveStatus === 'invalid') {
       return 'show the validation findings';
     }
-    if (autosave.state.status === 'stale') {
+    if (saveStatus === 'stale') {
       return 'compare with the file on disk';
     }
     return 'open Commit';
   }
 
   function handleSaveStateClick() {
-    const saveStatus = autosave.state.status;
-    if (saveStatus === 'invalid' || !!result.error) setShowValidation(true);
+    if (saveStatus === 'invalid' || !!error) setShowValidation(true);
     else if (saveStatus === 'stale') void openStale();
     else setCommitting(true);
   }
 
   function handleCommitClick() {
-    void autosave.flush();
+    void flush();
     setCommitting(true);
   }
 
@@ -147,13 +143,13 @@ export function WorkspaceHeader({
                 label: 'Export',
                 icon: <Download size={14} />,
                 run: download,
-                disabled: source ? false : 'Open a file to export it.',
+                disabled: hasSource ? false : 'Open a file to export it.',
                 hint: 'Download the file exactly as it is',
               },
             ]}
           />
           <button
-            className={`save-state s-${autosave.state.status}`}
+            className={`save-state s-${saveStatus}`}
             role="status"
             aria-label="Save state"
             disabled={!current}
@@ -179,4 +175,4 @@ export function WorkspaceHeader({
       </header>
     </>
   );
-}
+});

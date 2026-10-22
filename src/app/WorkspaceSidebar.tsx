@@ -44,7 +44,7 @@ type Props = {
   importFiles: (files: File[]) => Promise<void>;
 };
 /** Renders workspace sidebar. */
-export function WorkspaceSidebar({
+export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
   compact,
   sidebarOpen,
   closeWorkspace,
@@ -253,4 +253,4 @@ export function WorkspaceSidebar({
       </aside>
     </>
   );
-}
+});

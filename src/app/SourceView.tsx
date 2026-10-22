@@ -25,6 +25,7 @@ export function SourceView({ sourceEditor, current, source, setSource, setEditor
       ref={sourceEditor}
       ariaLabel="Definition source"
       className="code"
+      documentId={current?.id}
       filename={current?.filename ?? 'definition.yaml'}
       value={source}
       onChange={setSource}

@@ -21,6 +21,20 @@ const sql = await api.ws.importBatch({
   files: names.map(path => ({ path, source: fixture(path) })),
 });
 const mall = await api.ws.loadExample('mall');
+// The CASE WHEN file padded past 500,000 characters, so the editor opens it in large file mode.
+const padding = Array.from(
+  { length: 8000 },
+  (_, index) => `# Padding line ${index} keeps this file above the large file threshold.`,
+).join('\n');
+const large = await api.ws.importBatch({
+  name: 'Large sql',
+  files: [
+    {
+      path: 'large-case-when.ossie.yaml',
+      source: `${fixture('case-when.ossie.yaml')}\n${padding}\n`,
+    },
+  ],
+});
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 const errors: string[] = [];
@@ -226,6 +240,23 @@ try {
           return s ? getComputedStyle(s).color : null;
         }),
       ).toBe(rgb('#0000ff'));
+    },
+  );
+  await check(
+    'a file over 500,000 characters opens in large file mode, still colors SQL on screen, and can switch to full parsing',
+    async () => {
+      await openSource('large-case-when.ossie.yaml', large.name);
+      const bar = page.locator('.code-editor-bar');
+      await expect(bar).toContainText('Large file mode');
+      await expect(bar.getByText('Large file mode')).toHaveAttribute('title', /500,000 characters/);
+      await expect.poll(() => colorOf('CASE')).toBe(rgb('#0000ff'));
+      expect(await colorOf('metrics')).toBe(rgb('#800000'));
+      await page.screenshot({ path: '/tmp/workbench-sql-large-mode.png' });
+      await bar.getByRole('button', { name: 'Full parsing', exact: true }).click();
+      await expect(bar.getByRole('button', { name: 'Large file mode', exact: true })).toBeVisible();
+      await expect.poll(() => colorOf('CASE')).toBe(rgb('#0000ff'));
+      await bar.getByRole('button', { name: 'Large file mode', exact: true }).click();
+      await expect(bar.getByRole('button', { name: 'Full parsing', exact: true })).toBeVisible();
     },
   );
   await check('lint never changes bytes: exported files equal the files on disk', async () => {

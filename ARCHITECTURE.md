@@ -61,6 +61,22 @@ Git actions run only from explicit requests: `routes/git.ts` → `scm.ts` → `g
 commands (fetch, pull, push, clone) need an explicit flag in `git.ts`, run with a 10-minute limit
 and can be cancelled.
 
+The workspace shell memoizes its sidebar, toolbar, header and status footer. Display props carry
+booleans, counts and save status instead of the editor text. `src/app/useStableHandler.ts`
+keeps control callbacks stable while calling the latest committed handler; handlers that produce
+rendered content retain explicit React dependencies. Stable React setters are passed directly.
+The stable handler is called only from event handlers or passive effects, never during render
+or child layout effects, which run before its parent publishes the committed handler.
+`src/editor/documentMode.ts` chooses the highlighting budget at mount and external replacement;
+typing retains that choice. An explicit status-bar override lasts until the document ID changes.
+`embeddedLanguages.ts` shares SQL paths and extension detection between full parsing and
+`viewportYaml.ts`, which reconstructs visible YAML with sparse ancestor and sibling context.
+`yamlIndentation.ts` caches indentation summaries on CodeMirror's persistent text branches:
+initial indexing reads the lines once, and edits reuse unchanged branches. `largeYaml.ts`
+parses embedded values only in visible ranges, debounces edits, and provides indentation folding.
+Source updates remain synchronous so the
+editor never receives an older deferred value as an external replacement.
+
 ## Rules that must hold
 
 - Bytes the user did not edit are written back unchanged; every save is a patch or a full text

@@ -830,3 +830,74 @@ agent context already carries everything except two additive fields).
   budget in `test:editor` passes with little margin (about 29.5 ms per key against 30 ms with a
   save in flight), so it is the first check to fail on a busy machine.
 
+## R29. Typing latency
+
+- YAML above 500,000 UTF-16 code units uses CodeMirror's existing legacy streaming mode.
+  Its parser stops at the viewport instead of synchronously rebuilding the tree through the
+  background parse frontier. Keys, plain values, strings, numbers and comments retain the
+  editor's highlight palette. Smaller YAML retains the mixed SQL/JSON parser; the shipped
+  SQL and extension examples fit below the threshold. Large YAML has basic YAML highlighting
+  rather than embedded SQL/JSON highlighting and structural folding.
+- The size mode is chosen at mount and reconsidered only for an external replacement; typing
+  across the threshold retains the document’s chosen parser. Source propagation stays synchronous:
+  byte preservation, external replacement,
+  validation, drafts and autosave keep their existing paths. No deferred text can overwrite a
+  newer editor value. React rendering is unchanged in this change.
+- A terminal-only `bun test` benchmark used the profile script's 1,932,802-character fixture,
+  46 single-character insertions at the first concept, and `EditorState.update`. Before every
+  insertion, `ensureSyntaxTree` requested the stated parse frontier with a 1,000 ms budget;
+  only the transaction was timed. At 4,000 characters parsed, the mean fell from **3.48 to
+  1.33 ms/key**; at 104,000 characters, **10.71 to 0.76 ms/key**. These numbers exclude React,
+  layout, Event Timing quantization and autosave. The reviewer must measure the browser's
+  39-keystroke check with a save in flight to establish the **22 ms** target.
+
+- The React follow-up memoizes the workspace sidebar (including the project tree), toolbar,
+  header, resize handle and footer. Stable event callbacks read the latest committed handlers;
+  the creation menu keeps explicit model/document dependencies. The header receives source
+  availability, save status and the validation error instead of the full source and autosave
+  object; the footer receives booleans and counts. Repeated keystrokes with the same visible
+  status therefore skip those subtrees and their icons. Inactive canvas views were already
+  unmounted and cursor state already belonged to the editor. Text propagation, byte-preserving
+  edits, validation and autosave remain synchronous on their existing paths.
+- **Browser measurements** (the editor check's method: mean `keydown` Event Timing duration
+  over 39 keystrokes, keys under 16 ms counted as 16; dev build; load average under 8):
+
+  | State | Without a save | With a save in flight |
+  | --- | --- | --- |
+  | Before (Phase 13) | 27–29 ms | 29.3–30.4 ms |
+  | Streaming YAML for large files | 27.5–29.7 ms | 25.6–26.7 ms |
+  | Plus memoized app shell | 17.4–28 ms (first run warms up) | **16.6–16.8 ms** |
+
+  The CPU profile before the change showed, per keystroke, up to ~15 ms re-parsing YAML (the
+  `@lezer/yaml` tree never reuses a node, so each transaction re-parsed up to the background
+  parse frontier), 5–9 ms of React rendering the whole app, and ~11 ms of style, layout and
+  paint. A first attempt that deferred `setSource` with `startTransition` lost a keystroke (an
+  older `value` reached the editor and was applied as an external replacement) and was dropped.
+  The editor check's budget is unchanged. The change was written by Codex from two briefs
+  (`codex/phase-14-latency*.md`) and reviewed and measured here.
+
+- README documents the reduced colouring and lack of folding for YAML above 500,000 characters.
+- `useStableHandler` names the latest-committed-handler contract and restricts calls to events
+  and passive effects; the inspector and item-editing refs remain unchanged because they publish
+  during render, so moving publication to a layout effect would change their timing.
+- The app passes the stable `setTab` setter directly instead of wrapping it.
+- New unit tests cover YAML key tags, mixed SQL/JSON parsing, size-mode transitions and forwarding
+  to the latest published handler.
+
+- Large mode now retains viewport SQL/extension-JSON colouring and indentation folding, with a
+  document-local Full parsing switch. Persistent text summaries avoid scanning offscreen blocks
+  again after each edit. Browser latency was not remeasured in the port-restricted sandbox;
+  the prior save-in-flight baseline is 16.6–16.8 ms/key and the reviewer target remains ≤22 ms/key.
+- **Large file mode, final numbers** (same method, 1.9 MB file, load average under 8, after
+  SQL and extension-JSON colouring for the lines on screen and indentation folding were added):
+  large file mode 17.8–18.5 ms per key with a save in flight (editor check: 18.3 and 18.5 ms);
+  **Full parsing** chosen in the status bar 27.5–34.1 ms, which is the cost the mode avoids.
+  Validation, findings, SQL lint, autosave and drafts are the same in both modes. The status
+  bar names the mode (`Large file mode`, with a tooltip giving the 500,000-character threshold
+  and the reason) and switches to **Full parsing** and back for the open document.
+  `test:sql` checks the indicator, SQL colours on screen in large file mode, and both switches.
+- **Final overlap sweep.** The new dialog check first reported the Grouping suggestions dialog
+  as clipped by the sidebar. The dialog is a modal `<dialog>` in the browser's top layer, so the
+  sidebar cannot clip it, and the screenshots confirm it. The check now stops looking for
+  clipping ancestors at an open modal dialog.
+

@@ -11,7 +11,7 @@ type Props = {
   clampSidebarWidth: (width: number) => number;
 };
 /** Renders sidebar resize handle. */
-export function SidebarResizeHandle({
+export const SidebarResizeHandle = React.memo(function SidebarResizeHandle({
   compact,
   sidebarOpen,
   sidebarWidth,
@@ -98,4 +98,4 @@ export function SidebarResizeHandle({
       )}
     </>
   );
-}
+});
