@@ -1,10 +1,11 @@
 /** Application entry point and composition of the workspace views. */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { AppDialogs } from './app/AppDialogs';
 import { DetailsPanel } from './app/DetailsPanel';
 import { SidebarResizeHandle } from './app/SidebarResizeHandle';
 import { StatusFooter } from './app/StatusFooter';
+import { useStableHandler } from './app/useStableHandler';
 import { useWorkbench } from './app/useWorkbench';
 import { WorkspaceCanvas } from './app/WorkspaceCanvas';
 import { WorkspaceHeader } from './app/WorkspaceHeader';
@@ -97,6 +98,22 @@ function App() {
     dispatchWalk,
     entity,
   } = useWorkbench({ setMessage });
+  const closeWorkspace = useStableHandler(sidebar.closeWorkspace);
+  const treeAction = useStableHandler(projectActions.treeAction);
+  const openDocument = useStableHandler(fileNavigation.openDocument);
+  const refresh = useStableHandler(workspaceEvents.refresh);
+  const loadExample = useStableHandler(examples.loadExample);
+  const importIntoProject = useStableHandler(projectActions.importIntoProject);
+  const importFiles = useStableHandler(imports.importFiles);
+  const showNeighborhood = useStableHandler(walkNavigation.showNeighborhood);
+  const exportSource = useStableHandler(download);
+  const flushSave = useStableHandler(saving.autosave.flush);
+  const openStale = useStableHandler(saving.openStale);
+  const changeGrouping = useStableHandler(grouping.change);
+  const toolbarGrouping = useMemo(
+    () => ({ value: grouping.value, error: grouping.error, change: changeGrouping }),
+    [grouping.value, grouping.error, changeGrouping],
+  );
   const shellClassName = [
     'shell',
     sidebar.sidebarOpen ? 'workspace-open' : 'workspace-closed',
@@ -141,7 +158,7 @@ function App() {
           setDeleteTarget={setDeleteTarget}
           sourceRef={sourceRef}
           setDeleted={setDeleted}
-          refresh={workspaceEvents.refresh}
+          refresh={refresh}
           trashOpen={trashOpen}
           trashVersion={trashVersion}
           setTrashOpen={setTrashOpen}
@@ -152,7 +169,7 @@ function App() {
           currentRef={currentRef}
           importConflict={importConflict}
           setImportConflict={setImportConflict}
-          importIntoProject={projectActions.importIntoProject}
+          importIntoProject={importIntoProject}
           deleted={deleted}
           undoDelete={projectActions.undoDelete}
           editing={itemEditing.editing}
@@ -204,7 +221,7 @@ function App() {
         <WorkspaceSidebar
           compact={sidebar.compact}
           sidebarOpen={sidebar.sidebarOpen}
-          closeWorkspace={sidebar.closeWorkspace}
+          closeWorkspace={closeWorkspace}
           sidebarRef={sidebar.sidebarRef}
           tab={tab}
           setTab={setTab}
@@ -212,23 +229,23 @@ function App() {
           projects={projects}
           scmSlug={itemEditing.scmSlug}
           current={current}
-          treeAction={projectActions.treeAction}
+          treeAction={treeAction}
           docs={docs}
-          openDocument={fileNavigation.openDocument}
+          openDocument={openDocument}
           setDeleteTarget={setDeleteTarget}
           setTrashOpen={setTrashOpen}
           suggestions={suggestions}
           setMessage={setMessage}
-          refresh={workspaceEvents.refresh}
+          refresh={refresh}
           examplesOpen={sidebar.examplesOpen}
           setExamplesChoice={sidebar.setExamplesChoice}
-          loadExample={examples.loadExample}
+          loadExample={loadExample}
           busy={busy}
           setImporting={setImporting}
           importInput={importInput}
           importInto={importInto}
-          importIntoProject={projectActions.importIntoProject}
-          importFiles={imports.importFiles}
+          importIntoProject={importIntoProject}
+          importFiles={importFiles}
         />
         <SidebarResizeHandle
           compact={sidebar.compact}
@@ -250,13 +267,14 @@ function App() {
             model={validationState.model}
             current={current}
             newItems={creationMenu.newItems}
-            download={download}
-            source={source}
-            autosave={saving.autosave}
+            download={exportSource}
+            hasSource={!!source}
+            saveStatus={saving.autosave.state.status}
+            flush={flushSave}
             saveState={saving.saveState}
-            result={validationState.result}
+            error={validationState.result.error}
             setShowValidation={setShowValidation}
-            openStale={saving.openStale}
+            openStale={openStale}
             setCommitting={saving.setCommitting}
             status={status}
           />
@@ -265,16 +283,16 @@ function App() {
             isContract={lineageState.isContract}
             setTab={setTab}
             setSearch={setSearch}
-            showNeighborhood={walkNavigation.showNeighborhood}
+            showNeighborhood={showNeighborhood}
             neighborhoodFocus={neighborhoodFocus}
             selected={selected}
             relationship={references.relationship}
             compact={sidebar.compact}
-            closeWorkspace={sidebar.closeWorkspace}
+            closeWorkspace={closeWorkspace}
             kpis={metrics.kpis}
             groupingOverview={groupingOverview}
             lineageShown={lineageState.lineageShown}
-            grouping={grouping}
+            grouping={toolbarGrouping}
             search={search}
           />
           <div ref={inspector.canvasRow} className={canvasClassName}>
@@ -302,9 +320,9 @@ function App() {
               historyPath={itemEditing.historyPath}
               setScmProject={itemEditing.setScmProject}
               setHistoryPath={itemEditing.setHistoryPath}
-              refresh={workspaceEvents.refresh}
+              refresh={refresh}
               docsRef={docsRef}
-              openDocument={fileNavigation.openDocument}
+              openDocument={openDocument}
               setTab={setTab}
               kpiProject={metrics.kpiProject}
               kpis={metrics.kpis}
@@ -344,7 +362,7 @@ function App() {
               setSelectedEdge={setSelectedEdge}
               setSelected={setSelected}
               setSearch={setSearch}
-              showNeighborhood={walkNavigation.showNeighborhood}
+              showNeighborhood={showNeighborhood}
               walk={walk}
               dispatchWalk={dispatchWalk}
               walkTo={walkNavigation.walkTo}
@@ -371,22 +389,24 @@ function App() {
               setSource={setSource}
               current={current}
               setDefinition={setDefinition}
-              showNeighborhood={walkNavigation.showNeighborhood}
+              showNeighborhood={showNeighborhood}
               rdfTarget={itemEditing.rdfTarget}
               setRdfDeleting={itemEditing.setRdfDeleting}
               entityTarget={itemEditing.entityTarget}
               setAdding={itemEditing.setAdding}
               relatedDocuments={references.relatedDocuments}
-              openDocument={fileNavigation.openDocument}
+              openDocument={openDocument}
             />
           </div>
           <StatusFooter
-            result={validationState.result}
-            source={source}
-            current={current}
+            error={validationState.result.error}
+            hasSource={!!source}
+            hasDocument={!!current}
+            dirty={!!current && source !== current.source}
             setShowValidation={setShowValidation}
-            validation={validationState.validation}
-            model={validationState.model}
+            issueCount={validationState.validation.issues.length}
+            entityCount={validationState.model?.entities.length ?? 0}
+            relationshipCount={validationState.model?.edges.length ?? 0}
             message={message}
             tab={tab}
           />

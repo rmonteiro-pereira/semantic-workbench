@@ -2,8 +2,15 @@
 import type { FormEvent, RefObject } from 'react';
 import { ListOrdered, Search } from 'lucide-react';
 
+const largeModeDescription =
+  'This file is over 500,000 characters. Colouring and folding work on what is on screen ' +
+  'so typing stays fast.';
+
 type Props = {
   syntax: string;
+  largeMode: boolean;
+  modeAvailable: boolean;
+  onToggleParsing: () => void;
   lineEnding: string;
   cursor: { line: number; column: number };
   checking: boolean;
@@ -15,6 +22,9 @@ type Props = {
 /** Displays file syntax, cursor position, validation status and navigation controls. */
 export function EditorStatusBar({
   syntax,
+  largeMode,
+  modeAvailable,
+  onToggleParsing,
   lineEnding,
   cursor,
   checking,
@@ -44,6 +54,16 @@ export function EditorStatusBar({
       <span className="code-editor-position" aria-live="off">
         Ln {cursor.line}, Col {cursor.column}
       </span>
+      {modeAvailable && (
+        <>
+          <span title={largeMode ? largeModeDescription : undefined}>
+            {largeMode ? 'Large file mode' : 'Full parsing'}
+          </span>
+          <button type="button" onClick={onToggleParsing}>
+            {largeMode ? 'Full parsing' : 'Large file mode'}
+          </button>
+        </>
+      )}
       {checking && (
         <span className="code-editor-checking" role="status">
           Checking…

@@ -20,8 +20,19 @@ export const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorOptions>(functi
   { className = '', ...options },
   ref,
 ) {
-  const { host, view, lineInput, lineEnding, documentLevel, cursor, checking, syntax } =
-    useCodeMirror(options);
+  const {
+    host,
+    view,
+    lineInput,
+    lineEnding,
+    documentLevel,
+    cursor,
+    checking,
+    syntax,
+    largeMode,
+    modeAvailable,
+    toggleParsingMode,
+  } = useCodeMirror(options);
 
   function goToLine(line: number, column = 1) {
     goToEditorLine(view.current, line, column);
@@ -46,6 +57,9 @@ export const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorOptions>(functi
     <div className={`code-editor ${className}`}>
       <EditorStatusBar
         syntax={syntax}
+        largeMode={largeMode}
+        modeAvailable={modeAvailable}
+        onToggleParsing={toggleParsingMode}
         lineEnding={lineEnding}
         cursor={cursor}
         checking={checking}

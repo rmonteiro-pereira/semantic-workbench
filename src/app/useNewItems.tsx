@@ -1,5 +1,5 @@
 /** Builds creation actions with explanations for unsupported document kinds. */
-import React from 'react';
+import React, { useCallback } from 'react';
 import type { Path } from '../edit/item-model';
 import { addableKinds, kindLabel, type ItemKind } from '../edit/item-model';
 import type { Doc } from '../projects/api';
@@ -23,7 +23,7 @@ type Options = {
 /** Manages new items. */
 export function useNewItems({ model, current, currentIsRdf, setAdding, setRdfAdding }: Options) {
   // New ▾: one Add dialog per kind; kinds the open file cannot hold stay listed with the reason.
-  function newItems(): MenuItem[] {
+  const newItems = useCallback((): MenuItem[] => {
     function getUnavailableReason() {
       if (!current) {
         return 'Open a file first.';
@@ -63,7 +63,7 @@ export function useNewItems({ model, current, currentIsRdf, setAdding, setRdfAdd
         },
       },
     ];
-  }
+  }, [model, current, currentIsRdf, setAdding, setRdfAdding]);
 
   return { newItems };
 }

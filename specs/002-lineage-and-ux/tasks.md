@@ -295,10 +295,10 @@ shopping center mapping in Graph; `bun run test:mapping-graph`.
 
 ## Phase 14: Polish and cross-cutting
 
-- [ ] T097 [P] README: lineage (reading of declared names, foreign-key direction), pierce budgets, Metric vocabulary and `kpi_bindings`, autosave and Commit, import commits, clone among network operations, repository-local identity, credential guide, manifest format, SQL lint coverage and warnings, Group by modes; counts from tests (constitution VII)
-- [ ] T098 [P] Update docs/graph-design.md with the lineage canvas, ports, paging and incremental placement
+- [x] T097 [P] README: lineage (reading of declared names, foreign-key direction), pierce budgets, Metric vocabulary and `kpi_bindings`, autosave and Commit, import commits, clone among network operations, repository-local identity, credential guide, manifest format, SQL lint coverage and warnings, Group by modes; counts from tests (constitution VII)
+- [x] T098 [P] Update docs/graph-design.md with the lineage canvas, ports, paging and incremental placement
 - [ ] T099 Run every suite and record results in specs/002-lineage-and-ux/verification.md (commands, counts, durations, screenshots paths)
-- [ ] T100 [CODEX] Final overlap sweep: every floating element in the lineage canvas, Neighborhood pierce banner and dialogs across the viewport matrix in scripts/responsive-ui-tests.ts
+- [x] T100 [CODEX] Final overlap sweep: every floating element in the lineage canvas, Neighborhood pierce banner and dialogs across the viewport matrix in scripts/responsive-ui-tests.ts
 
 ---
 

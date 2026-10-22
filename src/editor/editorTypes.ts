@@ -5,6 +5,7 @@ import type { Issue } from '../diagnostics';
 export type CodeEditorOptions = {
   value: string;
   filename: string;
+  documentId?: string;
   onChange: (next: string) => void;
   ariaLabel: string;
   disabled?: boolean;

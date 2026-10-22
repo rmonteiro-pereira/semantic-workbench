@@ -8,10 +8,13 @@ import {
 import { parseMixed } from '@lezer/common';
 import { tags as t } from '@lezer/highlight';
 import { yaml, yamlLanguage } from '@codemirror/lang-yaml';
+import { yaml as yamlStream } from '@codemirror/legacy-modes/mode/yaml';
 import { json, jsonLanguage } from '@codemirror/lang-json';
 import { xml } from '@codemirror/lang-xml';
 import { StandardSQL } from '@codemirror/lang-sql';
-import type { SyntaxNode } from '@lezer/common';
+import { jsonSql, yamlEmbeddedLanguage } from './embeddedLanguages';
+import { largeYamlSupport } from './largeYaml';
+export { sqlKeyPath } from './embeddedLanguages';
 import { rdfSyntax } from '../rdf';
 // Unknown files and .gitignore use plain text. Workbench extension data inside YAML is highlighted
 // as JSON.
@@ -92,136 +95,16 @@ const rdfMode = {
   },
 };
 const rdfLanguage = StreamLanguage.define(rdfMode);
-// Known SQL key paths use SQL highlighting unless their sibling dialect names a non-SQL language.
-// Highlighting uses the incremental syntax tree; lint positions use the exact YAML syntax tree.
-const NOT_SQL = new Set(['MDX', 'DAX', 'MAQL', 'TABLEAU', 'SIGMA', 'THOUGHTSPOT', 'HOLISTICS_AQL']);
-const MAPPINGS = new Set(['object_mappings', 'referent_mappings', 'link_mappings']);
-type Read = (from: number, to: number) => string;
-const unquote = (s: string) => s.trim().replace(/^(['"])(.*)\1$/s, '$2');
-/** Identifies embedded SQL paths while excluding declared non-SQL dialects. */
-export function sqlKeyPath(keys: string[], sibling: (key: string) => string | undefined) {
-  const n = keys.length;
-  const last = keys[n - 1];
-  if (
-    last === 'expression' &&
-    keys[n - 2] === 'dialects' &&
-    keys[n - 3] === 'expression' &&
-    (keys[n - 4] === 'fields' || keys[n - 4] === 'metrics')
-  ) {
-    const d = sibling('dialect');
-    return !d || !NOT_SQL.has(d.toUpperCase());
-  }
-  if (last === 'expression' && MAPPINGS.has(keys[n - 2]) && keys.includes('concept_mappings'))
-    return true;
-  if (last === 'transformLogic' && keys[0] === 'schema' && keys.includes('properties')) return true;
-  if (
-    last === 'query' &&
-    keys[n - 2] === 'quality' &&
-    (keys[0] === 'schema' || keys[0] === 'quality')
-  )
-    return (sibling('type') ?? '').toLowerCase() === 'sql';
-  return false;
-}
-// YAML: Pair > Key, value. Keys of every enclosing pair, outermost first.
-function yamlSql(value: SyntaxNode, read: Read): boolean {
-  const pair = value.name === 'BlockLiteralContent' ? value.parent?.parent : value.parent;
-  if (!pair || pair.name !== 'Pair') return false;
-  const keys: string[] = [];
-  for (let p: SyntaxNode | null = pair; p && keys.length < 24; p = p.parent)
-    if (p.name === 'Pair') {
-      const k = p.getChild('Key');
-      if (!k) return false;
-      keys.unshift(unquote(read(k.from, k.to)));
-    }
-  const owner = pair.parent;
-  const sibling = (key: string) => {
-    if (!owner) return undefined;
-    for (let c = owner.firstChild; c; c = c.nextSibling)
-      if (c.name === 'Pair') {
-        const k = c.getChild('Key');
-        if (k && unquote(read(k.from, k.to)) === key) {
-          const v = c.lastChild;
-          return v && v.name !== 'Key' && v.name !== ':' ? unquote(read(v.from, v.to)) : undefined;
-        }
-      }
-    return undefined;
-  };
-  return sqlKeyPath(keys, sibling);
-}
-// JSON: Property > PropertyName, value.
-function jsonSql(value: SyntaxNode, read: Read): boolean {
-  const prop = value.parent;
-  if (!prop || prop.name !== 'Property' || value.prevSibling?.name !== ':') return false;
-  const keys: string[] = [];
-  for (let p: SyntaxNode | null = prop; p && keys.length < 24; p = p.parent)
-    if (p.name === 'Property') {
-      const k = p.getChild('PropertyName');
-      if (!k) return false;
-      try {
-        keys.unshift(JSON.parse(read(k.from, k.to)));
-      } catch {
-        return false;
-      }
-    }
-  const owner = prop.parent;
-  const sibling = (key: string) => {
-    if (!owner) return undefined;
-    for (let c = owner.firstChild; c; c = c.nextSibling)
-      if (c.name === 'Property') {
-        const k = c.getChild('PropertyName');
-        let name = '';
-        try {
-          name = k ? JSON.parse(read(k.from, k.to)) : '';
-        } catch {}
-        if (name === key) {
-          const v = c.lastChild;
-          try {
-            return v && v.name === 'String' ? JSON.parse(read(v.from, v.to)) : undefined;
-          } catch {
-            return undefined;
-          }
-        }
-      }
-    return undefined;
-  };
-  return sqlKeyPath(keys, sibling);
-}
+// Both modes share the exact key-path and dialect checks.
 const sqlParser = StandardSQL.language.parser;
-const SQL_KEY_BEFORE =
-  /(?:expression|query|transformLogic)["']?\s*:\s*(?:[|>][-+0-9]*[ \t]*(?:#[^\n]*)?\n[ \t]*)?['"]?$/;
-// YAML whose workbench extension blocks contain JSON, and whose SQL locations contain SQL.
 const extensionYaml = yamlLanguage.configure({
   wrap: parseMixed((node, input) => {
-    const read: Read = (a, b) => input.read(a, b);
-    if (
-      node.name === 'Literal' ||
-      node.name === 'QuotedLiteral' ||
-      node.name === 'BlockLiteralContent'
-    ) {
-      // Cheap filter first: the value must follow one of the keys that hold SQL.
-      const before = read(
-        Math.max(0, node.from - (node.name === 'BlockLiteralContent' ? 48 : 24)),
-        node.from,
-      );
-      if (
-        SQL_KEY_BEFORE.test(before) &&
-        node.node.parent?.name !== 'Key' &&
-        yamlSql(node.node, read)
-      ) {
-        if (node.name === 'QuotedLiteral')
-          return node.to - node.from > 2
-            ? { parser: sqlParser, overlay: [{ from: node.from + 1, to: node.to - 1 }] }
-            : null;
-        return { parser: sqlParser };
-      }
-    }
-    if (node.name !== 'BlockLiteralContent') return null;
-    const pair = node.node.parent?.parent;
-    const key = pair?.getChild('Key');
-    if (!pair || !key || input.read(key.from, key.to).trim() !== 'data') return null;
-    const owner = pair.parent;
-    if (!owner || !input.read(owner.from, owner.to).includes('SEMANTIC_WORKBENCH')) return null;
-    return { parser: jsonLanguage.parser };
+    const language = yamlEmbeddedLanguage(node.node, (from, to) => input.read(from, to));
+    if (!language) return null;
+    const parser = language === 'sql' ? sqlParser : jsonLanguage.parser;
+    if (node.name !== 'QuotedLiteral') return { parser };
+    if (node.to - node.from <= 2) return null;
+    return { parser, overlay: [{ from: node.from + 1, to: node.to - 1 }] };
   }),
 });
 const sqlJson = jsonLanguage.configure({
@@ -232,8 +115,27 @@ const sqlJson = jsonLanguage.configure({
       : null;
   }),
 });
+// The tree parser reparses large prefixes after edits; the stream parser stops at the viewport.
+const largeYaml = StreamLanguage.define({
+  ...yamlStream,
+  token(stream, state) {
+    const token = yamlStream.token(stream, state);
+    if (token === 'atom') return 'yamlKey';
+    if (token === 'meta') return 'punctuation';
+    if (token === 'def') return 'documentMeta';
+    if (token === null && stream.current().trim()) return 'literal';
+    return token;
+  },
+  tokenTable: { yamlKey: t.definition(t.propertyName) },
+});
+
+/** Sets the source length above which YAML uses viewport-limited highlighting. */
+export const largeDocumentThreshold = 500_000;
+
 /** Returns the CodeMirror language configuration for a source syntax. */
-export function languageFor(syntax: SyntaxName) {
+export function languageFor(syntax: SyntaxName, largeDocument = false) {
+  if (syntax === 'YAML' && largeDocument)
+    return new LanguageSupport(largeYaml, largeYamlSupport(lightHighlight));
   if (syntax === 'YAML') return new LanguageSupport(extensionYaml, yaml().support);
   if (syntax === 'JSON') return new LanguageSupport(sqlJson, json().support);
   if (syntax === 'RDF/XML') return xml();
@@ -243,6 +145,7 @@ export function languageFor(syntax: SyntaxName) {
 }
 // Colors after VS Code's Light+ theme: YAML keys and XML tags dark red, YAML values and keywords
 // blue, JSON keys dark blue, strings red-brown, numbers green, comments green, IRIs teal.
+/** Supplies the shared token colors for syntax trees and viewport decorations. */
 export const lightHighlight = HighlightStyle.define([
   { tag: t.propertyName, color: '#0451a5' },
   { tag: t.definition(t.propertyName), color: '#800000' },
@@ -266,4 +169,5 @@ export const lightHighlight = HighlightStyle.define([
 const yamlValues = HighlightStyle.define([{ tag: t.content, color: '#0000ff' }], {
   scope: extensionYaml,
 });
+/** Installs source token styles. */
 export const highlighting = [syntaxHighlighting(yamlValues), syntaxHighlighting(lightHighlight)];

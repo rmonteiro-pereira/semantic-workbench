@@ -25,7 +25,7 @@ type Props = {
   search: string;
 };
 /** Renders workspace toolbar. */
-export function WorkspaceToolbar({
+export const WorkspaceToolbar = React.memo(function WorkspaceToolbar({
   tab,
   isContract,
   setTab,
@@ -149,4 +149,4 @@ export function WorkspaceToolbar({
       </div>
     </>
   );
-}
+});
