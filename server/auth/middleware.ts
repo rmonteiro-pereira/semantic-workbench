@@ -21,6 +21,7 @@ export type HandlerOptions = {
   audit?: AuditLog;
   mode?: 'local' | 'server';
   publicOrigin?: string;
+  port?: number;
 };
 /** Request scope attached for downstream filtering without repeating identity resolution. */
 export const requestAccess = Symbol('requestAccess');

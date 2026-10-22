@@ -115,7 +115,9 @@ function readCommon(env: Env, serverMode: boolean, problems: ConfigProblem[]): C
   if (!serverMode && !isLoopbackHost(host)) {
     problems.push({
       variable: 'SW_HOST',
-      message: 'local mode listens on a loopback address only (127.0.0.1, localhost or ::1).',
+      message:
+        'local mode listens on loopback only (127.0.0.1, localhost or ::1); ' +
+        'a non-loopback address requires server mode with sign-in.',
     });
   }
   const portText = env.SW_PORT || '4310';

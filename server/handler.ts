@@ -18,11 +18,17 @@ import { gitRoutes } from './routes/git';
 import { cloneRoutes } from './routes/clone';
 import { repoRoutes } from './routes/repos';
 /** Local browser origins allowed to call the API. */
-export const ALLOWED_ORIGINS = [
-  'http://127.0.0.1:5173',
-  'http://localhost:5173',
-  'http://127.0.0.1:4310',
-];
+export const ALLOWED_ORIGINS = allowedOrigins(4310);
+/** Includes the configured API origin and the Vite development server. */
+export function allowedOrigins(port: number) {
+  return [
+    'http://127.0.0.1:5173',
+    'http://localhost:5173',
+    `http://127.0.0.1:${port}`,
+    `http://localhost:${port}`,
+  ];
+}
+
 // Legacy clients still use document, grouping, and agent endpoints.
 // Document IDs use `<project>/<path>`; older IDs resolve through legacy-ids.json.
 const legacyRoutes: Route = async (ws, req, url) => {
@@ -194,7 +200,7 @@ export function loopbackHost(host: string | null) {
 export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
   function localCheck(req: Request): Response | null {
     const origin = req.headers.get('origin');
-    if (origin && !ALLOWED_ORIGINS.includes(origin))
+    if (origin && !allowedOrigins(options.port ?? 4310).includes(origin))
       return new Response('Forbidden', { status: 403 });
     // DNS rebinding: a page on another name resolved to 127.0.0.1 sends its own name as Host, and a
     // same-origin GET carries no Origin. Only loopback names are served.

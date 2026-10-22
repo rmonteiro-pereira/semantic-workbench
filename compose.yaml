@@ -1,0 +1,13 @@
+services:
+  workbench:
+    profiles: [local]
+    build:
+      context: .
+      args:
+        SW_VERSION: ${SW_VERSION:-dev}
+        SW_COMMIT: ${SW_COMMIT:-unknown}
+    network_mode: host
+    environment:
+      SW_MODE: local
+    volumes:
+      - ./.data:/data

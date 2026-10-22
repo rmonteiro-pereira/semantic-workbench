@@ -8,6 +8,32 @@ const temp = await mkdtemp('/tmp/workbench-mutations-');
 await symlink(resolve(root, 'node_modules'), resolve(temp, 'node_modules'), 'dir');
 const mutants: [string, string, string, string][] = [
   [
+    'container-lock',
+    'server/projects/instance-lock.ts',
+    "current.revision === ownRevision ? 'refuse' : 'handover'",
+    "current.revision === ownRevision ? 'take' : 'handover'",
+  ],
+  [
+    'container-lock',
+    'server/projects/instance-lock.ts',
+    "if (decision !== 'take') {",
+    "if (decision !== 'take') { await options.open();",
+  ],
+  [
+    'container-lock',
+    'server/projects/instance-lock.ts',
+    'opening = options.open();',
+    "state = 'serving'; opening = options.open();",
+  ],
+  [
+    'container-health',
+    'server/routes/health.ts',
+    "if (state !== 'serving') {",
+    "if (state !== 'serving' && state !== 'handover') {",
+  ],
+  ['container-health', 'server/routes/health.ts', 'ok: true,', 'ok: true, workspace: [],'],
+
+  [
     'auth-grants',
     'server/auth/grants.ts',
     'project.domain && scope.domains.includes(project.domain)',
@@ -373,8 +399,8 @@ const mutants: [string, string, string, string][] = [
   [
     'events-origin',
     'server/handler.ts',
-    'if (origin && !ALLOWED_ORIGINS.includes(origin))\n      return',
-    "if(origin&&!ALLOWED_ORIGINS.includes(origin)&&url.pathname!=='/api/events')return",
+    'if (origin && !allowedOrigins(options.port ?? 4310).includes(origin))\n      return',
+    "if(origin&&!allowedOrigins(options.port??4310).includes(origin)&&new URL(req.url).pathname!=='/api/events')return",
   ],
   [
     'journal',

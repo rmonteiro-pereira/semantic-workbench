@@ -19,6 +19,14 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | Module | What lives here | What must not live here |
 |---|---|---|
 | `server/index.ts`, `server/handler.ts` | Start-up and the HTTP entry point: host and origin checks, then the route list | Workspace logic |
+| `server/routes/health.ts` | Public liveness/readiness and startup traffic gating | Workspace inspection |
+| `server/static.ts` | Built frontend, SPA fallback, path confinement and security headers | API routing |
+| `server/projects/instance-lock.ts` | Lease decisions, atomic acquisition, heartbeat and revision hand-over | Workspace recovery |
+| `server/projects/data-root.ts` | Writable-root startup probe with path and uid errors | Workspace writes |
+| `server/startup-log.ts` | Operator diagnostics after initialization | Startup decisions |
+| `server/shutdown.ts` | Signal cleanup shared with hot reload | Workspace logic |
+| `Dockerfile`, `compose.yaml` | Non-root image and local host-networking profile | Secrets |
+| `scripts/container-*.ts` | Docker/Podman image checks and browser suite groups | Delivery pipeline |
 | `server/config.ts` | Reads and checks the environment once: `readConfig()` returns the typed configuration of local or server mode, or refuses to start naming each variable at fault | Reading `process.env` anywhere else for these settings |
 | `server/routes/` | One file per resource (`projects`, `files`, `git`, `clone`, `repos`, `trash`, `metrics`, ...): parse and check the request, call the workspace, shape the response | File or Git operations |
 | `server/projects/workspace.ts` | `openWorkspace()`, the composition root: registry, saves, imports, moves, scans, events, and the wiring of the services below | HTTP parsing |
@@ -106,14 +114,15 @@ editor never receives an older deferred value as an external replacement.
 
 ## Cross-cutting concerns
 
-- **Configuration**: environment variables are read once by `readConfig()` in `server/config.ts`
-  (mode, host and port, data root, identity provider, session key, bootstrap Admins; the full list
-  is in `specs/003-authn-authz/contracts/configuration.md`). Start-up does not use it yet: the data
-  root still comes from `DATA_DIR` in `dataLayout()` (`server/projects/paths.ts`) or
-  `openWorkspace({ root })`, and the server listens on `127.0.0.1:4310`, until the container and
-  server-mode work wires `readConfig()` into `server/index.ts`. Tests and browser checks always
-  pass a temporary data root.
-- **Access**: every request goes through `server/auth/middleware.ts`; routes never decide access.
+- **Configuration**: start-up uses `readConfig()` in `server/config.ts` once for mode, host,
+  port, data root, cache root and build identity. Server mode validates its settings but is not
+  available in this build yet. The writable-root probe precedes lock acquisition; recovery,
+  migration, scanning and access middleware initialization happen only after ownership.
+  `openWorkspace({ root, cacheDir })` accepts explicit paths for isolated tests.
+- **Access**: health probes and static frontend files are answered before the local Host/Origin
+  check because they hold no workspace data. Every `/api` and `/auth` request goes through
+  `server/auth/middleware.ts` when serving; startup and hand-over gate application traffic with 503.
+  Routes never decide access.
   `auth/route-actions.ts` maps each HTTP entry point to an action and resource. The middleware
   creates one request scope through `auth/authorize.ts`, fails closed for unmapped routes, and
   attaches the scope for route filtering. Local mode uses the implicit Admin; server mode requires
@@ -145,3 +154,25 @@ editor never receives an older deferred value as an external replacement.
 | How a file kind is parsed or validated | `src/model.ts`, `src/validation.ts`, `schemas/` |
 | A view | the folder named after it in `src/` (`odcs/`, `metrics/`, `mappings/`, `graph/`) |
 | A dialog | the module it belongs to; shared chrome is `src/projects/Modal.tsx` |
+
+The runtime image copies `src/` because server imports span parsing, validation, metrics, SQL,
+RDF and project models with transitive dependencies across those modules. Keeping that tree
+intact avoids silently dropping a runtime import; the browser itself is served only from `dist/`.
+The lock's short exclusive claim directory serializes concurrent acquisition, with abandoned
+claims expiring after 30 seconds. A breaker renames a stale claim to a unique path before
+removing it, then retries on its next tick. Each start generates an instance UUID nonce; ownership
+uses only that nonce, so containers with the same host, PID and revision remain distinct.
+Acquisition re-reads the record before opening services to fence a replaced claim.
+A data root shared across hosts requires synchronized clocks for lease expiry.
+A hand-over replica reports ready so the orchestrator stops the old one; traffic receives 503
+with `Retry-After: 10` meanwhile. Malformed lock records stop startup rather than risking two
+writers. A waiting instance only reads the lock; it never initializes workspace or audit services.
+
+Static responses restrict resources to the same origin, with blob workers and data/blob images.
+Scripts are restricted to self without eval; objects and framing are forbidden, and base URLs
+and form actions are restricted to self. Inline styles support the graph and editor.
+HSTS is reserved for an HTTPS public URL. `scripts/compile-schemas.ts` uses Ajv standalone
+code to generate the pinned browser validators in `src/generated/schema-validators/`.
+Generated modules are checked in so tests and development work immediately; `build` and `check`
+regenerate them, and a test verifies identical bytes. Only server access configuration keeps
+runtime Ajv compilation, outside the browser CSP.

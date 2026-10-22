@@ -1743,3 +1743,66 @@ if (category === 'auth-middleware') {
   );
   assert.equal(calls, 1);
 }
+
+if (category === 'container-health') {
+  const health = m.healthResponse(new Request('http://localhost/healthz'), 'serving', {});
+  assert.deepEqual(await health.json(), { ok: true, version: null, commit: null });
+  const response = m.healthResponse(new Request('http://localhost/api/projects'), 'handover', {});
+  assert.equal(response?.status, 503);
+  assert.equal(response.headers.get('Retry-After'), '10');
+}
+if (category === 'container-lock') {
+  let current: any = {
+    host: 'old',
+    pid: 2,
+    revision: 'old',
+    heartbeat: new Date(0).toISOString(),
+    state: 'serving',
+  };
+  assert.equal(m.lockDecision(current, 0, 'old'), 'refuse');
+  let opened = 0;
+  let writes = 0;
+  let finish!: () => void;
+  let now = 0;
+  const lock = m.createInstanceLock({
+    host: 'new',
+    pid: 1,
+    revision: 'new',
+    now: () => now,
+    files: {
+      read: () => current,
+      claim: (value: any) => {
+        current = value;
+        writes++;
+        return true;
+      },
+      write: (value: any) => {
+        current = value;
+        writes++;
+      },
+      remove: () => {
+        current = null;
+      },
+    },
+    open: () => {
+      opened++;
+      if (current?.host !== 'new') throw Error('Recovery before lock acquisition');
+      return new Promise<void>(resolve => {
+        finish = resolve;
+      });
+    },
+    log: () => {},
+  });
+  await lock.tick();
+  assert.equal(lock.state, 'handover');
+  assert.equal(opened, 0);
+  assert.equal(writes, 0);
+  current = null;
+  now = 10_000;
+  const opening = lock.tick();
+  assert.equal(lock.state, 'starting');
+  finish();
+  await opening;
+  assert.equal(lock.state, 'serving');
+  await lock.close();
+}

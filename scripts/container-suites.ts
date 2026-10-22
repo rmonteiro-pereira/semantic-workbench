@@ -1,0 +1,30 @@
+// Keeps container checks independent of the later delivery gate.
+/** Browser script groups exercised against the frontend built into the image. */
+export const containerSuites = {
+  local: [
+    'test:ui',
+    'test:responsive',
+    'test:edges',
+    'test:grouping-validation',
+    'test:examples:ui',
+    'test:projects',
+    'test:trash',
+    'test:metrics',
+    'test:graph',
+    'test:editor',
+    'test:item-edit',
+    'test:rdf-edit',
+    'test:scm',
+    'test:odcs',
+    'test:lineage',
+    'test:autosave',
+    'test:sql',
+    'test:git-setup',
+    'test:monorepo',
+    'test:dialogs',
+    'test:terminology',
+    'test:mappings-layout',
+    'test:mapping-graph',
+  ],
+  server: [],
+};

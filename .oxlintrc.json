@@ -4,10 +4,7 @@
     "correctness": "error"
   },
   "rules": {
-    "eslint/one-var": [
-      "error",
-      "never"
-    ],
+    "eslint/one-var": ["error", "never"],
     "eslint/no-nested-ternary": "warn",
     "eslint/max-depth": [
       "warn",
@@ -47,14 +44,7 @@
       "warn",
       {
         "min": 2,
-        "exceptions": [
-          "_",
-          "i",
-          "j",
-          "x",
-          "y",
-          "e"
-        ]
+        "exceptions": ["_", "i", "j", "x", "y", "e"]
       }
     ],
     "eslint/no-unused-vars": [
@@ -71,6 +61,7 @@
     "tests/fixtures/**",
     "public/**",
     "dist/**",
-    "data/**"
+    "data/**",
+    "src/generated/schema-validators/**"
   ]
 }

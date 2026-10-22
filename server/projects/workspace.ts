@@ -1,7 +1,7 @@
 // Coordinates project files, durable state, and workspace services. Project folders are the source
 // of truth; the SQLite cache can be rebuilt.
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync } from 'node:fs';
-import { join, posix } from 'node:path';
+import { dirname, join, posix } from 'node:path';
 import { validateInput } from '../../src/input';
 import { InputError, MAX_INPUT_BYTES, type Issue } from '../../src/diagnostics';
 import { exampleSet } from '../../src/projects/examples';
@@ -43,6 +43,7 @@ export type ImportFile = { path: string; source: string };
 /** Storage, Git, watching, and test-hook options for opening a workspace. */
 export type WorkspaceOptions = {
   root?: string;
+  cacheDir?: string | null;
   gitBinary?: string;
   watch?: boolean;
   examplesDir?: string;
@@ -86,7 +87,7 @@ export function applyPatches(base: string, patches: Patch[]) {
 export const revisionOf = (hash: string) => parseInt(hash.slice(0, 12), 16) + 1;
 /** Recovers and opens workspace services, scans projects, and optionally starts watchers. */
 export async function openWorkspace(options: WorkspaceOptions = {}) {
-  const layout: DataLayout = dataLayout(options.root);
+  const layout: DataLayout = dataLayout(options.root, options.cacheDir);
   for (const dir of [layout.projects, layout.state, layout.trash, layout.backup])
     mkdirSync(dir, { recursive: true });
   const state = createState(layout);
@@ -107,6 +108,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     { layout, state, journal, git, gitAvailable, identityConfigured },
     options.migrationHooks,
   );
+  mkdirSync(dirname(layout.cache), { recursive: true });
   const cache: Cache = createCache(layout.cache);
   const scanner = createScanner(layout, cache, git, () => gitAvailable);
   const examplesDir = options.examplesDir ?? 'public/examples';

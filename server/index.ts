@@ -1,29 +1,88 @@
-// Starts the local API with workspace recovery, migration, and file watching.
-import { openWorkspace } from './projects/workspace';
+// Starts public probes before acquiring the workspace lease and opening data services.
+import { hostname } from 'node:os';
+import { join } from 'node:path';
+import { openWorkspace, type Workspace } from './projects/workspace';
 import { createHandler } from './handler';
-// `bun --hot` reruns this module, so close the previous workspace before reopening it.
-const hot = globalThis as { __workbench?: { close(): void } };
-hot.__workbench?.close();
-const ws = await openWorkspace({ watch: true });
-hot.__workbench = ws;
-for (const r of ws.recovery) console.log(`[recovery] ${r.kind} ${r.opId}: ${r.outcome}`);
-if (ws.migration)
+import { readConfig } from './config';
+import { createInstanceLock, instanceLockFiles, revisionIdentity } from './projects/instance-lock';
+import { probeDataRoot } from './projects/data-root';
+import { healthResponse } from './routes/health';
+import { serveStatic } from './static';
+import { logWorkspace } from './startup-log';
+import { installShutdownHandlers } from './shutdown';
+
+const config = readConfig();
+if (config.mode === 'server') throw new Error('server mode is not available in this build yet');
+const hot = globalThis as { __workbench?: { close(): Promise<void> } };
+await hot.__workbench?.close();
+probeDataRoot(config.dataDir, process.pid, process.getuid?.());
+if (config.inContainer) {
   console.log(
-    `[migration] ${ws.migration.status}${ws.migration.reason ? `: ${ws.migration.reason}` : ''}${ws.migration.status === 'completed' ? ` (${ws.migration.verified}/${ws.migration.files} files verified in ${ws.migration.projects.length} projects; backup ${ws.migration.backup})` : ''}`,
+    'Local containers must use host networking (Compose profile local). ' +
+      'Docker Desktop: Settings → Resources → Network → Enable host networking.',
   );
-if (!ws.gitAvailable)
-  console.log(
-    '[git] Git 2.40 or newer was not found; projects are not version-controlled until it is installed.',
-  );
-else {
-  const missing = (await ws.repositoryStatus()).filter(
-    repository => !repository.identityConfigured,
-  );
-  if (missing.length)
-    console.log(
-      `[git] ${missing.length} repositories have no user.name/user.email; set them in the app to commit there.`,
-    );
 }
-// SSE connections stay open; heartbeats every 15 s keep them alive, so disable the idle timeout.
-Bun.serve({ hostname: '127.0.0.1', port: 4310, idleTimeout: 0, fetch: createHandler(ws) });
-console.log(`Workbench API: http://127.0.0.1:4310 (data root ${ws.layout.root})`);
+let workspace: Workspace | undefined;
+let initialization: Promise<void> = Promise.resolve();
+let handler: ReturnType<typeof createHandler> | undefined;
+const lock = createInstanceLock({
+  host: hostname(),
+  pid: process.pid,
+  revision: revisionIdentity(config),
+  now: Date.now,
+  files: instanceLockFiles(join(config.dataDir, 'state/instance.lock')),
+  log: console.log,
+  open() {
+    initialization = initializeWorkspace();
+    return initialization;
+  },
+});
+async function initializeWorkspace() {
+  workspace = await openWorkspace({ root: config.dataDir, cacheDir: config.cacheDir, watch: true });
+  handler = createHandler(workspace, { port: config.port });
+  await logWorkspace(workspace);
+}
+const server = Bun.serve({
+  hostname: config.host,
+  port: config.port,
+  idleTimeout: 0,
+  async fetch(request) {
+    const health = healthResponse(request, lock.state, config);
+    if (health) return health;
+    if (config.serveStatic) {
+      const response = await serveStatic(request);
+      if (response) return response;
+    }
+    return handler!(request);
+  },
+});
+let pending = Promise.resolve();
+let closing: Promise<void> | undefined;
+function tick() {
+  pending = lock.tick();
+  void pending.catch(fail);
+}
+const timer = setInterval(tick, 10_000);
+function close() {
+  closing ??= (async () => {
+    clearInterval(timer);
+    await server.stop(true);
+    try {
+      await initialization;
+      await pending;
+    } finally {
+      workspace?.close();
+      await lock.close();
+      detachSignals();
+    }
+  })();
+  return closing;
+}
+function fail(error: unknown) {
+  console.error(error);
+  void close().finally(() => process.exit(1));
+}
+const detachSignals = installShutdownHandlers(close);
+hot.__workbench = { close };
+tick();
+console.log(`Workbench API: http://${config.host}:${config.port} (data root ${config.dataDir})`);

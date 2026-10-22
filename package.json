@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "bun scripts/dev.ts",
-    "build": "vp build",
+    "build": "bun run schemas:compile && vp build",
     "test": "bun test",
     "check": "tsc --noEmit && bun run fmt:check && bun run lint && bun run check:comments",
     "check:comments": "bun scripts/check-comments.ts",
@@ -43,7 +43,9 @@
     "test:auth": "bun scripts/auth-browser-check.ts",
     "test:auth:keycloak": "bun scripts/auth-keycloak-check.ts",
     "test:admin": "bun scripts/admin-browser-check.ts",
-    "test:two-editors": "bun scripts/two-editors-check.ts"
+    "test:two-editors": "bun scripts/two-editors-check.ts",
+    "test:container": "bun scripts/container-check.ts",
+    "schemas:compile": "bun scripts/compile-schemas.ts"
   },
   "dependencies": {
     "@cedar-policy/cedar-wasm": "4.14.0",

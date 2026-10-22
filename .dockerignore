@@ -1,0 +1,12 @@
+node_modules
+.git
+data
+.data
+dist
+out
+specs
+docs
+tests
+graphify-out
+*.log
+.env*

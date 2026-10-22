@@ -13,6 +13,69 @@ bun run dev
 
 Open http://127.0.0.1:5173. API: http://127.0.0.1:4310. Both bind to loopback. The API answers only requests addressed to a loopback name (so a web page cannot reach it through DNS rebinding), refuses writes from other origins, and never follows a symbolic link inside a project folder. Without Git, or without a Git identity, the workspace still opens and edits files; a banner explains what is missing. A missing identity is checked per repository and live: the banner and the Commit dialog offer **Set Git identity…**, which writes `user.name` and `user.email` into that repository's own configuration (and, if you choose, into every repository that has none yet), never your global one, and commits work at once. Without Git, projects are not committed until it is installed and the API is restarted.
 
+## Run it as a container
+
+Build with `podman build -t semantic-workbench:dev .` (or use `docker` in place of `podman`).
+The image runs Bun as uid 1000 and includes Git, the API and the built frontend. Server mode
+is not available in this build yet; after validating its configuration it refuses startup.
+
+For Compose, set `SW_VERSION` and `SW_COMMIT` in the environment before building. Use the
+package version when present (`bun -p 'require("./package.json").version ?? "dev"'`) and
+`git rev-parse HEAD` for the commit. This checkout currently has no package version, so `dev`
+is the fallback. The later `image:build` command is not available yet.
+
+```sh
+mkdir -p .data
+# The bind-mounted folder must be writable by the image's uid 1000.
+podman compose --profile local up --build
+```
+
+Docker users can run `docker compose --profile local up --build`. With rootless Podman,
+run directly with the user mapping below, or prepare the Compose folder ownership with
+`podman unshare chown -R 1000:1000 .data` before starting Compose. Do not share that folder
+between different user mappings. On SELinux hosts, label the bind mount for containers
+(for example, append `:z` to the volume).
+
+```sh
+podman run --rm --network host --userns keep-id:uid=1000,gid=1000 \
+  -v "$PWD/.data:/data" semantic-workbench:dev
+```
+
+For Docker, omit `--userns keep-id:uid=1000,gid=1000` and ensure `.data` is owned by uid 1000.
+Local mode requires **host networking** because it binds loopback. On Docker Desktop enable
+**Settings → Resources → Network → Enable host networking**, then apply and restart.
+Open http://127.0.0.1:4310. `/healthz` reports liveness, version and commit; `/readyz` reports
+readiness after recovery and the first scan. Startup probes the data root and reports its path
+and uid if it is not writable.
+
+Only one instance may serve a data folder. A second instance of the same revision returns 503
+and remains not ready. A different revision reports ready with `state: handover`, returning
+503 with `Retry-After: 10` for application requests without opening the workspace. It acquires
+the lock after the previous instance exits or its heartbeat is older than 30 seconds, then
+recovers and scans before serving. SIGTERM and SIGINT close the workspace and release its lock.
+Do not use multiple replicas for throughput.
+
+Container settings are read once at startup:
+
+- `SW_HOST` and `SW_PORT`: loopback address and port (defaults `127.0.0.1:4310`).
+- `DATA_DIR`: persistent root (`/data` in the image).
+- `SW_CACHE_DIR`: rebuildable SQLite cache folder (`/tmp/sw-cache` in the image).
+- `SW_SERVE_STATIC=1`: serve `dist/` from the API; enabled in the image.
+- `SW_IN_CONTAINER=1`: print the host networking instructions; set by the image.
+- `SW_VERSION` and `SW_COMMIT`: build arguments and health metadata.
+- `CONTAINER_APP_REVISION`: lock revision; otherwise `SW_VERSION+SW_COMMIT`, or `dev`.
+
+Run `bun run test:container --image semantic-workbench:dev` to check an existing image, or
+`bun run test:container --build` to build first (the default). The script selects Docker when
+installed, otherwise Podman. It uses a temporary bind mount and rootless Podman's
+`keep-id:uid=1000,gid=1000` mapping so the caller owns the files while the image user stays 1000.
+Docker checks require a uid 1000 caller. Runtime verification of this mapping happens in the
+container check; it cannot be exercised in the restricted development sandbox.
+Use `--port 4320` if 4310 is occupied (the next port must also be free), or
+`--suite test:projects` to select one browser suite; the default `--suite local` runs them all.
+The script checks metadata, health, persistence across restart and same-revision refusal,
+and always attempts to remove its containers and temporary folder.
+
 ## Where your data lives
 
 Everything stays under the data root, `data/` by default. Set `DATA_DIR` to use another folder (the tests and browser checks always use temporary ones):
@@ -342,6 +405,9 @@ latency in a 1.9 MB file.
 
 The code style is part of the project's constitution (principle VIII, Readable Code):
 
+- `bun run schemas:compile` regenerates the checked-in browser validators from pinned JSON
+  Schemas using Ajv standalone code. Build and check run it automatically; `bun test` checks
+  reproducibility. The browser CSP does not allow eval.
 - `bun run fmt` formats `src/`, `server/`, `scripts/` and `tests/` with Oxfmt (100 columns,
   2-space indentation, semicolons, single quotes, trailing commas). `bun run check` runs
   TypeScript, `fmt:check`, Oxlint and the comment check, and fails on unformatted code.
