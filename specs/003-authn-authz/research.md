@@ -645,6 +645,7 @@ probe: `openid-client` 6.8.8 (MIT, 236 KB) with `oauth4webapi` (MIT, 332 KB), `j
 | T120–T124 (local gate runner, image scripts, Azure DevOps pipeline and templates, offline lint and dry run, version guard) and the review fixes (tag passed through the environment, service-connection and template rules, checksum-verified Bun install, gate cleanup on stop, strict dry run, one build path, per-suite screenshots) | Codex (gpt-6-astra), reviewed by Claude; Vite readiness deadline and bounded restart of the gate, and the neighbourhood re-read in the UI check by Claude |
 | T026–T034, T037, T138, T139 (sessions, OIDC client, directory client, CSRF, auth pages, `/api/me`, server-mode start-up, cookie-authenticated live updates, mutants) and two rounds of review fixes (throttled session writes, derived keys, typed sign-in errors, audit-first sign-in and sign-out, routes in the route table, cache rules, empty example key) | Codex (gpt-6-astra), reviewed by Claude |
 | T035, T036, T108, T109, T125 (person menu, sign-in browser check, Keycloak suite, gate and pipeline listing, server container group, Compose `keycloak` profile) and the visual fixes | Codex (gpt-6-astra), reviewed by Claude; by Claude: CSP `form-action` with the provider origin, sign-out not cancelled by a 401 reload, API bodies inspected in the test process, provider error code in the sign-in log, offline access in the Keycloak realm, mutation fixture key, page punctuation |
+| T107, T126–T133 (Deploy stage, rollback pipeline, deploy, Azure client, fake client and smoke scripts, target setup guide, owner trial runbook, mutants) and the review fixes (rollback picks a promoted earlier version and never the failed one, tag rollback rescans and restores on failure, version tag added only after a passing smoke, issuer checked against the target, typed target, no browsers in deploy jobs) | Codex (gpt-6-astra), reviewed by Claude; by Claude: the merge onto the grouped dry-run functions, template parameters resolved before use in the dry run, the Owner trial section |
 
 ### Test changes not caused by the specification
 
@@ -674,3 +675,7 @@ probe: `openid-client` 6.8.8 (MIT, 236 KB) with `oauth4webapi` (MIT, 332 KB), `j
   repeated byte, since such keys are now refused at start-up.
 - `tests/auth/browser-check.test.ts`: the server container arguments are passed as one grouped
   object instead of five positional values; the expected arguments are unchanged.
+- `tests/pipeline/deploy-smoke.test.ts`: the smoke check's issuer, loopback flag and HTTP client are
+  passed as one options object; the expectations are unchanged.
+- `tests/pipeline/dry-run.test.ts`: the expected stages include Deploy, which this phase adds; the
+  test now also asserts that Deploy runs only on tag runs and with the deploy connection.

@@ -90,13 +90,17 @@ export function releaseTag(tag: string | undefined, sourceRef: string | undefine
 async function main() {
   const { values } = parseArgs({
     args: process.argv.slice(2).filter(arg => arg !== '--'),
-    options: { tag: { type: 'string' }, fake: { type: 'boolean' } },
+    options: { tag: { type: 'string' }, fake: { type: 'boolean' }, help: { type: 'boolean' } },
   });
+  if (values.help) {
+    console.log('deploy:check-version [--tag vX.Y.Z] [--fake]; defaults to SOURCE_REF');
+    return;
+  }
   const tag = releaseTag(values.tag, process.env.SOURCE_REF);
   const manifest = JSON.parse(readFileSync('package.json', 'utf8'));
   checkReleaseVersion(tag, manifest.version, []);
-  validateTarget(process.env);
-  const args = versionQuery(process.env.ACR_NAME!);
+  const target = validateTarget(process.env);
+  const args = versionQuery(target.ACR_NAME);
   if (values.fake) {
     checkReleaseVersion(tag, manifest.version, []);
     console.log(`Offline version check passed: ${tag} (empty fake registry)`);

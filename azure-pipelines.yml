@@ -41,3 +41,22 @@ stages:
       - template: deploy/azure-devops/templates/image-jobs.yml
         parameters:
           acrServiceConnection: ${{ parameters.acrServiceConnection }}
+  - stage: Deploy
+    dependsOn: Image
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
+    lockBehavior: runLatest
+    variables:
+      imageDigest: $[ stageDependencies.Image.image.outputs['push.digest'] ]
+    jobs:
+      - deployment: deploy
+        environment: ${{ parameters.deployEnvironment }}
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - template: deploy/azure-devops/templates/setup-steps.yml
+                  parameters:
+                    browsers: false
+                - template: deploy/azure-devops/templates/deploy-steps.yml
+                  parameters:
+                    deployServiceConnection: ${{ parameters.deployServiceConnection }}

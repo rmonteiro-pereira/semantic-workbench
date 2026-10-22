@@ -11,7 +11,16 @@ import { gateSuites } from '../../scripts/gate-suites';
 for (const run of ['pr', 'main', 'tag:v0.4.0-alpha.1']) {
   test(`expands the actual pipeline for ${run}`, () => {
     const plan = buildPlan(lintRules(readPipelineInput()), readSampleVariables(), run);
-    expect([...new Set(plan.map(step => step.stage))]).toEqual(['Validate', 'Image']);
+    expect([...new Set(plan.map(step => step.stage))]).toEqual(['Validate', 'Image', 'Deploy']);
+    const deploy = plan.filter(
+      step => step.stage === 'Deploy' && !step.command.includes('playwright install'),
+    );
+    expect(deploy.every(step => step.enabled === run.startsWith('tag:'))).toBe(true);
+    const deployAzure = plan.filter(step => step.stage === 'Deploy' && step.kind === 'azure');
+    expect(deployAzure.map(step => step.serviceConnection)).toEqual([
+      'sw-azure-deploy',
+      'sw-azure-deploy',
+    ]);
     const browser = plan.filter(step => step.kind === 'local' && step.job.startsWith('browser/'));
     expect(browser).toHaveLength(gateSuites.length);
     expect(browser.every(step => step.enabled)).toBe(true);

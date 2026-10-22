@@ -1918,3 +1918,45 @@ if (category === 'signin-config') {
   assert.throws(() => m.readConfig({ ...env, SW_OIDC_ISSUER: 'http://provider.example' }));
   assert.throws(() => m.readConfig({ ...env, SW_GRAPH_URL: 'https://attacker.example' }));
 }
+
+if (category === 'deploy-version') {
+  assert.throws(() => m.checkReleaseVersion('v0.4.0', '0.4.0', ['v0.5.0']));
+}
+if (category === 'deploy-preflight') {
+  const { fakeApp, fakeTarget } = await import('./deploy-fake');
+  const app = fakeApp();
+  app.maxReplicas = 2;
+  assert.throws(() => m.preflight(app, fakeTarget));
+}
+if (category === 'deploy-recovery') {
+  const { fakeAzure, fakeTarget, fakeRelease } = await import('./deploy-fake');
+  const client = fakeAzure({ failSmoke: true });
+  await assert.rejects(() => m.deploy(fakeTarget, fakeRelease, client));
+  assert(client.calls.some(call => call[0] === 'copy'));
+}
+if (category === 'deploy-smoke') {
+  const expected = { version: '0.4.0', commit: 'a'.repeat(40) };
+  const endpoint = 'https://provider.example/authorize';
+  const headers = {
+    location: endpoint + '?code_challenge_method=S256',
+    'strict-transport-security': 'max-age=31536000',
+    'content-security-policy': "default-src 'self'",
+    'x-content-type-options': 'nosniff',
+    'set-cookie': '__Host-sw-auth=attempt; Secure; HttpOnly; Path=/',
+  };
+  const input = {
+    ready: { status: 200, body: { ready: true, state: 'serving' } },
+    health: { status: 200, body: { ...expected } },
+    projects: { status: 401, body: { error: 'Unauthorized' } },
+    home: new Response(null, { status: 302, headers }),
+    login: new Response(null, { status: 302, headers }),
+  };
+  assert(m.smokeChecks(input, expected, endpoint, false).every((check: any) => check.ok));
+  for (const faulty of [
+    { ...input, health: { status: 200, body: { ...expected, version: 'wrong' } } },
+    { ...input, projects: { ...input.projects, status: 200 } },
+    { ...input, ready: { status: 200, body: { ready: true, state: 'handover' } } },
+  ]) {
+    assert(m.smokeChecks(faulty, expected, endpoint, false).some((check: any) => !check.ok));
+  }
+}

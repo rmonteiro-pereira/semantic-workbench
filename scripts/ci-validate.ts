@@ -267,6 +267,11 @@ async function executeStep(step: GateStep, suite?: string) {
 }
 
 async function main() {
+  if (process.argv.includes('--help')) {
+    console.log('ci:validate [--step <name>] [--suite <script>] [--keep-going]');
+    console.log(`Steps: ${gateSteps.join(', ')}`);
+    return;
+  }
   const options = parseGateOptions(process.argv.slice(2));
   await mkdir('out/ci', { recursive: true });
   const results = await runGate(options, executeStep, Date.now);

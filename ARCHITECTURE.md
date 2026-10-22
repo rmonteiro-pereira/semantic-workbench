@@ -31,6 +31,9 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `scripts/ci-validate.ts` | Gate selection, command plans, JUnit summaries and process lifecycle | Azure deployment |
 | `scripts/image.ts` | Image metadata, runtime/scanner commands, vulnerability exceptions and registry push | Pipeline-only build logic |
 | `scripts/pipeline-lint.ts`, `scripts/pipeline-dry-run.ts` | Offline schema/rules validation and template/condition planning | Real Azure execution |
+| `scripts/deploy.ts` | Preflight, release ordering, revision recording, digest deployment and recovery orchestration | Direct Azure process calls |
+| `scripts/deploy-azure.ts`, `scripts/deploy-fake.ts` | One injected client interface: CLI I/O and offline call recording | Deployment decisions |
+| `scripts/deploy-smoke.ts` | Pure smoke predicates and bounded HTTP/discovery checks | Authenticated browser sessions |
 | `scripts/deploy-version.ts` | Release precedence and read-only registry version guard | Version promotion or deployment |
 | `deploy/azure-devops/`, `azure-pipelines.yml` | Target pipeline templates, pinned upstream schema and placeholder variables | GitHub automation or secrets |
 | `server/config.ts` | Reads and checks the environment once: `readConfig()` returns the typed configuration of local or server mode, or refuses to start naming each variable at fault | Reading `process.env` anywhere else for these settings |

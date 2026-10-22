@@ -223,8 +223,9 @@ test('Deploy cannot borrow the image connection', () => {
           runOnce:
             deploy:
               steps:
-                - checkout: self
                 - template: deploy/azure-devops/templates/setup-steps.yml
+                  parameters:
+                    browsers: false
                 - task: AzureCLI@2
                   inputs:
                     azureSubscription: \${{ parameters.acrServiceConnection }}

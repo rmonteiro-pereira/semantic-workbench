@@ -6,9 +6,8 @@ import { gateSuites, exclusions } from './gate-suites';
 import { posix } from 'node:path';
 import { parseTrivyIgnore, targetVariables } from './image';
 
-// Extend this list when deployment is implemented; until then only these stages are deliverable.
 /** Ordered stages supported by this delivery definition. */
-export const expectedStages = ['Validate', 'Image'];
+export const expectedStages = ['Validate', 'Image', 'Deploy'];
 /** Parsed YAML mapping, validated against the pinned schema at the file boundary. */
 export type PipelineNode = Record<string, any>;
 /** Repository inputs kept explicit so rule tests need no filesystem mutations. */
@@ -119,10 +118,15 @@ function checkDeployment(node: PipelineNode) {
   }
   const steps = node.strategy?.runOnce?.deploy?.steps ?? [];
   if (
-    !steps.some((step: PipelineNode) => step.checkout === 'self') ||
-    !steps.some((step: PipelineNode) => step.template?.endsWith('setup-steps.yml'))
+    steps.some((step: PipelineNode) => step.checkout) ||
+    !steps.some(
+      (step: PipelineNode) =>
+        step.template?.endsWith('setup-steps.yml') && step.parameters?.browsers === false,
+    )
   ) {
-    throw Error('Deployment requires checkout: self and setup-steps.yml');
+    throw Error(
+      'Deployment requires setup-steps.yml with browsers disabled and no duplicate checkout',
+    );
   }
 }
 
@@ -188,15 +192,20 @@ function checkSetup(document: PipelineNode) {
     { checkout: 'self' },
     { bash: expected[0], displayName: 'Install Bun 1.4.3' },
     { bash: expected[1] },
-    { bash: expected[2] },
+    { bash: expected[2], condition: 'and(succeeded(), ${{ parameters.browsers }})' },
   ];
-  if (JSON.stringify(steps) !== JSON.stringify(expectedSteps)) {
+  if (
+    JSON.stringify(document.parameters) !==
+      JSON.stringify([{ name: 'browsers', type: 'boolean', default: 'true' }]) ||
+    JSON.stringify(steps) !== JSON.stringify(expectedSteps)
+  ) {
     throw Error('Setup must use pinned Bun and frozen browser setup');
   }
 }
 
 function checkStageTemplates(pipeline: PipelineNode) {
   for (const stage of pipeline.stages) {
+    if (stage.stage === 'Deploy') continue;
     const file = stage.stage.toLowerCase() + '-jobs.yml';
     const expected = `deploy/azure-devops/templates/${file}`;
     if (stage.jobs?.length !== 1 || stage.jobs[0].template !== expected) {
@@ -210,6 +219,10 @@ function checkStageTemplates(pipeline: PipelineNode) {
   ) {
     throw Error('Validate must run every time and Image must follow Validate');
   }
+  checkParameters(pipeline);
+}
+
+function checkParameters(pipeline: PipelineNode) {
   if (
     pipeline.variables?.length !== 1 ||
     pipeline.variables[0].group !== '${{ parameters.variableGroup }}'
@@ -315,7 +328,7 @@ function checkImageJobs(documents: Record<string, PipelineNode>) {
 function checkTemplateReferences(documents: Record<string, PipelineNode>) {
   for (const [file, document] of Object.entries(documents)) {
     if (
-      file !== 'azure-pipelines.yml' &&
+      !['azure-pipelines.yml', 'azure-pipelines-rollback.yml'].includes(file) &&
       !Array.isArray(document.parameters) &&
       Object.keys(document.parameters ?? {}).some(name => name.endsWith('ServiceConnection'))
     ) {
@@ -323,7 +336,7 @@ function checkTemplateReferences(documents: Record<string, PipelineNode>) {
     }
     visitMappings(document, node => {
       if (
-        file !== 'azure-pipelines.yml' &&
+        !['azure-pipelines.yml', 'azure-pipelines-rollback.yml'].includes(file) &&
         typeof node.name === 'string' &&
         node.name.endsWith('ServiceConnection') &&
         'default' in node
@@ -348,8 +361,10 @@ function checkTemplateReferences(documents: Record<string, PipelineNode>) {
       }
     });
   }
-  for (const stage of documents['azure-pipelines.yml'].stages ?? []) {
-    checkStageConnections(documents, stage, stage.stage, ['azure-pipelines.yml']);
+  for (const file of ['azure-pipelines.yml', 'azure-pipelines-rollback.yml']) {
+    for (const stage of documents[file]?.stages ?? []) {
+      checkStageConnections(documents, stage, stage.stage, [file]);
+    }
   }
 }
 
@@ -361,7 +376,11 @@ function checkStageConnections(
 ) {
   visitMappings(value, node => {
     if (node.azureSubscription) {
-      const name = { Image: 'acrServiceConnection', Deploy: 'deployServiceConnection' }[stage];
+      const name = {
+        Image: 'acrServiceConnection',
+        Deploy: 'deployServiceConnection',
+        Rollback: 'deployServiceConnection',
+      }[stage];
       if (!name || node.azureSubscription !== `\${{ parameters.${name} }}`) {
         throw Error(`Service connection is not allowed in stage ${stage}`);
       }
@@ -374,6 +393,78 @@ function checkStageConnections(
     if (ancestors.includes(path)) throw Error(`Recursive template: ${path}`);
     checkStageConnections(documents, documents[path], stage, [...ancestors, path]);
   });
+}
+
+function checkDelivery(documents: Record<string, PipelineNode>) {
+  const rollback = documents['azure-pipelines-rollback.yml'];
+  if (
+    rollback?.trigger !== 'none' ||
+    rollback.pr !== 'none' ||
+    rollback.stages?.length !== 1 ||
+    rollback.stages[0].stage !== 'Rollback'
+  ) {
+    throw Error('Rollback must be manual with one Rollback stage');
+  }
+  checkParameters(rollback);
+  const target = rollback.parameters?.find((entry: PipelineNode) => entry.name === 'target');
+  if (target?.default !== 'tag' || JSON.stringify(target.values) !== '["tag","previous"]') {
+    throw Error('Rollback target must be tag or previous');
+  }
+  const stages = [
+    documents['azure-pipelines.yml'].stages.find((stage: PipelineNode) => stage.stage === 'Deploy'),
+    rollback.stages[0],
+  ];
+  for (const stage of stages) {
+    if (stage.lockBehavior !== 'runLatest') throw Error('Delivery requires stage runLatest lock');
+    if (
+      stage.condition !==
+      "and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))"
+    ) {
+      throw Error('Delivery must be tag-only');
+    }
+    if (stage.jobs?.length !== 1 || !stage.jobs[0].deployment) {
+      throw Error('Delivery requires one deployment job');
+    }
+  }
+  if (stages[0].dependsOn !== 'Image') throw Error('Deploy must follow Image');
+  if (
+    stages[0].variables?.imageDigest !== "$[ stageDependencies.Image.image.outputs['push.digest'] ]"
+  ) {
+    throw Error('Deploy must consume the Image push digest');
+  }
+  const deployJobSteps = stages[0].jobs[0].strategy?.runOnce?.deploy?.steps ?? [];
+  if (
+    !deployJobSteps.some(
+      (step: PipelineNode) => step.template === 'deploy/azure-devops/templates/deploy-steps.yml',
+    )
+  ) {
+    throw Error('Deploy must use deploy-steps.yml');
+  }
+  const rollbackSteps = stages[1].jobs[0].strategy?.runOnce?.deploy?.steps ?? [];
+  const restore = rollbackSteps.find((step: PipelineNode) => step.task === 'AzureCLI@2');
+  if (
+    restore?.inputs?.inlineScript !== 'bun run deploy:rollback' ||
+    restore.env?.SOURCE_REF !== '$(Build.SourceBranch)' ||
+    restore.env?.ROLLBACK_TARGET !== '${{ parameters.target }}'
+  ) {
+    throw Error('Rollback must pass its tag ref and target to deploy:rollback');
+  }
+  const steps = documents['deploy/azure-devops/templates/deploy-steps.yml']?.steps;
+  if (
+    steps?.length !== 2 ||
+    steps[0].inputs?.inlineScript !== 'bun run image:scan -- --ref-env IMAGE_REF' ||
+    steps[1].inputs?.inlineScript !== 'bun run deploy:azure'
+  ) {
+    throw Error('Deploy must rescan before deploy:azure');
+  }
+  if (
+    steps[0].env?.IMAGE_REF !== '$(ACR_NAME).azurecr.io/semantic-workbench@$(imageDigest)' ||
+    steps[1].env?.IMAGE_DIGEST !== '$(imageDigest)' ||
+    steps[1].env?.SOURCE_REF !== '$(Build.SourceBranch)' ||
+    steps[1].env?.BUILD_COMMIT !== '$(Build.SourceVersion)'
+  ) {
+    throw Error('Deploy scan and update must use the same digest and source metadata');
+  }
 }
 
 /** Applies repository delivery rules to supplied YAML and package scripts. */
@@ -399,6 +490,7 @@ export function lintRules(input: PipelineInput): Record<string, PipelineNode> {
   ) {
     throw Error('Expected mirror main/tag triggers and pr: none');
   }
+  checkDelivery(documents);
   checkStageTemplates(pipeline);
   checkJobCommands(documents);
   checkImageJobs(documents);
