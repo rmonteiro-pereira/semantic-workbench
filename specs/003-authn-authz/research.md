@@ -594,6 +594,11 @@ below come from that probe.
 
 ## Implementation notes
 
+- People must satisfy every matching restricted-path rule when patterns overlap.
+- Agent clients are subject to the restricted-path rule and cannot read restricted files.
+- Decisions are cached per request scope created with `forRequest`.
+- File paths are normalized at the access boundary before matching any rules.
+
 ### Dependencies as installed (Phase 1)
 
 `bun add --exact` of the three libraries in the repository on 2026-10-21 (Bun 1.4.0) confirmed the
@@ -628,3 +633,4 @@ probe: `openid-client` 6.8.8 (MIT, 236 KB) with `oauth4webapi` (MIT, 332 KB), `j
 | T001 (provisional rebase), T002, T003, T004, T005, T009; Cedar schema, baseline policies and built-in roles of T012; principal tests of T010 | Claude |
 | T006, T007 (mock OpenID provider, Keycloak realm) | Codex (gpt-6-astra), reviewed by Claude |
 | T010–T016, T134–T137 (claims, grants, role compiler, Cedar loader, decision boundary) | Codex (gpt-6-astra), reviewed by Claude |
+| Review fixes of the access core (overlapping restricted rules, agent clients and restricted paths, live project list, per-request decision scope, Admin rules wired, path normalisation) | Codex (gpt-6-astra) from the architecture review, reviewed by Claude |

@@ -1,0 +1,142 @@
+{
+  "formatVersion": 1,
+  "roles": [
+    {
+      "id": "viewer",
+      "name": "Viewer",
+      "description": "Reads the projects of its grant: files, graphs, lineage, metrics, history and exports, plus its own view settings.",
+      "permissions": [
+        {
+          "actions": [
+            "read",
+            "export",
+            "history",
+            "viewOwnState"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "editor",
+      "name": "Editor",
+      "description": "Everything a Viewer does, plus editing files and metrics as draft or proposed, imports, moves, deletes to trash, and Git work in its own working copy.",
+      "permissions": [
+        {
+          "actions": [
+            "read",
+            "export",
+            "history",
+            "viewOwnState"
+          ]
+        },
+        {
+          "actions": [
+            "edit",
+            "createMetric",
+            "import",
+            "move",
+            "delete",
+            "revert",
+            "restoreOwn",
+            "stage",
+            "commit",
+            "branch",
+            "fetch",
+            "pull",
+            "push",
+            "cancelOwn"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "steward",
+      "name": "Steward",
+      "description": "Everything an Editor does, plus approving metrics it does not own, guarded classification changes, restoring others' trash, publishing to protected branches, creating and renaming projects, and reading the audit log of its projects.",
+      "permissions": [
+        {
+          "actions": [
+            "read",
+            "export",
+            "history",
+            "viewOwnState"
+          ]
+        },
+        {
+          "actions": [
+            "edit",
+            "createMetric",
+            "import",
+            "move",
+            "delete",
+            "revert",
+            "restoreOwn",
+            "stage",
+            "commit",
+            "branch",
+            "fetch",
+            "pull",
+            "push",
+            "cancelOwn"
+          ]
+        },
+        {
+          "actions": [
+            "approveMetric",
+            "editGuarded",
+            "restoreOthers",
+            "publish",
+            "createProject",
+            "renameProject",
+            "readAudit"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "admin",
+      "name": "Admin",
+      "description": "Every action in every project, including projects without a domain, and managing access. Granted only for the whole workspace.",
+      "permissions": [
+        {
+          "actions": [
+            "read",
+            "export",
+            "history",
+            "viewOwnState",
+            "edit",
+            "createMetric",
+            "import",
+            "move",
+            "delete",
+            "revert",
+            "restoreOwn",
+            "approveMetric",
+            "editGuarded",
+            "restoreOthers",
+            "publish",
+            "stage",
+            "commit",
+            "branch",
+            "fetch",
+            "pull",
+            "push",
+            "cancelOwn",
+            "purge",
+            "clear",
+            "createProject",
+            "renameProject",
+            "deleteProject",
+            "setRemote",
+            "clone",
+            "registerProjects",
+            "setIdentity",
+            "readStatus",
+            "readAudit",
+            "admin"
+          ]
+        }
+      ]
+    }
+  ]
+}

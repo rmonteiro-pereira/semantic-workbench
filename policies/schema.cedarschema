@@ -1,0 +1,185 @@
+// Cedar schema of the workbench's access decisions. The record type `Roles::Holders` (one
+// RoleHolder per role) is generated from the role list when the policies are loaded.
+namespace SW {
+  // Holders of one role in one project ("<role>@<project>") or in the whole workspace
+  // ("<role>@workspace"); grants make groups and addresses members of them.
+  entity RoleHolder;
+
+  // One restricted path rule satisfied by a person’s groups or verified address.
+  entity AccessSet;
+
+  entity Group in [RoleHolder] = {
+    name: String,
+  };
+
+  // A verified e-mail address, lower-cased.
+  entity Email in [RoleHolder];
+
+  entity User in [Group, Email, RoleHolder] = {
+    id: String,
+    // "person" or "local" (the implicit Admin of local mode).
+    kind: String,
+    // Verified address, lower-cased; empty when the person has none.
+    email: String,
+    username: String,
+    deactivated: Bool,
+    // At least one access grant (or bootstrap Admin) matched this person.
+    hasAccess: Bool,
+    accessSets: Set<AccessSet>,
+  };
+
+  // An agent client signed in with its own credentials; projects are those an Admin granted.
+  entity Client = {
+    id: String,
+    clientId: String,
+    projects: Set<String>,
+  };
+
+  entity Workspace = {
+    // Slug of the project the resource belongs to; empty for the workspace.
+    project: String,
+    // Domain id of the project; empty when it has none.
+    domain: String,
+    hasDomain: Bool,
+    everyoneCanRead: Bool,
+    // Holders of each role for this project (or for the workspace), built from the grants.
+    holders: Roles::Holders,
+    // Holders through grants that name this project explicitly.
+    explicitHolders: RoleHolder,
+    // Path inside the project; empty for a project or the workspace.
+    path: String,
+    docType: String,
+    // Classification level: 0 public, 1 internal, 2 confidential, 3 restricted.
+    level: Long,
+    restricted: Bool,
+    restrictedTo: Set<AccessSet>,
+    // Metric lifecycle status and owner (lower-cased address or username); empty otherwise.
+    status: String,
+    owner: String,
+    protectedLevel: Long,
+  };
+
+  entity Project = {
+    // Slug of the project the resource belongs to; empty for the workspace.
+    project: String,
+    // Domain id of the project; empty when it has none.
+    domain: String,
+    hasDomain: Bool,
+    everyoneCanRead: Bool,
+    // Holders of each role for this project (or for the workspace), built from the grants.
+    holders: Roles::Holders,
+    // Holders through grants that name this project explicitly.
+    explicitHolders: RoleHolder,
+    // Path inside the project; empty for a project or the workspace.
+    path: String,
+    docType: String,
+    // Classification level: 0 public, 1 internal, 2 confidential, 3 restricted.
+    level: Long,
+    restricted: Bool,
+    restrictedTo: Set<AccessSet>,
+    // Metric lifecycle status and owner (lower-cased address or username); empty otherwise.
+    status: String,
+    owner: String,
+    protectedLevel: Long,
+  };
+
+  entity File in [Project] = {
+    // Slug of the project the resource belongs to; empty for the workspace.
+    project: String,
+    // Domain id of the project; empty when it has none.
+    domain: String,
+    hasDomain: Bool,
+    everyoneCanRead: Bool,
+    // Holders of each role for this project (or for the workspace), built from the grants.
+    holders: Roles::Holders,
+    // Holders through grants that name this project explicitly.
+    explicitHolders: RoleHolder,
+    // Path inside the project; empty for a project or the workspace.
+    path: String,
+    docType: String,
+    // Classification level: 0 public, 1 internal, 2 confidential, 3 restricted.
+    level: Long,
+    restricted: Bool,
+    restrictedTo: Set<AccessSet>,
+    // Metric lifecycle status and owner (lower-cased address or username); empty otherwise.
+    status: String,
+    owner: String,
+    protectedLevel: Long,
+  };
+
+  entity Metric in [Project] = {
+    // Slug of the project the resource belongs to; empty for the workspace.
+    project: String,
+    // Domain id of the project; empty when it has none.
+    domain: String,
+    hasDomain: Bool,
+    everyoneCanRead: Bool,
+    // Holders of each role for this project (or for the workspace), built from the grants.
+    holders: Roles::Holders,
+    // Holders through grants that name this project explicitly.
+    explicitHolders: RoleHolder,
+    // Path inside the project; empty for a project or the workspace.
+    path: String,
+    docType: String,
+    // Classification level: 0 public, 1 internal, 2 confidential, 3 restricted.
+    level: Long,
+    restricted: Bool,
+    restrictedTo: Set<AccessSet>,
+    // Metric lifecycle status and owner (lower-cased address or username); empty otherwise.
+    status: String,
+    owner: String,
+    protectedLevel: Long,
+  };
+
+  type RequestContext = {
+    // "local" or "server".
+    mode: String,
+    // Branch the request works on; empty when none.
+    branch: String,
+    protectedBranch: Bool,
+    // Highest classification level the request touches.
+    level: Long,
+    // Kind of guarded change (classification, metric status, ...); empty when none.
+    guardKind: String,
+  };
+
+  action "read",
+         "export",
+         "history",
+         "viewOwnState",
+         "edit",
+         "createMetric",
+         "import",
+         "move",
+         "delete",
+         "revert",
+         "restoreOwn",
+         "approveMetric",
+         "editGuarded",
+         "restoreOthers",
+         "publish",
+         "stage",
+         "commit",
+         "branch",
+         "fetch",
+         "pull",
+         "push",
+         "cancelOwn",
+         "purge",
+         "clear",
+         "createProject",
+         "renameProject",
+         "deleteProject",
+         "setRemote",
+         "clone",
+         "registerProjects",
+         "setIdentity",
+         "readStatus",
+         "readAudit",
+         "admin",
+         "agentRead" appliesTo {
+    principal: [User, Client],
+    resource: [Workspace, Project, File, Metric],
+    context: RequestContext,
+  };
+}
