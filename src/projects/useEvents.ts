@@ -1,5 +1,6 @@
 /** Subscribes to workspace change notifications and requests refreshed state after reconnects. */
 import { useEffect, useRef } from 'react';
+import { reloadForAccessChange } from './api';
 // Events describe changes, so the callback refetches state. EventSource replays missed events
 // using Last-Event-ID; if replay is unavailable, resync requests a full refresh.
 export const EVENT_TYPES = [
@@ -13,6 +14,7 @@ export const EVENT_TYPES = [
   'clone',
   'identity',
   'resync',
+  'access',
 ] as const;
 /** Subscribes to workspace events and requests refreshed state after reconnects. */
 export function useEvents(onChange: (event: string, data: any) => void) {
@@ -28,6 +30,11 @@ export function useEvents(onChange: (event: string, data: any) => void) {
         try {
           data = JSON.parse(e.data);
         } catch {}
+        if (type === 'access') {
+          source.close();
+          reloadForAccessChange();
+          return;
+        }
         handler.current(type, data);
       };
       source.addEventListener(type, listener as EventListener);

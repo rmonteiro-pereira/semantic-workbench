@@ -25,6 +25,10 @@ export type TreeAction =
       project: string;
     }
   | { action: 'move' | 'delete-file' | 'history'; project: string; path: string };
+/** The note for files a person cannot open; plural only for more than one file. */
+export function hiddenFilesLine(count: number) {
+  return count === 1 ? '1 file you cannot open' : `${count} files you cannot open`;
+}
 // Per-item menu: a button that opens a list of menu items.
 function ItemMenu({
   label,
@@ -206,6 +210,7 @@ function ProjectItem({ project, ...props }: { project: ProjectInfo } & TreeProps
       </div>
       {open && (
         <ul role="group">
+          {project.hiddenFiles ? <li>{hiddenFilesLine(project.hiddenFiles)}</li> : null}
           {project.files.map(file => (
             <FileItem key={file.path} project={project} file={file} {...props} />
           ))}

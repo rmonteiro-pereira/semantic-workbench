@@ -1,5 +1,7 @@
 // Handles deletion, undo, restoration, and permanent removal with explicit confirmation for
 // destructive calls.
+import { requestReader, requestScope } from '../auth/middleware';
+import { readableTrash } from '../projects/trash';
 import { readJson } from '../request';
 import { decodePath, type Route } from './http';
 /** Requires an explicit confirmation flag before a destructive operation. */
@@ -11,16 +13,22 @@ const ENTRY = /^[0-9A-HJKMNP-TV-Z]{26}$/;
 /** Handles trash operations, requiring confirmation before destructive actions. */
 export const trashRoutes: Route = async (ws, req, url) => {
   const p = url.pathname;
+  if (!p.startsWith('/api/')) return null;
+  const reader = requestReader(req);
+  const { view, owner } = reader;
+  const scope = requestScope(req);
+  const visibleEntries = () =>
+    ws.trash.list().filter(entry => !view || readableTrash(entry, scope));
   const impact = p.match(/^\/api\/projects\/([^/]+)\/delete-impact$/);
   if (impact && req.method === 'GET') {
     const path = url.searchParams.get('path');
-    return Response.json(ws.deleteImpact(decodeURIComponent(impact[1]), path ?? undefined));
+    return Response.json(ws.deleteImpact(decodeURIComponent(impact[1]), path ?? undefined, reader));
   }
   const file = p.match(/^\/api\/projects\/([^/]+)\/files\/(.+)$/);
   if (file && req.method === 'DELETE') {
     requireConfirm(await readJson(req, 4096));
     return Response.json(
-      await ws.trash.deleteFile(decodeURIComponent(file[1]), decodePath(file[2])),
+      await ws.trash.deleteFile(decodeURIComponent(file[1]), decodePath(file[2]), owner),
     );
   }
   const project = p.match(/^\/api\/projects\/([^/]+)$/);
@@ -32,23 +40,25 @@ export const trashRoutes: Route = async (ws, req, url) => {
     if (body?.mode !== undefined && body.mode !== 'delete')
       throw Error('mode is "remove" or "delete".');
     requireConfirm(body);
-    return Response.json(await ws.trash.deleteProject(decodeURIComponent(project[1])));
+    return Response.json(await ws.trash.deleteProject(decodeURIComponent(project[1]), owner));
   }
   if (p === '/api/clear' && req.method === 'POST') {
     requireConfirm(await readJson(req, 4096));
-    return Response.json(await ws.trash.clear());
+    return Response.json(await ws.trash.clear(owner));
   }
-  if (p === '/api/trash' && req.method === 'GET') return Response.json(ws.trash.list());
+  if (p === '/api/trash' && req.method === 'GET') return Response.json(visibleEntries());
   if (p === '/api/trash' && req.method === 'DELETE') {
     requireConfirm(await readJson(req, 4096));
-    ws.trash.purgeAll();
+    if (view) {
+      for (const entry of visibleEntries()) ws.trash.purge(entry.entryId);
+    } else ws.trash.purgeAll();
     return new Response(null, { status: 204 });
   }
   const entry = p.match(/^\/api\/trash\/([^/]+)(\/undo|\/restore)?$/);
   if (entry && ENTRY.test(entry[1])) {
     const id = entry[1];
     if (entry[2] === '/undo' && req.method === 'POST')
-      return Response.json(await ws.trash.undo(id));
+      return Response.json(await ws.trash.undo(id, reader));
     if (entry[2] === '/restore' && req.method === 'POST') {
       const body = await readJson(req, 4096, {});
       if (
@@ -59,7 +69,7 @@ export const trashRoutes: Route = async (ws, req, url) => {
         throw Error('Expected {toProject?, toPath?}.');
       for (const k of ['toProject', 'toPath'])
         if (body[k] !== undefined && typeof body[k] !== 'string') throw Error(`${k} must be text.`);
-      return Response.json(await ws.trash.restore(id, body));
+      return Response.json(await ws.trash.restore(id, body, reader));
     }
     if (!entry[2] && req.method === 'DELETE') {
       requireConfirm(await readJson(req, 4096));

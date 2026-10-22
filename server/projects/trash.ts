@@ -1,5 +1,9 @@
 // Moves deleted files and project folders into journaled trash without rewriting Git history.
 // Restoration refuses occupied paths and suggests a free alternative.
+import { archivePersonalState, clearPersonalDrafts, restorePersonalState } from './personal-state';
+import type { EventTags } from './events';
+import type { Reader } from './reader';
+import type { AccessScope } from '../auth/authorize';
 import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { join, posix } from 'node:path';
 import { randomBytes } from 'node:crypto';
@@ -22,6 +26,8 @@ import type { ProjectEntry, State } from './state';
 export const UNDO_MS = 10_000;
 /** Metadata needed to restore a deleted file or project and its associated state. */
 export type TrashEntry = {
+  owner?: string;
+  paths?: { project: string; path: string }[];
   formatVersion: 1;
   entryId: string;
   // A subproject is a project folder inside a shared repository; a repository entry holds a whole
@@ -69,7 +75,9 @@ export type TrashContext = {
     origin: string,
     files: { path: string; source: string }[],
   ) => Promise<ProjectEntry>;
-  emit: (event: string, data: unknown) => void;
+  emit: (event: string, data: unknown, tags: EventTags) => void;
+  /** Adds the principals who may hear of each tagged project, decided before it is removed. */
+  withCurrentReaders: (event: string, tags: EventTags) => EventTags;
   now?: () => number;
 };
 type DeletionUnit =
@@ -108,6 +116,16 @@ function deletionUnits(deleted: ProjectEntry[], all: ProjectEntry[]): DeletionUn
 export function createTrash(ctx: TrashContext) {
   const { layout, state, journal, lock } = ctx;
   const now = ctx.now ?? Date.now;
+  function entryTags(entry: TrashEntry): EventTags {
+    if (entry.owner) return { owner: entry.owner, projects: [entry.project], paths: entry.paths };
+    return {
+      projects: [entry.project],
+      paths: entry.path ? [{ project: entry.project, path: entry.path }] : undefined,
+    };
+  }
+  function emitEntry(entry: TrashEntry, undoUntil?: string, tags = entryTags(entry)) {
+    ctx.emit('trash', { entries: [entry.entryId], ...(undoUntil ? { undoUntil } : {}) }, tags);
+  }
   const dirOf = (id: string) => {
     if (!/^[0-9A-HJKMNP-TV-Z]{26}$/.test(id)) throw new NotFoundError('Trash entry not found.');
     return join(layout.trash, id);
@@ -133,7 +151,7 @@ export function createTrash(ctx: TrashContext) {
     undoUntil: new Date(at + UNDO_MS).toISOString(),
     ...fields,
   });
-  async function deleteFile(slug: string, path: string) {
+  async function deleteFile(slug: string, path: string, owner?: string) {
     const p = projectPath(path);
     const project = registryEntry(assertSlug(slug));
     return lock('project:' + slug, async () => {
@@ -148,6 +166,7 @@ export function createTrash(ctx: TrashContext) {
       const e = newEntry(
         {
           kind: 'file',
+          ...(owner ? { owner, paths: [{ project: slug, path: p }] } : {}),
           project: slug,
           projectName: project.name,
           path: p,
@@ -162,6 +181,7 @@ export function createTrash(ctx: TrashContext) {
       const steps = [{ from: file, to: join(dir, 'payload', posix.basename(p)) }];
       if (existsSync(state.draftFile(slug, p)))
         steps.push({ from: state.draftFile(slug, p), to: join(dir, 'draft.json') });
+      steps.push(...archivePersonalState(state, slug, p, join(dir, 'personal')));
       try {
         journal.run('delete', steps);
       } catch (err) {
@@ -174,7 +194,7 @@ export function createTrash(ctx: TrashContext) {
         state.writeView(slug, files);
       }
       await ctx.afterFiles(slug);
-      ctx.emit('trash', { entries: [e.entryId], undoUntil: e.undoUntil });
+      emitEntry(e, e.undoUntil);
       return { entryId: e.entryId, undoUntil: e.undoUntil };
     });
   }
@@ -229,6 +249,7 @@ export function createTrash(ctx: TrashContext) {
           atomicWrite(staged, committed);
           steps.push({ from: staged, to: file });
         }
+        steps.push(...clearPersonalDrafts(state, slug, [p], staging));
         journal.run('revert', steps, [staging], opId);
       } catch (err) {
         if (err instanceof JournalCrash) throw err;
@@ -236,16 +257,15 @@ export function createTrash(ctx: TrashContext) {
         if (entryDir) rmSync(entryDir, { recursive: true, force: true });
         throw err;
       }
-      state.deleteDraft(slug, p);
       await ctx.afterFiles(slug);
-      if (entry) ctx.emit('trash', { entries: [entry.entryId], undoUntil: entry.undoUntil });
+      if (entry) emitEntry(entry, entry.undoUntil);
       return { hash: committed ? sha256(committed) : null, trashEntry: entry?.entryId ?? null };
     });
   }
   // Projects (and Clear) are removed together with their registry entries in one journal.
   // Deleting a subproject moves only its folder; the shared repository then shows the deletion
   // as uncommitted changes. Clear moves a repository that holds subprojects once, as a whole.
-  async function deleteProjects(slugs: string[], batchId: string | null) {
+  async function deleteProjects(slugs: string[], batchId: string | null, owner?: string) {
     return lock('registry', async () => {
       const current = ctx.projects();
       for (const slug of slugs) registryEntry(slug);
@@ -254,13 +274,28 @@ export function createTrash(ctx: TrashContext) {
       const stateStaging = join(layout.state, `.staging-${opId}`);
       const entries: TrashEntry[] = [];
       const steps: { from: string; to: string }[] = [];
+      let removal: { projects: EventTags; entries: EventTags[] } | undefined;
       try {
         for (const unit of deletionUnits(slugs.map(registryEntry), current)) {
-          const e = newEntry(unitEntry(unit, batchId), at);
+          const fields = unitEntry(unit, batchId);
+          const members = unit.kind === 'repository' ? unit.projects : [unit.project];
+          const paths = owner
+            ? members.flatMap(project =>
+                readdirRecursive(projectDir(layout, project.slug))
+                  .filter(path => !path.startsWith('.git/'))
+                  .map(path => ({ project: project.slug, path })),
+              )
+            : [];
+          const e = newEntry({ ...fields, ...(owner ? { owner, paths } : {}) }, at);
           const dir = dirOf(e.entryId);
           atomicWriteJson(join(dir, 'entry.json'), e);
           entries.push(e);
           steps.push(...unitSteps(unit, dir));
+          for (const member of members) {
+            steps.push(
+              ...archivePersonalState(state, member.slug, undefined, join(dir, 'personal')),
+            );
+          }
         }
         steps.push(
           ...ctx.registrySteps(
@@ -268,6 +303,7 @@ export function createTrash(ctx: TrashContext) {
             current.filter(p => !slugs.includes(p.slug)),
           ),
         );
+        removal = removalTags(slugs, entries);
         for (const slug of slugs) ctx.forgetProject(slug);
         journal.run(batchId ? 'clear' : 'delete', steps, [stateStaging], opId);
       } catch (err) {
@@ -277,10 +313,18 @@ export function createTrash(ctx: TrashContext) {
           if (existsSync(projectDir(layout, slug))) await ctx.adoptProject(slug);
         throw err;
       }
-      ctx.emit('projects', { added: [], removed: slugs, renamed: [] });
-      ctx.emit('trash', { entries: entries.map(e => e.entryId), undoUntil: entries[0]?.undoUntil });
+      const { projects, entries: entryTags } = removal!;
+      ctx.emit('projects', { added: [], removed: slugs, renamed: [] }, projects);
+      entries.forEach((entry, index) => emitEntry(entry, entry.undoUntil, entryTags[index]));
       return entries;
     });
+  }
+  // Decided while the projects are still registered: afterwards no grant can name them.
+  function removalTags(slugs: string[], entries: TrashEntry[]) {
+    return {
+      projects: ctx.withCurrentReaders('projects', { projects: slugs }),
+      entries: entries.map(entry => ctx.withCurrentReaders('trash', entryTags(entry))),
+    };
   }
   // The trash entry that records one deletion unit, with what its restore needs.
   function unitEntry(unit: DeletionUnit, batchId: string | null) {
@@ -321,8 +365,9 @@ export function createTrash(ctx: TrashContext) {
   }
   async function restore(
     id: string,
-    target: { toProject?: string; toPath?: string } = {},
-    undo = false,
+    target: { toProject?: string; toPath?: string },
+    undo: boolean,
+    { view }: Reader,
   ) {
     const { e, dir } = read(id);
     if (undo && now() > Date.parse(e.undoUntil))
@@ -330,6 +375,9 @@ export function createTrash(ctx: TrashContext) {
     if (e.kind === 'file') {
       const slug = target.toProject !== undefined ? assertSlug(target.toProject) : e.project;
       const path = projectPath(target.toPath ?? e.path!);
+      if (view && !view.canRead(slug, path)) {
+        throw new OccupiedError('The target is unavailable.', {});
+      }
       const payload = join(dir, 'payload', posix.basename(e.path!));
       if (!ctx.projects().some(p => p.slug === slug)) {
         if (target.toProject !== undefined) throw new NotFoundError('Project not found.');
@@ -337,8 +385,13 @@ export function createTrash(ctx: TrashContext) {
         const project = await ctx.createProject(e.projectName, 'restore', [
           { path, source: decode(readFileSync(payload)) },
         ]);
-        rmSync(dir, { recursive: true, force: true });
-        ctx.emit('trash', { entries: [id] });
+        const personalSteps = restorePersonalState(
+          state,
+          { project: e.project, path: e.path, target: project.slug, targetPath: path },
+          join(dir, 'personal'),
+        );
+        journal.run('restore', personalSteps, [dir]);
+        emitEntry(e);
         return { kind: 'file', project: project.slug, path };
       }
       return lock('project:' + slug, async () => {
@@ -353,11 +406,18 @@ export function createTrash(ctx: TrashContext) {
         const steps = [{ from: payload, to: dest }];
         if (existsSync(join(dir, 'draft.json')) && !existsSync(state.draftFile(slug, path)))
           steps.push({ from: join(dir, 'draft.json'), to: state.draftFile(slug, path) });
+        steps.push(
+          ...restorePersonalState(
+            state,
+            { project: e.project, path: e.path, target: slug, targetPath: path },
+            join(dir, 'personal'),
+          ),
+        );
         journal.run('restore', steps, [dir]);
         if (e.view !== undefined)
           state.writeView(slug, { ...state.view(slug).files, [path]: e.view });
         await ctx.afterFiles(slug);
-        ctx.emit('trash', { entries: [id] });
+        emitEntry(e);
         return { kind: 'file', project: slug, path };
       });
     }
@@ -379,6 +439,9 @@ export function createTrash(ctx: TrashContext) {
         current.map(p => p.name),
       );
       const steps = [{ from: join(dir, 'payload', e.project), to: projectDir(layout, slug) }];
+      steps.push(
+        ...restorePersonalState(state, { project: e.project, target: slug }, join(dir, 'personal')),
+      );
       if (existsSync(join(dir, 'view.json')) && !existsSync(state.viewFile(slug)))
         steps.push({ from: join(dir, 'view.json'), to: state.viewFile(slug) });
       if (existsSync(join(dir, 'drafts')) && !existsSync(state.draftDir(slug)))
@@ -412,8 +475,8 @@ export function createTrash(ctx: TrashContext) {
             patches: d.patches,
           });
       await ctx.adoptProject(slug);
-      ctx.emit('projects', { added: [slug], removed: [], renamed: [] });
-      ctx.emit('trash', { entries: [id] });
+      ctx.emit('projects', { added: [slug], removed: [], renamed: [] }, { projects: [slug] });
+      emitEntry(e);
       return { kind: 'project', project: slug, name };
     });
   }
@@ -441,8 +504,12 @@ export function createTrash(ctx: TrashContext) {
       ];
       runRestore(steps, [dir, stateStaging], opId, stateStaging);
       await ctx.adoptProject(e.project);
-      ctx.emit('projects', { added: [e.project], removed: [], renamed: [] });
-      ctx.emit('trash', { entries: [id] });
+      ctx.emit(
+        'projects',
+        { added: [e.project], removed: [], renamed: [] },
+        { projects: [e.project] },
+      );
+      emitEntry(e);
       return { kind: 'subproject', project: e.project, name };
     });
   }
@@ -481,14 +548,22 @@ export function createTrash(ctx: TrashContext) {
       ];
       runRestore(steps, [dir, stateStaging], opId, stateStaging);
       for (const member of restored) await ctx.adoptProject(member.slug);
-      ctx.emit('projects', { added: restored.map(p => p.slug), removed: [], renamed: [] });
-      ctx.emit('trash', { entries: [id] });
+      ctx.emit(
+        'projects',
+        { added: restored.map(p => p.slug), removed: [], renamed: [] },
+        { projects: restored.map(p => p.slug) },
+      );
+      emitEntry(e);
       return { kind: 'repository', project: restored[0]?.slug, name: repo };
     });
   }
   // Moves saved view settings and drafts back when the workspace has none for the project.
   function stateSteps(dir: string, slug: string, view: string, drafts: string) {
-    const steps: { from: string; to: string }[] = [];
+    const steps = restorePersonalState(
+      state,
+      { project: slug, target: slug },
+      join(dir, 'personal'),
+    );
     if (existsSync(view) && !existsSync(state.viewFile(slug)))
       steps.push({ from: view, to: state.viewFile(slug) });
     if (existsSync(drafts) && !existsSync(state.draftDir(slug)))
@@ -520,6 +595,7 @@ export function createTrash(ctx: TrashContext) {
       })
       .sort((a, b) => b.entryId.localeCompare(a.entryId))
       .map(e => ({
+        ...(e.owner ? { owner: e.owner, paths: e.paths } : {}),
         entryId: e.entryId,
         kind: e.kind,
         project: e.project,
@@ -535,29 +611,29 @@ export function createTrash(ctx: TrashContext) {
     deleteFile,
     list,
     revertFile,
-    deleteProject: async (slug: string) => {
-      const [e] = await deleteProjects([assertSlug(slug)], null);
+    deleteProject: async (slug: string, owner?: string) => {
+      const [e] = await deleteProjects([assertSlug(slug)], null, owner);
       return { entryId: e.entryId, undoUntil: e.undoUntil };
     },
-    async clear() {
+    async clear(owner?: string) {
       const slugs = ctx.projects().map(p => p.slug);
       if (!slugs.length) return { batchId: null, entries: [], undoUntil: null };
       const batchId = ulid();
-      const entries = await deleteProjects(slugs, batchId);
+      const entries = await deleteProjects(slugs, batchId, owner);
       return { batchId, entries: entries.map(e => e.entryId), undoUntil: entries[0].undoUntil };
     },
-    undo: (id: string) => restore(id, {}, true),
-    restore: (id: string, target: { toProject?: string; toPath?: string } = {}) =>
-      restore(id, target, false),
+    undo: (id: string, reader: Reader) => restore(id, {}, true, reader),
+    restore: (id: string, target: { toProject?: string; toPath?: string }, reader: Reader) =>
+      restore(id, target, false, reader),
     purge(id: string) {
-      const { dir } = read(id);
+      const { dir, e } = read(id);
       rmSync(dir, { recursive: true, force: true });
-      ctx.emit('trash', { entries: [id] });
+      emitEntry(e);
     },
     purgeAll() {
       const ids = list().map(e => e.entryId);
       for (const id of ids) rmSync(dirOf(id), { recursive: true, force: true });
-      ctx.emit('trash', { entries: ids });
+      ctx.emit('trash', { entries: [] }, { audience: 'all' });
       return ids.length;
     },
   };
@@ -583,5 +659,25 @@ function readdirRecursive(dir: string, prefix = ''): string[] {
       : d.isDirectory()
         ? readdirRecursive(join(dir, d.name), prefix + d.name + '/')
         : [prefix + d.name],
+  );
+}
+
+/**
+ * Checks every original path before exposing an owned trash entry. An entry without original
+ * paths, such as a deleted empty project, is visible to whoever may restore that project.
+ */
+export function readableTrash(
+  entry: Pick<TrashEntry, 'project' | 'path' | 'owner' | 'paths'>,
+  scope: AccessScope,
+): boolean {
+  const paths = entry.paths ?? (entry.path ? [{ project: entry.project, path: entry.path }] : []);
+  const action = entry.owner === scope.principal.id ? 'restoreOwn' : 'restoreOthers';
+  if (!paths.length) {
+    return scope.authorize(action, { type: 'project', project: entry.project }).allow;
+  }
+  return paths.every(
+    file =>
+      scope.view().canRead(file.project, file.path) &&
+      scope.authorize(action, { type: 'file', project: file.project, path: file.path }).allow,
   );
 }

@@ -27,6 +27,7 @@ import {
   type DataLayout,
 } from './paths';
 import { createScanner, indexBytes } from './scanner';
+import { movePersonalState, clearPersonalDrafts } from './personal-state';
 import { createState, type ProjectEntry, type Patch } from './state';
 import { createWatcher } from './watcher';
 import { migrateLegacy, type MigrationReport } from './migration';
@@ -34,6 +35,8 @@ import { createTrash } from './trash';
 import { createScm } from './scm';
 import { createCloner, rollBackInterruptedClones } from './clone';
 import { createRepositoryProjects } from './repository-projects';
+import { LOCAL_READER, type Reader } from './reader';
+import { HiddenResourceError } from './errors';
 import { factsOf, inferSuggestions, type FileFacts, type IndexedFile } from './suggestions';
 import { ConflictError, OccupiedError } from './errors';
 import { StaleError, NotFoundError } from './errors';
@@ -92,7 +95,10 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     mkdirSync(dir, { recursive: true });
   const state = createState(layout);
   const journal = createJournal(layout, options.journalHooks);
-  const events = createEvents();
+  const events = createEvents({
+    suggestionIndex: () => indexedFiles(LOCAL_READER),
+    sharedSuggestionCount: index => suggestionsFrom(index, LOCAL_READER).length,
+  });
   // Unregistered slugs fall back to folders with the same name; registered projects use the
   // registry.
   layout.locate = slug => {
@@ -133,7 +139,10 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   async function rescan(slug: string) {
     const r = await scanner.scan(slug);
     if (r.changed.length || r.removed.length) {
-      events.emit('files', r);
+      events.emit('files', r, {
+        projects: [slug],
+        paths: [...r.changed, ...r.removed].map(path => ({ project: slug, path })),
+      });
       notifySuggestions();
     }
     return r;
@@ -150,11 +159,13 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   }
   // Grouping suggestions are derived from file facts, memoized by content hash.
   const facts = new Map<string, FileFacts>();
-  function indexedFiles(): IndexedFile[] {
+  function indexedFiles({ view }: Reader): IndexedFile[] {
     return projects().flatMap(p =>
       cache
         .files(p.slug)
-        .filter(f => f.visible && f.docType !== 'gitignore')
+        .filter(
+          f => f.visible && f.docType !== 'gitignore' && (!view || view.canRead(p.slug, f.path)),
+        )
         .flatMap(f => {
           let fx = facts.get(f.hash);
           if (!fx) {
@@ -169,28 +180,27 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         }),
     );
   }
-  function suggestions() {
-    const rejected = new Set(state.suggestions().rejected.map(r => `${r.hash}:${r.target}`));
+  // Infers from an unrestricted index narrowed to what the reader can open, so one index can
+  // serve every person in a refresh round.
+  function suggestionsFrom(index: IndexedFile[], reader: Reader) {
+    const { view, owner } = reader;
+    const personal = owner ? state.forOwner(owner) : state;
+    const rejected = new Set(personal.suggestions().rejected.map(r => `${r.hash}:${r.target}`));
     return inferSuggestions(
-      indexedFiles(),
+      view ? index.filter(file => view.canRead(file.project, file.path)) : index,
       rejected,
-      projects().map(p => p.slug),
+      projects()
+        .filter(p => !view || view.readableProjects.has(p.slug))
+        .map(p => p.slug),
     );
   }
-  let openSuggestions = -1;
-  let suggestionTimer: ReturnType<typeof setTimeout> | undefined;
+  function suggestions(reader: Reader) {
+    return suggestionsFrom(indexedFiles(LOCAL_READER), reader);
+  }
+  let closed = false;
+  // A payload-free trigger: the event hub debounces it and counts for each connected client.
   function notifySuggestions() {
-    clearTimeout(suggestionTimer);
-    suggestionTimer = setTimeout(() => {
-      if (closed) return;
-      try {
-        const n = suggestions().length;
-        if (n !== openSuggestions) {
-          openSuggestions = n;
-          events.emit('suggestions', { open: n });
-        }
-      } catch {}
-    }, 50);
+    if (!closed) events.emit('suggestions', {}, { audience: 'all' });
   }
   // Stage a new project folder, then move it and the new registry into place in one journaled
   // operation.
@@ -253,7 +263,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         await scanner.scan(slug);
         watcher?.add(slug);
         notifySuggestions();
-        events.emit('projects', { added: [slug], removed: [], renamed: [] });
+        events.emit('projects', { added: [slug], removed: [], renamed: [] }, { projects: [slug] });
         return Object.assign({}, project, { commit });
       } catch (e) {
         rmSync(staging, { recursive: true, force: true });
@@ -371,8 +381,13 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
           { severity: 'error', code: 'unsupported', path: '/', message: 'Unsupported file type.' },
         ]);
       if (!indexed.file.valid) throw new InputError(indexed.findings);
-      const hash = atomicWrite(file, bytes);
-      state.deleteDraft(slug, p);
+      const staging = join(layout.state, `.staging-${journal.newId()}`);
+      const staged = join(staging, 'source');
+      const hash = atomicWrite(staged, bytes);
+      const steps = clearPersonalDrafts(state, slug, [p], staging);
+      if (existsSync(file)) steps.push({ from: file, to: join(staging, 'previous') });
+      steps.push({ from: staged, to: file });
+      journal.run('save', steps, [staging]);
       await rescan(slug);
       return { path: p, hash, findings: indexed.findings };
     });
@@ -382,6 +397,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   async function saveFiles(
     slug: string,
     writes: { path: string; baseHash: string | null; source?: string; patches?: Patch[] }[],
+    reader: Reader,
     kind = 'save-files',
   ) {
     entry(slug);
@@ -390,6 +406,9 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     const files = writes.map(w => ({ ...w, path: projectPath(w.path) }));
     if (new Set(files.map(f => f.path)).size !== files.length)
       throw Error('Each file may appear once.');
+    if (reader.view && files.some(file => !reader.view!.canRead(slug, file.path))) {
+      throw new OccupiedError('The target is unavailable.', {});
+    }
     return lock('project:' + slug, async () => {
       const prepared = files.map(f => {
         const file = projectFile(layout, slug, f.path);
@@ -440,12 +459,19 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
           if (f.exists) steps.push({ from: f.file, to: join(staging, 'previous', String(i)) });
           steps.push({ from: staged, to: f.file });
         });
+        steps.push(
+          ...clearPersonalDrafts(
+            state,
+            slug,
+            prepared.map(file => file.path),
+            staging,
+          ),
+        );
         journal.run(kind, steps, [staging], opId);
       } catch (e) {
         rmSync(staging, { recursive: true, force: true });
         throw e;
       }
-      for (const f of prepared) state.deleteDraft(slug, f.path);
       await rescan(slug);
       return {
         written: prepared.map(f => ({
@@ -465,11 +491,11 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     if (slash < 1) throw new NotFoundError('Document not found.');
     return { project: id.slice(0, slash), path: id.slice(slash + 1) };
   }
-  function documents() {
+  function documentsFor({ view }: Reader) {
     return projects().flatMap(p =>
       cache
         .files(p.slug)
-        .filter(f => f.visible)
+        .filter(f => f.visible && (!view || view.canRead(p.slug, f.path)))
         .flatMap(f => {
           let source: string;
           try {
@@ -506,16 +532,20 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         .map(project => project.slug);
       try {
         const s = await git.status(join(layout.projects, repo));
-        events.emit('git', {
-          project: slug,
-          repo,
-          projects: projectsInRepo,
-          branch: s.branch,
-          ahead: s.ahead,
-          behind: s.behind,
-          changes: s.changes,
-          altered: [],
-        });
+        events.emit(
+          'git',
+          {
+            project: slug,
+            repo,
+            projects: projectsInRepo,
+            branch: s.branch,
+            ahead: s.ahead,
+            behind: s.behind,
+            changes: s.changes,
+            altered: [],
+          },
+          { projects: projectsInRepo },
+        );
       } catch {
         // The repository went away meanwhile; the next scan reports what is left.
       }
@@ -540,7 +570,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       await scanner.scan(p.slug);
       watcher?.add(p.slug);
     }
-  for (const r of recovery) events.emit('recovery', r);
+  for (const r of recovery) events.emit('recovery', { outcome: r.outcome }, { audience: 'all' });
   const scm = createScm({
     layout,
     git,
@@ -558,9 +588,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         .filter(d => d.project === slug)
         .map(d => d.path),
     rescan: slug => rescan(slug),
-    emit: (e, d) => events.emit(e, d),
+    emit: (e, d, tags) => events.emit(e, d, tags),
   });
-  let closed = false;
   const trash = createTrash({
     layout,
     state,
@@ -569,7 +598,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     projects,
     registrySteps,
     now: options.now,
-    emit: (e, d) => events.emit(e, d),
+    emit: (e, d, tags) => events.emit(e, d, tags),
+    withCurrentReaders: (event, tags) => events.withCurrentReaders(event, tags),
     afterFiles: slug => rescan(slug),
     forgetProject: slug => {
       watcher?.remove(slug);
@@ -588,13 +618,20 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     slug: string,
     path: string,
     toProject: string,
-    toPath?: string,
-    keepBoth = false,
+    toPath: string | undefined,
+    keepBoth: boolean,
+    { view: accessView }: Reader,
   ) {
     entry(slug);
+    if (accessView && !accessView.readableProjects.has(toProject)) {
+      throw new NotFoundError('Project not found.');
+    }
     entry(toProject);
     const from = projectPath(path);
     let to = projectPath(toPath ?? posix.basename(from));
+    if (accessView && !accessView.canRead(toProject, to)) {
+      throw new OccupiedError('The target is unavailable.', {});
+    }
     const [a, b] = [slug, toProject].sort();
     return lock('project:' + a, () =>
       lock(a === b ? 'none' : 'project:' + b, async () => {
@@ -602,18 +639,27 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         if (!existsSync(src)) throw new NotFoundError('File not found.');
         if (slug === toProject && from === to) return { project: toProject, path: to };
         if (existsSync(projectFile(layout, toProject, to))) {
-          const free = disambiguate(to, new Set(cache.files(toProject).map(f => f.path)));
+          const free = freeReadableName(toProject, to, accessView);
           if (!keepBoth)
             throw new OccupiedError(
               `${to} already exists in the target project; nothing was overwritten.`,
-              { toProject, toPath: free },
+              free ? { toProject, toPath: free } : {},
             );
+          if (!free) throw new OccupiedError('The target is unavailable.', {});
           to = free;
         }
         const steps = [{ from: src, to: projectFile(layout, toProject, to) }];
         if (existsSync(state.draftFile(slug, from)) && !existsSync(state.draftFile(toProject, to)))
           steps.push({ from: state.draftFile(slug, from), to: state.draftFile(toProject, to) });
-        journal.run('move', steps);
+        const personalStaging = join(layout.state, `.staging-${journal.newId()}`);
+        steps.push(
+          ...movePersonalState(
+            state,
+            { project: slug, path: from, target: toProject, targetPath: to },
+            personalStaging,
+          ),
+        );
+        journal.run('move', steps, [personalStaging]);
         const view = state.view(slug).files[from];
         if (view !== undefined) {
           const files = { ...state.view(slug).files };
@@ -634,14 +680,56 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       }),
     );
   }
+  // A keep-both name chosen among the names this reader can see, plus names already taken in the
+  // same batch. A name the reader cannot open is refused, so a hidden file is neither revealed
+  // nor replaced. A file on disk that the cache does not list counts as hidden for a person.
+  function freeReadableName(
+    slug: string,
+    path: string,
+    view: Reader['view'],
+    batchNames: Iterable<string> = [],
+  ) {
+    const taken = new Set(batchNames);
+    for (const file of cache.files(slug)) {
+      if (!view || view.canRead(slug, file.path)) taken.add(file.path);
+    }
+    for (;;) {
+      const free = disambiguate(path, taken);
+      if (view && !view.canRead(slug, free)) return null;
+      if (!existsSync(projectFile(layout, slug, free))) return free;
+      if (view) return null;
+      taken.add(free);
+    }
+  }
+  // The name each imported file is written under. Keep-both names are chosen before anything is
+  // staged, so a refused name leaves the project untouched.
+  function importTargets(
+    slug: string,
+    batch: ImportFile[],
+    conflicts: { existing: Set<string>; keepBoth: boolean; view: Reader['view'] },
+  ) {
+    const { existing, keepBoth, view } = conflicts;
+    const taken = new Set(batch.map(file => file.path));
+    return batch.map(file => {
+      if (!keepBoth || !existing.has(file.path)) return file.path;
+      const free = freeReadableName(slug, file.path, view, taken);
+      if (!free) throw new OccupiedError('The target is unavailable.', {});
+      taken.add(free);
+      return free;
+    });
+  }
   // Name clashes require an explicit replace or keep-both choice before any files change.
   async function importInto(
     slug: string,
     files: ImportFile[],
-    onConflict?: 'replace' | 'keep-both',
+    onConflict: 'replace' | 'keep-both' | undefined,
+    reader: Reader,
   ) {
     entry(slug);
     const batch = preflight(files);
+    if (reader.view && batch.some(file => !reader.view!.canRead(slug, file.path))) {
+      throw new OccupiedError('The target is unavailable.', {});
+    }
     if (onConflict !== undefined && onConflict !== 'replace' && onConflict !== 'keep-both')
       throw Error('onConflict must be replace or keep-both.');
     return lock('project:' + slug, async () => {
@@ -650,25 +738,31 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       for (const f of batch) if (existsSync(join(dir, f.path))) existing.add(f.path);
       const conflicts = batch.filter(f => existing.has(f.path)).map(f => f.path);
       if (conflicts.length && !onConflict) throw new ConflictError(conflicts);
+      const { view } = reader;
+      const targets = importTargets(slug, batch, {
+        existing,
+        keepBoth: onConflict === 'keep-both',
+        view,
+      });
       const opId = journal.newId();
       const staging = join(layout.projects, `.staging-${opId}`);
       const steps: { from: string; to: string }[] = [];
       const written: { path: string; hash: string }[] = [];
-      const taken = new Set([...existing, ...batch.map(f => f.path)]);
+      const replaced: string[] = [];
       try {
-        for (const f of batch) {
-          let path = f.path;
-          if (existing.has(path) && onConflict === 'keep-both') {
-            path = disambiguate(path, taken);
-            taken.add(path);
-          }
+        for (const [position, f] of batch.entries()) {
+          const path = targets[position];
           const staged = join(staging, 'new', path);
           atomicWrite(staged, encode(f.source));
-          if (existing.has(path))
+          if (existing.has(path)) {
             steps.push({ from: join(dir, path), to: join(staging, 'replaced', path) });
+            replaced.push(path);
+          }
           steps.push({ from: staged, to: join(dir, path) });
           written.push({ path, hash: sha256(encode(f.source)) });
         }
+        // A draft of a replaced file was edited against bytes that are gone.
+        steps.push(...clearPersonalDrafts(state, slug, replaced, staging));
         journal.run('import', steps, [staging], opId);
       } catch (e) {
         rmSync(staging, { recursive: true, force: true });
@@ -694,13 +788,14 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     });
   }
   // Warn about unsaved drafts and references that would no longer resolve after deletion.
-  function deleteImpact(slug: string, path?: string) {
+  function deleteImpact(slug: string, path: string | undefined, { view, owner }: Reader) {
     entry(slug);
     const p = path === undefined ? undefined : projectPath(path);
+    if (view && p && !view.canRead(slug, p)) throw new HiddenResourceError();
     if (p !== undefined && !cache.file(slug, p)) throw new NotFoundError('File not found.');
     const removed = (f: { project: string; path: string }) =>
       f.project === slug && (p === undefined || f.path === p);
-    const all = indexedFiles();
+    const all = indexedFiles(LOCAL_READER);
     const gone = all.filter(removed);
     const kept = all.filter(f => !removed(f));
     const brokenReferences: {
@@ -729,30 +824,61 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     return {
       subproject: location.folder !== location.repo,
       repo: location.repo,
-      sharedWith,
+      sharedWith: sharedWith.filter(project => !view || view.readableProjects.has(project)),
       removes:
         p === undefined
-          ? { project: slug, name: entry(slug).name, files: cache.files(slug).map(f => f.path) }
+          ? {
+              project: slug,
+              name: entry(slug).name,
+              files: cache
+                .files(slug)
+                .filter(f => !view || view.canRead(slug, f.path))
+                .map(f => f.path),
+            }
           : { project: slug, files: [p] },
-      unsavedDrafts: state
+      unsavedDrafts: (owner ? state.forOwner(owner) : state)
         .drafts()
         .filter(removed)
+        .filter(d => !view || view.canRead(d.project, d.path))
         .map(d => ({ project: d.project, path: d.path })),
-      brokenReferences,
+      brokenReferences: brokenReferences.filter(
+        ref =>
+          !view ||
+          (view.canRead(ref.from.project, ref.from.path) &&
+            view.canRead(ref.to.project, ref.to.path)),
+      ),
+      ...(view
+        ? {
+            hiddenReferences: brokenReferences.filter(
+              ref =>
+                view.readableProjects.has(ref.from.project) &&
+                !view.canRead(ref.from.project, ref.from.path),
+            ).length,
+          }
+        : {}),
     };
   }
-  async function acceptSuggestion(id: string) {
-    const s = suggestions().find(x => x.id === id);
+  async function acceptSuggestion(id: string, reader: Reader) {
+    const s = suggestions(reader).find(x => x.id === id);
     if (!s) throw new NotFoundError('Suggestion not found or no longer valid.');
-    const moved = await moveFile(s.file.project, s.file.path, s.targetProject, undefined, true);
+    const moved = await moveFile(
+      s.file.project,
+      s.file.path,
+      s.targetProject,
+      undefined,
+      true,
+      reader,
+    );
     notifySuggestions();
     return moved;
   }
-  function rejectSuggestion(id: string) {
-    const s = suggestions().find(x => x.id === id);
+  function rejectSuggestion(id: string, reader: Reader) {
+    const { owner } = reader;
+    const personal = owner ? state.forOwner(owner) : state;
+    const s = suggestions(reader).find(x => x.id === id);
     if (!s) throw new NotFoundError('Suggestion not found or no longer valid.');
-    const current = state.suggestions().rejected;
-    state.writeSuggestions([
+    const current = personal.suggestions().rejected;
+    personal.writeSuggestions([
       ...current,
       {
         hash: s.file.hash,
@@ -763,7 +889,6 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       },
     ]);
     notifySuggestions();
-    events.emit('suggestions', { open: suggestions().length });
   }
   const cloner = createCloner({
     layout,
@@ -781,9 +906,9 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     added: slug => {
       watcher?.add(slug);
       notifySuggestions();
-      events.emit('projects', { added: [slug], removed: [], renamed: [] });
+      events.emit('projects', { added: [slug], removed: [], renamed: [] }, { projects: [slug] });
     },
-    emit: event => events.emit('clone', event),
+    emit: (event, owner) => events.emit('clone', event, { audience: 'all', owner }),
     // A manifest's projects are registered at once; otherwise the folders that hold definitions
     // are proposed, and the user confirms them in the browser.
     afterClone: slug => repositoryProjects.adoptClone(slug),
@@ -830,7 +955,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       }
       notifySuggestions();
     },
-    emit: (event, data) => events.emit(event, data),
+    emit: (event, data, tags) => events.emit(event, data, tags),
+    withCurrentReaders: (event, tags) => events.withCurrentReaders(event, tags),
   });
   // Every repository with whether Git has an identity for it, checked now.
   async function repositoryStatus() {
@@ -893,7 +1019,15 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
           targets.push([repo, known] as const);
       for (const [repo, known] of targets) {
         await git.setIdentity(known.dir, userName, userEmail);
-        events.emit('identity', { repo });
+        events.emit(
+          'identity',
+          { repo },
+          {
+            projects: projects()
+              .filter(project => locationOf(project).repo === repo)
+              .map(project => project.slug),
+          },
+        );
       }
       return { repositories: targets.map(([repo]) => repo) };
     },
@@ -908,7 +1042,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
      * drafts and view settings stay where they are. */
     /** Takes a subfolder project out of the workspace without deleting anything. */
     removeProject: (slug: string) => repositoryProjects.remove(slug),
-    clone: cloner.start,
+    clone: (url: unknown, name: unknown, { owner }: Reader) => cloner.start(url, name, owner),
     cancelClone: cloner.cancel,
     // Restore committed bytes through a journaled trash operation so the current version is
     // recoverable.
@@ -936,7 +1070,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     readFile,
     saveFile,
     saveFiles,
-    documents,
+    documents: () => documentsFor(LOCAL_READER),
+    documentsFor,
     resolveId,
     preflight,
     trash,
@@ -944,44 +1079,64 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     importInto,
     deleteImpact,
     suggestions,
+    /** One person's open suggestion count from a shared unrestricted index. */
+    suggestionCount: (reader: Reader, index: IndexedFile[]) =>
+      suggestionsFrom(index, reader).length,
     acceptSuggestion,
     rejectSuggestion,
-    async listProjects() {
+    async listProjects({ view }: Reader) {
       return Promise.all(
-        projects().map(async p => {
-          let gitInfo = { branch: '', ahead: 0, behind: 0, changes: 0 };
-          if (gitAvailable && existsSync(projectDir(layout, p.slug)))
-            try {
-              const s = await git.status(repoDir(layout, p.slug));
-              gitInfo = { branch: s.branch, ahead: s.ahead, behind: s.behind, changes: s.changes };
-            } catch {}
-          const location = locationOf(p);
-          return {
-            slug: p.slug,
-            name: p.name,
-            origin: p.origin,
-            createdAt: p.createdAt,
-            repo: location.repo,
-            // The project's folder inside its repository; empty for the repository itself.
-            folder:
-              location.folder === location.repo
-                ? ''
-                : location.folder.slice(location.repo.length + 1),
-            ...gitInfo,
-            files: cache
-              .files(p.slug)
-              .filter(f => f.visible)
-              .map(f => ({
-                path: f.path,
-                docType: f.docType,
-                layout: f.layout,
-                valid: f.valid,
-                visible: f.visible,
-                gitState: f.gitState,
-                hash: f.hash,
-              })),
-          };
-        }),
+        projects()
+          .filter(p => !view || view.readableProjects.has(p.slug))
+          .map(async p => {
+            let gitInfo = { branch: '', ahead: 0, behind: 0, changes: 0 };
+            if (gitAvailable && existsSync(projectDir(layout, p.slug)))
+              try {
+                const s = await git.status(repoDir(layout, p.slug));
+                gitInfo = {
+                  branch: s.branch,
+                  ahead: s.ahead,
+                  behind: s.behind,
+                  changes: s.changes,
+                };
+              } catch {}
+            const location = locationOf(p);
+            return {
+              slug: p.slug,
+              name: p.name,
+              origin: p.origin,
+              createdAt: p.createdAt,
+              repo: location.repo,
+              // The project's folder inside its repository; empty for the repository itself.
+              folder:
+                location.folder === location.repo
+                  ? ''
+                  : location.folder.slice(location.repo.length + 1),
+              ...gitInfo,
+              ...(view
+                ? {
+                    hiddenFiles: cache
+                      .files(p.slug)
+                      .filter(f => f.visible && !view.canRead(p.slug, f.path)).length,
+                    changes: cache
+                      .files(p.slug)
+                      .filter(f => view.canRead(p.slug, f.path) && f.gitState !== 'clean').length,
+                  }
+                : {}),
+              files: cache
+                .files(p.slug)
+                .filter(f => f.visible && (!view || view.canRead(p.slug, f.path)))
+                .map(f => ({
+                  path: f.path,
+                  docType: f.docType,
+                  layout: f.layout,
+                  valid: f.valid,
+                  visible: f.visible,
+                  gitState: f.gitState,
+                  hash: f.hash,
+                })),
+            };
+          }),
       );
     },
     createProject: (name: unknown) =>
@@ -1034,7 +1189,11 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
           p.name,
         );
         state.writeRegistry(current.map(x => (x.slug === slug ? { ...x, name: value } : x)));
-        events.emit('projects', { added: [], removed: [], renamed: [{ slug, name: value }] });
+        events.emit(
+          'projects',
+          { added: [], removed: [], renamed: [{ slug, name: value }] },
+          { projects: [slug] },
+        );
         return { slug, name: value };
       }),
     // Facade save: new documents go to the "Ungrouped" project; existing ones need their base
@@ -1042,20 +1201,25 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     async saveDocument(
       filename: string,
       source: string,
+      reader: Reader,
       id?: string,
       version?: { revision?: number; baseHash?: string },
     ) {
+      const { view } = reader;
       if (id === undefined) {
         let target = projects().find(p => p.slug === 'ungrouped');
         const path = projectPath(filename);
         preflight([{ path, source }]);
+        if (target && view && !view.readableProjects.has(target.slug))
+          throw new OccupiedError('The target is unavailable.', {});
         if (!target) target = await createProjectFolder('Ungrouped', 'import', [], 'ungrouped');
-        const taken = new Set(cache.files(target.slug).map(f => f.path));
-        const free = disambiguate(path, taken);
+        const free = freeReadableName(target.slug, path, view);
+        if (free === null) throw new OccupiedError('The target is unavailable.', {});
         await saveFile(target.slug, free, { baseHash: null, source });
-        return documents().find(d => d.project === target!.slug && d.path === free)!;
+        return documentsFor(reader).find(d => d.project === target!.slug && d.path === free)!;
       }
       const ref = resolveId(id);
+      if (view && !view.canRead(ref.project, ref.path)) throw new HiddenResourceError();
       if (posix.basename(ref.path) !== filename)
         throw Error('Renaming through the documents API is not supported.');
       let current: string | null = null;
@@ -1071,25 +1235,29 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
           : undefined);
       if (base === undefined) throw new StaleError(current, null);
       await saveFile(ref.project, ref.path, { baseHash: base, source });
-      return documents().find(d => d.project === ref.project && d.path === ref.path)!;
+      return documentsFor(reader).find(d => d.project === ref.project && d.path === ref.path)!;
     },
-    grouping(id: string) {
+    grouping(id: string, { view, owner }: Reader) {
+      const personal = owner ? state.forOwner(owner) : state;
       const ref = resolveId(id);
-      return (state.view(ref.project).files[ref.path] ?? {}) as object;
+      if (view && !view.canRead(ref.project, ref.path)) throw new HiddenResourceError();
+      return (personal.view(ref.project).files[ref.path] ?? {}) as object;
     },
-    saveGrouping(id: string, value: unknown) {
+    saveGrouping(id: string, value: unknown, { view, owner }: Reader) {
+      const personal = owner ? state.forOwner(owner) : state;
       const ref = resolveId(id);
+      if (view && !view.canRead(ref.project, ref.path)) throw new HiddenResourceError();
       if (!cache.file(ref.project, ref.path)) throw new NotFoundError('Document not found.');
       return lock('project:' + ref.project, () => {
-        const view = state.view(ref.project);
-        state.writeView(ref.project, { ...view.files, [ref.path]: value });
+        const view = personal.view(ref.project);
+        personal.writeView(ref.project, { ...view.files, [ref.path]: value });
         return value;
       });
     },
     close() {
       if (closed) return;
       closed = true;
-      clearTimeout(suggestionTimer);
+      events.close();
       watcher?.close();
       cache.close();
     },

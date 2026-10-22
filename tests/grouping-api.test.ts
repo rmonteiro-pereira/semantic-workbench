@@ -1,4 +1,5 @@
 // Tests grouping suggestions and project moves through the API.
+import { LOCAL_READER } from '../server/projects/reader';
 import { test, expect } from 'bun:test';
 import { testWorkspace } from './helpers/temp-data-dir';
 test('grouping corrections persist in view state files without changing source or hash', async () => {
@@ -6,7 +7,7 @@ test('grouping corrections persist in view state files without changing source o
   const h = t.handler;
   try {
     const source = 'name: Sample\nontology: [{concept: A}]';
-    const doc = await t.ws.saveDocument('sample.yaml', source);
+    const doc = await t.ws.saveDocument('sample.yaml', source, LOCAL_READER);
     const url = 'http://127.0.0.1:4310/api/documents/' + encodeURIComponent(doc.id) + '/grouping';
     expect(await (await h(new Request(url))).json()).toEqual({});
     const value = {
@@ -19,7 +20,7 @@ test('grouping corrections persist in view state files without changing source o
     );
     expect(await (await h(new Request(url))).json()).toEqual(value);
     expect(t.ws.documents()[0].hash).toEqual(doc.hash);
-    expect(t.ws.grouping(doc.id)).toEqual(value);
+    expect(t.ws.grouping(doc.id, LOCAL_READER)).toEqual(value);
     expect(t.ws.state.view('ungrouped').files['sample.yaml']).toEqual(value);
   } finally {
     t.dispose();
@@ -29,7 +30,7 @@ test('grouping API rejects malformed modes and corrections and missing documents
   const t = await testWorkspace();
   const h = t.handler;
   try {
-    const doc = await t.ws.saveDocument('sample.yaml', 'ontology: [{concept: A}]');
+    const doc = await t.ws.saveDocument('sample.yaml', 'ontology: [{concept: A}]', LOCAL_READER);
     for (const value of [
       { mode: 'inferred truth' },
       { assignments: [] },
@@ -67,7 +68,7 @@ test('grouping API rejects malformed modes and corrections and missing documents
         )
       ).status,
     ).toBe(400);
-    expect(t.ws.grouping(doc.id)).toEqual({});
+    expect(t.ws.grouping(doc.id, LOCAL_READER)).toEqual({});
   } finally {
     t.dispose();
   }

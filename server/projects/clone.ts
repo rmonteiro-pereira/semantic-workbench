@@ -44,7 +44,7 @@ export type CloneDeps = {
   afterClone: (
     slug: string,
   ) => Promise<Pick<CloneEvent, 'candidates' | 'manifest' | 'manifestError' | 'projects'>>;
-  emit: (event: CloneEvent) => void;
+  emit: (event: CloneEvent, owner?: string) => void;
 };
 
 // A project name from the last segment of the address, without `.git`.
@@ -87,18 +87,21 @@ export function rollBackInterruptedClones(layout: DataLayout): RecoveryOutcome[]
 /** Creates the clone service: start a clone, cancel it, and list the ones running. */
 export function createCloner(deps: CloneDeps) {
   const { layout, git, journal } = deps;
+  /** The repository address and the project it becomes, with the person who asked. */
+  type CloneRequest = { address: string; slug: string; name: string; owner?: string };
   // Clones in progress, so two clones started together never pick the same name or folder.
   const running = new Map<string, { staging: string; slug: string; name: string }>();
 
   // Runs the clone and reports every outcome as an event; it never throws.
-  async function cloneInBackground(op: string, address: string, slug: string, name: string) {
+  async function cloneInBackground(op: string, request: CloneRequest) {
+    const { address, slug, name, owner } = request;
     const staging = join(layout.projects, CLONE_STAGING + op);
     const stateStaging = join(layout.state, `.staging-${op}`);
     try {
-      deps.emit({ op, phase: 'cloning', name });
+      deps.emit({ op, phase: 'cloning', name }, owner);
       mkdirSync(staging, { recursive: true });
       await git.clone(staging, address, slug);
-      deps.emit({ op, phase: 'scanning', name });
+      deps.emit({ op, phase: 'scanning', name }, owner);
       await deps.lock('registry', async () => {
         const current = deps.projects();
         if (current.some(project => project.slug === slug) || existsSync(projectDir(layout, slug)))
@@ -124,17 +127,20 @@ export function createCloner(deps: CloneDeps) {
       deps.added(slug);
       const invalid = deps.invalidFiles(slug);
       const projects = await deps.afterClone(slug);
-      deps.emit({ op, phase: 'done', repo: slug, name, invalid, ...projects });
+      deps.emit({ op, phase: 'done', repo: slug, name, invalid, ...projects }, owner);
     } catch (e) {
       rmSync(staging, { recursive: true, force: true });
       rmSync(stateStaging, { recursive: true, force: true });
       const cancelled = e instanceof GitError && e.cancelled;
-      deps.emit({
-        op,
-        phase: cancelled ? 'cancelled' : 'failed',
-        name,
-        message: cancelled ? 'Clone cancelled.' : redactCredentials((e as Error).message),
-      });
+      deps.emit(
+        {
+          op,
+          phase: cancelled ? 'cancelled' : 'failed',
+          name,
+          message: cancelled ? 'Clone cancelled.' : redactCredentials((e as Error).message),
+        },
+        owner,
+      );
     } finally {
       running.delete(op);
     }
@@ -142,7 +148,7 @@ export function createCloner(deps: CloneDeps) {
 
   return {
     /** Starts a clone and returns at once; progress arrives as events. */
-    start(url: unknown, requestedName?: unknown) {
+    start(url: unknown, requestedName?: unknown, owner?: string) {
       const address = remoteAddress(url);
       const current = deps.projects();
       const pending = [...running.values()];
@@ -158,7 +164,7 @@ export function createCloner(deps: CloneDeps) {
       const slug = slugify(name, taken);
       const op = journal.newId();
       running.set(op, { staging: join(layout.projects, CLONE_STAGING + op), slug, name });
-      void cloneInBackground(op, address, slug, name);
+      void cloneInBackground(op, { address, slug, name, owner });
       return { op, name, slug };
     },
     /** Stops a running clone; its staging folder is removed. */

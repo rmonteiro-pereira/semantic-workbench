@@ -1,4 +1,5 @@
 // Runs focused assertions against candidate modules to detect deliberately introduced faults.
+import { LOCAL_READER } from '../server/projects/reader';
 import assert from 'node:assert/strict';
 const m = await import(process.argv[2]);
 const category = process.argv[3];
@@ -196,7 +197,12 @@ if (
           source.replace('Customer', 'Buyer'),
         );
         // Import commits: only the imported paths, never the user's other changes.
-        const r = await ws.importInto('sample', [{ path: 'b.yaml', source }]);
+        const r = await ws.importInto(
+          'sample',
+          [{ path: 'b.yaml', source }],
+          undefined,
+          LOCAL_READER,
+        );
         assert.equal(r.commit.committed, true);
         const shown = (
           await ws.git.run(join(d.root, 'projects/sample'), [
@@ -287,6 +293,7 @@ if (
     if (category === 'trash') {
       let clock = Date.parse('2026-10-21T10:00:00Z');
       const { openWorkspace } = await import('../server/projects/workspace');
+      const { LOCAL_READER } = await import('../server/projects/reader');
       const ws = await openWorkspace({ root: d.root, now: () => clock });
       try {
         await ws.importBatch({ files: [{ path: 'a.yaml', source }] });
@@ -304,12 +311,13 @@ if (
             throw Error('unused');
           },
           emit: () => {},
+          withCurrentReaders: (_event: string, tags: object) => tags,
           now: () => clock,
         });
         const first = await trash.deleteFile('sample', 'a.yaml');
         clock += 10_001;
         await assert.rejects(
-          () => trash.undo(first.entryId),
+          () => trash.undo(first.entryId, LOCAL_READER),
           (e: any) => e.name === 'GoneError',
         );
         fs.writeFileSync(
@@ -317,7 +325,7 @@ if (
           'name: Newer\nontology: [{concept: N}]\n',
         );
         await assert.rejects(
-          () => trash.restore(first.entryId),
+          () => trash.restore(first.entryId, {}, LOCAL_READER),
           (e: any) => e.name === 'OccupiedError' && e.suggestion.toPath === 'a (2).yaml',
         );
         assert.equal(
@@ -1510,6 +1518,7 @@ if (category === 'subproject-trash') {
         throw Error('unused');
       },
       emit: () => {},
+      withCurrentReaders: (_event: string, tags: object) => tags,
     });
     await trash.deleteProject(team.sales);
     // Deleting one subproject moves its own folder and leaves the sibling and the history alone.
@@ -1958,5 +1967,107 @@ if (category === 'deploy-smoke') {
     { ...input, ready: { status: 200, body: { ready: true, state: 'handover' } } },
   ]) {
     assert(m.smokeChecks(faulty, expected, endpoint, false).some((check: any) => !check.ok));
+  }
+}
+if (category.startsWith('read-')) {
+  const { accessFixture, person } = await import('../tests/auth/access-fixture');
+  const { createAccessControl } = await import('../server/auth/authorize');
+  const access = createAccessControl(accessFixture());
+  const principal = access.principalFor(person('alice'));
+  const view = access.view(principal);
+  if (category === 'read-events') {
+    const events = m.createEvents({ suggestionIndex: () => [], sharedSuggestionCount: () => 0 });
+    events.emit(
+      'files',
+      { project: 'hr-people', paths: ['LEAK-secret'] },
+      { paths: [{ project: 'hr-people', path: 'LEAK-secret' }] },
+    );
+    events.emit(
+      'files',
+      { project: 'sales-contracts', paths: ['orders.odcs.yaml'] },
+      { paths: [{ project: 'sales-contracts', path: 'orders.odcs.yaml' }] },
+    );
+    const response = events.stream(
+      new Request('http://localhost/events', {
+        headers: { 'Last-Event-ID': '0' },
+      }),
+      undefined,
+      { scope: access.forRequest(principal), owner: principal.id },
+    );
+    const reader = response.body.getReader();
+    await reader.read();
+    assert(!new TextDecoder().decode((await reader.read()).value).includes('LEAK-'));
+    events.emit(
+      'files',
+      { project: 'hr-people', paths: ['LEAK-secret'] },
+      { paths: [{ project: 'hr-people', path: 'LEAK-secret' }] },
+    );
+    events.emit(
+      'files',
+      { project: 'sales-contracts', paths: ['orders.odcs.yaml'] },
+      { paths: [{ project: 'sales-contracts', path: 'orders.odcs.yaml' }] },
+    );
+    assert(!new TextDecoder().decode((await reader.read()).value).includes('LEAK-'));
+    await reader.cancel();
+  } else if (category === 'read-trash') {
+    assert(
+      !m.readableTrash(
+        { project: 'sales-contracts', path: 'orders.odcs.yaml', owner: 'another-person' },
+        access.forRequest(principal),
+      ),
+    );
+  } else {
+    const { authWorkspace } = await import('../tests/helpers/auth-workspace');
+    using fixture = await authWorkspace();
+    if (category === 'read-workspace') {
+      fixture.ws.close();
+      const workspace = await m.openWorkspace({ root: fixture.root });
+      try {
+        assert(
+          !JSON.stringify(workspace.documentsFor({ view, owner: principal.id })).includes(
+            'LEAK-hr-',
+          ),
+        );
+      } finally {
+        workspace.close();
+      }
+    }
+    if (category === 'read-agent') {
+      const handler = m.createHandler(fixture.ws, {
+        mode: 'server',
+        access,
+        principal: () => principal,
+      });
+      const response = await handler(
+        new Request(
+          'http://localhost/api/agent/context?mappingId=sales-contracts/people.mapping.yaml',
+        ),
+      );
+      assert.equal(response.status, 200);
+      assert(!(await response.text()).includes('LEAK-hr-'));
+    }
+    if (category === 'read-drafts') {
+      const { requestAccess } = await import('../server/auth/middleware');
+      fixture.ws.state.writeDraft('sales-contracts', 'orders.odcs.yaml', {
+        baseHash: null,
+        text: 'LEAK-other-owner',
+        patches: [],
+      });
+      const request = new Request('http://localhost/api/drafts/sales-contracts/orders.odcs.yaml');
+      Object.assign(request, { [requestAccess]: access.forRequest(principal) });
+      const response = await m.draftRoutes(fixture.ws, request, new URL(request.url));
+      assert.equal(response.status, 404);
+    }
+    if (category === 'read-git') {
+      const { requestAccess } = await import('../server/auth/middleware');
+      const request = new Request(
+        'http://localhost/api/projects/sales-contracts/git/show?path=finance/removed.yaml&commit=HEAD',
+      );
+      Object.assign(request, { [requestAccess]: access.forRequest(principal) });
+      await assert.rejects(
+        () => m.gitRoutes(fixture.ws, request, new URL(request.url)),
+        /Not found/,
+      );
+    }
   }
 }

@@ -1,5 +1,6 @@
 // Clones a repository as a new project. Cloning contacts the remote, so it runs only from this
 // explicit request.
+import { requestReader } from '../auth/middleware';
 import { readJson } from '../request';
 import type { Route } from './http';
 
@@ -16,7 +17,7 @@ export const cloneRoutes: Route = async (ws, req, url) => {
     )
       throw Error('Expected {url, name?}.');
     if (!ws.gitAvailable) throw Error('Git is not available on this machine.');
-    return Response.json(ws.clone(body.url, body.name));
+    return Response.json(ws.clone(body.url, body.name, requestReader(req)));
   }
   const cancel = path.match(/^\/api\/clone\/([a-z0-9-]+)\/cancel$/);
   if (cancel && req.method === 'POST') return Response.json(ws.cancelClone(cancel[1]));

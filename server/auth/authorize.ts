@@ -124,6 +124,7 @@ function decisionFor(active: ActiveAccess, request: DecisionRequest): Decision {
 /** Creates the only authority for access decisions, filtered listings, and principal grants. */
 export function createAccessControl(options: AccessOptions) {
   const bootstrap = structuredClone(options.bootstrap);
+  const listeners = new Set<() => void>();
   let active = prepare(options.config, options.knownProjects(), options.groupMatch);
   function refreshProjects(): void {
     const projects = [...options.knownProjects()].sort();
@@ -227,10 +228,21 @@ export function createAccessControl(options: AccessOptions) {
 
   function reload(config: AccessConfig): void {
     active = prepare(config, options.knownProjects(), options.groupMatch);
+    for (const listener of listeners) listener();
   }
   const view = (principal: Principal) => forRequest(principal).view();
-  return { forRequest, authorize, filter, view, reload, principalFor };
+  function subscribe(listener: () => void) {
+    listeners.add(listener);
+    return () => {
+      listeners.delete(listener);
+    };
+  }
+  return { forRequest, authorize, filter, view, reload, principalFor, subscribe };
 }
+/** The access boundary instance shared across requests. */
+export type AccessControl = ReturnType<typeof createAccessControl>;
+/** One principal's decisions and readable view, resolved once per request or event stream. */
+export type AccessScope = ReturnType<AccessControl['forRequest']>;
 
 function accessView(
   active: ActiveAccess,

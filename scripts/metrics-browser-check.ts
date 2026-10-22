@@ -1,4 +1,5 @@
 // Checks metric details, explanations and graph navigation in an isolated browser workspace.
+import { LOCAL_READER } from '../server/projects/reader';
 import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { parseDocument } from 'yaml';
@@ -91,7 +92,9 @@ await api.ws.importBatch({
 // Commerce's metrics have no workbench attributes; the last check adds them to one.
 const commerce = await api.ws.loadExample('commerce');
 const hashes = async () =>
-  JSON.stringify((await api.ws.listProjects()).map(p => p.files.map(f => f.path + ':' + f.hash)));
+  JSON.stringify(
+    (await api.ws.listProjects(LOCAL_READER)).map(p => p.files.map(f => f.path + ':' + f.hash)),
+  );
 const before = await hashes();
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });

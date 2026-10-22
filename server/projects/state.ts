@@ -1,6 +1,6 @@
 // Stores durable application state in versioned JSON files replaced atomically. This state survives
 // deletion of the SQLite cache.
-import { readdirSync, rmSync } from 'node:fs';
+import { existsSync, readdirSync, rmSync } from 'node:fs';
 import type { Principal } from '../auth/principal';
 import { join } from 'node:path';
 import { atomicWriteJson, readJsonFile, sha256 } from './atomic';
@@ -112,21 +112,55 @@ function load<T extends { formatVersion: number }>(path: string, empty: () => T)
 }
 /** Creates readers and atomic writers for durable workspace state. */
 export function createState(layout: DataLayout) {
-  const viewFile = (slug: string) => join(layout.views, assertSlug(slug) + '.json');
-  const draftFile = (slug: string, path: string) =>
-    join(layout.drafts, assertSlug(slug), sha256(projectPath(path)) + '.json');
+  const personal = createPersonalState(layout);
+  function ownerState(key: string) {
+    const root = join(layout.state, 'users', key);
+    return createPersonalState({
+      ...layout,
+      state: root,
+      drafts: join(root, 'drafts'),
+      views: join(root, 'views'),
+    });
+  }
+  function personalStates() {
+    const root = join(layout.state, 'users');
+    const keys = existsSync(root)
+      ? readdirSync(root).filter(key => /^u[0-9a-f]{20}$/.test(key))
+      : [];
+    return keys.map(key => ({ key, state: ownerState(key) }));
+  }
   const usersFile = join(layout.state, 'users.json');
   return {
+    ...personal,
+    personalStates,
+    ownerState,
+    forOwner: (owner: string): PersonalState => ownerState('u' + sha256(owner).slice(0, 20)),
     users: () => load<UsersRegistry>(usersFile, () => ({ formatVersion: 1, users: [] })),
     recordUser: (principal: Principal, at: string) => writeUser(usersFile, principal, at),
-    viewFile,
-    draftFile,
-    draftDir: (slug: string) => join(layout.drafts, assertSlug(slug)),
     registry: () =>
       load<Registry>(layout.registry, () => ({ formatVersion: STATE_FORMAT, projects: [] })),
     hasRegistry: () => readJsonFile(layout.registry) !== null,
     writeRegistry: (projects: ProjectEntry[]) =>
       atomicWriteJson(layout.registry, { formatVersion: STATE_FORMAT, projects }),
+    legacyIds: () =>
+      load<LegacyIds>(layout.legacyIds, () => ({ formatVersion: STATE_FORMAT, ids: {} })),
+    writeLegacyIds: (ids: LegacyIds['ids']) =>
+      atomicWriteJson(layout.legacyIds, { formatVersion: STATE_FORMAT, ids }),
+  };
+}
+/** Access to durable registry, view, draft, suggestion, and legacy ID state. */
+export type State = ReturnType<typeof createState>;
+
+/** Personal state contains no workspace registry or identity administration methods. */
+export type PersonalState = ReturnType<typeof createPersonalState>;
+function createPersonalState(layout: DataLayout) {
+  const viewFile = (slug: string) => join(layout.views, assertSlug(slug) + '.json');
+  const draftFile = (slug: string, path: string) =>
+    join(layout.drafts, assertSlug(slug), sha256(projectPath(path)) + '.json');
+  return {
+    viewFile,
+    draftFile,
+    draftDir: (slug: string) => join(layout.drafts, assertSlug(slug)),
     view: (slug: string) =>
       load<ViewState>(viewFile(slug), () => ({ formatVersion: STATE_FORMAT, files: {} })),
     writeView: (slug: string, files: Record<string, unknown>) =>
@@ -176,11 +210,5 @@ export function createState(layout: DataLayout) {
         formatVersion: STATE_FORMAT,
         rejected,
       }),
-    legacyIds: () =>
-      load<LegacyIds>(layout.legacyIds, () => ({ formatVersion: STATE_FORMAT, ids: {} })),
-    writeLegacyIds: (ids: LegacyIds['ids']) =>
-      atomicWriteJson(layout.legacyIds, { formatVersion: STATE_FORMAT, ids }),
   };
 }
-/** Access to durable registry, view, draft, suggestion, and legacy ID state. */
-export type State = ReturnType<typeof createState>;

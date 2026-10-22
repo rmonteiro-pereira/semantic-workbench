@@ -9,6 +9,7 @@ import { GitError } from '../projects/git';
 import { BlockedError } from '../projects/scm';
 import type { Workspace } from '../projects/workspace';
 import {
+  HiddenResourceError,
   NotFoundError,
   StaleError,
   GoneError,
@@ -22,8 +23,17 @@ export type Route = (
   req: Request,
   url: URL,
 ) => Promise<Response | null> | Response | null;
+/** Tracks hidden denials without adding a wire header. */
+export const hiddenResponses = new WeakSet<Response>();
+// Marks the hidden-resource 404 so the access middleware can audit it as a denial; the body
+// stays identical to an ordinary missing item, so the client cannot tell them apart.
 /** Maps workspace errors to HTTP responses, including current content for stale saves. */
 export function errorResponse(e: unknown, publicUrl?: string) {
+  if (e instanceof HiddenResourceError) {
+    const response = Response.json({ error: 'Not found.' }, { status: 404 });
+    hiddenResponses.add(response);
+    return response;
+  }
   if (e instanceof SignInError) return signInErrorResponse(e, publicUrl);
   if (e instanceof AdminStaleError)
     return Response.json({ error: 'stale', message: e.message }, { status: 409 });

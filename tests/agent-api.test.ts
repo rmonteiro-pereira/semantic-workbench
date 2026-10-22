@@ -1,4 +1,5 @@
 // Tests grounded queries and reference diagnostics through the agent API.
+import { LOCAL_READER } from '../server/projects/reader';
 import { test, expect } from 'bun:test';
 import { testWorkspace } from './helpers/temp-data-dir';
 async function fixture() {
@@ -8,7 +9,11 @@ async function fixture() {
     'commerce.mapped-ontology.yaml',
     'commerce.mapped-semantic.yaml',
   ])
-    await t.ws.saveDocument(file, await Bun.file('public/examples/commerce/' + file).text());
+    await t.ws.saveDocument(
+      file,
+      await Bun.file('public/examples/commerce/' + file).text(),
+      LOCAL_READER,
+    );
   return t;
 }
 const req = (path: string, body?: any) =>
@@ -103,6 +108,7 @@ test('reference diagnostics update immediately when referenced documents are sav
     await t.ws.saveDocument(
       ontology.filename,
       ontology.source.replace('Mapped commerce ontology', 'Renamed ontology'),
+      LOCAL_READER,
       ontology.id,
       { revision: ontology.revision },
     );

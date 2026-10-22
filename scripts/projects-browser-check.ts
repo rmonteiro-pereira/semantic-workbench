@@ -1,4 +1,5 @@
 // Checks project navigation, external changes and stale saves in an isolated browser workspace.
+import { LOCAL_READER } from '../server/projects/reader';
 import { appUrl } from './helpers/base-url';
 import { chromium, expect } from '@playwright/test';
 import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
@@ -177,22 +178,22 @@ try {
         assignments: { 'ontology/0': 'custom:Review' },
         names: { 'custom:Review': 'Review' },
       };
-      await api.ws.saveGrouping(id, grouping);
+      await api.ws.saveGrouping(id, grouping, LOCAL_READER);
       api.ws.state.writeDraft('shop', 'shop.yaml', {
         baseHash: null,
         text: 'unsaved draft',
         patches: [],
       });
-      const before = await api.ws.listProjects();
+      const before = await api.ws.listProjects(LOCAL_READER);
       await api.restart({ deleteCache: true });
       expect(api.ws.cache.rebuilt).toBe(true);
       expect(
-        (await api.ws.listProjects()).map(p => [
+        (await api.ws.listProjects(LOCAL_READER)).map(p => [
           p.slug,
           p.files.map(f => [f.path, f.hash, f.valid]),
         ]),
       ).toEqual(before.map(p => [p.slug, p.files.map(f => [f.path, f.hash, f.valid])]));
-      expect(api.ws.grouping(id)).toEqual(grouping);
+      expect(api.ws.grouping(id, LOCAL_READER)).toEqual(grouping);
       expect(api.ws.state.draft('shop', 'shop.yaml')!.text).toBe('unsaved draft');
       await a.reload();
       await expect(

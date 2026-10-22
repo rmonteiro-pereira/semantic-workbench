@@ -5,6 +5,8 @@ import { createAttemptStore, ATTEMPT_TTL_SECONDS } from '../../server/auth/attem
 import { localPrincipal } from '../../server/auth/principal';
 import { createEvents } from '../../server/projects/events';
 import { tempDataDir } from '../helpers/temp-data-dir';
+// Events that carry no suggestion counting; the stubs keep a count round cheap.
+const noSuggestions = { suggestionIndex: () => [], sharedSuggestionCount: () => 0 };
 
 test('idle expiry and administrative termination close live streams', async () => {
   for (const reason of ['expiry', 'admin'] as const) {
@@ -22,7 +24,7 @@ test('idle expiry and administrative termination close live streams', async () =
         principal: localPrincipal(),
         tokens: { accessToken: 'secret', expiresAt: 90000 },
       });
-      const events = createEvents();
+      const events = createEvents(noSuggestions);
       const response = events.stream(new Request('http://localhost/api/events'), listener =>
         store.subscribe(session.id, listener),
       );

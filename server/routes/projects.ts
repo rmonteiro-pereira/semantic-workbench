@@ -1,12 +1,20 @@
 // Handles project management, imports, example loading, and workspace status.
+import { requestReader, requestScope } from '../auth/middleware';
 import { readJson } from '../request';
 import type { Route } from './http';
 const IMPORT_LIMIT = 64_000_000;
 /** Handles project management and imports, creating one project per new import batch. */
 export const projectRoutes: Route = async (ws, req, url) => {
   const p = url.pathname;
-  if (p === '/api/status' && req.method === 'GET') return Response.json(await ws.status());
-  if (p === '/api/projects' && req.method === 'GET') return Response.json(await ws.listProjects());
+  if (p === '/api/status' && req.method === 'GET') {
+    const scope = requestScope(req);
+    if (requestReader(req).view && !scope.authorize('readStatus', { type: 'workspace' }).allow) {
+      return Response.json({ mode: 'server', gitAvailable: ws.gitAvailable, ready: true });
+    }
+    return Response.json(await ws.status());
+  }
+  if (p === '/api/projects' && req.method === 'GET')
+    return Response.json(await ws.listProjects(requestReader(req)));
   if (p === '/api/projects' && req.method === 'POST') {
     const body = await readJson(req, 16_000);
     const project = await ws.createProject(body?.name);
@@ -43,7 +51,14 @@ export const projectRoutes: Route = async (ws, req, url) => {
     )
       throw Error('Expected {path, toProject, toPath?}.');
     return Response.json(
-      await ws.moveFile(decodeURIComponent(move[1]), body.path, body.toProject, body.toPath),
+      await ws.moveFile(
+        decodeURIComponent(move[1]),
+        body.path,
+        body.toProject,
+        body.toPath,
+        false,
+        requestReader(req),
+      ),
     );
   }
   const into = p.match(/^\/api\/projects\/([^/]+)\/import$/);
@@ -57,7 +72,12 @@ export const projectRoutes: Route = async (ws, req, url) => {
     )
       throw Error('Expected {files: [{path, source}], onConflict?}.');
     return Response.json(
-      await ws.importInto(decodeURIComponent(into[1]), body.files, body.onConflict),
+      await ws.importInto(
+        decodeURIComponent(into[1]),
+        body.files,
+        body.onConflict,
+        requestReader(req),
+      ),
     );
   }
   const example = p.match(/^\/api\/examples\/([a-z0-9-]+)$/);

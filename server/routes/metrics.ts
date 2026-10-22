@@ -1,4 +1,5 @@
 // Lists project metrics and explains their inputs without executing SQL.
+import { requestReader } from '../auth/middleware';
 import { explainMetric, projectMetrics } from '../agent/explain';
 import { decodePath, type Route } from './http';
 // Match before the files route so `explain` is not treated as part of a file path.
@@ -9,7 +10,7 @@ export const metricRoutes: Route = (ws, req, url) => {
   if (list) {
     const slug = decodeURIComponent(list[1]);
     ws.project(slug);
-    return Response.json(projectMetrics(ws.documents(), slug));
+    return Response.json(projectMetrics(ws.documentsFor(requestReader(req)), slug));
   }
   const m = url.pathname.match(/^\/api\/projects\/([^/]+)\/files\/(.+)\/explain\/([^/]+)$/);
   if (!m) return null;
@@ -21,7 +22,7 @@ export const metricRoutes: Route = (ws, req, url) => {
   if (dimensions.length > 20 || dimensions.some(d => !/^[^.\s]+\.[^.\s]+$/.test(d)))
     throw Error('dimension must be dataset.field (at most 20).');
   return Response.json(
-    explainMetric(ws.documents(), slug, path, metric, {
+    explainMetric(ws.documentsFor(requestReader(req)), slug, path, metric, {
       grain: url.searchParams.get('grain'),
       dimensions,
       rollup: url.searchParams.get('rollup'),

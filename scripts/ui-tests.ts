@@ -1,4 +1,5 @@
 // Checks workspace interactions in the browser using isolated example projects.
+import { LOCAL_READER } from '../server/projects/reader';
 import { appUrl } from './helpers/base-url';
 import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
@@ -12,7 +13,7 @@ import { closeComposer, openComposer } from './helpers/query-composer';
 const api = await startIsolatedApi();
 const store = {
   list: () => api.ws.documents(),
-  save: (filename: string, source: string) => api.ws.saveDocument(filename, source),
+  save: (filename: string, source: string) => api.ws.saveDocument(filename, source, LOCAL_READER),
 };
 const files = [
   'ubl.ontology.yaml',

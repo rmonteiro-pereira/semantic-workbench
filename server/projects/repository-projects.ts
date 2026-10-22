@@ -1,6 +1,7 @@
 // Registers the project folders of one Git repository. Several projects can share a repository
 // (`domains/sales`, `domains/finance`); each has its own folder, and all share the repository's
 // Git history. The rules for which folders qualify live in repositories.ts.
+import type { EventTags } from './events';
 import { existsSync, lstatSync, readFileSync } from 'node:fs';
 import { join, posix } from 'node:path';
 import { atomicWrite, decode, sha256 } from './atomic';
@@ -35,7 +36,9 @@ export type RepositoryProjectDeps = {
   lock: <Result>(key: string, fn: () => Promise<Result> | Result) => Promise<Result>;
   added: (slugs: string[]) => Promise<void>;
   removed: (slugs: string[]) => void;
-  emit: (event: string, data: unknown) => void;
+  emit: (event: string, data: unknown, tags: EventTags) => void;
+  /** Adds the principals who may hear of each tagged project, decided before it is removed. */
+  withCurrentReaders: (event: string, tags: EventTags) => EventTags;
 };
 
 /** What a repository offers as projects: its manifest, detected folders and registered ones. */
@@ -170,16 +173,20 @@ export function createRepositoryProjects(deps: RepositoryProjectDeps) {
       const before = inRepo(repo, current);
       const { chosen, added, removed } = planProjects(repo, folders, current, before);
       const next = [...current.filter(project => !before.includes(project)), ...chosen];
-      forget(
-        next,
-        removed.map(project => project.slug),
-      );
+      const removedSlugs = removed.map(project => project.slug);
+      // Added projects are judged on delivery; removed ones only before they leave the registry.
+      const { readers } = deps.withCurrentReaders('projects', { projects: removedSlugs });
+      forget(next, removedSlugs);
       await deps.added(added.map(project => project.slug));
-      deps.emit('projects', {
-        added: added.map(project => project.slug),
-        removed: removed.map(project => project.slug),
-        renamed: [],
-      });
+      deps.emit(
+        'projects',
+        {
+          added: added.map(project => project.slug),
+          removed: removedSlugs,
+          renamed: [],
+        },
+        { projects: [...added, ...removed].map(project => project.slug), readers },
+      );
       return {
         projects: chosen.map(project => ({
           slug: project.slug,
@@ -209,11 +216,12 @@ export function createRepositoryProjects(deps: RepositoryProjectDeps) {
         throw new PathError(
           'This is the only project of its repository. Delete it instead, or choose its folders in Projects in this repository….',
         );
+      const tags = deps.withCurrentReaders('projects', { projects: [slug] });
       forget(
         current.filter(entry => entry !== project),
         [slug],
       );
-      deps.emit('projects', { added: [], removed: [slug], renamed: [] });
+      deps.emit('projects', { added: [], removed: [slug], renamed: [] }, tags);
       return { removed: slug };
     });
   }

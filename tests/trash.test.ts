@@ -1,4 +1,5 @@
 // Tests deletion, undo, restore and purge without overwriting occupied paths.
+import { LOCAL_READER } from '../server/projects/reader';
 import { test, expect } from 'bun:test';
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -78,7 +79,7 @@ test('deleting a file needs confirmation, moves it to the trash and undo restore
     });
     expect(t.ws.cache.file('alpha', 'a.yaml')).toBeNull();
     expect(t.ws.state.draft('alpha', 'a.yaml')).toBeNull();
-    expect(t.ws.grouping('alpha/a.yaml')).toEqual({});
+    expect(t.ws.grouping('alpha/a.yaml', LOCAL_READER)).toEqual({});
     expect((await t.ws.git.status(join(t.root, 'projects/alpha'))).files.get('a.yaml')).toBe(
       'deleted',
     );
@@ -86,7 +87,7 @@ test('deleting a file needs confirmation, moves it to the trash and undo restore
     expect((await api(t, 'POST', `/api/trash/${entryId}/undo`)).status).toBe(200);
     expect(readFileSync(file('alpha', 'a.yaml'), 'utf8')).toBe(ont('A'));
     expect(t.ws.state.draft('alpha', 'a.yaml')!.text).toBe('draft');
-    expect(t.ws.grouping('alpha/a.yaml')).toEqual({ mode: 'types' });
+    expect(t.ws.grouping('alpha/a.yaml', LOCAL_READER)).toEqual({ mode: 'types' });
     expect(existsSync(join(t.root, 'trash', entryId))).toBe(false);
     expect((await t.ws.git.status(join(t.root, 'projects/alpha'))).changes).toBe(0);
   } finally {
@@ -159,7 +160,7 @@ test('deleting a project moves its folder with .git and registry entry; restore 
       ['alpha', 'Alpha'],
       ['beta', 'Beta'],
     ]);
-    expect(t.ws.grouping('beta/c.yaml')).toEqual({ mode: 'types' });
+    expect(t.ws.grouping('beta/c.yaml', LOCAL_READER)).toEqual({ mode: 'types' });
     expect(
       (await t.ws.git.run(join(t.root, 'projects/beta'), ['log', '--format=%s'])).stdout.trim(),
     ).toBe('Import c.yaml');
@@ -183,7 +184,7 @@ test('a deleted file whose project is gone is restored into a new project; a tak
     ).toEqual({ kind: 'project', project: 'beta-2', name: 'Beta (2)' });
     await t.ws.trash.deleteProject('beta');
     await t.ws.trash.deleteProject('beta-2');
-    const restored = await t.ws.trash.restore(file.entryId);
+    const restored = await t.ws.trash.restore(file.entryId, {}, LOCAL_READER);
     expect(restored.kind).toBe('file');
     expect(t.ws.state.registry().projects.find(p => p.slug === restored.project)!.name).toBe(
       'Beta',
@@ -234,9 +235,9 @@ test('every multi-file operation is journaled and leaves no journal behind', asy
       return (run as any)(kind, ...rest);
     };
     const f = await t.ws.trash.deleteFile('alpha', 'a.yaml');
-    await t.ws.trash.undo(f.entryId);
+    await t.ws.trash.undo(f.entryId, LOCAL_READER);
     const p = await t.ws.trash.deleteProject('beta');
-    await t.ws.trash.restore(p.entryId);
+    await t.ws.trash.restore(p.entryId, {}, LOCAL_READER);
     await t.ws.trash.clear();
     expect(ops).toEqual(['delete', 'restore', 'delete', 'restore', 'clear']);
     expect(t.ws.journal.pending()).toEqual([]);

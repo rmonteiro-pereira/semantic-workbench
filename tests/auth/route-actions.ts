@@ -81,3 +81,12 @@ export const routeExamples: { method: string; path: string; body?: unknown }[] =
   { method: 'GET', path: '/readyz' },
   { method: 'GET', path: '/catalog' },
 ];
+
+/** Read requests exercised against both granted and hidden fixture projects. */
+export const readRouteExamples = routeExamples.filter(
+  example =>
+    example.path.startsWith('/api/') &&
+    (example.method === 'GET' ||
+      example.path.endsWith('/preview') ||
+      example.path === '/api/agent/plan'),
+);

@@ -1,4 +1,5 @@
 // Tests migration from the SQLite workspace to the folder store.
+import { LOCAL_READER } from '../server/projects/reader';
 import { test, expect } from 'bun:test';
 import { Database } from 'bun:sqlite';
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
@@ -114,7 +115,7 @@ test('v0.1.0 migration backs up, exports byte for byte, verifies, commits and ma
         expect(log).toEqual([MIGRATION_COMMIT]);
         expect((await t.ws.git.status(join(d.root, 'projects', slug))).changes).toBe(0);
       }
-      expect(t.ws.grouping('u-ont')).toEqual({
+      expect(t.ws.grouping('u-ont', LOCAL_READER)).toEqual({
         mode: 'types',
         assignments: { 'ontology/0': 'custom:A' },
         names: { 'custom:A': 'A' },

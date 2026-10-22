@@ -1,5 +1,7 @@
 // Routes API requests and preserves the legacy document interface. Host and origin checks restrict
 // access to local clients.
+import { HiddenResourceError } from './projects/errors';
+import { requestReader } from './auth/middleware';
 import { createAccessMiddleware, type HandlerOptions } from './auth/middleware';
 import { agentCatalog, buildContext, selectContext, planQuery } from './agent/runtime';
 import { readJson } from './request';
@@ -44,11 +46,12 @@ const legacyRoutes: Route = async (ws, req, url) => {
     return legacy ? `${legacy.project}/${legacy.path}${rest}` : id;
   };
   if (url.pathname === '/api/agent/catalog' && req.method === 'GET')
-    return Response.json(agentCatalog(ws.documents()));
+    return Response.json(agentCatalog(ws.documentsFor(requestReader(req))));
   if (url.pathname === '/api/agent/context' && req.method === 'GET') {
     const mappingId = url.searchParams.get('mappingId');
     if (!mappingId) throw Error('mappingId is required. List mappings at /api/agent/catalog.');
-    let context = buildContext(ws.documents(), mappingRef(mappingId));
+    requireReadableDocument(ws, req, mappingRef(mappingId));
+    let context = buildContext(ws.documentsFor(requestReader(req)), mappingRef(mappingId));
     const concepts = url.searchParams.getAll('concept');
     if (concepts.length) context = selectContext(context, concepts);
     return Response.json(context);
@@ -74,13 +77,20 @@ const legacyRoutes: Route = async (ws, req, url) => {
           body[key].some((id: any) => typeof id !== 'string' || !id.trim() || id.length > 4096))
       )
         throw Error(`${key} must be an array of at most 100 non-empty ids.`);
-    return Response.json(planQuery(buildContext(ws.documents(), mappingRef(body.mappingId)), body));
+    requireReadableDocument(ws, req, mappingRef(body.mappingId));
+    return Response.json(
+      planQuery(
+        buildContext(ws.documentsFor(requestReader(req)), mappingRef(body.mappingId)),
+        body,
+      ),
+    );
   }
   const groupingPath = url.pathname.match(/^\/api\/documents\/([^/]+)\/grouping$/);
   if (groupingPath) {
     const id = decodeURIComponent(groupingPath[1]);
+    const reader = requestReader(req);
     try {
-      if (req.method === 'GET') return Response.json(ws.grouping(id));
+      if (req.method === 'GET') return Response.json(ws.grouping(id, reader));
       if (req.method === 'PUT') {
         const value = await readJson(req, 256_000);
         if (
@@ -106,7 +116,7 @@ const legacyRoutes: Route = async (ws, req, url) => {
               ))
           )
             throw Error('Invalid grouping corrections.');
-        return Response.json(await ws.saveGrouping(id, value));
+        return Response.json(await ws.saveGrouping(id, value, reader));
       }
     } catch (e) {
       if (e instanceof NotFoundError) throw Error('Document not found.');
@@ -114,7 +124,7 @@ const legacyRoutes: Route = async (ws, req, url) => {
     }
   }
   if (url.pathname === '/api/documents' && req.method === 'GET')
-    return Response.json(ws.documents());
+    return Response.json(ws.documentsFor(requestReader(req)));
   if (url.pathname === '/api/documents' && req.method === 'POST') {
     // Bound the request stream before parsing; JSON escaping can expand a 2 MB source.
     const reader = req.body?.getReader();
@@ -164,7 +174,7 @@ const legacyRoutes: Route = async (ws, req, url) => {
       throw Error('baseHash must be a SHA-256 hex digest.');
     try {
       return Response.json(
-        await ws.saveDocument(body.filename, body.source, body.id, {
+        await ws.saveDocument(body.filename, body.source, requestReader(req), body.id, {
           revision: body.revision,
           baseHash: body.baseHash,
         }),
@@ -177,6 +187,12 @@ const legacyRoutes: Route = async (ws, req, url) => {
   }
   return null;
 };
+function requireReadableDocument(ws: Workspace, request: Request, id: string) {
+  const { view } = requestReader(request);
+  if (!view) return;
+  const resource = ws.resolveId(id.split('#')[0]);
+  if (!view.canRead(resource.project, resource.path)) throw new HiddenResourceError();
+}
 const workspaceRoutes: Route[] = [
   trashRoutes,
   suggestionRoutes,
@@ -234,6 +250,12 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
       }
       return new Response('Not found', { status: 404 });
     } catch (e) {
+      if (
+        options.mode === 'server' &&
+        (e instanceof NotFoundError || e instanceof HiddenResourceError)
+      ) {
+        return errorResponse(e, options.publicOrigin);
+      }
       // Legacy document and agent clients expect errors to use HTTP 400.
       if (url.pathname.startsWith('/api/documents') || url.pathname.startsWith('/api/agent/'))
         return Response.json(

@@ -3,6 +3,8 @@ import { test, expect } from 'bun:test';
 import { appendFileSync } from 'node:fs';
 import { createEvents } from '../server/projects/events';
 import { testWorkspace } from './helpers/temp-data-dir';
+// Events that carry no suggestion counting; the stubs keep a count round cheap.
+const noSuggestions = { suggestionIndex: () => [], sharedSuggestionCount: () => 0 };
 async function read(response: Response, until: (text: string) => boolean, timeout = 2000) {
   const reader = response.body!.getReader();
   const decoder = new TextDecoder();
@@ -23,20 +25,20 @@ async function read(response: Response, until: (text: string) => boolean, timeou
 }
 const ids = (text: string) => [...text.matchAll(/^id: (\d+)$/gm)].map(m => +m[1]);
 test('event ids increase and live events reach connected clients', async () => {
-  const e = createEvents();
+  const e = createEvents(noSuggestions);
   const response = e.stream(new Request('http://x/api/events'));
   expect(response.headers.get('content-type')).toBe('text/event-stream');
   setTimeout(() => {
-    e.emit('files', { project: 'p', changed: ['a'], removed: [] });
-    e.emit('projects', { added: ['p'], removed: [], renamed: [] });
+    e.emit('files', { project: 'p', changed: ['a'], removed: [] }, { audience: 'all' });
+    e.emit('projects', { added: ['p'], removed: [], renamed: [] }, { audience: 'all' });
   }, 20);
   const text = await read(response, t => ids(t).length >= 2);
   expect(ids(text)).toEqual([1, 2]);
   expect(text).toContain('event: files\ndata: {"project":"p","changed":["a"],"removed":[]}');
 });
 test('Last-Event-ID replays missed events from the ring; older ids get resync', async () => {
-  const e = createEvents({ ringSize: 1000 });
-  for (let i = 0; i < 1005; i++) e.emit('files', { i });
+  const e = createEvents({ ...noSuggestions, ringSize: 1000 });
+  for (let i = 0; i < 1005; i++) e.emit('files', { i }, { audience: 'all' });
   expect(e.replay(1005)).toEqual([]);
   expect(e.replay(1000)!.map(x => x.id)).toEqual([1001, 1002, 1003, 1004, 1005]);
   expect(e.replay(5)!.length).toBe(1000);
@@ -55,7 +57,7 @@ test('Last-Event-ID replays missed events from the ring; older ids get resync', 
 });
 test('heartbeat comments keep the stream alive (15 s by default)', async () => {
   expect((await import('../server/projects/events')).HEARTBEAT_MS).toBe(15_000);
-  const e = createEvents({ heartbeatMs: 30 });
+  const e = createEvents({ ...noSuggestions, heartbeatMs: 30 });
   const text = await read(
     e.stream(new Request('http://x/api/events')),
     t => t.includes(': ping'),

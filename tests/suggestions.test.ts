@@ -4,6 +4,8 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { factsOf, inferSuggestions, evidenceBetween } from '../server/projects/suggestions';
 import { testWorkspace, example } from './helpers/temp-data-dir';
+import { createAccessControl } from '../server/auth/authorize';
+import { accessFixture, person } from './auth/access-fixture';
 const api = (t: { handler: (r: Request) => Promise<Response> }, method: string, path: string) =>
   t.handler(new Request('http://127.0.0.1:4310' + path, { method }));
 test('facts come from declared names, references, IRIs and physical names only', async () => {
@@ -140,4 +142,61 @@ test('a file imported alone is offered to the project it references; accept move
   } finally {
     t.dispose();
   }
+});
+
+test('local mode announces the suggestion count only when it changes', async () => {
+  using t = await testWorkspace();
+  const source = 'name: Local\nontology: [{concept: A}]\n';
+  await t.seed([{ path: 'a.yaml', source }], 'local');
+  const counts = () =>
+    t.ws.events
+      .replay(0)!
+      .filter(event => event.event === 'suggestions')
+      .map(event => event.data);
+  await Bun.sleep(120);
+  expect(counts()).toEqual([{ open: 0 }]);
+  const { hash } = t.ws.readFile('local', 'a.yaml');
+  await t.ws.saveFile('local', 'a.yaml', { baseHash: hash, source: source + '# edited\n' });
+  await Bun.sleep(120);
+  expect(counts()).toEqual([{ open: 0 }]);
+});
+
+// Reads a stream until it carries a suggestion count, or gives up after two seconds.
+async function untilSuggestionCount(response: Response) {
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
+  const stop = Date.now() + 2000;
+  let text = '';
+  while (!text.includes('event: suggestions') && Date.now() < stop) {
+    const timeout = new Promise<{ done: true }>(resolve =>
+      setTimeout(() => resolve({ done: true }), stop - Date.now()),
+    );
+    const chunk = await Promise.race([reader.read(), timeout]);
+    if (chunk.done) break;
+    text += decoder.decode(chunk.value);
+  }
+  await reader.cancel();
+  return text;
+}
+
+test('each person hears their own suggestion count while local clients share one', async () => {
+  using t = await testWorkspace();
+  const access = createAccessControl(accessFixture());
+  const scope = access.forRequest(access.principalFor(person('alice')));
+  const request = () => new Request('http://localhost/api/events');
+  const personal = t.ws.events.stream(request(), undefined, {
+    scope,
+    owner: scope.principal.id,
+    suggestions: () => 5,
+  });
+  const local = t.ws.events.stream(request());
+  await t.seed([{ path: 'a.yaml', source: 'name: Shared\nontology: [{concept: A}]\n' }], 'team');
+  const [personalText, localText] = await Promise.all([
+    untilSuggestionCount(personal),
+    untilSuggestionCount(local),
+  ]);
+  expect(personalText).toContain('"open":5');
+  expect(localText).toContain('event: suggestions\ndata: {"open":0}');
+  const recorded = t.ws.events.replay(0)!.filter(event => event.event === 'suggestions');
+  for (const event of recorded) expect(event.data).toHaveProperty('open');
 });

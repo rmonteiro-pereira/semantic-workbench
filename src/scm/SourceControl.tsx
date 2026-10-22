@@ -137,6 +137,7 @@ export function SourceControl({
   const openGitSetup = useGitSetup();
   const [historyFile, setHistoryFile] = useState<string | undefined>(historyPath);
   const [log, setLog] = useState<Commit[]>([]);
+  const [hiddenCommits, setHiddenCommits] = useState(0);
   const [range, setRange] = useState<{ from: string; to: string } | null>(null);
   const local = useRef(0);
   const [tick, setTick] = useState(0);
@@ -201,12 +202,16 @@ export function SourceControl({
       .log(project, historyFile, 50)
       .then(l => {
         if (live) {
-          setLog(l);
-          setRange(previous => (historyFile ? historyRange(previous, l) : null));
+          setLog(l.commits);
+          setHiddenCommits(l.hiddenCommits);
+          setRange(previous => (historyFile ? historyRange(previous, l.commits) : null));
         }
       })
       .catch(() => {
-        if (live) setLog([]);
+        if (live) {
+          setLog([]);
+          setHiddenCommits(0);
+        }
       });
     return () => {
       live = false;
@@ -674,6 +679,7 @@ export function SourceControl({
               </button>
             )}
           </h3>
+          {hiddenCommits > 0 && <p>{hiddenCommits} commits with changes you cannot open</p>}
           <ol>
             {log.map(c => (
               <li key={c.commit}>
