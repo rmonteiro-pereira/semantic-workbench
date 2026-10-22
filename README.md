@@ -305,7 +305,26 @@ All five [official Apache Ossie examples](tests/fixtures/ossie-mapping/README.md
 
 The graph, the overview and a contract's lineage canvas share a **Group by** selector: **Declared domains**, **IRI namespaces**, **Suggested communities**, **Definition types**, and **UBL example areas**. Suggested communities come from a deterministic, bounded modularity pass over each document's own structure: relationships between ontology concepts, foreign keys between contract objects, joins and metric references in semantic models, and links between mapped concepts in mapping documents. Inheritance, direction, duplicate links and primitive hubs do not influence them, and shared values stay separate. A mode that finds fewer than two real groups in the file is shown disabled with its reason (for example "No IRIs declared", or "Only the contract-level domain is declared" for an ODCS contract). **Auto** takes the first enabled mode in the order declared domains, example areas, namespaces, communities, types, and its label always names that choice. The UBL example areas are offered when at least 80% of the entities carry a curated UBL name, whatever the model is called. Lineage cards of the open contract's objects are tinted with their group colour, and Neighborhood nodes carry it as a coloured edge. The ⓘ button explains the basis and opens **Adjust grouping…**, a dialog that moves an entity to another or a new group; corrections are saved as view settings in `data/state/views/`. Original definitions and exports are unchanged.
 
-Source and import-repair editors share one editor (CodeMirror 6). YAML files above 500,000 characters use viewport-only SQL and extension-JSON colouring with indentation folding to keep typing fast. The status bar shows **Large file mode** and offers **Full parsing**; switch back with **Large file mode**. The choice lasts until another document opens. Colors follow VS Code's Light+ theme for the detected serialization: YAML, JSON, Turtle, N3, N-Triples and RDF/XML (`.gitignore` and unknown text stay plain); the JSON inside a `SEMANTIC_WORKBENCH` extension block is colored as JSON. After a 300 ms pause, findings appear inline from the shared validation rules, run in a background worker: a wavy underline on the offending token, a gutter marker and the message on hover (Ctrl+Shift+M lists them). Findings without a reliable location are listed above the editor as document-level. The bar shows the serialization, the file's line endings, the cursor position, **Find** (Ctrl+F, with replace) and **Go to line** (Ctrl+G); undo/redo, folding and keyboard operation work as usual, and the editor is named "Definition source" (or "Repair definition") for screen readers. **Go to line** in a finding selects the affected line. Edits never rewrite untouched bytes: each change is mapped onto the file as it is on disk, so CRLF, mixed line endings, tabs and the trailing newline stay as they were, new line breaks take the file's main style, and autosave sends only the changed range (`patches`) against the version it started from. `bun run test:editor` checks colors per serialization, inline findings within 500 ms of a pause, Go to line, the repair dialog, a byte-exact CRLF save and typing latency in a 1.9 MB file.
+Source and import-repair editors share one editor (CodeMirror 6). When a document opens (mount or a
+different document ID), YAML files above 500,000 characters use viewport-only SQL and extension-JSON
+colouring with indentation folding to keep typing fast. Typing and external replacements of the same
+document keep that mode. The status bar shows **Large file mode** and offers **Full parsing**;
+switch back with **Large file mode**. This switch overrides the mode until another document opens.
+Colors follow VS Code's Light+ theme for the detected serialization: YAML, JSON, Turtle, N3,
+N-Triples and RDF/XML (`.gitignore` and unknown text stay plain); the JSON inside a
+`SEMANTIC_WORKBENCH` extension block is colored as JSON. After a 300 ms pause, findings appear
+inline from the shared validation rules, run in a background worker: a wavy underline on the
+offending token, a gutter marker and the message on hover (Ctrl+Shift+M lists them). Findings
+without a reliable location are listed above the editor as document-level. The bar shows the
+serialization, the file's line endings, the cursor position, **Find** (Ctrl+F, with replace) and
+**Go to line** (Ctrl+G); undo/redo, folding and keyboard operation work as usual, and the editor is
+named "Definition source" (or "Repair definition") for screen readers. **Go to line** in a finding
+selects the affected line. Edits never rewrite untouched bytes: each change is mapped onto the file
+as it is on disk, so CRLF, mixed line endings, tabs and the trailing newline stay as they were, new
+line breaks take the file's main style, and autosave sends only the changed range (`patches`)
+against the version it started from. `bun run test:editor` checks colors per serialization, inline
+findings within 500 ms of a pause, Go to line, the repair dialog, a byte-exact CRLF save and typing
+latency in a 1.9 MB file.
 
 ## Shopping center administration example
 

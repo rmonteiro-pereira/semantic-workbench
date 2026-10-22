@@ -1,10 +1,11 @@
 /** Status and navigation controls for the source editor. */
 import type { FormEvent, RefObject } from 'react';
 import { ListOrdered, Search } from 'lucide-react';
+import { largeDocumentThreshold } from './documentMode';
 
 const largeModeDescription =
-  'This file is over 500,000 characters. Colouring and folding work on what is on screen ' +
-  'so typing stays fast.';
+  `This file opened with over ${largeDocumentThreshold.toLocaleString('en-US')} characters. ` +
+  'Colouring and folding work on what is on screen so typing stays fast.';
 
 type Props = {
   syntax: string;

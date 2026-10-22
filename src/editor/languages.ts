@@ -129,9 +129,6 @@ const largeYaml = StreamLanguage.define({
   tokenTable: { yamlKey: t.definition(t.propertyName) },
 });
 
-/** Sets the source length above which YAML uses viewport-limited highlighting. */
-export const largeDocumentThreshold = 500_000;
-
 /** Returns the CodeMirror language configuration for a source syntax. */
 export function languageFor(syntax: SyntaxName, largeDocument = false) {
   if (syntax === 'YAML' && largeDocument)

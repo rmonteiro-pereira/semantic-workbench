@@ -67,8 +67,9 @@ keeps control callbacks stable while calling the latest committed handler; handl
 rendered content retain explicit React dependencies. Stable React setters are passed directly.
 The stable handler is called only from event handlers or passive effects, never during render
 or child layout effects, which run before its parent publishes the committed handler.
-`src/editor/documentMode.ts` chooses the highlighting budget at mount and external replacement;
-typing retains that choice. An explicit status-bar override lasts until the document ID changes.
+`src/editor/documentMode.ts` owns the size threshold and chooses the highlighting budget when a
+document opens (mount or a different document ID). Typing and external replacements of the same
+document retain that choice. The status-bar switch overrides it until another document opens.
 `embeddedLanguages.ts` shares SQL paths and extension detection between full parsing and
 `viewportYaml.ts`, which reconstructs visible YAML with sparse ancestor and sibling context.
 `yamlIndentation.ts` caches indentation summaries on CodeMirror's persistent text branches:
