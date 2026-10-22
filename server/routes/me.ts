@@ -29,6 +29,7 @@ export async function meResponse(request: Request, options: HandlerOptions): Pro
     csrf: (await options.authentication?.session(request))?.csrf,
     id: principal.id,
     name: principal.name,
+    username: principal.username,
     verifiedEmail: principal.verifiedEmail,
     kind: principal.kind,
     roles,

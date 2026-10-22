@@ -2,6 +2,7 @@
 import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
+import { LOCAL_READER } from '../server/projects/reader';
 // Dialogs must fit six viewports, trap focus and return focus to their trigger after Escape.
 // Screenshots use /tmp/workbench-dialog-*.png.
 const api = await startIsolatedApi();
@@ -9,14 +10,17 @@ const mall = await api.ws.loadExample('mall');
 const commerce = await api.ws.loadExample('commerce');
 // A mapping imported on its own gives one grouping suggestion (it references Flights).
 await api.ws.loadExample('flights');
-await api.ws.importBatch({
-  files: [
-    {
-      path: 'flights.mapping.yaml',
-      source: await Bun.file('public/examples/ossie/flights.mapping.yaml').text(),
-    },
-  ],
-});
+await api.ws.importBatch(
+  {
+    files: [
+      {
+        path: 'flights.mapping.yaml',
+        source: await Bun.file('public/examples/ossie/flights.mapping.yaml').text(),
+      },
+    ],
+  },
+  LOCAL_READER,
+);
 const SIX: [number, number][] = [
   [1280, 720],
   [1366, 768],

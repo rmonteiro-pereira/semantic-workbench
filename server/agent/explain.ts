@@ -2,6 +2,7 @@
 // governed definitions and are never executed.
 import { inspect } from '../../src/model';
 import { rdfSyntax } from '../../src/rdf';
+import { semanticModelPaths } from '../../src/edit/item-model';
 import { isMapping } from '../../src/mapping-schema';
 import type { Issue } from '../../src/diagnostics';
 import { ansiExpression, expressionRefs, metricDependencies } from '../../src/metrics/deps';
@@ -60,6 +61,8 @@ export type KpiSummary = {
   format?: string;
   status?: string;
   owner?: string;
+  /** Server mode only: whether the owner names someone who has signed in. */
+  ownerVerified?: boolean;
   steward?: string;
   inputs: string[];
   concepts: ConceptLink[];
@@ -168,29 +171,14 @@ function parseProject(documents: StoredDocument[], slug: string): Parsed[] {
 }
 // Models may be standalone, wrapped in a legacy list, or embedded in an ontology mapping.
 function semanticModels(parsed: Parsed[]): ModelRef[] {
-  return parsed.flatMap(({ doc, data }): ModelRef[] => {
-    if (isMapping(data) || data.kind === 'DataContract') return [];
-    if (Array.isArray(data.ontology))
-      return list(data.ontology_mappings).flatMap((om: any, i: number) =>
-        object(om?.semantic_model)
-          ? [
-              {
-                doc,
-                path: ['ontology_mappings', i, 'semantic_model'],
-                model: om.semantic_model,
-                ontology: data,
-                embeddedMapping: om,
-              },
-            ]
-          : [],
-      );
-    if (Array.isArray(data.datasets)) return [{ doc, path: [], model: data }];
-    return list(data.semantic_model).flatMap((m: any, i: number) =>
-      object(m) && Array.isArray(m.datasets)
-        ? [{ doc, path: ['semantic_model', i], model: m }]
-        : [],
-    );
-  });
+  return parsed.flatMap(({ doc, data }): ModelRef[] =>
+    semanticModelPaths(data).map(path => {
+      const model = path.reduce((value: any, key) => value[key], data);
+      if (path[0] !== 'ontology_mappings') return { doc, path, model };
+      const embeddedMapping = data.ontology_mappings[path[1]];
+      return { doc, path, model, ontology: data, embeddedMapping };
+    }),
+  );
 }
 const pointerOf = (path: (string | number)[]) => path.map(p => '/' + p).join('');
 const fieldNamesOf = (model: any) =>

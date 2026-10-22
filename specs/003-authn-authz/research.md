@@ -656,6 +656,7 @@ probe: `openid-client` 6.8.8 (MIT, 236 KB) with `oauth4webapi` (MIT, 332 KB), `j
 | T057–T075, T140–T142 (administration server and repository, dry run, audit queries, Admin panel UI, browser check, mutants) | Codex (gpt-6-astra) started the server part; finished, joined with the UI and reviewed by Claude general-purpose subagents after the Codex usage limit |
 | Phase 9 on top of Phase 8 (one administration repository with reload on commit, streams closed only for affected people, Steward audit without restricted paths, new projects announced after their domain commit, admin setup retried, one Steward audit decision, one rollback path, one dry-run document shape, dry run outside the save lock, Admin button height) | Claude (general-purpose subagent), reviewed by Claude; grouped dry-run and grant-form parameters by Claude |
 | T100–T103 (bearer validation, client principals from agent grants, agent-call audit, mutants) and two review rounds (Entra v2 audience and issuer, per-row client action, provider failures answered 503, one client constructor, cross-site check skipped for clients, cookie never outranks a token) | Codex (gpt-6-astra) started it; finished, reviewed and merged onto the Admin panel by Claude general-purpose subagents |
+| T087–T093 (guards on every content write, metric approval and deprecation, Steward-only classification changes, owner picker, browser check, mutants) and five review rounds (move, switch, delete, restore and new-project import guarded; the guard carried by every server reader so a missing guard is a type error; a fail-closed write-route inventory; owners matched only on verified identities; the committed owner counted for self-approval; the people list limited to project readers) | Claude (general-purpose subagent), reviewed by Claude |
 
 ### Test changes not caused by the specification
 
@@ -740,3 +741,12 @@ probe: `openid-client` 6.8.8 (MIT, 236 KB) with `oauth4webapi` (MIT, 332 KB), `j
   build their client with it; their assertions are unchanged.
 - `tests/auth/policy-templates.test.ts`: imports the one client constructor from its new home in
   `principal.ts`; the call and assertions are unchanged.
+- `tests/auth/write-regressions.test.ts` ("deletion records its principal") and
+  `tests/auth/matrix-write.test.ts` ("an Editor can move a file when both projects are in its
+  domain"): they now use `sales.mapping.yaml`, because an Editor may no longer delete or move the
+  contract that holds a confidential property and an approved metric; what they test is unchanged.
+- Test and script call sites of `saveFile`, `revertFile`, `importBatch`, `trash.deleteFile`,
+  `trash.revertFile`, `switchBranch`, `pull` and `sync` pass `LOCAL_READER` explicitly, because
+  these write methods no longer default to it; read-boundary tests build their server reader with
+  `boundaryReader`, whose guard lets every change through. No assertion changed.
+- `policies/matrix-cases.json` is regenerated from the route table after the new people route.

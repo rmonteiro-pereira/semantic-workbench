@@ -19,14 +19,20 @@ const api = (
   );
 async function setup() {
   const t = await testWorkspace();
-  await t.ws.importBatch({ name: 'Alpha', files: [{ path: 'a.yaml', source: ont('A') }] });
-  await t.ws.importBatch({
-    name: 'Beta',
-    files: [
-      { path: 'a.yaml', source: ont('B') },
-      { path: 'b.yaml', source: ont('B2') },
-    ],
-  });
+  await t.ws.importBatch(
+    { name: 'Alpha', files: [{ path: 'a.yaml', source: ont('A') }] },
+    LOCAL_READER,
+  );
+  await t.ws.importBatch(
+    {
+      name: 'Beta',
+      files: [
+        { path: 'a.yaml', source: ont('B') },
+        { path: 'b.yaml', source: ont('B2') },
+      ],
+    },
+    LOCAL_READER,
+  );
   return t;
 }
 test('a file moves between projects with its view settings; an occupied target is a 409', async () => {

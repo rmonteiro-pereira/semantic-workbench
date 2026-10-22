@@ -297,6 +297,21 @@ test('a client needs no cross-site headers, and unmapped agent routes are audite
   ]);
 });
 
+test('a client cannot write: write routes refuse its token before any file changes', async () => {
+  using app = await setup();
+  const token = await app.token();
+  const file = app.fixture.ws.readFile('sales-contracts', 'sales.mapping.yaml');
+  const response = await app.call(token, '/api/projects/sales-contracts/save-batch', {
+    files: [{ path: 'sales.mapping.yaml', baseHash: file.hash, source: file.source + '\n' }],
+  });
+  // Write routes are outside the agent routes, so the token is refused before it is read.
+  expect(response.status).toBe(401);
+  expect(app.audit(response)).toMatchObject([
+    { principal: { id: 'anonymous' }, reason: 'bearer-scope', decision: 'deny' },
+  ]);
+  expect(app.fixture.ws.readFile('sales-contracts', 'sales.mapping.yaml').source).toBe(file.source);
+});
+
 test('a client is refused on a row that declares no client action', async () => {
   using app = await setup();
   const token = await app.token();

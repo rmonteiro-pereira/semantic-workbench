@@ -8,6 +8,7 @@ import { createHandler } from '../../server/handler';
 import { accessFixture, person } from './access-fixture';
 import { routeExamples } from './route-actions';
 import { routeFor } from '../../server/auth/route-actions';
+import { LOCAL_READER } from '../../server/projects/reader';
 
 function snapshot(root: string, prefix = ''): Record<string, string> {
   const result: Record<string, string> = {};
@@ -258,14 +259,15 @@ test('an Editor can move a file when both projects are in its domain', async () 
     access,
     principal: () => access.principalFor(person('alice')),
   });
+  // A file with nothing governed in it: a governed one is also judged by the content guards.
   const response = await handler(
-    request('/api/projects/sales-metrics/move', 'POST', {
-      path: 'sales.semantic.yaml',
-      toProject: 'sales-contracts',
+    request('/api/projects/sales-contracts/move', 'POST', {
+      path: 'sales.mapping.yaml',
+      toProject: 'sales-metrics',
     }),
   );
   expect(response.status).toBe(200);
-  expect(fixture.ws.readFile('sales-contracts', 'sales.semantic.yaml').source).toContain('Sales');
+  expect(fixture.ws.readFile('sales-metrics', 'sales.mapping.yaml').source).toContain('Sales');
 });
 
 test('restore and undo authorize original paths and cross-project destinations', async () => {
@@ -280,11 +282,14 @@ test('restore and undo authorize original paths and cross-project destinations',
   const hidden = await fixture.ws.trash.deleteFile(
     'sales-contracts',
     'finance/revenue-recognition.odcs.yaml',
+    undefined,
+    LOCAL_READER,
   );
   const visible = await fixture.ws.trash.deleteFile(
     'sales-contracts',
     'orders.odcs.yaml',
     person('alice').id,
+    LOCAL_READER,
   );
   const before = snapshot(fixture.root);
   const undo = await handler(request(`/api/trash/${hidden.entryId}/undo`, 'POST'));

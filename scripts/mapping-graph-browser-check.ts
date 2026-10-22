@@ -6,6 +6,7 @@ import { agentCatalog, buildContext } from '../server/agent/runtime';
 import { buildMappingGraph, type MappingGraph } from '../src/mappings/mapping-graph';
 import { lineagePierce } from '../src/odcs/lineage-pierce';
 import { selectionNodes } from '../src/odcs/lineage';
+import { LOCAL_READER } from '../server/projects/reader';
 // Checks rendered bindings against the resolver, including selection, filters and warnings.
 // Screenshots use /tmp/workbench-mapping-graph-*.png.
 const api = await startIsolatedApi();
@@ -184,10 +185,15 @@ try {
       // Add an unmapped concept to the mapped commerce ontology through the API, as an edit would.
       const slug = loaded['mapped-commerce'].slug;
       const f = api.ws.readFile(slug, 'commerce.mapped-ontology.yaml');
-      await api.ws.saveFile(slug, 'commerce.mapped-ontology.yaml', {
-        baseHash: f.hash,
-        source: f.source + '  - concept: Shipment\n    type: EntityType\n',
-      });
+      await api.ws.saveFile(
+        slug,
+        'commerce.mapped-ontology.yaml',
+        {
+          baseHash: f.hash,
+          source: f.source + '  - concept: Shipment\n    type: EntityType\n',
+        },
+        LOCAL_READER,
+      );
       await page.reload();
       await openMapping('commerce.mapping.yaml', loaded['mapped-commerce'].name);
       await graph().getByRole('textbox', { name: 'Find assets' }).fill('Shipment');
@@ -201,10 +207,15 @@ try {
       for (const c of await graph().locator('.lineage-card').all())
         await expect(c).toContainText('Unmapped');
       await graph().getByRole('checkbox', { name: 'Unmapped only' }).uncheck();
-      await api.ws.saveFile(slug, 'commerce.mapped-ontology.yaml', {
-        baseHash: api.ws.readFile(slug, 'commerce.mapped-ontology.yaml').hash,
-        source: f.source,
-      });
+      await api.ws.saveFile(
+        slug,
+        'commerce.mapped-ontology.yaml',
+        {
+          baseHash: api.ws.readFile(slug, 'commerce.mapped-ontology.yaml').hash,
+          source: f.source,
+        },
+        LOCAL_READER,
+      );
     },
   );
   await check(
@@ -212,13 +223,18 @@ try {
     async () => {
       const slug = loaded['mapped-commerce'].slug;
       const f = api.ws.readFile(slug, 'commerce.mapping.yaml');
-      await api.ws.saveFile(slug, 'commerce.mapping.yaml', {
-        baseHash: f.hash,
-        source: f.source.replace(
-          '            - relationship: id\n              expression: orders.order_id',
-          '            - relationship: id\n              expression: orders.no_such_field',
-        ),
-      });
+      await api.ws.saveFile(
+        slug,
+        'commerce.mapping.yaml',
+        {
+          baseHash: f.hash,
+          source: f.source.replace(
+            '            - relationship: id\n              expression: orders.order_id',
+            '            - relationship: id\n              expression: orders.no_such_field',
+          ),
+        },
+        LOCAL_READER,
+      );
       await page.reload();
       await openMapping('commerce.mapping.yaml', loaded['mapped-commerce'].name);
       await graph().getByRole('textbox', { name: 'Find assets' }).fill('Order');
@@ -240,10 +256,15 @@ try {
         .getByRole('dialog', { name: /^Edit / })
         .getByRole('button', { name: 'Cancel' })
         .click();
-      await api.ws.saveFile(slug, 'commerce.mapping.yaml', {
-        baseHash: api.ws.readFile(slug, 'commerce.mapping.yaml').hash,
-        source: f.source,
-      });
+      await api.ws.saveFile(
+        slug,
+        'commerce.mapping.yaml',
+        {
+          baseHash: api.ws.readFile(slug, 'commerce.mapping.yaml').hash,
+          source: f.source,
+        },
+        LOCAL_READER,
+      );
     },
   );
   await check(

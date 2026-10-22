@@ -16,6 +16,7 @@ import type { ServerAuthentication } from './authentication';
 import { WriteAccessError } from './write-access';
 import type { GroupName } from './directory';
 import type { ProviderStatus } from './oidc';
+import { GuardedChangeError } from './guards';
 import { READ_ACTIONS } from './actions';
 import { requestAccess, requestAuditProjects, type AccessRequest } from './request-scope';
 import { hiddenResponses, requestAuditId } from '../request';
@@ -143,7 +144,11 @@ function auditInput(request: {
 }
 
 /** A refusal body that never names a resource the caller may not see. */
-function refusal(decision: Decision): Response {
+function refusal(decision: Decision, error?: WriteAccessError): Response {
+  // A guarded write names the guarded parts of readable files so the person knows what to undo.
+  if (error instanceof GuardedChangeError) {
+    return Response.json({ error: error.message, guarded: error.guarded }, { status: 403 });
+  }
   const body =
     decision.status === 404
       ? { error: 'Not found.' }
@@ -166,7 +171,7 @@ function refusedTarget(
     decision: error.decision,
   });
   const failure = auditDenial(audit, { ...denied, decision: 'deny' });
-  return failure ?? refusal(error.decision);
+  return failure ?? refusal(error.decision, error);
 }
 
 /**

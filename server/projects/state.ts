@@ -53,7 +53,15 @@ export type LegacyIds = {
 /** Last known identity and access, without tokens or session credentials. */
 export type UserRecord = Pick<
   Principal,
-  'key' | 'id' | 'kind' | 'name' | 'verifiedEmail' | 'username' | 'groups' | 'groupsResolved'
+  | 'key'
+  | 'id'
+  | 'kind'
+  | 'name'
+  | 'verifiedEmail'
+  | 'username'
+  | 'usernameVerified'
+  | 'groups'
+  | 'groupsResolved'
 > & {
   lastSignInAt: string;
   access: 'granted' | 'none';
@@ -90,6 +98,7 @@ function writeUser(path: string, principal: Principal, at: string): UserRecord {
     name: principal.name,
     verifiedEmail: principal.verifiedEmail,
     username: principal.username,
+    usernameVerified: principal.usernameVerified === true,
     groups: [...principal.groups],
     groupsResolved: principal.groupsResolved,
     lastSignInAt: at,

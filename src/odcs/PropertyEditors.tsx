@@ -7,6 +7,8 @@ import { validateInput } from '../input';
 import { api, StaleSave, type Doc } from '../projects/api';
 import type { Saved } from '../edit/ItemEditor';
 import type { PropertyCellProps } from './DatasetPage';
+import { isProtected } from '../auth/guards-client';
+import type { ClassificationSettings } from '../governance/guards';
 // Shared patchers change only the edited value. Validation uses the pinned ODCS schema, and the
 // base hash prevents overwriting a newer file.
 export const LOGICAL_TYPES = [
@@ -38,6 +40,8 @@ export function propertyEdit(
 type Options = {
   canEdit?: boolean;
   canClassify?: boolean;
+  /** How the project reads classification values, so protected properties stay read-only. */
+  classification?: ClassificationSettings;
   doc: Doc;
   base: string;
   onSaved: (saved: Saved[], label: string) => void;
@@ -51,6 +55,7 @@ export function propertyEditor({
   onError,
   canEdit = true,
   canClassify = true,
+  classification,
 }: Options) {
   const properties = (objectIndex: number) => {
     try {
@@ -116,7 +121,9 @@ export function propertyEditor({
         />
       );
     }
-    if (!canEdit || /[.[]/.test(path)) return null;
+    // A property at or above the protected level is changed only by those who may classify.
+    const locked = !canClassify && isProtected(property.classification, classification);
+    if (!canEdit || locked || /[.[]/.test(path)) return null;
     const label = `${column.label} of ${path}`;
     if (FLAGS.has(column.key))
       return (

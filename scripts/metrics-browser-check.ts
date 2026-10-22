@@ -7,14 +7,17 @@ import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 // Checks metric explanations, refused rollups and lineage in split and consolidated examples.
 const api = await startIsolatedApi();
 const file = (path: string) => Bun.file('public/examples/' + path).text();
-await api.ws.importBatch({
-  name: 'Mall',
-  files: await Promise.all(
-    ['mall.ontology.yaml', 'mall.semantic.yaml', 'mall.mapping.yaml', 'mall.odcs.yaml'].map(
-      async path => ({ path, source: await file('mall/' + path) }),
+await api.ws.importBatch(
+  {
+    name: 'Mall',
+    files: await Promise.all(
+      ['mall.ontology.yaml', 'mall.semantic.yaml', 'mall.mapping.yaml', 'mall.odcs.yaml'].map(
+        async path => ({ path, source: await file('mall/' + path) }),
+      ),
     ),
-  ),
-});
+  },
+  LOCAL_READER,
+);
 // Flights ships without metrics: the same metric is added to the split files and to the
 // consolidated file.
 const metric = {
@@ -56,39 +59,45 @@ const edit = (source: string, change: (doc: any) => void) => {
   change(doc);
   return doc.toString({ lineWidth: 0 });
 };
-await api.ws.importBatch({
-  name: 'Flights split',
-  files: [
-    { path: 'flights.ontology.yaml', source: await file('ossie/flights.ontology.yaml') },
-    {
-      path: 'flights.semantic_model.yaml',
-      source: edit(await file('ossie/flights.semantic_model.yaml'), d =>
-        d.set('metrics', d.createNode([metric])),
-      ),
-    },
-    {
-      path: 'flights.mapping.yaml',
-      source: edit(await file('ossie/flights.mapping.yaml'), d =>
-        d.set('custom_extensions', d.createNode(bindings)),
-      ),
-    },
-  ],
-});
-await api.ws.importBatch({
-  name: 'Flights consolidated',
-  files: [
-    {
-      path: 'flights.yaml',
-      source: edit(await file('ossie/flights.yaml'), d => {
-        d.setIn(['ontology_mappings', 0, 'semantic_model', 'metrics'], d.createNode([metric]));
-        d.setIn(
-          ['ontology_mappings', 0, 'semantic_model', 'custom_extensions'],
-          d.createNode(bindings),
-        );
-      }),
-    },
-  ],
-});
+await api.ws.importBatch(
+  {
+    name: 'Flights split',
+    files: [
+      { path: 'flights.ontology.yaml', source: await file('ossie/flights.ontology.yaml') },
+      {
+        path: 'flights.semantic_model.yaml',
+        source: edit(await file('ossie/flights.semantic_model.yaml'), d =>
+          d.set('metrics', d.createNode([metric])),
+        ),
+      },
+      {
+        path: 'flights.mapping.yaml',
+        source: edit(await file('ossie/flights.mapping.yaml'), d =>
+          d.set('custom_extensions', d.createNode(bindings)),
+        ),
+      },
+    ],
+  },
+  LOCAL_READER,
+);
+await api.ws.importBatch(
+  {
+    name: 'Flights consolidated',
+    files: [
+      {
+        path: 'flights.yaml',
+        source: edit(await file('ossie/flights.yaml'), d => {
+          d.setIn(['ontology_mappings', 0, 'semantic_model', 'metrics'], d.createNode([metric]));
+          d.setIn(
+            ['ontology_mappings', 0, 'semantic_model', 'custom_extensions'],
+            d.createNode(bindings),
+          );
+        }),
+      },
+    ],
+  },
+  LOCAL_READER,
+);
 // Commerce's metrics have no workbench attributes; the last check adds them to one.
 const commerce = await api.ws.loadExample('commerce');
 const hashes = async () =>

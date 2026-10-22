@@ -17,6 +17,11 @@ export type NormalizedPrincipal = {
   clientId?: string;
   name: string;
   username: string;
+  /**
+   * True only when the username is the Entra user principal name of a member. A username taken
+   * from an e-mail claim, a subject, or another provider's editable preferred_username is not.
+   */
+  usernameVerified?: boolean;
   verifiedEmail: string | null;
   groups: string[];
   groupsResolved: 'token' | 'directory' | 'failed';
@@ -88,6 +93,17 @@ function identity(claims: Record<string, unknown>, mapping: ClaimMapping) {
   return { id: `${tenant}:${object}` };
 }
 
+/**
+ * Whether Entra's user name names the member themselves. Entra assigns a member's user principal
+ * name. A guest signs in through another identity provider, which `idp` names, and a guest's
+ * name carries #EXT#; neither names an address of theirs.
+ */
+function memberUserName(claims: Record<string, unknown>, userName: string): boolean {
+  const idp = string(claims.idp);
+  const homeTenant = idp === '' || idp === string(claims.iss);
+  return homeTenant && !userName.toLowerCase().includes('#ext#');
+}
+
 /** Converts validated provider claims into the identity used by access grants. */
 export function normalizeClaims(
   claims: Record<string, unknown>,
@@ -106,17 +122,17 @@ export function normalizeClaims(
   const groups = Array.isArray(groupClaim)
     ? groupClaim.filter((group): group is string => typeof group === 'string')
     : [];
-  const username =
-    string(claims.preferred_username) ||
-    string(claims.email) ||
-    string(claims.sub) ||
-    identified.id;
+  const providerUsername = string(claims.preferred_username);
+  const username = providerUsername || string(claims.email) || string(claims.sub) || identified.id;
+  const usernameVerified =
+    entra && providerUsername !== '' && memberUserName(claims, providerUsername);
   return {
     ...identified,
     key: principalKey(identified.id),
     kind: 'person',
     name: string(claims.name) || username,
     username,
+    usernameVerified,
     verifiedEmail: verifiedAddress(claims, entra),
     groups: groupOverage ? [] : groups.map(group => (entra ? group.toLowerCase() : group)),
     groupsResolved: groupOverage ? 'failed' : 'token',

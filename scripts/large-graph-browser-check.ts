@@ -2,13 +2,14 @@
 import { appUrl } from './helpers/base-url';
 import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
+import { LOCAL_READER } from '../server/projects/reader';
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1905, height: 1000 } });
 const errors: string[] = [];
 page.on('pageerror', e => errors.push(e.message));
 const source = await Bun.file('public/examples/commerce/commerce-scale.ttl').text();
 const api = await startIsolatedApi({ watch: false });
-await api.ws.importBatch({ files: [{ path: 'commerce-scale.ttl', source }] });
+await api.ws.importBatch({ files: [{ path: 'commerce-scale.ttl', source }] }, LOCAL_READER);
 await routeApi(page, api);
 try {
   await page.goto(appUrl());

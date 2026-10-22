@@ -22,13 +22,14 @@ export function eventRoutes(options: HandlerOptions = {}): Route {
 
 // A person's stream filters every event through their scope; a local stream sees everything.
 function eventAccess(ws: Workspace, request: Request): EventAccess | undefined {
-  if (!requestReader(request).view) return undefined;
   const scope = requestScope(request);
+  if (scope.principal.kind === 'local') return undefined;
   const owner = scope.principal.id;
   return {
     scope,
     owner,
-    suggestions: index => ws.suggestionCount({ view: scope.view(), owner }, index),
+    // The reader is resolved on each count, so a policy change applies to the next one.
+    suggestions: index => ws.suggestionCount(requestReader(request), index),
   };
 }
 

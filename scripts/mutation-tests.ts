@@ -571,8 +571,8 @@ const mutants: [string, string, string, string][] = [
   [
     'explain',
     'server/agent/explain.ts',
-    'if (Array.isArray(data.ontology))\n      return list(data.ontology_mappings)',
-    'if(Array.isArray(data.ontology))return [];if(false)return list(data.ontology_mappings)',
+    'semanticModelPaths(data).map(path',
+    "semanticModelPaths(data).filter(path=>path[0]!=='ontology_mappings').map(path",
   ],
   [
     'metric-extension',
@@ -793,6 +793,88 @@ const mutants: [string, string, string, string][] = [
   ['admin-review', 'src/admin/change-review.ts', 'Boolean(review.result.dryRunId)', 'true'],
   ['admin-save', 'src/admin/api.ts', 'if (!dryRunId)', 'if (false)'],
 ];
+// Governance guards: approval, demotion, classification, and the write paths that apply them.
+mutants.push(
+  [
+    'guard-decisions',
+    'server/auth/guards.ts',
+    'metric: { name: metric.name, status: metric.status, owner },',
+    'metric: { name: metric.name, status: metric.status, owner: undefined },',
+  ],
+  [
+    'guard-decisions',
+    'server/auth/guards.ts',
+    "return binding.scope.authorize('editGuarded', resource, context);",
+    "return binding.scope.authorize('edit', resource, context);",
+  ],
+  ['guard-engine', 'src/governance/guards.ts', "status === 'approved' &&", 'false &&'],
+  [
+    'guard-engine',
+    'src/governance/guards.ts',
+    'if (options.demote && guarded.demotable) demoted.push(guarded);',
+    'if (false) demoted.push(guarded);',
+  ],
+  [
+    'guard-engine',
+    'src/governance/guards.ts',
+    'if (!deepEqual(old?.classification, current.classification)) {',
+    'if (false) {',
+  ],
+  [
+    'guard-save-batch',
+    'server/routes/kpis.ts',
+    "ws.saveFiles(slug, body.files, reader, 'save-batch')",
+    "ws.saveFiles(slug, body.files, { ...reader, guard: undefined }, 'save-batch')",
+  ],
+  [
+    'guard-pull',
+    'server/routes/git.ts',
+    'scm.pull(slug, reader)',
+    'scm.pull(slug, { ...reader, guard: undefined })',
+  ],
+  [
+    'guard-revert',
+    'server/routes/git.ts',
+    'ws.revertFile(slug, b.path, baseHash, reader)',
+    'ws.revertFile(slug, b.path, baseHash, { ...reader, guard: undefined })',
+  ],
+  [
+    'guard-delete',
+    'server/routes/trash.ts',
+    'owner, reader)',
+    'owner, { ...reader, guard: undefined })',
+  ],
+  [
+    'guard-restore',
+    'server/routes/trash.ts',
+    'ws.trash.undo(id, reader)',
+    'ws.trash.undo(id, { ...reader, guard: undefined })',
+  ],
+  [
+    'guard-restore',
+    'server/routes/trash.ts',
+    'ws.trash.restore(id, body, reader)',
+    'ws.trash.restore(id, body, { ...reader, guard: undefined })',
+  ],
+  [
+    'guard-import',
+    'server/routes/projects.ts',
+    'body.onConflict, reader, authorizePaths',
+    'body.onConflict, { ...reader, guard: undefined }, authorizePaths',
+  ],
+  [
+    'guard-new-project',
+    'server/projects/workspace.ts',
+    'guardedNewProject(preflight(body.files), reader.guard, creating.domain)',
+    'preflight(body.files)',
+  ],
+  [
+    'guard-people',
+    'server/auth/route-actions.ts',
+    "row('GET', '/api/projects/:slug/people', 'edit', project)",
+    "row('GET', '/api/projects/:slug/people', 'read', project)",
+  ],
+);
 mutants.push(
   [
     'read-workspace',

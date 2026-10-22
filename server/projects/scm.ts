@@ -18,6 +18,7 @@ import { MergingError } from './errors';
 import { decode, sha256 } from './atomic';
 import { assertNoLinks, projectPath, projectPrefix, repoDir, type DataLayout } from './paths';
 import { serializationOf } from './scanner';
+import type { ContentGuard, FileChange } from '../auth/guards';
 /** Reports drafts or uncommitted changes that prevent a source control operation. */
 export class BlockedError extends Error {
   constructor(
@@ -207,17 +208,80 @@ export function createScm(deps: ScmDeps) {
     if (!name) throw new GitError('This project has no remote. Add one under Remote first.');
     return name;
   };
-  async function pullIn(slug: string, d: string) {
+  // Text of a document at a revision, or null when it is absent or not text.
+  async function textAt(d: string, rev: string | null, path: string) {
+    if (!rev) return null;
+    const bytes = await git.blob(d, rev, path);
+    if (!bytes) return null;
+    const text = asText(bytes);
+    return text.binary ? null : text.text;
+  }
+  // What moving from `base` to `tip` would bring into each project of the repository: every
+  // file changed between them, as `base` has it and as `tip` has it.
+  async function incomingChanges(
+    slug: string,
+    d: string,
+    base: string | null,
+    tip: string,
+  ): Promise<FileChange[]> {
+    const changes: FileChange[] = [];
+    for (const path of await git.changedBetween(d, base, tip)) {
+      const owner = ownerOf(slug, path);
+      if (!owner) continue;
+      changes.push({
+        project: owner.project,
+        path: path.slice(owner.prefix.length),
+        before: await textAt(d, base, path),
+        after: await textAt(d, tip, path),
+      });
+    }
+    return changes;
+  }
+  // A pull is checked before any file changes: the branch is fetched, and what it would bring in
+  // is decided as if the person wrote it. It returns the checked commit, which is then merged
+  // instead of fetching again, or Git's message when the fetch failed.
+  async function guardIncoming(
+    slug: string,
+    d: string,
+    source: { remote: string; branch: string },
+    guard: ContentGuard,
+  ) {
+    const fetched = await git.run(d, ['fetch', source.remote, source.branch], {
+      remote: true,
+      allowFailure: true,
+    });
+    if (fetched.code !== 0) {
+      const failed = { ok: false, conflicted: [], altered: [], stderr: fetched.stderr.trim() };
+      return { failed };
+    }
+    const fetchedTip = await git.run(d, ['rev-parse', '-q', '--verify', 'FETCH_HEAD'], {
+      readOnly: true,
+    });
+    const tip = fetchedTip.stdout.trim();
+    // A merge brings in what the tip changed since the common ancestor.
+    const merged = await git.run(d, ['merge-base', 'HEAD', tip], {
+      readOnly: true,
+      allowFailure: true,
+    });
+    const base = merged.code === 0 ? merged.stdout.trim() : null;
+    guard(await incomingChanges(slug, d, base, tip), { operation: 'pull' });
+    return { tip };
+  }
+  async function pullIn(slug: string, d: string, guard?: ContentGuard) {
     const s = await git.status(d);
     const blocked = blockers(deps.drafts(slug), s.entries);
     if (blocked) throw blocked;
     const remote = await remoteOf(d, s.upstream);
+    let args = ['pull', '--no-rebase', '--no-edit', ...(s.upstream ? [] : [remote, s.branch])];
+    if (guard) {
+      const branch = s.upstream ? s.upstream.slice(remote.length + 1) : s.branch;
+      const checked = await guardIncoming(slug, d, { remote, branch }, guard);
+      if (checked.failed) return checked.failed;
+      // Merging the checked commit keeps commits pushed after the check out of this pull.
+      args = ['merge', '--no-edit', checked.tip!];
+    }
     const before = await git.head(d);
-    const r = await git.run(
-      d,
-      ['pull', '--no-rebase', '--no-edit', ...(s.upstream ? [] : [remote, s.branch])],
-      { remote: true, allowFailure: true },
-    );
+    const r = await git.run(d, args, { remote: true, allowFailure: true });
     const now = await git.status(d);
     const conflicted = now.entries.filter(e => e.conflicted).map(e => e.path);
     const head = await git.head(d);
@@ -229,7 +293,11 @@ export function createScm(deps: ScmDeps) {
   }
   // Remote actions report Git's result instead of throwing, so the panel can show stderr; Cancel
   // (or the 10-minute limit) ends them.
-  async function remoteAction(slug: string, kind: 'fetch' | 'pull' | 'push' | 'sync') {
+  async function remoteAction(
+    slug: string,
+    kind: 'fetch' | 'pull' | 'push' | 'sync',
+    guard?: ContentGuard,
+  ) {
     const d = dir(slug);
     try {
       let result = { ok: true, conflicted: [] as string[], altered: [] as string[], stderr: '' };
@@ -243,7 +311,7 @@ export function createScm(deps: ScmDeps) {
       }
       if (kind === 'pull' || kind === 'sync') {
         const s = await git.status(d);
-        if (kind === 'pull' || s.upstream) result = await pullIn(slug, d);
+        if (kind === 'pull' || s.upstream) result = await pullIn(slug, d, guard);
       }
       if ((kind === 'push' || kind === 'sync') && result.ok) {
         const s = await git.status(d);
@@ -446,7 +514,7 @@ export function createScm(deps: ScmDeps) {
       const s = await git.status(d);
       return { current: s.branch, ...b };
     },
-    async switchBranch(slug: string, branch: unknown, create = false) {
+    async switchBranch(slug: string, branch: unknown, create = false, { guard }: Reader) {
       // Trimmed before any check, so a leading space cannot smuggle an option such as `--detach`.
       const name = typeof branch === 'string' ? branch.trim() : '';
       if (!name || name.startsWith('-') || name.length > 200) throw Error('Give a branch name.');
@@ -470,6 +538,11 @@ export function createScm(deps: ScmDeps) {
           ? name.slice(name.indexOf('/') + 1)
           : name;
       const before = await git.head(d);
+      // Everyone works in one tree, so the branch's content is checked as if the person wrote it.
+      if (guard && !create) {
+        const target = b.local.includes(local) ? local : name;
+        guard(await incomingChanges(slug, d, before, target), { operation: 'switch' });
+      }
       await git.run(d, create ? ['switch', '-c', local] : ['switch', local]);
       const head = await git.head(d);
       const altered =
@@ -508,9 +581,10 @@ export function createScm(deps: ScmDeps) {
       return { removed: name };
     },
     fetch: (slug: string) => remoteAction(slug, 'fetch'),
-    pull: (slug: string) => remoteAction(slug, 'pull'),
+    // The reader's guard, given in server mode, refuses a pull that brings in a guarded change.
+    pull: (slug: string, reader: Reader) => remoteAction(slug, 'pull', reader.guard),
     push: (slug: string) => remoteAction(slug, 'push'),
-    sync: (slug: string) => remoteAction(slug, 'sync'),
+    sync: (slug: string, reader: Reader) => remoteAction(slug, 'sync', reader.guard),
     cancel: (slug: string) => ({ cancelled: git.cancel(dir(slug)) }),
     async log(slug: string, path: string | undefined, limit: number | undefined, { view }: Reader) {
       if (path) requireReadable(slug, path, view);

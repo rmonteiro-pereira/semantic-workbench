@@ -316,13 +316,13 @@ tests/auth/directory.test.ts` and
 
 **Independent Test**: `bun test tests/auth/guards.test.ts` and the matrix guard cases.
 
-- [ ] T087 [P] [US5] Guard tests in tests/auth/guards.test.ts: status to approved/deprecated by Editor refused; self-approval refused for every role; approved metric changed by non-approver stored as proposed with only the `status` bytes changed; description-only change keeps approved; classification/criticalDataElement/team/roles change needs Steward; property at or above protected level needs Steward; level aliases and unmapped values → `internal`; owner match by email/username case-insensitive, unverified owners (FR-060 to FR-067)
-- [ ] T088 [P] [US5] Matrix guard cases in tests/auth/matrix.test.ts across Source save, save-batch, item edit, legacy document save, metric save, import with replace, revert and pull (whole operation refused, guarded pointers named) (FR-066)
-- [ ] T089 [US5] Guard engine server/auth/guards.ts using the shared parsers (research R11) and `editGuarded`/`approveMetric` decisions; demotion through the item-level edit
-- [ ] T090 [US5] Apply guards in every content write path: server/routes/files.ts, server/routes/kpis.ts and metrics routes, server/handler.ts (`POST /api/documents`), server/projects/workspace.ts (import replace, save-batch), server/projects/scm.ts (revert, pull, pull-default preflight)
-- [ ] T091 [US5] UI: **Approve** / **Deprecate** actions for Stewards (disabled with reason otherwise, never for own metrics), "unverified owner" badge, owner picker from Users, guard-aware classification editors via src/auth/guards-client.ts in src/metrics/MetricDetail.tsx, src/metrics/MetricWizard.tsx, src/odcs/PropertyEditors.tsx
-- [ ] T092 [US5] Browser check scripts/auth-browser-check.ts (part 4): lifecycle as alice and bob; Editor classification edit refused
-- [ ] T093 [US5] Mutants: self-approval allowed; approved metric edit not demoted; classification change allowed to Editor; guard skipped in save-batch; guard skipped in pull — in scripts/mutation-tests.ts
+- [X] T087 [P] [US5] Guard tests in tests/auth/guards.test.ts: status to approved/deprecated by Editor refused; self-approval refused for every role; approved metric changed by non-approver stored as proposed with only the `status` bytes changed; description-only change keeps approved; classification/criticalDataElement/team/roles change needs Steward; property at or above protected level needs Steward; level aliases and unmapped values → `internal`; owner match by email/username case-insensitive, unverified owners (FR-060 to FR-067)
+- [X] T088 [P] [US5] Matrix guard cases in tests/auth/matrix.test.ts across Source save, save-batch, item edit, legacy document save, metric save, import with replace, revert and pull (whole operation refused, guarded pointers named) (FR-066)
+- [X] T089 [US5] Guard engine server/auth/guards.ts using the shared parsers (research R11) and `editGuarded`/`approveMetric` decisions; demotion through the item-level edit
+- [X] T090 [US5] Apply guards in every content write path: server/routes/files.ts, server/routes/kpis.ts and metrics routes, server/handler.ts (`POST /api/documents`), server/projects/workspace.ts (import replace, save-batch), server/projects/scm.ts (revert, pull, pull-default preflight)
+- [X] T091 [US5] UI: **Approve** / **Deprecate** actions for Stewards (disabled with reason otherwise, never for own metrics), "unverified owner" badge, owner picker from Users, guard-aware classification editors via src/auth/guards-client.ts in src/metrics/MetricDetail.tsx, src/metrics/MetricWizard.tsx, src/odcs/PropertyEditors.tsx
+- [X] T092 [US5] Browser check scripts/auth-browser-check.ts (part 4): lifecycle as alice and bob; Editor classification edit refused
+- [X] T093 [US5] Mutants: self-approval allowed; approved metric edit not demoted; classification change allowed to Editor; guard skipped in save-batch; guard skipped in pull — in scripts/mutation-tests.ts
 
 ---
 

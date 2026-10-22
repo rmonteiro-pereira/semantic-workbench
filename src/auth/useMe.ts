@@ -10,6 +10,8 @@ export type Me = {
   can?: Record<string, boolean>;
   requires?: Record<string, string>;
   name: string;
+  /** Server mode only: the username the provider gave, which a metric owner may name. */
+  username?: string;
   verifiedEmail: string | null;
   csrf?: string;
   roleSources?: { via: 'group' | 'email' | 'bootstrap' }[];

@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { projectFile } from '../server/projects/paths';
 import { startApiProcess } from './helpers/api-process';
+import { LOCAL_READER } from '../server/projects/reader';
 // Findings must appear within 500 ms of a typing pause. Patch saves must preserve untouched bytes,
 // including mixed line endings.
 const api = await startIsolatedApi();
@@ -24,40 +25,43 @@ const large =
   ).join('');
 if (large.length > 2_000_000 || large.length < 1_800_000)
   throw Error(`large fixture is ${large.length} bytes`);
-const formats = await api.ws.importBatch({
-  name: 'Formats',
-  files: [
-    {
-      path: 'people.nt',
-      source:
-        '<https://example.org/a> <https://example.org/knows> <https://example.org/b> .\n<https://example.org/a> <http://www.w3.org/2000/01/rdf-schema#label> "Alice"@en .\n',
-    },
-    {
-      path: 'rules.n3',
-      source:
-        '@prefix ex: <https://example.org/> .\n# a comment\nex:a ex:knows ex:b .\nex:b ex:age 42 .\n',
-    },
-    {
-      path: 'model.json',
-      source:
-        JSON.stringify(
-          {
-            name: 'JSON model',
-            ontology: [{ concept: 'Customer', type: 'EntityType', description: 'A buyer' }],
-          },
-          null,
-          2,
-        ) + '\n',
-    },
-    {
-      path: 'shop.yaml',
-      source:
-        'name: Shop\nontology:\n  - concept: Customer\n    type: EntityType\n    description: Buyer\n',
-    },
-    { path: 'endings.yaml', source: crlf },
-    { path: 'large.yaml', source: large },
-  ],
-});
+const formats = await api.ws.importBatch(
+  {
+    name: 'Formats',
+    files: [
+      {
+        path: 'people.nt',
+        source:
+          '<https://example.org/a> <https://example.org/knows> <https://example.org/b> .\n<https://example.org/a> <http://www.w3.org/2000/01/rdf-schema#label> "Alice"@en .\n',
+      },
+      {
+        path: 'rules.n3',
+        source:
+          '@prefix ex: <https://example.org/> .\n# a comment\nex:a ex:knows ex:b .\nex:b ex:age 42 .\n',
+      },
+      {
+        path: 'model.json',
+        source:
+          JSON.stringify(
+            {
+              name: 'JSON model',
+              ontology: [{ concept: 'Customer', type: 'EntityType', description: 'A buyer' }],
+            },
+            null,
+            2,
+          ) + '\n',
+      },
+      {
+        path: 'shop.yaml',
+        source:
+          'name: Shop\nontology:\n  - concept: Customer\n    type: EntityType\n    description: Buyer\n',
+      },
+      { path: 'endings.yaml', source: crlf },
+      { path: 'large.yaml', source: large },
+    ],
+  },
+  LOCAL_READER,
+);
 if (readFileSync(projectFile(api.ws.layout, formats.slug, 'endings.yaml'), 'utf8') !== crlf)
   throw Error('Import changed the CRLF fixture.');
 const browser = await chromium.launch();

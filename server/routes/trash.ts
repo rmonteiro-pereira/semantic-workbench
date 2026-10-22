@@ -43,7 +43,7 @@ export const trashRoutes: Route = async (ws, req, url) => {
   if (file && req.method === 'DELETE') {
     requireConfirm(await readJson(req, 4096));
     return Response.json(
-      await ws.trash.deleteFile(decodeURIComponent(file[1]), decodePath(file[2]), owner),
+      await ws.trash.deleteFile(decodeURIComponent(file[1]), decodePath(file[2]), owner, reader),
     );
   }
   const project = p.match(/^\/api\/projects\/([^/]+)$/);

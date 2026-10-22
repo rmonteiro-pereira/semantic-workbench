@@ -7,6 +7,7 @@ import { editorSelection, expectEditorValue, fillEditor } from './helpers/code-e
 import { inspect } from '../src/model';
 import { groupRelationships } from '../src/graph-view';
 import { exportFile } from './helpers/header';
+import { LOCAL_READER } from '../server/projects/reader';
 
 const fixtures = [
   { filename: 'mall.semantic.yaml', path: 'public/examples/mall/mall.semantic.yaml' },
@@ -21,7 +22,7 @@ const store = { list: () => api.ws.documents() };
 for (const fixture of [...fixtures].reverse()) {
   const source = await Bun.file(fixture.path).text();
   originals.set(fixture.filename, source);
-  await api.ws.importBatch({ files: [{ path: fixture.filename, source }] });
+  await api.ws.importBatch({ files: [{ path: fixture.filename, source }] }, LOCAL_READER);
 }
 const browser = await chromium.launch();
 const page = await browser.newPage({

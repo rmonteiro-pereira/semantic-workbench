@@ -11,6 +11,7 @@ import {
   type SignInTarget,
 } from './helpers/sign-in';
 import { mockLifecycleChecks, localAuthSmoke } from './auth-lifecycle';
+import { governanceChecks } from './auth-governance';
 
 /** Runs the mock suite without Vite or an external identity service. */
 export async function authBrowserCheck() {
@@ -30,6 +31,7 @@ export async function authBrowserCheck() {
         await signInChecks(browser, target);
         await roleControlChecks(browser, target);
         await agentBearerChecks(browser, target);
+        await governanceChecks(browser, target);
         await mockLifecycleChecks(browser, target, mock, api.root);
         await localAuthSmoke(browser);
         mock.setUserGroups('alice', [TEST_GROUPS.salesViewers]);

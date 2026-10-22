@@ -13,6 +13,8 @@ export type ResourceRef =
       docType?: string;
       level?: Level;
       metric?: { name: string; status: string; owner?: string };
+      /** Only for a file of a project being created: the domain the project will have. */
+      domain?: string;
     };
 /**
  * Stands for a project that a creation request has not made yet. Project slugs hold only

@@ -6,6 +6,7 @@ import { factsOf, inferSuggestions, evidenceBetween } from '../server/projects/s
 import { testWorkspace, example } from './helpers/temp-data-dir';
 import { createAccessControl } from '../server/auth/authorize';
 import { accessFixture, person } from './auth/access-fixture';
+import { LOCAL_READER } from '../server/projects/reader';
 const api = (t: { handler: (r: Request) => Promise<Response> }, method: string, path: string) =>
   t.handler(new Request('http://127.0.0.1:4310' + path, { method }));
 test('facts come from declared names, references, IRIs and physical names only', async () => {
@@ -74,29 +75,38 @@ test('evidence kinds: ossie-ref-name, shared-iri, odcs-physical-name; never simi
 test('a file imported alone is offered to the project it references; accept moves it, reject is remembered', async () => {
   const t = await testWorkspace();
   try {
-    await t.ws.importBatch({
-      name: 'Flights',
-      files: await Promise.all(
-        ['flights.ontology.yaml', 'flights.semantic_model.yaml'].map(async path => ({
-          path,
-          source: await example('ossie', path),
-        })),
-      ),
-    });
-    await t.ws.importBatch({
-      files: [
-        {
-          path: 'tpcds_semantic_model.yaml',
-          source: await Bun.file('tests/fixtures/ossie-mapping/tpcds_semantic_model.yaml').text(),
-        },
-      ],
-    });
+    await t.ws.importBatch(
+      {
+        name: 'Flights',
+        files: await Promise.all(
+          ['flights.ontology.yaml', 'flights.semantic_model.yaml'].map(async path => ({
+            path,
+            source: await example('ossie', path),
+          })),
+        ),
+      },
+      LOCAL_READER,
+    );
+    await t.ws.importBatch(
+      {
+        files: [
+          {
+            path: 'tpcds_semantic_model.yaml',
+            source: await Bun.file('tests/fixtures/ossie-mapping/tpcds_semantic_model.yaml').text(),
+          },
+        ],
+      },
+      LOCAL_READER,
+    );
     expect(await (await api(t, 'GET', '/api/suggestions')).json()).toEqual([]);
-    const mapping = await t.ws.importBatch({
-      files: [
-        { path: 'flights.mapping.yaml', source: await example('ossie', 'flights.mapping.yaml') },
-      ],
-    });
+    const mapping = await t.ws.importBatch(
+      {
+        files: [
+          { path: 'flights.mapping.yaml', source: await example('ossie', 'flights.mapping.yaml') },
+        ],
+      },
+      LOCAL_READER,
+    );
     const list = await (await api(t, 'GET', '/api/suggestions')).json();
     expect(list).toHaveLength(1);
     expect(list[0]).toMatchObject({
@@ -110,15 +120,18 @@ test('a file imported alone is offered to the project it references; accept move
     expect(existsSync(join(t.root, 'projects/flights/flights.mapping.yaml'))).toBe(true);
     expect(await (await api(t, 'GET', '/api/suggestions')).json()).toEqual([]);
     // Rejected: the same bytes are not offered to the same project again, even after a re-import.
-    const again = await t.ws.importBatch({
-      name: 'Separate',
-      files: [
-        {
-          path: 'flights.semantic_model.yaml',
-          source: await example('ossie', 'flights.semantic_model.yaml'),
-        },
-      ],
-    });
+    const again = await t.ws.importBatch(
+      {
+        name: 'Separate',
+        files: [
+          {
+            path: 'flights.semantic_model.yaml',
+            source: await example('ossie', 'flights.semantic_model.yaml'),
+          },
+        ],
+      },
+      LOCAL_READER,
+    );
     const offer = (await (await api(t, 'GET', '/api/suggestions')).json()).find(
       (s: any) => s.file.project === again.slug,
     );
@@ -128,15 +141,18 @@ test('a file imported alone is offered to the project it references; accept move
       { target: 'flights', project: again.slug, path: 'flights.semantic_model.yaml' },
     ]);
     await t.ws.trash.deleteProject(again.slug);
-    await t.ws.importBatch({
-      name: 'Separate again',
-      files: [
-        {
-          path: 'flights.semantic_model.yaml',
-          source: await example('ossie', 'flights.semantic_model.yaml'),
-        },
-      ],
-    });
+    await t.ws.importBatch(
+      {
+        name: 'Separate again',
+        files: [
+          {
+            path: 'flights.semantic_model.yaml',
+            source: await example('ossie', 'flights.semantic_model.yaml'),
+          },
+        ],
+      },
+      LOCAL_READER,
+    );
     expect(await (await api(t, 'GET', '/api/suggestions')).json()).toEqual([]);
     expect((await api(t, 'POST', '/api/suggestions/0123456789abcdef0123/accept')).status).toBe(404);
   } finally {
@@ -156,7 +172,12 @@ test('local mode announces the suggestion count only when it changes', async () 
   await Bun.sleep(120);
   expect(counts()).toEqual([{ open: 0 }]);
   const { hash } = t.ws.readFile('local', 'a.yaml');
-  await t.ws.saveFile('local', 'a.yaml', { baseHash: hash, source: source + '# edited\n' });
+  await t.ws.saveFile(
+    'local',
+    'a.yaml',
+    { baseHash: hash, source: source + '# edited\n' },
+    LOCAL_READER,
+  );
   await Bun.sleep(120);
   expect(counts()).toEqual([{ open: 0 }]);
 });

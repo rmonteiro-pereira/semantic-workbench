@@ -11,31 +11,40 @@ import { layoutProblems, lineageProblems } from './helpers/layout-geometry';
 // Isolated API fixture: exercising viewport changes never modifies the local workspace. The UBL
 // ontology is imported first so that it opens first.
 const api = await startIsolatedApi();
-await api.ws.importBatch({
-  files: [
-    {
-      path: 'ubl.ontology.yaml',
-      source: await Bun.file('public/examples/ubl/ubl.ontology.yaml').text(),
-    },
-  ],
-});
-await api.ws.importBatch({
-  files: await Promise.all(
-    ['commerce.odcs.yaml', 'sales.ossie.yaml'].map(async path => ({
-      path,
-      source: await Bun.file(`public/examples/commerce/${path}`).text(),
-    })),
-  ),
-});
+await api.ws.importBatch(
+  {
+    files: [
+      {
+        path: 'ubl.ontology.yaml',
+        source: await Bun.file('public/examples/ubl/ubl.ontology.yaml').text(),
+      },
+    ],
+  },
+  LOCAL_READER,
+);
+await api.ws.importBatch(
+  {
+    files: await Promise.all(
+      ['commerce.odcs.yaml', 'sales.ossie.yaml'].map(async path => ({
+        path,
+        source: await Bun.file(`public/examples/commerce/${path}`).text(),
+      })),
+    ),
+  },
+  LOCAL_READER,
+);
 // A long file name for the sidebar's two-line names.
-await api.ws.importBatch({
-  files: [
-    {
-      path: 'customer-orders-invoices-and-payments-reconciliation-for-regional-warehouses.ossie.yaml',
-      source: 'name: Long names\nontology:\n  - concept: Customer\n    type: EntityType\n',
-    },
-  ],
-});
+await api.ws.importBatch(
+  {
+    files: [
+      {
+        path: 'customer-orders-invoices-and-payments-reconciliation-for-regional-warehouses.ossie.yaml',
+        source: 'name: Long names\nontology:\n  - concept: Customer\n    type: EntityType\n',
+      },
+    ],
+  },
+  LOCAL_READER,
+);
 const ublModel = inspect(
   await Bun.file('public/examples/ubl/ubl.ontology.yaml').text(),
   'ubl.ontology.yaml',
@@ -1033,14 +1042,17 @@ try {
     'overlaps: dialogs keep their titles and actions clear at all six viewports',
     async () => {
       await api.ws.loadExample('flights');
-      await api.ws.importBatch({
-        files: [
-          {
-            path: 'flights.mapping.yaml',
-            source: await Bun.file('public/examples/ossie/flights.mapping.yaml').text(),
-          },
-        ],
-      });
+      await api.ws.importBatch(
+        {
+          files: [
+            {
+              path: 'flights.mapping.yaml',
+              source: await Bun.file('public/examples/ossie/flights.mapping.yaml').text(),
+            },
+          ],
+        },
+        LOCAL_READER,
+      );
       for (const [width, height] of six) {
         const finalPage = await openPage(width, height);
         try {

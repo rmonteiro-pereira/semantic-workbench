@@ -20,6 +20,7 @@ import {
 } from './principal';
 import { ACTIONS, levelNumber, type Action } from './actions';
 import { matchesSegmentGlob, matchesCedarLike } from './path-rules';
+import type { ClassificationSettings } from './guards';
 
 /** Configuration accepted by the access boundary. */
 export type { AccessConfig } from './access-config';
@@ -255,7 +256,7 @@ export function createAccessControl(options: AccessOptions) {
         project,
         ruleClass(snapshot, resource),
         context,
-        resource.type === 'project' ? resource.domain : undefined,
+        resource.type === 'workspace' ? undefined : resource.domain,
       ]);
       const previous = decisions.get(key);
       if (previous) return previous;
@@ -293,6 +294,15 @@ export function createAccessControl(options: AccessOptions) {
       customRoles: () => {
         synchronize();
         return snapshot.config.roles;
+      },
+      /** How the project's classification values map to levels, and its protected level. */
+      classification: (project: string): ClassificationSettings => {
+        synchronize();
+        const { projects, classification } = snapshot.config.projects;
+        return {
+          aliases: classification.aliases,
+          protectedLevel: projects[project]?.protectedLevel ?? classification.protectedLevel,
+        };
       },
       creationDomains: () => {
         synchronize();

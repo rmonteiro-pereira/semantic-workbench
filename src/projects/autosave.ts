@@ -3,6 +3,7 @@
 // Edits restart a one-second pause before validation and saving. Invalid text remains a server
 // draft; stale saves, Git operations and removed files block writes. Only one save runs at a time;
 // later edits use the hash returned by that save.
+import { applyDemotions, type Demotion } from '../governance/guards';
 /** Names the current saving, validation or conflict state of an open file. */
 export type AutosaveStatus =
   | 'clean'
@@ -32,7 +33,7 @@ export type AutosaveEvent =
   | { type: 'open'; file: string; hash: string | null; text: string }
   | { type: 'edit'; text: string }
   | { type: 'idle'; text: string; errors: number }
-  | { type: 'saved'; text: string; hash: string; at: number }
+  | { type: 'saved'; text: string; hash: string; at: number; demoted?: Demotion[] }
   | { type: 'stale' }
   | { type: 'resolved'; hash: string | null; text: string }
   | { type: 'failed'; message: string }
@@ -58,6 +59,11 @@ export const initialAutosave: AutosaveState = {
 const paused = (s: AutosaveState) => s.status === 'stale' || s.status === 'cancelled';
 const settled = (s: AutosaveState): AutosaveStatus =>
   s.lastSavedAt !== undefined ? 'saved' : 'clean';
+/** Text typed during a save, with the metrics the server demoted demoted in it too. */
+function typedAfterDemotion(state: AutosaveState, demoted: Demotion[] | undefined): string {
+  if (!demoted?.length || !state.file) return state.text;
+  return applyDemotions(state.text, state.file, demoted);
+}
 /** Advances autosave state and returns effects without performing writes itself. */
 export function autosave(
   state: AutosaveState,
@@ -106,8 +112,14 @@ export function autosave(
     case 'saved': {
       if (state.status === 'cancelled' || state.inFlight === null)
         return keep({ ...state, inFlight: null });
+      // The server may store other bytes than sent (an edited approved metric is kept as
+      // proposed); the editor follows them when nothing was typed meanwhile, and otherwise
+      // applies the same demotion to what was typed, so the next save is not an approval.
+      const text =
+        state.text === state.inFlight ? event.text : typedAfterDemotion(state, event.demoted);
       const next = {
         ...state,
+        text,
         inFlight: null,
         baseHash: event.hash,
         savedText: event.text,
@@ -190,8 +202,15 @@ export type AutosaveOptions = {
   gitBusy?: boolean;
   delay?: number;
   validate: (text: string) => Promise<number> | number;
-  save: (request: SaveRequest) => Promise<{ hash: string }>;
-  onSaved: (file: string, text: string, hash: string) => void;
+  /** Resolves with the stored hash, and with the stored text when the server changed it. */
+  save: (request: SaveRequest) => Promise<{ hash: string; source?: string; demoted?: Demotion[] }>;
+  /** Receives the text the server stored and the text that was sent. */
+  onSaved: (
+    file: string,
+    text: string,
+    hash: string,
+    sent: { text: string; demoted?: Demotion[] },
+  ) => void;
   onStale: (file: string, error: unknown) => void;
   isStale: (error: unknown) => boolean;
   onFailed?: (file: string, message: string) => void;
@@ -246,9 +265,13 @@ export function useAutosave(o: AutosaveOptions) {
       opts.current.save(request).then(
         r => {
           const mine = ref.current.file === request.file;
-          opts.current.onSaved(request.file, request.to, r.hash);
-          if (mine) dispatch({ type: 'saved', text: request.to, hash: r.hash, at: Date.now() });
-          else settle();
+          const stored = r.source ?? request.to;
+          const sent = { text: request.to, demoted: r.demoted };
+          opts.current.onSaved(request.file, stored, r.hash, sent);
+          if (mine) {
+            const at = Date.now();
+            dispatch({ type: 'saved', text: stored, hash: r.hash, at, demoted: r.demoted });
+          } else settle();
         },
         e => {
           const mine = ref.current.file === request.file;

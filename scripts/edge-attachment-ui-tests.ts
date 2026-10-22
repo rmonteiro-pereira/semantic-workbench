@@ -4,10 +4,11 @@ import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { inspect } from '../src/model';
 import { groupRelationships } from '../src/graph-view';
+import { LOCAL_READER } from '../server/projects/reader';
 const filename = 'flights.ontology.yaml';
 const source = await Bun.file('public/examples/ossie/' + filename).text();
 const api = await startIsolatedApi();
-await api.ws.importBatch({ files: [{ path: filename, source }] });
+await api.ws.importBatch({ files: [{ path: filename, source }] }, LOCAL_READER);
 const links = groupRelationships(inspect(source, filename).edges).map(e => ({
   id: e.id,
   source: e.source,

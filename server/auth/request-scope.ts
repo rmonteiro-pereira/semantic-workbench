@@ -2,6 +2,7 @@
 import type { AccessScope } from './authorize';
 import { LOCAL_READER, type Reader } from '../projects/reader';
 import { requestAuditId } from '../request';
+import { guardFor } from './guards';
 
 /** Request scope attached after identity resolution, so routes never resolve identity again. */
 export const requestAccess = Symbol('requestAccess');
@@ -24,11 +25,14 @@ export function requestScope(request: Request): AccessScope {
   return scope;
 }
 
-/** Resolves the read boundary once; an unattached request is a programming error. */
+/**
+ * Resolves the read boundary once, with the governance guard of the person's content writes; an
+ * unattached request is a programming error.
+ */
 export function requestReader(request: Request): Reader {
   const scope = requestScope(request);
   if (scope.principal.kind === 'local') return LOCAL_READER;
-  return { view: scope.view(), owner: scope.principal.id };
+  return { view: scope.view(), owner: scope.principal.id, guard: guardFor(scope) };
 }
 
 /** The audit projects the boundary decided; a request it did not decide is a programming error. */

@@ -2,6 +2,7 @@
 import { appUrl } from './helpers/base-url';
 import { chromium } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
+import { LOCAL_READER } from '../server/projects/reader';
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 const errors: string[] = [];
@@ -20,7 +21,7 @@ const source = JSON.stringify({
   })),
 });
 const api = await startIsolatedApi({ watch: false });
-await api.ws.importBatch({ files: [{ path: 'scale.ossie.json', source }] });
+await api.ws.importBatch({ files: [{ path: 'scale.ossie.json', source }] }, LOCAL_READER);
 await routeApi(page, api);
 const start = performance.now();
 await page.goto(appUrl());

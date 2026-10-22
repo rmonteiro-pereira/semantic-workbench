@@ -13,6 +13,7 @@ import { expressionFor, extensionFor, list, type Draft } from './metric-draft';
 import '../edit/edit.css';
 import { SqlField } from '../editor/SqlField';
 import { SqlCode } from '../sql/SqlCode';
+import { OwnerInput } from './OwnerInput';
 // Each step must validate before advancing; the server’s SQL preview is never executed. Save
 // writes the metric and its extension to the model and its concept binding to the mapping.
 function prefill(k: KpiSummary): Partial<Draft> {
@@ -841,10 +842,11 @@ export function MetricWizard({
           <div className="item-fields">
             {field(
               'Owner',
-              <input
-                aria-label="Owner"
+              <OwnerInput
+                project={project}
                 value={d.owner}
-                onChange={e => set({ owner: e.target.value })}
+                onChange={owner => set({ owner })}
+                verified={d.owner === existing?.owner ? existing?.ownerVerified : undefined}
               />,
             )}
             {field(

@@ -90,7 +90,12 @@ test('every URL-addressed project write refuses an Editor aimed at HR with one a
 test('each body target row refuses hidden files before mutation and audits exactly once', async () => {
   using fixture = await authWorkspace();
   const handler = server(fixture.ws);
-  const deleted = await fixture.ws.trash.deleteFile('hr-people', 'people.odcs.yaml');
+  const deleted = await fixture.ws.trash.deleteFile(
+    'hr-people',
+    'people.odcs.yaml',
+    undefined,
+    LOCAL_READER,
+  );
   const suggestion = {
     id: '00000000000000000000',
     file: { project: 'hr-people', path: 'people.odcs.yaml', hash: 'hidden' },
@@ -153,7 +158,8 @@ test('grouping is personal: a Viewer saves her own view and nobody else sees it'
 test('deletion records its principal; only a Steward can restore other or legacy trash', async () => {
   using fixture = await authWorkspace();
   const editor = server(fixture.ws);
-  const path = '/api/projects/sales-contracts/files/orders.odcs.yaml';
+  // A file with nothing governed in it, which an Editor may delete and bring back.
+  const path = '/api/projects/sales-contracts/files/sales.mapping.yaml';
   const response = await editor(request(path, 'DELETE', { confirm: true }));
   expect(response.status).toBe(200);
   const { entryId } = await response.json();
@@ -164,6 +170,7 @@ test('deletion records its principal; only a Steward can restore other or legacy
       'sales-contracts',
       'orders.odcs.yaml',
       deletedBy,
+      LOCAL_READER,
     );
     const before = snapshot(fixture.root);
     const denied = await editor(request('/api/trash/' + entry.entryId + '/restore'));

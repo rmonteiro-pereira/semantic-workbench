@@ -4,6 +4,7 @@ import type { GitIdentity } from '../../server/projects/git';
 import type { CloneEvent } from '../../server/projects/clone';
 import type { ProjectCandidates } from '../../server/projects/repository-projects';
 import type { RepositoryProject } from '../../server/projects/repositories';
+import type { ClassificationSettings, Demotion, Person } from '../governance/guards';
 // Browser client for the project API (contracts/http-api.md).
 /** Summarizes a project file’s type, validation, visibility, Git state and hash. */
 export type ProjectFile = {
@@ -20,6 +21,8 @@ export type ProjectInfo = {
   hiddenFiles?: number;
   /** Server mode only: the actions the signed-in person may take on this project. */
   actions?: string[];
+  /** Server mode only: how classification values map to levels, and the protected level. */
+  classification?: ClassificationSettings;
   slug: string;
   name: string;
   origin: string;
@@ -265,6 +268,11 @@ export const api = {
     }).then(r => json<KpiExplanation>(r)),
   status: () => apiFetch('/api/status').then(r => json<WorkspaceStatus>(r)),
   projects: () => apiFetch('/api/projects').then(r => json<ProjectInfo[]>(r)),
+  /** People a metric owner in this project can be chosen from; empty in local mode. */
+  people: (project: string) =>
+    apiFetch(`/api/projects/${encodeURIComponent(project)}/people`).then(response =>
+      json<Person[]>(response),
+    ),
   file: (project: string, path: string) =>
     apiFetch(fileUrl(project, path)).then(r =>
       json<{ path: string; source: string; hash: string; docType: string }>(r),
@@ -285,7 +293,7 @@ export const api = {
       const body = await response.json();
       throw new StaleSave(body.currentHash, body.currentSource);
     }
-    return json<{ path: string; hash: string }>(response);
+    return json<{ path: string; hash: string; source?: string; demoted?: Demotion[] }>(response);
   },
   // Several files of one project in one journaled save; a stale base hash rejects the whole batch.
   async saveBatch(
@@ -305,7 +313,10 @@ export const api = {
       const body = await response.json();
       throw new StaleSave(body.currentHash, body.currentSource);
     }
-    return json<{ written: { path: string; hash: string; created: boolean }[] }>(response);
+    return json<{
+      written: { path: string; hash: string; created: boolean; source?: string }[];
+      demoted?: Demotion[];
+    }>(response);
   },
   previewKpi: (project: string, body: KpiSaveRequest) =>
     apiFetch(

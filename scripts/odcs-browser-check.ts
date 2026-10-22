@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 import { parse } from 'yaml';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { projectDir, projectFile } from '../server/projects/paths';
+import { LOCAL_READER } from '../server/projects/reader';
 // Contract property edits must change only the edited value. Screenshots use
 // /tmp/workbench-odcs-*.png.
 const api = await startIsolatedApi();
@@ -18,10 +19,15 @@ const read = (slug: string, path: string) =>
 // Two committed edits to the commerce contract, for History.
 async function commitEdit(change: (text: string) => string, message: string) {
   const f = api.ws.readFile(commerce.slug, 'commerce.odcs.yaml');
-  await api.ws.saveFile(commerce.slug, 'commerce.odcs.yaml', {
-    baseHash: f.hash,
-    source: change(f.source),
-  });
+  await api.ws.saveFile(
+    commerce.slug,
+    'commerce.odcs.yaml',
+    {
+      baseHash: f.hash,
+      source: change(f.source),
+    },
+    LOCAL_READER,
+  );
   await git(commerce.slug, ['commit', '-qam', message]);
 }
 await commitEdit(

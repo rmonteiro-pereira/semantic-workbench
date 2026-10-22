@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { sh, ontology } from '../tests/helpers/scm';
+import { LOCAL_READER } from '../server/projects/reader';
 
 const api = await startIsolatedApi();
 const extra = mkdtempSync(join(tmpdir(), 'workbench-git-setup-'));
@@ -15,10 +16,13 @@ const isolatedGlobal = process.env.GIT_CONFIG_GLOBAL;
 const emptyGlobal = join(extra, 'gitconfig');
 writeFileSync(emptyGlobal, '[init]\n\tdefaultBranch = main\n');
 process.env.GIT_CONFIG_GLOBAL = emptyGlobal;
-const created = await api.ws.importBatch({
-  name: 'Shop',
-  files: [{ path: 'shop.yaml', source: ontology('Buys.') }],
-});
+const created = await api.ws.importBatch(
+  {
+    name: 'Shop',
+    files: [{ path: 'shop.yaml', source: ontology('Buys.') }],
+  },
+  LOCAL_READER,
+);
 const repo = join(api.root, 'projects', created.slug);
 
 // A bare repository for push, and a team repository to clone.

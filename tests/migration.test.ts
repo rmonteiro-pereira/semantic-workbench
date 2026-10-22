@@ -219,10 +219,13 @@ test('after a failed migration, projects created meanwhile are kept and the next
       },
     });
     expect(first.ws.migration!.status).toBe('failed');
-    await first.ws.importBatch({
-      name: 'UBL business model',
-      files: [{ path: 'mine.yaml', source: 'name: Mine\nontology: [{concept: M}]\n' }],
-    });
+    await first.ws.importBatch(
+      {
+        name: 'UBL business model',
+        files: [{ path: 'mine.yaml', source: 'name: Mine\nontology: [{concept: M}]\n' }],
+      },
+      LOCAL_READER,
+    );
     first.ws.close();
     const second = await testWorkspace({ root: d.root });
     try {

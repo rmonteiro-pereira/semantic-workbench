@@ -6,29 +6,36 @@ import { join } from 'node:path';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { treeRowProblems } from './helpers/tree-geometry';
 import { expectEditorValue, fillEditor } from './helpers/code-editor';
+import { LOCAL_READER } from '../server/projects/reader';
 // Browser check: suggestions accept/dismiss, delete with confirmation, undo, trash restore and
 // purge, project delete, Clear, without any page reload. Runs against an isolated temporary data
 // root.
 const api = await startIsolatedApi();
 const read = (path: string) => Bun.file('public/examples/ossie/' + path).text();
-await api.ws.importBatch({
-  name: 'Flights',
-  files: await Promise.all(
-    ['flights.ontology.yaml', 'flights.semantic_model.yaml'].map(async path => ({
-      path,
-      source: await read(path),
-    })),
-  ),
-});
+await api.ws.importBatch(
+  {
+    name: 'Flights',
+    files: await Promise.all(
+      ['flights.ontology.yaml', 'flights.semantic_model.yaml'].map(async path => ({
+        path,
+        source: await read(path),
+      })),
+    ),
+  },
+  LOCAL_READER,
+);
 const longName =
   'a-deliberately-long-definition-filename-that-must-ellipsize-before-the-icons.yaml';
-await api.ws.importBatch({
-  name: 'Scratch',
-  files: [
-    { path: 'scratch.yaml', source: 'name: Scratch\nontology: [{concept: Note}]\n' },
-    { path: longName, source: 'name: Long\nontology: [{concept: Long}]\n' },
-  ],
-});
+await api.ws.importBatch(
+  {
+    name: 'Scratch',
+    files: [
+      { path: 'scratch.yaml', source: 'name: Scratch\nontology: [{concept: Note}]\n' },
+      { path: longName, source: 'name: Long\nontology: [{concept: Long}]\n' },
+    ],
+  },
+  LOCAL_READER,
+);
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 const errors: string[] = [];

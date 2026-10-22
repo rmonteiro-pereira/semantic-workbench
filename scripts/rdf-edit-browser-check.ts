@@ -7,6 +7,7 @@ import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { projectDir, projectFile } from '../server/projects/paths';
 import { editorValue, fillEditor } from './helpers/code-editor';
 import { newItem } from './helpers/header';
+import { LOCAL_READER } from '../server/projects/reader';
 // RDF edits must change only the selected resource statements. Unsupported rules and edits
 // spanning other resources must be refused with a link to Source.
 const api = await startIsolatedApi();
@@ -24,13 +25,16 @@ const nt = (() => {
 })();
 const rule =
   '{ ?x a <https://example.org/commerce#PaidOrder> } => { ?x a <https://example.org/commerce#Order> } .\n';
-const imported = await api.ws.importBatch({
-  name: 'RDF formats',
-  files: [
-    { path: 'commerce.owl.nt', source: nt },
-    { path: 'commerce.n3', source: ttl + '\n' + rule },
-  ],
-});
+const imported = await api.ws.importBatch(
+  {
+    name: 'RDF formats',
+    files: [
+      { path: 'commerce.owl.nt', source: nt },
+      { path: 'commerce.n3', source: ttl + '\n' + rule },
+    ],
+  },
+  LOCAL_READER,
+);
 const read = (slug: string, path: string) =>
   readFileSync(projectFile(api.ws.layout, slug, path), 'utf8');
 const git = async (slug: string, args: string[]) =>

@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { sha256 } from '../server/projects/atomic';
 import { applyPatches } from '../server/projects/workspace';
 import { testWorkspace, example } from './helpers/temp-data-dir';
+import { LOCAL_READER } from '../server/projects/reader';
 const api = (
   t: { handler: (r: Request) => Promise<Response> },
   method: string,
@@ -426,16 +427,21 @@ test('an example loader opens a project that already holds the identical example
         'commerce.mapped-semantic.yaml',
       ].map(async path => ({ path, source: await example('commerce', path) })),
     );
-    const imported = await t.ws.importBatch({ files });
+    const imported = await t.ws.importBatch({ files }, LOCAL_READER);
     expect(await t.ws.loadExample('mapped-commerce')).toEqual({
       slug: imported.slug,
       name: imported.name,
       created: false,
     });
-    await t.ws.saveFile(imported.slug, 'commerce.mapping.yaml', {
-      baseHash: sha256(files[0].source),
-      source: files[0].source + '# changed\n',
-    });
+    await t.ws.saveFile(
+      imported.slug,
+      'commerce.mapping.yaml',
+      {
+        baseHash: sha256(files[0].source),
+        source: files[0].source + '# changed\n',
+      },
+      LOCAL_READER,
+    );
     expect((await t.ws.loadExample('mapped-commerce')).created).toBe(true);
   } finally {
     t.dispose();

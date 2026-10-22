@@ -4,7 +4,7 @@ import { rdfSyntax } from '../rdf';
 import { isMapping } from '../mapping-schema';
 import { applyPatches } from '../editor/patch';
 import { insertPatches, valuePatches, itemValue } from '../edit/yaml-patch';
-import { semanticModelPrefix, type Path } from '../edit/item-model';
+import { extensionOf, semanticModelPrefix, writeExtension, type Path } from '../edit/item-model';
 import {
   MAPPING_SCHEMA,
   METRIC_SCHEMA,
@@ -242,4 +242,31 @@ export function planKpiSave(files: ProjectFile[], req: KpiRequest): KpiPlan {
       );
   }
   return { writes };
+}
+
+/**
+ * The file text with some workbench attributes of one metric changed, written the way the item
+ * editor writes an attribute: only the changed values inside the attribute block are patched.
+ */
+export function withMetricAttributes(
+  source: string,
+  filename: string,
+  metricPath: Path,
+  changes: Record<string, unknown>,
+): string {
+  const metric = itemValue(source, metricPath);
+  const extension = extensionOf(metric);
+  if (!extension) throw new KpiError(`No workbench attributes at /${metricPath.join('/')}.`);
+  const rewritten = writeExtension(metric, { ...extension.value, ...changes });
+  const dataPath = [...metricPath, 'custom_extensions', extension.index, 'data'];
+  const data = rewritten.custom_extensions[extension.index].data;
+  return applyPatches(source, valuePatches(source, dataPath, data, filename));
+}
+
+/** Where a named metric sits in a semantic model of a file's text, or null when it is absent. */
+export function metricPathIn(source: string, modelPath: Path, name: string): Path | null {
+  const metrics = itemValue(source, [...modelPath, 'metrics']);
+  if (!Array.isArray(metrics)) return null;
+  const index = metrics.findIndex(metric => metric?.name === name);
+  return index < 0 ? null : [...modelPath, 'metrics', index];
 }

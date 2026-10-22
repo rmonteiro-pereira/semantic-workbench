@@ -104,6 +104,16 @@ These replace the misses measured under load earlier; no budget was changed.
 | `test:auth`, `test:admin` | passed, including both agent-client checks |
 | `test:container` | passed (local, server-mode and smoke groups) |
 
+## Governed metrics and classifications (development machine, 2026-10-22)
+
+| Check | Result |
+| --- | --- |
+| `bun test` | 1,262 passed |
+| `ci:validate --step mutation` | 218 of 218 mutants killed |
+| `test:auth`, `test:admin` | passed, including the governance steps |
+| Browser suites | `test:metrics`, `test:odcs`, `test:item-edit`, `test:projects`, `test:trash`, `test:autosave` and `test:ui` passed; `test:odcs` once needed a rerun because Vite did not start while three servers optimised dependencies at once |
+| `test:container` | passed (local, server-mode and smoke groups); one run stopped in `test:monorepo` waiting for a clone in the image and the rerun passed |
+
 ## Owner trial
 
 The owner records the report of `deploy/trial-runbook.md` here after running it on the target.

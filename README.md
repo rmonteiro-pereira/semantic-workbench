@@ -204,6 +204,40 @@ write permission returns 403. Disabled Commit and classification controls explai
 role. The server checks crafted requests independently of the UI. Identity and credential-helper
 configuration are unavailable in server mode.
 
+### Governed metrics and classifications in server mode
+
+Every content write (Source save, item edit, save-batch, the metric wizard, the legacy document
+save, import with replace, an import that creates a project, revert, pull, file delete, and
+trash undo and restore) is compared with the file it replaces:
+
+- Only a Steward of the project's domain, a role with **approve metrics**, or an Admin may set a
+  metric's status to `approved` or `deprecated`. Nobody approves or deprecates a metric whose
+  `owner` names them (their verified address or username, in any letter case).
+- When someone who may not approve a metric changes an approved metric in anything but its
+  `description`, the server stores it as `proposed` (only the status value changes) and the
+  response lists it under `demoted`, with the stored text in `source`.
+- Changing an ODCS `classification`, `criticalDataElement`, contract `team` or `roles`, or any
+  part of a property classified at or above the protected level (default `confidential`;
+  `public < internal < confidential < restricted`; Admin aliases apply and other values count as
+  `internal`) needs a Steward of the domain or an Admin.
+- A refused change refuses the whole operation before any file changes, with
+  `403 {error, guarded: [{file, pointer, kind}]}` naming the guarded parts of readable files.
+  Pull and revert are judged as if the person wrote the incoming text: when a pull or revert
+  would bring in an approval or a classification change, the refusal asks the Editor to have a
+  Steward of the domain (or an Admin) pull or revert instead. Deleting a file that holds an
+  approved metric or a protected property needs the same people. Trash undo and restore, and an
+  import that creates a project, are judged as creating their files. Moving a file to another
+  project is judged as removing it from the first and creating it in the second, and switching
+  to a branch is judged on what the branch changes compared with the current one.
+
+The metric detail offers **Approve** and **Deprecate** (disabled with the reason for people who
+may not approve, and for the metric's owner); an owner that names nobody who has signed in shows
+as "unverified owner" and counts as no owner. The metric wizard suggests owners from
+`GET /api/projects/:slug/people`, which only people who may edit the project can call. It lists
+the people who may read the project and signed in with a verified identity: a verified e-mail, or
+an Entra user name of a member (not a guest). Property editors keep protected properties
+read-only for Editors. Local mode is unchanged.
+
 New projects, imports and examples created by a Steward receive an allowed domain automatically
 when there is only one. With several domains, a dialog asks which one to use. Admins may choose a
 domain or leave the project unassigned. Local mode retains its existing unrestricted workflow.

@@ -1,8 +1,13 @@
 // Presentation reads capabilities returned by the server; roles are labels, never browser rules.
 import type { Me } from './useMe';
+import type { ClassificationSettings } from '../governance/guards';
 
 /** Project capabilities returned by the access boundary. */
-export type ProjectCapabilities = { slug: string; actions?: string[] };
+export type ProjectCapabilities = {
+  slug: string;
+  actions?: string[];
+  classification?: ClassificationSettings;
+};
 
 /** Answers a UI capability question without interpreting grants or role names. */
 export function can(

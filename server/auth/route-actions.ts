@@ -85,6 +85,8 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   row('GET', '/api/projects/:slug/metrics', 'read', project),
   row('GET', '/api/projects/:slug/delete-impact', 'read', project),
   row('POST', '/api/projects/:slug/metrics', 'edit', project),
+  // Owner choices list people's addresses, so only those who may save metrics here see them.
+  row('GET', '/api/projects/:slug/people', 'edit', project),
   row('POST', '/api/projects/:slug/metrics/preview', 'read', project),
   row('POST', '/api/projects/:slug/kpis', 'edit', project),
   row('POST', '/api/projects/:slug/kpis/preview', 'read', project),

@@ -266,6 +266,7 @@ export function useWorkbench({ setMessage }: Options) {
     setMessage,
     projects,
     sourceRef,
+    setSource,
     draftOf,
   });
   const { autosave, leaveCurrent } = saving;

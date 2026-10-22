@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { testWorkspace } from './helpers/temp-data-dir';
 import { call, ok, ontology, sh } from './helpers/scm';
+import { LOCAL_READER } from '../server/projects/reader';
 
 const isolatedGlobal = process.env.GIT_CONFIG_GLOBAL;
 const emptyHomes: string[] = [];
@@ -28,10 +29,13 @@ async function workspaceWithProjects(count: number) {
   const app = await testWorkspace();
   const slugs: string[] = [];
   for (let i = 0; i < count; i++) {
-    const created = await app.ws.importBatch({
-      name: `Shop ${i + 1}`,
-      files: [{ path: 'shop.yaml', source: ontology('Buys.') }],
-    });
+    const created = await app.ws.importBatch(
+      {
+        name: `Shop ${i + 1}`,
+        files: [{ path: 'shop.yaml', source: ontology('Buys.') }],
+      },
+      LOCAL_READER,
+    );
     slugs.push(created.slug);
   }
   return { app, slugs };
