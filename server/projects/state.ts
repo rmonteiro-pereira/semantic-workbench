@@ -1,6 +1,7 @@
 // Stores durable application state in versioned JSON files replaced atomically. This state survives
 // deletion of the SQLite cache.
 import { readdirSync, rmSync } from 'node:fs';
+import type { Principal } from '../auth/principal';
 import { join } from 'node:path';
 import { atomicWriteJson, readJsonFile, sha256 } from './atomic';
 import { assertSlug, projectPath, type DataLayout } from './paths';
@@ -49,6 +50,59 @@ export type LegacyIds = {
   formatVersion: 1;
   ids: Record<string, { project: string; path: string }>;
 };
+/** Last known identity and access, without tokens or session credentials. */
+export type UserRecord = Pick<
+  Principal,
+  'key' | 'id' | 'kind' | 'name' | 'verifiedEmail' | 'username' | 'groups' | 'groupsResolved'
+> & {
+  lastSignInAt: string;
+  access: 'granted' | 'none';
+  handle: string;
+};
+/** Versioned registry of identities seen during sign-in. */
+export type UsersRegistry = { formatVersion: 1; users: UserRecord[] };
+
+function userHandle(principal: Principal, users: UserRecord[]): string {
+  const previous = users.find(user => user.id === principal.id);
+  if (previous) return previous.handle;
+  const base =
+    principal.username
+      .split('@')[0]
+      .toLowerCase()
+      .replace(/[^a-z0-9-]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'user';
+  const handles = new Set(users.map(user => user.handle));
+  let handle = base;
+  let suffix = 2;
+  while (handles.has(handle)) {
+    handle = `${base}-${suffix}`;
+    suffix++;
+  }
+  return handle;
+}
+
+function writeUser(path: string, principal: Principal, at: string): UserRecord {
+  const registry = load<UsersRegistry>(path, () => ({ formatVersion: 1, users: [] }));
+  const record: UserRecord = {
+    key: principal.key,
+    id: principal.id,
+    kind: principal.kind,
+    name: principal.name,
+    verifiedEmail: principal.verifiedEmail,
+    username: principal.username,
+    groups: [...principal.groups],
+    groupsResolved: principal.groupsResolved,
+    lastSignInAt: at,
+    access: principal.grants.length > 0 && !principal.deactivated ? 'granted' : 'none',
+    handle: userHandle(principal, registry.users),
+  };
+  const index = registry.users.findIndex(user => user.id === principal.id);
+  if (index < 0) registry.users.push(record);
+  else registry.users[index] = record;
+  atomicWriteJson(path, registry);
+  return record;
+}
+
 function load<T extends { formatVersion: number }>(path: string, empty: () => T): T {
   const value = readJsonFile<T>(path);
   if (value === null) return empty();
@@ -61,7 +115,10 @@ export function createState(layout: DataLayout) {
   const viewFile = (slug: string) => join(layout.views, assertSlug(slug) + '.json');
   const draftFile = (slug: string, path: string) =>
     join(layout.drafts, assertSlug(slug), sha256(projectPath(path)) + '.json');
+  const usersFile = join(layout.state, 'users.json');
   return {
+    users: () => load<UsersRegistry>(usersFile, () => ({ formatVersion: 1, users: [] })),
+    recordUser: (principal: Principal, at: string) => writeUser(usersFile, principal, at),
     viewFile,
     draftFile,
     draftDir: (slug: string) => join(layout.drafts, assertSlug(slug)),
