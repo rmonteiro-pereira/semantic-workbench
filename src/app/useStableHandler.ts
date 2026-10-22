@@ -17,7 +17,7 @@ export function useStableHandler<Arguments extends unknown[], Result>(
 }
 
 /** Creates a callback that reads the handler published in the supplied reference at call time. */
-export function forwardToLatestHandler<Arguments extends unknown[], Result>(latest: {
+function forwardToLatestHandler<Arguments extends unknown[], Result>(latest: {
   current: (...args: Arguments) => Result;
 }): (...args: Arguments) => Result {
   return (...args: Arguments) => latest.current(...args);

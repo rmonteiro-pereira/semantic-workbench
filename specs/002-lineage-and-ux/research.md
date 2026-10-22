@@ -900,4 +900,12 @@ agent context already carries everything except two additive fields).
   as clipped by the sidebar. The dialog is a modal `<dialog>` in the browser's top layer, so the
   sidebar cannot clip it, and the screenshots confirm it. The check now stops looking for
   clipping ancestors at an open modal dialog.
+- **Follow-ups after the second review.** The large-file mode is decided when a document opens
+  and kept while typing and on outside replacements of the same document; the user's switch
+  holds until another document opens (`documentMode.ts` owns the threshold and the rule). The
+  stable-handler hook has a render test in a real browser. The old test of a separate toggle
+  function was rewritten for the new functions, because the toggle became a plain negation.
+- **History versions kept across reloads.** Found by the final run: a history reload reset the
+  two versions the user had picked. Source Control now keeps them while both are still in the
+  file's history.
 

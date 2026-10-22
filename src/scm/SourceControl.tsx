@@ -64,6 +64,19 @@ const rangeOf = (g: Group, c: GitChange) =>
       : c.untracked
         ? ['index', 'worktree']
         : ['index', 'worktree'];
+// The versions to compare after the history reloads. A reload (a commit, a pull, a file event)
+// keeps the two versions the user picked while both are still in the history; otherwise it
+// compares the last two commits, or the last commit with the working tree.
+function historyRange(previous: { from: string; to: string } | null, log: Commit[]) {
+  if (!log.length) return null;
+  const known = (commit: string) =>
+    commit === 'worktree' || log.some(entry => entry.commit === commit);
+  if (previous && known(previous.from) && known(previous.to)) return previous;
+  return {
+    from: log[Math.min(1, log.length - 1)].commit,
+    to: log.length > 1 ? log[0].commit : 'worktree',
+  };
+}
 // In a repository shared by several projects, each change names the project that holds it.
 function ChangeOwner({ change, projects }: { change: GitChange; projects: ProjectInfo[] }) {
   const owner = projects.find(item => item.slug === change.project);
@@ -189,14 +202,7 @@ export function SourceControl({
       .then(l => {
         if (live) {
           setLog(l);
-          setRange(
-            historyFile && l.length
-              ? {
-                  from: l[Math.min(1, l.length - 1)].commit,
-                  to: l.length > 1 ? l[0].commit : 'worktree',
-                }
-              : null,
-          );
+          setRange(previous => (historyFile ? historyRange(previous, l) : null));
         }
       })
       .catch(() => {

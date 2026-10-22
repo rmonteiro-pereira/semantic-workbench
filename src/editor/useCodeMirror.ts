@@ -13,7 +13,7 @@ import {
   replacementChange,
 } from './editorText';
 import { languageFor, syntaxFor } from './languages';
-import { chooseLargeDocumentMode, resolveDocumentMode, toggleDocumentMode } from './documentMode';
+import { initialDocumentMode, resolveDocumentMode } from './documentMode';
 import { toDiagnostics, validateInWorker } from './lint';
 import type { CodeEditorOptions } from './editorTypes';
 
@@ -43,14 +43,14 @@ export function useCodeMirror({
   const [checking, setChecking] = useState(false);
   const head = value.slice(0, 400);
   const syntax = useMemo(() => syntaxFor(filename, head), [filename, head]);
-  const largeDocument = useRef(chooseLargeDocumentMode(value.length));
+  const largeDocument = useRef(initialDocumentMode(value.length));
   const [largeMode, setLargeMode] = useState(largeDocument.current);
   const [modeAvailable, setModeAvailable] = useState(largeDocument.current);
   const modeOverride = useRef<boolean | undefined>(undefined);
   const openedDocument = useRef(documentId ?? filename);
 
   function toggleParsingMode() {
-    const nextMode = toggleDocumentMode(largeDocument.current);
+    const nextMode = !largeDocument.current;
     modeOverride.current = nextMode;
     largeDocument.current = nextMode;
     setLargeMode(nextMode);
@@ -136,12 +136,12 @@ export function useCodeMirror({
     bytes.current = value;
     hasCarriageReturn.current = value.includes('\r');
     setLineEnding(lineEndingLabel(value));
-    const nextMode = resolveDocumentMode(
-      value.length,
-      chooseLargeDocumentMode(value.length, largeDocument.current, true),
-      modeOverride.current,
+    const nextMode = resolveDocumentMode({
+      length: value.length,
+      previous: largeDocument.current,
+      override: modeOverride.current,
       newDocument,
-    );
+    });
     setLargeMode(nextMode);
     setModeAvailable(nextMode || modeOverride.current !== undefined);
     const modeChanged = nextMode !== largeDocument.current;
