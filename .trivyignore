@@ -1,0 +1,3 @@
+# No vulnerability exceptions are currently approved.
+# Add one CVE per line with a concrete reason and an unexpired UTC date:
+# CVE-2026-12345 # Explain the accepted risk; expires 2026-12-31

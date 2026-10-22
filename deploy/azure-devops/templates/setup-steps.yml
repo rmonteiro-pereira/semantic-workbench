@@ -1,0 +1,13 @@
+steps:
+  - checkout: self
+  - bash: |
+      set -euo pipefail
+      curl -fsSL \
+        https://github.com/oven-sh/bun/releases/download/bun-v1.4.3/bun-linux-x64.zip -o bun.zip
+      echo "3e730528d89775f03f87f05c06787c4df4099d0a37f3f252e7b829cb23816e18  bun.zip" \
+        | sha256sum -c -
+      unzip -o bun.zip -d "$HOME/.bun-1.4.3"
+      echo "##vso[task.prependpath]$HOME/.bun-1.4.3/bun-linux-x64"
+    displayName: Install Bun 1.4.3
+  - bash: bun install --frozen-lockfile
+  - bash: bun x playwright install --with-deps chromium

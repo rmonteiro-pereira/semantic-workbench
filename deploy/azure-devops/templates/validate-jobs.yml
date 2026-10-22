@@ -1,0 +1,94 @@
+jobs:
+  - job: verify
+    steps:
+      - template: setup-steps.yml
+      - bash: bun run ci:validate -- --step verify
+      - task: PublishTestResults@2
+        condition: always()
+        inputs:
+          testResultsFormat: JUnit
+          testResultsFiles: out/ci/*.xml
+          failTaskOnFailedTests: true
+  - job: mutation
+    steps:
+      - template: setup-steps.yml
+      - bash: bun run ci:validate -- --step mutation
+      - task: PublishTestResults@2
+        condition: always()
+        inputs:
+          testResultsFormat: JUnit
+          testResultsFiles: out/ci/*.xml
+          failTaskOnFailedTests: true
+  - job: browser
+    strategy:
+      matrix:
+        ui:
+          suite: test:ui
+        responsive:
+          suite: test:responsive
+        edges:
+          suite: test:edges
+        grouping_validation:
+          suite: test:grouping-validation
+        examples_ui:
+          suite: test:examples:ui
+        projects:
+          suite: test:projects
+        trash:
+          suite: test:trash
+        metrics:
+          suite: test:metrics
+        graph:
+          suite: test:graph
+        editor:
+          suite: test:editor
+        item_edit:
+          suite: test:item-edit
+        rdf_edit:
+          suite: test:rdf-edit
+        scm:
+          suite: test:scm
+        odcs:
+          suite: test:odcs
+        lineage:
+          suite: test:lineage
+        autosave:
+          suite: test:autosave
+        sql:
+          suite: test:sql
+        git_setup:
+          suite: test:git-setup
+        monorepo:
+          suite: test:monorepo
+        dialogs:
+          suite: test:dialogs
+        terminology:
+          suite: test:terminology
+        mappings_layout:
+          suite: test:mappings-layout
+        mapping_graph:
+          suite: test:mapping-graph
+    steps:
+      - template: setup-steps.yml
+      - bash: bun run ci:validate -- --step browser --suite $(suite)
+      - task: PublishTestResults@2
+        condition: always()
+        inputs:
+          testResultsFormat: JUnit
+          testResultsFiles: out/ci/*.xml
+          failTaskOnFailedTests: true
+      - task: PublishPipelineArtifact@1
+        condition: failed()
+        inputs:
+          targetPath: out/ci/screenshots
+          artifact: screenshots-$(System.JobId)
+  - job: pipeline
+    steps:
+      - template: setup-steps.yml
+      - bash: bun run ci:validate -- --step pipeline
+      - task: PublishTestResults@2
+        condition: always()
+        inputs:
+          testResultsFormat: JUnit
+          testResultsFiles: out/ci/*.xml
+          failTaskOnFailedTests: true

@@ -22,7 +22,7 @@ any identity provider outside the agent; sign-in is tested against the mock Open
 | `test:auth:keycloak` | Keycloak compatibility suite (`scripts/auth-keycloak-check.ts`): starts the pinned Keycloak with the test realm, runs the sign-in check, removes the container; fails without a container runtime. Not part of `ci:validate` or the pipeline; run on the owner's machine before each release | container runtime |
 | `pipeline:lint` | `scripts/pipeline-lint.ts`: schema validation and repository rules (below) | none |
 | `pipeline:dry-run` | `scripts/pipeline-dry-run.ts --run pr\|main\|tag:<vX.Y.Z>`: expands parameters with `deploy/azure-devops/sample-variables.yml`, prints stages, jobs, steps and conditions; `--execute` also runs the local steps and the Azure steps against the fake Azure client | as the executed steps |
-| `deploy:check-version` | `scripts/deploy.ts check-version --tag <vX.Y.Z>`: tag version core equals `package.json`; not older than the highest version ever promoted (the highest version tag in the registry; rollbacks add no tags) | `az` signed in (`--fake` offline) |
+| `deploy:check-version` | `scripts/deploy-version.ts --tag <vX.Y.Z>`: tag version core equals `package.json`; not older than the highest version ever promoted (the highest version tag in the registry; rollbacks add no tags) | `az` signed in (`--fake` offline) |
 | `deploy:azure` | `scripts/deploy.ts deploy --digest <sha256:…> --version <v> --commit <sha>` | `az` signed in (pipeline: service connection) |
 | `deploy:smoke` | `scripts/deploy-smoke.ts <public-url> <version> <commit> [--loopback]` | network to the URL |
 | `deploy:rollback` | `scripts/deploy.ts rollback --to previous\|<vX.Y.Z>` | `az` signed in |

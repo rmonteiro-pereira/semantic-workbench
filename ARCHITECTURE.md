@@ -27,6 +27,12 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `server/shutdown.ts` | Signal cleanup shared with hot reload | Workspace logic |
 | `Dockerfile`, `compose.yaml` | Non-root image and local host-networking profile | Secrets |
 | `scripts/container-*.ts` | Docker/Podman image checks and browser suite groups | Delivery pipeline |
+| `scripts/gate-suites.ts` | Canonical browser gate suites and explicit exclusions | Process spawning |
+| `scripts/ci-validate.ts` | Gate selection, command plans, JUnit summaries and process lifecycle | Azure deployment |
+| `scripts/image.ts` | Image metadata, runtime/scanner commands, vulnerability exceptions and registry push | Pipeline-only build logic |
+| `scripts/pipeline-lint.ts`, `scripts/pipeline-dry-run.ts` | Offline schema/rules validation and template/condition planning | Real Azure execution |
+| `scripts/deploy-version.ts` | Release precedence and read-only registry version guard | Version promotion or deployment |
+| `deploy/azure-devops/`, `azure-pipelines.yml` | Target pipeline templates, pinned upstream schema and placeholder variables | GitHub automation or secrets |
 | `server/config.ts` | Reads and checks the environment once: `readConfig()` returns the typed configuration of local or server mode, or refuses to start naming each variable at fault | Reading `process.env` anywhere else for these settings |
 | `server/routes/` | One file per resource (`projects`, `files`, `git`, `clone`, `repos`, `trash`, `metrics`, ...): parse and check the request, call the workspace, shape the response | File or Git operations |
 | `server/projects/workspace.ts` | `openWorkspace()`, the composition root: registry, saves, imports, moves, scans, events, and the wiring of the services below | HTTP parsing |

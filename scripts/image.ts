@@ -1,0 +1,305 @@
+import { mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { parseArgs } from 'node:util';
+
+/** Scanner image pinned independently of the application's base image. */
+export const trivyImage =
+  'docker.io/aquasec/trivy:0.67.2@sha256:ac2f9d0197456a8ce460884b113e49d65b667f506c31d014c9955869a7a5d682';
+/** Azure target settings checked before using an authenticated session. */
+export const targetVariables = [
+  'AZURE_SUBSCRIPTION_ID',
+  'AZURE_TENANT_ID',
+  'ACR_NAME',
+  'ACA_RESOURCE_GROUP',
+  'ACA_ENVIRONMENT',
+  'ACA_NAME',
+  'APP_IDENTITY_NAME',
+  'KEY_VAULT_NAME',
+  'ENTRA_TENANT_ID',
+  'ENTRA_CLIENT_ID',
+  'SW_PUBLIC_URL',
+];
+/** Supported local container runtime. */
+export type Engine = 'docker' | 'podman';
+/** Immutable inputs used to construct image commands. */
+export type ImageContext = {
+  engine: Engine;
+  commit: string;
+  version: string;
+  created: string;
+  source: string;
+};
+
+/** Chooses an installed runtime and refuses a missing explicit selection. */
+export function chooseEngine(available: string[], requested?: string): Engine {
+  const engine = requested ?? ['docker', 'podman'].find(name => available.includes(name));
+  if (!engine || !['docker', 'podman'].includes(engine) || !available.includes(engine)) {
+    throw Error(`Container runtime unavailable: ${requested ?? 'install Docker or Podman'}`);
+  }
+  return engine as Engine;
+}
+
+/** Names image revisions from a full Git object id and working-tree status. */
+export function imageCommit(commit: string, dirty: boolean): string {
+  if (!/^[a-f0-9]{40}$/.test(commit)) throw Error('Expected a full 40-hex Git commit');
+  return commit + (dirty ? '-dirty' : '');
+}
+
+/** Validates documented vulnerability exceptions against an injected date. */
+export function parseTrivyIgnore(source: string, today: string): string[] {
+  return source.split(/\r?\n/).flatMap((line, index) => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) return [];
+    const match = /^(CVE-\d{4}-\d+)\s+#\s*(\S.*?)\s*; expires (\d{4}-\d{2}-\d{2})$/.exec(trimmed);
+    if (!match) throw Error(`.trivyignore:${index + 1}: expected CVE, reason and expiry`);
+    const date = new Date(match[3]);
+    if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== match[3]) {
+      throw Error(`.trivyignore:${index + 1}: invalid expiry date`);
+    }
+    if (match[3] < today) throw Error(`.trivyignore:${index + 1}: expired ${match[1]}`);
+    return [match[1]];
+  });
+}
+
+/** Builds tags and metadata while retaining HEALTHCHECK under Podman. */
+export function buildArguments(context: ImageContext, tags: string[] = []): string[] {
+  const format = context.engine === 'podman' ? ['--format', 'docker'] : [];
+  const labels = {
+    SW_VERSION: context.version,
+    SW_COMMIT: context.commit,
+    SW_CREATED: context.created,
+    SW_SOURCE: context.source,
+  };
+  return [
+    context.engine,
+    'build',
+    ...format,
+    ...Object.entries(labels).flatMap(([name, value]) => ['--build-arg', `${name}=${value}`]),
+    ...[`semantic-workbench:sha-${context.commit}`, 'semantic-workbench:dev', ...tags].flatMap(
+      tag => ['--tag', tag],
+    ),
+    '.',
+  ];
+}
+
+/** Returns the Azure login command for a strictly validated registry hostname. */
+export function registryLogin(registry: string): string[] {
+  const match = /^([a-zA-Z0-9]{5,50})\.azurecr\.io$/.exec(registry);
+  if (!match) throw Error(`Invalid Azure registry: ${registry}`);
+  return ['az', 'acr', 'login', '--name', match[1]];
+}
+
+/** Plans a clean commit push without running Azure or a container engine. */
+export function pushArguments(context: ImageContext, registry: string): string[][] {
+  if (context.commit.endsWith('-dirty')) throw Error('Refusing to push a -dirty commit');
+  const login = registryLogin(registry);
+  const local = `semantic-workbench:sha-${context.commit}`;
+  const remote = `${registry}/${local}`;
+  return [login, [context.engine, 'tag', local, remote], [context.engine, 'push', remote]];
+}
+
+/** Builds scanner flags for an archive or authenticated registry digest. */
+export function scanArguments(kind: 'scan' | 'sbom', ref?: string): string[][] {
+  if (ref && !/^[a-zA-Z0-9]+\.azurecr\.io\/semantic-workbench@sha256:[a-f0-9]{64}$/.test(ref)) {
+    throw Error('--ref must be an Azure registry image pinned by digest');
+  }
+  const input = ref ? [ref] : ['--input', 'out/image/image.tar'];
+  if (kind === 'sbom') {
+    return [['image', '--format', 'spdx-json', '--output', 'out/image/sbom.spdx.json', ...input]];
+  }
+  return ['json', 'sarif'].map(format => [
+    'image',
+    '--severity',
+    'CRITICAL,HIGH',
+    '--ignore-unfixed',
+    '--exit-code',
+    '1',
+    '--ignorefile',
+    '.trivyignore',
+    '--format',
+    format,
+    '--output',
+    `out/image/trivy.${format}`,
+    ...input,
+  ]);
+}
+
+/** Requires target variables before an Azure command can run. */
+export function validateTarget(env: Record<string, string | undefined>) {
+  const missing = targetVariables.filter(name => !env[name]?.trim());
+  if (missing.length) throw Error(`Missing target variables: ${missing.join(', ')}`);
+}
+
+async function command(args: string[], capture = false, env = process.env): Promise<string> {
+  const child = Bun.spawn(args, { env, stdout: capture ? 'pipe' : 'inherit', stderr: 'inherit' });
+  const output = capture ? await new Response(child.stdout).text() : '';
+  const code = await child.exited;
+  if (code !== 0) throw Error(`${args.join(' ')} exited ${code}`);
+  return output.trim();
+}
+
+/** Plans registry authentication or local archive export before scanning. */
+export function scanPreparation(context: ImageContext, ref?: string): string[] {
+  if (ref) {
+    scanArguments('scan', ref);
+    return registryLogin(ref.split('/')[0]);
+  }
+  return [
+    context.engine,
+    'save',
+    '-o',
+    'out/image/image.tar',
+    `semantic-workbench:sha-${context.commit}`,
+  ];
+}
+
+/** Isolates registry credentials and makes Azure CLI use the chosen runtime. */
+export function registryEnvironment(engine: Engine, directory: string) {
+  return {
+    DOCKER_COMMAND: engine,
+    DOCKER_CONFIG: directory,
+    REGISTRY_AUTH_FILE: join(directory, 'config.json'),
+  };
+}
+
+async function withRegistry(
+  context: ImageContext,
+  registry: string,
+  run: (env: NodeJS.ProcessEnv) => Promise<void>,
+) {
+  validateTarget(process.env);
+  const directory = await mkdtemp(join(tmpdir(), 'sw-registry-'));
+  const env = { ...process.env, ...registryEnvironment(context.engine, directory) };
+  try {
+    await command(registryLogin(registry), false, env);
+    await run(env);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+}
+
+async function runScanner(
+  commands: string[][],
+  context: ImageContext,
+  env = process.env,
+  authenticated = false,
+) {
+  const scanner = Bun.which('trivy');
+  const authMount = authenticated ? ['-v', `${env.DOCKER_CONFIG}:/root/.docker:ro`] : [];
+  const prefix = scanner
+    ? [scanner]
+    : [
+        context.engine,
+        'run',
+        '--rm',
+        '-v',
+        `${process.cwd()}:/work`,
+        '-w',
+        '/work',
+        ...authMount,
+        trivyImage,
+      ];
+  const failures: string[] = [];
+  for (const args of commands) {
+    try {
+      await command([...prefix, ...args], false, env);
+    } catch (error) {
+      failures.push((error as Error).message);
+    }
+  }
+  if (failures.length) throw Error(failures.join('\n'));
+}
+
+async function scan(kind: 'scan' | 'sbom', context: ImageContext, ref?: string) {
+  const commands = scanArguments(kind, ref);
+  parseTrivyIgnore(await readFile('.trivyignore', 'utf8'), new Date().toISOString().slice(0, 10));
+  if (ref) {
+    await withRegistry(context, ref.split('/')[0], env => runScanner(commands, context, env, true));
+    return;
+  }
+  try {
+    await command(scanPreparation(context));
+    await runScanner(commands, context);
+  } finally {
+    await rm('out/image/image.tar', { force: true });
+  }
+}
+
+async function push(context: ImageContext, registry: string) {
+  const commands = pushArguments(context, registry);
+  validateTarget(process.env);
+  if (registry !== `${process.env.ACR_NAME}.azurecr.io`)
+    throw Error('Registry differs from ACR_NAME');
+  await withRegistry(context, registry, async env => {
+    for (const args of commands.slice(1)) await command(args, false, env);
+  });
+  const digest = await command(
+    [
+      'az',
+      'acr',
+      'repository',
+      'show',
+      '--name',
+      process.env.ACR_NAME!,
+      '--image',
+      `semantic-workbench:sha-${context.commit}`,
+      '--query',
+      'digest',
+      '-o',
+      'tsv',
+    ],
+    true,
+  );
+  if (!/^sha256:[a-f0-9]{64}$/.test(digest)) throw Error(`Invalid pushed digest: ${digest}`);
+  console.log(digest);
+  if (process.env.TF_BUILD)
+    console.log(`##vso[task.setvariable variable=digest;isOutput=true]${digest}`);
+}
+
+/** Reads local build metadata consistently for all image consumers. */
+export async function readImageContext(engine: Engine): Promise<ImageContext> {
+  const commit = await command(['git', 'rev-parse', 'HEAD'], true);
+  const dirty = await command(['git', 'status', '--porcelain'], true);
+  const manifest = JSON.parse(await readFile('package.json', 'utf8'));
+  return {
+    engine,
+    commit: imageCommit(commit, !!dirty),
+    version: manifest.version ?? 'dev',
+    created: new Date().toISOString(),
+    source: 'semantic-workbench',
+  };
+}
+
+async function main() {
+  const { values, positionals } = parseArgs({
+    args: process.argv.slice(2).filter(arg => arg !== '--'),
+    allowPositionals: true,
+    options: {
+      engine: { type: 'string' },
+      tag: { type: 'string', multiple: true },
+      registry: { type: 'string' },
+      ref: { type: 'string' },
+    },
+  });
+  const action = positionals[0];
+  if (positionals.length !== 1 || !['build', 'scan', 'sbom', 'push'].includes(action)) {
+    throw Error('Usage: image.ts build|scan|sbom|push');
+  }
+  const engine = chooseEngine(
+    ['docker', 'podman'].filter(name => Bun.which(name)),
+    values.engine,
+  );
+  const context = await readImageContext(engine);
+  await mkdir('out/image', { recursive: true });
+  if (action === 'build') await command(buildArguments(context, values.tag));
+  if (action === 'scan' || action === 'sbom') await scan(action, context, values.ref);
+  if (action === 'push') await push(context, values.registry ?? '');
+}
+
+if (import.meta.main) {
+  await main().catch(error => {
+    console.error(error.message);
+    process.exitCode = 1;
+  });
+}

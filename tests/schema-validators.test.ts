@@ -16,7 +16,7 @@ test('regeneration is byte-identical to the checked-in validators', () => {
   try {
     compileSchemas(root);
     const existing = 'src/generated/schema-validators';
-    expect(readdirSync(root)).toEqual(readdirSync(existing));
+    expect(readdirSync(root).sort()).toEqual(readdirSync(existing).sort());
     for (const name of readdirSync(root)) {
       expect(readFileSync(`${root}/${name}`, 'utf8')).toBe(
         readFileSync(`${existing}/${name}`, 'utf8'),

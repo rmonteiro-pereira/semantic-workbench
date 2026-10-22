@@ -15,14 +15,14 @@ Open http://127.0.0.1:5173. API: http://127.0.0.1:4310. Both bind to loopback. T
 
 ## Run it as a container
 
-Build with `podman build -t semantic-workbench:dev .` (or use `docker` in place of `podman`).
+Build with `podman build --format docker -t semantic-workbench:dev .` (or use `docker` in place of `podman`).
 The image runs Bun as uid 1000 and includes Git, the API and the built frontend. Server mode
 is not available in this build yet; after validating its configuration it refuses startup.
 
 For Compose, set `SW_VERSION` and `SW_COMMIT` in the environment before building. Use the
 package version when present (`bun -p 'require("./package.json").version ?? "dev"'`) and
 `git rev-parse HEAD` for the commit. This checkout currently has no package version, so `dev`
-is the fallback. The later `image:build` command is not available yet.
+is the fallback. The `image:build` command supplies these values automatically.
 
 ```sh
 mkdir -p .data
@@ -75,6 +75,73 @@ Use `--port 4320` if 4310 is occupied (the next port must also be free), or
 `--suite test:projects` to select one browser suite; the default `--suite local` runs them all.
 The script checks metadata, health, persistence across restart and same-revision refusal,
 and always attempts to remove its containers and temporary folder.
+
+## Local build scripts
+
+Run `bun run ci:validate` for the complete quality gate. It runs these steps in order:
+
+1. `verify`: `check`, `bun test`, production `build`.
+2. `mutation`: `test:mutation`, with a temporary Vite server for its browser mutants.
+3. `browser`: every suite in `scripts/gate-suites.ts`, each with a fresh Vite server on a free
+   loopback port. `SW_BASE_URL` points the suite to that server; suites isolate their API data.
+4. `image`: `image:build`, `image:scan`, `image:sbom`.
+5. `container`: `test:container` against the built image.
+6. `pipeline`: `pipeline:lint` and dry runs for PR, main and `v0.4.0-alpha.1`.
+
+Use repeatable `--step` to select steps, `--suite` to select a browser script, and `--keep-going`
+to continue after a failed step. For example:
+
+```sh
+bun run ci:validate -- --step verify --step pipeline
+bun run ci:validate -- --step browser --suite test:projects
+```
+
+Results are JUnit XML per executed step and `summary.json` in `out/ci/`. Failures name their steps
+and return non-zero. Each suite receives its own `SW_SCREENSHOT_DIR`; only PNGs from that
+folder are copied to `out/ci/screenshots/<suite>/`. The `scripts/helpers/screenshots.ts`
+path helper honors this variable and retains a check's default path when it is unset.
+Checks with hard-coded `/tmp` paths retain those defaults and are not collected by the gate.
+Copy failures are reported separately from suite failures. Cancellation stops Vite's process group.
+The full gate needs Chromium and Docker or Podman; a missing runtime fails the image/container
+steps. The gate does not include the owner's separate `test:auth:keycloak` compatibility check.
+Sign-in/admin/two-editor suites join the gate when their implementation is delivered.
+
+- `bun run image:build`: chooses Docker, then Podman, or accepts `--engine docker|podman`.
+  Podman builds use `--format docker` to retain HEALTHCHECK. Tags are `semantic-workbench:dev`
+  and `semantic-workbench:sha-<commit>`; repeatable `--tag` adds tags. Metadata comes from Git,
+  UTC creation time and the package version (`dev` until a version is declared). Dirty working
+  trees receive a `-dirty` revision suffix.
+- `bun run image:scan`: local Trivy, or the pinned scanner image, scans an exported image archive.
+  High/critical findings with a fix fail. `.trivyignore` exceptions require a reason and an
+  unexpired UTC date. Reports are `out/image/trivy.json` and `trivy.sarif`.
+- `bun run image:sbom`: writes `out/image/sbom.spdx.json`.
+- `bun run image:push -- --registry <name>.azurecr.io`: refuses dirty revisions, signs in with
+  `az acr login`, pushes the commit tag and prints its digest. Under `TF_BUILD` it also emits the
+  Azure output variable `digest`. `image:scan -- --ref <registry>/semantic-workbench@sha256:<digest>`
+  signs in itself before rescanning. Registry credentials use a temporary folder removed after
+  the command; Azure CLI uses the chosen Docker/Podman runtime via `DOCKER_COMMAND`. Both Azure actions require the non-secret target variables
+  listed in `deploy/azure-devops/sample-variables.yml` and an authenticated Azure CLI session.
+
+`bun run pipeline:lint` checks the vendored schema and repository delivery rules entirely offline.
+`bun run pipeline:dry-run -- --run pr|main|tag:v0.4.0-alpha.1` expands the actual templates and
+matrix using placeholder target values and prints each step with its condition. `--execute`
+runs only local gate steps; setup, publication and Azure actions are printed only. The simulation
+assumes preceding enabled jobs succeed; actual failures still stop the target pipeline.
+
+The GitHub repository runs nothing: no workflows, bots, publishing or deployments. The pipeline
+is a deliverable imported into the target's Azure DevOps from its Azure Repos mirror. This delivery
+includes Validate and Image. Deploy and rollback arrive with the deployment implementation.
+Pipeline setup downloads the pinned Bun 1.4.3 archive and verifies its SHA-256 before extraction.
+The tag-only `deploy:check-version` guard reads `SOURCE_REF` from the step environment
+(`refs/tags/vX.Y.Z`); local runs can override it with `--tag vX.Y.Z`. It validates the tag before
+use and compares the tag core with the package
+version, then queries registry tags read-only and refuses a version older than any promoted tag.
+It needs the target variables of the pipeline's variable group (`ACR_NAME` and the others listed
+in `specs/003-authn-authz/contracts/delivery-pipeline.md`) in its environment.
+It accepts `--fake` for an empty offline registry, with the same target-variable validation.
+A release must first declare its version in `package.json`; this checkout still uses the local
+`dev` fallback and therefore refuses tag publication. The owner/reviewer must run the complete gate on a machine with the
+required runtimes and record its duration in `specs/003-authn-authz/verification.md`.
 
 ## Where your data lives
 

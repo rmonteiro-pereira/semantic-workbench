@@ -4,7 +4,8 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
-import { containerSuites } from './container-suites';
+import { gateSuites } from './gate-suites';
+import { buildArguments, chooseEngine, readImageContext } from './image';
 
 const { values } = parseArgs({
   args: process.argv.slice(2),
@@ -18,14 +19,15 @@ const { values } = parseArgs({
 const port = Number(values.port);
 assert(Number.isInteger(port) && port > 0 && port < 65535, '--port must be between 1 and 65534');
 assert(!(values.image && values.build), 'Choose --image or --build');
-const suites = values.suite === 'local' ? containerSuites.local : [values.suite!];
+const suites = values.suite === 'local' ? gateSuites : [values.suite!];
 assert(
-  suites.every(suite => containerSuites.local.includes(suite)),
+  suites.every(suite => gateSuites.includes(suite)),
   'Unknown local --suite',
 );
-const runtime = Bun.which('docker') ?? Bun.which('podman');
+const engine = chooseEngine(['docker', 'podman'].filter(name => Bun.which(name)));
+const runtime = Bun.which(engine);
 assert(runtime, 'Install Docker or Podman to run container checks.');
-const podman = runtime.endsWith('podman');
+const podman = engine === 'podman';
 const image = values.image ?? 'semantic-workbench:dev';
 const containers: string[] = [];
 const baseUrl = `http://127.0.0.1:${port}`;
@@ -155,21 +157,8 @@ process.once('SIGINT', onSignal);
 process.once('SIGTERM', onSignal);
 try {
   if (!values.image) {
-    await command([
-      runtime,
-      'build',
-      // Podman builds OCI images by default, which drop the HEALTHCHECK instruction.
-      ...(podman ? ['--format', 'docker'] : []),
-      '--build-arg',
-      `SW_VERSION=${process.env.SW_VERSION ?? 'dev'}`,
-      '--build-arg',
-      `SW_COMMIT=${process.env.SW_COMMIT ?? 'unknown'}`,
-      '--build-arg',
-      `SW_CREATED=${new Date().toISOString()}`,
-      '-t',
-      image,
-      '.',
-    ]);
+    const context = await readImageContext(engine);
+    await command(buildArguments(context, [image]));
   }
   const name = await start(root, port);
   await waitReady(port, 'serving');

@@ -636,6 +636,8 @@ probe: `openid-client` 6.8.8 (MIT, 236 KB) with `oauth4webapi` (MIT, 332 KB), `j
 | Review fixes of the access core (overlapping restricted rules, agent clients and restricted paths, live project list, per-request decision scope, Admin rules wired, path normalisation) | Codex (gpt-6-astra) from the architecture review, reviewed by Claude |
 | T017–T025 (route table, middleware, audit log, administration repository, last-Admin guard, mutants) and their review fixes | Codex (gpt-6-astra), reviewed by Claude |
 | T118 (browser checks read `SW_BASE_URL`, `UI_URL` kept as alias) | Codex (gpt-6-astra); harness origin forwarding and the alias by Claude |
+| T104–T106, T110, T115–T117, T119 (instance lock with hand-over, health, static serving, Dockerfile, Compose, container check, mutants) and the review fixes (instance nonce, stale-claim rename, Ajv validators precompiled so the CSP drops unsafe-eval) | Codex (gpt-6-astra), reviewed by Claude; CommonJS interop of the generated validators, a read-only `check`, the re-anchored origin mutant and the drawer retries by Claude |
+| T120–T124 (local gate runner, image scripts, Azure DevOps pipeline and templates, offline lint and dry run, version guard) and the review fixes (tag passed through the environment, service-connection and template rules, checksum-verified Bun install, gate cleanup on stop, strict dry run, one build path, per-suite screenshots) | Codex (gpt-6-astra), reviewed by Claude; Vite readiness deadline and bounded restart of the gate, and the neighbourhood re-read in the UI check by Claude |
 
 ### Test changes not caused by the specification
 
@@ -647,4 +649,10 @@ probe: `openid-client` 6.8.8 (MIT, 236 KB) with `oauth4webapi` (MIT, 332 KB), `j
 - `scripts/helpers/isolated-api.ts`: writes reach the isolated API through Playwright's own client
   with an accepted origin (the browser cannot change a route's Origin), so checks can run on any
   frontend address; a write whose page closed meanwhile is ignored.
-| T104–T106, T110, T115–T117, T119 (instance lock with hand-over, health, static serving, Dockerfile, Compose, container check, mutants) and the review fixes (instance nonce, stale-claim rename, Ajv validators precompiled so the CSP drops unsafe-eval) | Codex (gpt-6-astra), reviewed by Claude; CommonJS interop of the generated validators, a read-only `check`, the re-anchored origin mutant and the drawer retries by Claude |
+- `scripts/ui-tests.ts` (`expectNeighborhood`): the neighbour counts could still describe the
+  previous document while the new graph rendered, so a single read of the counts compared against
+  the new nodes failed about one run in three under load. The counts and the node count are now
+  re-read together until they agree (15 s); an empty neighbourhood still fails.
+- `tests/schema-validators.test.ts`: the regenerated file list is sorted before comparing with the
+  checked-in list, because directory order differs between file systems; contents are still
+  compared byte for byte.
