@@ -14,6 +14,7 @@ export type PlanStep = {
   condition: string;
   enabled: boolean;
   serviceConnection?: string;
+  env?: Record<string, string>;
 };
 /** Supported input refs for an offline preview. */
 export type RunKind = { branch: string; name: string };
@@ -54,6 +55,8 @@ export function evaluateCondition(
   variables: Record<string, string>,
 ): boolean | string {
   const expression = source.trim();
+  if (expression === 'true') return true;
+  if (expression === 'false') return false;
   if (/^'[^']*'$/.test(expression)) return expression.slice(1, -1);
   const variable = /^variables\['([^']+)'\]$/.exec(expression);
   if (variable) {
@@ -133,10 +136,29 @@ function expandSteps(
     if (step.template) {
       const path = templatePath(source.file, step.template);
       if (!documents[path]) throw Error(`Missing template: ${path}`);
+      // A step template's own parameter defaults apply, overridden by the values it is given.
+      const templateDefaults = Object.fromEntries(
+        (documents[path].parameters ?? []).map((parameter: PipelineNode) => [
+          parameter.name,
+          parameter.default,
+        ]),
+      );
+      // Values handed to the template are expressions of the caller, so they resolve first.
+      const supplied = Object.fromEntries(
+        Object.entries(step.parameters ?? {}).map(([key, value]) => [
+          key,
+          typeof value === 'string' ? expand(value, parameters, variables) : value,
+        ]),
+      );
       const nested = { file: path, setup: path.endsWith('/setup-steps.yml') };
-      return expandSteps(documents[path].steps, nested, expansion, context);
+      const nestedExpansion = {
+        ...expansion,
+        parameters: { ...parameters, ...templateDefaults, ...supplied },
+      };
+      return expandSteps(documents[path].steps, nested, nestedExpansion, context);
     }
-    const condition = `and(${context.condition}, ${step.condition ?? 'succeeded()'})`;
+    const stepCondition = expand(step.condition ?? 'succeeded()', parameters, variables);
+    const condition = `and(${context.condition}, ${stepCondition})`;
     const enabled = evaluateCondition(condition, variables) === true && context.enabled;
     const command =
       step.bash ??
@@ -156,6 +178,12 @@ function expandSteps(
         condition,
         enabled,
         command: setup ? command : expand(command, parameters, variables),
+        env: Object.fromEntries(
+          Object.entries(step.env ?? {}).map(([name, value]) => [
+            name,
+            expand(String(value), parameters, variables),
+          ]),
+        ),
         ...(step.inputs?.azureSubscription
           ? {
               serviceConnection: expand(step.inputs.azureSubscription, parameters, variables),
@@ -192,7 +220,7 @@ function expandJobs(
 function checkDependencies(nodes: PipelineNode[], kind: 'stage' | 'job') {
   const earlier = new Set<string>();
   for (const node of nodes) {
-    const name = node[kind];
+    const name = node[kind] ?? (kind === 'job' ? node.deployment : undefined);
     if (typeof name !== 'string' || earlier.has(name)) {
       throw Error(`Missing or duplicate ${kind}: ${name}`);
     }
@@ -206,9 +234,17 @@ function checkDependencies(nodes: PipelineNode[], kind: 'stage' | 'job') {
   }
 }
 
-function planJobs(stage: PipelineNode, expansion: Expansion, stageEnabled: boolean): PlanStep[] {
+/** Where a stage is declared and whether its own condition let it run. */
+type StagePlacement = { file: string; enabled: boolean };
+
+function planJobs(
+  stage: PipelineNode,
+  expansion: Expansion,
+  placement: StagePlacement,
+): PlanStep[] {
   const { variables } = expansion;
-  const expanded = expandJobs(stage.jobs, 'azure-pipelines.yml', expansion);
+  const stageEnabled = placement.enabled;
+  const expanded = expandJobs(stage.jobs, placement.file, expansion);
   checkDependencies(
     expanded.map(entry => entry.job),
     'job',
@@ -216,11 +252,13 @@ function planJobs(stage: PipelineNode, expansion: Expansion, stageEnabled: boole
   return expanded.flatMap(({ job, file, parameters }) => {
     const condition = job.condition ?? 'succeeded()';
     const enabled = evaluateCondition(condition, variables) === true && stageEnabled;
-    variables[`dependencies.${job.job}.result`] = enabled ? 'Succeeded' : 'Skipped';
+    // Deployment jobs are named by `deployment`, ordinary jobs by `job`.
+    const jobName = job.job ?? job.deployment;
+    variables[`dependencies.${jobName}.result`] = enabled ? 'Succeeded' : 'Skipped';
     const matrix = job.strategy?.matrix ?? { default: {} };
     return Object.entries(matrix).flatMap(([leg, values]) =>
       expandSteps(
-        job.steps,
+        job.steps ?? job.strategy?.runOnce?.deploy?.steps,
         { file },
         {
           documents: expansion.documents,
@@ -229,7 +267,7 @@ function planJobs(stage: PipelineNode, expansion: Expansion, stageEnabled: boole
         },
         {
           stage: stage.stage,
-          job: leg === 'default' ? job.job : `${job.job}/${leg}`,
+          job: leg === 'default' ? jobName : `${jobName}/${leg}`,
           condition,
           enabled,
         },
@@ -239,7 +277,26 @@ function planJobs(stage: PipelineNode, expansion: Expansion, stageEnabled: boole
 }
 
 /** Ensures pipeline local work maps exactly to the local quality gate. */
-export function validatePlan(plan: PlanStep[]): void {
+export function validatePlan(plan: PlanStep[], rollbackConnection?: string): void {
+  if (rollbackConnection !== undefined) {
+    const delivery = plan.filter(step => step.kind !== 'setup');
+    const step = delivery[0];
+    const tagRef = step?.env?.SOURCE_REF?.startsWith('refs/tags/v') ?? false;
+    if (
+      delivery.length !== 1 ||
+      step.kind !== 'azure' ||
+      step.command !== 'bun run deploy:rollback' ||
+      step.serviceConnection !== rollbackConnection ||
+      step.enabled !== tagRef ||
+      !['tag', 'previous'].includes(step.env?.ROLLBACK_TARGET ?? '') ||
+      !plan.some(entry => entry.kind === 'setup' && entry.command === 'checkout: self')
+    ) {
+      throw Error(
+        'Rollback requires setup and exactly one tag-only step with the deploy connection',
+      );
+    }
+    return;
+  }
   const selected = new Set<string>();
   for (const step of plan.filter(step => step.kind === 'local')) {
     const match = /^bun run ci:validate\s+(.*)$/.exec(step.command);
@@ -257,9 +314,11 @@ export function buildPlan(
   documents: Record<string, PipelineNode>,
   sample: PipelineNode,
   run: string,
+  pipelineName = 'main',
 ) {
   const kind = parseRunKind(run);
-  const pipeline = documents['azure-pipelines.yml'];
+  const file = pipelineName === 'rollback' ? 'azure-pipelines-rollback.yml' : 'azure-pipelines.yml';
+  const pipeline = documents[file];
   const defaults = Object.fromEntries(
     pipeline.parameters.map((parameter: PipelineNode) => [parameter.name, parameter.default]),
   );
@@ -269,6 +328,8 @@ export function buildPlan(
     'Build.SourceBranch': kind.branch,
     'Build.SourceBranchName': kind.name,
     'System.JobId': 'dry-run',
+    'Build.SourceVersion': 'a'.repeat(40),
+    imageDigest: `sha256:${'b'.repeat(64)}`,
   };
   checkDependencies(pipeline.stages, 'stage');
   const stageResults: Record<string, string> = {};
@@ -277,27 +338,60 @@ export function buildPlan(
       evaluateCondition(stage.condition ?? 'succeeded()', { ...variables, ...stageResults }) ===
       true;
     stageResults[`dependencies.${stage.stage}.result`] = enabled ? 'Succeeded' : 'Skipped';
-    return planJobs(stage, { documents, parameters, variables: { ...variables } }, enabled);
+    return planJobs(
+      stage,
+      { documents, parameters, variables: { ...variables } },
+      { file, enabled },
+    );
   });
-  validatePlan(plan);
+  validatePlan(plan, pipelineName === 'rollback' ? parameters.deployServiceConnection : undefined);
   return plan as PlanStep[];
+}
+
+/** Exercises deployment, automatic recovery and both manual rollback paths without Azure. */
+export async function exerciseFakeDelivery() {
+  const { deploy, rollback } = await import('./deploy');
+  const { fakeAzure, fakeRelease, fakeTarget } = await import('./deploy-fake');
+  await deploy(fakeTarget, fakeRelease, fakeAzure());
+  const failing = fakeAzure({ failSmoke: true });
+  try {
+    await deploy(fakeTarget, fakeRelease, failing);
+    throw Error('Injected smoke failure was ignored');
+  } catch (error) {
+    if (!(error instanceof Error) || !error.message.includes('rolled back')) throw error;
+    if (!failing.calls.some(call => call[0] === 'copy')) throw Error('Rollback was skipped');
+  }
+  for (const target of ['previous', 'tag']) {
+    await rollback(fakeTarget, target, `refs/tags/${fakeRelease.tag}`, fakeAzure());
+  }
 }
 
 async function main() {
   const { values } = parseArgs({
     args: process.argv.slice(2).filter(arg => arg !== '--'),
-    options: { run: { type: 'string', default: 'pr' }, execute: { type: 'boolean' } },
+    options: {
+      run: { type: 'string', default: 'pr' },
+      execute: { type: 'boolean' },
+      pipeline: { type: 'string', default: 'main' },
+      help: { type: 'boolean' },
+    },
   });
+  if (values.help) {
+    console.log('pipeline:dry-run --run pr|main|tag:vX.Y.Z [--pipeline main|rollback] [--execute]');
+    return;
+  }
+  if (!['main', 'rollback'].includes(values.pipeline!)) throw Error('Unknown pipeline');
   const documents = lintPipeline(
     readPipelineInput(),
     JSON.parse(readFileSync('deploy/azure-devops/schema/service-schema.json', 'utf8')),
   );
-  const plan = buildPlan(documents, readSampleVariables(), values.run!);
+  const plan = buildPlan(documents, readSampleVariables(), values.run!, values.pipeline!);
+  if (values.execute && values.run!.startsWith('tag:')) await exerciseFakeDelivery();
   for (const step of plan) {
     console.log(
       `${step.enabled ? 'RUN' : 'SKIP'} ${step.stage}/${step.job} [${step.kind}] ` +
         `${step.command} (condition: ${step.condition}; ` +
-        `connection: ${step.serviceConnection ?? 'none'})`,
+        `connection: ${step.serviceConnection ?? 'none'}; env: ${JSON.stringify(step.env ?? {})})`,
     );
     if (!values.execute || !step.enabled || step.kind !== 'local') continue;
     const child = Bun.spawn(step.command.split(/\s+/), { stdout: 'inherit', stderr: 'inherit' });

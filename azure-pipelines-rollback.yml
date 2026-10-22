@@ -1,0 +1,57 @@
+# Imported into the target's Azure Repos mirror; never connected to this repository.
+trigger: none
+pr: none
+parameters:
+  - name: variableGroup
+    type: string
+    default: semantic-workbench-target
+  - name: acrServiceConnection
+    type: string
+    default: sw-azure-push
+  - name: deployServiceConnection
+    type: string
+    default: sw-azure-deploy
+  - name: deployEnvironment
+    type: string
+    default: production
+  - name: agentPool
+    type: string
+    default: ''
+  - name: vmImage
+    type: string
+    default: ubuntu-latest
+  - name: target
+    type: string
+    default: tag
+    values: [tag, previous]
+variables:
+  - group: ${{ parameters.variableGroup }}
+pool:
+  ${{ if ne(parameters.agentPool, '') }}:
+    name: ${{ parameters.agentPool }}
+  ${{ else }}:
+    vmImage: ${{ parameters.vmImage }}
+stages:
+  - stage: Rollback
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
+    lockBehavior: runLatest
+    jobs:
+      - deployment: rollback
+        environment: ${{ parameters.deployEnvironment }}
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - template: deploy/azure-devops/templates/setup-steps.yml
+                  parameters:
+                    browsers: false
+                - task: AzureCLI@2
+                  inputs:
+                    azureSubscription: ${{ parameters.deployServiceConnection }}
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    addSpnToEnvironment: false
+                    inlineScript: bun run deploy:rollback
+                  env:
+                    SOURCE_REF: $(Build.SourceBranch)
+                    ROLLBACK_TARGET: ${{ parameters.target }}

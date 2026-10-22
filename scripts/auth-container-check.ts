@@ -107,6 +107,22 @@ export async function authContainerCheck(engine: Engine, image: string, port: nu
     const health = await fetch(url + '/healthz');
     assert.equal(health.status, 200);
     assert.equal((await health.json()).ok, true);
+    const inspected = JSON.parse(await commandCaptured([engine, 'image', 'inspect', image]));
+    const labels = inspected[0].Config.Labels;
+    await command(
+      [
+        process.execPath,
+        'run',
+        'deploy:smoke',
+        '--',
+        url,
+        labels['org.opencontainers.image.version'],
+        labels['org.opencontainers.image.revision'],
+        '--loopback',
+      ],
+      false,
+      { ...process.env, SW_OIDC_ISSUER: group.issuer },
+    );
     await containerSignIn(engine, first, { url, issuer: group.issuer, kind: 'entra' }, began);
     await containerHandover(engine, first, port, group.start);
   });

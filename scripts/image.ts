@@ -20,7 +20,9 @@ export const targetVariables = [
   'ENTRA_TENANT_ID',
   'ENTRA_CLIENT_ID',
   'SW_PUBLIC_URL',
-];
+] as const;
+/** Required target settings validated at the environment boundary. */
+export type Target = Record<(typeof targetVariables)[number], string>;
 /** Supported local container runtime. */
 export type Engine = 'docker' | 'podman';
 /** Immutable inputs used to construct image commands. */
@@ -100,6 +102,24 @@ export function pushArguments(context: ImageContext, registry: string): string[]
   return [login, [context.engine, 'tag', local, remote], [context.engine, 'push', remote]];
 }
 
+/** Creates a version tag on the existing scanned manifest without rebuilding or importing. */
+export function promotionArguments(
+  target: Target,
+  release: { tag: string; digest: string },
+): string[] {
+  const repository = `${target.ACR_NAME}.azurecr.io/semantic-workbench`;
+  return [
+    'docker',
+    'buildx',
+    'imagetools',
+    'create',
+    '--prefer-index=false',
+    '--tag',
+    `${repository}:${release.tag}`,
+    `${repository}@${release.digest}`,
+  ];
+}
+
 /** Builds scanner flags for an archive or authenticated registry digest. */
 export function scanArguments(kind: 'scan' | 'sbom', ref?: string): string[][] {
   if (ref && !/^[a-zA-Z0-9]+\.azurecr\.io\/semantic-workbench@sha256:[a-f0-9]{64}$/.test(ref)) {
@@ -127,9 +147,10 @@ export function scanArguments(kind: 'scan' | 'sbom', ref?: string): string[][] {
 }
 
 /** Requires target variables before an Azure command can run. */
-export function validateTarget(env: Record<string, string | undefined>) {
+export function validateTarget(env: Record<string, string | undefined>): Target {
   const missing = targetVariables.filter(name => !env[name]?.trim());
   if (missing.length) throw Error(`Missing target variables: ${missing.join(', ')}`);
+  return Object.fromEntries(targetVariables.map(name => [name, env[name]])) as Target;
 }
 
 /** Plans registry authentication or local archive export before scanning. */
@@ -273,8 +294,22 @@ async function main() {
       tag: { type: 'string', multiple: true },
       registry: { type: 'string' },
       ref: { type: 'string' },
+      'ref-env': { type: 'string' },
+      help: { type: 'boolean' },
     },
   });
+  if (values.help) {
+    console.log('image:build|scan|sbom|push [--engine docker|podman] [--tag tag]');
+    console.log(
+      'scan: --ref <digest-ref> or --ref-env IMAGE_REF; push: --registry <name>.azurecr.io',
+    );
+    return;
+  }
+  if (values['ref-env'] && values['ref-env'] !== 'IMAGE_REF') {
+    throw Error('--ref-env supports IMAGE_REF only');
+  }
+  const ref = values.ref ?? (values['ref-env'] ? process.env.IMAGE_REF : undefined);
+  if (values['ref-env'] && !ref) throw Error('Missing IMAGE_REF');
   const action = positionals[0];
   if (positionals.length !== 1 || !['build', 'scan', 'sbom', 'push'].includes(action)) {
     throw Error('Usage: image.ts build|scan|sbom|push');
@@ -286,7 +321,7 @@ async function main() {
   const context = await readImageContext(engine);
   await mkdir('out/image', { recursive: true });
   if (action === 'build') await command(buildArguments(context, values.tag));
-  if (action === 'scan' || action === 'sbom') await scan(action, context, values.ref);
+  if (action === 'scan' || action === 'sbom') await scan(action, context, ref);
   if (action === 'push') await push(context, values.registry ?? '');
 }
 

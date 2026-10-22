@@ -29,7 +29,7 @@ any identity provider outside the agent; sign-in is tested against the mock Open
 
 Every Azure-touching script reads its target values from environment variables named as in the
 variable group below, fails naming any missing one before calling Azure, and accepts `--fake` to
-use the fake Azure client (`tests/pipeline/fake-azure.ts`).
+use the fake Azure client (`scripts/deploy-fake.ts`).
 
 ## Pipeline files
 
@@ -47,8 +47,8 @@ use the fake Azure client (`tests/pipeline/fake-azure.ts`).
 | --- | --- | --- |
 | `Validate` | every run | jobs `verify`, `mutation`, `browser` (literal matrix, one leg per suite of `scripts/gate-suites.ts`, kept equal by the pipeline check; the `auth` leg signs in against the mock OpenID provider on the agent's loopback with Entra-shaped claims), `pipeline` (`pipeline:lint`, `pipeline:dry-run`); each step `bun run ci:validate -- --step <name>`; `PublishTestResults@2` for the JUnit files; screenshots published on failure |
 | `Image` | after `Validate` | on `v*` runs first a job `check` (`AzureCLI@2` with the push connection, read only): `bun run deploy:check-version`, so a wrong tag fails before anything is pushed and before the Deploy stage asks for approval; then `bun run ci:validate -- --step image --step container`; `PublishPipelineArtifact@1` for `out/image/` (bill of materials, scan report); on `main` and `v*` only: `AzureCLI@2` with `${{ parameters.acrServiceConnection }}` → `bun run image:push -- --registry $(ACR_NAME).azurecr.io` (signs in to the registry itself); digest passed as an output variable |
-| `Deploy` | after `Image`, only for `refs/tags/v*`; stage-level `lockBehavior: runLatest` | deployment job on environment `${{ parameters.deployEnvironment }}` (strategy `runOnce`; environment approvals and checks run before the stage starts): `checkout: self` and `setup-steps.yml` (deployment jobs do not check out by default), then `AzureCLI@2` with `${{ parameters.deployServiceConnection }}` → `bun run image:scan -- --ref <registry>@<digest>` (the script signs in to the registry), then `bun run deploy:azure` (preflight; promote the version tag on the same digest with `docker buildx imagetools create --tag <registry>/semantic-workbench:vX.Y.Z <registry>/semantic-workbench@<digest>`, which needs only `AcrPush`, no rebuild; record the running revision; update by digest; wait for running and ready; `deploy:smoke`; automatic rollback on failure); summary with digest, revisions and smoke results |
-| `Rollback` (rollback pipeline) | manual, queued on the tag ref `refs/tags/vX.Y.Z` of the version to restore (so the environment's branch control admits it); parameter `target` = `tag` (default: the version of the ref) or `previous` | stage-level `lockBehavior: runLatest`; deployment job on the same environment with `checkout: self` and `setup-steps.yml`: `bun run deploy:rollback -- --to <vX.Y.Z\|previous>` (preflight, deploy, smoke). The YAML and scripts come from the tag ref, so the rollback pipeline works for tags from the first version that ships it (`v0.4.0-alpha.1`) on. For `previous`, it is queued on the tag of the version currently deployed, and the smoke test expects the version and commit of the restored revision's image labels |
+| `Deploy` | after `Image`, only for `refs/tags/v*`; stage-level `lockBehavior: runLatest` | deployment job on environment `${{ parameters.deployEnvironment }}` (strategy `runOnce`; environment approvals and checks run before the stage starts): `setup-steps.yml` with `browsers: false` (the template checks out once), then `AzureCLI@2` with `${{ parameters.deployServiceConnection }}` → `bun run image:scan -- --ref <registry>@<digest>` (the script signs in to the registry), then `bun run deploy:azure` (preflight; record the running revision; update by digest; wait for running and ready; `deploy:smoke`; automatic rollback on failure; only after smoke passes, promote the version tag on the same digest with `docker buildx imagetools create --tag <registry>/semantic-workbench:vX.Y.Z <registry>/semantic-workbench@<digest>`, which needs only `AcrPush`, no rebuild); summary with digest, revisions and smoke results |
+| `Rollback` (rollback pipeline) | manual, queued on the tag ref `refs/tags/vX.Y.Z` of the version to restore (so the environment's branch control admits it); parameter `target` = `tag` (default: the version of the ref) or `previous` | stage-level `lockBehavior: runLatest`; deployment job on the same environment with `setup-steps.yml` and `browsers: false`: `bun run deploy:rollback -- --to <vX.Y.Z\|previous>` (preflight, deploy, smoke). The YAML and scripts come from the tag ref, so the rollback pipeline works for tags from the first version that ships it (`v0.4.0`) on. For `previous`, it is queued on the tag of the version currently deployed, and the smoke test expects the version and commit of the restored revision's image labels |
 
 Approvals and checks belong to the environment (configured by the target): approval by named
 people or a group, branch control allowing only `refs/tags/v*`, and the exclusive lock check. The
@@ -102,7 +102,7 @@ the `browser` matrix (`test:auth:keycloak` is a recorded exclusion: compatibilit
 - Local tags `semantic-workbench:sha-<commit>` and `:dev`; registry
   `<ACR_NAME>.azurecr.io/semantic-workbench` with `sha-<40-hex commit>` (pushed by `Image` on
   `main` and `v*`) and `vX.Y.Z` (and pre-release forms) on the same digest after a version
-  deployment's approval. Deployments always use `@sha256:<digest>`.
+  deployment's successful smoke test. Deployments always use `@sha256:<digest>`.
 - Labels: `org.opencontainers.image.version`, `.revision`, `.source`, `.created`.
 - Artifacts per build: `sbom.spdx.json` (SPDX JSON), `trivy.json`, `trivy.sarif` (local `out/image/`;
   pipeline artifacts in the target).
@@ -134,7 +134,9 @@ Revision mode `Single`; `minReplicas = maxReplicas = 1`; a volume mounted at `/d
 `AzureFile` or `NfsAzureFile`; user-assigned identity `APP_IDENTITY_NAME` attached; registry
 configured with that identity; `SW_MODE=server`; `SW_HOST=0.0.0.0`; ingress target port 4310;
 secret references point to `KEY_VAULT_NAME`; `SW_OIDC_CLIENT_ID` and `SW_ENTRA_TENANT_ID` equal
-the variable group's Entra values.
+the variable group's Entra values; `SW_OIDC_ISSUER` equals
+`https://login.microsoftonline.com/<ENTRA_TENANT_ID>/v2.0`. Deployment smoke derives its
+issuer from the target tenant, never from app settings.
 
 ## Smoke test (`deploy:smoke <public-url> <version> <commit>`)
 
@@ -150,9 +152,10 @@ relaxes only HSTS and the `Secure` flag. Output: one line per check and a JSON s
 ## Deploy script (`scripts/deploy.ts`)
 
 Version check, preflight, record of the running revision and digest, update, wait for the
-revision, smoke test and rollback live in one script; Azure calls go through a small client
-interface (Azure CLI on the agent or the owner's machine, a fake in `tests/pipeline/deploy.test.ts`
-and in the dry run), so the decision logic is unit- and mutation-tested.
+revision, smoke test, promotion only on success and rollback live in one script; Azure calls
+go through a small client
+interface (Azure CLI on the agent or the owner's machine, the fake in `scripts/deploy-fake.ts`, exercised by `tests/pipeline/deploy.test.ts`
+and the dry run), so the decision logic is unit- and mutation-tested.
 
 ## Rollback
 
@@ -160,8 +163,13 @@ Automatic: the revision running before the update is recorded; on smoke failure 
 a new revision (`az containerapp revision copy --from-revision <recorded>`, same image digest and
 configuration) and smoke-tested with its own version and commit; the run fails in both cases.
 Manual: `azure-pipelines-rollback.yml`, queued on a version tag ref, deploys that version (resolved
-to its digest in the registry) or, with `target: previous`, restores the revision before the
-active one, through the same environment; runs on a non-tag ref are refused.
+to its digest in the registry) or, with `target: previous`, selects the newest promoted version
+below the active version, excluding active and failed digests. Both paths verify the selected
+digest against `sha-<commit>` for its commit label, rescan it, record the active revision, and
+update with automatic recovery through the same environment. Runs on a non-tag ref are refused.
+No version tag is created on failed smoke or rollback. Lock promoted tags against writes because
+AcrPush can otherwise rewrite them. The selected Git tag supplies the pipeline and scripts;
+tags older than this delivery cannot use this rollback pipeline.
 
 ## Release hand-over to the target's Azure Repos mirror (`deploy/README.md`, FR-142)
 

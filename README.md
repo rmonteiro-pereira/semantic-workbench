@@ -217,12 +217,15 @@ The sign-in suite is included; admin and two-editor suites join when implemented
 `bun run pipeline:lint` checks the vendored schema and repository delivery rules entirely offline.
 `bun run pipeline:dry-run -- --run pr|main|tag:v0.4.0-alpha.1` expands the actual templates and
 matrix using placeholder target values and prints each step with its condition. `--execute`
-runs only local gate steps; setup, publication and Azure actions are printed only. The simulation
+runs local gate steps and, for tag runs, fake deployment/recovery scenarios;
+setup, publication and real Azure actions are printed only.
+Use `--pipeline rollback --run tag:v0.4.0-alpha.1` to expand the rollback pipeline. The simulation
 assumes preceding enabled jobs succeed; actual failures still stop the target pipeline.
 
 The GitHub repository runs nothing: no workflows, bots, publishing or deployments. The pipeline
 is a deliverable imported into the target's Azure DevOps from its Azure Repos mirror. This delivery
-includes Validate and Image. Deploy and rollback arrive with the deployment implementation.
+includes Validate, Image and tag-only Deploy, plus the manual `azure-pipelines-rollback.yml`.
+See [target setup](deploy/README.md) and the [owner trial runbook](deploy/trial-runbook.md).
 Pipeline setup downloads the pinned Bun 1.4.3 archive and verifies its SHA-256 before extraction.
 The tag-only `deploy:check-version` guard reads `SOURCE_REF` from the step environment
 (`refs/tags/vX.Y.Z`); local runs can override it with `--tag vX.Y.Z`. It validates the tag before
@@ -234,6 +237,21 @@ It accepts `--fake` for an empty offline registry, with the same target-variable
 A release must first declare its version in `package.json`; this checkout still uses the local
 `dev` fallback and therefore refuses tag publication. The owner/reviewer must run the complete gate on a machine with the
 required runtimes and record its duration in `specs/003-authn-authz/verification.md`.
+
+## Deployment commands
+
+`deploy:azure` runs the version guard, target preflight, records the active revision, updates the app by
+scanned digest, smoke-tests it, then promotes the version tag. A failed update or smoke copies and tests the
+recorded revision, then fails the run. `deploy:rollback -- --to previous|tag|<vX.Y.Z>` restores
+without promoting, verifying the commit digest and rescanning before the recoverable update. Both accept `--fake` and `--help`; rollback requires a tag `SOURCE_REF`.
+`IMAGE_DIGEST` and `BUILD_COMMIT` supply deployment inputs; `ROLLBACK_TARGET` selects rollback.
+The package manifest supplies the version. Target variables are listed in the setup guide.
+
+`deploy:smoke <public-url> <package-version> <commit> [--loopback]` uses `SW_OIDC_ISSUER` discovery,
+prints one line per check and a JSON summary. Loopback relaxes only HSTS and cookie Secure. The
+container gate invokes it against the server group's existing container and mock provider.
+`image:scan -- --ref-env IMAGE_REF` accepts a digest reference through the environment; explicit
+`--ref` remains supported. Pipeline macros are passed through step environments.
 
 ## Sign-in testing
 

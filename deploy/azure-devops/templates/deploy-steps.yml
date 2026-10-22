@@ -1,0 +1,26 @@
+parameters:
+  - name: deployServiceConnection
+    type: string
+steps:
+  - task: AzureCLI@2
+    displayName: Rescan approved digest
+    inputs:
+      azureSubscription: ${{ parameters.deployServiceConnection }}
+      scriptType: bash
+      scriptLocation: inlineScript
+      addSpnToEnvironment: false
+      inlineScript: bun run image:scan -- --ref-env IMAGE_REF
+    env:
+      IMAGE_REF: $(ACR_NAME).azurecr.io/semantic-workbench@$(imageDigest)
+  - task: AzureCLI@2
+    displayName: Promote deploy smoke and restore on failure
+    inputs:
+      azureSubscription: ${{ parameters.deployServiceConnection }}
+      scriptType: bash
+      scriptLocation: inlineScript
+      addSpnToEnvironment: false
+      inlineScript: bun run deploy:azure
+    env:
+      SOURCE_REF: $(Build.SourceBranch)
+      BUILD_COMMIT: $(Build.SourceVersion)
+      IMAGE_DIGEST: $(imageDigest)

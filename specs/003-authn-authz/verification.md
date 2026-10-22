@@ -40,3 +40,20 @@ budgets run once more in the final gate.
 | `bun run test:auth:keycloak` | passed against Keycloak 26.4 (pinned digest) |
 | `bun run test:container` | passed: local group and the server-mode group with the mock provider |
 | `pipeline:lint`, dry runs for `pr`, `main`, `tag:v0.4.0-alpha.1` | passed; the `auth` leg is in the browser matrix and no Keycloak or service container appears |
+
+## Azure delivery definition (development machine, 2026-10-22)
+
+No Azure, registry or identity provider was contacted; the deploy paths ran against the fake client.
+
+| Check | Result |
+| --- | --- |
+| `bun test` | 1,001 passed |
+| `ci:validate --step mutation` | 169 of 169 mutants killed |
+| `ci:validate --step image` | passed |
+| `ci:validate --step container` | passed, including `deploy:smoke --loopback` against the server-mode container (10 of 10 checks) |
+| `pipeline:lint`; dry runs `pr`, `main`, `tag:v0.4.0-alpha.1`, rollback pipeline | passed; Deploy runs on tags only with the deploy connection; Rollback is manual and tag-only |
+| `deploy:azure -- --fake`, `deploy:rollback -- --fake --to previous`, every script's `--help` | passed |
+
+## Owner trial
+
+The owner records the report of `deploy/trial-runbook.md` here after running it on the target.

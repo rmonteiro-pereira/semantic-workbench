@@ -7,6 +7,12 @@ const temp = await mkdtemp('/tmp/workbench-mutations-');
 // tree as the real sources, without relying on Bun caches.
 await symlink(resolve(root, 'node_modules'), resolve(temp, 'node_modules'), 'dir');
 const mutants: [string, string, string, string][] = [
+  ['deploy-smoke', 'scripts/deploy-smoke.ts', 'health.version === expected.version', 'true'],
+  ['deploy-smoke', 'scripts/deploy-smoke.ts', 'input.projects.status === 401', 'true'],
+  ['deploy-smoke', 'scripts/deploy-smoke.ts', "ready.state === 'serving'", 'true'],
+  ['deploy-recovery', 'scripts/deploy.ts', 'await restore(client, before)', "'skipped'"],
+  ['deploy-preflight', 'scripts/deploy.ts', 'app.maxReplicas === 1', 'true'],
+  ['deploy-version', 'scripts/deploy-version.ts', 'compareReleases(tag, promoted) < 0', 'false'],
   [
     'signin-sessions',
     'server/auth/sessions.ts',
