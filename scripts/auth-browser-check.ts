@@ -1,3 +1,5 @@
+import { TEST_GROUPS } from '../tests/helpers/auth-identities';
+import { readVisibilityChecks } from './helpers/sign-in';
 // Runs the built application through an isolated loopback identity provider.
 import { chromium } from '@playwright/test';
 import { startMockOidc } from '../tests/helpers/mock-oidc';
@@ -23,6 +25,8 @@ export async function authBrowserCheck() {
         await signInChecks(browser, target);
         await mockLifecycleChecks(browser, target, mock, api.root);
         await localAuthSmoke(browser);
+        mock.setUserGroups('alice', [TEST_GROUPS.salesViewers]);
+        await readVisibilityChecks(browser, target);
       } finally {
         await browser.close();
       }

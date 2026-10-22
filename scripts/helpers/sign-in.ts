@@ -31,28 +31,54 @@ export function assertNoCredentials(value: unknown) {
   );
 }
 
+/** A role a person is expected to hold, how the person menu names it and where it comes from. */
+export type ExpectedRole = { roleId: string; name: string; via: 'group' | 'email'; reason: string };
+
+// The roles the default fixture grants give; people without an entry are not checked here.
+const DEFAULT_ROLES: Partial<Record<TestUserName, ExpectedRole>> = {
+  alice: {
+    roleId: 'editor',
+    name: 'Editor',
+    via: 'group',
+    reason: 'Sales Editor must come from the group grant',
+  },
+  olga: {
+    roleId: 'editor',
+    name: 'Editor',
+    via: 'group',
+    reason: 'Sales Editor must come from the group grant',
+  },
+  bob: {
+    roleId: 'steward',
+    name: 'Steward',
+    via: 'email',
+    reason: 'Steward must come from the case-insensitive address grant',
+  },
+};
+
 /** Checks effective roles and their grant provenance from parsed API data. */
-export function assertPerson(value: any, username: TestUserName) {
+export function assertPerson(
+  value: any,
+  username: TestUserName,
+  expected: ExpectedRole | undefined = DEFAULT_ROLES[username],
+) {
   assert.equal(value.name, TEST_USERS[username].name);
-  if (username === 'alice' || username === 'olga') {
-    assert(
-      value.roleSources.some((source: any) => source.roleId === 'editor' && source.via === 'group'),
-      'Sales Editor must come from the group grant',
+  if (expected) {
+    const held = value.roleSources.some(
+      (source: any) => source.roleId === expected.roleId && source.via === expected.via,
     );
-  }
-  if (username === 'bob') {
-    assert(
-      value.roleSources.some(
-        (source: any) => source.roleId === 'steward' && source.via === 'email',
-      ),
-      'Steward must come from the case-insensitive address grant',
-    );
+    assert(held, expected.reason);
   }
   assertNoCredentials(value);
 }
 
 /** Navigates directly to the provider and signs in, preserving the requested workspace path. */
-export async function signIn(page: Page, target: SignInTarget, username: TestUserName) {
+export async function signIn(
+  page: Page,
+  target: SignInTarget,
+  username: TestUserName,
+  expected: ExpectedRole | undefined = DEFAULT_ROLES[username],
+) {
   const start = performance.now();
   const path = '/?auth-check=return';
   const response = await page.goto(target.url + path);
@@ -74,7 +100,7 @@ export async function signIn(page: Page, target: SignInTarget, username: TestUse
     await deniedPerson(page, target, username);
     return;
   }
-  await signedInPerson(page, target, username, start);
+  await signedInPerson(page, target, { username, start, expected });
 }
 
 async function deniedPerson(page: Page, target: SignInTarget, username: 'erin' | 'gina') {
@@ -94,9 +120,9 @@ async function deniedPerson(page: Page, target: SignInTarget, username: 'erin' |
 async function signedInPerson(
   page: Page,
   target: SignInTarget,
-  username: TestUserName,
-  start: number,
+  person: { username: TestUserName; start: number; expected?: ExpectedRole },
 ) {
+  const { username, start, expected } = person;
   await expect(page.getByRole('button', { name: 'Person menu', exact: true })).toBeVisible();
   await expect(page.getByRole('tree', { name: 'Projects' })).toBeVisible();
   await expect(page.locator('.workspace-sidebar')).toContainText('SHARED WORKSPACE');
@@ -104,13 +130,10 @@ async function signedInPerson(
   assert(performance.now() - start < 5000, `Sign-in as ${username} exceeded 5 seconds`);
   const me = await page.request.get(target.url + '/api/me');
   assert.equal(me.status(), 200);
-  assertPerson(await me.json(), username);
+  assertPerson(await me.json(), username, expected);
   await page.getByRole('button', { name: 'Person menu', exact: true }).click();
   await expect(page.getByRole('menu')).toContainText(TEST_USERS[username].name);
-  if (username === 'alice' || username === 'olga') {
-    await expect(page.getByRole('menu')).toContainText('Editor');
-  }
-  if (username === 'bob') await expect(page.getByRole('menu')).toContainText('Steward');
+  if (expected) await expect(page.getByRole('menu')).toContainText(expected.name);
   await page.keyboard.press('Escape');
 }
 
@@ -237,6 +260,77 @@ async function checkPerson(browser: Browser, target: SignInTarget, username: Tes
       await page.getByRole('link', { name: 'Sign in again' }).click();
       assert(page.url().startsWith(target.issuer));
     }
+  } finally {
+    await context.close();
+  }
+}
+
+/** Checks that a Sales reader receives only visible definitions and derived exports. */
+export async function readVisibilityChecks(browser: Browser, target: SignInTarget) {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  const forbidden = [
+    'LEAK-hr-',
+    'LEAK-sales-contracts-finance/',
+    'hr-people',
+    'finance/revenue-recognition.odcs.yaml',
+  ];
+  const assertReadable = (text: string) => {
+    for (const marker of forbidden) assert(!text.includes(marker), `Unreadable data: ${marker}`);
+  };
+  try {
+    // Alice's groups were narrowed to Sales Viewers for this check.
+    const viewer: ExpectedRole = {
+      roleId: 'viewer',
+      name: 'Viewer',
+      via: 'group',
+      reason: 'Sales Viewer must come from the group grant',
+    };
+    await signIn(page, target, 'alice', viewer);
+    await expect(page.getByRole('tree', { name: 'Projects' })).toBeVisible();
+    await expect(page.getByText('1 file you cannot open')).toBeVisible();
+    assertReadable(await page.locator('body').innerText());
+    for (const path of [
+      '/api/projects',
+      '/api/documents',
+      '/api/agent/catalog',
+      '/api/projects/sales-metrics/metrics',
+      '/api/agent/context?mappingId=sales-contracts/people.mapping.yaml',
+    ]) {
+      const response = await context.request.get(target.url + path);
+      assert.equal(response.status(), 200);
+      assertReadable(await response.text());
+    }
+    for (const name of ['orders.odcs.yaml', 'people.mapping.yaml']) {
+      await page.getByRole('button', { name, exact: true }).click();
+      for (const tab of [/^Graph/, /^Metrics/, /^Mappings/]) {
+        const control = page.getByRole('button', { name: tab }).first();
+        if (await control.isVisible()) await control.click();
+        assertReadable(await page.locator('body').innerText());
+      }
+    }
+    const downloadText = async (action: () => Promise<void>) => {
+      const downloaded = page.waitForEvent('download');
+      await action();
+      const stream = await (await downloaded).createReadStream();
+      assert(stream);
+      const chunks = [];
+      for await (const chunk of stream) chunks.push(Buffer.from(chunk));
+      assertReadable(Buffer.concat(chunks).toString('utf8'));
+    };
+    await downloadText(async () => {
+      await page.getByRole('button', { name: 'More actions', exact: true }).click();
+      await page.getByRole('menuitem', { name: 'Export', exact: true }).click();
+    });
+    await page.getByRole('button', { name: /^Mappings/ }).click();
+    await expect(page.getByRole('button', { name: 'Export agent context' })).toBeEnabled();
+    await downloadText(() => page.getByRole('button', { name: 'Export agent context' }).click());
+    await page.getByRole('button', { name: 'orders.odcs.yaml', exact: true }).click();
+    await page.locator('.tabs').getByRole('button', { name: 'Catalog', exact: true }).click();
+    const search = page.getByPlaceholder('Find an entity…');
+    await expect(search).toBeVisible();
+    await search.fill('Employee');
+    assertReadable(await page.locator('body').innerText());
   } finally {
     await context.close();
   }

@@ -54,6 +54,16 @@ No Azure, registry or identity provider was contacted; the deploy paths ran agai
 | `pipeline:lint`; dry runs `pr`, `main`, `tag:v0.4.0-alpha.1`, rollback pipeline | passed; Deploy runs on tags only with the deploy connection; Rollback is manual and tag-only |
 | `deploy:azure -- --fake`, `deploy:rollback -- --fake --to previous`, every script's `--help` | passed |
 
+## Read filtering (development machine, 2026-10-22)
+
+| Check | Result |
+| --- | --- |
+| `bun test` | 1,044 passed |
+| `ci:validate --step mutation` | 176 of 176 mutants killed |
+| `test:auth` | passed, including the read-visibility part and "1 file you cannot open" |
+| Browser suites | all passed; `test:lineage`, `test:mappings-layout`, `test:trash` and `test:examples:ui` each failed once while the machine's load average was 56–75 and passed on rerun; no budget was changed |
+| `test:container` | passed (local, server-mode and smoke groups) |
+
 ## Owner trial
 
 The owner records the report of `deploy/trial-runbook.md` here after running it on the target.

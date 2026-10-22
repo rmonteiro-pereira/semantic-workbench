@@ -1,9 +1,12 @@
 // Applies one request-scoped decision and records outcomes before returning an HTTP response.
+import { readableTrash } from '../projects/trash';
+import { LOCAL_READER, type Reader } from '../projects/reader';
+import { hiddenResponses } from '../routes/http';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import type { Workspace } from '../projects/workspace';
 import { errorResponse } from '../routes/http';
-import { createAccessControl } from './authorize';
+import { createAccessControl, type AccessControl, type AccessScope } from './authorize';
 import { emptyAccessConfig } from './access-config';
 import { openAdminRepository, AdminConfigError } from './admin-repo';
 import { createAuditLog, type AuditLog } from './audit';
@@ -16,7 +19,7 @@ import { READ_ACTIONS } from './actions';
 import { requestAuditId } from '../request';
 
 /** The access boundary instance shared across requests. */
-export type AccessControl = ReturnType<typeof createAccessControl>;
+export type { AccessControl } from './authorize';
 /** Optional dependencies for server authentication and isolated middleware tests. */
 export type HandlerOptions = {
   access?: AccessControl;
@@ -36,8 +39,23 @@ export const requestAccess = Symbol('requestAccess');
 /** A request carrying its already resolved access scope. */
 export type AccessRequest = Request & {
   [requestAuditId]?: string;
-  [requestAccess]?: ReturnType<AccessControl['forRequest']>;
+  [requestAccess]?: AccessScope;
 };
+
+/** The request's access scope; an unattached request is a programming error. */
+export function requestScope(request: Request): AccessScope {
+  const scope = (request as AccessRequest)[requestAccess];
+  if (!scope) throw Error('Request has no access scope.');
+  return scope;
+}
+
+/** Resolves the read boundary once; an unattached request is a programming error. */
+export function requestReader(request: Request): Reader {
+  const scope = requestScope(request);
+  return scope.principal.kind === 'local'
+    ? LOCAL_READER
+    : { view: scope.view(), owner: scope.principal.id };
+}
 
 function defaultAccess(ws: Workspace, mode: 'local' | 'server'): AccessControl {
   let config = emptyAccessConfig();
@@ -98,7 +116,7 @@ function auditDenial(audit: AuditLog, input: Parameters<AuditLog['append']>[0]):
 
 function auditInput(request: {
   requestId: string;
-  principal: ReturnType<AccessControl['forRequest']>['principal'];
+  principal: AccessScope['principal'];
   action: RouteAction['action'];
   resource: ResourceRef;
   decision: Decision;
@@ -180,14 +198,34 @@ export function createAccessMiddleware(
     target: { row: RouteAction; resource: ResourceRef },
     principal: Principal,
   ): Promise<Response> {
-    const { row, resource } = target;
+    let { row, resource } = target;
     const scope = access.forRequest(principal);
     request[requestAccess] = scope;
     const noAccess =
       mode === 'server' && (scope.principal.deactivated || !scope.principal.grants.length);
-    const decision: Decision = noAccess
-      ? { allow: false, status: 403, rules: [], reason: 'no-grant' }
-      : scope.authorize(row.action, resource);
+    // Local mode leaves trash lookups to the route, which keeps its own "not found" message.
+    const trashId =
+      mode === 'server'
+        ? new URL(request.url).pathname.match(/^\/api\/trash\/([^/]+)/)?.[1]
+        : undefined;
+    const trashEntry = trashId
+      ? ws.trash.list().find(entry => entry.entryId === trashId)
+      : undefined;
+    const hiddenTrash = Boolean(trashId) && (!trashEntry || !readableTrash(trashEntry, scope));
+    if (!noAccess && trashId && !trashEntry) {
+      return Response.json({ error: 'Not found.' }, { status: 404 });
+    }
+    if (trashEntry) {
+      resource = trashEntry.path
+        ? { type: 'file', project: trashEntry.project, path: trashEntry.path }
+        : { type: 'project', project: trashEntry.project };
+      if (row.action === 'restoreOwn' && trashEntry.owner !== scope.principal.id) {
+        row = { ...row, action: 'restoreOthers' };
+      }
+    }
+    let decision = scope.authorize(row.action, resource);
+    if (hiddenTrash) decision = { allow: false, status: 404, rules: [], reason: 'not-readable' };
+    if (noAccess) decision = { allow: false, status: 403, rules: [], reason: 'no-grant' };
     const input = auditInput({
       requestId,
       principal: scope.principal,
@@ -210,6 +248,14 @@ export function createAccessMiddleware(
       return Response.json(body, { status: decision.status });
     }
     const response = await run(request);
+    if (mode === 'server' && hiddenResponses.has(response)) {
+      const failure = auditDenial(audit, {
+        ...input,
+        decision: 'deny',
+        reason: 'not-readable',
+      });
+      return failure ?? Response.json({ error: 'Not found.' }, { status: 404 });
+    }
     if (shouldAudit(row, request.method, 'allow')) {
       try {
         audit.append({ ...input, decision: 'allow', outcome: outcome(response.status) });
@@ -217,6 +263,9 @@ export function createAccessMiddleware(
         // The operation already ran; a failure response could trigger a duplicate write on retry.
         console.error(`Audit append failed for request ${requestId}`);
       }
+    }
+    if (mode === 'server' && response.status === 404) {
+      return Response.json({ error: 'Not found.' }, { status: 404 });
     }
     return response;
   }

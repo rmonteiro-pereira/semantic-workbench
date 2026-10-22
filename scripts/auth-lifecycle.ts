@@ -110,6 +110,21 @@ async function failedDirectory(browser: Browser, target: SignInTarget, mock: Moc
   }
 }
 
+async function openFileUnlessLeft(page: Page) {
+  const project = page.getByRole('treeitem', { name: 'sales-contracts', exact: true });
+  try {
+    if ((await project.getAttribute('aria-expanded', { timeout: 5000 })) === 'false') {
+      await project.getByRole('button', { name: 'sales-contracts', exact: true }).click();
+    }
+    await project.getByRole('button', { name: 'orders.odcs.yaml', exact: true }).click();
+  } catch (error) {
+    // Navigation to the provider removed the tree while the steps ran; the URL check decides.
+    if (!(error instanceof Error) || !/Timeout|detached|closed|navigat/i.test(error.message)) {
+      throw error;
+    }
+  }
+}
+
 async function expiredSession(browser: Browser, target: SignInTarget, mock: MockOidc) {
   mock.setLifetimes({ accessToken: 6, refreshToken: 6 });
   const context = await browser.newContext();
@@ -120,13 +135,12 @@ async function expiredSession(browser: Browser, target: SignInTarget, mock: Mock
       'session expiry',
       async () => (await page.request.get(target.url + '/api/me')).status() === 401,
     );
-    // A normal file request must recover through the frontend wrapper, without a manual reload.
-    const project = page.getByRole('treeitem', { name: 'sales-contracts', exact: true });
-    if ((await project.getAttribute('aria-expanded')) === 'false') {
-      await project.getByRole('button', { name: 'sales-contracts', exact: true }).click();
-    }
-    await project.getByRole('button', { name: 'orders.odcs.yaml', exact: true }).click();
-    await expect(page).toHaveURL(new RegExp(target.issuer.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+    // The page returns to the provider without a manual reload: either the live-update stream
+    // reports the ended session first, or the next file request is answered 401 and the frontend
+    // wrapper reloads.
+    const provider = new RegExp(target.issuer.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    if (!provider.test(page.url())) await openFileUnlessLeft(page);
+    await expect(page).toHaveURL(provider);
   } finally {
     mock.setLifetimes({ accessToken: 3600, refreshToken: 86400 });
     await context.close();

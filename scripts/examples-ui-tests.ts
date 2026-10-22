@@ -1,4 +1,5 @@
 // Checks example loading, mappings and metric composition in the browser.
+import { LOCAL_READER } from '../server/projects/reader';
 import { appUrl } from './helpers/base-url';
 import { chromium, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
@@ -517,10 +518,12 @@ try {
         .replace('name: Commerce ontology mapping', 'name: Broken commerce mapping')
         .replace('expression: orders.amount', 'expression: orders.amount_missing');
       await api.ws.importInto(
-        (await api.ws.listProjects()).find(p =>
-          p.files.some(f => f.path === 'commerce.mapping.yaml'),
+        (await api.ws.listProjects(LOCAL_READER)).find(project =>
+          project.files.some(file => file.path === 'commerce.mapping.yaml'),
         )!.slug,
         [{ path: 'commerce.broken.mapping.yaml', source: broken }],
+        undefined,
+        LOCAL_READER,
       );
       const select = page.getByLabel('Mapping document');
       await expect(select.locator('option', { hasText: 'Broken commerce mapping' })).toHaveCount(1);

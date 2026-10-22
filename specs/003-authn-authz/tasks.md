@@ -216,19 +216,19 @@ roll back; any Azure environment holds only fixture data until Phases 7–9 are 
 **Independent Test**: `bun test tests/auth/matrix.test.ts` (read part) and `bun run test:auth`
 (hidden files part).
 
-- [ ] T038 [P] [US2] Authorization test matrix tests/auth/matrix.test.ts (read part): every read route of tests/auth/route-actions.ts × users of T006 × readable/unreadable targets; asserts status and scans every body for `LEAK-` markers and unreadable paths/project names (SC-001, SC-002)
-- [ ] T039 [P] [US2] SSE filter tests in tests/auth/events-filter.test.ts: live and replayed events, multi-item events reduced, per-person suggestions count, `access` event and close on grant change
-- [ ] T040 [P] [US2] Git history filter tests in tests/auth/git-filter.test.ts: log lists readable paths only and `hiddenCommits`, show/diff/versions 404 for restricted or removed-restricted paths
-- [ ] T041 [US2] `documentsFor(view)` and readable listings in server/projects/workspace.ts; `GET /api/projects` returns readable projects with `hiddenFiles`; unreadable project/file → NotFoundError (FR-040, FR-045)
-- [ ] T042 [US2] Replace `ws.documents()` with `documentsFor(view)` in server/handler.ts (agent catalog/context/plan, `/api/documents`), server/routes/metrics.ts, server/routes/kpis.ts and the 002 metrics routes; agent context resolves ontologies and models only within readable projects in server/agent/runtime.ts (FR-041)
-- [ ] T043 [US2] Delete impact (`hiddenReferences`), suggestions computed over readable files, conflict messages without names for unreadable occupants (move, import, restore) in server/projects/workspace.ts, server/projects/suggestions.ts, server/projects/trash.ts (FR-045)
-- [ ] T044 [US2] Tagged events and per-connection filtering, filtered replay, per-person suggestions count in server/projects/events.ts (contracts/sse-events.md, FR-042)
-- [ ] T045 [US2] Git read routes filtered in server/routes/git.ts and server/projects/scm.ts (FR-043)
-- [ ] T046 [US2] Trash listing/undo/restore/purge filtered by readable paths and ownership; drafts owner-only in server/routes/trash.ts, server/routes/drafts.ts (FR-044)
-- [ ] T047 [US2] `/api/status` reduced for non-Admins in server/routes/projects.ts (FR-047)
-- [ ] T048 [US2] UI: "N files you cannot open" line per project in src/projects/Sidebar.tsx; unresolved-reference stubs unchanged in lineage and mapping graph
-- [ ] T049 [US2] Browser check scripts/auth-browser-check.ts (part 2): Sales Viewer sees no HR project, restricted files counted, search/lineage/mapping graph/metrics/document export/agent-context export contain no markers (FR-046)
-- [ ] T050 [US2] Mutants: filter returns unfiltered list; SSE send skips filter; replay skips filter; draft served to non-owner; trash lists others' entries; git show ignores path rule; agent context falls back to an unreadable project — in scripts/mutation-tests.ts
+- [X] T038 [P] [US2] Authorization test matrix tests/auth/matrix.test.ts (read part): every read route of tests/auth/route-actions.ts × users of T006 × readable/unreadable targets; asserts status and scans every body for `LEAK-` markers and unreadable paths/project names (SC-001, SC-002)
+- [X] T039 [P] [US2] SSE filter tests in tests/auth/events-filter.test.ts: live and replayed events, multi-item events reduced, per-person suggestions count, `access` event and close on grant change
+- [X] T040 [P] [US2] Git history filter tests in tests/auth/git-filter.test.ts: log lists readable paths only and `hiddenCommits`, show/diff/versions 404 for restricted or removed-restricted paths
+- [X] T041 [US2] `documentsFor(view)` and readable listings in server/projects/workspace.ts; `GET /api/projects` returns readable projects with `hiddenFiles`; unreadable project/file → NotFoundError (FR-040, FR-045)
+- [X] T042 [US2] Replace `ws.documents()` with `documentsFor(view)` in server/handler.ts (agent catalog/context/plan, `/api/documents`), server/routes/metrics.ts, server/routes/kpis.ts and the 002 metrics routes; agent context resolves ontologies and models only within readable projects in server/agent/runtime.ts (FR-041)
+- [X] T043 [US2] Delete impact (`hiddenReferences`), suggestions computed over readable files, conflict messages without names for unreadable occupants (move, import, restore) in server/projects/workspace.ts, server/projects/suggestions.ts, server/projects/trash.ts (FR-045)
+- [X] T044 [US2] Tagged events and per-connection filtering, filtered replay, per-person suggestions count in server/projects/events.ts (contracts/sse-events.md, FR-042)
+- [X] T045 [US2] Git read routes filtered in server/routes/git.ts and server/projects/scm.ts (FR-043)
+- [X] T046 [US2] Trash listing/undo/restore/purge filtered by readable paths and ownership; drafts owner-only in server/routes/trash.ts, server/routes/drafts.ts (FR-044)
+- [X] T047 [US2] `/api/status` reduced for non-Admins in server/routes/projects.ts (FR-047)
+- [X] T048 [US2] UI: "N files you cannot open" line per project in src/projects/Sidebar.tsx; unresolved-reference stubs unchanged in lineage and mapping graph
+- [X] T049 [US2] Browser check scripts/auth-browser-check.ts (part 2): Sales Viewer sees no HR project, restricted files counted, search/lineage/mapping graph/metrics/document export/agent-context export contain no markers (FR-046)
+- [X] T050 [US2] Mutants: filter returns unfiltered list; SSE send skips filter; replay skips filter; draft served to non-owner; trash lists others' entries; git show ignores path rule; agent context falls back to an unreadable project — in scripts/mutation-tests.ts
 
 **Checkpoint**: zero leaked markers across the read matrix.
 

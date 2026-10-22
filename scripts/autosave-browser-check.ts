@@ -1,4 +1,5 @@
 // Checks automatic saves, stale drafts and commits using an isolated workspace and local remote.
+import { LOCAL_READER } from '../server/projects/reader';
 import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -257,7 +258,7 @@ try {
     await expect(page.locator('main > .status')).toContainText('Imported 1 file', {
       timeout: 8000,
     });
-    const slug = (await api.ws.listProjects()).find(p =>
+    const slug = (await api.ws.listProjects(LOCAL_READER)).find(p =>
       p.files.some(f => f.path === 'imported.ossie.yaml'),
     )!.slug;
     const d = projectDir(api.ws.layout, slug);

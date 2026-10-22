@@ -442,19 +442,22 @@ export function createGit(options: GitOptions) {
         [
           'log',
           '-z',
+          '--name-only',
           `-n${Math.max(1, Math.min(500, limit))}`,
-          '--format=%H%x1f%an%x1f%aI%x1f%s',
+          '--format=%x1e%H%x1f%an%x1f%aI%x1f%s%x00',
           ...(path ? [...(path.endsWith('/') ? [] : ['--follow']), '--', path] : []),
         ],
         true,
       );
       if (r.code !== 0) return [];
       return r.stdout
-        .split('\0')
+        .split('\x1e')
         .filter(Boolean)
-        .map(rec => {
-          const [commit, author, date, message] = rec.replace(/^\n/, '').split('\x1f');
-          return { commit, author, date, message };
+        .map(record => {
+          const [header, ...names] = record.split('\0');
+          const [commit, author, date, message] = header.split('\x1f');
+          const paths = names.map(name => name.replace(/^\n/, '')).filter(Boolean);
+          return { commit, author, date, message, paths };
         });
     },
   };

@@ -57,7 +57,7 @@ export function GitBanner({ status }: { status: WorkspaceStatus | null }) {
       tone: 'warning',
       text: `The previous SQLite workspace was not migrated: ${m.reason} It will be tried again on the next start.`,
     });
-  for (const r of status.recovery)
+  for (const r of status.recovery ?? [])
     notes.push({
       id: 'recovery-' + r.opId,
       tone: 'info',

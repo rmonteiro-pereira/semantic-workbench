@@ -49,3 +49,11 @@ export class ConflictError extends Error {
     this.name = 'ConflictError';
   }
 }
+
+/** Conceals an unreadable resource while distinguishing it from an ordinary missing item. */
+export class HiddenResourceError extends Error {
+  constructor() {
+    super('Not found.');
+    this.name = 'HiddenResourceError';
+  }
+}

@@ -1,5 +1,7 @@
 // Previews metric changes and saves related files in one journaled operation. Previews never
 // execute SQL.
+import { OccupiedError } from '../projects/errors';
+import { requestReader } from '../auth/middleware';
 import { readJson } from '../request';
 import { MAX_INPUT_BYTES } from '../../src/diagnostics';
 import { explainMetric } from '../agent/explain';
@@ -29,7 +31,7 @@ export const kpiRoutes: Route = async (ws, req, url) => {
         throw Error(
           'Each file needs a path, the SHA-256 of the version the edit started from (null for a new file), and either source or patches.',
         );
-    return Response.json(await ws.saveFiles(slug, body.files, 'save-batch'));
+    return Response.json(await ws.saveFiles(slug, body.files, requestReader(req), 'save-batch'));
   }
   // Keep the older `kpis` paths as aliases for existing clients.
   const m = url.pathname.match(/^\/api\/projects\/([^/]+)\/(?:metrics|kpis)(\/preview)?$/);
@@ -63,7 +65,12 @@ export const kpiRoutes: Route = async (ws, req, url) => {
     throw Error(
       'Expected {semanticPath, metric: {name, expression, description?, datatype?}, extension, binding?: {measures, of?}, baseHashes}.',
     );
-  const documents = ws.documents().filter(d => d.project === slug);
+  const { view } = requestReader(req);
+  const targetPaths = [body.semanticPath, ...Object.keys(body.baseHashes ?? {})];
+  if (view && targetPaths.some(path => !view.canRead(slug, path))) {
+    throw new OccupiedError('The target is unavailable.', {});
+  }
+  const documents = ws.documentsFor(requestReader(req)).filter(d => d.project === slug);
   let plan;
   try {
     plan = planKpiSave(
@@ -120,5 +127,5 @@ export const kpiRoutes: Route = async (ws, req, url) => {
       throw Error(`baseHashes must include the hash of ${w.path} as you last read it.`);
     return { path: w.path, baseHash: hash, source: w.source };
   });
-  return Response.json(await ws.saveFiles(slug, writes, 'kpi'));
+  return Response.json(await ws.saveFiles(slug, writes, requestReader(req), 'kpi'));
 };

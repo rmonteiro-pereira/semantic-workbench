@@ -1,4 +1,5 @@
 // Exposes project source control operations. Remote actions run only through explicit requests.
+import { requestReader } from '../auth/middleware';
 import { existsSync, readFileSync } from 'node:fs';
 import { readJson } from '../request';
 import { decode, sha256 } from '../projects/atomic';
@@ -24,6 +25,8 @@ export const gitRoutes: Route = async (ws, req, url) => {
   const action = m[2];
   const q = url.searchParams;
   const scm = ws.scm;
+  const reader = requestReader(req);
+
   const body = async (keys: string[]) => {
     const b = await readJson(req, 64_000);
     if (
@@ -36,7 +39,7 @@ export const gitRoutes: Route = async (ws, req, url) => {
     return b;
   };
   if (req.method === 'GET') {
-    if (action === 'git/status') return Response.json(await scm.status(slug));
+    if (action === 'git/status') return Response.json(await scm.status(slug, reader));
     if (action === 'git/identity') return Response.json(await ws.identity(slug));
     if (action === 'git/diff') {
       const repoPath = q.get('repoPath');
@@ -44,7 +47,14 @@ export const gitRoutes: Route = async (ws, req, url) => {
       if (!path) throw Error('path or repoPath is required.');
       const base = repoPath === null ? 'project' : 'repository';
       return Response.json(
-        await scm.diff(slug, path, q.get('from') ?? 'HEAD', q.get('to') ?? 'worktree', base),
+        await scm.diff(
+          slug,
+          path,
+          q.get('from') ?? 'HEAD',
+          q.get('to') ?? 'worktree',
+          base,
+          reader,
+        ),
       );
     }
     if (action === 'git/branches') return Response.json(await scm.branches(slug));
@@ -54,20 +64,21 @@ export const gitRoutes: Route = async (ws, req, url) => {
           slug,
           q.get('path') ?? undefined,
           q.has('limit') ? Number(q.get('limit')) : undefined,
+          reader,
         ),
       );
     if (action === 'git/versions') {
       const path = q.get('path');
       if (!path) throw Error('path is required.');
       return Response.json(
-        await scm.versions(slug, path, q.has('limit') ? Number(q.get('limit')) : undefined),
+        await scm.versions(slug, path, q.has('limit') ? Number(q.get('limit')) : undefined, reader),
       );
     }
     if (action === 'git/show') {
       const commit = q.get('commit');
       const path = q.get('path');
       if (!commit || !path) throw Error('commit and path are required.');
-      return Response.json(await scm.show(slug, commit, path));
+      return Response.json(await scm.show(slug, commit, path, reader));
     }
     return null;
   }

@@ -221,3 +221,55 @@ Keycloak and container targets. Provider startup stays at the edges. Environment
 container arguments, discovery/readiness predicates, bounded waits and parsed identity assertions
 have offline unit tests. The gate builds the auth frontend without starting Vite; the server
 container group exercises the image itself. Keycloak remains outside the delivery gate.
+
+Read filtering uses the required `Reader` value from `requestReader()` in
+`auth/middleware.ts`. It carries the request's view and personal state owner. Every workspace
+service that reads or writes on a person's behalf requires it, including grouping views, legacy
+document saves and clones; local and internal operations explicitly pass `LOCAL_READER`.
+Omitting a reader must fail compilation, never grant unrestricted access. Routes that need the
+scope itself use `requestScope()`. Derived agent and metric services receive only filtered
+documents and cannot resolve hidden references. Workspace modules import the scope type
+`AccessScope` from `auth/authorize.ts`, never from the HTTP middleware.
+
+Every `events.emit` call requires tags: either `{ audience: 'all' }` for a payload safe for
+every connected reader, or explicit `projects`/`paths`. Ownership and working-copy tags further
+restrict delivery. Tags alone determine readability; publishers must tag every resource named
+in the payload. Resource-list payloads are reduced to their readable tagged items. Live delivery
+and replay apply the same filter with `scope.view()` evaluated at delivery time. Identity events
+tag the projects sharing their repository; recovery broadcasts contain no resource names.
+
+A removed project has no grants left to evaluate at delivery. Publishers of removals (deleting a
+project, Clear, and taking a project out of the workspace) therefore call
+`events.withCurrentReaders()` before the registry write. It records, per project, the connected
+principals who can read it then, and delivery uses that list instead of the live view. A person
+who could not read the project never receives its slug. Clients that reconnect refetch
+everything, so a missed removal is not lost.
+
+Trash events use one rule with the trash listing: `readableTrash()` in `projects/trash.ts`
+requires every original path to be readable and `restoreOwn` or `restoreOthers` to be allowed.
+An entry without original paths, such as a deleted empty project, falls back to the project:
+it is visible to whoever may restore that project, in listings and events.
+
+Suggestion counts are per person in server mode. The workspace always sends a payload-free
+`suggestions` trigger; the event hub debounces it, builds one unrestricted file index per round
+and narrows it to each connected principal's view. A failure for one person is logged and does
+not stop the others. Each person receives a count only when it changes. Clients without a
+personal scope (local mode) share one count, also announced only when it changes.
+Access reloads close streams and reload every open tab.
+
+`state.forOwner()` exposes only `PersonalState`: drafts, grouping views and suggestion dismissals
+under `state/users/`. Local state paths are unchanged. File saves, imports that replace a file,
+reverts, moves, deletions and restores journal changes for every owner's personal state,
+including owners without active sessions. `projects/personal-state.ts` owns those journal steps.
+A move never replaces a draft that already exists at the destination, shared or personal.
+Keep-both moves and imports choose the new name among the names the reader can see and the
+names already taken in the same batch. They refuse a name the reader cannot open or one that
+exists on disk out of the reader's sight, before anything is written. Trash metadata records ownership and original paths. In server mode the
+middleware resolves a targeted trash entry once; local mode leaves trash lookups to the route.
+Hidden-resource errors use the same 404 body as missing items, but only hidden denials receive
+denial audit records.
+
+Git content checks apply even when a requested path has disappeared from the working tree.
+Repository ownership always uses the longest matching project prefix. History reads use one
+`git log --name-only -z` invocation, exposing readable commits and a hidden-commit count;
+local history retains its array response.

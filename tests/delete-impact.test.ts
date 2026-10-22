@@ -1,4 +1,5 @@
 // Tests references and drafts affected by deletion.
+import { LOCAL_READER } from '../server/projects/reader';
 import { test, expect } from 'bun:test';
 import { testWorkspace, example } from './helpers/temp-data-dir';
 const flights = async () =>
@@ -33,7 +34,7 @@ test('delete impact lists removed items, unsaved drafts and references that brea
         name: 'Flights',
       },
     ]);
-    const whole = t.ws.deleteImpact(slug);
+    const whole = t.ws.deleteImpact(slug, undefined, LOCAL_READER);
     expect(whole.removes).toEqual({
       project: slug,
       name: 'Flights',
@@ -41,7 +42,9 @@ test('delete impact lists removed items, unsaved drafts and references that brea
     });
     expect(whole.brokenReferences).toEqual([]);
     expect(
-      t.ws.deleteImpact(slug, 'flights.semantic_model.yaml').brokenReferences.map(b => b.name),
+      t.ws
+        .deleteImpact(slug, 'flights.semantic_model.yaml', LOCAL_READER)
+        .brokenReferences.map(b => b.name),
     ).toEqual(['Flights semantic model']);
     // A second copy of the ontology elsewhere keeps the reference resolvable.
     await t.ws.importBatch({
@@ -50,7 +53,9 @@ test('delete impact lists removed items, unsaved drafts and references that brea
         { path: 'flights.ontology.yaml', source: await example('ossie', 'flights.ontology.yaml') },
       ],
     });
-    expect(t.ws.deleteImpact(slug, 'flights.ontology.yaml').brokenReferences).toEqual([]);
+    expect(t.ws.deleteImpact(slug, 'flights.ontology.yaml', LOCAL_READER).brokenReferences).toEqual(
+      [],
+    );
     expect(
       (
         await t.handler(

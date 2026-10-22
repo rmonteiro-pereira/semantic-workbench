@@ -737,6 +737,51 @@ const mutants: [string, string, string, string][] = [
     'await deps.rescan(slug);',
   ],
 ];
+mutants.push(
+  [
+    'read-workspace',
+    'server/projects/workspace.ts',
+    '.filter(f => f.visible && (!view || view.canRead(p.slug, f.path)))',
+    '.filter(f => f.visible)',
+  ],
+  [
+    'read-events',
+    'server/projects/events.ts',
+    'const visible = access ? readableEvent(e, access) : e;\n        if (visible)',
+    'const visible = e;\n        if (visible)',
+  ],
+  [
+    'read-events',
+    'server/projects/events.ts',
+    "if (event.event !== 'suggestions') return access ? readableEvent(event, access) : event;",
+    "if (event.event !== 'suggestions') return event;",
+  ],
+  [
+    'read-drafts',
+    'server/routes/drafts.ts',
+    'owner ? ws.state.forOwner(owner) : ws.state',
+    'ws.state',
+  ],
+  [
+    'read-trash',
+    'server/projects/trash.ts',
+    "scope.authorize(action, { type: 'file', project: file.project, path: file.path }).allow",
+    'true',
+  ],
+  [
+    'read-git',
+    'server/routes/git.ts',
+    'scm.show(slug, commit, path, reader)',
+    'scm.show(slug, commit, path, { view: undefined, owner: undefined })',
+  ],
+  [
+    'read-agent',
+    'server/handler.ts',
+    'buildContext(ws.documentsFor(requestReader(req)), mappingRef(mappingId))',
+    'buildContext(ws.documents(), mappingRef(mappingId))',
+  ],
+);
+
 let killed = 0;
 async function run(category: string, file: string, source: string, index: string) {
   const rewritten = source.replace(

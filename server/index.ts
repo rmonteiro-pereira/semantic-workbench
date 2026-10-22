@@ -41,7 +41,11 @@ const lock = createInstanceLock({
   },
 });
 async function initializeWorkspace() {
-  workspace = await openWorkspace({ root: config.dataDir, cacheDir: config.cacheDir, watch: true });
+  workspace = await openWorkspace({
+    root: config.dataDir,
+    cacheDir: config.cacheDir,
+    watch: true,
+  });
   if (config.mode === 'server') {
     authentication = await createServerAuthentication(workspace, config, oidc);
   }

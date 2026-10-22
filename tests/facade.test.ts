@@ -1,4 +1,5 @@
 // Tests compatibility of the document API over the folder store.
+import { LOCAL_READER } from '../server/projects/reader';
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { editEntity, inspect } from '../src/model';
@@ -13,22 +14,28 @@ test('edits preserve unknown fields and comments', () => {
 test('facade save indexes into the cache and rejects stale updates', async () => {
   const t = await testWorkspace();
   try {
-    const d = await t.ws.saveDocument('a.yaml', yaml);
+    const d = await t.ws.saveDocument('a.yaml', yaml, LOCAL_READER);
     expect(d.id).toBe('ungrouped/a.yaml');
     expect(t.ws.cache.entities('ungrouped', 'a.yaml')).toHaveLength(1);
     await expect(
-      t.ws.saveDocument('a.yaml', 'name: invalid', d.id, { revision: d.revision }),
+      t.ws.saveDocument('a.yaml', 'name: invalid', LOCAL_READER, d.id, { revision: d.revision }),
     ).rejects.toThrow();
     expect(t.ws.documents()[0].source).toBe(yaml);
-    await t.ws.saveDocument('a.yaml', editEntity(yaml, ['ontology', 0], 'Updated'), d.id, {
-      revision: d.revision,
-    });
-    await expect(t.ws.saveDocument('a.yaml', yaml, d.id, { revision: d.revision })).rejects.toThrow(
-      'changed',
+    await t.ws.saveDocument(
+      'a.yaml',
+      editEntity(yaml, ['ontology', 0], 'Updated'),
+      LOCAL_READER,
+      d.id,
+      {
+        revision: d.revision,
+      },
     );
-    await expect(t.ws.saveDocument('a.yaml', yaml, d.id, { baseHash: d.hash })).rejects.toThrow(
-      'changed',
-    );
+    await expect(
+      t.ws.saveDocument('a.yaml', yaml, LOCAL_READER, d.id, { revision: d.revision }),
+    ).rejects.toThrow('changed');
+    await expect(
+      t.ws.saveDocument('a.yaml', yaml, LOCAL_READER, d.id, { baseHash: d.hash }),
+    ).rejects.toThrow('changed');
   } finally {
     t.dispose();
   }
@@ -45,7 +52,7 @@ test('folder store retains RDF/XML and SHACL sources byte for byte', async () =>
   try {
     for (const filename of ['commerce.owl', 'commerce.shacl.ttl']) {
       const source = await Bun.file('public/examples/commerce/' + filename).text();
-      await t.ws.saveDocument(filename, source);
+      await t.ws.saveDocument(filename, source, LOCAL_READER);
       expect(t.ws.documents().find(d => d.filename === filename)!.source).toBe(source);
       expect(readFileSync(`${t.root}/projects/ungrouped/${filename}`, 'utf8')).toBe(source);
     }

@@ -1,4 +1,5 @@
 // Tests project management through the API.
+import { LOCAL_READER } from '../server/projects/reader';
 import { test, expect } from 'bun:test';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -39,8 +40,8 @@ test('a file moves between projects with its view settings; an occupied target i
     ).toEqual({ project: 'alpha', path: 'b.yaml' });
     expect(readFileSync(join(t.root, 'projects/alpha/b.yaml'), 'utf8')).toBe(ont('B2'));
     expect(existsSync(join(t.root, 'projects/beta/b.yaml'))).toBe(false);
-    expect(t.ws.grouping('alpha/b.yaml')).toEqual({ mode: 'types' });
-    expect(t.ws.grouping('beta/b.yaml')).toEqual({});
+    expect(t.ws.grouping('alpha/b.yaml', LOCAL_READER)).toEqual({ mode: 'types' });
+    expect(t.ws.grouping('beta/b.yaml', LOCAL_READER)).toEqual({});
     const clash = await api(t, 'POST', '/api/projects/beta/move', {
       path: 'a.yaml',
       toProject: 'alpha',

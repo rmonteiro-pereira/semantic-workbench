@@ -638,3 +638,19 @@ The code style is part of the project's constitution (principle VIII, Readable C
   the code you touch.
 - `.git-blame-ignore-revs` lists the mechanical reformat; run
   `git config blame.ignoreRevsFile .git-blame-ignore-revs` once to skip it in `git blame`.
+
+### What readers see in server mode
+
+Project lists, search, graphs, metrics, document exports and agent context use only readable
+files. A hidden project has no name or count in the workspace. A readable project with restricted
+paths shows “N files you cannot open”; links already written in visible files remain unresolved
+when their target is hidden. Direct requests for unreadable files and their Git history return
+404. Git history counts commits that touch only hidden paths without exposing their messages;
+messages on visible commits can still mention confidential names, so avoid putting secrets in
+commit messages.
+
+Drafts, grouping state and dismissed suggestions belong to the signed-in person. Trash entries
+require readable original paths and permission to restore your own or another person’s entries.
+Live events and reconnect replay are filtered for each reader. An access change closes the stream
+and reloads every open tab. Non-Admins receive only readiness, mode and Git availability from
+`/api/status`. Local mode retains its existing shared workspace behavior.

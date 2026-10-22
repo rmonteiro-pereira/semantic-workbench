@@ -78,3 +78,9 @@ test('identity retries a rejected request and shares the successful promise', as
     globalThis.fetch = original;
   }
 });
+
+test('the sidebar names one hidden file in the singular', async () => {
+  const { hiddenFilesLine } = await import('../../src/projects/Sidebar');
+  expect(hiddenFilesLine(1)).toBe('1 file you cannot open');
+  expect(hiddenFilesLine(3)).toBe('3 files you cannot open');
+});

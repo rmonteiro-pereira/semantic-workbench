@@ -17,6 +17,7 @@ export type ProjectFile = {
 };
 /** Summarizes a project, its Git state and indexed files. */
 export type ProjectInfo = {
+  hiddenFiles?: number;
   slug: string;
   name: string;
   origin: string;
@@ -79,10 +80,16 @@ export type Doc = {
   hash: string;
 };
 /** Reports Git availability, identity setup, migration and recovery results. */
+/**
+ * Workspace status. In server mode only Admins receive the details; everyone else gets
+ * `{ mode, gitAvailable, ready }`, so every detail field is optional.
+ */
 export type WorkspaceStatus = {
   gitAvailable: boolean;
-  identityConfigured: boolean;
-  migration: null | {
+  mode?: 'local' | 'server';
+  ready?: boolean;
+  identityConfigured?: boolean;
+  migration?: null | {
     status: 'completed' | 'postponed' | 'failed';
     reason?: string;
     backup?: string;
@@ -90,7 +97,7 @@ export type WorkspaceStatus = {
     files: number;
     verified: number;
   };
-  recovery: { opId: string; kind: string; outcome: string; paths: string[] }[];
+  recovery?: { opId: string; kind: string; outcome: string; paths: string[] }[];
   repositories?: { repo: string; identityConfigured: boolean; projects: string[] }[];
 };
 // The browser shares these shapes with the API instead of keeping copies that could drift.
@@ -177,12 +184,19 @@ export const fileUrl = (project: string, path: string) =>
 let leavingPage = false;
 
 /**
- * Records that the page is navigating away, for example to sign out. Requests answered with 401
- * after that point must not reload the page, because a reload would cancel the navigation and
- * start a new sign-in instead.
+ * Records that the page is navigating away, for example to sign out. A 401 answer or an access
+ * event after that point must not reload the page, because a reload would cancel the navigation
+ * and start a new sign-in instead.
  */
 export function startLeavingPage() {
   leavingPage = true;
+}
+
+/** Reloads once so the server can apply a changed session or access, unless the page is leaving. */
+export function reloadForAccessChange() {
+  if (leavingPage) return;
+  leavingPage = true;
+  globalThis.location.reload();
 }
 
 /** Sends same-origin API requests and restarts authentication once after session expiry. */
@@ -190,10 +204,7 @@ export async function apiFetch(input: string, options: RequestInit = {}): Promis
   const headers = new Headers(options.headers);
   headers.set('X-SW-Request', '1');
   const response = await globalThis.fetch(input, { ...options, headers });
-  if (response.status === 401 && !leavingPage) {
-    leavingPage = true;
-    globalThis.location.reload();
-  }
+  if (response.status === 401) reloadForAccessChange();
   return response;
 }
 
@@ -497,7 +508,9 @@ export const scm = {
   log: (p: string, path?: string, limit = 50) =>
     apiFetch(
       gitUrl(p, 'git/log') + `?limit=${limit}${path ? '&path=' + encodeURIComponent(path) : ''}`,
-    ).then(r => json<GitCommit[]>(r)),
+    )
+      .then(r => json<GitCommit[] | { commits: GitCommit[]; hiddenCommits: number }>(r))
+      .then(history => (Array.isArray(history) ? { commits: history, hiddenCommits: 0 } : history)),
   versions: (p: string, path: string, limit = 20) =>
     apiFetch(gitUrl(p, 'git/versions') + `?path=${encodeURIComponent(path)}&limit=${limit}`).then(
       r => json<(GitCommit & { source: string })[]>(r),

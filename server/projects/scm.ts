@@ -1,5 +1,9 @@
 // Connects project source control actions to Git and workspace updates. Checks after mutations
 // detect bytes rewritten by hooks or filters.
+import type { EventTags } from './events';
+import type { AccessView } from '../auth/authorize';
+import { LOCAL_READER, type Reader } from './reader';
+import { HiddenResourceError } from './errors';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
@@ -49,7 +53,7 @@ export type ScmDeps = {
   rescan: (slug: string) => Promise<unknown>;
   /** The projects that share this project's repository, itself included. */
   siblings: (slug: string) => string[];
-  emit: (event: string, data: unknown) => void;
+  emit: (event: string, data: unknown, tags: EventTags) => void;
   project: (slug: string) => unknown;
 };
 /** Creates project source control operations with draft checks and workspace notifications. */
@@ -90,7 +94,27 @@ export function createScm(deps: ScmDeps) {
   // The project a changed file belongs to, and its path inside that project.
   const ownership = (owner: { project: string; prefix: string } | undefined, path: string) =>
     owner ? { project: owner.project, projectPath: path.slice(owner.prefix.length) } : {};
-  async function status(slug: string) {
+  function ownerOf(slug: string, path: string) {
+    return deps
+      .siblings(slug)
+      .map(project => ({ project, prefix: prefix(project) }))
+      .filter(owner => path.startsWith(owner.prefix))
+      .sort((left, right) => right.prefix.length - left.prefix.length)[0];
+  }
+  function readablePath(slug: string, path: string, view: AccessView, base: PathBase = 'project') {
+    const repoPath = (base === 'project' ? prefix(slug) : '') + projectPath(path);
+    const owner = ownerOf(slug, repoPath)?.project;
+    return Boolean(
+      owner &&
+      view.readableProjects.has(owner) &&
+      view.canRead(owner, repoPath.slice(prefix(owner).length)),
+    );
+  }
+
+  function requireReadable(slug: string, path: string, view?: AccessView, base?: PathBase) {
+    if (view && !readablePath(slug, path, view, base)) throw new HiddenResourceError();
+  }
+  async function status(slug: string, { view }: Reader) {
     if (!deps.gitAvailable)
       return {
         branch: '',
@@ -106,16 +130,11 @@ export function createScm(deps: ScmDeps) {
     const d = dir(slug);
     const s = await git.status(d);
     const merging = await git.merging(d);
-    const owners = deps.siblings(slug).map(project => ({ project, prefix: prefix(project) }));
-    // The project a changed file belongs to, so a shared repository's panel can say so.
-    const ownerOf = (path: string) =>
-      owners.find(owner => owner.prefix && path.startsWith(owner.prefix)) ??
-      owners.find(owner => !owner.prefix);
     const changes = s.entries.map(e => ({
       ...e,
       ...fromRepo(slug, e.path),
       repoPath: e.path,
-      ...ownership(ownerOf(e.path), e.path),
+      ...ownership(ownerOf(slug, e.path), e.path),
       hidden: serializationOf(e.path) === 'unsupported',
       ...(serializationOf(e.path) === 'unsupported' ? { label: HIDDEN_LABEL } : {}),
     }));
@@ -130,7 +149,16 @@ export function createScm(deps: ScmDeps) {
       remotes: Object.fromEntries(
         [...(await git.remotes(d))].map(([n, u]) => [n, redactCredentials(u)]),
       ),
-      changes,
+      changes: view
+        ? changes
+            .filter(change => readablePath(slug, change.repoPath, view, 'repository'))
+            .map(change => {
+              if (!change.orig || readablePath(slug, change.orig, view, 'repository'))
+                return change;
+              const { orig: _original, ...visible } = change;
+              return visible;
+            })
+        : changes,
     };
   }
   // Every Git change concerns the whole repository, so all of its projects rescan.
@@ -138,16 +166,20 @@ export function createScm(deps: ScmDeps) {
     const projects = deps.siblings(slug);
     for (const project of projects) await deps.rescan(project);
     const s = await git.status(repoDir(layout, slug));
-    deps.emit('git', {
-      project: slug,
-      repo: locationRepo(slug),
-      projects,
-      branch: s.branch,
-      ahead: s.ahead,
-      behind: s.behind,
-      changes: s.changes,
-      altered,
-    });
+    deps.emit(
+      'git',
+      {
+        project: slug,
+        repo: locationRepo(slug),
+        projects,
+        branch: s.branch,
+        ahead: s.ahead,
+        behind: s.behind,
+        changes: s.changes,
+        altered,
+      },
+      { projects, paths: altered.map(path => ({ project: slug, path })) },
+    );
     return s;
   }
   // Hooks and filters can change saved bytes even when Git reports a clean file.
@@ -335,10 +367,15 @@ export function createScm(deps: ScmDeps) {
     async diff(
       slug: string,
       path: string,
-      from = 'HEAD',
-      to = 'worktree',
-      base: PathBase = 'project',
+      from: string | undefined,
+      to: string | undefined,
+      base: PathBase | undefined,
+      { view }: Reader,
     ) {
+      from ??= 'HEAD';
+      to ??= 'worktree';
+      base ??= 'project';
+      requireReadable(slug, path, view, base);
       const d = dir(slug);
       const p = projectPath(path);
       const pre = base === 'repository' ? '' : prefix(slug);
@@ -360,13 +397,13 @@ export function createScm(deps: ScmDeps) {
       const d = dir(slug);
       await git.stage(d, paths(slug, list, base));
       await after(slug);
-      return status(slug);
+      return status(slug, LOCAL_READER);
     },
     async unstage(slug: string, list: unknown, base: PathBase = 'project') {
       const d = dir(slug);
       await git.unstage(d, paths(slug, list, base));
       await after(slug);
-      return status(slug);
+      return status(slug, LOCAL_READER);
     },
     async stageAll(slug: string, stage: boolean) {
       const d = dir(slug);
@@ -376,7 +413,7 @@ export function createScm(deps: ScmDeps) {
         .map(e => e.path);
       if (list.length) await (stage ? git.stage(d, list) : git.unstage(d, list));
       await after(slug);
-      return status(slug);
+      return status(slug, LOCAL_READER);
     },
     // Selected paths use `git commit --only` to preserve unrelated staged and unstaged work.
     // Without paths, commit the index; during a merge, refuse selected-path commits.
@@ -475,23 +512,36 @@ export function createScm(deps: ScmDeps) {
     push: (slug: string) => remoteAction(slug, 'push'),
     sync: (slug: string) => remoteAction(slug, 'sync'),
     cancel: (slug: string) => ({ cancelled: git.cancel(dir(slug)) }),
-    log: (slug: string, path?: string, limit?: number) =>
-      git.log(
+    async log(slug: string, path: string | undefined, limit: number | undefined, { view }: Reader) {
+      if (path) requireReadable(slug, path, view);
+      const commits = await git.log(
         dir(slug),
         path === undefined ? prefix(slug) || undefined : prefix(slug) + projectPath(path),
         limit,
-      ),
-    async show(slug: string, commit: string, path: string) {
+      );
+      if (!view) return commits.map(({ paths: _paths, ...commit }) => commit);
+      const visible = [];
+      let hiddenCommits = 0;
+      for (const commit of commits) {
+        const paths = commit.paths.filter(path => readablePath(slug, path, view, 'repository'));
+        if (paths.length) visible.push({ ...commit, paths });
+        else hiddenCommits++;
+      }
+      return { commits: visible, hiddenCommits };
+    },
+    async show(slug: string, commit: string, path: string, { view }: Reader) {
+      requireReadable(slug, path, view);
       if (!REV.test(commit)) throw Error('commit must be a commit id.');
       const bytes = await git.blob(dir(slug), commit, prefix(slug) + projectPath(path));
       if (!bytes) return { source: '', exists: false };
       return { source: decode(bytes), exists: true, hash: sha256(bytes) };
     },
     // Skip binary and missing versions because the history view displays text.
-    async versions(slug: string, path: string, limit = 20) {
+    async versions(slug: string, path: string, limit: number | undefined, { view }: Reader) {
+      requireReadable(slug, path, view);
       const d = dir(slug);
       const p = prefix(slug) + projectPath(path);
-      const log = await git.log(d, p, Math.max(1, Math.min(50, limit)));
+      const log = await git.log(d, p, Math.max(1, Math.min(50, limit ?? 20)));
       const out: {
         commit: string;
         author: string;
@@ -503,7 +553,8 @@ export function createScm(deps: ScmDeps) {
         const bytes = await git.blob(d, c.commit, p);
         if (!bytes) continue;
         try {
-          out.push({ ...c, source: decode(bytes) });
+          const { paths: _paths, ...commit } = c;
+          out.push({ ...commit, source: decode(bytes) });
         } catch {}
       }
       return out;

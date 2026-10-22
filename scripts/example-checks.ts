@@ -1,4 +1,5 @@
 // Validates example models and executes their governed metrics against synthetic fixtures.
+import { LOCAL_READER } from '../server/projects/reader';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { Database } from 'bun:sqlite';
@@ -111,7 +112,7 @@ export async function checkExamples() {
     );
     for (const d of billing) {
       assert(validateInput(d.source, d.filename).valid);
-      const saved = await t.ws.saveDocument(d.filename, d.source);
+      const saved = await t.ws.saveDocument(d.filename, d.source, LOCAL_READER);
       assert.equal(saved.source, d.source);
       assert.equal(await exportDocument(saved.source, d.filename).blob.text(), d.source);
     }

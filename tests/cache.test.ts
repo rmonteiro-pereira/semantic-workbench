@@ -1,4 +1,5 @@
 // Tests cached parsing and stable comparison of blank nodes.
+import { LOCAL_READER } from '../server/projects/reader';
 import { test, expect } from 'bun:test';
 import { Database } from 'bun:sqlite';
 import { rmSync, writeFileSync } from 'node:fs';
@@ -49,7 +50,7 @@ test('deleting cache.sqlite and reopening rebuilds identical files, entities and
       expect(again.ws.cache.rebuilt).toBe(true);
       expect(snapshot(again.ws)).toEqual(before);
       expect(again.ws.state.registry()).toEqual(registry);
-      expect(again.ws.grouping('ubl/ubl.ontology.yaml')).toEqual({ mode: 'types' });
+      expect(again.ws.grouping('ubl/ubl.ontology.yaml', LOCAL_READER)).toEqual({ mode: 'types' });
       expect(again.ws.state.draft('ubl', 'commerce.owl')!.text).toBe('draft');
     } finally {
       again.ws.close();

@@ -1,4 +1,5 @@
 // Checks that the access fixture loads cleanly and holds what the access tests rely on.
+import { LOCAL_READER } from '../../server/projects/reader';
 import { expect, test } from 'bun:test';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -49,14 +50,14 @@ test('every fixture file carries its own leak marker', () => {
 
 test('the fixture imports into a workspace with every project under its own slug', async () => {
   await using workspace = await authWorkspace();
-  const listed = (await workspace.ws.listProjects()) as { slug: string }[];
+  const listed = (await workspace.ws.listProjects(LOCAL_READER)) as { slug: string }[];
   expect(listed.map(project => project.slug).sort()).toEqual([...AUTH_PROJECTS].sort());
   expect(existsSync(join(workspace.root, 'admin', 'grants.json'))).toBe(true);
 });
 
 test('every fixture file is valid and has a document type', async () => {
   await using workspace = await authWorkspace();
-  const listed = (await workspace.ws.listProjects()) as {
+  const listed = (await workspace.ws.listProjects(LOCAL_READER)) as {
     slug: string;
     files: { path: string; valid: boolean; docType: string }[];
   }[];
