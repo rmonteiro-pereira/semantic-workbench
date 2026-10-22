@@ -87,6 +87,12 @@ export async function routeApi(
 // client with an accepted origin instead, so the API's origin check stays exactly as in production.
 async function forwardWrite(route: Route, url: string) {
   const headers = { ...route.request().headers(), origin: ALLOWED_ORIGINS[0] };
-  const response = await route.fetch({ url, headers, maxRedirects: 0 });
-  await route.fulfill({ response });
+  try {
+    const response = await route.fetch({ url, headers, maxRedirects: 0 });
+    await route.fulfill({ response });
+  } catch (error) {
+    // A write still in flight when its page or context closes has nobody waiting for it.
+    if (/disposed|closed/i.test((error as Error).message)) return;
+    throw error;
+  }
 }
