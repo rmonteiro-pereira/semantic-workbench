@@ -64,7 +64,7 @@ WASM loaded; never bundled for the browser). All three verified under Bun 1.4.0 
 Network: only the identity provider (discovery, JWKS, token, end-session, Graph
 `checkMemberGroups` for overage and `GET /groups/{id}` for granted group names; on Azure the
 platform managed-identity endpoint for the Entra client assertion) and Git hosts on explicit action
-— allowed by constitution 3.0.0 Principle I. Machine Git ≥ 2.40.
+— allowed by constitution 3.0.1 Principle I. Machine Git ≥ 2.40.
 
 **Storage**: unchanged project layout plus `data/worktrees/`, `data/admin/` (Git), per-person
 state under `data/state/users/`, encrypted sessions, append-only audit JSONL, instance lock
@@ -94,7 +94,7 @@ pipeline: the target's Azure DevOps Linux agents with Docker (`ubuntu-latest` by
 5,000 files / 20 projects (SC-006; preparsed Cedar decision ≈ 0.07 ms, memoised per rule class);
 sign-in ≤ 5 s against the mock provider and local Keycloak (SC-005); container ready ≤ 30 s on the examples (SC-009).
 
-**Constraints**: constitution 3.0.0; byte-exact files (no redaction); nothing executed; tokens
+**Constraints**: constitution 3.0.1; byte-exact files (no redaction); nothing executed; tokens
 never in the browser; single instance per data root; no plain-text credentials; local mode
 unchanged.
 
@@ -113,13 +113,13 @@ OP-12 (no sign-in screen), OP-13 (Admin-panel grants by Entra group or e-mail as
 source, no app roles) and OP-14 (custom roles with members by group or e-mail) are decided by the
 owner.
 
-## Constitution Check (v3.0.0)
+## Constitution Check (v3.0.1)
 
 *Gate before Phase 0 and re-checked after Phase 1 design.*
 
 | Principle | How the plan complies | Pre | Post |
 | --- | --- | --- | --- |
-| I. Local and Server Modes | `SW_MODE` selects the mode. Local: loopback binding enforced (refuses other hosts), origin/host checks kept, implicit Admin through the same boundary, machine credentials. Server: OIDC code + PKCE confidential client, `__Host-` HttpOnly cookie, tokens server-side, bearer only on `/api/agent/*`, refuses to start without complete config and valid policies, frontend and API on one origin. Outbound: provider endpoints (incl. Graph `checkMemberGroups` for configured groups, on-behalf-of token endpoint) and Git hosts on explicit action; delegated credentials via `GIT_ASKPASS` per command, never in Git config, sessions encrypted. Remote change and clone are Admin with host allow-list. Repositories only under `data/projects/`, `data/worktrees/`, `data/admin/`. Server never sends unreadable files, paths, events or counts. Container: local mode keeps loopback through host networking (OP-8, no exception needed); server mode binds the container interface as allowed; data root is the mounted volume. The local scripts and the target pipeline add no runtime network call | ✅ | ✅ |
+| I. Local and Server Modes | `SW_MODE` selects the mode. Local: loopback binding enforced (refuses other hosts), origin/host checks kept, implicit Admin through the same boundary, machine credentials. Server: OIDC code + PKCE confidential client, `__Host-` HttpOnly cookie, tokens server-side, bearer only on `/api/agent/*`, refuses to start without complete config and valid policies, frontend and API on one origin. Outbound: provider endpoints (incl. Graph `checkMemberGroups` and `GET /groups/{id}` for the groups named in grants and restricted paths, as Principle I of 3.0.1 allows; on-behalf-of token endpoint) and Git hosts on explicit action; delegated credentials via `GIT_ASKPASS` per command, never in Git config, sessions encrypted. Remote change and clone are Admin with host allow-list. Repositories only under `data/projects/`, `data/worktrees/`, `data/admin/`. Server never sends unreadable files, paths, events or counts. Container: local mode keeps loopback through host networking (OP-8, no exception needed); server mode binds the container interface as allowed; data root is the mounted volume. The local scripts and the target pipeline add no runtime network call | ✅ | ✅ |
 | II. Byte-Exact Source Preservation | Files are sent whole or not at all; no redaction. Metric demotion to `proposed` uses the existing item-level edit (only the `status` scalar changes). Admin configuration files are written byte-exact through the same atomic save | ✅ | ✅ |
 | III. One Validation Rule Set | Guards reuse the shared parsers from `src/`; the browser uses the same guard module to disable controls; access JSON validated with a pinned application schema through the same Ajv setup | ✅ | ✅ |
 | IV. Atomic, Hash-Checked File Persistence | Saves unchanged (hash-checked, atomic) in each working copy; per-person drafts/views/suggestion state; trash entries record `owner` and keep unpublished work on project delete (journaled); sessions and users state atomic; audit append-only with hash chain; access configuration in `data/admin/` Git, one commit per change. Git queue keyed by base repository covers all worktrees; argument arrays, prompts off, timeouts; `core.autocrlf=false` and (SMB) `core.filemode=false` | ✅ | ✅ |
@@ -168,10 +168,12 @@ server/
 │   ├── oidc.ts                   # openid-client: discovery, login, callback, refresh, logout
 │   ├── sessions.ts               # session store, AES-GCM persistence, expiry, end-session
 │   ├── principal.ts              # claim normalisation (Entra, Keycloak, generic), verified address
-│   ├── directory.ts              # Microsoft Graph: overage (checkMemberGroups), group display
-names │   ├── grants.ts                 # pure: match grants by group or verified e-mail, scope
-expansion │   ├── role-compiler.ts          # pure: built-in and custom roles → Cedar policies,
-holders schema │   ├── bearer.ts                 # jose JWKS validation for agent clients
+│   ├── directory.ts              # Microsoft Graph: overage (checkMemberGroups), group display names
+│   ├── grants.ts                 # pure: match grants by group or verified e-mail, scope expansion
+│   ├── role-compiler.ts          # pure: built-in and custom roles → Cedar policies, holders schema
+│   ├── access-admin.ts           # roles and grants: validate, compile, delete-in-use confirmation
+│   ├── policies.ts               # Admin rules: list, validate, templates → Cedar text
+│   ├── bearer.ts                 # jose JWKS validation for agent clients
 │   ├── authorize.ts              # decision boundary: authorize(), filter(), AccessView, memo
 │   ├── cedar.ts                  # Cedar WASM loader, preparse, entity builder (User/Group/Email/RoleHolder)
 │   ├── guards.ts                 # before/after diff of guarded pointers (shared parsers)
@@ -187,10 +189,11 @@ holders schema │   ├── bearer.ts                 # jose JWKS validation 
 │   ├── state.ts                  # per-person drafts/views/suggestions; users registry
 │   ├── events.ts                 # tagged events, per-connection filter, access/published events
 │   ├── git.ts, scm.ts, trash.ts, cache.ts (copy-aware keys, SW_CACHE_DIR)
-├── routes/{auth.ts (redirect, callback, logout, No access, Signed out, error
-pages),me.ts,admin.ts,audit.ts,health.ts, existing routes wrapped}
-policies/{schema.cedarschema,baseline.cedar,builtin-roles.json}
-schemas/semantic-workbench-access-v1.json src/
+├── routes/{auth.ts (redirect, callback, logout, No access, Signed out, error pages),
+│           me.ts,admin.ts,audit.ts,health.ts, existing routes wrapped}
+policies/{schema.cedarschema,baseline.cedar,builtin-roles.json,matrix-cases.json}
+schemas/semantic-workbench-access-v1.json
+src/
 ├── auth/{useMe.ts,can.ts,guards-client.ts}   # /api/me, capability checks, shared guard use
 ├── admin/{AdminLauncher.tsx,UsersDialog.tsx,RolesAccessDialog.tsx,GrantForm.tsx,RoleEditor.tsx,
 │          PoliciesDialog.tsx,PolicyEditor.tsx,AccessCheckDialog.tsx,ProjectAccessDialog.tsx,

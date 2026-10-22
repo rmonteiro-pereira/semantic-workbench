@@ -58,8 +58,10 @@ unknown action, a condition on an action that cannot carry it, and a role id tha
 identifier; its output is validated with the rest of the set before activation.
 
 Built-in roles compile from `policies/builtin-roles.json` (Appendix B of the spec) through the
-same function, so the matrix tests also test the compiler. `role:admin:*` permits every action
-and is reachable only through workspace-scoped grants and bootstrap Admins.
+same function, so the matrix tests also test the compiler. The Admin role is the one exception
+to the project gate: `role:admin:1` is `permit(principal in SW::RoleHolder::"admin@workspace",
+action, resource);`, so Admin reaches every project, including projects without a domain, and is
+reachable only through workspace-scoped grants and bootstrap Admins.
 
 ## Baseline policies (shipped; `forbid` always prevails)
 
@@ -73,7 +75,7 @@ the person is in one of the groups or has one of the addresses.
 @id("B8-agent")             permit client  on agentRead when project in client grants
 
 @id("F1-no-self-approval")  forbid approveMetric when resource.ownerId == principal.id
-@id("F2-no-domain")         forbid non-Admin on any action when project has no domain, not everyoneCanRead and principal not in project.explicitHolders
+@id("F2-no-domain")         forbid non-Admin on any action when project has no domain and principal not in project.explicitHolders
 @id("F3-deactivated")       forbid everything when principal.deactivated
 @id("F4-bearer-scope")      forbid client principals on every action except agentRead
 @id("F5-protected-branch")  forbid push/publish to a protected branch unless the principal holds publish on the project
