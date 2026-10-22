@@ -6,6 +6,25 @@ import { TEST_USERS, type TestUserName } from '../helpers/auth-identities';
 import { accessFixture, person } from './access-fixture';
 import { createAccessControl } from '../../server/auth/authorize';
 import { createHandler } from '../../server/handler';
+import { join } from 'node:path';
+import { sh } from '../helpers/scm';
+import {
+  branchWithReclassification,
+  moveCase,
+  dataSnapshot,
+  deleteCase,
+  expectGuardRefusal,
+  guardHandler,
+  newProjectImport,
+  restoreCase,
+  sendCase,
+  unprotectedContract,
+  GUARDED_SAVES,
+  guardedSaves,
+  reclassified,
+  remoteWithReclassification,
+  revertCase,
+} from './guard-cases';
 
 describe('read matrix', () => {
   test('listings and file reads contain only the requesting person’s documents', async () => {
@@ -63,7 +82,12 @@ describe('read route inventory', () => {
       .source.replace(/LEAK-[^\n]+/g, '')
       .replaceAll('gross_revenue', 'preview_metric');
     for (const project of AUTH_PROJECTS) {
-      await fixture.ws.saveFile(project, 'preview.semantic.yaml', { baseHash: null, source });
+      await fixture.ws.saveFile(
+        project,
+        'preview.semantic.yaml',
+        { baseHash: null, source },
+        LOCAL_READER,
+      );
     }
     const access = createAccessControl(accessFixture());
     for (const name of Object.keys(TEST_USERS) as TestUserName[]) {
@@ -285,4 +309,205 @@ test('content-echoing writes conceal hidden paths and destination existence', as
     destinations.push(await response.text());
   }
   expect(destinations[0]).toBe(destinations[1]);
+});
+
+describe('guard matrix', () => {
+  test('an Editor is refused every guarded save as a whole; a Steward is not', async () => {
+    for (const name of GUARDED_SAVES) {
+      // Each path starts from the fixture, because the Steward's save changes the file.
+      using fixture = await authWorkspace();
+      const item = guardedSaves(fixture.ws).find(candidate => candidate.name === name)!;
+      const before = dataSnapshot(fixture.root);
+      await expectGuardRefusal(
+        await sendCase(guardHandler(fixture.ws, 'alice'), item),
+        item,
+        fixture.root,
+      );
+      expect(dataSnapshot(fixture.root), item.name).toEqual(before);
+      const allowed = await sendCase(guardHandler(fixture.ws, 'bob'), item);
+      expect(allowed.status, `${item.name}: ${await allowed.clone().text()}`).toBe(200);
+    }
+  }, 60000);
+
+  test('an approved metric edited by an Editor is stored as proposed and the response says so', async () => {
+    using fixture = await authWorkspace();
+    const file = fixture.ws.readFile('sales-metrics', 'sales.semantic.yaml');
+    const edited = file.source.replace("'SUM(orders.amount)'", "'SUM(orders.amount) * 2'");
+    const response = await sendCase(guardHandler(fixture.ws, 'alice'), {
+      name: 'Source save',
+      method: 'PUT',
+      path: '/api/projects/sales-metrics/files/sales.semantic.yaml',
+      body: { baseHash: file.hash, source: edited },
+      guarded: { file: '', pointer: '', kind: '' },
+    });
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.demoted).toEqual([
+      { file: 'sales.semantic.yaml', pointer: '/metrics/0', metric: 'gross_revenue' },
+    ]);
+    const stored = fixture.ws.readFile('sales-metrics', 'sales.semantic.yaml').source;
+    expect(stored).toBe(edited.replace('"status": "approved"', '"status": "proposed"'));
+    expect(body.source).toBe(stored);
+  });
+
+  test('a revert that would undo a guarded change is refused before any file changes', async () => {
+    using fixture = await authWorkspace();
+    const file = fixture.ws.readFile('sales-contracts', 'orders.odcs.yaml');
+    const steward = guardHandler(fixture.ws, 'bob');
+    const saved = await sendCase(steward, {
+      ...guardedSaves(fixture.ws)[0],
+      body: { baseHash: file.hash, source: reclassified(file.source) },
+    });
+    expect(saved.status).toBe(200);
+    const item = revertCase(fixture.ws);
+    const before = dataSnapshot(fixture.root);
+    const body = await expectGuardRefusal(
+      await sendCase(guardHandler(fixture.ws, 'alice'), item),
+      item,
+      fixture.root,
+    );
+    expect(body.error).toContain('to revert this file');
+    expect(dataSnapshot(fixture.root)).toEqual(before);
+    expect((await sendCase(steward, item)).status).toBe(200);
+  });
+
+  test('a pull that would bring in a guarded change is refused before any file changes', async () => {
+    using fixture = await authWorkspace();
+    const remote = remoteWithReclassification(fixture.ws, fixture.root);
+    try {
+      await fixture.ws.scm.setRemote('sales-contracts', 'origin', remote.bare);
+      const repository = join(fixture.root, 'projects', 'sales-contracts');
+      const head = sh(repository, ['rev-parse', 'HEAD']);
+      const source = fixture.ws.readFile('sales-contracts', 'orders.odcs.yaml').source;
+      const refused = await sendCase(guardHandler(fixture.ws, 'alice'), remote.pull);
+      const body = await expectGuardRefusal(refused, remote.pull, fixture.root);
+      expect(body.error).toContain('to pull these changes');
+      expect(sh(repository, ['rev-parse', 'HEAD'])).toBe(head);
+      expect(fixture.ws.readFile('sales-contracts', 'orders.odcs.yaml').source).toBe(source);
+      const pulled = await sendCase(guardHandler(fixture.ws, 'bob'), remote.pull);
+      expect(pulled.status).toBe(200);
+      expect((await pulled.json()).ok).toBe(true);
+      const after = fixture.ws.readFile('sales-contracts', 'orders.odcs.yaml').source;
+      expect(after).toBe(reclassified(source));
+    } finally {
+      remote.dispose();
+    }
+  });
+
+  test('deleting a file with a protected property needs a Steward; the Editor is told who may', async () => {
+    using fixture = await authWorkspace();
+    const item = deleteCase();
+    const before = dataSnapshot(fixture.root);
+    const refused = await sendCase(guardHandler(fixture.ws, 'alice'), item);
+    const body = await expectGuardRefusal(refused, item, fixture.root);
+    expect(body.error).toContain('to delete this file');
+    expect(dataSnapshot(fixture.root)).toEqual(before);
+    expect((await sendCase(guardHandler(fixture.ws, 'bob'), item)).status).toBe(200);
+  });
+
+  test('restoring from the trash is judged as creating the restored content', async () => {
+    using fixture = await authWorkspace();
+    const file = 'catalog.odcs.yaml';
+    const source = unprotectedContract(fixture.ws);
+    await fixture.ws.saveFile('sales-contracts', file, { baseHash: null, source }, LOCAL_READER);
+    const editor = guardHandler(fixture.ws, 'alice');
+    const deleted = await sendCase(editor, {
+      ...deleteCase(),
+      path: `/api/projects/sales-contracts/files/${file}`,
+    });
+    expect(deleted.status).toBe(200);
+    const item = restoreCase((await deleted.json()).entryId, file);
+    const before = dataSnapshot(fixture.root);
+    const body = await expectGuardRefusal(await sendCase(editor, item), item, fixture.root);
+    expect(body.error).toContain('to restore it');
+    expect(dataSnapshot(fixture.root)).toEqual(before);
+    const restored = await sendCase(guardHandler(fixture.ws, 'bob'), {
+      ...item,
+      path: item.path.replace('/undo', '/restore'),
+    });
+    expect(restored.status).toBe(200);
+    expect(fixture.ws.readFile('sales-contracts', file).source).toBe(source);
+  });
+
+  test('an import that creates a project is judged as creating its files', async () => {
+    using fixture = await authWorkspace();
+    const own = newProjectImport(fixture.ws, 'bob@example.org');
+    const before = dataSnapshot(fixture.root);
+    const steward = guardHandler(fixture.ws, 'bob');
+    const body = await expectGuardRefusal(await sendCase(steward, own), own, fixture.root);
+    expect(body.error).toContain('nobody approves or deprecates a metric they own');
+    expect(dataSnapshot(fixture.root)).toEqual(before);
+    const others = newProjectImport(fixture.ws, 'carol@example.org');
+    const created = await sendCase(steward, others);
+    expect(created.status, await created.clone().text()).toBe(200);
+  });
+
+  test('a move between projects is judged as removing and creating the file', async () => {
+    using fixture = await authWorkspace();
+    const item = moveCase();
+    const before = dataSnapshot(fixture.root);
+    const refused = await sendCase(guardHandler(fixture.ws, 'alice'), item);
+    const body = await expectGuardRefusal(refused, item, fixture.root);
+    expect(body.error).toContain('to move this file');
+    expect(dataSnapshot(fixture.root)).toEqual(before);
+    expect((await sendCase(guardHandler(fixture.ws, 'bob'), item)).status).toBe(200);
+  });
+
+  test('switching to a branch brings in its content, judged before the switch', async () => {
+    using fixture = await authWorkspace();
+    const item = branchWithReclassification(fixture.ws, fixture.root);
+    const repository = join(fixture.root, 'projects', 'sales-contracts');
+    const branch = sh(repository, ['branch', '--show-current']);
+    const source = fixture.ws.readFile('sales-contracts', 'orders.odcs.yaml').source;
+    const refused = await sendCase(guardHandler(fixture.ws, 'alice'), item);
+    const body = await expectGuardRefusal(refused, item, fixture.root);
+    expect(body.error).toContain('to switch to this branch');
+    expect(sh(repository, ['branch', '--show-current'])).toBe(branch);
+    expect(fixture.ws.readFile('sales-contracts', 'orders.odcs.yaml').source).toBe(source);
+    expect((await sendCase(guardHandler(fixture.ws, 'bob'), item)).status).toBe(200);
+    expect(sh(repository, ['branch', '--show-current']).trim()).toBe('reclassify');
+  });
+
+  test('handing a metric to someone else does not let its committed owner approve it next', async () => {
+    using fixture = await authWorkspace();
+    const repository = join(fixture.root, 'projects', 'sales-metrics');
+    const path = 'sales.semantic.yaml';
+    const aliceOwns = '"owner": "alice@example.org", "status": "proposed"';
+    const original = fixture.ws.readFile('sales-metrics', path);
+    const bobOwns = original.source.replace(
+      aliceOwns,
+      '"owner": "bob@example.org", "status": "proposed"',
+    );
+    await fixture.ws.saveFile(
+      'sales-metrics',
+      path,
+      { baseHash: original.hash, source: bobOwns },
+      LOCAL_READER,
+    );
+    const identity = ['-c', 'user.name=Bob', '-c', 'user.email=bob@example.org'];
+    sh(repository, [...identity, 'commit', '-q', '-am', 'Bob owns order count']);
+    const steward = guardHandler(fixture.ws, 'bob');
+    const save = (source: string) =>
+      sendCase(steward, {
+        name: 'Source save',
+        method: 'PUT',
+        path: `/api/projects/sales-metrics/files/${path}`,
+        body: { baseHash: fixture.ws.readFile('sales-metrics', path).hash, source },
+        guarded: { file: path, pointer: '/metrics/1', kind: 'metric-status' },
+      });
+    const handedOver = bobOwns.replace(
+      '"owner": "bob@example.org", "status": "proposed"',
+      aliceOwns,
+    );
+    expect((await save(handedOver)).status).toBe(200);
+    const approved = handedOver.replace(
+      aliceOwns,
+      '"owner": "alice@example.org", "status": "approved"',
+    );
+    const refused = await save(approved);
+    const body = await refused.json();
+    expect(refused.status).toBe(403);
+    expect(body.error).toContain('nobody approves or deprecates a metric they own');
+    expect(fixture.ws.readFile('sales-metrics', path).source).toBe(handedOver);
+  });
 });

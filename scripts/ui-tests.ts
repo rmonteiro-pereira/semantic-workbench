@@ -26,9 +26,12 @@ const files = [
 const asset = (filename: string) =>
   'public/examples/' + (filename === 'commerce.owl' ? 'commerce/' : 'ubl/') + filename;
 await api.ws.loadExample('ubl');
-await api.ws.importBatch({
-  files: [{ path: 'commerce.owl', source: await Bun.file(asset('commerce.owl')).text() }],
-});
+await api.ws.importBatch(
+  {
+    files: [{ path: 'commerce.owl', source: await Bun.file(asset('commerce.owl')).text() }],
+  },
+  LOCAL_READER,
+);
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({
   viewport: { width: 1600, height: 1000 },

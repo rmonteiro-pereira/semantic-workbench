@@ -52,6 +52,7 @@ export function ContractView({
       editor={propertyEditor({
         canEdit: access.can('edit'),
         canClassify: access.can('editGuarded'),
+        classification: access.classification,
         doc: current,
         base: docText(current.id),
         onSaved: applySaved,

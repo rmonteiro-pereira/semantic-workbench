@@ -3,6 +3,7 @@ import { test, expect } from 'bun:test';
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { testWorkspace } from './helpers/temp-data-dir';
+import { LOCAL_READER } from '../server/projects/reader';
 // Only binding kinds and metric bindings may extend the existing agent context. The remaining
 // fields must match the saved digests; UPDATE_GOLDEN=1 deliberately replaces them.
 const req = (path: string) => new Request('http://localhost' + path);
@@ -125,13 +126,18 @@ test('metricBindings findings: an unknown metric or concept is reported on its b
   const t = await testWorkspace();
   const { slug } = await t.ws.loadExample('mall');
   const f = t.ws.readFile(slug, 'mall.mapping.yaml');
-  await t.ws.saveFile(slug, 'mall.mapping.yaml', {
-    baseHash: f.hash,
-    source: f.source.replace(
-      '{"metric":"billed_amount","measures":"kpi:BilledAmount","of":"Lease"}',
-      '{"metric":"no_such_metric","measures":"kpi:BilledAmount","of":"NoSuchConcept"}',
-    ),
-  });
+  await t.ws.saveFile(
+    slug,
+    'mall.mapping.yaml',
+    {
+      baseHash: f.hash,
+      source: f.source.replace(
+        '{"metric":"billed_amount","measures":"kpi:BilledAmount","of":"Lease"}',
+        '{"metric":"no_such_metric","measures":"kpi:BilledAmount","of":"NoSuchConcept"}',
+      ),
+    },
+    LOCAL_READER,
+  );
   const catalog = await (await t.handler(req('/api/agent/catalog'))).json();
   const id = catalog.mappings.find((m: any) => m.filename === 'mall.mapping.yaml').id;
   const c = await (

@@ -11,7 +11,10 @@ const flights = async () =>
 test('delete impact lists removed items, unsaved drafts and references that break', async () => {
   const t = await testWorkspace();
   try {
-    const { slug } = await t.ws.importBatch({ name: 'Flights', files: await flights() });
+    const { slug } = await t.ws.importBatch(
+      { name: 'Flights', files: await flights() },
+      LOCAL_READER,
+    );
     t.ws.state.writeDraft(slug, 'flights.ontology.yaml', {
       baseHash: null,
       text: 'draft',
@@ -47,12 +50,18 @@ test('delete impact lists removed items, unsaved drafts and references that brea
         .brokenReferences.map(b => b.name),
     ).toEqual(['Flights semantic model']);
     // A second copy of the ontology elsewhere keeps the reference resolvable.
-    await t.ws.importBatch({
-      name: 'Copy',
-      files: [
-        { path: 'flights.ontology.yaml', source: await example('ossie', 'flights.ontology.yaml') },
-      ],
-    });
+    await t.ws.importBatch(
+      {
+        name: 'Copy',
+        files: [
+          {
+            path: 'flights.ontology.yaml',
+            source: await example('ossie', 'flights.ontology.yaml'),
+          },
+        ],
+      },
+      LOCAL_READER,
+    );
     expect(t.ws.deleteImpact(slug, 'flights.ontology.yaml', LOCAL_READER).brokenReferences).toEqual(
       [],
     );

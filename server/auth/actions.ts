@@ -81,14 +81,8 @@ export function isAction(value: unknown): value is Action {
   return typeof value === 'string' && (ACTIONS as readonly string[]).includes(value);
 }
 
-/** Classification levels from least to most sensitive; their index is the level number. */
-export const LEVELS = ['public', 'internal', 'confidential', 'restricted'] as const;
-
-/** One classification level. */
-export type Level = (typeof LEVELS)[number];
-
-/** Numeric value of a level for comparisons in policies. */
-export const levelNumber = (level: Level) => LEVELS.indexOf(level);
+/** Classification levels, defined with the governance rules the browser shares. */
+export { LEVELS, levelNumber, type Level } from '../../src/governance/levels';
 
 /** Reserved roles supplied by the built-in policy model. */
 export const BUILTIN_ROLE_IDS: readonly string[] = ['viewer', 'editor', 'steward', 'admin'];

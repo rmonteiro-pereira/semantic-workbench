@@ -11,12 +11,18 @@ import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 const api = await startIsolatedApi();
 const shop =
   '# shop ontology\nname: Shop\nontology:\n  - concept: Customer\n    type: EntityType\n    description: A buyer.\n';
-await api.ws.importBatch({
-  files: [
-    { path: 'shop.yaml', source: shop },
-    { path: 'models/ref.ttl', source: '@prefix ex: <https://example.org/> .\nex:a ex:b ex:c .\n' },
-  ],
-});
+await api.ws.importBatch(
+  {
+    files: [
+      { path: 'shop.yaml', source: shop },
+      {
+        path: 'models/ref.ttl',
+        source: '@prefix ex: <https://example.org/> .\nex:a ex:b ex:c .\n',
+      },
+    ],
+  },
+  LOCAL_READER,
+);
 await api.ws.loadExample('mapped-commerce');
 writeFileSync(join(api.root, 'projects/shop/broken.yaml'), 'name: [unclosed');
 writeFileSync(join(api.root, 'projects/shop/notes.csv'), 'a,b');

@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { projectFile } from '../server/projects/paths';
 import { exportFile } from './helpers/header';
+import { LOCAL_READER } from '../server/projects/reader';
 // SQL warnings must identify the exact source location within 500 ms of a typing pause.
 // Highlighting and previews must leave export bytes unchanged.
 const api = await startIsolatedApi();
@@ -17,25 +18,31 @@ const names = [
   'quality.odcs.yaml',
   'dax.ossie.yaml',
 ];
-const sql = await api.ws.importBatch({
-  name: 'Sql',
-  files: names.map(path => ({ path, source: fixture(path) })),
-});
+const sql = await api.ws.importBatch(
+  {
+    name: 'Sql',
+    files: names.map(path => ({ path, source: fixture(path) })),
+  },
+  LOCAL_READER,
+);
 const mall = await api.ws.loadExample('mall');
 // The CASE WHEN file padded past 500,000 characters, so the editor opens it in large file mode.
 const padding = Array.from(
   { length: 8000 },
   (_, index) => `# Padding line ${index} keeps this file above the large file threshold.`,
 ).join('\n');
-const large = await api.ws.importBatch({
-  name: 'Large sql',
-  files: [
-    {
-      path: 'large-case-when.ossie.yaml',
-      source: `${fixture('case-when.ossie.yaml')}\n${padding}\n`,
-    },
-  ],
-});
+const large = await api.ws.importBatch(
+  {
+    name: 'Large sql',
+    files: [
+      {
+        path: 'large-case-when.ossie.yaml',
+        source: `${fixture('case-when.ossie.yaml')}\n${padding}\n`,
+      },
+    ],
+  },
+  LOCAL_READER,
+);
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 const errors: string[] = [];

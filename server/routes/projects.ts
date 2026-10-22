@@ -26,13 +26,15 @@ export function projectRoutes(administration: AdminRepository): Route {
       const projects = await ws.listProjects(requestReader(req));
       const scope = requestScope(req);
       if (scope.principal.kind === 'local') return Response.json(projects);
-      // Each project lists the actions the caller may take on it, so the client can disable controls.
+      // Each project lists the actions the caller may take on it, and how its classification
+      // values are read, so the client can disable controls the server would refuse.
       return Response.json(
         projects.map(project => ({
           ...project,
           actions: ACTIONS.filter(
             action => scope.authorize(action, { type: 'project', project: project.slug }).allow,
           ),
+          classification: scope.classification(project.slug),
         })),
       );
     }
@@ -60,7 +62,7 @@ export function projectRoutes(administration: AdminRepository): Route {
       )
         throw Error('Expected {name?, files: [{path, source}]}.');
       const domain = creationDomain(req, body.domain);
-      const result = await ws.importBatch(body);
+      const result = await ws.importBatch(body, requestReader(req), { domain });
       await assignProjectDomain(deps, req, result.slug, domain);
       return Response.json(result);
     }
@@ -103,14 +105,16 @@ export function projectRoutes(administration: AdminRepository): Route {
         throw Error('Expected {files: [{path, source}], onConflict?}.');
       if (!Array.isArray(body.files)) throw Error('files must be an array.');
       const project = decodeURIComponent(into[1]);
+      const authorizePaths = (paths: string[]) => {
+        authorizeWrite(
+          req,
+          'import',
+          paths.map(path => ({ type: 'file', project, path })),
+        );
+      };
+      const reader = requestReader(req);
       return Response.json(
-        await ws.importInto(project, body.files, body.onConflict, requestReader(req), paths => {
-          authorizeWrite(
-            req,
-            'import',
-            paths.map(path => ({ type: 'file', project, path })),
-          );
-        }),
+        await ws.importInto(project, body.files, body.onConflict, reader, authorizePaths),
       );
     }
     const example = p.match(/^\/api\/examples\/([a-z0-9-]+)$/);

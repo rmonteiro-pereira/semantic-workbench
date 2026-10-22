@@ -22,6 +22,8 @@ export function useCapabilities(project?: string) {
   const projects = useContext(Projects);
   return {
     local: me?.mode === 'local',
+    /** How the project reads classification values; absent in local mode. */
+    classification: projects.find(item => item.slug === project)?.classification,
     can: (action: string, target = project) => can(me, projects, action, target),
     control: (action: string) => ({
       disabled: !can(me, projects, action, project),

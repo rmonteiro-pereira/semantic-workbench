@@ -1,5 +1,6 @@
 /** Defines editable item kinds, field schemas and status rules for each document format. */
 import { VENDOR, GRAINS } from '../metrics/extension';
+import { isMapping } from '../mapping-schema';
 import { isObject } from './source-text';
 // Field paths address either the item or its workbench metric extension. Child lists and insertion
 // locations depend on the document format.
@@ -418,6 +419,25 @@ export function semanticModelPrefix(document: any): Path | null {
     ? document.ontology_mappings.findIndex((m: any) => isObject(m?.semantic_model))
     : -1;
   return i >= 0 ? ['ontology_mappings', i, 'semantic_model'] : null;
+}
+
+/**
+ * Locates every semantic model of a document: a flat model, each model of a legacy list, or each
+ * model embedded in a consolidated ontology's mappings. Mappings and data contracts hold none.
+ */
+export function semanticModelPaths(document: any): Path[] {
+  if (!isObject(document) || isMapping(document) || document.kind === 'DataContract') return [];
+  if (Array.isArray(document.ontology)) {
+    const mappings = Array.isArray(document.ontology_mappings) ? document.ontology_mappings : [];
+    return mappings.flatMap((mapping: any, index: number) =>
+      isObject(mapping?.semantic_model) ? [['ontology_mappings', index, 'semantic_model']] : [],
+    );
+  }
+  if (Array.isArray(document.datasets)) return [[]];
+  const models = Array.isArray(document.semantic_model) ? document.semantic_model : [];
+  return models.flatMap((model: any, index: number) =>
+    isObject(model) && Array.isArray(model.datasets) ? [['semantic_model', index]] : [],
+  );
 }
 
 /** Builds a new item with fields ordered like the format's examples. */

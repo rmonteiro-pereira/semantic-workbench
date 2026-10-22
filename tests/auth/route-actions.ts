@@ -24,6 +24,7 @@ export const routeExamples: { method: string; path: string; body?: unknown }[] =
   { method: 'GET', path: '/api/projects/missing/metrics' },
   { method: 'GET', path: '/api/projects/missing/delete-impact' },
   { method: 'POST', path: '/api/projects/missing/metrics' },
+  { method: 'GET', path: '/api/projects/missing/people' },
   { method: 'POST', path: '/api/projects/missing/metrics/preview' },
   { method: 'POST', path: '/api/projects/missing/kpis' },
   { method: 'POST', path: '/api/projects/missing/kpis/preview' },

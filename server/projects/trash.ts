@@ -3,6 +3,7 @@
 import { archivePersonalState, clearPersonalDrafts, restorePersonalState } from './personal-state';
 import type { EventTags } from './events';
 import type { Reader } from './reader';
+import type { FileChange } from '../auth/guards';
 import type { AccessScope } from '../auth/authorize';
 import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { join, posix } from 'node:path';
@@ -154,7 +155,14 @@ export function createTrash(ctx: TrashContext) {
     undoUntil: new Date(at + UNDO_MS).toISOString(),
     ...fields,
   });
-  async function deleteFile(slug: string, path: string, deletedBy?: string) {
+  // A guard, given in server mode, refuses deleting a file that holds an approved metric or a
+  // protected property for someone who may not change them.
+  async function deleteFile(
+    slug: string,
+    path: string,
+    deletedBy: string | undefined,
+    { guard }: Reader,
+  ) {
     const p = projectPath(path);
     const project = registryEntry(assertSlug(slug));
     return lock('project:' + slug, async () => {
@@ -165,6 +173,8 @@ export function createTrash(ctx: TrashContext) {
       } catch {
         throw new NotFoundError('File not found.');
       }
+      const deleted = { project: slug, path: p, before: documentText(bytes), after: null };
+      guard?.([deleted], { operation: 'delete' });
       const view = state.view(slug).files[p];
       const e = newEntry(
         {
@@ -208,7 +218,7 @@ export function createTrash(ctx: TrashContext) {
     path: string,
     baseHash: string | null,
     committed: Uint8Array | null,
-    deletedBy?: string,
+    { owner: deletedBy, guard }: Reader,
   ) {
     const p = projectPath(path);
     const project = registryEntry(assertSlug(slug));
@@ -223,6 +233,19 @@ export function createTrash(ctx: TrashContext) {
         throw new StaleError(currentHash, current ? decode(current) : null);
       if (!current && !committed)
         throw new NotFoundError('The file is neither on disk nor in the last commit.');
+      // Reverting brings the committed text back, which must not undo a guarded change the
+      // person may not make. Nothing is demoted: the committed text is restored as it is or not.
+      guard?.(
+        [
+          {
+            project: slug,
+            path: p,
+            before: current ? decode(current) : null,
+            after: committed ? decode(committed) : null,
+          },
+        ],
+        { operation: 'revert' },
+      );
       const at = now();
       const opId = journal.newId();
       const staging = join(layout.projects, `.staging-${opId}`);
@@ -368,11 +391,12 @@ export function createTrash(ctx: TrashContext) {
     keepState(slug, join(dir, 'view.json'), join(dir, 'drafts'));
     return steps;
   }
+  // Undo and restore re-create content, so a guard judges them as creating it.
   async function restore(
     id: string,
     target: { toProject?: string; toPath?: string },
     undo: boolean,
-    { view }: Reader,
+    { view, guard }: Reader,
   ) {
     const { e, dir } = read(id);
     if (undo && now() > Date.parse(e.undoUntil))
@@ -384,6 +408,13 @@ export function createTrash(ctx: TrashContext) {
         throw new OccupiedError('The target is unavailable.', {});
       }
       const payload = join(dir, 'payload', posix.basename(e.path!));
+      const created = {
+        project: slug,
+        path,
+        before: null,
+        after: documentText(readFileSync(payload)),
+      };
+      guard?.([created], { operation: 'restore' });
       if (!ctx.projects().some(p => p.slug === slug)) {
         if (target.toProject !== undefined) throw new NotFoundError('Project not found.');
         // The original project is gone: restore into a new project with the original name.
@@ -426,6 +457,7 @@ export function createTrash(ctx: TrashContext) {
         return { kind: 'file', project: slug, path };
       });
     }
+    if (guard) guard(payloadChanges(e, dir), { operation: 'restore' });
     if (e.kind === 'subproject') return restoreSubproject(id, e, dir);
     if (e.kind === 'repository') return restoreRepository(id, e, dir);
     return lock('registry', async () => {
@@ -664,6 +696,56 @@ function safeReaddir(dir: string) {
     return [];
   }
 }
+/** A file's text, or null when it is binary or not UTF-8, which no guard reads. */
+function documentText(bytes: Uint8Array): string | null {
+  if (bytes.subarray(0, 8000).includes(0)) return null;
+  try {
+    return decode(bytes);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The project of a repository a file belongs to, and its path inside that project, found by the
+ * longest member folder, as a pull finds the owner of a changed file. Null outside every member.
+ */
+function memberPath(members: ProjectEntry[], repoPath: string) {
+  const owners = members
+    .map(member => {
+      const { folder, repo } = locationOf(member);
+      return {
+        project: member.slug,
+        prefix: folder === repo ? '' : folder.slice(repo.length + 1) + '/',
+      };
+    })
+    .filter(owner => repoPath.startsWith(owner.prefix))
+    .sort((left, right) => right.prefix.length - left.prefix.length);
+  const owner = owners[0];
+  return owner ? { project: owner.project, path: repoPath.slice(owner.prefix.length) } : null;
+}
+
+/**
+ * Every file a project, subproject or repository entry would re-create, as new files of the
+ * project each belongs to; a repository's files go to its member projects.
+ */
+export function payloadChanges(
+  entry: Pick<TrashEntry, 'kind' | 'project' | 'projects'>,
+  dir: string,
+): FileChange[] {
+  const payload = join(dir, 'payload');
+  const [root] = readdirSync(payload);
+  return readdirRecursive(join(payload, root)).flatMap(path => {
+    const target =
+      entry.kind === 'repository'
+        ? memberPath(entry.projects ?? [], path)
+        : { project: entry.project, path };
+    if (!target) return [];
+    const after = documentText(readFileSync(join(payload, root, path)));
+    return [{ ...target, before: null, after }];
+  });
+}
+
 function readdirRecursive(dir: string, prefix = ''): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap(d =>
     d.name === '.git'

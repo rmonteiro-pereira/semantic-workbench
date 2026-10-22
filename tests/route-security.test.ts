@@ -14,6 +14,7 @@ import { join } from 'node:path';
 import { gitEnv, redactCredentials } from '../server/projects/git';
 import { loopbackHost } from '../server/handler';
 import { testWorkspace } from './helpers/temp-data-dir';
+import { LOCAL_READER } from '../server/projects/reader';
 // Checks symbolic links, DNS rebinding, Git option injection, transport helpers, environment
 // isolation and credential redaction.
 const api = (
@@ -164,7 +165,12 @@ test('Git runs without configuration or helper programs injected through the env
 test('a malformed trash restore body is refused instead of restoring to the original place', async () => {
   const t = await project();
   try {
-    const { entryId: id } = await t.ws.trash.deleteFile('shop', 'shop.yaml');
+    const { entryId: id } = await t.ws.trash.deleteFile(
+      'shop',
+      'shop.yaml',
+      undefined,
+      LOCAL_READER,
+    );
     const bad = await t.handler(
       new Request(`http://127.0.0.1:4310/api/trash/${id}/restore`, {
         method: 'POST',

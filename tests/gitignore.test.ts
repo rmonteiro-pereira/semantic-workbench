@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { appendIgnore, escapeIgnore, ignoreChoices } from '../src/scm/gitignore';
 import { call, ok, scmProject, sh } from './helpers/scm';
+import { LOCAL_READER } from '../server/projects/reader';
 test('Add to .gitignore offers the exact path, the extension and the folder, escaped for Git', () => {
   expect(ignoreChoices('notes.csv')).toEqual([
     { pattern: '/notes.csv', label: 'This file (notes.csv)' },
@@ -49,7 +50,12 @@ test('appending through the API is a hash-checked save that rescans: the file le
     // .gitignore is edited like any other file, with the base hash.
     const g = p.t.ws.readFile(p.slug, '.gitignore');
     expect(g.docType).toBe('gitignore');
-    await p.t.ws.saveFile(p.slug, '.gitignore', { baseHash: g.hash, source: '*.csv\n' });
+    await p.t.ws.saveFile(
+      p.slug,
+      '.gitignore',
+      { baseHash: g.hash, source: '*.csv\n' },
+      LOCAL_READER,
+    );
     expect(
       (await ok(call(p.t, 'GET', '/api/projects')))[0].files.map((f: any) => f.path),
     ).toContain('extra.yaml');

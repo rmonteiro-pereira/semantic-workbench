@@ -5,6 +5,7 @@ import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
+import { LOCAL_READER } from '../server/projects/reader';
 
 const VIEWPORTS: [number, number][] = [
   [1280, 720],
@@ -73,7 +74,7 @@ const projects = [
 ];
 
 const api = await startIsolatedApi();
-for (const project of projects) await api.ws.importBatch(project);
+for (const project of projects) await api.ws.importBatch(project, LOCAL_READER);
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });

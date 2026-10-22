@@ -1,8 +1,9 @@
 import { expect, test } from 'bun:test';
 import { authWorkspace, fixtureFiles } from '../helpers/auth-workspace';
-import { accessFixture, person } from './access-fixture';
+import { accessFixture, boundaryReader, person } from './access-fixture';
 import { createAccessControl } from '../../server/auth/authorize';
 import { createHandler } from '../../server/handler';
+import { LOCAL_READER } from '../../server/projects/reader';
 
 test('Git rejects restricted paths even when they no longer exist', async () => {
   using fixture = await authWorkspace();
@@ -29,16 +30,23 @@ test('history counts hidden-only commits and lists only readable paths', async (
   const view = access.view(principal);
   const path = 'finance/revenue-recognition.odcs.yaml';
   const current = fixture.ws.readFile('sales-contracts', path);
-  await fixture.ws.saveFile('sales-contracts', path, {
-    baseHash: current.hash,
-    source: current.source + '\n# LEAK-private-history\n',
-  });
+  await fixture.ws.saveFile(
+    'sales-contracts',
+    path,
+    {
+      baseHash: current.hash,
+      source: current.source + '\n# LEAK-private-history\n',
+    },
+    LOCAL_READER,
+  );
   await fixture.ws.scm.stage('sales-contracts', [path]);
   await fixture.ws.scm.commit('sales-contracts', 'LEAK-private-commit');
-  const history = await fixture.ws.scm.log('sales-contracts', undefined, 50, {
-    view,
-    owner: principal.id,
-  });
+  const history = await fixture.ws.scm.log(
+    'sales-contracts',
+    undefined,
+    50,
+    boundaryReader(view, principal.id),
+  );
   expect(history).toHaveProperty('hiddenCommits', 1);
   expect(JSON.stringify(history)).not.toContain('LEAK-private');
   expect(JSON.stringify(history)).not.toContain('finance/');
@@ -60,21 +68,26 @@ test('status and history use the deepest project owner in a shared repository', 
     { ...root, slug: 'deep', folder: root.slug + '/nested/deep', repo: root.slug },
   ]);
   const file = fixture.ws.readFile(root.slug, path);
-  await fixture.ws.saveFile(root.slug, path, {
-    baseHash: file.hash,
-    source: source + '# changed\n',
-  });
+  await fixture.ws.saveFile(
+    root.slug,
+    path,
+    {
+      baseHash: file.hash,
+      source: source + '# changed\n',
+    },
+    LOCAL_READER,
+  );
   const status = await fixture.ws.scm.status(root.slug, LOCAL_READER);
   expect(status.changes).toHaveLength(1);
   expect(status.changes[0]).toMatchObject({ project: 'deep', projectPath: 'model.yaml' });
-  const reader = {
-    owner: 'reader',
-    view: {
+  const reader = boundaryReader(
+    {
       readableProjects: new Set([root.slug, 'nested']),
       canRead: (project: string) => project !== 'deep',
       roles: () => [],
     },
-  };
+    'reader',
+  );
   expect((await fixture.ws.scm.status(root.slug, reader)).changes).toEqual([]);
   expect(await fixture.ws.scm.log(root.slug, undefined, 50, reader)).toEqual({
     commits: [],

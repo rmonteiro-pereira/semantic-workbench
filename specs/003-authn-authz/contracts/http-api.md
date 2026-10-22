@@ -21,6 +21,12 @@ rule there. Server mode adds the rules below.
 - Unreadable target → `404` with the body of a missing resource. Readable target, action denied →
   `403 {error, required: {role?, guard?}, rule}`.
 - Guarded change refused → `403 {error, guarded: [{file, pointer, kind}]}` (readable files only).
+  This covers saves, save-batch, metric saves, document saves, imports (including one that
+  creates a project), revert, pull/sync, branch switch, a move between projects (including an
+  accepted suggestion), file delete and trash undo/restore; for the operations
+  that bring in text the person did not type, `error` asks them to have a Steward do it.
+- An approved metric stored as proposed → the save answers `200` with `demoted: [{file, pointer,
+  metric}]` and the stored text (`source`, per written file for batches).
 - Every decision on these routes is audited per [audit-log.md](./audit-log.md).
 
 ## New routes
@@ -32,6 +38,7 @@ rule there. Server mode adds the rules below.
 | `POST /auth/logout` | signed in (also from **No access**) | from the app: `X-SW-Request: 1`; from **No access**: an HTML form with the per-session `csrf` field the page embeds (Origin checked either way) | ends session, `{redirect: <provider end-session URL with post_logout_redirect_uri=/auth/signed-out, or /auth/signed-out>}` for the app; `303` to the same address for the form |
 | `GET /auth/no-access` | signed in | | minimal HTML: display name and verified address (or username), "An Admin must grant you access to this workbench", **Sign out**; no workspace data; 302 to `/` when the person has access |
 | `GET /auth/signed-out` | anyone | | minimal HTML: "You are signed out", **Sign in again** (`/auth/login`); never starts a sign-in by itself |
+| `GET /api/projects/:slug/people` | `edit` on the project (Editor+) | | `[{name, owner}]` people who may read the project, seen at sign-in with a verified e-mail or Entra user name, for the metric owner picker; Viewer → 403; `[]` in local mode |
 | `GET /auth/github/start` | signed in | `?returnTo=` | 302 to GitHub authorize with `state` bound to the session |
 | `GET /auth/github/callback` | signed in | | stores token in session, 302 to `returnTo` |
 | `GET /healthz` | anyone | | `200 {ok: true, version, commit}` (liveness; no workspace data; FR-124) |

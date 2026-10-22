@@ -1,6 +1,8 @@
 // Reads immutable access fixtures and maps test identities to trusted claims.
 import { readFileSync } from 'node:fs';
-import type { AccessConfig } from '../../server/auth/authorize';
+import type { AccessConfig, AccessView } from '../../server/auth/authorize';
+import type { ContentGuard } from '../../server/auth/guards';
+import type { Reader } from '../../server/projects/reader';
 import { normalizeClaims } from '../../server/auth/principal';
 import { TEST_USERS, TEST_TENANT_ID, type TestUserName } from '../helpers/auth-identities';
 import { AUTH_PROJECTS } from '../helpers/auth-workspace';
@@ -41,4 +43,13 @@ export function person(name: TestUserName) {
     },
     { provider: 'entra', tenantId: TEST_TENANT_ID, groupClaim: 'groups' },
   );
+}
+
+/**
+ * A server reader for tests of read boundaries. Governance has its own tests, so this reader's
+ * guard lets every change through unchanged.
+ */
+export function boundaryReader(view: AccessView, owner: string): Reader {
+  const guard: ContentGuard = changes => ({ changes, refused: [], demoted: [] });
+  return { view, owner, guard };
 }

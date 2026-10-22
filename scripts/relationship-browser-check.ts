@@ -3,6 +3,7 @@ import { appUrl } from './helpers/base-url';
 import { chromium } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { example } from './helpers/examples';
+import { LOCAL_READER } from '../server/projects/reader';
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 const errors: string[] = [];
@@ -27,7 +28,7 @@ const source = JSON.stringify({
   ],
 });
 const api = await startIsolatedApi({ watch: false });
-await api.ws.importBatch({ files: [{ path: 'commerce.yaml', source }] });
+await api.ws.importBatch({ files: [{ path: 'commerce.yaml', source }] }, LOCAL_READER);
 const savedSource = () => api.ws.documents().find(d => d.filename === 'commerce.yaml')?.source;
 await routeApi(page, api);
 await page.goto(appUrl());

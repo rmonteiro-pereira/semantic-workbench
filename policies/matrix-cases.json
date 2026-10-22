@@ -6,6 +6,7 @@
       "kind": "person",
       "name": "Alice Andrade",
       "username": "alice@example.org",
+      "usernameVerified": true,
       "verifiedEmail": "alice@example.org",
       "groups": [
         "7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a01"
@@ -19,6 +20,7 @@
       "kind": "person",
       "name": "Bob Barros",
       "username": "Bob@Example.org",
+      "usernameVerified": true,
       "verifiedEmail": "bob@example.org",
       "groups": [],
       "groupsResolved": "token",
@@ -30,6 +32,7 @@
       "kind": "person",
       "name": "Carol Costa",
       "username": "carol@example.org",
+      "usernameVerified": true,
       "verifiedEmail": "carol@example.org",
       "groups": [
         "7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a02"
@@ -43,6 +46,7 @@
       "kind": "person",
       "name": "Dave Dias",
       "username": "dave@example.org",
+      "usernameVerified": true,
       "verifiedEmail": "dave@example.org",
       "groups": [
         "7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a03"
@@ -56,6 +60,7 @@
       "kind": "person",
       "name": "Erin Esteves",
       "username": "erin@example.org",
+      "usernameVerified": true,
       "verifiedEmail": "erin@example.org",
       "groups": [],
       "groupsResolved": "token",
@@ -67,6 +72,7 @@
       "kind": "person",
       "name": "Frank Freitas",
       "username": "frank@example.org",
+      "usernameVerified": true,
       "verifiedEmail": "frank@example.org",
       "groups": [
         "7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a01",
@@ -81,6 +87,7 @@
       "kind": "person",
       "name": "Gina Gomes",
       "username": "gina_partner.example#EXT#@workbenchtest.onmicrosoft.com",
+      "usernameVerified": false,
       "verifiedEmail": null,
       "groups": [],
       "groupsResolved": "token",
@@ -92,6 +99,7 @@
       "kind": "person",
       "name": "Hank Hall",
       "username": "hank@example.org",
+      "usernameVerified": true,
       "verifiedEmail": "hank@example.org",
       "groups": [],
       "groupsResolved": "token",
@@ -103,6 +111,7 @@
       "kind": "person",
       "name": "Olga Oliveira",
       "username": "olga@example.org",
+      "usernameVerified": true,
       "verifiedEmail": "olga@example.org",
       "groups": [
         "7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a01"
@@ -269,6 +278,14 @@
     },
     {
       "case": "POST /api/projects/:slug/metrics",
+      "action": "edit",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "GET /api/projects/:slug/people",
       "action": "edit",
       "resource": {
         "type": "project",

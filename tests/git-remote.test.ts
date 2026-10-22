@@ -6,6 +6,7 @@ import { createGit, gitEnv, REMOTE_TIMEOUT_MS, subcommandOf } from '../server/pr
 import { dataLayout } from '../server/projects/paths';
 import { tempDataDir } from './helpers/temp-data-dir';
 import { call, ok, ontology, scmProject, sh } from './helpers/scm';
+import { LOCAL_READER } from '../server/projects/reader';
 test('push to a local bare remote sets the upstream; pull merges a commit made elsewhere', async () => {
   const p = await scmProject();
   try {
@@ -63,10 +64,15 @@ test('a conflicting pull merges with --no-rebase, lists conflicted files, blocks
       (await call(p.t, 'POST', p.base + '/git/commit', { message: 'Merge' })).body.error,
     ).toContain('Resolve the conflicted files');
     const current = p.t.ws.readFile(p.slug, 'shop.yaml');
-    await p.t.ws.saveFile(p.slug, 'shop.yaml', {
-      baseHash: current.hash,
-      source: ontology('Ours and theirs.'),
-    });
+    await p.t.ws.saveFile(
+      p.slug,
+      'shop.yaml',
+      {
+        baseHash: current.hash,
+        source: ontology('Ours and theirs.'),
+      },
+      LOCAL_READER,
+    );
     await ok(call(p.t, 'POST', p.base + '/git/stage', { paths: ['shop.yaml'] }));
     await ok(call(p.t, 'POST', p.base + '/git/commit', { message: 'Merge theirs' }));
     expect(sh(p.dir, ['log', '-1', '--format=%P']).trim().split(' ')).toHaveLength(2);

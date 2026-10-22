@@ -22,14 +22,20 @@ const api = (
 async function setup() {
   let clock = Date.parse('2026-10-21T10:00:00Z');
   const t = await testWorkspace({ now: () => clock });
-  await t.ws.importBatch({
-    name: 'Alpha',
-    files: [
-      { path: 'a.yaml', source: ont('A') },
-      { path: 'dir/b.yaml', source: ont('B') },
-    ],
-  });
-  await t.ws.importBatch({ name: 'Beta', files: [{ path: 'c.yaml', source: ont('C') }] });
+  await t.ws.importBatch(
+    {
+      name: 'Alpha',
+      files: [
+        { path: 'a.yaml', source: ont('A') },
+        { path: 'dir/b.yaml', source: ont('B') },
+      ],
+    },
+    LOCAL_READER,
+  );
+  await t.ws.importBatch(
+    { name: 'Beta', files: [{ path: 'c.yaml', source: ont('C') }] },
+    LOCAL_READER,
+  );
   return {
     t,
     tick: (ms: number) => {
@@ -97,7 +103,7 @@ test('deleting a file needs confirmation, moves it to the trash and undo restore
 test('after 10 s undo is refused with 410 and restore from the trash still works', async () => {
   const { t, tick, file } = await setup();
   try {
-    const { entryId } = await t.ws.trash.deleteFile('alpha', 'dir/b.yaml');
+    const { entryId } = await t.ws.trash.deleteFile('alpha', 'dir/b.yaml', undefined, LOCAL_READER);
     tick(UNDO_MS + 1);
     const late = await api(t, 'POST', `/api/trash/${entryId}/undo`);
     expect(late.status).toBe(410);
@@ -119,7 +125,7 @@ test('after 10 s undo is refused with 410 and restore from the trash still works
 test('restore never overwrites: an occupied location is a 409 with a free alternative', async () => {
   const { t, file } = await setup();
   try {
-    const { entryId } = await t.ws.trash.deleteFile('alpha', 'a.yaml');
+    const { entryId } = await t.ws.trash.deleteFile('alpha', 'a.yaml', undefined, LOCAL_READER);
     writeFileSync(file('alpha', 'a.yaml'), ont('Newer'));
     await t.ws.rescan('alpha');
     const r = await api(t, 'POST', `/api/trash/${entryId}/restore`);
@@ -172,9 +178,12 @@ test('deleting a project moves its folder with .git and registry entry; restore 
 test('a deleted file whose project is gone is restored into a new project; a taken project id is a 409', async () => {
   const { t } = await setup();
   try {
-    const file = await t.ws.trash.deleteFile('beta', 'c.yaml');
+    const file = await t.ws.trash.deleteFile('beta', 'c.yaml', undefined, LOCAL_READER);
     const project = await t.ws.trash.deleteProject('beta');
-    await t.ws.importBatch({ name: 'Beta', files: [{ path: 'x.yaml', source: ont('X') }] });
+    await t.ws.importBatch(
+      { name: 'Beta', files: [{ path: 'x.yaml', source: ont('X') }] },
+      LOCAL_READER,
+    );
     const occupied = await api(t, 'POST', `/api/trash/${project.entryId}/restore`);
     expect(occupied.status).toBe(409);
     const { suggestion } = await occupied.json();
@@ -212,12 +221,12 @@ test('Clear moves every project to the trash as entries sharing a batch id; purg
         .projects.map(p => p.slug)
         .sort(),
     ).toEqual(['alpha', 'beta']);
-    const { entryId } = await t.ws.trash.deleteFile('alpha', 'a.yaml');
+    const { entryId } = await t.ws.trash.deleteFile('alpha', 'a.yaml', undefined, LOCAL_READER);
     expect((await api(t, 'DELETE', `/api/trash/${entryId}`, {})).status).toBe(400);
     expect(existsSync(join(t.root, 'trash', entryId))).toBe(true);
     expect((await api(t, 'DELETE', `/api/trash/${entryId}`, { confirm: true })).status).toBe(204);
     expect(existsSync(join(t.root, 'trash', entryId))).toBe(false);
-    await t.ws.trash.deleteFile('alpha', 'dir/b.yaml');
+    await t.ws.trash.deleteFile('alpha', 'dir/b.yaml', undefined, LOCAL_READER);
     expect((await api(t, 'DELETE', '/api/trash', {})).status).toBe(400);
     expect((await api(t, 'DELETE', '/api/trash', { confirm: true })).status).toBe(204);
     expect(await (await api(t, 'GET', '/api/trash')).json()).toEqual([]);
@@ -234,7 +243,7 @@ test('every multi-file operation is journaled and leaves no journal behind', asy
       ops.push(kind);
       return (run as any)(kind, ...rest);
     };
-    const f = await t.ws.trash.deleteFile('alpha', 'a.yaml');
+    const f = await t.ws.trash.deleteFile('alpha', 'a.yaml', undefined, LOCAL_READER);
     await t.ws.trash.undo(f.entryId, LOCAL_READER);
     const p = await t.ws.trash.deleteProject('beta');
     await t.ws.trash.restore(p.entryId, {}, LOCAL_READER);

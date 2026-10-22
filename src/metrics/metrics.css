@@ -1066,3 +1066,38 @@
   background: #f3f6f5;
   color: #5b6f6a;
 }
+
+/* Approve and Deprecate sit under the metric name; Deprecate asks for its reason in place. */
+.kpi-approval {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 4px;
+}
+.kpi-approval p {
+  margin: 0;
+  font-size: 12px;
+}
+.kpi-deprecate {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1 1 260px;
+}
+.kpi-deprecate input {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+.kpi-unverified {
+  margin-left: 6px;
+  font-size: 10.5px;
+  padding: 1px 7px;
+  border-radius: 10px;
+  border: 1px solid #e3d6a4;
+  background: #fbf6e2;
+  color: #5a4a12;
+}
+.owner-unverified {
+  color: #5a4a12;
+}

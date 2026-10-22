@@ -210,3 +210,52 @@ test('labels', () => {
   );
   expect(saveStateLabel({ ...initialAutosave, status: 'saving' }, 1)).toBe('Saving…');
 });
+test('stored text that differs from the sent text is followed unless something was typed since', () => {
+  const saving = run([
+    open,
+    { type: 'edit', text: 'status: approved\n' },
+    { type: 'idle', text: 'status: approved\n', errors: 0 },
+  ]).state;
+  const stored = { type: 'saved', text: 'status: proposed\n', hash: 'h1', at: 1 } as const;
+  const followed = autosave(saving, stored);
+  expect(followed.state).toMatchObject({
+    status: 'saved',
+    text: 'status: proposed\n',
+    savedText: 'status: proposed\n',
+  });
+  expect(followed.effect).toBeNull();
+  const typed = autosave(saving, { type: 'edit', text: 'status: approved\nmore\n' }).state;
+  const kept = autosave(typed, stored);
+  expect(kept.state.text).toBe('status: approved\nmore\n');
+  expect(kept.effect).toEqual({ type: 'schedule' });
+});
+test('text typed during a demoted save gets the same demotion, so the next save is accepted', () => {
+  const metric = (status: string, expression: string) =>
+    [
+      'name: m',
+      'datasets: [{name: d, source: s}]',
+      'metrics:',
+      '  - name: revenue',
+      `    expression: ${expression}`,
+      '    custom_extensions:',
+      '      - vendor_name: SEMANTIC_WORKBENCH',
+      '        data: |',
+      `          {"schema": "semantic-workbench/metric/v1", "type": "simple", "status": "${status}"}`,
+      '',
+    ].join('\n');
+  const sent = metric('approved', 'SUM(a) * 2');
+  const typed = metric('approved', 'SUM(a) * 3');
+  const opened = { type: 'open', file: 'p/m.yaml', hash: 'h0', text: metric('approved', 'SUM(a)') };
+  const saving = run([
+    opened as AutosaveEvent,
+    { type: 'edit', text: sent },
+    { type: 'idle', text: sent, errors: 0 },
+    { type: 'edit', text: typed },
+  ]).state;
+  const demoted = [{ file: 'm.yaml', pointer: '/metrics/0', metric: 'revenue' }];
+  const stored = metric('proposed', 'SUM(a) * 2');
+  const next = autosave(saving, { type: 'saved', text: stored, hash: 'h1', at: 1, demoted });
+  expect(next.state.text).toBe(metric('proposed', 'SUM(a) * 3'));
+  expect(next.state.savedText).toBe(stored);
+  expect(next.effect).toEqual({ type: 'schedule' });
+});

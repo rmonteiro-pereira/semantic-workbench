@@ -64,6 +64,12 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `server/auth/authorize.ts` | The access-decision boundary, filtered views and request memoisation | HTTP handling |
 | `server/auth/route-actions.ts`, `server/auth/middleware.ts` | Route inventory, request scopes, identity resolution and audited HTTP decisions | Resource-specific business logic |
 | `server/auth/audit.ts` | Durable monthly audit records, hash chains and retention | Secrets or document contents |
+| `src/governance/guards.ts`, `src/governance/levels.ts` | The shared, pure governance rules: what a file change touches (metric status, approved-metric edits, ODCS classification, critical data elements, team, roles, protected properties), demotion to proposed, owner matching and owner choices, classification levels | Policy evaluation, I/O |
+| `server/auth/guards.ts` | Binds those rules to a request: `guardFor(scope)` builds the guard that decides each guarded change with `approveMetric` or `editGuarded` and throws `GuardedChangeError`; re-exports the shared rules | Reading or writing files |
+| `server/auth/write-access.ts` | `authorizeWrite` for write targets; re-exports `WriteAccessError` | Content rules |
+| `server/auth/write-access-error.ts` | `WriteAccessError`, apart so the guards can extend it without a cycle | Request scope |
+| `server/routes/people.ts` | `GET /api/projects/:slug/people`, the owner choices of a project: people who may read it, with verified identities | Owner matching rules |
+| `src/auth/guards-client.ts` | Approve/Deprecate state and protected-property checks for the browser, using `src/governance/` | Saving |
 | `server/auth/admin-repo.ts`, `server/auth/admin-guard.ts` | Validated Git versions of administration documents and the last human Admin invariant | HTTP parsing |
 | `server/auth/access-admin.ts`, `server/auth/change-summary.ts` | Administration saves: proposals, dry-run receipts, last-Admin and bootstrap checks, one commit per change with its message, affected streams | HTTP parsing |
 | `server/auth/policies.ts`, `server/auth/dry-run.ts` | Admin rule templates and validation; decision replay and "what changes for whom" | Persistence |
@@ -174,6 +180,26 @@ editor never receives an older deferred value as an external replacement.
   administration changes, the version) and preserve the response to avoid retrying writes.
   Administration documents live in `admin/`, with validated atomic writes and one Git commit
   per change; failed writes restore the committed tree, while requested rollbacks create new commits.
+- **Guards**: `requestReader(request)` carries the principal's content guard (`guardFor(scope)`)
+  for every signed-in principal, agent clients included; only local mode's `LOCAL_READER` has
+  none. A server `Reader` must carry a guard, and write methods take the reader without a
+  default, so an unguarded server write does not compile. The guarded writes are `saveFile`,
+  `saveFiles`, `saveDocument`, `importInto`, `importBatch`, `revertFile`, `moveFile` (across
+  projects), `scm.pull`/`sync`/`switchBranch`, and `trash.deleteFile`, `undo` and `restore`.
+  `importBatch` judges a new project's files as created in the domain the route chose, before
+  the project exists. The workspace calls the guard under the project lock with each file's text
+  before and after (and the committed text, whose owner also counts for self-approval), before
+  anything is validated or staged; it returns the text to write (an edited approved metric
+  demoted to `proposed`) or throws, which the middleware audits as `guarded:<kind>` and answers
+  with the guarded pointers. Operations that bring in text the person did not type name
+  themselves (pull, revert, delete, restore, import, move, switch) so a refusal tells the person
+  to ask a Steward, and they never demote. A pull is fetched, checked between the merge base and
+  the fetched tip, and that checked commit is merged (not a second fetch); a switch is checked
+  between the current commit and the target branch; a move is judged as removing the file from
+  its project and creating it in the target. A restore's files are judged as created.
+  `tests/auth/guard-inventory.test.ts` requires every route beyond a plain read to be covered by
+  a guard case or listed as exempt with its reason, and agent clients to be admitted only on read
+  rows. `applyGuards` in `src/governance/guards.ts` is the pure entry point.
 - **Errors**: services throw specific errors (`server/projects/errors.ts`, `GitError`,
   `PathError`, `InputError`, `SignInError`); `server/routes/http.ts` maps them to status codes in one place, including the safe sign-in page and attempt-cookie clearing. The handler passes that mapping into the access middleware, so `server/auth/` never imports `server/routes/`.
 - **Events**: the server emits `files`, `projects`, `git`, `clone`, `identity` and others
@@ -231,7 +257,7 @@ container group exercises the image itself. Keycloak remains outside the deliver
 `server/auth/request-scope.ts` owns the scope the middleware attaches to each request:
 `requestScope()` returns it and `requestReader()` derives the required `Reader` from it, so
 routes and resource helpers never import the HTTP middleware. The reader carries the request's
-view and personal state owner. Every workspace
+view, personal state owner and content guard. Every workspace
 service that reads or writes on a person's behalf requires it, including grouping views, legacy
 document saves and clones; local and internal operations explicitly pass `LOCAL_READER`.
 Omitting a reader must fail compilation, never grant unrestricted access. Derived agent and metric services receive only filtered

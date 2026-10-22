@@ -134,7 +134,7 @@ function knownProjectDomains(options: EntityOptions): ProjectDomain[] {
  * reserved new-project name borrows a domain this way; a real slug never does.
  */
 function prospectiveProject(resource: ResourceRef): ProjectDomain | null {
-  if (resource.type !== 'project' || resource.project !== NEW_PROJECT) return null;
+  if (resource.type === 'workspace' || resource.project !== NEW_PROJECT) return null;
   if (resource.domain === undefined) return null;
   return { slug: resource.project, domain: resource.domain };
 }
@@ -273,7 +273,10 @@ export function createPolicyEvaluator(policy: PolicySet, options: EntityOptions)
     const graph = prospective ? memberEntities(options, [...known, prospective]) : members;
     const entities = [...graph, person, target];
     if (resource.type === 'file') {
-      entities.push(resourceEntity({ type: 'project', project: resource.project }, options));
+      const project = { type: 'project' as const, project: resource.project };
+      // A file of a project being created belongs to the domain the creation names.
+      const domain = resource.domain === undefined ? {} : { domain: resource.domain };
+      entities.push(resourceEntity({ ...project, ...domain }, options));
     }
     try {
       const result = cedar.statefulIsAuthorized({

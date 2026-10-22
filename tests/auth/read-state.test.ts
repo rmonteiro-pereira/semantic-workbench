@@ -1,7 +1,7 @@
 import { LOCAL_READER } from '../../server/projects/reader';
 import { expect, test } from 'bun:test';
 import { authWorkspace } from '../helpers/auth-workspace';
-import { accessFixture, person } from './access-fixture';
+import { accessFixture, boundaryReader, person } from './access-fixture';
 import { createAccessControl } from '../../server/auth/authorize';
 import { createHandler } from '../../server/handler';
 
@@ -44,16 +44,23 @@ test('trash hides other owners and restricted original paths from listing and op
   const access = createAccessControl(accessFixture());
   const alice = access.principalFor(person('alice'));
   const frank = access.principalFor(person('frank'));
-  const own = await fixture.ws.trash.deleteFile('sales-contracts', 'orders.odcs.yaml', alice.id);
+  const own = await fixture.ws.trash.deleteFile(
+    'sales-contracts',
+    'orders.odcs.yaml',
+    alice.id,
+    LOCAL_READER,
+  );
   const other = await fixture.ws.trash.deleteFile(
     'sales-contracts',
     'sales.mapping.yaml',
     frank.id,
+    LOCAL_READER,
   );
   const hidden = await fixture.ws.trash.deleteFile(
     'sales-contracts',
     'finance/revenue-recognition.odcs.yaml',
     alice.id,
+    LOCAL_READER,
   );
   const handler = createHandler(fixture.ws, {
     mode: 'server',
@@ -125,7 +132,7 @@ test('hidden and absent files return identical responses and conflicts hide dest
       'sales-contracts',
       'finance/revenue-recognition.odcs.yaml',
       false,
-      { view, owner: principal.id },
+      boundaryReader(view, principal.id),
     ),
   ).rejects.toThrow('The target is unavailable.');
   await expect(
@@ -138,13 +145,14 @@ test('hidden and absent files return identical responses and conflicts hide dest
         },
       ],
       undefined,
-      { view, owner: principal.id },
+      boundaryReader(view, principal.id),
     ),
   ).rejects.toThrow('The target is unavailable.');
-  const impact = fixture.ws.deleteImpact('sales-contracts', undefined, {
-    view,
-    owner: principal.id,
-  });
+  const impact = fixture.ws.deleteImpact(
+    'sales-contracts',
+    undefined,
+    boundaryReader(view, principal.id),
+  );
   expect(JSON.stringify(impact)).not.toContain('finance/');
   expect(impact).toHaveProperty('hiddenReferences');
 });
@@ -198,7 +206,12 @@ test('save, move, delete and restore update every personal draft and grouping', 
     expect(personal.draft(project, path)).toBeNull();
     personal.writeDraft(project, path, { baseHash: file.hash, text: 'draft', patches: [] });
   }
-  await fixture.ws.saveFile(project, path, { baseHash: file.hash, source: file.source });
+  await fixture.ws.saveFile(
+    project,
+    path,
+    { baseHash: file.hash, source: file.source },
+    LOCAL_READER,
+  );
   for (const personal of owners) {
     expect(personal.draft(project, path)).toBeNull();
     personal.writeDraft(project, path, { baseHash: file.hash, text: 'draft', patches: [] });
@@ -210,7 +223,7 @@ test('save, move, delete and restore update every personal draft and grouping', 
     expect(personal.draft(project, 'moved.yaml')).toMatchObject({ project, path: 'moved.yaml' });
     expect(personal.view(project).files).toEqual({ 'moved.yaml': { mode: 'declared' } });
   }
-  const deleted = await fixture.ws.trash.deleteFile(project, 'moved.yaml', 'alice');
+  const deleted = await fixture.ws.trash.deleteFile(project, 'moved.yaml', 'alice', LOCAL_READER);
   for (const personal of owners) {
     expect(personal.draft(project, 'moved.yaml')).toBeNull();
     expect(personal.view(project).files).toEqual({});
@@ -307,15 +320,20 @@ test('reverting a file clears the shared and every personal draft in its journal
   const project = 'sales-contracts';
   const path = 'orders.odcs.yaml';
   const committed = fixture.ws.readFile(project, path);
-  const edited = await fixture.ws.saveFile(project, path, {
-    baseHash: committed.hash,
-    source: committed.source + '\n# edited\n',
-  });
+  const edited = await fixture.ws.saveFile(
+    project,
+    path,
+    {
+      baseHash: committed.hash,
+      source: committed.source + '\n# edited\n',
+    },
+    LOCAL_READER,
+  );
   const owners = ['alice', 'frank'].map(owner => fixture.ws.state.forOwner(owner));
   for (const personal of [fixture.ws.state, ...owners]) {
     personal.writeDraft(project, path, { baseHash: edited.hash, text: 'draft', patches: [] });
   }
-  await fixture.ws.revertFile(project, path, edited.hash);
+  await fixture.ws.revertFile(project, path, edited.hash, LOCAL_READER);
   expect(fixture.ws.readFile(project, path).hash).toBe(committed.hash);
   for (const personal of [fixture.ws.state, ...owners]) {
     expect(personal.draft(project, path)).toBeNull();
@@ -344,7 +362,7 @@ test('a deleted empty project stays visible to the person who may restore it', a
   );
   const project = 'sales-metrics';
   for (const file of fixture.ws.cache.files(project)) {
-    await fixture.ws.trash.deleteFile(project, file.path, alice.id);
+    await fixture.ws.trash.deleteFile(project, file.path, alice.id, LOCAL_READER);
   }
   const entry = await fixture.ws.trash.deleteProject(project, alice.id);
   const recorded = fixture.ws.trash.list().find(item => item.entryId === entry.entryId);
@@ -370,12 +388,12 @@ test('keep-both imports never reveal or replace a name the reader cannot open', 
   const project = 'sales-contracts';
   const hiddenName = 'orders.odcs (2).yaml';
   const source = fixture.ws.readFile(project, 'orders.odcs.yaml').source;
-  await fixture.ws.saveFile(project, hiddenName, { baseHash: null, source });
+  await fixture.ws.saveFile(project, hiddenName, { baseHash: null, source }, LOCAL_READER);
   const hiddenHash = fixture.ws.readFile(project, hiddenName).hash;
-  const reader = {
-    owner: principal.id,
-    view: { ...view, canRead: (slug: string, path: string) => path !== hiddenName },
-  };
+  const reader = boundaryReader(
+    { ...view, canRead: (slug: string, path: string) => path !== hiddenName },
+    principal.id,
+  );
   const files = [{ path: 'orders.odcs.yaml', source: source + '# imported\n' }];
   const refusal = await fixture.ws
     .importInto(project, files, 'keep-both', reader)
@@ -388,10 +406,12 @@ test('keep-both imports never reveal or replace a name the reader cannot open', 
   );
   // A keep-both name skips names already taken by the same batch.
   const batch = [files[0], { path: 'orders.odcs (3).yaml', source }];
-  const imported = await fixture.ws.importInto(project, batch, 'keep-both', {
-    owner: principal.id,
-    view,
-  });
+  const imported = await fixture.ws.importInto(
+    project,
+    batch,
+    'keep-both',
+    boundaryReader(view, principal.id),
+  );
   expect(imported.written.map(file => file.path)).toEqual([
     'orders.odcs (4).yaml',
     'orders.odcs (3).yaml',
@@ -406,12 +426,12 @@ test('keep-both moves never reveal or replace a name the reader cannot open', as
   const project = 'sales-contracts';
   const hiddenName = 'orders.odcs (2).yaml';
   const source = fixture.ws.readFile(project, 'orders.odcs.yaml').source;
-  await fixture.ws.saveFile(project, hiddenName, { baseHash: null, source });
+  await fixture.ws.saveFile(project, hiddenName, { baseHash: null, source }, LOCAL_READER);
   const hiddenHash = fixture.ws.readFile(project, hiddenName).hash;
-  const reader = {
-    owner: principal.id,
-    view: { ...view, canRead: (slug: string, path: string) => path !== hiddenName },
-  };
+  const reader = boundaryReader(
+    { ...view, canRead: (slug: string, path: string) => path !== hiddenName },
+    principal.id,
+  );
   const move = (keepBoth: boolean) =>
     fixture.ws.moveFile(
       'sales-metrics',
@@ -479,7 +499,7 @@ test('grouping and document saves take the reader and hide restricted documents'
   const { HiddenResourceError } = await import('../../server/projects/errors');
   const access = createAccessControl(accessFixture());
   const principal = access.principalFor(person('alice'));
-  const reader = { view: access.view(principal), owner: principal.id };
+  const reader = boundaryReader(access.view(principal), principal.id);
   const hidden = 'sales-contracts/finance/revenue-recognition.odcs.yaml';
   expect(() => fixture.ws.grouping(hidden, reader)).toThrow(HiddenResourceError);
   expect(() => fixture.ws.saveGrouping(hidden, { mode: 'types' }, reader)).toThrow(

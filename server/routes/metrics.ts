@@ -3,6 +3,7 @@ import { requestReader } from '../auth/request-scope';
 import { explainMetric, projectMetrics } from '../agent/explain';
 import type { Route } from './http';
 import { decodePath } from '../request';
+import { ownerVerifier } from '../auth/guards';
 // Match before the files route so `explain` is not treated as part of a file path.
 /** Handles metric listings and explanations without executing SQL. */
 export const metricRoutes: Route = (ws, req, url) => {
@@ -11,7 +12,16 @@ export const metricRoutes: Route = (ws, req, url) => {
   if (list) {
     const slug = decodeURIComponent(list[1]);
     ws.project(slug);
-    return Response.json(projectMetrics(ws.documentsFor(requestReader(req)), slug));
+    const reader = requestReader(req);
+    const metrics = projectMetrics(ws.documentsFor(reader), slug);
+    if (!reader.view) return Response.json(metrics);
+    // In server mode an owner that names nobody who has signed in is shown as unverified.
+    const verified = ownerVerifier(ws.state.users().users);
+    return Response.json(
+      metrics.map(metric =>
+        metric.owner ? { ...metric, ownerVerified: verified(metric.owner) } : metric,
+      ),
+    );
   }
   const m = url.pathname.match(/^\/api\/projects\/([^/]+)\/files\/(.+)\/explain\/([^/]+)$/);
   if (!m) return null;

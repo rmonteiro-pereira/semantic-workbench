@@ -173,24 +173,30 @@ if (
     if (category === 'files') {
       const ws = await m.openWorkspace({ root: d.root });
       try {
-        await ws.importBatch({ files: [{ path: 'a.yaml', source }] });
-        await ws.saveFile('sample', 'a.yaml', {
-          baseHash: hash(source),
-          source: source.replace('Customer', 'Buyer'),
-        });
+        await ws.importBatch({ files: [{ path: 'a.yaml', source }] }, LOCAL_READER);
+        await ws.saveFile(
+          'sample',
+          'a.yaml',
+          { baseHash: hash(source), source: source.replace('Customer', 'Buyer') },
+          LOCAL_READER,
+        );
         await assert.rejects(
           () =>
-            ws.saveFile('sample', 'a.yaml', {
-              baseHash: hash(source),
-              source: source.replace('Customer', 'Other'),
-            }),
+            ws.saveFile(
+              'sample',
+              'a.yaml',
+              { baseHash: hash(source), source: source.replace('Customer', 'Other') },
+              LOCAL_READER,
+            ),
           /changed/,
         );
         await assert.rejects(() =>
-          ws.saveFile('sample', 'a.yaml', {
-            baseHash: hash(source.replace('Customer', 'Buyer')),
-            source: 'ontology: []',
-          }),
+          ws.saveFile(
+            'sample',
+            'a.yaml',
+            { baseHash: hash(source.replace('Customer', 'Buyer')), source: 'ontology: []' },
+            LOCAL_READER,
+          ),
         );
         assert.equal(
           fs.readFileSync(join(d.root, 'projects/sample/a.yaml'), 'utf8'),
@@ -296,7 +302,7 @@ if (
       const { LOCAL_READER } = await import('../server/projects/reader');
       const ws = await openWorkspace({ root: d.root, now: () => clock });
       try {
-        await ws.importBatch({ files: [{ path: 'a.yaml', source }] });
+        await ws.importBatch({ files: [{ path: 'a.yaml', source }] }, LOCAL_READER);
         const trash = m.createTrash({
           layout: ws.layout,
           state: ws.state,
@@ -314,7 +320,7 @@ if (
           withCurrentReaders: (_event: string, tags: object) => tags,
           now: () => clock,
         });
-        const first = await trash.deleteFile('sample', 'a.yaml');
+        const first = await trash.deleteFile('sample', 'a.yaml', undefined, LOCAL_READER);
         clock += 10_001;
         await assert.rejects(
           () => trash.undo(first.entryId, LOCAL_READER),
@@ -339,6 +345,7 @@ if (
           'a.yaml',
           hash(newer),
           new TextEncoder().encode(source),
+          LOCAL_READER,
         );
         assert.equal(fs.readFileSync(join(d.root, 'projects/sample/a.yaml'), 'utf8'), source);
         assert.equal(
@@ -356,7 +363,7 @@ if (
       const { openWorkspace } = await import('../server/projects/workspace');
       const ws = await openWorkspace({ root: d.root });
       try {
-        await ws.importBatch({ files: [{ path: 'a.yaml', source }] });
+        await ws.importBatch({ files: [{ path: 'a.yaml', source }] }, LOCAL_READER);
         await assert.rejects(async () =>
           m.trashRoutes(
             ws,
@@ -1480,13 +1487,16 @@ async function teamRepositoryWorkspace() {
   const ws = await openWorkspace({ root: d.root });
   const text = (name: string) =>
     `name: ${name}\nontology: [{concept: ${name}, type: EntityType}]\n`;
-  await ws.importBatch({
-    name: 'team',
-    files: [
-      { path: 'domains/sales/sales.yaml', source: text('Sales') },
-      { path: 'domains/finance/finance.yaml', source: text('Finance') },
-    ],
-  });
+  await ws.importBatch(
+    {
+      name: 'team',
+      files: [
+        { path: 'domains/sales/sales.yaml', source: text('Sales') },
+        { path: 'domains/finance/finance.yaml', source: text('Finance') },
+      ],
+    },
+    LOCAL_READER,
+  );
   const registered = await ws.registerRepositoryProjects('team', [
     { path: 'domains/sales', name: 'Sales' },
     { path: 'domains/finance', name: 'Finance' },
@@ -2204,7 +2214,12 @@ if (['write-body-legacy', 'write-body-suggestions', 'write-body-trash'].includes
     }
   }
   if (category === 'write-body-trash') {
-    const entry = await fixture.ws.trash.deleteFile('hr-people', 'people.odcs.yaml');
+    const entry = await fixture.ws.trash.deleteFile(
+      'hr-people',
+      'people.odcs.yaml',
+      undefined,
+      LOCAL_READER,
+    );
     for (const action of ['undo', 'restore']) {
       const req = request('/api/trash/' + entry.entryId + '/' + action);
       await assert.rejects(m.trashRoutes(fixture.ws, req, new URL(req.url)), {
@@ -2328,4 +2343,185 @@ if (category === 'bearer-delegated') {
   const app = { idtyp: 'app', azp: 'sw-agent' };
   assert.equal(m.clientFromToken(app, null).id, 'client:sw-agent');
   assert.throws(() => m.clientFromToken({ ...app, scp: 'access_as_user' }, null));
+}
+
+// Governance guards: each case fails when its guard is removed or weakened.
+if (category.startsWith('guard-')) {
+  const { createAccessControl } = await import('../server/auth/authorize');
+  const { accessFixture, person } = await import('../tests/auth/access-fixture');
+  const { requestAccess } = await import('../server/auth/request-scope');
+  const access = createAccessControl(accessFixture());
+  const fs = await import('node:fs');
+  const metrics = fs.readFileSync(
+    'tests/fixtures/auth-workspace/projects/sales-metrics/sales.semantic.yaml',
+    'utf8',
+  );
+  const contract = fs.readFileSync(
+    'tests/fixtures/auth-workspace/projects/sales-contracts/orders.odcs.yaml',
+    'utf8',
+  );
+  const reclassify = (text: string) =>
+    text.replace('classification: internal', 'classification: public');
+  const scoped = (request: Request, name: 'alice' | 'bob') =>
+    Object.assign(request, {
+      [requestAccess]: access.forRequest(access.principalFor(person(name))),
+    });
+  if (category === 'guard-decisions') {
+    const guardFor = (name: 'alice' | 'bob') =>
+      m.guardFor(access.forRequest(access.principalFor(person(name))));
+    const own = metrics.replace(
+      '"owner": "alice@example.org", "status": "proposed"',
+      '"owner": "bob@example.org", "status": "approved"',
+    );
+    const metricChange = { project: 'sales-metrics', path: 'sales.semantic.yaml' };
+    assert.throws(() => guardFor('bob')([{ ...metricChange, before: metrics, after: own }]), {
+      name: 'GuardedChangeError',
+    });
+    const contractChange = { project: 'sales-contracts', path: 'orders.odcs.yaml' };
+    const after = reclassify(contract);
+    assert.throws(() => guardFor('alice')([{ ...contractChange, before: contract, after }]), {
+      name: 'GuardedChangeError',
+    });
+  }
+  if (category === 'guard-engine') {
+    const settings = () => ({ aliases: {}, protectedLevel: 'confidential' as const });
+    const refuseAll = () => false;
+    const edited = metrics.replace("'SUM(orders.amount)'", "'SUM(orders.amount) * 2'");
+    const metricChange = { project: 'sales-metrics', path: 'sales.semantic.yaml' };
+    const outcome = m.applyGuards(
+      [{ ...metricChange, before: metrics, after: edited }],
+      settings,
+      refuseAll,
+      {
+        demote: true,
+      },
+    );
+    assert.equal(outcome.refused.length, 0);
+    assert.equal(outcome.demoted.length, 1);
+    assert(outcome.changes[0].after.includes('"status": "proposed"'));
+    const kinds = m
+      .guardedChanges(
+        {
+          project: 'sales-contracts',
+          path: 'orders.odcs.yaml',
+          before: contract,
+          after: reclassify(contract),
+        },
+        settings(),
+      )
+      .map((change: { kind: string }) => change.kind);
+    assert.deepEqual(kinds, ['classification']);
+  }
+  if (category === 'guard-people') {
+    // Owner choices list addresses, so a Viewer must not reach them.
+    assert.equal(
+      m.routeFor('GET', '/api/projects/sales-metrics/people', 'server').row.action,
+      'edit',
+    );
+  }
+  if (category === 'guard-new-project') {
+    const { tempDataDir } = await import('../tests/helpers/temp-data-dir');
+    const { guardFor } = await import('../server/auth/guards');
+    const dir = tempDataDir();
+    const ws = await m.openWorkspace({ root: dir.root });
+    try {
+      const bob = access.principalFor(person('bob'));
+      const reader = {
+        view: access.view(bob),
+        owner: bob.id,
+        guard: guardFor(access.forRequest(bob)),
+      };
+      const source = metrics.replace(
+        '"owner": "alice@example.org", "status": "proposed"',
+        '"owner": "bob@example.org", "status": "approved"',
+      );
+      // Bob may approve, but not a metric he owns, even in a project the import creates.
+      const files = [{ path: 'sales.semantic.yaml', source }];
+      await assert.rejects(ws.importBatch({ files }, reader, { domain: 'sales' }), {
+        name: 'GuardedChangeError',
+      });
+    } finally {
+      ws.close();
+      dir.cleanup();
+    }
+  }
+  const routeCategories = [
+    'guard-save-batch',
+    'guard-pull',
+    'guard-revert',
+    'guard-delete',
+    'guard-restore',
+    'guard-import',
+  ];
+  if (routeCategories.includes(category)) {
+    const cases = await import('../tests/auth/guard-cases');
+    const { authWorkspace } = await import('../tests/helpers/auth-workspace');
+    const origin = 'http://127.0.0.1:4310';
+    type Sent = { method: string; path: string; body: unknown };
+    const request = (item: Sent, name: 'alice' | 'bob') =>
+      scoped(
+        new Request(origin + item.path, {
+          method: item.method,
+          headers: { Origin: origin, 'X-SW-Request': '1', 'Content-Type': 'application/json' },
+          body: JSON.stringify(item.body),
+        }),
+        name,
+      );
+    const route = (fixture: { ws: unknown }, item: Sent, name: 'alice' | 'bob') => {
+      const sent = request(item, name);
+      const handle = category === 'guard-import' ? m.projectRoutes({}) : m[routeExport()];
+      return handle(fixture.ws, sent, new URL(sent.url));
+    };
+    const routeExport = () => {
+      if (category === 'guard-save-batch') return 'kpiRoutes';
+      if (category === 'guard-delete' || category === 'guard-restore') return 'trashRoutes';
+      return 'gitRoutes';
+    };
+    const refused = (fixture: { ws: unknown }, item: Sent, name: 'alice' | 'bob' = 'alice') =>
+      assert.rejects(route(fixture, item, name), { name: 'GuardedChangeError' });
+    using fixture = await authWorkspace();
+    const saves = cases.guardedSaves(fixture.ws);
+    const named = (name: string) => saves.find(item => item.name === name)!;
+    if (category === 'guard-save-batch') await refused(fixture, named('save-batch'));
+    if (category === 'guard-delete') await refused(fixture, cases.deleteCase());
+    if (category === 'guard-import') {
+      await refused(fixture, named('import with replace'));
+    }
+    if (category === 'guard-revert') {
+      const file = fixture.ws.readFile('sales-contracts', 'orders.odcs.yaml');
+      const source = cases.reclassified(file.source);
+      await fixture.ws.saveFile(
+        'sales-contracts',
+        'orders.odcs.yaml',
+        {
+          baseHash: file.hash,
+          source,
+        },
+        LOCAL_READER,
+      );
+      await refused(fixture, cases.revertCase(fixture.ws));
+    }
+    if (category === 'guard-restore') {
+      const file = 'catalog.odcs.yaml';
+      const source = cases.unprotectedContract(fixture.ws);
+      await fixture.ws.saveFile('sales-contracts', file, { baseHash: null, source }, LOCAL_READER);
+      const deletion = {
+        ...cases.deleteCase(),
+        path: `/api/projects/sales-contracts/files/${file}`,
+      };
+      const deleted = await route(fixture, deletion, 'alice');
+      const undo = cases.restoreCase((await deleted.json()).entryId, file);
+      await refused(fixture, undo);
+      await refused(fixture, { ...undo, path: undo.path.replace('/undo', '/restore') });
+    }
+    if (category === 'guard-pull') {
+      const remote = cases.remoteWithReclassification(fixture.ws, fixture.root);
+      try {
+        await fixture.ws.scm.setRemote('sales-contracts', 'origin', remote.bare);
+        await refused(fixture, remote.pull);
+      } finally {
+        remote.dispose();
+      }
+    }
+  }
 }

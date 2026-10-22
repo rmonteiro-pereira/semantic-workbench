@@ -1,19 +1,10 @@
 // Carries additional target decisions back to the request boundary for a single audit record.
 import type { Action } from './actions';
-import type { Decision, ResourceRef, DecisionContext } from './resource';
+import type { ResourceRef, DecisionContext } from './resource';
 import { requestScope } from './request-scope';
+import { WriteAccessError } from './write-access-error';
 
-/** A refused target, retained so the middleware audits the actual failed decision. */
-export class WriteAccessError extends Error {
-  constructor(
-    public action: Action,
-    public resource: ResourceRef,
-    public decision: Decision,
-  ) {
-    super('Write target is not authorized.');
-    this.name = 'WriteAccessError';
-  }
-}
+export { WriteAccessError };
 
 /** Checks every target before an operation can change any of them. */
 export function authorizeWrite(

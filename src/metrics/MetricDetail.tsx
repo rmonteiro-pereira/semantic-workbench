@@ -5,6 +5,7 @@ import type { KpiExplanation, KpiSummary } from '../../server/agent/explain';
 import { api, type ExplainQuery } from '../projects/api';
 import { Explanation } from './Explanation';
 import { Lineage } from './Lineage';
+import { MetricApproval } from './MetricApproval';
 import { additivityLabel, targetText, typeLabel } from './format';
 // The explanation comes from the server and never requires executing SQL.
 /** Displays a metric's metadata and server-generated explanation. */
@@ -65,6 +66,7 @@ export function MetricDetail({
           )}
         </div>
         <code className="kpi-name">{kpi.name}</code>
+        <MetricApproval project={project} kpi={kpi} />
         {kpi.description && <p className="kpi-description">{kpi.description}</p>}
         <div className="kpi-badges">
           <span
@@ -131,6 +133,14 @@ export function MetricDetail({
             </dt>
             <dd>
               {kpi.owner ?? <span className="muted">—</span>}
+              {kpi.ownerVerified === false && (
+                <span
+                  className="kpi-unverified"
+                  title="This owner names nobody who has signed in, so approval treats the metric as having no owner"
+                >
+                  unverified owner
+                </span>
+              )}
               {kpi.steward && <small> · steward {kpi.steward}</small>}
             </dd>
           </div>

@@ -41,7 +41,8 @@ export const kpiRoutes: Route = async (ws, req, url) => {
         path: file.path,
       })),
     );
-    return Response.json(await ws.saveFiles(slug, body.files, requestReader(req), 'save-batch'));
+    const reader = requestReader(req);
+    return Response.json(await ws.saveFiles(slug, body.files, reader, 'save-batch'));
   }
   // Keep the older `kpis` paths as aliases for existing clients.
   const m = url.pathname.match(/^\/api\/projects\/([^/]+)\/(?:metrics|kpis)(\/preview)?$/);

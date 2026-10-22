@@ -121,22 +121,23 @@ export const gitRoutes: Route = async (ws, req, url) => {
       const b = await body(['path', 'baseHash']);
       if (typeof b.path !== 'string') throw Error('path is required.');
       authorizeWrite(req, 'revert', [{ type: 'file', project: slug, path: b.path }]);
-      return Response.json(await ws.revertFile(slug, b.path, b.baseHash ?? null, reader.owner));
+      const baseHash = b.baseHash ?? null;
+      return Response.json(await ws.revertFile(slug, b.path, baseHash, reader));
     }
     if (action === 'git/switch') {
       authorizeRepository(gitTarget, 'branch');
       const b = await body(['branch', 'create']);
-      return Response.json(await scm.switchBranch(slug, b.branch, b.create === true));
+      return Response.json(await scm.switchBranch(slug, b.branch, b.create === true, reader));
     }
     if (action === 'git/fetch') authorizeRepository(gitTarget, 'fetch');
     if (action === 'git/pull' || action === 'git/sync') {
       authorizeRepository(gitTarget, 'pull');
     }
     if (action === 'git/fetch') return Response.json(await scm.fetch(slug));
-    if (action === 'git/pull') return Response.json(await scm.pull(slug));
+    if (action === 'git/pull') return Response.json(await scm.pull(slug, reader));
     if (action === 'git/push' || action === 'git/sync') await authorizeGitPush(gitTarget);
     if (action === 'git/push') return Response.json(await scm.push(slug));
-    if (action === 'git/sync') return Response.json(await scm.sync(slug));
+    if (action === 'git/sync') return Response.json(await scm.sync(slug, reader));
     if (action === 'git/cancel') return Response.json(scm.cancel(slug));
     // Use the hash-checked save so concurrent edits are detected and the project is rescanned.
     if (action === 'gitignore') {
@@ -153,10 +154,12 @@ export const gitRoutes: Route = async (ws, req, url) => {
         next === null
           ? sha256(bytes!)
           : (
-              await ws.saveFile(slug, '.gitignore', {
-                baseHash: bytes ? sha256(bytes) : null,
-                source: next,
-              })
+              await ws.saveFile(
+                slug,
+                '.gitignore',
+                { baseHash: bytes ? sha256(bytes) : null, source: next },
+                reader,
+              )
             ).hash;
       return Response.json({
         hash,

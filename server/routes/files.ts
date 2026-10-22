@@ -1,6 +1,7 @@
 // Serves project files and validates save requests against their original content hashes.
 import { MAX_INPUT_BYTES } from '../../src/diagnostics';
 import { decodePath, readJson } from '../request';
+import { requestReader } from '../auth/request-scope';
 import type { Route } from './http';
 const HASH = /^[0-9a-f]{64}$/;
 /** Handles file reads and saves with base hashes to detect stale edits. */
@@ -27,7 +28,7 @@ export const fileRoutes: Route = async (ws, req, url) => {
       throw Error('Send either source or patches.');
     if (body.source !== undefined && typeof body.source !== 'string')
       throw Error('source must be text.');
-    return Response.json(await ws.saveFile(slug, path, body));
+    return Response.json(await ws.saveFile(slug, path, body, requestReader(req)));
   }
   return null;
 };

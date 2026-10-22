@@ -34,6 +34,8 @@ import { kpiRoutes } from './routes/kpis';
 import { gitRoutes } from './routes/git';
 import { cloneRoutes } from './routes/clone';
 import { repoRoutes } from './routes/repos';
+import { peopleRoutes } from './routes/people';
+import type { AccessControl } from './auth/authorize';
 /** Local browser origins allowed to call the API. */
 export const ALLOWED_ORIGINS = allowedOrigins(4310);
 /** Includes the configured API origin and the Vite development server. */
@@ -228,12 +230,13 @@ function requireReadableDocument(ws: Workspace, request: Request, id: string) {
   const resource = ws.resolveId(id.split('#')[0]);
   if (!view.canRead(resource.project, resource.path)) throw new HiddenResourceError();
 }
-function workspaceRoutes(administration: AdminRepository): Route[] {
+function workspaceRoutes(administration: AdminRepository, access: AccessControl): Route[] {
   return [
     trashRoutes,
     suggestionRoutes,
     projectRoutes(administration),
     metricRoutes,
+    peopleRoutes(access),
     kpiRoutes,
     gitRoutes,
     cloneRoutes(administration),
@@ -289,7 +292,7 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
     (_workspace, request, url) =>
       url.pathname === '/api/me' && request.method === 'GET' ? meResponse(request, options) : null,
     eventRoutes(options),
-    ...workspaceRoutes(administration),
+    ...workspaceRoutes(administration, access),
   ];
   function localCheck(req: Request): Response | null {
     const origin = req.headers.get('origin');

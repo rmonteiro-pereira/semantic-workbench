@@ -174,7 +174,7 @@ export function ItemEditor({
           main,
           diffPatches(doc.source, main),
         );
-        written.push({ docId: doc.id, source: main, hash: r.hash });
+        written.push({ docId: doc.id, source: r.source ?? main, hash: r.hash });
       } else {
         const files = [
           { doc, source: main },
@@ -189,7 +189,11 @@ export function ItemEditor({
           })),
         );
         files.forEach((f, i) =>
-          written.push({ docId: f.doc.id, source: f.source, hash: r.written[i].hash }),
+          written.push({
+            docId: f.doc.id,
+            source: r.written[i].source ?? f.source,
+            hash: r.written[i].hash,
+          }),
         );
       }
       onSaved(written);

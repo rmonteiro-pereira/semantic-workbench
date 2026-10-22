@@ -7,6 +7,7 @@ import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { projectDir, projectFile } from '../server/projects/paths';
 import { editorValue, fillEditor } from './helpers/code-editor';
 import { newItem } from './helpers/header';
+import { LOCAL_READER } from '../server/projects/reader';
 // Each saved item edit must limit the Git diff to that item and its dependent changes. Screenshots
 // use /tmp/workbench-item-*.png.
 const api = await startIsolatedApi();
@@ -18,10 +19,13 @@ const contract =
     null,
     4,
   ) + '\n';
-const jsonProject = await api.ws.importBatch({
-  name: 'JSON contract',
-  files: [{ path: 'commerce.odcs.json', source: contract }],
-});
+const jsonProject = await api.ws.importBatch(
+  {
+    name: 'JSON contract',
+    files: [{ path: 'commerce.odcs.json', source: contract }],
+  },
+  LOCAL_READER,
+);
 const read = (slug: string, path: string) =>
   readFileSync(projectFile(api.ws.layout, slug, path), 'utf8');
 const git = async (slug: string, args: string[]) =>

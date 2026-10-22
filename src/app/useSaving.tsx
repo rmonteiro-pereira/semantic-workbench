@@ -7,6 +7,7 @@ import type { Doc, ProjectInfo } from '../projects/api';
 import { api, scm as scmApi, StaleSave } from '../projects/api';
 import { saveStateLabel, useAutosave } from '../projects/autosave';
 import { isGitignore } from '../scm/gitignore';
+import { applyDemotions, type Demotion } from '../governance/guards';
 
 type Options = {
   current: Doc | null;
@@ -26,6 +27,7 @@ type Options = {
   setMessage: React.Dispatch<React.SetStateAction<string>>;
   projects: ProjectInfo[];
   sourceRef: React.RefObject<string>;
+  setSource: React.Dispatch<React.SetStateAction<string>>;
   draftOf: React.RefObject<{ project: string; path: string } | null>;
 };
 /** Manages saving. */
@@ -41,6 +43,7 @@ export function useSaving({
   setMessage,
   projects,
   sourceRef,
+  setSource,
   draftOf,
 }: Options) {
   // Automatic saving of valid edits: 1 s after the last edit, through the usual
@@ -79,7 +82,7 @@ export function useSaving({
         diffPatches(r.from, r.to),
       );
     },
-    onSaved: (file, text, hash) => {
+    onSaved: (file, text, hash, sent) => {
       const documentValue = docsRef.current.get(file);
       if (!documentValue) return;
       const next = { ...documentValue, source: text, hash };
@@ -87,6 +90,7 @@ export function useSaving({
       setDocs(old => old.map(x => (x.id === file ? next : x)));
       if (currentRef.current?.id === file)
         setCurrentState(next); /* the server's file event refreshes the tree and counts */
+      if (text !== sent.text) followStoredText(file, text, sent);
     },
     isStale: e => e instanceof StaleSave,
     onStale: (file, e) => {
@@ -95,6 +99,21 @@ export function useSaving({
     },
     onFailed: (_file, m) => setMessage(`Not saved: ${m}`),
   });
+  // The server stored other text than sent: an approved metric the person changed went back to
+  // proposed. The editor shows the stored text, or applies the same demotion to what was typed
+  // since, so the next save does not set the metric approved again.
+  function followStoredText(
+    file: string,
+    text: string,
+    sent: { text: string; demoted?: Demotion[] },
+  ) {
+    if (currentRef.current?.id === file) {
+      const typed = sourceRef.current;
+      if (typed === sent.text) setSource(text);
+      else if (sent.demoted?.length) setSource(applyDemotions(typed, file, sent.demoted));
+    }
+    setMessage('Saved. An approved metric you changed is now proposed for review.');
+  }
   const uncommitted = projects.find(p => p.slug === current?.project)?.changes ?? 0;
   const saveState = saveStateLabel(autosave.state, uncommitted);
   // Leaving a file or view: a due valid save is written first; invalid text stays a server draft
