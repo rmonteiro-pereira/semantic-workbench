@@ -6,6 +6,8 @@ import { decodePath } from '../routes/http';
 /** One HTTP route and the resource its initial decision protects. */
 export type RouteAction = {
   method: string;
+  methods?: string[];
+  serverOnly?: true;
   path: string;
   pattern: RegExp;
   action: Action;
@@ -45,8 +47,20 @@ const publicRow = (method: string, path: string): RouteAction => ({
   ...row(method, path, 'read', workspace),
   public: true,
 });
+/** Protects server pages and static assets with workspace read access. */
+export const pageRow: RouteAction = {
+  method: 'GET',
+  methods: ['GET', 'HEAD'],
+  serverOnly: true,
+  path: 'GET/HEAD pages',
+  pattern: /^(?!\/(?:api|auth)(?:\/|$)).*$/,
+  action: 'read',
+  resource: workspace,
+};
 /** Ordered route inventory; explanations precede generic file reads. */
 export const ROUTE_ACTIONS: RouteAction[] = [
+  row('GET', '/api/me', 'read', workspace),
+  publicRow('GET', '/auth/style.css'),
   row('GET', '/api/events', 'read', workspace),
   row('GET', '/api/status', 'read', workspace),
   row('GET', '/api/projects', 'read', workspace),
@@ -123,11 +137,13 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   publicRow('GET', '/auth/github/callback'),
   publicRow('GET', '/healthz'),
   publicRow('GET', '/readyz'),
+  pageRow,
 ];
 /** Finds the first matching method and path, or refuses an unmapped entry point. */
-export function routeFor(method: string, pathname: string) {
+export function routeFor(method: string, pathname: string, mode: 'local' | 'server' = 'local') {
   for (const row of ROUTE_ACTIONS) {
-    if (row.method !== method) continue;
+    if (row.serverOnly && mode !== 'server') continue;
+    if (!(row.methods ?? [row.method]).includes(method)) continue;
     const match = pathname.match(row.pattern);
     if (match) return { row, match };
   }

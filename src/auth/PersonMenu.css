@@ -1,0 +1,50 @@
+.person-menu {
+  flex-shrink: 0;
+}
+.person-menu > button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 240px;
+}
+.person-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 1100px) {
+  .person-menu > button {
+    max-width: 120px;
+  }
+}
+@media (max-width: 600px) {
+  .person-label {
+    display: none;
+  }
+}
+
+.person-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #dce3e0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 699px) {
+  .workspace-header:has(.person-menu) {
+    grid-template-columns: 34px minmax(0, 1fr) auto auto;
+  }
+  .person-menu {
+    grid-column: 4;
+    grid-row: 1;
+  }
+  .person-menu > button {
+    height: 34px;
+    padding: 0 8px;
+  }
+  .person-label {
+    display: none;
+  }
+}

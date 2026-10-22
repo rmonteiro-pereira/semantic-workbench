@@ -197,3 +197,27 @@ test('non-file administration entries raise configuration errors', async () => {
     }
   }
 });
+
+test('settings validates lifetimes and supplies defaults for missing fields', async () => {
+  const dir = tempDataDir();
+  try {
+    const repository = openAdminRepository({ root: dir.root });
+    await repository.ensure();
+    const path = join(dir.root, 'admin/settings.json');
+    for (const settings of [{}, { session: {} }, { session: { idleHours: 2 } }]) {
+      writeFileSync(path, JSON.stringify(settings));
+      expect(repository.settings().session).toEqual({
+        idleHours: settings.session?.idleHours ?? 8,
+        absoluteHours: 24,
+      });
+    }
+    for (const session of [{ idleHours: null }, { absoluteHours: '24' }, { idleHours: 0 }]) {
+      writeFileSync(path, JSON.stringify({ session }));
+      expect(() => repository.settings()).toThrow(AdminConfigError);
+    }
+    unlinkSync(path);
+    expect(() => repository.settings()).toThrow(AdminConfigError);
+  } finally {
+    dir.cleanup();
+  }
+});

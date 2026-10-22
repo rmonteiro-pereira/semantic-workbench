@@ -4,7 +4,7 @@ import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { healthResponse } from '../../server/routes/health';
-import { serveStatic } from '../../server/static';
+import { securityHeaders, serveStatic } from '../../server/static';
 import { probeDataRoot } from '../../server/projects/data-root';
 
 for (const state of ['starting', 'refused', 'handover', 'serving'] as const) {
@@ -55,6 +55,14 @@ test('static assets, fallback, traversal, namespaces and security headers', asyn
     const asset = await serveStatic(request('/assets/app.js'), root);
     expect(asset!.headers.get('Content-Type')).toContain('javascript');
     expect(asset!.headers.get('Cache-Control')).toContain('immutable');
+    for (const mode of ['local', 'server'] as const) {
+      const cached = await serveStatic(request('/assets/app.js'), root, undefined, mode);
+      expect(cached!.headers.get('Cache-Control')).toBe(
+        `${mode === 'server' ? 'private' : 'public'}, max-age=31536000, immutable`,
+      );
+      const html = await serveStatic(request('/projects/one'), root, undefined, mode);
+      expect(html!.headers.get('Cache-Control')).toBe(mode === 'server' ? 'no-store' : 'no-cache');
+    }
     expect((await serveStatic(request('/missing.js'), root))!.status).toBe(404);
     expect((await serveStatic(request('/%2e%2e%2fsecret'), root))!.status).toBe(403);
     expect(await serveStatic(request('/api/projects'), root)).toBeNull();
@@ -212,4 +220,12 @@ test('hand-over is ready for orchestration while workspace traffic asks clients 
     expect(response.headers.get('Retry-After')).toBe('10');
     expect(await response.json()).toEqual({ error: 'Workspace unavailable', state: 'handover' });
   }
+});
+
+test('the sign-out form may follow the redirect to the provider and nowhere else', () => {
+  const policy = securityHeaders(undefined, 'https://login.example.test').get(
+    'Content-Security-Policy',
+  );
+  expect(policy).toContain("form-action 'self' https://login.example.test;");
+  expect(securityHeaders().get('Content-Security-Policy')).toContain("form-action 'self';");
 });

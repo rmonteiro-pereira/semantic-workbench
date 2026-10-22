@@ -7,6 +7,69 @@ const temp = await mkdtemp('/tmp/workbench-mutations-');
 // tree as the real sources, without relying on Bun caches.
 await symlink(resolve(root, 'node_modules'), resolve(temp, 'node_modules'), 'dir');
 const mutants: [string, string, string, string][] = [
+  [
+    'signin-sessions',
+    'server/auth/sessions.ts',
+    '; HttpOnly; SameSite=Lax; Path=/',
+    '; SameSite=Lax; Path=/',
+  ],
+  ['signin-sessions', 'server/auth/sessions.ts', "? '; Secure' : ''", "? '' : ''"],
+  ['signin-sessions', 'server/auth/sessions.ts', 'now - session.createdAt >= absolute', 'false'],
+  [
+    'signin-csrf',
+    'server/auth/csrf.ts',
+    "if (request.headers.get('X-SW-Request') === '1')",
+    'if (true)',
+  ],
+  [
+    'signin-nonce',
+    'server/auth/oidc.ts',
+    'expectedNonce: attempt.nonce,',
+    'expectedNonce: undefined,',
+  ],
+  [
+    'signin-tenant',
+    'server/auth/principal.ts',
+    'mapping.tenantId && tenant.toLowerCase() !== mapping.tenantId.toLowerCase()',
+    'false',
+  ],
+  [
+    'signin-directory',
+    'server/auth/directory.ts',
+    'return null;\n      }\n    },\n  };',
+    'return ids;\n      }\n    },\n  };',
+  ],
+  [
+    'signin-redirect',
+    'server/auth/middleware.ts',
+    'return options.authentication.login(url.pathname + url.search, request);',
+    'return run(request);',
+  ],
+  [
+    'signin-pages',
+    'server/routes/auth.ts',
+    "return authPage('signed-out');",
+    "return options.login('/');",
+  ],
+  [
+    'signin-pages',
+    'server/routes/auth.ts',
+    "'<p>An Admin must grant you access to this workbench.</p>'",
+    "'<p>An Admin must grant you access to this workbench.</p><p>workspace-data</p>'",
+  ],
+  [
+    'signin-config',
+    'server/config.ts',
+    "url.protocol === 'http:' && !(loopbackPublicUrl && isLoopbackHost(url.hostname))",
+    'false',
+  ],
+  [
+    'signin-config',
+    'server/config.ts',
+    'if (GRAPH_ENDPOINTS.includes(graphUrl)) return graphUrl;',
+    'if (true) return graphUrl;',
+  ],
+
   ['pipeline-script', 'scripts/pipeline-lint.ts', '!Object.hasOwn(scripts, match[1])', 'false'],
   ['pipeline-provider', 'scripts/pipeline-lint.ts', '/keycloak/i.test(source)', 'false'],
 
@@ -129,7 +192,12 @@ const mutants: [string, string, string, string][] = [
     "if (!found) return new Response('Not found', { status: 404 });",
     'if (!found) return run(request);',
   ],
-  ['auth-middleware', 'server/auth/middleware.ts', "mode === 'server' &&", 'false &&'],
+  [
+    'auth-middleware',
+    'server/auth/middleware.ts',
+    "mode === 'server' &&\n      !(await validCsrf(",
+    'false &&\n      !(await validCsrf(',
+  ],
   ['auth-middleware', 'server/auth/middleware.ts', 'row.audited === true ||', ''],
 
   ['agent', 'server/agent/runtime.ts', 'physical.parentheses = true', 'physical.parentheses=false'],

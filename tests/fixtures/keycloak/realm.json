@@ -35,6 +35,7 @@
           "temporary": false
         }
       ],
+      "realmRoles": ["offline_access"],
       "groups": ["/Sales Editors"]
     },
     {
@@ -51,6 +52,7 @@
           "temporary": false
         }
       ],
+      "realmRoles": ["offline_access"],
       "groups": []
     },
     {
@@ -67,6 +69,7 @@
           "temporary": false
         }
       ],
+      "realmRoles": ["offline_access"],
       "groups": ["/HR Viewers"]
     },
     {
@@ -83,6 +86,7 @@
           "temporary": false
         }
       ],
+      "realmRoles": ["offline_access"],
       "groups": ["/Workbench Admins"]
     },
     {
@@ -99,6 +103,7 @@
           "temporary": false
         }
       ],
+      "realmRoles": ["offline_access"],
       "groups": []
     },
     {
@@ -115,6 +120,7 @@
           "temporary": false
         }
       ],
+      "realmRoles": ["offline_access"],
       "groups": ["/Sales Editors", "/Finance"]
     },
     {
@@ -131,6 +137,7 @@
           "temporary": false
         }
       ],
+      "realmRoles": ["offline_access"],
       "groups": []
     },
     {
@@ -147,6 +154,7 @@
           "temporary": false
         }
       ],
+      "realmRoles": ["offline_access"],
       "groups": []
     }
   ],

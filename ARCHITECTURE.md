@@ -25,7 +25,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `server/projects/data-root.ts` | Writable-root startup probe with path and uid errors | Workspace writes |
 | `server/startup-log.ts` | Operator diagnostics after initialization | Startup decisions |
 | `server/shutdown.ts` | Signal cleanup shared with hot reload | Workspace logic |
-| `Dockerfile`, `compose.yaml` | Non-root image and local host-networking profile | Secrets |
+| `Dockerfile`, `compose.yaml` | Non-root image, local profile and owner-only Keycloak profile | Secrets |
 | `scripts/container-*.ts` | Docker/Podman image checks and browser suite groups | Delivery pipeline |
 | `scripts/gate-suites.ts` | Canonical browser gate suites and explicit exclusions | Process spawning |
 | `scripts/ci-validate.ts` | Gate selection, command plans, JUnit summaries and process lifecycle | Azure deployment |
@@ -37,6 +37,17 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `server/routes/` | One file per resource (`projects`, `files`, `git`, `clone`, `repos`, `trash`, `metrics`, ...): parse and check the request, call the workspace, shape the response | File or Git operations |
 | `server/projects/workspace.ts` | `openWorkspace()`, the composition root: registry, saves, imports, moves, scans, events, and the wiring of the services below | HTTP parsing |
 | `server/projects/` (other) | One service per concern: `git.ts` (the only place Git runs), `scm.ts` (Source Control), `clone.ts`, `journal.ts` (all-or-nothing renames), `trash.ts`, `repositories.ts` (which folders of a repository are projects: the `.semantic-workbench.json` manifest and detection) and `repository-projects.ts` (registering them), `scanner.ts` and `cache.ts` (the index), `state.ts` (registry, drafts, view settings), `paths.ts` (every path check), `events.ts` (server-sent events), `watcher.ts` | Browser code |
+| `server/auth/sessions.ts`, `server/auth/attempts.ts` | Encrypted session persistence, revocation and signed single-use sign-in attempts | Provider protocol |
+| `server/auth/oidc.ts` | OIDC discovery, code exchange, signature checks, refresh and client authentication | Grant decisions |
+| `server/auth/directory.ts` | App-only group membership requests with bounded batches | Role assignments |
+| `server/auth/sign-in-error.ts` | Safe typed sign-in failure reasons | Display text or provider secrets |
+| `server/auth/csrf.ts` | Public-origin, request-header and logout-form checks | Session persistence |
+| `server/auth/authentication.ts` | Composition of sessions, provider identity, directory resolution and existing grants; records users through `ws.state` | HTTP route dispatch |
+| `src/auth/` | Once-per-page identity hook and person menu with native CSRF sign-out form | Provider tokens or grant decisions |
+| `scripts/auth-*.ts` | Sign-in orchestration, disposable environments, mock lifecycle checks, Keycloak compatibility and server container checks | Shared browser assertions or generic process lifecycle |
+| `scripts/helpers/sign-in.ts` | Shared identity, storage, native sign-out and responsive browser assertions | Provider startup |
+| `scripts/helpers/processes.ts` | Command execution, loopback ports, bounded readiness and once-only signal cleanup | Suite selection or provider configuration |
+| `server/routes/auth.ts`, `server/routes/me.ts` | Minimal identity-only pages and current identity responses | Provider tokens in responses |
 | `server/auth/actions.ts` | Action names, built-in role ids and classification levels | Policy evaluation, I/O |
 | `server/auth/resource.ts` | Resource and decision types, boundary path normalization | Policy evaluation, I/O |
 | `server/auth/principal.ts` | Trusted claim normalization and stable principal keys | Provider roles, I/O |
@@ -121,29 +132,41 @@ editor never receives an older deferred value as an external replacement.
 ## Cross-cutting concerns
 
 - **Configuration**: start-up uses `readConfig()` in `server/config.ts` once for mode, host,
-  port, data root, cache root and build identity. Server mode validates its settings but is not
-  available in this build yet. The writable-root probe precedes lock acquisition; recovery,
+  port, data root, cache root and build identity. Server mode requires issuer discovery and
+  a valid administration policy set before serving workspace traffic. The writable-root probe precedes lock acquisition; recovery,
   migration, scanning and access middleware initialization happen only after ownership.
   `openWorkspace({ root, cacheDir })` accepts explicit paths for isolated tests.
-- **Access**: health probes and static frontend files are answered before the local Host/Origin
-  check because they hold no workspace data. Every `/api` and `/auth` request goes through
+- **Authentication**: server requests follow cookie → session → principal → grants → boundary.
+  Expired provider credentials trigger refresh before claims and directory membership are normalized
+  again. Sessions are AES-256-GCM encrypted on disk and revocable; ending a session closes its live
+  streams. Anonymous pages redirect to the provider, while signed-in people without access see
+  an identity-only No access page. The Signed out page never initiates sign-in.
+- **Access**: health probes remain public. Local static frontend files are answered before the
+  local Host/Origin check; server static files pass through the same boundary as workspace pages. Every `/api` and `/auth` request goes through
   `server/auth/middleware.ts` when serving; startup and hand-over gate application traffic with 503.
+  Server-mode hashed assets use `private, max-age=31536000, immutable`; HTML and API responses
+  use `no-store`. Local-mode cache headers are unchanged. Shared caches cannot retain gated files.
   Routes never decide access.
-  `auth/route-actions.ts` maps each HTTP entry point to an action and resource. The middleware
+  `auth/route-actions.ts` maps each HTTP entry point to an action and resource, including the
+  server GET/HEAD page row. `handler.ts` mounts `/auth/*`, `/api/me` and `/api/events` in its
+  ordinary route list; the event route binds server streams to their session. The middleware
   creates one request scope through `auth/authorize.ts`, fails closed for unmapped routes, and
-  attaches the scope for route filtering. Local mode uses the implicit Admin; server mode requires
-  an injected principal resolver. Server non-GET requests require `X-SW-Request: 1` and an `Origin`
-  equal to `HandlerOptions.publicOrigin`; without that configured origin they are refused.
+  attaches the scope for route filtering. Local mode uses the implicit Admin; server startup injects the cookie session resolver. Server non-GET requests require `X-SW-Request: 1` and an `Origin`
+  equal to `HandlerOptions.publicOrigin`, derived from `SW_PUBLIC_URL`; without that configured
+  origin they are refused. The logout form requires its session token instead of the header.
 - **Audit**: denied decisions, allowed writes (including local draft saves), and allowed reads on
   explicitly audited agent rows are flushed to monthly JSON Lines under `state/audit/`. Records
   include the principal, action, resource, decision, outcome, previous-line hash, and response's
   `X-Request-Id`; secrets and document contents are excluded. Retention defaults to 400 days.
-  Local mode does not mirror to stdout. Failed denial audits refuse the request; audit failures
+  Authentication records `signIn`, `signOut` and `sessionEnded`; directory failures use
+  `directoryLookup` with outcome `degraded`, including during refresh, and the request id.
+  The sign-in audit is written before session creation; a failed write returns 503 without
+  creating a session. Local mode does not mirror to stdout. Failed denial audits refuse the request; audit failures
   after an operation log the request id to stderr and preserve its response to avoid retrying writes.
   Administration documents live in `admin/`, with validated atomic writes and one Git commit
   per change; failed writes restore the committed tree, while requested rollbacks create new commits.
 - **Errors**: services throw specific errors (`server/projects/errors.ts`, `GitError`,
-  `PathError`, `InputError`); `server/routes/http.ts` maps them to status codes in one place.
+  `PathError`, `InputError`, `SignInError`); `server/routes/http.ts` maps them to status codes in one place, including the safe sign-in page and attempt-cookie clearing.
 - **Events**: the server emits `files`, `projects`, `git`, `clone`, `identity` and others
   through `events.ts`; the browser listens with `useEvents` and refetches.
 - **Testing**: `bun test` for logic and handlers; `scripts/*-browser-check.ts` for the UI against
@@ -182,3 +205,16 @@ code to generate the pinned browser validators in `src/generated/schema-validato
 Generated modules are checked in so tests and development work immediately; `build` and `check`
 regenerate them, and a test verifies identical bytes. Only server access configuration keeps
 runtime Ajv compilation, outside the browser CSP.
+
+The header composes `src/auth/PersonMenu.tsx` through `WorkspaceHeader`'s optional slot.
+`useMe` keeps the `/api/me` promise in memory once per page, including React effect remounts; rejected requests are discarded so a later mount can retry.
+Local mode renders no person menu. The API returns the session's form CSRF token, never its
+provider credentials; the form posts it to `/auth/logout`. `src/projects/api.ts` owns the
+`X-SW-Request` marker and the single reload allowed after a 401. All frontend fetches use that
+wrapper, including grouping and mapping requests; EventSource uses the session cookie.
+
+Authentication browser checks share `signIn`, `signOut` and `signInChecks` across mock,
+Keycloak and container targets. Provider startup stays at the edges. Environment construction,
+container arguments, discovery/readiness predicates, bounded waits and parsed identity assertions
+have offline unit tests. The gate builds the auth frontend without starting Vite; the server
+container group exercises the image itself. Keycloak remains outside the delivery gate.

@@ -599,6 +599,11 @@ below come from that probe.
 - Decisions are cached per request scope created with `forRequest`.
 - File paths are normalized at the access boundary before matching any rules.
 
+### Keycloak image
+
+The compatibility suite pins `quay.io/keycloak/keycloak:26.4` by the digest of its linux/amd64
+image, `sha256:4ee8200b0fd00de0e3743b48220f4feadbdb52deb29730ed804f9364bc2be23f`.
+
 ### Dependencies as installed (Phase 1)
 
 `bun add --exact` of the three libraries in the repository on 2026-10-21 (Bun 1.4.0) confirmed the
@@ -638,6 +643,8 @@ probe: `openid-client` 6.8.8 (MIT, 236 KB) with `oauth4webapi` (MIT, 332 KB), `j
 | T118 (browser checks read `SW_BASE_URL`, `UI_URL` kept as alias) | Codex (gpt-6-astra); harness origin forwarding and the alias by Claude |
 | T104–T106, T110, T115–T117, T119 (instance lock with hand-over, health, static serving, Dockerfile, Compose, container check, mutants) and the review fixes (instance nonce, stale-claim rename, Ajv validators precompiled so the CSP drops unsafe-eval) | Codex (gpt-6-astra), reviewed by Claude; CommonJS interop of the generated validators, a read-only `check`, the re-anchored origin mutant and the drawer retries by Claude |
 | T120–T124 (local gate runner, image scripts, Azure DevOps pipeline and templates, offline lint and dry run, version guard) and the review fixes (tag passed through the environment, service-connection and template rules, checksum-verified Bun install, gate cleanup on stop, strict dry run, one build path, per-suite screenshots) | Codex (gpt-6-astra), reviewed by Claude; Vite readiness deadline and bounded restart of the gate, and the neighbourhood re-read in the UI check by Claude |
+| T026–T034, T037, T138, T139 (sessions, OIDC client, directory client, CSRF, auth pages, `/api/me`, server-mode start-up, cookie-authenticated live updates, mutants) and two rounds of review fixes (throttled session writes, derived keys, typed sign-in errors, audit-first sign-in and sign-out, routes in the route table, cache rules, empty example key) | Codex (gpt-6-astra), reviewed by Claude |
+| T035, T036, T108, T109, T125 (person menu, sign-in browser check, Keycloak suite, gate and pipeline listing, server container group, Compose `keycloak` profile) and the visual fixes | Codex (gpt-6-astra), reviewed by Claude; by Claude: CSP `form-action` with the provider origin, sign-out not cancelled by a 401 reload, API bodies inspected in the test process, provider error code in the sign-in log, offline access in the Keycloak realm, mutation fixture key, page punctuation |
 
 ### Test changes not caused by the specification
 
@@ -656,3 +663,14 @@ probe: `openid-client` 6.8.8 (MIT, 236 KB) with `oauth4webapi` (MIT, 332 KB), `j
 - `tests/schema-validators.test.ts`: the regenerated file list is sorted before comparing with the
   checked-in list, because directory order differs between file systems; contents are still
   compared byte for byte.
+- `tests/auth/person-response.test.ts`: its stand-in authentication object follows the services
+  shape after the review moved routing out of the authentication module; the assertions are the
+  same.
+- `tests/auth/mock-oidc.test.ts` and `tests/fixtures/keycloak/realm.json`: each Keycloak test user
+  now holds Keycloak's `offline_access` realm role, because the workbench asks for `offline_access`
+  (configuration contract) and Keycloak refuses that scope otherwise. The test still asserts that
+  users hold no other realm role and no client role: workbench roles come from grants alone.
+- `scripts/mutation-case.ts`: the sign-in configuration mutant uses a session key that is not one
+  repeated byte, since such keys are now refused at start-up.
+- `tests/auth/browser-check.test.ts`: the server container arguments are passed as one grouped
+  object instead of five positional values; the expected arguments are unchanged.

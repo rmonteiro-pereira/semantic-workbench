@@ -1,6 +1,7 @@
+import { runCommand, freeLoopbackPort, withCleanup } from './helpers/processes';
 import { copyFile, mkdir, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
 import { parseArgs } from 'node:util';
-import { gateSuites } from './gate-suites';
+import { selfServedSuites, gateSuites } from './gate-suites';
 import { chooseEngine } from './image';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -131,12 +132,6 @@ export async function runGate(
   return results;
 }
 
-async function command(args: string[], env = process.env) {
-  const child = Bun.spawn(args, { cwd: process.cwd(), env, stdout: 'inherit', stderr: 'inherit' });
-  const code = await child.exited;
-  if (code !== 0) throw Error(`${args.join(' ')} exited ${code}`);
-}
-
 // A loaded machine can take tens of seconds to transform the first page, so each probe gets a
 // generous timeout and the wait is bounded by a deadline rather than an attempt count.
 const VITE_READY_DEADLINE_MS = 60_000;
@@ -200,20 +195,7 @@ export async function stopVite(
 
 const activeServers = new Set<() => Promise<void>>();
 
-function onSignal(signal: 'SIGINT' | 'SIGTERM') {
-  void Promise.all([...activeServers].map(stop => stop()))
-    .catch(error => console.error(error))
-    .finally(() => process.exit(signal === 'SIGINT' ? 130 : 143));
-}
-
 type ViteServer = { baseUrl: string; stop: () => Promise<void> };
-
-function freeLoopbackPort() {
-  const listener = Bun.listen({ hostname: '127.0.0.1', port: 0, socket: { data() {} } });
-  const port = listener.port;
-  listener.stop(true);
-  return port;
-}
 
 async function startViteOnce(): Promise<ViteServer> {
   const port = freeLoopbackPort();
@@ -249,17 +231,27 @@ async function startVite(): Promise<ViteServer> {
   }
 }
 
+function screenshotFolder(script: string) {
+  return `out/ci/screenshots/${script.replace(/[^a-zA-Z0-9-]/g, '-')}`;
+}
+
+// Suites that serve the built frontend through their own API process build it themselves and need
+// no Vite; every other suite runs against a Vite started for it alone.
 async function browserCommand(args: string[]) {
   const directory = await mkdtemp(join(tmpdir(), 'workbench-screenshots-'));
+  const selfServed = selfServedSuites.includes(args[2]);
   let server: ViteServer | undefined;
   try {
-    server = await startVite();
-    const env = { ...process.env, SW_BASE_URL: server.baseUrl, SW_SCREENSHOT_DIR: directory };
+    if (!selfServed) server = await startVite();
+    const env: Record<string, string | undefined> = {
+      ...process.env,
+      SW_SCREENSHOT_DIR: directory,
+    };
+    if (server) env.SW_BASE_URL = server.baseUrl;
     await command(args, env);
   } finally {
     await server?.stop();
-    const suite = args[2].replace(/[^a-zA-Z0-9-]/g, '-');
-    await collectScreenshots(directory, `out/ci/screenshots/${suite}`);
+    await collectScreenshots(directory, screenshotFolder(args[2]));
     await rm(directory, { recursive: true, force: true });
   }
 }
@@ -288,10 +280,14 @@ async function main() {
 }
 
 if (import.meta.main) {
-  process.once('SIGINT', onSignal);
-  process.once('SIGTERM', onSignal);
-  await main().catch(error => {
+  await withCleanup(async () => {
+    await Promise.all([...activeServers].map(stop => stop()));
+  }, main).catch(error => {
     console.error(error.message);
     process.exitCode = 1;
   });
+}
+
+function command(args: string[], env = process.env) {
+  return runCommand(args, false, env);
 }

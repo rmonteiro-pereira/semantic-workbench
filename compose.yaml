@@ -11,3 +11,25 @@ services:
       SW_MODE: local
     volumes:
       - ./.data:/data
+  keycloak:
+    profiles: [keycloak]
+    image: quay.io/keycloak/keycloak:26.4@sha256:4ee8200b0fd00de0e3743b48220f4feadbdb52deb29730ed804f9364bc2be23f
+    platform: linux/amd64
+    command: [start-dev, --import-realm]
+    ports:
+      - '127.0.0.1:8080:8080'
+    volumes:
+      - ./tests/fixtures/keycloak/realm.json:/opt/keycloak/data/import/workbench.json:ro
+  workbench-server:
+    profiles: [keycloak]
+    build:
+      context: .
+      args:
+        SW_VERSION: ${SW_VERSION:-dev}
+        SW_COMMIT: ${SW_COMMIT:-unknown}
+    network_mode: host
+    env_file: .env.server
+    restart: on-failure
+    depends_on: [keycloak]
+    volumes:
+      - ./.server-workspace:/data

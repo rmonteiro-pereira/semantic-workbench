@@ -6,6 +6,9 @@ import { readJson } from './request';
 import { InputError, MAX_INPUT_BYTES } from '../src/diagnostics';
 import { NotFoundError, StaleError, type Workspace } from './projects/workspace';
 import { errorResponse, type Route } from './routes/http';
+import { authRoutes } from './routes/auth';
+import { meResponse } from './routes/me';
+import { serveStatic, securityHeaders } from './static';
 import { eventRoutes } from './routes/events';
 import { projectRoutes } from './routes/projects';
 import { fileRoutes } from './routes/files';
@@ -174,8 +177,7 @@ const legacyRoutes: Route = async (ws, req, url) => {
   }
   return null;
 };
-const routes: Route[] = [
-  eventRoutes,
+const workspaceRoutes: Route[] = [
   trashRoutes,
   suggestionRoutes,
   projectRoutes,
@@ -198,6 +200,13 @@ export function loopbackHost(host: string | null) {
 }
 /** Creates the API handler with local-access checks and shared error responses. */
 export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
+  const routes: Route[] = [
+    ...(options.authentication ? [authRoutes(options.authentication)] : []),
+    (_workspace, request, url) =>
+      url.pathname === '/api/me' && request.method === 'GET' ? meResponse(request, options) : null,
+    eventRoutes(options),
+    ...workspaceRoutes,
+  ];
   function localCheck(req: Request): Response | null {
     const origin = req.headers.get('origin');
     if (origin && !allowedOrigins(options.port ?? 4310).includes(origin))
@@ -210,6 +219,15 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
   const run = async (req: Request) => {
     const url = new URL(req.url);
     try {
+      if (options.mode === 'server') {
+        const staticResponse = await serveStatic(
+          req,
+          options.staticRoot,
+          options.publicOrigin,
+          options.mode,
+        );
+        if (staticResponse) return staticResponse;
+      }
       for (const route of routes) {
         const response = await route(ws, req, url);
         if (response) return response;
@@ -222,8 +240,17 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
           { error: (e as Error).message, ...(e instanceof InputError ? { issues: e.issues } : {}) },
           { status: 400 },
         );
-      return errorResponse(e);
+      return errorResponse(e, options.publicOrigin);
     }
   };
-  return createAccessMiddleware(ws, options, localCheck, run);
+  const boundary = createAccessMiddleware(ws, options, localCheck, run);
+  if (options.mode !== 'server') return boundary;
+  return async (request: Request) => {
+    const response = await boundary(request);
+    for (const [name, value] of securityHeaders(options.publicOrigin, options.providerOrigin)) {
+      if (name.toLowerCase() !== 'cache-control') response.headers.set(name, value);
+    }
+    if (!response.headers.has('Cache-Control')) response.headers.set('Cache-Control', 'no-store');
+    return response;
+  };
 }

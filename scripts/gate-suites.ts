@@ -1,5 +1,6 @@
 /** Browser scripts shared by the local gate and image checks. */
 export const gateSuites: string[] = [
+  'test:auth',
   'test:ui',
   'test:responsive',
   'test:edges',
@@ -25,12 +26,14 @@ export const gateSuites: string[] = [
   'test:mapping-graph',
 ];
 
+/** Suites that serve their own built frontend and require server container coverage. */
+export const selfServedSuites = ['test:auth'];
+
 /** Explicit reasons why other test scripts are not browser gate suites. */
 export const exclusions = [
   { script: 'test:mutation', reason: 'Runs in the mutation step' },
   { script: 'test:container', reason: 'Runs in the container step' },
   { script: 'test:examples', reason: 'Unit-level example check covered by bun test' },
-  { script: 'test:auth', reason: 'added with its phase' },
   { script: 'test:admin', reason: 'added with its phase' },
   { script: 'test:two-editors', reason: 'added with its phase' },
   { script: 'test:auth:keycloak', reason: "Compatibility suite on the owner's machine" },

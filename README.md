@@ -16,8 +16,8 @@ Open http://127.0.0.1:5173. API: http://127.0.0.1:4310. Both bind to loopback. T
 ## Run it as a container
 
 Build with `podman build --format docker -t semantic-workbench:dev .` (or use `docker` in place of `podman`).
-The image runs Bun as uid 1000 and includes Git, the API and the built frontend. Server mode
-is not available in this build yet; after validating its configuration it refuses startup.
+The image runs Bun as uid 1000 and includes Git, the API and the built frontend.
+Server mode requires the identity and session configuration described below.
 
 For Compose, set `SW_VERSION` and `SW_COMMIT` in the environment before building. Use the
 package version when present (`bun -p 'require("./package.json").version ?? "dev"'`) and
@@ -72,9 +72,100 @@ installed, otherwise Podman. It uses a temporary bind mount and rootless Podman'
 Docker checks require a uid 1000 caller. Runtime verification of this mapping happens in the
 container check; it cannot be exercised in the restricted development sandbox.
 Use `--port 4320` if 4310 is occupied (the next port must also be free), or
-`--suite test:projects` to select one browser suite; the default `--suite local` runs them all.
+`--suite test:projects` to select one browser suite; the default runs both local and server
+groups. Use `--suite local` or `--suite server` to select one group.
 The script checks metadata, health, persistence across restart and same-revision refusal,
 and always attempts to remove its containers and temporary folder.
+
+## Server mode
+
+Build the frontend with `bun run build`, then start `bun server/index.ts` with the following
+environment. Register `<SW_PUBLIC_URL>/auth/callback` as a redirect URI and
+`<SW_PUBLIC_URL>/auth/signed-out` as a post-logout redirect URI at the provider.
+
+```sh
+export SW_MODE=server
+export SW_HOST=0.0.0.0
+export SW_PUBLIC_URL=https://workbench.example.org
+export SW_OIDC_ISSUER=https://login.microsoftonline.com/YOUR-TENANT-ID/v2.0
+export SW_OIDC_PROVIDER=entra
+export SW_ENTRA_TENANT_ID=YOUR-TENANT-ID
+export SW_OIDC_CLIENT_ID=YOUR-CLIENT-ID
+export SW_OIDC_CLIENT_SECRET=YOUR-SECRET
+export SW_SESSION_KEY="$(openssl rand -base64 32)"
+export SW_BOOTSTRAP_ADMINS=admin@example.org
+export DATA_DIR=/path/to/workbench
+bun server/index.ts
+```
+
+Keep the same session key across restarts; supply production secrets through the deployment's
+secret store. Startup requires successful issuer discovery and valid access policies. After
+acquiring the single-instance lease, it initializes the administration repository if needed.
+Server mode always serves `dist/` and applies CSP and security headers, including HSTS for HTTPS.
+
+There is no workbench sign-in screen. Page requests redirect straight to the provider and return
+to the requested path after sign-in. Anonymous API calls return 401. People without a grant,
+including deactivated people, see **No access** and receive 403 from every workspace API,
+including `GET /api/me`. That page shows their name and verified address or username, explains
+that an Admin must grant access, and provides a sign-out form that needs no JavaScript.
+**Signed out** stays signed out until **Sign in again** is selected. A sign-in error names a safe
+failure reason and offers **Try again**. Frontend assets require the same access as the workspace;
+health probes and the minimal authentication pages remain public.
+
+Sessions use opaque 256-bit cookies with `Secure; HttpOnly; SameSite=Lax; Path=/`, named
+`__Host-sw-session`. Tokens remain on the server, encrypted with AES-256-GCM in
+`state/sessions/<sha256(id)>.json`. Sessions survive restarts and expire after eight hours idle
+or 24 hours absolute by default; `admin/settings.json` configures `session.idleHours` and
+`session.absoluteHours`. The persisted `lastSeenAt` is written at most once a minute, so a restart
+can shorten the remaining idle time by up to 60 seconds. Missing lifetime fields use those defaults; invalid values refuse startup.
+HKDF-SHA256 derives separate session-encryption (`sw-session`) and attempt-signing (`sw-attempt`)
+keys from `SW_SESSION_KEY`. Changing `SW_SESSION_KEY` ends all sessions and in-flight sign-ins.
+Refresh re-reads identity and groups and re-matches grants; failed
+refresh ends the session. Sign-out, expiry and administrative session termination close live
+updates with an `access` event. Sign-in attempts use a signed ten-minute `__Host-sw-auth` cookie;
+a persistent replay ledger prevents reusing a consumed attempt after a restart.
+
+Server-mode hashed assets use `private, max-age=31536000, immutable`; HTML and API responses
+use `no-store`, so shared caches never retain auth-gated files. Local-mode caching is unchanged.
+
+For development only, a loopback HTTP public URL uses `sw-session` and `sw-auth` without Secure.
+An HTTP issuer is allowed only when both issuer and public URL are loopback. A non-loopback
+HTTP public URL is always refused. State-changing requests require `X-SW-Request: 1` and an
+Origin equal to the public origin; the No access sign-out form uses a per-session CSRF token
+instead of the header.
+
+Identity settings used by server sign-in:
+
+| Variable | Meaning |
+| --- | --- |
+| `SW_MODE` | `local` (default) or `server`. |
+| `SW_PUBLIC_URL` | Required external origin. |
+| `SW_OIDC_ISSUER`, `SW_OIDC_CLIENT_ID` | Required issuer and confidential client registration. |
+| `SW_OIDC_CLIENT_SECRET` | Client secret; use this or an assertion, never both. |
+| `SW_OIDC_CLIENT_ASSERTION` | PKCS#8 RSA private-key file, or `managed-identity`. The latter uses platform `IDENTITY_ENDPOINT` and `IDENTITY_HEADER` for an `api://AzureADTokenExchange` assertion. |
+| `SW_OIDC_PROVIDER` | `entra`, `keycloak`, or `generic` (default), selecting the claim mapping. |
+| `SW_ENTRA_TENANT_ID` | Required for Entra; only this tenant is accepted. |
+| `SW_OIDC_SCOPES` | Defaults to `openid profile email offline_access`, plus `api://<client-id>/access_as_user` for Entra. |
+| `SW_GROUP_CLAIM` | Group claim name, default `groups`. |
+| `SW_GROUP_OVERAGE` | `directory` (default) or `off`. |
+| `SW_GRAPH_URL` | Defaults to `https://graph.microsoft.com`; also accepts Microsoft national-cloud Graph endpoints, or loopback HTTP with a loopback public URL. |
+| `SW_SESSION_KEY` | Required 32 random bytes encoded as base64. |
+| `SW_BOOTSTRAP_ADMINS` | Required comma-separated verified e-mail addresses or stable IDs (`tid:oid` for Entra); grants emergency Admin access. |
+
+`SW_HOST`, `SW_PORT`, `DATA_DIR`, `SW_CACHE_DIR`, `SW_SERVE_STATIC`, `SW_IN_CONTAINER`,
+`SW_VERSION`, `SW_COMMIT` and `CONTAINER_APP_REVISION` retain the meanings documented above.
+`SW_SERVE_STATIC` is always enabled in server mode. The remaining variables in the
+[configuration contract](specs/003-authn-authz/contracts/configuration.md) configure later agent
+and delegated-credential features; they do not grant browser access.
+
+Entra group overage uses application permission `GroupMember.Read.All` with administrator consent.
+Only group IDs named in grants and restricted paths are checked, in batches of at most 20.
+A failed directory lookup supplies no membership, an explanatory message and an audit record.
+Provider app roles never grant a person access. E-mail grants trust the tenant's administration
+of addresses: Entra uses domain-verified e-mail or a member UPN, never a guest `#EXT#` UPN;
+Keycloak and generic providers require `email_verified=true`. E-mail matching ignores case.
+For Keycloak, set its realm issuer, `SW_OIDC_PROVIDER=keycloak`, a confidential client secret,
+and matching group-name grants; tenant ID is not required.
 
 ## Local build scripts
 
@@ -82,8 +173,9 @@ Run `bun run ci:validate` for the complete quality gate. It runs these steps in 
 
 1. `verify`: `check`, `bun test`, production `build`.
 2. `mutation`: `test:mutation`, with a temporary Vite server for its browser mutants.
-3. `browser`: every suite in `scripts/gate-suites.ts`, each with a fresh Vite server on a free
-   loopback port. `SW_BASE_URL` points the suite to that server; suites isolate their API data.
+3. `browser`: every suite in `scripts/gate-suites.ts`. Workspace suites use a fresh Vite server
+   on a free loopback port via `SW_BASE_URL`. `test:auth` builds and serves `dist/` through its
+   own server-mode API and starts its mock provider; it needs no Vite. All use temporary data.
 4. `image`: `image:build`, `image:scan`, `image:sbom`.
 5. `container`: `test:container` against the built image.
 6. `pipeline`: `pipeline:lint` and dry runs for PR, main and `v0.4.0-alpha.1`.
@@ -104,7 +196,7 @@ Checks with hard-coded `/tmp` paths retain those defaults and are not collected 
 Copy failures are reported separately from suite failures. Cancellation stops Vite's process group.
 The full gate needs Chromium and Docker or Podman; a missing runtime fails the image/container
 steps. The gate does not include the owner's separate `test:auth:keycloak` compatibility check.
-Sign-in/admin/two-editor suites join the gate when their implementation is delivered.
+The sign-in suite is included; admin and two-editor suites join when implemented.
 
 - `bun run image:build`: chooses Docker, then Podman, or accepts `--engine docker|podman`.
   Podman builds use `--format docker` to retain HEALTHCHECK. Tags are `semantic-workbench:dev`
@@ -142,6 +234,47 @@ It accepts `--fake` for an empty offline registry, with the same target-variable
 A release must first declare its version in `package.json`; this checkout still uses the local
 `dev` fallback and therefore refuses tag publication. The owner/reviewer must run the complete gate on a machine with the
 required runtimes and record its duration in `specs/003-authn-authz/verification.md`.
+
+## Sign-in testing
+
+Run `bun run test:auth`; it builds the frontend first. The check starts a mock OpenID
+provider and the API on free loopback ports, seeds temporary fixture grants, and drives the
+built frontend with Chromium. It checks every fixture person, role provenance, refresh, expiry,
+Graph overage and failure, cookie-authenticated events and sign-out. Screenshots of the person
+menu and the three authentication pages cover 390×844, 1280×720, 1440×900 and 2560×1440.
+`SW_SCREENSHOT_DIR` selects the output folder; otherwise screenshots go to `/tmp`.
+The gate and the pipeline include this suite without an external identity service.
+
+`bun run test:auth:keycloak` is a separate compatibility check for the owner's machine. It
+selects Docker or Podman, starts the digest-pinned Keycloak 26.4 realm on a free loopback port,
+uses the same browser sign-in checks, checks agent client credentials, and removes the container
+and temporary realm. Fixture passwords are `test-<username>`, for example `test-alice`.
+It is excluded from the gate and pipeline.
+
+`bun run test:container --image semantic-workbench:dev --suite server` runs the server group
+alone. The default container check runs both groups. The server group starts the mock on host
+loopback, generates development secrets per run and uses host networking. It measures sign-in
+within 30 seconds, verifies session and data persistence after restart, refuses a second instance
+of the same revision, and verifies a different revision waits before taking over within shutdown
+plus 30 seconds. All suites remove their temporary workspaces.
+
+For a manual Keycloak workspace, copy `.env.server.example` to `.env.server`, replace its
+session key with `openssl rand -base64 32`, then run:
+
+```sh
+mkdir -p .server-workspace/admin
+cp tests/fixtures/auth-workspace/admin/*.json .server-workspace/admin/
+cp tests/fixtures/auth-workspace/admin-keycloak/grants.json .server-workspace/admin/grants.json
+docker compose --profile keycloak up --build -d
+```
+
+This profile publishes Keycloak on `127.0.0.1:8080` and the workbench on
+`http://127.0.0.1:4310` with host networking. The workbench retries startup while realm import
+finishes. The persistent `.server-workspace` folder must be writable by uid 1000 (use the Podman
+ownership instructions above when applicable). These credentials and the HTTP cookie exception
+are development-only. The grants are seeded, and projects can be imported through the UI.
+Use `docker compose --profile keycloak down` to stop it. This profile runs only on the owner's
+machine; automated checks never use this folder.
 
 ## Where your data lives
 

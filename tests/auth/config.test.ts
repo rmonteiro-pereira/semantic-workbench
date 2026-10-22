@@ -3,7 +3,7 @@
 import { describe, expect, test } from 'bun:test';
 import { ConfigError, readConfig, type ServerConfig } from '../../server/config';
 
-const sessionKey = Buffer.alloc(32, 7).toString('base64');
+const sessionKey = Buffer.from(Array.from({ length: 32 }, (_, index) => index)).toString('base64');
 
 /** A complete server-mode environment against an Entra tenant. */
 function entraEnvironment(): Record<string, string> {
@@ -229,4 +229,17 @@ describe('server mode providers and options', () => {
     }
     throw Error('Expected the configuration to be refused.');
   });
+});
+
+test('empty and repeated-byte session keys fail with generation instructions', () => {
+  for (const key of ['', ...[0, 7, 255].map(byte => Buffer.alloc(32, byte).toString('base64'))]) {
+    expect(() => readConfig({ ...entraEnvironment(), SW_SESSION_KEY: key })).toThrow(
+      'openssl rand -base64 32',
+    );
+  }
+});
+
+test('the copied server environment requires a generated key', async () => {
+  const example = await Bun.file('.env.server.example').text();
+  expect(example).toMatch(/^SW_SESSION_KEY=$/m);
 });

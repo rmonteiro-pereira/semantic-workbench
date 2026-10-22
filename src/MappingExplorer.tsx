@@ -1,4 +1,5 @@
 /** Displays resolved concept mappings and their validation findings. */
+import { apiFetch } from './projects/api';
 import React, { useEffect, useState, useRef } from 'react';
 import type { Binding, Finding, RuntimeContext } from '../server/agent/runtime';
 import { QueryComposer } from './mappings/QueryComposer';
@@ -83,7 +84,7 @@ export function MappingExplorer({
   const [composing, setComposing] = useState(false);
   useEffect(() => {
     const abort = new AbortController();
-    fetch('/api/agent/catalog', { signal: abort.signal })
+    apiFetch('/api/agent/catalog', { signal: abort.signal })
       .then(async r => {
         const d = await r.json();
         if (!r.ok) throw Error(d.error);
@@ -114,7 +115,9 @@ export function MappingExplorer({
     if (!mappingId) return;
     const abort = new AbortController();
     setLoading(true);
-    fetch('/api/agent/context?mappingId=' + encodeURIComponent(mappingId), { signal: abort.signal })
+    apiFetch('/api/agent/context?mappingId=' + encodeURIComponent(mappingId), {
+      signal: abort.signal,
+    })
       .then(async r => {
         const data = await r.json();
         if (!r.ok) throw Error(data.error);
@@ -207,7 +210,7 @@ export function MappingExplorer({
     setPlanError('');
     setPlan(null);
     try {
-      const r = await fetch('/api/agent/plan', {
+      const r = await apiFetch('/api/agent/plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

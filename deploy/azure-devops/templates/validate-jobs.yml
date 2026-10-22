@@ -22,6 +22,8 @@ jobs:
   - job: browser
     strategy:
       matrix:
+        auth:
+          suite: test:auth
         ui:
           suite: test:ui
         responsive:

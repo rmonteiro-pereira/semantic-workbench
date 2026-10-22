@@ -1,0 +1,4 @@
+resources:
+  containers:
+    - container: provider
+      image: image@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa

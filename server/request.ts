@@ -32,3 +32,8 @@ export async function readJson(req: Request, maxBytes: number, empty?: object) {
     throw Error('Malformed JSON request.');
   }
 }
+
+/** Correlates authentication events with the enclosing HTTP request. */
+export const requestAuditId = Symbol('requestAuditId');
+/** A request with its audit correlation identifier. */
+export type AuditRequest = Request & { [requestAuditId]?: string };

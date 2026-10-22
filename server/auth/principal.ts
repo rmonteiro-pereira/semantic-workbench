@@ -1,4 +1,4 @@
-// Normalizes trusted identity claims without consulting provider roles or external services.
+// Normalizes trusted identity claims and applies explicitly supplied directory membership.
 import { createHash } from 'node:crypto';
 import type { MatchedGrant } from './grants';
 
@@ -27,7 +27,14 @@ export type NormalizedPrincipal = {
 export type Principal = NormalizedPrincipal & { grants: MatchedGrant[]; deactivated: boolean };
 
 /** Invalid identity claims that cannot identify a trusted principal. */
-export class ClaimError extends Error {}
+export class ClaimError extends Error {
+  constructor(
+    message: string,
+    public readonly reason: 'tenant-mismatch' | 'token-invalid' = 'token-invalid',
+  ) {
+    super(message);
+  }
+}
 
 /** Stable, filesystem-safe key derived solely from the principal id. */
 export function principalKey(id: string): string {
@@ -66,7 +73,10 @@ function identity(claims: Record<string, unknown>, mapping: ClaimMapping) {
   const tenant = required(claims, 'tid');
   const object = required(claims, 'oid').toLowerCase();
   if (mapping.tenantId && tenant.toLowerCase() !== mapping.tenantId.toLowerCase()) {
-    throw new ClaimError('Identity tenant does not match the configured tenant.');
+    throw new ClaimError(
+      'Identity tenant does not match the configured tenant.',
+      'tenant-mismatch',
+    );
   }
   if (claims.idtyp !== 'app') return { id: `${tenant}:${object}` };
   const clientId = string(claims.azp) || required(claims, 'appid');
@@ -136,4 +146,13 @@ export function localPrincipal(): Principal {
     grants: [{ grantId: 'local', roleId: 'admin', scope: { kind: 'workspace' }, via: 'local' }],
     deactivated: false,
   };
+}
+
+/** Resolves overage through the supplied directory edge before grants are matched. */
+export async function resolvePrincipalGroups(
+  principal: NormalizedPrincipal,
+  lookup: (oid: string) => Promise<string[] | null>,
+): Promise<NormalizedPrincipal> {
+  if (!principal.groupOverage) return principal;
+  return withDirectoryGroups(principal, await lookup(principal.id.split(':')[1]));
 }

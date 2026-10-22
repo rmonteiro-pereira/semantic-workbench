@@ -4,3 +4,4 @@ data/
 .data/
 .env.server
 out/
+.server-workspace/

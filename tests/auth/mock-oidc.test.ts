@@ -366,7 +366,9 @@ test('The Keycloak realm matches the shared directory and clients without roles'
       { type: 'password', value: `test-${person.username}`, temporary: false },
     ]);
     expect(user).not.toHaveProperty('clientRoles');
-    expect(user).not.toHaveProperty('realmRoles');
+    // Offline access only lets Keycloak issue the refresh token the workbench asks for; it is not
+    // a workbench role, which comes from grants alone.
+    expect(user.realmRoles).toEqual(['offline_access']);
   }
   expect(realm).not.toHaveProperty('roles');
   expect(realm.clients).toHaveLength(3);

@@ -174,6 +174,29 @@ export const docId = (project: string, path: string) => `${project}/${path}`;
 /** Builds the file API URL with each path segment encoded. */
 export const fileUrl = (project: string, path: string) =>
   `/api/projects/${encodeURIComponent(project)}/files/${path.split('/').map(encodeURIComponent).join('/')}`;
+let leavingPage = false;
+
+/**
+ * Records that the page is navigating away, for example to sign out. Requests answered with 401
+ * after that point must not reload the page, because a reload would cancel the navigation and
+ * start a new sign-in instead.
+ */
+export function startLeavingPage() {
+  leavingPage = true;
+}
+
+/** Sends same-origin API requests and restarts authentication once after session expiry. */
+export async function apiFetch(input: string, options: RequestInit = {}): Promise<Response> {
+  const headers = new Headers(options.headers);
+  headers.set('X-SW-Request', '1');
+  const response = await globalThis.fetch(input, { ...options, headers });
+  if (response.status === 401 && !leavingPage) {
+    leavingPage = true;
+    globalThis.location.reload();
+  }
+  return response;
+}
+
 async function json<T>(response: Response): Promise<T> {
   const body = await response
     .json()
@@ -214,7 +237,9 @@ const explainQuery = (q: ExplainQuery) => {
 /** Provides browser operations for projects, documents, imports and metrics. */
 export const api = {
   metrics: (project: string) =>
-    fetch(`/api/projects/${encodeURIComponent(project)}/metrics`).then(r => json<KpiSummary[]>(r)),
+    apiFetch(`/api/projects/${encodeURIComponent(project)}/metrics`).then(r =>
+      json<KpiSummary[]>(r),
+    ),
   explain: (
     project: string,
     path: string,
@@ -222,13 +247,13 @@ export const api = {
     q: ExplainQuery = {},
     signal?: AbortSignal,
   ) =>
-    fetch(`${fileUrl(project, path)}/explain/${encodeURIComponent(metric)}${explainQuery(q)}`, {
+    apiFetch(`${fileUrl(project, path)}/explain/${encodeURIComponent(metric)}${explainQuery(q)}`, {
       signal,
     }).then(r => json<KpiExplanation>(r)),
-  status: () => fetch('/api/status').then(r => json<WorkspaceStatus>(r)),
-  projects: () => fetch('/api/projects').then(r => json<ProjectInfo[]>(r)),
+  status: () => apiFetch('/api/status').then(r => json<WorkspaceStatus>(r)),
+  projects: () => apiFetch('/api/projects').then(r => json<ProjectInfo[]>(r)),
   file: (project: string, path: string) =>
-    fetch(fileUrl(project, path)).then(r =>
+    apiFetch(fileUrl(project, path)).then(r =>
       json<{ path: string; source: string; hash: string; docType: string }>(r),
     ),
   // A save sends patches against the version it started from when it has them, else the text.
@@ -239,7 +264,7 @@ export const api = {
     source: string,
     patches?: { from: number; to: number; insert: string }[],
   ) {
-    const response = await fetch(
+    const response = await apiFetch(
       fileUrl(project, path),
       send('PUT', patches && baseHash !== null ? { baseHash, patches } : { baseHash, source }),
     );
@@ -259,7 +284,7 @@ export const api = {
       patches?: { from: number; to: number; insert: string }[];
     }[],
   ) {
-    const response = await fetch(
+    const response = await apiFetch(
       `/api/projects/${encodeURIComponent(project)}/save-batch`,
       send('POST', { files }),
     );
@@ -270,15 +295,17 @@ export const api = {
     return json<{ written: { path: string; hash: string; created: boolean }[] }>(response);
   },
   previewKpi: (project: string, body: KpiSaveRequest) =>
-    fetch(`/api/projects/${encodeURIComponent(project)}/metrics/preview`, send('POST', body)).then(
-      r =>
-        json<{
-          changes: { path: string; created: boolean; added: string[]; removed: string[] }[];
-          explanation: KpiExplanation;
-        }>(r),
+    apiFetch(
+      `/api/projects/${encodeURIComponent(project)}/metrics/preview`,
+      send('POST', body),
+    ).then(r =>
+      json<{
+        changes: { path: string; created: boolean; added: string[]; removed: string[] }[];
+        explanation: KpiExplanation;
+      }>(r),
     ),
   async saveKpi(project: string, body: KpiSaveRequest & { baseHashes: Record<string, string> }) {
-    const response = await fetch(
+    const response = await apiFetch(
       `/api/projects/${encodeURIComponent(project)}/metrics`,
       send('POST', body),
     );
@@ -289,7 +316,7 @@ export const api = {
     return json<{ written: { path: string; hash: string; created: boolean }[] }>(response);
   },
   importBatch: (files: { path: string; source: string }[], name?: string) =>
-    fetch('/api/import', send('POST', { files, ...(name ? { name } : {}) })).then(r =>
+    apiFetch('/api/import', send('POST', { files, ...(name ? { name } : {}) })).then(r =>
       json<{
         slug: string;
         name: string;
@@ -298,25 +325,26 @@ export const api = {
       }>(r),
     ),
   deleteImpact: (project: string, path?: string) =>
-    fetch(
+    apiFetch(
       `/api/projects/${encodeURIComponent(project)}/delete-impact${path !== undefined ? '?path=' + encodeURIComponent(path) : ''}`,
     ).then(r => json<Impact>(r)),
   deleteFile: (project: string, path: string) =>
-    fetch(fileUrl(project, path), send('DELETE', { confirm: true })).then(r =>
+    apiFetch(fileUrl(project, path), send('DELETE', { confirm: true })).then(r =>
       json<{ entryId: string; undoUntil: string }>(r),
     ),
   deleteProject: (project: string) =>
-    fetch(
+    apiFetch(
       `/api/projects/${encodeURIComponent(project)}`,
       send('DELETE', { mode: 'delete', confirm: true }),
     ).then(r => json<{ entryId: string; undoUntil: string }>(r)),
   /** Takes a project out of the workspace; its folder and history stay on disk. */
   removeProject: (project: string) =>
-    fetch(`/api/projects/${encodeURIComponent(project)}`, send('DELETE', { mode: 'remove' })).then(
-      r => json<{ removed: string }>(r),
-    ),
+    apiFetch(
+      `/api/projects/${encodeURIComponent(project)}`,
+      send('DELETE', { mode: 'remove' }),
+    ).then(r => json<{ removed: string }>(r)),
   projectCandidates: (repo: string) =>
-    fetch(`/api/repos/${encodeURIComponent(repo)}/project-candidates`).then(r =>
+    apiFetch(`/api/repos/${encodeURIComponent(repo)}/project-candidates`).then(r =>
       json<ProjectCandidates>(r),
     ),
   setRepositoryProjects: (
@@ -324,7 +352,7 @@ export const api = {
     projects: RepositoryProject[],
     manifest?: { baseHash: string | null },
   ) =>
-    fetch(
+    apiFetch(
       `/api/repos/${encodeURIComponent(repo)}/projects`,
       send('PUT', {
         projects,
@@ -332,28 +360,28 @@ export const api = {
       }),
     ).then(r => json<{ projects: { slug: string; name: string; folder: string }[] }>(r)),
   clear: () =>
-    fetch('/api/clear', send('POST', { confirm: true })).then(r =>
+    apiFetch('/api/clear', send('POST', { confirm: true })).then(r =>
       json<{ batchId: string | null; entries: string[]; undoUntil: string | null }>(r),
     ),
-  trash: () => fetch('/api/trash').then(r => json<TrashItem[]>(r)),
-  undo: (id: string) => fetch(`/api/trash/${id}/undo`, send('POST')).then(r => json<any>(r)),
+  trash: () => apiFetch('/api/trash').then(r => json<TrashItem[]>(r)),
+  undo: (id: string) => apiFetch(`/api/trash/${id}/undo`, send('POST')).then(r => json<any>(r)),
   restore: (id: string, target: { toProject?: string; toPath?: string } = {}) =>
-    fetch(`/api/trash/${id}/restore`, send('POST', target)).then(r => json<any>(r)),
+    apiFetch(`/api/trash/${id}/restore`, send('POST', target)).then(r => json<any>(r)),
   purge: (id: string) =>
-    fetch(`/api/trash/${id}`, send('DELETE', { confirm: true })).then(r => {
+    apiFetch(`/api/trash/${id}`, send('DELETE', { confirm: true })).then(r => {
       if (!r.ok) return json(r);
     }),
   emptyTrash: () =>
-    fetch('/api/trash', send('DELETE', { confirm: true })).then(r => {
+    apiFetch('/api/trash', send('DELETE', { confirm: true })).then(r => {
       if (!r.ok) return json(r);
     }),
-  drafts: () => fetch('/api/drafts').then(r => json<{ project: string; path: string }[]>(r)),
+  drafts: () => apiFetch('/api/drafts').then(r => json<{ project: string; path: string }[]>(r)),
   rename: (project: string, name: string) =>
-    fetch(`/api/projects/${encodeURIComponent(project)}`, send('PATCH', { name })).then(r =>
+    apiFetch(`/api/projects/${encodeURIComponent(project)}`, send('PATCH', { name })).then(r =>
       json<{ slug: string; name: string }>(r),
     ),
   move: (project: string, path: string, toProject: string, toPath?: string) =>
-    fetch(
+    apiFetch(
       `/api/projects/${encodeURIComponent(project)}/move`,
       send('POST', { path, toProject, ...(toPath ? { toPath } : {}) }),
     ).then(r => json<{ project: string; path: string }>(r)),
@@ -362,26 +390,26 @@ export const api = {
     files: { path: string; source: string }[],
     onConflict?: 'replace' | 'keep-both',
   ) =>
-    fetch(
+    apiFetch(
       `/api/projects/${encodeURIComponent(project)}/import`,
       send('POST', { files, ...(onConflict ? { onConflict } : {}) }),
     ).then(r => json<{ written: { path: string; hash: string }[]; commit?: ImportCommit }>(r)),
-  suggestions: () => fetch('/api/suggestions').then(r => json<Suggestion[]>(r)),
+  suggestions: () => apiFetch('/api/suggestions').then(r => json<Suggestion[]>(r)),
   acceptSuggestion: (id: string) =>
-    fetch(`/api/suggestions/${id}/accept`, send('POST')).then(r =>
+    apiFetch(`/api/suggestions/${id}/accept`, send('POST')).then(r =>
       json<{ project: string; path: string }>(r),
     ),
   rejectSuggestion: (id: string) =>
-    fetch(`/api/suggestions/${id}/reject`, send('POST')).then(r => json<unknown>(r)),
+    apiFetch(`/api/suggestions/${id}/reject`, send('POST')).then(r => json<unknown>(r)),
   example: (id: string) =>
-    fetch(`/api/examples/${encodeURIComponent(id)}`, send('POST')).then(r =>
+    apiFetch(`/api/examples/${encodeURIComponent(id)}`, send('POST')).then(r =>
       json<{ slug: string; name: string; created: boolean; commit?: ImportCommit }>(r),
     ),
 };
 const gitUrl = (project: string, action: string) =>
   `/api/projects/${encodeURIComponent(project)}/${action}`;
 async function gitPost<T>(project: string, action: string, body?: unknown): Promise<T> {
-  const response = await fetch(gitUrl(project, action), send('POST', body));
+  const response = await apiFetch(gitUrl(project, action), send('POST', body));
   if (response.status === 409) {
     const b = await response.json();
     throw new Blocked(b.error, b.paths ?? [], b.message ?? b.error);
@@ -390,15 +418,15 @@ async function gitPost<T>(project: string, action: string, body?: unknown): Prom
 }
 /** Provides browser operations for source-control review and Git actions. */
 export const scm = {
-  status: (p: string) => fetch(gitUrl(p, 'git/status')).then(r => json<GitStatus>(r)),
+  status: (p: string) => apiFetch(gitUrl(p, 'git/status')).then(r => json<GitStatus>(r)),
   diff: (p: string, path: string, from = 'HEAD', to = 'worktree') =>
-    fetch(
+    apiFetch(
       gitUrl(p, 'git/diff') +
         `?path=${encodeURIComponent(path)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
     ).then(r => json<GitDiff>(r)),
   /** The diff of a changed file named by its path from the repository root. */
   changeDiff: (p: string, repoPath: string, from: string, to: string) =>
-    fetch(
+    apiFetch(
       gitUrl(p, 'git/diff') +
         `?repoPath=${encodeURIComponent(repoPath)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
     ).then(r => json<GitDiff>(r)),
@@ -416,7 +444,7 @@ export const scm = {
     message: string,
     options: { paths?: string[]; repoPaths?: string[]; push?: boolean } = {},
   ) {
-    const response = await fetch(gitUrl(p, 'git/commit'), send('POST', { message, ...options }));
+    const response = await apiFetch(gitUrl(p, 'git/commit'), send('POST', { message, ...options }));
     if (response.status === 409) {
       const b = await response.json();
       throw Object.assign(Error(b.message ?? b.error), { status: 409, body: b });
@@ -427,7 +455,7 @@ export const scm = {
   },
   // Revert to last commit: `baseHash` is the hash of the file now on disk (null if absent).
   async revert(p: string, path: string, baseHash: string | null) {
-    const response = await fetch(gitUrl(p, 'git/revert'), send('POST', { path, baseHash }));
+    const response = await apiFetch(gitUrl(p, 'git/revert'), send('POST', { path, baseHash }));
     if (response.status === 409) {
       const b = await response.json();
       throw new StaleSave(b.currentHash, b.currentSource);
@@ -435,54 +463,54 @@ export const scm = {
     return json<{ hash: string | null; trashEntry: string | null }>(response);
   },
   branches: (p: string) =>
-    fetch(gitUrl(p, 'git/branches')).then(r =>
+    apiFetch(gitUrl(p, 'git/branches')).then(r =>
       json<{ current: string; local: string[]; remote: string[] }>(r),
     ),
   switch: (p: string, branch: string, create = false) =>
     gitPost<{ branch: string; altered: string[] }>(p, 'git/switch', { branch, create }),
   setRemote: (p: string, name: string, url: string) =>
-    fetch(gitUrl(p, 'git/remote'), send('PUT', { name, url })).then(r =>
+    apiFetch(gitUrl(p, 'git/remote'), send('PUT', { name, url })).then(r =>
       json<{ name: string; url: string }>(r),
     ),
   removeRemote: (p: string, name: string) =>
-    fetch(gitUrl(p, 'git/remote'), send('DELETE', { name })).then(r =>
+    apiFetch(gitUrl(p, 'git/remote'), send('DELETE', { name })).then(r =>
       json<{ removed: string }>(r),
     ),
-  identity: (p: string) => fetch(gitUrl(p, 'git/identity')).then(r => json<GitIdentity>(r)),
+  identity: (p: string) => apiFetch(gitUrl(p, 'git/identity')).then(r => json<GitIdentity>(r)),
   setIdentity: (p: string, name: string, email: string, allRepositories = false) =>
-    fetch(gitUrl(p, 'git/identity'), send('PUT', { name, email, allRepositories })).then(r =>
+    apiFetch(gitUrl(p, 'git/identity'), send('PUT', { name, email, allRepositories })).then(r =>
       json<{ repositories: string[] }>(r),
     ),
   credentialHelper: () =>
-    fetch('/api/git/credential-helper').then(r => json<{ helper: string | null }>(r)),
+    apiFetch('/api/git/credential-helper').then(r => json<{ helper: string | null }>(r)),
   clone: (url: string, name?: string) =>
-    fetch('/api/clone', send('POST', { url, ...(name ? { name } : {}) })).then(r =>
+    apiFetch('/api/clone', send('POST', { url, ...(name ? { name } : {}) })).then(r =>
       json<{ op: string; name: string; slug: string }>(r),
     ),
   cancelClone: (op: string) =>
-    fetch(`/api/clone/${encodeURIComponent(op)}/cancel`, send('POST')).then(r =>
+    apiFetch(`/api/clone/${encodeURIComponent(op)}/cancel`, send('POST')).then(r =>
       json<{ cancelled: boolean }>(r),
     ),
   remote: (p: string, action: 'fetch' | 'pull' | 'push' | 'sync') =>
     gitPost<RemoteResult>(p, 'git/' + action),
   cancel: (p: string) => gitPost<{ cancelled: boolean }>(p, 'git/cancel'),
   log: (p: string, path?: string, limit = 50) =>
-    fetch(
+    apiFetch(
       gitUrl(p, 'git/log') + `?limit=${limit}${path ? '&path=' + encodeURIComponent(path) : ''}`,
     ).then(r => json<GitCommit[]>(r)),
   versions: (p: string, path: string, limit = 20) =>
-    fetch(gitUrl(p, 'git/versions') + `?path=${encodeURIComponent(path)}&limit=${limit}`).then(r =>
-      json<(GitCommit & { source: string })[]>(r),
+    apiFetch(gitUrl(p, 'git/versions') + `?path=${encodeURIComponent(path)}&limit=${limit}`).then(
+      r => json<(GitCommit & { source: string })[]>(r),
     ),
   ignore: (p: string, pattern: string) =>
     gitPost<{ hash: string; added: boolean; tracked: string[] }>(p, 'gitignore', { pattern }),
   saveDraft: (p: string, path: string, baseHash: string | null, text: string) =>
-    fetch(
+    apiFetch(
       `/api/drafts/${encodeURIComponent(p)}/${path.split('/').map(encodeURIComponent).join('/')}`,
       send('PUT', { baseHash, text, patches: [] }),
     ),
   deleteDraft: (p: string, path: string) =>
-    fetch(
+    apiFetch(
       `/api/drafts/${encodeURIComponent(p)}/${path.split('/').map(encodeURIComponent).join('/')}`,
       { method: 'DELETE' },
     ),
