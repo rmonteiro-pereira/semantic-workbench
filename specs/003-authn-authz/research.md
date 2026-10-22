@@ -639,10 +639,12 @@ probe: `openid-client` 6.8.8 (MIT, 236 KB) with `oauth4webapi` (MIT, 332 KB), `j
 
 ### Test changes not caused by the specification
 
-- `scripts/metrics-browser-check.ts` (responsive step): at 390 px the app may open a document right
+- `scripts/metrics-browser-check.ts` (responsive step) and `scripts/dialogs-browser-check.ts`
+  (narrow viewports): at 390 px the app may open a document right
   after loading, which closes the drawer the check has just opened; the check now reopens the drawer
   until the Projects tree shows. Seen intermittently against both the dev server and the image; no
   assertion changed.
 - `scripts/helpers/isolated-api.ts`: writes reach the isolated API through Playwright's own client
   with an accepted origin (the browser cannot change a route's Origin), so checks can run on any
   frontend address; a write whose page closed meanwhile is ignored.
+| T104–T106, T110, T115–T117, T119 (instance lock with hand-over, health, static serving, Dockerfile, Compose, container check, mutants) and the review fixes (instance nonce, stale-claim rename, Ajv validators precompiled so the CSP drops unsafe-eval) | Codex (gpt-6-astra), reviewed by Claude; CommonJS interop of the generated validators, a read-only `check`, the re-anchored origin mutant and the drawer retries by Claude |

@@ -1,28 +1,8 @@
 /** Validates standalone and embedded mappings against the pinned mapping schema. */
-import Ajv from 'ajv/dist/2020';
-import formats from 'ajv-formats';
-import ontology from '../schemas/ossie-ontology-0.2.0.dev0.json';
-import mapping from '../schemas/ossie-mapping-0.2.0.dev0.json';
-import core from '../schemas/ossie-core-mapping-dependencies.json';
+import standalone from './generated/schema-validators/mapping.js';
+import embedded from './generated/schema-validators/embedded-mapping.js';
+import versionedOntology from './generated/schema-validators/ontology.js';
 import type { Issue } from './diagnostics';
-const validator = new Ajv({ strict: false, allErrors: true });
-formats(validator);
-validator.addFormat('iri', /^[a-z][a-z\d+.-]*:[^\s]+$/i);
-validator.addSchema(
-  core,
-  'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json',
-);
-validator.addSchema(
-  ontology,
-  'https://raw.githubusercontent.com/apache/ossie/main/ontology/ontology.json',
-);
-const standalone = validator.compile(mapping);
-const embedded = validator.compile({
-  $ref: 'https://raw.githubusercontent.com/apache/ossie/main/ontology/ontology.json#/$defs/OntologyMap',
-});
-const versionedOntology = validator.getSchema(
-  'https://raw.githubusercontent.com/apache/ossie/main/ontology/ontology.json',
-)!;
 /** Checks whether parsed data has a supported concept-mapping shape. */
 export function isMapping(data: any) {
   return (

@@ -21,7 +21,10 @@ export type DataLayout = {
   locate?: (slug: string) => ProjectLocation | undefined;
 };
 /** Resolves storage paths from a root, defaulting to DATA_DIR or the data directory. */
-export function dataLayout(root = process.env.DATA_DIR || 'data'): DataLayout {
+export function dataLayout(
+  root = process.env.DATA_DIR || 'data',
+  cacheDir: string | null = process.env.SW_CACHE_DIR || null,
+): DataLayout {
   const r = resolve(root);
   const state = join(r, 'state');
   return {
@@ -33,7 +36,7 @@ export function dataLayout(root = process.env.DATA_DIR || 'data'): DataLayout {
     journal: join(state, 'journal'),
     trash: join(r, 'trash'),
     backup: join(r, 'backup'),
-    cache: join(r, 'cache.sqlite'),
+    cache: join(cacheDir ? resolve(cacheDir) : r, 'cache.sqlite'),
     legacyDb: join(r, 'workbench.sqlite'),
     registry: join(state, 'projects.json'),
     legacyIds: join(state, 'legacy-ids.json'),

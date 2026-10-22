@@ -1,7 +1,7 @@
 /** Reads and validates workbench metric attributes stored as JSON in Ossie custom extensions. */
-import Ajv2020 from 'ajv/dist/2020';
-import metricSchema from '../../schemas/semantic-workbench-metric-v1.json';
-import mappingSchema from '../../schemas/semantic-workbench-mapping-v1.json';
+import type { ValidateFunction } from 'ajv';
+import checkMetric from '../generated/schema-validators/metric.js';
+import checkMapping from '../generated/schema-validators/mapping-extension.js';
 import type { Issue } from '../diagnostics';
 import { ansiExpression, expressionRefs, metricDependencies } from './deps';
 // Metric attributes in Ossie `custom_extensions`: an entry with vendor_name SEMANTIC_WORKBENCH
@@ -10,9 +10,6 @@ import { ansiExpression, expressionRefs, metricDependencies } from './deps';
 export const VENDOR = 'SEMANTIC_WORKBENCH';
 export const METRIC_SCHEMA = 'semantic-workbench/metric/v1';
 export const MAPPING_SCHEMA = 'semantic-workbench/mapping/v1';
-const ajv = new Ajv2020({ strict: false, allErrors: true });
-const checkMetric = ajv.compile(metricSchema);
-const checkMapping = ajv.compile(mappingSchema);
 export const GRAINS = ['day', 'week', 'month', 'quarter', 'year'] as const;
 /** Names a supported time granularity for metric aggregation. */
 export type Grain = (typeof GRAINS)[number];
@@ -115,7 +112,7 @@ function metricRules(v: any): { inner: string; message: string }[] {
   return out;
 }
 function schemaIssues(
-  validate: ReturnType<typeof ajv.compile>,
+  validate: ValidateFunction,
   value: unknown,
   path: string,
   rules: { inner: string; message: string }[],

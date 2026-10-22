@@ -27,7 +27,8 @@ The SQLite cache moves to `SW_CACHE_DIR` when set (container local disk); defaul
 
 | Field | Type | Rule |
 | --- | --- | --- |
-| `host`, `pid` | string, number | holder |
+| `instance` | string (UUID) | unique per start; the sole ownership identity |
+| `host`, `pid` | string, number | holder diagnostics |
 | `revision` | string | `CONTAINER_APP_REVISION`, else `SW_VERSION+SW_COMMIT` (two containers of one image are the same revision), else `dev` |
 | `heartbeat` | ISO time | refreshed every 10 s; stale after 30 s |
 | `state` | `serving` | written by the holder; removed in the SIGTERM handler |

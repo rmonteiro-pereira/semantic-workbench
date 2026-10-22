@@ -34,9 +34,18 @@ type Entry = {
 };
 const tree = (p: Page) => p.getByRole('tree', { name: 'Projects' });
 const narrow = (p: Page) => p.viewportSize()!.width < 1100;
+// On a narrow screen the app may open a document right after loading, which closes the drawer
+// the check has just opened, so the drawer is opened again until the tree shows.
 async function workspace(p: Page) {
-  if (narrow(p)) await p.getByRole('button', { name: 'Open workspace', exact: true }).click();
-  await expect(tree(p)).toBeVisible();
+  if (!narrow(p)) {
+    await expect(tree(p)).toBeVisible();
+    return;
+  }
+  await expect(async () => {
+    if (!(await tree(p).isVisible()))
+      await p.getByRole('button', { name: 'Open workspace', exact: true }).click();
+    await expect(tree(p)).toBeVisible({ timeout: 1000 });
+  }).toPass({ timeout: 15000 });
 }
 async function openFile(p: Page, project: string, path: string) {
   await workspace(p);

@@ -19,6 +19,7 @@ function sourceFiles(dir: string): string[] {
   const files: string[] = [];
   for (const entry of readdirSync(dir)) {
     const path = join(dir, entry);
+    if (path === 'src/generated/schema-validators') continue;
     if (entry === 'node_modules' || entry === 'fixtures') continue;
     if (statSync(path).isDirectory()) files.push(...sourceFiles(path));
     else if (SOURCE.test(entry)) files.push(path);
