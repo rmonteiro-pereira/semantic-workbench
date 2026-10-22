@@ -36,13 +36,22 @@ export function propertyEdit(
   return applyPatches(source, valuePatches(source, path, value, filename));
 }
 type Options = {
+  canEdit?: boolean;
+  canClassify?: boolean;
   doc: Doc;
   base: string;
   onSaved: (saved: Saved[], label: string) => void;
   onError: (message: string) => void;
 };
 /** Builds inline property controls that validate and save against the file's base hash. */
-export function propertyEditor({ doc, base, onSaved, onError }: Options) {
+export function propertyEditor({
+  doc,
+  base,
+  onSaved,
+  onError,
+  canEdit = true,
+  canClassify = true,
+}: Options) {
   const properties = (objectIndex: number) => {
     try {
       return (validateInput(base, doc.filename).model as any)?.document?.schema?.[objectIndex]
@@ -97,7 +106,17 @@ export function propertyEditor({ doc, base, onSaved, onError }: Options) {
     property,
     column,
   }: PropertyCellProps): React.ReactNode | null {
-    if (/[.[]/.test(path)) return null;
+    if (column.key === 'classification' && !canClassify) {
+      return (
+        <input
+          disabled
+          title="Requires Steward or Admin"
+          aria-label={`Classification of ${path}`}
+          value={property.classification ?? ''}
+        />
+      );
+    }
+    if (!canEdit || /[.[]/.test(path)) return null;
     const label = `${column.label} of ${path}`;
     if (FLAGS.has(column.key))
       return (

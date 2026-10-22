@@ -119,6 +119,8 @@ function checkVersion(version: string): void {
 export function openAdminRepository(options: {
   root: string;
   validate?: (config: AccessConfig) => unknown;
+  /** Receives the configuration of every new commit, so live decisions follow it at once. */
+  committed?: (config: AccessConfig) => void;
 }) {
   const root = join(options.root, 'admin');
   const git = createGit({ projectsRoot: options.root });
@@ -229,9 +231,9 @@ export function openAdminRepository(options: {
     if (!/^[a-z][a-z-]*: \S[^\r\n]*$/.test(change.message))
       throw new AdminConfigError('Expected area: summary.');
     if ((await version()) !== change.baseVersion) throw new AdminStaleError();
-    validate(files);
+    const config = validate(files);
     const previous = readFiles();
-    return withRollback(async () => {
+    const committedVersion = await withRollback(async () => {
       for (const [name, text] of Object.entries(files)) {
         mkdirSync(dirname(join(root, name)), { recursive: true });
         atomicWrite(join(root, name), encode(text));
@@ -241,6 +243,19 @@ export function openAdminRepository(options: {
       }
       return await commit(change.author, change.message);
     });
+    notifyCommitted(config, committedVersion);
+    return committedVersion;
+  }
+  // The commit already exists, so a failing listener must not turn the write into an error: the
+  // caller would retry a change that was saved. Decisions stay on the previous policy until the
+  // next commit or restart reloads it.
+  function notifyCommitted(config: AccessConfig, committedVersion: string): void {
+    try {
+      options.committed?.(config);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      console.error(`[admin] policy reload after commit ${committedVersion} failed: ${reason}`);
+    }
   }
   async function write(files: Record<string, string>, change: AdminWrite): Promise<string> {
     await ensure();
@@ -315,3 +330,5 @@ export function openAdminRepository(options: {
     rollback,
   };
 }
+/** The administration repository of one data root. */
+export type AdminRepository = ReturnType<typeof openAdminRepository>;

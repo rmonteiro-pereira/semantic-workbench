@@ -64,6 +64,16 @@ No Azure, registry or identity provider was contacted; the deploy paths ran agai
 | Browser suites | all passed; `test:lineage`, `test:mappings-layout`, `test:trash` and `test:examples:ui` each failed once while the machine's load average was 56–75 and passed on rerun; no budget was changed |
 | `test:container` | passed (local, server-mode and smoke groups) |
 
+## Write authorization (development machine, 2026-10-22)
+
+| Check | Result |
+| --- | --- |
+| `bun test` | 1,091 passed |
+| `ci:validate --step mutation` | 185 of 185 mutants killed |
+| `test:auth` | passed, including the role-aware controls |
+| Browser suites | all passed; `test:ui`, `test:autosave` and `test:dialogs` failed once each because the Vite server or the page process stopped before the first check, and passed on rerun; no budget was changed |
+| `test:container` | passed (local, server-mode and smoke groups); one earlier run stopped in `test:responsive` and the rerun passed |
+
 ## Owner trial
 
 The owner records the report of `deploy/trial-runbook.md` here after running it on the target.

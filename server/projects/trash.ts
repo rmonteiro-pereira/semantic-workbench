@@ -26,7 +26,6 @@ import type { ProjectEntry, State } from './state';
 export const UNDO_MS = 10_000;
 /** Metadata needed to restore a deleted file or project and its associated state. */
 export type TrashEntry = {
-  owner?: string;
   paths?: { project: string; path: string }[];
   formatVersion: 1;
   entryId: string;
@@ -37,6 +36,8 @@ export type TrashEntry = {
   projectName: string;
   path?: string;
   deletedAt: string;
+  // The person who deleted it; absent for local mode and entries written before attribution.
+  deletedBy?: string;
   hash?: string;
   undoUntil: string;
   batchId: string | null;
@@ -117,7 +118,9 @@ export function createTrash(ctx: TrashContext) {
   const { layout, state, journal, lock } = ctx;
   const now = ctx.now ?? Date.now;
   function entryTags(entry: TrashEntry): EventTags {
-    if (entry.owner) return { owner: entry.owner, projects: [entry.project], paths: entry.paths };
+    if (entry.deletedBy) {
+      return { owner: entry.deletedBy, projects: [entry.project], paths: entry.paths };
+    }
     return {
       projects: [entry.project],
       paths: entry.path ? [{ project: entry.project, path: entry.path }] : undefined,
@@ -151,7 +154,7 @@ export function createTrash(ctx: TrashContext) {
     undoUntil: new Date(at + UNDO_MS).toISOString(),
     ...fields,
   });
-  async function deleteFile(slug: string, path: string, owner?: string) {
+  async function deleteFile(slug: string, path: string, deletedBy?: string) {
     const p = projectPath(path);
     const project = registryEntry(assertSlug(slug));
     return lock('project:' + slug, async () => {
@@ -166,7 +169,7 @@ export function createTrash(ctx: TrashContext) {
       const e = newEntry(
         {
           kind: 'file',
-          ...(owner ? { owner, paths: [{ project: slug, path: p }] } : {}),
+          ...(deletedBy ? { deletedBy, paths: [{ project: slug, path: p }] } : {}),
           project: slug,
           projectName: project.name,
           path: p,
@@ -205,6 +208,7 @@ export function createTrash(ctx: TrashContext) {
     path: string,
     baseHash: string | null,
     committed: Uint8Array | null,
+    deletedBy?: string,
   ) {
     const p = projectPath(path);
     const project = registryEntry(assertSlug(slug));
@@ -231,6 +235,7 @@ export function createTrash(ctx: TrashContext) {
           entry = newEntry(
             {
               kind: 'file',
+              ...(deletedBy ? { deletedBy, paths: [{ project: slug, path: p }] } : {}),
               project: slug,
               projectName: project.name,
               path: p,
@@ -265,7 +270,7 @@ export function createTrash(ctx: TrashContext) {
   // Projects (and Clear) are removed together with their registry entries in one journal.
   // Deleting a subproject moves only its folder; the shared repository then shows the deletion
   // as uncommitted changes. Clear moves a repository that holds subprojects once, as a whole.
-  async function deleteProjects(slugs: string[], batchId: string | null, owner?: string) {
+  async function deleteProjects(slugs: string[], batchId: string | null, deletedBy?: string) {
     return lock('registry', async () => {
       const current = ctx.projects();
       for (const slug of slugs) registryEntry(slug);
@@ -279,14 +284,14 @@ export function createTrash(ctx: TrashContext) {
         for (const unit of deletionUnits(slugs.map(registryEntry), current)) {
           const fields = unitEntry(unit, batchId);
           const members = unit.kind === 'repository' ? unit.projects : [unit.project];
-          const paths = owner
+          const paths = deletedBy
             ? members.flatMap(project =>
                 readdirRecursive(projectDir(layout, project.slug))
                   .filter(path => !path.startsWith('.git/'))
                   .map(path => ({ project: project.slug, path })),
               )
             : [];
-          const e = newEntry({ ...fields, ...(owner ? { owner, paths } : {}) }, at);
+          const e = newEntry({ ...fields, ...(deletedBy ? { deletedBy, paths } : {}) }, at);
           const dir = dirOf(e.entryId);
           atomicWriteJson(join(dir, 'entry.json'), e);
           entries.push(e);
@@ -595,7 +600,7 @@ export function createTrash(ctx: TrashContext) {
       })
       .sort((a, b) => b.entryId.localeCompare(a.entryId))
       .map(e => ({
-        ...(e.owner ? { owner: e.owner, paths: e.paths } : {}),
+        ...(e.deletedBy ? { deletedBy: e.deletedBy, paths: e.paths } : {}),
         entryId: e.entryId,
         kind: e.kind,
         project: e.project,
@@ -610,16 +615,23 @@ export function createTrash(ctx: TrashContext) {
   return {
     deleteFile,
     list,
+    /** Reads complete entry metadata so routes can authorize every restoration target. */
+    entry: (id: string): TrashEntry => read(id).e,
     revertFile,
-    deleteProject: async (slug: string, owner?: string) => {
-      const [e] = await deleteProjects([assertSlug(slug)], null, owner);
+    deleteProject: async (slug: string, deletedBy?: string) => {
+      const [e] = await deleteProjects([assertSlug(slug)], null, deletedBy);
       return { entryId: e.entryId, undoUntil: e.undoUntil };
     },
-    async clear(owner?: string) {
+    /** Moves several projects to the trash in one step, each as its own entry. */
+    deleteProjects: async (slugs: string[], deletedBy?: string) => {
+      const entries = await deleteProjects(slugs.map(assertSlug), null, deletedBy);
+      return entries.map(e => ({ entryId: e.entryId, undoUntil: e.undoUntil }));
+    },
+    async clear(deletedBy?: string) {
       const slugs = ctx.projects().map(p => p.slug);
       if (!slugs.length) return { batchId: null, entries: [], undoUntil: null };
       const batchId = ulid();
-      const entries = await deleteProjects(slugs, batchId, owner);
+      const entries = await deleteProjects(slugs, batchId, deletedBy);
       return { batchId, entries: entries.map(e => e.entryId), undoUntil: entries[0].undoUntil };
     },
     undo: (id: string, reader: Reader) => restore(id, {}, true, reader),
@@ -662,16 +674,24 @@ function readdirRecursive(dir: string, prefix = ''): string[] {
   );
 }
 
+/** The person who deleted an entry restores it as their own; anyone else restores another's. */
+export function restoreAction(
+  entry: Pick<TrashEntry, 'deletedBy'>,
+  scope: Pick<AccessScope, 'principal'>,
+): 'restoreOwn' | 'restoreOthers' {
+  return entry.deletedBy === scope.principal.id ? 'restoreOwn' : 'restoreOthers';
+}
+
 /**
  * Checks every original path before exposing an owned trash entry. An entry without original
  * paths, such as a deleted empty project, is visible to whoever may restore that project.
  */
 export function readableTrash(
-  entry: Pick<TrashEntry, 'project' | 'path' | 'owner' | 'paths'>,
+  entry: Pick<TrashEntry, 'project' | 'path' | 'deletedBy' | 'paths'>,
   scope: AccessScope,
 ): boolean {
   const paths = entry.paths ?? (entry.path ? [{ project: entry.project, path: entry.path }] : []);
-  const action = entry.owner === scope.principal.id ? 'restoreOwn' : 'restoreOthers';
+  const action = restoreAction(entry, scope);
   if (!paths.length) {
     return scope.authorize(action, { type: 'project', project: entry.project }).allow;
   }

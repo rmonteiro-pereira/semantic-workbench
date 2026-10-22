@@ -1,10 +1,6 @@
 // Serves workspace invalidations as server-sent events.
-import {
-  requestReader,
-  requestScope,
-  type AccessControl,
-  type HandlerOptions,
-} from '../auth/middleware';
+import type { AccessControl, HandlerOptions } from '../auth/middleware';
+import { requestReader, requestScope } from '../auth/request-scope';
 import type { ServerAuthentication } from '../auth/authentication';
 import type { EventAccess } from '../projects/event-access';
 import type { Workspace } from '../projects/workspace';

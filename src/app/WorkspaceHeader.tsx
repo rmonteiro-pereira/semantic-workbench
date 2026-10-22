@@ -1,4 +1,5 @@
 /** Presentation and event handling for workspace header. */
+import { useCapabilities } from '../auth/Capabilities';
 import {
   Download,
   GitCommit as GitCommitIcon,
@@ -59,6 +60,7 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
   setCommitting,
   status,
 }: Props) {
+  const access = useCapabilities(current?.project);
   function getWorkspaceToggleLabel() {
     if (compact) {
       if (sidebarOpen) {
@@ -134,7 +136,7 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
             label={<span className="action-label">New</span>}
             icon={<Plus size={15} />}
             buttonClassName="new-menu"
-            items={newItems()}
+            items={access.can('edit') ? newItems() : []}
           />
           <MenuButton
             ariaLabel="More actions"
@@ -163,11 +165,12 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
           <button
             className="primary"
             onClick={handleCommitClick}
-            disabled={!current || status?.gitAvailable === false}
+            disabled={!current || status?.gitAvailable === false || !access.can('commit')}
             title={
-              status?.gitAvailable === false
+              access.control('commit').title ??
+              (status?.gitAvailable === false
                 ? 'Git is not available on this machine'
-                : 'Commit changed files of this project'
+                : 'Commit changed files of this project')
             }
           >
             <GitCommitIcon size={15} />

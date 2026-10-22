@@ -5,7 +5,7 @@ import type { Level } from './actions';
 /** A resource identity and the file attributes relevant to policy evaluation. */
 export type ResourceRef =
   | { type: 'workspace' }
-  | { type: 'project'; project: string }
+  | { type: 'project'; project: string; domain?: string }
   | {
       type: 'file';
       project: string;
@@ -14,6 +14,16 @@ export type ResourceRef =
       level?: Level;
       metric?: { name: string; status: string; owner?: string };
     };
+/**
+ * Stands for a project that a creation request has not made yet. Project slugs hold only
+ * lowercase letters, digits and hyphens, so no real project can carry this name.
+ */
+export const NEW_PROJECT = '(new project)';
+
+/** The project a person asks to create in a domain, as the policies see it before it exists. */
+export function newProjectIn(domain: string): Extract<ResourceRef, { type: 'project' }> {
+  return { type: 'project', project: NEW_PROJECT, domain };
+}
 /** A policy decision with deciding rule ids and existence-hiding HTTP status. */
 export type Decision = {
   allow: boolean;

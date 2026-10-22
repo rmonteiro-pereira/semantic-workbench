@@ -1,4 +1,5 @@
 /** Edits RDF resource statements as rows or source, with graph-equivalence checks before Save. */
+import { useCapabilities } from '../auth/Capabilities';
 import React, { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, FileCode, Plus, Trash2, X } from 'lucide-react';
 import type { Issue } from '../diagnostics';
@@ -67,6 +68,7 @@ export function RdfItemEditor({
   onDelete,
   onOpenSource,
 }: Props) {
+  const access = useCapabilities(doc.project);
   const item = useMemo(() => {
     try {
       return readRdfItem(base, doc.filename, subject);
@@ -390,6 +392,7 @@ export function RdfItemEditor({
         <button
           type="button"
           className="item-delete"
+          hidden={!access.can('edit')}
           onClick={onDelete}
           disabled={saving || !!refusal}
         >
@@ -410,7 +413,13 @@ export function RdfItemEditor({
         <button type="button" onClick={onClose} disabled={saving}>
           Cancel
         </button>
-        <button type="button" className="primary" onClick={save} disabled={!canSave}>
+        <button
+          type="button"
+          className="primary"
+          onClick={save}
+          title={access.control('edit').title}
+          disabled={!canSave || !access.can('edit')}
+        >
           {saving ? 'Saving…' : 'Save to file'}
         </button>
       </div>

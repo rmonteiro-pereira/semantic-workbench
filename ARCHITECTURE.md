@@ -45,7 +45,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `server/auth/directory.ts` | App-only group membership requests with bounded batches | Role assignments |
 | `server/auth/sign-in-error.ts` | Safe typed sign-in failure reasons | Display text or provider secrets |
 | `server/auth/csrf.ts` | Public-origin, request-header and logout-form checks | Session persistence |
-| `server/auth/authentication.ts` | Composition of sessions, provider identity, directory resolution and existing grants; records users through `ws.state` | HTTP route dispatch |
+| `server/auth/authentication.ts` | Composition of sessions, provider identity, directory resolution and existing grants; owns the one administration repository and reloads policy after its commits; records users through `ws.state` | HTTP route dispatch |
 | `src/auth/` | Once-per-page identity hook and person menu with native CSRF sign-out form | Provider tokens or grant decisions |
 | `scripts/auth-*.ts` | Sign-in orchestration, disposable environments, mock lifecycle checks, Keycloak compatibility and server container checks | Shared browser assertions or generic process lifecycle |
 | `scripts/helpers/sign-in.ts` | Shared identity, storage, native sign-out and responsive browser assertions | Provider startup |
@@ -56,6 +56,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `server/auth/principal.ts` | Trusted claim normalization and stable principal keys | Provider roles, I/O |
 | `server/auth/grants.ts` | Pure grant matching and role-holder scope expansion | Policy evaluation, I/O |
 | `server/auth/role-compiler.ts` | Pure role validation and Cedar policy generation | Cedar engine, I/O |
+| `server/auth/role-requirements.ts` | The "Requires …" text `/api/me` gives for each action, in configured role names | Policy decisions |
 | `server/auth/access-config.ts` | Administration schema validation and typed configuration | Access decisions |
 | `server/auth/path-rules.ts` | Restricted POSIX globs and Cedar wildcard rule classes | Access decisions |
 | `server/auth/cedar.ts` | Validated policy loading, entity graphs and the Cedar engine | HTTP handling |
@@ -222,12 +223,13 @@ container arguments, discovery/readiness predicates, bounded waits and parsed id
 have offline unit tests. The gate builds the auth frontend without starting Vite; the server
 container group exercises the image itself. Keycloak remains outside the delivery gate.
 
-Read filtering uses the required `Reader` value from `requestReader()` in
-`auth/middleware.ts`. It carries the request's view and personal state owner. Every workspace
+`server/auth/request-scope.ts` owns the scope the middleware attaches to each request:
+`requestScope()` returns it and `requestReader()` derives the required `Reader` from it, so
+routes and resource helpers never import the HTTP middleware. The reader carries the request's
+view and personal state owner. Every workspace
 service that reads or writes on a person's behalf requires it, including grouping views, legacy
 document saves and clones; local and internal operations explicitly pass `LOCAL_READER`.
-Omitting a reader must fail compilation, never grant unrestricted access. Routes that need the
-scope itself use `requestScope()`. Derived agent and metric services receive only filtered
+Omitting a reader must fail compilation, never grant unrestricted access. Derived agent and metric services receive only filtered
 documents and cannot resolve hidden references. Workspace modules import the scope type
 `AccessScope` from `auth/authorize.ts`, never from the HTTP middleware.
 
@@ -246,7 +248,9 @@ who could not read the project never receives its slug. Clients that reconnect r
 everything, so a missed removal is not lost.
 
 Trash events use one rule with the trash listing: `readableTrash()` in `projects/trash.ts`
-requires every original path to be readable and `restoreOwn` or `restoreOthers` to be allowed.
+requires every original path to be readable and the restore action to be allowed.
+`restoreAction()` in the same module is the only place that picks it: `restoreOwn` when the
+entry's `deletedBy` is the caller, `restoreOthers` otherwise, including entries without one.
 An entry without original paths, such as a deleted empty project, falls back to the project:
 it is visible to whoever may restore that project, in listings and events.
 
@@ -264,8 +268,9 @@ including owners without active sessions. `projects/personal-state.ts` owns thos
 A move never replaces a draft that already exists at the destination, shared or personal.
 Keep-both moves and imports choose the new name among the names the reader can see and the
 names already taken in the same batch. They refuse a name the reader cannot open or one that
-exists on disk out of the reader's sight, before anything is written. Trash metadata records ownership and original paths. In server mode the
-middleware resolves a targeted trash entry once; local mode leaves trash lookups to the route.
+exists on disk out of the reader's sight, before anything is written. Trash metadata records
+`deletedBy` and the original paths. In server mode the middleware resolves a targeted trash
+entry once and authorizes its original target; local mode leaves trash lookups to the route.
 Hidden-resource errors use the same 404 body as missing items, but only hidden denials receive
 denial audit records.
 
@@ -273,3 +278,48 @@ Git content checks apply even when a requested path has disappeared from the wor
 Repository ownership always uses the longest matching project prefix. History reads use one
 `git log --name-only -z` invocation, exposing readable commits and a hidden-commit count;
 local history retains its array response.
+
+### Write authorization and UI capabilities
+
+The route inventory authorizes each request before dispatch. Rows marked `targets: 'body'`
+resolve their actual resources in the owning route and call `authorizeWrite` in
+`server/auth/write-access.ts`, which reads the scope through `requestScope()`. Write checks
+accept decision context such as the branch being pushed. The shared write helper owns the sole
+local-mode write bypass.
+
+All targets are checked before mutation: both ends of moves, every batch or metric output file,
+legacy documents, suggestions, and restore destinations. Grouping views are personal state, so
+their row uses `viewOwnState` and the route refuses a document the reader cannot open.
+Restoration checks the original target and the destination with the action `restoreAction()`
+picks. A hidden write target answers 404 like a missing one, before the workspace looks at it.
+`server/auth/git-access.ts` maps repository paths to projects and checks
+every project sharing a repository before switch, fetch, pull, sync, push or a remote change
+(`setRemote`). A target denial returns
+through middleware for one audit record and a 403/404 response without changing workspace bytes.
+
+`server/auth/project-creation.ts` validates domain selection through Cedar and persists the
+assignment in the administration repository. Cedar judges a project that does not exist yet as
+the resource `newProjectIn(domain)` from `server/auth/resource.ts`: the entity builder in
+`server/auth/cedar.ts` gives it the requested domain, so no policy is recompiled. An unknown domain
+answers 404 like a hidden one.
+
+The process holds one administration repository instance, created and owned by
+`server/auth/authentication.ts` and handed to the routes as `administration`. Its writes are
+serialized within that instance, and after each commit it reloads the live policy through
+`access.reload`. If that reload fails, the write still succeeds because the commit exists; the
+failure is logged with the new version and decisions keep the previous policy until the next
+commit or restart loads it. A handler built without server authentication opens its own instance with the
+same reload. A stale assignment reloads and retries once; failure moves the new projects to
+trash. An unassigned creation removes stale slug metadata and commits nothing when there is none.
+Clones assign domains only after successful cloning, and a multi-project clone assigns every
+project's domain in one commit; if that commit fails, all of the clone's projects go to the trash
+and the clone reports failure.
+
+`src/auth/can.ts` consumes `/api/me.can`, `requires` and project `actions`; it never interprets
+grants as permission rules. `server/auth/role-requirements.ts` derives role explanations from the
+built-in definitions, names custom roles when they are the person's sole source, and uses the
+same role names `/api/me` lists in `roleNames`. `Capabilities.tsx` supplies
+actions to nested controls. Creating components own their domain selection through
+`src/projects/useProjectDomain.tsx` and pass the chosen domain to their API call. The client shows
+a chooser whenever the server offers more than one choice. Only the server automatically assigns
+a sole domain to non-Admins; local creation remains unrestricted.

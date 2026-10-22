@@ -1,4 +1,5 @@
 /** Lists, filters and groups project metrics alongside the selected metric's explanation. */
+import { useCapabilities } from '../auth/Capabilities';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Gauge, Plus, Search, Tags } from 'lucide-react';
 import type { KpiSummary } from '../../server/agent/explain';
@@ -57,6 +58,12 @@ export function MetricsView({
   onEdit?: (k: KpiSummary) => void;
   onAddAttributes?: (k: KpiSummary) => void;
 }) {
+  const access = useCapabilities(project ?? undefined);
+  if (!access.can('edit')) {
+    onNew = undefined;
+    onEdit = undefined;
+    onAddAttributes = undefined;
+  }
   const [query, setQuery] = useState('');
   const [groupBy, setGroupBy] = useState<GroupBy>('none');
   const [type, setType] = useState('');

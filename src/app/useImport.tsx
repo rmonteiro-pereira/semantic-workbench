@@ -1,5 +1,6 @@
 /** Imports file batches and routes invalid documents to the repair dialog. */
 import React from 'react';
+import { useProjectDomain } from '../projects/useProjectDomain';
 import { validateInput } from '../input';
 import type { Doc } from '../projects/api';
 import { api } from '../projects/api';
@@ -36,11 +37,17 @@ export function useImport({
   setMessage,
   leaveCurrent,
 }: Options) {
+  const domainChoice = useProjectDomain();
   // One import batch becomes one project.
   async function commitImports(drafts: ImportDraft[]) {
     let created;
     try {
-      created = await api.importBatch(drafts.map(d => ({ path: d.filename, source: d.source })));
+      const domain = await domainChoice.choose();
+      created = await api.importBatch(
+        drafts.map(draft => ({ path: draft.filename, source: draft.source })),
+        undefined,
+        domain,
+      );
     } catch (e) {
       const filenames = drafts.map(draft => draft.filename).join(', ');
       throw Error(
@@ -92,5 +99,5 @@ export function useImport({
     }
   }
 
-  return { commitImports, importFiles };
+  return { commitImports, importFiles, domainDialog: domainChoice.dialog };
 }

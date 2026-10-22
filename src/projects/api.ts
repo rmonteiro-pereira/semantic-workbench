@@ -18,6 +18,8 @@ export type ProjectFile = {
 /** Summarizes a project, its Git state and indexed files. */
 export type ProjectInfo = {
   hiddenFiles?: number;
+  /** Server mode only: the actions the signed-in person may take on this project. */
+  actions?: string[];
   slug: string;
   name: string;
   origin: string;
@@ -326,8 +328,8 @@ export const api = {
     }
     return json<{ written: { path: string; hash: string; created: boolean }[] }>(response);
   },
-  importBatch: (files: { path: string; source: string }[], name?: string) =>
-    apiFetch('/api/import', send('POST', { files, ...(name ? { name } : {}) })).then(r =>
+  importBatch: async (files: { path: string; source: string }[], name?: string, domain?: string) =>
+    apiFetch('/api/import', send('POST', { files, ...(name ? { name } : {}), domain })).then(r =>
       json<{
         slug: string;
         name: string;
@@ -412,8 +414,8 @@ export const api = {
     ),
   rejectSuggestion: (id: string) =>
     apiFetch(`/api/suggestions/${id}/reject`, send('POST')).then(r => json<unknown>(r)),
-  example: (id: string) =>
-    apiFetch(`/api/examples/${encodeURIComponent(id)}`, send('POST')).then(r =>
+  example: async (id: string, domain?: string) =>
+    apiFetch(`/api/examples/${encodeURIComponent(id)}`, send('POST', { domain })).then(r =>
       json<{ slug: string; name: string; created: boolean; commit?: ImportCommit }>(r),
     ),
 };
@@ -494,8 +496,8 @@ export const scm = {
     ),
   credentialHelper: () =>
     apiFetch('/api/git/credential-helper').then(r => json<{ helper: string | null }>(r)),
-  clone: (url: string, name?: string) =>
-    apiFetch('/api/clone', send('POST', { url, ...(name ? { name } : {}) })).then(r =>
+  clone: async (url: string, name?: string, domain?: string) =>
+    apiFetch('/api/clone', send('POST', { url, ...(name ? { name } : {}), domain })).then(r =>
       json<{ op: string; name: string; slug: string }>(r),
     ),
   cancelClone: (op: string) =>

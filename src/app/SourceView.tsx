@@ -1,4 +1,5 @@
 /** Presentation and event handling for source view. */
+import { useCapabilities } from '../auth/Capabilities';
 import React from 'react';
 import type { Issue } from '../diagnostics';
 import type { CodeEditorHandle } from '../editor/CodeEditor';
@@ -20,8 +21,10 @@ type Props = {
 };
 /** Renders source view. */
 export function SourceView({ sourceEditor, current, source, setSource, setEditorIssues }: Props) {
+  const access = useCapabilities(current?.project);
   return (
     <CodeEditor
+      disabled={!access.can('edit')}
       ref={sourceEditor}
       ariaLabel="Definition source"
       className="code"

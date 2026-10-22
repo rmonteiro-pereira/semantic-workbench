@@ -1,4 +1,5 @@
 /** Adds or deletes RDF resources only after validation and graph-equivalence checks. */
+import { useCapabilities } from '../auth/Capabilities';
 import React, { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import type { Issue } from '../diagnostics';
@@ -88,6 +89,7 @@ export function RdfAddItem({
   onClose: () => void;
   onSaved: (saved: Saved, subject: string) => void;
 }) {
+  const access = useCapabilities(doc.project);
   const prefixes = useMemo(() => rdfPrefixes(base, doc.filename), []);
   const own = Object.keys(prefixes).find(
     p => !['rdf', 'rdfs', 'owl', 'xsd', 'sh', 'skos', 'dcterms', 'schema'].includes(p),
@@ -247,7 +249,8 @@ export function RdfAddItem({
           type="button"
           className="primary"
           onClick={save}
-          disabled={!ready || pending || errors.length > 0 || saving}
+          title={access.control('edit').title}
+          disabled={!access.can('edit') || !ready || pending || errors.length > 0 || saving}
         >
           {saving ? 'Saving…' : pending ? 'Checking…' : 'Save to file'}
         </button>
@@ -275,6 +278,7 @@ export function RdfDeleteItem({
   onClose: () => void;
   onDeleted: (saved: Saved[]) => void;
 }) {
+  const access = useCapabilities(doc.project);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const result = useMemo(() => deleteRdfItem(base, doc.filename, subject, true), []);
@@ -354,7 +358,13 @@ export function RdfDeleteItem({
         <button type="button" onClick={onClose} disabled={busy}>
           Cancel
         </button>
-        <button type="button" className="danger" onClick={confirm} disabled={busy || !result.ok}>
+        <button
+          type="button"
+          className="danger"
+          onClick={confirm}
+          title={access.control('edit').title}
+          disabled={!access.can('edit') || busy || !result.ok}
+        >
           {busy ? 'Deleting…' : 'Delete'}
         </button>
       </div>

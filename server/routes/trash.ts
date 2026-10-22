@@ -1,7 +1,9 @@
 // Handles deletion, undo, restoration, and permanent removal with explicit confirmation for
 // destructive calls.
-import { requestReader, requestScope } from '../auth/middleware';
-import { readableTrash } from '../projects/trash';
+import { requestReader, requestScope } from '../auth/request-scope';
+import type { ResourceRef } from '../auth/resource';
+import { readableTrash, restoreAction, type TrashEntry } from '../projects/trash';
+import { authorizeWrite } from '../auth/write-access';
 import { readJson } from '../request';
 import { decodePath, type Route } from './http';
 /** Requires an explicit confirmation flag before a destructive operation. */
@@ -9,6 +11,19 @@ export function requireConfirm(body: any) {
   if (!body || body.confirm !== true)
     throw Error('This removes data; send {"confirm": true} after the user confirmed.');
 }
+/** The places a restoration writes: the original target, or the destination the body names. */
+function restoreResources(
+  entry: TrashEntry,
+  project = entry.project,
+  path = entry.path,
+): ResourceRef[] {
+  if (entry.kind === 'file' && path) return [{ type: 'file', project, path }];
+  return (entry.projects ?? [{ slug: project }]).map(item => ({
+    type: 'project',
+    project: item.slug,
+  }));
+}
+
 const ENTRY = /^[0-9A-HJKMNP-TV-Z]{26}$/;
 /** Handles trash operations, requiring confirmation before destructive actions. */
 export const trashRoutes: Route = async (ws, req, url) => {
@@ -57,8 +72,11 @@ export const trashRoutes: Route = async (ws, req, url) => {
   const entry = p.match(/^\/api\/trash\/([^/]+)(\/undo|\/restore)?$/);
   if (entry && ENTRY.test(entry[1])) {
     const id = entry[1];
-    if (entry[2] === '/undo' && req.method === 'POST')
+    if (entry[2] === '/undo' && req.method === 'POST') {
+      const target = ws.trash.entry(id);
+      authorizeWrite(req, restoreAction(target, scope), restoreResources(target));
       return Response.json(await ws.trash.undo(id, reader));
+    }
     if (entry[2] === '/restore' && req.method === 'POST') {
       const body = await readJson(req, 4096, {});
       if (
@@ -69,6 +87,11 @@ export const trashRoutes: Route = async (ws, req, url) => {
         throw Error('Expected {toProject?, toPath?}.');
       for (const k of ['toProject', 'toPath'])
         if (body[k] !== undefined && typeof body[k] !== 'string') throw Error(`${k} must be text.`);
+      const target = ws.trash.entry(id);
+      authorizeWrite(req, restoreAction(target, scope), [
+        ...restoreResources(target),
+        ...restoreResources(target, body.toProject ?? target.project, body.toPath ?? target.path),
+      ]);
       return Response.json(await ws.trash.restore(id, body, reader));
     }
     if (!entry[2] && req.method === 'DELETE') {

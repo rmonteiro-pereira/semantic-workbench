@@ -1,5 +1,6 @@
 // Checks responsive layouts, overlays and navigation in an isolated browser workspace.
 import { appUrl } from './helpers/base-url';
+import { LOCAL_READER } from '../server/projects/reader';
 import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { treeRowProblems } from './helpers/tree-geometry';
@@ -526,6 +527,61 @@ try {
     [1024, 768],
     [390, 844],
   ];
+  await check(
+    'roles: person menu and disabled control explanations fit every viewport',
+    async () => {
+      for (const [width, height] of six) {
+        const page = await browser.newPage({ viewport: { width, height } });
+        try {
+          await routeApi(page, api, async route => {
+            const path = new URL(route.request().url()).pathname;
+            if (path === '/api/me') {
+              await route.fulfill({
+                json: {
+                  mode: 'server',
+                  name: 'Viewer with a long display name',
+                  verifiedEmail: 'viewer@example.org',
+                  csrf: 'geometry-only',
+                  roles: { workspace: ['viewer'], projects: {} },
+                  roleNames: { viewer: 'Viewer' },
+                  can: {},
+                  requires: { commit: 'Requires Editor' },
+                  creationDomains: [],
+                },
+              });
+              return true;
+            }
+            if (path === '/api/projects') {
+              const projects = await api.ws.listProjects(LOCAL_READER);
+              await route.fulfill({
+                json: projects.map(project => ({
+                  ...project,
+                  actions: ['read', 'history', 'viewOwnState'],
+                })),
+              });
+              return true;
+            }
+            return false;
+          });
+          await page.goto(appUrl());
+          const commit = page.getByRole('button', { name: /^Commit/ }).first();
+          await expect(commit).toBeDisabled();
+          await expect(commit).toHaveAttribute('title', /Requires Editor/);
+          await commit.hover({ force: true });
+          await page.getByRole('button', { name: 'Person menu', exact: true }).click();
+          expect(await layoutProblems(page)).toEqual([]);
+          const menu = page.getByRole('menu');
+          await expect(menu).toBeVisible();
+          const bounds = await menu.boundingBox();
+          expect(bounds!.x).toBeGreaterThanOrEqual(0);
+          expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(width + 1);
+          expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(height + 1);
+        } finally {
+          await page.close();
+        }
+      }
+    },
+  );
   // A workspace drawer left open by a narrow size would cover the page after resizing.
   const closeDrawer = async (p: Page) => {
     if (await p.locator('#workspace-sidebar[role=dialog]').count())

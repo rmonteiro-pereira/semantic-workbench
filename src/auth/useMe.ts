@@ -5,6 +5,9 @@ import { apiFetch } from '../projects/api';
 /** Identity and effective role labels supplied by the authenticated API. */
 export type Me = {
   mode: 'local' | 'server';
+  creationDomains?: { id: string; name: string }[];
+  can?: Record<string, boolean>;
+  requires?: Record<string, string>;
   name: string;
   verifiedEmail: string | null;
   csrf?: string;

@@ -1,5 +1,6 @@
 /** Displays project changes, diffs, history and explicit Git actions with progress and
  * cancellation. */
+import { useCapabilities } from '../auth/Capabilities';
 import { useGitSetup } from './GitSetup';
 import { looksLikeAuthFailure } from './CredentialGuide';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -117,6 +118,7 @@ export function SourceControl({
   onBusy,
   onCommit,
 }: Props) {
+  const access = useCapabilities(project);
   const [status, setStatus] = useState<GitStatus | null>(null);
   const [error, setError] = useState('');
   // Kept apart from action errors: reloading the status after a failed push must not hide why it
@@ -367,6 +369,7 @@ export function SourceControl({
   const repo = projects.find(item => item.slug === project)?.repo;
   const sharedRepository = projects.filter(item => item.repo === repo).length > 1;
   const canCommit =
+    access.can('commit') &&
     !!message.trim() &&
     (groups.staged.length > 0 || status.merging) &&
     !groups.conflicts.length &&
@@ -415,7 +418,7 @@ export function SourceControl({
               <FileCode size={13} />
             </button>
           )}
-          {g === 'changes' && !c.outside && (
+          {g === 'changes' && !c.outside && access.can('edit', c.project ?? project) && (
             <button
               aria-label={`Add ${c.path} to .gitignore`}
               title="Add to .gitignore"
@@ -427,18 +430,21 @@ export function SourceControl({
           {g === 'staged' ? (
             <button
               aria-label={`Unstage ${c.path}`}
-              title="Unstage"
+              title={access.control('stage').title ?? 'Unstage'}
               onClick={() => act(() => scm.stageChanges(project, [c.repoPath], false))}
-              disabled={busy}
+              disabled={busy || !access.can('stage', c.project ?? project)}
             >
               <Minus size={13} />
             </button>
           ) : (
             <button
               aria-label={`Stage ${c.path}`}
-              title={g === 'conflicts' ? 'Mark as resolved (stage)' : 'Stage'}
+              title={
+                access.control('stage').title ??
+                (g === 'conflicts' ? 'Mark as resolved (stage)' : 'Stage')
+              }
               onClick={() => act(() => scm.stageChanges(project, [c.repoPath], true))}
-              disabled={busy}
+              disabled={busy || !access.can('stage', c.project ?? project)}
             >
               <Plus size={13} />
             </button>
@@ -491,7 +497,7 @@ export function SourceControl({
           <span>{title}</span>
           <small>{items.length}</small>
           {all && (
-            <button className="link" onClick={all.run} disabled={busy}>
+            <button className="link" onClick={all.run} disabled={busy || !access.can('stage')}>
               {all.label}
             </button>
           )}
@@ -516,7 +522,7 @@ export function SourceControl({
             project={project}
             current={status.branch}
             version={version + tick}
-            disabled={busy}
+            disabled={busy || !access.can('branch')}
             onSwitch={switchTo}
           />
           <span
@@ -538,11 +544,23 @@ export function SourceControl({
           ) : (
             <span className="scm-remote-url">No remote yet. Add one to push and pull.</span>
           )}
-          <button onClick={() => openGitSetup({ kind: 'remote', project })}>Remote…</button>
+          <button
+            hidden={!access.can('setRemote')}
+            onClick={() => openGitSetup({ kind: 'remote', project })}
+          >
+            Remote…
+          </button>
           {remoteNames.length > 0 && (
             <div className="scm-remote-actions" role="group" aria-label="Remote">
               {(['fetch', 'pull', 'push', 'sync'] as const).map(a => (
-                <button key={a} onClick={() => void remote(a)} disabled={busy}>
+                <button
+                  key={a}
+                  hidden={
+                    !access.can(a === 'sync' ? 'pull' : a) || (a === 'sync' && !access.can('push'))
+                  }
+                  onClick={() => void remote(a)}
+                  disabled={busy}
+                >
                   {a === 'sync' ? (
                     <RefreshCw size={13} />
                   ) : a === 'push' ? (
@@ -560,7 +578,9 @@ export function SourceControl({
           <div role="status" className="scm-note waiting">
             <span className="spinner" aria-hidden />
             <span>Waiting for Git (credentials may be requested in a separate window)…</span>
-            <button onClick={() => void scm.cancel(project)}>Cancel</button>
+            <button hidden={!access.can('cancelOwn')} onClick={() => void scm.cancel(project)}>
+              Cancel
+            </button>
           </div>
         )}
         {note && (
@@ -595,7 +615,7 @@ export function SourceControl({
           <div role="alert" className="scm-error">
             <pre>{error}</pre>
             {looksLikeAuthFailure(error) && (
-              <button onClick={() => openGitSetup({ kind: 'credentials' })}>
+              <button hidden={!access.local} onClick={() => openGitSetup({ kind: 'credentials' })}>
                 Credential setup guide
               </button>
             )}
@@ -627,22 +647,12 @@ export function SourceControl({
             className="primary"
             onClick={() => void commit()}
             disabled={!canCommit}
-            title={
-              !status.identityConfigured
-                ? 'Set git user.name and user.email first'
-                : groups.conflicts.length
-                  ? 'Resolve conflicts first'
-                  : !groups.staged.length && !status.merging
-                    ? 'Stage changes to commit'
-                    : !message.trim()
-                      ? 'Write a commit message'
-                      : 'Commit (Ctrl+Enter)'
-            }
+            title={access.control('commit').title ?? 'Commit (Ctrl+Enter)'}
           >
             <GitCommit size={14} />
             Commit
           </button>
-          {!status.identityConfigured && (
+          {access.local && !status.identityConfigured && (
             <small>
               Git has no user.name or user.email, so commits are not possible yet.{' '}
               <button className="link" onClick={() => openGitSetup({ kind: 'identity', project })}>

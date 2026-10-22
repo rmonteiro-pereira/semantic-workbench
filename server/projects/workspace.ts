@@ -33,7 +33,7 @@ import { createWatcher } from './watcher';
 import { migrateLegacy, type MigrationReport } from './migration';
 import { createTrash } from './trash';
 import { createScm } from './scm';
-import { createCloner, rollBackInterruptedClones } from './clone';
+import { createCloner, rollBackInterruptedClones, type AssignProject } from './clone';
 import { createRepositoryProjects } from './repository-projects';
 import { LOCAL_READER, type Reader } from './reader';
 import { HiddenResourceError } from './errors';
@@ -203,12 +203,14 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     if (!closed) events.emit('suggestions', {}, { audience: 'all' });
   }
   // Stage a new project folder, then move it and the new registry into place in one journaled
-  // operation.
+  // operation. A caller that must authorize the final slug gets it before anything is written,
+  // because a stray folder on disk can make it differ from the preferred one.
   async function createProjectFolder(
     name: string,
     origin: string,
     files: ImportFile[],
     preferredSlug?: string,
+    beforeCreate?: (slug: string) => void,
   ) {
     return lock('registry', async () => {
       const current = projects();
@@ -220,6 +222,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       for (const s of safeDirs(layout.projects)) taken.add(s);
       const slug =
         preferredSlug && !taken.has(preferredSlug) ? preferredSlug : slugify(finalName, taken);
+      beforeCreate?.(slug);
       const opId = journal.newId();
       const staging = join(layout.projects, `.staging-${opId}`);
       const stagedProject = join(staging, slug);
@@ -680,19 +683,25 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       }),
     );
   }
-  // A keep-both name chosen among the names this reader can see, plus names already taken in the
-  // same batch. A name the reader cannot open is refused, so a hidden file is neither revealed
-  // nor replaced. A file on disk that the cache does not list counts as hidden for a person.
+  // The names a keep-both choice must avoid: those this reader can see, plus names already taken
+  // in the same batch. Hidden names are left out so the choice does not reveal them.
+  function visibleNames(slug: string, view: Reader['view'], batchNames: Iterable<string> = []) {
+    const taken = new Set(batchNames);
+    for (const file of cache.files(slug)) {
+      if (!view || view.canRead(slug, file.path)) taken.add(file.path);
+    }
+    return taken;
+  }
+  // A keep-both name chosen among the visible names. A name the reader cannot open is refused, so
+  // a hidden file is neither revealed nor replaced. A file on disk that the cache does not list
+  // counts as hidden for a person.
   function freeReadableName(
     slug: string,
     path: string,
     view: Reader['view'],
     batchNames: Iterable<string> = [],
   ) {
-    const taken = new Set(batchNames);
-    for (const file of cache.files(slug)) {
-      if (!view || view.canRead(slug, file.path)) taken.add(file.path);
-    }
+    const taken = visibleNames(slug, view, batchNames);
     for (;;) {
       const free = disambiguate(path, taken);
       if (view && !view.canRead(slug, free)) return null;
@@ -706,17 +715,28 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   function importTargets(
     slug: string,
     batch: ImportFile[],
-    conflicts: { existing: Set<string>; keepBoth: boolean; view: Reader['view'] },
+    conflicts: {
+      existing: Set<string>;
+      keepBoth: boolean;
+      view: Reader['view'];
+      authorizePaths?: (paths: string[]) => void;
+    },
   ) {
-    const { existing, keepBoth, view } = conflicts;
+    const { existing, keepBoth, view, authorizePaths } = conflicts;
     const taken = new Set(batch.map(file => file.path));
-    return batch.map(file => {
+    let refused = false;
+    const targets = batch.map(file => {
       if (!keepBoth || !existing.has(file.path)) return file.path;
       const free = freeReadableName(slug, file.path, view, taken);
-      if (!free) throw new OccupiedError('The target is unavailable.', {});
-      taken.add(free);
-      return free;
+      // A refused name is still the one this reader would get, so authorization judges it first.
+      const name = free ?? disambiguate(file.path, visibleNames(slug, view, taken));
+      if (!free) refused = true;
+      taken.add(name);
+      return name;
     });
+    authorizePaths?.(targets);
+    if (refused) throw new OccupiedError('The target is unavailable.', {});
+    return targets;
   }
   // Name clashes require an explicit replace or keep-both choice before any files change.
   async function importInto(
@@ -724,9 +744,11 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     files: ImportFile[],
     onConflict: 'replace' | 'keep-both' | undefined,
     reader: Reader,
+    authorizePaths?: (paths: string[]) => void,
   ) {
     entry(slug);
     const batch = preflight(files);
+    authorizePaths?.(batch.map(file => file.path));
     if (reader.view && batch.some(file => !reader.view!.canRead(slug, file.path))) {
       throw new OccupiedError('The target is unavailable.', {});
     }
@@ -743,6 +765,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         existing,
         keepBoth: onConflict === 'keep-both',
         view,
+        // Final names are checked while the project lock keeps another import from taking them.
+        authorizePaths,
       });
       const opId = journal.newId();
       const staging = join(layout.projects, `.staging-${opId}`);
@@ -1042,11 +1066,12 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
      * drafts and view settings stay where they are. */
     /** Takes a subfolder project out of the workspace without deleting anything. */
     removeProject: (slug: string) => repositoryProjects.remove(slug),
-    clone: (url: unknown, name: unknown, { owner }: Reader) => cloner.start(url, name, owner),
+    clone: (url: unknown, name: unknown, { owner }: Reader, assign?: AssignProject) =>
+      cloner.start(url, name, { owner, assign }),
     cancelClone: cloner.cancel,
     // Restore committed bytes through a journaled trash operation so the current version is
     // recoverable.
-    async revertFile(slug: string, path: string, baseHash: unknown) {
+    async revertFile(slug: string, path: string, baseHash: unknown, deletedBy?: string) {
       entry(slug);
       if (baseHash !== null && (typeof baseHash !== 'string' || !/^[0-9a-f]{64}$/.test(baseHash)))
         throw Error('baseHash must be a SHA-256 hex digest or null.');
@@ -1057,7 +1082,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         'HEAD',
         projectPrefix(layout, slug) + p,
       );
-      const r = await trash.revertFile(slug, p, baseHash as string | null, committed);
+      const r = await trash.revertFile(slug, p, baseHash as string | null, committed, deletedBy);
       try {
         await scm.refresh(slug);
       } catch {}
@@ -1197,13 +1222,14 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         return { slug, name: value };
       }),
     // Facade save: new documents go to the "Ungrouped" project; existing ones need their base
-    // version.
+    // version. A new document is saved under a free name, which authorizeTargets judges first.
     async saveDocument(
       filename: string,
       source: string,
       reader: Reader,
       id?: string,
       version?: { revision?: number; baseHash?: string },
+      authorizeTargets?: (targets: { project: string; path: string }[]) => void,
     ) {
       const { view } = reader;
       if (id === undefined) {
@@ -1212,9 +1238,13 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         preflight([{ path, source }]);
         if (target && view && !view.readableProjects.has(target.slug))
           throw new OccupiedError('The target is unavailable.', {});
-        if (!target) target = await createProjectFolder('Ungrouped', 'import', [], 'ungrouped');
-        const free = freeReadableName(target.slug, path, view);
+        // A project that does not exist yet holds no file, so the requested name is free.
+        const free = target ? freeReadableName(target.slug, path, view) : path;
         if (free === null) throw new OccupiedError('The target is unavailable.', {});
+        const authorizeIn = (slug: string) => authorizeTargets?.([{ project: slug, path: free }]);
+        if (target) authorizeIn(target.slug);
+        else
+          target = await createProjectFolder('Ungrouped', 'import', [], 'ungrouped', authorizeIn);
         await saveFile(target.slug, free, { baseHash: null, source });
         return documentsFor(reader).find(d => d.project === target!.slug && d.path === free)!;
       }

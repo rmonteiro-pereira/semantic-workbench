@@ -14,6 +14,7 @@ export type RouteAction = {
   resource: (match: RegExpMatchArray, url: URL) => ResourceRef;
   public?: true;
   audited?: true;
+  targets?: 'body';
 };
 const workspace = (): ResourceRef => ({ type: 'workspace' });
 const project = (match: RegExpMatchArray): ResourceRef => ({
@@ -71,7 +72,7 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   row('POST', '/api/import', 'createProject', workspace),
   row('POST', '/api/clear', 'clear', workspace),
   row('POST', '/api/clone', 'clone', workspace),
-  row('POST', '/api/documents', 'edit', workspace),
+  { ...row('POST', '/api/documents', 'edit', workspace), targets: 'body' },
   row('POST', '/api/examples/:name', 'createProject', workspace),
   row('PATCH', '/api/projects/:slug', 'renameProject', project),
   row('DELETE', '/api/projects/:slug', 'deleteProject', project),
@@ -95,10 +96,10 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   row('DELETE', '/api/drafts/:slug/*', 'edit', file),
   row('DELETE', '/api/trash', 'purge', workspace),
   row('DELETE', '/api/trash/:entry', 'purge', workspace),
-  row('POST', '/api/trash/:entry/undo', 'restoreOwn', workspace),
-  row('POST', '/api/trash/:entry/restore', 'restoreOwn', workspace),
-  row('POST', '/api/suggestions/:id/accept', 'move', workspace),
-  row('POST', '/api/suggestions/:id/reject', 'edit', workspace),
+  { ...row('POST', '/api/trash/:entry/undo', 'restoreOwn', workspace), targets: 'body' },
+  { ...row('POST', '/api/trash/:entry/restore', 'restoreOwn', workspace), targets: 'body' },
+  { ...row('POST', '/api/suggestions/:id/accept', 'move', workspace), targets: 'body' },
+  { ...row('POST', '/api/suggestions/:id/reject', 'edit', workspace), targets: 'body' },
   row('GET', '/api/git/credential-helper', 'setIdentity', workspace),
   row('GET', '/api/projects/:slug/git/status', 'history', project),
   row('GET', '/api/projects/:slug/git/diff', 'history', project),
@@ -127,7 +128,8 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   { ...row('GET', '/api/agent/context', 'read', workspace), audited: true },
   { ...row('POST', '/api/agent/plan', 'read', workspace), audited: true },
   row('GET', '/api/documents/:id/grouping', 'viewOwnState', workspace),
-  row('PUT', '/api/documents/:id/grouping', 'viewOwnState', workspace),
+  // Grouping views are personal; the route resolves the document and refuses a hidden one.
+  { ...row('PUT', '/api/documents/:id/grouping', 'viewOwnState', workspace), targets: 'body' },
   publicRow('GET', '/auth/login'),
   publicRow('GET', '/auth/callback'),
   publicRow('POST', '/auth/logout'),

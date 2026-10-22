@@ -1,5 +1,5 @@
 // Lists project metrics and explains their inputs without executing SQL.
-import { requestReader } from '../auth/middleware';
+import { requestReader } from '../auth/request-scope';
 import { explainMetric, projectMetrics } from '../agent/explain';
 import { decodePath, type Route } from './http';
 // Match before the files route so `explain` is not treated as part of a file path.

@@ -167,6 +167,43 @@ Keycloak and generic providers require `email_verified=true`. E-mail matching ig
 For Keycloak, set its realm issuer, `SW_OIDC_PROVIDER=keycloak`, a confidential client secret,
 and matching group-name grants; tenant ID is not required.
 
+### What readers see in server mode
+
+Project lists, search, graphs, metrics, document exports and agent context use only readable
+files. A hidden project has no name or count in the workspace. A readable project with restricted
+paths shows “N files you cannot open”; links already written in visible files remain unresolved
+when their target is hidden. Direct requests for unreadable files and their Git history return
+404. Git history counts commits that touch only hidden paths without exposing their messages;
+messages on visible commits can still mention confidential names, so avoid putting secrets in
+commit messages.
+
+Drafts, grouping state and dismissed suggestions belong to the signed-in person. Trash entries
+require readable original paths and permission to restore your own or another person’s entries.
+Live events and reconnect replay are filtered for each reader. An access change closes the stream
+and reloads every open tab. Non-Admins receive only readiness, mode and Git availability from
+`/api/status`. Local mode retains its existing shared workspace behavior.
+
+### Roles in server mode
+
+Permissions come from workspace grants, scoped to domains or named projects. Provider app roles
+are not used. Custom roles use the same server-reported capabilities as built-in roles.
+
+| Role | What it can do within its scope |
+| --- | --- |
+| Viewer | Read definitions, history and its own view settings; cannot save files or drafts |
+| Editor | Viewer actions plus edit, import, move, delete files, save drafts and use project Git |
+| Steward | Editor actions plus guarded changes, approval, publishing, project creation and renaming |
+| Admin | All projects, administration, purge, clear, remotes, clone and registration |
+
+A move requires permission at both ends. Hidden targets return 404; a readable target without
+write permission returns 403. Disabled Commit and classification controls explain the required
+role. The server checks crafted requests independently of the UI. Identity and credential-helper
+configuration are unavailable in server mode.
+
+New projects, imports and examples created by a Steward receive an allowed domain automatically
+when there is only one. With several domains, a dialog asks which one to use. Admins may choose a
+domain or leave the project unassigned. Local mode retains its existing unrestricted workflow.
+
 ## Local build scripts
 
 Run `bun run ci:validate` for the complete quality gate. It runs these steps in order:
@@ -638,19 +675,3 @@ The code style is part of the project's constitution (principle VIII, Readable C
   the code you touch.
 - `.git-blame-ignore-revs` lists the mechanical reformat; run
   `git config blame.ignoreRevsFile .git-blame-ignore-revs` once to skip it in `git blame`.
-
-### What readers see in server mode
-
-Project lists, search, graphs, metrics, document exports and agent context use only readable
-files. A hidden project has no name or count in the workspace. A readable project with restricted
-paths shows “N files you cannot open”; links already written in visible files remain unresolved
-when their target is hidden. Direct requests for unreadable files and their Git history return
-404. Git history counts commits that touch only hidden paths without exposing their messages;
-messages on visible commits can still mention confidential names, so avoid putting secrets in
-commit messages.
-
-Drafts, grouping state and dismissed suggestions belong to the signed-in person. Trash entries
-require readable original paths and permission to restore your own or another person’s entries.
-Live events and reconnect replay are filtered for each reader. An access change closes the stream
-and reloads every open tab. Non-Admins receive only readiness, mode and Git availability from
-`/api/status`. Local mode retains its existing shared workspace behavior.

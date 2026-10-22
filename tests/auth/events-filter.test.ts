@@ -367,19 +367,19 @@ test('trash events and the trash listing apply the same rule, including project 
   });
   const alice = people[0].owner;
   const entries = [
-    { project: 'sales-contracts', owner: alice },
+    { project: 'sales-contracts', deletedBy: alice },
     {
       project: 'sales-contracts',
       paths: [{ project: 'sales-contracts', path: 'orders.odcs.yaml' }],
     },
     {
       project: 'sales-contracts',
-      owner: alice,
+      deletedBy: alice,
       paths: [{ project: 'sales-contracts', path: 'orders.odcs.yaml' }],
     },
     {
       project: 'sales-contracts',
-      owner: alice,
+      deletedBy: alice,
       paths: [{ project: 'sales-contracts', path: 'finance/revenue-recognition.odcs.yaml' }],
     },
   ];
@@ -389,7 +389,7 @@ test('trash events and the trash listing apply the same rule, including project 
         id: 1,
         event: 'trash',
         data: { entries: ['entry'] },
-        tags: { owner: entry.owner, projects: [entry.project], paths: entry.paths },
+        tags: { owner: entry.deletedBy, projects: [entry.project], paths: entry.paths },
       };
       const listed = readableTrash(entry, receiver.scope);
       expect(readableEvent(event, receiver) !== null).toBe(listed);

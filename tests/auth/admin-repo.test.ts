@@ -1,5 +1,5 @@
 // Checks administration changes in disposable Git repositories.
-import { expect, test } from 'bun:test';
+import { expect, spyOn, test } from 'bun:test';
 import {
   readFileSync,
   readdirSync,
@@ -218,6 +218,35 @@ test('settings validates lifetimes and supplies defaults for missing fields', as
     unlinkSync(path);
     expect(() => repository.settings()).toThrow(AdminConfigError);
   } finally {
+    dir.cleanup();
+  }
+});
+
+test('a write succeeds when the policy reload after its commit fails', async () => {
+  const dir = tempDataDir();
+  const logged = spyOn(console, 'error').mockImplementation(() => {});
+  try {
+    const repo = openAdminRepository({
+      root: dir.root,
+      committed: () => {
+        throw new Error('reload refused');
+      },
+    });
+    await repo.ensure();
+    const next = await repo.write(
+      { 'grants.json': '{"grants":[]}' },
+      {
+        author: { name: 'Admin', email: 'admin@example.org' },
+        baseVersion: await repo.version(),
+        message: 'grants: Clear',
+      },
+    );
+    expect(next).toBe(await repo.version());
+    expect(logged).toHaveBeenCalledTimes(1);
+    expect(String(logged.mock.calls[0][0])).toContain(next);
+    expect(String(logged.mock.calls[0][0])).toContain('reload refused');
+  } finally {
+    logged.mockRestore();
     dir.cleanup();
   }
 });

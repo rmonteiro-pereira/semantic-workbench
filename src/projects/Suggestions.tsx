@@ -1,4 +1,5 @@
 /** Shows evidence for project grouping suggestions before the user chooses to move files. */
+import { useCapabilities } from '../auth/Capabilities';
 import React, { useState } from 'react';
 import { Lightbulb } from 'lucide-react';
 import { Modal } from './Modal';
@@ -16,6 +17,7 @@ export function Suggestions({
   onAccept: (id: string) => void;
   onReject: (id: string) => void;
 }) {
+  const access = useCapabilities();
   const [open, setOpen] = useState(false);
   if (!items.length) return null;
   const name = (slug: string) => projects.find(p => p.slug === slug)?.name ?? slug;
@@ -58,6 +60,9 @@ export function Suggestions({
               </ul>
               <span>
                 <button
+                  hidden={
+                    !access.can('move', s.file.project) || !access.can('move', s.targetProject)
+                  }
                   onClick={() => {
                     onAccept(s.id);
                     if (items.length === 1) setOpen(false);
@@ -66,6 +71,7 @@ export function Suggestions({
                   Add to project
                 </button>
                 <button
+                  hidden={!access.can('edit', s.file.project)}
                   onClick={() => {
                     onReject(s.id);
                     if (items.length === 1) setOpen(false);

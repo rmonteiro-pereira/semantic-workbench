@@ -1,4 +1,5 @@
 /** Application entry point and composition of the workspace views. */
+import { Capabilities } from './auth/Capabilities';
 import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { PersonMenu } from './auth/PersonMenu';
@@ -138,12 +139,14 @@ function App() {
     if (first) fileNavigation.openDocument(first);
   }
 
-  return (
+  const content = (
     <GitSetupProvider onOpenProject={slug => void openProject(slug)}>
       <div
         className={shellClassName}
         style={{ '--sidebar-width': `${sidebar.sidebarWidth}px` } as React.CSSProperties}
       >
+        {imports.domainDialog}
+        {examples.domainDialog}
         <AppDialogs
           stale={stale}
           current={current}
@@ -416,5 +419,6 @@ function App() {
       </div>
     </GitSetupProvider>
   );
+  return <Capabilities projects={projects}>{content}</Capabilities>;
 }
 createRoot(document.getElementById('root')!).render(<App />);

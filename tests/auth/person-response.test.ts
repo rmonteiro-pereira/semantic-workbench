@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import { randomBytes } from 'node:crypto';
 import { meResponse } from '../../server/routes/me';
-import { requestAccess, type AccessRequest } from '../../server/auth/middleware';
+import { requestAccess, type AccessRequest } from '../../server/auth/request-scope';
 import { createAccessControl } from '../../server/auth/authorize';
 import { createSessionStore } from '../../server/auth/sessions';
 import { validCsrf } from '../../server/auth/csrf';
@@ -66,4 +66,26 @@ test('mock confidential client accepts the per-run secret and refuses the fixtur
   expect((await tokenEndpoint(state, request, parameters)).status).toBe(401);
   parameters.set('client_secret', 'generated-for-this-run');
   expect((await tokenEndpoint(state, request, parameters)).status).toBe(200);
+});
+
+test('permission explanations come from server role definitions, including custom sources', async () => {
+  const { ACTIONS } = await import('../../server/auth/actions');
+  const builtin = (await import('../../policies/builtin-roles.json')).default;
+  const access = createAccessControl(accessFixture());
+  for (const name of ['alice', 'hank'] as const) {
+    const request: AccessRequest = new Request('http://localhost/api/me');
+    request[requestAccess] = access.forRequest(access.principalFor(person(name)));
+    const body = await (await meResponse(request, { mode: 'server' })).json();
+    expect(Object.keys(body.requires)).toEqual([...ACTIONS]);
+    if (name === 'hank') {
+      expect(body.requires.approveMetric).toBe('Requires Metric reviewer');
+      continue;
+    }
+    for (const action of ACTIONS) {
+      const lowest = builtin.roles.find(role =>
+        role.permissions.some(permission => permission.actions.includes(action)),
+      );
+      expect(body.requires[action]).toBe('Requires ' + (lowest?.name ?? 'permission'));
+    }
+  }
 });
