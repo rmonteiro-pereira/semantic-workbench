@@ -8,7 +8,7 @@ import type { Issue } from '../../src/diagnostics';
 import { decode, sha256, TEMP_SUFFIX } from './atomic';
 import type { Cache, CachedFile } from './cache';
 import type { Git, FileGitState } from './git';
-import { projectDir, projectPath, type DataLayout } from './paths';
+import { projectDir, projectPath, projectPrefix, type DataLayout } from './paths';
 import { sqlFindings } from '../sql/lint';
 /** A recognized file syntax, Git ignore file, or unsupported format. */
 export type Serialization =
@@ -20,10 +20,13 @@ export type Serialization =
   | 'rdfxml'
   | 'gitignore'
   | 'unsupported';
+/** The repository manifest that lists project folders: workbench settings, not a definition. */
+export const MANIFEST_FILE = '.semantic-workbench.json';
 /** Infers a file format from its path, consulting source text for ambiguous OWL files. */
 export function serializationOf(path: string, source?: string): Serialization {
   const name = posix.basename(path).toLowerCase();
   if (name === '.gitignore') return 'gitignore';
+  if (name === MANIFEST_FILE) return 'unsupported';
   if (name.endsWith(TEMP_SUFFIX)) return 'unsupported';
   const ext = name.includes('.') ? name.split('.').pop()! : '';
   if (['yaml', 'yml', 'odcs', 'ossie'].includes(ext)) return 'yaml';
@@ -139,7 +142,13 @@ export function createScanner(
     if (gitAvailable()) {
       paths = await git.lsFiles(dir);
       try {
-        states = (await git.status(dir)).files;
+        // Git reports states by repository path; a subfolder project keeps only its own files.
+        const prefix = projectPrefix(layout, slug);
+        states = new Map(
+          [...(await git.status(dir)).files]
+            .filter(([path]) => path.startsWith(prefix))
+            .map(([path, gitState]) => [path.slice(prefix.length), gitState] as const),
+        );
       } catch {
         /* File listing still works when the repository has no commits. */
       }

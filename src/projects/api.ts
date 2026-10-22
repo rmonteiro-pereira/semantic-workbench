@@ -2,6 +2,8 @@
 import type { KpiSummary, KpiExplanation } from '../../server/agent/explain';
 import type { GitIdentity } from '../../server/projects/git';
 import type { CloneEvent } from '../../server/projects/clone';
+import type { ProjectCandidates } from '../../server/projects/repository-projects';
+import type { RepositoryProject } from '../../server/projects/repositories';
 // Browser client for the project API (contracts/http-api.md).
 /** Summarizes a project file’s type, validation, visibility, Git state and hash. */
 export type ProjectFile = {
@@ -18,6 +20,10 @@ export type ProjectInfo = {
   slug: string;
   name: string;
   origin: string;
+  /** The repository folder that holds the project; shared by subfolder projects. */
+  repo: string;
+  /** The project's folder inside its repository; empty for the repository itself. */
+  folder: string;
   branch: string;
   ahead: number;
   behind: number;
@@ -27,7 +33,7 @@ export type ProjectInfo = {
 /** Describes a deleted entry and its restoration and undo metadata. */
 export type TrashItem = {
   entryId: string;
-  kind: 'file' | 'project';
+  kind: 'file' | 'project' | 'subproject' | 'repository';
   project: string;
   projectName: string;
   path?: string;
@@ -37,6 +43,10 @@ export type TrashItem = {
 };
 /** Lists removed files, unsaved drafts and references broken by a deletion. */
 export type Impact = {
+  /** Whether the project is a subfolder of a repository it may share with other projects. */
+  subproject?: boolean;
+  repo?: string;
+  sharedWith?: string[];
   removes: { project: string; name?: string; files: string[] };
   unsavedDrafts: { project: string; path: string }[];
   brokenReferences: {
@@ -84,7 +94,7 @@ export type WorkspaceStatus = {
   repositories?: { repo: string; identityConfigured: boolean; projects: string[] }[];
 };
 // The browser shares these shapes with the API instead of keeping copies that could drift.
-export type { GitIdentity, CloneEvent };
+export type { GitIdentity, CloneEvent, ProjectCandidates, RepositoryProject };
 /** Describes index and working-tree changes for a project path. */
 export type GitChange = {
   path: string;
@@ -95,6 +105,14 @@ export type GitChange = {
   untracked: boolean;
   hidden: boolean;
   label?: string;
+  /** The path from the repository root; Git actions on the change use it. */
+  repoPath: string;
+  /** Set when the file lies outside the viewed project. */
+  outside?: boolean;
+  /** The project that holds the file, absent for files that belong to no project. */
+  project?: string;
+  /** The file's path inside that project. */
+  projectPath?: string;
 };
 /** Summarizes branch tracking, repository capabilities and changed files. */
 export type GitStatus = {
@@ -288,9 +306,31 @@ export const api = {
       json<{ entryId: string; undoUntil: string }>(r),
     ),
   deleteProject: (project: string) =>
-    fetch(`/api/projects/${encodeURIComponent(project)}`, send('DELETE', { confirm: true })).then(
-      r => json<{ entryId: string; undoUntil: string }>(r),
+    fetch(
+      `/api/projects/${encodeURIComponent(project)}`,
+      send('DELETE', { mode: 'delete', confirm: true }),
+    ).then(r => json<{ entryId: string; undoUntil: string }>(r)),
+  /** Takes a project out of the workspace; its folder and history stay on disk. */
+  removeProject: (project: string) =>
+    fetch(`/api/projects/${encodeURIComponent(project)}`, send('DELETE', { mode: 'remove' })).then(
+      r => json<{ removed: string }>(r),
     ),
+  projectCandidates: (repo: string) =>
+    fetch(`/api/repos/${encodeURIComponent(repo)}/project-candidates`).then(r =>
+      json<ProjectCandidates>(r),
+    ),
+  setRepositoryProjects: (
+    repo: string,
+    projects: RepositoryProject[],
+    manifest?: { baseHash: string | null },
+  ) =>
+    fetch(
+      `/api/repos/${encodeURIComponent(repo)}/projects`,
+      send('PUT', {
+        projects,
+        ...(manifest ? { saveManifest: true, manifestBaseHash: manifest.baseHash } : {}),
+      }),
+    ).then(r => json<{ projects: { slug: string; name: string; folder: string }[] }>(r)),
   clear: () =>
     fetch('/api/clear', send('POST', { confirm: true })).then(r =>
       json<{ batchId: string | null; entries: string[]; undoUntil: string | null }>(r),
@@ -356,13 +396,26 @@ export const scm = {
       gitUrl(p, 'git/diff') +
         `?path=${encodeURIComponent(path)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
     ).then(r => json<GitDiff>(r)),
+  /** The diff of a changed file named by its path from the repository root. */
+  changeDiff: (p: string, repoPath: string, from: string, to: string) =>
+    fetch(
+      gitUrl(p, 'git/diff') +
+        `?repoPath=${encodeURIComponent(repoPath)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+    ).then(r => json<GitDiff>(r)),
   stage: (p: string, paths: string[] | 'all') =>
     gitPost<GitStatus>(p, 'git/stage', paths === 'all' ? { all: true } : { paths }),
   unstage: (p: string, paths: string[] | 'all') =>
     gitPost<GitStatus>(p, 'git/unstage', paths === 'all' ? { all: true } : { paths }),
+  /** Stages or unstages changed files named by their paths from the repository root. */
+  stageChanges: (p: string, repoPaths: string[], stage: boolean) =>
+    gitPost<GitStatus>(p, stage ? 'git/stage' : 'git/unstage', { repoPaths }),
   // `paths`: commit exactly these files (git commit --only); `push`: then push and report the
   // outcome.
-  async commit(p: string, message: string, options: { paths?: string[]; push?: boolean } = {}) {
+  async commit(
+    p: string,
+    message: string,
+    options: { paths?: string[]; repoPaths?: string[]; push?: boolean } = {},
+  ) {
     const response = await fetch(gitUrl(p, 'git/commit'), send('POST', { message, ...options }));
     if (response.status === 409) {
       const b = await response.json();

@@ -131,6 +131,16 @@ export function FileDialogs({
     void refresh();
   }
 
+  // Removing a subfolder project only unregisters it; its files stay on disk, so there is
+  // nothing to undo and its unsaved edits stay as drafts.
+  function handleProjectRemoved(label: string) {
+    if (deleteTarget?.kind === 'project' && current?.project === deleteTarget.project)
+      autosave.cancel();
+    setDeleteTarget(null);
+    setMessage(`Removed ${label} from the workspace. Its folder is unchanged.`);
+    void refresh();
+  }
+
   function handleRenameDialogDone(name: string) {
     setRenaming(null);
     setMessage(`Renamed the project to ${name}.`);
@@ -180,6 +190,7 @@ export function FileDialogs({
           }
           onCancel={() => setDeleteTarget(null)}
           onDeleted={handleDeleteDialogDeleted}
+          onRemoved={handleProjectRemoved}
         />
       )}
       {trashOpen && (

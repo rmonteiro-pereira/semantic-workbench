@@ -33,6 +33,7 @@ import { migrateLegacy, type MigrationReport } from './migration';
 import { createTrash } from './trash';
 import { createScm } from './scm';
 import { createCloner, rollBackInterruptedClones } from './clone';
+import { createRepositoryProjects } from './repository-projects';
 import { factsOf, inferSuggestions, type FileFacts, type IndexedFile } from './suggestions';
 import { ConflictError, OccupiedError } from './errors';
 import { StaleError, NotFoundError } from './errors';
@@ -489,6 +490,35 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         }),
     );
   }
+  // Every project of a repository notices a change under .git; the browser hears of it once.
+  const pendingGitEvents = new Set<string>();
+  function announceGitChange(slug: string) {
+    const repo = locationOf(entry(slug)).repo;
+    if (pendingGitEvents.has(repo)) return;
+    pendingGitEvents.add(repo);
+    setTimeout(async () => {
+      pendingGitEvents.delete(repo);
+      if (closed) return;
+      const projectsInRepo = projects()
+        .filter(project => locationOf(project).repo === repo)
+        .map(project => project.slug);
+      try {
+        const s = await git.status(join(layout.projects, repo));
+        events.emit('git', {
+          project: slug,
+          repo,
+          projects: projectsInRepo,
+          branch: s.branch,
+          ahead: s.ahead,
+          behind: s.behind,
+          changes: s.changes,
+          altered: [],
+        });
+      } catch {
+        // The repository went away meanwhile; the next scan reports what is left.
+      }
+    }, options.debounceMs ?? 0);
+  }
   const watcher = options.watch
     ? createWatcher(layout, {
         debounceMs: options.debounceMs,
@@ -497,20 +527,10 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
           if (!projects().some(p => p.slug === slug) || !existsSync(projectDir(layout, slug)))
             return;
           await rescan(slug);
-          if (gitChanged && gitAvailable)
-            try {
-              const s = await git.status(repoDir(layout, slug));
-              events.emit('git', {
-                project: slug,
-                branch: s.branch,
-                ahead: s.ahead,
-                behind: s.behind,
-                changes: s.changes,
-                altered: [],
-              });
-            } catch {}
+          if (gitChanged && gitAvailable) announceGitChange(slug);
         },
         all: () => projects().map(p => p.slug),
+        locate: slug => locationOf(entry(slug)),
       })
     : null;
   for (const p of projects())
@@ -523,6 +543,12 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     layout,
     git,
     gitAvailable,
+    siblings: slug => {
+      const repo = locationOf(entry(slug)).repo;
+      return projects()
+        .filter(project => locationOf(project).repo === repo)
+        .map(project => project.slug);
+    },
     project: slug => entry(slug),
     drafts: slug =>
       state
@@ -693,7 +719,15 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
               name: ref,
             });
       }
+    // A subfolder project shares its repository; deleting it leaves the siblings in place.
+    const location = locationOf(entry(slug));
+    const sharedWith = projects()
+      .filter(project => project.slug !== slug && locationOf(project).repo === location.repo)
+      .map(project => project.slug);
     return {
+      subproject: location.folder !== location.repo,
+      repo: location.repo,
+      sharedWith,
       removes:
         p === undefined
           ? { project: slug, name: entry(slug).name, files: cache.files(slug).map(f => f.path) }
@@ -748,6 +782,9 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       events.emit('projects', { added: [slug], removed: [], renamed: [] });
     },
     emit: event => events.emit('clone', event),
+    // A manifest's projects are registered at once; otherwise the folders that hold definitions
+    // are proposed, and the user confirms them in the browser.
+    afterClone: slug => repositoryProjects.adoptClone(slug),
   });
   // Each repository folder under data/projects/ with the projects it holds.
   function repositories() {
@@ -770,6 +807,29 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       throw Error(`${label} must be ${min}–${max} characters without control characters.`);
     return value.trim();
   }
+  const repositoryProjects = createRepositoryProjects({
+    layout,
+    git,
+    gitAvailable,
+    state,
+    projects,
+    lock,
+    added: async slugs => {
+      for (const slug of slugs) {
+        await scanner.scan(slug);
+        watcher?.add(slug);
+      }
+      notifySuggestions();
+    },
+    removed: slugs => {
+      for (const slug of slugs) {
+        watcher?.remove(slug);
+        cache.removeProject(slug);
+      }
+      notifySuggestions();
+    },
+    emit: (event, data) => events.emit(event, data),
+  });
   // Every repository with whether Git has an identity for it, checked now.
   async function repositoryStatus() {
     if (!gitAvailable) return [];
@@ -840,6 +900,12 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       if (!gitAvailable) return { helper: null };
       return { helper: await git.configValue(layout.projects, 'credential.helper') };
     },
+    projectCandidates: repositoryProjects.candidates,
+    registerRepositoryProjects: repositoryProjects.register,
+    /** Takes a project out of the workspace without deleting anything: its folder, history,
+     * drafts and view settings stay where they are. */
+    /** Takes a subfolder project out of the workspace without deleting anything. */
+    removeProject: (slug: string) => repositoryProjects.remove(slug),
     clone: cloner.start,
     cancelClone: cloner.cancel,
     // Restore committed bytes through a journaled trash operation so the current version is
@@ -887,11 +953,18 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
               const s = await git.status(repoDir(layout, p.slug));
               gitInfo = { branch: s.branch, ahead: s.ahead, behind: s.behind, changes: s.changes };
             } catch {}
+          const location = locationOf(p);
           return {
             slug: p.slug,
             name: p.name,
             origin: p.origin,
             createdAt: p.createdAt,
+            repo: location.repo,
+            // The project's folder inside its repository; empty for the repository itself.
+            folder:
+              location.folder === location.repo
+                ? ''
+                : location.folder.slice(location.repo.length + 1),
             ...gitInfo,
             files: cache
               .files(p.slug)

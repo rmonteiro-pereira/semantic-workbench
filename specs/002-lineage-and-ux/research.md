@@ -752,3 +752,51 @@ agent context already carries everything except two additive fields).
   `redactCredentials`; the status summary is `workspace.status()`; the browser imports the
   identity and clone event types from the server; the clone dialog sits in `src/scm/` with the
   other Git setup dialogs; the credential helper route moved to the Git routes.
+
+## R27. Implementation decisions taken in Phase 12 (several projects in one repository)
+
+- **Where the rules live.** `server/projects/repositories.ts` holds the pure rules: manifest
+  parsing (schema `semantic-workbench/repository/v1`, only `schema` and `projects`, no root,
+  no `..`, `.git`, absolute or nested folders) and detection (the outermost folders that hold
+  definition files, cut at four levels; ignored files are already absent from `git ls-files`).
+  `repository-projects.ts` does the I/O: reading and saving the manifest and writing the
+  registry. The manifest is workbench configuration, so the scanner treats it as a file it does
+  not read (it is never listed as an invalid definition).
+- **Registration replaces the set.** `PUT /api/repos/:repo/projects` makes exactly the chosen
+  folders the repository's projects: a folder that already has a project keeps its slug, a new
+  folder gets a free name and slug, and a project whose folder is left out is removed from the
+  workspace (nothing is deleted). After a clone with a manifest the repository's own project is
+  replaced by the declared ones, and the `done` event lists their slugs so **Open project** opens
+  the first. Names never repeat a name already in the workspace (`sales (2)`).
+- **Starting choice.** **Choose projects…** after a clone starts from the manifest or the
+  detected folders; **Projects in this repository…** from the menu starts from the projects
+  registered now, so it never pretends a choice the user did not make.
+- **Source Control paths.** Status lists the whole repository. Each change keeps `path` as in
+  v0.2.0 and adds `repoPath`, the owning `project` and its `projectPath`. The panel and the
+  Commit dialog act on changes by `repoPath` (`repoPaths` on stage, unstage and commit;
+  `repoPath` on diff), because two projects can hold the same relative path and a sibling's file
+  cannot be named from the viewing project. Open and Revert go through the owning project. A
+  file of no project (a README at the root, the manifest) is staged and committed like any
+  other, but cannot be opened, reverted or added to a project's `.gitignore`.
+- **Delete request.** The contract sketched `mode` and `confirm` as query parameters; the
+  existing delete routes take a JSON body with `confirm: true`, so `mode` joined that body
+  (`{mode: 'remove'}` or `{mode: 'delete', confirm: true}`). The response for a deleted
+  subproject is `{entryId, undoUntil}`, as for any project.
+- **Watcher.** One watcher per repository. A file change notifies only the project whose folder
+  holds it; a change under `.git` (HEAD, index, refs) notifies every project of the repository.
+- **Trash.** Deleting a subproject moves only its folder (kind `subproject`); restore refuses an
+  occupied folder (409) and re-registers the project with its folder and repository. Clear
+  moves a repository with subprojects once (kind `repository`) and Undo restores every project.
+- **Tests on the shared fixture.** `tests/subprojects.test.ts` and the browser check use the
+  `monorepo` and `monorepo-no-manifest` bare repositories from `tests/helpers/git-fixtures.ts`.
+- **Architecture review fixes.** A manifest that cannot be applied after a clone (a missing
+  folder, a link) no longer turns a finished clone into a failure: the `done` event carries
+  `manifestError` and the repository stays one project. A whole project restored from the trash
+  comes back into the folder named by its slug, without the folder and repository it had, so a
+  root project whose name differs from its folder restores intact. No repository is left on disk
+  without a project: **Remove from workspace** is refused for the last project of a repository
+  (the dialog offers only Delete), and deleting that last project moves the whole repository
+  (kind `repository`); the same rule makes Clear move repositories whole, with no flag tied to
+  the batch. Removing projects goes through one function of `repository-projects.ts`. Manifest
+  schema errors are `ManifestError`. The watcher announces a change under `.git` once per
+  repository. The repository routes keep parsing their body by hand, as the trash routes do.

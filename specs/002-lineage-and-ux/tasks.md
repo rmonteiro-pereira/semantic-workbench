@@ -267,17 +267,17 @@ shopping center mapping in Graph; `bun run test:mapping-graph`.
 
 ### Tests
 
-- [ ] T086 [P] [US8] Unit tests for manifest reading/validation (schema, `..`, `.git`, nesting) and detection (smallest folder set, depth ≤ 4, ignored paths) in tests/repositories.test.ts
-- [ ] T087 [P] [US8] Handler tests: register subfolder projects, Source Control shared, Git event rescans every project of the repository, branch switch affects both, Remove from workspace deletes nothing, Delete folder trashes only the subfolder, restore without overwrite, Clear workspace moves the repository once in tests/subprojects.test.ts
-- [ ] T088 [US8] Mutants: manifest path with `..` accepted; subproject delete touches a sibling project; Git event rescans only one project
+- [x] T086 [P] [US8] Unit tests for manifest reading/validation (schema, `..`, `.git`, nesting) and detection (smallest folder set, depth ≤ 4, ignored paths) in tests/repositories.test.ts
+- [x] T087 [P] [US8] Handler tests: register subfolder projects, Source Control shared, Git event rescans every project of the repository, branch switch affects both, Remove from workspace deletes nothing, Delete folder trashes only the subfolder, restore without overwrite, Clear workspace moves the repository once in tests/subprojects.test.ts
+- [x] T088 [US8] Mutants: manifest path with `..` accepted; subproject delete touches a sibling project; Git event rescans only one project
 
 ### Implementation
 
-- [ ] T089 [US8] server/projects/repositories.ts (manifest, detection, registration, optional "Save as manifest" through a hash-checked save) and routes server/routes/repos.ts (FR-064)
-- [ ] T090 [US8] Registry `folder`/`repo` in server/projects/state.ts, scanner and watcher per repository root in server/projects/scanner.ts and server/projects/watcher.ts, Git paths prefixed by subfolder in server/projects/scm.ts (FR-069)
-- [ ] T091 [US8] Trash `subproject` entries and the two delete modes in server/projects/trash.ts and server/routes/projects.ts (FR-066)
-- [ ] T092 [US8] UI: repository grouping in the project tree, Projects in this repository dialog after clone and from the repository menu, delete dialog with Remove (default) and Delete folder, Source Control marks each file's project, in src/projects/*.tsx and src/scm/SourceControl.tsx
-- [ ] T093 [US8] Browser check scripts/monorepo-browser-check.ts
+- [x] T089 [US8] server/projects/repositories.ts (manifest, detection, registration, optional "Save as manifest" through a hash-checked save) and routes server/routes/repos.ts (FR-064)
+- [x] T090 [US8] Registry `folder`/`repo` in server/projects/state.ts, scanner and watcher per repository root in server/projects/scanner.ts and server/projects/watcher.ts, Git paths prefixed by subfolder in server/projects/scm.ts (FR-069)
+- [x] T091 [US8] Trash `subproject` entries and the two delete modes in server/projects/trash.ts and server/routes/projects.ts (FR-066)
+- [x] T092 [US8] UI: repository grouping in the project tree, Projects in this repository dialog after clone and from the repository menu, delete dialog with Remove (default) and Delete folder, Source Control marks each file's project, in src/projects/*.tsx and src/scm/SourceControl.tsx
+- [x] T093 [US8] Browser check scripts/monorepo-browser-check.ts
 
 ---
 

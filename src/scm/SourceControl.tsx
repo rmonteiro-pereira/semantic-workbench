@@ -64,6 +64,19 @@ const rangeOf = (g: Group, c: GitChange) =>
       : c.untracked
         ? ['index', 'worktree']
         : ['index', 'worktree'];
+// In a repository shared by several projects, each change names the project that holds it.
+function ChangeOwner({ change, projects }: { change: GitChange; projects: ProjectInfo[] }) {
+  const owner = projects.find(item => item.slug === change.project);
+  const text = owner ? owner.name : 'Repository file';
+  const title = owner
+    ? `In project ${owner.name}`
+    : 'This file belongs to no project; stage it with Stage all.';
+  return (
+    <em className="scm-project" title={title}>
+      {text}
+    </em>
+  );
+}
 // `onBusy` tells the editor that a pull, sync or branch switch runs (automatic saving waits);
 // `onCommit` opens the Commit dialog, offered when a pull, sync or switch is refused.
 type Props = {
@@ -147,7 +160,8 @@ export function SourceControl({
     };
   }, [project, version, tick]);
   const groups = useMemo(() => groupsOf(status?.changes ?? []), [status]);
-  const change = selected && status?.changes.find(c => c.path === selected.path);
+  // Selections name the file from the repository root: two projects may hold the same path.
+  const change = selected && status?.changes.find(c => c.repoPath === selected.path);
   // The diff of the selected change; it follows the file as it changes.
   useEffect(() => {
     if (!selected || !change) {
@@ -157,7 +171,7 @@ export function SourceControl({
     const [from, to] = rangeOf(selected.group, change);
     let live = true;
     scm
-      .diff(project, selected.path, from, to)
+      .changeDiff(project, selected.path, from, to)
       .then(d => {
         if (live) setDiff(d);
       })
@@ -339,6 +353,8 @@ export function SourceControl({
       </section>
     );
   const remoteNames = Object.keys(status.remotes);
+  const repo = projects.find(item => item.slug === project)?.repo;
+  const sharedRepository = projects.filter(item => item.repo === repo).length > 1;
   const canCommit =
     !!message.trim() &&
     (groups.staged.length > 0 || status.merging) &&
@@ -346,13 +362,13 @@ export function SourceControl({
     status.identityConfigured &&
     !busy;
   const row = (c: GitChange, g: Group) => {
-    const isSel = selected?.path === c.path && selected.group === g;
+    const isSel = selected?.path === c.repoPath && selected.group === g;
     const l = letter(c, g);
     const name = c.path.split('/').pop()!;
     const folder = c.path.slice(0, -name.length).replace(/\/$/, '');
     return (
       <li
-        key={g + c.path}
+        key={g + c.repoPath}
         className={`scm-row${isSel ? ' selected' : ''}${c.hidden ? ' hidden-file' : ''}`}
       >
         <button
@@ -360,13 +376,14 @@ export function SourceControl({
           aria-label={`${c.path}, ${g === 'conflicts' ? 'conflicted' : (STATE[l] ?? l)}${c.hidden ? ', not shown in workspace' : ''}`}
           aria-pressed={isSel}
           onClick={() => {
-            setSelected({ path: c.path, group: g });
-            setHistoryFile(c.path);
+            setSelected({ path: c.repoPath, group: g });
+            setHistoryFile(c.outside ? undefined : c.path);
           }}
         >
           <span className="scm-name">{name}</span>
           {folder && <small>{folder}</small>}
           {c.orig && <small>← {c.orig}</small>}
+          {(sharedRepository || c.outside) && <ChangeOwner change={c} projects={projects} />}
           {c.hidden && (
             <em
               className="scm-label"
@@ -378,16 +395,16 @@ export function SourceControl({
           )}
         </button>
         <span className="scm-actions">
-          {!c.hidden && !(g === 'staged' && c.index === 'D') && c.worktree !== 'D' && (
+          {!c.hidden && c.project && !(g === 'staged' && c.index === 'D') && c.worktree !== 'D' && (
             <button
               aria-label={`Open ${c.path}`}
               title="Open in the editor"
-              onClick={() => onOpen(project, c.path)}
+              onClick={() => onOpen(c.project ?? project, c.projectPath ?? c.path)}
             >
               <FileCode size={13} />
             </button>
           )}
-          {g === 'changes' && (
+          {g === 'changes' && !c.outside && (
             <button
               aria-label={`Add ${c.path} to .gitignore`}
               title="Add to .gitignore"
@@ -400,7 +417,7 @@ export function SourceControl({
             <button
               aria-label={`Unstage ${c.path}`}
               title="Unstage"
-              onClick={() => act(() => scm.unstage(project, [c.path]))}
+              onClick={() => act(() => scm.stageChanges(project, [c.repoPath], false))}
               disabled={busy}
             >
               <Minus size={13} />
@@ -409,7 +426,7 @@ export function SourceControl({
             <button
               aria-label={`Stage ${c.path}`}
               title={g === 'conflicts' ? 'Mark as resolved (stage)' : 'Stage'}
-              onClick={() => act(() => scm.stage(project, [c.path]))}
+              onClick={() => act(() => scm.stageChanges(project, [c.repoPath], true))}
               disabled={busy}
             >
               <Plus size={13} />

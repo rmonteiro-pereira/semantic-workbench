@@ -9,6 +9,7 @@ type Props = {
   onClose: () => void;
   onOpenProject: (slug: string) => void;
   onCredentials: () => void;
+  onChooseProjects: (repo: string) => void;
 };
 
 const PHASE_TEXT: Record<CloneEvent['phase'], string> = {
@@ -22,12 +23,48 @@ const PHASE_TEXT: Record<CloneEvent['phase'], string> = {
 const finished = (event: CloneEvent | null) =>
   !!event && ['done', 'failed', 'cancelled'].includes(event.phase);
 
+// Folders below the root that could each be a project; the root alone needs no choice.
+const subfolderCandidates = (event: CloneEvent | null) =>
+  (event?.candidates ?? []).filter(candidate => candidate.path !== '');
+
+// What the repository's layout meant: projects from its manifest, or folders to choose from.
+function RepositoryLayout({ event }: { event: CloneEvent }) {
+  const folders = subfolderCandidates(event);
+  return (
+    <>
+      {event.manifestError && (
+        <p role="alert" className="dialog-error">
+          The repository's .semantic-workbench.json was not used: {event.manifestError}
+        </p>
+      )}
+      {event.manifest && (
+        <p>
+          The repository's manifest made {event.manifest.projects.length} projects:{' '}
+          {event.manifest.projects.map(entry => entry.name ?? entry.path).join(', ')}.
+        </p>
+      )}
+      {folders.length > 0 && (
+        <p>
+          {folders.length} folders hold definitions. Choose projects… makes each chosen folder its
+          own project; otherwise the repository stays one project.
+        </p>
+      )}
+    </>
+  );
+}
+
 function CloneResult({ event }: { event: CloneEvent }) {
   if (event.phase !== 'done') return event.message ? <pre>{event.message}</pre> : null;
   if (!event.invalid?.length)
-    return <p>Every definition file is valid. The project is in the workspace tree.</p>;
+    return (
+      <>
+        <p>Every definition file is valid. The project is in the workspace tree.</p>
+        <RepositoryLayout event={event} />
+      </>
+    );
   return (
     <>
+      <RepositoryLayout event={event} />
       <p>
         These files are not valid definitions. They were kept exactly as they are and are marked in
         the tree:
@@ -96,12 +133,16 @@ type FooterProps = {
   onClose: () => void;
   onOpenProject: (slug: string) => void;
   onCredentials: () => void;
+  onChooseProjects: (repo: string) => void;
 };
 
 function CloneFooter(props: FooterProps) {
   const { progress } = props;
   const authFailure = progress?.phase === 'failed' && looksLikeAuthFailure(progress.message ?? '');
-  const cloned = progress?.phase === 'done' ? progress.repo : undefined;
+  const done = progress?.phase === 'done' ? progress : null;
+  // A manifest replaces the repository's own project with its folders' projects.
+  const cloned = done?.projects?.[0] ?? done?.repo;
+  const choosable = done?.repo && subfolderCandidates(done).length > 0 ? done.repo : undefined;
   return (
     <>
       {authFailure && (
@@ -123,6 +164,11 @@ function CloneFooter(props: FooterProps) {
           Clone
         </button>
       )}
+      {choosable && (
+        <button type="button" onClick={() => props.onChooseProjects(choosable)}>
+          Choose projects…
+        </button>
+      )}
       {cloned && (
         <button type="button" className="primary" onClick={() => props.onOpenProject(cloned)}>
           Open project
@@ -133,7 +179,7 @@ function CloneFooter(props: FooterProps) {
 }
 
 /** Clones a repository as a new project; files are checked, never rewritten. */
-export function CloneDialog({ onClose, onOpenProject, onCredentials }: Props) {
+export function CloneDialog({ onClose, onOpenProject, onCredentials, onChooseProjects }: Props) {
   const [url, setUrl] = useState('');
   const [name, setName] = useState('');
   const [op, setOp] = useState<{ op: string; name: string } | null>(null);
@@ -174,6 +220,7 @@ export function CloneDialog({ onClose, onOpenProject, onCredentials }: Props) {
       onClose={onClose}
       onOpenProject={onOpenProject}
       onCredentials={onCredentials}
+      onChooseProjects={onChooseProjects}
     />
   );
 

@@ -38,6 +38,8 @@ export function blockers(drafts: string[], entries: StatusEntry[]): BlockedError
   return dirty.length ? new BlockedError('dirty', dirty) : null;
 }
 const REV = /^(HEAD|[0-9a-f]{7,64})$/;
+/** Whether request paths are relative to the project or to its repository root. */
+export type PathBase = 'project' | 'repository';
 /** Workspace services needed to run Git actions and refresh project state. */
 export type ScmDeps = {
   layout: DataLayout;
@@ -45,6 +47,8 @@ export type ScmDeps = {
   gitAvailable: boolean;
   drafts: (slug: string) => string[];
   rescan: (slug: string) => Promise<unknown>;
+  /** The projects that share this project's repository, itself included. */
+  siblings: (slug: string) => string[];
   emit: (event: string, data: unknown) => void;
   project: (slug: string) => unknown;
 };
@@ -62,10 +66,16 @@ export function createScm(deps: ScmDeps) {
     return repoDir(layout, slug);
   }
   const prefix = (slug: string) => projectPrefix(layout, slug);
-  const paths = (slug: string, list: unknown) => {
+  const locationRepo = (slug: string) => {
+    const dir = repoDir(layout, slug);
+    return dir.slice(layout.projects.length + 1);
+  };
+  // Paths arrive relative to the project, or relative to the repository root when the panel
+  // acts on a file of a sibling project or on a file that belongs to no project.
+  const paths = (slug: string, list: unknown, base: PathBase = 'project') => {
     if (!Array.isArray(list) || !list.length || list.length > 5000)
       throw Error('Expected 1–5000 paths.');
-    const pre = prefix(slug);
+    const pre = base === 'repository' ? '' : prefix(slug);
     return list.map(p => pre + projectPath(String(p)));
   };
   // Show changes across the repository; paths outside this project keep repository-relative names.
@@ -77,6 +87,9 @@ export function createScm(deps: ScmDeps) {
         ? { path: path.slice(pre.length) }
         : { path, outside: true };
   };
+  // The project a changed file belongs to, and its path inside that project.
+  const ownership = (owner: { project: string; prefix: string } | undefined, path: string) =>
+    owner ? { project: owner.project, projectPath: path.slice(owner.prefix.length) } : {};
   async function status(slug: string) {
     if (!deps.gitAvailable)
       return {
@@ -93,9 +106,16 @@ export function createScm(deps: ScmDeps) {
     const d = dir(slug);
     const s = await git.status(d);
     const merging = await git.merging(d);
+    const owners = deps.siblings(slug).map(project => ({ project, prefix: prefix(project) }));
+    // The project a changed file belongs to, so a shared repository's panel can say so.
+    const ownerOf = (path: string) =>
+      owners.find(owner => owner.prefix && path.startsWith(owner.prefix)) ??
+      owners.find(owner => !owner.prefix);
     const changes = s.entries.map(e => ({
       ...e,
       ...fromRepo(slug, e.path),
+      repoPath: e.path,
+      ...ownership(ownerOf(e.path), e.path),
       hidden: serializationOf(e.path) === 'unsupported',
       ...(serializationOf(e.path) === 'unsupported' ? { label: HIDDEN_LABEL } : {}),
     }));
@@ -113,11 +133,15 @@ export function createScm(deps: ScmDeps) {
       changes,
     };
   }
+  // Every Git change concerns the whole repository, so all of its projects rescan.
   async function after(slug: string, altered: string[] = []) {
-    await deps.rescan(slug);
+    const projects = deps.siblings(slug);
+    for (const project of projects) await deps.rescan(project);
     const s = await git.status(repoDir(layout, slug));
     deps.emit('git', {
       project: slug,
+      repo: locationRepo(slug),
+      projects,
       branch: s.branch,
       ahead: s.ahead,
       behind: s.behind,
@@ -272,9 +296,9 @@ export function createScm(deps: ScmDeps) {
     await after(slug, altered);
     return { commit: head, altered };
   }
-  async function commitChosen(slug: string, message: string, list: unknown) {
+  async function commitChosen(slug: string, message: string, list: unknown, base: PathBase) {
     const d = dir(slug);
-    const chosen = paths(slug, list);
+    const chosen = paths(slug, list, base);
     if (await git.merging(d)) {
       const s = await git.status(d);
       throw new MergingError(
@@ -308,13 +332,17 @@ export function createScm(deps: ScmDeps) {
   }
   return {
     status,
-    async diff(slug: string, path: string, from = 'HEAD', to = 'worktree') {
+    async diff(
+      slug: string,
+      path: string,
+      from = 'HEAD',
+      to = 'worktree',
+      base: PathBase = 'project',
+    ) {
       const d = dir(slug);
       const p = projectPath(path);
-      const [a, b] = await Promise.all([
-        content(d, from, prefix(slug) + p),
-        content(d, to, prefix(slug) + p),
-      ]);
+      const pre = base === 'repository' ? '' : prefix(slug);
+      const [a, b] = await Promise.all([content(d, from, pre + p), content(d, to, pre + p)]);
       const before = asText(a);
       const after = asText(b);
       return {
@@ -328,15 +356,15 @@ export function createScm(deps: ScmDeps) {
         afterExists: !!b,
       };
     },
-    async stage(slug: string, list: unknown) {
+    async stage(slug: string, list: unknown, base: PathBase = 'project') {
       const d = dir(slug);
-      await git.stage(d, paths(slug, list));
+      await git.stage(d, paths(slug, list, base));
       await after(slug);
       return status(slug);
     },
-    async unstage(slug: string, list: unknown) {
+    async unstage(slug: string, list: unknown, base: PathBase = 'project') {
       const d = dir(slug);
-      await git.unstage(d, paths(slug, list));
+      await git.unstage(d, paths(slug, list, base));
       await after(slug);
       return status(slug);
     },
@@ -356,14 +384,14 @@ export function createScm(deps: ScmDeps) {
     async commit(
       slug: string,
       message: unknown,
-      options: { paths?: unknown; push?: boolean } = {},
+      options: { paths?: unknown; push?: boolean; base?: PathBase } = {},
     ) {
       if (typeof message !== 'string' || !message.trim())
         throw new GitError('A commit message is required.');
       const result =
         options.paths === undefined
           ? await commitIndex(slug, message)
-          : await commitChosen(slug, message, options.paths);
+          : await commitChosen(slug, message, options.paths, options.base ?? 'project');
       if (!options.push) return result;
       let pushed: { ok: boolean; message: string };
       try {
