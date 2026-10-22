@@ -1,0 +1,38 @@
+version: 0.2.0.dev0
+name: Shared reference ontology
+description: Customer and order concepts shared by every domain. LEAK-shared-reference-reference.ontology.yaml
+ontology:
+  - concept: Identifier
+    type: ValueType
+    extends: [String]
+  - concept: Money
+    type: ValueType
+    extends: [Decimal]
+  - concept: Customer
+    type: EntityType
+    identify_by: [id]
+    relationships:
+      - name: id
+        roles: [{concept: Identifier}]
+        multiplicity: ManyToOne
+        verbalizes: ['{Customer} has identifier {Identifier}']
+  - concept: Order
+    type: EntityType
+    identify_by: [id]
+    relationships:
+      - name: id
+        roles: [{concept: Identifier}]
+        multiplicity: ManyToOne
+        verbalizes: ['{Order} has identifier {Identifier}']
+      - name: customer
+        roles: [{concept: Customer}]
+        multiplicity: ManyToOne
+        verbalizes: ['{Customer} places {Order}']
+      - name: amount
+        roles: [{concept: Money}]
+        multiplicity: ManyToOne
+        verbalizes: ['{Order} has amount {Money}']
+  - concept: Revenue
+    type: ValueType
+    extends: [Decimal]
+    description: Gross revenue from orders.

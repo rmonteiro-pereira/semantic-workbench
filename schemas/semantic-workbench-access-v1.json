@@ -1,0 +1,727 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "semantic-workbench/access/v1",
+  "title": "Semantic Workbench access configuration (application schema, not part of any standard)",
+  "description": "Files of the administration repository (data/admin/) that decide who may do what in server mode: custom roles, access grants by Entra group or verified e-mail address, domains and project access, agent client grants, deactivated principals and settings. Each file validates against one entry of $defs; built-in roles ship read-only in policies/builtin-roles.json with the role shape.",
+  "$defs": {
+    "action": {
+      "enum": [
+        "read",
+        "export",
+        "history",
+        "viewOwnState",
+        "edit",
+        "createMetric",
+        "import",
+        "move",
+        "delete",
+        "revert",
+        "restoreOwn",
+        "approveMetric",
+        "editGuarded",
+        "restoreOthers",
+        "publish",
+        "stage",
+        "commit",
+        "branch",
+        "fetch",
+        "pull",
+        "push",
+        "cancelOwn",
+        "purge",
+        "clear",
+        "createProject",
+        "renameProject",
+        "deleteProject",
+        "setRemote",
+        "clone",
+        "registerProjects",
+        "setIdentity",
+        "readStatus",
+        "readAudit",
+        "admin",
+        "agentRead"
+      ]
+    },
+    "customAction": {
+      "enum": [
+        "read",
+        "export",
+        "history",
+        "viewOwnState",
+        "edit",
+        "createMetric",
+        "import",
+        "move",
+        "delete",
+        "revert",
+        "restoreOwn",
+        "approveMetric",
+        "editGuarded",
+        "restoreOthers",
+        "publish",
+        "stage",
+        "commit",
+        "branch",
+        "fetch",
+        "pull",
+        "push",
+        "cancelOwn",
+        "purge",
+        "clear",
+        "createProject",
+        "renameProject",
+        "deleteProject",
+        "setRemote",
+        "clone",
+        "registerProjects",
+        "setIdentity",
+        "readStatus",
+        "readAudit"
+      ],
+      "description": "Any action except managing access (admin) and the agent-only agentRead"
+    },
+    "level": {
+      "enum": [
+        "public",
+        "internal",
+        "confidential",
+        "restricted"
+      ]
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{0,62}$"
+    },
+    "domainId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{0,62}$"
+    },
+    "email": {
+      "type": "string",
+      "maxLength": 320,
+      "pattern": "^[^\\sA-Z@]+@[^\\sA-Z@]+\\.[^\\sA-Z@]+$",
+      "description": "Lower-case addr-spec"
+    },
+    "glob": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^(?!/)(?!.*(^|/)\\.\\.(/|$))[^?\\\\]+$",
+      "description": "Relative POSIX glob: * and ** only, no .., no leading /"
+    },
+    "conditions": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "branch": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^[^?\\s]+$"
+        },
+        "path": {
+          "$ref": "#/$defs/glob"
+        },
+        "docType": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{0,40}$"
+          }
+        },
+        "maxLevel": {
+          "$ref": "#/$defs/level"
+        }
+      }
+    },
+    "builtinRole": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "description",
+        "permissions"
+      ],
+      "properties": {
+        "id": {
+          "enum": [
+            "viewer",
+            "editor",
+            "steward",
+            "admin"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "permissions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "actions"
+            ],
+            "properties": {
+              "actions": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "$ref": "#/$defs/action"
+                }
+              },
+              "conditions": {
+                "$ref": "#/$defs/conditions"
+              }
+            }
+          }
+        }
+      }
+    },
+    "customRole": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "description",
+        "permissions",
+        "createdBy",
+        "createdAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^r_[a-z0-9_]{1,62}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "permissions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "actions"
+            ],
+            "properties": {
+              "actions": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "$ref": "#/$defs/customAction"
+                }
+              },
+              "conditions": {
+                "$ref": "#/$defs/conditions"
+              }
+            }
+          }
+        },
+        "createdBy": {
+          "type": "string",
+          "minLength": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "grant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "roleId",
+        "member",
+        "scope",
+        "addedBy",
+        "addedAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,64}$"
+        },
+        "roleId": {
+          "type": "string",
+          "pattern": "^(viewer|editor|steward|admin|r_[a-z0-9_]{1,62})$"
+        },
+        "member": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "groupId"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "group"
+                },
+                "groupId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                },
+                "displayName": {
+                  "type": "string",
+                  "maxLength": 256
+                },
+                "resolvedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "email"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "email"
+                },
+                "email": {
+                  "$ref": "#/$defs/email"
+                }
+              }
+            }
+          ]
+        },
+        "scope": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "workspace"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "domains"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "domains"
+                },
+                "domains": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/domainId"
+                  },
+                  "uniqueItems": true,
+                  "minItems": 1
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "projects"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "projects"
+                },
+                "projects": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/slug"
+                  },
+                  "uniqueItems": true,
+                  "minItems": 1
+                }
+              }
+            }
+          ]
+        },
+        "addedBy": {
+          "type": "string",
+          "minLength": 1
+        },
+        "addedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "projectAccess": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "$ref": "#/$defs/domainId"
+        },
+        "everyoneCanRead": {
+          "type": "boolean"
+        },
+        "stewards": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 320
+          },
+          "uniqueItems": true
+        },
+        "restricted": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "pattern"
+            ],
+            "properties": {
+              "pattern": {
+                "$ref": "#/$defs/glob"
+              },
+              "groups": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                },
+                "uniqueItems": true
+              },
+              "emails": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/email"
+                },
+                "uniqueItems": true
+              }
+            }
+          }
+        },
+        "protectedBranches": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "uniqueItems": true
+        },
+        "protectedLevel": {
+          "$ref": "#/$defs/level"
+        }
+      }
+    },
+    "rolesFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "roles"
+      ],
+      "properties": {
+        "formatVersion": {
+          "const": 1
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/customRole"
+          }
+        }
+      }
+    },
+    "builtinRolesFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "roles"
+      ],
+      "properties": {
+        "formatVersion": {
+          "const": 1
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/builtinRole"
+          }
+        }
+      }
+    },
+    "grantsFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "grants"
+      ],
+      "properties": {
+        "formatVersion": {
+          "const": 1
+        },
+        "grants": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/grant"
+          }
+        }
+      }
+    },
+    "projectsFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "domains",
+        "projects"
+      ],
+      "properties": {
+        "formatVersion": {
+          "const": 1
+        },
+        "domains": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "name"
+            ],
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/domainId"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              }
+            }
+          }
+        },
+        "projects": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/slug"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/projectAccess"
+          }
+        },
+        "classification": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "levels": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/level"
+              },
+              "uniqueItems": true
+            },
+            "aliases": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/$defs/level"
+              }
+            },
+            "protectedLevel": {
+              "$ref": "#/$defs/level"
+            }
+          }
+        }
+      }
+    },
+    "agentsFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "clients"
+      ],
+      "properties": {
+        "formatVersion": {
+          "const": 1
+        },
+        "clients": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "clientId",
+              "name"
+            ],
+            "properties": {
+              "clientId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              "projects": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/slug"
+                },
+                "uniqueItems": true
+              },
+              "domains": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/domainId"
+                },
+                "uniqueItems": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "deactivatedFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "principals"
+      ],
+      "properties": {
+        "formatVersion": {
+          "const": 1
+        },
+        "principals": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "at",
+              "by"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "by": {
+                "type": "string",
+                "minLength": 1
+              },
+              "reason": {
+                "type": "string",
+                "maxLength": 500
+              }
+            }
+          }
+        }
+      }
+    },
+    "settingsFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "formatVersion": {
+          "const": 1
+        },
+        "session": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "idleHours": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 168
+            },
+            "absoluteHours": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 720
+            }
+          }
+        },
+        "remote": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "allowedHosts": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z0-9.-]+(:\\d+)?$"
+              },
+              "uniqueItems": true
+            },
+            "azureDevOpsObo": {
+              "type": "boolean"
+            },
+            "github": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "host": {
+                  "type": "string"
+                },
+                "appConfigured": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "audit": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "retentionDays": {
+              "type": "integer",
+              "minimum": 30,
+              "maximum": 3650
+            }
+          }
+        }
+      }
+    }
+  }
+}

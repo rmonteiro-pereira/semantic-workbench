@@ -1,0 +1,24 @@
+apiVersion: v3.1.0
+kind: DataContract
+id: 1b0c6a52-3f0e-4c55-9d0e-6a1f2b3c4d02
+name: Revenue recognition contract
+version: 1.0.0
+status: active
+domain: Sales
+description:
+  purpose: Restricted to Finance and one named steward. LEAK-sales-contracts-finance/revenue-recognition.odcs.yaml
+schema:
+  - name: recognized_revenue
+    physicalName: finance.recognized_revenue
+    physicalType: table
+    logicalType: object
+    description: Revenue recognised per order and month.
+    properties:
+      - name: order_id
+        logicalType: integer
+        required: true
+        description: Order identifier.
+      - name: recognized_amount
+        logicalType: number
+        classification: restricted
+        description: Recognised amount in USD.

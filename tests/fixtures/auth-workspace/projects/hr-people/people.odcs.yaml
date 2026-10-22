@@ -1,0 +1,26 @@
+apiVersion: v3.1.0
+kind: DataContract
+id: 1b0c6a52-3f0e-4c55-9d0e-6a1f2b3c4d03
+name: Employees contract
+version: 1.0.0
+status: active
+domain: HR
+description:
+  purpose: Employee master data. LEAK-hr-people-people.odcs.yaml
+schema:
+  - name: employees
+    physicalName: hr.people.employees
+    physicalType: table
+    logicalType: object
+    description: One row per employee.
+    properties:
+      - name: employee_id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        description: Employee identifier.
+      - name: salary
+        logicalType: number
+        classification: restricted
+        criticalDataElement: true
+        description: Yearly salary.

@@ -1,0 +1,32 @@
+{
+  "formatVersion": 1,
+  "roles": [
+    {
+      "id": "r_metric_reviewer",
+      "name": "Metric reviewer",
+      "description": "Reads the domain and approves or deprecates metrics.",
+      "permissions": [
+        {
+          "actions": [
+            "read",
+            "export",
+            "history",
+            "viewOwnState"
+          ]
+        },
+        {
+          "actions": [
+            "approveMetric"
+          ],
+          "conditions": {
+            "docType": [
+              "metric"
+            ]
+          }
+        }
+      ],
+      "createdBy": "bootstrap",
+      "createdAt": "2026-10-21T09:00:00Z"
+    }
+  ]
+}

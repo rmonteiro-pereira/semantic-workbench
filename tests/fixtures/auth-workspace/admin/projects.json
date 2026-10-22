@@ -1,0 +1,91 @@
+{
+  "formatVersion": 1,
+  "domains": [
+    {
+      "id": "sales",
+      "name": "Sales"
+    },
+    {
+      "id": "hr",
+      "name": "HR"
+    },
+    {
+      "id": "finance",
+      "name": "Finance"
+    },
+    {
+      "id": "shared",
+      "name": "Shared"
+    }
+  ],
+  "projects": {
+    "sales-contracts": {
+      "domain": "sales",
+      "stewards": [
+        "bob@example.org"
+      ],
+      "restricted": [
+        {
+          "pattern": "finance/**",
+          "groups": [
+            "7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a04"
+          ],
+          "emails": [
+            "bob@example.org"
+          ]
+        }
+      ],
+      "protectedBranches": [
+        "main",
+        "release/*"
+      ]
+    },
+    "sales-metrics": {
+      "domain": "sales",
+      "stewards": [
+        "bob@example.org"
+      ],
+      "restricted": [],
+      "protectedBranches": [
+        "main"
+      ]
+    },
+    "hr-people": {
+      "domain": "hr",
+      "stewards": [],
+      "restricted": [],
+      "protectedBranches": [
+        "main"
+      ],
+      "protectedLevel": "confidential"
+    },
+    "shared-reference": {
+      "domain": "shared",
+      "everyoneCanRead": true,
+      "stewards": [],
+      "restricted": [],
+      "protectedBranches": [
+        "main"
+      ]
+    },
+    "lab-notes": {
+      "stewards": [],
+      "restricted": [],
+      "protectedBranches": []
+    }
+  },
+  "classification": {
+    "levels": [
+      "public",
+      "internal",
+      "confidential",
+      "restricted"
+    ],
+    "aliases": {
+      "sensitive": "confidential",
+      "secret": "restricted",
+      "pii": "confidential"
+    },
+    "protectedLevel": "confidential"
+  }
+}

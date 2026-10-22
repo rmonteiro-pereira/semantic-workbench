@@ -1,0 +1,15 @@
+version: 0.2.0.dev0
+name: People ontology
+description: Employees and their departments. LEAK-hr-people-people.ontology.yaml
+ontology:
+  - concept: Identifier
+    type: ValueType
+    extends: [String]
+  - concept: Employee
+    type: EntityType
+    identify_by: [id]
+    relationships:
+      - name: id
+        roles: [{concept: Identifier}]
+        multiplicity: ManyToOne
+        verbalizes: ['{Employee} has identifier {Identifier}']

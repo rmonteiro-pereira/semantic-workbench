@@ -1,0 +1,156 @@
+{
+  "formatVersion": 1,
+  "grants": [
+    {
+      "id": "g-sales-editors",
+      "roleId": "editor",
+      "member": {
+        "kind": "group",
+        "groupId": "7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a01",
+        "displayName": "Sales Editors",
+        "resolvedAt": "2026-10-21T09:00:00Z"
+      },
+      "scope": {
+        "kind": "domains",
+        "domains": [
+          "sales"
+        ]
+      },
+      "addedBy": "bootstrap",
+      "addedAt": "2026-10-21T09:00:00Z"
+    },
+    {
+      "id": "g-sales-viewers",
+      "roleId": "viewer",
+      "member": {
+        "kind": "group",
+        "groupId": "7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a05",
+        "displayName": "Sales Viewers",
+        "resolvedAt": "2026-10-21T09:00:00Z"
+      },
+      "scope": {
+        "kind": "domains",
+        "domains": [
+          "sales"
+        ]
+      },
+      "addedBy": "bootstrap",
+      "addedAt": "2026-10-21T09:00:00Z"
+    },
+    {
+      "id": "g-hr-viewers",
+      "roleId": "viewer",
+      "member": {
+        "kind": "group",
+        "groupId": "7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a02",
+        "displayName": "HR Viewers",
+        "resolvedAt": "2026-10-21T09:00:00Z"
+      },
+      "scope": {
+        "kind": "domains",
+        "domains": [
+          "hr"
+        ]
+      },
+      "addedBy": "bootstrap",
+      "addedAt": "2026-10-21T09:00:00Z"
+    },
+    {
+      "id": "g-finance",
+      "roleId": "viewer",
+      "member": {
+        "kind": "group",
+        "groupId": "7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a04",
+        "displayName": "Finance",
+        "resolvedAt": "2026-10-21T09:00:00Z"
+      },
+      "scope": {
+        "kind": "domains",
+        "domains": [
+          "finance"
+        ]
+      },
+      "addedBy": "bootstrap",
+      "addedAt": "2026-10-21T09:00:00Z"
+    },
+    {
+      "id": "g-admins",
+      "roleId": "admin",
+      "member": {
+        "kind": "group",
+        "groupId": "7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a03",
+        "displayName": "Workbench Admins",
+        "resolvedAt": "2026-10-21T09:00:00Z"
+      },
+      "scope": {
+        "kind": "workspace"
+      },
+      "addedBy": "bootstrap",
+      "addedAt": "2026-10-21T09:00:00Z"
+    },
+    {
+      "id": "g-bob",
+      "roleId": "steward",
+      "member": {
+        "kind": "email",
+        "email": "bob@example.org"
+      },
+      "scope": {
+        "kind": "domains",
+        "domains": [
+          "sales"
+        ]
+      },
+      "addedBy": "bootstrap",
+      "addedAt": "2026-10-21T09:00:00Z"
+    },
+    {
+      "id": "g-gina",
+      "roleId": "viewer",
+      "member": {
+        "kind": "email",
+        "email": "gina@partner.example"
+      },
+      "scope": {
+        "kind": "domains",
+        "domains": [
+          "sales"
+        ]
+      },
+      "addedBy": "bootstrap",
+      "addedAt": "2026-10-21T09:00:00Z"
+    },
+    {
+      "id": "g-hank",
+      "roleId": "r_metric_reviewer",
+      "member": {
+        "kind": "email",
+        "email": "hank@example.org"
+      },
+      "scope": {
+        "kind": "domains",
+        "domains": [
+          "sales"
+        ]
+      },
+      "addedBy": "bootstrap",
+      "addedAt": "2026-10-21T09:00:00Z"
+    },
+    {
+      "id": "g-carol-lab",
+      "roleId": "viewer",
+      "member": {
+        "kind": "email",
+        "email": "carol@example.org"
+      },
+      "scope": {
+        "kind": "projects",
+        "projects": [
+          "lab-notes"
+        ]
+      },
+      "addedBy": "bootstrap",
+      "addedAt": "2026-10-21T09:00:00Z"
+    }
+  ]
+}

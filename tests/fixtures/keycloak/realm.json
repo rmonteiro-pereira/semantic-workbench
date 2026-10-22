@@ -1,0 +1,237 @@
+{
+  "realm": "workbench",
+  "displayName": "Workbench test identity provider",
+  "enabled": true,
+  "sslRequired": "none",
+  "groups": [
+    {
+      "name": "Sales Editors"
+    },
+    {
+      "name": "HR Viewers"
+    },
+    {
+      "name": "Workbench Admins"
+    },
+    {
+      "name": "Finance"
+    },
+    {
+      "name": "Sales Viewers"
+    }
+  ],
+  "users": [
+    {
+      "username": "alice",
+      "firstName": "Alice",
+      "lastName": "Andrade",
+      "email": "alice@example.org",
+      "emailVerified": true,
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "test-alice",
+          "temporary": false
+        }
+      ],
+      "groups": ["/Sales Editors"]
+    },
+    {
+      "username": "bob",
+      "firstName": "Bob",
+      "lastName": "Barros",
+      "email": "Bob@Example.org",
+      "emailVerified": true,
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "test-bob",
+          "temporary": false
+        }
+      ],
+      "groups": []
+    },
+    {
+      "username": "carol",
+      "firstName": "Carol",
+      "lastName": "Costa",
+      "email": "carol@example.org",
+      "emailVerified": true,
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "test-carol",
+          "temporary": false
+        }
+      ],
+      "groups": ["/HR Viewers"]
+    },
+    {
+      "username": "dave",
+      "firstName": "Dave",
+      "lastName": "Dias",
+      "email": "dave@example.org",
+      "emailVerified": true,
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "test-dave",
+          "temporary": false
+        }
+      ],
+      "groups": ["/Workbench Admins"]
+    },
+    {
+      "username": "erin",
+      "firstName": "Erin",
+      "lastName": "Esteves",
+      "email": "erin@example.org",
+      "emailVerified": true,
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "test-erin",
+          "temporary": false
+        }
+      ],
+      "groups": []
+    },
+    {
+      "username": "frank",
+      "firstName": "Frank",
+      "lastName": "Freitas",
+      "email": "frank@example.org",
+      "emailVerified": true,
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "test-frank",
+          "temporary": false
+        }
+      ],
+      "groups": ["/Sales Editors", "/Finance"]
+    },
+    {
+      "username": "gina",
+      "firstName": "Gina",
+      "lastName": "Gomes",
+      "email": "gina@partner.example",
+      "emailVerified": false,
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "test-gina",
+          "temporary": false
+        }
+      ],
+      "groups": []
+    },
+    {
+      "username": "hank",
+      "firstName": "Hank",
+      "lastName": "Hall",
+      "email": "hank@example.org",
+      "emailVerified": true,
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "test-hank",
+          "temporary": false
+        }
+      ],
+      "groups": []
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "semantic-workbench",
+      "secret": "semantic-workbench-test-secret",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://127.0.0.1:4310/auth/callback"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://127.0.0.1:4310/auth/signed-out"
+      },
+      "protocolMappers": [
+        {
+          "name": "groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "config": {
+            "claim.name": "groups",
+            "full.path": "false",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "workbench audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "api://semantic-workbench",
+            "id.token.claim": "true",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "sw-agent",
+      "secret": "sw-agent-test-secret",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "protocolMappers": [
+        {
+          "name": "workbench audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "api://semantic-workbench",
+            "id.token.claim": "true",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "sw-agent-ungranted",
+      "secret": "sw-agent-ungranted-test-secret",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "protocolMappers": [
+        {
+          "name": "workbench audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "api://semantic-workbench",
+            "id.token.claim": "true",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ]
+}

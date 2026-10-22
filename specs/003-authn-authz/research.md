@@ -591,3 +591,40 @@ below come from that probe.
 - **Rejected**: a workbench login page with a "Sign in with Microsoft" button (the owner does not
   want a sign-in screen; it adds a click and a page to test); `prompt=login` on every sign-in
   (defeats single sign-on).
+
+## Implementation notes
+
+### Dependencies as installed (Phase 1)
+
+`bun add --exact` of the three libraries in the repository on 2026-10-21 (Bun 1.4.0) confirmed the
+probe: `openid-client` 6.8.8 (MIT, 236 KB) with `oauth4webapi` (MIT, 332 KB), `jose` 6.2.13 (MIT,
+412 KB), `@cedar-policy/cedar-wasm` 4.14.0 (Apache-2.0, 13 MB on disk). All three are server-only.
+
+### Decisions taken while building the foundations
+
+- **One attribute set on every resource type.** The Cedar schema gives `Workspace`, `Project`,
+  `File` and `Metric` the same attributes (the loader repeats the project's values on its files), so
+  a compiled role policy tests `principal in resource.holders.<role>` for any resource and its
+  conditions (`resource.path`, `resource.docType`, `context.level`, `context.branch`) type-check
+  for every action. The contract sketch wrote `resource.project.holders`; the meaning is the same.
+- **The `holders` record type lives in a generated namespace** (`Roles::Holders`), because Cedar
+  refuses a second `namespace SW` block; the static schema references it.
+- **Workspace lists** (projects, trash, drafts, suggestions, events, documents) are allowed to every
+  person with access by the baseline policy `B1-workspace-lists` and filtered by the route; without
+  it a person granted one domain could not list anything.
+- **Restricted files** are refused for every action, not only reads, to people outside the rule
+  (`F6-restricted`): a person who cannot see a file cannot change it either.
+- **Pushing a protected branch** is forbidden as `push` (`F5-protected-branch`); a route that
+  pushes a protected branch asks for `publish` instead, which only Stewards and Admins hold.
+- **The route → action table lives in the server** (`server/auth/route-actions.ts`), because the
+  request middleware needs it at run time; `tests/auth/route-actions.ts` adds one example request
+  per row for the authorization matrix. A request that matches no row is answered 404 before any
+  route runs.
+
+### Who implemented what
+
+| Task(s) | Implemented by |
+| --- | --- |
+| T001 (provisional rebase), T002, T003, T004, T005, T009; Cedar schema, baseline policies and built-in roles of T012; principal tests of T010 | Claude |
+| T006, T007 (mock OpenID provider, Keycloak realm) | Codex (gpt-6-astra), reviewed by Claude |
+| T010–T016, T134–T137 (claims, grants, role compiler, Cedar loader, decision boundary) | Codex (gpt-6-astra), reviewed by Claude |

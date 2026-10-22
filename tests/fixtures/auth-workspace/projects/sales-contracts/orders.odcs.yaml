@@ -1,0 +1,30 @@
+apiVersion: v3.1.0
+kind: DataContract
+id: 1b0c6a52-3f0e-4c55-9d0e-6a1f2b3c4d01
+name: Sales orders contract
+version: 1.0.0
+status: active
+domain: Sales
+description:
+  purpose: Orders placed by customers. LEAK-sales-contracts-orders.odcs.yaml
+schema:
+  - name: orders
+    physicalName: analytics.sales.orders
+    physicalType: table
+    logicalType: object
+    description: One row per order.
+    properties:
+      - name: order_id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        description: Order identifier.
+      - name: customer_email
+        logicalType: string
+        classification: confidential
+        criticalDataElement: true
+        description: Customer e-mail address.
+      - name: amount
+        logicalType: number
+        classification: internal
+        description: Order amount in USD.
