@@ -6,6 +6,7 @@ import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import manifest from '../tests/fixtures/ossie-mapping/manifest.json';
 import { example } from './helpers/examples';
 import { exportFile } from './helpers/header';
+import { closeComposer, composerDialog, openComposer } from './helpers/query-composer';
 const api = await startIsolatedApi();
 const store = { list: () => api.ws.documents() };
 const db = new Database(':memory:');
@@ -132,6 +133,7 @@ try {
         .locator('.mapping-concepts')
         .getByRole('button', { name: /^AirportName/ })
         .click();
+      await openComposer(page);
       await page.getByRole('checkbox', { name: 'Dimension AIRPORT.name', exact: true }).check();
       await page.getByRole('button', { name: 'Preview governed query', exact: true }).click();
       const sql = await page.getByLabel('Governed SQL preview').innerText();
@@ -155,6 +157,7 @@ try {
       }
       await page.getByLabel('Governed SQL preview').scrollIntoViewIfNeeded();
       await page.screenshot({ path: '/tmp/ossie-flights-query.png' });
+      await closeComposer(page);
     },
   );
   // Bindings remain separate labelled steps, grouped by dataset with counts and collapse. The
@@ -229,19 +232,24 @@ try {
       await expect(first.locator('.mapping-binding').first()).toBeHidden();
       await first.locator(':scope > summary').click();
       await expect(first.locator('.mapping-binding').first()).toBeVisible();
+      // Concepts sit beside the bindings, which take the rest of the width; the composer is a
+      // dialog, so it no longer takes a column.
       const evidence = (await page.locator('.mapping-bindings').boundingBox())!;
-      const composer = (await page.locator('.mapping-query').boundingBox())!;
       const concepts = (await page.locator('.mapping-concepts').boundingBox())!;
+      const explorer = (await page.locator('.mapping-columns').boundingBox())!;
       expect(concepts.x + concepts.width).toBeLessThanOrEqual(evidence.x + 1);
-      expect(evidence.x + evidence.width).toBeLessThanOrEqual(composer.x + 1);
-      expect(composer.y).toBeLessThan(evidence.y + evidence.height);
+      expect(evidence.x + evidence.width).toBeGreaterThan(explorer.x + explorer.width - 40);
       await page.screenshot({ path: '/tmp/workbench-mapping-chains.png' });
       await page.setViewportSize({ width: 390, height: 844 });
       const e2 = (await page.locator('.mapping-bindings').boundingBox())!;
-      const c2 = (await page.locator('.mapping-query').boundingBox())!;
       const k2 = (await page.locator('.mapping-concepts').boundingBox())!;
       expect(k2.y).toBeLessThan(e2.y);
-      expect(e2.y).toBeLessThan(c2.y);
+      await openComposer(page);
+      const dialogBox = (await composerDialog(page).locator('.workbench-dialog').boundingBox())!;
+      expect(dialogBox.x).toBeGreaterThanOrEqual(0);
+      expect(dialogBox.x + dialogBox.width).toBeLessThanOrEqual(390);
+      await page.screenshot({ path: '/tmp/workbench-mapping-composer-390.png' });
+      await closeComposer(page);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true,
       );
@@ -288,6 +296,7 @@ try {
   await check(
     'billing query selected in the UI produces verified net revenue, distinct counts and governed ratios',
     async () => {
+      await openComposer(page);
       for (const name of ['net_revenue', 'invoice_count', 'revenue_per_invoice'])
         await page.getByRole('checkbox', { name: 'Metric ' + name, exact: true }).check();
       await page.getByRole('checkbox', { name: 'Dimension plans.tier', exact: true }).check();
@@ -319,10 +328,11 @@ try {
         .getByRole('checkbox', { name: 'Dimension billing_cycles.name', exact: true })
         .check();
       await page.getByRole('button', { name: 'Preview governed query', exact: true }).click();
-      await expect(page.getByRole('alert')).toContainText('Ambiguous join paths');
+      await expect(composerDialog(page).getByRole('alert')).toContainText('Ambiguous join paths');
       await expect(page.getByLabel('Governed SQL preview')).toHaveCount(0);
-      await page.getByRole('alert').scrollIntoViewIfNeeded();
+      await composerDialog(page).getByRole('alert').scrollIntoViewIfNeeded();
       await page.screenshot({ path: '/tmp/billing-ambiguous-query.png' });
+      await closeComposer(page);
     },
   );
   await check(
@@ -442,6 +452,7 @@ try {
       await expect(page.locator('.mapping-layer-chain')).toContainText(
         'Shopping center administration mappings',
       );
+      await openComposer(page);
       await page.getByRole('checkbox', { name: 'Metric occupancy_rate', exact: true }).check();
       await page
         .getByRole('checkbox', { name: 'Dimension calendar_months.year_month', exact: true })
@@ -456,6 +467,7 @@ try {
         if (Math.abs(r.metric_1 - wanted[`${r.dimension_1}|${r.dimension_2}`]) > 1e-9)
           throw Error('Wrong occupancy rate for ' + r.dimension_1 + ' ' + r.dimension_2);
       await page.screenshot({ path: '/tmp/mall-occupancy-query.png' });
+      await closeComposer(page);
     },
   );
   await check(

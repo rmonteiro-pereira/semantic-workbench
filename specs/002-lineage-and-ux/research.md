@@ -800,3 +800,33 @@ agent context already carries everything except two additive fields).
   the batch. Removing projects goes through one function of `repository-projects.ts`. Manifest
   schema errors are `ManifestError`. The watcher announces a change under `.git` once per
   repository. The repository routes keep parsing their body by hand, as the trash routes do.
+
+## R28. Implementation decisions taken in Phase 13 (Mappings that fit)
+
+- **Arrow on the step.** The separate arrow element became a `::before` of each step after the
+  first, so it always starts a line with the step it leads to. Names get a `<wbr>` after each
+  `.` and `_` and wrap with `overflow-wrap: break-word` only as a last resort.
+- **Composer dialog.** **Compose a query…** in the Mappings heading opens the composer as a
+  dialog (`src/mappings/QueryComposer.tsx`); its choices and preview stay in the Mappings view,
+  so closing and reopening keeps them, and changing concept clears them as before. The page has
+  two columns: concepts and bindings. `scripts/ui-tests.ts` and `scripts/examples-ui-tests.ts`
+  now open the dialog before choosing metrics (spec change: FR-063 moves the composer into a
+  dialog); the old check that the composer column sat right of the bindings now checks that the
+  bindings take the width and that the dialog fits at 390 px. The late-response check closes the
+  dialog to change concept and confirms the reopened composer shows no SQL.
+- **Geometry check.** `scripts/mappings-layout-browser-check.ts` imports every shipped mapping document
+  with its ontology and semantic model, plus the mapped commerce trio with 80-character dataset,
+  field and concept names and a long dotted source, opens every group and measures each card at
+  the six viewports: no element past its card, no text overflowing its box, every arrow on the
+  line of its step. On the previous layout it reports detached arrows.
+- **Architecture review fixes.** The arrow check measures the `::before` arrow itself (its
+  offset and line height against the step's label) and reports a step with no arrow; moving the
+  arrow 60 px down makes it fail. The check is named `mappings-layout-browser-check.ts`, like
+  the other browser checks. Load errors and preview errors are separate: a failed load shows on
+  the page, a failed preview in the composer. Changing the mapping document closes the composer.
+- **Gate under outside load.** During this phase's gate another workload drove the machine's load
+  average to about 99, and six browser suites failed on timeouts and time budgets in steps that
+  do not touch the Mappings tab. Rerun at low load, all six passed with no change. The typing
+  budget in `test:editor` passes with little margin (about 29.5 ms per key against 30 ms with a
+  save in flight), so it is the first check to fail on a busy machine.
+
