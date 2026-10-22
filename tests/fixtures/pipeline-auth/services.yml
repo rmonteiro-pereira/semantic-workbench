@@ -1,0 +1,4 @@
+jobs:
+  - job: invalid
+    services:
+      provider: image

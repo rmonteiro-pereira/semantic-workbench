@@ -21,6 +21,7 @@ Expected: every v0.3.0 suite passes; `SW_HOST=0.0.0.0 bun server/index.ts` refus
 ```sh
 bun test tests/auth            # claims (Entra, Keycloak, overage, verified e-mail), grants, role
                                # compiler, sessions, guards, filters, matrix
+bun run build                 # the auth check serves dist/ without Vite
 bun run test:auth              # browser: starts the mock provider (Entra shape) on loopback; direct
                                # redirect, sign-in, refresh, sign-out page, No access (erin, gina),
                                # group and e-mail grants, overage user olga, hidden files
@@ -32,7 +33,7 @@ SC-019 passes. This is what the target pipeline runs; it needs no network.
 Manual run against the mock: `bun run mock-oidc -- --port 8081 --shape entra` prints its issuer
 (`http://127.0.0.1:8081/<tenant-id>/v2.0`), client id and secret; start the server as below with
 `SW_OIDC_PROVIDER=entra`, that issuer, `SW_ENTRA_TENANT_ID=<tenant-id>` and
-`SW_GRAPH_URL=http://127.0.0.1:8081`, and pick a test user on the chooser page (the mock's
+`SW_GRAPH_URL=http://127.0.0.1:8081/graph`, and pick a test user on the chooser page (the mock's
 page, standing in for Entra; the workbench has none). Access comes from the grants seeded in the
 fixture's `data/admin/grants.json`: `alice`, `carol`, `frank`, `olga` and `dave` by group, `bob`
 and `hank` by e-mail (bob's token spells his address `Bob@Example.org`); `erin` has no grant and
@@ -49,16 +50,18 @@ Run it before each release and record the result in verification.md. Manual run:
 with the realm (or `docker compose --profile keycloak up -d keycloak`), then
 
 ```sh
-SW_MODE=server SW_PUBLIC_URL=http://localhost:4310 SW_OIDC_PROVIDER=keycloak \
-SW_OIDC_ISSUER=http://localhost:8080/realms/workbench SW_OIDC_CLIENT_ID=semantic-workbench \
-SW_OIDC_CLIENT_SECRET=dev-secret SW_SESSION_KEY=$(openssl rand -base64 32) \
-SW_BOOTSTRAP_ADMINS=dave@example.org DATA_DIR=$(mktemp -d) bun run build && bun server/index.ts
+bun run build
+SW_MODE=server SW_PUBLIC_URL=http://127.0.0.1:4310 SW_OIDC_PROVIDER=keycloak \
+SW_OIDC_ISSUER=http://127.0.0.1:8080/realms/workbench SW_OIDC_CLIENT_ID=semantic-workbench \
+SW_OIDC_CLIENT_SECRET=semantic-workbench-test-secret SW_SESSION_KEY=$(openssl rand -base64 32) \
+SW_BOOTSTRAP_ADMINS=dave@example.org DATA_DIR=$(mktemp -d) bun server/index.ts
 ```
 
 (`http://localhost` is accepted only when `SW_PUBLIC_URL` is a loopback URL; the cookie then
 drops `Secure` and the `__Host-` prefix, for development only.) Copy the fixture's `data/admin/`
 into the data folder for the seeded grants (Keycloak group names instead of Entra object IDs).
-Sign in as `alice`, `bob`, `carol`, `dave`, `erin`, `gina` (password `test`; `gina` has
+Sign in as `alice`, `bob`, `carol`, `dave`, `erin`, `gina` (password `test-<username>`,
+for example `test-alice`; `gina` has
 `email_verified=false`); compare with the spec's role matrix.
 
 ## 4. Container (available from Phase 3)
@@ -78,16 +81,19 @@ single-replica constraint, FR-122), starts a container of a different revision o
 (hand-over within shutdown + 30 s, SC-017), checks the user id is not 0, and runs
 `deploy:smoke --loopback`.
 
-Keycloak compatibility profile (owner's machine): `cp .env.server.example .env.server`, then
+Keycloak compatibility profile (owner's machine): `cp .env.server.example .env.server`,
+generate a session key with `openssl rand -base64 32` and set `SW_SESSION_KEY`.
+The copied `.env.server` will not start until that key is generated. Then seed
+`.server-workspace/admin` as described in README §Sign-in testing. Then
 
 ```sh
-export SW_VERSION=$(bun -e 'console.log(require("./package.json").version)') SW_COMMIT=$(git rev-parse HEAD)
+export SW_VERSION=$(bun -e 'console.log(require("./package.json").version ?? "dev")') SW_COMMIT=$(git rev-parse HEAD)
 docker compose --profile keycloak up --build -d   # Keycloak on 127.0.0.1:8080 + workbench in server mode
 curl -fsS localhost:4310/healthz && curl -fsS localhost:4310/readyz
 bun run deploy:smoke -- http://localhost:4310 "$SW_VERSION" "$SW_COMMIT" --loopback
 ```
 
-Sign in as `alice` (password `test`).
+Sign in as `alice` (password `test-alice`) at `http://127.0.0.1:4310`.
 
 Without host networking local mode is unreachable by design (OP-8). Docker Desktop: 4.34 or
 later, **Settings → Resources → Network → Enable host networking**, then **Apply & restart**

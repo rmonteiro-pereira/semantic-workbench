@@ -152,7 +152,7 @@ function readServer(env: Env, common: CommonConfig, problems: ConfigProblem[]): 
   const clientAuth = readClientAuth(env, problems);
   const provider = readProvider(env, problems);
   const tenantId = provider === 'entra' ? required('SW_ENTRA_TENANT_ID') : null;
-  const sessionKey = readSessionKey(required('SW_SESSION_KEY'), problems);
+  const sessionKey = readSessionKey(env.SW_SESSION_KEY?.trim() ?? '', problems);
   const bootstrapAdmins = readBootstrapAdmins(required('SW_BOOTSTRAP_ADMINS'), problems);
   const graphUrl = readGraphUrl(env.SW_GRAPH_URL, loopbackPublicUrl, problems);
   const groupOverage = env.SW_GROUP_OVERAGE || 'directory';
@@ -263,9 +263,8 @@ function readProvider(env: Env, problems: ConfigProblem[]): ProviderKind {
 }
 
 function readSessionKey(value: string, problems: ConfigProblem[]) {
-  if (!value) return new Uint8Array(0);
   const key = /^[A-Za-z0-9+/]+={0,2}$/.test(value) ? Buffer.from(value, 'base64') : null;
-  if (!key || key.byteLength !== 32) {
+  if (!key || key.byteLength !== 32 || key.every(byte => byte === key[0])) {
     problems.push({
       variable: 'SW_SESSION_KEY',
       message: 'must be 32 random bytes encoded as base64 (for example `openssl rand -base64 32`).',

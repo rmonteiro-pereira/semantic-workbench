@@ -9,7 +9,7 @@ import { testWorkspace } from '../helpers/temp-data-dir';
 test('every example resolves to its own row and every row has an example', () => {
   expect(routeExamples).toHaveLength(ROUTE_ACTIONS.length);
   routeExamples.forEach((example, index) => {
-    expect(routeFor(example.method, example.path)?.row).toBe(ROUTE_ACTIONS[index]);
+    expect(routeFor(example.method, example.path, 'server')?.row).toBe(ROUTE_ACTIONS[index]);
   });
 });
 function assertRouteCoverage(text: string, file = 'synthetic.ts'): void {
@@ -84,7 +84,8 @@ test('every implemented inventory example reaches a route in local mode', async 
   using workspace = await testWorkspace();
   for (const example of routeExamples) {
     // Public rows reserve handlers for the later authentication and health work.
-    if (routeFor(example.method, example.path)!.row.public) continue;
+    const row = routeFor(example.method, example.path, 'server')!.row;
+    if (row.public || row.serverOnly) continue;
     const controller = new AbortController();
     const request = new Request('http://localhost' + example.path, {
       method: example.method,
@@ -99,4 +100,25 @@ test('every implemented inventory example reaches a route in local mode', async 
     }
     expect(await response.text(), `${example.method} ${example.path}`).not.toBe('Not found');
   }
+});
+
+test('server pages have a real read row for GET and HEAD only', () => {
+  for (const method of ['GET', 'HEAD']) {
+    for (const path of ['/', '/catalog', '/assets/app-hash.js', '/apiary']) {
+      const found = routeFor(method, path, 'server')!;
+      expect(found.row.action).toBe('read');
+      expect(ROUTE_ACTIONS).toContain(found.row);
+      expect(found.row.methods).toContain(method);
+      expect(found.row.serverOnly).toBe(true);
+      expect(found.match[0]).toBe(path);
+      expect(found.row.resource(found.match, new URL(path, 'https://workbench.test'))).toEqual({
+        type: 'workspace',
+      });
+      expect(routeFor(method, path, 'local')).toBeNull();
+    }
+    for (const path of ['/api', '/api/unknown', '/auth', '/auth/unknown']) {
+      expect(routeFor(method, path, 'server')).toBeNull();
+    }
+  }
+  expect(routeFor('POST', '/catalog', 'server')).toBeNull();
 });

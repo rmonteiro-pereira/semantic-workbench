@@ -1,4 +1,5 @@
 /** Opens documents and restores unsaved drafts without discarding current edits. */
+import { apiFetch } from '../projects/api';
 import React from 'react';
 import { validateInput } from '../input';
 import { scm as scmApi, type Doc } from '../projects/api';
@@ -69,7 +70,7 @@ export function useFileNavigation({
     try {
       const project = encodeURIComponent(d.project);
       const path = d.path.split('/').map(encodeURIComponent).join('/');
-      const response = await fetch(`/api/drafts/${project}/${path}`);
+      const response = await apiFetch(`/api/drafts/${project}/${path}`);
       if (!response.ok) return;
       const draft = await response.json();
       if (

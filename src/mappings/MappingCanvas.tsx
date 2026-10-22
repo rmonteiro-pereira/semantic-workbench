@@ -1,4 +1,5 @@
 /** Displays a mapping's resolved graph at the saved revision and indicates unsaved edits. */
+import { apiFetch } from '../projects/api';
 import React, { useEffect, useMemo, useState } from 'react';
 import { LineageCanvas } from '../odcs/LineageCanvas';
 import { Modal } from '../projects/Modal';
@@ -46,7 +47,9 @@ export function MappingCanvas({
     const abort = new AbortController();
     setLoading(true);
     setError('');
-    fetch('/api/agent/context?mappingId=' + encodeURIComponent(mappingId), { signal: abort.signal })
+    apiFetch('/api/agent/context?mappingId=' + encodeURIComponent(mappingId), {
+      signal: abort.signal,
+    })
       .then(async r => {
         const d = await r.json();
         if (!r.ok) throw Error(d.error);

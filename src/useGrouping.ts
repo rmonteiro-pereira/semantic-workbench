@@ -1,4 +1,5 @@
 /** Remembers the selected grouping options for each open document. */
+import { apiFetch } from './projects/api';
 import { useEffect, useRef, useState } from 'react';
 import type { GroupingOptions } from './overview';
 /** Stores grouping preferences for the selected document. */
@@ -14,7 +15,7 @@ export function useGrouping(documentId?: string) {
     const revision = ++version.current;
     setState({ id: documentId, value: {}, error: '' });
     if (documentId)
-      fetch(`/api/documents/${encodeURIComponent(documentId)}/grouping`, {
+      apiFetch(`/api/documents/${encodeURIComponent(documentId)}/grouping`, {
         signal: controller.signal,
       })
         .then(async r => {
@@ -37,11 +38,14 @@ export function useGrouping(documentId?: string) {
     queue.current = queue.current
       .catch(() => {})
       .then(async () => {
-        const response = await fetch(`/api/documents/${encodeURIComponent(documentId)}/grouping`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(value),
-        });
+        const response = await apiFetch(
+          `/api/documents/${encodeURIComponent(documentId)}/grouping`,
+          {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(value),
+          },
+        );
         if (!response.ok)
           throw Error(
             'Grouping could not be saved. Your current view is retained; try the change again.',

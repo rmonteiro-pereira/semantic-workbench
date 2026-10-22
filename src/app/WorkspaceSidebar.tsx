@@ -1,3 +1,4 @@
+import { useMe } from '../auth/useMe';
 /** Presentation and event handling for workspace sidebar. */
 import { useGitSetup } from '../scm/GitSetup';
 import { FileCode, GitBranch, Layers, Network, Upload, X } from 'lucide-react';
@@ -73,6 +74,7 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
   importIntoProject,
   importFiles,
 }: Props) {
+  const { me } = useMe();
   const openGitSetup = useGitSetup();
   function handleButtonClick() {
     setTab('fullgraph');
@@ -170,7 +172,7 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
           </span>
         </div>
         <div className="workspace-label">
-          LOCAL WORKSPACE <span className="dot" />
+          {me?.mode === 'server' ? 'SHARED WORKSPACE' : 'LOCAL WORKSPACE'} <span className="dot" />
         </div>
         <button
           className={`nav${tab !== 'scm' && tab !== 'source' ? ' active' : ''}`}

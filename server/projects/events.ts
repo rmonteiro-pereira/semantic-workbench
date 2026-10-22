@@ -41,12 +41,14 @@ export function createEvents(options: { ringSize?: number; heartbeatMs?: number 
       return clients.size;
     },
     replay,
-    stream(req: Request) {
+    stream(req: Request, onSessionEnd?: (listener: () => void) => () => void) {
       const header = req.headers.get('last-event-id');
       const since = header !== null && /^\d+$/.test(header) ? Number(header) : null;
       let send: ((chunk: string) => void) | undefined;
       let timer: ReturnType<typeof setInterval> | undefined;
+      let unsubscribe: (() => void) | undefined;
       const cleanup = () => {
+        unsubscribe?.();
         if (send) clients.delete(send);
         if (timer) clearInterval(timer);
       };
@@ -68,6 +70,11 @@ export function createEvents(options: { ringSize?: number; heartbeatMs?: number 
           }
           clients.add(send);
           timer = setInterval(() => send!(': ping\n\n'), heartbeatMs);
+          unsubscribe = onSessionEnd?.(() => {
+            send?.('event: access\ndata: {"reason":"session-ended"}\n\n');
+            cleanup();
+            controller.close();
+          });
           req.signal?.addEventListener('abort', () => {
             cleanup();
             try {

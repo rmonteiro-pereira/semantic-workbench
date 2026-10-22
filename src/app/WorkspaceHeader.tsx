@@ -17,6 +17,7 @@ import { MenuButton } from '../projects/Menu';
 import type { ValidatedModel } from './types';
 
 type Props = {
+  personMenu?: React.ReactNode;
   workspaceToggle: React.RefObject<HTMLButtonElement | null>;
   compact: boolean;
   sidebarOpen: boolean;
@@ -38,6 +39,7 @@ type Props = {
 };
 /** Renders workspace header. */
 export const WorkspaceHeader = React.memo(function WorkspaceHeader({
+  personMenu,
   workspaceToggle,
   compact,
   sidebarOpen,
@@ -172,6 +174,7 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
             <span className="action-label">Commit…</span>
           </button>
         </div>
+        {personMenu}
       </header>
     </>
   );

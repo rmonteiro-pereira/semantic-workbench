@@ -10,7 +10,10 @@ import { createAuditLog, type AuditLog } from './audit';
 import { localPrincipal, type Principal } from './principal';
 import { routeFor, type RouteAction } from './route-actions';
 import type { ResourceRef, Decision } from './resource';
+import { validCsrf } from './csrf';
+import type { ServerAuthentication } from './authentication';
 import { READ_ACTIONS } from './actions';
+import { requestAuditId } from '../request';
 
 /** The access boundary instance shared across requests. */
 export type AccessControl = ReturnType<typeof createAccessControl>;
@@ -21,12 +24,20 @@ export type HandlerOptions = {
   audit?: AuditLog;
   mode?: 'local' | 'server';
   publicOrigin?: string;
+  /** Origin of the provider's end-session page, which the sign-out form is redirected to. */
+  providerOrigin?: string;
   port?: number;
+  authentication?: ServerAuthentication['authentication'];
+  roleNames?: Record<string, string>;
+  staticRoot?: string;
 };
 /** Request scope attached for downstream filtering without repeating identity resolution. */
 export const requestAccess = Symbol('requestAccess');
 /** A request carrying its already resolved access scope. */
-export type AccessRequest = Request & { [requestAccess]?: ReturnType<AccessControl['forRequest']> };
+export type AccessRequest = Request & {
+  [requestAuditId]?: string;
+  [requestAccess]?: ReturnType<AccessControl['forRequest']>;
+};
 
 function defaultAccess(ws: Workspace, mode: 'local' | 'server'): AccessControl {
   let config = emptyAccessConfig();
@@ -126,17 +137,21 @@ export function createAccessMiddleware(
       const refused = localCheck(request);
       if (refused) return refused;
     }
+    const url = new URL(request.url);
     if (
       mode === 'server' &&
-      request.method !== 'GET' &&
-      (!options.publicOrigin ||
-        request.headers.get('X-SW-Request') !== '1' ||
-        request.headers.get('Origin') !== options.publicOrigin)
+      !(await validCsrf(
+        request,
+        options.publicOrigin,
+        url.pathname === '/auth/logout'
+          ? (await options.authentication?.session(request))?.csrf
+          : undefined,
+      ))
     ) {
       return new Response('Forbidden', { status: 403 });
     }
-    const url = new URL(request.url);
-    const found = routeFor(request.method, url.pathname);
+    const page = mode === 'server' && !/^\/(api|auth)(\/|$)/.test(url.pathname);
+    const found = routeFor(request.method, url.pathname, mode);
     if (!found) return new Response('Not found', { status: 404 });
     const { row, match } = found;
     if (row.public) return run(request);
@@ -152,6 +167,9 @@ export function createAccessMiddleware(
         reason: 'sign-in-required',
       });
       if (failure) return failure;
+      if (page && options.authentication) {
+        return options.authentication.login(url.pathname + url.search, request);
+      }
       return Response.json({ error: 'sign-in required' }, { status: 401 });
     }
     return execute(request, requestId, { row, resource: row.resource(match, url) }, principal);
@@ -165,7 +183,11 @@ export function createAccessMiddleware(
     const { row, resource } = target;
     const scope = access.forRequest(principal);
     request[requestAccess] = scope;
-    const decision = scope.authorize(row.action, resource);
+    const noAccess =
+      mode === 'server' && (scope.principal.deactivated || !scope.principal.grants.length);
+    const decision: Decision = noAccess
+      ? { allow: false, status: 403, rules: [], reason: 'no-grant' }
+      : scope.authorize(row.action, resource);
     const input = auditInput({
       requestId,
       principal: scope.principal,
@@ -176,6 +198,11 @@ export function createAccessMiddleware(
     if (!decision.allow) {
       const failure = auditDenial(audit, { ...input, decision: 'deny' });
       if (failure) return failure;
+      if (noAccess) {
+        const api = new URL(request.url).pathname.startsWith('/api');
+        if (api) return Response.json({ error: 'no access' }, { status: 403 });
+        return new Response(null, { status: 302, headers: { Location: '/auth/no-access' } });
+      }
       const body =
         decision.status === 404
           ? { error: 'Not found.' }
@@ -195,11 +222,12 @@ export function createAccessMiddleware(
   }
   return async (request: Request): Promise<Response> => {
     const requestId = crypto.randomUUID();
+    (request as AccessRequest)[requestAuditId] = requestId;
     let response: Response;
     try {
       response = await dispatch(request, requestId);
     } catch (error) {
-      response = errorResponse(error);
+      response = errorResponse(error, options.publicOrigin);
     }
     return requestIdResponse(response, requestId);
   };

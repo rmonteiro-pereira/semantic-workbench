@@ -1,3 +1,4 @@
+import { runCommand as command } from './helpers/processes';
 import { mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -129,14 +130,6 @@ export function scanArguments(kind: 'scan' | 'sbom', ref?: string): string[][] {
 export function validateTarget(env: Record<string, string | undefined>) {
   const missing = targetVariables.filter(name => !env[name]?.trim());
   if (missing.length) throw Error(`Missing target variables: ${missing.join(', ')}`);
-}
-
-async function command(args: string[], capture = false, env = process.env): Promise<string> {
-  const child = Bun.spawn(args, { env, stdout: capture ? 'pipe' : 'inherit', stderr: 'inherit' });
-  const output = capture ? await new Response(child.stdout).text() : '';
-  const code = await child.exited;
-  if (code !== 0) throw Error(`${args.join(' ')} exited ${code}`);
-  return output.trim();
 }
 
 /** Plans registry authentication or local archive export before scanning. */

@@ -15,7 +15,7 @@ export function oauthError(error: string, description: string, status = 400): Re
   return Response.json({ error, error_description: description }, { status });
 }
 
-function authenticateClient(request: Request, params: URLSearchParams) {
+function authenticateClient(state: ProviderState, request: Request, params: URLSearchParams) {
   let clientId = params.get('client_id');
   let secret = params.get('client_secret');
   const authorization = request.headers.get('authorization');
@@ -31,7 +31,10 @@ function authenticateClient(request: Request, params: URLSearchParams) {
       return undefined;
     }
   }
-  const clients = [TEST_WORKBENCH_CLIENT, ...Object.values(TEST_CLIENTS)];
+  const clients = [
+    { ...TEST_WORKBENCH_CLIENT, secret: state.options.clientSecret },
+    ...Object.values(TEST_CLIENTS),
+  ];
   return clients.find(client => client.clientId === clientId && client.secret === secret);
 }
 
@@ -167,7 +170,7 @@ async function onBehalfOfGrant(state: ProviderState, params: URLSearchParams, cl
 
 /** Authenticates a client and dispatches its requested token grant. */
 export function tokenEndpoint(state: ProviderState, request: Request, params: URLSearchParams) {
-  const client = authenticateClient(request, params);
+  const client = authenticateClient(state, request, params);
   if (!client) return oauthError('invalid_client', 'Invalid client credentials', 401);
   switch (params.get('grant_type')) {
     case 'authorization_code':

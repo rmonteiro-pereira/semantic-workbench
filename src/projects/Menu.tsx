@@ -20,6 +20,8 @@ export function MenuButton({
   buttonClassName = '',
   align = 'end',
   title,
+  header,
+  menuLabel,
 }: {
   label?: React.ReactNode;
   ariaLabel: string;
@@ -29,6 +31,8 @@ export function MenuButton({
   buttonClassName?: string;
   align?: 'start' | 'end';
   title?: string;
+  header?: React.ReactNode;
+  menuLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLSpanElement>(null);
@@ -117,7 +121,12 @@ export function MenuButton({
         {label}
       </button>
       {open && (
-        <div role="menu" aria-label={ariaLabel} className={`menu-popup align-${align}`}>
+        <div
+          role="menu"
+          aria-label={menuLabel ?? ariaLabel}
+          className={`menu-popup align-${align}`}
+        >
+          {header}
           {items.map(it => (
             <button
               key={it.label}

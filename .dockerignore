@@ -10,3 +10,4 @@ tests
 graphify-out
 *.log
 .env*
+.server-workspace

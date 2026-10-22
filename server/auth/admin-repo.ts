@@ -13,6 +13,17 @@ import { loadPolicySet } from './cedar';
 import builtin from '../../policies/builtin-roles.json';
 import type { Role } from './access-config';
 
+/** Mirrors schemas/semantic-workbench-access-v1.json $defs.settingsFile with session defaults. */
+export type WorkbenchSettings = {
+  session: { idleHours: number; absoluteHours: number };
+  remote?: {
+    allowedHosts?: string[];
+    azureDevOpsObo?: boolean;
+    github?: { host?: string; appConfigured?: boolean };
+  };
+  audit?: { retentionDays?: number };
+};
+
 /** An invalid administration proposal, with the offending document in its message. */
 export class AdminConfigError extends Error {}
 /** A proposal based on a superseded administration commit. */
@@ -284,5 +295,23 @@ export function openAdminRepository(options: {
     }
     return result;
   }
-  return { ensure, load: () => validate(readFiles()), version, write, history, diff, rollback };
+  function settings(): WorkbenchSettings {
+    try {
+      const value = JSON.parse(readFileSync(join(root, 'settings.json'), 'utf8'));
+      validateAccessDocument('settingsFile', value);
+      return { ...value, session: { idleHours: 8, absoluteHours: 24, ...value.session } };
+    } catch (error) {
+      throw new AdminConfigError(`settings.json: ${(error as Error).message}`);
+    }
+  }
+  return {
+    settings,
+    ensure,
+    load: () => validate(readFiles()),
+    version,
+    write,
+    history,
+    diff,
+    rollback,
+  };
 }

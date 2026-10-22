@@ -160,3 +160,7 @@ Workspace-level `read` and `viewOwnState` are allowed to every person with acces
 own state. Rows whose resource is W but whose effect lands in one project (suggestions, legacy
 documents, trash entries) are checked again by the route against that project once the user
 stories that filter them are built.
+
+The server-mode `/api/me` response also includes `csrf`, the per-session form token used by
+the person menu's native `POST /auth/logout`. It is absent in local mode. Provider access, ID
+and refresh tokens are never returned.

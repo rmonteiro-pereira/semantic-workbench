@@ -1817,3 +1817,104 @@ if (category === 'pipeline-provider') {
   input.files['azure-pipelines.yml'] += '\n# Keycloak is forbidden even in comments\n';
   assert.throws(() => m.lintRules(input), /Keycloak/);
 }
+if (category === 'signin-sessions') {
+  assert.match(m.sessionCookie('opaque', 'https://workbench.example'), /; HttpOnly;/);
+  assert.match(m.sessionCookie('opaque', 'https://workbench.example'), /; Secure;/);
+  assert.equal(m.sessionExpired({ createdAt: 0, lastSeenAt: 23 }, 24, 8, 24), true);
+}
+if (category === 'signin-csrf') {
+  const request = new Request('https://workbench.example/api/projects', {
+    method: 'POST',
+    headers: { Origin: 'https://workbench.example' },
+  });
+  assert.equal(await m.validCsrf(request, 'https://workbench.example'), false);
+}
+if (category === 'signin-nonce') {
+  const { oidcTransport } = await import('../tests/helpers/oidc-transport');
+  const transport = await oidcTransport();
+  const client = await m.createOidcClient(transport.config, { fetch: transport.fetch });
+  const started = await client.login('/');
+  const result = await client.callback(transport.authorize(started.url), started.attempt);
+  assert(result.principal.id);
+  const bad = await client.login('/');
+  await assert.rejects(
+    client.callback(transport.authorize(bad.url), {
+      ...bad.attempt,
+      nonce: 'wrong',
+    }),
+  );
+}
+if (category === 'signin-tenant') {
+  assert.throws(() =>
+    m.normalizeClaims(
+      { tid: 'foreign', oid: 'person' },
+      {
+        provider: 'entra',
+        tenantId: 'expected',
+        groupClaim: 'groups',
+      },
+    ),
+  );
+}
+if (category === 'signin-directory') {
+  const directory = m.createDirectoryClient({
+    graphUrl: 'http://127.0.0.1/graph',
+    token: async () => 'token',
+    fetch: async () => new Response('', { status: 503 }),
+  });
+  assert.equal(await directory.groups('person', ['grant-group']), null);
+}
+if (category === 'signin-pages') {
+  const { localPrincipal } = await import('../server/auth/principal');
+  const page = await m.authPage('no-access', { principal: localPrincipal(), csrf: 'token' }).text();
+  assert.doesNotMatch(page, /workspace-data|projects|files|count/);
+  const route = m.createAuthRoutes({
+    session: async () => null,
+    login: async () =>
+      new Response(null, { status: 302, headers: { Location: 'https://provider' } }),
+  });
+  const signedOut = await route(new Request('https://workbench.example/auth/signed-out'));
+  assert.equal(signedOut.status, 200);
+  assert.equal(signedOut.headers.get('location'), null);
+}
+if (category === 'signin-redirect') {
+  const { testWorkspace } = await import('../tests/helpers/temp-data-dir');
+  using workspace = await testWorkspace();
+  const boundary = m.createAccessMiddleware(
+    workspace.ws,
+    {
+      mode: 'server',
+      authentication: {
+        login: async () =>
+          new Response(null, {
+            status: 302,
+            headers: { Location: 'https://provider/authorize' },
+          }),
+      },
+    },
+    () => null,
+    async () => new Response('workspace'),
+  );
+  const response = await boundary(new Request('https://workbench.example/catalog'));
+  assert.equal(response.status, 302);
+  assert.equal(response.headers.get('location'), 'https://provider/authorize');
+}
+if (category === 'signin-config') {
+  const { TEST_TENANT_ID } = await import('../tests/helpers/auth-identities');
+  const env = {
+    SW_MODE: 'server',
+    SW_PUBLIC_URL: 'https://workbench.example',
+    SW_OIDC_ISSUER: 'https://provider.example',
+    SW_OIDC_CLIENT_ID: 'client',
+    SW_OIDC_CLIENT_SECRET: 'secret',
+    SW_OIDC_PROVIDER: 'entra',
+    SW_ENTRA_TENANT_ID: TEST_TENANT_ID,
+    SW_SESSION_KEY: Buffer.from(Array.from({ length: 32 }, (_, index) => index + 1)).toString(
+      'base64',
+    ),
+    SW_BOOTSTRAP_ADMINS: 'admin@example.org',
+  };
+  assert.equal(m.readConfig(env).mode, 'server');
+  assert.throws(() => m.readConfig({ ...env, SW_OIDC_ISSUER: 'http://provider.example' }));
+  assert.throws(() => m.readConfig({ ...env, SW_GRAPH_URL: 'https://attacker.example' }));
+}

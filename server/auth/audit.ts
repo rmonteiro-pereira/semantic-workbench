@@ -22,7 +22,7 @@ export type AuditInput = {
   decision: 'allow' | 'deny';
   rules: string[];
   reason?: string;
-  outcome?: 'ok' | 'failed' | 'refused';
+  outcome?: 'ok' | 'failed' | 'refused' | 'degraded';
   snapshot?: {
     grants: string[];
     roles: string[];

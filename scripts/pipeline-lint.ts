@@ -65,7 +65,8 @@ function checkTask(node: PipelineNode) {
 }
 
 function checkSecurity(node: PipelineNode) {
-  if ('services' in node) throw Error('Service containers are forbidden');
+  if ('services' in node || 'container' in node || 'containers' in node)
+    throw Error('Service containers are forbidden');
   if (
     node.isSecret === true ||
     node.secret === true ||

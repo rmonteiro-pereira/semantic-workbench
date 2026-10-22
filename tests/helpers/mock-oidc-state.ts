@@ -1,7 +1,12 @@
 // Holds isolated provider state and builds signed claims for each directory shape.
 import { createHash } from 'node:crypto';
 import { exportJWK, generateKeyPair, jwtVerify, SignJWT, type JWTPayload } from 'jose';
-import { TEST_TENANT_ID, TEST_USERS, type TestUser } from './auth-identities';
+import {
+  TEST_TENANT_ID,
+  TEST_USERS,
+  TEST_WORKBENCH_CLIENT,
+  type TestUser,
+} from './auth-identities';
 
 /** Directory conventions used in identity claims. */
 export type ClaimShape = 'entra' | 'keycloak' | 'generic';
@@ -16,6 +21,7 @@ export type MockEndpoint =
 /** Loopback provider configuration. */
 export type MockOidcOptions = {
   port?: number;
+  clientSecret?: string;
   shape?: ClaimShape;
   redirectUris?: string[];
   postLogoutRedirectUris?: string[];
@@ -72,6 +78,7 @@ export async function createProviderState(options: MockOidcOptions): Promise<Pro
     apiAudience: 'api://semantic-workbench',
     options: {
       port: options.port ?? 0,
+      clientSecret: options.clientSecret ?? TEST_WORKBENCH_CLIENT.secret,
       shape: options.shape ?? 'entra',
       redirectUris: options.redirectUris ?? ['http://127.0.0.1:4310/auth/callback'],
       postLogoutRedirectUris: options.postLogoutRedirectUris ?? [

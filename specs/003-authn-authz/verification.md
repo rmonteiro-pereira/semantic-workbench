@@ -26,3 +26,17 @@ threads), so durations are upper bounds and timing budgets were at risk.
 The two timing misses repeat only under that load. This change touches no application code (`src/`
 and `server/` are unchanged), and both suites passed on the same frontend in the previous gate run.
 Their budgets are unchanged. Both suites must pass in the owner's run before SC-013 is accepted.
+
+## Sign-in (development machine, 2026-10-22)
+
+Gates this change affects, run on the integrated tree. The full browser matrix and the timing
+budgets run once more in the final gate.
+
+| Check | Result |
+| --- | --- |
+| `bun test` | 914 passed |
+| `bun run test:mutation` (through `ci:validate --step mutation`) | 163 of 163 mutants killed |
+| `bun run test:auth` | passed: every fixture person, refresh, expiry, directory overage and failure, live updates, sign-out, local mode unchanged; screenshots at the four widths |
+| `bun run test:auth:keycloak` | passed against Keycloak 26.4 (pinned digest) |
+| `bun run test:container` | passed: local group and the server-mode group with the mock provider |
+| `pipeline:lint`, dry runs for `pr`, `main`, `tag:v0.4.0-alpha.1` | passed; the `auth` leg is in the browser matrix and no Keycloak or service container appears |
