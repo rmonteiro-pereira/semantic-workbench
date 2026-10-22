@@ -1547,3 +1547,199 @@ if (category === 'subproject-rescan') {
     team.dispose();
   }
 }
+
+if (category === 'auth-grants') {
+  const principal = {
+    id: 'person',
+    groups: [],
+    groupsResolved: 'token',
+    verifiedEmail: 'A@Example.org',
+  };
+  const options = { bootstrap: { emails: [], ids: [] }, deactivated: [], groupMatch: 'exact' };
+  const grant = {
+    id: 'email',
+    roleId: 'viewer',
+    member: { kind: 'email', email: 'a@example.org' },
+    scope: { kind: 'workspace' },
+  };
+  assert.equal(m.resolveGrants(principal, [grant], options).length, 1);
+  const projects = [
+    { slug: 'sales', domain: 'sales' },
+    { slug: 'hr', domain: 'hr' },
+    { slug: 'lab', domain: null },
+  ];
+  assert.deepEqual(m.holdersOfGrant(grant, projects), [
+    'viewer@workspace',
+    'viewer@sales',
+    'viewer@hr',
+  ]);
+  assert.deepEqual(
+    m.holdersOfGrant({ ...grant, scope: { kind: 'domains', domains: ['sales'] } }, projects),
+    ['viewer@sales'],
+  );
+}
+if (category === 'auth-principal') {
+  const mapping = { provider: 'generic', groupClaim: 'groups', tenantId: null };
+  const claims = {
+    iss: 'issuer',
+    sub: 'person',
+    email: 'person@example.org',
+    email_verified: false,
+    groups: [],
+    roles: ['admin'],
+  };
+  const person = m.normalizeClaims(claims, mapping);
+  assert.equal(person.verifiedEmail, null);
+  assert.deepEqual(person.groups, []);
+  const guest = m.normalizeClaims(
+    { tid: 'tenant', oid: 'object', upn: 'guest#EXT#@tenant.org' },
+    { ...mapping, provider: 'entra' },
+  );
+  assert.equal(guest.verifiedEmail, null);
+}
+if (category === 'auth-compiler') {
+  const role = {
+    id: 'r_reader',
+    name: 'Reader',
+    description: '',
+    permissions: [{ actions: ['read'], conditions: { path: 'public/*' } }],
+  };
+  assert.match(
+    m.compileRoles([role]).policies['role:r_reader:1'],
+    /resource\.path like "public\/\*"/,
+  );
+  assert.throws(() => m.validateCustomRole({ ...role, permissions: [{ actions: ['admin'] }] }));
+}
+if (category === 'auth-decision') {
+  const { accessFixture, person } = await import('../tests/auth/access-fixture');
+  const access = m.createAccessControl(accessFixture());
+  const alice = access.principalFor(person('alice'));
+  assert.equal(
+    access.authorize(alice, 'read', { type: 'project', project: 'hr-people' }).status,
+    404,
+  );
+  const erin = access.principalFor(person('erin'));
+  assert.equal(access.authorize(erin, 'read', { type: 'workspace' }).allow, false);
+  const options = accessFixture();
+  options.config.adminRules = {
+    invalid: 'permit(principal, action, resource) when { resource.missing };',
+  };
+  assert.throws(() => m.createAccessControl(options));
+}
+if (category === 'auth-admin-guard') {
+  const { emptyAccessConfig } = await import('../server/auth/access-config');
+  assert.deepEqual(
+    m.checkLastAdmin(emptyAccessConfig(), {
+      users: [],
+      bootstrap: { emails: [], ids: [] },
+      sessionLifetimeHours: 24,
+      now: new Date(),
+    }),
+    { ok: false, reason: 'last-admin' },
+  );
+}
+if (category === 'auth-middleware') {
+  const { testWorkspace } = await import('../tests/helpers/temp-data-dir');
+  const { localPrincipal } = await import('../server/auth/principal');
+  const { createAuditLog } = await import('../server/auth/audit');
+  using workspace = await testWorkspace();
+  const audit = createAuditLog({ dir: workspace.root + '/audit' });
+  const handler = m.createAccessMiddleware(
+    workspace.ws,
+    { audit, principal: () => ({ ...localPrincipal(), kind: 'person', id: 'nobody', grants: [] }) },
+    () => null,
+    async () => {
+      throw new Error('Denied requests must not run routes');
+    },
+  );
+  const response = await handler(new Request('http://localhost/api/projects'));
+  assert.equal(response.status, 403);
+  assert.equal(audit.entries(new Date().toISOString().slice(0, 7)).length, 1);
+}
+
+if (category === 'auth-admin-repo') {
+  const { tempDataDir } = await import('../tests/helpers/temp-data-dir');
+  const dir = tempDataDir();
+  try {
+    const repo = m.openAdminRepository({ root: dir.root });
+    const author = { name: 'Admin', email: 'admin@example.org' };
+    await repo.ensure();
+    const first = await repo.version();
+    const files = { 'grants.json': '{"grants":[]}' };
+    const current = await repo.write(files, {
+      author,
+      baseVersion: first,
+      message: 'grants: Save',
+    });
+    await assert.rejects(
+      repo.write(files, {
+        author,
+        baseVersion: first,
+        message: 'grants: Stale',
+      }),
+      /stale/,
+    );
+    await assert.rejects(
+      repo.write(files, {
+        author: { ...author, name: 'Injected <>' },
+        baseVersion: current,
+        message: 'grants: Invalid author',
+      }),
+      /Invalid administrator/,
+    );
+    assert.equal(await repo.version(), current);
+  } finally {
+    dir.cleanup();
+  }
+}
+
+if (category === 'auth-audit') {
+  const { tempDataDir } = await import('../tests/helpers/temp-data-dir');
+  const dir = tempDataDir();
+  try {
+    const audit = m.createAuditLog({ dir: dir.root });
+    audit.append({
+      requestId: 'request',
+      principal: { id: 'local', kind: 'local' },
+      action: 'read',
+      resource: { type: 'file', text: 'private content', token: 'secret' },
+      decision: 'allow',
+      rules: [],
+    });
+    const entry = audit.entries(new Date().toISOString().slice(0, 7))[0];
+    assert.equal(Object.hasOwn(entry.resource, 'text'), false);
+    assert.equal(Object.hasOwn(entry.resource, 'token'), false);
+  } finally {
+    dir.cleanup();
+  }
+}
+
+if (category === 'auth-middleware') {
+  const { testWorkspace } = await import('../tests/helpers/temp-data-dir');
+  const { createAuditLog } = await import('../server/auth/audit');
+  using workspace = await testWorkspace();
+  const audit = createAuditLog({ dir: workspace.root + '/audit-allowed' });
+  let calls = 0;
+  const run = async () => {
+    calls++;
+    return new Response('ran');
+  };
+  const handler = m.createAccessMiddleware(workspace.ws, { audit }, () => null, run);
+  assert.equal((await handler(new Request('http://localhost/api/unmapped'))).status, 404);
+  assert.equal(calls, 0);
+  assert.equal((await handler(new Request('http://localhost/api/agent/catalog'))).status, 200);
+  assert.equal(audit.entries(new Date().toISOString().slice(0, 7)).length, 1);
+  const server = m.createAccessMiddleware(workspace.ws, { mode: 'server', audit }, () => null, run);
+  assert.equal(
+    (
+      await server(
+        new Request('http://localhost/api/projects', {
+          method: 'POST',
+          headers: { Origin: 'https://workbench.example', 'X-SW-Request': '1' },
+        }),
+      )
+    ).status,
+    403,
+  );
+  assert.equal(calls, 1);
+}

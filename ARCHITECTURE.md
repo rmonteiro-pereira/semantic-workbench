@@ -32,6 +32,9 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `server/auth/path-rules.ts` | Restricted POSIX globs and Cedar wildcard rule classes | Access decisions |
 | `server/auth/cedar.ts` | Validated policy loading, entity graphs and the Cedar engine | HTTP handling |
 | `server/auth/authorize.ts` | The access-decision boundary, filtered views and request memoisation | HTTP handling |
+| `server/auth/route-actions.ts`, `server/auth/middleware.ts` | Route inventory, request scopes, identity resolution and audited HTTP decisions | Resource-specific business logic |
+| `server/auth/audit.ts` | Durable monthly audit records, hash chains and retention | Secrets or document contents |
+| `server/auth/admin-repo.ts`, `server/auth/admin-guard.ts` | Validated Git versions of administration documents and the last human Admin invariant | HTTP parsing |
 | `server/agent/` | Metric explanations and the SQL preview (`explain.ts`, `runtime.ts`) | Query execution |
 | `src/main.tsx`, `src/app/` | The app shell: `useWorkbench` and the other hooks hold state and handlers; `Workspace*` and `*Dialogs` components lay it out | Parsing or validation rules |
 | `src/model.ts`, `src/validation.ts`, `src/rdf*.ts`, `src/odcs.ts` | Parse a file into `Entity` and `Relationship`, and validate it; pure functions shared with the server | React, fetch |
@@ -110,6 +113,20 @@ editor never receives an older deferred value as an external replacement.
   `openWorkspace({ root })`, and the server listens on `127.0.0.1:4310`, until the container and
   server-mode work wires `readConfig()` into `server/index.ts`. Tests and browser checks always
   pass a temporary data root.
+- **Access**: every request goes through `server/auth/middleware.ts`; routes never decide access.
+  `auth/route-actions.ts` maps each HTTP entry point to an action and resource. The middleware
+  creates one request scope through `auth/authorize.ts`, fails closed for unmapped routes, and
+  attaches the scope for route filtering. Local mode uses the implicit Admin; server mode requires
+  an injected principal resolver. Server non-GET requests require `X-SW-Request: 1` and an `Origin`
+  equal to `HandlerOptions.publicOrigin`; without that configured origin they are refused.
+- **Audit**: denied decisions, allowed writes (including local draft saves), and allowed reads on
+  explicitly audited agent rows are flushed to monthly JSON Lines under `state/audit/`. Records
+  include the principal, action, resource, decision, outcome, previous-line hash, and response's
+  `X-Request-Id`; secrets and document contents are excluded. Retention defaults to 400 days.
+  Local mode does not mirror to stdout. Failed denial audits refuse the request; audit failures
+  after an operation log the request id to stderr and preserve its response to avoid retrying writes.
+  Administration documents live in `admin/`, with validated atomic writes and one Git commit
+  per change; failed writes restore the committed tree, while requested rollbacks create new commits.
 - **Errors**: services throw specific errors (`server/projects/errors.ts`, `GitError`,
   `PathError`, `InputError`); `server/routes/http.ts` maps them to status codes in one place.
 - **Events**: the server emits `files`, `projects`, `git`, `clone`, `identity` and others

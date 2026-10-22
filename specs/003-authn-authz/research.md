@@ -634,3 +634,4 @@ probe: `openid-client` 6.8.8 (MIT, 236 KB) with `oauth4webapi` (MIT, 332 KB), `j
 | T006, T007 (mock OpenID provider, Keycloak realm) | Codex (gpt-6-astra), reviewed by Claude |
 | T010–T016, T134–T137 (claims, grants, role compiler, Cedar loader, decision boundary) | Codex (gpt-6-astra), reviewed by Claude |
 | Review fixes of the access core (overlapping restricted rules, agent clients and restricted paths, live project list, per-request decision scope, Admin rules wired, path normalisation) | Codex (gpt-6-astra) from the architecture review, reviewed by Claude |
+| T017–T025 (route table, middleware, audit log, administration repository, last-Admin guard, mutants) and their review fixes | Codex (gpt-6-astra), reviewed by Claude |

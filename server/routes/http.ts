@@ -1,4 +1,6 @@
 // Defines shared route handling, HTTP error responses, and URL path decoding.
+import { AdminConfigError, AdminStaleError } from '../auth/admin-repo';
+import { AccessConfigError } from '../auth/access-config';
 import { InputError } from '../../src/diagnostics';
 import { PathError } from '../projects/paths';
 import { GitError } from '../projects/git';
@@ -20,6 +22,10 @@ export type Route = (
 ) => Promise<Response | null> | Response | null;
 /** Maps workspace errors to HTTP responses, including current content for stale saves. */
 export function errorResponse(e: unknown) {
+  if (e instanceof AdminStaleError)
+    return Response.json({ error: 'stale', message: e.message }, { status: 409 });
+  if (e instanceof AdminConfigError || e instanceof AccessConfigError)
+    return Response.json({ error: e.message }, { status: 400 });
   if (e instanceof StaleError)
     return Response.json(
       { error: 'stale', currentHash: e.currentHash, currentSource: e.currentSource },

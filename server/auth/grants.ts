@@ -93,26 +93,22 @@ export function holdersOfGrant(
 }
 
 /** Lists recorded Admin holders and the independent number of bootstrap entries. */
-export function adminHolders(users: GrantIdentity[], grants: Grant[], bootstrap: Bootstrap) {
-  // Directory object ids are case-insensitive; named provider groups remain exact.
-  const groupId = (value: string) =>
-    /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(value) ? value.toLowerCase() : value;
-  const admins = grants
-    .filter(grant => grant.roleId === 'admin')
-    .map(grant => {
-      if (grant.member.kind !== 'group') return grant;
-      return { ...grant, member: { ...grant.member, groupId: groupId(grant.member.groupId) } };
-    });
+export function adminHolders(
+  users: GrantIdentity[],
+  grants: Grant[],
+  bootstrap: Bootstrap,
+  groupMatch: GrantOptions['groupMatch'] = 'exact',
+) {
+  const admins = grants.filter(
+    grant => grant.roleId === 'admin' && grant.scope.kind === 'workspace',
+  );
   const options: GrantOptions = {
     bootstrap: { emails: [], ids: [] },
     deactivated: [],
-    groupMatch: 'exact',
+    groupMatch,
   };
   const ids = users
-    .filter(
-      user =>
-        resolveGrants({ ...user, groups: user.groups.map(groupId) }, admins, options).length > 0,
-    )
+    .filter(user => resolveGrants(user, admins, options).length > 0)
     .map(user => user.id);
   return { ids: [...new Set(ids)], bootstrapCount: bootstrap.emails.length + bootstrap.ids.length };
 }

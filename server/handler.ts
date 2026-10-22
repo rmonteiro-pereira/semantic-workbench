@@ -1,5 +1,6 @@
 // Routes API requests and preserves the legacy document interface. Host and origin checks restrict
 // access to local clients.
+import { createAccessMiddleware, type HandlerOptions } from './auth/middleware';
 import { agentCatalog, buildContext, selectContext, planQuery } from './agent/runtime';
 import { readJson } from './request';
 import { InputError, MAX_INPUT_BYTES } from '../src/diagnostics';
@@ -190,15 +191,18 @@ export function loopbackHost(host: string | null) {
   return ['127.0.0.1', 'localhost', '[::1]'].includes(name.toLowerCase());
 }
 /** Creates the API handler with local-access checks and shared error responses. */
-export function createHandler(ws: Workspace) {
-  return async (req: Request) => {
-    const url = new URL(req.url);
+export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
+  function localCheck(req: Request): Response | null {
     const origin = req.headers.get('origin');
     if (origin && !ALLOWED_ORIGINS.includes(origin))
       return new Response('Forbidden', { status: 403 });
     // DNS rebinding: a page on another name resolved to 127.0.0.1 sends its own name as Host, and a
     // same-origin GET carries no Origin. Only loopback names are served.
     if (!loopbackHost(req.headers.get('host'))) return new Response('Forbidden', { status: 403 });
+    return null;
+  }
+  const run = async (req: Request) => {
+    const url = new URL(req.url);
     try {
       for (const route of routes) {
         const response = await route(ws, req, url);
@@ -215,4 +219,5 @@ export function createHandler(ws: Workspace) {
       return errorResponse(e);
     }
   };
+  return createAccessMiddleware(ws, options, localCheck, run);
 }
