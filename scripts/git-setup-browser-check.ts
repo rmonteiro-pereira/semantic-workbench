@@ -1,5 +1,6 @@
 // Checks Git setup from the browser: identity, remote, commit and push, clone, and the credential
 // guide. Every remote is a local bare repository or a local test server; no network remote is used.
+import { appUrl } from './helpers/base-url';
 import { chromium, expect } from '@playwright/test';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -67,7 +68,7 @@ async function setRemote(url: string) {
 }
 
 try {
-  await page.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
+  await page.goto(appUrl());
   await check(
     'identity: the banner offers Set Git identity; the values go into the repository and count at once',
     async () => {
@@ -191,7 +192,7 @@ try {
       [2560, 1440],
     ] as const) {
       await page.setViewportSize({ width, height });
-      await page.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
+      await page.goto(appUrl());
       if (width < 1100)
         await page.getByRole('button', { name: 'Open workspace', exact: true }).click();
       await page.getByRole('button', { name: 'Import…' }).click();

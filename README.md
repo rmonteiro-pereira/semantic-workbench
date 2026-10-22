@@ -132,7 +132,7 @@ bun --bun run check
 bun --bun run build
 ```
 
-Browser checks require a running dev server and Playwright Chromium. They open `UI_URL` (default `http://127.0.0.1:5173/`), so they can run against a second dev server on another port:
+Browser checks require a running dev server and Playwright Chromium:
 
 ```sh
 bun node_modules/@playwright/test/cli.js install chromium
@@ -142,6 +142,11 @@ bun scripts/browser-check.ts
 ```
 
 Checks cover all commerce input formats, exact scale counts, native RDF identity and typed constraints, RDF/XML/Turtle OWL IRI equivalence, malformed inputs, official schemas, transactional saves, graph cycles, 5,000 entities / 15,000 links, relationship selection/editing, multi-format uploads and browser errors. Browser checks run the API on a temporary data root and send the page's `/api` requests there, so they never touch your workspace. `commerce-browser-check.ts`, `relationship-browser-check.ts` and `browser-check.ts` predate the current layout and also fail on v0.1.0 (stale selectors); they are kept for reference until they are updated. Screenshots go to `/tmp/`.
+
+Browser checks open the frontend at `SW_BASE_URL` (default `http://127.0.0.1:5173`; the older name
+`UI_URL` is still accepted). To use another Vite instance, start it with
+`bun x vite-plus dev --host 127.0.0.1 --strictPort --port 5180` and run the checks with `SW_BASE_URL=http://127.0.0.1:5180`. The
+API is always the isolated one, whatever the frontend address.
 
 ## Established complex business model: OASIS UBL 2.3
 

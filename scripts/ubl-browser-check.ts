@@ -1,4 +1,5 @@
 // Inspects UBL graph rendering and layout in the browser.
+import { appUrl } from './helpers/base-url';
 import { chromium } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 const browser = await chromium.launch({ headless: true });
@@ -12,7 +13,7 @@ const docs = {
   },
 };
 await routeApi(page, api);
-await page.goto('http://127.0.0.1:5173/');
+await page.goto(appUrl());
 await page.getByRole('button', { name: /Load UBL business model/ }).click();
 await page.getByRole('status').filter({ hasText: 'Loaded UBL:' }).waitFor({ timeout: 60000 });
 await page

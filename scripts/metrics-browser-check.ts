@@ -1,4 +1,5 @@
 // Checks metric details, explanations and graph navigation in an isolated browser workspace.
+import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { parseDocument } from 'yaml';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
@@ -112,7 +113,7 @@ const metricsTab = (p: Page = page) => p.locator('.tabs').getByRole('button', { 
 const list = (p: Page = page) => p.getByRole('region', { name: 'Metrics' });
 try {
   await routeApi(page, api);
-  await page.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
+  await page.goto(appUrl());
   await expect(tree()).toBeVisible();
   await check(
     'the Metrics tab lists the 25 shopping center metrics with label, type, unit, status, owner and concept',
@@ -280,7 +281,7 @@ try {
         try {
           p.on('pageerror', e => errors.push(`${width}: ${e.message}`));
           await routeApi(p, api);
-          await p.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
+          await p.goto(appUrl());
           if (width < 1100)
             await p.getByRole('button', { name: 'Open workspace', exact: true }).click();
           await openFile('mall.odcs.yaml', p);

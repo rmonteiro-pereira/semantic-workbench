@@ -1,4 +1,5 @@
 // Checks large graph rendering and interactions in the browser.
+import { appUrl } from './helpers/base-url';
 import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 const browser = await chromium.launch();
@@ -10,7 +11,7 @@ const api = await startIsolatedApi({ watch: false });
 await api.ws.importBatch({ files: [{ path: 'commerce-scale.ttl', source }] });
 await routeApi(page, api);
 try {
-  await page.goto('http://127.0.0.1:5173/');
+  await page.goto(appUrl());
   await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
   await expect(page.locator('.full-graph-status')).toHaveAttribute('data-entity-count', '1000');
   await expect(page.locator('.full-graph-status')).toHaveAttribute(

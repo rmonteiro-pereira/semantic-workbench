@@ -1,4 +1,5 @@
 // Checks item editing and dependent changes in an isolated browser workspace.
+import { appUrl } from './helpers/base-url';
 import { chromium, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { parse } from 'yaml';
@@ -73,7 +74,7 @@ async function saveDialog(d: ReturnType<typeof editor>) {
   await expect(d).toHaveCount(0, { timeout: 5000 });
 }
 try {
-  await page.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
+  await page.goto(appUrl());
   await check('catalog → Edit a concept: one field changes one line of the YAML file', async () => {
     await openFile('commerce-business.ossie.yaml');
     await tabs().getByRole('button', { name: 'Catalog' }).click();

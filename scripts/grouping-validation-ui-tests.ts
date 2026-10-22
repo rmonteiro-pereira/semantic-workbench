@@ -1,4 +1,5 @@
 // Checks grouping suggestions and validation dialogs in an isolated browser workspace.
+import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Locator } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
@@ -144,7 +145,7 @@ async function attachedFlights() {
 }
 
 try {
-  await page.goto('http://127.0.0.1:5173/');
+  await page.goto(appUrl());
   await expect(page.locator('h1')).toHaveText('Flights');
   await graphReady();
   await check(

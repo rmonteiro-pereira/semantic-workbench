@@ -1,6 +1,7 @@
 // Checks several projects in one repository from the browser: projects from a manifest or a
 // confirmed choice, the grouped tree, the shared Source Control, and Remove versus Delete folder.
 // Every repository is a local bare repository in a temporary folder.
+import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -81,7 +82,7 @@ async function expectFits(dialog: ReturnType<Page['getByRole']>, width: number) 
 }
 
 try {
-  await page.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
+  await page.goto(appUrl());
   await check('a manifest makes Sales and Finance, grouped under their repository', async () => {
     const dialog = await clone(page, declared.bare);
     await expect(dialog).toContainText(
@@ -188,7 +189,7 @@ try {
   await check('the repository dialogs fit at 390, 1280, 1440 and 2560 px', async () => {
     for (const [width, height] of VIEWPORTS) {
       await page.setViewportSize({ width, height });
-      await page.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
+      await page.goto(appUrl());
       if (width < 1100)
         await page.getByRole('button', { name: 'Open workspace', exact: true }).click();
       const chooser = await openRepositoryProjects('monorepo');

@@ -1,4 +1,5 @@
 // Checks responsive layouts, overlays and navigation in an isolated browser workspace.
+import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { treeRowProblems } from './helpers/tree-geometry';
@@ -77,7 +78,7 @@ async function openPage(width: number, height: number) {
       console.log('INJECTED_STATUS_MUTATION');
       await route.fulfill({ response, body: source.replace(anchor, 'const timer = 0;') });
     });
-  await page.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
+  await page.goto(appUrl());
   await expect(page.locator('h1')).toContainText('UBL');
   await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60_000 });
   await expect(page.locator('.react-flow__node-entity').first()).toBeVisible();
@@ -1121,7 +1122,7 @@ try {
       const page = await context.newPage();
       page.on('pageerror', error => errors.push(`sidebar: ${error.message}`));
       await routeApi(page, api);
-      await page.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
+      await page.goto(appUrl());
       const sidebar = page.locator('#workspace-sidebar');
       const separator = page.getByRole('separator', { name: 'Resize sidebar' });
       await expect(separator).toBeVisible();

@@ -1,4 +1,5 @@
 // Checks that graph edges stay attached to their nodes during browser interactions.
+import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { inspect } from '../src/model';
@@ -150,7 +151,7 @@ async function drag(page: Page, selector: string, dx: number, dy: number) {
 }
 
 try {
-  await page.goto('http://127.0.0.1:5173/');
+  await page.goto(appUrl());
   await expect(page.locator('h1')).toContainText('Flights');
   await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
   await check('network graph path endpoints attach to actual entity borders', async () => {

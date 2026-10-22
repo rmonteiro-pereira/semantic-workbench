@@ -1,4 +1,5 @@
 // Checks column lineage against reference edges and measures browser interaction latency.
+import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
@@ -144,7 +145,7 @@ async function shots(name: string) {
   await page.waitForTimeout(200);
 }
 try {
-  await page.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
+  await page.goto(appUrl());
   await check(
     'commerce: the Graph tab opens the lineage canvas centred on orders; drawn lines match the expected edges both ways',
     async () => {

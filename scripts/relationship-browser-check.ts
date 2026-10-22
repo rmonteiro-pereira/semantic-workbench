@@ -1,4 +1,5 @@
 // Inspects relationship rendering and selection in the browser.
+import { appUrl } from './helpers/base-url';
 import { chromium } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { example } from './helpers/examples';
@@ -29,7 +30,7 @@ const api = await startIsolatedApi({ watch: false });
 await api.ws.importBatch({ files: [{ path: 'commerce.yaml', source }] });
 const savedSource = () => api.ws.documents().find(d => d.filename === 'commerce.yaml')?.source;
 await routeApi(page, api);
-await page.goto('http://127.0.0.1:5173/');
+await page.goto(appUrl());
 const edge = page.locator('.react-flow__edge').first();
 await edge.waitFor();
 await page.waitForTimeout(600);

@@ -1,4 +1,5 @@
 // Checks embedded SQL highlighting, warning locations and unchanged export bytes in the browser.
+import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
@@ -92,7 +93,7 @@ const warningAt = () =>
     };
   });
 try {
-  await page.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
+  await page.goto(appUrl());
   await check(
     'SQL in YAML is colored as SQL: CASE WHEN keywords and the string literal, beside YAML keys and values',
     async () => {

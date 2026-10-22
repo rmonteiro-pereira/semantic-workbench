@@ -1,4 +1,5 @@
 // Checks source editing, byte-preserving saves and typing latency in an isolated browser workspace.
+import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -108,7 +109,7 @@ async function goTo(line: number) {
 const rgb = (hex: string) =>
   `rgb(${parseInt(hex.slice(1, 3), 16)}, ${parseInt(hex.slice(3, 5), 16)}, ${parseInt(hex.slice(5, 7), 16)})`;
 try {
-  await page.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
+  await page.goto(appUrl());
   await check('colors follow each serialization (VS Code Light+ palette)', async () => {
     const cases: [string, string, [string, string][]][] = [
       [
@@ -332,7 +333,7 @@ try {
           })
         ).json();
         await routeApi(p, { url: child.url } as any);
-        await p.goto(process.env.UI_URL ?? 'http://127.0.0.1:5173/');
+        await p.goto(appUrl());
         await p
           .getByRole('tree', { name: 'Projects' })
           .getByRole('button', { name: 'large.yaml', exact: true })
