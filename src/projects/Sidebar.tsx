@@ -4,16 +4,26 @@ import {
   ChevronDown,
   ChevronRight,
   FileCode,
+  Folder,
   FolderGit2,
   MoreHorizontal,
   Trash2,
 } from 'lucide-react';
-import type { ProjectInfo } from './api';
+import type { ProjectFile, ProjectInfo } from './api';
 // Project → files tree. Each file shows its document type and whether it passed validation;
 // invalid files stay listed so they can be repaired in Source.
 /** Names actions available from a project or file tree row. */
 export type TreeAction =
-  | { action: 'rename' | 'import' | 'delete-project' | 'gitignore' | 'remote'; project: string }
+  | {
+      action:
+        | 'rename'
+        | 'import'
+        | 'delete-project'
+        | 'gitignore'
+        | 'remote'
+        | 'repository-projects';
+      project: string;
+    }
   | { action: 'move' | 'delete-file' | 'history'; project: string; path: string };
 // Per-item menu: a button that opens a list of menu items.
 function ItemMenu({
@@ -84,6 +94,193 @@ function DeleteButton({ label, onClick }: { label: string; onClick: () => void }
 }
 const typeLabel = (docType: string) =>
   docType === 'unknown' ? 'Unrecognized' : docType === 'gitignore' ? '.gitignore' : docType;
+type TreeProps = {
+  currentId?: string;
+  onOpen: (project: string, path: string) => void;
+  onAction: (action: TreeAction) => void;
+  collapsed: Set<string>;
+  toggle: (key: string) => void;
+};
+
+// Arrow keys fold and unfold a tree row, as in a file explorer.
+function foldKeys(open: boolean, toggle: () => void) {
+  return (e: React.KeyboardEvent) => {
+    const wantsChange = (e.key === 'ArrowLeft' && open) || (e.key === 'ArrowRight' && !open);
+    if (!wantsChange) return;
+    e.preventDefault();
+    toggle();
+  };
+}
+
+function projectMenu(project: ProjectInfo, onAction: (action: TreeAction) => void) {
+  const run = (action: Exclude<TreeAction, { path: string }>['action']) => () =>
+    onAction({ action, project: project.slug });
+  return [
+    { label: 'Rename', run: run('rename') },
+    { label: 'Import files into this project', run: run('import') },
+    { label: 'Edit .gitignore', run: run('gitignore') },
+    { label: 'Remote…', run: run('remote') },
+    { label: 'Projects in this repository…', run: run('repository-projects') },
+    { label: 'Delete', run: run('delete-project') },
+  ];
+}
+
+function FileItem({
+  project,
+  file,
+  currentId,
+  onOpen,
+  onAction,
+}: { project: ProjectInfo; file: ProjectFile } & Omit<TreeProps, 'collapsed' | 'toggle'>) {
+  const id = `${project.slug}/${file.path}`;
+  const act = (action: 'history' | 'move' | 'delete-file') => () =>
+    onAction({ action, project: project.slug, path: file.path });
+  return (
+    <li
+      role="treeitem"
+      aria-selected={currentId === id}
+      aria-label={file.path}
+      className={`project-file ${file.valid ? '' : 'invalid'}`}
+    >
+      <div className="tree-row file-row">
+        <button
+          className={`document ${currentId === id ? 'chosen' : ''}`}
+          aria-label={file.path}
+          title={file.path}
+          onClick={() => onOpen(project.slug, file.path)}
+        >
+          <FileCode size={15} />
+          <span title={file.path}>{file.path}</span>
+        </button>
+        <DeleteButton label={`Delete ${file.path}`} onClick={act('delete-file')} />
+        <ItemMenu
+          label={`${file.path} in ${project.name}`}
+          items={[
+            { label: 'History', run: act('history') },
+            { label: 'Move', run: act('move') },
+            { label: 'Delete', run: act('delete-file') },
+          ]}
+        />
+      </div>
+      <small className="file-meta">
+        {typeLabel(file.docType)}
+        {file.layout === 'embedded (deprecated)' && (
+          <span title="Consolidated Ossie file: the ontology embeds its semantic model in ontology_mappings. Apache Ossie deprecates this layout in favour of split files.">
+            {' '}
+            · consolidated (deprecated upstream)
+          </span>
+        )}
+        {!file.valid && <em className="file-invalid"> · invalid</em>}
+        {file.gitState !== 'clean' && file.gitState !== 'unknown' && <> · {file.gitState}</>}
+      </small>
+    </li>
+  );
+}
+
+function ProjectItem({ project, ...props }: { project: ProjectInfo } & TreeProps) {
+  const open = !props.collapsed.has(project.slug);
+  const toggle = () => props.toggle(project.slug);
+  // A subfolder project names its folder, since the repository row above already names the
+  // repository.
+  const where = project.folder ? `${project.name} (${project.folder})` : project.name;
+  return (
+    <li role="treeitem" aria-expanded={open} aria-label={project.name} className="project">
+      <div className="tree-row">
+        <button
+          className="project-toggle"
+          title={where}
+          aria-label={project.name}
+          onClick={toggle}
+          onKeyDown={foldKeys(open, toggle)}
+        >
+          {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          {project.folder ? <Folder size={15} /> : <FolderGit2 size={15} />}
+          <span title={where}>{project.name}</span>
+          <small>{project.files.length}</small>
+        </button>
+        <DeleteButton
+          label={`Delete project ${project.name}`}
+          onClick={() => props.onAction({ action: 'delete-project', project: project.slug })}
+        />
+        <ItemMenu label={project.name} items={projectMenu(project, props.onAction)} />
+      </div>
+      {open && (
+        <ul role="group">
+          {project.files.map(file => (
+            <FileItem key={file.path} project={project} file={file} {...props} />
+          ))}
+        </ul>
+      )}
+    </li>
+  );
+}
+
+// A repository that holds several projects: one row for the repository, its projects inside.
+function RepositoryItem({
+  repo,
+  projects,
+  ...props
+}: { repo: string; projects: ProjectInfo[] } & TreeProps) {
+  const key = 'repository:' + repo;
+  const open = !props.collapsed.has(key);
+  const toggle = () => props.toggle(key);
+  const label = `Repository ${repo}`;
+  return (
+    <li role="treeitem" aria-expanded={open} aria-label={label} className="repository">
+      <div className="tree-row">
+        <button
+          className="project-toggle"
+          title={label}
+          aria-label={label}
+          onClick={toggle}
+          onKeyDown={foldKeys(open, toggle)}
+        >
+          {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          <FolderGit2 size={15} />
+          <span title={label}>{repo}</span>
+          <small>{projects.length}</small>
+        </button>
+        <ItemMenu
+          label={label}
+          items={[
+            {
+              label: 'Projects in this repository…',
+              run: () =>
+                props.onAction({ action: 'repository-projects', project: projects[0].slug }),
+            },
+          ]}
+        />
+      </div>
+      {open && (
+        <ul role="group">
+          {projects.map(project => (
+            <ProjectItem key={project.slug} project={project} {...props} />
+          ))}
+        </ul>
+      )}
+    </li>
+  );
+}
+
+// Projects in tree order: a repository with subfolder projects becomes one group, placed where
+// its first project was; every other project stays a top-level row.
+function treeEntries(projects: ProjectInfo[]) {
+  const byRepo = new Map<string, ProjectInfo[]>();
+  for (const project of projects)
+    byRepo.set(project.repo, [...(byRepo.get(project.repo) ?? []), project]);
+  const entries: ({ repo: string; projects: ProjectInfo[] } | { project: ProjectInfo })[] = [];
+  const placed = new Set<string>();
+  for (const project of projects) {
+    const members = byRepo.get(project.repo)!;
+    if (!members.some(member => member.folder)) entries.push({ project: project });
+    else if (!placed.has(project.repo)) {
+      placed.add(project.repo);
+      entries.push({ repo: project.repo, projects: members });
+    }
+  }
+  return entries;
+}
+
 /** Renders project files with validation status and file actions. */
 export function ProjectTree({
   projects,
@@ -94,146 +291,30 @@ export function ProjectTree({
   projects: ProjectInfo[];
   currentId?: string;
   onOpen: (project: string, path: string) => void;
-  onAction: (a: TreeAction) => void;
+  onAction: (action: TreeAction) => void;
 }) {
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
-  const toggle = (slug: string) =>
+  const toggle = (key: string) =>
     setCollapsed(old => {
       const next = new Set(old);
-      if (next.has(slug)) next.delete(slug);
-      else next.add(slug);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
   if (!projects.length)
     return (
       <p className="projects-empty">No projects yet. Import definitions or load an example.</p>
     );
+  const props = { currentId, onOpen, onAction, collapsed, toggle };
   return (
     <ul className="project-tree" role="tree" aria-label="Projects">
-      {projects.map(p => {
-        const open = !collapsed.has(p.slug);
-        return (
-          <li
-            key={p.slug}
-            role="treeitem"
-            aria-expanded={open}
-            aria-label={p.name}
-            className="project"
-          >
-            <div className="tree-row">
-              <button
-                className="project-toggle"
-                title={p.name}
-                aria-label={p.name}
-                onClick={() => toggle(p.slug)}
-                onKeyDown={e => {
-                  if (e.key === 'ArrowLeft' && open) {
-                    e.preventDefault();
-                    toggle(p.slug);
-                  }
-                  if (e.key === 'ArrowRight' && !open) {
-                    e.preventDefault();
-                    toggle(p.slug);
-                  }
-                }}
-              >
-                {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                <FolderGit2 size={15} />
-                <span title={p.name}>{p.name}</span>
-                <small>{p.files.length}</small>
-              </button>
-              <DeleteButton
-                label={`Delete project ${p.name}`}
-                onClick={() => onAction({ action: 'delete-project', project: p.slug })}
-              />
-              <ItemMenu
-                label={p.name}
-                items={[
-                  { label: 'Rename', run: () => onAction({ action: 'rename', project: p.slug }) },
-                  {
-                    label: 'Import files into this project',
-                    run: () => onAction({ action: 'import', project: p.slug }),
-                  },
-                  {
-                    label: 'Edit .gitignore',
-                    run: () => onAction({ action: 'gitignore', project: p.slug }),
-                  },
-                  { label: 'Remote…', run: () => onAction({ action: 'remote', project: p.slug }) },
-                  {
-                    label: 'Delete',
-                    run: () => onAction({ action: 'delete-project', project: p.slug }),
-                  },
-                ]}
-              />
-            </div>
-            {open && (
-              <ul role="group">
-                {p.files.map(f => {
-                  const id = `${p.slug}/${f.path}`;
-                  return (
-                    <li
-                      key={f.path}
-                      role="treeitem"
-                      aria-selected={currentId === id}
-                      aria-label={f.path}
-                      className={`project-file ${f.valid ? '' : 'invalid'}`}
-                    >
-                      <div className="tree-row file-row">
-                        <button
-                          className={`document ${currentId === id ? 'chosen' : ''}`}
-                          aria-label={f.path}
-                          title={f.path}
-                          onClick={() => onOpen(p.slug, f.path)}
-                        >
-                          <FileCode size={15} />
-                          <span title={f.path}>{f.path}</span>
-                        </button>
-                        <DeleteButton
-                          label={`Delete ${f.path}`}
-                          onClick={() =>
-                            onAction({ action: 'delete-file', project: p.slug, path: f.path })
-                          }
-                        />
-                        <ItemMenu
-                          label={`${f.path} in ${p.name}`}
-                          items={[
-                            {
-                              label: 'History',
-                              run: () =>
-                                onAction({ action: 'history', project: p.slug, path: f.path }),
-                            },
-                            {
-                              label: 'Move',
-                              run: () =>
-                                onAction({ action: 'move', project: p.slug, path: f.path }),
-                            },
-                            {
-                              label: 'Delete',
-                              run: () =>
-                                onAction({ action: 'delete-file', project: p.slug, path: f.path }),
-                            },
-                          ]}
-                        />
-                      </div>
-                      <small className="file-meta">
-                        {typeLabel(f.docType)}
-                        {f.layout === 'embedded (deprecated)' && (
-                          <span title="Consolidated Ossie file: the ontology embeds its semantic model in ontology_mappings. Apache Ossie deprecates this layout in favour of split files.">
-                            {' '}
-                            · consolidated (deprecated upstream)
-                          </span>
-                        )}
-                        {!f.valid && <em className="file-invalid"> · invalid</em>}
-                        {f.gitState !== 'clean' && f.gitState !== 'unknown' && <> · {f.gitState}</>}
-                      </small>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </li>
-        );
-      })}
+      {treeEntries(projects).map(entry =>
+        'project' in entry ? (
+          <ProjectItem key={entry.project.slug} project={entry.project} {...props} />
+        ) : (
+          <RepositoryItem key={'repository:' + entry.repo} {...entry} {...props} />
+        ),
+      )}
     </ul>
   );
 }

@@ -5,6 +5,14 @@ import { decode, sha256 } from '../projects/atomic';
 import { projectFile } from '../projects/paths';
 import { appendIgnore } from '../../src/scm/gitignore';
 import type { Route } from './http';
+// Files are named relative to the project (`paths`) or to its repository root (`repoPaths`), the
+// latter for files of sibling projects in a shared repository.
+function chosenPaths(body: { paths?: unknown; repoPaths?: unknown }) {
+  if (body.paths !== undefined && body.repoPaths !== undefined)
+    throw Error('Send paths or repoPaths, not both.');
+  if (body.repoPaths !== undefined) return { list: body.repoPaths, base: 'repository' as const };
+  return { list: body.paths, base: 'project' as const };
+}
 /** Handles source control requests, including explicitly requested remote actions. */
 export const gitRoutes: Route = async (ws, req, url) => {
   // The credential helper set in the user's or system Git settings; credentials are never read.
@@ -31,10 +39,12 @@ export const gitRoutes: Route = async (ws, req, url) => {
     if (action === 'git/status') return Response.json(await scm.status(slug));
     if (action === 'git/identity') return Response.json(await ws.identity(slug));
     if (action === 'git/diff') {
-      const path = q.get('path');
-      if (!path) throw Error('path is required.');
+      const repoPath = q.get('repoPath');
+      const path = repoPath ?? q.get('path');
+      if (!path) throw Error('path or repoPath is required.');
+      const base = repoPath === null ? 'project' : 'repository';
       return Response.json(
-        await scm.diff(slug, path, q.get('from') ?? 'HEAD', q.get('to') ?? 'worktree'),
+        await scm.diff(slug, path, q.get('from') ?? 'HEAD', q.get('to') ?? 'worktree', base),
       );
     }
     if (action === 'git/branches') return Response.json(await scm.branches(slug));
@@ -63,22 +73,25 @@ export const gitRoutes: Route = async (ws, req, url) => {
   }
   if (req.method === 'POST') {
     if (action === 'git/stage' || action === 'git/unstage') {
-      const b = await body(['paths', 'all']);
+      const b = await body(['paths', 'repoPaths', 'all']);
       const stage = action === 'git/stage';
+      if (b.all === true) return Response.json(await scm.stageAll(slug, stage));
+      const { list, base } = chosenPaths(b);
       return Response.json(
-        b.all === true
-          ? await scm.stageAll(slug, stage)
-          : stage
-            ? await scm.stage(slug, b.paths)
-            : await scm.unstage(slug, b.paths),
+        stage ? await scm.stage(slug, list, base) : await scm.unstage(slug, list, base),
       );
     }
     if (action === 'git/commit') {
-      const b = await body(['message', 'paths', 'push']);
+      const b = await body(['message', 'paths', 'repoPaths', 'push']);
       if (b.push !== undefined && typeof b.push !== 'boolean')
         throw Error('push must be true or false.');
+      const chosen = b.paths === undefined && b.repoPaths === undefined ? null : chosenPaths(b);
       return Response.json(
-        await scm.commit(slug, b.message, { paths: b.paths, push: b.push === true }),
+        await scm.commit(slug, b.message, {
+          paths: chosen?.list,
+          base: chosen?.base,
+          push: b.push === true,
+        }),
       );
     }
     if (action === 'git/revert') {

@@ -1,7 +1,10 @@
-// Watches project folders and debounces change notifications. Periodic rescans cover missed
-// filesystem events.
+// Watches each repository folder once and debounces change notifications per project. A
+// repository can hold several projects in subfolders; a change inside one folder notifies that
+// project, and a Git change (branch, index, refs) notifies every project of the repository.
+// Periodic rescans cover missed filesystem events.
 import { watch, type FSWatcher } from 'node:fs';
-import { projectDir, type DataLayout } from './paths';
+import { join } from 'node:path';
+import type { DataLayout, ProjectLocation } from './paths';
 /** Delay used to combine bursts of filesystem changes per project. */
 export const DEBOUNCE_MS = 150;
 /** Interval for rescans that catch missed filesystem events. */
@@ -12,6 +15,8 @@ export function createWatcher(
   options: {
     onChange: (slug: string, gitChanged: boolean) => Promise<void>;
     all: () => string[];
+    /** Where a registered project lives: its folder and repository under data/projects/. */
+    locate: (slug: string) => ProjectLocation;
     debounceMs?: number;
     rescanMs?: number;
   },
@@ -43,32 +48,50 @@ export function createWatcher(
   }, rescanMs);
   return {
     add(slug: string) {
-      if (watchers.has(slug)) return;
+      const { repo } = options.locate(slug);
+      if (watchers.has(repo)) return;
       try {
-        const w = watch(projectDir(layout, slug), { recursive: true }, (_event, name) => {
+        const w = watch(join(layout.projects, repo), { recursive: true }, (_event, name) => {
           const file = String(name ?? '')
             .split('\\')
             .join('/');
+          const inRepo = options.all().filter(project => options.locate(project).repo === repo);
           if (file === '.git' || file.startsWith('.git/')) {
-            if (/^\.git\/(HEAD|index|refs\/)/.test(file)) schedule(slug, true);
+            if (/^\.git\/(HEAD|index|refs\/)/.test(file))
+              for (const project of inRepo) schedule(project, true);
             return;
           }
-          schedule(slug, false);
+          for (const project of inRepo) {
+            const { folder } = options.locate(project);
+            const inside = folder === repo ? '' : folder.slice(repo.length + 1) + '/';
+            if (!inside || file.startsWith(inside)) schedule(project, false);
+          }
         });
         w.on('error', () => {
           w.close();
-          watchers.delete(slug);
+          watchers.delete(repo);
         });
-        watchers.set(slug, w);
+        watchers.set(repo, w);
       } catch (e) {
-        console.error(`[watcher] cannot watch ${slug}: ${(e as Error).message}`);
+        console.error(`[watcher] cannot watch ${repo}: ${(e as Error).message}`);
       }
     },
+    // Stops the repository's watcher once no other registered project uses it.
     remove(slug: string) {
-      watchers.get(slug)?.close();
-      watchers.delete(slug);
       clearTimeout(timers.get(slug));
       timers.delete(slug);
+      let repo: string;
+      try {
+        repo = options.locate(slug).repo;
+      } catch {
+        return;
+      }
+      const others = options
+        .all()
+        .filter(project => project !== slug && options.locate(project).repo === repo);
+      if (others.length) return;
+      watchers.get(repo)?.close();
+      watchers.delete(repo);
     },
     close() {
       clearInterval(interval);

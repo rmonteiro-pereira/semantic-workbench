@@ -19,9 +19,9 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | Module | What lives here | What must not live here |
 |---|---|---|
 | `server/index.ts`, `server/handler.ts` | Start-up and the HTTP entry point: host and origin checks, then the route list | Workspace logic |
-| `server/routes/` | One file per resource (`projects`, `files`, `git`, `clone`, `trash`, `metrics`, ...): parse and check the request, call the workspace, shape the response | File or Git operations |
+| `server/routes/` | One file per resource (`projects`, `files`, `git`, `clone`, `repos`, `trash`, `metrics`, ...): parse and check the request, call the workspace, shape the response | File or Git operations |
 | `server/projects/workspace.ts` | `openWorkspace()`, the composition root: registry, saves, imports, moves, scans, events, and the wiring of the services below | HTTP parsing |
-| `server/projects/` (other) | One service per concern: `git.ts` (the only place Git runs), `scm.ts` (Source Control), `clone.ts`, `journal.ts` (all-or-nothing renames), `trash.ts`, `scanner.ts` and `cache.ts` (the index), `state.ts` (registry, drafts, view settings), `paths.ts` (every path check), `events.ts` (server-sent events), `watcher.ts` | Browser code |
+| `server/projects/` (other) | One service per concern: `git.ts` (the only place Git runs), `scm.ts` (Source Control), `clone.ts`, `journal.ts` (all-or-nothing renames), `trash.ts`, `repositories.ts` (which folders of a repository are projects: the `.semantic-workbench.json` manifest and detection) and `repository-projects.ts` (registering them), `scanner.ts` and `cache.ts` (the index), `state.ts` (registry, drafts, view settings), `paths.ts` (every path check), `events.ts` (server-sent events), `watcher.ts` | Browser code |
 | `server/agent/` | Metric explanations and the SQL preview (`explain.ts`, `runtime.ts`) | Query execution |
 | `src/main.tsx`, `src/app/` | The app shell: `useWorkbench` and the other hooks hold state and handlers; `Workspace*` and `*Dialogs` components lay it out | Parsing or validation rules |
 | `src/model.ts`, `src/validation.ts`, `src/rdf*.ts`, `src/odcs.ts` | Parse a file into `Entity` and `Relationship`, and validate it; pure functions shared with the server | React, fetch |
@@ -31,7 +31,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `src/odcs/` | Contract pages and the column-level lineage canvas (`lineage.ts` builds the graph, `LineageCanvas.tsx` draws it) | |
 | `src/graph/`, `src/FullGraph.tsx`, `src/NeighborhoodGraph.tsx` | Entity graph views, layout and routing | |
 | `src/metrics/`, `src/mappings/`, `src/sql/` | Metrics tab and wizard, mapping views, SQL regions and lint | |
-| `src/projects/` | Client API (`api.ts`), autosave, project tree, shared dialogs (`Modal.tsx`) | |
+| `src/projects/` | Client API (`api.ts`), autosave, project tree, delete and trash dialogs, the repository's projects dialog, shared dialog chrome (`Modal.tsx`) | |
 | `src/scm/` | Source Control panel, Commit dialog, Git setup dialogs (`GitSetup.tsx` opens them from anywhere) | Git commands; they run on the server |
 | `schemas/` | Pinned JSON Schemas (ODCS, Ossie, the workbench extensions) | Edits to upstream schemas |
 | `public/examples/` | Shipped example projects | Test fixtures |
@@ -49,6 +49,13 @@ Opening and editing a file:
    (`PUT /api/projects/:slug/files/...`). Invalid text is kept as a draft, never written.
 5. `workspace.saveFile` checks the hash, writes atomically, rescans, and emits a `files` event.
    Every open tab refreshes from that event.
+
+A project is a folder under `data/projects/`. Usually the folder is also a Git repository; a
+team repository can instead hold several projects in subfolders. The registry records each
+project's `folder` and `repo`, and `paths.ts` resolves both. Projects of one repository share
+its Git queue, watcher and Source Control: Git sees repository paths, the browser sees paths
+inside a project, and `scm.ts` converts between them. Every Git action rescans all projects of
+the repository.
 
 Git actions run only from explicit requests: `routes/git.ts` → `scm.ts` → `git.ts`. Remote
 commands (fetch, pull, push, clone) need an explicit flag in `git.ts`, run with a 10-minute limit

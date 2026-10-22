@@ -19,6 +19,14 @@ export type CloneEvent = {
   repo?: string;
   name?: string;
   invalid?: string[];
+  /** Folders proposed as projects when the repository has no manifest. */
+  candidates?: { path: string; files: number }[];
+  /** The projects a manifest declared; they are registered at once. */
+  manifest?: { projects: { path: string; name?: string }[] };
+  /** The slugs of the projects registered from the manifest. */
+  projects?: string[];
+  /** A manifest that could not be read, and why. */
+  manifestError?: string;
 };
 
 /** Workspace services a clone needs. */
@@ -32,6 +40,10 @@ export type CloneDeps = {
   scan: (slug: string) => Promise<unknown>;
   invalidFiles: (slug: string) => string[];
   added: (slug: string) => void;
+  /** Reads the repository's manifest or proposes folders, and registers declared projects. */
+  afterClone: (
+    slug: string,
+  ) => Promise<Pick<CloneEvent, 'candidates' | 'manifest' | 'manifestError' | 'projects'>>;
   emit: (event: CloneEvent) => void;
 };
 
@@ -110,7 +122,9 @@ export function createCloner(deps: CloneDeps) {
       });
       await deps.scan(slug);
       deps.added(slug);
-      deps.emit({ op, phase: 'done', repo: slug, name, invalid: deps.invalidFiles(slug) });
+      const invalid = deps.invalidFiles(slug);
+      const projects = await deps.afterClone(slug);
+      deps.emit({ op, phase: 'done', repo: slug, name, invalid, ...projects });
     } catch (e) {
       rmSync(staging, { recursive: true, force: true });
       rmSync(stateStaging, { recursive: true, force: true });

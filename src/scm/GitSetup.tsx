@@ -1,15 +1,21 @@
-/** Opens the Git setup dialogs (identity, remote, clone, credential guide) from anywhere. */
+/** Opens the Git setup dialogs (identity, remote, clone, credential guide, a repository's
+ * projects) from anywhere. */
 import React, { createContext, useContext, useState } from 'react';
 import { IdentityDialog } from './IdentityDialog';
 import { RemoteDialog } from './RemoteDialog';
 import { CredentialGuide } from './CredentialGuide';
 import { CloneDialog } from './CloneDialog';
+import {
+  RepositoryProjectsDialog,
+  type StartingChoice,
+} from '../projects/RepositoryProjectsDialog';
 
 /** Which Git setup dialog is open, and for which project. */
 export type GitSetupDialog =
   | { kind: 'identity'; project: string; everyRepository?: boolean }
   | { kind: 'remote'; project: string }
   | { kind: 'clone' }
+  | { kind: 'repository-projects'; repo: string; start?: StartingChoice }
   | { kind: 'credentials' };
 
 type Opener = (dialog: GitSetupDialog) => void;
@@ -22,10 +28,11 @@ export const useGitSetup = () => useContext(GitSetupContext);
 /** Provides the dialog opener and renders the open dialog above the app. */
 export function GitSetupProvider({
   children,
-  onCloned,
+  onOpenProject,
 }: {
   children: React.ReactNode;
-  onCloned: (slug: string) => void;
+  /** Refreshes the workspace and opens the project's first file. */
+  onOpenProject: (slug: string) => void;
 }) {
   const [dialog, setDialog] = useState<GitSetupDialog | null>(null);
   const close = () => setDialog(null);
@@ -46,9 +53,23 @@ export function GitSetupProvider({
           onClose={close}
           onOpenProject={slug => {
             close();
-            onCloned(slug);
+            onOpenProject(slug);
           }}
           onCredentials={() => setDialog({ kind: 'credentials' })}
+          onChooseProjects={repo =>
+            setDialog({ kind: 'repository-projects', repo, start: 'proposed' })
+          }
+        />
+      )}
+      {dialog?.kind === 'repository-projects' && (
+        <RepositoryProjectsDialog
+          repo={dialog.repo}
+          start={dialog.start}
+          onClose={close}
+          onSaved={slugs => {
+            close();
+            onOpenProject(slugs[0] ?? '');
+          }}
         />
       )}
     </GitSetupContext.Provider>

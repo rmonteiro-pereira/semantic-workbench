@@ -788,3 +788,77 @@
 .workbench-dialog button[hidden] {
   display: none;
 }
+
+/* Several projects in one repository: the folder chooser, the owner tag and the delete choice. */
+.repository-folders {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.repository-folder {
+  display: grid;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid #dfe8e3;
+  border-radius: 8px;
+}
+.repository-folder .check-row {
+  flex-wrap: wrap;
+  margin: 0;
+}
+.repository-folder-path {
+  font:
+    12.5px/1.4 ui-monospace,
+    monospace;
+  overflow-wrap: anywhere;
+}
+.repository-folder small {
+  color: #6b8077;
+}
+.repository-folder input[type='text'],
+.repository-folder input:not([type]) {
+  margin-left: 24px;
+  width: calc(100% - 24px);
+  box-sizing: border-box;
+}
+.scm-project {
+  font-style: normal;
+  font-size: 10px;
+  color: #29534a;
+  background: #e3efe9;
+  border-radius: 4px;
+  padding: 1px 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 12ch;
+}
+.subproject-choice {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid #dfe8e3;
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+}
+.subproject-choice legend {
+  font-size: 13px;
+  font-weight: 600;
+}
+.subproject-choice .check-row {
+  align-items: flex-start;
+  line-height: 1.45;
+}
+.subproject-choice input {
+  margin-top: 3px;
+}
+/* The legend sits inside the box, above the two choices, at every width. */
+.subproject-choice legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 4px;
+  padding: 0;
+  line-height: 1.45;
+}

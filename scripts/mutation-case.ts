@@ -1443,6 +1443,7 @@ if (category === 'clone') {
       scan: async () => {},
       invalidFiles: () => [],
       added: () => {},
+      afterClone: async () => ({}),
       emit: (event: any) => events.push(event),
     });
     cloner.start('/tmp/team.git');
@@ -1453,5 +1454,96 @@ if (category === 'clone') {
     assert(parents[0].startsWith(layout.projects + path.sep), parents[0]);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
+  }
+}
+if (category === 'manifest') {
+  const manifest = (path: string) =>
+    JSON.stringify({ schema: 'semantic-workbench/repository/v1', projects: [{ path }] });
+  assert.deepEqual(m.parseManifest(manifest('domains/sales')), [{ path: 'domains/sales' }]);
+  // A manifest comes from a cloned repository, so its folders must stay inside it.
+  for (const path of ['../outside', 'domains/../../outside', '.git/hooks', '/etc'])
+    assert.throws(() => m.parseManifest(manifest(path)), path);
+}
+// A repository with two subprojects, Sales and Finance, in a temporary workspace.
+async function teamRepositoryWorkspace() {
+  const { tempDataDir } = await import('../tests/helpers/temp-data-dir');
+  const { openWorkspace } = await import('../server/projects/workspace');
+  const d = tempDataDir();
+  const ws = await openWorkspace({ root: d.root });
+  const text = (name: string) =>
+    `name: ${name}\nontology: [{concept: ${name}, type: EntityType}]\n`;
+  await ws.importBatch({
+    name: 'team',
+    files: [
+      { path: 'domains/sales/sales.yaml', source: text('Sales') },
+      { path: 'domains/finance/finance.yaml', source: text('Finance') },
+    ],
+  });
+  const registered = await ws.registerRepositoryProjects('team', [
+    { path: 'domains/sales', name: 'Sales' },
+    { path: 'domains/finance', name: 'Finance' },
+  ]);
+  const [sales, finance] = registered.projects.map((project: { slug: string }) => project.slug);
+  const dispose = () => {
+    ws.close();
+    d.cleanup();
+  };
+  return { ws, root: d.root, sales, finance, dispose };
+}
+if (category === 'subproject-trash') {
+  const fs = await import('node:fs');
+  const { join } = await import('node:path');
+  const team = await teamRepositoryWorkspace();
+  const { ws } = team;
+  try {
+    const trash = m.createTrash({
+      layout: ws.layout,
+      state: ws.state,
+      journal: ws.journal,
+      lock: ws.lock,
+      projects: () => ws.state.registry().projects,
+      registrySteps: ws.registrySteps,
+      afterFiles: async () => {},
+      forgetProject: () => {},
+      adoptProject: async () => {},
+      createProject: async () => {
+        throw Error('unused');
+      },
+      emit: () => {},
+    });
+    await trash.deleteProject(team.sales);
+    // Deleting one subproject moves its own folder and leaves the sibling and the history alone.
+    const repo = join(team.root, 'projects', 'team');
+    assert(!fs.existsSync(join(repo, 'domains/sales')));
+    assert(fs.existsSync(join(repo, 'domains/finance/finance.yaml')));
+    assert(fs.existsSync(join(repo, '.git')));
+  } finally {
+    team.dispose();
+  }
+}
+if (category === 'subproject-rescan') {
+  const fs = await import('node:fs');
+  const { join } = await import('node:path');
+  const team = await teamRepositoryWorkspace();
+  const { ws } = team;
+  const rescanned: string[] = [];
+  try {
+    const scm = m.createScm({
+      layout: ws.layout,
+      git: ws.git,
+      gitAvailable: true,
+      siblings: () => [team.sales, team.finance],
+      project: () => ({}),
+      drafts: () => [],
+      rescan: async (slug: string) => rescanned.push(slug),
+      emit: () => {},
+    });
+    const financeFile = join(team.root, 'projects/team/domains/finance/finance.yaml');
+    fs.appendFileSync(financeFile, '# note\n');
+    await scm.stageAll(team.sales, true);
+    // A Git action changes the whole repository, so every project in it rescans.
+    assert.deepEqual(rescanned.sort(), [team.finance, team.sales].sort());
+  } finally {
+    team.dispose();
   }
 }

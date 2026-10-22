@@ -517,6 +517,26 @@ const mutants: [string, string, string, string][] = [
     'const staging = join(layout.projects, CLONE_STAGING + op);',
     'const staging = join(layout.root, CLONE_STAGING + op);',
   ],
+  // Several projects in one repository: manifest folders stay inside the repository, deleting
+  // one subproject leaves its siblings alone, and Git actions rescan every project.
+  [
+    'manifest',
+    'server/projects/repositories.ts',
+    "path === '' ? '' : projectPath(path)",
+    'String(path)',
+  ],
+  [
+    'subproject-trash',
+    'server/projects/trash.ts',
+    "steps.push({ from: projectDir(layout, slug), to: join(dir, 'payload', slug) });",
+    "steps.push({ from: join(layout.projects, locationOf(unit.project).repo), to: join(dir, 'payload', slug) });",
+  ],
+  [
+    'subproject-rescan',
+    'server/projects/scm.ts',
+    'for (const project of projects) await deps.rescan(project);',
+    'await deps.rescan(slug);',
+  ],
 ];
 let killed = 0;
 async function run(category: string, file: string, source: string, index: string) {

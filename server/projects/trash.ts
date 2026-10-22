@@ -9,6 +9,7 @@ import { JournalCrash, type Journal } from './journal';
 import {
   assertSlug,
   disambiguate,
+  locationOf,
   projectDir,
   projectFile,
   projectPath,
@@ -23,7 +24,9 @@ export const UNDO_MS = 10_000;
 export type TrashEntry = {
   formatVersion: 1;
   entryId: string;
-  kind: 'file' | 'project';
+  // A subproject is a project folder inside a shared repository; a repository entry holds a whole
+  // repository with several projects, moved once when the workspace is cleared.
+  kind: 'file' | 'project' | 'subproject' | 'repository';
   project: string;
   projectName: string;
   path?: string;
@@ -33,6 +36,8 @@ export type TrashEntry = {
   batchId: string | null;
   view?: unknown;
   registry?: Omit<ProjectEntry, 'slug' | 'name'>;
+  repo?: string;
+  projects?: ProjectEntry[];
 };
 const CROCKFORD = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 /** Creates a time-sortable identifier from a 48-bit timestamp and 80 random bits. */
@@ -67,6 +72,38 @@ export type TrashContext = {
   emit: (event: string, data: unknown) => void;
   now?: () => number;
 };
+type DeletionUnit =
+  | { kind: 'project' | 'subproject'; project: ProjectEntry }
+  | { kind: 'repository'; repo: string; projects: ProjectEntry[] };
+
+const isSubproject = (project: ProjectEntry) => {
+  const { folder, repo } = locationOf(project);
+  return folder !== repo;
+};
+
+// What one deletion moves. A subproject moves alone while another project of its repository
+// stays; when every project of a repository goes (Clear, or deleting its last project), the
+// repository folder, with its Git history, moves once, so no repository is left without a project.
+function deletionUnits(deleted: ProjectEntry[], all: ProjectEntry[]): DeletionUnit[] {
+  const units: DeletionUnit[] = [];
+  const repositories = new Map<string, ProjectEntry[]>();
+  for (const project of deleted) {
+    if (!isSubproject(project)) units.push({ kind: 'project', project });
+    else {
+      const repo = locationOf(project).repo;
+      repositories.set(repo, [...(repositories.get(repo) ?? []), project]);
+    }
+  }
+  for (const [repo, members] of repositories) {
+    const leaving = new Set(members.map(project => project.slug));
+    const staying = all.filter(
+      project => locationOf(project).repo === repo && !leaving.has(project.slug),
+    );
+    if (staying.length) for (const project of members) units.push({ kind: 'subproject', project });
+    else units.push({ kind: 'repository', repo, projects: members });
+  }
+  return units;
+}
 /** Creates deletion and restoration operations that preserve recoverable content and state. */
 export function createTrash(ctx: TrashContext) {
   const { layout, state, journal, lock } = ctx;
@@ -206,6 +243,8 @@ export function createTrash(ctx: TrashContext) {
     });
   }
   // Projects (and Clear) are removed together with their registry entries in one journal.
+  // Deleting a subproject moves only its folder; the shared repository then shows the deletion
+  // as uncommitted changes. Clear moves a repository that holds subprojects once, as a whole.
   async function deleteProjects(slugs: string[], batchId: string | null) {
     return lock('registry', async () => {
       const current = ctx.projects();
@@ -216,26 +255,12 @@ export function createTrash(ctx: TrashContext) {
       const entries: TrashEntry[] = [];
       const steps: { from: string; to: string }[] = [];
       try {
-        for (const slug of slugs) {
-          const p = registryEntry(slug);
-          const e = newEntry(
-            {
-              kind: 'project',
-              project: slug,
-              projectName: p.name,
-              batchId,
-              registry: { createdAt: p.createdAt, origin: p.origin },
-            },
-            at,
-          );
+        for (const unit of deletionUnits(slugs.map(registryEntry), current)) {
+          const e = newEntry(unitEntry(unit, batchId), at);
           const dir = dirOf(e.entryId);
           atomicWriteJson(join(dir, 'entry.json'), e);
           entries.push(e);
-          steps.push({ from: projectDir(layout, slug), to: join(dir, 'payload', slug) });
-          if (existsSync(state.viewFile(slug)))
-            steps.push({ from: state.viewFile(slug), to: join(dir, 'view.json') });
-          if (existsSync(state.draftDir(slug)))
-            steps.push({ from: state.draftDir(slug), to: join(dir, 'drafts') });
+          steps.push(...unitSteps(unit, dir));
         }
         steps.push(
           ...ctx.registrySteps(
@@ -256,6 +281,43 @@ export function createTrash(ctx: TrashContext) {
       ctx.emit('trash', { entries: entries.map(e => e.entryId), undoUntil: entries[0]?.undoUntil });
       return entries;
     });
+  }
+  // The trash entry that records one deletion unit, with what its restore needs.
+  function unitEntry(unit: DeletionUnit, batchId: string | null) {
+    if (unit.kind === 'repository')
+      return {
+        kind: 'repository' as const,
+        project: unit.projects[0].slug,
+        projectName: unit.repo,
+        repo: unit.repo,
+        projects: unit.projects,
+        batchId,
+      };
+    const { slug, name, ...registry } = unit.project;
+    return { kind: unit.kind, project: slug, projectName: name, batchId, registry };
+  }
+  // The renames that move a unit's folder, view settings and drafts into its trash entry.
+  function unitSteps(unit: DeletionUnit, dir: string) {
+    const steps: { from: string; to: string }[] = [];
+    const keepState = (slug: string, viewTo: string, draftsTo: string) => {
+      if (existsSync(state.viewFile(slug))) steps.push({ from: state.viewFile(slug), to: viewTo });
+      if (existsSync(state.draftDir(slug)))
+        steps.push({ from: state.draftDir(slug), to: draftsTo });
+    };
+    if (unit.kind === 'repository') {
+      steps.push({ from: join(layout.projects, unit.repo), to: join(dir, 'payload', unit.repo) });
+      for (const project of unit.projects)
+        keepState(
+          project.slug,
+          join(dir, 'views', project.slug + '.json'),
+          join(dir, 'drafts', project.slug),
+        );
+      return steps;
+    }
+    const slug = unit.project.slug;
+    steps.push({ from: projectDir(layout, slug), to: join(dir, 'payload', slug) });
+    keepState(slug, join(dir, 'view.json'), join(dir, 'drafts'));
+    return steps;
   }
   async function restore(
     id: string,
@@ -299,6 +361,8 @@ export function createTrash(ctx: TrashContext) {
         return { kind: 'file', project: slug, path };
       });
     }
+    if (e.kind === 'subproject') return restoreSubproject(id, e, dir);
+    if (e.kind === 'repository') return restoreRepository(id, e, dir);
     return lock('registry', async () => {
       const current = ctx.projects();
       const slug = target.toProject !== undefined ? assertSlug(target.toProject) : e.project;
@@ -325,6 +389,7 @@ export function createTrash(ctx: TrashContext) {
           {
             slug,
             name,
+            ...withoutLocation(e.registry),
             createdAt: e.registry?.createdAt ?? e.deletedAt,
             origin: e.registry?.origin ?? 'restore',
           },
@@ -351,6 +416,97 @@ export function createTrash(ctx: TrashContext) {
       ctx.emit('trash', { entries: [id] });
       return { kind: 'project', project: slug, name };
     });
+  }
+  // A subproject goes back into its folder of the same repository, if both are still free and
+  // present; nothing is overwritten.
+  function restoreSubproject(id: string, e: TrashEntry, dir: string) {
+    return lock('registry', async () => {
+      const current = ctx.projects();
+      const { folder, repo } = locationOf({ slug: e.project, ...e.registry });
+      if (!existsSync(join(layout.projects, repo, '.git')))
+        throw new NotFoundError(`The repository ${repo} is no longer in the workspace.`);
+      if (current.some(p => p.slug === e.project) || existsSync(join(layout.projects, folder)))
+        throw new OccupiedError(`${folder} is in use; nothing was overwritten.`, {});
+      const opId = journal.newId();
+      const stateStaging = join(layout.state, `.staging-${opId}`);
+      const name = uniqueName(
+        e.projectName,
+        current.map(p => p.name),
+      );
+      const restored: ProjectEntry = { ...e.registry!, slug: e.project, name };
+      const steps = [
+        { from: join(dir, 'payload', e.project), to: join(layout.projects, folder) },
+        ...stateSteps(dir, e.project, join(dir, 'view.json'), join(dir, 'drafts')),
+        ...ctx.registrySteps(stateStaging, [...current, restored]),
+      ];
+      runRestore(steps, [dir, stateStaging], opId, stateStaging);
+      await ctx.adoptProject(e.project);
+      ctx.emit('projects', { added: [e.project], removed: [], renamed: [] });
+      ctx.emit('trash', { entries: [id] });
+      return { kind: 'subproject', project: e.project, name };
+    });
+  }
+  // A cleared repository comes back whole, with every project it held.
+  function restoreRepository(id: string, e: TrashEntry, dir: string) {
+    return lock('registry', async () => {
+      const current = ctx.projects();
+      const repo = assertSlug(e.repo!);
+      const members = e.projects ?? [];
+      if (existsSync(join(layout.projects, repo)))
+        throw new OccupiedError(
+          `A folder named ${repo} already exists; nothing was overwritten.`,
+          {},
+        );
+      if (members.some(member => current.some(p => p.slug === member.slug)))
+        throw new OccupiedError('A project of this repository is already in the workspace.', {});
+      const opId = journal.newId();
+      const stateStaging = join(layout.state, `.staging-${opId}`);
+      const names = current.map(p => p.name);
+      const restored = members.map(member => {
+        const name = uniqueName(member.name, names);
+        names.push(name);
+        return { ...member, name };
+      });
+      const steps = [
+        { from: join(dir, 'payload', repo), to: join(layout.projects, repo) },
+        ...members.flatMap(member =>
+          stateSteps(
+            dir,
+            member.slug,
+            join(dir, 'views', member.slug + '.json'),
+            join(dir, 'drafts', member.slug),
+          ),
+        ),
+        ...ctx.registrySteps(stateStaging, [...current, ...restored]),
+      ];
+      runRestore(steps, [dir, stateStaging], opId, stateStaging);
+      for (const member of restored) await ctx.adoptProject(member.slug);
+      ctx.emit('projects', { added: restored.map(p => p.slug), removed: [], renamed: [] });
+      ctx.emit('trash', { entries: [id] });
+      return { kind: 'repository', project: restored[0]?.slug, name: repo };
+    });
+  }
+  // Moves saved view settings and drafts back when the workspace has none for the project.
+  function stateSteps(dir: string, slug: string, view: string, drafts: string) {
+    const steps: { from: string; to: string }[] = [];
+    if (existsSync(view) && !existsSync(state.viewFile(slug)))
+      steps.push({ from: view, to: state.viewFile(slug) });
+    if (existsSync(drafts) && !existsSync(state.draftDir(slug)))
+      steps.push({ from: drafts, to: state.draftDir(slug) });
+    return steps;
+  }
+  function runRestore(
+    steps: { from: string; to: string }[],
+    cleanup: string[],
+    opId: string,
+    stateStaging: string,
+  ) {
+    try {
+      journal.run('restore', steps, cleanup, opId);
+    } catch (err) {
+      rmSync(stateStaging, { recursive: true, force: true });
+      throw err;
+    }
   }
   function list() {
     return safeReaddir(layout.trash)
@@ -405,6 +561,13 @@ export function createTrash(ctx: TrashContext) {
       return ids.length;
     },
   };
+}
+// A whole project comes back into the folder named by its slug, whatever folder it had, so its
+// entry must not keep the old folder and repository.
+function withoutLocation(registry: TrashEntry['registry']) {
+  if (!registry) return {};
+  const { folder: _folder, repo: _repo, ...rest } = registry;
+  return rest;
 }
 function safeReaddir(dir: string) {
   try {

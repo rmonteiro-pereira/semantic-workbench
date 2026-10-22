@@ -5,6 +5,13 @@ import { Modal } from './Modal';
 import { api, type TrashItem } from './api';
 // Restore or permanently delete trash entries; emptying the trash asks for confirmation. A restore
 // never overwrites; when the location is taken, the free alternative is offered.
+// How a trash entry reads in the list.
+function entryLabel(item: TrashItem) {
+  if (item.kind === 'file') return `${item.path} (${item.projectName})`;
+  if (item.kind === 'repository') return `Repository ${item.projectName} with its projects`;
+  if (item.kind === 'subproject') return `Folder of project ${item.projectName}`;
+  return `Project ${item.projectName}`;
+}
 /** Reviews trash entries and offers restore or confirmed permanent deletion. */
 export function TrashDialog({ onClose, version }: { onClose: () => void; version: number }) {
   const [items, setItems] = useState<TrashItem[] | null>(null);
@@ -44,8 +51,6 @@ export function TrashDialog({ onClose, version }: { onClose: () => void; version
       else setError(e.message);
     }
   }
-  const label = (t: TrashItem) =>
-    t.kind === 'project' ? `Project ${t.projectName}` : `${t.path} (${t.projectName})`;
   return (
     <Modal title="Trash" onCancel={onClose} className="trash-dialog">
       {items === null ? (
@@ -57,7 +62,7 @@ export function TrashDialog({ onClose, version }: { onClose: () => void; version
           {items.map(t => (
             <li key={t.entryId}>
               <div>
-                <strong>{label(t)}</strong>
+                <strong>{entryLabel(t)}</strong>
                 <small>
                   Deleted {new Date(t.deletedAt).toLocaleString()}
                   {t.batchId ? ' · by Clear' : ''}

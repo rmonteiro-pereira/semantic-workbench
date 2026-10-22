@@ -25,7 +25,13 @@ export const trashRoutes: Route = async (ws, req, url) => {
   }
   const project = p.match(/^\/api\/projects\/([^/]+)$/);
   if (project && req.method === 'DELETE') {
-    requireConfirm(await readJson(req, 4096));
+    const body = await readJson(req, 4096);
+    // Remove from workspace deletes nothing; deleting the folder needs the confirmation.
+    if (body?.mode === 'remove')
+      return Response.json(await ws.removeProject(decodeURIComponent(project[1])));
+    if (body?.mode !== undefined && body.mode !== 'delete')
+      throw Error('mode is "remove" or "delete".');
+    requireConfirm(body);
     return Response.json(await ws.trash.deleteProject(decodeURIComponent(project[1])));
   }
   if (p === '/api/clear' && req.method === 'POST') {

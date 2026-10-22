@@ -92,7 +92,10 @@ export function WorkspaceSidebar({
 
   // The Remote dialog belongs to the Git setup dialogs; every other action goes to the workbench.
   function handleTreeAction(action: TreeAction) {
+    const repo = projects.find(project => project.slug === action.project)?.repo;
     if (action.action === 'remote') openGitSetup({ kind: 'remote', project: action.project });
+    else if (action.action === 'repository-projects' && repo)
+      openGitSetup({ kind: 'repository-projects', repo });
     else treeAction(action);
   }
 

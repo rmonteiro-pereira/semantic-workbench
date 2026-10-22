@@ -113,15 +113,15 @@ function App() {
   ]
     .filter(Boolean)
     .join(' ');
-  // After a clone, show the new project by opening its first file.
-  async function openClonedProject(slug: string) {
+  // After a clone or a change to a repository's projects, show the project's first file.
+  async function openProject(slug: string) {
     const loaded = await workspaceEvents.refresh();
     const first = loaded.find(doc => doc.project === slug);
     if (first) fileNavigation.openDocument(first);
   }
 
   return (
-    <GitSetupProvider onCloned={slug => void openClonedProject(slug)}>
+    <GitSetupProvider onOpenProject={slug => void openProject(slug)}>
       <div
         className={shellClassName}
         style={{ '--sidebar-width': `${sidebar.sidebarWidth}px` } as React.CSSProperties}
