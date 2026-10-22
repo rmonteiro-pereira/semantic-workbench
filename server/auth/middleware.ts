@@ -1,5 +1,6 @@
 // Applies one request-scoped decision and records outcomes before returning an HTTP response.
 import { readableTrash, restoreAction } from '../projects/trash';
+import { acceptsBearer, BearerError, type BearerValidator } from './bearer';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import type { Workspace } from '../projects/workspace';
@@ -27,6 +28,7 @@ export type HandlerOptions = {
   groupName?: (id: string) => Promise<GroupName>;
   providerStatus?: ProviderStatus;
   access?: AccessControl;
+  bearer?: BearerValidator;
   principal?: (request: Request) => Principal | null | Promise<Principal | null>;
   audit?: AuditLog;
   mode?: 'local' | 'server';
@@ -190,27 +192,97 @@ interface RouteCheck {
   resolvedTarget: boolean;
 }
 
+/** A route decision and the resource it was made on, which the audit records and replays. */
+interface RouteVerdict {
+  decision: Decision;
+  resource: ResourceRef;
+}
+
 /**
  * Decides the route's own action. A row whose targets are named in the body passes when the
  * action is allowed somewhere the caller can read; the route then checks each actual target.
+ * An agent client is granted projects, never the workspace, so a workspace row passes for it
+ * the same way. A pass through a project names that project, so a dry run can replay it.
  */
 function routeDecision(
   scope: AccessScope,
   row: RouteAction,
   { resource, mode, resolvedTarget }: RouteCheck,
-): Decision {
+): RouteVerdict {
   const decision = scope.authorize(row.action, resource);
   // Identity settings exist only in local mode. Authorization runs first, so a caller without the
   // permission is refused and audited as for any other route.
   if (decision.allow && mode === 'server' && row.action === 'setIdentity') {
-    return { allow: false, status: 404, rules: [], reason: 'local-only' };
+    return { decision: { allow: false, status: 404, rules: [], reason: 'local-only' }, resource };
   }
-  if (decision.allow || row.targets !== 'body' || resolvedTarget) return decision;
+  const client = scope.principal.kind === 'client';
+  if (decision.allow || resolvedTarget || (row.targets !== 'body' && !client)) {
+    return { decision, resource };
+  }
   for (const project of scope.view().readableProjects) {
-    const candidate = scope.authorize(row.action, { type: 'project', project });
-    if (candidate.allow) return candidate;
+    const candidate: ResourceRef = { type: 'project', project };
+    const allowed = scope.authorize(row.action, candidate);
+    if (allowed.allow) return { decision: allowed, resource: candidate };
   }
-  return decision;
+  if (client) return { decision: { ...decision, status: 403, reason: 'no-grant' }, resource };
+  return { decision, resource };
+}
+
+/** One refused agent call: who made it, if known, and why it was refused. */
+interface AgentRefusal {
+  requestId: string;
+  /** Absent when the token was not validated, so nothing in it is trusted or recorded. */
+  principal?: Principal;
+  reason: string;
+  status: keyof typeof AGENT_REFUSAL_ERRORS;
+}
+
+const AGENT_REFUSAL_ERRORS = {
+  401: 'sign-in required',
+  403: 'forbidden',
+  404: 'Not found.',
+  503: 'identity provider unavailable',
+};
+
+/**
+ * Audits a refused agent call and answers it. A refused token gets the challenge RFC 6750 asks
+ * for; an unreachable provider is not the token's fault, so it gets 503 without one.
+ */
+function agentRefusal(audit: AuditLog, refusal: AgentRefusal): Response {
+  const { requestId, principal, reason, status } = refusal;
+  const failure = auditDenial(audit, {
+    requestId,
+    principal: principal ?? { id: 'anonymous', kind: 'anonymous' },
+    action: 'agentRead',
+    resource: { type: 'workspace' },
+    decision: 'deny',
+    rules: [],
+    reason,
+  });
+  if (failure) return failure;
+  const headers = new Headers();
+  if (status === 401) headers.set('WWW-Authenticate', 'Bearer error="invalid_token"');
+  return Response.json({ error: AGENT_REFUSAL_ERRORS[status] }, { status, headers });
+}
+
+/**
+ * How an agent client is decided, in one place with the functions after it. The bearer path
+ * validated its token on the agent API, and it skips the cross-site check that guards cookies.
+ * Only a row that declares a client action admits it, and that action replaces the row's own.
+ * The policies in auth/authorize.ts give the client the projects of its agents.json entry, so
+ * routeDecision passes a workspace row when one of them is readable.
+ */
+function clientRouteRefusal(
+  found: ReturnType<typeof routeFor>,
+): Pick<AgentRefusal, 'reason' | 'status'> | null {
+  if (!found) return { reason: 'unmapped-route', status: 404 };
+  if (!found.row.clientAction) return { reason: 'bearer-scope', status: 403 };
+  return null;
+}
+
+/** The row as a client is decided on it: by its client action instead of its own. */
+function clientRow(row: RouteAction): RouteAction {
+  return { ...row, action: row.clientAction ?? row.action };
 }
 
 // The handler passes the shared error mapping in; this fallback only keeps isolated tests from
@@ -231,13 +303,43 @@ export function createAccessMiddleware(
   const access = options.access ?? defaultAccess(ws, mode);
   const audit = options.audit ?? createAuditLog({ dir: join(ws.layout.state, 'audit') });
   const resolve = options.principal ?? (() => (mode === 'local' ? localPrincipal() : null));
+  /**
+   * Resolves a bearer header into a client principal. Returns nothing when the request carries no
+   * bearer header, and an audited 401 when the header cannot be trusted on this route.
+   */
+  async function bearerIdentity(
+    request: Request,
+    requestId: string,
+  ): Promise<Principal | Response | undefined> {
+    const authorization = request.headers.get('Authorization') ?? '';
+    if (mode !== 'server' || !/^Bearer(\s|$)/i.test(authorization)) return undefined;
+    const refuse = (reason: string) => {
+      const status = reason === 'provider-unreachable' ? 503 : 401;
+      return agentRefusal(audit, { requestId, reason, status });
+    };
+    // Outside the agent API the token is not even validated, so nothing in it is trusted.
+    if (!acceptsBearer(new URL(request.url).pathname)) return refuse('bearer-scope');
+    if (!options.bearer) return refuse('token-invalid');
+    try {
+      return await options.bearer(authorization);
+    } catch (error) {
+      if (!(error instanceof BearerError)) throw error;
+      return refuse(error.reason);
+    }
+  }
   async function dispatch(request: AccessRequest, requestId: string): Promise<Response> {
     if (mode === 'local') {
       const refused = localCheck(request);
       if (refused) return refused;
     }
     const url = new URL(request.url);
+    // A bearer token replaces the session cookie, so a signed-in browser cannot widen a client.
+    const client = await bearerIdentity(request, requestId);
+    if (client instanceof Response) return client;
+    // The cross-site check protects cookies a browser sends on its own. A validated bearer token
+    // is never sent that way, so a client skips it.
     if (
+      !client &&
       mode === 'server' &&
       !(await validCsrf(
         request,
@@ -251,10 +353,15 @@ export function createAccessMiddleware(
     }
     const page = mode === 'server' && !/^\/(api|auth)(\/|$)/.test(url.pathname);
     const found = routeFor(request.method, url.pathname, mode);
+    const clientRefused = client ? clientRouteRefusal(found) : null;
+    if (client && clientRefused) {
+      return agentRefusal(audit, { requestId, principal: client, ...clientRefused });
+    }
     if (!found) return new Response('Not found', { status: 404 });
-    const { row, match } = found;
+    const { match } = found;
+    const row = client ? clientRow(found.row) : found.row;
     if (row.public) return run(request);
-    const principal = await resolve(request);
+    const principal = client ?? (await resolve(request));
     if (!principal) {
       const failure = auditDenial(audit, {
         requestId,
@@ -281,8 +388,9 @@ export function createAccessMiddleware(
   ): Promise<Response> {
     const scope = access.forRequest(principal, { sourceIp: options.sourceIp?.(request) });
     request[requestAccess] = scope;
-    const noAccess =
-      mode === 'server' && (scope.principal.deactivated || !scope.principal.grants.length);
+    // A client never holds grants of its own: its agents.json entry decides through the policies.
+    const withoutGrants = scope.principal.kind !== 'client' && !scope.principal.grants.length;
+    const noAccess = mode === 'server' && (scope.principal.deactivated || withoutGrants);
     const trash = mode === 'server' ? trashLookup(ws, request) : undefined;
     let row = target.row;
     let resource = target.resource;
@@ -290,11 +398,13 @@ export function createAccessMiddleware(
       resource = trashResource(trash.entry);
       if (row.action === 'restoreOwn') row = { ...row, action: restoreAction(trash.entry, scope) };
     }
-    let decision = routeDecision(scope, row, {
+    const verdict = routeDecision(scope, row, {
       resource,
       mode,
       resolvedTarget: Boolean(trash?.entry),
     });
+    let decision = verdict.decision;
+    resource = verdict.resource;
     if (row.action === 'readAudit') {
       const projects = auditScope(scope, ws);
       request[requestAuditProjects] = projects;

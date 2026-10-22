@@ -95,6 +95,15 @@ These replace the misses measured under load earlier; no budget was changed.
 | Browser suites | `test:responsive`, `test:projects`, `test:trash` and `test:dialogs` passed; run in parallel, Vite sometimes did not start, and each passed alone |
 | `test:container` | passed (local, server-mode and smoke groups) |
 
+## Agent clients (development machine, 2026-10-22)
+
+| Check | Result |
+| --- | --- |
+| `bun test` | 1,216 passed |
+| `ci:validate --step mutation` | 204 of 204 mutants killed |
+| `test:auth`, `test:admin` | passed, including both agent-client checks |
+| `test:container` | passed (local, server-mode and smoke groups) |
+
 ## Owner trial
 
 The owner records the report of `deploy/trial-runbook.md` here after running it on the target.

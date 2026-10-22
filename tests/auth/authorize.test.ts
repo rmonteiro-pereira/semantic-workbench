@@ -2,7 +2,7 @@
 import { expect, test } from 'bun:test';
 import { createAccessControl } from '../../server/auth/authorize';
 import { loadPolicySet, PolicyLoadError } from '../../server/auth/cedar';
-import { normalizeClaims, localPrincipal } from '../../server/auth/principal';
+import { clientFromToken, localPrincipal } from '../../server/auth/principal';
 import { ACTIONS, type Action } from '../../server/auth/actions';
 import type { GrantScope, Role } from '../../server/auth/grants';
 import builtin from '../../policies/builtin-roles.json';
@@ -140,10 +140,7 @@ test('every role matrix action holds for workspace domain and project scoped gra
 
 test('clients only read their assigned projects through the agent action', () => {
   const client = boundary.principalFor(
-    normalizeClaims(
-      { tid: 'tenant', oid: 'object', idtyp: 'app', azp: 'sw-agent' },
-      { provider: 'entra', tenantId: 'tenant', groupClaim: 'groups' },
-    ),
+    clientFromToken({ tid: 'tenant', idtyp: 'app', azp: 'sw-agent' }, 'tenant'),
   );
   expect(boundary.authorize(client, 'agentRead', project).allow).toBe(true);
   expect(boundary.authorize(client, 'read', project).allow).toBe(false);

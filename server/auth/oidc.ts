@@ -1,4 +1,5 @@
 // Keeps OpenID protocol validation and provider credentials outside HTTP routing.
+import { createBearerValidator } from './bearer';
 import * as oidc from 'openid-client';
 import { importPKCS8, createRemoteJWKSet, jwtVerify, customFetch, errors } from 'jose';
 import { readFile } from 'node:fs/promises';
@@ -203,6 +204,7 @@ export async function createOidcClient(
     };
   }
   return {
+    bearer: createBearerValidator(config, jwksUri, dependencies.fetch as typeof fetch | undefined),
     get jwksRefreshedAt() {
       return jwksRefreshedAt;
     },

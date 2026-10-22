@@ -4,7 +4,7 @@ import { createAccessControl } from '../../server/auth/authorize';
 import { InvalidResourceError, normalizeResource } from '../../server/auth/resource';
 import { validateAccessConfig } from '../../server/auth/access-config';
 import { BUILTIN_ROLE_IDS } from '../../server/auth/actions';
-import { normalizeClaims, localPrincipal } from '../../server/auth/principal';
+import { clientFromToken, localPrincipal } from '../../server/auth/principal';
 import { accessFixture, person } from './access-fixture';
 
 const project = { type: 'project', project: 'sales-contracts' } as const;
@@ -44,10 +44,7 @@ test('overlapping restrictions require every group or verified address, except f
 test('agent clients read ordinary files but cannot read restricted files', () => {
   const access = createAccessControl(accessFixture());
   const client = access.principalFor(
-    normalizeClaims(
-      { tid: 'tenant', oid: 'object', idtyp: 'app', azp: 'sw-agent' },
-      { provider: 'entra', tenantId: 'tenant', groupClaim: 'groups' },
-    ),
+    clientFromToken({ tid: 'tenant', idtyp: 'app', azp: 'sw-agent' }, 'tenant'),
   );
   expect(access.authorize(client, 'agentRead', { ...file, path: 'orders.odcs.yaml' }).allow).toBe(
     true,

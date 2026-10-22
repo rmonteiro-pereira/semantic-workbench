@@ -8,12 +8,16 @@ rule there. Server mode adds the rules below.
 
 - Authentication: session cookie `__Host-sw-session` on every route except `/auth/*`,
   `/healthz` and `/readyz`. There is no sign-in page. `/api/agent/*` also accepts
-  `Authorization: Bearer <jwt>`; a bearer header anywhere else → 401.
+  `Authorization: Bearer <jwt>`; a bearer header anywhere else → 401. An invalid bearer token →
+  `401 {error: 'sign-in required'}` with `WWW-Authenticate: Bearer error="invalid_token"`; the
+  provider's keys cannot be fetched or read → `503 {error: 'identity provider unavailable'}`
+  without that header. A valid client on a route whose row declares no client action → 403.
 - No principal → `401 {error: 'sign-in required'}` for `/api/*`; for pages, `302` straight to the
   provider's authorization endpoint (the server starts the sign-in as `/auth/login` does, with
   the requested path as `returnTo`). Signed in but deactivated or without any matching grant →
   `302 /auth/no-access` for pages and `403 {error: 'no access'}` for `/api/*`.
 - Non-GET requests require `Origin` = `SW_PUBLIC_URL` origin and `X-SW-Request: 1`, else 403.
+  A request authenticated by a valid bearer token is exempt: the check protects cookies.
 - Unreadable target → `404` with the body of a missing resource. Readable target, action denied →
   `403 {error, required: {role?, guard?}, rule}`.
 - Guarded change refused → `403 {error, guarded: [{file, pointer, kind}]}` (readable files only).

@@ -7,7 +7,8 @@ import {
   policyTexts,
 } from '../../server/auth/policies';
 import { accessFixture, person } from './access-fixture';
-import { createAccessControl, clientPrincipal } from '../../server/auth/authorize';
+import { createAccessControl } from '../../server/auth/authorize';
+import { clientPrincipal } from '../../server/auth/principal';
 
 test('Git action template validates and unrestricted Admin forbids are refused', () => {
   const config = accessFixture().config;

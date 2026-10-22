@@ -2,6 +2,8 @@
 // that e-mail grants match, and the claims that are deliberately ignored.
 import { describe, expect, test } from 'bun:test';
 import {
+  ClaimError,
+  clientFromToken,
   localPrincipal,
   normalizeClaims,
   principalKey,
@@ -63,16 +65,34 @@ describe('Entra claims', () => {
     }
   });
 
-  test('an application token becomes a client keyed by its client id', () => {
-    const principal = normalizeClaims(
-      { ...entraClaims(), idtyp: 'app', azp: 'sw-agent', name: undefined },
-      entra,
-    );
+  test('an application token cannot sign in as a person or a client', () => {
+    const app = { ...entraClaims(), idtyp: 'app', azp: 'sw-agent' };
+    expect(() => normalizeClaims(app, entra)).toThrow(ClaimError);
+  });
+
+  test('an application token becomes a client keyed by its azp claim', () => {
+    const app = { tid: entra.tenantId, idtyp: 'app', azp: 'sw-agent', roles: ['Admin'] };
+    const principal = clientFromToken(app, entra.tenantId);
     expect(principal.kind).toBe('client');
     expect(principal.id).toBe('client:sw-agent');
     expect(principal.clientId).toBe('sw-agent');
-    const version1 = normalizeClaims({ ...entraClaims(), idtyp: 'app', appid: 'sw-old' }, entra);
-    expect(version1.id).toBe('client:sw-old');
+    expect(principal.grants).toEqual([]);
+    expect(JSON.stringify(principal)).not.toContain('Admin');
+  });
+
+  test('a client token must be a v2 application token of the configured tenant', () => {
+    const app = { tid: entra.tenantId, idtyp: 'app', azp: 'sw-agent' };
+    const refused = [
+      { ...app, idtyp: undefined },
+      { ...app, scp: 'access_as_user' },
+      { ...app, azp: undefined, appid: 'sw-agent' },
+    ];
+    for (const claims of refused) {
+      expect(() => clientFromToken(claims, entra.tenantId)).toThrow(ClaimError);
+    }
+    expect(() => clientFromToken({ ...app, tid: 'other' }, entra.tenantId)).toThrow(
+      'Identity tenant does not match the configured tenant.',
+    );
   });
 
   test('app roles in the token are ignored for people', () => {
