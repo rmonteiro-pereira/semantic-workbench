@@ -1,5 +1,5 @@
 // Serves workspace invalidations as server-sent events.
-import type { AccessControl, HandlerOptions } from '../auth/middleware';
+import type { HandlerOptions } from '../auth/middleware';
 import { requestReader, requestScope } from '../auth/request-scope';
 import type { ServerAuthentication } from '../auth/authentication';
 import type { EventAccess } from '../projects/event-access';
@@ -9,8 +9,8 @@ import type { Route } from './http';
 export function eventRoutes(options: HandlerOptions = {}): Route {
   return (ws, request, url) => {
     if (url.pathname !== '/api/events' || request.method !== 'GET') return null;
-    if (options.authentication)
-      return sessionEventResponse(ws, request, options.authentication, options.access);
+    if (options.authentication) return sessionEventResponse(ws, request, options.authentication);
+    // Without server sessions nobody is told individually, so every policy reload closes the stream.
     return ws.events.stream(
       request,
       undefined,
@@ -37,14 +37,14 @@ export async function sessionEventResponse(
   ws: Workspace,
   request: Request,
   authentication: ServerAuthentication['authentication'],
-  access?: AccessControl,
 ) {
   const session = await authentication.session(request);
   if (!session) return Response.json({ error: 'sign-in required' }, { status: 401 });
+  // The administration service closes only the streams of the people a change affects, through
+  // their sessions, so a policy reload alone leaves the others open.
   return ws.events.stream(
     request,
     listener => authentication.sessions.subscribe(session.id, listener),
     eventAccess(ws, request),
-    access?.subscribe,
   );
 }

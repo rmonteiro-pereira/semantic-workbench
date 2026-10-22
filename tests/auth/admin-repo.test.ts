@@ -11,7 +11,11 @@ import {
 } from 'node:fs';
 import { join } from 'node:path';
 import { createGit, GitError } from '../../server/projects/git';
-import { openAdminRepository, AdminConfigError } from '../../server/auth/admin-repo';
+import {
+  openAdminRepository,
+  AdminConfigError,
+  withSettingsDefaults,
+} from '../../server/auth/admin-repo';
 import { tempDataDir } from '../helpers/temp-data-dir';
 const author = { name: 'Admin Person', email: 'admin@example.org' };
 test('first use creates one commit and changes preserve authorship, history and rollback', async () => {
@@ -52,7 +56,11 @@ test('first use creates one commit and changes preserve authorship, history and 
         },
       ),
     ).rejects.toThrow('stale');
-    const restored = await repo.rollback(first, { author, baseVersion: next });
+    const restored = await repo.replace(await repo.versionFiles(first), {
+      author,
+      baseVersion: next,
+      message: `access: Rollback to ${first}`,
+    });
     expect(restored).not.toBe(first);
     expect(repo.load().grants).toEqual([]);
     expect(await repo.history()).toHaveLength(3);
@@ -120,7 +128,11 @@ test('Admin policies are keyed by annotation and rollback removes later policy f
     ).rejects.toThrow('policies');
     expect(await repo.version()).toBe(next);
     expect(repo.load().adminRules).toEqual({ 'test-rule': policy });
-    await repo.rollback(first, { author, baseVersion: next });
+    await repo.replace(await repo.versionFiles(first), {
+      author,
+      baseVersion: next,
+      message: `access: Rollback to ${first}`,
+    });
     expect(repo.load().adminRules).toEqual({});
   } finally {
     dir.cleanup();
@@ -249,4 +261,20 @@ test('a write succeeds when the policy reload after its commit fails', async () 
     logged.mockRestore();
     dir.cleanup();
   }
+});
+
+test('settings a stored file leaves out read as their values in force', () => {
+  const settings = withSettingsDefaults({
+    session: { idleHours: 2, absoluteHours: 24 },
+    remote: { github: { host: 'github.example.org' } },
+  });
+  expect(settings).toEqual({
+    session: { idleHours: 2, absoluteHours: 24 },
+    remote: {
+      allowedHosts: [],
+      azureDevOpsObo: false,
+      github: { host: 'github.example.org', appConfigured: false },
+    },
+    audit: { retentionDays: 400 },
+  });
 });

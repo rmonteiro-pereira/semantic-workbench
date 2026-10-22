@@ -46,15 +46,16 @@ rule there. Server mode adds the rules below.
 | `GET/PUT /api/admin/settings` | Admin | `settings.json` + `baseVersion` | `{version}`; secrets never returned |
 | `GET /api/admin/policies` | Admin | | `{baseline: [{id, text, description}], rules: [{id, text, enabled, template?, description}], schema}` |
 | `POST /api/admin/policies/validate` | Admin | `{rules}` | `{ok, errors: [{id, line, column, message}]}` |
-| `POST /api/admin/policies/dry-run` | Admin | `{rules}` (or any area's proposed file: roles, grants, projects) | `{dryRunId, changed: [{case, before, after, rules}], matrixCases, auditCases, people: [{principal, project, gained, lost, access}]}` (`people` for role, grant and project changes) |
+| `POST /api/admin/policies/template` | Admin | `{template: 'git-limits'\|'metric-ownership'\|'classification'\|'time'\|'network', id, …parameters}` | `{id, text, enabled: true, template}`, the rule the server generates; 400 for unknown actions, `admin` among the actions, hours outside 0–23 or none, no network range or a malformed one, no approver group. A time window past midnight is its hours (`[22, 23, 0, 1]`); network ranges compare the `ipaddr` context attribute `sourceIp` |
+| `POST /api/admin/policies/dry-run` | Admin | the document the area's PUT takes (`{rules}`, `{roles}`, `{grants}`, the projects document or `{clients}`), or `{rollbackTo: version}` | `{dryRunId, changed: [{case, before, after, rules}], matrixCases, auditCases, people: [{principal, name, project, gained, lost, access}]}` (`people` for role, grant, project and rollback changes, including people a rollback reactivates; `name` is the display name, or the id when none is known) |
 | `PUT /api/admin/policies` | Admin | `{rules, baseVersion, dryRunId}` | `{version}`; refused unless valid and dry-run id matches the same proposal |
 | `GET /api/admin/versions` | Admin | `?area=` | `[{version, author, at, message, files}]` |
 | `GET /api/admin/versions/:v/diff` | Admin | `?against=` | per-file text diff |
-| `POST /api/admin/versions/:v/rollback` | Admin | `{baseVersion}` | `{version}` (new commit); dry run and last-Admin guard apply |
+| `POST /api/admin/versions/:v/rollback` | Admin | `{baseVersion, dryRunId}` | `{version}` (new commit); refused unless `dryRunId` comes from a dry run of `{rollbackTo: v}` at the current version; the policy-set, bootstrap and last-Admin guards apply |
 | `POST /api/admin/check` | Admin | `{principal: id \| {groups, email}, action, resource: {type, project?, path?, branch?, metric?}}` | `{decision, grants: [{grantId, roleId, via}], roles: [roleId], rules: [id], attributes}` |
 | `GET /api/admin/who-can` | Admin | `?project=&path=` | `[{group \| email \| principal \| client, via: grantId?, actions: [action]}]` |
 | `GET /api/admin/sessions` / `DELETE /api/admin/sessions/:principal` | Admin | | list / end all sessions of a principal |
-| `GET /api/audit` | Steward(d), Admin | `?principal=&action=&project=&decision=&from=&to=&cursor=` | `{entries, next}`; Stewards get only their domains' projects |
+| `GET /api/audit` | Steward(d), Admin | `?principal=&action=&project=&decision=&from=&to=&cursor=` | `{entries, next}`; Stewards get only their domains' projects; `from` defaults to the start of the current UTC month, and only the months from `from` through `to` are read |
 | `GET /api/audit/export` | Steward(d), Admin | same filters + `format=jsonl\|csv` | file download of the filtered entries |
 | `GET /api/admin/provider` | Admin | | `{issuer, clientId, discovery: 'ok'\|error, groupClaimMode, overage: 'directory'\|'off', jwksRefreshedAt}` |
 
@@ -176,3 +177,86 @@ the sole domain for a non-Admin. Admins may omit the domain to create an unassig
 A creation request (`POST /api/projects`, `/api/import`, `/api/examples/:id`, `/api/clone`) that
 names a domain that does not exist answers `404 {error: 'Not found.'}`, exactly like a domain the
 person cannot see, so the answer never reveals which domains exist.
+
+## Administration response and proposal details
+
+Document GET responses (`grants`, `projects`, `agents`, `settings`) contain the document's
+fields plus `version`, the current administration commit. Roles and policies also include
+`version` alongside the fields above. `baseVersion` on every PUT is the `version` of the GET
+response the proposal was built from; the client does not derive it from
+`GET /api/admin/versions`. Omit the response-only `version` field from the proposed document
+and from the dry-run body: the document schemas refuse unknown fields with 400. Rollback's
+`baseVersion` is the current version, which is also the first entry of
+`GET /api/admin/versions` without `area`. Stale writes return `409 {error: "stale", message}`
+before proposal validation, so a refusal of the proposal itself (for example a built-in role in
+`roles`) is only reported against the current version.
+
+`GET /api/admin/settings` returns every setting, with the value in force for any setting the
+stored `settings.json` leaves out (session 8 and 24 hours, no allowed hosts, on-behalf-of off,
+GitHub `github.com` without an app, audit retention 400 days). New custom roles carry
+`createdBy` (the Admin's principal ID) and `createdAt` (ISO time) set by the client, as new
+grants carry `addedBy` and `addedAt`; the roles schema requires both.
+
+Dry-run accepts the complete document the area's PUT takes: `{roles}`, `{grants}`,
+`{domains, projects, classification}`, `{clients}` (agents) or `{rules}` (policies); the one of
+`roles`, `grants`, `projects`, `clients` or `rules` it contains names the area. Rule objects are
+`{id, text, enabled, template?, description?}`; text may include its stored annotations.
+Receipts bind the complete normalized proposal to the current version, expire after fifteen
+minutes and are invalidated by a successful write. Missing, expired or mismatched receipts
+return `400 {error}`. Invalid policies return `400 {error, ok: false, errors}` on activation;
+the validation endpoint returns `200 {ok: false, errors}`. Error positions are one-based.
+Dry-run changed decisions use boolean `before`/`after`; `case` identifies the replayed request.
+The `people[].principal` field is the stable principal ID, including `client:<clientId>`.
+Deleting a role previews removal of its grants too; `inUse.grants` is a count and `people`
+contains the known identities whose decisions change. Confirmation uses the same receipt.
+
+Users returns an array of stored identities, with `groups: [{id, displayName, resolved}]`,
+`roleSources` (the `/api/me` shape, `[{roleId, scope, via, group?: {id, name?}}]`, with the
+group's directory name when known), `roles: {workspace, projects}`, `bootstrap`, `access`, and
+`deactivated`.
+Configured agent clients follow the people as rows with `kind: "client"`, `id: "client:<clientId>"`,
+`clientId`, `name`, `projects`, `domains`, `lastSignInAt: null`, `groups: []`, `roleSources: []`
+and `access` (`granted` when the client has any project or domain). `q` matches the name,
+address, username, ID, client ID or a group name, ignoring case.
+Role usage values contain numeric `grants` and `people` counts. Group names are refreshed
+when the users panel opens; group lookup failure is represented by `displayName: null`.
+Deactivation/reactivation accepts `{reason}` and serializes against the current version.
+Last-Admin refusal is `400 {error: "last-admin", message, bootstrap}`; bootstrap identities
+cannot be deactivated (`400 {error: "bootstrap-admin", message}`). Refusals of administration
+writes are therefore `400 {error, message?}` for invalid or guarded proposals,
+`409 {error: "stale", message}` for a superseded base and `409 {inUse}` for an unconfirmed role
+deletion; the panel shows `error` and `message` together.
+
+Versions returns the array above with `author: {name, email}` and `files: string[]`.
+`area` is one of `roles`, `grants`, `projects`, `agents`, `deactivated`, `settings` or
+`policies` (every rule file). Each `message` is one line, `<area>: <summary>`, naming what was
+added, removed or changed, for example `grants: Add grant erin-viewer (viewer to
+erin@example.org)`, `deactivated: Deactivate Alice Andrade: <reason>` or
+`rollback: Roll back to <version>`.
+Diff returns `Record<filename, unifiedDiffText>`. Rollback performs validation and a fresh
+server dry run before creating its new commit. Sessions returns
+`[{principal, name, createdAt, lastSeenAt}]`, without session identifiers or credentials;
+DELETE returns `{ended: true}`. Local provider diagnostics use null issuer/client/key-refresh
+time and discovery `"unavailable"`. A null key-refresh time means no key fetch has completed in this process.
+
+An activated change closes, with `access {reason: "changed"}`, the live-update streams of the
+people and clients whose decisions the dry run shows changing; other streams stay open.
+`GET /api/me` reports `can.audit: true` for an Admin and for anyone allowed `readAudit` on at
+least one project (a Steward of a domain).
+
+Access check returns `decision: {allow, status, rules, reason?}` and
+`attributes: {principal, resource, context}` containing only normalized identity and access
+attributes. Who-can returns separate rows for grant members (`group` or `email`, with `via`),
+known `principal` IDs and `client` IDs, each with allowed `actions`.
+Audit pages contain at most 100 filtered entries; `next` is an opaque cursor string or null.
+Exports apply the same scope and filters and download all matching records. CSV quotes fields
+and protects spreadsheet formula prefixes. Invalid filters or formats return 400.
+
+For simulator file resources, optional `docType`, `level` and
+`metric: {name, status, owner?}` supply the same resource attributes as normal file decisions.
+`branch` supplies the branch context. Configured clients are selectable as `client:<clientId>`.
+
+The returned Cedar schema includes generated custom-role holders. Policy context has `hour`
+(UTC hour, integer) and `sourceIp` (Cedar `ipaddr`, taken from the direct socket peer).
+Network conditions use `context.sourceIp.isInRange(ip("10.0.0.0/8"))`; forwarded headers are
+not treated as trusted peer addresses.

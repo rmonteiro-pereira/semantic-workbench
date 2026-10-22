@@ -1,4 +1,5 @@
 // Introduces faults into temporary source copies and checks that the test suite detects them.
+import { adminMutants } from './admin-mutants';
 import { mkdtemp, rm, symlink } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 const root = process.cwd();
@@ -225,8 +226,8 @@ const mutants: [string, string, string, string][] = [
   [
     'auth-admin-guard',
     'server/auth/admin-guard.ts',
-    'holders.ids.length + holders.bootstrapCount > 0',
-    'holders.ids.length + holders.bootstrapCount >= 0',
+    'if (allowed) return { ok: true };',
+    'if (true) return { ok: true };',
   ],
   [
     'auth-middleware',
@@ -787,6 +788,10 @@ const mutants: [string, string, string, string][] = [
     'for (const project of projects) await deps.rescan(project);',
     'await deps.rescan(slug);',
   ],
+  // Admin panel: a save is confirmed only for the reviewed proposal and never without a dry run.
+  ['admin-review', 'src/admin/change-review.ts', 'review.key === key', 'true'],
+  ['admin-review', 'src/admin/change-review.ts', 'Boolean(review.result.dryRunId)', 'true'],
+  ['admin-save', 'src/admin/api.ts', 'if (!dryRunId)', 'if (false)'],
 ];
 mutants.push(
   [
@@ -834,7 +839,13 @@ mutants.push(
 );
 
 let killed = 0;
+// Administration cases extend the existing inventory without changing its categories.
+mutants.push(...adminMutants);
+
 async function run(category: string, file: string, source: string, index: string) {
+  if (category.startsWith('admin-')) {
+    source = source.replaceAll("new URL('../../policies/", `new URL('${root}/policies/`);
+  }
   const rewritten = source.replace(
     /\bfrom\s*(['"])(\.[^'"]+)\1/g,
     (_all, q, path) => `from ${q}${resolve(dirname(resolve(root, file)), path)}${q}`,

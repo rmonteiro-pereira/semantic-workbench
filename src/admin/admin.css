@@ -1,0 +1,267 @@
+/* Lays out the Admin panel dialogs inside the shared workbench dialog. */
+.admin-dialog {
+  min-width: 0;
+}
+.admin-dialog .dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+/* Actions keep their natural width; only the launcher's area list fills the row. */
+.admin-dialog .dialog-body > button,
+.admin-dialog section > button,
+.admin-dialog fieldset > button {
+  align-self: flex-start;
+}
+.admin-dialog label,
+.admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  margin: 4px 0;
+  font-size: 12px;
+}
+/* A checkbox sits before its text on the same line. */
+.admin-dialog label:has(> input[type='checkbox']) {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.admin-dialog input,
+.admin-dialog select,
+.admin-dialog textarea {
+  max-width: 100%;
+  min-width: 0;
+}
+.admin-dialog textarea {
+  min-height: 64px;
+  padding: 8px;
+  border: 1px solid #dbe3e4;
+  border-radius: 5px;
+}
+.admin-dialog fieldset {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid #e6ecec;
+  border-radius: 6px;
+  padding: 8px 12px 12px;
+}
+.admin-dialog legend {
+  font-size: 12px;
+  font-weight: 600;
+  color: #3a5a50;
+  padding: 0 4px;
+}
+.admin-dialog pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+.admin-dialog p,
+.admin-dialog td {
+  overflow-wrap: anywhere;
+}
+.admin-dialog button {
+  white-space: normal;
+  overflow-wrap: normal;
+}
+.admin-dialog table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.admin-dialog td,
+.admin-dialog th {
+  text-align: left;
+  padding: 8px;
+  vertical-align: top;
+  border-bottom: 1px solid #eef2f2;
+}
+.admin-dialog th {
+  font-size: 12px;
+  font-weight: 600;
+  color: #3a5a50;
+}
+.admin-table {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.admin-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+/* Body actions match the footer's Close button; the page-wide button size dwarfed the forms. */
+.admin-dialog .dialog-body button:not([role='menuitem']) {
+  min-height: 32px;
+  padding: 5px 12px;
+  font-size: 13px;
+  line-height: 20px;
+}
+/* Neighbouring actions such as Edit and Delete would otherwise touch. */
+.admin-dialog section > button + button {
+  margin-left: 8px;
+}
+.admin-dialog input[type='number'] {
+  max-width: 160px;
+}
+.admin-dialog label:has(> input[type='checkbox']) {
+  margin: 2px 0;
+}
+.admin-dialog summary {
+  font-size: 13px;
+}
+/* A label, its field and the row's action share one line. */
+.admin-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px;
+}
+.admin-row > label {
+  flex: 1 1 220px;
+}
+.admin-row > button {
+  margin: 4px 0;
+}
+/* A role's thirty-odd actions sit in columns so the checklist fits on one screen. */
+.admin-dialog .role-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 0 12px;
+}
+/* An action whose conditions are open takes the whole row so its fields keep their width. */
+.admin-dialog .role-actions > div:has(details) {
+  grid-column: 1 / -1;
+}
+/* Tabs look like the segmented switch of the credential guide. */
+.admin-dialog .segmented {
+  display: inline-flex;
+  border: 1px solid #dbe3e4;
+  border-radius: 7px;
+  overflow: hidden;
+}
+.admin-dialog .segmented button {
+  border: 0;
+  border-radius: 0;
+  padding: 6px 14px;
+  font-size: 12px;
+  background: #fff;
+}
+.admin-dialog .segmented button.selected {
+  background: #e5f1ec;
+  color: #1f5e4e;
+  font-weight: 600;
+}
+.admin-areas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.admin-notice {
+  font-size: 12px;
+  opacity: 0.8;
+  margin: 0;
+}
+.admin-review {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid #e6ecec;
+  padding-top: 12px;
+}
+.admin-chip {
+  display: inline-block;
+  border: 1px solid #dbe3e4;
+  border-radius: 8px;
+  padding: 3px 6px;
+  margin: 2px;
+  font-size: 12px;
+}
+.admin-dialog .admin-filters {
+  display: grid;
+  align-items: end;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  column-gap: 12px;
+}
+.admin-facts {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 4px 16px;
+  margin: 0;
+  font-size: 13px;
+}
+.admin-facts dt {
+  color: #52656b;
+}
+.admin-facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+/* The raw policy editor gets a fixed height because the dialog body sizes to its content. */
+.admin-dialog .code-editor {
+  height: auto;
+}
+.admin-dialog .code-editor-host {
+  flex: none;
+  height: 260px;
+}
+.admin-dialog .diff-view {
+  min-width: 0;
+  max-width: 100%;
+}
+.admin-dialog .diff-host {
+  overflow: auto;
+}
+.admin-dialog [role='alert'] {
+  color: var(--danger, #b33);
+}
+/* On phones each record becomes a block of lines instead of a cramped row of columns. */
+@media (max-width: 600px) {
+  .admin-records thead {
+    display: none;
+  }
+  .admin-records,
+  .admin-records tbody,
+  .admin-records tr,
+  .admin-records td {
+    display: block;
+    width: 100%;
+  }
+  .admin-records tr {
+    border-bottom: 1px solid #e6ecec;
+    padding: 6px 0;
+  }
+  .admin-records td {
+    border: 0;
+    padding: 4px 0;
+  }
+  .admin-dialog .admin-table table {
+    font-size: 12px;
+  }
+}
+.admin-launcher {
+  flex-shrink: 0;
+  /* Same size as the header actions beside it, so the header keeps its height. */
+  padding: 8px 10px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+@media (max-width: 699px) {
+  .workspace-header:has(.admin-launcher) {
+    grid-template-columns: 34px minmax(0, 1fr) auto auto auto;
+  }
+  .workspace-header > .admin-launcher {
+    grid-column: 4;
+    grid-row: 1;
+    height: 34px;
+  }
+  .workspace-header:has(.admin-launcher) > .person-menu {
+    grid-column: 5;
+  }
+}

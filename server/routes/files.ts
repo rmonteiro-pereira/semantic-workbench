@@ -1,7 +1,7 @@
 // Serves project files and validates save requests against their original content hashes.
 import { MAX_INPUT_BYTES } from '../../src/diagnostics';
-import { readJson } from '../request';
-import { decodePath, type Route } from './http';
+import { decodePath, readJson } from '../request';
+import type { Route } from './http';
 const HASH = /^[0-9a-f]{64}$/;
 /** Handles file reads and saves with base hashes to detect stale edits. */
 export const fileRoutes: Route = async (ws, req, url) => {

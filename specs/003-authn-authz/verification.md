@@ -74,6 +74,27 @@ No Azure, registry or identity provider was contacted; the deploy paths ran agai
 | Browser suites | all passed; `test:ui`, `test:autosave` and `test:dialogs` failed once each because the Vite server or the page process stopped before the first check, and passed on rerun; no budget was changed |
 | `test:container` | passed (local, server-mode and smoke groups); one earlier run stopped in `test:responsive` and the rerun passed |
 
+## Timing budgets on an idle machine (development machine, 2026-10-22)
+
+Commit 0240c68, load average about 1 on 28 cores, each suite run alone through the gate.
+
+| Suite | Result |
+| --- | --- |
+| `test:graph` | passed; 1,000-entity neighbourhood centred and laid out in 220 ms; longest main-thread task while piercing 0 ms |
+| `test:editor` | passed; 26.3 ms mean per keystroke without a save (30 ms budget), 17.2 ms with an automatic save in flight; inline finding 333 ms after the last keystroke (500 ms budget) |
+
+These replace the misses measured under load earlier; no budget was changed.
+
+## Admin panel (development machine, 2026-10-22)
+
+| Check | Result |
+| --- | --- |
+| `bun test` | 1,194 passed |
+| `ci:validate --step mutation` | 199 of 199 mutants killed |
+| `test:auth`, `test:admin` | passed; Admin panel screenshots at 390×844, 1280×720, 1440×900 and 2560×1440 reviewed |
+| Browser suites | `test:responsive`, `test:projects`, `test:trash` and `test:dialogs` passed; run in parallel, Vite sometimes did not start, and each passed alone |
+| `test:container` | passed (local, server-mode and smoke groups) |
+
 ## Owner trial
 
 The owner records the report of `deploy/trial-runbook.md` here after running it on the target.

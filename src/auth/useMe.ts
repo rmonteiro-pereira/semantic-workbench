@@ -5,12 +5,14 @@ import { apiFetch } from '../projects/api';
 /** Identity and effective role labels supplied by the authenticated API. */
 export type Me = {
   mode: 'local' | 'server';
+  id?: string;
   creationDomains?: { id: string; name: string }[];
   can?: Record<string, boolean>;
   requires?: Record<string, string>;
   name: string;
   verifiedEmail: string | null;
   csrf?: string;
+  roleSources?: { via: 'group' | 'email' | 'bootstrap' }[];
   roles: { workspace: string[]; projects: Record<string, string[]> };
   roleNames: Record<string, string>;
 };

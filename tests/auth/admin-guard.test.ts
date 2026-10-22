@@ -78,3 +78,30 @@ test('Admin group matching uses the provider rule even for names shaped like dir
     true,
   );
 });
+
+test('the guard decides with the proposed policies, so a rule forbidding admin removes Admins', () => {
+  const config = emptyAccessConfig();
+  config.grants = [
+    {
+      id: 'admin',
+      roleId: 'admin',
+      member: { kind: 'group', groupId: 'Admins' },
+      scope: { kind: 'workspace' },
+      addedBy: 'test',
+      addedAt: user.lastSignInAt,
+    },
+  ];
+  // The editor refuses this text; the guard must hold even if such a rule reaches the files.
+  config.adminRules = {
+    lockout: '@id("lockout")\nforbid(principal, action == SW::Action::"admin", resource);',
+  };
+  expect(checkLastAdmin(config, options)).toEqual({ ok: false, reason: 'last-admin' });
+  const recovery = { ...options, bootstrap: { ids: ['emergency'], emails: [] } };
+  expect(checkLastAdmin(config, recovery)).toEqual({ ok: false, reason: 'last-admin' });
+  config.adminRules = {};
+  expect(checkLastAdmin(config, options)).toEqual({ ok: true });
+  config.grants = [];
+  expect(checkLastAdmin(config, recovery)).toEqual({ ok: true });
+  const byAddress = { ...options, bootstrap: { ids: [], emails: ['Recovery@Example.org'] } };
+  expect(checkLastAdmin(config, byAddress)).toEqual({ ok: true });
+});

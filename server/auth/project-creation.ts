@@ -63,10 +63,10 @@ export async function assignProjectDomains(
   try {
     await administration.ensure();
     try {
-      await writeAssignments(administration, request, slugs, domain);
+      await writeAssignments(deps, request, slugs, domain);
     } catch (error) {
       if (!(error instanceof AdminStaleError)) throw error;
-      await writeAssignments(administration, request, slugs, domain);
+      await writeAssignments(deps, request, slugs, domain);
     }
   } catch (error) {
     await ws.trash.deleteProjects(slugs, scope.principal.id);
@@ -96,7 +96,7 @@ function assignedProjects(
 }
 
 async function writeAssignments(
-  administration: AdminRepository,
+  { ws, administration }: AssignmentDeps,
   request: Request,
   slugs: string[],
   domain: string | undefined,
@@ -116,4 +116,7 @@ async function writeAssignments(
       message: `projects: assign ${slugs.join(', ')} to ${domain ?? 'no domain'}`,
     },
   );
+  // The workspace announced the projects before they had a domain, so only Admins could read that
+  // event. Announcing them again reaches everyone the domain now lets read them.
+  ws.events.emit('projects', { added: slugs, removed: [], renamed: [] }, { projects: slugs });
 }

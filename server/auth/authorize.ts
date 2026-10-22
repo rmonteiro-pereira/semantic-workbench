@@ -13,7 +13,7 @@ import { loadPolicySet, createPolicyEvaluator, PolicyLoadError } from './cedar';
 import { validateAccessConfig, type AccessConfig, type Role } from './access-config';
 import { holdersOfGrant, resolveGrants, type Bootstrap, type GrantOptions } from './grants';
 import { localPrincipal, type NormalizedPrincipal, type Principal } from './principal';
-import { levelNumber, type Action } from './actions';
+import { ACTIONS, levelNumber, type Action } from './actions';
 import { matchesSegmentGlob, matchesCedarLike } from './path-rules';
 
 /** Configuration accepted by the access boundary. */
@@ -33,6 +33,7 @@ export type AccessOptions = {
   bootstrap: Bootstrap;
   groupMatch: GrantOptions['groupMatch'];
   knownProjects: () => string[];
+  context?: () => Pick<DecisionContext, 'hour' | 'sourceIp'>;
 };
 
 function prepare(config: AccessConfig, projects: string[], groupMatch: GrantOptions['groupMatch']) {
@@ -69,6 +70,8 @@ function requestContext(
     resource.type === 'workspace' ? undefined : active.config.projects.projects[resource.project];
   return {
     mode,
+    hour: supplied.hour ?? -1,
+    sourceIp: supplied.sourceIp ?? '0.0.0.0',
     branch,
     protectedBranch:
       Boolean(supplied.protectedBranch) ||
@@ -203,7 +206,7 @@ export function createAccessControl(options: AccessOptions) {
     };
   }
 
-  function forRequest(identity: Principal) {
+  function forRequest(identity: Principal, requestDefaults: Partial<DecisionContext> = {}) {
     refreshProjects();
     let snapshot = active;
     let principal = principalFor(identity);
@@ -224,7 +227,11 @@ export function createAccessControl(options: AccessOptions) {
     ): Decision {
       synchronize();
       const resource = normalizeResource(input);
-      const context = requestContext(snapshot, options.mode, resource, supplied);
+      const context = requestContext(snapshot, options.mode, resource, {
+        ...options.context?.(),
+        ...requestDefaults,
+        ...supplied,
+      });
       const project = resource.type === 'workspace' ? '' : resource.project;
       const key = JSON.stringify([
         action,
@@ -310,7 +317,70 @@ export function createAccessControl(options: AccessOptions) {
       listeners.delete(listener);
     };
   }
-  return { forRequest, authorize, filter, view, reload, principalFor, subscribe };
+  function explain(
+    identity: NormalizedPrincipal,
+    action: Action,
+    resource: ResourceRef,
+    context: Partial<DecisionContext> = {},
+  ) {
+    const principal = principalFor(identity);
+    const decision = authorize(principal, action, resource, context);
+    return {
+      decision,
+      grants: principal.grants,
+      roles: [...new Set(principal.grants.map(grant => grant.roleId))],
+      rules: decision.rules,
+      attributes: {
+        principal,
+        resource,
+        context: requestContext(active, options.mode, resource, {
+          ...options.context?.(),
+          ...context,
+        }),
+      },
+    };
+  }
+  function whoCan(resource: ResourceRef, users: NormalizedPrincipal[]) {
+    const candidates = users.map(principal => ({ principal: principal.id, identity: principal }));
+    const members = active.config.grants.map(grant => {
+      const member = grant.member;
+      const identity = hypotheticalPrincipal(
+        member.kind === 'group' ? [member.groupId] : [],
+        member.kind === 'email' ? member.email : null,
+      );
+      return {
+        ...(member.kind === 'group' ? { group: member.groupId } : { email: member.email }),
+        via: grant.id,
+        identity,
+      };
+    });
+    const clients = active.config.agents.clients.map(client => ({
+      client: client.clientId,
+      identity: clientPrincipal(client.clientId, client.name),
+    }));
+    return [...candidates, ...members, ...clients].flatMap(({ identity, ...label }) => {
+      const principal = principalFor(identity);
+      const actions = ACTIONS.filter(action => authorize(principal, action, resource).allow);
+      return actions.length ? [{ ...label, actions }] : [];
+    });
+  }
+  const snapshot = (): AccessOptions => ({
+    ...options,
+    bootstrap: structuredClone(bootstrap),
+    config: structuredClone(active.config),
+  });
+  return {
+    forRequest,
+    authorize,
+    filter,
+    view,
+    reload,
+    principalFor,
+    subscribe,
+    explain,
+    whoCan,
+    snapshot,
+  };
 }
 /** The access boundary instance shared across requests. */
 export type AccessControl = ReturnType<typeof createAccessControl>;
@@ -344,5 +414,32 @@ function accessView(
           .map(grant => grant.roleId),
       ),
     ],
+  };
+}
+
+/** Builds an explicitly hypothetical identity for the administrator's simulator. */
+export function hypotheticalPrincipal(groups: string[], email: string | null): NormalizedPrincipal {
+  return {
+    id: 'hypothetical',
+    key: 'hypothetical',
+    kind: 'person',
+    name: 'Hypothetical',
+    username: '',
+    verifiedEmail: email?.trim().toLowerCase() ?? null,
+    groups,
+    groupsResolved: 'token',
+    groupOverage: false,
+  };
+}
+
+/** Builds the same client identity for simulation and dry-run comparisons. */
+export function clientPrincipal(clientId: string, name: string): NormalizedPrincipal {
+  return {
+    ...hypotheticalPrincipal([], null),
+    id: `client:${clientId}`,
+    kind: 'client',
+    key: `client:${clientId}`,
+    clientId,
+    name,
   };
 }

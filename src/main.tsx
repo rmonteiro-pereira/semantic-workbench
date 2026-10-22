@@ -3,6 +3,7 @@ import { Capabilities } from './auth/Capabilities';
 import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { PersonMenu } from './auth/PersonMenu';
+import { AdminLauncher } from './admin/AdminLauncher';
 import { AppDialogs } from './app/AppDialogs';
 import { DetailsPanel } from './app/DetailsPanel';
 import { SidebarResizeHandle } from './app/SidebarResizeHandle';
@@ -263,7 +264,12 @@ function App() {
         <main inert={sidebar.compact && sidebar.sidebarOpen}>
           <GitBanner status={status} />
           <WorkspaceHeader
-            personMenu={<PersonMenu />}
+            personMenu={
+              <>
+                <AdminLauncher />
+                <PersonMenu />
+              </>
+            }
             workspaceToggle={sidebar.workspaceToggle}
             compact={sidebar.compact}
             sidebarOpen={sidebar.sidebarOpen}

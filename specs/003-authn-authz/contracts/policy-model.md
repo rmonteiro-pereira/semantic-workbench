@@ -102,8 +102,19 @@ audit entries are `role:<roleId>:<n>`.
 Who holds which role is not a template: it is managed as grants and custom roles in **Roles &
 access**. Admin rules may only add `permit` within readable scopes or add `forbid`; a dry run that
 shows an Admin rule enabling an action that a baseline `forbid` blocks is impossible by Cedar
-semantics (forbid wins), and the editor rejects rules that reference the Admin role holders in a
-`forbid` without a narrowing condition, so the last-Admin guard cannot be bypassed by policy text.
+semantics (forbid wins). Templates are generated only by the server
+(`POST /api/admin/policies/template`).
+
+The last-Admin guard holds against policy text in two ways:
+
+- Every saved rule is checked: a `forbid` whose action scope is unconstrained (`action`) or
+  includes `SW::Action::"admin"` (`==`, `in` a list, or `in` the action) is refused, whatever its
+  principal or condition, and so are time and network rules that list `admin`. A `forbid` naming
+  `SW::RoleHolder::"admin@workspace"` also needs a narrowing condition.
+- The guard is decision-based. Before any save, rollback or deactivation, the proposed roles,
+  grants, deactivations and rules are loaded into a separate access boundary, and at least one
+  Admin holder who signed in within one session lifetime, or one bootstrap identity, must be
+  allowed `admin` on the workspace. Otherwise the change is refused with `last-admin`.
 
 ## Access check and dry run
 
@@ -111,8 +122,10 @@ semantics (forbid wins), and the editor rejects rules that reference the Admin r
   hypothetical principal (its groups and address matched against the grants), and returns the
   decision, the matching grants, the roles they give, the deciding policy ids and the attributes
   used.
-- A proposed change of roles or grants is compiled and loaded beside the active set; the dry run
-  replays the matrix cases and the last 1,000 audit snapshots and also computes, for every person
-  in `users.json` (stored groups and address) and every agent client, the allowed actions per
-  readable project before and after: `people: [{principal, project, gained: [action], lost:
-  [action], access: 'kept'|'gained'|'lost'}]` ("what changes for whom").
+- A proposed change of roles or grants, or a rollback to an earlier version, is compiled and
+  loaded beside the active set; the dry run replays the matrix cases and the last 1,000 audit
+  snapshots (read from the newest month files backwards until enough are found) and also
+  computes, for every person in `users.json` (stored groups and address) and every agent client,
+  the allowed actions per readable project before and after: `people: [{principal, name,
+  project, gained: [action], lost: [action], access: 'kept'|'gained'|'lost'}]` ("what changes for
+  whom"). People a rollback reactivates appear with the access they regain.

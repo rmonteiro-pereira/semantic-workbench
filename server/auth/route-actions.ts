@@ -1,7 +1,7 @@
 // Maps HTTP entry points to the access boundary before any route can run.
 import type { Action } from './actions';
 import type { ResourceRef } from './resource';
-import { decodePath } from '../routes/http';
+import { decodePath } from '../request';
 
 /** One HTTP route and the resource its initial decision protects. */
 export type RouteAction = {
@@ -130,6 +130,36 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   row('GET', '/api/documents/:id/grouping', 'viewOwnState', workspace),
   // Grouping views are personal; the route resolves the document and refuses a hidden one.
   { ...row('PUT', '/api/documents/:id/grouping', 'viewOwnState', workspace), targets: 'body' },
+  // Administration entries remain explicit so unknown paths continue to fail closed.
+  row('GET', '/api/admin/users', 'admin', workspace),
+  row('GET', '/api/admin/roles', 'admin', workspace),
+  row('GET', '/api/admin/grants', 'admin', workspace),
+  row('GET', '/api/admin/projects', 'admin', workspace),
+  row('GET', '/api/admin/agents', 'admin', workspace),
+  row('GET', '/api/admin/settings', 'admin', workspace),
+  row('GET', '/api/admin/policies', 'admin', workspace),
+  row('GET', '/api/admin/versions', 'admin', workspace),
+  row('GET', '/api/admin/sessions', 'admin', workspace),
+  row('GET', '/api/admin/provider', 'admin', workspace),
+  row('GET', '/api/admin/who-can', 'admin', workspace),
+  row('GET', '/api/admin/groups/:id', 'admin', workspace),
+  row('GET', '/api/admin/versions/:v/diff', 'admin', workspace),
+  row('PUT', '/api/admin/roles', 'admin', workspace),
+  row('PUT', '/api/admin/grants', 'admin', workspace),
+  row('PUT', '/api/admin/projects', 'admin', workspace),
+  row('PUT', '/api/admin/agents', 'admin', workspace),
+  row('PUT', '/api/admin/settings', 'admin', workspace),
+  row('PUT', '/api/admin/policies', 'admin', workspace),
+  row('POST', '/api/admin/users/:id/deactivate', 'admin', workspace),
+  row('POST', '/api/admin/users/:id/reactivate', 'admin', workspace),
+  row('POST', '/api/admin/policies/validate', 'admin', workspace),
+  row('POST', '/api/admin/policies/template', 'admin', workspace),
+  row('POST', '/api/admin/policies/dry-run', 'admin', workspace),
+  row('POST', '/api/admin/check', 'admin', workspace),
+  row('POST', '/api/admin/versions/:v/rollback', 'admin', workspace),
+  row('DELETE', '/api/admin/sessions/:principal', 'admin', workspace),
+  row('GET', '/api/audit', 'readAudit', workspace),
+  row('GET', '/api/audit/export', 'readAudit', workspace),
   publicRow('GET', '/auth/login'),
   publicRow('GET', '/auth/callback'),
   publicRow('POST', '/auth/logout'),

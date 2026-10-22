@@ -280,7 +280,11 @@ export function createPolicyEvaluator(policy: PolicySet, options: EntityOptions)
         principal: person.uid,
         action: uid('Action', action),
         resource: target.uid,
-        context,
+        context: {
+          hour: -1,
+          ...context,
+          sourceIp: { __extn: { fn: 'ip', arg: context.sourceIp ?? '0.0.0.0' } },
+        },
         entities,
         validateRequest: false,
         preparsedSchemaName: policy.preparsedSchemaName,

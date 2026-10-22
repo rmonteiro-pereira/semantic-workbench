@@ -65,14 +65,14 @@ export function sessionExpired(session: Session, now: number, idle: number, abso
 /** Creates an encrypted store with serialized mutations and explicit revocation listeners. */
 export function createSessionStore(options: SessionOptions) {
   const now = options.now ?? Date.now;
-  const idle = (options.idleHours ?? 8) * 3600000;
-  const absolute = (options.absoluteHours ?? 24) * 3600000;
+  let idle = (options.idleHours ?? 8) * 3600000;
+  let absolute = (options.absoluteHours ?? 24) * 3600000;
   const key = crypto.subtle.importKey('raw', new Uint8Array(options.key), 'AES-GCM', false, [
     'encrypt',
     'decrypt',
   ]);
   const records = new Map<string, Session>();
-  const listeners = new Map<string, Set<() => void>>();
+  const listeners = new Map<string, Set<(reason?: 'changed' | 'session-ended') => void>>();
   const pending = new Map<string, Promise<unknown>>();
   const persistedAt = new Map<string, number>();
   function serialize<T>(hash: string, work: () => Promise<T>): Promise<T> {
@@ -194,7 +194,39 @@ export function createSessionStore(options: SessionOptions) {
       });
     }
   }
+  // Only the streams of people whose access changed are told to reload and are closed.
+  function notifyAccessChanged(principalIds: Iterable<string>) {
+    const affected = new Set(principalIds);
+    for (const [hash, subscribers] of listeners) {
+      const session = records.get(hash);
+      if (!session || !affected.has(session.principal.id)) continue;
+      for (const listener of subscribers) listener('changed');
+      listeners.delete(hash);
+    }
+  }
+  async function list() {
+    const result: { principal: string; name: string; createdAt: string; lastSeenAt: string }[] = [];
+    if (!existsSync(options.dir)) return result;
+    for (const filename of readdirSync(options.dir)) {
+      if (!/^[a-f0-9]{64}\.json$/.test(filename)) continue;
+      const session = await load(filename.slice(0, -5));
+      if (!session || sessionExpired(session, now(), idle, absolute)) continue;
+      result.push({
+        principal: session.principal.id,
+        name: session.principal.name,
+        createdAt: new Date(session.createdAt).toISOString(),
+        lastSeenAt: new Date(session.lastSeenAt).toISOString(),
+      });
+    }
+    return result;
+  }
   return {
+    list,
+    configure(limits: { idleHours: number; absoluteHours: number }) {
+      idle = limits.idleHours * 3600000;
+      absolute = limits.absoluteHours * 3600000;
+    },
+    notifyAccessChanged,
     get,
     sweep: () => sweep(),
     endPrincipal: (principalId: string) => sweep(principalId),
@@ -224,7 +256,7 @@ export function createSessionStore(options: SessionOptions) {
         await persist(hash, session);
         return true;
       }),
-    subscribe(id: string, listener: () => void) {
+    subscribe(id: string, listener: (reason?: 'changed' | 'session-ended') => void) {
       const hash = sha256(id);
       const subscribers = listeners.get(hash) ?? new Set();
       subscribers.add(listener);

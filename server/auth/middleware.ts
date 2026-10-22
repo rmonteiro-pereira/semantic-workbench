@@ -1,28 +1,31 @@
 // Applies one request-scoped decision and records outcomes before returning an HTTP response.
 import { readableTrash, restoreAction } from '../projects/trash';
-import { hiddenResponses } from '../routes/http';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import type { Workspace } from '../projects/workspace';
-import { errorResponse } from '../routes/http';
 import { createAccessControl, type AccessControl, type AccessScope } from './authorize';
 import { emptyAccessConfig } from './access-config';
 import { openAdminRepository, AdminConfigError, type AdminRepository } from './admin-repo';
-import { createAuditLog, type AuditLog } from './audit';
+import { auditableProjects, createAuditLog, reportAuditFailure, type AuditLog } from './audit';
 import { localPrincipal, type Principal } from './principal';
 import { routeFor, type RouteAction } from './route-actions';
 import type { ResourceRef, Decision } from './resource';
 import { validCsrf } from './csrf';
 import type { ServerAuthentication } from './authentication';
 import { WriteAccessError } from './write-access';
+import type { GroupName } from './directory';
+import type { ProviderStatus } from './oidc';
 import { READ_ACTIONS } from './actions';
-import { requestAccess, type AccessRequest } from './request-scope';
-import { requestAuditId } from '../request';
+import { requestAccess, requestAuditProjects, type AccessRequest } from './request-scope';
+import { hiddenResponses, requestAuditId } from '../request';
 
 /** The access boundary instance shared across requests. */
 export type { AccessControl } from './authorize';
 /** Optional dependencies for server authentication and isolated middleware tests. */
 export type HandlerOptions = {
+  sourceIp?: (request: Request) => string | undefined;
+  groupName?: (id: string) => Promise<GroupName>;
+  providerStatus?: ProviderStatus;
   access?: AccessControl;
   principal?: (request: Request) => Principal | null | Promise<Principal | null>;
   audit?: AuditLog;
@@ -54,7 +57,8 @@ export function defaultAccess(ws: Workspace, mode: 'local' | 'server'): AccessCo
     config,
     bootstrap: { emails: [], ids: [] },
     groupMatch: 'exact',
-    knownProjects: () => ws.state.registry().projects.map(project => project.slug),
+    knownProjects: () => projectSlugs(ws),
+    context: () => ({ hour: new Date().getUTCHours() }),
   });
 }
 /**
@@ -63,6 +67,14 @@ export function defaultAccess(ws: Workspace, mode: 'local' | 'server'): AccessCo
  */
 export function defaultAdministration(ws: Workspace, access: AccessControl): AdminRepository {
   return openAdminRepository({ root: ws.layout.root, committed: config => access.reload(config) });
+}
+/** The projects whose audit records the caller may read: null for an Admin, who reads them all. */
+function auditScope(scope: AccessScope, ws: Workspace): Set<string> | null {
+  if (scope.authorize('admin', { type: 'workspace' }).allow) return null;
+  return auditableProjects(scope, projectSlugs(ws));
+}
+function projectSlugs(ws: Workspace): string[] {
+  return ws.state.registry().projects.map(project => project.slug);
 }
 function outcome(status: number): 'ok' | 'refused' | 'failed' {
   if (status >= 200 && status < 300) return 'ok';
@@ -201,12 +213,19 @@ function routeDecision(
   return decision;
 }
 
+// The handler passes the shared error mapping in; this fallback only keeps isolated tests from
+// leaking an exception, and never reveals the error text.
+function internalError(): Response {
+  return Response.json({ error: 'Internal error.' }, { status: 500 });
+}
+
 /** Wraps routing with fail-closed access checks, request ids, and durable audit outcomes. */
 export function createAccessMiddleware(
   ws: Workspace,
   options: HandlerOptions,
   localCheck: (request: Request) => Response | null,
   run: (request: Request) => Promise<Response>,
+  failure: (error: unknown) => Response = internalError,
 ) {
   const mode = options.mode ?? 'local';
   const access = options.access ?? defaultAccess(ws, mode);
@@ -260,7 +279,7 @@ export function createAccessMiddleware(
     target: { row: RouteAction; resource: ResourceRef },
     principal: Principal,
   ): Promise<Response> {
-    const scope = access.forRequest(principal);
+    const scope = access.forRequest(principal, { sourceIp: options.sourceIp?.(request) });
     request[requestAccess] = scope;
     const noAccess =
       mode === 'server' && (scope.principal.deactivated || !scope.principal.grants.length);
@@ -276,6 +295,13 @@ export function createAccessMiddleware(
       mode,
       resolvedTarget: Boolean(trash?.entry),
     });
+    if (row.action === 'readAudit') {
+      const projects = auditScope(scope, ws);
+      request[requestAuditProjects] = projects;
+      // Audit routes are workspace routes, yet a Steward may read the records of their projects.
+      // The rule name records in the audit why the workspace route was allowed.
+      if (projects?.size) decision = { allow: true, status: 200, rules: ['steward-audit'] };
+    }
     if (trash && !trash.entry) {
       // A missing entry is not a denial; a caller who could not act on any entry still is one.
       if (decision.allow && !noAccess)
@@ -320,9 +346,9 @@ export function createAccessMiddleware(
     if (shouldAudit(row, request.method, 'allow')) {
       try {
         audit.append({ ...input, decision: 'allow', outcome: outcome(response.status) });
-      } catch {
+      } catch (error) {
         // The operation already ran; a failure response could trigger a duplicate write on retry.
-        console.error(`Audit append failed for request ${requestId}`);
+        reportAuditFailure({ requestId, action: row.action, error });
       }
     }
     if (mode === 'server' && response.status === 404) {
@@ -337,7 +363,7 @@ export function createAccessMiddleware(
     try {
       response = await dispatch(request, requestId);
     } catch (error) {
-      response = errorResponse(error, options.publicOrigin);
+      response = failure(error);
     }
     return requestIdResponse(response, requestId);
   };

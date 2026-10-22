@@ -49,7 +49,11 @@ async function initializeWorkspace() {
   if (config.mode === 'server') {
     authentication = await createServerAuthentication(workspace, config, oidc);
   }
-  handler = createHandler(workspace, { port: config.port, ...authentication });
+  handler = createHandler(workspace, {
+    port: config.port,
+    ...authentication,
+    sourceIp: request => server.requestIP(request)?.address,
+  });
   await logWorkspace(workspace);
 }
 const server = Bun.serve({

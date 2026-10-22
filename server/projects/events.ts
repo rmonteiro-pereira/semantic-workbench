@@ -169,7 +169,7 @@ export function createEvents(options: EventOptions) {
     },
     stream(
       req: Request,
-      onSessionEnd?: (listener: () => void) => () => void,
+      onSessionEnd?: (listener: (reason?: 'changed' | 'session-ended') => void) => () => void,
       access?: EventAccess,
       onAccessChange?: (listener: () => void) => () => void,
     ) {
@@ -221,8 +221,8 @@ export function createEvents(options: EventOptions) {
             controller.close();
           });
           timer = setInterval(() => send!(': ping\n\n'), heartbeatMs);
-          unsubscribe = onSessionEnd?.(() => {
-            send?.('event: access\ndata: {"reason":"session-ended"}\n\n');
+          unsubscribe = onSessionEnd?.((reason = 'session-ended') => {
+            send?.(`event: access\ndata: ${JSON.stringify({ reason })}\n\n`);
             cleanup();
             controller.close();
           });

@@ -42,7 +42,7 @@
     "mock-oidc": "bun scripts/mock-oidc.ts",
     "test:auth": "bun run build && bun scripts/auth-browser-check.ts",
     "test:auth:keycloak": "bun run build && bun scripts/auth-keycloak-check.ts",
-    "test:admin": "bun scripts/admin-browser-check.ts",
+    "test:admin": "bun run build && bun scripts/admin-browser-check.ts",
     "test:two-editors": "bun scripts/two-editors-check.ts",
     "test:container": "bun scripts/container-check.ts",
     "schemas:compile": "bun scripts/compile-schemas.ts",

@@ -1,7 +1,8 @@
 // Lists project metrics and explains their inputs without executing SQL.
 import { requestReader } from '../auth/request-scope';
 import { explainMetric, projectMetrics } from '../agent/explain';
-import { decodePath, type Route } from './http';
+import type { Route } from './http';
+import { decodePath } from '../request';
 // Match before the files route so `explain` is not treated as part of a file path.
 /** Handles metric listings and explanations without executing SQL. */
 export const metricRoutes: Route = (ws, req, url) => {

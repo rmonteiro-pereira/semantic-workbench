@@ -65,6 +65,7 @@ export async function createServerAuthentication(
     bootstrap: config.bootstrapAdmins,
     groupMatch: config.oidc.provider === 'entra' ? 'case-insensitive' : 'exact',
     knownProjects: () => ws.state.registry().projects.map(project => project.slug),
+    context: () => ({ hour: new Date().getUTCHours() }),
   });
   const audit = createAuditLog({ dir: join(ws.layout.state, 'audit'), mirror: console.log });
   function record({ action, principal, outcome, reason, request }: SignInEvent) {
@@ -112,7 +113,7 @@ export async function createServerAuthentication(
       });
       identity = await resolvePrincipalGroups(identity, oid =>
         config.directory.overage === 'directory'
-          ? directory.groups(oid, directoryGroupIds(policy))
+          ? directory.groups(oid, directoryGroupIds(access.snapshot().config))
           : Promise.resolve(null),
       );
       if (identity.groupsResolved === 'failed') {
@@ -265,6 +266,16 @@ export async function createServerAuthentication(
     response.headers.set('Set-Cookie', sessionCookie('', config.publicUrl, 'session', 0));
     return response;
   }
+  const groupDirectory = createDirectoryClient({
+    graphUrl: config.directory.graphUrl,
+    token: () => client.directoryToken(),
+    failure: reason => console.error(`[auth] group name lookup ${reason}`),
+  });
+  // Keycloak puts group names in the token, so the name is the identifier itself.
+  async function groupName(id: string) {
+    if (config.oidc.provider === 'keycloak') return { id, displayName: id, resolved: true };
+    return groupDirectory.group(id);
+  }
   const signOutTarget = client.logout();
   const providerOrigin = URL.canParse(signOutTarget) ? new URL(signOutTarget).origin : undefined;
   const timer = setInterval(() => {
@@ -272,6 +283,17 @@ export async function createServerAuthentication(
   }, 1000);
   timer.unref();
   return {
+    groupName,
+    providerStatus: {
+      issuer: config.oidc.issuer,
+      clientId: config.oidc.clientId,
+      discovery: 'ok',
+      groupClaimMode: config.directory.groupClaim,
+      overage: config.directory.overage,
+      get jwksRefreshedAt() {
+        return client.jwksRefreshedAt;
+      },
+    },
     mode: 'server' as const,
     publicOrigin: config.publicUrl,
     providerOrigin,

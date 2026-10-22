@@ -650,6 +650,8 @@ probe: `openid-client` 6.8.8 (MIT, 236 KB) with `oauth4webapi` (MIT, 332 KB), `j
 | Phase 7 second and third review rounds (removal events reach their readers, personal drafts follow revert and replace-import, one suggestion counting path with local behaviour unchanged, keep-both moves and imports never reveal hidden names, deleted empty projects stay visible to who may restore them, reader required everywhere) | Claude (general-purpose subagents, after the Codex usage limit), reviewed by Claude; status details optional in the client, access-event reload guarded during sign-out, expected roles in the sign-in check, re-anchored mutants by Claude |
 | T051–T056 (write matrix, write checks on every route, repository-wide Git checks, project creation with a domain, role-aware controls, mutants) and their first review round | Codex (gpt-6-astra), reviewed by Claude |
 | Phase 8 on top of Phase 7 (one request-scope module, one `deletedBy` field, `restoreAction()`, personal grouping, hidden write targets answer 404) and the second review round (remote changes checked repository-wide, legacy document save checks the written name, one administration repository that reloads policy after each commit, clone domains in one commit, unknown and hidden domains answer alike, creation decided without a stand-in project, requirement text with the configured role names, no empty domain commits) | Claude (general-purpose subagents, after the Codex usage limit), reviewed by Claude; the Ungrouped slug authorized before the project is created and the grouped Git check parameters by Claude |
+| T057–T075, T140–T142 (administration server and repository, dry run, audit queries, Admin panel UI, browser check, mutants) | Codex (gpt-6-astra) started the server part; finished, joined with the UI and reviewed by Claude general-purpose subagents after the Codex usage limit |
+| Phase 9 on top of Phase 8 (one administration repository with reload on commit, streams closed only for affected people, Steward audit without restricted paths, new projects announced after their domain commit, admin setup retried, one Steward audit decision, one rollback path, one dry-run document shape, dry run outside the save lock, Admin button height) | Claude (general-purpose subagent), reviewed by Claude; grouped dry-run and grant-form parameters by Claude |
 
 ### Test changes not caused by the specification
 
@@ -716,3 +718,15 @@ probe: `openid-client` 6.8.8 (MIT, 236 KB) with `oauth4webapi` (MIT, 332 KB), `j
   administration repository instead of opening its own, so the spy on `openAdminRepository` is gone;
   the test about reused creation decisions now asserts that creation compiles no policy at all,
   since a new project is judged with the loaded policy.
+- `tests/auth/admin-sessions.test.ts` ("ends only the live-update streams of the people it
+  affects"): the unaffected person's stream now receives the suggestion count on connect, so the
+  test requires that stream to stay open with no access frame instead of no frame at all.
+- `tests/auth/admin-repo.test.ts`: two steps called the repository's own rollback, which the review
+  removed as a second rollback path; they now restore the earlier version's files through `replace`.
+- `tests/auth/route-actions.ts` and `policies/matrix-cases.json`: the admin and audit examples
+  follow the new row order of the route table, and the read examples leave them out so the read set
+  is unchanged; the regenerated matrix only changed order.
+- `scripts/admin-mutation-cases.ts`: the audit case passes the reader's scope after the audit query
+  started checking restricted paths.
+- `tests/auth/dry-run.test.ts`: the people and audit entries a dry run compares are passed as one
+  object; the expectations are unchanged.
