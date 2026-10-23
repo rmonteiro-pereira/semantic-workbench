@@ -87,82 +87,96 @@ export function Explanation({
           <CompositionTree node={e.tree} />
         </div>
       </div>
-      <div className="explain-step">
-        <span className="step-number">3</span>
-        <div className="step-body">
-          <h4>Rules</h4>
-          <div className="rule-grid">
-            <Rule icon={<CalendarDays size={15} />} title="Time">
-              {e.time ? (
-                <>
-                  <code>{e.time.dimension}</code>
-                  <span>
-                    {e.time.minGrain ? `From ${e.time.minGrain} upward: ` : 'Grains: '}
-                    {e.time.allowedGrains.join(', ')}
-                  </span>
-                </>
-              ) : (
-                <span className="muted">No time dimension declared.</span>
-              )}
-            </Rule>
-            <Rule icon={<Layers3 size={15} />} title="Break down by">
-              {e.dimensions.length ? (
-                <span className="chip-row">
-                  {e.dimensions.map(d => (
-                    <code key={d}>{d}</code>
-                  ))}
+      <OnDemandStep number={3} title="Rules">
+        <div className="rule-grid">
+          <Rule icon={<CalendarDays size={15} />} title="Time">
+            {e.time ? (
+              <>
+                <code>{e.time.dimension}</code>
+                <span>
+                  {e.time.minGrain ? `From ${e.time.minGrain} upward: ` : 'Grains: '}
+                  {e.time.allowedGrains.join(', ')}
                 </span>
+              </>
+            ) : (
+              <span className="muted">No time dimension declared.</span>
+            )}
+          </Rule>
+          <Rule icon={<Layers3 size={15} />} title="Break down by">
+            {e.dimensions.length ? (
+              <span className="chip-row">
+                {e.dimensions.map(d => (
+                  <code key={d}>{d}</code>
+                ))}
+              </span>
+            ) : (
+              <span className="muted">No dimensions declared.</span>
+            )}
+          </Rule>
+          <Rule icon={<Filter size={15} />} title="Filters">
+            {e.filters.length ? (
+              e.filters.map((f, i) => <span key={i}>{f.text}</span>)
+            ) : (
+              <span className="muted">No filters: every row counts.</span>
+            )}
+          </Rule>
+          <Rule
+            icon={<Sigma size={15} />}
+            title={e.kpi.additivity ? additivityLabel[e.kpi.additivity] : 'Additivity unknown'}
+            tone={e.kpi.additivity === 'additive' ? 'ok' : e.kpi.additivity ? 'warn' : 'muted'}
+          >
+            <span>{e.additivityText}</span>
+          </Rule>
+          <Rule
+            icon={
+              e.divisionByZero === 'unhandled' ? (
+                <ShieldAlert size={15} />
               ) : (
-                <span className="muted">No dimensions declared.</span>
-              )}
-            </Rule>
-            <Rule icon={<Filter size={15} />} title="Filters">
-              {e.filters.length ? (
-                e.filters.map((f, i) => <span key={i}>{f.text}</span>)
-              ) : (
-                <span className="muted">No filters: every row counts.</span>
-              )}
-            </Rule>
-            <Rule
-              icon={<Sigma size={15} />}
-              title={e.kpi.additivity ? additivityLabel[e.kpi.additivity] : 'Additivity unknown'}
-              tone={e.kpi.additivity === 'additive' ? 'ok' : e.kpi.additivity ? 'warn' : 'muted'}
-            >
-              <span>{e.additivityText}</span>
-            </Rule>
-            <Rule
-              icon={
-                e.divisionByZero === 'unhandled' ? (
-                  <ShieldAlert size={15} />
-                ) : (
-                  <ShieldCheck size={15} />
-                )
-              }
-              title={
-                e.divisionByZero === 'handled'
-                  ? 'Division by zero guarded'
-                  : e.divisionByZero === 'unhandled'
-                    ? 'Division by zero not guarded'
-                    : 'No division'
-              }
-              tone={e.divisionByZero === 'unhandled' ? 'bad' : 'ok'}
-            >
-              <span>{e.divisionText}</span>
-            </Rule>
-            <Rule icon={<CircleSlash size={15} />} title="Missing values">
-              <span>{e.missingValues}</span>
-            </Rule>
-          </div>
+                <ShieldCheck size={15} />
+              )
+            }
+            title={
+              e.divisionByZero === 'handled'
+                ? 'Division by zero guarded'
+                : e.divisionByZero === 'unhandled'
+                  ? 'Division by zero not guarded'
+                  : 'No division'
+            }
+            tone={e.divisionByZero === 'unhandled' ? 'bad' : 'ok'}
+          >
+            <span>{e.divisionText}</span>
+          </Rule>
+          <Rule icon={<CircleSlash size={15} />} title="Missing values">
+            <span>{e.missingValues}</span>
+          </Rule>
         </div>
-      </div>
-      <div className="explain-step">
-        <span className="step-number">4</span>
-        <div className="step-body">
-          <h4>SQL preview</h4>
-          <Preview e={e} query={query} onQuery={onQuery} loading={loading} />
-        </div>
-      </div>
+      </OnDemandStep>
+      <OnDemandStep number={4} title="SQL preview">
+        <Preview e={e} query={query} onQuery={onQuery} loading={loading} />
+      </OnDemandStep>
     </section>
+  );
+}
+/** A numbered step whose content opens on demand, so the formula stays the first thing read. */
+function OnDemandStep({
+  number,
+  title,
+  children,
+}: {
+  number: number;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="explain-step">
+      <span className="step-number">{number}</span>
+      <details className="step-body on-demand">
+        <summary>
+          <h4>{title}</h4>
+        </summary>
+        {children}
+      </details>
+    </div>
   );
 }
 function Rule({
