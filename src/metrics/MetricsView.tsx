@@ -1,6 +1,6 @@
 /** Lists, filters and groups project metrics alongside the selected metric's explanation. */
 import { useCapabilities } from '../auth/Capabilities';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Gauge, ListFilter, Plus, Search } from 'lucide-react';
 import type { KpiSummary } from '../../server/agent/explain';
 import { MetricDetail } from './MetricDetail';
@@ -62,6 +62,11 @@ export function MetricsView({
   const groups = useMemo(() => groupMetrics(visible, filters.groupBy), [visible, filters.groupBy]);
   const columns = useMemo(() => visibleColumns(kpis), [kpis]);
   const current = kpis.find(k => metricKey(k) === selected);
+  const detailPane = useRef<HTMLElement>(null);
+  // Another metric opens at its title, not where the previous one was scrolled to.
+  useEffect(() => {
+    detailPane.current?.scrollTo({ top: 0 });
+  }, [selected]);
   const activeFilters = activeFilterCount(filters);
   const filtered = isNarrowed(filters, term);
   // Clearing removes what hides metrics; how the list is grouped stays as the reader set it.
@@ -161,7 +166,7 @@ export function MetricsView({
         />
       )}
       {current && project && (
-        <section className="metrics-detail" aria-label={`Metric ${current.label}`}>
+        <section ref={detailPane} className="metrics-detail" aria-label={`Metric ${current.label}`}>
           <button className="metrics-back" onClick={() => onSelect('')}>
             <ArrowLeft size={15} />
             All metrics

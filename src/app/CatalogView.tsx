@@ -15,6 +15,9 @@ type Props = {
   setEditing: React.Dispatch<React.SetStateAction<ItemTarget | null>>;
   setRdfEditing: React.Dispatch<React.SetStateAction<RdfTarget | null>>;
 };
+function metricCountLabel(count: number) {
+  return count === 1 ? '1 metric' : `${count} metrics`;
+}
 /** Renders catalog view. */
 export function CatalogView({
   model,
@@ -47,9 +50,7 @@ export function CatalogView({
                       title={`Metrics: ${kpiBadges.get(e.name)!.join(', ')}`}
                     >
                       <Gauge size={10} />
-                      {kpiBadges.get(e.name)!.length === 1
-                        ? 'Metric'
-                        : `${kpiBadges.get(e.name)!.length} metrics`}
+                      {metricCountLabel(kpiBadges.get(e.name)!.length)}
                     </span>
                   )}
                 </small>

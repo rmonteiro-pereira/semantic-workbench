@@ -30,11 +30,19 @@
   padding: 10px;
   overflow: auto;
 }
+/* The empty pane sits in the middle of the free space instead of under the top edge. */
+.scm-main > .empty-state {
+  margin-block: auto;
+}
 .scm-head {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
+}
+.scm-title {
+  margin: 0;
+  font-size: 16px;
 }
 .scm-head > select {
   flex: 1 1 100%;
@@ -43,6 +51,10 @@
   max-width: 100%;
   font-size: 13px;
   padding: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 .branch-picker {
   display: flex;
@@ -918,6 +930,11 @@
   margin: 0 0 8px;
   font-size: var(--text-small);
   color: var(--text-muted);
+}
+/* With no remote the sentence takes its own line and the Add remote button sits below it. */
+.scm-sync-remote > p {
+  flex: 1 1 100%;
+  margin: 0;
 }
 .scm-sync-actions {
   display: grid;

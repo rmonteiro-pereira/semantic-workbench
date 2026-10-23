@@ -1,0 +1,49 @@
+// Layout promises of the overview, catalog, mappings and Source control pages, measured in the
+// browser for the responsive suite.
+import type { Page } from '@playwright/test';
+
+/** Says what a page must hold beyond readable text: equal card rows, a heading, a scroll cue. */
+export async function pageLayoutProblems(page: Page, screenName: string) {
+  return page.evaluate(name => {
+    const problems: string[] = [];
+    const rows = (selector: string) => {
+      const boxes = [...document.querySelectorAll(selector)].map(el => el.getBoundingClientRect());
+      return boxes.filter(box => box.width > 0 && Math.abs(box.top - boxes[0].top) < 2);
+    };
+    if (name === 'ontology-overview') {
+      const first = rows('.business-area');
+      if (first.some(box => Math.abs(box.height - first[0].height) > 1)) {
+        problems.push('group cards of one row differ in height');
+      }
+    }
+    if (name === 'ontology-catalog') {
+      const titles = rows('.catalog-card strong');
+      if (titles.some(box => Math.abs(box.top - titles[0].top) > 1)) {
+        problems.push('card titles of one row are not on one line');
+      }
+    }
+    if (name === 'ontology-mappings') {
+      const detail = document.querySelector('.mapping-detail');
+      if (!detail?.querySelector('.mapping-binding, .empty-state')) {
+        problems.push('the detail shows neither a binding nor an empty state');
+      }
+      const chain = rows('.mapping-layer-chain > span');
+      if (chain.some(box => Math.abs(box.height - chain[0].height) > 1)) {
+        problems.push('the layer summary items differ in height');
+      }
+      const list = document.querySelector('.mapping-concept-list');
+      if (list && getComputedStyle(list).maskImage === 'none') {
+        problems.push('the concept list has no fade at its edge');
+      }
+    }
+    if (name === 'source-control') {
+      const title = document.querySelector('.scm-title');
+      if (!title) problems.push('the Source control page has no heading');
+      const select = document.querySelector('.scm-head > select');
+      if (select && getComputedStyle(select).borderTopWidth === '0px') {
+        problems.push('the project select has no border of its own');
+      }
+    }
+    return problems.map(problem => `${name}: ${problem}`);
+  }, screenName);
+}
