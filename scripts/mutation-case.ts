@@ -8,7 +8,7 @@ if (category === 'example-registry') {
   const { EXPECTED_EXAMPLE_METRICS, checkExampleSetMetrics } =
     await import('./example-metric-checks');
   for (const setId of Object.keys(EXPECTED_EXAMPLE_METRICS))
-    await checkExampleSetMetrics(setId, m.EXAMPLE_SETS);
+    await checkExampleSetMetrics(setId, m.EXAMPLE_SETS, 'one of each kind');
 }
 if (category === 'edge-path') {
   const path = 'M 10 20 C 30 40 50 60 70 80';
@@ -1264,7 +1264,7 @@ if (category === 'mapping-graph') {
     ctx(
       docs((f, s) =>
         f === 'commerce.mapping.yaml'
-          ? s +
+          ? s.slice(0, s.indexOf('custom_extensions:')) +
             'custom_extensions:\n  - vendor_name: SEMANTIC_WORKBENCH\n    data: \'{"schema": "semantic-workbench/mapping/v1", "kpi_bindings": [{"metric":"gross_revenue","measures":"Revenue","of":"Customer"}]}\'\n'
           : s,
       ),
