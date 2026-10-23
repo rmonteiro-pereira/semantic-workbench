@@ -416,6 +416,9 @@ variables, with defaults, the mode each applies to and what start-up checks. In 
   `SW_ADO_OBO` (Azure DevOps), `SW_GROUP_OVERAGE` and `SW_GRAPH_URL` (large group lists),
   `SW_TRUSTED_PROXY_HOPS` (behind a reverse proxy). Session lifetimes are set in
   `admin/settings.json`.
+- **Logging and telemetry:** `SW_LOG_LEVEL`, `APPLICATIONINSIGHTS_CONNECTION_STRING`,
+  `SW_TRACE_SAMPLE_RATIO` and `SW_TELEMETRY_ACTOR_SALT`, described in
+  [Logging and telemetry](#logging-and-telemetry).
 - `.env.server.example` is the Keycloak development profile and never a production template.
 
 Keep the same session key across restarts and supply production secrets through the
@@ -743,7 +746,7 @@ volume and its size is still known. Agent clients' calls are audited under `clie
 - **Rate limits.** Each client address may send 1,000 requests in a burst and 200 a second after
   that. `/auth/login` and `/auth/callback` share a tighter allowance of 60 and 2 a second, because
   each call can reach the identity provider. Beyond it the answer is `429` with `Retry-After`,
-  nothing is audited and the source is logged as `[http] rate-limited <source> <n>` at most once
+  nothing is audited and the source is logged as `http.rate-limited` with its count at most once
   a minute. A signed-in person is limited as themselves, so an anonymous visitor behind the same
   address cannot use up their allowance.
 - **Behind a reverse proxy** the socket peer is the proxy. Set `SW_TRUSTED_PROXY_HOPS` to the
@@ -752,8 +755,9 @@ volume and its size is still known. Agent clients' calls are audited under `clie
   writes, are ignored. An IPv6 client counts by its /64. Network policy rules keep comparing the
   socket peer.
 - **Errors.** A failure the server did not expect answers `500 {"error":"Internal error."}`; the
-  cause goes to the server log as `[http] <requestId> <name>: <message>`. A failed Git command
-  answers `{"error":"Git failed."}` and its output goes to the same log line. A malformed escape
+  cause goes to the server log as `http.unexpected-error` with the request id, the error name and
+  its message with credentials and file locations removed. A failed Git command
+  answers `{"error":"Git failed."}` and its output goes to an `http.git-failed` line. A malformed escape
   in a URL path answers 400.
 - **Caching.** Hashed assets use `private, max-age=31536000, immutable`. HTML and API responses
   use `no-store`, so shared caches never keep auth-gated files. Local mode caching is unchanged.
@@ -774,6 +778,94 @@ volume and its size is still known. Agent clients' calls are audited under `clie
 - **Back up** `DATA_DIR` with the app stopped, or rely on Git remotes for projects. The
   administration repository in `admin/` is itself a Git history of every access change.
 
+### Logging and telemetry
+
+**Logging** works the same in both modes. All operational output goes through one logger
+(`server/observability/log.ts`). Server mode writes one JSON object per line to stdout, which
+container platforms collect; local mode writes short readable lines
+(`12:30:45 INFO  http.request method=GET route=/api/me status=200 durationMs=2 actor=local`).
+`SW_LOG_LEVEL` chooses `debug`, `info` (the default), `warn`, `error` or `silent`; any other value
+refuses start-up.
+
+- **Requests.** Each request gets an id, returned in the `X-Request-Id` response header, and leaves
+  one `http.request` line with the method, the *route template* (`/api/projects/:slug/files/*`,
+  never the raw path), the status, the duration in milliseconds and the actor. Every other line
+  written while the request is handled carries the same id, however deep in the code, and the audit
+  record of the request holds it too. When telemetry is on, lines also carry `traceId` and `spanId`.
+- **Actor.** `local` in local mode, `anonymous` before sign-in, otherwise `user-` or `client-`
+  and 16 hex characters: an HMAC-SHA-256 of the person's stable key, keyed by
+  `SW_TELEMETRY_ACTOR_SALT`. It holds no name, address or provider id and cannot be computed from
+  a known object id without the salt. Without the setting each start uses a new salt, so the
+  pseudonym ties one person's requests together within a run and nothing more; set it to follow a
+  person across restarts. To name the person behind a line, look up its request id in the audit
+  log.
+- **Redaction.** Fields named like secrets, cookies, sessions, authorization, document content,
+  file locations, query strings or addresses are dropped. Text values lose bearer and basic
+  credentials, signed tokens, the user information of addresses, the query string of addresses,
+  `name=value` pairs of secret-looking names and file locations. Values are also cut in length,
+  depth and array size. Operational field names must therefore avoid those words (`files`, not
+  `fileCount`); `tests/observability/redaction.test.ts` lists what is covered.
+- **Not here.** The audit log is a separate security record under `state/audit/`, unchanged by
+  this. Log lines hold no document text, tokens, cookies, secrets or query strings. Stdout
+  redaction is best effort for free text: a project name, a client address (`http.rate-limited`)
+  or Git's own error text can still appear in a stdout line, which stays on the platform you run
+  it on. That is why export is stricter, see below.
+
+**Telemetry** is the export of traces, metrics and logs to Azure Monitor (Application Insights)
+through OpenTelemetry. It is off by default, **never runs in local mode** (a connection string in
+the environment is ignored there and no telemetry code is loaded) and runs in server mode only when
+`APPLICATIONINSIGHTS_CONNECTION_STRING` is set. Start-up accepts only a string whose ingestion
+endpoint is an `https://` Application Insights host and never prints it. When it is off, the
+OpenTelemetry SDK and the Azure exporter are not even loaded, and `tests/observability/telemetry-off.test.ts`
+proves in a separate process that no module loads and no socket is tried.
+
+- **Spans:** each HTTP request (`GET /api/me`), each Git command (`git status`, with option names
+  and an argument count, never argument values, addresses or paths), each project scan and
+  reindex, each validation on save, each administration policy reload and the sign-in steps
+  (start, token exchange, principal resolution, session creation, refresh, sign-out).
+- **Metrics:** requests and duration by route template, method and status
+  (`sw.http.server.requests`, `sw.http.server.duration`); Git duration and failures by subcommand;
+  scan duration; validation duration by trigger; active event streams; authentication failures by
+  reason (`token-invalid`, `bearer-scope`, `rate-limited`, `csrf-invalid`, sign-in reasons); and the
+  browser metrics below.
+- **Logs** pass through the OpenTelemetry log bridge after the level filter, so a trace and its
+  log lines share one operation id. Only an allow-list of fields is exported (request id, trace and
+  span ids, actor, route, method, status, duration, error name, kind, operation, Git subcommand,
+  reason and a few counts); every other field, such as project names, client addresses and Git
+  output, stays on stdout. A failed span exports the error's name, not its message.
+- **Resource:** `service.name=semantic-workbench`, `service.version`, `sw.commit`, `sw.mode` and
+  `service.instance.id` (the Container Apps revision). Nothing about a person except the actor
+  pseudonym above.
+- **Sampling:** `SW_TRACE_SAMPLE_RATIO` (0 to 1, default `0.1`) keeps that share of traces, using
+  Application Insights' own sampler so counts can be scaled back up. Metrics and logs are not
+  sampled, so every failure still leaves a log line.
+- **Outbound call:** to the ingestion endpoint in the connection string only. The exporter's own
+  usage reporting to Microsoft is switched off, and `tests/observability/azure-backends.test.ts`
+  checks that building and stopping the real exporters opens no connection. A slow or unreachable
+  endpoint never delays a request; shutdown waits at most five seconds for a last flush.
+- `/healthz` says whether telemetry is on (`"telemetry": {"enabled": true, "sampleRatio": 0.1}`)
+  or why it is off, and never where it sends.
+
+**Browser reports.** When telemetry is on, a signed-in page sends JavaScript errors, unhandled
+rejections, its page load time and operations that ran over their budget to
+`POST /api/telemetry/browser`; the server records them as the `sw.browser.*` metrics and
+`browser.error` and `browser.slow-operation` log lines. Budgets are the ones this project already
+holds itself to: validation 500 ms, a graph layout 2 s, a save 2 s. The browser never contacts any
+other host, collects no clicks, keystrokes or file content, holds reports in memory until the
+server's `/api/me` says they are wanted (and drops them otherwise), sends each distinct error once
+and at most 100 reports per page load. The route exists only while telemetry is on (404 otherwise),
+needs a signed-in person, accepts at most 32 KiB and 20 reports per request, allows a burst of 10
+and then one request every 2 seconds per person (429 with `Retry-After` beyond it), and refuses
+any report with an unknown field, an over-long value or an unknown operation (400). Messages are
+cut to 200 characters, quoted text in them is replaced before sending and again on the server, and
+only stack frames, never the message line of a stack, are kept.
+
+Limits to know about: quoted-text replacement cannot recognize document text that an error message
+quotes without quotation marks; traces are sampled; the exporter is a Microsoft beta release and
+the tests use in-memory exporters, never Azure itself; there is no automatic instrumentation of
+libraries, no alerting and no usage analytics. The design and its reasons are in
+[specs/005-observability](specs/005-observability/plan.md).
+
 ### What the server contacts
 
 Server mode makes no outbound call except these:
@@ -786,6 +878,7 @@ Server mode makes no outbound call except these:
 | Azure DevOps and the token exchange for it | A person fetches, pulls or pushes to Azure Repos | `SW_ADO_OBO`, `remote.allowedHosts` |
 | GitHub | Connect GitHub and Git commands against GitHub | `SW_GITHUB_HOST`, `SW_GITHUB_CLIENT_ID`, `SW_GITHUB_CLIENT_SECRET` |
 | Other Git remotes | Only when a person presses Fetch, Pull, Push, Sync or an Admin clones | Hosts listed in `remote.allowedHosts` |
+| Application Insights | Traces, metrics and logs, only when `APPLICATIONINSIGHTS_CONNECTION_STRING` is set; never in local mode | The ingestion host in that connection string, which must be an Application Insights host ([Logging and telemetry](#logging-and-telemetry)) |
 
 Nothing runs in the background against a remote, and the workbench never executes the SQL it
 previews.
@@ -891,6 +984,7 @@ they need no Vite.
 | `test:git-setup` | Git identity, a remote and a push, a clone, the credential setup guide |
 | `test:monorepo` | Several projects in one repository, grouped tree, shared Source Control, Remove versus Delete folder |
 | `test:dialogs` | Dialog fit, focus trap and focus return across the six viewports |
+| `test:telemetry` | With a mocked API, a thrown error and an unhandled rejection reach the report route with quoted text replaced and only the documented fields; nothing is sent when the server has telemetry off; the page contacts no host but the workbench |
 | `test:terminology` | The interface, this README and `docs/` call every metric a metric and use the older term nowhere except in verbatim data and the stored `kpi_bindings` key |
 | `test:mappings-layout`, `test:mapping-graph` | Binding cards at six viewports; every mapping graph line against the resolver's bindings |
 | `test:auth` | The mock provider in Entra's endpoint layout: every fixture person, role provenance, refresh, expiry, Graph overage and failure, live updates, sign-out, agent clients' bearer tokens, guarded changes, the owner picker, remote credentials; screenshots of each screen at 390×844, 1280×720, 1440×900 and 2560×1440 |
@@ -916,7 +1010,7 @@ SW_SCREENSHOT_DIR=/tmp/admin-shots bun test tests/admin-geometry.test.tsx  # eve
 
 ### Mutation checks
 
-`bun run test:mutation` is targeted, not a whole-project score. It introduces 474
+`bun run test:mutation` is targeted, not a whole-project score. It introduces 521
 deliberate faults into temporary copies of the code, each of which a test must detect, plus three
 faults injected into a running browser page (an empty neighborhood projection, a status line drawn
 over the map controls and status messages that never dismiss). Each module's unmodified baseline
@@ -926,7 +1020,9 @@ folder store; Git safety (no shell strings, no remote command outside an explici
 `--global` identity); the journal, trash and clone staging; sign-in, sessions and the HTTP
 boundary; the access boundary, guards and working copies; the Admin panel (an unpreviewed or
 invalid change activated, a built-in role changed, a deactivated principal allowed, a stale review
-confirmed); and the delivery scripts.
+confirmed); the delivery scripts; and logging, telemetry and browser reports (redaction of secrets,
+content and locations, the rule that local mode and a missing connection string never export,
+report validation and limits, the reporter's queue limits, and the exporter's usage reporting).
 
 ### The full gate and the delivery scripts
 

@@ -80,6 +80,8 @@ Configure the app using **Revisions**, **Scale**, **Ingress**, **Volumes**, **Id
 | Runtime | `SW_MODE=server`, `SW_HOST=0.0.0.0`, `SW_PORT=4310`, `DATA_DIR=/data` |
 | Proxy | `SW_TRUSTED_PROXY_HOPS=1`: Container Apps ingress is one proxy, so rate limits use the client address it forwards instead of its own |
 | Cache | `SW_CACHE_DIR=/tmp/sw-cache` on ephemeral disk |
+| Logging | `SW_LOG_LEVEL` (optional; `debug`, `info`, `warn`, `error` or `silent`; default `info`). Server mode writes one JSON object per line to stdout |
+| Telemetry (optional) | `APPLICATIONINSIGHTS_CONNECTION_STRING` as a Key Vault reference, see [Logging and telemetry](#logging-and-telemetry). Unset means no telemetry. Optional `SW_TRACE_SAMPLE_RATIO` (default `0.1`) and `SW_TELEMETRY_ACTOR_SALT` (Key Vault reference) |
 | Public URL | `SW_PUBLIC_URL=https://<host>`, equal to the pipeline variable `SW_PUBLIC_URL` |
 | Provider | `SW_OIDC_PROVIDER=entra`, `SW_ENTRA_TENANT_ID=<tenant>`, `SW_OIDC_CLIENT_ID=<client>` |
 | Discovery | `SW_OIDC_ISSUER=https://login.microsoftonline.com/<tenant>/v2.0` |
@@ -168,11 +170,45 @@ Where each value of the registration goes:
 | Certificate SHA-256 thumbprint | `SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT` | none |
 | Federated credential for `id-sw-app` | `SW_OIDC_CLIENT_ASSERTION=managed-identity` | `APP_IDENTITY_NAME` |
 | Client secret (Key Vault secret) | `SW_OIDC_CLIENT_SECRET=secretref:<name>` | none; preflight requires a Key Vault reference |
+| Application Insights connection string (Key Vault secret `sw-appinsights-connection-string`) | `APPLICATIONINSIGHTS_CONNECTION_STRING=secretref:<name>` | none; preflight requires a Key Vault reference when it is set |
+| Actor pseudonym salt (Key Vault secret, optional) | `SW_TELEMETRY_ACTOR_SALT=secretref:<name>` | none; preflight requires a Key Vault reference when it is set |
 | Groups claim | `SW_GROUP_CLAIM` (default `groups`) | none |
 | `GroupMember.Read.All` | `SW_GROUP_OVERAGE=directory` (default) | none |
 
 Secrets never enter the variable group: the container app resolves each `secretref` from Key
 Vault with `id-sw-app`.
+
+### Logging and telemetry
+
+The container always writes JSON log lines to stdout, which Container Apps collects into the
+environment's Log Analytics workspace without any setting. `SW_LOG_LEVEL` chooses how much; the
+default `info` writes one line per request, with the route template, status, duration, a
+pseudonymous actor and the request id that the response also carries in `X-Request-Id`.
+
+Traces, metrics and logs reach Application Insights only when you opt in:
+
+1. In **Application Insights** create a workspace-based resource that uses the environment's Log
+   Analytics workspace (`az monitor app-insights component create --help`).
+2. Copy its **Connection string** into a Key Vault secret named `sw-appinsights-connection-string`.
+   It holds the instrumentation key, so it is a secret. Optionally add `sw-telemetry-actor-salt`
+   (32 random bytes, base64): with it, the pseudonym that stands for each person in telemetry is
+   stable across restarts; without it, each start uses a new one.
+3. In the container app add a Key Vault secret reference for each (resolved by `id-sw-app`) and
+   set `APPLICATIONINSIGHTS_CONNECTION_STRING=secretref:<name>` and, if used,
+   `SW_TELEMETRY_ACTOR_SALT=secretref:<name>`. Deployment preflight refuses a plain value for
+   either.
+4. Create a revision. `GET /healthz` then reports `telemetry` as `{"enabled": true, ...}` and
+   never says where it sends. To make the pipeline's smoke test require that, run
+   `bun run deploy:smoke -- <url> <version> <commit> --expect-telemetry`; the check reads
+   `/healthz` and contacts nothing else in Azure.
+
+The workbench accepts only an `https://` ingestion address on an Application Insights host in the
+connection string and refuses to start with anything else. Data goes only to that resource: the
+exporter's own usage reporting to Microsoft is switched off. Traces are sampled
+(`SW_TRACE_SAMPLE_RATIO`, default `0.1`); metrics and logs are not. What the records hold and
+never hold is listed in the README section "Logging and telemetry". If data does not arrive, look for `telemetry.export-problem` lines on stdout, which carry the
+exporter's own warnings. Removing the secret reference
+and creating a revision turns telemetry off again.
 
 ### CLI creation and inspection
 
