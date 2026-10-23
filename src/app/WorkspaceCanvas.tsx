@@ -198,7 +198,6 @@ export function WorkspaceCanvas({
           gitVersion={gitVersion}
           docText={docText}
           applySaved={applySaved}
-          setMessage={setMessage}
         />
       );
     }

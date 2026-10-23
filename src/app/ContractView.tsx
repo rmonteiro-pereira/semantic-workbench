@@ -20,7 +20,6 @@ type Props = {
   gitVersion: number;
   docText: (id: string) => string;
   applySaved: (saved: Saved[], label: string) => void;
-  setMessage: React.Dispatch<React.SetStateAction<string>>;
 };
 /** Why some property controls are read-only for people who may not classify. */
 function protectedPropertiesNote(protectedLevel = 'confidential') {
@@ -38,7 +37,6 @@ export function ContractView({
   gitVersion,
   docText,
   applySaved,
-  setMessage,
 }: Props) {
   const access = useCapabilities(current.project);
   const lockedForPerson = !access.local && !access.can('editGuarded');
@@ -61,7 +59,6 @@ export function ContractView({
         doc: current,
         base: docText(current.id),
         onSaved: applySaved,
-        onError: setMessage,
       })}
       propertiesNote={
         lockedForPerson ? protectedPropertiesNote(access.classification?.protectedLevel) : undefined

@@ -527,52 +527,6 @@ button.odcs-link.fk:hover {
 .col-physicalType {
   white-space: nowrap;
 }
-/* In-place edits: controls that read as table text until hovered or focused. */
-.odcs-edit {
-  font: inherit;
-  font-size: 12px;
-  color: inherit;
-  border: 1px solid transparent;
-  border-radius: 5px;
-  background: transparent;
-  padding: 3px 5px;
-  margin: -4px -6px;
-  max-width: 100%;
-  box-sizing: border-box;
-}
-.odcs-edit:hover {
-  border-color: #dbe3e4;
-  background: #fff;
-}
-.odcs-edit:focus {
-  outline: 0;
-  border-color: #7fb3a0;
-  background: #fff;
-  box-shadow: 0 0 0 2px #dcefe7;
-}
-select.odcs-edit {
-  cursor: pointer;
-  padding-right: 2px;
-}
-.odcs-edit.text {
-  width: 100%;
-  min-width: 90px;
-  resize: vertical;
-  field-sizing: content;
-}
-textarea.odcs-edit.text {
-  min-width: 200px;
-  line-height: 1.4;
-  font-family: inherit;
-  resize: none;
-}
-.odcs-edit-check {
-  width: 15px;
-  height: 15px;
-  accent-color: #1e6a4f;
-  cursor: pointer;
-}
-
 .odcs-purpose dd,
 .odcs-note {
   max-width: 90ch;
@@ -1184,14 +1138,6 @@ textarea.odcs-edit.text {
   border: 1px solid #dbe3e4;
   border-radius: 10px;
   overflow: hidden;
-}
-.odcs-tab-action {
-  margin-left: auto;
-  font-size: 12px;
-  border: 1px solid #d6e1df !important;
-  border-radius: 7px;
-  background: #fff;
-  padding: 5px 10px;
 }
 .odcs-dir {
   font-size: var(--text-small);
