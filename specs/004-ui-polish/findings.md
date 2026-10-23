@@ -49,6 +49,8 @@ from the v0.4.0 build). `screenshots/after/` holds the same screens after the fi
 | F62 | Theme | Colours are literals spread over CSS, inline styles and renderers, so changing the palette is hard. One theme file of semantic tokens, light and dark value sets, a check that fails on a literal elsewhere, docs and a browser check that swaps the accent. | src/style.css | open |
 | F63 | Lineage view | A dedicated redesign pass: defects listed first, readable cards, clean first view, no overlaps, path highlight, plain hop sentences, Full pierce kept, understandable fan-out collapse, shared toolbar plus View options. | local-contract-graph-1280 | open |
 | F64 | Earlier owner asks | Full-screen graph, YAML highlighting with SQL, trash icons, file list hierarchy, real concept mappings, VS Code-like source control and click-to-edit must still work and look right after the polish. | specs/004-ui-polish/screenshots/after | open |
+| F65 | Table cards on the lineage canvas and the ODCS graph | A card shows "93 more columns" and page buttons "1 2 ... 11". Cards must show the columns that matter (keys, columns with an edge in view or on the path, search matches), end with "+ N more columns" that expands in place to one scrollable, virtualised list with a filter above about 30 columns and "Show fewer", with no page numbers anywhere and edges anchored to scrolled rows. | owner photo | open |
+| F66 | Edge labels on parallel edges | The word "lines" repeats on several parallel dashed edges. A bundle is labelled once, or its label shows on hover or selection. | owner photo | open |
 
 ## S2: crammed or hard to read
 
