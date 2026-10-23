@@ -1,6 +1,6 @@
 /** Displays project files and validation status, keeping invalid files available for repair. */
 import { useCapabilities } from '../auth/Capabilities';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
   ChevronDown,
   ChevronRight,
@@ -11,6 +11,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import type { ProjectFile, ProjectInfo } from './api';
+import { MenuButton } from './Menu';
 // Project → files tree. Each file shows its document type and whether it passed validation;
 // invalid files stay listed so they can be repaired in Source.
 /** Names actions available from a project or file tree row. */
@@ -30,7 +31,7 @@ export type TreeAction =
 export function hiddenFilesLine(count: number) {
   return count === 1 ? '1 file you cannot open' : `${count} files you cannot open`;
 }
-// Per-item menu: a button that opens a list of menu items.
+// Per-item menu: the shared menu behind a small "more" button.
 function ItemMenu({
   label,
   items,
@@ -38,55 +39,14 @@ function ItemMenu({
   label: string;
   items: { label: string; run: () => void }[];
 }) {
-  const [open, setOpen] = useState(false);
-  const root = useRef<HTMLSpanElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const close = (e: MouseEvent) => {
-      if (!root.current?.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', close);
-    root.current?.querySelector<HTMLElement>('[role=menuitem]')?.focus();
-    return () => document.removeEventListener('mousedown', close);
-  }, [open]);
   return (
-    <span
+    <MenuButton
+      ariaLabel={`Actions for ${label}`}
+      icon={<MoreHorizontal size={14} />}
       className="item-menu"
-      ref={root}
-      onKeyDown={e => {
-        if (e.key === 'Escape' && open) {
-          e.stopPropagation();
-          setOpen(false);
-          root.current?.querySelector<HTMLElement>('button')?.focus();
-        }
-      }}
-    >
-      <button
-        className="item-menu-toggle"
-        aria-label={`Actions for ${label}`}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        onClick={() => setOpen(o => !o)}
-      >
-        <MoreHorizontal size={14} />
-      </button>
-      {open && (
-        <div role="menu" aria-label={`Actions for ${label}`} className="item-menu-list">
-          {items.map(i => (
-            <button
-              key={i.label}
-              role="menuitem"
-              onClick={() => {
-                setOpen(false);
-                i.run();
-              }}
-            >
-              {i.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </span>
+      buttonClassName="item-menu-toggle"
+      items={items}
+    />
   );
 }
 // Direct delete on every row: same confirmation → undo → trash flow as the menu's Delete.

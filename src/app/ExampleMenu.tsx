@@ -94,6 +94,7 @@ export function ExampleMenu(props: Props) {
       buttonClassName="import"
       align="start"
       placement="above"
+      matchButtonWidth
       items={exampleEntries.map(entry => toMenuItem(entry, props))}
     />
   );
