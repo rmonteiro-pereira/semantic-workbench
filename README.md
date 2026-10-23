@@ -966,7 +966,7 @@ SW_BASE_URL=http://127.0.0.1:5180 bun run test:projects
 ```
 
 `SW_BASE_URL` defaults to `http://127.0.0.1:5173` (the older name `UI_URL` is still accepted).
-`SW_SCREENSHOT_DIR` keeps a suite's screenshots in one folder; without it they go to `/tmp`.
+`SW_SCREENSHOT_DIR` keeps a suite's screenshots in one folder; without it they go to `/tmp`. `bun run polish:capture <folder>` and `bun run polish:capture:server <folder>` photograph every screen and dialog at the four sizes; `SW_THEME=dark` photographs the dark theme.
 `bun scripts/polish-capture.ts <folder>` photographs the same tour of screens at the four sizes
 and prints what the checks find on each, which is the quickest way to review a visual change.
 `test:auth`, `test:two-editors` and `test:admin` build the frontend and serve it themselves, so
