@@ -2,6 +2,7 @@
 // edits, drafts, branches, commits and pulls stay in their own working copy, commits carry their
 // names, and a Steward's publish reaches a Viewer of Sales.
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { chromium, expect, type Browser, type Page } from '@playwright/test';
 import { principalKey } from '../server/auth/principal';
@@ -15,6 +16,12 @@ import { startMockOidc } from '../tests/helpers/mock-oidc';
 import { freeAuthPort, startAuthApi } from './auth-environment';
 import { authGeometry, check, signIn, type SignInTarget } from './helpers/sign-in';
 import { closeSyncDialog, openSyncDialog } from './helpers/sync-dialog';
+import {
+  SPARSE_FOLDER,
+  SPARSE_OTHER_FOLDER,
+  SPARSE_SLUG,
+  addSparseProject,
+} from './helpers/sparse-project';
 
 const PROJECT = 'sales-contracts';
 const ORDERS = 'orders.odcs.yaml';
@@ -210,6 +217,52 @@ async function pullsStayPersonal(alice: Person, frank: Person) {
   await authGeometry(frank.page, 'two-editors-source-control', '.scm');
 }
 
+const sparseApi = (path: string) => `/api/projects/${SPARSE_SLUG}/${path}`;
+
+/**
+ * A project that lives in one folder of a team repository: each person's copy holds that folder
+ * only, a commit touches only paths inside it, and the panel names the folder.
+ */
+async function sparseProjectStaysInItsFolder(root: string, alice: Person, frank: Person) {
+  const file = await alice.call(sparseApi('files/shop.yaml'));
+  assert.equal(file.status, 200, 'alice reads the sparse project');
+  const saved = await alice.call(sparseApi('files/shop.yaml'), 'PUT', {
+    baseHash: file.body.hash,
+    source: `${file.body.source}# alice edits the sparse project\n`,
+  });
+  assert.equal(saved.status, 200);
+  const aliceKey = principalKey(`${TEST_TENANT_ID}:${TEST_USERS.alice.oid}`);
+  const copy = join(root, 'worktrees', aliceKey, SPARSE_SLUG);
+  assert(existsSync(join(copy, SPARSE_FOLDER, 'shop.yaml')));
+  assert(!existsSync(join(copy, SPARSE_OTHER_FOLDER)), 'the other folder stays off the disk');
+  assert(!existsSync(join(root, 'projects', SPARSE_SLUG, SPARSE_OTHER_FOLDER)));
+  const staged = await alice.call(sparseApi('git/stage'), 'POST', { paths: ['shop.yaml'] });
+  assert.equal(staged.status, 200);
+  const committed = await alice.call(sparseApi('git/commit'), 'POST', { message: 'Edit shop' });
+  assert.equal(committed.status, 200);
+  const touched = Bun.spawnSync(['git', 'show', '--name-only', '--format=', 'HEAD'], { cwd: copy });
+  assert.equal(touched.stdout.toString().trim(), `${SPARSE_FOLDER}/shop.yaml`);
+  // Frank has not changed anything there, so he reads the published state and has no copy.
+  assert(
+    !existsSync(
+      join(
+        root,
+        'worktrees',
+        principalKey(`${TEST_TENANT_ID}:${TEST_USERS.frank.oid}`),
+        SPARSE_SLUG,
+      ),
+    ),
+  );
+  assert.equal((await frank.call(sparseApi('git/status'))).body.folder, SPARSE_FOLDER);
+  await alice.page.getByRole('button', { name: 'Source control', exact: false }).click();
+  await alice.page
+    .getByRole('combobox', { name: 'Project', exact: true })
+    .selectOption(SPARSE_SLUG);
+  const where = alice.page.getByLabel('Repository location');
+  await expect(where).toContainText(`work/alice · ${SPARSE_FOLDER}`);
+  await authGeometry(alice.page, 'two-editors-sparse-source-control', '.scm');
+}
+
 /** Runs the two-person check against its own API and mock identity provider. */
 export async function twoEditorsCheck() {
   const url = `http://127.0.0.1:${freeAuthPort()}`;
@@ -222,7 +275,11 @@ export async function twoEditorsCheck() {
   });
   mock.setUserGroups('carol', [TEST_GROUPS.salesViewers]);
   try {
-    const api = await startAuthApi(url, { ...mock, kind: 'entra' });
+    const api = await startAuthApi(
+      url,
+      { ...mock, kind: 'entra' },
+      { prepare: root => void addSparseProject(root) },
+    );
     try {
       const browser = await chromium.launch({ headless: true });
       try {
@@ -240,6 +297,9 @@ export async function twoEditorsCheck() {
         );
         await check('a publish reaches the Viewer', () => publishReachesTheViewer(bob, carol));
         await check('pulls stay personal', () => pullsStayPersonal(alice, frank));
+        await check('a sparse project stays in its folder', () =>
+          sparseProjectStaysInItsFolder(api.root, alice, frank),
+        );
       } finally {
         await browser.close();
       }
