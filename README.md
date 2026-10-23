@@ -149,7 +149,7 @@ The workbench only opens folders under `data/projects/`. Git runs locally with t
 - **Add to .gitignore** on a changed file adds the exact path, its extension (`*.csv`) or its folder; if the file is already committed, the panel says Git keeps tracking it. **Edit .gitignore** in a project's menu opens the file as plain text in Source; saving it updates the workspace and the panel at once.
 - **History** in a file's menu lists its commits; pick any two versions (or the working tree) to compare.
 
-**Clone.** **Import… → Clone a Git repository…** opens **Clone repository**: a URL or path and an optional project name (a taken name gets a free one, such as `team (2)`). The clone runs only from this action, shows its progress with **Cancel**, and gives up after 10 minutes. It lands in a staging folder under `data/projects/` and moves into place with the project registry in one journaled step, so a failed, cancelled or interrupted clone leaves nothing behind (an interrupted one is rolled back on the next start). Line-ending conversion is off (`core.autocrlf=false`), symbolic links arrive as plain files (`core.symlinks=false`), submodules are not fetched and `ext::` transports are refused. Files are checked as on any scan. The result lists the **Projects made** and, when a file is not a valid definition, the **Files to repair**; those files are marked in the tree and never rewritten.
+**Clone.** **Import… → Clone a Git repository…** opens **Clone repository**: a URL or path, an optional project name (a taken name gets a free one, such as `team (2)`) and an optional **Folder in repository** (see *One folder of a repository*, below). The clone runs only from this action, shows its progress with **Cancel**, and gives up after 10 minutes. It lands in a staging folder under `data/projects/` and moves into place with the project registry in one journaled step, so a failed, cancelled or interrupted clone leaves nothing behind (an interrupted one is rolled back on the next start). Line-ending conversion is off (`core.autocrlf=false`), symbolic links arrive as plain files (`core.symlinks=false`), submodules are not fetched and `ext::` transports are refused. Files are checked as on any scan. The result lists the **Projects made** and, when a file is not a valid definition, the **Files to repair**; those files are marked in the tree and never rewritten.
 
 **Several projects in one repository.** A team repository can hold several projects in subfolders, such as `domains/sales` and `domains/finance`. A `.semantic-workbench.json` file at the repository root declares them:
 
@@ -161,6 +161,14 @@ The workbench only opens folders under `data/projects/`. Git runs locally with t
 ```
 
 After a clone, the declared folders become projects at once. Without the file, the clone dialog offers **Choose projects…**, which proposes the folders that hold definitions (down to four levels) and can save the choice as `.semantic-workbench.json` for the team. **Projects in this repository…** in a project's ⋯ menu changes the choice later; leaving a folder out removes its project from the workspace and deletes nothing. The tree groups these projects under their repository. They share one Source Control panel, branch and history: the panel lists the whole repository's changes and names the project of each file, and a commit, pull or branch switch rescans every project of the repository. Deleting such a project offers **Remove from workspace** (the default; nothing on disk changes) or **Delete folder** (the folder moves to the trash, and the repository shows its files as deleted until you commit). When the project is the last one of its repository, only **Delete** is offered and the whole repository moves to the trash, so no repository stays on disk without a project. **Clear workspace** moves the whole repository to the trash as one entry. If the file cannot be applied (for example, it names a folder that does not exist), the clone dialog says why and the repository stays one project. Each entry requires a repository-relative `path` and accepts an optional display `name`. Unknown keys, duplicate paths and folders nested inside another declared project are refused. Paths must stay inside the repository; absolute paths, `.` or `..` segments and `.git` are refused.
+
+**One folder of a repository.** A project can live in a subfolder of a team repository, for example `semantic/ubl`, without the rest of the repository reaching your disk. Type the folder in **Folder in repository** (Clone dialog or Remote dialog): a relative path such as `semantic/ubl`, with no `..`, no leading `/`, no backslash and no `*?[]`; a trailing slash is dropped and anything else that is not already a clean path is refused with the reason.
+
+- **Clone.** With a folder, the clone downloads history without file contents (`--filter=blob:none --no-checkout`), limits the checkout to the folder with a cone-mode sparse checkout (`git sparse-checkout set --cone`), checks out the branch, and the folder becomes the project root. Cone mode always keeps the files at the repository root and directly inside the folder's parents on disk too, such as `README.md`; every other folder stays out. Git then fetches file contents as they are needed. If the remote branch has no such folder, the clone fails with that reason and the dialog offers **Create the folder with the first push**: the folder is made empty and the first commit and push create it on the remote.
+- **A project you already have.** In the Remote dialog, a folder for a project that lives in the root of its own repository shows which files move where and waits for **Move files and save**. The files move under the folder, one commit (*Move the project into semantic/ubl*) records the move, and the checkout is limited to the folder; history is never rewritten. It waits for unsaved edits and uncommitted changes, and Git needs an identity because of the commit. If the move stops before its commit, confirming again finishes it. The first **Pull** from a team repository whose history is unrelated joins the two histories while everything the project holds is inside its folder. This works in local mode; in server mode clone the folder instead.
+- **Changing the folder later.** The same dialog on a project that already lives in a folder previews the change: the new folder is checked out and the old one leaves your disk, which needs no unsaved edits, no uncommitted changes and no untracked files in the old folder. A folder the branch does not have is created by the next push.
+- **Commit, push and pull.** Commits, staging and **Stage all** touch only files inside the folder; a request for a path outside it is refused. Pull and fetch work as usual and bring other folders' history without their files. Switching to a branch that lacks the folder is refused with the reason. The panel header reads, for example, `origin · main · semantic/ubl`.
+- **Server mode.** The published checkout and every person's working copy are limited to the folder, each with its own sparse settings (`extensions.worktreeConfig`), so access rules and guards see project paths. The credential of a command also covers the file contents Git downloads for it, and a pull or branch switch that a guard judges downloads the contents it will read first, with the person's credential.
 
 *Credentials and network.* The workbench never stores, asks for or sends credentials; it uses your Git configuration. Remote actions run only when you press them, never in the background. If Git needs credentials, your configured credential helper (for example Git Credential Manager) may open its own window; meanwhile the panel shows "Waiting for Git (credentials may be requested in a separate window)" with **Cancel**, and gives up after 10 minutes. Without a helper or SSH key, the action fails with Git's own message; when that message says the remote refused or asked for credentials, the panel offers the **Credential setup guide**: static instructions for a credential helper and an SSH key on Windows, macOS and Linux, with copyable commands and the name of the helper set in your Git settings (read with `git config --get credential.helper`; credentials themselves are never read).
 
@@ -621,6 +629,8 @@ person's own credential, so the remote records who pushed:
   return. Register `<SW_PUBLIC_URL>/auth/github/callback` as the app's callback URL.
 - **Other hosts** on the allowed list are reached without a credential (public remotes).
 
+A project that lives in one folder of a repository is cloned partially (see *One folder of a repository*): Git downloads file contents after the clone, while checking out and while a guarded pull or branch switch reads them. Those commands carry the same credential as any remote command, so a private repository works the same way.
+
 Tokens live only in the encrypted session and end with it. Git receives one for a single command
 through the askpass program `server/bin/sw-askpass` and the environment of that child process,
 with `-c credential.helper=` so no configured helper is asked or stores anything. A pull fetches
@@ -879,7 +889,7 @@ they need no Vite.
 | Script | What it checks |
 | --- | --- |
 | `test:ui` | Real downloads and exports of every example, reopening examples, grouped relationship selection, unobstructed controls, unsaved edits, re-import |
-| `test:responsive` | Six viewports from 390×844 to 2560×1440: no horizontal scroll, no cut-off control, no overlapping floating element, drawers, full screen in Graph and Neighborhood; and a tour of every screen and dialog (including the edit drawers, metrics, mappings, composer and catalog, the ODCS pages, and the Sync, clone, rename and delete-project dialogs) at 390, 1280, 1440 and 2560 px with text of at least 12 px, no text covered by or overlapping other text, and no cut-off control; and the header at those sizes (grouped controls of one height on one line, no overlap, the New and Examples menus inside the window, the Examples menu by keyboard) |
+| `test:responsive` | Six viewports from 390×844 to 2560×1440: no horizontal scroll, no cut-off control, no overlapping floating element, drawers, full screen in Graph and Neighborhood; and a tour of every screen and dialog (including the edit drawers, metrics, mappings, composer and catalog, the ODCS pages, and the Sync, clone, folder, rename and delete-project dialogs) at 390, 1280, 1440 and 2560 px with text of at least 12 px, no text covered by or overlapping other text, and no cut-off control; and the header at those sizes (grouped controls of one height on one line, no overlap, the New and Examples menus inside the window, the Examples menu by keyboard); and a project that lives in one folder of a team repository, whose copies hold only that folder |
 | `test:edges` | Graph edge endpoints against rendered node borders while dragging and zooming |
 | `test:grouping-validation` | Grouping suggestions and validation dialogs, repair of mixed import batches |
 | `test:examples:ui` | Loading the examples, mappings and metric composition |
@@ -893,7 +903,7 @@ they need no Vite.
 | `test:odcs`, `test:lineage` | Contract pages, section dialogs and byte-preserving property edits through the edit dialog; every drawn lineage line against the expected edge lists, path emphasis within 200 ms, cards staying measured across window resizes |
 | `test:autosave` | Automatic saves, stale drafts and commits against a local remote |
 | `test:sql` | Embedded SQL colors, warning locations and unchanged export bytes |
-| `test:git-setup` | Git identity, a remote and a push, a clone, the credential setup guide |
+| `test:git-setup` | Git identity, a remote and a push, a clone, a clone of one folder (a bad folder refused, a missing folder offered), a folder for the project previewed, confirmed, recorded in a commit and pushed, the credential setup guide |
 | `test:monorepo` | Several projects in one repository, grouped tree, shared Source Control, Remove versus Delete folder, and the clone, projects and delete dialogs at four sizes |
 | `test:dialogs` | Dialog fit, focus trap and focus return across the six viewports |
 | `test:terminology` | The interface, this README and `docs/` call every metric a metric and use the older term nowhere except in verbatim data and the stored `kpi_bindings` key |
@@ -921,7 +931,7 @@ SW_SCREENSHOT_DIR=/tmp/admin-shots bun test tests/admin-geometry.test.tsx  # eve
 
 ### Mutation checks
 
-`bun run test:mutation` is targeted, not a whole-project score. It introduces 474
+`bun run test:mutation` is targeted, not a whole-project score. It introduces 496
 deliberate faults into temporary copies of the code, each of which a test must detect, plus five
 faults injected into a running browser page (an empty neighborhood projection, a status line drawn
 over the map controls, status messages that never dismiss, a label below the minimum text size and
@@ -932,7 +942,7 @@ folder store; Git safety (no shell strings, no remote command outside an explici
 `--global` identity); the journal, trash and clone staging; sign-in, sessions and the HTTP
 boundary; the access boundary, guards and working copies; the Admin panel (an unpreviewed or
 invalid change activated, a built-in role changed, a deactivated principal allowed, a stale review
-confirmed); and the delivery scripts.
+confirmed); the folder path check, the sparse-checkout arguments and the partial clone; and the delivery scripts.
 
 ### The full gate and the delivery scripts
 
