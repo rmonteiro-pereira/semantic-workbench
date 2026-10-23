@@ -15,6 +15,7 @@ import {
   metricId,
   type MappingGraph,
 } from '../src/mappings/mapping-graph';
+import { aroundHops } from '../src/odcs/lineage';
 // The concept-mapping graph: built from the resolver's context, so every drawn line is a binding
 // the Mappings tab and the agent context also see.
 const docs = (folder: string, files: string[]): StoredDocument[] =>
@@ -255,4 +256,11 @@ test('findings sit on the affected card: unknown concept, missing field, ambiguo
   });
   const gk = buildMappingGraph(k);
   expect(gk.cards.get(metricId('gross_revenue'))!.findings!.join(' ')).toContain('Nope');
+});
+test('the view around a metric also holds the datasets of the concepts it binds', () => {
+  const [, context] = contexts.find(([name]) => name.startsWith('mall:'))!;
+  const graph = buildMappingGraph(context);
+  const metric = metricId('billed_amount');
+  const view = aroundHops(graph as never, metric, 1);
+  expect(view.cards.has(datasetId('leases'))).toBe(true);
 });

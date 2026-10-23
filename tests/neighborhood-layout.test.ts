@@ -76,15 +76,32 @@ test('no two edges share a path, including long and backward ones; labels sit ap
       );
     }
   expect(new Set(paths.map(p => p.label.join('/'))).size).toBe(paths.length);
-  // Backward edges travel below, forward long edges above; each on its own lane.
-  const lanes = [...routes.values()].filter(r => r.route === 'lane') as any[];
-  expect(new Set(lanes.map(r => r.laneY)).size).toBe(lanes.length);
-  expect((routes.get('o3>i2') as any).laneY).toBeGreaterThan(
-    Math.max(...[...boxes.values()].map(b => b.y + b.height)),
-  );
-  expect((routes.get('i1>o2') as any).laneY).toBeLessThan(
-    Math.min(...[...boxes.values()].map(b => b.y)),
-  );
+  // Backward edges travel below, forward long edges above. A lane clears the boxes it passes,
+  // and two lanes over the same stretch never share a height.
+  const laneEdges = edges.filter(e => routes.get(e.id)?.route === 'lane');
+  const stretch = (id: string) => {
+    const edge = edges.find(e => e.id === id)!;
+    const from = boxes.get(edge.source)!;
+    const to = boxes.get(edge.target)!;
+    return [Math.min(from.x + from.width, to.x), Math.max(from.x + from.width, to.x)];
+  };
+  const passes = (id: string) => {
+    const [left, right] = stretch(id);
+    return [...boxes.values()].filter(b => b.x + b.width > left && b.x < right);
+  };
+  const laneOf = (id: string) => (routes.get(id) as any).laneY as number;
+  for (const edge of laneEdges)
+    for (const other of laneEdges) {
+      if (edge.id >= other.id) continue;
+      const [a1, a2] = stretch(edge.id);
+      const [b1, b2] = stretch(other.id);
+      if (a1 < b2 && b1 < a2) expect(laneOf(edge.id)).not.toBe(laneOf(other.id));
+    }
+  expect(laneOf('o3>i2')).toBeGreaterThan(Math.max(...passes('o3>i2').map(b => b.y + b.height)));
+  expect(laneOf('i1>o2')).toBeLessThan(Math.min(...passes('i1>o2').map(b => b.y)));
+  // A lane hugs the boxes it passes: it is no further out than one lane height per lane above.
+  const highestPassed = Math.min(...passes('i1>o2').map(b => b.y));
+  expect(laneOf('i1>o2')).toBeGreaterThan(highestPassed - 22 - 16 * laneEdges.length);
 });
 test('corners turn the way the path travels: a backward route has no hooks', () => {
   const path = orthogonalPath([

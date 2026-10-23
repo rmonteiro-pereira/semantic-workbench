@@ -530,6 +530,17 @@ export function aroundHops(g: LineageGraph, center: string, steps = 1) {
         }
     frontier = next;
   }
+  // A metric binds to concepts and the datasets sit one link further. Its view also shows the
+  // datasets of those concepts so that concept, dataset and metric read as one chain.
+  if (g.cards.get(center)?.kind === 'metric') {
+    const datasets = new Set<string>();
+    for (const c of shown) {
+      for (const n of links.get(c) ?? []) {
+        if (g.cards.get(n)?.kind === 'dataset') datasets.add(n);
+      }
+    }
+    for (const d of datasets) shown.add(d);
+  }
   for (const e of g.edges)
     if (e.via && shown.has(card(e.from)) && shown.has(card(e.to)))
       for (const v of e.via) shown.add(card(v));

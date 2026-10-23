@@ -63,11 +63,11 @@ try {
   await page.goto(appUrl());
   await expect(tree()).toBeVisible();
   await check(
-    'row delete icons are muted, fully visible on hover or focus, red on icon hover, with a tooltip',
+    'row delete icons stay hidden until hover or focus (muted on the open file), red on icon hover, with a tooltip',
     async () => {
       const icon = page.getByRole('button', { name: 'Delete scratch.yaml', exact: true });
       await page.mouse.move(900, 500);
-      await expect(icon).toHaveCSS('opacity', '0.4');
+      await expect(icon).toHaveCSS('opacity', '0');
       await expect(icon).toHaveAttribute('title', 'Delete scratch.yaml');
       await fileButton('scratch.yaml').hover();
       await expect(icon).toHaveCSS('opacity', '1');
@@ -266,6 +266,8 @@ try {
       await expect(trash).toContainText('scratch.yaml (Scratch)');
       await trash.getByRole('button', { name: 'Restore' }).click();
       await expect(trash).toContainText('The trash is empty.');
+      await expect(trash).toContainText('Deleted files and projects wait here');
+      await expect(trash.getByRole('button', { name: 'Empty trash' })).toHaveCount(0);
       await trash.getByRole('button', { name: 'Close' }).click();
       await expect(fileButton('scratch.yaml')).toBeVisible();
       await menu('scratch.yaml in Scratch', 'Delete');
