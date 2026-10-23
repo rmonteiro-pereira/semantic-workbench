@@ -19,6 +19,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | Module | What lives here | What must not live here |
 |---|---|---|
 | `server/index.ts`, `server/handler.ts` | Start-up and the HTTP entry point: host and origin checks, then the route list | Workspace logic |
+| `server/request.ts` | Reads JSON bodies within a byte limit, decodes path segments and marks hidden responses; the one place a malformed escape becomes a 400 | Routing or access decisions |
 | `server/serve-options.ts` | The listener's options: no development mode, one error answer, idle timeout (the event stream opts out per request) | Routing |
 | `server/routes/health.ts` | Public liveness/readiness and startup traffic gating | Workspace inspection |
 | `server/static.ts` | Built frontend, SPA fallback, path confinement and security headers | API routing |
@@ -40,9 +41,9 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `deploy/azure-devops/`, `azure-pipelines.yml` | Target pipeline templates, pinned upstream schema and placeholder variables | GitHub automation or secrets |
 | `server/config.ts` | Reads and checks the environment once: `readConfig()` returns the typed configuration of local or server mode, or refuses to start naming each variable at fault | Reading `process.env` anywhere else for these settings |
 | `server/bin/sw-askpass` | The askpass program Git runs in server mode; it answers from the environment of that one command, for its host only | Stored credentials |
-| `server/routes/` | One file per resource (`projects`, `files`, `git`, `clone`, `repos`, `trash`, `metrics`, ...): parse and check the request, call the workspace, shape the response | File or Git operations |
+| `server/routes/` | One file per resource (`projects`, `files`, `drafts`, `git`, `clone`, `repos`, `trash`, `suggestions`, `metrics`, `kpis` (the older path of `metrics`), ...): parse and check the request, call the workspace, shape the response | File or Git operations |
 | `server/projects/workspace.ts` | `openWorkspace()`, the composition root: registry, saves, imports, moves, scans, events, and the wiring of the services below | HTTP parsing |
-| `server/projects/` (other) | One service per concern: `git.ts` (the only place Git runs), `scm.ts` (Source Control), `clone.ts`, `journal.ts` (all-or-nothing renames), `trash.ts`, `repositories.ts` (which folders of a repository are projects: the `.semantic-workbench.json` manifest and detection) and `repository-projects.ts` (registering them), `scanner.ts` and `cache.ts` (the index), `state.ts` (registry, drafts, view settings), `paths.ts` (every path check, including the refusal of a name that differs from an existing one only in letter case, for volumes that ignore case), `events.ts` (server-sent events), `watcher.ts`, `worktrees.ts` (server-mode working copies: `git worktree`, branch holders, the compare-and-swap publish, the merge from the default branch), `working-copies.ts` (which copy a request reads and writes, per-person index, Source Control and idle release, the copy shown in the project listing), `publishing.ts` (publishing, and the default branch following a fetch), `unpublished-work.ts` (unpublished work kept in the trash and counted for a delete) | Browser code |
+| `server/projects/` (other) | One service per concern: `git.ts` (the only place Git runs), `scm.ts` (Source Control), `clone.ts`, `journal.ts` (all-or-nothing renames), `trash.ts`, `repositories.ts` (which folders of a repository are projects: the `.semantic-workbench.json` manifest and detection) and `repository-projects.ts` (registering them), `scanner.ts` and `cache.ts` (the index), `state.ts` (registry, drafts, view settings), `paths.ts` (every path check, including the refusal of a name that differs from an existing one only in letter case, for volumes that ignore case), `events.ts` (server-sent events), `watcher.ts`, `worktrees.ts` (server-mode working copies: `git worktree`, branch holders, the compare-and-swap publish, the merge from the default branch), `working-copies.ts` (which copy a request reads and writes, per-person index, Source Control and idle release, the copy shown in the project listing), `publishing.ts` (publishing, and the default branch following a fetch), `unpublished-work.ts` (unpublished work kept in the trash and counted for a delete), `published-checkout.ts` (brings the published checkout back to a clean state at start-up in server mode), `reader.ts` (the `Reader` and `CopyAccess` types that carry a person's view, state owner, guard and copy into every service), `event-access.ts` (which events a connection may receive), `suggestions.ts` (grouping suggestions from explicit references), `migration.ts` (the one-time move of the v0.1.0 database into project folders) and `atomic.ts` (UTF-8-preserving writes through a temporary file and rename) | Browser code |
 | `server/auth/sessions.ts`, `server/auth/attempts.ts` | Encrypted session persistence, revocation, the provider-session index front-channel logout uses (HMAC keys, never the raw `sid`), and signed single-use sign-in attempts with `safeReturnTo` | Provider protocol |
 | `server/auth/sign-in-provider.ts` | The sign-in provider interface (login URL, callback, refresh, logout with the session's `logout_hint`, application token, on-behalf-of) and the choice of library by `SW_OIDC_PROVIDER`: Entra → MSAL, Keycloak and generic → openid-client | Protocol details of either library |
 | `server/auth/msal-provider.ts` | Entra through MSAL Node: authorization code with PKCE, the per-session token cache plugin (the cache lives only in the encrypted session record), silent refresh, sign-out URL, certificate, secret or managed-identity credential, Graph and on-behalf-of application tokens; the Entra authority and discovery checks | Session persistence or grant decisions |
@@ -53,6 +54,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `server/auth/sign-in-error.ts` | Safe typed sign-in failure reasons, the provider's OAuth code (the only provider text the log gets), and the mapping of failures both libraries share | Display text or provider secrets |
 | `server/auth/csrf.ts` | Public-origin, request-header and logout-form checks (the form body is read only up to 4096 bytes) | Session persistence |
 | `server/auth/rate-limit.ts` | Per-source-address token buckets for requests and sign-in routes, and the gate that bounds anonymous audit records | Audit storage |
+| `server/auth/source-address.ts` | Which address counts as the client for those limits: the socket peer, or the entry `SW_TRUSTED_PROXY_HOPS` places from the right of `X-Forwarded-For` (IPv6 by its /64) | Network policy rules, which always use the socket peer |
 | `server/auth/remote-hosts.ts` | Pure decisions on remote addresses: allowed hosts, canonical addresses, one host per remote, and which credential a host takes | I/O |
 | `server/auth/remote-credentials.ts` | Server-mode remote Git: Azure DevOps on-behalf-of and GitHub consent tokens kept in the session, and the credential for one command | Running Git |
 | `server/auth/github-oauth.ts` | GitHub's OAuth consent address and token requests | Session storage |
@@ -86,7 +88,8 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `server/auth/access-admin.ts`, `server/auth/change-summary.ts` | Administration saves: proposals, dry-run receipts, last-Admin and bootstrap checks, one commit per change with its message, affected streams | HTTP parsing |
 | `server/auth/policies.ts`, `server/auth/dry-run.ts` | Admin rule templates and validation; decision replay and "what changes for whom" | Persistence |
 | `server/routes/admin.ts`, `server/routes/audit.ts` | The `/api/admin/*` and `/api/audit*` contract: input checks and response shapes | Access decisions of their own |
-| `server/agent/` | Metric explanations and the SQL preview (`explain.ts`, `runtime.ts`) | Query execution |
+| `server/agent/` | Metric explanations and the SQL preview (`explain.ts`, `runtime.ts`), and the restricted SQL parser and renderer they share (`sql.ts`) | Query execution |
+| `src/admin/` | The Admin panel: one dialog per area (`ProjectAccessDialog`, `RolesAccessDialog`, `UsersDialog`, `PoliciesDialog`, `AuditDialog`, `SettingsDialog`, `AccessCheckDialog`), the shared review-and-confirm step (`ReviewChange`), version history and the typed client (`api.ts`). It proposes and reviews; every decision stays on the server | Authorization or policy evaluation |
 | `src/main.tsx`, `src/app/` | The app shell: `useWorkbench` and the other hooks hold state and handlers; `Workspace*` and `*Dialogs` components lay it out | Parsing or validation rules |
 | `src/model.ts`, `src/validation.ts`, `src/rdf*.ts`, `src/odcs.ts` | Parse a file into `Entity` and `Relationship`, and validate it; pure functions shared with the server | React, fetch |
 | `src/overview.ts`, `src/communities.ts` | Group by: modes, communities, Auto | Rendering |
@@ -96,7 +99,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `src/graph/`, `src/FullGraph.tsx`, `src/NeighborhoodGraph.tsx` | Entity graph views, layout and routing | |
 | `src/metrics/`, `src/mappings/`, `src/sql/` | Metrics tab and wizard, mapping views, SQL regions and lint | |
 | `src/projects/` | Client API (`api.ts`), autosave, project tree, delete and trash dialogs, the repository's projects dialog, shared dialog chrome (`Modal.tsx`) | |
-| `src/scm/` | Source Control panel, Commit dialog, Git setup dialogs (`GitSetup.tsx` opens them from anywhere), and the server-mode connect prompt that resumes a remote action (`RemoteConnectPrompt.tsx`) | Git commands; they run on the server |
+| `src/scm/` | Source Control panel (`BranchPicker` shows who holds a branch, `DefaultBranchActions` the Pull, Publish and Push buttons of the default branch), Commit dialog, Git setup dialogs (`GitSetup.tsx` opens them from anywhere), and the server-mode connect prompt that resumes a remote action (`RemoteConnectPrompt.tsx`) | Git commands; they run on the server |
 | `schemas/` | Pinned JSON Schemas (ODCS, Ossie, the workbench extensions) | Edits to upstream schemas |
 | `public/examples/` | Shipped example projects | Test fixtures |
 | `tests/` | Unit and handler tests (`bun test`), always on temporary data roots; `tests/helpers/mock-oidc.ts` is a loopback OpenID provider with Entra, Keycloak and generic claim shapes, an optional Entra endpoint layout that drives the MSAL path (`tests/helpers/entra-provider.ts` starts it for tests), and a Microsoft Graph stand-in; `tests/fixtures/auth-workspace/` is the access test workspace and `tests/helpers/auth-identities.ts` its people and groups | Calls to a real identity provider |
@@ -165,7 +168,7 @@ editor never receives an older deferred value as an external replacement.
 ## Cross-cutting concerns
 
 - **Configuration**: start-up uses `readConfig()` in `server/config.ts` once for mode, host,
-  port, data root, cache root and build identity. Server mode requires issuer discovery and
+  port, data root, cache root and build identity. Every server-mode variable is listed once, with its default and what start-up checks, in `specs/003-authn-authz/contracts/configuration.md`. Server mode requires issuer discovery and
   a valid administration policy set before serving workspace traffic. The writable-root probe precedes lock acquisition; recovery,
   migration, scanning and access middleware initialization happen only after ownership.
   `openWorkspace({ root, cacheDir })` accepts explicit paths for isolated tests.
@@ -387,7 +390,9 @@ or merge (`changesBetween()` and `guardMerge()` in `scm.ts`). `writePlace()` tak
 that judges a first write against the published state before the copy is created, so a refused
 write leaves no copy.
 Branch holders come from `git worktree list --porcelain` joined with the users registry; the
-default branch is held by the published state. Commits pass the person
+default branch is held by the published state. A `work/<handle>` branch is personal: `scm.ts` lists
+and accepts only the caller's own, so another person's is neither offered nor switchable, whether
+or not a copy holds it, while any other branch held by a copy is listed with its holder. Commits pass the person
 as author through `authorship()` in `git.ts`: the service is the committer and a
 `Signed-in-user` trailer names the person. Deleting a repository's project archives each
 person's unpublished work into the trash entry as a binary patch before the copies are removed.

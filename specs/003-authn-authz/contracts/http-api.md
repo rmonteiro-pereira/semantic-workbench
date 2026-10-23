@@ -21,7 +21,7 @@ rule there. Server mode adds the rules below.
   provider's authorization endpoint (the server starts the sign-in as `/auth/login` does, with
   the requested path as `returnTo`). Signed in but deactivated or without any matching grant →
   `302 /auth/no-access` for pages and `403 {error: 'no access'}` for `/api/*`.
-- Rate limits: each source address (the direct socket peer) has a request allowance, and
+- Rate limits: each client address (the socket peer, or the forwarded address when `SW_TRUSTED_PROXY_HOPS` names reverse proxies) has a request allowance, and
   `/auth/login` and `/auth/callback` share a tighter one, because each call can reach the identity
   provider. A source over its allowance gets `429 {error: 'Too many requests.'}` with
   `Retry-After` in seconds, before any other handling and without an audit record; the source is
@@ -66,6 +66,8 @@ rule there. Server mode adds the rules below.
 | `GET /api/me` | signed in with access | | `{mode, id, name, verifiedEmail, kind, roles: {workspace: [roleId], projects: Record<slug, [roleId]>}, roleNames: Record<roleId, name>, roleSources: [{roleId, scope, via: 'group'\|'email'\|'bootstrap', group?: {id, name?}}], groupsResolved, connected: {azureDevOps, github} (azureDevOps: the session holds a valid on-behalf-of token; github: the session holds a GitHub token), azureDevOpsAvailable, githubConfigured, can: Record<Action, boolean> & {admin, audit}, requires: Record<Action, string>, creationDomains: [{id, name}]}`; local mode returns the implicit Admin |
 | `POST /api/projects/:slug/git/publish` | Steward(d)/Admin | `{branch?: default}` | fast-forwards the branch to the copy's `HEAD` → `{published, commit}`; `409 {notFastForward: true}` |
 | `POST /api/projects/:slug/git/pull-default` | Editor(d)+ | | merges the default branch into the copy's branch → as `git/pull` |
+| `POST /api/projects/:slug/git/push-default` | Steward(d)/Admin (`publish`) | `{branch?: default}` | sends the default branch, as published here, to the remote with the person's credential; needs no copy and never publishes; delegated credential and host rules as `git/push` |
+| `GET /auth/style.css` | anyone | | the stylesheet shared by the minimal authentication pages, which a content security policy keeps from using inline styles |
 | `GET /api/admin/users` | Admin | `?q=&access=none` | principals with role sources, groups (with names), verified address, last sign-in, access (`granted`/`none`), deactivated |
 | `POST /api/admin/users/:id/deactivate` / `reactivate` | Admin | `{reason}` | version commit; sessions ended |
 | `GET /api/admin/roles` | Admin | | `{builtIn: [role], custom: [role], actions: [action], conditions: [name], usage: Record<roleId, {grants, people}>}` |
@@ -121,7 +123,7 @@ grouping), `edit` (files PUT, save-batch, documents POST, metrics/kpis POST, git
 suggestions reject), `import`, `move` (move, suggestion accept), `delete` (file delete),
 `revert`, `restoreOwn`/`restoreOthers` (undo, restore), `purge` (trash delete, empty), `clear`,
 `createProject` (projects POST, import new, examples), `renameProject`, `deleteProject`,
-`stage`, `commit`, `branch` (switch), `fetch`, `pull` (pull, sync, pull-default), `push`, `publish`,
+`stage`, `commit`, `branch` (switch), `fetch`, `pull` (pull, sync, pull-default), `push`, `publish` (publish, push-default),
 `cancelOwn`, `setRemote`, `clone`, `registerProjects`, `setIdentity`, `readStatus`, `readAudit`,
 `admin` (every `/api/admin/*`), `agentRead` (agent routes with bearer); `/auth/*`, `/healthz`
 and `/readyz` are listed as public rows. The matrix test fails if
@@ -139,6 +141,7 @@ repository projects, metric aliases) exist; none was renamed or dropped.
 | Method & path | Action | Resource |
 | --- | --- | --- |
 | `GET /api/events` | `read` | W |
+| `GET /auth/style.css` and the other `/auth/*` pages, `/healthz`, `/readyz` | public rows | W |
 | `GET /api/status` | `read` (details: `readStatus`) | W |
 | `GET /api/projects` | `read` | W (list filtered) |
 | `POST /api/projects` | `createProject` | W |
@@ -157,6 +160,7 @@ repository projects, metric aliases) exist; none was renamed or dropped.
 | `POST /api/projects/:slug/metrics/preview`, `…/kpis/preview` | `read` | P |
 | `POST /api/projects/:slug/save-batch` | `edit` | P |
 | `GET /api/projects/:slug/delete-impact` | `read` | P |
+| `GET /api/projects/:slug/people` | `edit` | P |
 | `POST /api/clear` | `clear` | W |
 | `GET /api/trash` | `read` | W (list filtered) |
 | `DELETE /api/trash` | `purge` | W |
@@ -179,6 +183,8 @@ repository projects, metric aliases) exist; none was renamed or dropped.
 | `POST /api/projects/:slug/git/pull`, `sync` | `pull` | P |
 | `POST /api/projects/:slug/git/push` | `push` | P |
 | `POST /api/projects/:slug/git/cancel` | `cancelOwn` | P |
+| `POST /api/projects/:slug/git/publish`, `…/push-default` | `publish` | P |
+| `POST /api/projects/:slug/git/pull-default` | `pull` | P |
 | `POST /api/projects/:slug/gitignore` | `edit` | P |
 | `PUT`, `DELETE /api/projects/:slug/git/remote` | `setRemote` | P |
 | `PUT /api/projects/:slug/git/identity` | `setIdentity` | P |

@@ -10,36 +10,67 @@ Contracts: [http-api.md](./contracts/http-api.md), [configuration.md](./contract
 ```sh
 bun install
 bun test && bun --bun run check && bun --bun run build
-bun run dev            # http://127.0.0.1:5173, no sign-in, header shows Admin
+SW_HOST=0.0.0.0 bun server/index.ts      # refused: local mode listens on loopback only
+bun run dev                              # http://127.0.0.1:5173, API on 4310, no sign-in, header shows Admin
+```
+
+Expected: every test passes and `SW_HOST=0.0.0.0` stops with a message that names `SW_HOST`.
+`bun run dev` needs ports 5173 and 4310 to be free. The browser suites open the frontend at
+`SW_BASE_URL`; start a Vite server of their own on any free port (or use the one `bun run dev`
+started) and run them one at a time:
+
+```sh
+bun x vite-plus dev --host 127.0.0.1 --strictPort --port 5180 &
+export SW_BASE_URL=http://127.0.0.1:5180
 bun run test:ui && bun run test:responsive && bun run test:mutation
 ```
 
-Expected: every v0.3.0 suite passes; `SW_HOST=0.0.0.0 bun server/index.ts` refuses to start.
+Expected: every v0.3.0 suite passes, and every targeted mutant is detected.
 
 ## 2. Server mode with the mock OpenID provider (no container, no external provider)
 
 ```sh
 bun test tests/auth            # claims (Entra, Keycloak, overage, verified e-mail), grants, role
-                               # compiler, sessions, guards, filters, matrix
-bun run build                 # the auth check serves dist/ without Vite
-bun run test:auth              # browser: starts the mock provider (Entra shape) on loopback; direct
-                               # redirect, sign-in, refresh, sign-out page, No access (erin, gina),
-                               # group and e-mail grants, overage user olga, hidden files
+                               # compiler, sessions, guards, filters, the access matrix
+bun run test:auth              # builds dist/, starts the mock provider (Entra shape) on loopback;
+                               # direct redirect, sign-in, refresh, sign-out page, No access (erin,
+                               # gina), group and e-mail grants, overage user olga, hidden files,
+                               # governed changes, remote credentials
+bun run test:two-editors       # two Editors, a Steward and a Viewer on one repository
 ```
 
-Expected: matrix reports 0 mismatches and 0 leaked markers (SC-001, SC-002); every sign-in case of
-SC-019 passes. This is what the target pipeline runs; it needs no network.
+Expected: every `tests/auth` test passes (625 tests in 99 files), including the matrix over every
+case of `policies/matrix-cases.json` and the checks that no response leaks another person's file
+markers; every sign-in case of the browser check passes. This is what the target pipeline runs; it
+needs no network.
 
-Manual run against the mock: `bun run mock-oidc -- --port 8081 --shape entra --layout entra`
-(Entra's endpoint paths; the server signs in through MSAL either way) prints its issuer
-(`http://127.0.0.1:8081/<tenant-id>/v2.0`), client id and secret; start the server as below with
-`SW_OIDC_PROVIDER=entra`, that issuer, `SW_ENTRA_TENANT_ID=<tenant-id>` and
-`SW_GRAPH_URL=http://127.0.0.1:8081/graph`, and pick a test user on the chooser page (the mock's
-page, standing in for Entra; the workbench has none). Access comes from the grants seeded in the
-fixture's `data/admin/grants.json`: `alice`, `carol`, `frank`, `olga` and `dave` by group, `bob`
-and `hank` by e-mail (bob's token spells his address `Bob@Example.org`); `erin` has no grant and
-an Admin app role in her token, `gina` is a guest whose e-mail grant cannot match an unverified
-address: both see **No access**.
+Manual run against the mock. The mock accepts only the redirect addresses it is given, so name
+the server's address (the default port 4310 here) when starting it. It prints its issuer and
+Graph address as JSON; the client ID is `semantic-workbench` and the secret
+`semantic-workbench-test-secret`.
+
+```sh
+bun run mock-oidc -- --port 8081 --shape entra --layout entra \
+  --redirect http://127.0.0.1:4310/auth/callback \
+  --post-logout http://127.0.0.1:4310/auth/signed-out
+# prints {"issuer":"http://127.0.0.1:8081/<tenant-id>/v2.0", ...}
+
+bun run build
+DATA=$(mktemp -d) && mkdir -p "$DATA/admin" && cp tests/fixtures/auth-workspace/admin/*.json "$DATA/admin/"
+SW_MODE=server SW_PUBLIC_URL=http://127.0.0.1:4310 SW_OIDC_PROVIDER=entra \
+SW_OIDC_ISSUER=http://127.0.0.1:8081/<tenant-id>/v2.0 SW_ENTRA_TENANT_ID=<tenant-id> \
+SW_GRAPH_URL=http://127.0.0.1:8081/graph SW_OIDC_CLIENT_ID=semantic-workbench \
+SW_OIDC_CLIENT_SECRET=semantic-workbench-test-secret SW_SESSION_KEY=$(openssl rand -base64 32) \
+SW_BOOTSTRAP_ADMINS=dave@example.org DATA_DIR="$DATA" bun server/index.ts
+```
+
+`<tenant-id>` is the one in the issuer the mock printed. Open `http://127.0.0.1:4310` and pick a
+test user on the chooser page (the mock's page, standing in for Entra; the workbench has none).
+Access comes from the grants seeded in the fixture's `admin/grants.json`: `alice`, `carol`,
+`frank`, `olga` and `dave` by group, `bob` and `hank` by e-mail (bob's token spells his address
+`Bob@Example.org`); `erin` has no grant and an Admin app role in her token, `gina` is a guest
+whose e-mail grant cannot match an unverified address: both see **No access**. The data folder
+starts without projects; an Admin imports them with **Import…**.
 
 ## 3. Keycloak compatibility suite (owner's machine; not in `ci:validate` or the pipeline)
 
@@ -143,14 +174,15 @@ DevOps permissions).
 
 ## 6. Admin panel
 
-As `dave`: assign a project to a domain; in **Roles & access** grant Steward on Sales to a
-group by object ID (display name shown) and Editor on one project to `Erin@Example.org` (erin
-gets access at her next request); create the custom role "Metric reviewer" (approve metrics,
-document type metric) with a group member scoped to Sales and check the "what changes for whom"
-dry run; run **Access check** for `alice` and for a hypothetical person described by groups and
-an address; delete the custom role (confirmation lists the affected people); edit a rule with
-**Dry run**, roll back, try to deactivate the last Admin and to delete a built-in role (both
-refused), export the audit log filtered to today.
+On the mock from §2 as `dave`, or unattended with `bun run test:admin` (it builds the app, runs
+these steps against a disposable workspace and prints each timing): assign a project to a domain;
+in **Roles & access** grant Steward on Sales to a group by object ID (display name shown) and
+Editor on one project to `Erin@Example.org` (erin gets access at her next request); create the
+custom role "Metric reviewer" (approve metrics, document type metric) with a group member scoped to
+Sales and check the "what changes for whom" dry run; run **Access check** for `alice` and for a
+hypothetical person described by groups and an address; delete the custom role (the confirmation
+lists the affected people); edit a rule with **Dry run**, roll back, try to deactivate the last
+Admin and to delete a built-in role (both refused), export the audit log filtered to today.
 
 ## 7. Local build and the Azure DevOps pipeline (from Phase 4; delivery from Phase 6)
 
@@ -162,13 +194,17 @@ bun run ci:validate                     # the whole gate: verify, mutation, brow
 bun run ci:validate -- --step verify    # one step; --suite <name> for one browser suite
 bun run image:build && bun run image:scan && bun run image:sbom   # out/image/sbom.spdx.json
 bun run pipeline:lint                   # azure-pipelines*.yml against the pinned schema and rules
-bun run pipeline:dry-run -- --run tag:v0.4.0-alpha.1 --execute   # stages, conditions, fake Azure
+bun run pipeline:dry-run -- --run tag:v0.4.0-alpha.1   # stages and conditions, nothing executed
 ```
 
 Expected: a failing unit test, an unignored fixable critical or high finding, or a pipeline step
-that is not a package script fails the run and names the step; the dry run shows Validate and
-Image for a pull request, Image push for `main`, and Deploy only for the tag, with the deploy and
-rollback decisions taken against the fake Azure client. `ls .github/workflows` finds nothing.
+that is not a package script fails the run and names the step; the dry run prints the Validate
+steps and the Image job's steps as `RUN` for a pull request and for `main`, one more Image step
+(the registry push) for `main`, and the Deploy steps as `RUN` only for the tag. `ls .github/workflows` finds nothing.
+
+`bun run pipeline:dry-run -- --run tag:v0.4.0-alpha.1 --execute` goes further: it runs the whole
+local gate, container suites included, and then the deploy and rollback decisions against the fake
+Azure client. Use it only where Docker or Podman is available.
 
 `pipeline:lint` also confirms that no pipeline file mentions Keycloak or a service container
 (SC-019). These local results, with the container suites, are the implementation's done criteria

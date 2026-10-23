@@ -97,7 +97,9 @@ export function ProjectsEditor({
               onChange={event => renameDomain(domain.id, event.target.value)}
             />
           </label>
-          <button onClick={() => removeDomain(domain.id)}>Remove domain {domain.id}</button>
+          <button aria-label={`Remove domain ${domain.id}`} onClick={() => removeDomain(domain.id)}>
+            Remove
+          </button>
         </div>
       ))}
       <div className="admin-row">

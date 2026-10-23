@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect, type Browser, type Locator, type Page } from '@playwright/test';
 import { startAuthApi, type AuthProvider } from './auth-environment';
-import { check, signIn, type SignInTarget } from './helpers/sign-in';
+import { authViewports, check, signIn, type SignInTarget } from './helpers/sign-in';
 import { layoutProblems } from './helpers/layout-geometry';
 import { screenshotPath } from './helpers/screenshots';
 import {
@@ -15,14 +15,10 @@ import {
 } from '../tests/auth/credential-git-server';
 
 const GITHUB_APP = { clientId: 'sw-github-browser', clientSecret: 'github-browser-secret' };
-const VIEWPORTS = [
-  [390, 844],
-  [1440, 900],
-] as const;
 
-// Checks control geometry and keeps a screenshot at the phone and desktop sizes.
+// Checks control geometry and keeps a screenshot at every supported size.
 async function remoteGeometry(page: Page, name: string) {
-  for (const [width, height] of VIEWPORTS) {
+  for (const [width, height] of authViewports) {
     await page.setViewportSize({ width, height });
     assert.deepEqual(await layoutProblems(page), [], `${name} at ${width}×${height}`);
     await page.screenshot({ path: screenshotPath(`/tmp/workbench-auth-${name}-${width}.png`) });

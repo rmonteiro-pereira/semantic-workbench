@@ -5,7 +5,7 @@ import { validateInWorker } from '../editor/lint';
 import { diffPatches, normalize } from '../editor/patch';
 import type { Doc, ProjectInfo } from '../projects/api';
 import { api, scm as scmApi, StaleSave } from '../projects/api';
-import { saveStateLabel, useAutosave } from '../projects/autosave';
+import { failureReason, saveStateLabel, useAutosave } from '../projects/autosave';
 import { isGitignore } from '../scm/gitignore';
 import { applyDemotions, type Demotion } from '../governance/guards';
 
@@ -97,7 +97,7 @@ export function useSaving({
       if (currentRef.current?.id === file && e instanceof StaleSave)
         setStale({ current: e.currentSource, currentHash: e.currentHash });
     },
-    onFailed: (_file, m) => setMessage(`Not saved: ${m}`),
+    onFailed: (_file, m) => setMessage(`Not saved: ${failureReason(m)}`),
   });
   // The server stored other text than sent: an approved metric the person changed went back to
   // proposed. The editor shows the stored text, or applies the same demotion to what was typed

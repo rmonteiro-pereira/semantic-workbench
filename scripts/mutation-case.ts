@@ -3602,3 +3602,10 @@ if (category === 'container-hardening') {
     'no-new-privileges',
   ]);
 }
+if (category === 'save-failure-wording') {
+  assert.equal(m.failureReason('Refused: a classification change.'), 'a classification change.');
+  assert.equal(m.failureReason('file changed on disk'), 'file changed on disk');
+  assert.equal(m.failureReason(null), 'the save failed');
+  const failed = { status: 'failed', message: 'Refused: no.' };
+  assert.equal(m.saveStateLabel(failed, 0), 'Not saved: no.');
+}

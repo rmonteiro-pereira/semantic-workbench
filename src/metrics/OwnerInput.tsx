@@ -50,6 +50,9 @@ export function OwnerInput({
           </option>
         ))}
       </datalist>
+      {people.length > 0 && verified !== false && (
+        <small>Suggestions are people who can read this project and have signed in.</small>
+      )}
       {verified === false && (
         <small className="owner-unverified">
           Unverified owner: this names nobody who has signed in with a verified address or username.

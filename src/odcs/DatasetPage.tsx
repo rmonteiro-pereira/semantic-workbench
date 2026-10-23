@@ -64,6 +64,8 @@ type Props = {
   gitVersion?: number;
   // Cells that can be edited in place; null renders the value read-only.
   editor?: (cell: PropertyCellProps) => React.ReactNode | null;
+  // Says why cells are read-only, shown above the properties.
+  propertiesNote?: string;
 };
 /** Displays one contract object's properties, lineage, relationships, history and quality. */
 export function DatasetPage({
@@ -76,6 +78,7 @@ export function DatasetPage({
   onOpenInLineage,
   onNeighborhood,
   editor,
+  propertiesNote,
   gitVersion = 0,
 }: Props) {
   const schema = list(data?.schema);
@@ -217,6 +220,7 @@ export function DatasetPage({
         )}
       </div>
       <div className="odcs-panel" role="tabpanel" aria-label={tab}>
+        {tab === 'Properties' && propertiesNote && <p className="odcs-note">{propertiesNote}</p>}
         {tab === 'Properties' && (
           <SchemaTab data={data} objectIndex={index} onOpenObject={onOpenObject} editor={editor} />
         )}

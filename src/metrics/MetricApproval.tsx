@@ -52,7 +52,11 @@ export function MetricApproval({ project, kpi }: { project: string; kpi: KpiSumm
 
   function start() {
     if (control!.action === 'approve') void apply({ status: 'approved' }, 'Approved.');
-    else setReason('');
+    else {
+      // The result of the earlier action would read as this form's outcome.
+      setMessage('');
+      setReason('');
+    }
   }
 
   function deprecate(event: React.FormEvent) {
@@ -73,6 +77,9 @@ export function MetricApproval({ project, kpi }: { project: string; kpi: KpiSumm
         <Icon size={13} />
         {control.label}
       </button>
+      {control.disabled && control.reason && (
+        <small className="kpi-approval-reason">{control.reason}.</small>
+      )}
       {reason !== null && (
         <form className="kpi-deprecate" onSubmit={deprecate}>
           <input

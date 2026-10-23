@@ -185,12 +185,12 @@ const SIGN_IN_FAILURE_STATUS: Partial<Record<SignInReason, number>> = {
 /** Renders only safe sign-in reasons, including failures starting from a protected page. */
 export function signInErrorResponse(error: SignInError, publicUrl?: string) {
   const reasons: Record<SignInReason, string> = {
-    'tenant-mismatch': 'Tenant mismatch',
-    'attempt-invalid': 'Expired or replayed sign-in attempt',
-    'token-invalid': 'Invalid or expired provider token',
-    'provider-unreachable': 'Provider unreachable',
-    'provider-unsupported': 'Not supported by the identity provider',
-    'session-upgraded': 'Signed out after an update; sign in again',
+    'tenant-mismatch': 'Tenant mismatch.',
+    'attempt-invalid': 'Expired or replayed sign-in attempt.',
+    'token-invalid': 'Invalid or expired provider token.',
+    'provider-unreachable': 'Provider unreachable.',
+    'provider-unsupported': 'Not supported by the identity provider.',
+    'session-upgraded': 'Signed out after an update; sign in again.',
   };
   const response = authPage(
     'error',

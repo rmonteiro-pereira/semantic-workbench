@@ -41,11 +41,13 @@ const OPERATION_TEXT: Record<GuardOperation, string> = {
   publish: 'Ask another Steward of this domain, or an Admin, to publish these changes.',
 };
 
+const WHO_MAY_CHANGE = "needs Steward access in this project's domain, or Admin access";
+
 // The words of a refusal for a change the person cannot read: it names no metric and no kind of
 // change, which would reveal what a file they may not read contains.
 function genericRefusalText(operation?: GuardOperation) {
   const next = operation ? ' ' + OPERATION_TEXT[operation] : '';
-  return `Refused: this would include a guarded change, which needs Steward in this project's domain, or Admin.${next}`;
+  return `Refused: this would include a guarded change, which ${WHO_MAY_CHANGE}.${next}`;
 }
 
 function refusalText(change: GuardedChange, decision: Decision, operation?: GuardOperation) {
@@ -55,8 +57,7 @@ function refusalText(change: GuardedChange, decision: Decision, operation?: Guar
     return `Refused: nobody approves or deprecates a metric they own (${metric}).${next}`;
   }
   const what = GUARD_TEXT[change.kind];
-  const who = "needs Steward in this project's domain, or Admin";
-  return `Refused: this would include ${what}, which ${who}.${next}`;
+  return `Refused: this would include ${what}, which ${WHO_MAY_CHANGE}.${next}`;
 }
 
 /** A write refused as a whole because it would make guarded changes the person may not make. */

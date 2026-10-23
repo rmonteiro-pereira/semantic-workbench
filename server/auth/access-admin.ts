@@ -246,7 +246,7 @@ export function createAccessAdmin(options: AccessAdminOptions) {
     const bootstrapCount = snapshot.bootstrap.ids.length + snapshot.bootstrap.emails.length;
     throw new AdminRefusal(400, {
       error: 'last-admin',
-      message: `${next.area}: this change would remove the last active Admin.`,
+      message: 'This change would remove the last active Admin.',
       bootstrap: bootstrapCount > 0,
     });
   }

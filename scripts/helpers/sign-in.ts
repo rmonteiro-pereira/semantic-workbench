@@ -139,6 +139,7 @@ async function signedInPerson(
 
 /** Captures a page at every supported viewport after checking control geometry. */
 export async function authGeometry(page: Page, name: string) {
+  const original = page.viewportSize();
   for (const [width, height] of authViewports) {
     await page.setViewportSize({ width, height });
     assert.deepEqual(await layoutProblems(page), [], `${name} at ${width}×${height}`);
@@ -161,6 +162,8 @@ export async function authGeometry(page: Page, name: string) {
     }
     await page.screenshot({ path: screenshotPath(`/tmp/workbench-auth-${name}-${width}.png`) });
   }
+  // Later steps of the same check must not inherit the largest size.
+  if (original) await page.setViewportSize(original);
 }
 
 /** Signs out through the native form and proves that the signed-out page remains passive. */
@@ -265,6 +268,21 @@ async function checkPerson(browser: Browser, target: SignInTarget, username: Tes
   }
 }
 
+/**
+ * The sidebar's note about files the person cannot open sits in the size of the file rows, and
+ * the footer says the folders are on the server instead of on this machine.
+ */
+async function sidebarNotesChecks(page: Page) {
+  const size = await page
+    .locator('.hidden-files')
+    .evaluate(element => parseFloat(getComputedStyle(element).fontSize));
+  assert(size <= 13, `The hidden-files line is drawn at ${size}px, larger than the file rows`);
+  const location = page.locator('.workspace-sidebar .local');
+  await expect(location).toContainText('on the server');
+  await expect(location).not.toContainText('on your machine');
+  await authGeometry(page, 'viewer-workspace');
+}
+
 /** Checks that a Sales reader receives only visible definitions and derived exports. */
 export async function readVisibilityChecks(browser: Browser, target: SignInTarget) {
   const context = await browser.newContext();
@@ -289,6 +307,7 @@ export async function readVisibilityChecks(browser: Browser, target: SignInTarge
     await signIn(page, target, 'alice', viewer);
     await expect(page.getByRole('tree', { name: 'Projects' })).toBeVisible();
     await expect(page.getByText('1 file you cannot open')).toBeVisible();
+    await sidebarNotesChecks(page);
     assertReadable(await page.locator('body').innerText());
     for (const path of [
       '/api/projects',

@@ -1,9 +1,9 @@
 // Checks metric approval and classification guards in signed-in browser sessions: an Editor
 // proposes and is refused approvals and classification changes, a Steward approves.
 import assert from 'node:assert/strict';
-import { expect, type Browser, type Page } from '@playwright/test';
+import { expect, type Browser, type Locator, type Page } from '@playwright/test';
 import type { TestUserName } from '../tests/helpers/auth-identities';
-import { check, signIn, type SignInTarget } from './helpers/sign-in';
+import { authGeometry, check, signIn, type SignInTarget } from './helpers/sign-in';
 
 const METRICS = { project: 'sales-metrics', path: 'sales.semantic.yaml' };
 const CONTRACT = { project: 'sales-contracts', path: 'orders.odcs.yaml' };
@@ -53,6 +53,9 @@ async function editorRefusals(page: Page, target: SignInTarget) {
   const approve = detail.getByRole('button', { name: 'Approve', exact: true });
   await expect(approve).toBeDisabled();
   await expect(approve).toHaveAttribute('title', /Steward/);
+  // A tooltip is not seen on a touch screen, so the reason is also written beside the button.
+  await expect(detail.locator('.kpi-approval-reason')).toContainText('Requires Steward');
+  await authGeometry(page, 'metric-approve-disabled');
   const approval = await forgeSave(page, target, METRICS, text =>
     text.replace(/("owner": "alice@example.org", "status": )"proposed"/, '$1"approved"'),
   );
@@ -74,6 +77,31 @@ async function editorRefusals(page: Page, target: SignInTarget) {
   await expect(table.getByLabel('Description of amount')).toBeEditable();
   // A confidential property stays read-only for an Editor.
   await expect(table.getByLabel('Description of customer_email')).toHaveCount(0);
+  await expect(table).toContainText('Only a Steward or Admin changes a classification');
+  await authGeometry(page, 'property-editors-editor');
+}
+
+/** An Editor's Source edit of a classification is refused with a plain sentence. */
+async function sourceRefusalMessage(page: Page, target: SignInTarget) {
+  await openTreeFile(page, target, CONTRACT);
+  await page.locator('.tabs').getByRole('button', { name: 'Source', exact: true }).click();
+  await page.locator('.cm-line', { hasText: 'classification: internal' }).first().click();
+  await page.keyboard.press('End');
+  for (let count = 0; count < 'internal'.length; count++) await page.keyboard.press('Backspace');
+  await page.keyboard.type('public');
+  const sentence = /Not saved: this would include changing a classification/;
+  await expect(page.getByText(sentence).first()).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText(/Not saved: Refused/)).toHaveCount(0);
+  await authGeometry(page, 'guarded-refusal');
+}
+
+/** The form takes the whole row, and the outcome of the approval before it is gone. */
+async function expectDeprecateFormOnItsOwnRow(detail: Locator) {
+  await expect(detail.getByRole('status')).toHaveCount(0);
+  const area = await detail.locator('.kpi-approval').boundingBox();
+  const form = await detail.locator('.kpi-deprecate').boundingBox();
+  assert(area && form, 'The approval area and its form are drawn');
+  assert(form.width >= area.width - 2, `The form is ${form.width}px of ${area.width}px`);
 }
 
 async function stewardApproves(page: Page, target: SignInTarget) {
@@ -81,11 +109,57 @@ async function stewardApproves(page: Page, target: SignInTarget) {
   const deprecate = own.getByRole('button', { name: 'Deprecate', exact: true });
   await expect(deprecate).toBeDisabled();
   await expect(deprecate).toHaveAttribute('title', /You own this metric/);
+  await expect(own.locator('.kpi-approval-reason')).toContainText('You own this metric');
   const detail = await openMetric(page, target, 'order_count');
+  await authGeometry(page, 'metric-approve-steward');
   await detail.getByRole('button', { name: 'Approve', exact: true }).click();
   await expect(detail.getByRole('status').filter({ hasText: 'Approved.' })).toBeVisible();
   await expect(detail.locator('.kpi-status')).toHaveText('approved');
+  await detail.getByRole('button', { name: 'Deprecate', exact: true }).click();
+  await expect(detail.getByLabel('Reason for deprecating')).toBeVisible();
+  await expectDeprecateFormOnItsOwnRow(detail);
+  await authGeometry(page, 'metric-deprecate-form');
+  await detail.getByRole('button', { name: 'Cancel', exact: true }).click();
   await publishApproval(page, target);
+}
+
+/** Steps a new ratio metric of the sales model forward to the owner step of the wizard. */
+async function openWizardOwnerStep(page: Page) {
+  await page.getByRole('button', { name: 'New metric', exact: true }).click();
+  const wizard = page.getByRole('dialog', { name: 'New metric' });
+  const next = () => wizard.getByRole('button', { name: 'Next', exact: true }).click();
+  await next();
+  await next();
+  await wizard.getByLabel('Label').fill('Revenue per order');
+  await wizard.getByLabel('Metric type').selectOption('ratio');
+  await wizard.getByLabel('Numerator').selectOption('gross_revenue');
+  await wizard.getByLabel('Denominator').selectOption('order_count');
+  for (let step = 0; step < 3; step++) await next();
+  return wizard;
+}
+
+/**
+ * An owner nobody has signed in as shows the "unverified owner" badge, and the wizard offers the
+ * people who may read the project as owners.
+ */
+async function ownerPickerAndBadge(page: Page, target: SignInTarget) {
+  const saved = await forgeSave(page, target, METRICS, text =>
+    text.replace('frank@example.org', 'ghost@example.org'),
+  );
+  assert.equal(saved.status, 200);
+  const detail = await openMetric(page, target, 'average_order_value');
+  await expect(detail.locator('.kpi-unverified')).toHaveText('unverified owner');
+  await authGeometry(page, 'metric-unverified-owner');
+  const wizard = await openWizardOwnerStep(page);
+  const people = page.locator('#metric-owner-people option');
+  await expect(people.filter({ hasText: 'Alice Andrade' })).toHaveAttribute(
+    'value',
+    'alice@example.org',
+  );
+  await expect(wizard.getByLabel('Owner', { exact: true })).toBeVisible();
+  await expect(wizard).toContainText('Suggestions are people who can read this project');
+  await authGeometry(page, 'metric-wizard-owner');
+  await wizard.getByRole('button', { name: 'Cancel', exact: true }).click();
 }
 
 /**
@@ -139,10 +213,18 @@ export async function governanceChecks(browser: Browser, target: SignInTarget) {
   await check('Editor refused approval and classification changes', () =>
     asPerson(browser, target, 'alice', editorRefusals),
   );
+  await check('Editor sees a plain refusal for a classification edit in Source', () =>
+    asPerson(browser, target, 'alice', sourceRefusalMessage),
+  );
   await check('Steward approves a proposed metric, not their own', () =>
     asPerson(browser, target, 'bob', stewardApproves),
   );
   await check('Editor change to an approved metric is stored as proposed', () =>
     asPerson(browser, target, 'alice', editorDemotion),
+  );
+  // This save makes Alice's working copy, so it runs after the demotion check: a copy made before
+  // the Steward's publish would not hold the approved metric.
+  await check('unverified owner badge and the owner picker', () =>
+    asPerson(browser, target, 'alice', ownerPickerAndBadge),
   );
 }

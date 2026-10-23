@@ -34,28 +34,35 @@ export function DefaultBranchActions({
   // Publishing and pushing are separate steps, and people expect a publish to reach the remote.
   const publishHint = `Publish your branch to ${target} here. This does not push; Push ${target} does.`;
   return (
-    <div className="scm-published" role="group" aria-label="Published branch">
-      <button hidden={!canPull} disabled={disabled} onClick={onPull}>
-        <ArrowDown size={13} />
-        Pull from {target}
-      </button>
-      <button
-        disabled={disabled || !canPublish}
-        title={canPublish ? publishHint : publishTitle}
-        onClick={onPublish}
-      >
-        <Upload size={13} />
-        Publish to {target}
-      </button>
-      <button
-        hidden={!canPublish || !hasRemote}
-        disabled={disabled}
-        title={`Send ${target} as published here to the remote`}
-        onClick={onPushDefault}
-      >
-        <ArrowUp size={13} />
-        Push {target}
-      </button>
-    </div>
+    <>
+      <div className="scm-published" role="group" aria-label="Published branch">
+        <button hidden={!canPull} disabled={disabled} onClick={onPull}>
+          <ArrowDown size={13} />
+          Pull from {target}
+        </button>
+        <button
+          disabled={disabled || !canPublish}
+          title={canPublish ? publishHint : publishTitle}
+          onClick={onPublish}
+        >
+          <Upload size={13} />
+          Publish to {target}
+        </button>
+        <button
+          hidden={!canPublish || !hasRemote}
+          disabled={disabled}
+          title={`Send ${target} as published here to the remote`}
+          onClick={onPushDefault}
+        >
+          <ArrowUp size={13} />
+          Push {target}
+        </button>
+      </div>
+      {!canPublish && publishTitle && (
+        <small className="scm-hint">
+          {publishTitle} to publish to {target}.
+        </small>
+      )}
+    </>
   );
 }

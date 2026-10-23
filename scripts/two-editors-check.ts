@@ -109,6 +109,16 @@ async function editsStayPersonal(alice: Person, frank: Person) {
   assert.deepEqual(frankChanges, [MAPPING]);
 }
 
+/** A branch another copy holds is listed with its holder and cannot be chosen. */
+async function alicePicker(alice: Person) {
+  await openSourceControl(alice);
+  const held = alice.page.locator('option', { hasText: 'feature/frank (in use by Frank Freitas)' });
+  // Playwright does not treat an option as a form control, so the attribute is checked.
+  await expect(held).toHaveAttribute('disabled', '');
+  // A headless screenshot cannot draw the open list, so this keeps the closed picker's layout.
+  await authGeometry(alice.page, 'two-editors-branch-picker');
+}
+
 async function branchesStayPersonal(alice: Person, frank: Person) {
   await commitFile(frank, MAPPING, 'Frank edits the mapping');
   await openSourceControl(frank);
@@ -119,6 +129,7 @@ async function branchesStayPersonal(alice: Person, frank: Person) {
   // Another person's work branch is not offered at all, held or not; Frank's own still is.
   await expect(frank.page.locator('option', { hasText: 'work/alice' })).toHaveCount(0);
   await expect(frank.page.locator('option', { hasText: 'work/frank' })).toHaveCount(1);
+  await alicePicker(alice);
   const refused = await frank.call(projectApi('git/switch'), 'POST', { branch: 'work/alice' });
   assert.equal(refused.status, 409);
   assert.equal(refused.body.inUseBy, 'Alice Andrade');
@@ -144,10 +155,30 @@ async function commitsCarryTheirAuthors(root: string, alice: Person, frank: Pers
   assert.equal((await branchOf(frank)).changes.length, 0);
 }
 
+/** A Steward may publish; with no remote there is nothing to push, and remotes are Admin-only. */
+async function stewardControls(person: Person) {
+  const { page } = person;
+  await expect(page.getByRole('button', { name: 'Publish to main', exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Push main', exact: true })).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Remote…', exact: true })).toBeHidden();
+}
+
+/** An Editor cannot publish, and the panel says so in words beside the disabled button. */
+async function editorControls(person: Person) {
+  const { page } = person;
+  await expect(page.getByRole('button', { name: 'Publish to main', exact: true })).toBeDisabled();
+  await expect(page.getByText('Requires Steward to publish to main.')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Push main', exact: true })).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Remote…', exact: true })).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Pull from main', exact: true })).toBeVisible();
+}
+
 async function publishReachesTheViewer(bob: Person, carol: Person) {
   await appendLine(bob, ORDERS, 'published by bob');
   await commitFile(bob, ORDERS, 'Bob publishes orders');
   await openSourceControl(bob);
+  await stewardControls(bob);
+  await authGeometry(bob.page, 'two-editors-publish-steward');
   await bob.page.getByRole('button', { name: 'Publish to main', exact: true }).click();
   await expect(bob.page.getByText('Published to main.')).toBeVisible();
   assert((await readSource(carol, ORDERS)).includes('published by bob'));
@@ -166,6 +197,7 @@ async function pullsStayPersonal(alice: Person, frank: Person) {
   assert(!aliceOrders.includes('published by bob'));
   assert.equal((await branchOf(alice)).branch, 'work/alice');
   assert.equal((await alice.call(`/api/drafts/${PROJECT}/people.mapping.yaml`)).status, 200);
+  await editorControls(frank);
   await authGeometry(frank.page, 'two-editors-source-control');
 }
 

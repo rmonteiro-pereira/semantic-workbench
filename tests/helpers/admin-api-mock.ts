@@ -331,7 +331,7 @@ export function adminMockResponse(url: URL, method: string, state: AdminMockStat
       status: 400,
       body: {
         error: 'last-admin',
-        message: 'grants: this change would remove the last active Admin.',
+        message: 'This change would remove the last active Admin.',
         bootstrap: true,
       },
     };

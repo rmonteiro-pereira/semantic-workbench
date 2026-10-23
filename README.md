@@ -1,28 +1,51 @@
 # Semantic Workbench
 
-Standalone React + TypeScript + Vite+ application with a local Bun API that stores each project as a Git-backed folder. Explore and edit data contracts, semantic models, ontology definitions and RDF graphs.
+Semantic Workbench edits and explores data contracts (ODCS), semantic models and ontologies
+(Ossie) and RDF (OWL, SHACL, Turtle) as plain files in Git-backed project folders. It explains how
+every metric is calculated, previews the SQL and never runs a query.
 
-## Run
+It runs in two modes:
 
-Requires Bun 1.4+ and, for version control of projects, Git 2.40+. A Git identity (`user.name`, `user.email`) can come from your global Git configuration or be set from the app with **Set Git identity…**:
+| | Local mode | Server mode |
+| --- | --- | --- |
+| For | One person on their own machine | A team that shares a workbench behind the organisation's sign-in |
+| Start | `bun install && bun run dev` ([Run it locally](#run-it-locally)) | `bun server/index.ts` with the settings in [Server mode](#server-mode), or the container image |
+| Sign-in | None; the person is the implicit Admin | OpenID Connect: Microsoft Entra ID is the target, Keycloak the compatibility check |
+| Where work lives | `data/projects/<project>/` | Each person's own Git working copy; Stewards publish |
+| Read | [Run it locally](#run-it-locally) and [Using the workbench](#using-the-workbench) | [Server mode](#server-mode), [deploy/README.md](deploy/README.md) and [deploy/trial-runbook.md](deploy/trial-runbook.md) |
+
+More documents: [ARCHITECTURE.md](ARCHITECTURE.md) (map of the code),
+[docs/agent-runtime.md](docs/agent-runtime.md) (the agent tools and agent clients),
+[docs/audit-tamper-evidence.md](docs/audit-tamper-evidence.md) and
+[docs/graph-design.md](docs/graph-design.md).
+
+## Run it locally
+
+Requires Bun 1.4+ and, for version control of projects, Git 2.40+.
 
 ```sh
 bun install
 bun run dev
 ```
 
-Open http://127.0.0.1:5173. API: http://127.0.0.1:4310. Both bind to loopback. The API answers only requests addressed to a loopback name (so a web page cannot reach it through DNS rebinding), refuses writes from other origins, and never follows a symbolic link inside a project folder. Without Git, or without a Git identity, the workspace still opens and edits files; a banner explains what is missing. A missing identity is checked per repository and live: the banner and the Commit dialog offer **Set Git identity…**, which writes `user.name` and `user.email` into that repository's own configuration (and, if you choose, into every repository that has none yet), never your global one, and commits work at once. Without Git, projects are not committed until it is installed and the API is restarted.
+Open http://127.0.0.1:5173. The API listens on http://127.0.0.1:4310. Both bind to loopback.
+The API answers only requests addressed to a loopback name (so a web page cannot reach it through
+DNS rebinding), refuses writes from other origins and never follows a symbolic link inside a
+project folder. `SW_HOST=0.0.0.0 bun server/index.ts` is refused in local mode.
+
+Git needs an identity (`user.name`, `user.email`). It can come from your global Git
+configuration or from **Set Git identity…** in the app. That action writes the identity into the
+repository's own configuration (and, if you choose, into every repository that has none yet),
+never your global one. Without Git, or without an identity, the workspace still opens and edits
+files; a banner explains what is missing. Projects are not committed until Git is installed and
+the API is restarted.
 
 ## Run it as a container
 
-Build with `podman build --format docker -t semantic-workbench:dev .` (or use `docker` in place of `podman`).
-The image runs Bun as uid 1000 and includes Git, the API and the built frontend.
-Server mode requires the identity and session configuration described below.
-
-For Compose, set `SW_VERSION` and `SW_COMMIT` in the environment before building. Use the
-package version when present (`bun -p 'require("./package.json").version ?? "dev"'`) and
-`git rev-parse HEAD` for the commit. This checkout currently has no package version, so `dev`
-is the fallback. The `image:build` command supplies these values automatically.
+The image runs Bun as uid 1000 and contains Git, the API and the built frontend. Build it with
+`podman build --format docker -t semantic-workbench:dev .` (or `docker build`; `bun run
+image:build` does the same and supplies the version and commit), or build and run the local-mode
+profile with Compose:
 
 ```sh
 mkdir -p .data
@@ -30,580 +53,48 @@ mkdir -p .data
 podman compose --profile local up --build
 ```
 
-Docker users can run `docker compose --profile local up --build`. With rootless Podman,
-run directly with the user mapping below, or prepare the Compose folder ownership with
-`podman unshare chown -R 1000:1000 .data` before starting Compose. Do not share that folder
-between different user mappings. On SELinux hosts, label the bind mount for containers
-(for example, append `:z` to the volume).
-
-```sh
-podman run --rm --network host --userns keep-id:uid=1000,gid=1000 \
-  -v "$PWD/.data:/data" semantic-workbench:dev
-```
-
-For Docker, omit `--userns keep-id:uid=1000,gid=1000` and ensure `.data` is owned by uid 1000.
-Local mode requires **host networking** because it binds loopback. On Docker Desktop enable
-**Settings → Resources → Network → Enable host networking**, then apply and restart.
-Open http://127.0.0.1:4310. `/healthz` reports liveness, version and commit; `/readyz` reports
-readiness after recovery and the first scan. Startup probes the data root and reports its path
-and uid if it is not writable.
-
-Only one instance may serve a data folder. A second instance of the same revision returns 503
-and remains not ready. A different revision reports ready with `state: handover`, returning
-503 with `Retry-After: 10` for application requests without opening the workspace. It acquires
-the lock after the previous instance exits or its heartbeat is older than 30 seconds, then
-recovers and scans before serving. SIGTERM and SIGINT close the workspace and release its lock.
-Run exactly one replica: dry-run receipts and the administration save lock live in the server
-process, so a second replica would refuse or race Admin changes. Do not use multiple replicas
-for throughput.
-
-Container settings are read once at startup:
-
-- `SW_HOST` and `SW_PORT`: loopback address and port (defaults `127.0.0.1:4310`).
-- `DATA_DIR`: persistent root (`/data` in the image).
-- `SW_CACHE_DIR`: rebuildable SQLite cache folder (`/tmp/sw-cache` in the image). Put it on
-  local disk: in server mode it also indexes every person's working copy.
-- The image writes only to `/data` and `/tmp`. Run it with `--read-only --tmpfs /tmp
-  --cap-drop ALL --security-opt no-new-privileges`, as the `workbench-server` Compose service
-  and `bun run test:container` do.
-- `SW_SERVE_STATIC=1`: serve `dist/` from the API; enabled in the image.
-- `SW_IN_CONTAINER=1`: print the host networking instructions; set by the image.
-- `SW_VERSION` and `SW_COMMIT`: build arguments and health metadata.
-- `CONTAINER_APP_REVISION`: lock revision; otherwise `SW_VERSION+SW_COMMIT`, or `dev`.
-
-Run `bun run test:container --image semantic-workbench:dev` to check an existing image, or
-`bun run test:container --build` to build first (the default). The script selects Docker when
-installed, otherwise Podman. It uses a temporary bind mount and rootless Podman's
-`keep-id:uid=1000,gid=1000` mapping so the caller owns the files while the image user stays 1000.
-Docker checks require a uid 1000 caller. Runtime verification of this mapping happens in the
-container check; it cannot be exercised in the restricted development sandbox.
-Use `--port 4320` if 4310 is occupied (the next port must also be free), or
-`--suite test:projects` to select one browser suite; the default runs both local and server
-groups. Use `--suite local` or `--suite server` to select one group.
-The script checks metadata, health, persistence across restart and same-revision refusal,
-and always attempts to remove its containers and temporary folder.
-
-## Server mode
-
-Build the frontend with `bun run build`, then start `bun server/index.ts` with the following
-environment. Register `<SW_PUBLIC_URL>/auth/callback` as a redirect URI and
-`<SW_PUBLIC_URL>/auth/signed-out` as a post-logout redirect URI at the provider.
-
-```sh
-export SW_MODE=server
-export SW_HOST=0.0.0.0
-export SW_PUBLIC_URL=https://workbench.example.org
-export SW_OIDC_ISSUER=https://login.microsoftonline.com/YOUR-TENANT-ID/v2.0
-export SW_OIDC_PROVIDER=entra
-export SW_ENTRA_TENANT_ID=YOUR-TENANT-ID
-export SW_OIDC_CLIENT_ID=YOUR-CLIENT-ID
-export SW_OIDC_CLIENT_SECRET=YOUR-SECRET
-export SW_SESSION_KEY="$(openssl rand -base64 32)"
-export SW_BOOTSTRAP_ADMINS=admin@example.org
-export DATA_DIR=/path/to/workbench
-bun server/index.ts
-```
-
-Keep the same session key across restarts; supply production secrets through the deployment's
-secret store. Startup requires successful issuer discovery and valid access policies. After
-acquiring the single-instance lease, it initializes the administration repository if needed.
-Server mode always serves `dist/` and applies CSP and security headers, including HSTS for HTTPS.
-
-There is no workbench sign-in screen. Page requests redirect straight to the provider and return
-to the requested path after sign-in. Anonymous API calls return 401. People without a grant,
-including deactivated people, see **No access** and receive 403 from every workspace API,
-including `GET /api/me`. That page shows their name and verified address or username, explains
-that an Admin must grant access, and provides a sign-out form that needs no JavaScript.
-**Signed out** stays signed out until **Sign in again** is selected. A sign-in error names a safe
-failure reason and offers **Try again**. Frontend assets require the same access as the workspace;
-health probes and the minimal authentication pages remain public.
-
-Sessions use opaque 256-bit cookies with `Secure; HttpOnly; SameSite=Lax; Path=/`, named
-`__Host-sw-session`. Tokens remain on the server, encrypted with AES-256-GCM in
-`state/sessions/<sha256(id)>.json`. Sessions survive restarts and expire after eight hours idle
-or 24 hours absolute by default; `admin/settings.json` configures `session.idleHours` and
-`session.absoluteHours`. The persisted `lastSeenAt` is written at most once a minute, so a restart
-can shorten the remaining idle time by up to 60 seconds. Missing lifetime fields use those defaults; invalid values refuse startup.
-HKDF-SHA256 derives separate session-encryption (`sw-session`) and attempt-signing (`sw-attempt`)
-keys from `SW_SESSION_KEY`; the index that finds a session by its provider session uses a third
-key derived from the session key (`sw-provider-index`). Changing `SW_SESSION_KEY` ends all
-sessions and in-flight sign-ins: the server still starts, deletes each session file it can no
-longer read (logging `session-unreadable`), and people sign in again. A damaged session file is
-treated the same way.
-Refresh re-reads identity and groups and re-matches grants; a refresh the provider refuses ends
-the session, while an unreachable provider answers 503 and keeps it. Sign-out, expiry and administrative session termination close live
-updates with an `access` event. Sign-in attempts use a signed ten-minute `__Host-sw-auth` cookie;
-a persistent replay ledger prevents reusing a consumed attempt after a restart; expired ledger
-entries are deleted once a minute.
-
-Each client address may send 1,000 requests in a burst and 200 a second after that;
-`/auth/login` and `/auth/callback` share a tighter allowance of 60 and 2 a second, because each
-call can reach the identity provider. Beyond it the answer is `429` with `Retry-After`, nothing is
-audited, and the source is logged as `[http] rate-limited <source> <n>` at most once a minute. A
-signed-in person is limited as themselves, so an anonymous visitor behind the same address cannot
-use up their allowance. The client address is the socket peer. Behind a reverse proxy that is the
-proxy, so set `SW_TRUSTED_PROXY_HOPS` to the number of proxies (1 behind Azure Container Apps
-ingress): the address is then the entry that many places from the right of `X-Forwarded-For`, and
-entries to its left, which the client writes, are ignored. An IPv6 client counts by its /64.
-Refusals that name nobody (a missing session, a refused bearer token, a failed sign-in) are
-recorded in the audit log for the first 20 of each kind per client address and then once a
-minute; the next record says how many were left out (`suppressed`), so an unauthenticated loop
-cannot fill the data volume and its size is still known. A failure the server did not expect answers `500 {"error":"Internal error."}`; the
-cause goes to the server log as `[http] <requestId> <name>: <message>`; a failed Git command
-answers `{"error":"Git failed."}` and its output goes to the same log line. A malformed escape in
-a URL path answers 400. A failed sign-in page
-answers 400 for an expired, replayed or invalid attempt, an invalid token or a tenant mismatch,
-and 503 when the provider cannot be reached.
-
-Server-mode hashed assets use `private, max-age=31536000, immutable`; HTML and API responses
-use `no-store`, so shared caches never retain auth-gated files. Local-mode caching is unchanged.
-
-For development only, a loopback HTTP public URL uses `sw-session` and `sw-auth` without Secure.
-An HTTP issuer is allowed only when both issuer and public URL are loopback. A non-loopback
-HTTP public URL is always refused. State-changing requests require `X-SW-Request: 1` and an
-Origin equal to the public origin; the No access sign-out form uses a per-session CSRF token
-instead of the header.
-
-Identity settings used by server sign-in:
-
-| Variable | Meaning |
-| --- | --- |
-| `SW_MODE` | `local` (default) or `server`. |
-| `SW_PUBLIC_URL` | Required external origin. |
-| `SW_OIDC_ISSUER`, `SW_OIDC_CLIENT_ID` | Required issuer and confidential client registration. |
-| `SW_OIDC_CLIENT_CERTIFICATE_KEY`, `SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT` | Entra only, preferred: the App Registration certificate's PEM private key (a Key Vault certificate's PEM, key and certificate together, works as is) and its SHA-256 thumbprint in hex (SHA-1 also accepted). Set both, and no other credential. |
-| `SW_OIDC_CLIENT_SECRET` | Client secret; use one credential only. |
-| `SW_OIDC_CLIENT_ASSERTION` | `managed-identity`, or for Keycloak and generic providers a PKCS#8 RSA private-key file. `managed-identity` uses platform `IDENTITY_ENDPOINT` and `IDENTITY_HEADER` for an `api://AzureADTokenExchange` assertion. |
-| `SW_OIDC_PROVIDER` | `entra`, `keycloak`, or `generic` (default), selecting the claim mapping and the sign-in library: MSAL for `entra`, `openid-client` for the others. |
-| `SW_ENTRA_TENANT_ID` | Required for Entra; only this tenant is accepted. |
-| `SW_OIDC_SCOPES` | Defaults to `openid profile email offline_access`, plus `api://<client-id>/access_as_user` for Entra. |
-| `SW_GROUP_CLAIM` | Group claim name, default `groups`. |
-| `SW_GROUP_OVERAGE` | `directory` (default) or `off`. |
-| `SW_GRAPH_URL` | Defaults to `https://graph.microsoft.com`; also accepts Microsoft national-cloud Graph endpoints, or loopback HTTP with a loopback public URL. |
-| `SW_SESSION_KEY` | Required 32 random bytes encoded as base64. |
-| `SW_BOOTSTRAP_ADMINS` | Required comma-separated verified e-mail addresses or stable IDs (`tid:oid` for Entra); grants emergency Admin access. |
-| `SW_API_AUDIENCE` | Comma-separated audiences an agent client's bearer token may carry. For Entra, the API app's client id (the `aud` of v2 access tokens). Unset, every bearer token is refused. |
-| `SW_GITHUB_CLIENT_ID`, `SW_GITHUB_CLIENT_SECRET` | Optional GitHub OAuth app (or GitHub App) used by **Connect GitHub**; set both or neither. |
-| `SW_GITHUB_HOST` | GitHub host for those tokens, default `github.com`; a GitHub Enterprise host name otherwise. |
-| `SW_TRUSTED_PROXY_HOPS` | `0` (default) to `5`: how many reverse proxies in front of the workbench append to `X-Forwarded-For`. Rate limits use the client address from that many entries from the right; `0` uses the socket peer. Set `1` behind Azure Container Apps ingress. Network policy rules keep comparing the socket peer. |
-| `SW_ADO_OBO` | `true` (default) lets the server obtain Azure DevOps tokens on behalf of the signed-in person; `false` turns it off. Only with `SW_OIDC_PROVIDER=entra`; other providers have no on-behalf-of. |
-
-`SW_HOST`, `SW_PORT`, `DATA_DIR`, `SW_CACHE_DIR`, `SW_SERVE_STATIC`, `SW_IN_CONTAINER`,
-`SW_VERSION`, `SW_COMMIT` and `CONTAINER_APP_REVISION` retain the meanings documented above.
-`SW_SERVE_STATIC` is always enabled in server mode. The remaining variables in the
-[configuration contract](specs/003-authn-authz/contracts/configuration.md) configure agent
-and delegated-credential features; they do not grant browser access.
-
-Entra sign-in runs on the server through Microsoft's MSAL library and an App Registration (setup
-and the mapping of each value to these variables: [deploy/README.md](deploy/README.md#entra-app-registration)).
-The Entra issuer must be `https://login.microsoftonline.com/<tenant>/v2.0` or a national
-cloud's sign-in host (`login.microsoftonline.us`, `login.chinacloudapi.cn`,
-`login.partner.microsoftonline.cn`), without a port; a loopback issuer, the mock provider, is
-accepted only when `SW_PUBLIC_URL` is loopback too. MSAL contacts no other host. MSAL's token
-cache, which holds the refresh token, is kept per session inside the encrypted session record
-and never reaches the browser, a response or a log. Keycloak and generic providers sign in
-through `openid-client`.
-
-When the person signs out of another application, the provider calls
-`GET /auth/front-channel-logout?sid=<provider session>[&iss=<issuer>]` without a cookie. The
-workbench ends the sessions that provider session started (audit reason `provider-signed-out`)
-unless `iss` is present and names another issuer, and always answers an empty 200. Anyone who knows a `sid` can end that session; the provider
-keeps it private. Sign-out sends Entra's `login_hint` back as `logout_hint`.
-
-Entra group overage uses application permission `GroupMember.Read.All` with administrator consent.
-Only group IDs named in grants and restricted paths are checked, in batches of at most 20.
-A failed directory lookup supplies no membership, an explanatory message and an audit record.
-Provider app roles never grant a person access. E-mail grants trust the tenant's administration
-of addresses: Entra uses a domain-verified e-mail claim or the UPN or user name of a member of
-the home directory, never a guest `#EXT#` name or the editable user name of a user from another
-directory;
-Keycloak and generic providers require `email_verified=true`. E-mail matching ignores case.
-For Keycloak, set its realm issuer, `SW_OIDC_PROVIDER=keycloak`, a confidential client secret,
-and matching group-name grants; tenant ID is not required.
-
-### What readers see in server mode
-
-Project lists, search, graphs, metrics, document exports and agent context use only readable
-files. A hidden project has no name or count in the workspace. A readable project with restricted
-paths shows “N files you cannot open”; links already written in visible files remain unresolved
-when their target is hidden. Direct requests for unreadable files and their Git history return
-404. Git history counts commits that touch only hidden paths without exposing their messages;
-messages on visible commits can still mention confidential names, so avoid putting secrets in
-commit messages.
-
-A request that spells an existing file or folder in another letter case, or a new name that
-differs from a sibling only in case, answers 404: the Azure Files SMB share ignores case and
-would otherwise open `FINANCE/plan.yaml` as `finance/plan.yaml`, past a rule for `finance/**`.
-Drafts, grouping state and dismissed suggestions belong to the signed-in person. A draft is kept
-only for a file the person has, holds at most about 4 MB, and each person keeps at most 200
-drafts per project and 1,000 in all. Trash entries
-require readable original paths and permission to restore your own or another person’s entries.
-Live events and reconnect replay are filtered for each reader. In server mode an administration
-change reloads only the open tabs of the people it affects; in local mode an access change reloads
-every open tab. Non-Admins receive only readiness, mode and Git availability from
-`/api/status`. Local mode retains its existing shared workspace behavior.
-
-### Your own working copy in server mode
-
-Everyone who may edit a project works in their own Git working copy of its repository, under
-`DATA_DIR/worktrees/<key>/<repo>/`. The copy is created with the person's first change there (a
-save, import, move, delete or Source Control action), on a personal branch `work/<handle>` (for
-example `work/alice`) taken from the default branch; until then they read the published state.
-Branch, staged changes, uncommitted edits, drafts, view settings, grouping corrections and
-grouping suggestions are per person: one person's save, stage, commit, branch
-switch or pull never changes another person's files. Viewers, and anyone who cannot edit a
-project, read its published state: the default branch as `DATA_DIR/projects/<repo>/` holds it.
-Nobody edits that folder; it stays detached at the tip of the default branch.
-
-- **Commits** carry the signed-in person as author (name and e-mail from the provider), the
-  workbench as committer and a `Signed-in-user: <id>` trailer. The Git identity dialog is local
-  mode only.
-- **Branch** lists every branch except other people's `work/<handle>` branches, which cannot be
-  checked out even while no copy holds them; a branch another person's copy holds shows "in use
-  by <name>" and cannot be chosen. The default branch is held by the published state. A protected branch can be
-  checked out only by someone who may publish to it.
-- **Pull from <default>** merges the default branch into your branch, refused while you have
-  unsaved edits or uncommitted changes, like any pull. The content guards judge the exact commit
-  it merges, as they judge a pull from a remote.
-- **Fetch**, **Pull**, **Push** and **Sync** run in your own copy with your own remote
-  credential. On your own `work/<handle>` branch, which has no upstream, Pull takes the remote's
-  default branch and says so ("Pull origin/main into work/alice"); any other branch pulls its
-  upstream as usual. **Pull from <default>** is local and uses no credential.
-- A **Fetch** that finds the remote's default branch ahead of the local one moves the local
-  default branch and the published state forward, the same compare-and-swap way a publish does,
-  but only when the person fetching may publish and the content guards accept what the remote
-  brings. Otherwise the fetch still succeeds and the panel says "main is behind origin; someone
-  with publish must bring it in". When the two have diverged, nothing moves.
-- **Publish to <default>** (Stewards of the project's domain and Admins) fast-forwards the default
-  branch to your branch with a compare-and-swap, then refreshes the published state for every
-  reader. When someone published meanwhile, it is refused with "Pull from <default> first".
-  Without a copy there is nothing to publish (409), and none is created. The content guards judge
-  the published commits as the publisher's own changes, so an approval made in a copy reaches the
-  default branch only through someone allowed to make it.
-- Publishing does not push. **Push <default>** (Stewards and Admins) sends the default branch, as
-  published here, to the remote with your credential, without needing a copy; **Push** sends
-  your own branch.
-- Saving a repository's project folders as a manifest (Admins) writes and commits the manifest in
-  the Admin's copy; it reaches the published state when they publish.
-- Every write into a copy is guarded like a write anywhere else. A person's first write is
-  judged against the published state before their copy is made, so a refused write leaves no
-  copy behind.
-- A copy unused for 30 minutes stops being watched; its files, index and drafts stay, and the next
-  use rescans it.
-- A file deleted or reverted in a copy goes to the trash as that person's entry: nobody else
-  lists or restores it, and it goes back into the same copy.
-- Deleting a project or clearing the workspace lists each person's unpublished work in the
-  confirmation, for those who may delete the project, and keeps it in the trash entry as a binary patch per person
-  (`unpublished/<key>.patch`), with their drafts. Deleting a subproject (its repository stays)
-  does the same for that folder: it leaves every copy, and work on it that was not published is
-  kept as a patch of that folder.
-- Grouping suggestions come from each Editor's own copy, so an unpublished change suggests a
-  grouping to its author only. Viewers get suggestions from the published state.
-- If the server stops between moving the default branch and updating the published files, the
-  next start finishes the update.
-- A repository without any commit gets copies through `git worktree add --orphan`, which needs
-  Git 2.42 or newer; the container image refuses to build with an older Git.
-
-Git commands of all copies of one repository run one at a time, because the copies share the
-repository's history and branches.
-
-### Roles in server mode
-
-Permissions come from workspace grants, scoped to domains or named projects. Provider app roles
-are not used. Custom roles use the same server-reported capabilities as built-in roles.
-
-| Role | What it can do within its scope |
-| --- | --- |
-| Viewer | Read definitions, history and its own view settings; cannot save files or drafts |
-| Editor | Viewer actions plus edit, import, move, delete files, save drafts and use project Git |
-| Steward | Editor actions plus guarded changes, approval, publishing, project creation and renaming |
-| Admin | All projects, administration, purge, clear, remotes, clone and registration |
-
-A move requires permission at both ends. Hidden targets return 404; a readable target without
-write permission returns 403. Disabled Commit and classification controls explain the required
-role. The server checks crafted requests independently of the UI. Identity and credential-helper
-configuration are unavailable in server mode.
-
-### Governed metrics and classifications in server mode
-
-Every content write (Source save, item edit, save-batch, the metric wizard, the legacy document
-save, import with replace, an import that creates a project, revert, pull, file delete, and
-trash undo and restore) is compared with the file it replaces:
-
-- Only a Steward of the project's domain, a role with **approve metrics**, or an Admin may set a
-  metric's status to `approved` or `deprecated`. Nobody approves or deprecates a metric whose
-  `owner` names them (their verified address or username, in any letter case).
-- When someone who may not approve a metric changes an approved metric in anything but its
-  `description`, the server stores it as `proposed` (only the status value changes) and the
-  response lists it under `demoted`, with the stored text in `source`.
-- Changing an ODCS `classification`, `criticalDataElement`, contract `team` or `roles`, or any
-  part of a property classified at or above the protected level (default `confidential`;
-  `public < internal < confidential < restricted`; Admin aliases apply and other values count as
-  `internal`) needs a Steward of the domain or an Admin.
-- A refused change refuses the whole operation before any file changes, with
-  `403 {error, guarded: [{file, pointer, kind}]}` naming the guarded parts of readable files.
-  Pull and revert are judged as if the person wrote the incoming text: when a pull or revert
-  would bring in an approval or a classification change, the refusal asks the Editor to have a
-  Steward of the domain (or an Admin) pull or revert instead. Deleting a file that holds an
-  approved metric or a protected property needs the same people. Trash undo and restore, and an
-  import that creates a project, are judged as creating their files. Moving a file to another
-  project is judged as removing it from the first and creating it in the second, and switching
-  to a branch is judged on what the branch changes compared with the current one.
-
-The metric detail offers **Approve** and **Deprecate** (disabled with the reason for people who
-may not approve, and for the metric's owner); an owner that names nobody who has signed in shows
-as "unverified owner" and counts as no owner. The metric wizard suggests owners from
-`GET /api/projects/:slug/people`, which only people who may edit the project can call. It lists
-the people who may read the project and signed in with a verified identity: a verified e-mail, or
-an Entra user name of a member (not a guest). Property editors keep protected properties
-read-only for Editors. Local mode is unchanged.
-
-### Remote Git in server mode
-
-Fetch, pull, push, sync and clone run only when someone presses them, and each command uses the
-signed-in person's own credential, so the remote records who pushed:
-
-- **Azure DevOps** (`dev.azure.com`, `*.visualstudio.com`; Entra sign-in only): the server
-  exchanges the person's workbench access token for an Azure DevOps token (on-behalf-of, scope
-  `499b84ac-1321-427f-aa17-267ca6975798/.default`). The app registration needs the delegated API
-  permission *Azure DevOps → user_impersonation* with consent, `SW_ADO_OBO` must not be `false`,
-  and **Azure DevOps on-behalf-of** must be on in `admin/settings.json`
-  (`remote.azureDevOpsObo: true`). If the exchange fails, the request answers
-  `428 {connect: 'azure-devops'}` and the panel offers **Sign in again**.
-- **GitHub**: the person connects once per session from **Person menu → Connected accounts →
-  Connect GitHub** (`/auth/github/start` → `/auth/github/callback`), or from the prompt that a
-  push shows when no account is connected (`428 {connect: 'github'}`); the push then continues on
-  return. Register `<SW_PUBLIC_URL>/auth/github/callback` as the app's callback URL.
-- **Other hosts** on the allowed list are reached without a credential (public remotes).
-
-Tokens live only in the encrypted session and end with it. Git receives them for one command
-through the askpass program `server/bin/sw-askpass` and environment variables of that child
-process, with `-c credential.helper=` so no configured helper is asked or stores anything.
-A pull fetches with the token and then merges as a local command without it, so filters and
-merge drivers configured in the repository never receive it. Nothing is written to `.git/config`, and tokens are masked in error text, logs and audit records.
-
-Only Admins add, change or remove a remote, clone, or register a repository's projects. Server
-mode reaches remotes over HTTPS only, and only hosts listed in `admin/settings.json`
-(`remote.allowedHosts`); any other address answers 400 with the `allowedHosts` list. Entries are
-exact host names, compared without regard to case, with a port when the remote uses one; each
-`<organisation>.visualstudio.com` host is listed separately. A separate push address
-(`remote.<name>.pushurl`) must be on the same allowed host. Addresses are stored in their
-canonical form; an address with a backslash, or with `@` after the host, is refused, because Git
-could read it as another host. Local mode
-keeps using the machine's own Git credential configuration, the credential setup guide and no host
-list.
-
-New projects, imports and examples created by a Steward receive an allowed domain automatically
-when there is only one. With several domains, a dialog asks which one to use. Admins may choose a
-domain or leave the project unassigned. Local mode retains its existing unrestricted workflow.
-
-### Agent clients in server mode
-
-An automation calls `/api/agent/catalog`, `/api/agent/context` and `/api/agent/plan` with its own
-identity: a client-credentials access token from the same provider, sent as
-`Authorization: Bearer <token>`. It sees only the projects an Admin granted to its client id.
-
-1. Prepare the API app registration that exposes the workbench API (usually the workbench's own,
-   `SW_OIDC_CLIENT_ID`). In its manifest set `"accessTokenAcceptedVersion": 2`, so Entra issues
-   v2 access tokens whose issuer matches `SW_OIDC_ISSUER`. Under **Token configuration**, add the
-   optional claim `idtyp` to access tokens; Entra omits it otherwise and every token is refused.
-2. Set `SW_API_AUDIENCE` to that app's client id, which is the `aud` of its v2 access tokens. A
-   comma-separated list accepts several audiences, for example during a move between apps.
-3. Register the automation as an application in the same tenant. It needs no app role.
-4. Grant its client id projects or whole domains in `admin/agents.json`:
-
-```json
-{
-  "formatVersion": 1,
-  "clients": [
-    {
-      "clientId": "my-agent",
-      "name": "Sales automation",
-      "projects": ["sales-contracts"],
-      "domains": []
-    }
-  ]
-}
-```
-
-5. Request a token for the API app's `/.default` scope (its application ID URI, such as
-   `api://<API app client id>/.default`) with the client-credentials grant, then call the
-   workbench. `scripts/examples/agent-client.ts` does this with MSAL, by client credentials or
-   managed identity ([agent runtime](docs/agent-runtime.md#agent-clients-in-server-mode)):
-
-```sh
-curl "$SW_PUBLIC_URL/api/agent/catalog" -H "Authorization: Bearer $ACCESS_TOKEN"
-curl "$SW_PUBLIC_URL/api/agent/context?mappingId=sales-contracts/sales.mapping.yaml" \
-  -H "Authorization: Bearer $ACCESS_TOKEN"
-curl "$SW_PUBLIC_URL/api/agent/plan" -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H 'Content-Type: application/json' \
-  --data '{"mappingId":"sales-contracts/sales.mapping.yaml","metrics":[],"dimensions":[]}'
-```
-
-What the server accepts and how it answers:
-
-- Tokens are checked against the provider's published keys (RS256 or ES256), issuer,
-  `SW_API_AUDIENCE`, expiry and not-before with five minutes of clock skew. They must be
-  application tokens (`idtyp=app`, no `scp`) of `SW_ENTRA_TENANT_ID`, and the client id comes
-  from `azp`. The issuer check admits v2 tokens only: v1 tokens come from
-  `https://sts.windows.net/<tenant>/` and are refused. An unknown signing key reloads the keys at
-  most once every five minutes.
-- The client's entry in `agents.json` is its only authorization. App roles, groups and addresses
-  in the token grant nothing, and restricted paths stay hidden from every client.
-- An invalid token gets 401 with `WWW-Authenticate: Bearer error="invalid_token"`. When the
-  provider's keys cannot be fetched or read, the call gets 503 without that header and can be
-  retried. A valid token of a client without a grant, or of a deactivated client, gets 403. A document outside the client's projects answers 404 like a missing one, and context
-  never resolves an ontology or semantic model from a project the client cannot read.
-- Bearer tokens are accepted on `/api/agent/*` only; anywhere else they get 401, even next to a
-  valid session cookie. A browser session still works on the agent routes. A client needs no
-  `Origin` or `X-SW-Request` header: those guard cookies a browser sends on its own.
-- Every call of an agent client is audited under `client:<clientId>`. A refused token is
-  recorded as anonymous, with the reason, and never copied into the log.
-
-Bearer validation follows Entra's token shape; a Keycloak or generic provider's client tokens are
-refused.
-
-## Local build scripts
-
-Run `bun run ci:validate` for the complete quality gate. It runs these steps in order:
-
-1. `verify`: `check`, `bun test`, production `build`.
-2. `mutation`: `test:mutation`, with a temporary Vite server for its browser mutants.
-3. `browser`: every suite in `scripts/gate-suites.ts`. Workspace suites use a fresh Vite server
-   on a free loopback port via `SW_BASE_URL`. `test:auth` and `test:two-editors` build and serve
-   `dist/` through their own server-mode API and start their mock provider; they need no Vite.
-   All use temporary data.
-4. `image`: `image:build`, `image:scan`, `image:sbom`.
-5. `container`: `test:container` against the built image.
-6. `pipeline`: `pipeline:lint` and dry runs for PR, main and `v0.4.0-alpha.1`.
-
-Use repeatable `--step` to select steps, `--suite` to select a browser script, and `--keep-going`
-to continue after a failed step. For example:
-
-```sh
-bun run ci:validate -- --step verify --step pipeline
-bun run ci:validate -- --step browser --suite test:projects
-```
-
-Results are JUnit XML per executed step and `summary.json` in `out/ci/`. Failures name their steps
-and return non-zero. Each suite receives its own `SW_SCREENSHOT_DIR`; only PNGs from that
-folder are copied to `out/ci/screenshots/<suite>/`. The `scripts/helpers/screenshots.ts`
-path helper honors this variable and retains a check's default path when it is unset.
-Checks with hard-coded `/tmp` paths retain those defaults and are not collected by the gate.
-Copy failures are reported separately from suite failures. Cancellation stops Vite's process group.
-The full gate needs Chromium and Docker or Podman; a missing runtime fails the image/container
-steps. The gate does not include the owner's separate `test:auth:keycloak` compatibility check.
-The sign-in and two-editor suites are included; the admin suite joins when implemented.
-
-- `bun run image:build`: chooses Docker, then Podman, or accepts `--engine docker|podman`.
-  Podman builds use `--format docker` to retain HEALTHCHECK. Tags are `semantic-workbench:dev`
-  and `semantic-workbench:sha-<commit>`; repeatable `--tag` adds tags. Metadata comes from Git,
-  UTC creation time and the package version (`dev` until a version is declared). Dirty working
-  trees receive a `-dirty` revision suffix.
-- `bun run image:scan`: local Trivy, or the pinned scanner image, scans an exported image archive.
-  High/critical findings with a fix fail. `.trivyignore` exceptions require a reason and an
-  unexpired UTC date. Reports are `out/image/trivy.json` and `trivy.sarif`.
-- `bun run image:sbom`: writes `out/image/sbom.spdx.json`.
-- `bun run image:push -- --registry <name>.azurecr.io`: refuses dirty revisions, signs in with
-  `az acr login`, pushes the commit tag and prints its digest. It never overwrites an existing
-  `sha-<commit>` tag: a second run on the same commit keeps and prints the registered digest. Under `TF_BUILD` it also emits the
-  Azure output variable `digest`. `image:scan -- --ref <registry>/semantic-workbench@sha256:<digest>`
-  signs in itself before rescanning. Registry credentials use a temporary folder removed after
-  the command; Azure CLI uses the chosen Docker/Podman runtime via `DOCKER_COMMAND`. Both Azure actions require the non-secret target variables
-  listed in `deploy/azure-devops/sample-variables.yml` and an authenticated Azure CLI session.
-
-`bun run pipeline:lint` checks the vendored schema and repository delivery rules entirely offline.
-`bun run pipeline:dry-run -- --run pr|main|tag:v0.4.0-alpha.1` expands the actual templates and
-matrix using placeholder target values and prints each step with its condition. `--execute`
-runs local gate steps and, for tag runs, fake deployment/recovery scenarios;
-setup, publication and real Azure actions are printed only.
-Use `--pipeline rollback --run tag:v0.4.0-alpha.1` to expand the rollback pipeline. The simulation
-assumes preceding enabled jobs succeed; actual failures still stop the target pipeline.
-
-The GitHub repository runs nothing: no workflows, bots, publishing or deployments. The pipeline
-is a deliverable imported into the target's Azure DevOps from its Azure Repos mirror. This delivery
-includes Validate, Image and tag-only Deploy, plus the manual `azure-pipelines-rollback.yml`.
-See [target setup](deploy/README.md) and the [owner trial runbook](deploy/trial-runbook.md).
-Pipeline setup downloads the pinned Bun 1.4.3 archive and verifies its SHA-256 before extraction.
-The tag-only `deploy:check-version` guard reads `SOURCE_REF` from the step environment
-(`refs/tags/vX.Y.Z`); local runs can override it with `--tag vX.Y.Z`. It validates the tag before
-use and compares the tag core with the package
-version, requires the tagged commit (`SOURCE_VERSION`, default `HEAD`) to be an ancestor of
-`origin/main` (full Git history needed), then queries registry tags read-only and refuses a
-version older than any promoted tag.
-It needs the target variables of the pipeline's variable group (`ACR_NAME` and the others listed
-in `specs/003-authn-authz/contracts/delivery-pipeline.md`) in its environment.
-It accepts `--fake` for an empty offline registry, with the same target-variable validation.
-A release must first declare its version in `package.json`; this checkout still uses the local
-`dev` fallback and therefore refuses tag publication. The owner/reviewer must run the complete gate on a machine with the
-required runtimes and record its duration in `specs/003-authn-authz/verification.md`.
-
-## Deployment commands
-
-`deploy:azure` runs the version guard, target preflight, records the active revision, updates the app by
-scanned digest, smoke-tests it, then promotes the version tag. A failed update or smoke copies and tests the
-recorded revision, then fails the run. `deploy:rollback -- --to previous|tag|<vX.Y.Z>` restores
-without promoting, verifying the commit digest and rescanning before the recoverable update. Both accept `--fake` and `--help`; rollback requires a tag `SOURCE_REF`.
-`IMAGE_DIGEST` and `BUILD_COMMIT` supply deployment inputs; `ROLLBACK_TARGET` selects rollback.
-The package manifest supplies the version. Target variables are listed in the setup guide.
-
-`deploy:smoke <public-url> <package-version> <commit> [--loopback]` uses `SW_OIDC_ISSUER` discovery,
-prints one line per check and a JSON summary. Loopback relaxes only HSTS and cookie Secure. The
-container gate invokes it against the server group's existing container and mock provider.
-`image:scan -- --ref-env IMAGE_REF` accepts a digest reference through the environment; explicit
-`--ref` remains supported. Pipeline macros are passed through step environments.
-
-## Sign-in testing
-
-Run `bun run test:auth`; it builds the frontend first. The check starts a mock OpenID
-provider in Entra's endpoint layout (`/<tenant>/oauth2/v2.0/authorize`, `/token`, `/logout`)
-and the API on free loopback ports, so the server signs in through MSAL as against Entra; it
-seeds temporary fixture grants and drives the built frontend with Chromium. It checks every fixture person, role provenance, refresh, expiry,
-Graph overage and failure, cookie-authenticated events, sign-out, and agent clients' bearer
-tokens next to a signed-in browser. Screenshots of the person
-menu and the three authentication pages cover 390×844, 1280×720, 1440×900 and 2560×1440.
-`SW_SCREENSHOT_DIR` selects the output folder; otherwise screenshots go to `/tmp`.
-The gate and the pipeline include this suite without an external identity service.
-
-`bun run test:two-editors` builds the frontend, then signs Alice and Frank (two Sales Editors),
-Bob (the Sales Steward) and Carol (narrowed to Sales Viewers) into their own browser contexts
-against the mock provider. It checks that edits, drafts, branches, commits and pulls stay in each
-Editor's working copy, that each commit names its author, that a branch held by another copy is
-refused, and that Bob's **Publish to main** reaches Carol. Its Source Control screenshots cover the
-same four viewports. The gate and the pipeline include it.
-
-`bun run test:auth:keycloak` is a separate compatibility check for the owner's machine. It
-selects Docker or Podman, starts the digest-pinned Keycloak 26.4 realm on a free loopback port,
-uses the same browser sign-in checks, checks agent client credentials, and removes the container
-and temporary realm. Fixture passwords are `test-<username>`, for example `test-alice`.
-It is excluded from the gate and pipeline.
-
-`bun run test:container --image semantic-workbench:dev --suite server` runs the server group
-alone. The default container check runs both groups. The server group starts the mock on host
-loopback, generates development secrets per run and uses host networking. It measures sign-in
-within 30 seconds, verifies session and data persistence after restart, refuses a second instance
-of the same revision, and verifies a different revision waits before taking over within shutdown
-plus 30 seconds. All suites remove their temporary workspaces.
-
-For a manual Keycloak workspace, copy `.env.server.example` to `.env.server`, replace its
-session key with `openssl rand -base64 32`, then run:
-
-```sh
-mkdir -p .server-workspace/admin
-cp tests/fixtures/auth-workspace/admin/*.json .server-workspace/admin/
-cp tests/fixtures/auth-workspace/admin-keycloak/grants.json .server-workspace/admin/grants.json
-docker compose --profile keycloak up --build -d
-```
-
-This profile publishes Keycloak on `127.0.0.1:8080` and the workbench on
-`http://127.0.0.1:4310` with host networking. The workbench retries startup while realm import
-finishes. The persistent `.server-workspace` folder must be writable by uid 1000 (use the Podman
-ownership instructions above when applicable). These credentials and the HTTP cookie exception
-are development-only. The grants are seeded, and projects can be imported through the UI.
-Use `docker compose --profile keycloak down` to stop it. This profile runs only on the owner's
-machine; automated checks never use this folder.
-
-## Where your data lives
+Use `docker compose --profile local up --build` with Docker. Open http://127.0.0.1:4310.
+`/healthz` reports liveness, version and commit; `/readyz` reports readiness after recovery and
+the first scan. Start-up probes the data root and reports its path and uid if it is not writable.
+
+- **Host networking.** Local mode binds loopback, so the container needs host networking. On
+  Docker Desktop (4.34 or later) enable **Settings → Resources → Network → Enable host
+  networking**, then **Apply & restart**. Docker Engine on Linux or WSL2, and Podman, need no
+  setting.
+- **Rootless Podman.** Run directly with the user mapping below, or prepare the Compose folder
+  with `podman unshare chown -R 1000:1000 .data`. Do not share that folder between different
+  user mappings. On SELinux hosts, append `:z` to the volume.
+
+  ```sh
+  podman run --rm --network host --userns keep-id:uid=1000,gid=1000 \
+    -v "$PWD/.data:/data" semantic-workbench:dev
+  ```
+
+  For Docker, omit `--userns keep-id:uid=1000,gid=1000` and make `.data` owned by uid 1000.
+- **Version and commit.** Compose reads `SW_VERSION` and `SW_COMMIT` from the environment at
+  build time (`image:build` supplies both). This checkout declares no package version, so the
+  version is `dev`.
+- **Hardening.** The image writes only to `/data` and `/tmp`. The `local` and `keycloak` Compose
+  profiles and `bun run test:container` run it with `--read-only --tmpfs /tmp --cap-drop ALL
+  --security-opt no-new-privileges`.
+- **One instance per data folder.** A second instance of the same revision answers 503 and stays
+  not ready. A different revision reports ready with `state: handover` and answers application
+  requests with 503 and `Retry-After: 10` until the previous instance exits or its heartbeat is
+  older than 30 seconds; it then recovers and scans before serving. SIGTERM and SIGINT close the
+  workspace and release the lock.
+
+The container reads its settings once at start-up. Every variable, with its default and the mode
+it applies to, is in the [configuration contract](specs/003-authn-authz/contracts/configuration.md).
+The image sets `DATA_DIR=/data`, `SW_CACHE_DIR=/tmp/sw-cache`, `SW_SERVE_STATIC=1` and
+`SW_IN_CONTAINER=1`.
+
+Server mode in a container: [Run the image in server mode](#run-the-image-in-server-mode).
+
+## Using the workbench
+
+The sections below apply to both modes unless they say otherwise. Server mode differs in who may do what and where each person's edits live ([Server mode](#server-mode)).
+
+### Where your data lives
 
 Everything stays under the data root, `data/` by default. Set `DATA_DIR` to use another folder (the tests and browser checks always use temporary ones):
 
@@ -614,7 +105,8 @@ data/
 ├── state/                projects.json (project registry), views/ (grouping corrections per file),
 │                         drafts/, journal/ (unfinished multi-file operations), suggestions.json
 │                         (dismissed grouping suggestions), legacy-ids.json, audit/ (one
-│                         append-only file per month of access decisions and writes)
+│                         append-only file per month of access decisions and writes),
+│                         sessions/ (server mode: encrypted sessions)
 ├── admin/                access configuration (roles, grants, project access), a Git repository;
 │                         created when access is first configured
 ├── trash/<entry>/        deleted files and projects (with their .git), each with an entry.json
@@ -622,7 +114,7 @@ data/
 └── cache.sqlite          index of hashes, entities and findings; safe to delete
 ```
 
-The files in `data/projects/` are the only copy of your definitions. `cache.sqlite` is rebuilt from them on the next start if it is deleted or out of date; the project registry, view settings and drafts live in the JSON files under `state/`, which are always replaced atomically. Back up `data/` with the app stopped, or push projects to a Git remote. The audit log records every write and every refused request, never document text or credentials; files older than 400 days are deleted at start-up. The monthly files form one hash chain, and `bun run audit:verify [folder] [--anchors mirrored.log]` reports the first record that was changed, removed or cut off; see [docs/audit-tamper-evidence.md](docs/audit-tamper-evidence.md).
+The files in `data/projects/` are the only copy of your definitions. `cache.sqlite` is rebuilt from them on the next start if it is deleted or out of date; the project registry, view settings and drafts live in the JSON files under `state/`, which are always replaced atomically. Back up `data/` with the app stopped, or push projects to a Git remote. The audit log is described under [Audit log](#audit-log).
 
 **Saving and committing.** There is no Save button: a valid edit is written to its file automatically one second after you stop typing, sending only the changed range. The header's **Save state** indicator reads *Saved to file · N uncommitted changes*, *Saving…*, *Not saved: N errors* (nothing is written while the text has validation errors; it is kept as a draft that survives a reload) or *Not saved: file changed on disk*. Switching files or views writes a due save first. While a pull, sync or branch switch of the repository runs, saving waits and then re-checks the file's version. **Commit…** (the header's primary action) lists the project's changed files, all ticked, with the diff of the selected file and a suggested message (*Update orders in commerce.odcs.yaml*, *Update 3 files*); **Commit** commits only the ticked files (`git commit --only`, so other staged or unstaged work stays as it is) and **Commit & push** then pushes. **Revert to last commit** (with a confirmation) puts the last committed version of a file back and moves the replaced version to the trash, in one journaled operation. Item editors, add and delete dialogs and the metric wizard keep an explicit **Save to file**, which writes the file and never commits.
 
@@ -670,7 +162,7 @@ After a clone, the declared folders become projects at once. Without the file, t
 
 *Credentials and network.* The workbench never stores, asks for or sends credentials; it uses your Git configuration. Remote actions run only when you press them, never in the background. If Git needs credentials, your configured credential helper (for example Git Credential Manager) may open its own window; meanwhile the panel shows "Waiting for Git (credentials may be requested in a separate window)" with **Cancel**, and gives up after 10 minutes. Without a helper or SSH key, the action fails with Git's own message; when that message says the remote refused or asked for credentials, the panel offers the **Credential setup guide**: static instructions for a credential helper and an SSH key on Windows, macOS and Linux, with copyable commands and the name of the helper set in your Git settings (read with `git config --get credential.helper`; credentials themselves are never read).
 
-## Supported inputs
+### Supported inputs
 
 | Input | Serialization | Editing and validation |
 | --- | --- | --- |
@@ -686,7 +178,7 @@ File extensions help choose parsers; `.owl` is not treated as a serialization by
 
 **Import…** in the sidebar opens the Import dialog: choose **A new project** or **An existing project**, then the files. One selection for a new project becomes one project, named after the ontology or semantic model it contains. Every import (a new project, files imported into an existing project, an example loaded) is committed with exactly the imported files, as *Import N files* (one file: *Import <name>*); other uncommitted changes are left alone. When Git or a Git identity is missing, or the repository is in the middle of a merge, the files are still written and the reason is shown. The sidebar's **Projects** tree lists each project's files with their document type and whether they are valid. The source editor always preserves the imported text until you edit it. RDF resources are edited with the RDF item editor (below) or in Source. YAML form changes retain comments and unknown fields; JSON form changes retain JSON syntax. Versioned contract/semantic documents receive their available official schema checks; other formats receive syntax and selected structural checks, not blanket conformance certification.
 
-## Commerce example workspace
+### Commerce example workspace
 
 Click **Load commerce workspace** in the sidebar. It creates the project "Commerce workspace" with seven related documents (clicking again opens the existing project):
 
@@ -703,7 +195,7 @@ The example is fictional and illustrative. **Shared references** in an entity's 
 
 Example files are under `public/examples/commerce/` and downloadable at `/examples/commerce/<filename>`. Earlier benchmark files and documents are retained; they are not used by the current workspace examples.
 
-## Graph exploration
+### Graph exploration
 
 **Neighborhood** shows one center and what it is connected to. The center sits in the middle column, marked *Center*; entities that point at it are on the left (purple links), entities it points at are on the right (green links). Up to 12 neighbors are shown, ranked by relationship kind and then name; the toolbar states how many are shown and hidden, **N more neighbors** reveals the next page, and **Relationship** narrows the neighbors to one relationship. **Links between neighbors** shows or hides relationships among the visible neighbors (shown by default unless there are more than ten). No two edges share a line: each link bends at its own position, long and backward links travel on their own lane above or below, and visible labels are placed apart.
 
@@ -715,77 +207,21 @@ Choose a center with **Find a center**, a searchable picker that ranks exact nam
 
 Click nodes or relationships to inspect their source definitions. Relationship inspection includes endpoints, roles, multiplicity, verbalizations, join keys or RDF predicates. Ontology n-ary relationships expand into navigation edges referring to the same original definition. Metric edges show explicit dataset references in expressions, not observed execution lineage.
 
-## Verification
-
-```sh
-bun test
-bun --bun run check
-bun --bun run build
-```
-
-Browser checks require a running dev server and Playwright Chromium:
-
-```sh
-bun node_modules/@playwright/test/cli.js install chromium
-bun scripts/commerce-browser-check.ts
-bun scripts/relationship-browser-check.ts
-bun scripts/browser-check.ts
-```
-
-Checks cover all commerce input formats, exact scale counts, native RDF identity and typed constraints, RDF/XML/Turtle OWL IRI equivalence, malformed inputs, official schemas, transactional saves, graph cycles, 5,000 entities / 15,000 links, relationship selection/editing, multi-format uploads and browser errors. Browser checks run the API on a temporary data root and send the page's `/api` requests there, so they never touch your workspace. `commerce-browser-check.ts`, `relationship-browser-check.ts` and `browser-check.ts` predate the current layout and also fail on v0.1.0 (stale selectors); they are kept for reference until they are updated. Screenshots go to `/tmp/`.
-
-Browser checks open the frontend at `SW_BASE_URL` (default `http://127.0.0.1:5173`; the older name
-`UI_URL` is still accepted). To use another Vite instance, start it with
-`bun x vite-plus dev --host 127.0.0.1 --strictPort --port 5180` and run the checks with `SW_BASE_URL=http://127.0.0.1:5180`. The
-API is always the isolated one, whatever the frontend address.
-
-## Established complex business model: OASIS UBL 2.3
+### Established complex business model: OASIS UBL 2.3
 
 **Load UBL business model** opens a schema-derived procurement-to-payment workspace with **45 business entities and 277 named aggregate relationships**. It covers Order, Invoice, DespatchAdvice, ReceiptAdvice, CreditNote, parties, products, fulfillment, transport, taxation, banking and settlement. The example files are in `public/examples/ubl/`, including extraction provenance in `model-map.json`.
 
 Ossie ontology and OWL share the same 45 concepts. Source role names and occurrence counts come from OASIS's published XSDs. SHACL projects those selected aggregate-role cardinalities. The ODCS and semantic artifacts model an analytical normalization with 169 datasets and 401 joins, declared in the contract as ODCS foreign keys; repeatable roles use bridge tables. These surrogate keys and relational mappings are application choices, not an official UBL relational model or official OASIS ontology. Both versioned analytical artifacts pass their official companion schemas.
 
-Source: https://docs.oasis-open.org/ubl/UBL-2.3.html . Regenerate with `python3 scripts/extract-ubl.py` then `bun scripts/ubl-example.ts`. Verify browser loading with `bun scripts/ubl-browser-check.ts`.
-
-## UI regression, export and targeted mutation checks
-
-With the dev server running:
-
-```sh
-bun run test:ui
-bun run test:responsive
-bun run test:edges
-bun run test:grouping-validation
-bun run test:projects
-bun run test:trash
-bun run test:metrics
-bun run test:graph
-bun run test:editor
-bun run test:item-edit
-bun run test:rdf-edit
-bun run test:scm
-bun run test:odcs
-bun run test:mutation
-bun scripts/live-inspect.ts
-```
-
-`bun run test:trash` checks the row trash icons (muted until hover or focus, keyboard reachable, at least 28 px, no overlap with the filename at 390 px and 2560 px, visible without hover on touch), suggestions (accept and dismiss), delete confirmation with its warnings, Undo, restore and permanent delete from the trash, project delete and restore, and Clear with Undo, all without a page reload. `bun run test:projects` checks the project tree, an external edit appearing in an open tab within 2 seconds, a stale save from a second tab, and a restart after deleting `cache.sqlite` (projects, files, view settings and drafts are restored). `bun run test:scm` commits, branches, switches, pushes to a local bare remote, pulls a commit made in a second clone and repairs a conflict entirely from the Source Control panel; it also checks hidden-file labels, Add to .gitignore, `.gitignore` editing, file history, the credential wait with Cancel, a pull refused with unsaved edits and the missing-Git banner. It never uses a network remote. `bun run test:git-setup` sets the identity from the banner, commits, adds a local bare remote in the Remote dialog and pushes, clones a local bare repository (invalid files listed, not rewritten), and opens the Credential setup guide from a push that a local test server refuses for credentials. `bun run test:monorepo` clones a local repository with a `.semantic-workbench.json` file and one without, then checks the grouped tree, the project named on each Source Control change, staging and committing a sibling project's file, Remove from workspace, Projects in this repository…, Delete folder with Undo, and the dialogs at 390, 1280, 1440 and 2560 px.
-
-The UI suite uses real browser downloads and an API on a temporary data root. It checks reopening existing examples (the previous blank-graph regression), grouped relationship selection, unobstructed controls, all UBL exports plus RDF/XML, unsaved edits, JSON export, re-import, document switching and alignment. `live-inspect.ts` uses the real running API and workspace read-only (every non-GET request is refused), captures screenshots, and compares the live exported document with its project file.
-
-The responsive suite checks six viewports from 390×844 through 2560×1440, including 1280×720 and 1366×768 desktops. It also enters and leaves full screen in Graph and Neighborhood (zoom and selection restored), and sweeps every view (Graph, Neighborhood, Overview, Catalog, Source, Mappings, Metrics, ODCS contract and dataset page, Source Control) through nine window sizes, asserting no horizontal page scroll and no control cut off. It verifies canvas space, contained controls, project-tree rows whose names end before their delete and menu icons, workspace drawer keyboard access, selection-centered neighborhoods, relationship details, repeated view changes and resizing. Screenshots go to `/tmp/workbench-responsive-*.png`. The compact header and collapsible workspace preserve canvas space; details appear only when selected. Overlap checks place every floating element (mini-map, zoom controls, graph status line, bundle selector, status message, toolbars, details panel) in every view at the six viewports, with and without details open, and fail when one covers another or a control; they also check that the grouping popover stays below its control and inside the window, that area titles stay inside their area, that status messages disappear within six seconds and on the next action, and that the sidebar item and tab marked current match the view.
-
-`bun run test:edges` measures Flights SVG endpoints against rendered entity borders during entity and business-area dragging, zooming, selection, and both layout modes. Worker routes render only when their endpoints match the current React Flow handles; live curves keep connections attached while dragging or waiting for a fresh route.
-
-The mutation suite is **targeted**, not a whole-project mutation score. It checks 122 deliberate logic faults (plus three browser mutants) in validation, RDF definitions, size limits, layout, neighborhood filtering, grouping, exports, form edits, the source and item editors, metrics and the folder store (item patches that re-serialize JSON or rewrite a whole YAML item, a delete that skips dependents, an RDF edit that skips the graph check, N-Triples lines re-serialized, a pull allowed with drafts, Git run through a shell string, a remote command outside the explicit actions, a commit without a message, a contract diff that ignores type changes, a full-screen exit that forgets the view, a metric wizard or save that copies the formula into the extension, binding lines out of order, an approved metric that stays approved after a change, a dropped base-hash check, an invalid save accepted, a write in place instead of temporary file and rename, skipped migration hash verification, `..` and `.git` paths accepted, no origin check on the event stream, journal recovery that always rolls forward, undo after the 10-second window, a restore that overwrites, suggestions from similar names, deletion without the confirmation flag, a Group by Auto that picks a one-group mode, contract communities that ignore foreign keys, an identity written with `--global`, a clone without the explicit action, a clone staged outside `data/projects/`, a clone with symbolic links enabled, a manifest folder with `..` accepted, a subproject delete that moves its siblings too, a Git action that rescans only one project of a shared repository), plus three browser-injected faults: an empty neighborhood node projection, a graph status line drawn back over the mini-map and zoom controls, and status messages that never dismiss. Unmodified module baselines must pass, and every mutant must be detected. It writes temporary candidate modules under `/tmp`, never changes application sources, and removes temporary files afterward.
+Source: https://docs.oasis-open.org/ubl/UBL-2.3.html . Regenerate with `python3 scripts/extract-ubl.py` then `bun scripts/ubl-example.ts`.
 
 Details open beside the graph or page (below it on phones), never over the graph's controls. Status messages disappear after five seconds, or as soon as you switch view, document or project. The sidebar marks **Model explorer** for every model view (it opens Graph), **Source editor** on Source and **Source control** on Source Control.
 
-**A calmer main screen (v0.3.0).** The main screen holds the sidebar, the header (title, **New**, **More actions**, the Save state indicator and **Commit…**), the view tabs and search, the view and the details panel; everything else opens as a dialog that keeps focus inside, closes with Escape and returns focus to what opened it. The sidebar is 300 px wide by default and resizes from 220 to 520 px by dragging its edge or with the arrow keys, Home and End on the separator (remembered by the browser); long file and project names wrap to two lines and keep their full name as a tooltip; **Examples** is collapsed once projects exist. On desktop one header button hides and shows the sidebar; below 1100 px the sidebar is a drawer. **New** lists one **Add <kind>…** per kind (concept, dataset, dataset relationship, metric, contract object, concept mapping, RDF resource); kinds the open file cannot hold stay listed with the reason. **More actions** holds **Export**. The Save state indicator opens **Validation details** when the file has errors (also from the status bar), and **View definition** in the details panel shows the item's full definition as read.
+**The main screen.** The main screen holds the sidebar, the header (title, **New**, **More actions**, the Save state indicator and **Commit…**), the view tabs and search, the view and the details panel; everything else opens as a dialog that keeps focus inside, closes with Escape and returns focus to what opened it. The sidebar is 300 px wide by default and resizes from 220 to 520 px by dragging its edge or with the arrow keys, Home and End on the separator (remembered by the browser); long file and project names wrap to two lines and keep their full name as a tooltip; **Examples** is collapsed once projects exist. On desktop one header button hides and shows the sidebar; below 1100 px the sidebar is a drawer. **New** lists one **Add <kind>…** per kind (concept, dataset, dataset relationship, metric, contract object, concept mapping, RDF resource); kinds the open file cannot hold stay listed with the reason. **More actions** holds **Export**. The Save state indicator opens **Validation details** when the file has errors (also from the status bar), and **View definition** in the details panel shows the item's full definition as read.
 
 Graph connections group parallel relationships; the inspector exposes each original definition. Names appear on hover or selection, with a Labels toggle for inspecting all labels. Selecting an entity lists all its relationships. Long edges route above intervening columns. The sidebar scrolls documents independently and keeps example/import controls visible. API hot reloads no longer restart the frontend; the dev launcher owns both process groups and uses a strict frontend port.
 
-## Complete interactive graph
+### Complete interactive graph
 
 The **Graph** tab is a real React Flow canvas, separate from the preserved **Overview** and relationship matrix. It retains every business entity and relationship, with directed parallel-link bundles exposing original definitions. It offers **Network (fCoSE)** and **Layered (ELK)** layouts, a **Value types** switch that hides value types and built-in concepts with their relationships (remembered per model in this browser), compound business-area boundaries, explicit overlap cleanup, area zoom, mini-map panning, selection highlighting, manual dragging, and **Fit model**.
 
@@ -793,15 +229,9 @@ Detailed edge routing uses React Flow Smart Edge's shared background worker. At 
 
 Research and architectural choices, including React Flow, ELK, Cytoscape/fCoSE and Sigma, are recorded in [docs/graph-design.md](docs/graph-design.md).
 
-```sh
-bun run test:graph
-bun scripts/large-graph-browser-check.ts
-EXPAND_ALL=1 bun scripts/large-graph-browser-check.ts
-```
+The 1,000-entity / 5,000-relationship fixture, model preservation, cancellation back to overview, area expansion, all-node expansion, zoom, selection and worker routing are checked by `bun scripts/large-graph-browser-check.ts` (`EXPAND_ALL=1` expands every area); [browser suites](#browser-suites) lists `test:graph`.
 
-The large browser check covers the 1,000-entity / 5,000-relationship fixture, model preservation, cancellation back to overview, area expansion, all-node expansion, zoom, selection and worker routing. `bun run test:graph` (`scripts/graph-browser-check.ts`) checks the full UBL graph and the neighborhood in a real browser on the UBL, shopping center and 1,000-entity models: exact-first center picking, a five-step walk with Back and Forward, the counts at every step against the projection, centering, no shared edge lines or overlapping labels, the OWL projection, metric badges, a walk into another file, and that the empty state never flashes. Both use an API on a temporary data root. Screenshots are written to `/tmp/real-graph-*.png` and `/tmp/workbench-neighborhood-*.png`.
-
-## Input validation and repair
+### Input validation and repair
 
 The browser, inspector, folder store, and HTTP save endpoint share the same validation rules. Invalid documents are rejected before any file is written. All imports in a selected batch are preflighted before saving; a batch containing errors opens **Review import**. Choose a file, inspect errors and warnings, edit the source or filename, and import when all errors are resolved. Cancel or Escape returns to the untouched open document. A batch is written all or nothing: if the API fails, nothing from the batch is imported and the repaired drafts stay in the dialog for a retry.
 
@@ -816,15 +246,15 @@ Checks include:
 - Ossie ontology global identifiers: `iri` on concepts and relationships accepts a full IRI or a `prefix:local` QName whose prefix is declared in the top-level `prefixes` map; undeclared prefixes and duplicate expanded concept IRIs are rejected. `uri` is not an Ossie field: versioned ontologies report it with a rename-to-`iri` hint, and unversioned ones warn that it is ignored.
 - RDF syntax; selected OWL restriction checks (property, qualifier, cardinality, hasSelf); selected SHACL definition checks (property paths including sequences/alternatives/inverses, cycles in path expressions, count/length bounds, typed flags and IRI parameters). External class/property IRIs are allowed and never fetched.
 
-**SQL inside definitions.** SQL embedded in YAML and JSON is colored as SQL in the Source editor and checked with the shared rules, in the browser and in the API's file findings alike: Ossie field and metric `expression.dialects[].expression` (flat, legacy `semantic_model` list and models embedded in `ontology_mappings`), Ossie object, referent and link mapping expressions, ODCS quality rules with `type: sql` (`query`) and ODCS `transformLogic`. The dialect comes from the sibling `dialect` (ANSI and `OSSIE_SQL_2026` use the PostgreSQL grammar, accepting what the SQLite grammar accepts, as the planner does; Snowflake, BigQuery, Databricks via the Hive grammar) or from the contract's first `servers[].type`; `${name}` placeholders are allowed. Non-SQL dialects (DAX, MDX, MAQL, Tableau, Sigma, ThoughtSpot, Holistics AQL) stay plain with a "not checked" note. A syntax error is a **warning** at the exact file line and column, mapped through block, folded, plain and quoted scalars, indentation and escapes; warnings never block saving or autosave, and checking never changes a byte. Item editor expression fields and the metric wizard's expression are SQL fields with the same colors and warnings, and SQL previews are colored. `bun run test:sql` checks this in a browser.
+**SQL inside definitions.** SQL embedded in YAML and JSON is colored as SQL in the Source editor and checked with the shared rules, in the browser and in the API's file findings alike: Ossie field and metric `expression.dialects[].expression` (flat, legacy `semantic_model` list and models embedded in `ontology_mappings`), Ossie object, referent and link mapping expressions, ODCS quality rules with `type: sql` (`query`) and ODCS `transformLogic`. The dialect comes from the sibling `dialect` (ANSI and `OSSIE_SQL_2026` use the PostgreSQL grammar, accepting what the SQLite grammar accepts, as the planner does; Snowflake, BigQuery, Databricks via the Hive grammar) or from the contract's first `servers[].type`; `${name}` placeholders are allowed. Non-SQL dialects (DAX, MDX, MAQL, Tableau, Sigma, ThoughtSpot, Holistics AQL) stay plain with a "not checked" note. A syntax error is a **warning** at the exact file line and column, mapped through block, folded, plain and quoted scalars, indentation and escapes; warnings never block saving or autosave, and checking never changes a byte. Item editor expression fields and the metric wizard's expression are SQL fields with the same colors and warnings, and SQL previews are colored.
 
 These are input and supported-definition validators. They do not certify full OWL profile conformance or logical satisfiability, execute SQL, fetch imports, or apply SHACL shapes to a separate data graph. SHACL advanced/SPARQL constraints are preserved but not evaluated. Full standards reasoning needs a separate engine.
 
-`tests/validation.test.ts` includes malformed and positive cases for every supported input family and revalidates all shipped examples. `tests/route-security.test.ts` covers symbolic links, host names, branch names, Git remote helpers and credential redaction. `tests/api-validation.test.ts` and `tests/files-api.test.ts` exercise the actual HTTP handler against a temporary data root. `bun run test:ui` covers repair, mixed batches, cancellation, invalid source/save recovery, original graph navigation, and byte-exact exports; screenshots are written to `/tmp/workbench-validation-*.png`. `bun run test:mutation` includes deliberate removal of duplicate, reference, cycle, join, schema, size, SHACL, and OWL checks.
+`tests/validation.test.ts` holds malformed and positive cases for every supported input family and revalidates all shipped examples. `tests/route-security.test.ts` covers symbolic links, host names, branch names, Git remote helpers and credential redaction, and `tests/api-validation.test.ts` and `tests/files-api.test.ts` exercise the HTTP handler against a temporary data root.
 
 Standards references: [ODCS schema](https://github.com/bitol-io/open-data-contract-standard/blob/main/schema/odcs-json-schema-v3.1.0.json), [Ossie semantic specification](https://github.com/apache/ossie/blob/main/core-spec/spec.md), [W3C SHACL](https://www.w3.org/TR/shacl/).
 
-## Editing one item
+### Editing one item
 
 **ODCS contracts.** An open data contract gets a **Contract** tab: the contract's identity and status, then whichever of servers, team and roles, service levels, quality, support, pricing and custom properties it declares, and a searchable table of its schema objects with property, key and quality-rule counts (169 UBL objects filter as you type). **Open** an object for its dataset page, in the style of Marquez: a header with type, property and rule counts, the last commit that changed the object, and tags, then five tabs (it opens on **Properties**).
 
@@ -835,10 +265,6 @@ Standards references: [ODCS schema](https://github.com/bitol-io/open-data-contra
 - **Data Quality**: the rules on the object and its properties with dimension, severity, type, metric and threshold, as declared. The workbench does not run them.
 
 **Column-level lineage.** For a contract, the **Graph** tab is a lineage canvas: one card per asset (contract objects, semantic datasets, metrics, references to other contracts) with a row per column and its badges (PK, FK, Required, Unique, classification), and lines from column to column, left to right: foreign keys from the referenced column to the referencing one, declared transforms, fields that read a column, metrics over those fields and metrics over metrics. Lines use the same styles and legend everywhere. Select a column to emphasise its whole upstream and downstream path (everything else dims) and see it listed in order in **Selected path**; **Find assets** finds any object, column, dataset, field or metric and walks there. **Steps** sets how many foreign-key steps around the centre are shown, **+** on a card shows its other neighbours, **Walk here** re-centres with a Back/Forward trail, cards with more than 10 columns page, and **Lineage options…** hides metrics or references to other contracts. Lines are matched by declared names (a dataset's `source` is an object's physical name or name; a field's expression names a column): this is the workbench's reading, not part of ODCS or Ossie, and nothing is executed. **Open in lineage** on the contract overview and asset pages opens the canvas on that object.
-
-`bun run test:lineage` checks every drawn line against the expected edge lists (`tests/fixtures/lineage/`) on the commerce, mall and UBL contracts, path emphasis within 200 ms, UBL's first view within 2 s, paging, walking, the legend and full screen.
-
-`bun run test:odcs` checks these pages on the commerce, mall and UBL contracts, the edits (`git diff` limited to the edited line) and a 390 px screen.
 
 Select an entity, relationship or metric anywhere (graph, neighborhood, overview, catalog, Metrics) and press **Edit** in the details panel (or the **E** key; catalog cards and the metric detail have their own **Edit**). A drawer opens on the right with only that item: **Fields** shows its attributes as a form (a concept's name, type, description, parents and IRI; a relationship's related concept, role, multiplicity and reading; a dataset, field or join; an ODCS object, property or foreign key; a metric's expression and its attributes), and **Source** shows the item's own lines in the source editor, with highlighting and inline findings. Child lists (a concept's relationships, a dataset's fields, a contract object's properties and foreign keys) open their own editors. The whole file is validated as you edit; **Save to file** stays off while there are errors and writes the change in place with the usual base-hash check. Only the edited values change: comments, anchors, key order, quoting, indentation and line endings elsewhere keep their bytes, and JSON files are never re-serialized. **Open in Source** jumps to the item's line.
 
@@ -855,7 +281,7 @@ Select an entity, relationship or metric anywhere (graph, neighborhood, overview
 
 Removing a statement that has a comment next to it asks for confirmation. **Delete** removes the resource's statements and the statements in the same file that name it (listed first); other project files that still name it are listed to fix in Source.
 
-## Metrics
+### Metrics
 
 The **Metrics** tab lists every metric of the open file's project: label, type, unit, status, owner and the ontology concept it measures, with search, grouping (owner, type, status, concept, file) and filters. **Governed only** keeps the metrics that carry workbench attributes; a metric without them (type and additivity are then read from its expression) offers **Add attributes**, which opens the metric wizard prefilled from it and saves only its attributes, leaving its name and expression as written. Selecting a metric opens its detail beside the list (in place of it on narrow screens):
 
@@ -871,34 +297,32 @@ Metric attributes are stored in the Ossie files themselves, so they travel with 
 
 **New metric** (Metrics) opens a wizard in eight numbered steps: the concept it measures and the entity it is about; the semantic model; type and inputs (a simple aggregation of a field, a ratio of two metrics with a `NULLIF` guard, or a derived, cumulative or filtered metric over named metrics), label, name and additivity; time dimension, grains and breakdowns; target and thresholds; owner, steward, status, unit and format; the explanation and SQL preview of the new metric (computed, not executed); and the exact lines each file will gain. **Save to file** writes the metric (its formula only as the Ossie expression) with its extension into the semantic model and one binding line, in sorted position, into the project's mapping document, in one journaled save; a project without a mapping document gets a minimal one (`concept_mappings: []`), and a consolidated file keeps the binding in its embedded semantic model. **Edit metric** follows the status rules: draft → proposed → approved → deprecated; changing the definition of an approved metric returns it to proposed; deprecation needs `replaced_by` or `deprecation_reason`; the metrics and bindings that use the metric are listed before saving.
 
-API: `GET /api/projects/:slug/metrics` (every metric, each with `governed`), `POST /api/projects/:slug/metrics` (and `…/metrics/preview`; `existing: true` adds attributes to a metric already in the model; the v0.2.0 `…/kpis` paths remain as aliases), `POST /api/projects/:slug/save-batch` and `GET /api/projects/:slug/files/*path/explain/:metric?grain=&dimension=&rollup=sum` ([contract](specs/001-workbench-improvements/contracts/http-api.md)). `bun run test:metrics` checks the view and `bun run test:item-edit` the item editor, add, delete, rename, the wizard and the status rules in a browser on an isolated data root, with `git diff` limited to the edited item; `bun run test:rdf-edit` does the same for Turtle, RDF/XML, N-Triples, N3 and SHACL resources.
+API: `GET /api/projects/:slug/metrics` (every metric, each with `governed`), `POST /api/projects/:slug/metrics` (and `…/metrics/preview`; `existing: true` adds attributes to a metric already in the model; the v0.2.0 `…/kpis` paths remain as aliases), `POST /api/projects/:slug/save-batch` and `GET /api/projects/:slug/files/*path/explain/:metric?grain=&dimension=&rollup=sum` ([contract](specs/001-workbench-improvements/contracts/http-api.md)).
 
-## Ontology mappings and agent tools
+### Ontology mappings and agent tools
 
 **Load mapped commerce** demonstrates separate ontology, semantic model, and mapping documents. The **Mappings** tab resolves object/referent/link mappings, displays source evidence and physical sources, exposes governed metrics and AI metadata, exports agent context, and, in the **Compose a query…** dialog, composes a new revenue-by-region SQL preview from selected building blocks (shown, never run). Missing or ambiguous document/field/concept references are reported.
 
-Each binding reads as a chain of labelled steps: concept, relationship path, field or metric, dataset and physical source, with its condition and its findings attached. Bindings are grouped by dataset (a view choice; groups collapse and show their counts). A finding offers **Edit item**, which opens the item editor on the offending mapping item, or Source at its line when the item has no form. Concepts and bindings sit side by side; below 760 px they stack. Long names wrap at `.` and `_`, each arrow stays with the step it leads to, and counts read `1 binding` or `N bindings`; `bun run test:mappings-layout` measures every binding card of the shipped mapping documents and of one with 80-character names at six viewports.
+Each binding reads as a chain of labelled steps: concept, relationship path, field or metric, dataset and physical source, with its condition and its findings attached. Bindings are grouped by dataset (a view choice; groups collapse and show their counts). A finding offers **Edit item**, which opens the item editor on the offending mapping item, or Source at its line when the item has no form. Concepts and bindings sit side by side; below 760 px they stack. Long names wrap at `.` and `_`, each arrow stays with the step it leads to, and counts read `1 binding` or `N bindings`.
 
-**Mapping graph.** For a mapping document, the **Graph** tab draws the mapping itself, from the same resolver: ontology concepts on the left (rows: their relationships), semantic datasets with their fields on the right, and metric cards. An object mapping is a line from the concept to the dataset, with the fields that identify it badged **Identifying**; a referent mapping runs from the concept's relationship row to the field; a link mapping runs from the relationship row to the related concept, labelled with the relationship, and selecting it lights up the join fields it passes through (for example `orders.customer_id → customers.customer_id`); metric bindings link the concept a metric *measures* (solid) and the concept it is *of* (dashed). Select a concept, row or field to emphasise its mappings and list its bindings, each with **Edit item**. Concepts and fields nothing maps carry an **Unmapped** badge, and **Unmapped only** shows just those; resolver findings appear as warning markers on the card they concern, with the message and **Edit item**. Find assets, Steps, Expand, walking and full screen work as on the lineage canvas. A consolidated file (embedded `ontology_mappings`, such as Flights' `flights.yaml`) switches between **Mapping graph** and **Ontology graph**. `bun run test:mapping-graph` compares every drawn line with the resolver's bindings on Flights (both forms), mapped commerce, billing and the shopping center.
+**Mapping graph.** For a mapping document, the **Graph** tab draws the mapping itself, from the same resolver: ontology concepts on the left (rows: their relationships), semantic datasets with their fields on the right, and metric cards. An object mapping is a line from the concept to the dataset, with the fields that identify it badged **Identifying**; a referent mapping runs from the concept's relationship row to the field; a link mapping runs from the relationship row to the related concept, labelled with the relationship, and selecting it lights up the join fields it passes through (for example `orders.customer_id → customers.customer_id`); metric bindings link the concept a metric *measures* (solid) and the concept it is *of* (dashed). Select a concept, row or field to emphasise its mappings and list its bindings, each with **Edit item**. Concepts and fields nothing maps carry an **Unmapped** badge, and **Unmapped only** shows just those; resolver findings appear as warning markers on the card they concern, with the message and **Edit item**. Find assets, Steps, Expand, walking and full screen work as on the lineage canvas. A consolidated file (embedded `ontology_mappings`, such as Flights' `flights.yaml`) switches between **Mapping graph** and **Ontology graph**.
 
 Overview, Catalog, Source, import repair and byte-exact source export remain available.
 
 Standalone mapping documents and deprecated embedded `ontology_mappings` are supported using pinned Apache schemas. Agent clients can call `/api/agent/catalog`, `/api/agent/context`, and `/api/agent/plan`. The runtime supplies explicit mapping traversal and immutable metric definitions; callers supply language interpretation and any external query execution. No hosted LLM is required or called. See [agent runtime and integration protocol](docs/agent-runtime.md) for examples, supported composition, graph integrity checks, and limits.
 
-## Reproducible example execution
+### Reproducible example execution
 
 The generated [subscription billing example](public/examples/billing/README.md) has 36 business entities, 46 joins, 119 mapping bindings, four governed metrics and an executable synthetic SQL fixture. It verifies revenue, recurring revenue, distinct invoice counts, dependent ratios, computed fields and missing-dimension fact preservation.
 
 ```sh
 bun run examples:generate
 bun run test:examples
-# With the dev server running:
-bun run test:examples:ui
 ```
 
-All five [official Apache Ossie examples](tests/fixtures/ossie-mapping/README.md) are pinned and hash-checked without modifications. Use **Load Ossie Flights** in the workspace sidebar to open the official ontology graph and load its semantic model plus standalone and embedded mappings. Both mapping forms resolve and are tested through the UI. TPC-DS imports with a warning for an unexposed physical primary-key column; window expressions remain preserved rather than being executed by the current planner. [Verification results and SQL](docs/example-verification.json) record 20 actual synthetic-fixture SQL executions. Browser screenshots are saved under `/tmp/`.
+All five [official Apache Ossie examples](tests/fixtures/ossie-mapping/README.md) are pinned and hash-checked without modifications. Use **Load Ossie Flights** in the workspace sidebar to open the official ontology graph and load its semantic model plus standalone and embedded mappings. Both mapping forms resolve and are tested through the UI. TPC-DS imports with a warning for an unexposed physical primary-key column; window expressions remain preserved rather than being executed by the current planner. [Verification results and SQL](docs/example-verification.json) record 20 actual synthetic-fixture SQL executions.
 
-## Grouping and validation navigation
+### Grouping and validation navigation
 
 **Group by → IRI namespaces** places each definition in the namespace of its IRI, labelled with the declared prefix of the longest matching namespace (Ossie `prefixes`, or the RDF document's prefixes). Definitions without an IRI are listed under **No IRI**.
 
@@ -921,128 +345,705 @@ named "Definition source" (or "Repair definition") for screen readers. **Go to l
 selects the affected line. Edits never rewrite untouched bytes: each change is mapped onto the file
 as it is on disk, so CRLF, mixed line endings, tabs and the trailing newline stay as they were, new
 line breaks take the file's main style, and autosave sends only the changed range (`patches`)
-against the version it started from. `bun run test:editor` checks colors per serialization, inline
-findings within 500 ms of a pause, Go to line, the repair dialog, a byte-exact CRLF save and typing
-latency in a 1.9 MB file.
+against the version it started from.
 
-## Shopping center administration example
+### Shopping center administration example
 
 **Load shopping center administration** opens a reference model for retail real-estate administration: 145 entity types in eleven namespaced modules (core, asset, party, lease, legal, hr, proc, ops, fin, perf, kpi), 259 declared joins, 1,057 mapping bindings and 25 governed metrics, including occupancy rate, minimum rent per m², delinquency rate, sales per m², occupancy cost ratio, footfall, net operating income, payroll cost, headcount, purchase spend and payables outstanding. Leasing, operations, legal, HR, procurement and finance share one contract register and one party model. The same specification produces Ossie, OWL, SHACL, ODCS and RDF instance data, plus a synthetic SQLite fixture whose metric results are checked against independently computed values. See [the example README](public/examples/mall/README.md). Regenerate with `bun scripts/mall-example.ts`.
 
-## Contributing
+## Server mode
 
-The code style is part of the project's constitution (principle VIII, Readable Code):
+Server mode is for the team that deploys a shared workbench. People sign in with the
+organisation's account, an Admin grants each person a role on some domains or projects, everyone
+who may edit works in their own Git working copy, and a Steward publishes. The server decides
+every request; the screens only explain what the server will refuse.
 
-- `bun run schemas:compile` regenerates the checked-in browser validators from pinned JSON
-  Schemas using Ajv standalone code. Build and check run it automatically; `bun test` checks
-  reproducibility. The browser CSP does not allow eval.
-- `bun run fmt` formats `src/`, `server/`, `scripts/` and `tests/` with Oxfmt (100 columns,
-  2-space indentation, semicolons, single quotes, trailing commas). `bun run check` runs
-  TypeScript, `fmt:check`, Oxlint and the comment check, and fails on unformatted code.
-- One statement per line and one variable per declaration; descriptive names; small functions
-  (about 40 lines) and components (about 150 lines); no nested ternaries.
-- Comments are plain English for a developer new to the repository: they explain why, one idea
-  per sentence, and never carry spec or task IDs or process notes (traceability goes in commit
-  messages). Every module has a short header comment and every export a short JSDoc.
-- `bun run lint:full` also lists the readability warnings (names, function length, nesting) for
-  the code you touch.
-- `.git-blame-ignore-revs` lists the mechanical reformat; run
-  `git config blame.ignoreRevsFile .git-blame-ignore-revs` once to skip it in `git blame`.
+Setting it up on Azure is the job of [deploy/README.md](deploy/README.md); the owner's acceptance
+run is [deploy/trial-runbook.md](deploy/trial-runbook.md).
 
-## Administering access
+### Start it
+
+Build the frontend, then start the server with the settings below. Register
+`<SW_PUBLIC_URL>/auth/callback` as a redirect URI and `<SW_PUBLIC_URL>/auth/signed-out` as a
+post-logout redirect URI at the provider.
+
+```sh
+bun run build
+
+export SW_MODE=server
+export SW_HOST=0.0.0.0
+export SW_PUBLIC_URL=https://workbench.example.org
+export SW_OIDC_PROVIDER=entra
+export SW_OIDC_ISSUER=https://login.microsoftonline.com/YOUR-TENANT-ID/v2.0
+export SW_ENTRA_TENANT_ID=YOUR-TENANT-ID
+export SW_OIDC_CLIENT_ID=YOUR-CLIENT-ID
+export SW_OIDC_CLIENT_SECRET=YOUR-SECRET
+export SW_SESSION_KEY="$(openssl rand -base64 32)"
+export SW_BOOTSTRAP_ADMINS=admin@example.org
+export DATA_DIR=/path/to/workbench
+bun server/index.ts
+```
+
+Start-up refuses to run, naming each variable at fault, when a required one is missing or invalid.
+It also needs successful issuer discovery and valid access policies. After it acquires the
+single-instance lease it creates the administration repository if there is none. Server mode
+always serves `dist/` and applies a content security policy and security headers, including HSTS
+for HTTPS.
+
+### Configuration
+
+The [configuration contract](specs/003-authn-authz/contracts/configuration.md) is the one list of
+variables, with defaults, the mode each applies to and what start-up checks. In short:
+
+- **Always required in server mode:** `SW_MODE=server`, `SW_PUBLIC_URL`, `SW_OIDC_ISSUER`,
+  `SW_OIDC_CLIENT_ID`, one client credential, `SW_SESSION_KEY` and `SW_BOOTSTRAP_ADMINS`.
+- **Client credential, exactly one:** a certificate pair
+  (`SW_OIDC_CLIENT_CERTIFICATE_KEY` with `SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT`, Entra only and
+  preferred), `SW_OIDC_CLIENT_SECRET`, or `SW_OIDC_CLIENT_ASSERTION` (`managed-identity` on
+  Azure, a private-key file for Keycloak and generic providers).
+- **Provider:** `SW_OIDC_PROVIDER` is `entra`, `keycloak` or `generic` (the default). It picks
+  the claim mapping and the sign-in library: MSAL for Entra, `openid-client` for the others.
+  Entra also needs `SW_ENTRA_TENANT_ID`.
+- **Optional features:** `SW_API_AUDIENCE` (agent clients), `SW_GITHUB_*` (Connect GitHub),
+  `SW_ADO_OBO` (Azure DevOps), `SW_GROUP_OVERAGE` and `SW_GRAPH_URL` (large group lists),
+  `SW_TRUSTED_PROXY_HOPS` (behind a reverse proxy). Session lifetimes are set in
+  `admin/settings.json`.
+- `.env.server.example` is the Keycloak development profile and never a production template.
+
+Keep the same session key across restarts and supply production secrets through the
+deployment's secret store. Changing `SW_SESSION_KEY` ends every session and in-flight sign-in:
+the server still starts, deletes each session file it can no longer read (logging
+`session-unreadable`) and people sign in again. A loopback HTTP public URL is for development
+only: cookies then drop `Secure` and the `__Host-` prefix. A non-loopback HTTP public URL is
+always refused, and an HTTP issuer is allowed only when both issuer and public URL are loopback.
+
+### Sign-in, sessions and sign-out
+
+There is no workbench sign-in screen. A page request redirects straight to the provider and
+returns to the requested path. An anonymous API call answers 401.
+
+- **No access.** A person without a grant, including a deactivated person, sees **No access**:
+  their name and verified address or username, the sentence "An Admin must grant you access to
+  this workbench" and a sign-out form that needs no JavaScript. Every workspace API answers 403
+  to them, including `GET /api/me`.
+- **Signed out** stays signed out until **Sign in again** is selected. A **sign-in error** page
+  names a safe failure reason and offers **Try again**. It answers 400 for an expired, replayed or
+  invalid attempt, an invalid token or a tenant mismatch, and 503 when the provider cannot be
+  reached.
+- Frontend assets need the same access as the workspace. Health probes and the minimal
+  authentication pages are public.
+- **Cookies.** Sessions use opaque 256-bit identifiers in `__Host-sw-session`
+  (`Secure; HttpOnly; SameSite=Lax; Path=/`). Tokens stay on the server, encrypted with AES-256-GCM
+  in `state/sessions/<sha256(id)>.json`, and survive restarts. HKDF-SHA256 derives separate
+  session-encryption, attempt-signing and provider-index keys from `SW_SESSION_KEY`.
+- **Lifetime.** Eight hours idle or 24 hours absolute by default; `admin/settings.json` sets
+  `session.idleHours` and `session.absoluteHours` and an invalid value refuses start-up. The
+  stored last-seen time is written at most once a minute, so a restart can shorten the idle time
+  by up to 60 seconds.
+- **Refresh** re-reads the person's identity and groups and re-matches grants. A refresh the
+  provider refuses ends the session; an unreachable provider answers 503 and keeps it.
+- **Sign-in attempts** use a signed ten-minute `__Host-sw-auth` cookie. A persistent ledger stops a
+  consumed attempt from being used again after a restart, and expired entries are deleted once a
+  minute.
+- **Sign-out.** Sign-out, expiry and an Admin ending a session close the person's live-update
+  stream with an `access` event. Sign-out sends Entra's `login_hint` back as `logout_hint`, so
+  Entra does not ask which account. When the person signs out of another application, the
+  provider calls `GET /auth/front-channel-logout?sid=<provider session>[&iss=<issuer>]` without a
+  cookie. The workbench ends the sessions that provider session started (audit reason
+  `provider-signed-out`) unless `iss` names another issuer, and always answers an empty 200.
+  Anyone who knows a `sid` can end that session; the provider keeps it private.
+- **Requests that change something** need `X-SW-Request: 1` and an `Origin` equal to the public
+  origin. The No access sign-out form uses a per-session CSRF token instead.
+
+### How access is granted
+
+Roles come only from grants in the Admin panel. Provider app roles are never read, and nothing in
+a token grants access by itself. A grant gives a built-in or custom role to a group (by object ID)
+or to a verified e-mail address, for the whole workspace, some domains or some projects. The
+first Admin is a bootstrap Admin from `SW_BOOTSTRAP_ADMINS`; after that, Admins grant everyone
+else from [the Admin panel](#the-admin-panel).
+
+- **Groups.** The groups claim (`SW_GROUP_CLAIM`, default `groups`) carries group IDs for Entra
+  and names or paths for Keycloak. When a person belongs to more groups than a token holds, Entra
+  marks an overage and the server asks Microsoft Graph which of the granted groups the person is
+  in (`SW_GROUP_OVERAGE=directory`, the default; `off` disables it). Only group IDs named in
+  grants and restricted paths are checked, in batches of at most 20. A failed lookup supplies no
+  membership, shows an explanatory message and is audited.
+- **E-mail addresses.** An e-mail grant trusts the identity provider's administration of
+  addresses. For Entra the address is a domain-verified e-mail claim (`xms_edov`), or the user
+  principal name of a member of the home directory; a guest's `#EXT#` name and the editable user
+  name of a user from another directory never count. Keycloak and generic providers need
+  `email_verified=true`. Matching ignores letter case, and addresses are stored in lower case.
+- **Custom roles** are built in the Admin panel from the server's list of actions and optional
+  conditions, and use the same server-reported capabilities as the built-in roles.
+
+### Roles
+
+| Role | What it can do within its scope |
+| --- | --- |
+| Viewer | Read definitions, history and its own view settings; cannot save files or drafts |
+| Editor | Viewer actions plus edit, import, move and delete files, save drafts and use project Git |
+| Steward | Editor actions plus guarded changes, approval, publishing, project creation and renaming |
+| Admin | All projects, administration, purge, clear, remotes, clone and registration |
+
+A move needs permission at both ends. A hidden target answers 404; a readable target without
+write permission answers 403. Disabled controls say which role they need. The server checks
+crafted requests independently of the screens. The Git identity and credential-helper settings do
+not exist in server mode.
+
+### What readers see
+
+Project lists, search, graphs, metrics, document exports and agent context use only files the
+reader may read. A hidden project has no name or count in the workspace. A readable project with
+restricted paths shows "N files you cannot open"; links in visible files whose target is hidden
+stay unresolved. A direct request for an unreadable file or its Git history answers 404. Git
+history counts commits that touch only hidden paths without exposing their messages. A message on
+a visible commit can still mention a confidential name, so keep secrets out of commit messages.
+
+A request that spells an existing file or folder in another letter case, or a new name that
+differs from a sibling only in case, answers 404: the Azure Files SMB share ignores case and
+would otherwise open `FINANCE/plan.yaml` as `finance/plan.yaml`, past a rule for `finance/**`.
+
+Drafts, grouping state and dismissed suggestions belong to the signed-in person. A draft is kept
+only for a file the person has and holds at most about 4 MB; each person keeps at most 200 drafts
+per project and 1,000 in all. Trash entries need readable original paths, and restoring your own
+or another person's entries needs the matching permission. Live events and their reconnect replay
+are filtered for each reader. An administration change reloads the open tabs of the people it
+affects; in local mode an access change reloads every open tab. Non-Admins receive only
+readiness, mode and Git availability from `/api/status`.
+
+
+### Your own working copy
+
+Everyone who may edit a project works in their own Git working copy of its repository, under
+`DATA_DIR/worktrees/<key>/<repo>/`. The copy is made with the person's first change there (a
+save, import, move, delete or Source Control action), on a personal branch `work/<handle>` (for
+example `work/alice`) taken from the default branch. Until then they read the published state.
+Viewers, and anyone who cannot edit a project, always read the published state: the default
+branch as `DATA_DIR/projects/<repo>/` holds it, nobody edits that folder and it stays detached at
+the tip of the default branch.
+
+Branch, staged and uncommitted changes, drafts, view settings, grouping corrections and grouping
+suggestions are per person. One person's save, stage, commit, branch switch or pull never changes
+another person's files. Grouping suggestions come from each Editor's own copy, so an unpublished
+change suggests a grouping to its author only.
+
+Each Source Control action has one meaning in server mode:
+
+| Action | Who | What it does |
+| --- | --- | --- |
+| **Commit** | Editors and above | Commits in your copy. The author is the signed-in person (name and e-mail from the provider), the committer is the workbench and a `Signed-in-user: <id>` trailer names the person |
+| **Branch** | Editors and above | Lists every branch except other people's `work/<handle>` branches, which cannot be checked out even while no copy holds them. Another copy's branch shows "in use by <name>" and cannot be chosen. The default branch belongs to the published state. A protected branch can be checked out only by someone who may publish to it |
+| **Pull from <default>** | Editors and above | Merges the default branch into your branch. Local, uses no credential, and is refused while you have unsaved or uncommitted changes, like any pull. The content guards judge the exact commit it merges |
+| **Publish to <default>** | Stewards of the project's domain, Admins | Fast-forwards the default branch to your branch with a compare-and-swap and refreshes the published state for every reader. Someone published meanwhile: refused with "Pull from <default> first". Without a copy there is nothing to publish (409). The guards judge the published commits as the publisher's own changes, so an approval made in a copy reaches the default branch only through someone allowed to make it |
+| **Fetch**, **Pull**, **Sync**, **Push** | Editors and above | Run in your own copy with your own remote credential. On your `work/<handle>` branch, which has no upstream, Pull takes the remote's default branch ("Pull origin/main into work/alice"); other branches pull their upstream. **Push** sends your branch |
+| **Push <default>** | Stewards, Admins | Sends the default branch, as published here, to the remote with your credential. The API needs no copy; the panel shows the button once you have one. Publishing never pushes by itself |
+
+A **Fetch** that finds the remote's default branch ahead of the local one moves the local default
+branch and the published state forward, with the same compare-and-swap as a publish. It does that
+only when the person fetching may publish and the content guards accept what the remote brings.
+Otherwise the fetch still succeeds and the panel says "main is behind origin; someone with
+publish must bring it in". When the two have diverged, nothing moves.
+
+Other things to know:
+
+- Every write into a copy is guarded like a write anywhere else. A person's first write is judged
+  against the published state before their copy is made, so a refused write leaves no copy.
+- Saving a repository's project folders as a manifest (Admins) writes and commits the manifest in
+  the Admin's copy; it reaches the published state when they publish.
+- A copy unused for 30 minutes stops being watched. Its files, index and drafts stay and the next
+  use rescans it.
+- A file deleted or reverted in a copy goes to the trash as that person's entry. Nobody else lists
+  or restores it, and it goes back into the same copy.
+- Deleting a project or clearing the workspace lists each person's unpublished work in the
+  confirmation (to those who may delete the project) and keeps it in the trash entry as a binary
+  patch per person (`unpublished/<key>.patch`) together with their drafts. Deleting a subproject
+  does the same for its folder.
+- If the server stops between moving the default branch and updating the published files, the next
+  start finishes the update.
+- A repository without any commit gets copies through `git worktree add --orphan`, which needs
+  Git 2.42 or newer. The container image refuses to build with an older Git.
+- Git commands of all copies of one repository run one at a time, because the copies share the
+  repository's history and branches.
+
+### Governed metrics and classifications
+
+Every content write is compared with the file it replaces: a Source save, an item edit,
+save-batch, the metric wizard, the legacy document save, an import (including one that replaces a
+file or creates a project), revert, pull, file delete, and trash undo and restore.
+
+- Only a Steward of the project's domain, a role with **approve metrics**, or an Admin may set a
+  metric's status to `approved` or `deprecated`. Nobody approves or deprecates a metric whose
+  `owner` names them (their verified address or username, in any letter case).
+- When someone who may not approve changes an approved metric in anything but its `description`,
+  the server stores it as `proposed` (only the status value changes). The response lists it
+  under `demoted`, with the stored text in `source`.
+- Changing an ODCS `classification`, `criticalDataElement`, contract `team` or `roles`, or any
+  part of a property classified at or above the protected level, needs a Steward of the domain or
+  an Admin. The protected level is `confidential` by default, with the order
+  `public < internal < confidential < restricted`. Admin aliases apply, and other values count as
+  `internal`.
+- A refused change refuses the whole operation before any file changes, with
+  `403 {error, guarded: [{file, pointer, kind}]}` naming the guarded parts of readable files.
+  A pull or revert is judged as if the person wrote the incoming text, so when it would bring in an
+  approval or a classification change, the refusal asks for a Steward of the domain (or an Admin)
+  to do it. Deleting a file that holds an approved metric or a protected property needs the same
+  people. Undo, restore and a project-creating import are judged as creating their files. A move
+  to another project is judged as removing the file from the first and creating it in the second,
+  and a branch switch is judged on what the branch changes compared with the current one.
+
+The metric detail offers **Approve** and **Deprecate**. They are disabled, with the reason written
+beside them, for people who may not approve and for the metric's owner. An owner who names nobody
+who has signed in shows as "unverified owner" and counts as no owner. The metric wizard suggests
+owners from `GET /api/projects/:slug/people`, which only people who may edit the project can
+call: the people who may read the project and signed in with a verified e-mail, or an Entra user
+name of a member (not a guest). Property editors keep protected properties read-only for Editors
+and say why. Local mode is unchanged.
+
+### Remote Git
+
+Fetch, pull, push, sync and clone run only when someone presses them, and each uses the signed-in
+person's own credential, so the remote records who pushed:
+
+- **Azure DevOps** (`dev.azure.com`, `*.visualstudio.com`; Entra sign-in only): the server
+  exchanges the person's workbench access token for an Azure DevOps token (on-behalf-of, scope
+  `499b84ac-1321-427f-aa17-267ca6975798/.default`). The App Registration needs the delegated
+  permission *Azure DevOps → user_impersonation* with consent, `SW_ADO_OBO` must not be `false`
+  and **Azure DevOps on-behalf-of** must be on in `admin/settings.json`
+  (`remote.azureDevOpsObo: true`). If the exchange fails the request answers
+  `428 {connect: 'azure-devops'}` and the panel offers **Sign in again**.
+- **GitHub:** the person connects once per session from **Person menu → Connected accounts →
+  Connect GitHub** (`/auth/github/start` → `/auth/github/callback`), or from the prompt a push
+  shows when no account is connected (`428 {connect: 'github'}`); the push then continues on
+  return. Register `<SW_PUBLIC_URL>/auth/github/callback` as the app's callback URL.
+- **Other hosts** on the allowed list are reached without a credential (public remotes).
+
+Tokens live only in the encrypted session and end with it. Git receives one for a single command
+through the askpass program `server/bin/sw-askpass` and the environment of that child process,
+with `-c credential.helper=` so no configured helper is asked or stores anything. A pull fetches
+with the token and then merges as a local command without it, so filters and merge drivers in the
+repository never receive it. Nothing is written to `.git/config`, and tokens are masked in error
+text, logs and audit records.
+
+Only Admins add, change or remove a remote, clone, or register a repository's projects. Server
+mode reaches remotes over HTTPS only, and only hosts listed in `admin/settings.json`
+(`remote.allowedHosts`); any other address answers 400 with the `allowedHosts` list. Entries are
+exact host names compared without regard to case, with a port when the remote uses one, and each
+`<organisation>.visualstudio.com` host is listed separately. A separate push address
+(`remote.<name>.pushurl`) must be on the same allowed host. Addresses are stored in canonical
+form, and one with a backslash or with `@` after the host is refused because Git could read it as
+another host. Local mode keeps using the machine's own Git credential configuration.
+
+New projects, imports and examples created by a Steward get an allowed domain automatically when
+there is only one. With several domains a dialog asks which one to use. Admins may choose a
+domain or leave the project unassigned.
+
+### Agent clients
+
+An automation calls `/api/agent/catalog`, `/api/agent/context` and `/api/agent/plan` with its own
+Entra application token as `Authorization: Bearer <token>`. It sees only the projects an Admin
+granted to its client ID. Everything about setting one up, what the server accepts and how it
+answers is in [docs/agent-runtime.md](docs/agent-runtime.md#agent-clients-in-server-mode). The
+example client is `scripts/examples/agent-client.ts`. Bearer tokens are accepted on `/api/agent/*`
+only, and Keycloak or generic providers' client tokens are refused.
+
+### The Admin panel
 
 Admins open the panel from the header's **Admin** button. In server mode only Admins see it; in
 local mode the implicit Admin does. It has seven areas:
 
-- **Projects**: assign projects to domains, set protected branches, restricted paths and the
+- **Projects:** assign projects to domains, set protected branches, restricted paths and the
   protected classification level, and grant agent clients their projects or domains.
-- **Roles & access**: on **Grants**, give a built-in or custom role to a group (by object ID) or
-  a verified e-mail address, for the whole workspace, some domains or some projects. Addresses
-  are stored in lower case. The group's directory name is shown when the lookup succeeds; when it
-  fails the grant keeps the ID and says "name not resolved". On **Roles**, the four built-in
-  roles are read-only; duplicate one to make a custom role, pick its actions and optional
-  conditions, save it, then add members through the same grant form. Custom roles cannot hold
-  the `admin` action. Deleting a custom role lists the people who hold it and removes its grants
-  in the same change.
-- **Users & groups**: everyone who has signed in, plus configured agent clients, with their
-  groups and where each role comes from. Filter on **No access** to find people waiting for a
-  grant; **Grant access** opens the grant form with their verified address filled in. People can
-  be deactivated, reactivated and signed out from here.
-- **Policies**: the read-only baseline rules and the Admin rules. New rules start from a template
-  (time window, network range, Git action limits and others) or the raw Cedar editor, and are
-  validated by the server, which reports line and column. The server generates template text.
-  Time rules use UTC; a window such as 22 to 2 runs past midnight. Network rules use the direct
-  socket peer, never forwarded headers: behind Azure Container Apps ingress the peer is the
-  ingress address, not the person's, so a network rule there only tells ingress traffic apart.
-  A `forbid` rule must name its actions and cannot include `admin`: rules that could lock every
-  Admin out are refused, whatever their condition.
-- **Access check**: why a known person or a hypothetical group and address is allowed or denied
+- **Roles & access:** on **Grants**, give a built-in or custom role to a group or a verified
+  address. The group's directory name is shown when the lookup succeeds; otherwise the grant keeps
+  the ID and says "name not resolved". On **Roles**, the four built-in roles are read-only:
+  duplicate one to make a custom role, pick its actions and optional conditions, save it, then add
+  members through the grant form. Custom roles cannot hold the `admin` action. Deleting a custom
+  role lists the people who hold it and removes its grants in the same change.
+- **Users & groups:** everyone who has signed in, plus configured agent clients, with their groups
+  and where each role comes from. Filter on **No access** to find people waiting for a grant;
+  **Grant access** opens the grant form with their verified address filled in. People can be
+  deactivated, reactivated and signed out from here.
+- **Policies:** the read-only baseline rules and the Admin rules. New rules start from a template
+  (time window, network range, Git action limits and others) or the raw Cedar editor, and the
+  server validates them and reports line and column. Time rules use UTC, and a window such as 22
+  to 2 runs past midnight. Network rules use the direct socket peer, never forwarded headers:
+  behind Azure Container Apps ingress the peer is the ingress address, so a network rule there only
+  tells ingress traffic apart. A `forbid` rule must name its actions and cannot include `admin`;
+  rules that could lock every Admin out are refused, whatever their condition.
+- **Access check:** why a known person, or a hypothetical group and address, is allowed or denied
   an action on a project, path or branch, and who can act on a project or path. It evaluates the
   same Cedar policies as normal requests.
-- **Audit**: filter by person, action, project, decision and time, page through the records and
+- **Audit:** filter by person, action, project, decision and time, page through the records and
   export the filtered set as JSONL or CSV. Without a **From** time the current month is shown.
-  Stewards see only the records of their own projects, and not the records of restricted paths
-  they cannot read.
-- **Settings**: provider health, session lifetimes (applied immediately), the remote-credential
-  policy, and active sessions that can be ended. Provider credentials and session tokens never
+  Stewards see only the records of their own projects, and not those of restricted paths they
+  cannot read.
+- **Settings:** provider health, session lifetimes (applied immediately), the remote-credential
+  policy and active sessions that can be ended. Provider credentials and session tokens never
   appear.
 
 Every access change goes through **Dry run** before **Confirm**. The review lists the replayed
 decisions that change and, for each person or agent client, the project actions gained or lost.
-Editing the proposal discards the review. The dry run replays the fixture identities and
-requests in `policies/matrix-cases.json` plus the latest 1,000 audit snapshots; regenerate the
-fixture with `bun scripts/generate-access-matrix.ts` after extending the route inventory.
+Editing the proposal discards the review. The dry run replays the fixture identities and requests
+in `policies/matrix-cases.json` plus the latest 1,000 audit snapshots; regenerate the fixture
+with `bun scripts/generate-access-matrix.ts` after extending the route inventory.
 
 Each confirmed change is one commit in the administration repository, authored by the signed-in
 Admin, with a message that names what changed (for example
 `grants: Add grant erin-viewer (viewer to erin@example.org)`). **History** in each area compares
 versions with the source diff viewer. **Roll back** shows the dry run of restoring that version,
-including people it reactivates, and **Confirm rollback** creates a new commit; the same checks
-as any other save apply.
-Changes apply on the next request and close the live-update streams of the people whose access
-changed, so their browsers reload. Deactivation and reactivation end that person's sessions.
+including people it reactivates, and **Confirm rollback** creates a new commit; the same checks as
+any other save apply. Changes apply on the next request and close the live-update streams of the
+people whose access changed, so their browsers reload. Deactivation and reactivation end that
+person's sessions.
 
 Refusals stay in the dialog and nothing is saved:
 
-- **stale**: someone else changed access since the area was opened. Close and reopen the area,
+- **stale:** someone else changed access since the area was opened. Close and reopen the area,
   then dry-run again.
-- **last-admin**: under the proposed grants, roles and rules no Admin who signed in recently and
-  no bootstrap identity would still be allowed to administer.
-- **bootstrap-admin**: bootstrap Admins cannot be deactivated.
+- **last-admin:** under the proposed grants, roles and rules no Admin who signed in recently and no
+  bootstrap identity would still be allowed to administer.
+- **bootstrap-admin:** bootstrap Admins cannot be deactivated.
 
-Keep `SW_BOOTSTRAP_ADMINS` configured as the break-glass recovery path. Those verified addresses
-or stable identity IDs remain Admins whatever the grants say, and the panel marks a bootstrap
-session. Never use an unverified address as a bootstrap identity.
+**Break-glass recovery.** Keep `SW_BOOTSTRAP_ADMINS` configured. Those verified addresses or
+stable identity IDs (`tid:oid` for Entra) remain Admins whatever the grants say, and the panel
+marks a bootstrap session. Never use an unverified address as a bootstrap identity.
 
-Scripts and other clients use the same routes: `/api/admin/*` (Admins only) and `/api/audit`,
-`/api/audit/export?format=jsonl|csv`. Preview a proposal with
-`POST /api/admin/policies/dry-run`, then send the same document to its PUT route with the
-`dryRunId` and, as `baseVersion`, the `version` returned by that document's GET. To roll back,
-dry-run `{"rollbackTo": "<version>"}`, then send `{baseVersion, dryRunId}` to
-`POST /api/admin/versions/<version>/rollback`. The full
-contract is in `specs/003-authn-authz/contracts/http-api.md`.
+Scripts use the same routes: `/api/admin/*` (Admins only) and `/api/audit`,
+`/api/audit/export?format=jsonl|csv`. Preview a proposal with `POST /api/admin/policies/dry-run`,
+then send the same document to its PUT route with the `dryRunId` and, as `baseVersion`, the
+`version` returned by that document's GET. To roll back, dry-run `{"rollbackTo": "<version>"}`,
+then send `{baseVersion, dryRunId}` to `POST /api/admin/versions/<version>/rollback`. The full
+contract is in [http-api.md](specs/003-authn-authz/contracts/http-api.md).
 
-### Checking the Admin panel
 
-`bun run test:admin` builds the app and drives the panel against the real API, a disposable
-fixture workspace and the local mock identity provider; it never contacts a real provider and
-needs sockets and Chromium. It times domain assignment, a group grant, an e-mail grant and an
-access check against the three-minute target, checks that Erin's next request has her new role,
-creates, edits and deletes a custom role, disables a policy and rolls it back after reviewing the
-rollback's dry run, exports the audit,
-and measures every dialog at 390×844, 1280×720, 1440×900 and 2560×1440. Set `SW_SCREENSHOT_DIR`
-to keep the screenshots.
+### Audit log
 
-Without a server, the client and dialogs run against canned responses shaped like the contract
+Every write and every refused request is recorded under `state/audit/`, one append-only file per
+month, as a single hash chain. The log holds no document text and no credentials, and files older
+than 400 days are deleted at start-up. `bun run audit:verify [folder] [--anchors mirrored.log]`
+reports the first record that was changed, removed or cut off; see
+[docs/audit-tamper-evidence.md](docs/audit-tamper-evidence.md).
+
+Refusals that name nobody (a missing session, a refused bearer token, a failed sign-in) are
+recorded for the first 20 of each kind per client address and then once a minute. The next record
+says how many were left out (`suppressed`), so an unauthenticated loop cannot fill the data
+volume and its size is still known. Agent clients' calls are audited under `client:<clientId>`.
+
+### Limits, errors and caching
+
+- **Rate limits.** Each client address may send 1,000 requests in a burst and 200 a second after
+  that. `/auth/login` and `/auth/callback` share a tighter allowance of 60 and 2 a second, because
+  each call can reach the identity provider. Beyond it the answer is `429` with `Retry-After`,
+  nothing is audited and the source is logged as `[http] rate-limited <source> <n>` at most once
+  a minute. A signed-in person is limited as themselves, so an anonymous visitor behind the same
+  address cannot use up their allowance.
+- **Behind a reverse proxy** the socket peer is the proxy. Set `SW_TRUSTED_PROXY_HOPS` to the
+  number of proxies (1 behind Azure Container Apps ingress): the client address is then the entry
+  that many places from the right of `X-Forwarded-For`, and entries to its left, which the client
+  writes, are ignored. An IPv6 client counts by its /64. Network policy rules keep comparing the
+  socket peer.
+- **Errors.** A failure the server did not expect answers `500 {"error":"Internal error."}`; the
+  cause goes to the server log as `[http] <requestId> <name>: <message>`. A failed Git command
+  answers `{"error":"Git failed."}` and its output goes to the same log line. A malformed escape
+  in a URL path answers 400.
+- **Caching.** Hashed assets use `private, max-age=31536000, immutable`. HTML and API responses
+  use `no-store`, so shared caches never keep auth-gated files. Local mode caching is unchanged.
+
+### Operating it
+
+- **One instance.** Run exactly one replica of the container app. Dry-run receipts, the
+  administration save lock and the short-lived cache of group names live in the server process,
+  and the replicas would also share one Git workspace. A second replica would refuse Admin saves
+  or race them. The deploy preflight refuses a container app whose minimum or maximum replica
+  count is not 1.
+- **Scale path.** Scale vertically first and keep the SQLite cache on local disk. Horizontal
+  scale needs repository ownership partitioning or coordinated storage and leases, plus shared
+  session handling; changing the replica count alone is unsafe
+  ([deploy/README.md](deploy/README.md#alternatives-and-scaling)).
+- **Moving a local data folder to server mode** and the checks the first start makes:
+  [deploy/README.md](deploy/README.md#moving-a-data-folder-from-local-mode-to-server-mode).
+- **Back up** `DATA_DIR` with the app stopped, or rely on Git remotes for projects. The
+  administration repository in `admin/` is itself a Git history of every access change.
+
+### What the server contacts
+
+Server mode makes no outbound call except these:
+
+| To | When | Settings |
+| --- | --- | --- |
+| The identity provider (discovery, token, signing keys, end-session) | Sign-in, refresh, sign-out, agent tokens | `SW_OIDC_ISSUER`. For Entra the issuer must be on `login.microsoftonline.com`, `.us`, `login.chinacloudapi.cn` or `login.partner.microsoftonline.cn`, without a port; MSAL contacts no other host |
+| Microsoft Graph | Group overage and group names in the Admin panel | `SW_GRAPH_URL`, `SW_GROUP_OVERAGE` |
+| The platform's managed-identity endpoint (`IDENTITY_ENDPOINT` with `IDENTITY_HEADER`, resource `api://AzureADTokenExchange`) | Each client assertion, when `SW_OIDC_CLIENT_ASSERTION=managed-identity` | Set by Azure Container Apps |
+| Azure DevOps and the token exchange for it | A person fetches, pulls or pushes to Azure Repos | `SW_ADO_OBO`, `remote.allowedHosts` |
+| GitHub | Connect GitHub and Git commands against GitHub | `SW_GITHUB_HOST`, `SW_GITHUB_CLIENT_ID`, `SW_GITHUB_CLIENT_SECRET` |
+| Other Git remotes | Only when a person presses Fetch, Pull, Push, Sync or an Admin clones | Hosts listed in `remote.allowedHosts` |
+
+Nothing runs in the background against a remote, and the workbench never executes the SQL it
+previews.
+
+### Microsoft Entra ID
+
+Entra is the target provider. The full portal steps, with the container app and pipeline setting
+each value maps to, are in
+[deploy/README.md](deploy/README.md#entra-app-registration). In short:
+
+- One single-tenant App Registration with Web redirect URIs `<SW_PUBLIC_URL>/auth/callback` and
+  `<SW_PUBLIC_URL>/auth/signed-out`, and the front-channel logout URL
+  `<SW_PUBLIC_URL>/auth/front-channel-logout`.
+- No app roles for people: roles come from the grants in the Admin panel.
+- A groups claim on the ID and access tokens ("Security groups", or "Groups assigned to the
+  application" to avoid overage).
+- Optional ID-token claims `email`, `upn`, `xms_edov`, `sid` and `login_hint`; optional
+  access-token claim `idtyp` (agent tokens without it are refused).
+- Microsoft Graph application permission `GroupMember.Read.All` with admin consent, for overage
+  and the group names the Admin panel shows. Remove it and group names read "name not resolved".
+- An exposed API `api://<client-id>` with the scope `access_as_user`, and access token version 2.
+- A credential, in this order of preference: a certificate (Key Vault), a federated credential
+  for the container app's managed identity (`SW_OIDC_CLIENT_ASSERTION=managed-identity`), or a
+  client secret.
+- The delegated Azure DevOps permission `user_impersonation`, when people push to Azure Repos.
+
+Sign-in runs on the server through Microsoft's MSAL library. MSAL's token cache, which holds the
+refresh token, is kept per session inside the encrypted session record and never reaches the
+browser, a response or a log.
+
+### Keycloak (compatibility)
+
+Keycloak is checked for compatibility only. Set its realm as the issuer, `SW_OIDC_PROVIDER=keycloak`,
+a confidential client secret and group-name grants; no tenant ID is needed. People need
+`email_verified=true` for e-mail grants. Sign-in goes through `openid-client`, and bearer tokens
+of agent clients are not supported. To try it, see [Sign-in testing](#sign-in-testing).
+
+### Run the image in server mode
+
+Use the same image with the server settings. A container that serves the network sets
+`SW_HOST=0.0.0.0` (Azure Container Apps does). The Compose `keycloak` profile starts Keycloak and
+the workbench together for the owner's machine, with host networking so both reach each other on
+loopback:
+
+```sh
+cp .env.server.example .env.server    # then set SW_SESSION_KEY from `openssl rand -base64 32`
+mkdir -p .server-workspace/admin
+cp tests/fixtures/auth-workspace/admin/*.json .server-workspace/admin/
+cp tests/fixtures/auth-workspace/admin-keycloak/grants.json .server-workspace/admin/grants.json
+docker compose --profile keycloak up --build -d
+```
+
+Keycloak is published on `127.0.0.1:8080` and the workbench on `http://127.0.0.1:4310`. The
+workbench retries start-up while the realm import finishes. The `.server-workspace` folder must be
+writable by uid 1000. Stop the profile with `docker compose --profile keycloak down`. These
+credentials and the HTTP cookie exception are for development only, and automated checks never use
+this folder. On Azure, [deploy/README.md](deploy/README.md) creates the container app.
+
+## Checking your work
+
+```sh
+bun test              # 1,547 tests in 217 files
+bun run check         # tsc, fmt:check, oxlint and the comment check
+bun run build         # compiles the schemas, then the production frontend
+```
+
+`bun run ci:validate` runs everything below in one command and is what the delivery pipeline
+runs. Tests always use temporary data roots and never touch `data/`.
+
+### Browser suites
+
+Browser suites need Playwright's Chromium (`bun node_modules/@playwright/test/cli.js install
+chromium`) and a Vite dev server. Start one on a free port and point the suites at it; the API
+is always an isolated one on a temporary data root, whatever the frontend address.
+
+```sh
+bun x vite-plus dev --host 127.0.0.1 --strictPort --port 5180 &
+SW_BASE_URL=http://127.0.0.1:5180 bun run test:projects
+```
+
+`SW_BASE_URL` defaults to `http://127.0.0.1:5173` (the older name `UI_URL` is still accepted).
+`SW_SCREENSHOT_DIR` keeps a suite's screenshots in one folder; without it they go to `/tmp`.
+`test:auth`, `test:two-editors` and `test:admin` build the frontend and serve it themselves, so
+they need no Vite.
+
+| Script | What it checks |
+| --- | --- |
+| `test:ui` | Real downloads and exports of every example, reopening examples, grouped relationship selection, unobstructed controls, unsaved edits, re-import |
+| `test:responsive` | Six viewports from 390×844 to 2560×1440: no horizontal scroll, no cut-off control, no overlapping floating element, drawers, full screen in Graph and Neighborhood |
+| `test:edges` | Graph edge endpoints against rendered node borders while dragging and zooming |
+| `test:grouping-validation` | Grouping suggestions and validation dialogs, repair of mixed import batches |
+| `test:examples:ui` | Loading the examples, mappings and metric composition |
+| `test:projects` | The project tree, an external edit appearing in an open tab within 2 seconds, a stale save from a second tab, a restart after deleting `cache.sqlite` |
+| `test:trash` | Row trash icons (reachable, at least 28 px, no overlap at 390 and 2560 px), suggestions, delete confirmation, Undo, restore, Clear |
+| `test:metrics` | Metric list, detail, explanation and graph navigation |
+| `test:graph` | The UBL graph and the neighborhood on three models: exact-first center picking, a five-step walk, no shared edge lines |
+| `test:editor` | Colors per serialization, inline findings within 500 ms, Go to line, byte-exact CRLF saves, typing latency in a 1.9 MB file |
+| `test:item-edit`, `test:rdf-edit` | Item editors, add, delete, rename, the metric wizard and status rules; the same for Turtle, RDF/XML, N-Triples, N3 and SHACL resources, with `git diff` limited to the edited item |
+| `test:scm` | Commit, branch, switch, push to a local bare remote, pull from a second clone, conflict repair, `.gitignore`, history, the credential wait and the missing-Git banner |
+| `test:odcs`, `test:lineage` | Contract pages and byte-preserving property edits; every drawn lineage line against the expected edge lists, path emphasis within 200 ms |
+| `test:autosave` | Automatic saves, stale drafts and commits against a local remote |
+| `test:sql` | Embedded SQL colors, warning locations and unchanged export bytes |
+| `test:git-setup` | Git identity, a remote and a push, a clone, the credential setup guide |
+| `test:monorepo` | Several projects in one repository, grouped tree, shared Source Control, Remove versus Delete folder |
+| `test:dialogs` | Dialog fit, focus trap and focus return across the six viewports |
+| `test:terminology` | The interface, this README and `docs/` call every metric a metric and use the older term nowhere except in verbatim data and the stored `kpi_bindings` key |
+| `test:mappings-layout`, `test:mapping-graph` | Binding cards at six viewports; every mapping graph line against the resolver's bindings |
+| `test:auth` | The mock provider in Entra's endpoint layout: every fixture person, role provenance, refresh, expiry, Graph overage and failure, live updates, sign-out, agent clients' bearer tokens, guarded changes, the owner picker, remote credentials; screenshots of each screen at 390×844, 1280×720, 1440×900 and 2560×1440 |
+| `test:two-editors` | Two Editors, a Steward and a Viewer on one repository: edits, drafts, branches, commits and pulls stay in each copy, each commit names its author, a branch held by another copy cannot be chosen, a publish reaches the Viewer |
+| `test:admin` | The Admin panel against the real API: timed grant, access-check and rollback flows, custom roles, policy rollback, audit export, every dialog at four sizes. |
+| `test:auth:keycloak` | Owner's machine only: the same sign-in checks against a digest-pinned Keycloak 26.4 realm, plus agent client credentials |
+
+The older `commerce-browser-check.ts`, `relationship-browser-check.ts` and `browser-check.ts` predate
+the current layout, fail on stale selectors and are kept for reference only. `bun
+scripts/live-inspect.ts` reads the real running workspace without writing anything (every non-GET
+request is refused) and compares exported documents with their project files.
+
+### Without a browser
+
+The admin dialogs run against canned responses shaped like the contract
 (`tests/helpers/admin-api-mock.ts`):
 
-```bash
+```sh
 bun test tests/admin-client.test.ts tests/admin-presentation.test.tsx   # client and pure parts
 bun test tests/admin-dialogs.test.tsx                                   # dialog behaviour
 SW_SCREENSHOT_DIR=/tmp/admin-shots bun test tests/admin-geometry.test.tsx  # every dialog, 4 sizes
 ```
 
-The administration mutants (invalid policy or unpreviewed change activated, built-in role
-changed, role in use deleted without confirmation or leaving its grants, Admin rule overriding a
-baseline forbid, deactivated principal allowed, Steward reading other domains' audit, and a
-panel that confirms a stale review or saves without one) are part of `bun run test:mutation`.
+### Mutation checks
+
+`bun run test:mutation` is targeted, not a whole-project score. It introduces 474
+deliberate faults into temporary copies of the code, each of which a test must detect, plus three
+faults injected into a running browser page (an empty neighborhood projection, a status line drawn
+over the map controls and status messages that never dismiss). Each module's unmodified baseline
+must pass first, and formatting and lint must be clean. It never changes application sources.
+The faults cover validation, RDF, size limits, layout, grouping, exports, edits, metrics and the
+folder store; Git safety (no shell strings, no remote command outside an explicit action, no
+`--global` identity); the journal, trash and clone staging; sign-in, sessions and the HTTP
+boundary; the access boundary, guards and working copies; the Admin panel (an unpreviewed or
+invalid change activated, a built-in role changed, a deactivated principal allowed, a stale review
+confirmed); and the delivery scripts.
+
+### The full gate and the delivery scripts
+
+`bun run ci:validate` runs, in order:
+
+1. `verify`: `check`, `bun test`, `build`.
+2. `mutation`: `test:mutation`, with a temporary Vite server for its browser mutants.
+3. `browser`: every suite in `scripts/gate-suites.ts`. Workspace suites use a fresh Vite server on
+   a free loopback port; `test:auth`, `test:two-editors` and `test:admin` serve `dist/` through
+   their own server-mode API and mock provider. All use temporary data.
+4. `image`: `image:build`, `image:scan`, `image:sbom`.
+5. `container`: `test:container` against the built image.
+6. `pipeline`: `pipeline:lint` and dry runs for a pull request, `main` and `v0.4.0-alpha.1`.
+
+Select steps with repeatable `--step`, one browser script with `--suite`, and `--keep-going` to
+continue after a failure:
+
+```sh
+bun run ci:validate -- --step verify --step pipeline
+bun run ci:validate -- --step browser --suite test:projects
+```
+
+Results are JUnit XML per step and `summary.json` in `out/ci/`; failures name their step and exit
+non-zero. Each suite gets its own `SW_SCREENSHOT_DIR`, and only its PNGs are copied to
+`out/ci/screenshots/<suite>/`. The full gate needs Chromium and Docker or Podman. It does not
+include `test:auth:keycloak`.
+
+- `bun run image:build` chooses Docker, then Podman (or `--engine docker|podman`). Podman builds
+  use `--format docker` to keep the HEALTHCHECK. Tags are `semantic-workbench:dev` and
+  `semantic-workbench:sha-<commit>`; repeatable `--tag` adds more. A dirty working tree gets a
+  `-dirty` revision suffix.
+- `bun run image:scan` scans an exported image archive with a local Trivy or the pinned scanner
+  image. A high or critical finding with a fix fails. `.trivyignore` exceptions need a reason and
+  an unexpired UTC date. Reports are `out/image/trivy.json` and `trivy.sarif`.
+- `bun run image:sbom` writes `out/image/sbom.spdx.json`.
+- `bun run image:push -- --registry <name>.azurecr.io` refuses dirty revisions, signs in with `az
+  acr login`, pushes the commit tag and prints its digest. It never overwrites an existing
+  `sha-<commit>` tag; a second run on the same commit keeps and prints the registered digest.
+  `image:scan -- --ref <registry>/semantic-workbench@sha256:<digest>` rescans a pushed image.
+- `bun run test:container --image semantic-workbench:dev` checks an existing image (`--build`
+  builds first, the default). It uses Docker when installed, otherwise Podman, a temporary bind
+  mount and rootless Podman's `keep-id` mapping. `--port 4320` moves it off 4310,
+  `--suite local|server` picks a group and `--suite test:projects` a single browser suite. The
+  local group checks metadata, health, persistence across a restart and refusal of a second
+  instance of the same revision. The server group starts the mock provider on host loopback with
+  generated secrets, checks sign-in within 30 seconds, session and data persistence across a
+  restart, the refusal of a second instance, and that a different revision takes over within
+  shutdown plus 30 seconds. Every suite removes its containers and temporary folders.
+- `bun run pipeline:lint` checks the vendored schema and the repository's delivery rules offline.
+  `bun run pipeline:dry-run -- --run pr|main|tag:v0.4.0-alpha.1` expands the real templates with
+  placeholder target values and prints each step with its condition; `--execute` runs local gate
+  steps and, for tag runs, fake deployment and recovery scenarios; `--pipeline rollback` expands
+  the rollback pipeline.
+- `bun run deploy:azure` runs the version guard, target preflight, records the active revision,
+  updates the app by scanned digest, smoke-tests it and promotes the version tag. A failed update
+  or smoke test copies and tests the recorded revision, then fails the run. `bun run
+  deploy:rollback -- --to previous|tag|<vX.Y.Z>` restores without promoting. Both accept `--fake`
+  and `--help`.
+- `bun run deploy:smoke <public-url> <package-version> <commit> [--loopback]` uses
+  `SW_OIDC_ISSUER` discovery and prints one line per check and a JSON summary; `--loopback` relaxes
+  only HSTS and the Secure cookie flag.
+- `bun run deploy:check-version` is the tag-only guard: it validates `SOURCE_REF`
+  (`refs/tags/vX.Y.Z`, or `--tag`), compares the tag with the package version, requires the tagged
+  commit to be an ancestor of `origin/main` and refuses a version older than any promoted tag. A
+  release must declare its version in `package.json`; this checkout does not yet, so it refuses
+  tag publication.
+
+The GitHub repository runs nothing: no workflows, bots, publishing or deployments. The pipeline
+(`azure-pipelines.yml`: Validate, Image and tag-only Deploy; `azure-pipelines-rollback.yml`:
+manual rollback) is a deliverable that the target imports into its own Azure DevOps from its Azure
+Repos mirror. Target setup, the release hand-over to that mirror and the owner's acceptance run are
+in [deploy/README.md](deploy/README.md) and [deploy/trial-runbook.md](deploy/trial-runbook.md).
+
+### Sign-in testing
+
+`bun run test:auth` builds the frontend, starts a mock OpenID provider in Entra's endpoint layout
+(`/<tenant>/oauth2/v2.0/authorize`, `/token`, `/logout`) and the API on free loopback ports, seeds
+fixture grants and drives the built frontend with Chromium. The server signs in through MSAL as it
+does against Entra. The gate and the pipeline run it without an external identity service.
+
+What the mock covers and what it does not:
+
+- **The mock covers** the sign-in flow and redirects, claim mapping for Entra, Keycloak and generic
+  shapes, group claims and overage through a Microsoft Graph stand-in, verified-address rules,
+  refresh, expiry and sign-out (including provider-initiated), guests without a verified address,
+  agent client tokens, and every screen and role of the workbench.
+- **Only the real-tenant checklist covers** conditional access, consent, tenant token lifetimes,
+  real Graph and Azure DevOps permissions, and pushes attributed to a person. The owner runs it
+  from [quickstart §5](specs/003-authn-authz/quickstart.md) and the
+  [trial runbook](deploy/trial-runbook.md).
+
+To drive the mock by hand, run `bun run mock-oidc -- --port 8081 --shape entra --layout entra`; it
+prints the issuer and the Graph address. The client ID is `semantic-workbench` and the secret
+`semantic-workbench-test-secret`; the mock accepts only `http://127.0.0.1:4310/auth/callback` as
+redirect unless `--redirect` and `--post-logout` name other addresses. The fixture identities are
+`alice` and `frank` (Sales Editors), `bob` (Sales Steward), `carol` (Sales Viewer), `dave`
+(Admin), `erin` and `gina` (no access: no grant, and an unverified guest), `hank` (by e-mail) and
+`olga` (a group list too large for the token, resolved through Graph).
+
+`bun run test:auth:keycloak` is the compatibility check for the owner's machine. It selects Docker
+or Podman, starts the Keycloak 26.4 realm on a free loopback port, runs the same browser checks
+and the agent client-credentials check, and removes the container and temporary realm. Fixture
+passwords are `test-<username>`, for example `test-alice`. It is outside the gate and the pipeline.
+
+The step-by-step walk through all of this is
+[specs/003-authn-authz/quickstart.md](specs/003-authn-authz/quickstart.md).
+
+## Contributing
+
+The code style is part of the project's constitution (Readable Code):
+
+- `bun run schemas:compile` regenerates the checked-in browser validators from the pinned JSON
+  Schemas with Ajv standalone code. Build and check run it, and `bun test` checks that it is
+  reproducible. The browser CSP does not allow eval.
+- `bun run fmt` formats `src/`, `server/`, `scripts/` and `tests/` with Oxfmt (100 columns,
+  2-space indentation, semicolons, single quotes, trailing commas). `bun run check` runs
+  TypeScript, `fmt:check`, Oxlint and the comment check, and fails on unformatted code.
+- One statement per line and one variable per declaration; descriptive names; small functions
+  (about 40 lines) and components (about 150 lines); no nested ternaries.
+- Comments are plain English for a developer new to the repository: they explain why, one idea per
+  sentence, and never carry spec or task IDs or process notes (traceability goes in commit
+  messages). Every module has a short header comment and every export a short JSDoc.
+- `bun run lint:full` also lists the readability warnings (names, function length, nesting) for the
+  code you touch.
+- `.git-blame-ignore-revs` lists the mechanical reformat; run
+  `git config blame.ignoreRevsFile .git-blame-ignore-revs` once to skip it in `git blame`.
+- [ARCHITECTURE.md](ARCHITECTURE.md) is the map of the code; update it with any new module, route
+  or setting, together with the [configuration contract](specs/003-authn-authz/contracts/configuration.md).
