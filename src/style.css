@@ -4213,7 +4213,8 @@ button.import {
 .zoom-far .lineage-card-title small {
   display: none;
 }
+/* The card header has a fixed height, so its name cannot grow as far as a neighborhood name. */
 .zoom-far .lineage-card-title strong {
-  font-size: var(--far-name-size, 26px);
-  line-height: 1.15;
+  font-size: min(var(--far-name-size, 26px), 30px);
+  line-height: 1.1;
 }
