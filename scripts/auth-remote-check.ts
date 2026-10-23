@@ -1,5 +1,6 @@
 // Drives Connect GitHub in the browser: the Connected accounts dialog, the prompt a push without
 // an account shows, and the push that continues after consent, against a loopback Git server.
+import { runSyncAction } from './helpers/sync-dialog';
 import assert from 'node:assert/strict';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -69,7 +70,7 @@ async function connectFlow(page: Page, target: SignInTarget, github: CredentialG
   });
   assert.equal(switched.status(), 200);
   await openSourceControl(page, target);
-  await page.getByRole('button', { name: 'Push', exact: true }).click();
+  await runSyncAction(page, 'Push');
   const prompt = page.getByRole('alert').filter({ hasText: 'Connect your GitHub account' });
   await expect(prompt).toBeVisible();
   assert.equal(github.requests.length, 0, 'Nothing reaches GitHub before consent');

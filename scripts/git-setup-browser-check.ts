@@ -1,5 +1,12 @@
 // Checks Git setup from the browser: identity, remote, commit and push, clone, and the credential
 // guide. Every remote is a local bare repository or a local test server; no network remote is used.
+import { expectDialogGeometry } from './helpers/dialog-geometry';
+import {
+  closeSyncDialog,
+  openRemoteDialog,
+  openSyncDialog,
+  runSyncAction,
+} from './helpers/sync-dialog';
 import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Route } from '@playwright/test';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -62,7 +69,7 @@ async function check(name: string, run: () => Promise<void>) {
 const panel = () => page.getByRole('region', { name: 'Source Control' });
 
 async function setRemote(url: string) {
-  await panel().getByRole('button', { name: 'Remote…' }).click();
+  await openRemoteDialog(page);
   const dialog = page.getByRole('dialog', { name: 'Remote' });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByLabel('Remote name')).toHaveValue('origin');
@@ -104,12 +111,11 @@ try {
     async () => {
       await page.getByRole('button', { name: /^Source control/ }).click();
       await expect(panel()).toBeVisible();
-      await expect(panel()).toContainText('No remote yet');
+      const sync = await openSyncDialog(page);
+      await expect(sync).toContainText('No remote yet');
+      await closeSyncDialog(sync);
       await setRemote(pushTarget);
-      await panel()
-        .getByRole('group', { name: 'Remote' })
-        .getByRole('button', { name: 'Push' })
-        .click();
+      await runSyncAction(page, 'Push');
       await expect(panel().getByRole('status').filter({ hasText: 'Push finished' })).toBeVisible({
         timeout: 20_000,
       });
@@ -125,7 +131,7 @@ try {
         await route.fallback();
       };
       await page.route('**/git/status', holdStatus);
-      await panel().getByRole('button', { name: 'Remote…' }).click();
+      await openRemoteDialog(page);
       const dialog = page.getByRole('dialog', { name: 'Remote' });
       await expect(dialog.getByLabel('Remote URL')).toBeDisabled();
       await expect(dialog.getByLabel('Remote name')).toBeDisabled();
@@ -143,10 +149,7 @@ try {
     'credential guide: a push refused for credentials offers the guide; it never asks for them',
     async () => {
       await setRemote(`http://127.0.0.1:${host.port}/shop.git`);
-      await panel()
-        .getByRole('group', { name: 'Remote' })
-        .getByRole('button', { name: 'Push' })
-        .click();
+      await runSyncAction(page, 'Push');
       const failure = panel()
         .getByRole('alert')
         .filter({ hasText: /terminal prompts disabled|could not read Username/i });
@@ -232,6 +235,7 @@ try {
       expect(
         await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
       ).toBe(true);
+      await expectDialogGeometry(page, 'clone-repository');
       await page.screenshot({ path: `/tmp/workbench-git-clone-${width}.png` });
       await dialog.getByRole('button', { name: 'Close' }).click();
     }

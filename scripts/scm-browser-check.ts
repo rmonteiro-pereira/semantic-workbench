@@ -1,4 +1,12 @@
 // Checks browser Source Control actions using isolated workspaces and local Git remotes.
+import { expectDialogGeometry } from './helpers/dialog-geometry';
+import { smallTextProblems, textCollisionProblems } from './helpers/text-geometry';
+import {
+  closeSyncDialog,
+  openRemoteDialog,
+  openSyncDialog,
+  runSyncAction,
+} from './helpers/sync-dialog';
 import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -52,6 +60,10 @@ const tree = (p: Page = page) => p.getByRole('tree', { name: 'Projects' });
 async function openFile(path: string, p: Page = page) {
   await tree(p).getByRole('button', { name: path, exact: true }).first().click();
 }
+// Source control has no view tabs, so the editor is reached from the sidebar.
+async function showSourceEditor(p: Page) {
+  await p.getByRole('button', { name: /^Source editor/ }).click();
+}
 const panel = () => page.getByRole('region', { name: 'Source Control' });
 async function openScm() {
   await page.getByRole('button', { name: /^Source control/ }).click();
@@ -60,7 +72,7 @@ async function openScm() {
 const group = (name: string) => panel().getByRole('region', { name });
 // The remote is edited in the Remote dialog opened from the panel.
 async function setRemote(url: string) {
-  await panel().getByRole('button', { name: 'Remote…' }).click();
+  await openRemoteDialog(page);
   const dialog = page.getByRole('dialog', { name: 'Remote' });
   await dialog.getByLabel('Remote URL').fill(url);
   await dialog.getByRole('button', { name: 'Save remote' }).click();
@@ -83,7 +95,7 @@ async function commitAll(message: string) {
 }
 async function editInSource(path: string, change: (text: string) => string) {
   await openFile(path);
-  await page.locator('.tabs').getByRole('button', { name: 'Source' }).click();
+  await showSourceEditor(page);
   const editor = page.getByRole('textbox', { name: 'Definition source' });
   await fillEditor(editor, change(await editorValue(editor)));
   return editor;
@@ -194,7 +206,7 @@ try {
       ).toBeVisible();
       await expect.poll(() => read(file)).toContain('Person or company that buys from us.');
       await openFile(file);
-      await page.locator('.tabs').getByRole('button', { name: 'Source' }).click();
+      await showSourceEditor(page);
       await expect
         .poll(() => editorValue(page.getByRole('textbox', { name: 'Definition source' })))
         .toContain('Person or company that buys from us.');
@@ -206,10 +218,7 @@ try {
     'remote: save a local bare remote and push; pull a commit made elsewhere',
     async () => {
       await setRemote(bare);
-      await panel()
-        .getByRole('group', { name: 'Remote' })
-        .getByRole('button', { name: 'Push' })
-        .click();
+      await runSyncAction(page, 'Push');
       await expect(panel().getByRole('status').filter({ hasText: 'Push finished' })).toBeVisible({
         timeout: 20000,
       });
@@ -224,17 +233,11 @@ try {
       );
       sh(other, ['commit', '-qam', 'Elsewhere']);
       sh(other, ['push', '-q']);
-      await panel()
-        .getByRole('group', { name: 'Remote' })
-        .getByRole('button', { name: 'Fetch' })
-        .click();
+      await runSyncAction(page, 'Fetch');
       await expect(panel().getByLabel('0 commits to push, 1 to pull')).toBeVisible({
         timeout: 20000,
       });
-      await panel()
-        .getByRole('group', { name: 'Remote' })
-        .getByRole('button', { name: 'Pull' })
-        .click();
+      await runSyncAction(page, 'Pull');
       await expect(panel().getByRole('status').filter({ hasText: 'Pull finished' })).toBeVisible({
         timeout: 20000,
       });
@@ -257,10 +260,7 @@ try {
         { timeout: 5000 },
       );
       await openScm();
-      await panel()
-        .getByRole('group', { name: 'Remote' })
-        .getByRole('button', { name: 'Pull' })
-        .click();
+      await runSyncAction(page, 'Pull');
       const refusal = panel().getByRole('alert').filter({ hasText: 'not saved to file yet' });
       await expect(refusal).toContainText(file);
       await expect(refusal.getByRole('button', { name: 'Commit…' })).toBeVisible();
@@ -296,10 +296,7 @@ try {
       await saveSource();
       await openScm();
       await commitAll('Ours');
-      await panel()
-        .getByRole('group', { name: 'Remote' })
-        .getByRole('button', { name: 'Pull' })
-        .click();
+      await runSyncAction(page, 'Pull');
       await expect(
         panel().getByRole('alert').filter({ hasText: 'stopped on conflicts' }),
       ).toContainText(file, { timeout: 20000 });
@@ -332,10 +329,7 @@ try {
       ).toBeVisible();
       expect(sh(dir, ['log', '-1', '--format=%P']).trim().split(' ')).toHaveLength(2);
       expect(read(file)).toContain('Our and their wording.');
-      await panel()
-        .getByRole('group', { name: 'Remote' })
-        .getByRole('button', { name: 'Sync' })
-        .click();
+      await runSyncAction(page, 'Sync');
       await expect(panel().getByRole('status').filter({ hasText: 'Sync finished' })).toBeVisible({
         timeout: 20000,
       });
@@ -373,10 +367,7 @@ try {
       await setRemote('ssh://example.invalid/repo.git');
       process.env.GIT_SSH_COMMAND = 'sleep 30 #';
       try {
-        await panel()
-          .getByRole('group', { name: 'Remote' })
-          .getByRole('button', { name: 'Fetch' })
-          .click();
+        await runSyncAction(page, 'Fetch');
         const waiting = panel().getByRole('status').filter({
           hasText: 'Waiting for Git (credentials may be requested in a separate window)',
         });
@@ -411,7 +402,7 @@ try {
         );
         await p.screenshot({ path: '/tmp/workbench-scm-no-git.png' });
         await openFile(file, p);
-        await p.locator('.tabs').getByRole('button', { name: 'Source' }).click();
+        await showSourceEditor(p);
         const editor = p.getByRole('textbox', { name: 'Definition source' });
         await fillEditor(
           editor,
@@ -429,6 +420,30 @@ try {
       }
     },
   );
+  await check('the panel and the Sync dialog fit at 390, 1280, 1440 and 2560 px', async () => {
+    await openScm();
+    for (const [width, height] of [
+      [390, 844],
+      [1280, 720],
+      [1440, 900],
+      [2560, 1440],
+    ] as const) {
+      await page.setViewportSize({ width, height });
+      const column = (await panel().locator('.scm-side').boundingBox())!;
+      // The project picker exists only when the workspace holds several projects.
+      const picker = panel().getByRole('combobox', { name: 'Project' });
+      if ((await picker.count()) > 0) {
+        const select = (await picker.boundingBox())!;
+        expect(select.x + select.width).toBeLessThanOrEqual(column.x + column.width);
+      }
+      expect(await smallTextProblems(page, '.scm')).toEqual([]);
+      expect(await textCollisionProblems(page, '.scm')).toEqual([]);
+      const sync = await openSyncDialog(page);
+      await expectDialogGeometry(page, 'sync');
+      await closeSyncDialog(sync);
+    }
+    await page.setViewportSize({ width: 1440, height: 900 });
+  });
   await check('no browser errors', async () => {
     expect(errors).toEqual([]);
   });

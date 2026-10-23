@@ -6,6 +6,10 @@ import { connectAccount, type ConnectKind } from '../auth/ConnectedAccounts';
 
 /** A remote action of the Source Control panel. */
 export type RemoteAction = 'fetch' | 'pull' | 'push' | 'sync';
+/** The name of a remote action as the panel's buttons and messages write it. */
+export function actionTitle(action: string): string {
+  return action[0].toUpperCase() + action.slice(1);
+}
 const PENDING_KEY = 'sw-remote-after-connect';
 const ACTIONS: RemoteAction[] = ['fetch', 'pull', 'push', 'sync'];
 

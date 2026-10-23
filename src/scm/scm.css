@@ -38,6 +38,9 @@
 }
 .scm-head > select {
   flex: 1 1 100%;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
   font-size: 13px;
   padding: 6px;
 }
@@ -93,13 +96,6 @@
   background: #eef3f1;
   border-radius: 10px;
 }
-.scm-remote {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 8px;
-  font-size: 12px;
-}
 .scm-remote-url {
   flex: 1 1 0;
   min-width: 0;
@@ -110,34 +106,12 @@
   font-family: ui-monospace, monospace;
   font-size: var(--text-small);
 }
-.scm-remote-actions {
-  display: flex;
-  gap: 4px;
-  flex: 1 1 100%;
-}
-/* Server mode: Pull from and Publish to the default branch, side by side under the branch. */
-.scm-published {
-  display: flex;
-  gap: 4px;
-}
-.scm-published button {
-  flex: 1;
-  font-size: 12px;
-  padding: 6px 4px;
-  gap: 3px;
-}
-/* Why Publish is disabled, in words, because a tooltip is not seen on a touch screen. */
+/* Explains in words what a tooltip would, because a touch screen shows no tooltip. */
 .scm-hint {
   display: block;
   margin: -2px 0 2px;
   font-size: 12px;
   color: #62786e;
-}
-.scm-remote-actions button {
-  flex: 1;
-  font-size: 12px;
-  padding: 6px 4px;
-  gap: 3px;
 }
 .scm-note {
   display: flex;
@@ -221,10 +195,6 @@
 .scm-error button {
   font-size: 12px;
 }
-.scm-remote > button {
-  font-size: 12px;
-  padding: 5px 9px;
-}
 .scm-commit {
   display: flex;
   flex-direction: column;
@@ -292,16 +262,28 @@
 .scm-row.selected {
   background: #eaf3ef;
 }
+/* The name and the tag of its project share the first line; the folder follows below. */
 .scm-file {
-  justify-content: flex-start;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  justify-content: stretch;
+  justify-items: start;
+  align-items: start;
   border: 0;
   background: none;
   padding: 4px 6px;
-  gap: 6px;
+  gap: 0 6px;
   min-width: 0;
   font-size: 13px;
   text-align: left;
-  flex-wrap: wrap;
+}
+.scm-file > small {
+  grid-column: 1 / -1;
+}
+.scm-file > .scm-project,
+.scm-file > .scm-label {
+  grid-column: 2;
+  grid-row: 1;
 }
 .scm-file:hover {
   background: none;
@@ -883,4 +865,60 @@
   margin-bottom: 4px;
   padding: 0;
   line-height: 1.45;
+}
+
+/* The Sync dialog lists each action with a line saying what it does. */
+.scm-sync-open {
+  font-size: 12px;
+  padding: 4px 9px;
+  gap: 4px;
+}
+.scm-sync-dialog h3 {
+  margin: 14px 0 6px;
+  font-size: 13px;
+}
+.scm-sync-dialog section:first-child h3 {
+  margin-top: 0;
+}
+.scm-sync-remote {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin: 0 0 8px;
+  font-size: var(--text-small);
+  color: var(--text-muted);
+}
+.scm-sync-actions {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.scm-sync-actions li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+}
+.scm-sync-actions button {
+  flex: 0 0 150px;
+  justify-content: flex-start;
+  font-size: 13px;
+  padding: 6px 10px;
+  white-space: normal;
+  text-align: left;
+}
+.scm-sync-actions span {
+  flex: 1 1 160px;
+  min-width: 0;
+  font-size: var(--text-small);
+  color: var(--text-muted);
+}
+/* The dialog has the room to show the whole address. */
+.scm-sync-remote .scm-remote-url {
+  flex: 1 1 200px;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
