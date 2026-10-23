@@ -36,7 +36,8 @@ export function PersonMenu() {
         }
         label={
           <span className="person-label">
-            {me.name} · {personRoles(me).join(', ')}
+            {me.name}
+            <span className="person-role"> · {personRoles(me).join(', ')}</span>
           </span>
         }
         title={details.join(' · ')}

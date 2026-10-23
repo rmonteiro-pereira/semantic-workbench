@@ -12,6 +12,12 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* The roles are in the menu and the tooltip; the header keeps its room for the save state. */
+@media (max-width: 1499px) {
+  .person-role {
+    display: none;
+  }
+}
 @media (max-width: 1100px) {
   .person-menu > button {
     max-width: 120px;
