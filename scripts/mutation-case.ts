@@ -2277,6 +2277,10 @@ if (category.startsWith('export-')) {
   const { exportMutationCase } = await import('./export-mutation-cases');
   await exportMutationCase(m, category);
 }
+if (category.startsWith('theme-')) {
+  const { themeMutationCase } = await import('./theme-mutation-cases');
+  themeMutationCase(m, category);
+}
 if (category.startsWith('secrev-')) {
   const { securityReviewCase } = await import('./security-review-mutation-cases');
   await securityReviewCase(m, category);
