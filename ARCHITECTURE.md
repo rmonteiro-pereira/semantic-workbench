@@ -64,6 +64,10 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `scripts/examples/agent-client.ts` | Runnable example of an agent client that gets its Entra token with MSAL and reads the agent catalog | Anything the server imports |
 | `scripts/helpers/sign-in.ts` | Shared identity, storage, native sign-out and responsive browser assertions | Provider startup |
 | `scripts/polish-capture.ts`, `scripts/polish-capture-server.ts` (`bun run polish:capture`, `polish:capture:server`) | Photograph the screen tour at the four sizes in local mode and in server mode (mock sign-in) and print the measured problems of each screen | Assertions of the suites |
+| `src/projects/examples.ts` | The registry of example sets: which files each one loads, its first tab and its message | Reading the files |
+| `scripts/*-example.ts`, `scripts/*-metrics.ts`, `scripts/billing-contract.ts`, `scripts/helpers/example-metrics.ts` | Generators of the commerce, UBL, billing and mall examples; the governed metrics of an example are declared in its `*-metrics.ts` and written with the helper that renders the extension and binding text as the metric wizard does | Browser checks |
+| `scripts/example-metric-checks.ts`, `scripts/example-metric-mutants.ts` | What every example set must show (counts, one simple, one composed and one cross-table metric, owner, status, concept bindings, contract lineage, an unexecuted SQL preview), clean validation and untouched upstream hashes; the faults that drop a metric, binding or contract from a set | Browser steps |
+| `scripts/helpers/examples-tour.ts` | The metric screens of every example for the responsive suite and the browser steps that check one metric of each kind | Suite selection |
 | `scripts/helpers/edit-tour.ts`, `scripts/helpers/odcs-tour.ts` | The editing, metrics, mapping and data contract screens and dialogs as screens of the responsive suite | Suite selection |
 | `scripts/helpers/graph-options.ts` | Opens and closes the options dialog of a graph toolbar so browser checks drive its controls | Assertions about the controls |
 | `scripts/helpers/text-geometry.ts`, `scripts/helpers/screen-tour.ts` | Browser measurement of text below the 12 px minimum and of text covered by other elements; the list of screens and dialogs that the responsive suite and `scripts/polish-capture.ts` walk | Suite selection |
@@ -106,7 +110,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `src/projects/` | Client API (`api.ts`), autosave, project tree, delete and trash dialogs, the repository's projects dialog, shared dialog chrome (`Modal.tsx`) | |
 | `src/scm/` | Source Control panel (`BranchPicker` shows who holds a branch, `SyncDialog` the remote and its Fetch, Pull, Push and Sync actions, with `DefaultBranchActions` for the Pull, Publish and Push buttons of the default branch and a confirmation before Publish), Commit dialog, Git setup dialogs (`GitSetup.tsx` opens them from anywhere), and the server-mode connect prompt that resumes a remote action (`RemoteConnectPrompt.tsx`) | Git commands; they run on the server |
 | `schemas/` | Pinned JSON Schemas (ODCS, Ossie, the workbench extensions) | Edits to upstream schemas |
-| `public/examples/` | Shipped example projects | Test fixtures |
+| `public/examples/` | Shipped example projects; each ships governed metrics in its semantic model, bindings in a mapping root and a data contract. Files from upstream standards stay byte-identical; additions to an upstream example sit in separate files whose first line says `# Workbench addition` | Test fixtures, edits to upstream files |
 | `tests/` | Unit and handler tests (`bun test`), always on temporary data roots; `tests/helpers/mock-oidc.ts` is a loopback OpenID provider with Entra, Keycloak and generic claim shapes, an optional Entra endpoint layout that drives the MSAL path (`tests/helpers/entra-provider.ts` starts it for tests), and a Microsoft Graph stand-in; `tests/fixtures/auth-workspace/` is the access test workspace and `tests/helpers/auth-identities.ts` its people and groups | Calls to a real identity provider |
 | `scripts/` | Browser checks (Playwright against an isolated API), the mutation suite, example generators, `dev.ts` | |
 
@@ -163,6 +167,9 @@ editor never receives an older deferred value as an external replacement.
 - The index (`cache.sqlite`) can be deleted at any time; the folders and `state/*.json` are the
   truth.
 - No query is executed anywhere. SQL is only parsed, coloured, linted and previewed.
+- Files from an upstream standard example are never edited. Metrics for such an example live in
+  extra files labelled as workbench additions (for Flights: its own semantic model, mapping and
+  contract), and `scripts/example-metric-checks.ts` fails when an upstream hash changes.
 - Local mode never asks for, stores or sends credentials; Git's helpers and SSH handle them.
   Server mode passes each person's own token to one Git command through `sw-askpass` and that
   command's environment, never through `.git/config` or files, and keeps it only in the

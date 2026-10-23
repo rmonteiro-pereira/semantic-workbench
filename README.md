@@ -180,10 +180,11 @@ File extensions help choose parsers; `.owl` is not treated as a serialization by
 
 ### Commerce example workspace
 
-Click **Load commerce workspace** in the sidebar. It creates the project "Commerce workspace" with seven related documents (clicking again opens the existing project):
+Click **Load commerce workspace** in the sidebar. It creates the project "Commerce workspace" with eight related documents (clicking again opens the existing project):
 
 - `commerce.odcs.yaml`: a contract for customers, orders, order lines and products, with types, primary and foreign keys, ownership and business-definition IRIs.
-- `sales.ossie.yaml`: four datasets, three joins and three sales metrics; physical sources match the contract exactly.
+- `sales.ossie.yaml`: four datasets, three joins and six governed sales metrics (owner, status, breakdowns); physical sources match the contract exactly.
+- `sales.mapping.yaml`: binds those metrics to the business concepts; it maps no concept to a dataset.
 - `commerce-business.ossie.yaml`: eight business concepts sharing IRIs with the OWL ontology.
 - `commerce.owl.ttl` and `commerce.owl`: OWL in Turtle and RDF/XML, including inverse properties and an existential restriction.
 - `commerce.shacl.ttl`: required customer email, nonnegative order amount and required order lines.
@@ -293,11 +294,26 @@ The workbench never executes queries: the explanation and the SQL preview are co
 
 The interface uses **Metric** for both ordinary and governed metrics. Stored metric-to-concept bindings keep the historical key `kpi_bindings`; imports and exports preserve that key.
 
-Metric attributes are stored in the Ossie files themselves, so they travel with the model and diff cleanly: each metric carries a `custom_extensions` entry with `vendor_name: SEMANTIC_WORKBENCH` whose `data` is JSON validated against [schemas/semantic-workbench-metric-v1.json](schemas/semantic-workbench-metric-v1.json); the metric-to-concept bindings (`measures`, optional `of`) are one line per metric in the root extension of the standalone mapping document (or of the embedded semantic model in a consolidated file), validated against [schemas/semantic-workbench-mapping-v1.json](schemas/semantic-workbench-mapping-v1.json). Errors in these blocks are reported at the exact line and column. Without extensions, type and additivity are inferred, and concept mappings whose expression is a metric name are shown as evidence. The graph shows metric nodes (with a *Metrics shown/hidden* toggle) and a metric badge on concepts that metrics measure or describe, also in the catalog. The shopping center example declares all of this for its 25 metrics.
+Metric attributes are stored in the Ossie files themselves, so they travel with the model and diff cleanly: each metric carries a `custom_extensions` entry with `vendor_name: SEMANTIC_WORKBENCH` whose `data` is JSON validated against [schemas/semantic-workbench-metric-v1.json](schemas/semantic-workbench-metric-v1.json); the metric-to-concept bindings (`measures`, optional `of`) are one line per metric in the root extension of the standalone mapping document (or of the embedded semantic model in a consolidated file), validated against [schemas/semantic-workbench-mapping-v1.json](schemas/semantic-workbench-mapping-v1.json). Errors in these blocks are reported at the exact line and column. Without extensions, type and additivity are inferred, and concept mappings whose expression is a metric name are shown as evidence. The graph shows metric nodes (with a *Metrics shown/hidden* toggle) and a metric badge on concepts that metrics measure or describe, also in the catalog. Every shipped example declares this for its metrics (see [Metrics in the examples](#metrics-in-the-examples)).
 
 **New metric** (Metrics) opens a wizard in eight steps, shown as one line (*Step 3 of 8 - Type and inputs*) with a step picker for the steps already reached and **Back** and **Next** below: the concept it measures and the entity it is about; the semantic model; type and inputs (a simple aggregation of a field, a ratio of two metrics with a `NULLIF` guard, or a derived, cumulative or filtered metric over named metrics), label, name and additivity; time dimension, grains and breakdowns; target and thresholds; owner, steward, status, unit and format; the explanation and SQL preview of the new metric (computed, not executed); and the exact lines each file will gain. **Save to file** writes the metric (its formula only as the Ossie expression) with its extension into the semantic model and one binding line, in sorted position, into the project's mapping document, in one journaled save; a project without a mapping document gets a minimal one (`concept_mappings: []`), and a consolidated file keeps the binding in its embedded semantic model. **Edit metric** follows the status rules: draft → proposed → approved → deprecated; changing the definition of an approved metric returns it to proposed; deprecation needs `replaced_by` or `deprecation_reason`; the metrics and bindings that use the metric are listed before saving.
 
 API: `GET /api/projects/:slug/metrics` (every metric, each with `governed`), `POST /api/projects/:slug/metrics` (and `…/metrics/preview`; `existing: true` adds attributes to a metric already in the model; the v0.2.0 `…/kpis` paths remain as aliases), `POST /api/projects/:slug/save-batch` and `GET /api/projects/:slug/files/*path/explain/:metric?grain=&dimension=&rollup=sum` ([contract](specs/001-workbench-improvements/contracts/http-api.md)).
+
+### Metrics in the examples
+
+Opening any example from **Examples** in the sidebar shows its governed metrics in the **Metrics** tab. Each example has a simple metric (a `SUM` or `COUNT` over one table), a ratio or derived metric built on other metrics, and metrics that can be broken down by a field of another table, so the SQL preview lists the foreign-key joins it walks. Every metric has an owner and a status, is bound to an ontology concept, and reads columns that the example's ODCS contract declares, so the breakdown, the lineage and the SQL preview all have content. Nothing is executed.
+
+| Example | Metrics | Defined in | Bound in | Contract |
+| --- | ---: | --- | --- | --- |
+| UBL business model | 9 | `ubl.semantic.yaml` | `ubl.semantic-mapping.yaml` | `ubl.odcs.yaml` |
+| Commerce workspace | 6 | `sales.ossie.yaml` | `sales.mapping.yaml` | `commerce.odcs.yaml` |
+| Mapped commerce | 4 | `commerce.mapped-semantic.yaml` | `commerce.mapping.yaml` | `commerce.odcs.yaml` |
+| Ossie Flights | 7 | `flights.metrics.semantic.yaml` | `flights.metrics.mapping.yaml` | `flights.odcs.yaml` |
+| Subscription billing | 8 | `billing.semantic.yaml` | `billing.mapping.yaml` | `billing.odcs.yaml` |
+| Shopping center administration | 25 | `mall.semantic.yaml` | `mall.mapping.yaml` | `mall.odcs.yaml` |
+
+The metrics follow the storage rules above: definitions in the semantic model with a `SEMANTIC_WORKBENCH` extension, bindings in the root extension of a mapping. The files of the official Apache Ossie Flights example stay byte-identical to the pinned upstream copies, so Flights keeps its metrics, its binding and its contract in three separate files that start with `# Workbench addition`. The same applies to `sales.mapping.yaml` and `ubl.semantic-mapping.yaml`, which only carry bindings. `bun run test:examples` checks the counts, that every file validates with no finding beyond the documented coverage notes, that every metric explains itself and reaches a contract column, and that the upstream hashes are unchanged.
 
 ### Ontology mappings and agent tools
 
@@ -313,14 +329,14 @@ Standalone mapping documents and deprecated embedded `ontology_mappings` are sup
 
 ### Reproducible example execution
 
-The generated [subscription billing example](public/examples/billing/README.md) has 36 business entities, 46 joins, 119 mapping bindings, four governed metrics and an executable synthetic SQL fixture. It verifies revenue, recurring revenue, distinct invoice counts, dependent ratios, computed fields and missing-dimension fact preservation.
+The generated [subscription billing example](public/examples/billing/README.md) has 36 business entities, 46 joins, 119 mapping bindings, eight governed metrics, a data contract for the tables they read and an executable synthetic SQL fixture. It verifies revenue, recurring revenue, distinct invoice counts, dependent ratios, discounts, tax, gross billings, computed fields and missing-dimension fact preservation.
 
 ```sh
 bun run examples:generate
 bun run test:examples
 ```
 
-All five [official Apache Ossie examples](tests/fixtures/ossie-mapping/README.md) are pinned and hash-checked without modifications. Use **Load Ossie Flights** in the workspace sidebar to open the official ontology graph and load its semantic model plus standalone and embedded mappings. Both mapping forms resolve and are tested through the UI. TPC-DS imports with a warning for an unexposed physical primary-key column; window expressions remain preserved rather than being executed by the current planner. [Verification results and SQL](docs/example-verification.json) record 20 actual synthetic-fixture SQL executions.
+All five [official Apache Ossie examples](tests/fixtures/ossie-mapping/README.md) are pinned and hash-checked without modifications. Use **Load Ossie Flights** in the workspace sidebar to open the official ontology graph and load its semantic model plus standalone and embedded mappings. Both mapping forms resolve and are tested through the UI. The example also holds three files added by the workbench: governed metrics, their concept bindings and a data contract. TPC-DS imports with a warning for an unexposed physical primary-key column; window expressions remain preserved rather than being executed by the current planner. [Verification results and SQL](docs/example-verification.json) record 24 actual synthetic-fixture SQL executions and the metrics of every example.
 
 ### Grouping and validation navigation
 
@@ -871,10 +887,10 @@ they need no Vite.
 | Script | What it checks |
 | --- | --- |
 | `test:ui` | Real downloads and exports of every example, reopening examples, grouped relationship selection, unobstructed controls, unsaved edits, re-import |
-| `test:responsive` | Six viewports from 390×844 to 2560×1440: no horizontal scroll, no cut-off control, no overlapping floating element, drawers, full screen in Graph and Neighborhood; and a tour of every screen and dialog (including the edit drawers, metrics, mappings, composer and catalog, the ODCS pages, and the Sync, clone, rename and delete-project dialogs) at 390, 1280, 1440 and 2560 px with text of at least 12 px, no text covered by or overlapping other text, and no cut-off control |
+| `test:responsive` | Six viewports from 390×844 to 2560×1440: no horizontal scroll, no cut-off control, no overlapping floating element, drawers, full screen in Graph and Neighborhood; and a tour of every screen and dialog (including the edit drawers, metrics, the metric screens of every example, mappings, composer and catalog, the ODCS pages, and the Sync, clone, rename and delete-project dialogs) at 390, 1280, 1440 and 2560 px with text of at least 12 px, no text covered by or overlapping other text, and no cut-off control |
 | `test:edges` | Graph edge endpoints against rendered node borders while dragging and zooming |
 | `test:grouping-validation` | Grouping suggestions and validation dialogs, repair of mixed import batches |
-| `test:examples:ui` | Loading the examples, mappings and metric composition |
+| `test:examples:ui` | Loading the examples, mappings and metric composition; the metric count of every example and, for a simple, a composed and a cross-table metric of each, owner, contract lineage, breakdown and the unexecuted SQL preview |
 | `test:projects` | The project tree, an external edit appearing in an open tab within 2 seconds, a stale save from a second tab, a restart after deleting `cache.sqlite` |
 | `test:trash` | Row trash icons (reachable, at least 28 px, no overlap at 390 and 2560 px), suggestions, delete confirmation, Undo, restore, Clear |
 | `test:metrics` | Metric list, detail, explanation and graph navigation |
@@ -913,13 +929,14 @@ SW_SCREENSHOT_DIR=/tmp/admin-shots bun test tests/admin-geometry.test.tsx  # eve
 
 ### Mutation checks
 
-`bun run test:mutation` is targeted, not a whole-project score. It introduces 474
+`bun run test:mutation` is targeted, not a whole-project score. It introduces 486
 deliberate faults into temporary copies of the code, each of which a test must detect, plus five
 faults injected into a running browser page (an empty neighborhood projection, a status line drawn
 over the map controls, status messages that never dismiss, a label below the minimum text size and
 a save state cut with an ellipsis in a wide header). Each module's unmodified baseline
 must pass first, and formatting and lint must be clean. It never changes application sources.
-The faults cover validation, RDF, size limits, layout, grouping, exports, edits, metrics and the
+The faults cover validation, RDF, size limits, layout, grouping, exports, edits, metrics, the
+example sets (a file that carries a metric, its binding or its contract dropped) and the
 folder store; Git safety (no shell strings, no remote command outside an explicit action, no
 `--global` identity); the journal, trash and clone staging; sign-in, sessions and the HTTP
 boundary; the access boundary, guards and working copies; the Admin panel (an unpreviewed or
