@@ -1,6 +1,6 @@
 /** Displays metric metadata and server-generated explanations without executing SQL. */
 import React, { useEffect, useState } from 'react';
-import { Target, UserRound, FileCode, AlertTriangle, Pencil } from 'lucide-react';
+import { Target, UserRound, FileCode, AlertTriangle, Pencil, Tags } from 'lucide-react';
 import type { KpiExplanation, KpiSummary } from '../../server/agent/explain';
 import { api, type ExplainQuery } from '../projects/api';
 import { Explanation } from './Explanation';
@@ -14,11 +14,13 @@ export function MetricDetail({
   kpi,
   all,
   onEdit,
+  onAddAttributes,
 }: {
   project: string;
   kpi: KpiSummary;
   all: KpiSummary[];
   onEdit?: () => void;
+  onAddAttributes?: () => void;
 }) {
   const [query, setQuery] = useState<ExplainQuery>({});
   const [explanation, setExplanation] = useState<KpiExplanation | null>(null);
@@ -66,6 +68,15 @@ export function MetricDetail({
           )}
         </div>
         <code className="kpi-name">{kpi.name}</code>
+        {!kpi.governed && onAddAttributes && (
+          <p className="metrics-ungoverned">
+            This metric has no type, owner, status or targets yet.
+            <button className="metrics-add-attributes" onClick={onAddAttributes}>
+              <Tags size={13} />
+              Add attributes
+            </button>
+          </p>
+        )}
         <MetricApproval project={project} kpi={kpi} />
         {kpi.description && <p className="kpi-description">{kpi.description}</p>}
         <div className="kpi-badges">
