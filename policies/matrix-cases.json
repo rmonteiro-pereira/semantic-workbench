@@ -136,6 +136,13 @@
       }
     },
     {
+      "case": "POST /api/telemetry/browser",
+      "action": "viewOwnState",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
       "case": "GET /api/status",
       "action": "read",
       "resource": {

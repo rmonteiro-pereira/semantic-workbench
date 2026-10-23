@@ -45,7 +45,7 @@ test('write route matrix refuses Viewers without changing durable bytes and audi
   for (const example of routeExamples) {
     const row = routeFor(example.method, example.path)?.row;
     if (!row || row.public || ['GET', 'HEAD'].includes(example.method)) continue;
-    if (row.action === 'read') continue;
+    if (row.action === 'read' || row.unaudited) continue;
     for (const project of ['hr-people', 'sales-contracts']) {
       const path = example.path.replace('missing', project);
       const response = await handler(request(path, example.method));

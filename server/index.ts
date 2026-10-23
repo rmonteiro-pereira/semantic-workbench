@@ -16,18 +16,38 @@ import { serveOptions } from './serve-options';
 import { clientAddress } from './auth/source-address';
 import { logWorkspace } from './startup-log';
 import { installShutdownHandlers } from './shutdown';
+import { configureLogging, log } from './observability/log';
+import { configureActorSalt } from './observability/request-context';
+import { startTelemetry } from './observability/telemetry';
 
 const config = readConfig();
+configureLogging({
+  level: config.observability.logLevel,
+  format: config.observability.logFormat,
+});
+configureActorSalt(config.observability.actorSalt);
 setActiveBrand(loadBrandBundle({ directory: config.brandDir }));
 const signInProvider = config.mode === 'server' ? await createSignInProvider(config) : undefined;
 const hot = globalThis as { __workbench?: { close(): Promise<void> } };
 await hot.__workbench?.close();
+// Started after the previous instance closed: a hot reload would otherwise register its
+// providers a second time and then have them disabled by the old instance's shutdown.
+const telemetry = await startTelemetry({
+  settings: config.observability.telemetry,
+  service: {
+    version: config.version,
+    commit: config.commit,
+    mode: config.mode,
+    revision: config.revision,
+  },
+});
 probeDataRoot(config.dataDir, process.pid, process.getuid?.());
 if (config.inContainer && config.mode === 'local') {
-  console.log(
-    'Local containers must use host networking (Compose profile local). ' +
+  log.warn('startup.local-container-networking', {
+    detail:
+      'Local containers must use host networking (Compose profile local). ' +
       'Docker Desktop: Settings → Resources → Network → Enable host networking.',
-  );
+  });
 }
 let workspace: Workspace | undefined;
 let authentication: ServerAuthentication | undefined;
@@ -39,7 +59,7 @@ const lock = createInstanceLock({
   revision: revisionIdentity(config),
   now: Date.now,
   files: instanceLockFiles(join(config.dataDir, 'state/instance.lock')),
-  log: console.log,
+  log: line => log.info('instance-lock', { detail: line }),
   open() {
     initialization = initializeWorkspace();
     return initialization;
@@ -66,6 +86,7 @@ async function initializeWorkspace() {
         config.mode === 'server' ? config.trustedProxyHops : 0,
       ),
     keepOpen: request => server.timeout(request, 0),
+    browserReports: telemetry.status.enabled,
   });
   await logWorkspace(workspace);
 }
@@ -74,7 +95,11 @@ const server = Bun.serve(
     hostname: config.host,
     port: config.port,
     async fetch(request) {
-      const health = healthResponse(request, lock.state, config);
+      const health = healthResponse(request, lock.state, {
+        version: config.version,
+        commit: config.commit,
+        telemetry: telemetry.status,
+      });
       if (health) return health;
       if (config.serveStatic && config.mode === 'local') {
         const response = await serveStatic(request);
@@ -102,16 +127,21 @@ function close() {
       authentication?.close();
       workspace?.close();
       await lock.close();
+      await telemetry.shutdown();
       detachSignals();
     }
   })();
   return closing;
 }
 function fail(error: unknown) {
-  console.error(error);
+  log.failure('server.fatal', error);
   void close().finally(() => process.exit(1));
 }
 const detachSignals = installShutdownHandlers(close);
 hot.__workbench = { close };
 tick();
-console.log(`Workbench API: http://${config.host}:${config.port} (data root ${config.dataDir})`);
+log.info('server.listening', {
+  address: `http://${config.host}:${config.port}`,
+  mode: config.mode,
+  telemetry: telemetry.status.enabled ? 'on' : 'off',
+});

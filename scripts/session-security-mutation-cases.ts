@@ -109,12 +109,14 @@ function rateLimitCase(candidate: any) {
   assert.deepEqual(gate('10.0.0.1', 'sign-in-required'), { record: true, suppressed: 10 });
   assert.equal(gate('10.0.0.1', 'sign-in-required').record, false);
   const lines: string[] = [];
-  const report = candidate.createRateLimitReport(now, (line: string) => lines.push(line));
+  const report = candidate.createRateLimitReport(now, (source: string, refused: number) =>
+    lines.push(`${source} ${refused}`),
+  );
   for (let refusal = 0; refusal < 5; refusal++) report('10.0.0.9');
-  assert.deepEqual(lines, ['[http] rate-limited 10.0.0.9 1']);
+  assert.deepEqual(lines, ['10.0.0.9 1']);
   milliseconds += 60_000;
   report('10.0.0.9');
-  assert.equal(lines[1], '[http] rate-limited 10.0.0.9 5');
+  assert.equal(lines[1], '10.0.0.9 5');
 }
 
 async function requestLimitsCase(candidate: any) {
@@ -238,7 +240,7 @@ async function personAndAddressChecks(candidate: any, workspace: any) {
     // The address bucket is spent, yet a signed-in person has their own.
     assert.equal((await handler(get('/api/projects'))).status, 429);
     assert.equal((await handler(get('/api/projects', { 'x-person': 'alice' }))).status, 200);
-    assert(lines.some(line => line === '[http] rate-limited 203.0.113.7 1'));
+    assert(lines.some(line => /http\.rate-limited .*client=203\.0\.113\.7 refused=1$/.test(line)));
     // Policies keep the peer; only the limits follow the client address.
     client = '203.0.113.8';
     assert.equal((await handler(get('/api/projects'))).status, 401);
@@ -270,7 +272,8 @@ async function errorMappingCase(candidate: any) {
     );
     assert.equal(unexpected.status, 500);
     assert.deepEqual(await unexpected.json(), { error: 'Internal error.' });
-    assert(messages.join('\n').includes('[http] req-1 Error: /srv/secret'));
+    assert(messages.join('\n').includes('http.unexpected-error requestId=req-1'));
+    assert(!messages.join('\n').includes('/srv/secret'));
     const typed = candidate.errorResponse(
       new BadRequestError('Bad body.'),
       'https://x.example',
@@ -287,9 +290,8 @@ async function errorMappingCase(candidate: any) {
     });
     const hidden = candidate.errorResponse(git, 'https://x.example', server);
     assert.deepEqual(await hidden.json(), { error: 'Git failed.' });
-    assert(
-      messages.join('\n').includes('[http] req-1 GitError: git push failed | fatal: /srv/secret'),
-    );
+    assert(messages.join('\n').includes('http.git-failed requestId=req-1'));
+    assert(messages.join('\n').includes('fatal: <path> denied'));
     const shown = candidate.errorResponse(git);
     assert.deepEqual(await shown.json(), { error: 'git push failed' });
     const local = candidate.errorResponse(new Error('plain'));
@@ -308,7 +310,10 @@ async function internalErrorCase(candidate: any) {
     const response = candidate.internalErrorResponse(new TypeError('/srv/secret'), 'req-2');
     assert.equal(response.status, 500);
     assert.deepEqual(await response.json(), { error: 'Internal error.' });
-    assert.deepEqual(messages, ['[http] req-2 TypeError: /srv/secret']);
+    assert.equal(messages.length, 1);
+    assert(messages[0].includes('http.unexpected-error requestId=req-2'));
+    assert(messages[0].includes('errorName=TypeError'));
+    assert(!messages[0].includes('/srv/secret'));
   } finally {
     console.error = original;
   }

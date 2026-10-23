@@ -73,6 +73,9 @@ async function start(root: string, selected: number) {
     `${root}:/data${podman ? ':z' : ''}`,
     '-e',
     'SW_MODE=local',
+    // Local mode must ignore a connection string: no telemetry code loads and nothing is sent.
+    '-e',
+    'APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f',
     '-e',
     `SW_PORT=${selected}`,
     image,
@@ -95,6 +98,7 @@ async function inspectImage(name: string) {
     ok: true,
     version: labels['org.opencontainers.image.version'],
     commit: labels['org.opencontainers.image.revision'],
+    telemetry: { enabled: false, reason: 'local-mode' },
   });
 }
 async function persistence(name: string) {

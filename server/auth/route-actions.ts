@@ -17,6 +17,8 @@ export type RouteAction = {
   targets?: 'body';
   /** The action an agent client is decided by on this row; a row without one refuses clients. */
   clientAction?: 'agentRead';
+  /** Allowed requests leave no audit record: operational telemetry is not a security event. */
+  unaudited?: true;
 };
 const workspace = (): ResourceRef => ({ type: 'workspace' });
 const project = (match: RegExpMatchArray): ResourceRef => ({
@@ -65,6 +67,8 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   row('GET', '/api/me', 'read', workspace),
   publicRow('GET', '/auth/style.css'),
   row('GET', '/api/events', 'read', workspace),
+  // Any signed-in person may send the error and timing reports of their own browser.
+  { ...row('POST', '/api/telemetry/browser', 'viewOwnState', workspace), unaudited: true },
   row('GET', '/api/status', 'read', workspace),
   row('GET', '/api/projects', 'read', workspace),
   row('GET', '/api/trash', 'read', workspace),
@@ -206,4 +210,15 @@ export function routeFor(method: string, pathname: string, mode: 'local' | 'serv
     if (match) return { row, match };
   }
   return null;
+}
+
+/**
+ * The route a request matched, as logs and metrics name it: the row's path without its method
+ * (`/api/projects/:slug/files/*`), `pages` for server pages, or `unmatched`. The inventory is a
+ * fixed list, so the number of distinct templates is bounded.
+ */
+export function routeTemplate(method: string, pathname: string, mode: 'local' | 'server'): string {
+  const found = routeFor(method, pathname, mode);
+  if (!found) return 'unmatched';
+  return found.row.path.replace(/^[A-Z/]+ /, '');
 }

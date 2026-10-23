@@ -38,6 +38,7 @@ import { repoRoutes } from './routes/repos';
 import { peopleRoutes } from './routes/people';
 import type { AccessControl } from './auth/authorize';
 import { attachRemoteCredentials } from './auth/request-scope';
+import { browserReportRoutes } from './routes/browser-reports';
 /** Local browser origins allowed to call the API. */
 export const ALLOWED_ORIGINS = allowedOrigins(4310);
 /** Includes the configured API origin and the Vite development server. */
@@ -309,6 +310,7 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
     (_workspace, request, url) =>
       url.pathname === '/api/me' && request.method === 'GET' ? meResponse(request, options) : null,
     eventRoutes(options),
+    browserReportRoutes({ enabled: options.browserReports === true, now: options.now }),
     ...workspaceRoutes(administration, access, options),
   ];
   function localCheck(req: Request): Response | null {

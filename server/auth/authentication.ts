@@ -23,6 +23,9 @@ import {
 import { requestAuditId, requestSourceIp, type AuditRequest } from '../request';
 import { createAnonymousAuditGate } from './rate-limit';
 import { createRemoteCredentials, type RemoteCredentialOptions } from './remote-credentials';
+import { log } from '../observability/log';
+import { recordAuthFailure } from '../observability/metrics';
+import { withSpan } from '../observability/tracing';
 
 /** How often expired entries leave the sign-in replay ledger. */
 const ATTEMPT_PRUNE_INTERVAL_MS = 60_000;
@@ -111,7 +114,11 @@ export async function createServerAuthentication(
   );
   function logFailure(request: Request | undefined, error: Error) {
     const requestId = (request as AuditRequest | undefined)?.[requestAuditId] ?? 'startup';
-    console.error(`[auth] ${requestId} ${error.message}${providerDetail(error)}`);
+    log.error('auth.failure', {
+      requestId,
+      detail: error.message,
+      providerCode: error instanceof SignInError ? error.providerCode : undefined,
+    });
   }
   // Failed sign-ins name nobody, so a loop of them could fill the audit log; past its first
   // few, each source address and failure is recorded once a minute.
@@ -161,9 +168,10 @@ export async function createServerAuthentication(
   async function refresh(session: Session, request: Request): Promise<Session | null> {
     let renewed: Awaited<ReturnType<typeof client.refresh>>;
     try {
-      renewed = await client.refresh(session.tokens);
+      renewed = await withSpan('auth.refresh', {}, () => client.refresh(session.tokens));
     } catch (error) {
       const failure = asSignInError(error);
+      recordAuthFailure(failure.reason);
       logFailure(request, failure);
       // An outage of the provider says nothing about the session, so it stays and the request
       // is answered 503. Ending it would sign everyone out whenever the provider is down.
@@ -213,7 +221,7 @@ export async function createServerAuthentication(
   }
   async function login(returnTo: string, request?: Request): Promise<Response> {
     try {
-      const started = await client.login(returnTo);
+      const started = await withSpan('auth.login.start', {}, () => client.login(returnTo));
       return new Response(null, {
         status: 302,
         headers: {
@@ -228,6 +236,7 @@ export async function createServerAuthentication(
       });
     } catch (error) {
       const failure = asSignInError(error);
+      recordAuthFailure(failure.reason);
       logFailure(request, failure);
       const refused = recordOrRefuse({
         action: 'signIn',
@@ -248,8 +257,12 @@ export async function createServerAuthentication(
       returnTo = safeReturnTo(attempt.returnTo);
       const url = new URL(request.url);
       const callbackUrl = new URL('/auth/callback' + url.search, config.publicUrl);
-      const identity = await client.callback(callbackUrl, attempt);
-      const principal = await principalFor(identity.principal, request);
+      const identity = await withSpan('auth.callback.token-exchange', {}, () =>
+        client.callback(callbackUrl, attempt),
+      );
+      const principal = await withSpan('auth.callback.resolve-principal', {}, () =>
+        principalFor(identity.principal, request),
+      );
       const denied = principal.deactivated || !principal.grants.length;
       const refused = recordOrRefuse({
         action: 'signIn',
@@ -261,7 +274,9 @@ export async function createServerAuthentication(
       if (refused) return refused;
       const existing = readCookie(request, cookieName(config.publicUrl));
       if (existing) await sessions.end(existing, 'replaced');
-      const created = await sessions.create({ principal, tokens: identity.tokens });
+      const created = await withSpan('auth.callback.create-session', {}, () =>
+        sessions.create({ principal, tokens: identity.tokens }),
+      );
       response = new Response(null, {
         status: 302,
         headers: {
@@ -271,6 +286,7 @@ export async function createServerAuthentication(
       });
     } catch (error) {
       const failure = asSignInError(error);
+      recordAuthFailure(failure.reason);
       logFailure(request, failure);
       const refused = recordOrRefuse({
         action: 'signIn',
@@ -294,7 +310,7 @@ export async function createServerAuthentication(
         request,
       });
       if (refused) return refused;
-      await sessions.end(current.id);
+      await withSpan('auth.logout', {}, () => sessions.end(current.id));
     }
     const redirect = client.logout(current?.tokens);
     const response =
@@ -333,7 +349,7 @@ export async function createServerAuthentication(
   const groupDirectory = createDirectoryClient({
     graphUrl: config.directory.graphUrl,
     token: () => client.directoryToken(),
-    failure: reason => console.error(`[auth] group name lookup ${reason}`),
+    failure: reason => log.warn('auth.group-name-lookup-failed', { reason }),
   });
   // Keycloak puts group names in the token, so the name is the identifier itself.
   async function groupName(id: string) {

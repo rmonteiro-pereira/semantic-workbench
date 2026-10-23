@@ -12,6 +12,8 @@ import {
 import { loadPolicySet } from './cedar';
 import builtin from '../../policies/builtin-roles.json';
 import type { Role } from './access-config';
+import { log } from '../observability/log';
+import { withSpanSync } from '../observability/tracing';
 
 /** Mirrors schemas/semantic-workbench-access-v1.json $defs.settingsFile with session defaults. */
 export type WorkbenchSettings = {
@@ -270,10 +272,14 @@ export function openAdminRepository(options: {
   // next commit or restart reloads it.
   function notifyCommitted(config: AccessConfig, committedVersion: string): void {
     try {
-      options.committed?.(config);
+      withSpanSync(
+        'admin.policy.reload',
+        { attributes: { 'sw.admin.version': committedVersion } },
+        () => options.committed?.(config),
+      );
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error);
-      console.error(`[admin] policy reload after commit ${committedVersion} failed: ${reason}`);
+      log.error('admin.policy-reload-failed', { version: committedVersion, reason });
     }
   }
   async function write(files: Record<string, string>, change: AdminWrite): Promise<string> {

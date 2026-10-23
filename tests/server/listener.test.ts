@@ -21,7 +21,9 @@ test('an error that reaches the listener answers a plain 500 and is logged', asy
     const response = serveOptions(settings).error(new Error('/srv/data/secret.json'));
     expect(response.status).toBe(500);
     expect(await response.json()).toEqual({ error: 'Internal error.' });
-    expect(log.mock.calls.flat().join('\n')).toContain('/srv/data/secret.json');
+    const written = log.mock.calls.flat().join('\n');
+    expect(written).toContain('http.listener-error');
+    expect(written).not.toContain('/srv/data/secret.json');
   } finally {
     log.mockRestore();
   }

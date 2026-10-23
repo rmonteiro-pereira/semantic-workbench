@@ -4,6 +4,7 @@ import { rmSync } from 'node:fs';
 import { openWorkspace, type Workspace } from '../../server/projects/workspace';
 import { ALLOWED_ORIGINS, createHandler } from '../../server/handler';
 import { tempDataDir } from '../../tests/helpers/temp-data-dir';
+import { configureLogging } from '../../server/observability/log';
 // Browser checks run the API on a temporary DATA_DIR (never the user's data/) and send the page's
 // /api requests there, whatever the dev server's own API points at.
 /** Provides a temporary API workspace, its URL and cleanup operation. */
@@ -19,6 +20,8 @@ export type IsolatedApi = {
 export async function startIsolatedApi(
   options: { root?: string; watch?: boolean; gitBinary?: string } = {},
 ): Promise<IsolatedApi> {
+  // Routine request lines would bury a check's own output.
+  configureLogging({ level: 'error', format: 'text' });
   const dir = options.root
     ? { root: options.root, cleanup: () => rmSync(options.root!, { recursive: true, force: true }) }
     : tempDataDir('workbench-browser-');

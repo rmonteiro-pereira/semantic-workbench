@@ -9,7 +9,7 @@ import { emptyAccessConfig } from './access-config';
 import { openAdminRepository, AdminConfigError, type AdminRepository } from './admin-repo';
 import { auditableProjects, createAuditLog, reportAuditFailure, type AuditLog } from './audit';
 import { localPrincipal, type Principal } from './principal';
-import { routeFor, type RouteAction } from './route-actions';
+import { routeFor, routeTemplate, type RouteAction } from './route-actions';
 import type { ResourceRef, Decision } from './resource';
 import { validCsrf } from './csrf';
 import type { ServerAuthentication } from './authentication';
@@ -34,6 +34,10 @@ import {
   type RequestLimits,
 } from './rate-limit';
 import type { RemoteCredentials } from './remote-credentials';
+import { observeRequest } from '../observability/http-request';
+import { actorPseudonym, setRequestActor } from '../observability/request-context';
+import { recordAuthFailure } from '../observability/metrics';
+import { log } from '../observability/log';
 
 /** The access boundary instance shared across requests. */
 export type { AccessControl } from './authorize';
@@ -75,6 +79,8 @@ export type HandlerOptions = {
   staticRoot?: string;
   /** Server mode: each person's own credentials for remote Git commands. */
   remoteCredentials?: RemoteCredentials;
+  /** True when exported telemetry is on, so browsers may send their error reports. */
+  browserReports?: boolean;
 };
 /** The access boundary of a handler that was given none, read from the data root's settings. */
 export function defaultAccess(ws: Workspace, mode: 'local' | 'server'): AccessControl {
@@ -84,7 +90,7 @@ export function defaultAccess(ws: Workspace, mode: 'local' | 'server'): AccessCo
       config = openAdminRepository({ root: ws.layout.root }).load();
     } catch (error) {
       if (mode !== 'local' || !(error instanceof AdminConfigError)) throw error;
-      console.error(`Invalid administration configuration; using local defaults: ${error.message}`);
+      log.warn('admin.config-invalid', { detail: error.message, fallback: 'local defaults' });
     }
   }
   return createAccessControl({
@@ -119,11 +125,9 @@ function outcome(status: number): 'ok' | 'refused' | 'failed' {
 
 /** Selects denials, explicitly audited routes, and operations other than ordinary reads. */
 export function shouldAudit(row: RouteAction, method: string, decision: 'allow' | 'deny'): boolean {
-  return (
-    decision === 'deny' ||
-    row.audited === true ||
-    !(READ_ACTIONS.includes(row.action) && method === 'GET')
-  );
+  if (decision === 'deny') return true;
+  if (row.unaudited) return false;
+  return row.audited === true || !(READ_ACTIONS.includes(row.action) && method === 'GET');
 }
 
 function requestIdResponse(response: Response, requestId: string): Response {
@@ -363,6 +367,7 @@ export function createAccessMiddleware(
   /** Answers 429 for a caller over an allowance and reports the source to the log. */
   function refuseRateLimited(request: Request, retryAfterSeconds: number): Response {
     reportRateLimited(sourceOf(request) ?? 'unknown');
+    recordAuthFailure('rate-limited');
     return tooManyRequests(retryAfterSeconds);
   }
   /**
@@ -392,6 +397,7 @@ export function createAccessMiddleware(
     const authorization = request.headers.get('Authorization') ?? '';
     if (mode !== 'server' || !/^Bearer(\s|$)/i.test(authorization)) return undefined;
     const refuse = (reason: string) => {
+      recordAuthFailure(reason);
       const status = reason === 'provider-unreachable' ? 503 : 401;
       // Nobody is identified yet, so a loop of bad tokens must not fill the audit log.
       const admission = auditAnonymous(sourceOf(request), reason);
@@ -453,6 +459,7 @@ export function createAccessMiddleware(
           : undefined,
       ))
     ) {
+      recordAuthFailure('csrf-invalid');
       return new Response('Forbidden', { status: 403 });
     }
     const page = mode === 'server' && !/^\/(api|auth)(\/|$)/.test(url.pathname);
@@ -484,6 +491,7 @@ export function createAccessMiddleware(
   ): Promise<Response> {
     const scope = access.forRequest(principal, { sourceIp: options.sourceIp?.(request) });
     request[requestAccess] = scope;
+    setRequestActor(actorPseudonym(scope.principal));
     // A client never holds grants of its own: its agents.json entry decides through the policies.
     const withoutGrants = scope.principal.kind !== 'client' && !scope.principal.grants.length;
     const noAccess = mode === 'server' && (scope.principal.deactivated || withoutGrants);
@@ -567,12 +575,19 @@ export function createAccessMiddleware(
     (request as AccessRequest)[requestAuditId] = requestId;
     const address = (options.clientAddress ?? options.sourceIp)?.(request);
     (request as AccessRequest)[requestSourceIp] = address;
-    let response: Response;
-    try {
-      response = await dispatch(request, requestId);
-    } catch (error) {
-      response = failure(error, requestId);
-    }
-    return requestIdResponse(response, requestId);
+    return observeRequest({
+      request,
+      requestId,
+      route: routeTemplate(request.method, new URL(request.url).pathname, mode),
+      async handle() {
+        let response: Response;
+        try {
+          response = await dispatch(request, requestId);
+        } catch (error) {
+          response = failure(error, requestId);
+        }
+        return requestIdResponse(response, requestId);
+      },
+    });
   };
 }

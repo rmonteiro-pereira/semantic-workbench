@@ -17,6 +17,10 @@ function record(value: unknown): Record<string, unknown> {
   return value as Record<string, unknown>;
 }
 
+function telemetryEnabled(health: Record<string, unknown>): boolean {
+  return record(health.telemetry).enabled === true;
+}
+
 function authorizationRedirect(response: Response, endpoint: string): boolean {
   if (response.status !== 302) return false;
   try {
@@ -38,6 +42,7 @@ export function smokeChecks(
   expected: SmokeExpected,
   endpoint: string,
   loopback: boolean,
+  expectTelemetry = false,
 ) {
   const ready = record(input.ready.body);
   const health = record(input.health.body);
@@ -69,6 +74,9 @@ export function smokeChecks(
     { name: 'HSTS', ok: loopback || !!headers.get('strict-transport-security') },
     { name: 'CSP', ok: !!headers.get('content-security-policy') },
     { name: 'nosniff', ok: headers.get('x-content-type-options') === 'nosniff' },
+    // Only asked for when the release is meant to export telemetry; it never contacts Azure, it
+    // reads what the server says about itself.
+    ...(expectTelemetry ? [{ name: 'telemetry configured', ok: telemetryEnabled(health) }] : []),
     {
       name: 'state cookie',
       ok:
@@ -80,11 +88,17 @@ export function smokeChecks(
 }
 
 /** The provider to discover, whether loopback relaxations apply, and the HTTP client to use. */
-export type SmokeOptions = { issuer: string; loopback?: boolean; request?: typeof fetch };
+export type SmokeOptions = {
+  issuer: string;
+  loopback?: boolean;
+  request?: typeof fetch;
+  /** Also require /healthz to say that telemetry is on. */
+  expectTelemetry?: boolean;
+};
 
 /** Calls public probes and discovery, waiting at most three minutes for serving. */
 export async function smoke(publicUrl: string, expected: SmokeExpected, options: SmokeOptions) {
-  const { issuer, loopback = false, request = fetch } = options;
+  const { issuer, loopback = false, request = fetch, expectTelemetry = false } = options;
   const origin = new URL(publicUrl);
   if (loopback && !['127.0.0.1', 'localhost', '[::1]'].includes(origin.hostname)) {
     throw Error('--loopback requires a loopback public URL');
@@ -121,7 +135,7 @@ export async function smoke(publicUrl: string, expected: SmokeExpected, options:
     home: await get(`${origin.origin}/`),
     login: await get(`${origin.origin}/auth/login`),
   };
-  const checks = smokeChecks(input, expected, endpoint, loopback);
+  const checks = smokeChecks(input, expected, endpoint, loopback, expectTelemetry);
   return { ok: checks.every(check => check.ok), checks };
 }
 
@@ -129,10 +143,17 @@ async function main() {
   const { values, positionals } = parseArgs({
     args: process.argv.slice(2).filter(arg => arg !== '--'),
     allowPositionals: true,
-    options: { loopback: { type: 'boolean' }, help: { type: 'boolean' } },
+    options: {
+      loopback: { type: 'boolean' },
+      'expect-telemetry': { type: 'boolean' },
+      help: { type: 'boolean' },
+    },
   });
   if (values.help) {
-    console.log('deploy:smoke <public-url> <package-version> <commit> [--loopback]');
+    console.log(
+      'deploy:smoke <public-url> <package-version> <commit> [--loopback] [--expect-telemetry]',
+    );
+    console.log('--expect-telemetry also requires /healthz to report telemetry as enabled.');
     console.log('SW_OIDC_ISSUER supplies discovery; --loopback relaxes only HSTS and Secure.');
     return;
   }
@@ -143,7 +164,11 @@ async function main() {
   const result = await smoke(
     url,
     { version, commit },
-    { issuer: process.env.SW_OIDC_ISSUER, loopback: values.loopback },
+    {
+      issuer: process.env.SW_OIDC_ISSUER,
+      loopback: values.loopback,
+      expectTelemetry: values['expect-telemetry'],
+    },
   );
   for (const check of result.checks) console.log(`${check.ok ? 'PASS' : 'FAIL'} ${check.name}`);
   console.log(JSON.stringify(result));

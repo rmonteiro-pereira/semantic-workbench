@@ -27,6 +27,10 @@
 | `SW_COMMITTER_NAME`, `SW_COMMITTER_EMAIL` | server | no (`Semantic Workbench`, `workbench@localhost`) | committer identity of server commits; the author is always the signed-in person |
 | `SW_GITHUB_HOST`, `SW_GITHUB_CLIENT_ID`, `SW_GITHUB_CLIENT_SECRET` | server | no (host `github.com`) | GitHub OAuth app or GitHub App for **Connect GitHub** user tokens; client id and secret together or neither; the host is a bare host name (`github.com` or a GitHub Enterprise host, with an optional port), never a URL; callback `<SW_PUBLIC_URL>/auth/github/callback` |
 | `SW_ADO_OBO` | server/entra | no (`true` with `SW_OIDC_PROVIDER=entra`, otherwise always off) | Azure DevOps on-behalf-of; `false` turns it off. It also needs `remote.azureDevOpsObo: true` in `admin/settings.json` |
+| `SW_LOG_LEVEL` | both | no (`info`) | `debug`, `info`, `warn`, `error` or `silent`; anything else refuses start-up. Server mode writes JSON lines to stdout, local mode readable lines (added in 0.5.0, see `specs/005-observability`) |
+| `APPLICATIONINSIGHTS_CONNECTION_STRING` | server | no (telemetry off) | Application Insights connection string, a Key Vault reference. Needs `InstrumentationKey=<guid>`; an `IngestionEndpoint` must be an `https://` Application Insights host or start-up is refused (the value is never printed). Ignored in local mode, which never exports telemetry |
+| `SW_TRACE_SAMPLE_RATIO` | server | no (`0.1`) | share of traces kept, 0 to 1; metrics and logs are not sampled. Used only with a connection string |
+| `SW_TELEMETRY_ACTOR_SALT` | server | no (random at each start) | secret that keys the pseudonym standing for each person in logs and telemetry; a Key Vault reference when set. With it, pseudonyms are stable across restarts |
 | `SW_IN_CONTAINER` | both | no (`1` in the image) | local mode logs that host networking is required (OP-8) |
 | `SW_SERVE_STATIC` | both | no (`0`; `1` in the image) | the Bun server serves `dist/` itself (always in server mode and in the container) |
 | `SW_VERSION`, `SW_COMMIT` | both | no (set by the image build) | reported by `/healthz`; checked by the smoke test |
