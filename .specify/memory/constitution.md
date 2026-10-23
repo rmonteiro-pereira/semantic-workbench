@@ -1,28 +1,33 @@
 <!--
 Sync Impact Report
-- Version change: 3.0.1 → 3.1.0 (MINOR: principle VIII added and the quality gate expanded)
-- Reason: the 3.x line was drafted on a base without the 2.2.0 amendment (Readable Code) made on
-  branch 002-lineage-and-ux. Rebasing feature 003 onto that branch merges the two lines; both
-  owner-approved amendments are kept unchanged in substance.
-- Modified principles: none
-- Added principles: VIII. Readable Code (formatter-enforced layout, one statement per line,
-  100-column width, descriptive names, small functions and components, plain-English comments
-  without spec or task IDs, JSDoc on exports), carried over from 2.2.0 word for word
+- Version change: 3.1.0 → 3.2.0 (MINOR: Principle I materially expanded with opt-in, server-mode
+  operational telemetry)
+- Reason: operators of a server need traces, metrics and logs to run it. Principle I forbade every
+  outbound call beyond the identity provider and Git remotes, so a server could not report its own
+  health to Azure Monitor. The amendment allows exactly that, and nothing else.
+- Modified principles: I. Local and Server Modes. Server mode may send operational telemetry to
+  Application Insights when an operator sets a connection string; local mode still makes no network
+  call and loads no telemetry code. The sentence that bars document content from leaving the
+  machine now also names telemetry. Everything else in I is unchanged.
+- Added principles: none
 - Removed principles: none
-- Modified sections: Development Workflow and Quality Gates (`bun --bun run check` includes
-  TypeScript, `fmt:check`, Oxlint and the comment check), as in 2.2.0
+- Modified sections: none outside I. Principle VII already requires the README to list every
+  outbound call of server mode, so telemetry is documented there; the dependency rule in
+  Technical Constraints is satisfied because the new libraries make the call Principle I now allows
 - Templates requiring updates: .specify/templates/plan-template.md (✅ no change needed: its
-  "Constitution Check" lists every principle from this file); spec-template.md (✅ no change
-  needed); tasks-template.md (✅ no change needed); README.md (✅ Contributing section already
-  present from 2.2.0); specs/003-authn-authz/plan.md (✅ Constitution Check gains a line for VIII)
-- Source: rebase of 003-authn-authz onto 002-lineage-and-ux (2026-10-21); both amendments were
-  approved by the owner
+  "Constitution Check" lists every principle from this file); spec-template.md and
+  tasks-template.md (✅ no change needed); README.md (✅ gains "Logging and telemetry");
+  specs/005-observability/plan.md (✅ Constitution Check written against 3.2.0)
+- Approval: approved by the owner on 2026-10-23, as part of choosing Azure Monitor telemetry for
+  release v0.5.0
 - Follow-up TODOs: none
-- Earlier: 3.0.0 → 3.0.1 (PATCH, wording: second directory read for group display names; roles
-  and access grants instead of role mappings and assignments), 2.1.0 → 3.0.0 (MAJOR, drafted on
-  branch 003: Principle I redefined into local and server modes; "single-user, no authentication
-  layer" removed), 2.1.0 → 2.2.0 (Readable Code), 2.0.1 → 2.1.0 (clone),
-  1.0.0 → 2.0.0 (Principle IV redefined), 2.0.0 → 2.0.1 (wording)
+- Earlier: 3.0.1 → 3.1.0 (MINOR, principle VIII added and the quality gate expanded; the 3.x line
+  was drafted on a base without the 2.2.0 amendment, so rebasing feature 003 onto 002 merged the two
+  lines), 3.0.0 → 3.0.1 (PATCH, wording: second directory read for group display names; roles and
+  access grants instead of role mappings and assignments), 2.1.0 → 3.0.0 (MAJOR, drafted on branch
+  003: Principle I redefined into local and server modes; "single-user, no authentication layer"
+  removed), 2.1.0 → 2.2.0 (Readable Code), 2.0.1 → 2.1.0 (clone), 1.0.0 → 2.0.0 (Principle IV
+  redefined), 2.0.0 → 2.0.1 (wording)
 -->
 
 # Semantic Workbench Constitution
@@ -54,20 +59,36 @@ The workbench runs in exactly one of two modes, chosen at start.
 - Outbound network calls are limited to the configured identity provider (including its
   directory API, used only to resolve membership of configured groups and to read their display
   names, and its token endpoint,
-  used to obtain tokens on behalf of the signed-in person) and to Git remotes and their hosts'
+  used to obtain tokens on behalf of the signed-in person), to Git remotes and their hosts'
   token endpoints, only when a person explicitly triggers a remote operation or connects an
-  account. Remote operations use that person's own delegated credential, passed to Git for one
+  account, and to operational telemetry as described below. Remote operations use that person's own delegated credential, passed to Git for one
   command only; credentials MUST NOT be stored in plain text and MUST NOT be written to Git
   configuration.
 - Adding or changing a remote address and cloning are Admin actions, limited to an allow-list of
   hosts.
+- **Operational telemetry** is opt-in and exists only in server mode:
+  - It is off unless the operator sets an Application Insights connection string. The server MUST
+    accept only Microsoft's Application Insights ingestion hosts in that string, and MUST NOT
+    load the telemetry libraries, open a connection or make any network call for telemetry while
+    it is off.
+  - It carries facts about the running service: build identity, route templates (never raw
+    paths), status codes, durations, counts, Git subcommand and option names, error names with
+    redacted messages, and a keyed pseudonym of the person or client. It MUST NOT carry document
+    content, file names, paths, project names, query strings, tokens, cookies, secrets, credentials,
+    or any name, address or identifier of a person other than that pseudonym.
+  - Browsers MUST NOT call any telemetry service. A signed-in browser may send JavaScript errors
+    and timings, and nothing else, to the workbench API in size-limited, rate-limited, schema-
+    checked reports. The server forwards them like its own telemetry, and only while telemetry is
+    on.
+  - Telemetry is operational and sampled; it never replaces or feeds the audit log, which stays on
+    the data root.
 
 **Both modes**:
 
 - The application MUST NOT fetch remote documents, `owl:imports`, schemas or referenced files.
   Every schema it validates against is a file shipped in the repository.
 - The application MUST NOT call a hosted LLM or any other hosted service beyond those listed
-  above. Agent-facing endpoints supply deterministic context and planning; language
+  above. Local mode MUST NOT send operational telemetry. Agent-facing endpoints supply deterministic context and planning; language
   interpretation and query execution belong to the caller.
 - User data stays under the configured data root (`data/` by default; in server mode the
   container's mounted storage; tests use an isolated temporary root): project repositories in
@@ -75,7 +96,8 @@ The workbench runs in exactly one of two modes, chosen at start.
   repository in `data/admin/`, application state in `data/state/`, the trash in `data/trash/`.
   The workbench MUST NOT open repositories outside `data/projects/`, `data/worktrees/` and
   `data/admin/`, and MUST NOT write outside the data root. No feature may send document content
-  off the machine or container, except Git remote operations (clone, fetch, pull, push, sync)
+  off the machine or container, and operational telemetry never carries any, except Git remote
+  operations (clone, fetch, pull, push, sync)
   that a person triggers explicitly, against a remote configured for that project. A clone is
   created only in a new folder inside `data/projects/`, and the address entered becomes that
   project's configured remote. The workbench never contacts a remote automatically or in the
@@ -254,4 +276,4 @@ planning documents.
 - Exceptions MUST be recorded in the feature's plan under "Complexity Tracking" with the reason
   and the simpler alternative that was rejected.
 
-**Version**: 3.1.0 | **Ratified**: 2026-10-20 | **Last Amended**: 2026-10-21
+**Version**: 3.2.0 | **Ratified**: 2026-10-20 | **Last Amended**: 2026-10-23
