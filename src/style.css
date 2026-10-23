@@ -107,7 +107,7 @@ button:disabled {
 }
 .active {
   background: var(--color-accent-soft);
-  color: var(--color-accent);
+  color: var(--color-accent-text);
 }
 .section-label {
   margin: 30px 10px 15px;
@@ -367,7 +367,7 @@ p {
 }
 .node small {
   display: block;
-  color: var(--color-success);
+  color: var(--color-accent-text);
   font-size: var(--text-small);
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -390,6 +390,27 @@ p {
   border-radius: 10px !important;
   box-shadow: 0 5px 15px color-mix(in srgb, var(--color-shadow) 3%, transparent);
   width: auto !important;
+}
+/* React Flow draws its own minimap, controls, labels and attribution in light colours; these
+   variables hand it the theme instead. */
+.react-flow {
+  --xy-attribution-background-color-default: color-mix(
+    in srgb,
+    var(--color-surface) 80%,
+    transparent
+  );
+  --xy-minimap-background-color-default: var(--color-surface);
+  --xy-minimap-mask-background-color-default: color-mix(
+    in srgb,
+    var(--color-surface-sunken) 70%,
+    transparent
+  );
+  --xy-edge-label-background-color-default: var(--color-surface-page);
+  --xy-edge-label-color-default: var(--color-text-secondary);
+  --xy-controls-button-background-color-default: var(--color-surface);
+  --xy-controls-button-background-color-hover-default: var(--color-surface-hover);
+  --xy-controls-button-border-color-default: var(--color-border);
+  --xy-controls-button-color-default: var(--color-text);
 }
 .react-flow__edge-text {
   font-size: var(--text-small);
@@ -429,7 +450,7 @@ footer span {
 }
 .catalog small {
   display: block;
-  color: var(--color-success);
+  color: var(--color-accent-text);
   font-size: var(--text-small);
 }
 .catalog strong {
@@ -987,7 +1008,7 @@ main {
   border-radius: 7px;
   padding: 8px 12px;
   font-size: var(--text-small);
-  color: var(--color-neutral-strong);
+  color: var(--color-text-muted);
   display: flex;
   align-items: center;
   gap: 14px;
@@ -1307,7 +1328,7 @@ dialog.validation-backdrop:not([open]) {
   gap: 8px;
 }
 .mapping-heading small {
-  color: var(--color-neutral-strong);
+  color: var(--color-text-muted);
   letter-spacing: 2px;
   font-size: var(--text-small);
 }
@@ -2615,7 +2636,7 @@ button.danger:hover {
   padding: 0 8px;
   min-width: 150px;
   flex: 0 1 150px;
-  color: var(--color-neutral-strong);
+  color: var(--color-text-muted);
 }
 .center-picker input {
   border: 0;
@@ -2723,7 +2744,7 @@ button.danger:hover {
 }
 .neighborhood-counts {
   font-size: var(--text-small);
-  color: var(--color-neutral-strong);
+  color: var(--color-text-muted);
   white-space: nowrap;
 }
 .neighborhood-counts strong {
@@ -2773,7 +2794,7 @@ button.danger:hover {
   display: flex;
   gap: 10px;
   font-size: var(--text-small);
-  color: var(--color-neutral-strong);
+  color: var(--color-text-muted);
   white-space: nowrap;
   margin-left: auto;
 }

@@ -881,6 +881,23 @@ To add a token, add a line with a semantic name to the right group in `src/theme
 it with `var(--color-name)`. A name ends in `-soft` for a tinted background, `-border` for a line
 and `-text` for writing in that hue; a bare hue name is a solid colour for icons and lines.
 
+### Light and dark
+
+`src/theme.css` holds two value sets of the same tokens: the light set under `:root` and the dark
+set under `:root[data-theme='dark']` and, for a system that prefers dark, under
+`@media (prefers-color-scheme: dark)` for `:root:not([data-theme='light'])`. Stylesheets never
+mention the theme; they use the tokens and the page changes with the values. The Theme control in
+the sidebar footer (System, Light, Dark) sets the `data-theme` attribute on `<html>` and stores the
+choice in the browser's local storage under `workbench.theme`; System removes the attribute so
+the browser's setting decides. `public/theme-init.js` applies the stored choice before the first
+paint, so a dark page never flashes light. The sign-in pages of server mode follow the system
+setting. To add a token, give it a value in the light set and in both dark blocks; a test fails
+when the sets differ.
+
+The dark set keeps muted text at 4.5:1 or more on every surface, and strong borders and icons at
+3:1 or more; `tests/theme-check.test.ts` checks the token values and `bun run test:theme` measures
+the rendered screens.
+
 ### Moving colour literals into tokens
 
 `bun scripts/theme-codemod.ts` replaces every colour literal (hex, `rgb()`, named colours) in

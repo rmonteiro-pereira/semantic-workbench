@@ -23,7 +23,7 @@ import {
 } from './helpers/color-literals';
 import { languageOf, themedFiles } from './helpers/theme-files';
 
-type TokenRole = 'surface' | 'border' | 'text' | 'solid' | 'shadow' | 'mask' | 'named';
+type TokenRole = 'surface' | 'border' | 'text' | 'solid' | 'graphic' | 'shadow' | 'mask' | 'named';
 type UseClass = 'background' | 'border' | 'text' | 'shadow' | 'mask' | 'any';
 
 /** A theme token with a literal light value, the colours the codemod may map to. */
@@ -45,6 +45,7 @@ export const TOLERANCE: Record<TokenRole, number> = {
   border: 9,
   text: 12,
   solid: 12,
+  graphic: 12,
   shadow: 12,
   mask: 0,
   named: 0.5,
@@ -58,6 +59,8 @@ export function roleOf(name: string): TokenRole {
   if (NAMED_FOR_ONE_JOB.test(name)) return 'named';
   if (name === '--color-shadow') return 'shadow';
   if (name === '--color-mask-opaque') return 'mask';
+  // These solid colours are too pale to read as text on the page; lines, icons and fills only.
+  if (/^--color-(neutral|success|warning|warning-bright)(-strong)?$/.test(name)) return 'graphic';
   if (/^--color-surface|-soft(-strong)?$/.test(name)) return 'surface';
   if (/^--color-border|-border(-strong)?$/.test(name)) return 'border';
   if (/^--color-(text|on-)|-(text|emphasis|strong)$/.test(name)) return 'text';
@@ -76,12 +79,12 @@ export function readTokens(themeCss: string): Token[] {
 }
 
 const ROLES_FOR: Record<UseClass, TokenRole[]> = {
-  background: ['surface', 'solid', 'text', 'shadow', 'named'],
-  border: ['border', 'solid', 'text', 'named'],
+  background: ['surface', 'solid', 'graphic', 'text', 'shadow', 'named'],
+  border: ['border', 'solid', 'graphic', 'text', 'named'],
   text: ['text', 'solid', 'named'],
-  shadow: ['shadow', 'solid', 'border', 'named'],
+  shadow: ['shadow', 'solid', 'graphic', 'border', 'named'],
   mask: ['mask'],
-  any: ['surface', 'border', 'text', 'solid', 'shadow', 'named'],
+  any: ['surface', 'border', 'text', 'solid', 'graphic', 'shadow', 'named'],
 };
 
 /** Returns what a CSS property or script attribute uses a colour for. */

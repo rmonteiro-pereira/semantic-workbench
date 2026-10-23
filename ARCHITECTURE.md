@@ -196,6 +196,10 @@ editor never receives an older deferred value as an external replacement.
   codemod and with `scripts/check-theme.ts`, which `bun run check` runs and which fails for any
   literal outside `src/theme.css` and `src/theme-palette.ts` (the group colours data picks at run
   time). The sign-in pages of `server/routes/auth-stylesheet.ts` are served the same tokens.
+  Dark is a second value set of the same tokens (`:root[data-theme='dark']` and the system
+  `prefers-color-scheme` block). `src/theme-preference.ts` reads and stores the choice,
+  `src/app/ThemeControl.tsx` is the control in the sidebar footer, and `public/theme-init.js`
+  applies the stored choice before the first paint.
 - **Configuration**: start-up uses `readConfig()` in `server/config.ts` once for mode, host,
   port, data root, cache root and build identity. Every server-mode variable is listed once, with its default and what start-up checks, in `specs/003-authn-authz/contracts/configuration.md`. Server mode requires issuer discovery and
   a valid administration policy set before serving workspace traffic. The writable-root probe precedes lock acquisition; recovery,
