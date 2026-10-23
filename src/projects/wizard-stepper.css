@@ -1,0 +1,85 @@
+/* Wizard step navigation. The compact form shows on narrow windows, the list from 1200 px. */
+.wizard-stepper-compact {
+  display: grid;
+  gap: 8px;
+}
+.wizard-stepper-title {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.wizard-stepper-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-surface-sunken);
+}
+.wizard-stepper-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--color-accent);
+}
+.wizard-stepper-compact select {
+  max-width: 100%;
+  font-size: var(--text-small);
+}
+.wizard-stepper-list {
+  display: none;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.wizard-stepper-list button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  font-size: var(--text-small);
+  padding: 7px 8px;
+  color: var(--text-muted);
+}
+.wizard-stepper-list button:disabled {
+  opacity: 1;
+}
+.wizard-stepper-mark {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border-strong);
+  font-size: var(--text-small);
+}
+.wizard-stepper-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.wizard-stepper-list li[data-state='current'] button {
+  color: var(--color-text);
+  font-weight: 700;
+}
+.wizard-stepper-list li[data-state='current'] .wizard-stepper-mark {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-on-accent);
+}
+.wizard-stepper-list li[data-state='done'] .wizard-stepper-mark {
+  border-color: var(--color-accent);
+  color: var(--color-accent-text);
+}
+.wizard-stepper-list li[data-state='done'] button {
+  color: var(--color-text);
+}
+/* The wizard body becomes a two-column grid at the same 1200 px (see edit.css). */
+@media (min-width: 1200px) {
+  .wizard-stepper-compact {
+    display: none;
+  }
+  .wizard-stepper-list {
+    display: block;
+  }
+}

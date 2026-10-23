@@ -4,6 +4,9 @@ import React from 'react';
 import { validateInput } from '../input';
 import { scm as scmApi, type Doc } from '../projects/api';
 
+/** Opening a document leaves the phone drawer open only when the caller says so. */
+export type OpenOptions = { keepDrawer?: boolean };
+
 type Options = {
   setMessage: React.Dispatch<React.SetStateAction<string>>;
   current: import('../projects/api').Doc | null;
@@ -43,10 +46,17 @@ export function useFileNavigation({
   sourceRef,
   getDraftOf,
 }: Options) {
-  function openDocument(d: Doc): boolean {
+  /**
+   * Opens a document. A person's choice closes the phone drawer behind it; the first file the app
+   * opens by itself at start-up leaves the drawer as the person has it.
+   */
+  function openDocument(d: Doc, options: OpenOptions = {}): boolean {
+    const closeDrawerUnlessKept = () => {
+      if (compact && !options.keepDrawer) closeWorkspace();
+    };
     setMessage('');
     if (current?.id === d.id) {
-      if (compact) closeWorkspace();
+      closeDrawerUnlessKept();
       return true;
     }
     if (current && source !== current.source) void getLeaveCurrent()();
@@ -54,7 +64,7 @@ export function useFileNavigation({
     setSource(d.source);
     void restoreDraft(d);
     setNeighborhoodFocus('');
-    if (compact) closeWorkspace();
+    closeDrawerUnlessKept();
     setSelected('');
     setSelectedEdge('');
     setSearch('');

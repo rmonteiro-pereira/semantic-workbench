@@ -307,17 +307,28 @@ button.link {
   padding: 7px 10px;
   gap: 5px;
 }
-/* KPI wizard: one progress line with a step picker, then the current step's form. */
-.wizard-progress {
+/* KPI wizard: the step navigation, then the current step's form. */
+.wizard-body {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 12px;
 }
-.wizard-progress select {
-  max-width: 100%;
-  font-size: var(--text-small);
+.wizard-step {
+  min-width: 0;
+}
+/* The stepper shows its list from the same 1200 px (see wizard-stepper.css), so the two move
+   together. */
+@media (min-width: 1200px) {
+  .wizard-body {
+    display: grid;
+    grid-template-columns: 190px minmax(0, 1fr);
+    align-items: start;
+    gap: 16px;
+  }
+}
+/* Long metric and KPI names wrap at any point instead of widening the drawer. */
+.kpi-wizard :is(h2, h3, p, strong, small, span, li, code, label) {
+  overflow-wrap: anywhere;
 }
 .wizard-body h3 {
   font-size: 15px !important;
@@ -482,4 +493,11 @@ button.link {
    screens only, so no screen shows it. */
 .kpi-wizard input[list]::-webkit-calendar-picker-indicator {
   display: none !important;
+}
+
+/* The metric wizard is a short form, so its drawer takes the height of the current step and only
+   scrolls when a step is taller than the window. */
+.workbench-dialog.item-editor.kpi-wizard {
+  height: auto;
+  align-self: flex-start;
 }

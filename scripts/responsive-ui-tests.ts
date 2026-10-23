@@ -1750,6 +1750,28 @@ try {
     });
     await shellTourPage.close();
   }
+  // A phone drawer the person opened while the workspace is still loading must stay open when the
+  // first file opens by itself.
+  await check('sidebar: the phone drawer opened during loading stays open', async () => {
+    const loadingPage = await openPage(390, 844);
+    await loadingPage.route(
+      url => url.pathname.startsWith('/api/') && !url.pathname.includes('events'),
+      async route => {
+        if (route.request().method() === 'GET') await new Promise(done => setTimeout(done, 1200));
+        await route.fallback();
+      },
+    );
+    await loadingPage.goto(appUrl());
+    await loadingPage.getByRole('button', { name: 'Open workspace', exact: true }).click();
+    const closeButton = loadingPage.getByRole('button', { name: 'Close workspace drawer' });
+    await expect(closeButton).toBeVisible();
+    await expect(loadingPage.locator('.workspace-title h1')).not.toHaveText('Semantic Workbench', {
+      timeout: 30_000,
+    });
+    await loadingPage.waitForTimeout(500);
+    await expect(closeButton).toBeVisible();
+    await loadingPage.close();
+  });
   await check('no uncaught browser errors', async () => expect(errors).toEqual([]));
   console.log(`${passed} responsive UI checks passed`);
 } finally {

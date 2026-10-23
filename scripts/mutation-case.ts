@@ -241,6 +241,31 @@ if (
         }),
       );
       assert.equal(fs.readFileSync(file, 'utf8'), 'original');
+
+      // A destination held open by another process is retried on Windows only, within a budget.
+      const renameFailing = (codes: string[], platform: string) => {
+        let attempts = 0;
+        const environment = {
+          platform,
+          pause: () => {},
+          rename: () => {
+            attempts += 1;
+            const code = codes.shift();
+            if (code) throw Object.assign(Error(code), { code });
+          },
+        };
+        return { environment, attempts: () => attempts };
+      };
+      const windowsLock = renameFailing(['EPERM', 'EBUSY'], 'win32');
+      m.replaceFile('a.tmp', 'a', windowsLock.environment);
+      assert.equal(windowsLock.attempts(), 3);
+      const linuxLock = renameFailing(['EPERM'], 'linux');
+      assert.throws(() => m.replaceFile('a.tmp', 'a', linuxLock.environment));
+      assert.equal(linuxLock.attempts(), 1);
+      const missing = renameFailing(['ENOENT'], 'win32');
+      assert.throws(() => m.replaceFile('a.tmp', 'a', missing.environment));
+      const stuck = renameFailing(Array(1_000).fill('EPERM'), 'win32');
+      assert.throws(() => m.replaceFile('a.tmp', 'a', stuck.environment));
     }
     if (category === 'paths') {
       for (const bad of ['../x', 'a/../../x', '.git/config', 'a/.git/x'])
