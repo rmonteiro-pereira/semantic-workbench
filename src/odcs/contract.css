@@ -29,12 +29,6 @@
   overflow: hidden;
   overflow-wrap: anywhere;
 }
-.odcs-clamp-one {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 .odcs-secondary {
   display: block;
   color: var(--text-muted);
@@ -165,7 +159,9 @@
   accent-color: var(--color-accent-text);
 }
 @media (max-width: 700px) {
-  .odcs-head-action {
+  .odcs-title > .odcs-head-action {
+    flex: 1 0 100%;
+    justify-content: center;
     margin-left: 0;
   }
   .odcs-table-wrap:has(.stack) {
@@ -223,9 +219,6 @@
     grid-column: 2;
     min-width: 0;
   }
-  .odcs-table.stack td.odcs-desc .odcs-clamp-one {
-    white-space: normal;
-  }
   .odcs-table.stack td.col-name {
     padding-left: 0 !important;
   }
@@ -235,4 +228,119 @@
   .odcs-form-flags {
     flex-direction: column;
   }
+}
+
+/* The contract id stays on one line so it never breaks inside the UUID. */
+.odcs-identity > div:has(.odcs-contract-id) {
+  grid-column: 1 / -1;
+}
+.odcs-contract-id {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+}
+.odcs-contract-id code {
+  padding: 2px 8px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 6px;
+  background: var(--color-surface-sunken);
+  font-size: var(--text-small);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.odcs-contract-id button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  padding: 2px 8px;
+  font-size: var(--text-small);
+}
+/* The dataset tabs stay on one row; a fade shows that more tabs are out of sight. */
+.odcs-tabs {
+  flex-wrap: nowrap;
+  scrollbar-width: none;
+  scroll-padding-inline: 18px;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    var(--color-mask-opaque) var(--fade-start, 0px),
+    var(--color-mask-opaque) calc(100% - var(--fade-end, 0px)),
+    transparent
+  );
+}
+.odcs-tabs button {
+  flex: none;
+}
+/* One legend explains the direction chips of the Relationships tab. */
+.odcs-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 24px;
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--text-muted);
+}
+.odcs-legend > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.odcs-legend dt,
+.odcs-legend dd {
+  margin: 0;
+}
+/* An empty tab says what is missing and what to do about it. */
+.odcs-empty-state {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  max-width: 60ch;
+  padding: 24px 4px;
+  color: var(--text-muted);
+}
+.odcs-empty-state strong {
+  color: var(--color-text);
+  font-size: 15px;
+}
+.odcs-empty-state p {
+  margin: 0;
+  font-size: 13px;
+}
+/* Names and the Edit buttons share one centre line, and the Edit column hugs its button. */
+.odcs-properties td {
+  vertical-align: middle;
+}
+.odcs-properties .col-actions {
+  width: 1%;
+  white-space: nowrap;
+}
+/* The ODCS pages keep a readable measure on wide screens instead of stretching their tables. */
+.odcs-page > :not(.odcs-back, .odcs-panel),
+.odcs-panel > :not(.odcs-lineage-host) {
+  max-width: min(100%, 1400px);
+}
+.odcs-panel > .odcs-relationships {
+  max-width: min(100%, 960px);
+}
+/* The dialogs of these pages use the same gap under the title as the other dialogs. */
+.workbench-dialog.has-footer.odcs-edit-dialog > .dialog-body,
+.workbench-dialog.has-footer.odcs-section-dialog > .dialog-body {
+  padding-top: 12px;
+  padding-bottom: 18px;
+}
+.odcs-save-hint {
+  flex: 1;
+  align-self: center;
+  color: var(--text-muted);
+  font-size: var(--text-small);
+}
+.odcs-form-field :is(input, select, textarea):focus-visible {
+  outline: none;
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-focus) 20%, transparent);
 }

@@ -225,9 +225,6 @@
   color: var(--color-text-muted);
   min-width: 220px;
 }
-.odcs-overview .odcs-table-wrap {
-  max-height: min(70vh, 720px);
-}
 button.odcs-link {
   border: 0;
   background: none;

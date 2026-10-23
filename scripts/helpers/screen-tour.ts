@@ -67,7 +67,7 @@ export function tourScreens({ ontology, contract }: TourFiles): Screen[] {
     'Mappings',
     'Metrics',
   ];
-  const screens: Screen[] = [{ name: 'projects', show: showSidebar }];
+  const screens: Screen[] = [{ name: 'sidebar-projects', show: showSidebar }];
   for (const tab of modelTabs) {
     screens.push({ name: `ontology-${tab.toLowerCase()}`, show: fileTab(ontology, tab) });
   }

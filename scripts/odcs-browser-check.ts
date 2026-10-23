@@ -106,6 +106,9 @@ try {
       const o = overview();
       await expect(o).toBeVisible();
       await expect(o.getByRole('heading', { level: 2 })).toHaveText('Commerce warehouse contract');
+      // The id is one monospace chip with a copy button, never a text that breaks inside the UUID.
+      await expect(o.locator('.odcs-contract-id code')).toHaveText(/^[0-9a-f-]{36}$/);
+      await expect(o.getByRole('button', { name: 'Copy contract id' })).toBeVisible();
       for (const fact of ['1.2.0', 'active', 'Commerce', 'Sales analytics', 'v3.1.0'])
         await expect(o).toContainText(fact);
       const team = await openSection('Team and roles');
@@ -257,6 +260,17 @@ try {
       await expect(rel.getByRole('row').filter({ hasText: 'order_lines' })).toContainText(
         'referenced by',
       );
+      // Each key reads as a sentence, and one legend explains the two direction chips.
+      await expect(rel.getByRole('row').filter({ hasText: 'customer_id' })).toContainText(
+        'orders.customer_id references customers.customer_id',
+      );
+      const legend = dataset('orders').getByRole('definition').filter({ hasText: 'holds the key' });
+      await expect(legend).toHaveCount(2);
+      await views('orders').getByRole('tab', { name: 'Data Quality' }).click();
+      const empty = dataset('orders').getByRole('status');
+      await expect(empty).toContainText('No quality rules declared');
+      await expect(empty).toContainText('Add a quality list');
+      await expect(empty).toContainText('does not run them');
     },
   );
   await check(
@@ -371,7 +385,7 @@ try {
       };
       const openEditor = async (path: string) => {
         await table.getByRole('button', { name: `Edit ${path}`, exact: true }).click();
-        const dialog = page.getByRole('dialog', { name: `Edit ${path}` });
+        const dialog = page.getByRole('dialog', { name: `Edit orders.${path}`, exact: true });
         await expect(dialog).toBeVisible();
         return dialog;
       };
@@ -424,9 +438,11 @@ try {
       // Cancel and Escape leave the file as it was, and Save stays off until something changes.
       const before = read(commerce.slug, 'commerce.odcs.yaml');
       const discarded = await openEditor('amount');
-      await expect(discarded.getByRole('button', { name: 'Save' })).toBeDisabled();
+      await expect(discarded.getByRole('button', { name: 'Save to file' })).toBeDisabled();
+      await expect(discarded).toContainText('No changes yet');
       await discarded.getByLabel('Description').fill('Discarded');
-      await expect(discarded.getByRole('button', { name: 'Save' })).toBeEnabled();
+      await expect(discarded.getByRole('button', { name: 'Save to file' })).toBeEnabled();
+      await expect(discarded).not.toContainText('No changes yet');
       await page.keyboard.press('Escape');
       await expect(discarded).toHaveCount(0);
       const reopened = await openEditor('amount');

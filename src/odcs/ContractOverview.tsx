@@ -5,6 +5,7 @@ import { odcsForeignKeys } from '../odcs';
 import { flattenProperties } from './odcs-diff';
 import { Badge } from '../PropertyBadges';
 import { Modal } from '../projects/Modal';
+import { ContractId } from './ContractId';
 import { ReadMore } from './ReadMore';
 import './odcs.css';
 import './contract.css';
@@ -228,6 +229,7 @@ function SectionRows({ sections }: { sections: SectionSummary[] }) {
         <Modal
           title={open.label}
           size="large"
+          className="odcs-section-dialog"
           onCancel={() => setOpen(null)}
           footer={
             <>
@@ -272,11 +274,7 @@ function ContractHead({ data }: { data: any }) {
             <div key={k}>
               <dt>{k}</dt>
               <dd>
-                {k === 'Status' ? (
-                  <span className={`odcs-status s-${text(v)}`}>{text(v)}</span>
-                ) : (
-                  text(v)
-                )}
+                <IdentityValue label={k} value={v} />
               </dd>
             </div>
           ))}
@@ -285,6 +283,13 @@ function ContractHead({ data }: { data: any }) {
       {description && typeof description === 'object' && <PurposeList description={description} />}
     </header>
   );
+}
+
+function IdentityValue({ label, value }: { label: string; value: unknown }) {
+  if (label === 'Status')
+    return <span className={`odcs-status s-${text(value)}`}>{text(value)}</span>;
+  if (label === 'Id') return <ContractId id={text(value)} />;
+  return <>{text(value)}</>;
 }
 
 function PurposeList({ description }: { description: Record<string, unknown> }) {
@@ -382,9 +387,7 @@ function ObjectRow({ fact, showKind, showRules, onOpen, onOpenInLineage }: Objec
         </td>
       )}
       <td className="odcs-desc" data-label="Description">
-        <span className="odcs-clamp-one" title={fact.description}>
-          {fact.description}
-        </span>
+        {fact.description}
       </td>
     </tr>
   );

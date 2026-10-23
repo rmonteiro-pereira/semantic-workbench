@@ -2,25 +2,26 @@
  * rules. */
 import React, { useEffect, useMemo, useState } from 'react';
 import { parse } from 'yaml';
-import { ArrowLeft, Table2, Workflow } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, Table2, Workflow } from 'lucide-react';
 import { odcsForeignKeys } from '../odcs';
 import { scm, type Doc, type GitCommit as Commit } from '../projects/api';
 import { diffObject, flattenProperties, lastChange, type ObjectDiff } from './odcs-diff';
 import {
   buildLineage,
   closure,
-  hopSentence,
   objectId,
   cardOfNode,
   type ForeignKeyHop,
   type LineageCard,
 } from './lineage';
+import { EmptyState } from './EmptyState';
 import { LineageCanvas } from './LineageCanvas';
 import { projectFiles, projectRevision } from './project-files';
 import { rulesOf, tableTypeBadge } from './ContractOverview';
 import { PropertiesTab } from './PropertiesTab';
 import type { PropertyEditor } from './PropertyEditors';
 import { ReadMore } from './ReadMore';
+import { ScrollStrip } from '../ScrollStrip';
 import './odcs.css';
 // Quality rules are displayed as declared and never executed. Git history compares versions at
 // property level.
@@ -202,7 +203,7 @@ export function DatasetPage({
         </div>
         {object.description && <ReadMore>{text(object.description)}</ReadMore>}
       </header>
-      <div className="odcs-tabs" role="tablist" aria-label="Asset views">
+      <ScrollStrip className="odcs-tabs" selection={tab} role="tablist" label="Asset views">
         {TABS.map(t => (
           <button
             key={t}
@@ -215,7 +216,7 @@ export function DatasetPage({
             {t === 'Data Quality' && rules.length > 0 && <small>{rules.length}</small>}
           </button>
         ))}
-      </div>
+      </ScrollStrip>
       <div className="odcs-panel" role="tabpanel" aria-label={tab}>
         {tab === 'Properties' && propertiesNote && <p className="odcs-note">{propertiesNote}</p>}
         {tab === 'Properties' && (
@@ -405,11 +406,8 @@ function RelationshipsTab({
     );
   return (
     <>
-      <p className="odcs-note">
-        Each foreign key reads child column → the column it references. In lineage, lines are drawn
-        the other way, from the referenced column to the column that holds the key.
-      </p>
-      <div className="odcs-table-wrap">
+      <DirectionLegend tableName={name} />
+      <div className="odcs-table-wrap odcs-relationships">
         <table className="odcs-table compact stack" aria-label="Relationships">
           <thead>
             <tr>
@@ -422,7 +420,7 @@ function RelationshipsTab({
             {rows.map((r, i) => (
               <tr key={i}>
                 <td data-label="Foreign key">
-                  <code>{hopSentence(r.hop)}</code>
+                  <code>{r.hop.child}</code> references <code>{r.hop.parent}</code>
                 </td>
                 <td data-label="Direction">
                   {r.direction === 'out' ? (
@@ -446,6 +444,25 @@ function RelationshipsTab({
         </table>
       </div>
     </>
+  );
+}
+// One legend for the two direction chips, so a colour is never the only clue to its meaning.
+function DirectionLegend({ tableName }: { tableName: string }) {
+  return (
+    <dl className="odcs-legend" aria-label="Direction legend">
+      <div>
+        <dt>
+          <span className="odcs-dir out">references</span>
+        </dt>
+        <dd>{tableName} holds the key and points at the other table.</dd>
+      </div>
+      <div>
+        <dt>
+          <span className="odcs-dir in">referenced by</span>
+        </dt>
+        <dd>The other table holds the key and points at {tableName}.</dd>
+      </div>
+    </dl>
   );
 }
 function HistoryTab({
@@ -669,34 +686,39 @@ function QualityTab({ object }: { object: any }) {
   const columns = qualityColumns(rules);
   return (
     <>
-      <p className="odcs-note">
-        Rules are shown as declared in the contract; the workbench does not run them.
-      </p>
       {!rules.length ? (
-        <p className="odcs-note">This table declares no quality rules.</p>
+        <EmptyState icon={<ShieldCheck size={28} />} title="No quality rules declared">
+          Add a quality list to this table or to one of its properties in the contract file (Source
+          tab). Rules appear here as declared; the workbench does not run them.
+        </EmptyState>
       ) : (
-        <div className="odcs-table-wrap">
-          <table className="odcs-table stack" aria-label="Quality rules">
-            <thead>
-              <tr>
-                {columns.map(column => (
-                  <th key={column.label}>{column.label}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rules.map((row, i) => (
-                <tr key={i}>
+        <>
+          <p className="odcs-note">
+            Rules are shown as declared in the contract; the workbench does not run them.
+          </p>
+          <div className="odcs-table-wrap">
+            <table className="odcs-table stack" aria-label="Quality rules">
+              <thead>
+                <tr>
                   {columns.map(column => (
-                    <td key={column.label} data-label={column.label}>
-                      {column.cell(row)}
-                    </td>
+                    <th key={column.label}>{column.label}</th>
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {rules.map((row, i) => (
+                  <tr key={i}>
+                    {columns.map(column => (
+                      <td key={column.label} data-label={column.label}>
+                        {column.cell(row)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </>
   );
