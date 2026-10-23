@@ -7,7 +7,7 @@ import { headerProblems } from './header';
 import { layoutProblems } from './layout-geometry';
 import { menuSurfaceProblems } from './menu-geometry';
 import { closeSyncDialog, offersSyncDialog, openSyncDialog } from './sync-dialog';
-import { smallTextProblems, textCollisionProblems } from './text-geometry';
+import { lowContrastProblems, smallTextProblems, textCollisionProblems } from './text-geometry';
 
 /** Supported authentication viewports, including the narrow phone layout. */
 export const authViewports = [
@@ -188,6 +188,8 @@ export async function authGeometry(
     }
     await page.screenshot({ path: screenshotPath(`/tmp/workbench-auth-${name}-${width}.png`) });
   }
+  // The pages without scripts take the dark theme from the system setting.
+  if (scope === 'main') await assertReadableInDark(page, name, scope);
   // Later steps of the same check must not inherit the largest size.
   if (original) await page.setViewportSize(original);
 }
@@ -493,6 +495,22 @@ async function checkRemoteControl(page: Page, mayChangeRemote: boolean) {
 async function assertTextProblemsEmpty(page: Page, name: string, scope: string, width: number) {
   assert.deepEqual(await smallTextProblems(page, scope), [], `${name} text size at ${width}`);
   assert.deepEqual(await textCollisionProblems(page, scope), [], `${name} collisions at ${width}`);
+}
+
+// The same page with the system asking for dark: readable sizes, no collisions and 4.5:1 text.
+async function assertReadableInDark(page: Page, name: string, scope: string) {
+  await page.emulateMedia({ colorScheme: 'dark' });
+  try {
+    assert.deepEqual(await smallTextProblems(page, scope), [], `${name} text size in dark`);
+    assert.deepEqual(await textCollisionProblems(page, scope), [], `${name} collisions in dark`);
+    assert.deepEqual(await lowContrastProblems(page, scope), [], `${name} contrast in dark`);
+    const background = await page.evaluate(
+      () => getComputedStyle(document.documentElement).backgroundColor,
+    );
+    assert.notEqual(background, 'rgb(247, 249, 249)', `${name} stays light in dark`);
+  } finally {
+    await page.emulateMedia({ colorScheme: null });
+  }
 }
 
 // Shrinking a desktop window leaves the sidebar open as a drawer over the page. A person would
