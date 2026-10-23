@@ -79,6 +79,12 @@ const wrongSettings: [string, (app: ReturnType<typeof fakeApp>) => void][] = [
     },
   ],
   [
+    'SW_TRUSTED_PROXY_HOPS',
+    app => {
+      delete app.env.SW_TRUSTED_PROXY_HOPS;
+    },
+  ],
+  [
     'port',
     app => {
       app.port = 80;
@@ -122,6 +128,7 @@ test('smoke passes before promotion and updates the scanned digest', async () =>
     'wait',
     'smoke',
     'promote',
+    'lock',
   ]);
   expect(client.calls[3][1]).toBe(fakeRelease.digest);
   const command = promotionArguments(fakeTarget, fakeRelease);

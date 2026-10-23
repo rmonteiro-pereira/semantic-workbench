@@ -6,6 +6,7 @@ import type { AdminRepository } from '../auth/admin-repo';
 import { readJson } from '../request';
 import { cloneCredential } from '../auth/remote-credentials';
 import type { Route } from './http';
+import { BadRequestError } from '../projects/errors';
 
 /** Starts and cancels clones; the projects a clone creates get their domain in one commit. */
 export function cloneRoutes(administration: AdminRepository): Route {
@@ -19,8 +20,8 @@ export function cloneRoutes(administration: AdminRepository): Route {
         Array.isArray(body) ||
         Object.keys(body).some(key => !['url', 'name', 'domain'].includes(key))
       )
-        throw Error('Expected {url, name?}.');
-      if (!ws.gitAvailable) throw Error('Git is not available on this machine.');
+        throw new BadRequestError('Expected {url, name?}.');
+      if (!ws.gitAvailable) throw new BadRequestError('Git is not available on this machine.');
       const domain = creationDomain(req, body.domain);
       // Also refuses a host that is not allowed, before anything is cloned.
       const { address, credential } = await cloneCredential(req, body.url);

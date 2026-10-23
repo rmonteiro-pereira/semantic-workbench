@@ -63,6 +63,9 @@ Container settings are read once at startup:
 - `DATA_DIR`: persistent root (`/data` in the image).
 - `SW_CACHE_DIR`: rebuildable SQLite cache folder (`/tmp/sw-cache` in the image). Put it on
   local disk: in server mode it also indexes every person's working copy.
+- The image writes only to `/data` and `/tmp`. Run it with `--read-only --tmpfs /tmp
+  --cap-drop ALL --security-opt no-new-privileges`, as the `workbench-server` Compose service
+  and `bun run test:container` do.
 - `SW_SERVE_STATIC=1`: serve `dist/` from the API; enabled in the image.
 - `SW_IN_CONTAINER=1`: print the host networking instructions; set by the image.
 - `SW_VERSION` and `SW_COMMIT`: build arguments and health metadata.
@@ -122,11 +125,35 @@ or 24 hours absolute by default; `admin/settings.json` configures `session.idleH
 `session.absoluteHours`. The persisted `lastSeenAt` is written at most once a minute, so a restart
 can shorten the remaining idle time by up to 60 seconds. Missing lifetime fields use those defaults; invalid values refuse startup.
 HKDF-SHA256 derives separate session-encryption (`sw-session`) and attempt-signing (`sw-attempt`)
-keys from `SW_SESSION_KEY`. Changing `SW_SESSION_KEY` ends all sessions and in-flight sign-ins.
-Refresh re-reads identity and groups and re-matches grants; failed
-refresh ends the session. Sign-out, expiry and administrative session termination close live
+keys from `SW_SESSION_KEY`; the index that finds a session by its provider session uses a third
+key derived from the session key (`sw-provider-index`). Changing `SW_SESSION_KEY` ends all
+sessions and in-flight sign-ins: the server still starts, deletes each session file it can no
+longer read (logging `session-unreadable`), and people sign in again. A damaged session file is
+treated the same way.
+Refresh re-reads identity and groups and re-matches grants; a refresh the provider refuses ends
+the session, while an unreachable provider answers 503 and keeps it. Sign-out, expiry and administrative session termination close live
 updates with an `access` event. Sign-in attempts use a signed ten-minute `__Host-sw-auth` cookie;
-a persistent replay ledger prevents reusing a consumed attempt after a restart.
+a persistent replay ledger prevents reusing a consumed attempt after a restart; expired ledger
+entries are deleted once a minute.
+
+Each client address may send 1,000 requests in a burst and 200 a second after that;
+`/auth/login` and `/auth/callback` share a tighter allowance of 60 and 2 a second, because each
+call can reach the identity provider. Beyond it the answer is `429` with `Retry-After`, nothing is
+audited, and the source is logged as `[http] rate-limited <source> <n>` at most once a minute. A
+signed-in person is limited as themselves, so an anonymous visitor behind the same address cannot
+use up their allowance. The client address is the socket peer. Behind a reverse proxy that is the
+proxy, so set `SW_TRUSTED_PROXY_HOPS` to the number of proxies (1 behind Azure Container Apps
+ingress): the address is then the entry that many places from the right of `X-Forwarded-For`, and
+entries to its left, which the client writes, are ignored. An IPv6 client counts by its /64.
+Refusals that name nobody (a missing session, a refused bearer token, a failed sign-in) are
+recorded in the audit log for the first 20 of each kind per client address and then once a
+minute; the next record says how many were left out (`suppressed`), so an unauthenticated loop
+cannot fill the data volume and its size is still known. A failure the server did not expect answers `500 {"error":"Internal error."}`; the
+cause goes to the server log as `[http] <requestId> <name>: <message>`; a failed Git command
+answers `{"error":"Git failed."}` and its output goes to the same log line. A malformed escape in
+a URL path answers 400. A failed sign-in page
+answers 400 for an expired, replayed or invalid attempt, an invalid token or a tenant mismatch,
+and 503 when the provider cannot be reached.
 
 Server-mode hashed assets use `private, max-age=31536000, immutable`; HTML and API responses
 use `no-store`, so shared caches never retain auth-gated files. Local-mode caching is unchanged.
@@ -158,6 +185,7 @@ Identity settings used by server sign-in:
 | `SW_API_AUDIENCE` | Comma-separated audiences an agent client's bearer token may carry. For Entra, the API app's client id (the `aud` of v2 access tokens). Unset, every bearer token is refused. |
 | `SW_GITHUB_CLIENT_ID`, `SW_GITHUB_CLIENT_SECRET` | Optional GitHub OAuth app (or GitHub App) used by **Connect GitHub**; set both or neither. |
 | `SW_GITHUB_HOST` | GitHub host for those tokens, default `github.com`; a GitHub Enterprise host name otherwise. |
+| `SW_TRUSTED_PROXY_HOPS` | `0` (default) to `5`: how many reverse proxies in front of the workbench append to `X-Forwarded-For`. Rate limits use the client address from that many entries from the right; `0` uses the socket peer. Set `1` behind Azure Container Apps ingress. Network policy rules keep comparing the socket peer. |
 | `SW_ADO_OBO` | `true` (default) lets the server obtain Azure DevOps tokens on behalf of the signed-in person; `false` turns it off. Only with `SW_OIDC_PROVIDER=entra`; other providers have no on-behalf-of. |
 
 `SW_HOST`, `SW_PORT`, `DATA_DIR`, `SW_CACHE_DIR`, `SW_SERVE_STATIC`, `SW_IN_CONTAINER`,
@@ -186,7 +214,9 @@ Entra group overage uses application permission `GroupMember.Read.All` with admi
 Only group IDs named in grants and restricted paths are checked, in batches of at most 20.
 A failed directory lookup supplies no membership, an explanatory message and an audit record.
 Provider app roles never grant a person access. E-mail grants trust the tenant's administration
-of addresses: Entra uses domain-verified e-mail or a member UPN, never a guest `#EXT#` UPN;
+of addresses: Entra uses a domain-verified e-mail claim or the UPN or user name of a member of
+the home directory, never a guest `#EXT#` name or the editable user name of a user from another
+directory;
 Keycloak and generic providers require `email_verified=true`. E-mail matching ignores case.
 For Keycloak, set its realm issuer, `SW_OIDC_PROVIDER=keycloak`, a confidential client secret,
 and matching group-name grants; tenant ID is not required.
@@ -201,7 +231,12 @@ when their target is hidden. Direct requests for unreadable files and their Git 
 messages on visible commits can still mention confidential names, so avoid putting secrets in
 commit messages.
 
-Drafts, grouping state and dismissed suggestions belong to the signed-in person. Trash entries
+A request that spells an existing file or folder in another letter case, or a new name that
+differs from a sibling only in case, answers 404: the Azure Files SMB share ignores case and
+would otherwise open `FINANCE/plan.yaml` as `finance/plan.yaml`, past a rule for `finance/**`.
+Drafts, grouping state and dismissed suggestions belong to the signed-in person. A draft is kept
+only for a file the person has, holds at most about 4 MB, and each person keeps at most 200
+drafts per project and 1,000 in all. Trash entries
 require readable original paths and permission to restore your own or another person’s entries.
 Live events and reconnect replay are filtered for each reader. In server mode an administration
 change reloads only the open tabs of the people it affects; in local mode an access change reloads
@@ -223,8 +258,9 @@ Nobody edits that folder; it stays detached at the tip of the default branch.
 - **Commits** carry the signed-in person as author (name and e-mail from the provider), the
   workbench as committer and a `Signed-in-user: <id>` trailer. The Git identity dialog is local
   mode only.
-- **Branch** lists every branch; a branch another person's copy holds shows "in use by <name>" and
-  cannot be chosen. The default branch is held by the published state. A protected branch can be
+- **Branch** lists every branch except other people's `work/<handle>` branches, which cannot be
+  checked out even while no copy holds them; a branch another person's copy holds shows "in use
+  by <name>" and cannot be chosen. The default branch is held by the published state. A protected branch can be
   checked out only by someone who may publish to it.
 - **Pull from <default>** merges the default branch into your branch, refused while you have
   unsaved edits or uncommitted changes, like any pull. The content guards judge the exact commit
@@ -257,7 +293,7 @@ Nobody edits that folder; it stays detached at the tip of the default branch.
 - A file deleted or reverted in a copy goes to the trash as that person's entry: nobody else
   lists or restores it, and it goes back into the same copy.
 - Deleting a project or clearing the workspace lists each person's unpublished work in the
-  confirmation and keeps it in the trash entry as a binary patch per person
+  confirmation, for those who may delete the project, and keeps it in the trash entry as a binary patch per person
   (`unpublished/<key>.patch`), with their drafts. Deleting a subproject (its repository stays)
   does the same for that folder: it leaves every copy, and work on it that was not published is
   kept as a patch of that folder.
@@ -469,7 +505,8 @@ The sign-in and two-editor suites are included; the admin suite joins when imple
   unexpired UTC date. Reports are `out/image/trivy.json` and `trivy.sarif`.
 - `bun run image:sbom`: writes `out/image/sbom.spdx.json`.
 - `bun run image:push -- --registry <name>.azurecr.io`: refuses dirty revisions, signs in with
-  `az acr login`, pushes the commit tag and prints its digest. Under `TF_BUILD` it also emits the
+  `az acr login`, pushes the commit tag and prints its digest. It never overwrites an existing
+  `sha-<commit>` tag: a second run on the same commit keeps and prints the registered digest. Under `TF_BUILD` it also emits the
   Azure output variable `digest`. `image:scan -- --ref <registry>/semantic-workbench@sha256:<digest>`
   signs in itself before rescanning. Registry credentials use a temporary folder removed after
   the command; Azure CLI uses the chosen Docker/Podman runtime via `DOCKER_COMMAND`. Both Azure actions require the non-secret target variables
@@ -491,7 +528,9 @@ Pipeline setup downloads the pinned Bun 1.4.3 archive and verifies its SHA-256 b
 The tag-only `deploy:check-version` guard reads `SOURCE_REF` from the step environment
 (`refs/tags/vX.Y.Z`); local runs can override it with `--tag vX.Y.Z`. It validates the tag before
 use and compares the tag core with the package
-version, then queries registry tags read-only and refuses a version older than any promoted tag.
+version, requires the tagged commit (`SOURCE_VERSION`, default `HEAD`) to be an ancestor of
+`origin/main` (full Git history needed), then queries registry tags read-only and refuses a
+version older than any promoted tag.
 It needs the target variables of the pipeline's variable group (`ACR_NAME` and the others listed
 in `specs/003-authn-authz/contracts/delivery-pipeline.md`) in its environment.
 It accepts `--fake` for an empty offline registry, with the same target-variable validation.
@@ -583,7 +622,7 @@ data/
 └── cache.sqlite          index of hashes, entities and findings; safe to delete
 ```
 
-The files in `data/projects/` are the only copy of your definitions. `cache.sqlite` is rebuilt from them on the next start if it is deleted or out of date; the project registry, view settings and drafts live in the JSON files under `state/`, which are always replaced atomically. Back up `data/` with the app stopped, or push projects to a Git remote. The audit log records every write and every refused request, never document text or credentials; files older than 400 days are deleted at start-up.
+The files in `data/projects/` are the only copy of your definitions. `cache.sqlite` is rebuilt from them on the next start if it is deleted or out of date; the project registry, view settings and drafts live in the JSON files under `state/`, which are always replaced atomically. Back up `data/` with the app stopped, or push projects to a Git remote. The audit log records every write and every refused request, never document text or credentials; files older than 400 days are deleted at start-up. The monthly files form one hash chain, and `bun run audit:verify [folder] [--anchors mirrored.log]` reports the first record that was changed, removed or cut off; see [docs/audit-tamper-evidence.md](docs/audit-tamper-evidence.md).
 
 **Saving and committing.** There is no Save button: a valid edit is written to its file automatically one second after you stop typing, sending only the changed range. The header's **Save state** indicator reads *Saved to file · N uncommitted changes*, *Saving…*, *Not saved: N errors* (nothing is written while the text has validation errors; it is kept as a draft that survives a reload) or *Not saved: file changed on disk*. Switching files or views writes a due save first. While a pull, sync or branch switch of the repository runs, saving waits and then re-checks the file's version. **Commit…** (the header's primary action) lists the project's changed files, all ticked, with the diff of the selected file and a suggested message (*Update orders in commerce.odcs.yaml*, *Update 3 files*); **Commit** commits only the ticked files (`git commit --only`, so other staged or unstaged work stays as it is) and **Commit & push** then pushes. **Revert to last commit** (with a confirmation) puts the last committed version of a file back and moves the replaced version to the trash, in one journaled operation. Item editors, add and delete dialogs and the metric wizard keep an explicit **Save to file**, which writes the file and never commits.
 
@@ -596,7 +635,7 @@ The API watches every project folder. Files you change, add or delete outside th
 - Deleting asks first. The confirmation names everything that is removed, warns about unsaved edits that would be lost, and lists Ossie `ontology_ref`/`semantic_model_ref` references that would no longer resolve to any remaining file.
 - A deleted file or project moves to `data/trash/<entry>/`; a project moves with its `.git` folder, so its history is kept. Git history is never rewritten: a deleted file shows up in Git as an ordinary deletion.
 - **Undo** is offered for 10 seconds after a delete or Clear and puts everything back exactly as it was, including drafts and grouping corrections.
-- After that, **Trash** restores entries or deletes them permanently; emptying the trash asks for confirmation. A restore never overwrites: if a file or project now occupies the original place, the workbench offers a free name instead. A file whose project no longer exists is restored into a new project with the old name.
+- After that, **Trash** restores entries or deletes them permanently; emptying the trash asks for confirmation. A restore never overwrites: if a file or project now occupies the original place, the workbench offers a free name instead. A file whose project no longer exists is restored into a new project with the old name; in server mode that is a project creation, so it needs the right to create projects in the chosen domain (`domain` in the request), which is recorded for the new project. A file that was deleted outside any working copy comes back into your own copy.
 - **Clear workspace** moves every project to the trash as its own entry, in one operation.
 - Importing into an existing project a file whose name already exists asks whether to replace it or keep both (`name (2).ext`).
 

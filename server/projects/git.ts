@@ -3,6 +3,7 @@
 // signed-in person's credential for that command only. Terminal prompts are disabled.
 import { relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { BadRequestError } from './errors';
 /** Default time limit for local Git commands. */
 export const LOCAL_TIMEOUT_MS = 30_000;
 /** Default time limit for remote Git commands. */
@@ -144,8 +145,20 @@ export const hasControlCharacters = (text: string) =>
 /** Checks a remote's name: letters, digits, dot, dash or underscore. */
 export function remoteName(name: unknown) {
   if (typeof name !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/.test(name))
-    throw Error('A remote name uses letters, digits, dot, dash or underscore.');
+    throw new BadRequestError('A remote name uses letters, digits, dot, dash or underscore.');
   return name;
+}
+/**
+ * Whether a name is a branch name Git accepts that cannot be read as an option or as a reference
+ * to an earlier checkout such as `@{-1}`.
+ */
+export async function isBranchName(git: Git, dir: string, name: string) {
+  if (name.startsWith('-') || name.includes('@{')) return false;
+  const checked = await git.run(dir, ['check-ref-format', '--branch', name], {
+    readOnly: true,
+    allowFailure: true,
+  });
+  return checked.code === 0;
 }
 /** Checks a remote URL or path and returns it trimmed. Helper addresses (`transport::address`)
  * are refused because they run a program; so are values Git could read as an option, and the
@@ -158,11 +171,13 @@ export function remoteAddress(url: unknown) {
     hasControlCharacters(url) ||
     url.length > 2000
   )
-    throw Error('Give the remote URL or path.');
+    throw new BadRequestError('Give the remote URL or path.');
   if (/^[A-Za-z][A-Za-z0-9+.-]*::/.test(url.trim()))
-    throw Error('Remote helper addresses (transport::address) are not accepted.');
+    throw new BadRequestError('Remote helper addresses (transport::address) are not accepted.');
   if (url.includes('://***@'))
-    throw Error('This address shows *** in place of credentials; give the full address.');
+    throw new BadRequestError(
+      'This address shows *** in place of credentials; give the full address.',
+    );
   return url.trim();
 }
 /** Finds the Git subcommand after global options, recognizing remote update separately. */

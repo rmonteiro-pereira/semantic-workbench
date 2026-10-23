@@ -167,22 +167,32 @@ test('deletion records its principal; only a Steward can restore other or legacy
   const { entryId } = await response.json();
   expect(fixture.ws.trash.entry(entryId).deletedBy).toBe(person('alice').id);
   expect((await editor(request('/api/trash/' + entryId + '/undo'))).status).toBe(200);
-  for (const deletedBy of [undefined, person('bob').id]) {
-    const entry = await fixture.ws.trash.deleteFile(
-      'sales-contracts',
-      'orders.odcs.yaml',
-      deletedBy,
-      LOCAL_READER,
+  // Local mode left both deletions committed on the default branch. A restore in server mode goes
+  // into the person's copy, which starts from that branch without the files.
+  const published = join(fixture.ws.layout.projects, 'sales-contracts');
+  const git = (...args: string[]) => Bun.spawnSync(['git', ...args], { cwd: published });
+  const legacy = [
+    [undefined, 'orders.odcs.yaml'],
+    [person('bob').id, 'people.mapping.yaml'],
+  ] as const;
+  const entries = [];
+  for (const [deletedBy, file] of legacy) {
+    entries.push(
+      await fixture.ws.trash.deleteFile('sales-contracts', file, deletedBy, LOCAL_READER),
     );
+    git('add', '-A');
+    git('commit', '-q', '-m', `Remove ${file}`);
+    git('update-ref', 'refs/heads/main', 'HEAD');
+  }
+  for (const entry of entries) {
     const before = snapshot(fixture.root);
     const denied = await editor(request('/api/trash/' + entry.entryId + '/restore'));
     // Another person's entry is hidden from an Editor, exactly as in the trash listing.
     expect(denied.status).toBe(404);
     expect(auditLines(fixture.root, denied)[0].action).toBe('restoreOthers');
     expect(snapshot(fixture.root)).toEqual(before);
-    expect(
-      (await server(fixture.ws, 'bob')(request('/api/trash/' + entry.entryId + '/restore'))).status,
-    ).toBe(200);
+    const bob = server(fixture.ws, 'bob');
+    expect((await bob(request('/api/trash/' + entry.entryId + '/restore'))).status).toBe(200);
   }
 });
 

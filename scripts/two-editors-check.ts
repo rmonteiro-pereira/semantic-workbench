@@ -116,9 +116,9 @@ async function branchesStayPersonal(alice: Person, frank: Person) {
   await frank.page.getByRole('textbox', { name: 'New branch name' }).fill('feature/frank');
   await frank.page.getByRole('button', { name: 'Create', exact: true }).click();
   await expect.poll(async () => (await branchOf(frank)).branch).toBe('feature/frank');
-  const held = frank.page.locator('option', { hasText: 'work/alice (in use by Alice Andrade)' });
-  // Playwright does not treat an option as a form control, so the attribute is checked.
-  await expect(held).toHaveAttribute('disabled', '');
+  // Another person's work branch is not offered at all, held or not; Frank's own still is.
+  await expect(frank.page.locator('option', { hasText: 'work/alice' })).toHaveCount(0);
+  await expect(frank.page.locator('option', { hasText: 'work/frank' })).toHaveCount(1);
   const refused = await frank.call(projectApi('git/switch'), 'POST', { branch: 'work/alice' });
   assert.equal(refused.status, 409);
   assert.equal(refused.body.inUseBy, 'Alice Andrade');

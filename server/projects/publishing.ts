@@ -1,6 +1,6 @@
 // Publishes in server mode: moves the default branch to a person's working copy, or to what a
 // fetch brought from the remote, and then refreshes the published state every reader sees.
-import { NothingToPublishError } from './errors';
+import { BadRequestError, NothingToPublishError } from './errors';
 import type { EventTags } from './events';
 import type { ContentGuard } from '../auth/guards';
 import { WriteAccessError } from '../auth/write-access-error';
@@ -48,7 +48,8 @@ async function announce(deps: PublishingDeps, slug: string, branch: string, comm
 async function publish(deps: PublishingDeps, slug: string, reader: Reader) {
   const repo = deps.repoOf(slug);
   const key = reader.copy?.key;
-  if (!key) throw Error('Publishing works on a personal working copy in server mode.');
+  if (!key)
+    throw new BadRequestError('Publishing works on a personal working copy in server mode.');
   if (!deps.worktrees.exists(key, repo)) throw new NothingToPublishError();
   const place = await deps.copies.writePlace(reader, slug);
   const result = await deps.worktrees.publish(repo, key, judgePublish(place, slug, reader.guard));

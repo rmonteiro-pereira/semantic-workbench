@@ -11,7 +11,15 @@ import { createScanner, type Scanner } from './scanner';
 import type { FollowRequest, FollowResult, Scm, ScmDeps } from './scm';
 import type { State } from './state';
 import { createWatcher } from './watcher';
-import { personalBranch, type BranchHolder, type CopyOwner, type Worktrees } from './worktrees';
+import {
+  isPersonalBranch,
+  sameBranchName,
+  personalBranch,
+  type BranchHolder,
+  type CopyOwner,
+  type Worktrees,
+} from './worktrees';
+import { PersonalBranchError } from './errors';
 import type { Git } from './git';
 
 /** Where a project's files are read and written for one request. */
@@ -83,11 +91,21 @@ export function copyScmHooks(
   },
 ): Partial<ScmDeps> {
   const { worktrees, repoOf } = deps;
+  const ownBranch = () => {
+    const handle = deps.owners().find(owner => owner.key === own)?.handle;
+    return handle ? personalBranch(handle) : null;
+  };
   return {
-    assertBranchFree: (slug, branch) => worktrees.assertFree(repoOf(slug), own, branch),
+    // Another person's personal branch is theirs even while no copy holds it.
+    assertBranchFree: async (slug, branch) => {
+      await worktrees.assertFree(repoOf(slug), own, branch);
+      const mine = ownBranch();
+      if (isPersonalBranch(branch) && !(mine !== null && sameBranchName(branch, mine)))
+        throw new PersonalBranchError(branch);
+    },
+    ownBranch,
     untrackedPull: async (slug, branch) => {
-      const handle = deps.owners().find(owner => owner.key === own)?.handle;
-      if (!handle || branch !== personalBranch(handle)) return null;
+      if (branch !== ownBranch()) return null;
       return worktrees.defaultBranch(repoOf(slug));
     },
     fetched: deps.followRemote,
@@ -95,6 +113,15 @@ export function copyScmHooks(
     mergeDefault: (slug, author, check) => worktrees.mergeDefault(repoOf(slug), own, author, check),
     signedCommits: true,
   };
+}
+
+/**
+ * The copy a change would go to when the person already has it; null when the change would start
+ * a copy, or goes to the published state because the reader has none.
+ */
+export function existingCopyKey(reader: Reader, exists: (key: string) => boolean): string | null {
+  const key = writeKeyFor(reader);
+  return key !== null && exists(key) ? key : null;
 }
 
 /** How long a person's working copy stays watched without being used. */
@@ -225,6 +252,17 @@ export function createWorkingCopies(deps: WorkingCopyDeps) {
   }
 
   /**
+   * The place a change would run in, without making the person's copy: their copy once it exists,
+   * and until then the published state a new copy starts from. Authorization reads this place so
+   * that it judges what the command will act on.
+   */
+  function pendingWritePlace(reader: Reader, slug: string): Place {
+    const repo = deps.repoOf(slug);
+    const key = existingCopyKey(reader, copyKey => deps.worktrees.exists(copyKey, repo));
+    return key ? use(key).place : deps.published;
+  }
+
+  /**
    * The place a request writes to, creating the person's copy of the repository on first use.
    * A new copy starts as the published state, so `precheck` judges the write there first: a
    * refused write leaves no copy behind.
@@ -297,6 +335,7 @@ export function createWorkingCopies(deps: WorkingCopyDeps) {
     owners,
     copyInfo,
     readPlace,
+    pendingWritePlace,
     writePlace,
     filesFor,
     /** A person's place by key, for work that follows a trash entry back into its copy. */

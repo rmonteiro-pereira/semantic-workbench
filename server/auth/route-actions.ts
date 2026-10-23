@@ -1,7 +1,7 @@
 // Maps HTTP entry points to the access boundary before any route can run.
 import type { Action } from './actions';
 import type { ResourceRef } from './resource';
-import { decodePath } from '../request';
+import { decodeSegment, decodePath } from '../request';
 
 /** One HTTP route and the resource its initial decision protects. */
 export type RouteAction = {
@@ -21,11 +21,11 @@ export type RouteAction = {
 const workspace = (): ResourceRef => ({ type: 'workspace' });
 const project = (match: RegExpMatchArray): ResourceRef => ({
   type: 'project',
-  project: decodeURIComponent(match[1]),
+  project: decodeSegment(match[1]),
 });
 const file = (match: RegExpMatchArray): ResourceRef => ({
   type: 'file',
-  project: decodeURIComponent(match[1]),
+  project: decodeSegment(match[1]),
   path: decodePath(match[2]),
 });
 function row(

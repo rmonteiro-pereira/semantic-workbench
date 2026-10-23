@@ -10,7 +10,7 @@ function azureApp() {
     properties: {
       configuration: {
         activeRevisionsMode: 'Single',
-        ingress: { targetPort: 4310 },
+        ingress: { targetPort: 4310, external: true, allowInsecure: false, transport: 'Auto' },
         registries: [{ server: 'swfake.azurecr.io', identity: app.identity }],
         secrets: app.secrets.map(secret => ({
           name: secret.name,
@@ -63,6 +63,8 @@ test('CLI adapter promotes recorded digest and isolates registry authentication'
       return '';
     }
     if (args.includes('show-tags')) return '[]';
+    if (args.includes('repository') && args.includes('show'))
+      throw Error('MANIFEST_UNKNOWN: not found');
     if (args.includes('login')) return '';
     if (args.includes('list'))
       return JSON.stringify([

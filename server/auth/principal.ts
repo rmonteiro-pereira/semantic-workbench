@@ -61,13 +61,21 @@ function address(value: unknown): string | null {
   return candidate.includes('@') && !candidate.includes('#ext#') ? candidate : null;
 }
 
+/**
+ * An Entra user name that is an address of its own member, or null. A guest's user name and the
+ * editable preferred_username of a user from another directory name nobody the tenant verified.
+ */
+function memberAddress(claims: Record<string, unknown>, name: unknown): string | null {
+  return memberUserName(claims, string(name)) ? address(name) : null;
+}
+
 function verifiedAddress(claims: Record<string, unknown>, entra: boolean): string | null {
   if (!entra) return claims.email_verified === true ? address(claims.email) : null;
   const verified = claims.xms_edov === true || claims.xms_edov === 'true';
   return (
     (verified ? address(claims.email) : null) ??
-    address(claims.upn) ??
-    address(claims.preferred_username)
+    memberAddress(claims, claims.upn) ??
+    memberAddress(claims, claims.preferred_username)
   );
 }
 

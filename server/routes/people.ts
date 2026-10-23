@@ -4,6 +4,7 @@ import { requestReader } from '../auth/request-scope';
 import { ownerChoices } from '../auth/guards';
 import type { AccessControl } from '../auth/authorize';
 import type { Route } from './http';
+import { decodeSegment } from '../request';
 
 /**
  * Lists the people a project's metric owner can be chosen from: those with access who may read
@@ -13,7 +14,7 @@ export function peopleRoutes(access: AccessControl): Route {
   return (ws, req, url) => {
     const match = url.pathname.match(/^\/api\/projects\/([^/]+)\/people$/);
     if (!match || req.method !== 'GET') return null;
-    const project = decodeURIComponent(match[1]);
+    const project = decodeSegment(match[1]);
     ws.project(project);
     if (!requestReader(req).view) return Response.json([]);
     const readers = ws.state.users().users.filter(user => {

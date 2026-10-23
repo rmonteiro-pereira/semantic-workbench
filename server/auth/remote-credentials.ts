@@ -18,6 +18,7 @@ import type { Workspace } from '../projects/workspace';
 import type { CredentialFor } from '../projects/scm';
 import { locationOf } from '../projects/paths';
 import { requestRemote, type AccessRequest } from './request-scope';
+import { BadRequestError } from '../projects/errors';
 
 /** The Azure DevOps resource whose token Git accepts in place of a password. */
 export const AZURE_DEVOPS_SCOPE = '499b84ac-1321-427f-aa17-267ca6975798/.default';
@@ -112,7 +113,7 @@ export function createRemoteCredentials(deps: RemoteCredentialDependencies) {
   const allowedHosts = () => deps.settings().remote?.allowedHosts ?? [];
   const save: SaveRemote = async (session, change) => {
     const remote = await deps.sessions.updateRemote(session.id, change);
-    if (!remote) throw new Error('The session has ended.');
+    if (!remote) throw new BadRequestError('The session has ended.');
     session.remote = remote;
   };
   const azureDevOps = azureDevOpsAccount(deps, save, now);
@@ -174,7 +175,7 @@ function azureDevOpsAccount(
   async function token(session: Session) {
     // Checked first, so turning the feature off stops tokens already obtained as well.
     if (!enabled()) {
-      throw new Error('Azure DevOps access on your behalf is turned off on this server.');
+      throw new BadRequestError('Azure DevOps access on your behalf is turned off on this server.');
     }
     const reused = cached(session);
     if (reused) return reused;

@@ -7,6 +7,13 @@ import type { Target } from './image';
 export type { Target } from './image';
 import type { SmokeExpected } from './deploy-smoke';
 
+/** Ingress exposure of the container app, which decides who can reach the workbench and how. */
+export type IngressSettings = {
+  external: boolean;
+  allowInsecure: boolean;
+  transport: string;
+  corsOrigins: string[];
+};
 /** Inspected app settings required before an image or revision is changed. */
 export type AppSettings = {
   mode: string;
@@ -16,6 +23,7 @@ export type AppSettings = {
   identity: string;
   registryIdentity: string;
   port: number;
+  ingress: IngressSettings;
   secrets: { name: string; url: string; identity: string }[];
   env: Record<string, string>;
 };
@@ -32,6 +40,7 @@ export type AzureClient = {
   resolve(tag: string): Promise<Revision>;
   scan(digest: string): Promise<void>;
   promote(release: Release): Promise<void>;
+  lock(release: Release): Promise<void>;
   update(digest: string): Promise<string>;
   copy(revision: Revision): Promise<string>;
   wait(name: string): Promise<void>;
@@ -78,8 +87,15 @@ export function preflight(app: AppSettings, target: Target) {
     ['registry identity', app.registryIdentity.toLowerCase() === identity.toLowerCase()],
     ['SW_MODE', app.env.SW_MODE === 'server'],
     ['SW_HOST', app.env.SW_HOST === '0.0.0.0'],
+    // Container Apps ingress is one proxy; without this every visitor shares one rate limit.
+    ['SW_TRUSTED_PROXY_HOPS', app.env.SW_TRUSTED_PROXY_HOPS === '1'],
     ['SW_PORT', (app.env.SW_PORT ?? '4310') === '4310'],
     ['ingress port', app.port === 4310],
+    ['ingress external', app.ingress.external],
+    ['ingress HTTPS only', !app.ingress.allowInsecure],
+    ['ingress transport', ['auto', 'http', 'http2'].includes(app.ingress.transport)],
+    ['ingress CORS', app.ingress.corsOrigins.every(origin => origin === target.SW_PUBLIC_URL)],
+    ['SW_PUBLIC_URL', app.env.SW_PUBLIC_URL === target.SW_PUBLIC_URL],
     ['SW_OIDC_ISSUER', app.env.SW_OIDC_ISSUER === targetIssuer(target)],
     ['SW_OIDC_CLIENT_ID', app.env.SW_OIDC_CLIENT_ID === target.ENTRA_CLIENT_ID],
     ['SW_ENTRA_TENANT_ID', app.env.SW_ENTRA_TENANT_ID === target.ENTRA_TENANT_ID],
@@ -132,6 +148,7 @@ export async function deploy(target: Target, release: Release, client: AzureClie
   const before = await client.active();
   const summary = await updateWithRecovery(client, before, release.digest, release);
   await client.promote(release);
+  await client.lock(release);
   console.log(JSON.stringify(summary));
   return summary;
 }

@@ -1,6 +1,6 @@
 // Routes API requests and preserves the legacy document interface. Host and origin checks restrict
 // access to local clients.
-import { HiddenResourceError } from './projects/errors';
+import { BadRequestError, HiddenResourceError } from './projects/errors';
 import { join } from 'node:path';
 import { requestReader } from './auth/request-scope';
 import { authorizeWrite, WriteAccessError } from './auth/write-access';
@@ -16,7 +16,7 @@ import { createAuditLog } from './auth/audit';
 import { adminRoutes } from './routes/admin';
 import { auditRoutes } from './routes/audit';
 import { agentCatalog, buildContext, selectContext, planQuery } from './agent/runtime';
-import { readJson } from './request';
+import { decodeSegment, readJson, requestAuditId, type AuditRequest } from './request';
 import { InputError, MAX_INPUT_BYTES } from '../src/diagnostics';
 import { NotFoundError, StaleError, type Workspace } from './projects/workspace';
 import { errorResponse, type Route } from './routes/http';
@@ -27,11 +27,11 @@ import { eventRoutes } from './routes/events';
 import { projectRoutes } from './routes/projects';
 import { fileRoutes } from './routes/files';
 import { draftRoutes } from './routes/drafts';
-import { trashRoutes } from './routes/trash';
+import { trashRoutesWith } from './routes/trash';
 import { suggestionRoutes } from './routes/suggestions';
 import { metricRoutes } from './routes/metrics';
 import { kpiRoutes } from './routes/kpis';
-import { gitRoutes } from './routes/git';
+import { createGitRoutes } from './routes/git';
 import { cloneRoutes } from './routes/clone';
 import { repoRoutes } from './routes/repos';
 import { peopleRoutes } from './routes/people';
@@ -64,7 +64,8 @@ const legacyRoutes: Route = async (ws, req, url) => {
     return Response.json(agentCatalog(ws.documentsFor(requestReader(req))));
   if (url.pathname === '/api/agent/context' && req.method === 'GET') {
     const mappingId = url.searchParams.get('mappingId');
-    if (!mappingId) throw Error('mappingId is required. List mappings at /api/agent/catalog.');
+    if (!mappingId)
+      throw new BadRequestError('mappingId is required. List mappings at /api/agent/catalog.');
     requireReadableDocument(ws, req, mappingRef(mappingId));
     let context = buildContext(ws.documentsFor(requestReader(req)), mappingRef(mappingId));
     const concepts = url.searchParams.getAll('concept');
@@ -81,7 +82,7 @@ const legacyRoutes: Route = async (ws, req, url) => {
       ) ||
       typeof body.mappingId !== 'string'
     )
-      throw Error(
+      throw new BadRequestError(
         'Expected mappingId, optional concepts, metrics and dimensions. Expressions and metric overrides are not accepted.',
       );
     for (const key of ['concepts', 'metrics', 'dimensions'])
@@ -91,7 +92,7 @@ const legacyRoutes: Route = async (ws, req, url) => {
           body[key].length > 100 ||
           body[key].some((id: any) => typeof id !== 'string' || !id.trim() || id.length > 4096))
       )
-        throw Error(`${key} must be an array of at most 100 non-empty ids.`);
+        throw new BadRequestError(`${key} must be an array of at most 100 non-empty ids.`);
     requireReadableDocument(ws, req, mappingRef(body.mappingId));
     return Response.json(
       planQuery(
@@ -102,7 +103,7 @@ const legacyRoutes: Route = async (ws, req, url) => {
   }
   const groupingPath = url.pathname.match(/^\/api\/documents\/([^/]+)\/grouping$/);
   if (groupingPath) {
-    const id = decodeURIComponent(groupingPath[1]);
+    const id = decodeSegment(groupingPath[1]);
     const reader = requestReader(req);
     try {
       if (req.method === 'GET') return Response.json(ws.grouping(id, reader));
@@ -117,7 +118,7 @@ const legacyRoutes: Route = async (ws, req, url) => {
             value.mode ?? 'auto',
           )
         )
-          throw Error('Invalid grouping view.');
+          throw new BadRequestError('Invalid grouping view.');
         for (const key of ['assignments', 'names'])
           if (
             value[key] !== undefined &&
@@ -130,12 +131,13 @@ const legacyRoutes: Route = async (ws, req, url) => {
                   k.length > 4096 || typeof v !== 'string' || !v.trim() || v.length > 4096,
               ))
           )
-            throw Error('Invalid grouping corrections.');
+            throw new BadRequestError('Invalid grouping corrections.');
         return Response.json(await ws.saveGrouping(id, value, reader));
       }
     } catch (e) {
       // Legacy local clients expect a 400; server mode answers a missing document like a hidden one.
-      if (e instanceof NotFoundError && !reader.view) throw Error('Document not found.');
+      if (e instanceof NotFoundError && !reader.view)
+        throw new BadRequestError('Document not found.');
       throw e;
     }
   }
@@ -146,7 +148,7 @@ const legacyRoutes: Route = async (ws, req, url) => {
     const reader = req.body?.getReader();
     let bytes = 0;
     const chunks: Uint8Array[] = [];
-    if (!reader) throw Error('Expected a JSON document request.');
+    if (!reader) throw new BadRequestError('Expected a JSON document request.');
     while (true) {
       const { value, done } = await reader.read();
       if (done) break;
@@ -167,7 +169,7 @@ const legacyRoutes: Route = async (ws, req, url) => {
     try {
       body = JSON.parse(new TextDecoder().decode(raw));
     } catch {
-      throw Error('Malformed JSON request.');
+      throw new BadRequestError('Malformed JSON request.');
     }
     if (
       !body ||
@@ -175,19 +177,19 @@ const legacyRoutes: Route = async (ws, req, url) => {
       typeof body.filename !== 'string' ||
       typeof body.source !== 'string'
     )
-      throw Error('Expected filename and source strings.');
+      throw new BadRequestError('Expected filename and source strings.');
     if (
       body.id !== undefined &&
       (typeof body.id !== 'string' || !body.id.trim() || body.id.length > 1300)
     )
-      throw Error('Invalid document id.');
+      throw new BadRequestError('Invalid document id.');
     if (body.revision !== undefined && (!Number.isSafeInteger(body.revision) || body.revision < 1))
-      throw Error('Revision must be a positive integer.');
+      throw new BadRequestError('Revision must be a positive integer.');
     if (
       body.baseHash !== undefined &&
       (typeof body.baseHash !== 'string' || !/^[0-9a-f]{64}$/.test(body.baseHash))
     )
-      throw Error('baseHash must be a SHA-256 hex digest.');
+      throw new BadRequestError('baseHash must be a SHA-256 hex digest.');
     if (body.id !== undefined) {
       const reference = ws.resolveId(body.id);
       authorizeWrite(req, 'edit', [
@@ -218,8 +220,9 @@ const legacyRoutes: Route = async (ws, req, url) => {
         ),
       );
     } catch (e) {
-      if (e instanceof StaleError) throw Error('Document changed. Reload before saving.');
-      if (e instanceof NotFoundError) throw Error('Document not found.');
+      if (e instanceof StaleError)
+        throw new BadRequestError('Document changed. Reload before saving.');
+      if (e instanceof NotFoundError) throw new BadRequestError('Document not found.');
       throw e;
     }
   }
@@ -231,15 +234,19 @@ function requireReadableDocument(ws: Workspace, request: Request, id: string) {
   const resource = ws.resolveId(id.split('#')[0]);
   if (!view.canRead(resource.project, resource.path)) throw new HiddenResourceError();
 }
-function workspaceRoutes(administration: AdminRepository, access: AccessControl): Route[] {
+function workspaceRoutes(
+  administration: AdminRepository,
+  access: AccessControl,
+  options: HandlerOptions,
+): Route[] {
   return [
-    trashRoutes,
+    trashRoutesWith(administration),
     suggestionRoutes,
     projectRoutes(administration),
     metricRoutes,
     peopleRoutes(access),
     kpiRoutes,
-    gitRoutes,
+    createGitRoutes(options),
     cloneRoutes(administration),
     repoRoutes,
     fileRoutes,
@@ -300,7 +307,7 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
     (_workspace, request, url) =>
       url.pathname === '/api/me' && request.method === 'GET' ? meResponse(request, options) : null,
     eventRoutes(options),
-    ...workspaceRoutes(administration, access),
+    ...workspaceRoutes(administration, access, options),
   ];
   function localCheck(req: Request): Response | null {
     const origin = req.headers.get('origin');
@@ -332,22 +339,29 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
     } catch (e) {
       // The access boundary audits a refused target, so it must see the original error.
       if (e instanceof WriteAccessError) throw e;
-      if (
-        options.mode === 'server' &&
-        (e instanceof NotFoundError || e instanceof HiddenResourceError)
-      ) {
-        return errorResponse(e, options.publicOrigin);
+      const serverMode = options.mode === 'server';
+      const context = { serverMode, requestId: (req as AuditRequest)[requestAuditId] };
+      if (serverMode && (e instanceof NotFoundError || e instanceof HiddenResourceError)) {
+        return errorResponse(e, options.publicOrigin, context);
       }
-      // Legacy document and agent clients expect errors to use HTTP 400.
-      if (url.pathname.startsWith('/api/documents') || url.pathname.startsWith('/api/agent/'))
+      // Local legacy document and agent clients expect every error to use HTTP 400. A server
+      // maps errors alike for every route, so an unexpected failure cannot leak its text.
+      const legacyClient =
+        url.pathname.startsWith('/api/documents') || url.pathname.startsWith('/api/agent/');
+      if (legacyClient && !serverMode) {
         return Response.json(
           { error: (e as Error).message, ...(e instanceof InputError ? { issues: e.issues } : {}) },
           { status: 400 },
         );
-      return errorResponse(e, options.publicOrigin);
+      }
+      return errorResponse(e, options.publicOrigin, context);
     }
   };
-  const failure = (error: unknown) => errorResponse(error, options.publicOrigin);
+  const failure = (error: unknown, requestId: string) =>
+    errorResponse(error, options.publicOrigin, {
+      serverMode: options.mode === 'server',
+      requestId,
+    });
   const boundary = createAccessMiddleware(ws, options, localCheck, run, failure);
   if (options.mode !== 'server') return boundary;
   return async (request: Request) => {

@@ -9,6 +9,7 @@ import type { Route } from './http';
 export function eventRoutes(options: HandlerOptions = {}): Route {
   return (ws, request, url) => {
     if (url.pathname !== '/api/events' || request.method !== 'GET') return null;
+    options.keepOpen?.(request);
     if (options.authentication) return sessionEventResponse(ws, request, options.authentication);
     // Without server sessions nobody is told individually, so every policy reload closes the stream.
     return ws.events.stream(

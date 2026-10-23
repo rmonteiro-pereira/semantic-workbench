@@ -1,6 +1,6 @@
 // Signs short-lived login state and durably consumes each attempt once.
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import { mkdirSync, openSync, closeSync, readdirSync, unlinkSync } from 'node:fs';
+import { existsSync, mkdirSync, openSync, closeSync, readdirSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { sha256 } from '../projects/atomic';
 import { SignInError } from './sign-in-error';
@@ -60,13 +60,6 @@ export function createAttemptStore(key: Uint8Array, dir: string, now = Date.now)
         throw new SignInError('attempt-invalid');
       }
       mkdirSync(dir, { recursive: true });
-      for (const filename of readdirSync(dir)) {
-        if (
-          /^\d+-[a-f0-9]{64}$/.test(filename) &&
-          Number(filename.split('-')[0]) + ATTEMPT_TTL_SECONDS * 1000 <= now()
-        )
-          unlinkSync(join(dir, filename));
-      }
       const file = join(dir, attempt.issuedAt + '-' + sha256(attempt.state));
       try {
         closeSync(openSync(file, 'wx', 0o600));
@@ -77,6 +70,21 @@ export function createAttemptStore(key: Uint8Array, dir: string, now = Date.now)
         throw error;
       }
       return attempt;
+    },
+    /**
+     * Deletes the ledger entries whose attempt has expired, since an expired attempt is refused
+     * before the ledger is read. A timer calls this, so consuming an attempt never scans the
+     * directory.
+     */
+    prune() {
+      if (!existsSync(dir)) return;
+      for (const filename of readdirSync(dir)) {
+        if (
+          /^\d+-[a-f0-9]{64}$/.test(filename) &&
+          Number(filename.split('-')[0]) + ATTEMPT_TTL_SECONDS * 1000 <= now()
+        )
+          unlinkSync(join(dir, filename));
+      }
     },
   };
 }

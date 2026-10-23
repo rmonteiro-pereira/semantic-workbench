@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { runCommand, waitUntil } from './helpers/processes';
 import { versionQuery } from './deploy-version';
 import { registryEnvironment, registryLogin } from './image';
-import { promotionArguments } from './image';
+import { lockArguments, promotionArguments, registryTag, releaseTags } from './image';
 import { previousPromotion, targetIssuer } from './deploy';
 import type { AppSettings, AzureClient, Revision, Target } from './deploy';
 import { smoke } from './deploy-smoke';
@@ -14,6 +14,23 @@ function object(value: unknown, label: string): Record<string, any> {
     throw Error(`Invalid Azure ${label} response`);
   }
   return value as Record<string, any>;
+}
+
+/** Lists the origins a CORS policy admits; a policy that names none admits everything. */
+function corsOrigins(policy: Record<string, any> | null | undefined): string[] {
+  if (!policy) return [];
+  if (!Array.isArray(policy.allowedOrigins)) return ['*'];
+  return policy.allowedOrigins.map(String);
+}
+
+/** Reads ingress exposure and treats anything missing as the less safe value. */
+function ingressSettings(ingress: Record<string, any> | undefined): AppSettings['ingress'] {
+  return {
+    external: ingress?.external === true,
+    allowInsecure: ingress?.allowInsecure !== false,
+    transport: String(ingress?.transport ?? 'auto').toLowerCase(),
+    corsOrigins: corsOrigins(ingress?.corsPolicy),
+  };
 }
 
 /** Normalizes Azure's app response at the I/O boundary into preflight settings. */
@@ -53,6 +70,7 @@ export function appSettings(value: unknown, target: Target): AppSettings {
         (registry: any) => registry.server === `${target.ACR_NAME}.azurecr.io`,
       )?.identity ?? '',
     port: configuration.ingress?.targetPort,
+    ingress: ingressSettings(configuration.ingress),
     secrets: (configuration.secrets ?? []).map((secret: any) => ({
       name: secret.name,
       url: secret.keyVaultUrl ?? '',
@@ -194,7 +212,7 @@ function readOperations(io: AzureIO) {
 
 function writeOperations(io: AzureIO) {
   const { target, registry, command, json, scope, repository } = io;
-  const operations: Pick<AzureClient, 'promote' | 'update' | 'copy' | 'scan'> = {
+  const operations: Pick<AzureClient, 'promote' | 'lock' | 'update' | 'copy' | 'scan'> = {
     async scan(digest) {
       await command(
         ['bun', 'scripts/image.ts', 'scan', '--ref', `${repository}@${digest}`],
@@ -203,7 +221,14 @@ function writeOperations(io: AzureIO) {
       );
     },
     async promote(release) {
+      // A rerun after a half-finished lock finds its own tag already on this digest.
+      const current = await registryTag(target.ACR_NAME, release.tag, command);
+      if (current?.digest === release.digest) return;
+      if (current) throw Error(`${release.tag} already points to another digest`);
       await registry(env => command(promotionArguments(target, release), false, env));
+    },
+    async lock(release) {
+      for (const tag of releaseTags(release)) await command(lockArguments(target, tag), false);
     },
     async update(digest) {
       const result = await json([

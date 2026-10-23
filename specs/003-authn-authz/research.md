@@ -702,6 +702,7 @@ too.
 | T094–T099 (Azure DevOps on-behalf-of and GitHub tokens per person and command, askpass helper, host allow-list, Admin-only remotes and clones, connect prompts, mutants) and four review rounds (whole-prompt askpass match, canonical and unambiguous addresses, fail-closed server mode, one remote choice per request, single-use consent, per-session token lock, guarded merge without the token) | Claude (general-purpose subagent), reviewed by Claude |
 | T076–T086 (per-person working copies, publish and pull from the default branch, authored commits, copy-aware cache, watchers and suggestions, unpublished work kept in the trash, branch picker and Source Control actions, two-editors check, mutants) and three review rounds (guards inside copies and on publish and pull-default, Push to the default branch for publishers, a fetch that follows the remote only for publishers and through the guard, safe publish with repair, branch names checked, manifest written through a copy, listing cache) | Claude (general-purpose subagent), reviewed by Claude |
 | T143–T152 (Entra sign-in through MSAL behind a sign-in provider interface, per-session encrypted token cache, secret, certificate or managed-identity credentials, Graph and on-behalf-of tokens through the provider, Entra-shaped mock, agent example client, App Registration guide, mutants) and three review rounds (Microsoft sign-in hosts only, library code out of the shared modules, on-behalf-of on both libraries, front-channel logout keyed by the provider session, logout hint, session-upgraded reason) | Claude (general-purpose subagent), reviewed by Claude |
+| T114 (security review of the whole release in three areas, and two fix rounds per area: session key rotation, generic internal errors, rate limits behind the trusted proxy, throttled anonymous audit with counts, case-variant paths refused, personal branches private, audit chain across months with anchors, start-up repair of legacy deletions, mandatory branch control, release commits on main, narrow deployment roles, ingress checks, locked image tags, read-only container) | Reviewed by Claude architecture-reviewer subagents; fixed by Claude general-purpose subagents, re-reviewed by Claude |
 
 ### Test changes not caused by the specification
 
@@ -813,3 +814,17 @@ too.
   imports, the provider error code, a front-channel logout stub, MSAL's extra token scopes, a
   Microsoft sign-in host for the Entra issuer and the Entra endpoint layout of the mock; what they
   assert is unchanged.
+- `tests/auth/sessions.test.ts` and `tests/auth/authentication-review.test.ts`: a record that cannot
+  be decrypted now reads as absent instead of throwing, so changing the session key ends sessions
+  without stopping the server.
+- `tests/auth/audit.test.ts`: a new month continues the previous month's last hash instead of
+  restarting from zeros.
+- `tests/auth/write-regressions.test.ts` ("deletion records its principal"): a legacy trash entry
+  returns into the restorer's own copy, so the test commits both deletions before the restores.
+- `scripts/two-editors-check.ts`: the branch picker no longer offers another person's personal
+  branch; the API still refuses it.
+- `tests/pipeline/deploy.test.ts`, `tests/pipeline/deploy-azure.test.ts`,
+  `tests/pipeline/dry-run.test.ts` and `tests/pipeline/delivery.test.ts`: promotion ends by locking
+  the tags, the app fixture states its ingress, and Deploy runs a production install.
+- `scripts/mutation-case.ts` (`auth-principal`): one assertion added so the address mutant stays
+  killed after guests stopped counting as verified.

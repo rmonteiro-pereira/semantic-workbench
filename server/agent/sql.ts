@@ -1,5 +1,6 @@
 // Parses and renders the restricted SQL expressions supported by the governed query planner.
 import { Parser } from 'node-sql-parser';
+import { BadRequestError } from '../projects/errors';
 const parser = new Parser();
 /** A column reference and its syntax node, with an optional table qualifier. */
 export type ColumnRef = { table: string | null; column: string; node: any };
@@ -18,7 +19,7 @@ export function walk(ast: any, visit: (node: any) => void) {
 /** Parses a supported expression, optionally allowing a WHERE condition. */
 export function parseExpression(expression: string, { conditional = false } = {}) {
   if (typeof expression !== 'string' || !expression.trim() || expression.length > 100_000)
-    throw Error('Expected an expression of 1–100,000 characters.');
+    throw new BadRequestError('Expected an expression of 1–100,000 characters.');
   let ast: any;
   try {
     ast = parser.astify('SELECT ' + expression, { database: 'Postgresql' });
@@ -27,7 +28,7 @@ export function parseExpression(expression: string, { conditional = false } = {}
       ast = parser.astify('SELECT ' + expression, { database: 'SQLite' });
     } catch (e) {
       const error = e as any;
-      throw Error(
+      throw new BadRequestError(
         `Unsupported expression syntax${error.location?.start ? ` at ${error.location.start.line}:${error.location.start.column}` : ''}. Preserve the expression and use a compatible planner.`,
       );
     }
@@ -50,7 +51,9 @@ export function parseExpression(expression: string, { conditional = false } = {}
     (ast.into && Object.values(ast.into).some(v => v !== null)) ||
     (!conditional && ast.where)
   )
-    throw Error('Expected a single scalar/aggregate expression, not a query or alias.');
+    throw new BadRequestError(
+      'Expected a single scalar/aggregate expression, not a query or alias.',
+    );
   walk([ast.columns[0].expr, ast.where], n => {
     if (
       n.type === 'select' ||
@@ -60,7 +63,7 @@ export function parseExpression(expression: string, { conditional = false } = {}
       (n.type === 'column_ref' && n.column === '*') ||
       n.over
     )
-      throw Error(
+      throw new BadRequestError(
         'Subqueries, wildcards, parameters and window expressions require a richer planner.',
       );
   });
@@ -73,7 +76,7 @@ export function columnRefs(ast: any) {
     if (n.type === 'column_ref') {
       const column = typeof n.column === 'string' ? n.column : n.column?.expr?.value;
       if (typeof column !== 'string' || column === '*')
-        throw Error('Unresolved wildcard or complex column reference.');
+        throw new BadRequestError('Unresolved wildcard or complex column reference.');
       refs.push({
         table: typeof n.table === 'string' ? n.table : (n.table?.value ?? null),
         column,
@@ -99,13 +102,13 @@ export function expressionSql(ast: any) {
 }
 /** Quotes a SQL identifier, escaping quotes and rejecting empty names or NUL bytes. */
 export function quoteIdentifier(name: string) {
-  if (!name || name.includes('\0')) throw Error('Invalid identifier.');
+  if (!name || name.includes('\0')) throw new BadRequestError('Invalid identifier.');
   return '"' + name.replaceAll('"', '""') + '"';
 }
 /** Quotes a simple dotted table or view name, rejecting SQL expressions. */
 export function sourceSql(source: string) {
   if (!/^[A-Za-z_][\w$]*(\.[A-Za-z_][\w$]*)*$/.test(source))
-    throw Error(
+    throw new BadRequestError(
       `Physical source "${source}" is not a simple qualified identifier. Supply a view/table source before generating SQL.`,
     );
   return source.split('.').map(quoteIdentifier).join('.');

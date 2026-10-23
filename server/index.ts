@@ -10,6 +10,8 @@ import { createInstanceLock, instanceLockFiles, revisionIdentity } from './proje
 import { probeDataRoot } from './projects/data-root';
 import { healthResponse } from './routes/health';
 import { serveStatic } from './static';
+import { serveOptions } from './serve-options';
+import { clientAddress } from './auth/source-address';
 import { logWorkspace } from './startup-log';
 import { installShutdownHandlers } from './shutdown';
 
@@ -45,6 +47,7 @@ async function initializeWorkspace() {
     root: config.dataDir,
     cacheDir: config.cacheDir,
     watch: true,
+    reconcilePublished: config.mode === 'server',
   });
   if (config.mode === 'server') {
     authentication = await createServerAuthentication(workspace, config, signInProvider);
@@ -53,23 +56,31 @@ async function initializeWorkspace() {
     port: config.port,
     ...authentication,
     sourceIp: request => server.requestIP(request)?.address,
+    clientAddress: request =>
+      clientAddress(
+        server.requestIP(request)?.address,
+        request.headers.get('x-forwarded-for'),
+        config.mode === 'server' ? config.trustedProxyHops : 0,
+      ),
+    keepOpen: request => server.timeout(request, 0),
   });
   await logWorkspace(workspace);
 }
-const server = Bun.serve({
-  hostname: config.host,
-  port: config.port,
-  idleTimeout: 0,
-  async fetch(request) {
-    const health = healthResponse(request, lock.state, config);
-    if (health) return health;
-    if (config.serveStatic && config.mode === 'local') {
-      const response = await serveStatic(request);
-      if (response) return response;
-    }
-    return handler!(request);
-  },
-});
+const server = Bun.serve(
+  serveOptions({
+    hostname: config.host,
+    port: config.port,
+    async fetch(request) {
+      const health = healthResponse(request, lock.state, config);
+      if (health) return health;
+      if (config.serveStatic && config.mode === 'local') {
+        const response = await serveStatic(request);
+        if (response) return response;
+      }
+      return handler!(request);
+    },
+  }),
+);
 let pending = Promise.resolve();
 let closing: Promise<void> | undefined;
 function tick() {

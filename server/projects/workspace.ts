@@ -5,7 +5,7 @@ import { dirname, join, posix } from 'node:path';
 import { validateInput } from '../../src/input';
 import { InputError, MAX_INPUT_BYTES, type Issue } from '../../src/diagnostics';
 import { exampleSet } from '../../src/projects/examples';
-import { atomicWrite, atomicWriteJson, decode, encode, sha256 } from './atomic';
+import { atomicWrite, atomicWriteJson, decode, encode, readJsonFile, sha256 } from './atomic';
 import { createCache, type Cache } from './cache';
 import { createEvents, type EventTags } from './events';
 import {
@@ -23,6 +23,7 @@ import {
   projectDir,
   projectPrefix,
   repoDir,
+  indexedFile,
   projectFile,
   projectName,
   projectPath,
@@ -38,7 +39,8 @@ import { movePersonalState, clearPersonalDrafts } from './personal-state';
 import { createState, type ProjectEntry, type Patch } from './state';
 import { createWatcher } from './watcher';
 import { migrateLegacy, type MigrationReport } from './migration';
-import { createTrash, guardDeletion, guardRevert } from './trash';
+import { createTrash, guardDeletion, guardRevert, type TrashEntry } from './trash';
+import { restoreTrashedDeletions } from './published-checkout';
 import { createScm } from './scm';
 import { createWorktrees } from './worktrees';
 import {
@@ -54,7 +56,7 @@ import { createCloner, rollBackInterruptedClones, type AssignProject } from './c
 import { createRepositoryProjects } from './repository-projects';
 import { MANIFEST_FILE } from './repositories';
 import { LOCAL_READER, type Reader } from './reader';
-import { HiddenResourceError } from './errors';
+import { BadRequestError, HiddenResourceError } from './errors';
 import { factsOf, inferSuggestions, type FileFacts, type IndexedFile } from './suggestions';
 import { ConflictError, MergingError, OccupiedError } from './errors';
 import { StaleError, NotFoundError } from './errors';
@@ -77,6 +79,13 @@ export type WorkspaceOptions = {
   copyIdleMs?: number;
   migrationHooks?: Parameters<typeof migrateLegacy>[1];
   journalHooks?: JournalHooks;
+  /**
+   * Server mode: at start-up, restores files that local-mode deletions left deleted in the
+   * published checkout, and refuses to start on any other change there.
+   */
+  reconcilePublished?: boolean;
+  /** Where a structured start-up line goes; the console by default. */
+  log?: (line: string) => void;
 };
 /** Records an import commit or explains why no commit was created. */
 export type ImportCommit =
@@ -89,7 +98,8 @@ export function importMessage(paths: string[], subfolder = '') {
 }
 /** Applies ordered UTF-16 ranges from the end, preserving untouched source text exactly. */
 export function applyPatches(base: string, patches: Patch[]) {
-  if (!Array.isArray(patches) || patches.length > 10_000) throw Error('Patches must be an array.');
+  if (!Array.isArray(patches) || patches.length > 10_000)
+    throw new BadRequestError('Patches must be an array.');
   let end = 0;
   for (const p of patches) {
     if (
@@ -101,7 +111,9 @@ export function applyPatches(base: string, patches: Patch[]) {
       p.to < p.from ||
       p.to > base.length
     )
-      throw Error('Patches must be ordered, non-overlapping ranges inside the base text.');
+      throw new BadRequestError(
+        'Patches must be ordered, non-overlapping ranges inside the base text.',
+      );
     end = p.to;
   }
   let out = base;
@@ -208,7 +220,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
           let fx = facts.get(f.hash);
           if (!fx) {
             try {
-              const bytes = readFileSync(projectFile(files.layout, p.slug, f.path));
+              const bytes = readFileSync(indexedFile(files.layout, p.slug, f.path));
               fx = factsOf(decode(bytes), f.path);
             } catch {
               return [];
@@ -341,14 +353,14 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   }
   function preflight(files: ImportFile[]) {
     if (!Array.isArray(files) || !files.length || files.length > 500)
-      throw Error('Expected 1–500 files.');
+      throw new BadRequestError('Expected 1–500 files.');
     const paths = new Set<string>();
     const issues: Issue[] = [];
     for (const f of files) {
       if (!f || typeof f.path !== 'string' || typeof f.source !== 'string')
-        throw Error('Each file needs a path and source text.');
+        throw new BadRequestError('Each file needs a path and source text.');
       const path = projectPath(f.path);
-      if (paths.has(path)) throw Error(`Duplicate path in batch: ${path}`);
+      if (paths.has(path)) throw new BadRequestError(`Duplicate path in batch: ${path}`);
       paths.add(path);
       const indexed = indexBytes('preflight', path, encode(f.source));
       if (!indexed.file.visible)
@@ -526,10 +538,10 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     const { guard } = reader;
     entry(slug);
     if (!Array.isArray(writes) || !writes.length || writes.length > 50)
-      throw Error('Expected 1–50 files.');
+      throw new BadRequestError('Expected 1–50 files.');
     const files = writes.map(w => ({ ...w, path: projectPath(w.path) }));
     if (new Set(files.map(f => f.path)).size !== files.length)
-      throw Error('Each file may appear once.');
+      throw new BadRequestError('Each file may appear once.');
     if (reader.view && files.some(file => !reader.view!.canRead(slug, file.path))) {
       throw new OccupiedError('The target is unavailable.', {});
     }
@@ -630,7 +642,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         .flatMap(f => {
           let source: string;
           try {
-            source = decode(readFileSync(projectFile(place.layout, p.slug, f.path)));
+            source = decode(readFileSync(indexedFile(place.layout, p.slug, f.path)));
           } catch {
             return [];
           }
@@ -697,10 +709,35 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       })
     : null;
   const worktrees = createWorktrees({ layout, git, people: () => copies.owners() });
+  // The repository paths of files that copy-less trash entries hold, per repository folder.
+  function trashedPaths(): Map<string, Set<string>> {
+    const byRepo = new Map<string, Set<string>>();
+    for (const id of readdirSync(layout.trash)) {
+      const kept = readJsonFile<TrashEntry>(join(layout.trash, id, 'entry.json'));
+      const project = projects().find(item => item.slug === kept?.project);
+      if (!kept || kept.kind !== 'file' || kept.copy || !kept.path || !project) continue;
+      const repo = locationOf(project).repo;
+      const paths = byRepo.get(repo) ?? new Set<string>();
+      paths.add(projectPrefix(layout, project.slug) + kept.path);
+      byRepo.set(repo, paths);
+    }
+    return byRepo;
+  }
+  async function reconcilePublishedCheckouts() {
+    const trashed = trashedPaths();
+    for (const repo of new Set(projects().map(project => locationOf(project).repo))) {
+      const dir = join(layout.projects, repo);
+      if (!existsSync(join(dir, '.git'))) continue;
+      const log = options.log ?? console.log;
+      const paths = trashed.get(repo) ?? new Set<string>();
+      await restoreTrashedDeletions({ git, dir, repo, trashed: paths, log });
+    }
+  }
   // A stop between moving the default branch and moving the published files is finished here.
   if (gitAvailable)
     for (const repo of new Set(projects().map(project => locationOf(project).repo)))
       if (existsSync(join(layout.projects, repo, '.git'))) await worktrees.repairBase(repo);
+  if (gitAvailable && options.reconcilePublished) await reconcilePublishedCheckouts();
   for (const p of projects())
     if (existsSync(projectDir(layout, p.slug))) {
       await scanner.scan(p.slug);
@@ -791,6 +828,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     withCurrentReaders: (event, tags) => events.withCurrentReaders(event, tags),
     copyLayout: copy => copyLayout(layout, copy),
     afterFiles: (slug, copy) => (copy ? rescanIn(copies.placeOf(copy), slug) : rescan(slug)),
+    writeCopy: async (reader, slug) => (await copies.writePlace(reader, slug)).copy,
     archiveCopies: (removed, entryDir) => unpublished.archiveCopies(removed, entryDir),
     removeCopies: entryDir => unpublished.removeCopies(entryDir),
     forgetProject: slug => {
@@ -1029,7 +1067,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       throw new OccupiedError('The target is unavailable.', {});
     }
     if (onConflict !== undefined && onConflict !== 'replace' && onConflict !== 'keep-both')
-      throw Error('onConflict must be replace or keep-both.');
+      throw new BadRequestError('onConflict must be replace or keep-both.');
     // Final names and their content are judged before a first write creates the person's copy;
     // the copy starts with the same files, and both are checked again under the lock below.
     const planned = importTargets(copies.readPlace(reader, slug), slug, batch, {
@@ -1246,7 +1284,9 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       value.length > max ||
       hasControlCharacters(value)
     )
-      throw Error(`${label} must be ${min}–${max} characters without control characters.`);
+      throw new BadRequestError(
+        `${label} must be ${min}–${max} characters without control characters.`,
+      );
     return value.trim();
   }
   const repositoryProjects = createRepositoryProjects({
@@ -1333,13 +1373,13 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     /** The identity a commit in this project's repository would use. */
     async identity(slug: string) {
       entry(slug);
-      if (!gitAvailable) throw Error('Git is not available on this machine.');
+      if (!gitAvailable) throw new BadRequestError('Git is not available on this machine.');
       return git.identityOf(repoDir(layout, slug));
     },
     /** Writes user.name and user.email into this project's repository, or into every repository. */
     async setIdentity(slug: string, name: unknown, email: unknown, allRepositories = false) {
       entry(slug);
-      if (!gitAvailable) throw Error('Git is not available on this machine.');
+      if (!gitAvailable) throw new BadRequestError('Git is not available on this machine.');
       const userName = checkIdentityText(name, 'The name', 1, 200);
       const userEmail = checkIdentityText(email, 'The email', 3, 320);
       const own = locationOf(entry(slug)).repo;
@@ -1389,8 +1429,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     async revertFile(slug: string, path: string, baseHash: unknown, reader: Reader) {
       entry(slug);
       if (baseHash !== null && (typeof baseHash !== 'string' || !/^[0-9a-f]{64}$/.test(baseHash)))
-        throw Error('baseHash must be a SHA-256 hex digest or null.');
-      if (!gitAvailable) throw Error('Git is not available on this machine.');
+        throw new BadRequestError('baseHash must be a SHA-256 hex digest or null.');
+      if (!gitAvailable) throw new BadRequestError('Git is not available on this machine.');
       const p = projectPath(path);
       const committedIn = (at: Place) =>
         git.blob(repoDir(at.layout, slug), 'HEAD', projectPrefix(layout, slug) + p);
@@ -1427,9 +1467,27 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       entry(slug);
       return copies.readPlace(reader, slug).scm;
     },
+    /** Source Control of the place a change would run in, without creating a copy. */
+    pendingScm: (slug: string, reader: Reader) => {
+      entry(slug);
+      return copies.pendingWritePlace(reader, slug).scm;
+    },
     /** The file a request reads, in the person's copy when they have one. */
     filePath: (slug: string, path: string, reader: Reader) =>
       projectFile(copies.readPlace(reader, slug).layout, slug, path),
+    /**
+     * Whether a draft may belong to the path: a file the person's place holds on disk or in its
+     * index. A case variant of an existing name is refused.
+     */
+    hasFile: (slug: string, path: string, reader: Reader) => {
+      entry(slug);
+      const place = copies.readPlace(reader, slug);
+      const relative = projectPath(path);
+      return (
+        existsSync(projectFile(place.layout, slug, relative)) ||
+        place.cache.file(slug, relative) !== null
+      );
+    },
     /** Moves a file to the trash from the place the person edits it in. */
     deleteFile: async (slug: string, path: string, reader: Reader) => {
       entry(slug);
@@ -1620,7 +1678,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       const ref = resolveId(id);
       if (view && !view.canRead(ref.project, ref.path)) throw new HiddenResourceError();
       if (posix.basename(ref.path) !== filename)
-        throw Error('Renaming through the documents API is not supported.');
+        throw new BadRequestError('Renaming through the documents API is not supported.');
       let current: string | null = null;
       const place = copies.readPlace(reader, ref.project);
       try {

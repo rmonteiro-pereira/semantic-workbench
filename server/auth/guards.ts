@@ -41,6 +41,13 @@ const OPERATION_TEXT: Record<GuardOperation, string> = {
   publish: 'Ask another Steward of this domain, or an Admin, to publish these changes.',
 };
 
+// The words of a refusal for a change the person cannot read: it names no metric and no kind of
+// change, which would reveal what a file they may not read contains.
+function genericRefusalText(operation?: GuardOperation) {
+  const next = operation ? ' ' + OPERATION_TEXT[operation] : '';
+  return `Refused: this would include a guarded change, which needs Steward in this project's domain, or Admin.${next}`;
+}
+
 function refusalText(change: GuardedChange, decision: Decision, operation?: GuardOperation) {
   const next = operation ? ' ' + OPERATION_TEXT[operation] : '';
   if (decision.rules.includes('F1-no-self-approval')) {
@@ -120,8 +127,10 @@ function guardRefusal(
   const decision = decisions.get(first)!;
   const view = scope.view();
   // Pointers inside files the person cannot read stay unnamed; files they are creating are theirs.
+  const readable = (change: GuardedChange) =>
+    change.project === NEW_PROJECT || view.canRead(change.project, change.file);
   const guarded = refused
-    .filter(change => change.project === NEW_PROJECT || view.canRead(change.project, change.file))
+    .filter(readable)
     .map(change => ({ file: change.file, pointer: change.pointer, kind: change.kind }));
   const action: Action = first.metric ? 'approveMetric' : 'editGuarded';
   const resource: ResourceRef = { type: 'file', project: first.project, path: first.file };
@@ -131,7 +140,12 @@ function guardRefusal(
     rules: decision.rules,
     reason: `guarded:${first.kind}`,
   };
-  const message = refusalText(first, decision, operation);
+  // The message names the first refused change the person can read, never a hidden one; the audit
+  // above keeps the first refused change whatever it is.
+  const shown = refused.find(readable);
+  const message = shown
+    ? refusalText(shown, decisions.get(shown)!, operation)
+    : genericRefusalText(operation);
   return new GuardedChangeError(action, resource, denied, { guarded, message });
 }
 

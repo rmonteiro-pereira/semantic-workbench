@@ -120,12 +120,12 @@ test('callback replaces the browser session and root key cannot decrypt derived-
     dir: join(context.fixture.root, 'state/sessions'),
     key: context.transport.config.sessionKey,
   });
-  await expect(rootStore.get(id)).rejects.toThrow();
+  await expect(rootStore.get(id)).resolves.toBeNull();
   const rootSession = await rootStore.create({
     principal: (await context.auth.authentication.sessions.get(id))!.principal,
     tokens: { accessToken: 'root-token', expiresAt: Date.now() + 10000 },
   });
-  await expect(context.auth.authentication.sessions.get(rootSession.id)).rejects.toThrow();
+  await expect(context.auth.authentication.sessions.get(rootSession.id)).resolves.toBeNull();
   await rootStore.end(rootSession.id);
   const second = await context.signIn(cookie);
   expect(second.status).toBe(302);

@@ -2,13 +2,20 @@
 
 Run on the owner's target subscription and Azure DevOps project, never by the implementer.
 Identifiers below are placeholders. Set `<release-tag>` to the delivered tag, for example
-`v0.4.0`. Use fixture data only. Record an observed output or error
-for every step, and turn each failure into a follow-up task. This trial does not gate local
+`v0.4.0`. Use fixture data only. Record pass or fail and the names of the checks that failed
+for every step, and turn each failure into a follow-up task. The report goes into a public
+repository, so never paste raw output: leave out tokens and cookie values (including
+`Set-Cookie` lines), the output of `scripts/examples/agent-client.ts`, audit lines that hold
+email addresses or object IDs, and the names of approvers. Replace identifiers with
+placeholders as the report template says. This trial does not gate local
 implementation completion. Commands assume the release checkout and the setup guide's variables.
 
 1. **Set up the target.** Follow every portal action and CLI help entry in
    [Target setup](README.md). Check all resources, identities, roles, probes, mount ownership,
-   federation, pipeline permissions and environment checks. Check the
+   federation, pipeline permissions and environment checks. Check that branch control is on for the three service connections
+   (`sw-azure-deploy`: `refs/tags/v*`; `sw-azure-push`: `refs/heads/main` and `refs/tags/v*`,
+   with Verify branch protection; `sw-azure-pull`: `refs/tags/v*`), and that Create tag on `refs/tags/v*` is allowed for the release operator
+   only. Check the
    [Entra App Registration](README.md#entra-app-registration) item by item: both Web redirect
    URIs, the front-channel logout URL `https://<host>/auth/front-channel-logout`, groups claim
    and optional claims (`email`, `upn`, `xms_edov`, `sid`, `login_hint` on ID tokens, `idtyp`
@@ -20,7 +27,11 @@ implementation completion. Commands assume the release checkout and the setup gu
 2. **Hand over `<release-tag>`.** Follow the guide's push or verified bundle sequence: release
    branch, pull request into `main`, then tag. For archive fallback record the commit mapping.
    Inspect the mirror's tag and commit. Expected: the release commit matches (or the archive
-   mapping is recorded); the package declares version core `0.4.0`. Result: [ ] pass [ ] fail.
+   mapping is recorded) and is on the mirror's `main`; the package declares version core
+   `0.4.0`. On a clone of the mirror,
+   `git merge-base --is-ancestor <release commit> origin/main` succeeds; for a test commit that
+   is not on `main` it fails, and a tag on that commit fails the `check` job before any image
+   is pushed. Result: [ ] pass [ ] fail.
 3. **Preview both pipelines.** Run the local commands below, then request owner-only Azure
    DevOps Runs API previews with `previewRun: true` for each imported pipeline. Expected:
    Validate, Image, Deploy for the tag; manual Rollback on the tag; environment and connections
@@ -85,8 +96,28 @@ implementation completion. Commands assume the release checkout and the setup gu
 9. **Credential and role review.** Inspect repository, pipeline YAML, variable group, logs and
    service connection authentication. Expected: no stored Azure, registry or provider credential;
    service connection sign-ins use federation. Verify app secrets, including
-   `SW_OIDC_CLIENT_CERTIFICATE_KEY` when the certificate is used, are Key Vault references and
-   record the final deploy roles and exact resource scopes. Result: [ ] pass [ ] fail.
+   `SW_OIDC_CLIENT_CERTIFICATE_KEY` when the certificate is used, are Key Vault references. Check
+   that the deploy connection holds the custom role of
+   [`container-app-deployer-role.json`](container-app-deployer-role.json) on the container app
+   (`containerApps/read`, `write`, `revisions/*` and the `locations/containerappOperationStatuses/read`
+   and `containerappOperationResults/read` actions) and not Contributor, so it cannot call
+   `listSecrets` or request an exec token. Run `az provider operation show --namespace
+   Microsoft.App` to confirm the action names, then an update and the restore path
+   (`az containerapp revision copy`) with the role; if a CLI version needs `listSecrets`, record
+   it. A registry in the ABAC repository-permissions mode needs the metadata data actions
+   instead of the registry role's actions; that it holds the
+   role of [`registry-tag-lock-role.json`](registry-tag-lock-role.json) and that the promoted
+   `vX.Y.Z` and `sha-<commit>` tags are read-only afterwards; that the pull connection holds
+   `AcrPull` only; and that the container app's ingress is external, HTTPS only, with no CORS
+   policy. Record the final deploy roles and exact resource scopes, and any action the trial
+   proved necessary beyond the custom roles. Result: [ ] pass [ ] fail.
+
+10. **Branch control without branch protection.** On `sw-azure-deploy` and `sw-azure-pull`
+    (allowed ref `refs/tags/v*`, Verify branch protection off) check that a tag run uses them
+    and a pull-request or branch run is refused. On `sw-azure-push` (Verify branch protection
+    on) check that a `main` run and a tag run use it and a pull-request run is refused. If
+    Verify branch protection blocks the tag runs of `sw-azure-push`, turn it off there and
+    record it. Result: [ ] pass [ ] fail.
 
 Copy this report into `specs/003-authn-authz/verification.md` under **Owner trial**, replacing
 subscription, tenant, registry and resource identifiers with placeholders:
@@ -96,15 +127,16 @@ Trial date: <date>  Release: <release-tag>  Commit: <40 hex>
 Hand-over: push | bundle | archive
 Target: <subscription> / <tenant> / <registry> / <resource-group> / <app>
 Pipelines: <delivery-pipeline> / <rollback-pipeline>  Environment: <environment>
-Step 1: pass | fail — <observed output or error>
-Step 2: pass | fail — <observed output or error>
-Step 3: pass | fail — <observed output or error>
-Step 4: pass | fail — <observed output or error>
-Step 5: pass | fail — <observed output or error>
-Step 6: pass | fail — <observed output or error>
-Step 7: pass | fail — <observed output or error>
-Step 8: pass | fail — <observed output or error>
-Step 9: pass | fail — <observed output or error>
+Step 1: pass | fail — <names of the failed checks, no raw output>
+Step 2: pass | fail — <names of the failed checks, no raw output>
+Step 3: pass | fail — <names of the failed checks, no raw output>
+Step 4: pass | fail — <names of the failed checks, no raw output>
+Step 5: pass | fail — <names of the failed checks, no raw output>
+Step 6: pass | fail — <names of the failed checks, no raw output>
+Step 7: pass | fail — <names of the failed checks, no raw output>
+Step 8: pass | fail — <names of the failed checks, no raw output>
+Step 9: pass | fail — <names of the failed checks, no raw output>
+Step 10: pass | fail — <names of the failed checks, no raw output>
 Digest deployed: sha256:<digest>  Revisions: <before> -> <after>
 SC-015 approval->smoke: <minutes>  rollback: <minutes>
 SC-017 interruption: <seconds>  old-instance shutdown: <seconds>

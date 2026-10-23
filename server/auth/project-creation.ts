@@ -6,12 +6,14 @@ import { requestScope } from './request-scope';
 import { AdminStaleError, type AdminRepository } from './admin-repo';
 import { authorizeWrite, WriteAccessError } from './write-access';
 import { newProjectIn } from './resource';
+import { BadRequestError } from '../projects/errors';
 
 /** Validates the chosen domain using the request's policy decisions. */
 export function creationDomain(request: Request, value: unknown): string | undefined {
   const scope = requestScope(request);
   if (scope.principal.kind === 'local') return undefined;
-  if (value !== undefined && typeof value !== 'string') throw Error('domain must be text.');
+  if (value !== undefined && typeof value !== 'string')
+    throw new BadRequestError('domain must be text.');
   const domains = scope.creationDomains();
   const admin = scope.authorize('admin', { type: 'workspace' }).allow;
   const domain = value ?? (!admin && domains.length === 1 ? domains[0].id : undefined);

@@ -23,6 +23,13 @@ ownership for uid/gid 1000 before starting the app. CLI entry points are
 `az containerapp env storage set --help`. Keep storage access keys in the platform's storage
 configuration, never the repository or pipeline variable group.
 
+An SMB share ignores letter case: it opens `FINANCE/plan.yaml` as `finance/plan.yaml`. The
+workbench therefore refuses a request that spells an existing name in another case, and a new
+name that differs from a sibling only in case, so a rule for a restricted folder cannot be
+bypassed. Names that two people on a case-sensitive system keep apart (`Notes.yaml` and
+`notes.yaml`) cannot live in one project on this share. NFS is case-sensitive like the Git
+checkouts the workbench keeps there; prefer NFS when the environment allows it.
+
 Create an Azure Container Registry, disable its admin user, and use repository
 `semantic-workbench`. In **Policies → Retention**, enable deletion of untagged manifests after
 the target's retention period (use a registry tier supporting retention). Keep every version
@@ -65,14 +72,15 @@ Configure the app using **Revisions**, **Scale**, **Ingress**, **Volumes**, **Id
 | --- | --- |
 | Revision mode | Single |
 | Replicas | Minimum 1, maximum 1; never scale this shared Git workspace horizontally |
-| Ingress | External HTTPS, target port 4310 |
+| Ingress | External HTTPS only, target port 4310: `external` true, `allowInsecure` false, no CORS policy (or only `SW_PUBLIC_URL` as the allowed origin), transport `auto`, `http` or `http2` |
 | Probes | HTTP liveness `/healthz`, readiness `/readyz`, port 4310; allow startup recovery |
 | Volume | AzureFile or NfsAzureFile mounted at `/data`, using the registered share |
 | Identity | Attach `id-sw-app`; registry pull uses this same identity |
 | Secrets | Key Vault references to the chosen vault, resolved by `id-sw-app` |
 | Runtime | `SW_MODE=server`, `SW_HOST=0.0.0.0`, `SW_PORT=4310`, `DATA_DIR=/data` |
+| Proxy | `SW_TRUSTED_PROXY_HOPS=1`: Container Apps ingress is one proxy, so rate limits use the client address it forwards instead of its own |
 | Cache | `SW_CACHE_DIR=/tmp/sw-cache` on ephemeral disk |
-| Public URL | `SW_PUBLIC_URL=https://<host>` |
+| Public URL | `SW_PUBLIC_URL=https://<host>`, equal to the pipeline variable `SW_PUBLIC_URL` |
 | Provider | `SW_OIDC_PROVIDER=entra`, `SW_ENTRA_TENANT_ID=<tenant>`, `SW_OIDC_CLIENT_ID=<client>` |
 | Discovery | `SW_OIDC_ISSUER=https://login.microsoftonline.com/<tenant>/v2.0` |
 | Credential | Certificate (preferred): `SW_OIDC_CLIENT_CERTIFICATE_KEY` secret reference and `SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT`; or `SW_OIDC_CLIENT_ASSERTION=managed-identity`; or `SW_OIDC_CLIENT_SECRET` secret reference |
@@ -86,7 +94,9 @@ Use **Container Apps → Edit and deploy** for these settings. CLI counterparts 
 `az containerapp registry set --help`, and `az containerapp secret set --help`.
 For optional agent audience, GitHub OAuth, committer and group configuration use the
 [configuration contract](../specs/003-authn-authz/contracts/configuration.md). Secrets are always
-platform references. Deployment preflight names drift before promoting or updating an image.
+platform references. Deployment preflight names drift before promoting or updating an image,
+including ingress that allows plain HTTP, a CORS policy for another origin, and an app
+`SW_PUBLIC_URL` that differs from the variable group.
 
 ### Entra App Registration
 
@@ -178,7 +188,11 @@ az containerapp env create \
   --resource-group <resource-group> \
   --location <region> \
   --logs-workspace-id <workspace-customer-id> \
-  --logs-workspace-key <workspace-key>
+  --logs-workspace-key "$(az monitor log-analytics workspace get-shared-keys \
+    --resource-group <resource-group> \
+    --workspace-name <logs> \
+    --query primarySharedKey \
+    --output tsv)"
 az storage account create \
   --name <storage-account> \
   --resource-group <resource-group> \
@@ -224,37 +238,77 @@ az containerapp update \
 az containerapp show --name <app> --resource-group <resource-group> --output json
 ```
 
-For NFS choose a premium FileStorage account and NFS share instead of the SMB example. Enter
-workspace and storage keys only through the target's secure provisioning session or portal;
-do not retain substituted commands in reports. Allow role propagation before creating the app
+For NFS choose a premium FileStorage account and NFS share instead of the SMB example. Read
+the workspace key with the command substitution shown, never type it into a command, and enter
+storage keys only through the target's secure provisioning session or portal; do not retain
+substituted commands in reports. Allow role propagation before creating the app
 with the portal settings table. Confirm the final inspected template matches every row.
 
 ## Azure DevOps
 
 1. Create an Azure Repos mirror in the target project. Grant the release operator Contribute and
-   Create tag. The mirror must never fetch from this repository; use the hand-over below.
+   Create tag. In **Repos → Repositories → Security**, set **Create tag** for the path
+   `refs/tags/v*` to Allow for the release operator only and Deny for everyone else, including
+   the project administrators and the build service. A tag on any commit starts a deployable
+   run, so the tag permission is a release permission. The mirror must never fetch from this
+   repository; use the hand-over below.
 2. In **Project settings → Service connections**, create Azure Resource Manager connections
-   `sw-azure-push` and `sw-azure-deploy`, using workload identity federation. Automatic federation
+   `sw-azure-push`, `sw-azure-pull` and `sw-azure-deploy`, using workload identity federation.
+   Automatic federation
    can manage its app registration. For manual federation copy the issuer and subject displayed
    on the connection page into the target's app registration or user-assigned identity; never
    construct those strings or store a client secret.
-3. Grant the push connection **AcrPush** on the registry. Grant the deploy connection **AcrPush**
-   on the registry and **Contributor** on the container app resource only. If the trial proves
-   it necessary, add a custom role with only the environment join action on the environment,
-   and **Managed Identity Operator** on `id-sw-app` when assigning that identity. Record the
-   final roles and scopes in the trial report; do not grant subscription-wide Contributor.
+3. Grant the push connection **AcrPush** on the registry and the custom role in
+   [`registry-tag-lock-role.json`](registry-tag-lock-role.json) (it locks `sha-<commit>` right
+   after the push). Grant the pull connection **AcrPull**
+   on the registry: the tag check only lists tags, so it holds no push right. Grant the deploy
+   connection **AcrPush** on the registry, the custom role in
+   [`container-app-deployer-role.json`](container-app-deployer-role.json) on the container app
+   resource only, and the custom role in
+   [`registry-tag-lock-role.json`](registry-tag-lock-role.json) on the registry (it lets
+   `deploy:azure` make the promoted tags read-only). Both role files list the resource group as
+   assignable scope; assign each at the container app or the registry. A registry in the
+   ABAC repository-permissions mode needs the data actions
+   `Microsoft.ContainerRegistry/registries/repositories/metadata/read` and `write` in
+   `DataActions` instead of the two actions. Do not grant **Contributor** on the
+   container app: it includes `listSecrets` and the exec token (`getAuthToken`), which would
+   let a deployment run read the app's secrets or open a shell in it. The custom role allows
+   `Microsoft.App/containerApps/read`, `write`, `revisions/*` and the
+   `Microsoft.App/locations/containerappOperationStatuses/read` and
+   `containerappOperationResults/read` actions only. If the trial proves it necessary, add a custom role with only the environment join
+   action on the environment, and **Managed Identity Operator** on `id-sw-app` when assigning
+   that identity. Record the final roles and scopes in the trial report; do not grant
+   subscription-wide Contributor.
 4. Create environment `production` under **Pipelines → Environments**. Configure named approvers,
    branch control permitting only `refs/tags/v*`, and an exclusive lock. Both YAML stages use
    `lockBehavior: runLatest`, so the latest waiting run proceeds. The same environment protects
-   rollback. Service connections may also have branch control.
+   rollback. Approvers open the run, find the tag's commit (`Build.SourceVersion`) and check
+   that it is the commit of the merged pull request on `main` before approving.
+   `deploy:check-version` already refuses a commit that is not an ancestor of `origin/main`;
+   the approver's check covers what that script cannot know, that the commit is the release.
+   **Branch control on the three service connections is mandatory.** Pull-request build
+   validation runs the pull request's own YAML, so without it a changed pipeline could use a
+   connection outside the environment checks. Under **Service connections → connection →
+   Approvals and checks → Branch control**, allow only these refs:
+
+   | Connection | Allowed branches | Verify branch protection |
+   | --- | --- | --- |
+   | `sw-azure-deploy` | `refs/tags/v*` | off |
+   | `sw-azure-push` | `refs/heads/main`, `refs/tags/v*` | on |
+   | `sw-azure-pull` | `refs/tags/v*` | off |
+
+   Tags have no branch policies, so Verify branch protection would block a connection that
+   only tag runs use; for those two, the allowed refs and the Create tag permission of step 1
+   are the protection. Only the push connection also serves `main`, whose branch policy of
+   step 8 the check verifies. The trial confirms this (step 10).
 5. Create **Library → Variable groups → semantic-workbench-target**. Enter every value below,
    none marked secret. Restrict this group and both service connections to the two imported
    pipelines; disable access for all pipelines.
 6. Choose Microsoft-hosted `ubuntu-latest`, or a self-hosted Linux pool with Docker/buildx,
    Azure CLI and network access to the target. Set compile-time `agentPool` or `vmImage`.
 7. Import `azure-pipelines.yml` and `azure-pipelines-rollback.yml` from the mirror. Set parameters
-   `variableGroup`, `acrServiceConnection`, `deployServiceConnection`, `deployEnvironment`,
-   `agentPool`, `vmImage` to target names. Never replace them with runtime connection macros.
+   `variableGroup`, `acrServiceConnection`, `acrPullServiceConnection`,
+   `deployServiceConnection`, `deployEnvironment`, `agentPool`, `vmImage` to target names. Never replace them with runtime connection macros.
 8. In **Repos → Branches → main → Branch policies**, require build validation with the main
    pipeline for pull requests. Validate and Image must pass before completion.
 9. Use the Azure DevOps Runs API with `previewRun: true` for each imported pipeline, selecting
@@ -276,7 +330,10 @@ with the portal settings table. Confirm the final inspected template matches eve
 | `SW_PUBLIC_URL` | Public HTTPS origin |
 
 The sample file contains placeholders, not credentials. For local commands export these same
-non-secret values and sign in with `az login`. The tag check reads `SOURCE_REF`; deployment also
+non-secret values and sign in with `az login`. The tag check reads `SOURCE_REF` and
+`SOURCE_VERSION` (the tagged commit, `HEAD` when unset) and needs the full history of the
+mirror, because it requires that commit to be on `origin/main` (the pipeline checks out with
+`fetchDepth: 0` for it); deployment also
 reads `IMAGE_DIGEST` and `BUILD_COMMIT`. The manifest supplies the expected version.
 `image:scan -- --ref-env IMAGE_REF` reads its digest reference from the environment, keeping
 pipeline macros out of shell command text. `--ref <registry/repository@digest>` remains available.
@@ -318,16 +375,22 @@ A rollback run uses the selected Git tag's own pipeline YAML and scripts. Tags o
 this delivery (`v0.4.0`) cannot be rolled back through this pipeline. Retain eligible Git tags,
 registry version tags and their `sha-<commit>` tags.
 
-After smoke passes and the version tag is promoted, lock the tag on the owner's target:
+After smoke passes, `deploy:azure` promotes the version tag and then locks `sha-<commit>` and
+the version tag, in that order, with `az acr repository update --image semantic-workbench:<tag>
+--write-enabled false`. `AcrPush` can rewrite any unlocked tag, and manual rollback trusts both.
+The deploy connection needs the registry role in
+[`registry-tag-lock-role.json`](registry-tag-lock-role.json) for this. Failed updates or smoke
+checks never promote or lock a tag.
 
-```sh
-az acr repository update --name "$ACR_NAME" \
-  --image "semantic-workbench:<release-tag>" --write-enabled false
-```
+`image:push` locks `sha-<commit>` right after its first push and checks that the tag still
+points to the digest the push reported. It never overwrites an existing `sha-<commit>`: a later
+run on the same commit keeps the tag only if it is locked and the image's revision and version
+labels name that commit and the package version, and then scans and lists the bill of materials
+of that digest by reference. An unlocked or mislabelled tag stops the run.
 
-`AcrPush` can rewrite version tags unless they are locked. Locking preserves the promoted
-release's identity; commit-digest verification and rescanning also protect manual rollback.
-Failed updates or smoke checks never promote a version tag.
+If a run stops between the two locks, run the pipeline again on the same tag. The promotion
+step sees the version tag already on the deployed digest and skips it, and the locks are applied
+again; a version tag that points to another digest stops the run.
 
 ## Release hand-over
 
@@ -362,6 +425,19 @@ pull request, then tag sequence above. Commit and tag identifiers stay unchanged
 commits it in the mirror and records `release v0.4.0-alpha.1 = mirror commit <sha>` in the tag
 message. The image and health commit then refer to the mirror commit. Never configure a scheduled
 mirror sync or a pipeline connection to this repository.
+
+## Moving a data folder from local mode to server mode
+
+Files deleted in local mode went to the trash without a commit, so the repository folders under
+`data/projects/` report them as deleted, and a publish refuses to move files over a changed
+checkout. At every start in server mode the workbench restores those files from the last commit,
+leaves their trash entries in place, and writes one line to standard output:
+`{"type":"published-checkout-restored","repo":"<folder>","paths":["<path>", ...]}`. Starting again
+finds nothing to restore and writes nothing.
+
+Any other change in a repository folder of `data/projects/` (an edited or untracked file, or a
+deletion with no trash entry) stops the start with a message naming the paths. Commit or discard
+them with Git in that folder, then start again.
 
 ## Alternatives and scaling
 

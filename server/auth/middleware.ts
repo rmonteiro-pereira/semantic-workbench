@@ -19,7 +19,20 @@ import type { ProviderStatus } from './oidc';
 import { GuardedChangeError } from './guards';
 import { READ_ACTIONS } from './actions';
 import { requestAccess, requestAuditProjects, type AccessRequest } from './request-scope';
-import { hiddenResponses, requestAuditId } from '../request';
+import {
+  hiddenResponses,
+  internalErrorResponse,
+  requestAuditId,
+  requestSourceIp,
+} from '../request';
+import {
+  createAnonymousAuditGate,
+  createRateLimitReport,
+  createRateLimiter,
+  DEFAULT_REQUEST_LIMITS,
+  SIGN_IN_PATHS,
+  type RequestLimits,
+} from './rate-limit';
 import type { RemoteCredentials } from './remote-credentials';
 
 /** The access boundary instance shared across requests. */
@@ -27,6 +40,20 @@ export type { AccessControl } from './authorize';
 /** Optional dependencies for server authentication and isolated middleware tests. */
 export type HandlerOptions = {
   sourceIp?: (request: Request) => string | undefined;
+  /**
+   * The address a request is limited by. It differs from `sourceIp`, which policies compare
+   * against the direct socket peer, when trusted reverse proxies forward the client address.
+   */
+  clientAddress?: (request: Request) => string | undefined;
+  /** The clock of the limits and the audit gate; tests replace it. */
+  now?: () => number;
+  /**
+   * Stops the server closing a long-lived response, such as the event stream, for being idle.
+   * Every other connection keeps the server's idle timeout.
+   */
+  keepOpen?: (request: Request) => void;
+  /** Per-address request limits of server mode; the defaults suit a busy deployment. */
+  requestLimits?: RequestLimits;
   groupName?: (id: string) => Promise<GroupName>;
   providerStatus?: ProviderStatus;
   access?: AccessControl;
@@ -241,6 +268,10 @@ function routeDecision(
 /** One refused agent call: who made it, if known, and why it was refused. */
 interface AgentRefusal {
   requestId: string;
+  /** False when the refusal comes from an anonymous caller and was left out of the audit log. */
+  audited?: boolean;
+  /** Refusals of this kind left out of the audit log since its last record. */
+  suppressed?: number;
   /** Absent when the token was not validated, so nothing in it is trusted or recorded. */
   principal?: Principal;
   reason: string;
@@ -259,16 +290,19 @@ const AGENT_REFUSAL_ERRORS = {
  * for; an unreachable provider is not the token's fault, so it gets 503 without one.
  */
 function agentRefusal(audit: AuditLog, refusal: AgentRefusal): Response {
-  const { requestId, principal, reason, status } = refusal;
-  const failure = auditDenial(audit, {
-    requestId,
-    principal: principal ?? { id: 'anonymous', kind: 'anonymous' },
-    action: 'agentRead',
-    resource: { type: 'workspace' },
-    decision: 'deny',
-    rules: [],
-    reason,
-  });
+  const { requestId, principal, reason, status, audited = true, suppressed } = refusal;
+  const failure = audited
+    ? auditDenial(audit, {
+        requestId,
+        principal: principal ?? { id: 'anonymous', kind: 'anonymous' },
+        action: 'agentRead',
+        resource: { type: 'workspace' },
+        decision: 'deny',
+        rules: [],
+        reason,
+        suppressed,
+      })
+    : null;
   if (failure) return failure;
   const headers = new Headers();
   if (status === 401) headers.set('WWW-Authenticate', 'Bearer error="invalid_token"');
@@ -297,8 +331,14 @@ function clientRow(row: RouteAction): RouteAction {
 
 // The handler passes the shared error mapping in; this fallback only keeps isolated tests from
 // leaking an exception, and never reveals the error text.
-function internalError(): Response {
-  return Response.json({ error: 'Internal error.' }, { status: 500 });
+function internalError(error: unknown, requestId: string): Response {
+  return internalErrorResponse(error, requestId);
+}
+
+/** The 429 answer for a source address that used up its allowance. */
+function tooManyRequests(retryAfterSeconds: number): Response {
+  const headers = { 'Retry-After': String(retryAfterSeconds) };
+  return Response.json({ error: 'Too many requests.' }, { status: 429, headers });
 }
 
 /** Wraps routing with fail-closed access checks, request ids, and durable audit outcomes. */
@@ -307,12 +347,40 @@ export function createAccessMiddleware(
   options: HandlerOptions,
   localCheck: (request: Request) => Response | null,
   run: (request: Request) => Promise<Response>,
-  failure: (error: unknown) => Response = internalError,
+  failure: (error: unknown, requestId: string) => Response = internalError,
 ) {
   const mode = options.mode ?? 'local';
   const access = options.access ?? defaultAccess(ws, mode);
   const audit = options.audit ?? createAuditLog({ dir: join(ws.layout.state, 'audit') });
   const resolve = options.principal ?? (() => (mode === 'local' ? localPrincipal() : null));
+  const limits = options.requestLimits ?? DEFAULT_REQUEST_LIMITS;
+  const clock = options.now ?? Date.now;
+  const requestLimiter = createRateLimiter(limits.requests, clock);
+  const signInLimiter = createRateLimiter(limits.signIn, clock);
+  const auditAnonymous = createAnonymousAuditGate(clock);
+  const reportRateLimited = createRateLimitReport(clock);
+  const sourceOf = (request: Request) => (request as AccessRequest)[requestSourceIp];
+  /** Answers 429 for a caller over an allowance and reports the source to the log. */
+  function refuseRateLimited(request: Request, retryAfterSeconds: number): Response {
+    reportRateLimited(sourceOf(request) ?? 'unknown');
+    return tooManyRequests(retryAfterSeconds);
+  }
+  /**
+   * Refuses a caller that used up its allowance; null lets the request proceed. A signed-in
+   * person is limited as themselves, so one anonymous visitor behind the same address cannot
+   * use up their allowance. Everyone else, and the sign-in routes, are limited by address.
+   */
+  async function limitedResponse(request: Request): Promise<Response | null> {
+    const address = sourceOf(request) ?? 'unknown';
+    if (SIGN_IN_PATHS.has(new URL(request.url).pathname)) {
+      const signIn = signInLimiter.take(address);
+      return signIn.allowed ? null : refuseRateLimited(request, signIn.retryAfterSeconds);
+    }
+    const person = await resolve(request);
+    const key = person ? `person:${person.id}` : address;
+    const general = requestLimiter.take(key);
+    return general.allowed ? null : refuseRateLimited(request, general.retryAfterSeconds);
+  }
   /**
    * Resolves a bearer header into a client principal. Returns nothing when the request carries no
    * bearer header, and an audited 401 when the header cannot be trusted on this route.
@@ -325,7 +393,10 @@ export function createAccessMiddleware(
     if (mode !== 'server' || !/^Bearer(\s|$)/i.test(authorization)) return undefined;
     const refuse = (reason: string) => {
       const status = reason === 'provider-unreachable' ? 503 : 401;
-      return agentRefusal(audit, { requestId, reason, status });
+      // Nobody is identified yet, so a loop of bad tokens must not fill the audit log.
+      const admission = auditAnonymous(sourceOf(request), reason);
+      const { record, suppressed } = admission;
+      return agentRefusal(audit, { requestId, reason, status, audited: record, suppressed });
     };
     // Outside the agent API the token is not even validated, so nothing in it is trusted.
     if (!acceptsBearer(new URL(request.url).pathname)) return refuse('bearer-scope');
@@ -337,7 +408,30 @@ export function createAccessMiddleware(
       return refuse(error.reason);
     }
   }
+  /** Audits a visitor who is not signed in, at most once a minute per source address. */
+  function auditAnonymousDenial(
+    request: Request,
+    requestId: string,
+    action: RouteAction['action'],
+  ): Response | null {
+    const { record, suppressed } = auditAnonymous(sourceOf(request), 'sign-in-required');
+    if (!record) return null;
+    return auditDenial(audit, {
+      requestId,
+      principal: { id: 'anonymous', kind: 'anonymous' },
+      action,
+      resource: { type: 'workspace' },
+      decision: 'deny',
+      rules: [],
+      reason: 'sign-in-required',
+      suppressed,
+    });
+  }
   async function dispatch(request: AccessRequest, requestId: string): Promise<Response> {
+    if (mode === 'server') {
+      const limited = await limitedResponse(request);
+      if (limited) return limited;
+    }
     if (mode === 'local') {
       const refused = localCheck(request);
       if (refused) return refused;
@@ -373,15 +467,7 @@ export function createAccessMiddleware(
     if (row.public) return run(request);
     const principal = client ?? (await resolve(request));
     if (!principal) {
-      const failure = auditDenial(audit, {
-        requestId,
-        principal: { id: 'anonymous', kind: 'anonymous' },
-        action: row.action,
-        resource: { type: 'workspace' },
-        decision: 'deny',
-        rules: [],
-        reason: 'sign-in-required',
-      });
+      const failure = auditAnonymousDenial(request, requestId, row.action);
       if (failure) return failure;
       if (page && options.authentication) {
         return options.authentication.login(url.pathname + url.search, request);
@@ -479,11 +565,13 @@ export function createAccessMiddleware(
   return async (request: Request): Promise<Response> => {
     const requestId = crypto.randomUUID();
     (request as AccessRequest)[requestAuditId] = requestId;
+    const address = (options.clientAddress ?? options.sourceIp)?.(request);
+    (request as AccessRequest)[requestSourceIp] = address;
     let response: Response;
     try {
       response = await dispatch(request, requestId);
     } catch (error) {
-      response = failure(error);
+      response = failure(error, requestId);
     }
     return requestIdResponse(response, requestId);
   };

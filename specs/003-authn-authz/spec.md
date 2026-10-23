@@ -981,7 +981,11 @@ credential, Entra sign-in) and returns the filled report.
   paths are readable by the person; drafts MUST be visible only to their owner.
 - **FR-045**: Where a listing within a readable project omits files, the response MUST include the
   number omitted; conflicts with unreadable occupants MUST be reported without their names.
-  Projects the person cannot read MUST NOT be counted or named anywhere (OP-3).
+  Projects the person cannot read MUST NOT be counted or named anywhere (OP-3). The counts
+  `hiddenFiles`, `hiddenCommits` and `hiddenReferences` are deliberate disclosures: they tell a
+  reader that something they cannot open exists, and how much of it, without a name, a path or a
+  message. Hiding the counts would leave a reader with an unexplained gap in history and in
+  references.
 - **FR-046**: Exports and the agent-context export MUST contain only what the person could read
   through the API at that moment.
 - **FR-047**: `/api/status` MUST return paths, recovery details and migration details only to

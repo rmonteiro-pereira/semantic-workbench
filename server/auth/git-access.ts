@@ -6,6 +6,7 @@ import type { Action } from './actions';
 import type { ResourceRef, DecisionContext } from './resource';
 import { authorizeWrite } from './write-access';
 import { requestReader, requestScope } from './request-scope';
+import { BadRequestError } from '../projects/errors';
 
 /** The request and the project whose shared repository a Git command acts on. */
 export interface GitTarget {
@@ -28,11 +29,12 @@ export async function authorizeGitPaths(
   { paths, repository = false }: GitPaths = {},
 ): Promise<void> {
   const { ws, request, slug } = target;
-  // Authorization must see every changed path, including ones hidden from the caller.
-  const status = await ws.readScm(slug, requestReader(request)).status(slug, LOCAL_READER);
+  // Authorization must see every changed path, including ones hidden from the caller, in the
+  // place the command runs in.
+  const status = await ws.pendingScm(slug, requestReader(request)).status(slug, LOCAL_READER);
   const selected = paths === undefined ? status.changes.map(change => change.repoPath) : paths;
   if (!Array.isArray(selected) || selected.some(path => typeof path !== 'string')) {
-    throw new Error('Git paths must be an array of strings.');
+    throw new BadRequestError('Git paths must be an array of strings.');
   }
   const owners = ws.state
     .registry()
@@ -52,7 +54,7 @@ export async function authorizeGitPaths(
 
 /** Checks push separately, including a commit or sync that requests a push. */
 export async function authorizeGitPush(target: GitTarget): Promise<void> {
-  const scm = target.ws.readScm(target.slug, requestReader(target.request));
+  const scm = target.ws.pendingScm(target.slug, requestReader(target.request));
   const status = await scm.status(target.slug, LOCAL_READER);
   authorizeRepository(target, 'push', { branch: status.branch });
 }
@@ -89,7 +91,7 @@ export async function authorizePublish(target: GitTarget, branch: unknown): Prom
   const { ws, slug } = target;
   const published = await ws.worktrees.defaultBranch(ws.repoOf(slug));
   if (branch !== undefined && branch !== published)
-    throw Error(`Publishing goes to the default branch, ${published}.`);
+    throw new BadRequestError(`Publishing goes to the default branch, ${published}.`);
   authorizeRepository(target, 'publish', { branch: published });
 }
 

@@ -19,6 +19,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | Module | What lives here | What must not live here |
 |---|---|---|
 | `server/index.ts`, `server/handler.ts` | Start-up and the HTTP entry point: host and origin checks, then the route list | Workspace logic |
+| `server/serve-options.ts` | The listener's options: no development mode, one error answer, idle timeout (the event stream opts out per request) | Routing |
 | `server/routes/health.ts` | Public liveness/readiness and startup traffic gating | Workspace inspection |
 | `server/static.ts` | Built frontend, SPA fallback, path confinement and security headers | API routing |
 | `server/projects/instance-lock.ts` | Lease decisions, atomic acquisition, heartbeat and revision hand-over | Workspace recovery |
@@ -27,6 +28,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `server/shutdown.ts` | Signal cleanup shared with hot reload | Workspace logic |
 | `Dockerfile`, `compose.yaml` | Non-root image, local profile and owner-only Keycloak profile | Secrets |
 | `scripts/container-*.ts` | Docker/Podman image checks and browser suite groups | Delivery pipeline |
+| `scripts/container-hardening.ts` | The read-only, no-capability run flags shared by the container checks and mirrored in `compose.yaml` | Image build logic |
 | `scripts/gate-suites.ts` | Canonical browser gate suites and explicit exclusions | Process spawning |
 | `scripts/ci-validate.ts` | Gate selection, command plans, JUnit summaries and process lifecycle | Azure deployment |
 | `scripts/image.ts` | Image metadata, runtime/scanner commands, vulnerability exceptions and registry push | Pipeline-only build logic |
@@ -34,13 +36,13 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `scripts/deploy.ts` | Preflight, release ordering, revision recording, digest deployment and recovery orchestration | Direct Azure process calls |
 | `scripts/deploy-azure.ts`, `scripts/deploy-fake.ts` | One injected client interface: CLI I/O and offline call recording | Deployment decisions |
 | `scripts/deploy-smoke.ts` | Pure smoke predicates and bounded HTTP/discovery checks | Authenticated browser sessions |
-| `scripts/deploy-version.ts` | Release precedence and read-only registry version guard | Version promotion or deployment |
+| `scripts/deploy-version.ts` | Release precedence, the tagged-commit-on-main guard and the read-only registry version guard | Version promotion or deployment |
 | `deploy/azure-devops/`, `azure-pipelines.yml` | Target pipeline templates, pinned upstream schema and placeholder variables | GitHub automation or secrets |
 | `server/config.ts` | Reads and checks the environment once: `readConfig()` returns the typed configuration of local or server mode, or refuses to start naming each variable at fault | Reading `process.env` anywhere else for these settings |
 | `server/bin/sw-askpass` | The askpass program Git runs in server mode; it answers from the environment of that one command, for its host only | Stored credentials |
 | `server/routes/` | One file per resource (`projects`, `files`, `git`, `clone`, `repos`, `trash`, `metrics`, ...): parse and check the request, call the workspace, shape the response | File or Git operations |
 | `server/projects/workspace.ts` | `openWorkspace()`, the composition root: registry, saves, imports, moves, scans, events, and the wiring of the services below | HTTP parsing |
-| `server/projects/` (other) | One service per concern: `git.ts` (the only place Git runs), `scm.ts` (Source Control), `clone.ts`, `journal.ts` (all-or-nothing renames), `trash.ts`, `repositories.ts` (which folders of a repository are projects: the `.semantic-workbench.json` manifest and detection) and `repository-projects.ts` (registering them), `scanner.ts` and `cache.ts` (the index), `state.ts` (registry, drafts, view settings), `paths.ts` (every path check), `events.ts` (server-sent events), `watcher.ts`, `worktrees.ts` (server-mode working copies: `git worktree`, branch holders, the compare-and-swap publish, the merge from the default branch), `working-copies.ts` (which copy a request reads and writes, per-person index, Source Control and idle release, the copy shown in the project listing), `publishing.ts` (publishing, and the default branch following a fetch), `unpublished-work.ts` (unpublished work kept in the trash and counted for a delete) | Browser code |
+| `server/projects/` (other) | One service per concern: `git.ts` (the only place Git runs), `scm.ts` (Source Control), `clone.ts`, `journal.ts` (all-or-nothing renames), `trash.ts`, `repositories.ts` (which folders of a repository are projects: the `.semantic-workbench.json` manifest and detection) and `repository-projects.ts` (registering them), `scanner.ts` and `cache.ts` (the index), `state.ts` (registry, drafts, view settings), `paths.ts` (every path check, including the refusal of a name that differs from an existing one only in letter case, for volumes that ignore case), `events.ts` (server-sent events), `watcher.ts`, `worktrees.ts` (server-mode working copies: `git worktree`, branch holders, the compare-and-swap publish, the merge from the default branch), `working-copies.ts` (which copy a request reads and writes, per-person index, Source Control and idle release, the copy shown in the project listing), `publishing.ts` (publishing, and the default branch following a fetch), `unpublished-work.ts` (unpublished work kept in the trash and counted for a delete) | Browser code |
 | `server/auth/sessions.ts`, `server/auth/attempts.ts` | Encrypted session persistence, revocation, the provider-session index front-channel logout uses (HMAC keys, never the raw `sid`), and signed single-use sign-in attempts with `safeReturnTo` | Provider protocol |
 | `server/auth/sign-in-provider.ts` | The sign-in provider interface (login URL, callback, refresh, logout with the session's `logout_hint`, application token, on-behalf-of) and the choice of library by `SW_OIDC_PROVIDER`: Entra → MSAL, Keycloak and generic → openid-client | Protocol details of either library |
 | `server/auth/msal-provider.ts` | Entra through MSAL Node: authorization code with PKCE, the per-session token cache plugin (the cache lives only in the encrypted session record), silent refresh, sign-out URL, certificate, secret or managed-identity credential, Graph and on-behalf-of application tokens; the Entra authority and discovery checks | Session persistence or grant decisions |
@@ -49,7 +51,8 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `server/auth/id-token.ts` | Provider signing keys, ID-token signature checks and the claims a session keeps for sign-out (`sid`, `login_hint`), shared by both libraries | Claim mapping |
 | `server/auth/directory.ts` | App-only group membership requests with bounded batches, and the short-lived group-name cache with bounded concurrent lookups | Role assignments |
 | `server/auth/sign-in-error.ts` | Safe typed sign-in failure reasons, the provider's OAuth code (the only provider text the log gets), and the mapping of failures both libraries share | Display text or provider secrets |
-| `server/auth/csrf.ts` | Public-origin, request-header and logout-form checks | Session persistence |
+| `server/auth/csrf.ts` | Public-origin, request-header and logout-form checks (the form body is read only up to 4096 bytes) | Session persistence |
+| `server/auth/rate-limit.ts` | Per-source-address token buckets for requests and sign-in routes, and the gate that bounds anonymous audit records | Audit storage |
 | `server/auth/remote-hosts.ts` | Pure decisions on remote addresses: allowed hosts, canonical addresses, one host per remote, and which credential a host takes | I/O |
 | `server/auth/remote-credentials.ts` | Server-mode remote Git: Azure DevOps on-behalf-of and GitHub consent tokens kept in the session, and the credential for one command | Running Git |
 | `server/auth/github-oauth.ts` | GitHub's OAuth consent address and token requests | Session storage |
@@ -72,7 +75,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `server/auth/cedar.ts` | Validated policy loading, entity graphs and the Cedar engine | HTTP handling |
 | `server/auth/authorize.ts` | The access-decision boundary, filtered views and request memoisation | HTTP handling |
 | `server/auth/route-actions.ts`, `server/auth/middleware.ts` | Route inventory, request scopes, identity resolution and audited HTTP decisions | Resource-specific business logic |
-| `server/auth/audit.ts` | Durable monthly audit records, hash chains and retention | Secrets or document contents |
+| `server/auth/audit.ts` | Durable monthly audit records, one hash chain across months, month-end anchors for the mirror, the chain check that `scripts/audit-verify.ts` runs ([docs](docs/audit-tamper-evidence.md)), and retention | Secrets or document contents |
 | `src/governance/guards.ts`, `src/governance/levels.ts` | The shared, pure governance rules: what a file change touches (metric status, approved-metric edits, ODCS classification, critical data elements, team, roles, protected properties), demotion to proposed, owner matching and owner choices, classification levels | Policy evaluation, I/O |
 | `server/auth/guards.ts` | Binds those rules to a request: `guardFor(scope)` builds the guard that decides each guarded change with `approveMetric` or `editGuarded` and throws `GuardedChangeError`; re-exports the shared rules | Reading or writing files |
 | `server/auth/write-access.ts` | `authorizeWrite` for write targets; re-exports `WriteAccessError` | Content rules |
@@ -222,7 +225,7 @@ editor never receives an older deferred value as an external replacement.
   a guard case or listed as exempt with its reason, and agent clients to be admitted only on read
   rows. `applyGuards` in `src/governance/guards.ts` is the pure entry point.
 - **Errors**: services throw specific errors (`server/projects/errors.ts`, `GitError`,
-  `PathError`, `InputError`, `SignInError`); `server/routes/http.ts` maps them to status codes in one place, including the safe sign-in page and attempt-cookie clearing. The handler passes that mapping into the access middleware, so `server/auth/` never imports `server/routes/`.
+  `PathError`, `InputError`, `SignInError`); `server/routes/http.ts` maps them to status codes in one place, including the safe sign-in page and attempt-cookie clearing. A `BadRequestError` is the caller's mistake and answers 400 with its message; in server mode any other error answers 500 `Internal error.` and is logged with the request id. The handler passes that mapping into the access middleware, so `server/auth/` never imports `server/routes/`.
 - **Events**: the server emits `files`, `projects`, `git`, `clone`, `identity` and others
   through `events.ts`; the browser listens with `useEvents` and refetches.
 - **Testing**: `bun test` for logic and handlers; `scripts/*-browser-check.ts` for the UI against

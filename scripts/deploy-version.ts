@@ -80,11 +80,38 @@ export function versionQuery(registry: string): string[] {
   ];
 }
 
+/** Builds the Git query that asks whether a commit is part of the reviewed main branch. */
+export function mainAncestryArguments(commit: string): string[] {
+  if (!/^[a-f0-9]{40}$/.test(commit)) throw Error(`Expected a full 40-hex Git commit: ${commit}`);
+  return ['git', 'merge-base', '--is-ancestor', commit, 'origin/main'];
+}
+
+/** Refuses a release commit that never went through the main branch's pull request policy. */
+export async function assertCommitOnMain(commit: string, directory = process.cwd()) {
+  const child = Bun.spawn(mainAncestryArguments(commit), {
+    cwd: directory,
+    stdout: 'pipe',
+    stderr: 'pipe',
+  });
+  const [error, code] = await Promise.all([new Response(child.stderr).text(), child.exited]);
+  if (code === 1) throw Error(`Commit ${commit} is not on origin/main; tag a reviewed commit`);
+  if (code !== 0) {
+    throw Error(`Could not compare ${commit} with origin/main (fetch full history): ${error}`);
+  }
+}
+
 /** Resolves an explicit local tag or the pipeline ref before any authenticated command. */
 export function releaseTag(tag: string | undefined, sourceRef: string | undefined): string {
   const selected = tag ?? sourceRef?.replace(/^refs\/tags\//, '') ?? '';
   parseRelease(selected);
   return selected;
+}
+
+async function currentCommit(): Promise<string> {
+  const child = Bun.spawn(['git', 'rev-parse', 'HEAD'], { stdout: 'pipe', stderr: 'pipe' });
+  const [output, code] = await Promise.all([new Response(child.stdout).text(), child.exited]);
+  if (code !== 0) throw Error('Could not read the checked-out commit; set SOURCE_VERSION');
+  return output.trim();
 }
 
 async function main() {
@@ -94,6 +121,7 @@ async function main() {
   });
   if (values.help) {
     console.log('deploy:check-version [--tag vX.Y.Z] [--fake]; defaults to SOURCE_REF');
+    console.log('The tagged commit (SOURCE_VERSION, default HEAD) must be on origin/main.');
     return;
   }
   const tag = releaseTag(values.tag, process.env.SOURCE_REF);
@@ -103,9 +131,10 @@ async function main() {
   const args = versionQuery(target.ACR_NAME);
   if (values.fake) {
     checkReleaseVersion(tag, manifest.version, []);
-    console.log(`Offline version check passed: ${tag} (empty fake registry)`);
+    console.log(`Offline version check passed: ${tag} (empty fake registry, main check skipped)`);
     return;
   }
+  await assertCommitOnMain(process.env.SOURCE_VERSION || (await currentCommit()));
   const child = Bun.spawn(args, { stdout: 'pipe', stderr: 'pipe' });
   const [output, error, code] = await Promise.all([
     new Response(child.stdout).text(),

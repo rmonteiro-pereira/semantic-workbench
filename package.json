@@ -39,6 +39,7 @@
     "test:terminology": "bun scripts/terminology-check.ts",
     "test:mappings-layout": "bun scripts/mappings-layout-browser-check.ts",
     "test:mapping-graph": "bun scripts/mapping-graph-browser-check.ts",
+    "audit:verify": "bun scripts/audit-verify.ts",
     "mock-oidc": "bun scripts/mock-oidc.ts",
     "test:auth": "bun run build && bun scripts/auth-browser-check.ts",
     "test:auth:keycloak": "bun run build && bun scripts/auth-keycloak-check.ts",

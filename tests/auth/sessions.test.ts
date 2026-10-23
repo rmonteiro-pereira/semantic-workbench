@@ -67,7 +67,7 @@ test('the wrong encryption key cannot restore a session', async () => {
   const { options } = fixture();
   const session = await createSessionStore(options).create(identity);
   const wrong = createSessionStore({ ...options, key: new Uint8Array(32).fill(8) });
-  await expect(wrong.get(session.id)).rejects.toThrow();
+  await expect(wrong.get(session.id)).resolves.toBeNull();
 });
 
 test('quick touches write once and the latest in-memory touch sets exact idle expiry', async () => {

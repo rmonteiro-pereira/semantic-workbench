@@ -12,6 +12,9 @@ parameters:
   - name: acrServiceConnection
     type: string
     default: sw-azure-push
+  - name: acrPullServiceConnection
+    type: string
+    default: sw-azure-pull
   - name: deployServiceConnection
     type: string
     default: sw-azure-deploy
@@ -41,6 +44,7 @@ stages:
       - template: deploy/azure-devops/templates/image-jobs.yml
         parameters:
           acrServiceConnection: ${{ parameters.acrServiceConnection }}
+          acrPullServiceConnection: ${{ parameters.acrPullServiceConnection }}
   - stage: Deploy
     dependsOn: Image
     condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
@@ -57,6 +61,7 @@ stages:
                 - template: deploy/azure-devops/templates/setup-steps.yml
                   parameters:
                     browsers: false
+                    production: true
                 - template: deploy/azure-devops/templates/deploy-steps.yml
                   parameters:
                     deployServiceConnection: ${{ parameters.deployServiceConnection }}

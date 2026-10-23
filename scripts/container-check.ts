@@ -9,6 +9,7 @@ import { gateSuites } from './gate-suites';
 import { serverSuites } from './container-suites';
 import { authContainerCheck } from './auth-container-check';
 import { buildArguments, chooseEngine, readImageContext } from './image';
+import { hardenedRunArguments } from './container-hardening';
 
 const { values } = parseArgs({
   args: process.argv.slice(2),
@@ -66,6 +67,7 @@ async function start(root: string, selected: number) {
     name,
     '--network',
     'host',
+    ...hardenedRunArguments(),
     ...userMapping,
     '-v',
     `${root}:/data${podman ? ':z' : ''}`,
