@@ -1,0 +1,23 @@
+# Workbench addition: binds the governed metrics of flights.metrics.semantic.yaml to Flights
+# concepts. It is not part of the upstream Apache Ossie examples.
+version: 0.2.0.dev0
+name: "Flights metrics mappings"
+ontology_ref:
+  name: "Flights"
+  iri: "./flights.ontology.yaml"
+semantic_model_ref:
+  name: "Flights metrics"
+  iri: "./flights.metrics.semantic.yaml"
+concept_mappings: []
+custom_extensions:
+  - vendor_name: SEMANTIC_WORKBENCH
+    data: |
+      {"schema": "semantic-workbench/mapping/v1", "kpi_bindings": [
+        {"metric":"average_arrival_delay","measures":"Delay","of":"Carrier"},
+        {"metric":"average_flight_distance","measures":"Distance","of":"Route"},
+        {"metric":"delay_recovered","measures":"Delay","of":"Flight"},
+        {"metric":"flight_count","measures":"Flight","of":"Carrier"},
+        {"metric":"total_arrival_delay","measures":"Delay","of":"Flight"},
+        {"metric":"total_departure_delay","measures":"Delay","of":"Flight"},
+        {"metric":"total_distance","measures":"Distance","of":"Flight"}
+      ]}

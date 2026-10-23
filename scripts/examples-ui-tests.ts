@@ -60,20 +60,28 @@ try {
     await expect(page.locator('.validation-details')).toHaveCount(0);
   });
   await check(
-    'official Flights sidebar loader opens full graph and reuses existing documents',
+    'official Flights sidebar loader opens the full graph, adds only labelled workbench files and reopens without duplicating',
     async () => {
+      // The five imported official files, then the example project: four official Flights files
+      // and three files the workbench adds.
+      const importedFiles = manifest.files.length;
+      const exampleFiles = 7;
       for (let i = 0; i < 2; i++) {
         await (await example(page, /Load Ossie Flights/)).click();
         await expect(page.locator('h1')).toContainText('Flight');
         await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
         await expect(page.locator('.full-graph-status')).toHaveAttribute('data-entity-count', '49');
-        if (store.list().length !== 5)
+        if (store.list().length !== importedFiles + exampleFiles)
           throw Error('Flights loader duplicated or omitted documents');
-        for (const doc of store.list())
-          if (
-            doc.source !== (await Bun.file('tests/fixtures/ossie-mapping/' + doc.filename).text())
-          )
-            throw Error('Flights loader changed official bytes');
+        for (const doc of store.list()) {
+          if (!manifest.files.some(file => file.filename === doc.filename)) {
+            if (!doc.source.startsWith('# Workbench addition'))
+              throw Error('Unlabelled workbench file: ' + doc.filename);
+            continue;
+          }
+          const official = await Bun.file('tests/fixtures/ossie-mapping/' + doc.filename).text();
+          if (doc.source !== official) throw Error('Flights loader changed official bytes');
+        }
       }
     },
   );
@@ -84,7 +92,7 @@ try {
         ['tpcds_semantic_model.yaml', '13'],
         ['flights.ontology.yaml', '49'],
       ] as const) {
-        await page.getByRole('button', { name: file, exact: true }).click();
+        await page.getByRole('button', { name: file, exact: true }).first().click();
         await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
         await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
         await expect(page.locator('.full-graph-status')).toHaveAttribute(
@@ -102,13 +110,20 @@ try {
     'both official standalone and embedded Flights mappings render 60 bindings and export their context',
     async () => {
       await page.locator('.tabs').getByRole('button', { name: 'Mappings', exact: true }).click();
-      // The mapping list loads from the server; wait for it before reading the options.
-      await expect(page.getByLabel('Mapping document').locator('option')).toHaveCount(3);
-      const ids = await page
+      // The mapping list loads from the server; wait for it before reading the options. It lists
+      // the mappings of every project: the standalone and the embedded form of the imported
+      // files and of the Flights example, and the example's own metrics mapping.
+      await expect(page.getByLabel('Mapping document').locator('option')).toHaveCount(6);
+      const options = await page
         .getByLabel('Mapping document')
         .locator('option')
-        .evaluateAll(options => options.map((o: any) => o.value).filter(Boolean));
-      if (ids.length !== 2) throw Error('Missing Flights mapping forms');
+        .evaluateAll(list => list.map((o: any) => ({ value: o.value, text: o.textContent })));
+      const metricsMappings = options.filter(o => o.value && o.text.includes('Flights metrics'));
+      if (metricsMappings.length !== 1) throw Error('Missing Flights metrics mapping');
+      const ids = options
+        .filter(o => o.value && !o.text.includes('Flights metrics'))
+        .map(o => o.value);
+      if (ids.length !== 4) throw Error('Missing Flights mapping forms');
       for (const id of ids) {
         await page.getByLabel('Mapping document').selectOption(id);
         await expect(page.locator('.mapping-binding')).toHaveCount(60);
@@ -262,7 +277,7 @@ try {
   );
   await check('all official source exports retain exact upstream bytes', async () => {
     for (const f of manifest.files) {
-      await page.getByRole('button', { name: f.filename, exact: true }).click();
+      await page.getByRole('button', { name: f.filename, exact: true }).first().click();
       const [download] = await Promise.all([page.waitForEvent('download'), exportFile(page)]);
       const path = await download.path();
       if (
