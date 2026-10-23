@@ -28,6 +28,8 @@ async function openFirstMetric(page: Page) {
 async function openOnDemandSections(page: Page) {
   const closed = page.locator('details.on-demand:not([open]) > summary');
   while (await closed.count()) await closed.first().click();
+  // Clicking the summaries scrolls the pane; a reader opens the metric at its title.
+  await page.locator('.metrics-detail').evaluate(pane => pane.scrollTo({ top: 0 }));
   await page.waitForTimeout(400);
 }
 
@@ -129,6 +131,15 @@ export async function editContainmentProblems(page: Page, screenName: string): P
     if (name === 'metric-wizard' && panel) {
       const picker = box('dialog[open] select[aria-label="Go to step"]');
       if (!picker || picker.right > panel.right) problems.push('the step picker leaves the dialog');
+    }
+    if (name === 'metric-detail') {
+      const table = box('.metrics-table');
+      const wrap = box('.metrics-table-wrap');
+      if (table && wrap && table.right > wrap.right + 1) {
+        problems.push('the metrics table is wider than its pane in the split view');
+      }
+      const pane = document.querySelector('.metrics-detail');
+      if (pane && pane.scrollTop !== 0) problems.push('the metric detail is not at its top');
     }
     if (name === 'catalog') {
       const cards = [...document.querySelectorAll('.catalog-card')].map(card =>

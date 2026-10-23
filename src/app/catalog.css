@@ -20,8 +20,8 @@
 .catalog-card > button:first-child p {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   overflow: hidden;
   margin: 0;
 }
@@ -34,4 +34,15 @@
   padding: 4px 8px;
   gap: 4px;
   background: var(--color-surface);
+}
+/* The first line of every card keeps the height of the metric badge, so titles share a baseline
+   whether or not a card carries one. */
+.catalog-card small {
+  min-height: 22px;
+}
+.catalog-card strong {
+  overflow-wrap: anywhere;
+}
+.catalog {
+  padding-bottom: 40px;
 }

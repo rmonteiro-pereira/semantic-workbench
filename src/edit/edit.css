@@ -196,20 +196,53 @@ button.link {
   padding: 4px 8px;
   gap: 4px;
 }
+/* The list shows whole rows only: six on a short window, more where the drawer has the room. A
+   shadow at an edge shows that more rows wait beyond it. */
+.item-children {
+  --child-row-height: 34px;
+}
 .item-children ul {
   list-style: none;
   margin: 0;
   padding: 0;
-  max-height: 200px;
+  max-height: calc(var(--child-row-height) * 6);
   overflow: auto;
+  scroll-snap-type: y proximity;
+  background:
+    linear-gradient(var(--color-surface) 30%, transparent) 0 0 / 100% 24px no-repeat local,
+    linear-gradient(transparent, var(--color-surface) 70%) 0 100% / 100% 24px no-repeat local,
+    radial-gradient(
+        farthest-side at 50% 0,
+        color-mix(in srgb, var(--color-shadow) 25%, transparent),
+        transparent
+      )
+      0 0 / 100% 10px no-repeat scroll,
+    radial-gradient(
+        farthest-side at 50% 100%,
+        color-mix(in srgb, var(--color-shadow) 25%, transparent),
+        transparent
+      )
+      0 100% / 100% 10px no-repeat scroll;
+}
+@media (min-height: 900px) {
+  .item-children ul {
+    max-height: calc(var(--child-row-height) * 10);
+  }
+}
+@media (min-height: 1200px) {
+  .item-children ul {
+    max-height: calc(var(--child-row-height) * 18);
+  }
 }
 .item-children li {
+  height: var(--child-row-height);
+  scroll-snap-align: start;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
   font-size: var(--text-small);
-  padding: 3px 0;
+  padding: 0;
   border-bottom: 1px solid var(--color-border-subtle);
 }
 .item-children li span {
@@ -443,4 +476,10 @@ button.link {
     flex-basis: 100%;
     order: -1;
   }
+}
+
+/* The wizard's concept fields suggest names as you type; the browser's arrow shows on some
+   screens only, so no screen shows it. */
+.kpi-wizard input[list]::-webkit-calendar-picker-indicator {
+  display: none !important;
 }

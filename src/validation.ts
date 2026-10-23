@@ -225,7 +225,7 @@ export function validateStructured(data: any, applyPinnedSchema = true): Issue[]
     else
       warn(
         '/ontology',
-        'Ontology compatibility profile checked; the pinned Apache ontology schema applies to version 0.2.0.dev0.',
+        'Only the basic checks ran: the full ontology schema applies to version 0.2.0.dev0, and this file declares another version.',
       );
     arr(data.ontology_mappings, '/ontology_mappings').forEach((m, i) => {
       const prefix = `/ontology_mappings/${i}`;

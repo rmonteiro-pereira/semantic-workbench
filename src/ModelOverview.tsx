@@ -1,7 +1,7 @@
 /** Displays model groups and their entities as a browsable catalog. */
 import type { GroupingOptions } from './overview';
 import { useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, Grid2X2, Layers, Search, X, Network } from 'lucide-react';
+import { ArrowRight, Focus, Grid2X2, Layers, Search, X, Network } from 'lucide-react';
 import { modelOverview } from './overview';
 import type { Entity, Relationship } from './model';
 type Props = {
@@ -78,7 +78,7 @@ export function ModelOverview(props: Props) {
             <Network size={14} /> Graph
           </button>
           <button onClick={props.onClose}>
-            <ArrowLeft size={14} /> Neighborhood
+            <Focus size={14} /> Neighborhood
           </button>
         </div>
       </div>
@@ -93,7 +93,11 @@ export function ModelOverview(props: Props) {
           </button>
         </div>
         <div className="overview-legend">
-          <span /> Connected to selection
+          {props.selected && (
+            <>
+              <span /> Connected to the selected entity
+            </>
+          )}
           {props.entities.some(e => e.kind === 'OWL class') && (
             <button onClick={() => setTechnical(v => !v)}>
               {technical
@@ -160,6 +164,7 @@ export function ModelOverview(props: Props) {
                     <button
                       aria-label={`Explore relationships for ${group.name}`}
                       disabled={!external}
+                      title={external ? undefined : 'No relationship leaves this area'}
                       onClick={() => {
                         setMode('matrix');
                         setPair([group.id, '*']);
