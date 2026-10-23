@@ -267,7 +267,7 @@ try {
       const legend = dataset('orders').getByRole('definition').filter({ hasText: 'holds the key' });
       await expect(legend).toHaveCount(2);
       await views('orders').getByRole('tab', { name: 'Data Quality' }).click();
-      const empty = dataset('orders').getByRole('status');
+      const empty = dataset('orders').locator('.empty-state');
       await expect(empty).toContainText('No quality rules declared');
       await expect(empty).toContainText('Add a quality list');
       await expect(empty).toContainText('does not run them');
