@@ -10,6 +10,8 @@ import {
   type EdgeProps,
   type NodeChange,
   type ReactFlowInstance,
+  useStoreApi,
+  useUpdateNodeInternals,
 } from '@xyflow/react';
 import { ArrowLeft, ArrowRight, Maximize2, Minimize2, Scan, Search, X } from 'lucide-react';
 import { LineageLegend, type LegendKind } from '../graph/LineageLegend';
@@ -225,6 +227,29 @@ function useMeasuredNodeSizes() {
   }, []);
   return { sizes, recordSizes };
 }
+const MEASURE_CHECK_MS = 500;
+
+// React Flow keeps a card hidden until it has measured it. Under load a measurement can be lost
+// for good, and then nothing retries it: the card stays hidden and the canvas looks empty. This
+// watches the cards on screen and asks React Flow to measure again any that are still hidden.
+function MeasurementWatchdog() {
+  const store = useStoreApi();
+  const updateNodeInternals = useUpdateNodeInternals();
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const canvas = store.getState().domNode;
+      if (!canvas) return;
+      const renderedCards = canvas.querySelectorAll<HTMLElement>('.react-flow__node');
+      const unmeasured = [...renderedCards]
+        .filter(card => card.style.visibility === 'hidden')
+        .map(card => card.dataset.id ?? '');
+      if (unmeasured.length) updateNodeInternals(unmeasured.filter(Boolean));
+    }, MEASURE_CHECK_MS);
+    return () => clearInterval(timer);
+  }, [store, updateNodeInternals]);
+  return null;
+}
+
 // Lays out in ELK's worker (elk-api + elk-worker, as the Graph view does); returns the latest
 // positions (the previous ones stay while a new layout runs).
 function useLayout(cards: LayoutCard[], edges: LayoutEdge[], key: string) {
@@ -1302,6 +1327,7 @@ export function LineageCanvas({
             onlyRenderVisibleElements
           >
             <Background gap={22} size={1} />
+            <MeasurementWatchdog />
             {farZoom.watcher}
           </ReactFlow>
           {busy && !nodes.length && (
