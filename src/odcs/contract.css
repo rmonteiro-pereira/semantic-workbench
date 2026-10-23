@@ -295,22 +295,6 @@
   margin: 0;
 }
 /* An empty tab says what is missing and what to do about it. */
-.odcs-empty-state {
-  display: grid;
-  justify-items: start;
-  gap: 8px;
-  max-width: 60ch;
-  padding: 24px 4px;
-  color: var(--text-muted);
-}
-.odcs-empty-state strong {
-  color: var(--color-text);
-  font-size: 15px;
-}
-.odcs-empty-state p {
-  margin: 0;
-  font-size: 13px;
-}
 /* Names and the Edit buttons share one centre line, and the Edit column hugs its button. */
 .odcs-properties td {
   vertical-align: middle;

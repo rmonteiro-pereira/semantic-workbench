@@ -3,6 +3,8 @@ import './empty-state.css';
 import type { ReactNode } from 'react';
 
 type Props = {
+  /** A small picture above the title. */
+  icon?: ReactNode;
   /** What is missing, in a few words. */
   title: string;
   /** One sentence that says why, or how to fill it. */
@@ -12,9 +14,10 @@ type Props = {
 };
 
 /** Centres a short explanation and the next step where a list or a pane would be. */
-export function EmptyState({ title, children, action }: Props) {
+export function EmptyState({ icon, title, children, action }: Props) {
   return (
     <div className="empty-state">
+      {icon}
       <strong>{title}</strong>
       {children && <p>{children}</p>}
       {action}

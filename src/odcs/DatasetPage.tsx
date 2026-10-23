@@ -14,7 +14,7 @@ import {
   type ForeignKeyHop,
   type LineageCard,
 } from './lineage';
-import { EmptyState } from './EmptyState';
+import { EmptyState } from '../projects/EmptyState';
 import { LineageCanvas } from './LineageCanvas';
 import { projectFiles, projectRevision } from './project-files';
 import { rulesOf, tableTypeBadge } from './ContractOverview';
