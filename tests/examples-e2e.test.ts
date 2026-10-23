@@ -4,7 +4,8 @@ import { checkExamples } from '../scripts/example-checks';
 test('all official Ossie examples and generated billing model round-trip; generated SQL produces verified fixture results', async () => {
   const r = await checkExamples();
   expect(r.imports).toHaveLength(5);
-  expect(r.sqlExecutions).toHaveLength(20);
+  expect(r.sqlExecutions).toHaveLength(24);
   expect(r.generated.businessEntities).toBe(36);
+  expect(r.generated.governedMetrics).toBe(8);
   expect(r.blockedCases).toHaveLength(2);
 }, 30000);

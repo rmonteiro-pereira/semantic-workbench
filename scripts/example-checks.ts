@@ -207,6 +207,33 @@ export async function checkExamples() {
             result: actual,
           });
         }
+      // Metrics added to the example are checked against totals worked out by hand from the eight
+      // fixture invoice lines: discounts 190, tax 209, net revenue 2,090 plus discounts 2,280.
+      const addedTotals: Record<string, number> = {
+        discounts_given: 190,
+        tax_billed: 209,
+        gross_billings: 2280,
+        recurring_share: 1990 / 2090,
+      };
+      for (const [metric, total] of Object.entries(addedTotals)) {
+        // These metrics are governed in the semantic model but not mapped to a concept, so the plan
+        // is made over the model.
+        const p = planQuery(context, {
+          mappingId: context.mappingId,
+          scope: 'model',
+          metrics: [metric],
+          dimensions: [],
+        });
+        const [row] = db.query(p.sql).all() as any[];
+        assert(Math.abs(row.metric_1 - total) < 1e-8, `${metric}: ${row.metric_1} != ${total}`);
+        plans.push(p);
+        sqlExecutions.push({
+          example: 'generated subscription billing',
+          metric,
+          dimension: null,
+          result: { total: row.metric_1 },
+        });
+      }
       const mixed = planQuery(context, {
         mappingId: context.mappingId,
         metrics: ['net_revenue', 'invoice_count', 'revenue_per_invoice'],
@@ -266,7 +293,7 @@ export async function checkExamples() {
         datasets: 36,
         joins: 46,
         bindings: 119,
-        governedMetrics: 4,
+        governedMetrics: 8,
       },
       shoppingCenter: {
         counts: mall.counts,
