@@ -18,6 +18,12 @@ import { tourGroups } from './helpers/all-tours';
 import { editContainmentProblems } from './helpers/edit-tour';
 import { adminScreens, leaveAdminPage } from './helpers/admin-tour';
 import { sidewaysTableProblems } from './helpers/odcs-tour';
+import {
+  DARK_TOUR_SIZES,
+  chooseTheme,
+  darkTourScreens,
+  themedScreenProblems,
+} from './helpers/theme-tour';
 
 // Isolated API fixture: exercising viewport changes never modifies the local workspace. The UBL
 // ontology is imported first so that it opens first.
@@ -1571,6 +1577,20 @@ try {
       },
     );
     await headerPage.close();
+  }
+  // The dark theme, chosen through the Theme control: readable text with enough contrast, no
+  // overlaps and nothing cut off, on the same screens.
+  for (const [width, height] of DARK_TOUR_SIZES) {
+    const darkPage = await openPage(width, height);
+    await check(`dark theme: ${width}×${height} readable text and no overlaps`, async () => {
+      await chooseTheme(darkPage, 'Dark');
+      for (const screen of darkTourScreens(groups, width)) {
+        await showScreen(darkPage, screen);
+        expect(await themedScreenProblems(darkPage, screen)).toEqual([]);
+        await noOverflow(darkPage);
+      }
+    });
+    await darkPage.close();
   }
   await check('no uncaught browser errors', async () => expect(errors).toEqual([]));
   console.log(`${passed} responsive UI checks passed`);

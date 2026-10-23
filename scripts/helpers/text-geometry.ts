@@ -1,5 +1,6 @@
 // Measures text legibility and text collisions in screen coordinates, at any viewport size.
 import type { Page } from '@playwright/test';
+import { contrastRatio, type Rgba } from './color-literals';
 
 /** The smallest text size, in CSS pixels, the interface may show. */
 export const MIN_TEXT_PX = 12;
@@ -106,4 +107,112 @@ export async function textCollisionProblems(page: Page, within = 'body'): Promis
     },
     { skip: NOT_INTERFACE_TEXT, root: within },
   );
+}
+
+/** The smallest contrast ratio WCAG asks of normal text. */
+export const MIN_TEXT_CONTRAST = 4.5;
+
+/** The smallest contrast ratio WCAG asks of large text and of interface borders and icons. */
+export const MIN_LARGE_TEXT_CONTRAST = 3;
+
+type TextColorSample = {
+  label: string;
+  color: Rgba;
+  background: Rgba | null;
+  large: boolean;
+};
+
+/** Reads the colour, the colour behind it and the size class of every visible text run. */
+async function sampleTextColors(page: Page, within: string): Promise<TextColorSample[]> {
+  return page.evaluate(
+    ({ skip, root }) => {
+      const scratch = document.createElement('canvas');
+      scratch.width = 1;
+      scratch.height = 1;
+      const context = scratch.getContext('2d', { willReadFrequently: true })!;
+      // The canvas turns any CSS colour, including color-mix() results, into plain channels.
+      const toChannels = (css: string) => {
+        context.clearRect(0, 0, 1, 1);
+        context.fillStyle = '#000';
+        context.fillStyle = css;
+        context.fillRect(0, 0, 1, 1);
+        const [red, green, blue, alpha] = context.getImageData(0, 0, 1, 1).data;
+        return { red, green, blue, alpha: alpha / 255 };
+      };
+      const over = (top: ReturnType<typeof toChannels>, under: ReturnType<typeof toChannels>) => ({
+        red: top.red * top.alpha + under.red * (1 - top.alpha),
+        green: top.green * top.alpha + under.green * (1 - top.alpha),
+        blue: top.blue * top.alpha + under.blue * (1 - top.alpha),
+        alpha: 1,
+      });
+      // The colour behind an element: its own and its ancestors' backgrounds, blended down to the
+      // first opaque one. A gradient or an image makes the answer unknown.
+      const backgroundOf = (start: Element) => {
+        const layers: ReturnType<typeof toChannels>[] = [];
+        for (let node: Element | null = start; node; node = node.parentElement) {
+          const style = getComputedStyle(node);
+          if (style.backgroundImage !== 'none') return null;
+          const layer = toChannels(style.backgroundColor);
+          if (layer.alpha > 0) layers.push(layer);
+          if (layer.alpha === 1) break;
+        }
+        let result = toChannels(getComputedStyle(document.documentElement).backgroundColor);
+        if (result.alpha < 1) result = { red: 255, green: 255, blue: 255, alpha: 1 };
+        for (const layer of layers.reverse()) result = over(layer, result);
+        return result;
+      };
+      const opacityOf = (start: Element) => {
+        let opacity = 1;
+        for (let node: Element | null = start; node; node = node.parentElement) {
+          opacity *= Number(getComputedStyle(node).opacity);
+        }
+        return opacity;
+      };
+      const samples: TextColorSample[] = [];
+      const walker = document.createTreeWalker(
+        document.querySelector(root) ?? document.body,
+        NodeFilter.SHOW_TEXT,
+      );
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        const label = node.textContent?.trim();
+        const element = node.parentElement;
+        if (!label || !element || element.matches(skip)) continue;
+        // Disabled controls are exempt from contrast rules, as WCAG allows.
+        if (element.closest('button:disabled,[aria-disabled="true"],fieldset:disabled')) continue;
+        const style = getComputedStyle(element);
+        if (style.visibility === 'hidden' || style.display === 'none') continue;
+        const box = element.getBoundingClientRect();
+        if (box.width < 1 || box.height < 1) continue;
+        const background = backgroundOf(element);
+        let color = toChannels(style.color);
+        const faded = opacityOf(element);
+        if (background && (color.alpha < 1 || faded < 1)) {
+          color = over({ ...color, alpha: color.alpha * faded }, background);
+        }
+        const size = parseFloat(style.fontSize);
+        const bold = Number(style.fontWeight) >= 700;
+        samples.push({
+          label: label.slice(0, 30),
+          color,
+          background,
+          large: size >= 24 || (size >= 18.66 && bold),
+        });
+      }
+      return samples;
+    },
+    { skip: NOT_INTERFACE_TEXT, root: within },
+  );
+}
+
+/** Returns the visible text, inside the `within` element, whose colour is hard to read. */
+export async function lowContrastProblems(page: Page, within = 'body'): Promise<string[]> {
+  const problems = new Set<string>();
+  for (const sample of await sampleTextColors(page, within)) {
+    if (!sample.background) continue;
+    const ratio = contrastRatio(sample.color, sample.background);
+    const needed = sample.large ? MIN_LARGE_TEXT_CONTRAST : MIN_TEXT_CONTRAST;
+    if (ratio >= needed) continue;
+    problems.add(`"${sample.label}" has contrast ${ratio.toFixed(2)}:1, needs ${needed}:1`);
+  }
+  return [...problems];
 }
