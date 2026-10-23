@@ -6,7 +6,8 @@ import { chromium } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { authViewports } from './helpers/sign-in';
-import { screenProblems, showScreen, tourScreens } from './helpers/screen-tour';
+import { screenProblems, showScreen } from './helpers/screen-tour';
+import { tourGroups } from './helpers/all-tours';
 
 const outputDirectory = process.argv[2];
 if (!outputDirectory) throw new Error('Pass an output directory.');
@@ -17,7 +18,11 @@ await api.ws.loadExample('ubl');
 await api.ws.loadExample('commerce');
 await api.ws.loadExample('mall');
 const browser = await chromium.launch();
-const screens = tourScreens({ ontology: 'ubl.ontology.yaml', contract: 'commerce.odcs.yaml' });
+const screens = tourGroups({
+  ontology: 'ubl.ontology.yaml',
+  contract: 'commerce.odcs.yaml',
+  metricsModel: 'mall.semantic.yaml',
+}).flatMap(group => group.screens);
 
 for (const [width, height] of authViewports) {
   const page = await browser.newPage({ viewport: { width, height } });
@@ -25,7 +30,12 @@ for (const [width, height] of authViewports) {
   await page.goto(appUrl());
   await page.waitForTimeout(1500);
   for (const screen of screens) {
-    await showScreen(page, screen);
+    try {
+      await showScreen(page, screen);
+    } catch (error) {
+      console.log('SKIP', screen.name, width, String(error).split('\n')[0]);
+      continue;
+    }
     await page.screenshot({ path: `${outputDirectory}/local-${screen.name}-${width}.png` });
     const problems = await screenProblems(page, screen);
     console.log(`MEASURE ${screen.name} ${width} problems=${problems.length}`);

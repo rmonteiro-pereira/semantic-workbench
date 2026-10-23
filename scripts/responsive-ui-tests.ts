@@ -8,10 +8,10 @@ import { treeRowProblems } from './helpers/tree-geometry';
 import { neighborhoodEdgeProblems, neighborhoodState, pickCenter } from './helpers/edge-geometry';
 import { inspect } from '../src/model';
 import { layoutProblems, lineageProblems } from './helpers/layout-geometry';
-import { screenProblems, showScreen, tourScreens } from './helpers/screen-tour';
-import { editContainmentProblems, editScreens } from './helpers/edit-tour';
-import { odcsScreens, sidewaysTableProblems } from './helpers/odcs-tour';
-import { projectDialogScreens } from './helpers/project-dialog-tour';
+import { screenProblems, showScreen, type Screen } from './helpers/screen-tour';
+import { tourGroups } from './helpers/all-tours';
+import { editContainmentProblems } from './helpers/edit-tour';
+import { sidewaysTableProblems } from './helpers/odcs-tour';
 
 // Isolated API fixture: exercising viewport changes never modifies the local workspace. The UBL
 // ontology is imported first so that it opens first.
@@ -1424,64 +1424,36 @@ try {
       await context.close();
     },
   );
-  // Every screen and dialog of the tour: readable text, no collisions, nothing cut off.
-  const tour = tourScreens({ ontology: 'ubl.ontology.yaml', contract: 'commerce.odcs.yaml' });
-  for (const [width, height] of [
-    [390, 844],
-    [1280, 720],
-    [1440, 900],
-    [2560, 1440],
-  ]) {
-    const tourPage = await openPage(width!, height!);
-    await check(`screens: ${width}×${height} readable text and no overlaps`, async () => {
-      for (const screen of tour) {
-        await showScreen(tourPage, screen);
-        expect(await screenProblems(tourPage, screen)).toEqual([]);
-        await noOverflow(tourPage);
-      }
-    });
-    await tourPage.close();
-  }
-  // Edit drawers, add dialogs, metrics, mappings, the query composer and the catalog.
-  const editTour = editScreens({ ontology: 'ubl.ontology.yaml', metricsModel: 'sales.ossie.yaml' });
-  const odcsTour = odcsScreens('commerce.odcs.yaml');
-  // The Source control and project dialogs: readable text, no collisions, nothing cut off.
-  const dialogTour = projectDialogScreens();
-  for (const [width, height] of [
-    [390, 844],
-    [1280, 720],
-    [1440, 900],
-    [2560, 1440],
-  ]) {
-    const editPage = await openPage(width!, height!);
-    await check(`edit screens: ${width}×${height} readable text and no overlaps`, async () => {
-      for (const screen of editTour) {
-        await showScreen(editPage, screen);
-        expect(await screenProblems(editPage, screen)).toEqual([]);
-        expect(await editContainmentProblems(editPage, screen.name)).toEqual([]);
-        await noOverflow(editPage);
-      }
-    });
-    await editPage.close();
-    const odcsPage = await openPage(width!, height!);
-    await check(`ODCS screens: ${width}×${height} readable, no overlaps, tables fit`, async () => {
-      for (const screen of odcsTour) {
-        await showScreen(odcsPage, screen);
-        expect(await screenProblems(odcsPage, screen)).toEqual([]);
-        expect(await sidewaysTableProblems(odcsPage)).toEqual([]);
-        await noOverflow(odcsPage);
-      }
-    });
-    await odcsPage.close();
-    const dialogPage = await openPage(width!, height!);
-    await check(`project dialogs: ${width}×${height} readable text and no overlaps`, async () => {
-      for (const screen of dialogTour) {
-        await showScreen(dialogPage, screen);
-        expect(await screenProblems(dialogPage, screen)).toEqual([]);
-        await noOverflow(dialogPage);
-      }
-    });
-    await dialogPage.close();
+  // Every screen and dialog of every tour: readable text, no collisions, nothing cut off.
+  const groups = tourGroups({
+    ontology: 'ubl.ontology.yaml',
+    contract: 'commerce.odcs.yaml',
+    metricsModel: 'sales.ossie.yaml',
+  });
+  // Checks that only some groups need on top of the shared ones.
+  const extraProblems: Record<string, (page: Page, screen: Screen) => Promise<string[]>> = {
+    'edit screens': (page, screen) => editContainmentProblems(page, screen.name),
+    'ODCS screens': page => sidewaysTableProblems(page),
+  };
+  for (const group of groups) {
+    for (const [width, height] of [
+      [390, 844],
+      [1280, 720],
+      [1440, 900],
+      [2560, 1440],
+    ]) {
+      const tourPage = await openPage(width!, height!);
+      await check(`${group.title}: ${width}×${height} ${group.summary}`, async () => {
+        for (const screen of group.screens) {
+          await showScreen(tourPage, screen);
+          expect(await screenProblems(tourPage, screen)).toEqual([]);
+          const extra = extraProblems[group.title];
+          if (extra) expect(await extra(tourPage, screen)).toEqual([]);
+          await noOverflow(tourPage);
+        }
+      });
+      await tourPage.close();
+    }
   }
   // The shell: header status, graph toolbars, the sidebar footer and dialogs opened from the drawer.
   for (const [width, height] of [
