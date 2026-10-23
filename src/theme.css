@@ -1,0 +1,111 @@
+/* Every colour of the workbench lives in this file and nowhere else.
+
+   The light set is the default. The dark set repeats the same names with other values. Other
+   stylesheets and components only refer to these names, for example var(--color-surface).
+
+   Token names say what a colour is for, not what it looks like:
+   surface = a background, border = a line, text = writing, soft = a tinted background,
+   a bare hue name = a solid colour that works for icons, lines, fills and large text. */
+:root {
+  color-scheme: light;
+
+  /* Surfaces: the page, panels and cards, and states drawn on them. */
+  --color-surface: #ffffff;
+  --color-surface-page: #f7f9f9;
+  --color-surface-sunken: #eef3f1;
+  --color-surface-hover: #edf5f2;
+  /* Dark panels on a light page, such as tooltips, and the writing on them. */
+  --color-surface-inverse: #24393d;
+  --color-text-inverse: #ffffff;
+
+  /* Borders: dividers, outlines of cards and inputs, and stronger edges of inputs. */
+  --color-border-subtle: #e6ecea;
+  --color-border: #dbe3e4;
+  --color-border-strong: #c3d3ce;
+  --color-neutral: #8ba198;
+  --color-neutral-strong: #6f8c80;
+
+  /* Text. The muted colour keeps at least 4.5:1 contrast on the surfaces above. */
+  --color-text: #243936;
+  --color-text-secondary: #3a5a50;
+  --color-text-muted: #566c65;
+  --color-on-accent: #ffffff;
+
+  /* Accent: the brand colour of primary buttons, selected tabs and the selected graph edge. */
+  --color-accent: #247c66;
+  --color-accent-hover: #1c6552;
+  --color-accent-text: #1e6a4f;
+  --color-accent-soft: #e9f4ef;
+  --color-accent-soft-strong: #d8ece3;
+  --color-accent-border: #cfe6da;
+  --color-accent-border-strong: #68a892;
+  --color-focus: #50cbb0;
+
+  /* Status colours. Each has a solid form and a text, soft background and border form. */
+  --color-success: #3a9877;
+  --color-warning: #b07a2a;
+  --color-warning-bright: #cf9020;
+  --color-warning-text: #5a4a12;
+  --color-warning-emphasis: #845e12;
+  --color-warning-soft: #fbf6e2;
+  --color-warning-soft-strong: #fdeccf;
+  --color-warning-border: #e3d6a4;
+  --color-danger: #b3261e;
+  --color-danger-text: #a3392f;
+  --color-danger-strong: #8a2c22;
+  --color-danger-soft: #fbeceb;
+  --color-danger-border: #efc9c2;
+  --color-info: #2a6c95;
+  --color-info-text: #1f5476;
+  --color-info-soft: #eef3fb;
+  --color-info-border: #c5d9ea;
+  --color-violet: #5b4fa8;
+  --color-violet-soft: #f1ebfb;
+  --color-violet-border: #d9d3ee;
+  --color-orange: #aa4e1f;
+  --color-rose: #86304f;
+  --color-rose-soft: #f6eaf0;
+  --color-rose-border: #ebcfdc;
+
+  /* Shadows, and the dimmed backdrop behind a dialog, are this colour at a percentage. The mask
+     colour only sets which part of an image shows, never what it looks like. */
+  --color-shadow: #17323a;
+  --color-mask-opaque: #000000;
+
+  /* Graph edges and the edge legend. */
+  --color-edge-idle: #98aaa3;
+  --color-edge-active: var(--color-accent);
+  --color-edge-feeds: #7d9c91;
+  --color-edge-foreign-key: var(--color-warning);
+  --color-edge-object: var(--color-info);
+  --color-edge-referent: var(--color-accent-text);
+  --color-edge-link: var(--color-warning);
+  --color-edge-measures: #8a5ad1;
+  --color-edge-of: var(--color-edge-measures);
+  --color-edge-out: var(--color-accent);
+  --color-edge-in: var(--color-violet);
+  --color-edge-lateral: var(--color-edge-idle);
+
+  /* Highlighting inside the code editor. */
+  --color-syntax-property: #0451a5;
+  --color-syntax-tag: #800000;
+  --color-syntax-attribute: #e50000;
+  --color-syntax-keyword: #0000ff;
+  --color-syntax-string: #a31515;
+  --color-syntax-number: #098658;
+  --color-syntax-comment: #008000;
+  --color-syntax-meta: #795e26;
+  --color-syntax-type: #267f99;
+  --color-syntax-variable: #001080;
+  --color-syntax-operator: #3b3b3b;
+  --color-syntax-label: #af00db;
+  --color-syntax-invalid: #cd3131;
+  --color-editor-text: #1f1f1f;
+  --color-editor-caret: #000000;
+  --color-editor-selection: #add6ff;
+  --color-editor-match: #ffe58f;
+  --color-editor-match-outline: #e3c34a;
+  --color-editor-match-active: #f8c555;
+  --color-editor-error: #e51400;
+  --color-editor-warning: #bf8803;
+}

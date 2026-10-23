@@ -194,6 +194,11 @@ editor never receives an older deferred value as an external replacement.
   interface shows) and `--text-muted` (the softest text colour, at least 4.5:1 contrast on white).
   Stylesheets use the two variables instead of literal small sizes or pale greys. The responsive
   suite fails when any screen of its tour shows text under 12 px.
+- **Colour**: `src/theme.css` holds every colour of the interface as a semantic custom property
+  (`--color-surface`, `--color-accent`, `--color-edge-feeds` and so on). Stylesheets and
+  components refer to the names and hold no colour literal. `scripts/theme-codemod.ts` moves
+  literals into tokens; `scripts/helpers/color-literals.ts` finds literals and is shared with the
+  codemod.
 - **Configuration**: start-up uses `readConfig()` in `server/config.ts` once for mode, host,
   port, data root, cache root and build identity. Every server-mode variable is listed once, with its default and what start-up checks, in `specs/003-authn-authz/contracts/configuration.md`. Server mode requires issuer discovery and
   a valid administration policy set before serving workspace traffic. The writable-root probe precedes lock acquisition; recovery,
