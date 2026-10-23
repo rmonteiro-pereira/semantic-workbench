@@ -865,21 +865,22 @@ Names say what a colour is for: `--color-surface` (a background), `--color-borde
 `--color-text`, `--color-text-muted`, `--color-accent` (primary buttons, the selected tab, the
 selected graph edge), `--color-warning-soft` (a tinted background) and so on. The file groups
 them with comments: surfaces, borders, text, accent, status colours, shadows, graph edges and
-the code editor.
+the code editor. [docs/theme.md](docs/theme.md) lists every group.
 
-To change the accent, edit one line of `src/theme.css`:
+To change the accent, edit the light value in `src/theme.css` and the two dark values:
 
 ```css
 --color-accent: #5b4fa8; /* was #247c66 */
 ```
 
-The primary buttons, the selected tab and the selected edge in the graph change with it. To try
-a colour without saving it, set the property in the browser's developer tools on the `<html>`
-element.
+The primary buttons, the selected tab, the selected edge and the focused node in the graph change
+with it. To try a colour without saving it, set the property on the `<html>` element in the
+browser's developer tools: `document.documentElement.style.setProperty('--color-accent', '#5b4fa8')`.
 
-To add a token, add a line with a semantic name to the right group in `src/theme.css` and use
-it with `var(--color-name)`. A name ends in `-soft` for a tinted background, `-border` for a line
-and `-text` for writing in that hue; a bare hue name is a solid colour for icons and lines.
+To add a token, add a line with a semantic name to the right group of the light set and the same
+name to both dark blocks, then use it with `var(--color-name)`. A name ends in `-soft` for a tinted
+background, `-border` for a line and `-text` for writing in that hue; a bare hue name is a solid
+colour for icons and lines. A test fails when the light and dark sets differ.
 
 ### Light and dark
 
@@ -891,12 +892,20 @@ the sidebar footer (System, Light, Dark) sets the `data-theme` attribute on `<ht
 choice in the browser's local storage under `workbench.theme`; System removes the attribute so
 the browser's setting decides. `public/theme-init.js` applies the stored choice before the first
 paint, so a dark page never flashes light. The sign-in pages of server mode follow the system
-setting. To add a token, give it a value in the light set and in both dark blocks; a test fails
-when the sets differ.
+setting.
 
 The dark set keeps muted text at 4.5:1 or more on every surface, and strong borders and icons at
 3:1 or more; `tests/theme-check.test.ts` checks the token values and `bun run test:theme` measures
 the rendered screens.
+
+### The theme check
+
+`bun run check` ends with `bun run check:theme`, which fails with `file:line` for every colour
+literal in `src/`, `server/` and `index.html` outside the two theme files. Literals are hex
+values, `rgb()`, `rgba()`, `hsl()` and the named colours; `transparent`, `currentColor` and
+`inherit` are fine. `src/theme.css` holds the tokens. `src/theme-palette.ts` is the only other
+place for literals: it lists the group colours that data picks at run time. The server's sign-in
+pages receive `src/theme.css` too, so their colours follow the tokens.
 
 ### Moving colour literals into tokens
 
@@ -913,18 +922,10 @@ that brings new colours:
 bun scripts/theme-codemod.ts --dry-run   # show what would change and what cannot be mapped
 bun scripts/theme-codemod.ts             # rewrite the files
 bun scripts/theme-codemod.ts src/odcs    # limit the run to some paths
+bun run fmt                              # the replacements can change line lengths
 ```
 
-Run `bun run fmt` afterwards. `--report` lists every literal with the token it became.
-
-### The theme check
-
-`bun run check` ends with `bun run check:theme`, which fails with `file:line` for every colour
-literal in `src/`, `server/` and `index.html` outside the two theme files. Literals are hex
-values, `rgb()`, `rgba()`, `hsl()` and the named colours; `transparent`, `currentColor` and
-`inherit` are fine. `src/theme.css` holds the tokens. `src/theme-palette.ts` is the only other
-place for literals: it lists the group colours that data picks at run time. The server's sign-in
-pages receive `src/theme.css` too, so their colours follow the tokens.
+`--report` lists every literal with the token it became.
 
 ## Checking your work
 

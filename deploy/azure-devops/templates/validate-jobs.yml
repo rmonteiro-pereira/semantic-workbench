@@ -74,6 +74,8 @@ jobs:
           suite: test:mappings-layout
         mapping_graph:
           suite: test:mapping-graph
+        theme:
+          suite: test:theme
     steps:
       - template: setup-steps.yml
       - bash: bun run ci:validate -- --step browser --suite $(suite)
