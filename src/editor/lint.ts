@@ -34,6 +34,25 @@ export function toDiagnostics(issues: Issue[], doc: Text) {
   }
   return { diagnostics, documentLevel };
 }
+/** What the status bar says about the findings drawn in the editor. */
+export type FindingSummary = {
+  count: number;
+  line: number;
+  severity: Diagnostic['severity'];
+  message: string;
+};
+/** Picks the finding to name in the status bar: the first error, else the first in the file. */
+export function summarizeDiagnostics(diagnostics: Diagnostic[], doc: Text): FindingSummary | null {
+  if (!diagnostics.length) return null;
+  const byPosition = [...diagnostics].sort((a, b) => a.from - b.from);
+  const first = byPosition.find(d => d.severity === 'error') ?? byPosition[0]!;
+  return {
+    count: diagnostics.length,
+    line: doc.lineAt(first.from).number,
+    severity: first.severity,
+    message: first.message,
+  };
+}
 // Validation runs in a worker: one shared worker, requests answered by id; a newer request for the
 // same editor supersedes an older one.
 type Pending = { resolve: (issues: Issue[]) => void };

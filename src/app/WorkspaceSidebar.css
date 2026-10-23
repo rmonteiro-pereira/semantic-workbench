@@ -1,0 +1,64 @@
+/* The sidebar: navigation on top, the project tree in the middle, the workspace actions below. */
+
+/* The tree is the part that scrolls. A thin scrollbar, a shadow at each edge that has more rows
+   beyond it, and a line above and below tell a person it scrolls. Scrolling comes to rest on the
+   start of a row instead of in the middle of its text. */
+.workspace-sidebar .documents {
+  flex: 1 1 auto;
+  min-height: 160px;
+  padding-block: 6px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scroll-snap-type: y proximity;
+  scroll-padding-block: 6px;
+  border-block: 1px solid var(--color-border-subtle);
+  background:
+    linear-gradient(var(--color-surface) 30%, transparent) top / 100% 24px no-repeat local,
+    linear-gradient(transparent, var(--color-surface) 70%) bottom / 100% 24px no-repeat local,
+    linear-gradient(color-mix(in srgb, var(--color-shadow) 40%, transparent), transparent) top /
+      100% 14px no-repeat scroll,
+    linear-gradient(transparent, color-mix(in srgb, var(--color-shadow) 40%, transparent)) bottom /
+      100% 14px no-repeat scroll;
+}
+.documents .project-tree .project > .tree-row,
+.documents .project-tree .project-file {
+  scroll-snap-align: start;
+}
+
+/* The four actions below the tree share one look and one row height, so they leave the tree as
+   much room as possible. The footer keeps its own height; only the tree grows and shrinks. */
+.sidebar-footer {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 8px;
+}
+.sidebar-footer .workspace-actions {
+  margin: 0;
+}
+.sidebar-footer .examples-menu {
+  margin: 0;
+}
+.sidebar-footer button.import,
+.sidebar-footer .examples-menu button {
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  padding: 7px 6px;
+}
+.sidebar-footer .local {
+  margin: 2px 4px 0;
+}
+.sidebar-footer .local small {
+  margin: 2px 12px 0;
+}
+.sidebar-footer .theme-control {
+  margin: 4px 0 0;
+}
+/* On a short window the second line of the location note gives its room to the tree. The first
+   line and the tooltip of the workspace label say the same. */
+@media (max-height: 800px) {
+  .sidebar-footer .local small {
+    display: none;
+  }
+}

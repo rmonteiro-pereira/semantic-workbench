@@ -5,6 +5,8 @@
      contrast on white and on the page background. */
   --text-small: 12px;
   --text-muted: var(--color-text-muted);
+  /* The widest a page of text and tables grows. Wider windows centre it instead of stretching it. */
+  --content-max-width: 1600px;
   font-family: 'DM Sans', sans-serif;
   color: var(--color-text);
   background: var(--color-surface-page);
@@ -20,6 +22,24 @@ button,
 input,
 textarea {
   font: inherit;
+}
+/* Form controls take their fill and writing from the theme. Without this the browser paints its
+   own grey or white, which shows as a light patch in the dark theme. :where() keeps the
+   specificity at that of an element name, so a rule for a class that sets its own background
+   still wins. */
+:where(input:not([type='checkbox'], [type='radio'], [type='range'], [type='file'], [type='color'])),
+textarea,
+select {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+:where(input[type='checkbox'], input[type='radio']) {
+  accent-color: var(--color-accent);
 }
 /* The browser draws small text at 83% of its parent, which falls below the smallest size. */
 small {
@@ -40,8 +60,16 @@ button {
 button:hover {
   background: var(--color-surface-hover);
 }
-button:disabled {
-  opacity: 0.45;
+/* A disabled button keeps a readable label: muted writing on a sunken fill, at least 3:1, instead
+   of a faded copy of the enabled button. */
+button:disabled,
+button.primary:disabled,
+button.danger:disabled,
+button:disabled:hover {
+  opacity: 1;
+  background: var(--color-surface-sunken);
+  border-color: var(--color-border);
+  color: var(--text-muted);
   cursor: default;
 }
 /* The display rule of buttons above would otherwise show a button that is meant to be hidden. */
@@ -1581,10 +1609,6 @@ dialog.validation-backdrop:not([open]) {
 .workspace-sidebar .section-label {
   margin: 18px 8px 8px;
 }
-.workspace-sidebar .documents {
-  flex: 1 0 100px;
-  min-height: 100px;
-}
 .workspace-sidebar .document {
   padding: 9px 7px;
 }
@@ -1806,7 +1830,7 @@ main > .status {
     padding: 0;
     border: 0;
     border-radius: 0;
-    background: color-mix(in srgb, var(--color-shadow) 33%, transparent);
+    background: color-mix(in srgb, var(--color-shadow) 55%, transparent);
   }
 }
 @media (max-width: 650px) {
@@ -2935,32 +2959,18 @@ button.danger:hover {
   gap: 5px;
 }
 
-/* Adaptive reflow. Fade only the edges with more content to scroll to. */
+/* Adaptive reflow. */
 @media (max-width: 1100px) {
   .full-graph-tools,
   .neighborhood-tools {
     scroll-padding-inline: 18px;
     scrollbar-width: thin;
-    mask-image: linear-gradient(
-      to right,
-      transparent,
-      var(--color-mask-opaque) var(--fade-start, 0px),
-      var(--color-mask-opaque) calc(100% - var(--fade-end, 0px)),
-      transparent
-    );
   }
 }
 @media (max-width: 650px) {
   .tabs {
     scroll-padding-inline: 18px;
     scrollbar-width: thin;
-    mask-image: linear-gradient(
-      to right,
-      transparent,
-      var(--color-mask-opaque) var(--fade-start, 0px),
-      var(--color-mask-opaque) calc(100% - var(--fade-end, 0px)),
-      transparent
-    );
   }
 }
 @media (min-width: 651px) and (max-width: 1100px) {
@@ -3008,9 +3018,6 @@ button.danger:hover {
     top: calc(anchor(bottom) + 4px);
     left: anchor(left);
     min-width: 180px;
-  }
-  .neighborhood-tools:has(.center-picker[aria-expanded='true']) {
-    mask-image: none;
   }
 }
 .mapping-explorer p {
@@ -3122,10 +3129,6 @@ main > .status {
   border: 1px solid var(--color-border-subtle);
   border-radius: 7px;
   box-shadow: 0 6px 24px color-mix(in srgb, var(--color-shadow) 13%, transparent);
-}
-.workspace-sidebar .documents {
-  flex: 1 0 320px;
-  min-height: 320px;
 }
 .workspace-sidebar .workspace-label {
   margin: 10px 8px 6px;
@@ -3352,7 +3355,7 @@ main > .status {
   }
 }
 /* The wider sidebar leaves less graph toolbar space. Keep desktop controls on one row with
-   horizontal scrolling and overflow fades. */
+   horizontal scrolling and the cues of the scroll strip. */
 @media (min-width: 1101px) {
   .full-graph-tools {
     flex-wrap: nowrap;
@@ -3361,13 +3364,6 @@ main > .status {
     scrollbar-width: thin;
     scroll-padding-inline: 18px;
     gap: 5px;
-    mask-image: linear-gradient(
-      to right,
-      transparent,
-      var(--color-mask-opaque) var(--fade-start, 0px),
-      var(--color-mask-opaque) calc(100% - var(--fade-end, 0px)),
-      transparent
-    );
   }
   .full-graph-tools > * {
     flex-shrink: 0;
@@ -3615,9 +3611,9 @@ button.import {
   white-space: nowrap;
   gap: 6px;
 }
-.workbench-dialog .dialog-footer button:not(.primary):not(.danger),
-.workbench-dialog .repair-actions button:not(.primary):not(.danger),
-.suggestions-dialog .suggestion button:not(.primary):not(.danger) {
+.workbench-dialog .dialog-footer button:not(.primary, .danger, :disabled),
+.workbench-dialog .repair-actions button:not(.primary, .danger, :disabled),
+.suggestions-dialog .suggestion button:not(.primary, .danger, :disabled) {
   color: var(--color-text);
   border-color: var(--color-border-strong);
 }
@@ -3825,25 +3821,6 @@ button.import {
   padding: 7px 11px;
 }
 
-/* The project tree scrolls between the navigation above and the footer below, so Import and the
-   examples are always reachable. Rows scrolled past an edge fade out instead of being cut in the
-   middle of their text. */
-.workspace-sidebar .documents {
-  flex: 1 1 auto;
-  min-height: 160px;
-  padding-block: 10px;
-  mask-image: linear-gradient(
-    to bottom,
-    transparent 0,
-    var(--color-mask-opaque) 10px,
-    var(--color-mask-opaque) calc(100% - 10px),
-    transparent 100%
-  );
-}
-.sidebar-footer {
-  flex: none;
-}
-
 .trash-empty p {
   margin: 0 0 4px;
 }
@@ -3889,4 +3866,27 @@ button.import {
 .zoom-far .lineage-card-title strong {
   font-size: min(var(--far-name-size, 26px), 30px);
   line-height: 1.1;
+}
+
+/* One content width for every page of text and tables: wide windows centre it at the same width
+   on every screen. Graphs and the code editor keep the whole canvas. */
+@media (min-width: 1920px) {
+  .odcs-page,
+  .mapping-explorer,
+  .catalog,
+  .metrics-view:not(.has-detail) .metrics-list {
+    width: 100%;
+    max-width: var(--content-max-width);
+    margin-inline: auto;
+  }
+  /* Dialogs grow with the window so a form does not sit as a narrow strip on a large screen. */
+  .workbench-dialog {
+    width: min(720px, 100%);
+  }
+  .workbench-dialog.size-small {
+    width: min(540px, 100%);
+  }
+  .workbench-dialog.size-large {
+    width: min(1100px, 100%);
+  }
 }

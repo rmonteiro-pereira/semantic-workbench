@@ -1,4 +1,5 @@
 /** Presentation and event handling for workspace sidebar. */
+import './WorkspaceSidebar.css';
 import { useCapabilities } from '../auth/Capabilities';
 import { useMe } from '../auth/useMe';
 import { useGitSetup } from '../scm/GitSetup';
@@ -201,7 +202,14 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
             semantic<span className="brand-sub">WORKBENCH</span>
           </span>
         </div>
-        <div className="workspace-label">
+        <div
+          className="workspace-label"
+          title={
+            me?.mode === 'server'
+              ? 'Project folders live on the shared server.'
+              : 'Project folders live on this machine.'
+          }
+        >
           {me?.mode === 'server' ? 'SHARED WORKSPACE' : 'LOCAL WORKSPACE'} <span className="dot" />
         </div>
         <button
@@ -242,6 +250,7 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
           <ProjectTree
             projects={projects}
             currentId={current?.id}
+            shown={sidebarOpen}
             onAction={handleTreeAction}
             onOpen={handleProjectTreeOpen}
           />

@@ -32,6 +32,8 @@ type Props = {
   saveStatus: AutosaveStatus;
   flush: () => Promise<void>;
   saveState: string;
+  /** The save state in few words, drawn instead of `saveState` when the header is narrow. */
+  saveStateShort: string;
   error: string;
   setShowValidation: React.Dispatch<React.SetStateAction<boolean>>;
   openStale: () => Promise<void>;
@@ -54,6 +56,7 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
   saveStatus,
   flush,
   saveState,
+  saveStateShort,
   error,
   setShowValidation,
   openStale,
@@ -115,6 +118,7 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
           ref={workspaceToggle}
           className="workspace-toggle"
           aria-label={getWorkspaceToggleLabel()}
+          title={getWorkspaceToggleLabel()}
           aria-expanded={sidebarOpen}
           aria-controls="workspace-sidebar"
           onClick={() => (compact ? setSidebarOpen(v => !v) : setSidebarHidden(v => !v))}
@@ -134,12 +138,14 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
           <div className="header-group header-files" role="group" aria-label="File">
             <MenuButton
               ariaLabel="New"
+              title="Create a new file or item"
               label={<span className="action-label">New</span>}
               icon={<Plus size={15} />}
               buttonClassName="new-menu"
               items={access.can('edit') ? newItems() : []}
             />
             <button
+              className="export-button"
               aria-label="Export"
               title={hasSource ? 'Download the file exactly as it is' : 'Open a file to export it.'}
               disabled={!hasSource}
@@ -158,7 +164,12 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
               title={`${current ? saveState : 'No file open'} — ${getSaveStateAction()}`}
               onClick={handleSaveStateClick}
             >
-              <span className="save-state-text">{current ? saveState : 'No file open'}</span>
+              <span
+                className="save-state-text"
+                data-short={current && saveStateShort !== saveState ? saveStateShort : undefined}
+              >
+                {current ? saveState : 'No file open'}
+              </span>
             </button>
             <button
               className="primary"

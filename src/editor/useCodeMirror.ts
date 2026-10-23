@@ -14,7 +14,7 @@ import {
 } from './editorText';
 import { languageFor, syntaxFor } from './languages';
 import { initialDocumentMode, resolveDocumentMode } from './documentMode';
-import { toDiagnostics, validateInWorker } from './lint';
+import { summarizeDiagnostics, toDiagnostics, validateInWorker, type FindingSummary } from './lint';
 import type { CodeEditorOptions } from './editorTypes';
 
 /** Creates one editor view and keeps external values, syntax and editability in sync. */
@@ -41,6 +41,7 @@ export function useCodeMirror({
   const [documentLevel, setDocumentLevel] = useState<Issue[]>([]);
   const [cursor, setCursor] = useState({ line: 1, column: 1 });
   const [checking, setChecking] = useState(false);
+  const [findingSummary, setFindingSummary] = useState<FindingSummary | null>(null);
   const head = value.slice(0, 400);
   const syntax = useMemo(() => syntaxFor(filename, head), [filename, head]);
   const largeDocument = useRef(initialDocumentMode(value.length));
@@ -68,6 +69,7 @@ export function useCodeMirror({
     if (editorView.state.doc.toString() !== text) return [];
     const { diagnostics, documentLevel } = toDiagnostics(issues, editorView.state.doc);
     setDocumentLevel(documentLevel);
+    setFindingSummary(summarizeDiagnostics(diagnostics, editorView.state.doc));
     latestProps.current.onIssues?.(issues, text);
     return diagnostics;
   }
@@ -178,6 +180,7 @@ export function useCodeMirror({
     documentLevel,
     cursor,
     checking,
+    findingSummary,
     syntax,
     largeMode,
     modeAvailable: syntax === 'YAML' && modeAvailable,
