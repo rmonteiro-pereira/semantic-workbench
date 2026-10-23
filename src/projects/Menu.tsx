@@ -1,5 +1,7 @@
 /** Provides keyboard-accessible menus that return focus to their trigger when closed. */
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { placeMenu, type MenuPreference } from './menu-position';
 // Arrow keys move between menu items; Escape or an outside click restores button focus. Disabled
 // items stay visible with an accessible explanation.
 /** Defines a menu action, icon and optional disabled explanation. */
@@ -12,6 +14,10 @@ export type MenuItem = {
   /** A second line under the label, for items that need a short description. */
   detail?: string;
 };
+/** Draws the menu inside the open dialog that holds its button, which hides the rest of the page. */
+function menuHost(button: HTMLElement | null): HTMLElement {
+  return button?.closest<HTMLElement>('dialog[open]') ?? document.body;
+}
 /** Opens a keyboard-accessible action menu and restores focus when it closes. */
 export function MenuButton({
   label,
@@ -22,6 +28,7 @@ export function MenuButton({
   buttonClassName = '',
   align = 'end',
   placement = 'below',
+  matchButtonWidth = false,
   title,
   header,
   menuLabel,
@@ -33,8 +40,10 @@ export function MenuButton({
   className?: string;
   buttonClassName?: string;
   align?: 'start' | 'end';
-  /** Opens the menu upward for buttons that sit at the bottom of a panel. */
+  /** The side the menu prefers; it flips when there is no room there. */
   placement?: 'below' | 'above';
+  /** Makes the menu as wide as the button's wrapper, as for a full-width sidebar button. */
+  matchButtonWidth?: boolean;
   title?: string;
   header?: React.ReactNode;
   menuLabel?: string;
@@ -42,46 +51,53 @@ export function MenuButton({
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLSpanElement>(null);
   const button = useRef<HTMLButtonElement>(null);
+  const popup = useRef<HTMLDivElement>(null);
   const close = (focus = true) => {
     setOpen(false);
     if (focus) button.current?.focus();
   };
-  // Keep the preferred button alignment, shifting only when it would leave the viewport.
+  // The menu is drawn in the window, not inside the panel that holds its button, so a scrolling or
+  // masked list cannot clip or fade it. It follows the button and flips when there is no room.
   useLayoutEffect(() => {
     if (!open) return;
-    const menu = root.current?.querySelector<HTMLElement>('[role=menu]');
+    const menu = popup.current;
     if (!menu) return;
-    const fit = () => {
-      menu.style.transform = '';
-      const box = menu.getBoundingClientRect();
-      const edge = 12;
-      const shift = Math.max(
-        edge - box.left,
-        Math.min(0, document.documentElement.clientWidth - edge - box.right),
-      );
-      menu.style.transform = `translateX(${shift}px)`;
+    const preference: MenuPreference = { side: placement, align };
+    const place = () => {
+      const anchor = button.current?.getBoundingClientRect();
+      if (!anchor) return;
+      menu.style.maxHeight = '';
+      menu.style.width = matchButtonWidth ? `${root.current?.getBoundingClientRect().width}px` : '';
+      const natural = menu.getBoundingClientRect();
+      const viewport = { width: window.innerWidth, height: window.innerHeight };
+      const placed = placeMenu(anchor, natural, viewport, preference);
+      menu.style.maxHeight = `${placed.maxHeight}px`;
+      menu.style.top = `${placed.top}px`;
+      menu.style.left = `${placed.left}px`;
     };
-    fit();
-    const observer = new ResizeObserver(fit);
+    place();
+    const observer = new ResizeObserver(place);
     observer.observe(menu);
-    if (root.current) observer.observe(root.current);
-    window.addEventListener('resize', fit);
+    window.addEventListener('resize', place);
+    window.addEventListener('scroll', place, true);
     return () => {
       observer.disconnect();
-      window.removeEventListener('resize', fit);
+      window.removeEventListener('resize', place);
+      window.removeEventListener('scroll', place, true);
     };
-  }, [open]);
+  }, [open, placement, align, matchButtonWidth]);
   useEffect(() => {
     if (!open) return;
     const out = (e: MouseEvent) => {
-      if (!root.current?.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (!root.current?.contains(target) && !popup.current?.contains(target)) setOpen(false);
     };
     document.addEventListener('mousedown', out);
-    root.current?.querySelector<HTMLElement>('[role=menuitem]:not([aria-disabled=true])')?.focus();
+    popup.current?.querySelector<HTMLElement>('[role=menuitem]:not([aria-disabled=true])')?.focus();
     return () => document.removeEventListener('mousedown', out);
   }, [open]);
   const move = (e: React.KeyboardEvent) => {
-    const list = [...(root.current?.querySelectorAll<HTMLElement>('[role=menuitem]') ?? [])];
+    const list = [...(popup.current?.querySelectorAll<HTMLElement>('[role=menuitem]') ?? [])];
     const i = list.indexOf(document.activeElement as HTMLElement);
     if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -99,7 +115,10 @@ export function MenuButton({
       e.preventDefault();
       e.stopPropagation();
       close();
-    } else if (e.key === 'Tab') setOpen(false);
+    } else if (e.key === 'Tab') {
+      // Focus goes back to the button first, so Tab continues from where the menu was opened.
+      close();
+    }
   };
   return (
     <span
@@ -125,38 +144,36 @@ export function MenuButton({
         {icon}
         {label}
       </button>
-      {open && (
-        <div
-          role="menu"
-          aria-label={menuLabel ?? ariaLabel}
-          className={`menu-popup align-${align} place-${placement}`}
-        >
-          {header}
-          {items.map(it => (
-            <button
-              key={it.label}
-              role="menuitem"
-              tabIndex={-1}
-              aria-disabled={it.disabled ? true : undefined}
-              aria-description={it.disabled || undefined}
-              title={it.disabled || it.hint || undefined}
-              onClick={() => {
-                if (it.disabled) return;
-                setOpen(false);
-                button.current?.focus();
-                it.run();
-              }}
-            >
-              {it.icon}
-              <span>
-                {it.label}
-                {it.detail && <small>{it.detail}</small>}
-                {it.disabled && <small>{it.disabled}</small>}
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
+      {open &&
+        createPortal(
+          <div ref={popup} role="menu" aria-label={menuLabel ?? ariaLabel} className="menu-popup">
+            {header}
+            {items.map(it => (
+              <button
+                key={it.label}
+                role="menuitem"
+                tabIndex={-1}
+                aria-disabled={it.disabled ? true : undefined}
+                aria-description={it.disabled || undefined}
+                title={it.disabled || it.hint || undefined}
+                onClick={() => {
+                  if (it.disabled) return;
+                  setOpen(false);
+                  button.current?.focus();
+                  it.run();
+                }}
+              >
+                {it.icon}
+                <span>
+                  {it.label}
+                  {it.detail && <small>{it.detail}</small>}
+                  {it.disabled && <small>{it.disabled}</small>}
+                </span>
+              </button>
+            ))}
+          </div>,
+          menuHost(button.current),
+        )}
     </span>
   );
 }

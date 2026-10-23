@@ -85,8 +85,6 @@ export function useSidebar({ readSidebarWidth }: Options) {
     focusable()[0]?.focus();
     const keyboard = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        // Escape inside an open menu closes only the menu; the drawer stays.
-        if ((event.target as Element).closest('[role=menu]')) return;
         event.preventDefault();
         closeWorkspace();
       } else if (event.key === 'Tab') {

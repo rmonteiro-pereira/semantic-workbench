@@ -2313,31 +2313,6 @@ main > .status {
   flex: 0 0 28px;
   display: inline-flex;
 }
-.item-menu-list {
-  position: absolute;
-  right: 0;
-  top: 30px;
-  z-index: 30;
-  display: flex;
-  flex-direction: column;
-  min-width: 190px;
-  background: #fff;
-  border: 1px solid #dbe3e4;
-  border-radius: 8px;
-  box-shadow: 0 8px 24px #17323a22;
-  padding: 4px;
-}
-.item-menu-list button {
-  border: 0;
-  justify-content: flex-start;
-  font-size: var(--text-small);
-  padding: 8px 10px;
-  background: transparent;
-}
-.item-menu-list button:hover,
-.item-menu-list button:focus-visible {
-  background: #eef6f2;
-}
 .workspace-actions {
   display: flex;
   gap: 6px;
@@ -3400,13 +3375,13 @@ button.import {
   display: inline-flex;
 }
 .menu-popup {
-  position: absolute;
-  top: calc(100% + 6px);
-  z-index: 60;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
   width: max-content;
   min-width: min(230px, calc(100vw - 24px));
   max-width: min(340px, calc(100vw - 24px));
-  max-height: calc(100dvh - 120px);
   overflow: auto;
   padding: 5px;
   background: #fff;
@@ -3415,16 +3390,6 @@ button.import {
   box-shadow: 0 14px 36px #17323a2e;
   display: grid;
   gap: 2px;
-}
-.menu-popup.align-end {
-  right: 0;
-}
-.menu-popup.align-start {
-  left: 0;
-}
-.menu-popup.place-above {
-  top: auto;
-  bottom: calc(100% + 6px);
 }
 .menu-popup [role='menuitem'] {
   display: flex;
