@@ -1,5 +1,6 @@
 // Checks that graph edges stay attached to their nodes during browser interactions.
 import { appUrl } from './helpers/base-url';
+import { viewOptions } from './helpers/graph-options';
 import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { inspect } from '../src/model';
@@ -187,7 +188,9 @@ try {
     await attached('initial network');
   });
   await check('zoomed worker routes attach after hover and selection', async () => {
-    await page.getByLabel('Zoom to group').selectOption({ index: 1 });
+    await viewOptions(page, async options => {
+      await options.getByLabel('Zoom to group').selectOption({ index: 1 });
+    });
     await expect(page.locator('.full-graph-status')).toContainText('background worker', {
       timeout: 30000,
     });
@@ -213,7 +216,9 @@ try {
   });
   await check('layered and network layout changes preserve attachment', async () => {
     for (const layout of ['layered', 'network']) {
-      await page.getByLabel('Graph layout').selectOption(layout);
+      await viewOptions(page, async options => {
+        await options.getByLabel('Graph layout').selectOption(layout);
+      });
       await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
       await attached(layout);
     }

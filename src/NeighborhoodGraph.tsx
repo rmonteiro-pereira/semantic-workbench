@@ -5,7 +5,6 @@ import {
   ReactFlow,
   ReactFlowProvider,
   Background,
-  Controls,
   Position,
   MarkerType,
   useNodesState,
@@ -34,6 +33,8 @@ import {
 import { placeLayers, placeNew } from './graph/incremental-layout';
 import { PIERCE_BUDGET, PIERCE_MAX } from './graph/pierce';
 import { PierceBanner, PierceControls, usePierce } from './graph/PierceControls';
+import { GraphOptions, OptionGroup } from './graph/GraphOptions';
+import { ZoomButtons } from './graph/ZoomButtons';
 import type { Entity, Relationship } from './model';
 import {
   groupRelationships,
@@ -597,7 +598,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
     });
   // Fit once the nodes of a new membership are measured; refit when the canvas is resized.
   const canvas = useRef<HTMLDivElement>(null);
-  const { fitBounds, getViewport, setViewport, setCenter } = useReactFlow();
+  const { fitBounds, getViewport, setViewport, setCenter, zoomIn, zoomOut } = useReactFlow();
   const [fitted, setFitted] = useState('');
   const held = useViewRestore(
     !!props.fullscreen?.active,
@@ -807,56 +808,6 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
           </button>
         )}
         {limit > NEIGHBOR_PAGE && <button onClick={() => setLimit(NEIGHBOR_PAGE)}>Fewer</button>}
-        {view.relationships.length > 1 && (
-          <label>
-            Relationship
-            <select
-              aria-label="Filter neighbors by relationship"
-              value={relationship}
-              onChange={e => setRelationship(e.target.value)}
-            >
-              <option value="">All ({view.relationships.reduce((n, r) => n + r.count, 0)})</option>
-              {view.relationships.map(r => (
-                <option key={r.label} value={r.label}>
-                  {r.label} ({r.count})
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-        <button
-          onClick={() => setLateral(!lateral)}
-          aria-pressed={lateral}
-          title="Relationships among the visible neighbors"
-        >
-          Links between neighbors ({lateralCount}) {lateral ? 'on' : 'off'}
-        </button>
-        {view.technicalHidden > 0 || technical ? (
-          <button
-            onClick={() => setTechnical(v => !v)}
-            aria-pressed={technical}
-            title="OWL properties, restrictions and other RDF resources"
-          >
-            Technical resources {technical ? 'shown' : `hidden (${view.technicalHidden})`}
-          </button>
-        ) : null}
-        <button onClick={() => setLabels(v => !v)} aria-pressed={labels}>
-          Labels {labels ? 'on' : 'off'}
-        </button>
-        {valueCount > 0 && (
-          <button
-            onClick={() =>
-              setHideValues(v => {
-                writeHideValues(props.modelName, !v);
-                return !v;
-              })
-            }
-            aria-pressed={hideValues}
-            title={`${valueCount} value types and built-in concepts`}
-          >
-            Value types {hideValues ? 'hidden' : 'shown'}
-          </button>
-        )}
         <PierceControls
           direction={direction}
           onDirection={setDirection}
@@ -867,27 +818,93 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
           onUndo={() => props.onWalkTo(walk.index - 1)}
           title={`Expand everything reachable from ${selected && canvasState.nodes.includes(selected) ? nameOf(selected) : 'the center'}`}
         />
-        {kpiCount > 0 && (
-          <button
-            onClick={() => setHideKpis(v => !v)}
-            aria-pressed={hideKpis}
-            title={`${kpiCount} metric nodes`}
-          >
-            <Gauge size={14} />
-            Metrics {hideKpis ? 'hidden' : 'shown'}
-          </button>
-        )}
-        <button
-          onClick={() => {
-            setNodes(build());
-            setFitted('');
-          }}
-          title="Put every node back in its column"
-        >
-          Re-center
-        </button>
-        <button onClick={props.onOverview}>Model overview</button>
-        <button onClick={props.onFullGraph}>Full graph</button>
+        <ZoomButtons
+          onZoomIn={() => void zoomIn({ duration: 150 })}
+          onZoomOut={() => void zoomOut({ duration: 150 })}
+        />
+        <GraphOptions>
+          <OptionGroup title="Neighbors">
+            {view.relationships.length > 1 && (
+              <label>
+                Relationship
+                <select
+                  aria-label="Filter neighbors by relationship"
+                  value={relationship}
+                  onChange={e => setRelationship(e.target.value)}
+                >
+                  <option value="">
+                    All ({view.relationships.reduce((n, r) => n + r.count, 0)})
+                  </option>
+                  {view.relationships.map(r => (
+                    <option key={r.label} value={r.label}>
+                      {r.label} ({r.count})
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            <button
+              onClick={() => setLateral(!lateral)}
+              aria-pressed={lateral}
+              title="Relationships among the visible neighbors"
+            >
+              Links between neighbors ({lateralCount}) {lateral ? 'on' : 'off'}
+            </button>
+            {view.technicalHidden > 0 || technical ? (
+              <button
+                onClick={() => setTechnical(v => !v)}
+                aria-pressed={technical}
+                title="OWL properties, restrictions and other RDF resources"
+              >
+                Technical resources {technical ? 'shown' : `hidden (${view.technicalHidden})`}
+              </button>
+            ) : null}
+          </OptionGroup>
+          <OptionGroup title="Show">
+            <button onClick={() => setLabels(v => !v)} aria-pressed={labels}>
+              Labels {labels ? 'on' : 'off'}
+            </button>
+            {valueCount > 0 && (
+              <button
+                onClick={() =>
+                  setHideValues(v => {
+                    writeHideValues(props.modelName, !v);
+                    return !v;
+                  })
+                }
+                aria-pressed={hideValues}
+                title={`${valueCount} value types and built-in concepts`}
+              >
+                Value types {hideValues ? 'hidden' : 'shown'}
+              </button>
+            )}
+            {kpiCount > 0 && (
+              <button
+                onClick={() => setHideKpis(v => !v)}
+                aria-pressed={hideKpis}
+                title={`${kpiCount} metric nodes`}
+              >
+                <Gauge size={14} />
+                Metrics {hideKpis ? 'hidden' : 'shown'}
+              </button>
+            )}
+          </OptionGroup>
+          <OptionGroup title="Layout">
+            <button
+              onClick={() => {
+                setNodes(build());
+                setFitted('');
+              }}
+              title="Put every node back in its column"
+            >
+              Re-center
+            </button>
+          </OptionGroup>
+          <OptionGroup title="Go to">
+            <button onClick={props.onOverview}>Model overview</button>
+            <button onClick={props.onFullGraph}>Full graph</button>
+          </OptionGroup>
+        </GraphOptions>
         {props.fullscreen && <FullscreenButton fullscreen={props.fullscreen} />}
         <span className="neighborhood-legend" aria-hidden="true">
           <span className="in">Incoming</span>
@@ -1028,7 +1045,6 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
             onEdgeMouseLeave={() => setHovered('')}
           >
             <Background gap={22} size={1} />
-            <Controls showInteractive={false} />
           </ReactFlow>
         )}
       </div>

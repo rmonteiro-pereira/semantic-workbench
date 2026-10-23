@@ -1,5 +1,6 @@
 // Checks large graph rendering and interactions in the browser.
 import { appUrl } from './helpers/base-url';
+import { viewOptions } from './helpers/graph-options';
 import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { LOCAL_READER } from '../server/projects/reader';
@@ -19,10 +20,9 @@ try {
     'data-relationship-count',
     '5000',
   );
-  await page
-    .locator('.full-graph-tools')
-    .getByRole('button', { name: 'Overview', exact: true })
-    .click();
+  await viewOptions(page, async options => {
+    await options.getByRole('button', { name: 'Overview', exact: true }).click();
+  });
   await expect(page.locator('.area-entities button')).toHaveCount(1000, { timeout: 10000 });
   const start = performance.now();
   await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
@@ -40,12 +40,16 @@ try {
   await page.getByRole('button', { name: 'Fit model', exact: true }).click();
   await page.waitForTimeout(500);
   await expect(page.locator('.react-flow__node-entity')).toHaveCount(107, { timeout: 10000 });
-  await page.getByLabel('Zoom to group').selectOption('Customer');
+  await viewOptions(page, async options => {
+    await options.getByLabel('Zoom to group').selectOption('Customer');
+  });
   await page.waitForTimeout(400);
   await page.screenshot({ path: '/tmp/real-graph-1000.png' });
   if (process.env.EXPAND_ALL === '1') {
     const allStart = performance.now();
-    await page.getByRole('button', { name: 'Expand all', exact: true }).click();
+    await viewOptions(page, async options => {
+      await options.getByRole('button', { name: 'Expand all', exact: true }).click();
+    });
     await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 120000 });
     await page.getByRole('button', { name: 'Fit model', exact: true }).click();
     await page.waitForTimeout(500);

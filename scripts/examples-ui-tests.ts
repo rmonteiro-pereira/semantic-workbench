@@ -1,6 +1,7 @@
 // Checks example loading, mappings and metric composition in the browser.
 import { LOCAL_READER } from '../server/projects/reader';
 import { appUrl } from './helpers/base-url';
+import { viewOptions } from './helpers/graph-options';
 import { chromium, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { Database } from 'bun:sqlite';
@@ -419,7 +420,9 @@ try {
       await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
       await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 90000 });
       await expect(page.locator('.full-graph-status')).toHaveAttribute('data-entity-count', '195');
-      await page.getByRole('button', { name: 'Value types shown', exact: true }).click();
+      await viewOptions(page, async options => {
+        await options.getByRole('button', { name: 'Value types shown', exact: true }).click();
+      });
       await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 90000 });
       await expect(page.locator('.full-graph-status')).toHaveAttribute('data-entity-count', '145');
       await expect(page.locator('.full-graph-status')).toHaveAttribute(
@@ -435,10 +438,11 @@ try {
       await page.reload();
       await page.getByRole('button', { name: 'mall.ontology.yaml', exact: true }).click();
       await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
-      await expect(
-        page.getByRole('button', { name: 'Value types hidden', exact: true }),
-      ).toBeVisible();
-      await page.getByRole('button', { name: 'Value types hidden', exact: true }).click();
+      await viewOptions(page, async options => {
+        const hidden = options.getByRole('button', { name: 'Value types hidden', exact: true });
+        await expect(hidden).toBeVisible();
+        await hidden.click();
+      });
       await expect(page.locator('.full-graph-status')).toHaveAttribute('data-entity-count', '195');
     },
   );

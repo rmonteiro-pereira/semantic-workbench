@@ -109,9 +109,13 @@ export function PierceControls({
           Stop
         </button>
       )}
-      <button onClick={onUndo} disabled={!canUndo} title="Remove the last expansion">
+      <button
+        onClick={onUndo}
+        disabled={!canUndo}
+        aria-label="Undo expansion"
+        title="Undo expansion: remove the last expansion"
+      >
         <Undo2 size={13} />
-        Undo expansion
       </button>
     </span>
   );

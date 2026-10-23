@@ -21,7 +21,7 @@ The overview, relationship matrix and actual graph are complementary representat
 3. Use the shared **Group by** selection for area boundaries. Auto chooses an available grouping with multiple groups. These are display groupings, not new standard semantics.
 4. Offer **Network (fCoSE)** and **Layered (ELK)** layouts.
 5. For network layout, remove residual overlaps with ELK SPOrE and pack area rectangles with ELK's box packer. Tests check actual rectangle intersections and containment.
-6. Render compound areas and entity nodes in React Flow, with controlled node state, memoized node/edge components, viewport culling, area zoom, mini-map navigation and manual dragging.
+6. Render compound areas and entity nodes in React Flow, with controlled node state, memoized node/edge components, viewport culling, area zoom, an optional mini-map (off until switched on in View options) and manual dragging.
 7. Use inexpensive native routes at whole-model zoom, and route around nodes through a shared background worker for visible or selected connections at detail zoom. Show names on hover/selection, with an optional label toggle. Highlight connected entities without removing the remainder of the model.
 8. Models above 250 visible business entities open with collapsed areas. Area counts expose the folded entities; clicking one expands that area. **Expand all** restores the full graph. Internal relationships are folded into the area count, and remain accessible after expansion; they are not deleted from the source.
 9. Fit the whole model for spatial orientation, then zoom to an area or entity for reading. A finite viewport cannot show arbitrarily many full-size entity labels simultaneously.
@@ -56,6 +56,6 @@ Documents live in the folder store: each project is a repository root or a decla
 
 ## Neighborhood, full screen and layout checks
 
-The Neighborhood view projects a center with its incoming neighbors on the left and outgoing neighbors on the right, keeps links between neighbors as an option, pages hidden neighbors and keeps a walk history. Graph and Neighborhood can fill the screen (Fullscreen API, with a window-filling fallback); leaving restores the zoom and selection. The responsive suite checks every view from 390×844 to 2560×1440 for horizontal scroll, cut-off controls and floating overlays (mini-map, zoom controls, status line, bundle selector, toasts, inspector) drawn over each other or over a control.
+The Neighborhood view projects a center with its incoming neighbors on the left and outgoing neighbors on the right, keeps links between neighbors as an option, pages hidden neighbors and keeps a walk history. Graph and Neighborhood can fill the screen (Fullscreen API, with a window-filling fallback); leaving restores the zoom and selection. The responsive suite checks every view from 390×844 to 2560×1440 for horizontal scroll, cut-off controls and floating overlays (mini-map, status line, bundle selector, toasts, inspector; zoom lives in the toolbar, not over the canvas) drawn over each other or over a control.
 
 The graph engines are not OWL reasoners or SHACL validators. Layout positions are browser-session state; document export preserves the original definitions rather than exporting a screenshot.

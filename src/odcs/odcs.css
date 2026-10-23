@@ -694,22 +694,6 @@ textarea.odcs-edit.text {
   min-width: 0;
   overflow-wrap: anywhere;
 }
-.lineage-steps {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #3a5a50;
-}
-.lineage-steps select {
-  height: 34px;
-  font-size: 12px;
-  padding: 5px;
-  border: 1px solid #d6e1df;
-  border-radius: 6px;
-  background: #fff;
-}
 .lineage-trail {
   flex-shrink: 0;
   display: flex;
@@ -813,27 +797,27 @@ textarea.odcs-edit.text {
   min-width: 32px;
   height: 32px;
 }
-.lineage-path ol {
+.selected-path {
   margin: 0;
   padding: 0;
   list-style: none;
   counter-reset: path-step;
 }
-.lineage-path ol > li {
+.selected-path > li {
   display: flex;
   align-items: baseline;
   gap: 8px;
   padding: 5px 0;
   counter-increment: path-step;
 }
-.lineage-path ol > li::before {
+.selected-path > li::before {
   content: counter(path-step);
   flex: 0 0 16px;
   color: var(--text-muted);
   font-size: var(--text-small);
   text-align: right;
 }
-.lineage-path ol > li button {
+.selected-path > li button {
   display: flex;
   flex: 1;
   justify-content: flex-start;
@@ -849,7 +833,7 @@ textarea.odcs-edit.text {
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
-.lineage-path ol > li button small {
+.selected-path > li button small {
   flex: none;
   font-size: var(--text-small);
   font-weight: 600;
@@ -858,16 +842,31 @@ textarea.odcs-edit.text {
   border-radius: 4px;
   padding: 1px 5px;
 }
-.lineage-path ol > li.current {
+.selected-path > li.current {
   background: #fff6e6;
   border-radius: 5px;
 }
-.lineage-path ol > li button span {
+.selected-path > li button span {
   flex: 1;
   min-width: 0;
 }
-.lineage-path ol > li.current button {
+.selected-path > li.current button {
   font-weight: 700;
+}
+.lineage-path-toggle {
+  flex: none;
+  margin-left: auto;
+  padding: 3px 9px;
+  font-size: var(--text-small);
+  border: 1px solid #d6e1df;
+  border-radius: 6px;
+  background: #fff;
+}
+.lineage-path-toggle span {
+  background: #e4efeb;
+  border-radius: 8px;
+  padding: 0 6px;
+  margin-left: 4px;
 }
 .lineage-path-action {
   margin-top: 10px;
