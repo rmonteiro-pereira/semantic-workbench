@@ -730,6 +730,20 @@
     monospace;
   overflow-wrap: anywhere;
 }
+.workbench-dialog .clone-progress h3 {
+  margin: 14px 0 4px;
+  font-size: 13px;
+}
+.clone-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+}
+.clone-explanation {
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--text-muted);
+}
 .credential-guide h3 {
   margin: 18px 0 6px;
   font-size: 13px;
@@ -827,6 +841,13 @@
   width: calc(100% - 24px);
   box-sizing: border-box;
 }
+/* Name and path fields in the project dialogs share one compact size with the folder paths. */
+.compact-field input,
+.repository-folder input[type='text'],
+.repository-folder input:not([type]) {
+  font-size: 13px;
+  padding: 6px 8px;
+}
 .scm-project {
   font-style: normal;
   font-size: var(--text-small);
@@ -857,6 +878,19 @@
 }
 .subproject-choice input {
   margin-top: 3px;
+}
+/* A choice is a heading line with its explanation below, muted. */
+.subproject-choice .choice-text {
+  display: grid;
+  gap: 2px;
+}
+.subproject-choice .choice-title {
+  font-weight: 600;
+  color: #243936;
+}
+.subproject-choice .choice-hint {
+  font-size: var(--text-small);
+  color: var(--text-muted);
 }
 /* The legend sits inside the box, above the two choices, at every width. */
 .subproject-choice legend {

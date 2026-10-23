@@ -28,20 +28,15 @@ const finished = (event: CloneEvent | null) =>
 const subfolderCandidates = (event: CloneEvent | null) =>
   (event?.candidates ?? []).filter(candidate => candidate.path !== '');
 
-// What the repository's layout meant: projects from its manifest, or folders to choose from.
-function RepositoryLayout({ event }: { event: CloneEvent }) {
+// What the repository's layout meant, beyond the projects it made: a manifest that could not be
+// used, or folders the person may turn into projects.
+function RepositoryNotes({ event }: { event: CloneEvent }) {
   const folders = subfolderCandidates(event);
   return (
     <>
       {event.manifestError && (
         <p role="alert" className="dialog-error">
           The repository's .semantic-workbench.json was not used: {event.manifestError}
-        </p>
-      )}
-      {event.manifest && (
-        <p>
-          The repository's manifest made {event.manifest.projects.length} projects:{' '}
-          {event.manifest.projects.map(entry => entry.name ?? entry.path).join(', ')}.
         </p>
       )}
       {folders.length > 0 && (
@@ -54,27 +49,53 @@ function RepositoryLayout({ event }: { event: CloneEvent }) {
   );
 }
 
-function CloneResult({ event }: { event: CloneEvent }) {
-  if (event.phase !== 'done') return event.message ? <pre>{event.message}</pre> : null;
-  if (!event.invalid?.length)
-    return (
-      <>
-        <p>Every definition file is valid. The project is in the workspace tree.</p>
-        <RepositoryLayout event={event} />
-      </>
-    );
+// A manifest names the projects it made; without one the clone is a single project.
+function projectsMade(event: CloneEvent): string[] {
+  if (event.manifest) return event.manifest.projects.map(entry => entry.name ?? entry.path);
+  return [event.name ?? event.repo ?? 'The repository'];
+}
+
+function ProjectsMade({ event }: { event: CloneEvent }) {
   return (
-    <>
-      <RepositoryLayout event={event} />
-      <p>
+    <section aria-label="Projects made">
+      <h3>Projects made</h3>
+      <ul className="clone-list">
+        {projectsMade(event).map(name => (
+          <li key={name}>{name}</li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function FilesToRepair({ paths }: { paths: string[] }) {
+  return (
+    <section aria-label="Files to repair">
+      <h3>Files to repair</h3>
+      <p className="clone-explanation">
         These files are not valid definitions. They were kept exactly as they are and are marked in
-        the tree:
+        the tree.
       </p>
       <ul className="clone-invalid" aria-label="Invalid files">
-        {event.invalid.map(path => (
+        {paths.map(path => (
           <li key={path}>{path}</li>
         ))}
       </ul>
+    </section>
+  );
+}
+
+function CloneResult({ event }: { event: CloneEvent }) {
+  if (event.phase !== 'done') return event.message ? <pre>{event.message}</pre> : null;
+  return (
+    <>
+      <RepositoryNotes event={event} />
+      <ProjectsMade event={event} />
+      {event.invalid?.length ? (
+        <FilesToRepair paths={event.invalid} />
+      ) : (
+        <p>Every definition file is valid.</p>
+      )}
     </>
   );
 }

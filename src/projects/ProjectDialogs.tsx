@@ -29,7 +29,7 @@ export function RenameDialog({
           }
         }}
       >
-        <label>
+        <label className="compact-field">
           Project name
           <input autoFocus value={name} maxLength={200} onChange={e => setName(e.target.value)} />
         </label>
@@ -99,7 +99,7 @@ export function MoveDialog({
               ))}
             </select>
           </label>
-          <label>
+          <label className="compact-field">
             Path in that project
             <input value={toPath} onChange={e => setToPath(e.target.value)} />
           </label>
