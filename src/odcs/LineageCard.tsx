@@ -1,22 +1,24 @@
 /** Renders asset columns with row ports, path highlights and controls for hidden columns and
  * neighbors. */
 import React, { memo } from 'react';
-import { Handle, Position, type NodeProps } from '@xyflow/react';
+import type { NodeProps } from '@xyflow/react';
 import { AlertTriangle, ExternalLink, Footprints, Minus, Plus } from 'lucide-react';
 import { KindIcon, KIND_LABEL } from '../graph/LineageLegend';
-import { PropertyBadges } from '../PropertyBadges';
 import { moreRowId, type LineageCard as Card, type LineageColumn } from './lineage';
-import { CARD_W, HEADER_H, ROW_H, MORE_H, PAGER_H } from './lineage-layout';
-// Hidden column edges attach to the shared more-columns row. Path rows remain highlighted, while
-// paging and expansion controls reveal other content.
+import { CARD_W, HEADER_H, ROW_H, MORE_H } from './lineage-layout';
+import { ColumnList, ColumnRow, Port } from './LineageColumnList';
+import { PropertyBadges } from '../PropertyBadges';
+// Hidden column edges attach to the shared more-columns row. Path rows stay on the card while they
+// are selected, and the more-columns row opens the card's full list.
 /** Supplies visible rows, selection state and actions for a lineage card. */
 export type CardData = {
   card: Card;
   rows: LineageColumn[];
-  pinned: string[];
-  page: number;
-  pages: number;
   more: number;
+  columnsOpen: boolean;
+  filterable: boolean;
+  listRows: number;
+  connected: ReadonlySet<string>;
   hiddenNeighbours: number;
   selected: string;
   onPath: Set<string> | null;
@@ -27,7 +29,8 @@ export type CardData = {
   kindNames?: Record<string, string>;
   onFinding?: (card: Card, message: string) => void;
   onSelect: (id: string) => void;
-  onPage: (card: string, page: number) => void;
+  onOpenColumns: (card: string) => void;
+  onCloseColumns: (card: string) => void;
   onWalk: (card: string) => void;
   onExpand: (card: string) => void;
   onCollapse?: (card: string) => void;
@@ -41,40 +44,7 @@ const KIND_NAME: Record<string, string> = {
   concept: 'Concept',
 };
 
-/** Returns all pages up to seven, otherwise endpoints and current-page neighbors. */
-export function pagerItems(page: number, pages: number): (number | '…')[] {
-  if (pages <= 7) return Array.from({ length: pages }, (_, i) => i);
-  const keep = new Set([0, pages - 1, page - 1, page, page + 1].filter(p => p >= 0 && p < pages));
-  const out: (number | '…')[] = [];
-  [...keep]
-    .sort((a, b) => a - b)
-    .forEach((p, i, a) => {
-      if (i && p - a[i - 1] > 1) out.push('…');
-      out.push(p);
-    });
-  return out;
-}
-function Port({ id, top }: { id: string; top: number }) {
-  return (
-    <>
-      <Handle
-        type="target"
-        id={id + ':in'}
-        position={Position.Left}
-        style={{ top }}
-        isConnectable={false}
-      />
-      <Handle
-        type="source"
-        id={id + ':out'}
-        position={Position.Right}
-        style={{ top }}
-        isConnectable={false}
-      />
-    </>
-  );
-}
-/** Renders an asset card with row ports, column paging and neighbor expansion. */
+/** Renders an asset card with row ports, a scrolling column list and neighbor expansion. */
 export const LineageCardNode = memo(({ data }: NodeProps) => {
   const d = data as unknown as CardData;
   const c = d.card;
@@ -169,66 +139,60 @@ export const LineageCardNode = memo(({ data }: NodeProps) => {
           )}
         </span>
       </header>
-      {(d.rows.length > 0 || d.more > 0) && (
-        <ul className="lineage-rows">
-          {d.rows.map((r, i) => {
-            const on = !!d.onPath?.has(r.id);
-            return (
-              <li
-                key={r.id}
-                data-id={r.id}
-                className={`${on ? 'on-path' : ''}${d.pinned.includes(r.id) ? ' pinned' : ''}`}
-                style={{ height: ROW_H }}
-              >
-                <Port id={r.id} top={HEADER_H + i * ROW_H + ROW_H / 2} />
-                <button
-                  className="lineage-row nodrag"
-                  aria-pressed={d.selected === r.id}
-                  aria-label={`${c.label}.${r.path}`}
-                  title={`${c.label}.${r.path}${r.type ? ` · ${r.type}` : ''}${r.fk ? `\nForeign key to ${r.fk.join(', ')}` : ''}`}
-                  onClick={() => d.onSelect(r.id)}
-                >
-                  <span className="lineage-row-name">{r.path}</span>
-                  {r.type && <small>{r.type}</small>}
-                  <PropertyBadges badges={r.badges} />
-                </button>
-              </li>
-            );
-          })}
-          {d.more > 0 && (
-            <li className="lineage-more" style={{ height: MORE_H }}>
-              <Port id={moreRowId(c.id)} top={HEADER_H + d.rows.length * ROW_H + MORE_H / 2} />
-              <span>
-                {d.more} more {d.more === 1 ? 'column' : 'columns'}
-              </span>
-            </li>
-          )}
-        </ul>
-      )}
-      {d.pages > 1 && (
-        <nav
-          className="lineage-pager nodrag"
-          aria-label={`Columns of ${c.label}`}
-          style={{ height: PAGER_H }}
-        >
-          {pagerItems(d.page, d.pages).map((p, i) =>
-            p === '…' ? (
-              <span key={'e' + i} aria-hidden>
-                …
-              </span>
-            ) : (
-              <button
-                key={p}
-                aria-label={`Page ${p + 1}`}
-                aria-current={p === d.page ? 'page' : undefined}
-                onClick={() => d.onPage(c.id, p)}
-              >
-                {p + 1}
-              </button>
-            ),
-          )}
-        </nav>
+      {d.columnsOpen ? (
+        <ColumnList
+          card={c}
+          columns={c.columns}
+          connected={d.connected}
+          filterable={d.filterable}
+          visibleRows={d.listRows}
+          selected={d.selected}
+          onPath={d.onPath}
+          onSelect={d.onSelect}
+          onClose={() => d.onCloseColumns(c.id)}
+        />
+      ) : (
+        <CollapsedRows data={d} />
       )}
     </div>
   );
 });
+
+// A card that is not opened lists the columns that matter, then one line that opens the rest.
+function CollapsedRows({ data: d }: { data: CardData }) {
+  const c = d.card;
+  if (d.rows.length === 0 && d.more === 0) return null;
+  return (
+    <ul className="lineage-rows">
+      {d.rows.map((r, i) => (
+        <li
+          key={r.id}
+          data-id={r.id}
+          className={d.onPath?.has(r.id) ? 'on-path' : ''}
+          style={{ height: ROW_H }}
+        >
+          <Port id={r.id} top={HEADER_H + i * ROW_H + ROW_H / 2} />
+          <ColumnRow
+            card={c}
+            column={r}
+            selected={d.selected}
+            onPath={d.onPath}
+            onSelect={d.onSelect}
+          />
+        </li>
+      ))}
+      {d.more > 0 && (
+        <li className="lineage-more" style={{ height: MORE_H }}>
+          <Port id={moreRowId(c.id)} top={HEADER_H + d.rows.length * ROW_H + MORE_H / 2} />
+          <button
+            className="lineage-more-button nodrag"
+            aria-label={`Show all ${c.columns.length} columns of ${c.label}`}
+            onClick={() => d.onOpenColumns(c.id)}
+          >
+            + {d.more} more {d.more === 1 ? 'column' : 'columns'}
+          </button>
+        </li>
+      )}
+    </ul>
+  );
+}
