@@ -650,7 +650,9 @@ only, and Keycloak or generic providers' client tokens are refused.
 ### The Admin panel
 
 Admins open the panel from the header's **Admin** button. In server mode only Admins see it; in
-local mode the implicit Admin does. It has seven areas:
+local mode the implicit Admin does. The launcher lists seven areas, each with a line saying what
+it is for. A dialog opened from another dialog replaces it on screen until it closes, and a form's
+Dry run and Confirm buttons sit in the dialog footer. The areas:
 
 - **Projects:** assign projects to domains, set protected branches, restricted paths and the
   protected classification level, and grant agent clients their projects or domains.
@@ -664,7 +666,7 @@ local mode the implicit Admin does. It has seven areas:
   and where each role comes from. Filter on **No access** to find people waiting for a grant;
   **Grant access** opens the grant form with their verified address filled in. People can be
   deactivated, reactivated and signed out from here.
-- **Policies:** the read-only baseline rules and the Admin rules. New rules start from a template
+- **Policies:** the Admin rules, then the built-in rules folded under **Built-in rules (N)**, read-only. New rules start from a template
   (time window, network range, Git action limits and others) or the raw Cedar editor, and the
   server validates them and reports line and column. Time rules use UTC, and a window such as 22
   to 2 runs past midnight. Network rules use the direct socket peer, never forwarded headers:

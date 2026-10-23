@@ -130,6 +130,7 @@ export function ProjectsEditor({
         baseVersion={version}
         onSaved={onSaved}
         description="Save project access"
+        inline
       />
     </>
   );

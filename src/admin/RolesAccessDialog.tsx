@@ -86,8 +86,7 @@ export function RolesAccessDialog({ onClose }: DialogProps) {
                       ) : (
                         <>
                           {item.member.displayName ?? 'name not resolved'}
-                          <br />
-                          {item.member.groupId}
+                          <small className="admin-id">{item.member.groupId}</small>
                         </>
                       )}
                     </td>
@@ -185,7 +184,12 @@ function RemoveAccess({
     ? `Remove ${grantSummary(item, data.roles)}?`
     : `Delete the role ${item.name} and all of its grants?`;
   return (
-    <AdminDialog title={grant ? 'Remove grant' : 'Delete role'} onClose={onClose} size="medium">
+    <AdminDialog
+      title={grant ? 'Remove grant' : 'Delete role'}
+      onClose={onClose}
+      size="medium"
+      lastAdminNotice={grant}
+    >
       <p>{question}</p>
       {!grant && <RoleHolders roleId={item.id} grants={data.roles.usage[item.id]?.grants ?? 0} />}
       <ReviewChange
