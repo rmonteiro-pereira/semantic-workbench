@@ -1,10 +1,13 @@
 // Drives browser sign-in through the real handler with the isolated provider and workspace.
-import { expect, test } from 'bun:test';
+import { beforeAll, expect, test } from 'bun:test';
+import { useDefaultBrand } from '../helpers/brand-fixture';
 import { startMockOidc } from '../helpers/mock-oidc';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { oidcConfig } from '../helpers/server-auth';
 import { createServerAuthentication } from '../../server/auth/authentication';
 import { createHandler } from '../../server/handler';
+
+beforeAll(useDefaultBrand);
 
 test('server sign-in, No access, overage, cookie events and logout', async () => {
   const provider = await startMockOidc();

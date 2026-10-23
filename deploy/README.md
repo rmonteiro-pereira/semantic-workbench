@@ -80,6 +80,7 @@ Configure the app using **Revisions**, **Scale**, **Ingress**, **Volumes**, **Id
 | Runtime | `SW_MODE=server`, `SW_HOST=0.0.0.0`, `SW_PORT=4310`, `DATA_DIR=/data` |
 | Proxy | `SW_TRUSTED_PROXY_HOPS=1`: Container Apps ingress is one proxy, so rate limits use the client address it forwards instead of its own |
 | Cache | `SW_CACHE_DIR=/tmp/sw-cache` on ephemeral disk |
+| Brand (optional) | `SW_BRAND_DIR=/brand` with an AzureFile volume holding `logo.svg`, `logo-mark.svg`, `favicon.svg`, `brand.json` and `brand.css`, mounted read-only at `/brand`; see White-labelling in the main README. Without it the shipped brand is used |
 | Public URL | `SW_PUBLIC_URL=https://<host>`, equal to the pipeline variable `SW_PUBLIC_URL` |
 | Provider | `SW_OIDC_PROVIDER=entra`, `SW_ENTRA_TENANT_ID=<tenant>`, `SW_OIDC_CLIENT_ID=<client>` |
 | Discovery | `SW_OIDC_ISSUER=https://login.microsoftonline.com/<tenant>/v2.0` |
