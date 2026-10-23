@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { AdminDialog, type DialogProps } from './AdminDialog';
 import { adminApi } from './api';
 import { useAdminData } from './useAdminData';
 import { ReviewChange } from './ReviewChange';
@@ -14,11 +13,23 @@ async function loadProjects() {
   return { projects, agents };
 }
 /** Manages domains, project restrictions and application client grants. */
-export function ProjectAccessDialog({ onClose }: DialogProps) {
+export function ProjectAccessSection() {
   const { data, error, reload } = useAdminData(loadProjects);
   const [history, setHistory] = useState(false);
+  if (history) {
+    return (
+      <VersionHistory
+        area="projects"
+        backLabel="Back to projects access"
+        onBack={() => {
+          setHistory(false);
+          reload();
+        }}
+      />
+    );
+  }
   return (
-    <AdminDialog title="Projects" onClose={onClose}>
+    <>
       {error && <p role="alert">{error}</p>}
       <button onClick={() => setHistory(true)}>History</button>
       {data && (
@@ -37,16 +48,7 @@ export function ProjectAccessDialog({ onClose }: DialogProps) {
           />
         </>
       )}
-      {history && (
-        <VersionHistory
-          area="projects"
-          onClose={() => {
-            setHistory(false);
-            reload();
-          }}
-        />
-      )}
-    </AdminDialog>
+    </>
   );
 }
 
@@ -130,7 +132,6 @@ export function ProjectsEditor({
         baseVersion={version}
         onSaved={onSaved}
         description="Save project access"
-        inline
       />
     </>
   );

@@ -2,15 +2,16 @@ import { useCallback, useState } from 'react';
 import { useMe } from '../auth/useMe';
 import { whenLabel } from './when';
 import { MenuButton } from '../projects/Menu';
-import { AdminDialog, DialogActions, type DialogProps } from './AdminDialog';
+import { AdminConfirmation } from './AdminConfirmation';
+import { AdminPane } from './AdminPane';
 import { adminApi, problemText } from './api';
 import { useAdminData } from './useAdminData';
 import { GrantForm, scopeLabel } from './GrantForm';
-import { AccessCheckDialog } from './AccessCheckDialog';
+import { AccessCheckSection } from './AccessCheckSection';
 import type { AdminUser } from './types';
 
 /** Lists known identities and provenance, including people awaiting their first grant. */
-export function UsersDialog({ onClose }: DialogProps) {
+export function UsersSection() {
   const { me } = useMe();
   const [query, setQuery] = useState('');
   const [noAccess, setNoAccess] = useState(false);
@@ -22,8 +23,32 @@ export function UsersDialog({ onClose }: DialogProps) {
     user: AdminUser;
     kind: 'deactivate' | 'reactivate' | 'sessions';
   } | null>(null);
+  if (grant) {
+    return (
+      <GrantForm
+        email={grant.verifiedEmail ?? ''}
+        backLabel="Back to users"
+        onBack={() => setGrant(null)}
+        onSaved={() => {
+          setGrant(null);
+          reload();
+        }}
+      />
+    );
+  }
+  if (check) {
+    return (
+      <AdminPane
+        title={`Access check for ${check.name}`}
+        backLabel="Back to users"
+        onBack={() => setCheck(null)}
+      >
+        <AccessCheckSection principal={check.id} />
+      </AdminPane>
+    );
+  }
   return (
-    <AdminDialog title="Users & groups" onClose={onClose}>
+    <>
       {me?.mode === 'local' && <p>Users and provider groups apply in server mode.</p>}
       <label>
         Search people and groups
@@ -106,39 +131,29 @@ export function UsersDialog({ onClose }: DialogProps) {
           </tbody>
         </table>
       </div>
-      {grant && (
-        <GrantForm
-          email={grant.verifiedEmail ?? ''}
-          onClose={() => setGrant(null)}
-          onSaved={() => {
-            setGrant(null);
-            reload();
-          }}
-        />
-      )}
-      {check && <AccessCheckDialog principal={check.id} onClose={() => setCheck(null)} />}
       {operation && (
         <UserOperation
           {...operation}
-          onClose={() => setOperation(null)}
+          onCancel={() => setOperation(null)}
           onSaved={() => {
             setOperation(null);
             reload();
           }}
         />
       )}
-    </AdminDialog>
+    </>
   );
 }
 
 function UserOperation({
   user,
   kind,
-  onClose,
+  onCancel,
   onSaved,
-}: DialogProps & {
+}: {
   user: AdminUser;
   kind: 'deactivate' | 'reactivate' | 'sessions';
+  onCancel: () => void;
   onSaved: () => void;
 }) {
   const [reason, setReason] = useState('');
@@ -158,11 +173,20 @@ function UserOperation({
     }
   }
   return (
-    <AdminDialog
+    <AdminConfirmation
       title={title}
-      onClose={onClose}
+      onCancel={onCancel}
       size="small"
       lastAdminNotice={kind === 'deactivate'}
+      actions={
+        <button
+          className="primary"
+          disabled={busy || (kind !== 'sessions' && !reason.trim())}
+          onClick={confirm}
+        >
+          Confirm {title.toLowerCase()}
+        </button>
+      }
     >
       <p>
         {title} for {user.name}? This changes only this workbench.
@@ -174,15 +198,6 @@ function UserOperation({
         </label>
       )}
       {error && <p role="alert">{error}</p>}
-      <DialogActions>
-        <button
-          className="primary"
-          disabled={busy || (kind !== 'sessions' && !reason.trim())}
-          onClick={confirm}
-        >
-          Confirm {title.toLowerCase()}
-        </button>
-      </DialogActions>
-    </AdminDialog>
+    </AdminConfirmation>
   );
 }

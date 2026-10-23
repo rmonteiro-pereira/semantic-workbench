@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AdminDialog, type DialogProps } from './AdminDialog';
+import { AdminConfirmation } from './AdminConfirmation';
 import { newIdentifier } from './identifiers';
 import { adminApi } from './api';
 import { useAdminData } from './useAdminData';
@@ -13,7 +13,7 @@ async function loadPolicies() {
   return { version: policies.version, ...policies.document };
 }
 /** Keeps baseline rules read-only and reviews every Admin rule activation or removal. */
-export function PoliciesDialog({ onClose }: DialogProps) {
+export function PoliciesSection() {
   const { data, error, reload } = useAdminData(loadPolicies);
   const [edit, setEdit] = useState<Policy | null>(null);
   const [change, setChange] = useState<{ rules: Policy[]; description: string } | null>(null);
@@ -40,8 +40,31 @@ export function PoliciesDialog({ onClose }: DialogProps) {
       description: `${enabled ? 'Enable' : 'Disable'} ${policy.description || policy.id}`,
     });
   }
+  if (edit && data) {
+    return (
+      <PolicyEditor
+        initial={edit}
+        rules={data.rules}
+        version={data.version}
+        onBack={() => setEdit(null)}
+        onSaved={saved}
+      />
+    );
+  }
+  if (history) {
+    return (
+      <VersionHistory
+        area="policies"
+        backLabel="Back to policies"
+        onBack={() => {
+          setHistory(false);
+          reload();
+        }}
+      />
+    );
+  }
   return (
-    <AdminDialog title="Policies" onClose={onClose}>
+    <>
       {error && <p role="alert">{error}</p>}
       <div className="admin-actions">
         <button onClick={create}>New rule</button>
@@ -81,35 +104,18 @@ export function PoliciesDialog({ onClose }: DialogProps) {
           </details>
         ))}
       </details>
-      {edit && data && (
-        <PolicyEditor
-          initial={edit}
-          rules={data.rules}
-          version={data.version}
-          onClose={() => setEdit(null)}
-          onSaved={saved}
-        />
-      )}
       {change && data && (
-        <AdminDialog title={change.description} onClose={() => setChange(null)} size="medium">
+        <AdminConfirmation title={change.description} onCancel={() => setChange(null)}>
           <ReviewChange
             area="policies"
             proposal={{ rules: change.rules }}
             baseVersion={data.version}
             onSaved={saved}
             description={change.description}
+            inline
           />
-        </AdminDialog>
+        </AdminConfirmation>
       )}
-      {history && (
-        <VersionHistory
-          area="policies"
-          onClose={() => {
-            setHistory(false);
-            reload();
-          }}
-        />
-      )}
-    </AdminDialog>
+    </>
   );
 }

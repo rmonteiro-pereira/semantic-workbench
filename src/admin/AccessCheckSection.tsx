@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { AdminDialog, type DialogProps } from './AdminDialog';
 import { SelectField } from './SelectField';
 import { adminApi, problemText } from './api';
 import { useAdminData } from './useAdminData';
@@ -16,10 +15,7 @@ export function decisionLabel(decision: unknown): string {
   return JSON.stringify(decision);
 }
 /** Checks known or hypothetical people and lists who can act on a project or path. */
-export function AccessCheckDialog({
-  onClose,
-  principal = '',
-}: DialogProps & { principal?: string }) {
+export function AccessCheckSection({ principal = '' }: { principal?: string }) {
   const { data: users, error: loadError } = useAdminData(adminApi.users);
   const [person, setPerson] = useState(principal);
   const [hypothetical, setHypothetical] = useState(false);
@@ -70,7 +66,7 @@ export function AccessCheckDialog({
     }
   }
   return (
-    <AdminDialog title="Access check" onClose={onClose}>
+    <>
       {(error || loadError) && <p role="alert">{error || loadError}</p>}
       <label>
         <input
@@ -162,6 +158,6 @@ export function AccessCheckDialog({
           ))}
         </section>
       )}
-    </AdminDialog>
+    </>
   );
 }
