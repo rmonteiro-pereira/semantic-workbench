@@ -148,6 +148,8 @@ export type GitStatus = {
   identityConfigured: boolean;
   merging: boolean;
   remotes: Record<string, string>;
+  /** The folder of the repository a project lives in, when only that folder is checked out. */
+  folder?: string;
   changes: GitChange[];
 };
 /** Reports completion, cancellation, conflicts and altered paths after a remote action. */
@@ -546,10 +548,21 @@ export const scm = {
     ),
   credentialHelper: () =>
     apiFetch('/api/git/credential-helper').then(r => json<{ helper: string | null }>(r)),
-  clone: async (url: string, name?: string, domain?: string) =>
-    apiFetch('/api/clone', send('POST', { url, ...(name ? { name } : {}), domain })).then(r =>
-      json<{ op: string; name: string; slug: string }>(r),
-    ),
+  clone: async (
+    url: string,
+    name?: string,
+    domain?: string,
+    sparse: { folder?: string; createFolder?: boolean } = {},
+  ) =>
+    apiFetch(
+      '/api/clone',
+      send('POST', {
+        url,
+        ...(name ? { name } : {}),
+        domain,
+        ...(sparse.folder ? { folder: sparse.folder, createFolder: !!sparse.createFolder } : {}),
+      }),
+    ).then(r => json<{ op: string; name: string; slug: string }>(r)),
   cancelClone: (op: string) =>
     apiFetch(`/api/clone/${encodeURIComponent(op)}/cancel`, send('POST')).then(r =>
       json<{ cancelled: boolean }>(r),

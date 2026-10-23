@@ -9,7 +9,7 @@ import {
 } from './helpers/sync-dialog';
 import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Route } from '@playwright/test';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
@@ -43,6 +43,18 @@ sh(team, ['add', '.']);
 sh(team, ['-c', 'user.name=T', '-c', 'user.email=t@example.invalid', 'commit', '-qm', 'Team']);
 const teamBare = join(extra, 'team.git');
 sh(extra, ['clone', '-q', '--bare', team, teamBare]);
+
+// A team repository with several folders, to clone one folder of.
+const folderWork = join(extra, 'folder-work');
+sh(extra, ['init', '-q', '-b', 'main', folderWork]);
+mkdirSync(join(folderWork, 'semantic/ubl'), { recursive: true });
+mkdirSync(join(folderWork, 'semantic/crm'), { recursive: true });
+writeFileSync(join(folderWork, 'semantic/ubl/shop.yaml'), ontology('Shop.'));
+writeFileSync(join(folderWork, 'semantic/crm/crm.yaml'), ontology('Crm.'));
+sh(folderWork, ['add', '.']);
+sh(folderWork, ['-c', 'user.name=T', '-c', 'user.email=t@e.invalid', 'commit', '-qm', 'Folders']);
+const folderBare = join(extra, 'folders.git');
+sh(extra, ['clone', '-q', '--bare', folderWork, folderBare]);
 
 // A local HTTP server that refuses every request without credentials, standing for a Git host.
 const host = Bun.serve({
@@ -198,6 +210,42 @@ try {
       expect(readFileSync(join(api.root, 'projects', cloned.slug, 'broken.yaml'), 'utf8')).toBe(
         'name: Broken\nontology:\n  - concept: [unclosed\n',
       );
+    },
+  );
+  await check(
+    'clone: a folder of the repository becomes the project, and a missing folder offers a push',
+    async () => {
+      await page.getByRole('button', { name: 'Import…' }).click();
+      await page.getByRole('button', { name: 'Clone a Git repository…' }).click();
+      const dialog = page.getByRole('dialog', { name: 'Clone repository' });
+      await dialog.getByLabel('Repository URL or path').fill(folderBare);
+      await dialog.getByLabel('Folder in repository').fill('../outside');
+      await expect(dialog).toContainText('may not contain ".."');
+      await expect(dialog.getByRole('button', { name: 'Clone', exact: true })).toBeDisabled();
+      await dialog.getByLabel('Folder in repository').fill('semantic/none');
+      await dialog.getByRole('button', { name: 'Clone', exact: true }).click();
+      await expect(dialog.getByRole('status')).toContainText('The clone failed.', {
+        timeout: 20_000,
+      });
+      await expect(dialog).toContainText('does not exist on the remote branch');
+      await dialog
+        .getByRole('button', { name: 'Create semantic/none with the first push' })
+        .click();
+      await expect(dialog.getByRole('status')).toContainText('Cloned.', { timeout: 20_000 });
+      await dialog.getByRole('button', { name: 'Close' }).click();
+      await page.getByRole('button', { name: 'Import…' }).click();
+      await page.getByRole('button', { name: 'Clone a Git repository…' }).click();
+      await dialog.getByLabel('Repository URL or path').fill(folderBare);
+      await dialog.getByLabel('Folder in repository').fill('semantic/ubl');
+      await dialog.getByRole('button', { name: 'Clone', exact: true }).click();
+      await expect(dialog.getByRole('status')).toContainText('Cloned.', { timeout: 20_000 });
+      await dialog.getByRole('button', { name: 'Open project' }).click();
+      const folderProject = api.ws.state
+        .registry()
+        .projects.find(entry => entry.folder?.endsWith('semantic/ubl'))!;
+      const repository = join(api.root, 'projects', folderProject.repo!);
+      expect(existsSync(join(repository, 'semantic/ubl/shop.yaml'))).toBe(true);
+      expect(existsSync(join(repository, 'semantic/crm'))).toBe(false);
     },
   );
   await check('every remote used is local: a folder or 127.0.0.1', async () => {

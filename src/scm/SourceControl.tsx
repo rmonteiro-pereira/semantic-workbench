@@ -3,6 +3,7 @@
 import { useCapabilities } from '../auth/Capabilities';
 import { useGitSetup } from './GitSetup';
 import { looksLikeAuthFailure } from './CredentialGuide';
+import { repositoryLocation } from './repository-location';
 import {
   ConnectPrompt,
   actionTitle,
@@ -616,6 +617,11 @@ export function SourceControl({
             </button>
           )}
         </div>
+        {status.folder && (
+          <p className="scm-where" aria-label="Repository location">
+            {repositoryLocation(status)}
+          </p>
+        )}
         {waiting && (
           <div role="status" className="scm-note waiting">
             <span className="spinner" aria-hidden />

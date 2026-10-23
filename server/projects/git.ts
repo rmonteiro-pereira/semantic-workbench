@@ -133,6 +133,9 @@ export function gitEnv(base: Record<string, string | undefined> = process.env) {
       env[k] = v;
   return { ...env, GIT_TERMINAL_PROMPT: '0', LC_ALL: 'C' };
 }
+// A line of `git remote -v`: name, address and direction. A partial clone adds its filter after
+// the direction, such as `[blob:none]`.
+const REMOTE_LINE = /^(\S+)\t(.*) \((fetch|push)\)(?: \[[^\]]*\])?$/;
 // Remote commands require explicit opt-in with `remote: true` to prevent incidental network access.
 const REMOTE_COMMANDS = new Set(['fetch', 'pull', 'push', 'ls-remote', 'clone', 'remote-update']);
 /** Masks credentials embedded in URLs before output is shown to users. */
@@ -148,6 +151,24 @@ export function remoteName(name: unknown) {
     throw new BadRequestError('A remote name uses letters, digits, dot, dash or underscore.');
   return name;
 }
+/** The branch HEAD names, also before its first commit; null when HEAD is detached. */
+export async function symbolicBranch(git: Git, dir: string) {
+  const result = await git.run(dir, ['symbolic-ref', '-q', '--short', 'HEAD'], {
+    readOnly: true,
+    allowFailure: true,
+  });
+  return result.code === 0 ? result.stdout.trim() : null;
+}
+
+/** The commit a revision names in a folder, or null when it names none. */
+export async function commitOf(git: Git, dir: string, rev: string) {
+  const result = await git.run(dir, ['rev-parse', '-q', '--verify', rev + '^{commit}'], {
+    readOnly: true,
+    allowFailure: true,
+  });
+  return result.code === 0 ? result.stdout.trim() : null;
+}
+
 /**
  * Whether a name is a branch name Git accepts that cannot be read as an option or as a reference
  * to an earlier checkout such as `@{-1}`.
@@ -429,8 +450,17 @@ export function createGit(options: GitOptions) {
     setIdentity,
     configValue,
     // Clones into `folder` inside `parent` (a staging folder under data/projects/). Line endings are
-    // kept as committed, symbolic links arrive as plain files and submodules are not fetched.
-    async clone(parent: string, url: string, folder: string, credential?: RemoteCredential) {
+    // kept as committed, symbolic links arrive as plain files and submodules are not fetched. A
+    // partial clone leaves out file contents and the checkout, so a sparse checkout can fetch
+    // only the folder it needs.
+    async clone(
+      parent: string,
+      url: string,
+      folder: string,
+      credential?: RemoteCredential,
+      options: { partial?: boolean } = {},
+    ) {
+      const partial = options.partial ? ['--filter=blob:none', '--no-checkout'] : [];
       await run(
         parent,
         [
@@ -441,6 +471,7 @@ export function createGit(options: GitOptions) {
           'clone',
           '-q',
           '--no-recurse-submodules',
+          ...partial,
           '--',
           url,
           folder,
@@ -540,7 +571,7 @@ export function createGit(options: GitOptions) {
       const r = await read(cwd, ['remote', '-v']);
       const out = new Map<string, RemoteAddresses>();
       for (const line of r.stdout.split('\n')) {
-        const match = line.match(/^(\S+)\t(.*) \((fetch|push)\)$/);
+        const match = line.match(REMOTE_LINE);
         if (!match) continue;
         const entry = out.get(match[1]) ?? { name: match[1], fetchUrl: '', pushUrl: '' };
         if (match[3] === 'fetch') entry.fetchUrl = match[2];
@@ -553,8 +584,8 @@ export function createGit(options: GitOptions) {
       const r = await read(cwd, ['remote', '-v']);
       const out = new Map<string, string>();
       for (const l of r.stdout.split('\n')) {
-        const m = l.match(/^(\S+)\t(.*) \(fetch\)$/);
-        if (m) out.set(m[1], m[2]);
+        const m = l.match(REMOTE_LINE);
+        if (m && m[3] === 'fetch') out.set(m[1], m[2]);
       }
       return out;
     },

@@ -18,9 +18,13 @@ export function cloneRoutes(administration: AdminRepository): Route {
         !body ||
         typeof body !== 'object' ||
         Array.isArray(body) ||
-        Object.keys(body).some(key => !['url', 'name', 'domain'].includes(key))
+        Object.keys(body).some(
+          key => !['url', 'name', 'domain', 'folder', 'createFolder'].includes(key),
+        )
       )
-        throw new BadRequestError('Expected {url, name?}.');
+        throw new BadRequestError('Expected {url, name?, folder?, createFolder?}.');
+      if (body.createFolder !== undefined && typeof body.createFolder !== 'boolean')
+        throw new BadRequestError('createFolder must be true or false.');
       if (!ws.gitAvailable) throw new BadRequestError('Git is not available on this machine.');
       const domain = creationDomain(req, body.domain);
       // Also refuses a host that is not allowed, before anything is cloned.
@@ -31,6 +35,7 @@ export function cloneRoutes(administration: AdminRepository): Route {
         requestReader(req),
         slugs => assignProjectDomains({ ws, administration }, req, slugs, domain),
         credential,
+        { folder: body.folder, createFolder: body.createFolder },
       );
       return Response.json(result);
     }

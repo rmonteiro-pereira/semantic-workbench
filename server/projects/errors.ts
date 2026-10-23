@@ -113,3 +113,17 @@ export class TooLargeError extends Error {
     this.name = 'TooLargeError';
   }
 }
+
+/** The folder a project should live in does not exist on the remote branch. */
+export class MissingFolderError extends Error {
+  constructor(
+    public folder: string,
+    public branch: string,
+  ) {
+    super(
+      `The folder ${folder} does not exist on the remote branch ${branch}. ` +
+        'Create it with the first push, or check the spelling.',
+    );
+    this.name = 'MissingFolderError';
+  }
+}
