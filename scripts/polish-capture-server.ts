@@ -1,6 +1,7 @@
 // Captures the tour of screens in server mode, signed in through the mock identity provider, at
 // the four supported viewport sizes. Run `bun run build` first. Usage:
 //   bun scripts/polish-capture-server.ts <output directory> [user]
+// Set SW_THEME=dark to photograph the dark theme; file names then start with server-dark-.
 import { chromium } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 import { TEST_USERS } from '../tests/helpers/auth-identities';
@@ -12,6 +13,8 @@ import { tourGroups } from './helpers/all-tours';
 
 const outputDirectory = process.argv[2];
 if (!outputDirectory) throw new Error('Pass an output directory.');
+const dark = process.env.SW_THEME === 'dark';
+const prefix = dark ? 'server-dark' : 'server';
 const requestedUser = process.argv[3] ?? 'alice';
 if (!(requestedUser in TEST_USERS)) {
   throw new Error(
@@ -35,6 +38,7 @@ const browser = await chromium.launch({ headless: true });
 try {
   const target: SignInTarget = { url, issuer: mock.endpointBase, kind: 'entra' };
   const page = await browser.newPage();
+  if (dark) await page.addInitScript(() => localStorage.setItem('workbench.theme', 'dark'));
   await signIn(page, target, user);
   const files = await page.locator('.sidebar button.document span').allTextContents();
   for (const [width, height] of authViewports) {
@@ -51,7 +55,7 @@ try {
         console.log('SKIP', screen.name, width, String(error).split('\n')[0]);
         continue;
       }
-      await page.screenshot({ path: `${outputDirectory}/server-${screen.name}-${width}.png` });
+      await page.screenshot({ path: `${outputDirectory}/${prefix}-${screen.name}-${width}.png` });
       const problems = await screenProblems(page, screen);
       console.log(`MEASURE ${screen.name} ${width} problems=${problems.length}`);
       for (const problem of problems.slice(0, 8)) console.log('   ', problem);

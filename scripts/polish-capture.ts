@@ -1,6 +1,7 @@
 // Captures every main screen and dialog at the four supported viewport sizes in local mode and
 // prints the measured problems of each. Usage:
 //   SW_BASE_URL=http://127.0.0.1:5173 bun scripts/polish-capture.ts <output directory>
+// Set SW_THEME=dark to photograph the dark theme; file names then start with local-dark-.
 import { appUrl } from './helpers/base-url';
 import { chromium } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
@@ -13,6 +14,8 @@ const outputDirectory = process.argv[2];
 if (!outputDirectory) throw new Error('Pass an output directory.');
 mkdirSync(outputDirectory, { recursive: true });
 
+const dark = process.env.SW_THEME === 'dark';
+const prefix = dark ? 'local-dark' : 'local';
 const api = await startIsolatedApi();
 await api.ws.loadExample('ubl');
 await api.ws.loadExample('commerce');
@@ -26,6 +29,7 @@ const screens = tourGroups({
 
 for (const [width, height] of authViewports) {
   const page = await browser.newPage({ viewport: { width, height } });
+  if (dark) await page.addInitScript(() => localStorage.setItem('workbench.theme', 'dark'));
   await routeApi(page, api);
   await page.goto(appUrl());
   await page.waitForTimeout(1500);
@@ -36,7 +40,7 @@ for (const [width, height] of authViewports) {
       console.log('SKIP', screen.name, width, String(error).split('\n')[0]);
       continue;
     }
-    await page.screenshot({ path: `${outputDirectory}/local-${screen.name}-${width}.png` });
+    await page.screenshot({ path: `${outputDirectory}/${prefix}-${screen.name}-${width}.png` });
     const problems = await screenProblems(page, screen);
     console.log(`MEASURE ${screen.name} ${width} problems=${problems.length}`);
     for (const problem of problems.slice(0, 8)) console.log('   ', problem);
