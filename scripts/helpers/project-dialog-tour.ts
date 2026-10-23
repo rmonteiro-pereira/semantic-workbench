@@ -17,7 +17,8 @@ async function showSyncDialog(page: Page) {
   await openSyncDialog(page);
 }
 
-async function openCloneDialog(page: Page) {
+/** Opens the Clone repository dialog from the sidebar's Import dialog. */
+export async function openCloneDialog(page: Page) {
   await showSidebar(page);
   await page
     .getByRole('button', { name: /Import/ })

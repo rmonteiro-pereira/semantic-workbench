@@ -3613,3 +3613,77 @@ if (category === 'save-failure-wording') {
   const failed = { status: 'failed', message: 'Refused: no.' };
   assert.equal(m.saveStateLabel(failed, 0), 'Not saved: no.');
 }
+if (category === 'sparse-folder-path') {
+  const accepted: [string, string][] = [
+    ['semantic/ubl', 'semantic/ubl'],
+    [' semantic/ubl/ ', 'semantic/ubl'],
+    ['', ''],
+    ['a b/c-d.e', 'a b/c-d.e'],
+  ];
+  for (const [typed, folder] of accepted)
+    assert.deepEqual(m.checkRepositoryFolder(typed), { ok: true, folder });
+  assert.deepEqual(m.checkRepositoryFolder(undefined), { ok: true, folder: '' });
+  const refused = [
+    '../x',
+    'a/../b',
+    'a/./b',
+    '/etc',
+    'C:/x',
+    'a//b',
+    'a\\b',
+    '.git',
+    'a/.GIT',
+    '-x',
+    'a/*',
+    'a/[b]',
+    'a\nb',
+    'a\u0001b',
+    'x'.repeat(501),
+  ];
+  for (const typed of refused)
+    assert.equal(m.checkRepositoryFolder(typed).ok, false, JSON.stringify(typed));
+  assert.equal(m.checkRepositoryFolder(42).ok, false);
+  // The message names the actual problem, not only that the path is refused.
+  assert.match(m.checkRepositoryFolder('/etc').message, /absolute/);
+  assert.match(m.checkRepositoryFolder('a\\b').message, /forward slashes/);
+  assert.match(m.checkRepositoryFolder('a/'.repeat(300) + 'b').message, /too long/);
+}
+if (category === 'sparse-checkout-arguments') {
+  assert.deepEqual(m.sparseSetArguments(['a/b']), [
+    'sparse-checkout',
+    'set',
+    '--cone',
+    '--',
+    'a/b',
+  ]);
+  assert.deepEqual(m.conePathspecs(['semantic/ubl']), [
+    ':(glob)*',
+    'semantic/ubl',
+    ':(glob)semantic/*',
+  ]);
+  assert.deepEqual(m.conePathspecs(['a/b/c']), [':(glob)*', 'a/b/c', ':(glob)a/*', ':(glob)a/b/*']);
+  assert.deepEqual(m.conePathspecs(['ubl']), [':(glob)*', 'ubl']);
+}
+if (category === 'sparse-partial-clone') {
+  const { chmodSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } =
+    await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const root = mkdtempSync(join(tmpdir(), 'workbench-partial-'));
+  const record = join(root, 'arguments.txt');
+  const fake = join(root, 'fake-git');
+  writeFileSync(fake, `#!/bin/sh\nprintf '%s\\n' "$*" >> '${record}'\n`);
+  chmodSync(fake, 0o755);
+  const parent = join(root, 'projects', 'staging');
+  // The fake Git clones nothing, so the folder the configuration commands run in is made here.
+  mkdirSync(join(parent, 'repo'), { recursive: true });
+  const git = m.createGit({ projectsRoot: join(root, 'projects'), binary: fake });
+  await git.clone(parent, 'file:///team.git', 'repo', undefined, { partial: true });
+  await git.clone(parent, 'file:///team.git', 'repo', undefined);
+  const clones = readFileSync(record, 'utf8')
+    .split('\n')
+    .filter(line => line.includes(' clone '));
+  assert.equal(clones.length, 2);
+  assert(clones[0].includes('--filter=blob:none') && clones[0].includes('--no-checkout'));
+  assert(!clones[1].includes('--filter') && !clones[1].includes('--no-checkout'));
+}

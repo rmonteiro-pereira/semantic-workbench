@@ -4,6 +4,7 @@ import { editScreens } from './edit-tour';
 import { exportScreens } from './export-tour';
 import { odcsScreens } from './odcs-tour';
 import { projectDialogScreens } from './project-dialog-tour';
+import { sparseScreens } from './sparse-tour';
 import { tourScreens, type Screen } from './screen-tour';
 
 /** Files the tours open. */
@@ -43,6 +44,11 @@ export function tourGroups(files: AllTourFiles): TourGroup[] {
       title: 'export dialog',
       summary: 'readable text, no overlaps, contained in the window',
       screens: exportScreens(),
+    },
+    {
+      title: 'folder dialogs',
+      summary: 'readable text and no overlaps',
+      screens: sparseScreens(),
     },
   ];
 }
