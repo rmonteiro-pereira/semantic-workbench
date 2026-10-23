@@ -1,14 +1,14 @@
 import { Fragment, useCallback, useState } from 'react';
 import { useMe } from '../auth/useMe';
 import { whenLabel } from './when';
-import { AdminDialog, DialogActions, type DialogProps } from './AdminDialog';
+import { AdminConfirmation } from './AdminConfirmation';
 import { adminApi, problemText } from './api';
 import { useAdminData } from './useAdminData';
 import { VersionHistory } from './VersionHistory';
 import type { Provider, Settings } from './types';
 
 /** Shows public provider health, editable session lifetimes and revocable active sessions. */
-export function SettingsDialog({ onClose }: DialogProps) {
+export function SettingsSection() {
   const { me } = useMe();
   const local = me?.mode === 'local';
   const load = useCallback(async () => {
@@ -33,8 +33,20 @@ export function SettingsDialog({ onClose }: DialogProps) {
       setFailure(`End sessions for ${end}: ${problemText(problem)}`);
     }
   }
+  if (history) {
+    return (
+      <VersionHistory
+        area="settings"
+        backLabel="Back to settings"
+        onBack={() => {
+          setHistory(false);
+          reload();
+        }}
+      />
+    );
+  }
   return (
-    <AdminDialog title="Settings" onClose={onClose}>
+    <>
       {(error || failure) && <p role="alert">{error || failure}</p>}
       <button onClick={() => setHistory(true)}>History</button>
       <h3>Provider status</h3>
@@ -61,26 +73,21 @@ export function SettingsDialog({ onClose }: DialogProps) {
         </>
       )}
       {end && (
-        <AdminDialog title="End sessions" onClose={() => setEnd(null)} size="small">
-          <p>End all sessions for {end}?</p>
-          {failure && <p role="alert">{failure}</p>}
-          <DialogActions>
+        <AdminConfirmation
+          title="End sessions"
+          onCancel={() => setEnd(null)}
+          size="small"
+          actions={
             <button className="primary" onClick={endSessions}>
               Confirm end sessions
             </button>
-          </DialogActions>
-        </AdminDialog>
+          }
+        >
+          <p>End all sessions for {end}?</p>
+          {failure && <p role="alert">{failure}</p>}
+        </AdminConfirmation>
       )}
-      {history && (
-        <VersionHistory
-          area="settings"
-          onClose={() => {
-            setHistory(false);
-            reload();
-          }}
-        />
-      )}
-    </AdminDialog>
+    </>
   );
 }
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMe } from '../auth/useMe';
-import { AdminDialog, type DialogProps } from './AdminDialog';
+import { AdminConfirmation } from './AdminConfirmation';
 import { whenLabel } from './when';
 import { MenuButton } from '../projects/Menu';
 import { newIdentifier } from './identifiers';
@@ -18,11 +18,10 @@ async function loadRoles() {
   const [roles, grants] = await Promise.all([adminApi.roles(), adminApi.grants()]);
   return { version: grants.version, roles: roles.document, grants: grants.document.grants };
 }
-/** Lists all grants and locked built-in roles alongside editable custom roles. */
-export function RolesAccessDialog({ onClose }: DialogProps) {
+/** Lists all grants, or the locked built-in roles beside the editable custom roles. */
+export function RolesAccessSection({ view }: { view: 'grants' | 'roles' }) {
   const { me } = useMe();
   const { data, error, reload } = useAdminData(loadRoles);
-  const [tab, setTab] = useState('Grants');
   const [grant, setGrant] = useState<Grant | 'new' | null>(null);
   const [role, setRole] = useState<Role | null>(null);
   const [removal, setRemoval] = useState<Grant | Role | null>(null);
@@ -45,28 +44,44 @@ export function RolesAccessDialog({ onClose }: DialogProps) {
       createdAt: new Date().toISOString(),
     });
   }
+  if (grant && data) {
+    return (
+      <GrantForm
+        initial={grant === 'new' ? undefined : grant}
+        backLabel="Back to grants"
+        onBack={() => setGrant(null)}
+        onSaved={saved}
+      />
+    );
+  }
+  if (role && data) {
+    return <RoleEditor initial={role} {...data} onBack={() => setRole(null)} onSaved={saved} />;
+  }
+  if (history) {
+    return (
+      <VersionHistory
+        area={view}
+        backLabel={`Back to ${view}`}
+        onBack={() => {
+          setHistory(false);
+          reload();
+        }}
+      />
+    );
+  }
   return (
-    <AdminDialog title="Roles & access" onClose={onClose}>
+    <>
       {error && <p role="alert">{error}</p>}
       <div className="admin-actions">
-        <div className="segmented" role="tablist" aria-label="Roles and grants">
-          {['Grants', 'Roles'].map(name => (
-            <button
-              key={name}
-              role="tab"
-              aria-selected={tab === name}
-              className={tab === name ? 'selected' : ''}
-              onClick={() => setTab(name)}
-            >
-              {name}
-            </button>
-          ))}
-        </div>
+        {view === 'grants' ? (
+          <button onClick={() => setGrant('new')}>Add grant</button>
+        ) : (
+          <button onClick={() => duplicate()}>New role</button>
+        )}
         <button onClick={() => setHistory(true)}>History</button>
       </div>
-      {data && tab === 'Grants' && (
+      {data && view === 'grants' && (
         <>
-          <button onClick={() => setGrant('new')}>Add grant</button>
           <div className="admin-table">
             <table className="admin-records">
               <thead>
@@ -119,9 +134,8 @@ export function RolesAccessDialog({ onClose }: DialogProps) {
           </div>
         </>
       )}
-      {data && tab === 'Roles' && (
+      {data && view === 'roles' && (
         <>
-          <button onClick={() => duplicate()}>New role</button>
           <RoleMatrix roles={data.roles.builtIn} actions={data.roles.actions} />
           {data.roles.builtIn.map(item => (
             <section key={item.id} aria-label={item.name}>
@@ -140,40 +154,27 @@ export function RolesAccessDialog({ onClose }: DialogProps) {
           ))}
         </>
       )}
-      {grant && (
-        <GrantForm
-          initial={grant === 'new' ? undefined : grant}
-          onClose={() => setGrant(null)}
+      {removal && data && (
+        <RemoveAccess
+          item={removal}
+          data={data}
+          onCancel={() => setRemoval(null)}
           onSaved={saved}
         />
       )}
-      {role && data && (
-        <RoleEditor initial={role} {...data} onClose={() => setRole(null)} onSaved={saved} />
-      )}
-      {removal && data && (
-        <RemoveAccess item={removal} data={data} onClose={() => setRemoval(null)} onSaved={saved} />
-      )}
-      {history && (
-        <VersionHistory
-          area={tab === 'Grants' ? 'grants' : 'roles'}
-          onClose={() => {
-            setHistory(false);
-            reload();
-          }}
-        />
-      )}
-    </AdminDialog>
+    </>
   );
 }
 
 function RemoveAccess({
   item,
   data,
-  onClose,
+  onCancel,
   onSaved,
-}: DialogProps & {
+}: {
   item: Grant | Role;
   data: Awaited<ReturnType<typeof loadRoles>>;
+  onCancel: () => void;
   onSaved: () => void;
 }) {
   const grant = 'roleId' in item;
@@ -184,10 +185,9 @@ function RemoveAccess({
     ? `Remove ${grantSummary(item, data.roles)}?`
     : `Delete the role ${item.name} and all of its grants?`;
   return (
-    <AdminDialog
+    <AdminConfirmation
       title={grant ? 'Remove grant' : 'Delete role'}
-      onClose={onClose}
-      size="medium"
+      onCancel={onCancel}
       lastAdminNotice={grant}
     >
       <p>{question}</p>
@@ -200,8 +200,9 @@ function RemoveAccess({
         onSaved={onSaved}
         description={grant ? 'Remove grant' : 'Delete role and grants'}
         changeLabel={question.slice(0, -1)}
+        inline
       />
-    </AdminDialog>
+    </AdminConfirmation>
   );
 }
 

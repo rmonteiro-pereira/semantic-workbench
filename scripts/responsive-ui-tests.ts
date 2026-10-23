@@ -11,6 +11,7 @@ import { layoutProblems, lineageProblems } from './helpers/layout-geometry';
 import { screenProblems, showScreen, type Screen } from './helpers/screen-tour';
 import { tourGroups } from './helpers/all-tours';
 import { editContainmentProblems } from './helpers/edit-tour';
+import { adminScreens, leaveAdminPage } from './helpers/admin-tour';
 import { sidewaysTableProblems } from './helpers/odcs-tour';
 
 // Isolated API fixture: exercising viewport changes never modifies the local workspace. The UBL
@@ -1499,6 +1500,37 @@ try {
       },
     );
     await shellPage.close();
+  }
+  // The Admin page: every section at each size, with text, collisions and containment checked.
+  for (const [width, height] of [
+    [390, 844],
+    [1280, 720],
+    [1440, 900],
+    [2560, 1440],
+  ]) {
+    const adminPage = await openPage(width!, height!);
+    await check(
+      `admin page: ${width}×${height} readable text, no overlaps, content fits`,
+      async () => {
+        for (const screen of adminScreens()) {
+          await showScreen(adminPage, screen);
+          expect(await screenProblems(adminPage, { ...screen, dialog: '.admin-page' })).toEqual([]);
+          await noOverflow(adminPage);
+          for (const part of ['.admin-nav', '.admin-content']) {
+            const box = await adminPage.locator(part).boundingBox();
+            expect(
+              box && box.x >= 0 && box.x + box.width <= width! + 1,
+              `${screen.name} ${part}`,
+            ).toBe(true);
+          }
+          await expect(
+            adminPage.getByRole('button', { name: 'Back to workspace', exact: true }),
+          ).toBeVisible();
+        }
+        await leaveAdminPage(adminPage);
+      },
+    );
+    await adminPage.close();
   }
   await check('no uncaught browser errors', async () => expect(errors).toEqual([]));
   console.log(`${passed} responsive UI checks passed`);

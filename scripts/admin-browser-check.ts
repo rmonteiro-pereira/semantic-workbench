@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { lastAdminBrowserCheck } from './admin-last-admin-check';
-import { adminSecondaryGeometry } from './admin-dialog-geometry';
+import { adminPaneGeometry } from './admin-pane-geometry';
 import { chromium, expect, type Page, type Locator } from '@playwright/test';
 import { startMockOidc } from '../tests/helpers/mock-oidc';
 import { TEST_GROUPS, TEST_TENANT_ID, TEST_USERS } from '../tests/helpers/auth-identities';
@@ -10,16 +10,22 @@ import {
   ADMIN_AREAS,
   adminGeometry,
   adminArea,
-  closeAdminArea,
+  leaveAdmin,
   screenshotName,
   withinAdministrationTime,
 } from './helpers/admin-browser';
 
-async function review(dialog: Locator, name = 'save changes') {
-  await dialog.getByRole('button', { name: 'Dry run', exact: true }).click();
-  await expect(dialog.getByRole('region', { name: 'Dry-run result', exact: true })).toBeVisible();
-  await dialog.getByRole('button', { name: `Confirm ${name}`, exact: true }).click();
-  await expect(dialog.getByRole('alert')).toHaveCount(0);
+/**
+ * Runs the dry run in `scope`, checks the result and confirms. The result is in a dialog for a
+ * form and inside the scope for a confirmation dialog, so the buttons are found on the page.
+ */
+async function review(page: Page, scope: Locator, name = 'save changes') {
+  await scope.getByRole('button', { name: 'Dry run', exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Dry-run result', exact: true })).toBeVisible();
+  const confirm = page.getByRole('button', { name: `Confirm ${name}`, exact: true });
+  await confirm.click();
+  await expect(confirm).toHaveCount(0);
+  await expect(scope.getByRole('alert')).toHaveCount(0);
 }
 
 /** One grant as the Add grant form takes it: who, which role, and where. */
@@ -32,10 +38,9 @@ interface GrantForm {
 }
 
 async function addGrant(page: Page, { member, value, role, scope, target }: GrantForm) {
-  const roles = page.getByRole('dialog', { name: 'Roles & access', exact: true });
-  await roles.getByRole('tab', { name: 'Grants', exact: true }).click();
-  await roles.getByRole('button', { name: 'Add grant', exact: true }).click();
-  const dialog = page.getByRole('dialog', { name: 'Add grant', exact: true });
+  const grants = await adminArea(page, 'Access grants');
+  await grants.getByRole('button', { name: 'Add grant', exact: true }).click();
+  const dialog = page.getByRole('region', { name: 'Add grant', exact: true });
   await dialog.getByLabel('Member kind').selectOption(member);
   await dialog.getByLabel(member === 'group' ? 'Group object ID' : 'E-mail address').fill(value);
   if (member === 'group') await expect(dialog).toContainText(TEST_GROUPS.salesEditors.name);
@@ -45,18 +50,16 @@ async function addGrant(page: Page, { member, value, role, scope, target }: Gran
     .getByLabel(scope === 'domains' ? 'Domain IDs (comma separated)' : 'Projects (comma separated)')
     .fill(target);
   await adminGeometry(page, 'grant-form');
-  await review(dialog);
+  await review(page, dialog);
   await expect(dialog).toHaveCount(0);
 }
 
 async function timedAdministration(page: Page, erin: Page, target: SignInTarget) {
   const start = performance.now();
-  const projects = await adminArea(page, 'Projects');
+  const projects = await adminArea(page, 'Projects access');
   await projects.getByLabel('Domain for lab-notes').selectOption('sales');
   const projectReview = projects.getByRole('region', { name: 'Save project access', exact: true });
-  await review(projectReview, 'save project access');
-  await closeAdminArea(page, 'Projects');
-  await adminArea(page, 'Roles & access');
+  await review(page, projectReview, 'save project access');
   await addGrant(page, {
     member: 'group',
     value: TEST_GROUPS.salesEditors.id,
@@ -76,7 +79,6 @@ async function timedAdministration(page: Page, erin: Page, target: SignInTarget)
   assert.equal(response.status(), 200);
   const identity = await response.json();
   assert(identity.roles.projects['sales-contracts'].includes('editor'));
-  await closeAdminArea(page, 'Roles & access');
   const access = await adminArea(page, 'Access check');
   await access
     .getByLabel('Principal', { exact: true })
@@ -95,21 +97,19 @@ async function timedAdministration(page: Page, erin: Page, target: SignInTarget)
   await expect(access.getByRole('region', { name: 'Access result' })).toContainText('steward');
   await access.getByRole('button', { name: 'Who can access', exact: true }).click();
   await expect(access.getByRole('region', { name: 'Who can access results' })).toBeVisible();
-  await closeAdminArea(page, 'Access check');
 }
 
 async function customRole(page: Page) {
-  const roles = await adminArea(page, 'Roles & access');
-  await roles.getByRole('tab', { name: 'Roles', exact: true }).click();
+  const roles = await adminArea(page, 'Roles');
   await roles.getByRole('button', { name: 'New role', exact: true }).click();
-  const editor = page.getByRole('dialog', { name: 'New role', exact: true });
+  const editor = page.getByRole('region', { name: 'New role', exact: true });
   await editor.getByLabel('Name', { exact: true }).fill('Metric reviewer browser');
   await editor.getByLabel('Description', { exact: true }).fill('Review metrics in Sales');
   await editor.getByLabel('Approve metric', { exact: true }).check();
   await editor.getByText('Conditions for approve metric', { exact: true }).click();
   await editor.getByLabel('Document type', { exact: true }).fill('metric');
   await adminGeometry(page, 'role-editor');
-  await review(editor);
+  await review(page, editor);
   await expect(editor).toHaveCount(0);
   const response = await page.request.get(new URL(page.url()).origin + '/api/admin/roles');
   assert.equal(response.status(), 200);
@@ -125,18 +125,18 @@ async function customRole(page: Page) {
     scope: 'domains',
     target: 'sales',
   });
-  await roles.getByRole('tab', { name: 'Roles', exact: true }).click();
-  const region = roles.getByRole('region', { name: 'Metric reviewer browser', exact: true });
+  const rolesAgain = await adminArea(page, 'Roles');
+  const region = rolesAgain.getByRole('region', { name: 'Metric reviewer browser', exact: true });
   await region.getByRole('button', { name: 'Edit', exact: true }).click();
-  const edit = page.getByRole('dialog', { name: 'Edit role', exact: true });
+  const edit = page.getByRole('region', { name: 'Edit role', exact: true });
   await expect(edit).toContainText(TEST_GROUPS.salesEditors.name);
   await edit.getByLabel('Read', { exact: true }).check();
-  await review(edit);
+  await review(page, edit);
   await region.getByRole('button', { name: 'Delete', exact: true }).click();
   const deletion = page.getByRole('dialog', { name: 'Delete role', exact: true });
   await expect(deletion).toContainText(TEST_USERS.alice.name);
   await adminGeometry(page, 'delete-role');
-  await review(deletion, 'delete role and grants');
+  await review(page, deletion, 'delete role and grants');
   // The dialog closes only after the server has committed the deletion.
   await expect(deletion).toHaveCount(0);
   const grants = await (
@@ -156,13 +156,12 @@ async function customRole(page: Page) {
     },
   });
   assert.equal(rejected.status(), 400, 'Built-in role deletion must be refused');
-  await closeAdminArea(page, 'Roles & access');
 }
 
 async function policyHistory(page: Page) {
   const policies = await adminArea(page, 'Policies');
   await policies.getByRole('button', { name: 'New rule', exact: true }).click();
-  const editor = page.getByRole('dialog', { name: 'Policy editor', exact: true });
+  const editor = page.getByRole('region', { name: 'Policy editor', exact: true });
   await editor.getByLabel('Description').fill('Browser branch limit');
   await editor.getByLabel('Template', { exact: true }).selectOption('Git action limits');
   await editor.getByLabel('branch', { exact: true }).fill('browser-protected');
@@ -170,31 +169,30 @@ async function policyHistory(page: Page) {
   await editor.getByRole('button', { name: 'Validate', exact: true }).click();
   await expect(editor.getByText('Policy is valid.', { exact: true })).toBeVisible();
   await adminGeometry(page, 'policy-editor');
-  await review(editor);
+  await review(page, editor);
   const rule = policies
     .getByRole('heading', { name: 'Browser branch limit', exact: true })
     .locator('..');
   await rule.getByLabel('Enabled', { exact: true }).click();
   const disable = page.getByRole('dialog', { name: 'Disable Browser branch limit', exact: true });
   await adminGeometry(page, 'disable-policy');
-  await review(disable, 'disable browser branch limit');
+  await review(page, disable, 'disable browser branch limit');
   await expect(disable).toHaveCount(0);
   await policies.getByRole('button', { name: 'History', exact: true }).click();
-  const history = page.getByRole('dialog', { name: 'Version history', exact: true });
+  const history = page.getByRole('region', { name: 'Version history', exact: true });
   await history.getByLabel('Version', { exact: true }).selectOption({ index: 2 });
   await history.getByRole('button', { name: 'Show diff', exact: true }).click();
   await expect(history.locator('.diff-view').first()).toBeVisible();
   await adminGeometry(page, 'history');
   await history.getByRole('button', { name: 'Roll back', exact: true }).click();
   // The rollback is reviewed like any other change before it can be confirmed.
-  const rollback = history.getByRole('region', { name: 'Confirm rollback', exact: true });
+  const rollback = page.getByRole('dialog', { name: 'Confirm rollback', exact: true });
   await expect(rollback.getByRole('region', { name: 'Dry-run result', exact: true })).toBeVisible();
   await adminGeometry(page, 'rollback');
   await rollback.getByRole('button', { name: 'Confirm rollback', exact: true }).click();
   await expect(history.getByRole('alert')).toHaveCount(0);
   await expect(rollback).toHaveCount(0);
-  await history.getByRole('button', { name: 'Close', exact: true }).click();
-  await closeAdminArea(page, 'Policies');
+  await history.getByRole('button', { name: 'Back to policies', exact: true }).click();
 }
 
 async function auditExport(page: Page) {
@@ -205,7 +203,23 @@ async function auditExport(page: Page) {
   const download = page.waitForEvent('download');
   await audit.getByRole('button', { name: 'Export CSV', exact: true }).click();
   assert((await download).suggestedFilename().endsWith('.csv'));
-  await closeAdminArea(page, 'Audit');
+}
+
+/** Each section has its own address that reload and Back follow, and Back leaves Admin. */
+async function adminRouting(page: Page) {
+  const policies = await adminArea(page, 'Policies');
+  await expect(policies).toBeVisible();
+  await page.reload();
+  expect(new URL(page.url()).hash).toBe('#/admin/policies');
+  await expect(page.getByRole('region', { name: 'Policies', exact: true })).toBeVisible();
+  await adminArea(page, 'Audit');
+  await page.goBack();
+  await expect(page.getByRole('region', { name: 'Policies', exact: true })).toBeVisible();
+  await leaveAdmin(page);
+  await expect(page.getByRole('button', { name: 'Admin', exact: true })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole('region', { name: 'Policies', exact: true })).toBeVisible();
+  await leaveAdmin(page);
 }
 
 /** Runs administration against real routes and a disposable mock identity provider. */
@@ -229,20 +243,20 @@ export async function adminBrowserCheck() {
         const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
         await signIn(alice, target, 'alice');
         await expect(alice.getByRole('button', { name: 'Admin', exact: true })).toHaveCount(0);
+        await alice.goto(url + '/#/admin/grants');
+        await expect(alice.locator('.admin-page')).toHaveCount(0);
         await signIn(erin, target, 'erin');
         await signIn(page, target, 'dave');
         await timedAdministration(page, erin, target);
         await customRole(page);
         await policyHistory(page);
         await auditExport(page);
-        await adminSecondaryGeometry(page);
+        await adminPaneGeometry(page);
         for (const area of ADMIN_AREAS) {
           await adminArea(page, area);
           await adminGeometry(page, screenshotName(area));
-          await closeAdminArea(page, area);
         }
-        await page.getByRole('button', { name: 'Admin', exact: true }).click();
-        await adminGeometry(page, 'launcher');
+        await adminRouting(page);
       } finally {
         await browser.close();
       }

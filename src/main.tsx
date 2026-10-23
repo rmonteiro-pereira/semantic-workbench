@@ -3,6 +3,7 @@ import { Capabilities } from './auth/Capabilities';
 import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { PersonMenu } from './auth/PersonMenu';
+import { AdminHost } from './admin/AdminHost';
 import { AdminLauncher } from './admin/AdminLauncher';
 import { AppDialogs } from './app/AppDialogs';
 import { DetailsPanel } from './app/DetailsPanel';
@@ -426,6 +427,10 @@ function App() {
       </div>
     </GitSetupProvider>
   );
-  return <Capabilities projects={projects}>{content}</Capabilities>;
+  return (
+    <Capabilities projects={projects}>
+      <AdminHost>{content}</AdminHost>
+    </Capabilities>
+  );
 }
 createRoot(document.getElementById('root')!).render(<App />);

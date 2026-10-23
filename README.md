@@ -650,16 +650,22 @@ only, and Keycloak or generic providers' client tokens are refused.
 
 ### The Admin panel
 
-Admins open the panel from the header's **Admin** button. In server mode only Admins see it; in
-local mode the implicit Admin does. The launcher lists seven areas, each with a line saying what
-it is for. A dialog opened from another dialog replaces it on screen until it closes, and a form's
-Dry run and Confirm buttons sit in the dialog footer. The areas:
+Admins open the Admin page from the header's **Admin** button. In server mode only Admins see it;
+in local mode the implicit Admin does. The page replaces the workspace; **Back to workspace**
+returns to it with the open file and view as they were. A section navigation on the left lists the
+sections (a scrolling strip above the content on a phone), and the content uses the full width.
+Each section has its own address, `#/admin/<section>` (`grants`, `roles`, `users`, `policies`,
+`projects`, `audit`, `settings`, `access-check`), so reload and the browser's Back button land on
+the same section. Editors open in place of the list with a **Back to** button. Dialogs appear only
+for confirmations and for the dry-run preview: a form's **Dry run** opens the preview, and
+**Confirm** is in its footer. The sections:
 
-- **Projects:** assign projects to domains, set protected branches, restricted paths and the
+- **Projects access:** assign projects to domains, set protected branches, restricted paths and the
   protected classification level, and grant agent clients their projects or domains.
-- **Roles & access:** on **Grants**, give a built-in or custom role to a group or a verified
+- **Access grants:** give a built-in or custom role to a group or a verified
   address. The group's directory name is shown when the lookup succeeds; otherwise the grant keeps
-  the ID and says "name not resolved". On **Roles**, the four built-in roles are read-only:
+  the ID and says "name not resolved".
+- **Roles:** the four built-in roles are read-only:
   duplicate one to make a custom role, pick its actions and optional conditions, save it, then add
   members through the grant form. Custom roles cannot hold the `admin` action. Deleting a custom
   role lists the people who hold it and removes its grants in the same change.
@@ -693,16 +699,16 @@ with `bun scripts/generate-access-matrix.ts` after extending the route inventory
 
 Each confirmed change is one commit in the administration repository, authored by the signed-in
 Admin, with a message that names what changed (for example
-`grants: Add grant erin-viewer (viewer to erin@example.org)`). **History** in each area compares
+`grants: Add grant erin-viewer (viewer to erin@example.org)`). **History** in each section compares
 versions with the source diff viewer. **Roll back** shows the dry run of restoring that version,
 including people it reactivates, and **Confirm rollback** creates a new commit; the same checks as
 any other save apply. Changes apply on the next request and close the live-update streams of the
 people whose access changed, so their browsers reload. Deactivation and reactivation end that
 person's sessions.
 
-Refusals stay in the dialog and nothing is saved:
+Refusals stay on the page and nothing is saved:
 
-- **stale:** someone else changed access since the area was opened. Close and reopen the area,
+- **stale:** someone else changed access since the section was opened. Open the section again,
   then dry-run again.
 - **last-admin:** under the proposed grants, roles and rules no Admin who signed in recently and no
   bootstrap identity would still be allowed to administer.
@@ -892,7 +898,7 @@ they need no Vite.
 | `test:mappings-layout`, `test:mapping-graph` | Binding cards at six viewports; every mapping graph line against the resolver's bindings |
 | `test:auth` | The mock provider in Entra's endpoint layout: every fixture person, role provenance, refresh, expiry, Graph overage and failure, live updates, sign-out, agent clients' bearer tokens, guarded changes, the owner picker, remote credentials; screenshots of each screen at 390×844, 1280×720, 1440×900 and 2560×1440 |
 | `test:two-editors` | Two Editors, a Steward and a Viewer on one repository: edits, drafts, branches, commits and pulls stay in each copy, each commit names its author, a branch held by another copy cannot be chosen, a publish reaches the Viewer |
-| `test:admin` | The Admin panel against the real API: timed grant, access-check and rollback flows, custom roles, policy rollback, audit export, every dialog at four sizes. |
+| `test:admin` | The Admin panel against the real API: timed grant, access-check and rollback flows, custom roles, policy rollback, audit export, routing (reload and Back), every section and dialog at four sizes. |
 | `test:auth:keycloak` | Owner's machine only: the same sign-in checks against a digest-pinned Keycloak 26.4 realm, plus agent client credentials |
 
 The older `commerce-browser-check.ts`, `relationship-browser-check.ts` and `browser-check.ts` predate
