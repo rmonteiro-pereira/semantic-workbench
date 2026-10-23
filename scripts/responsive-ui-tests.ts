@@ -1509,19 +1509,13 @@ try {
     );
     await shellPage.close();
   }
-<<<<<<< ours
   // The Admin page: every section at each size, with text, collisions and containment checked.
-=======
-  // The header: file actions, save state with Commit and the account sit in groups of one control
-  // height without overlap, and its menus and the Examples menu stay inside the window.
->>>>>>> theirs
   for (const [width, height] of [
     [390, 844],
     [1280, 720],
     [1440, 900],
     [2560, 1440],
   ]) {
-<<<<<<< ours
     const adminPage = await openPage(width!, height!);
     await check(
       `admin page: ${width}×${height} readable text, no overlaps, content fits`,
@@ -1545,7 +1539,15 @@ try {
       },
     );
     await adminPage.close();
-=======
+  }
+  // The header: file actions, save state with Commit and the account sit in groups of one control
+  // height without overlap, and its menus and the Examples menu stay inside the window.
+  for (const [width, height] of [
+    [390, 844],
+    [1280, 720],
+    [1440, 900],
+    [2560, 1440],
+  ]) {
     const headerPage = await openPage(width!, height!);
     await check(
       `header: ${width}×${height} groups, control height, menus and keyboard`,
@@ -1569,7 +1571,6 @@ try {
       },
     );
     await headerPage.close();
->>>>>>> theirs
   }
   await check('no uncaught browser errors', async () => expect(errors).toEqual([]));
   console.log(`${passed} responsive UI checks passed`);
