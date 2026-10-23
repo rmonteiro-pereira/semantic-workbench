@@ -1,6 +1,6 @@
 // Checks responsive layouts, overlays and navigation in an isolated browser workspace.
 import { appUrl } from './helpers/base-url';
-import { viewOptions } from './helpers/graph-options';
+import { revealGraphControls, showEveryEntity, viewOptions } from './helpers/graph-options';
 import { LOCAL_READER } from '../server/projects/reader';
 import { chromium, expect, type Locator, type Page } from '@playwright/test';
 import { plainCommerceModel } from './helpers/commerce-fixture';
@@ -23,6 +23,7 @@ import { projectDialogBackdropProblems } from './helpers/project-dialog-tour';
 import { pageLayoutProblems } from './helpers/page-layout';
 import { dialogStandardProblems } from './helpers/dialog-geometry';
 import { odcsGraphScreenProblems, odcsGraphScreens } from './helpers/odcs-graph-tour';
+import { graphScreenProblems, graphScreens } from './helpers/graph-tour';
 import { EXPECTED_EXAMPLE_METRICS } from './example-metric-checks';
 import { exampleMetricScreens } from './helpers/examples-tour';
 import {
@@ -138,6 +139,16 @@ async function openPage(width: number, height: number) {
       }),
     );
     console.log('INJECTED_FAR_NAMES_MUTATION');
+  }
+  if (process.env.RESPONSIVE_MUTATION === 'graph-names-small') {
+    await page.addInitScript(() =>
+      document.addEventListener('DOMContentLoaded', () => {
+        const style = document.createElement('style');
+        style.textContent = '.full-graph .full-entity strong{font-size:6px!important}';
+        document.head.append(style);
+      }),
+    );
+    console.log('INJECTED_GRAPH_NAMES_MUTATION');
   }
   if (process.env.RESPONSIVE_MUTATION === 'graph-column-small') {
     await page.addInitScript(() =>
@@ -380,6 +391,7 @@ try {
         const flow = page.locator('.react-flow').first();
         // Zoom out until the far layout starts, then one step more to cross a level.
         let zoomedOut = 0;
+        await revealGraphControls(page);
         const isFar = () => flow.evaluate(el => el.classList.contains('zoom-far'));
         for (let step = 0; step < 12 && !(await isFar()); step++) {
           await page.getByRole('button', { name: 'Zoom out', exact: true }).click();
@@ -483,6 +495,7 @@ try {
         })
         .toBe(true);
       await expect.poll(() => transform(fsPage)).not.toBe(before);
+      await showEveryEntity(fsPage);
       await fsPage.locator('.react-flow__node-entity').first().click();
       const inspector = fsPage.locator('.inspector');
       await expect(inspector).toBeVisible();
@@ -811,6 +824,8 @@ try {
   // Opens the inspector on an entity where the view allows selecting one.
   const details: Record<string, (p: Page) => Promise<void>> = {
     Graph: async p => {
+      await revealGraphControls(p);
+      await showEveryEntity(p);
       await p.locator('.react-flow__node-entity').first().click();
     },
     Neighborhood: async p => {
@@ -875,7 +890,9 @@ try {
         if ((await labels.textContent())?.includes('off')) await labels.click();
         // The mini-map is off by default; it is turned on so the overlap checks cover it.
         await options.getByRole('button', { name: 'Map off', exact: true }).click();
-        await options.getByRole('button', { name: 'Collapse areas', exact: true }).click();
+        // A pane this size may already open with the areas collapsed.
+        const collapse = options.getByRole('button', { name: 'Collapse areas', exact: true });
+        if (await collapse.isEnabled()) await collapse.click();
       });
       await expect(sweep.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60_000 });
       await sweep.getByRole('button', { name: 'Fit model', exact: true }).click();
@@ -1046,7 +1063,9 @@ try {
     for (const selector of ['.lineage-toolbar', '.lineage-trail', '.lineage-foot']) {
       await expect(p.locator(selector)).toBeVisible();
     }
-    await expect(p.getByRole('button', { name: 'Zoom in', exact: true })).toBeVisible();
+    // A phone folds the zoom buttons behind the Controls button.
+    const zoomOrControls = width <= 650 ? 'Controls' : 'Zoom in';
+    await expect(p.getByRole('button', { name: zoomOrControls, exact: true })).toBeVisible();
     await assertFinalOverlays(p, lineageOverlays);
     await selectLineagePath(p);
     await assertFinalOverlays(p, lineageOverlays);
@@ -1059,12 +1078,16 @@ try {
     await pickCenter(p, name40);
     await closeDetails(p);
     const tools = p.locator('.neighborhood-tools');
-    await tools.getByRole('button', { name: 'Full pierce', exact: true }).click();
+    await revealGraphControls(p);
+    await tools.getByRole('button', { name: 'Show all connected', exact: true }).click();
     await expect(p.locator('.pierce-banner')).toBeVisible();
     const pierceOverlays = [...overlays, '.pierce-banner'];
     await assertFinalOverlays(p, pierceOverlays);
     // Selecting the current center preserves the pierce step and its banner.
-    await p.locator('.react-flow__node[data-id="ontology/40"]').click();
+    // On a phone the pierce view opens on what it added, so the centre can be off screen.
+    const centreNode = p.locator('.react-flow__node[data-id="ontology/40"]');
+    if (width <= 650) await centreNode.dispatchEvent('click');
+    else await centreNode.click();
     await expect(p.locator('.inspector')).toBeVisible();
     await expect(p.locator('.pierce-banner')).toBeVisible();
     await assertFinalOverlays(p, pierceOverlays);
@@ -1078,7 +1101,7 @@ try {
     'Grouping suggestions',
     'Import',
     'View definition',
-    'Lineage options',
+    'View options',
     'Trash',
   ];
   async function openSweepDialog(p: Page, name: string) {
@@ -1098,12 +1121,13 @@ try {
         .click();
       return;
     }
-    const file = name === 'Lineage options' ? 'commerce.odcs.yaml' : 'ubl.ontology.yaml';
+    const file = name === 'View options' ? 'commerce.odcs.yaml' : 'ubl.ontology.yaml';
     await openFile(p, file);
     await closeDrawer(p);
-    if (name === 'Lineage options') {
+    if (name === 'View options') {
       await tab(p, 'Graph');
-      await p.getByRole('button', { name: /Lineage options/ }).click();
+      await revealGraphControls(p);
+      await p.getByRole('button', { name: /View options/ }).click();
     } else if (name === 'View definition') {
       await tab(p, 'Catalog');
       await p.locator('.catalog button').first().click();
@@ -1679,6 +1703,28 @@ try {
       }
     });
     await darkPage.close();
+  }
+  // The whole-model graph and the neighborhood: names that read, detail only where it reads, no
+  // overlapping cards, a toolbar that fits, and a canvas that keeps most of a phone screen.
+  for (const [width, height] of [
+    [390, 844],
+    [1280, 720],
+    [1440, 900],
+    [2560, 1440],
+  ]) {
+    const canvasPage = await openPage(width!, height!);
+    await check(
+      `graph canvases: ${width}×${height} readable names, no overlaps, toolbar fits`,
+      async () => {
+        for (const screen of graphScreens('ubl.ontology.yaml')) {
+          await showScreen(canvasPage, screen);
+          expect(await screenProblems(canvasPage, screen)).toEqual([]);
+          expect(await graphScreenProblems(canvasPage, screen)).toEqual([]);
+          await noOverflow(canvasPage);
+        }
+      },
+    );
+    await canvasPage.close();
   }
   await check('no uncaught browser errors', async () => expect(errors).toEqual([]));
   console.log(`${passed} responsive UI checks passed`);

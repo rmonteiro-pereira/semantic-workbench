@@ -416,7 +416,7 @@ try {
     },
   );
   await check(
-    'UBL invoice_line.line_extension_amount: Full pierce (Both) opens every card on its upstream and downstream path, highlighted',
+    'UBL invoice_line.line_extension_amount: Show all connected (Both) opens every card on its upstream and downstream path, highlighted',
     async () => {
       const files = readdirSync('public/examples/ubl')
         .filter(f => /\.ya?ml$/.test(f))
@@ -441,7 +441,7 @@ try {
         .first()
         .click();
       await expect(graph().getByRole('region', { name: 'Selected path' })).toBeVisible();
-      await graph().getByRole('button', { name: 'Full pierce' }).click();
+      await graph().getByRole('button', { name: 'Show all connected' }).click();
       await expect(graph().getByLabel('Walk', { exact: true })).toContainText(
         'pierced line_extension_amount',
       );

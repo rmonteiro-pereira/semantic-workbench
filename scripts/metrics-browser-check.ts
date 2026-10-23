@@ -1,7 +1,7 @@
 // Checks metric details, explanations and graph navigation in an isolated browser workspace.
 import { LOCAL_READER } from '../server/projects/reader';
 import { appUrl } from './helpers/base-url';
-import { viewOptions } from './helpers/graph-options';
+import { showEveryEntity, viewOptions } from './helpers/graph-options';
 import { chromium, expect, type Page } from '@playwright/test';
 import { parseDocument } from 'yaml';
 import { plainCommerceModel } from './helpers/commerce-fixture';
@@ -309,6 +309,7 @@ try {
       const options = page.getByRole('button', { name: /^View options/ });
       await expect(views.or(options).first()).toBeVisible();
       if (await views.count()) await views.getByRole('button', { name: 'Ontology graph' }).click();
+      await showEveryEntity(page);
       // The Metrics switch is in the View options dialog; one helper flips it and reports its label.
       const flipMetrics = async () => {
         let label = '';

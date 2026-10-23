@@ -441,7 +441,7 @@ try {
     },
   );
   await check(
-    'shopping center Lease, Outgoing: Full pierce adds every entity reachable from Lease once; the status gives shown entities and steps',
+    'shopping center Lease, Outgoing: Show all connected adds every entity reachable from Lease once; the status gives shown entities and steps',
     async () => {
       await openFile('mall.ontology.yaml');
       await tab('Neighborhood').click();
@@ -459,7 +459,7 @@ try {
         .getByRole('radiogroup', { name: 'Pierce direction' })
         .getByRole('radio', { name: 'Outgoing' })
         .click();
-      await page.getByRole('button', { name: 'Full pierce' }).click();
+      await page.getByRole('button', { name: 'Show all connected' }).click();
       const status = page.locator('.pierce-banner');
       await expect(status).toContainText(`${r.shown} entities shown in ${r.maxStep} steps`);
       const ids = await canvasIds();
@@ -469,7 +469,7 @@ try {
     },
   );
   await check(
-    '1,000 entities, Both: Full pierce stops at the 150-node budget with frontier markers and "N more reachable"; Expand further grows it; input stays responsive',
+    '1,000 entities, Both: Show all connected stops at the 150-node budget with frontier markers and "N more reachable"; Expand further grows it; input stays responsive',
     async () => {
       await openFile('commerce-scale.ttl');
       await tab('Neighborhood').click();
@@ -493,7 +493,7 @@ try {
         .getByRole('radiogroup', { name: 'Pierce direction' })
         .getByRole('radio', { name: 'Both' })
         .click();
-      await page.getByRole('button', { name: 'Full pierce' }).click();
+      await page.getByRole('button', { name: 'Show all connected' }).click();
       const status = page.locator('.pierce-banner');
       await expect(status).toContainText(`${r.total - r.shown} more reachable`, { timeout: 20000 });
       await expect(page.locator('.frontier-marker').first()).toBeVisible();

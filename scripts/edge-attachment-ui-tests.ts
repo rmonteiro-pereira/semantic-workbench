@@ -1,6 +1,6 @@
 // Checks that graph edges stay attached to their nodes during browser interactions.
 import { appUrl } from './helpers/base-url';
-import { viewOptions } from './helpers/graph-options';
+import { showEveryEntity, viewOptions } from './helpers/graph-options';
 import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { inspect } from '../src/model';
@@ -183,6 +183,9 @@ try {
   await page.goto(appUrl());
   await expect(page.locator('h1')).toContainText('Flights');
   await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
+  // A small pane opens with one card per area; these checks measure entity cards.
+  await showEveryEntity(page);
+  await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
   await check('network graph path endpoints attach to actual entity borders', async () => {
     await page.waitForTimeout(450);
     await attached('initial network');
@@ -191,7 +194,7 @@ try {
     await viewOptions(page, async options => {
       await options.getByLabel('Zoom to group').selectOption({ index: 1 });
     });
-    await expect(page.locator('.full-graph-status')).toContainText('background worker', {
+    await expect(page.locator('.full-graph-status')).toHaveAttribute('data-routing', 'worker', {
       timeout: 30000,
     });
     await attached('zoomed network');

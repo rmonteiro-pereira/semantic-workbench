@@ -1,6 +1,7 @@
 // The ODCS graph screens and dialogs, for the responsive suite and the capture tools.
 import type { Page } from '@playwright/test';
 import { showSidebar, type Screen } from './screen-tour';
+import { revealGraphControls } from './graph-options';
 import { hopRowProblems, odcsGraphProblems } from './odcs-graph-geometry';
 
 async function openGraph(page: Page, file: string) {
@@ -54,7 +55,8 @@ export function odcsGraphScreens(contract: string): Screen[] {
       dialog: 'dialog[open]',
       show: async page => {
         await openGraph(page, contract);
-        await page.getByRole('button', { name: /^Lineage options/ }).click();
+        await revealGraphControls(page);
+        await page.getByRole('button', { name: /^View options/ }).click();
       },
     },
   ];

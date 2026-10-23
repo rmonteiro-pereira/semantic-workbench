@@ -30,7 +30,7 @@ try {
   const laidOut = performance.now();
   await page.getByRole('button', { name: 'Fit model', exact: true }).click();
   await page.waitForTimeout(300);
-  await expect(page.locator('.full-graph-status')).toContainText('background worker', {
+  await expect(page.locator('.full-graph-status')).toHaveAttribute('data-routing', 'worker', {
     timeout: 60000,
   });
   const count = await page.locator('.react-flow__node-entity').count();
@@ -59,7 +59,7 @@ try {
     await page
       .locator('.react-flow__node[data-id="https://example.org/commerce#customer_0"] .full-entity')
       .click();
-    await expect(page.locator('.full-graph-status')).toContainText('background worker', {
+    await expect(page.locator('.full-graph-status')).toHaveAttribute('data-routing', 'worker', {
       timeout: 30000,
     });
     console.log(
