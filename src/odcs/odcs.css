@@ -1495,10 +1495,11 @@ button.odcs-link.fk:hover {
   outline-style: dashed;
   background: var(--color-surface-page);
 }
+/* The header has room for one line below the name; the full list is in the tooltip. */
 .lineage-card.group .lineage-card-title small {
   white-space: normal;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
 }
 /* A name drawn at the far-zoom size fills the card header, so the kind line steps aside. */

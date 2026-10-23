@@ -35,12 +35,15 @@ export function LineageLegend({
   kinds = ['object', 'dataset', 'field', 'metric'],
   lines = ['foreign-key', 'feeds'],
   keys = false,
+  bundles = false,
   className = '',
 }: {
   kinds?: LegendKind[];
   lines?: LegendLine[];
   /** Adds the primary key and foreign key badges, as they appear on card rows. */
   keys?: boolean;
+  /** Explains the number on a line that stands for several lines. */
+  bundles?: boolean;
   className?: string;
 }) {
   return (
@@ -62,6 +65,12 @@ export function LineageLegend({
             Points to another table
           </li>
         </>
+      )}
+      {bundles && (
+        <li className="key">
+          <span className="legend-count">5</span>
+          Several links in one line
+        </li>
       )}
       {lines.map(l => {
         const s = LEGEND_LINES[l];

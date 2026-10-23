@@ -2,7 +2,7 @@
 // Layout of the lineage canvas: ELK `layered`, left to right, one port per visible row on each
 // side of a card (FIXED_POS, so lines leave and enter at their rows). Pure geometry here; the ELK
 // run happens in ELK's own worker (elk-worker), off the main thread.
-export const CARD_W = 360;
+export const CARD_W = 330;
 export const HEADER_H = 64;
 export const ROW_H = 30;
 export const MORE_H = 28;
@@ -57,7 +57,7 @@ export function elkGraph(cards: LayoutCard[], edges: LayoutEdge[]) {
       'elk.algorithm': 'layered',
       'elk.direction': 'RIGHT',
       'elk.edgeRouting': 'POLYLINE',
-      'elk.layered.spacing.nodeNodeBetweenLayers': '190',
+      'elk.layered.spacing.nodeNodeBetweenLayers': '230',
       'elk.spacing.nodeNode': '34',
       'elk.layered.considerModelOrder.strategy': 'NODES_AND_EDGES',
       'elk.layered.crossingMinimization.semiInteractive': 'false',

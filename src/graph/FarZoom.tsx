@@ -2,8 +2,17 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { useStore } from '@xyflow/react';
 
+// Detail lines are 12 px, so below a zoom of 0.92 they would read smaller than 11 px and the
+// cards drop them. Each lower level makes the name larger again.
 /** Zoom levels below which cards switch to a larger name, from first to last. */
-const FAR_ZOOM_LEVELS = [0.6, 0.42, 0.3];
+const FAR_ZOOM_LEVELS = [0.92, 0.75, 0.6, 0.45, 0.35, 0.28];
+/** The lowest zoom a first view uses: names are at 12 px there, and a wider canvas is panned. */
+export const LOWEST_FIT_ZOOM = 0.3;
+/** The zoom at or above which cards show their detail lines. */
+export const DETAIL_ZOOM = FAR_ZOOM_LEVELS[0];
+const BASE_NAME_PX = 18;
+// Two lines of a name larger than this no longer fit the card's height.
+const TWO_LINE_NAME_PX = 28;
 // Taller names would no longer fit the fixed card height. 44 px stays at 12 px on screen down
 // to a zoom of about 0.27; below that the names keep shrinking with the canvas.
 const LARGEST_NAME_PX = 44;
@@ -17,7 +26,8 @@ function levelOf(zoom: number) {
 function nameSizeOf(level: number) {
   const lowestZoomInLevel = FAR_ZOOM_LEVELS[level];
   if (!lowestZoomInLevel) return LARGEST_NAME_PX;
-  return Math.min(LARGEST_NAME_PX, Math.ceil(READABLE_NAME_PX / lowestZoomInLevel));
+  const readable = Math.ceil(READABLE_NAME_PX / lowestZoomInLevel);
+  return Math.max(BASE_NAME_PX, Math.min(LARGEST_NAME_PX, readable));
 }
 
 // React Flow only shares its zoom with components inside the canvas, so a child of the canvas
@@ -36,7 +46,10 @@ export function useFarZoom() {
   const [level, setLevel] = useState(0);
   const far = level > 0;
   const style = far
-    ? ({ '--far-name-size': `${nameSizeOf(level)}px` } as CSSProperties)
+    ? ({
+        '--far-name-size': `${nameSizeOf(level)}px`,
+        '--far-name-lines': nameSizeOf(level) > TWO_LINE_NAME_PX ? 1 : 2,
+      } as CSSProperties)
     : undefined;
   return {
     className: far ? 'zoom-far' : undefined,

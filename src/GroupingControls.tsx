@@ -19,11 +19,11 @@ type Props = {
 
 // Short names for the Auto option, which says which mode Auto would use for this document.
 const AUTO_NAMES: Record<ConcreteGroupingMode, string> = {
-  declared: 'domains',
-  example: 'example areas',
+  declared: 'declared domains',
+  example: 'business areas',
   namespaces: 'namespaces',
-  suggested: 'communities',
-  types: 'types',
+  suggested: 'related entities',
+  types: 'entity types',
 };
 
 // The order of the options in the menu; the UBL areas come last because few files offer them.
@@ -90,7 +90,9 @@ export function GroupingControls({ overview, value, onChange, error }: Props) {
           value={shown}
           onChange={chooseMode}
         >
-          <option value="auto">Auto: {AUTO_NAMES[overview.autoMode]}</option>
+          <option value="auto" title={`Currently groups by ${AUTO_NAMES[overview.autoMode]}`}>
+            Automatic
+          </option>
           {MENU.filter(([mode]) => overview.modes[mode].offered).map(([mode, label]) => {
             const reason = overview.modes[mode].reason;
             return (
