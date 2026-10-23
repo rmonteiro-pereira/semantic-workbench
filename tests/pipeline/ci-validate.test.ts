@@ -61,6 +61,21 @@ describe('local quality gate', () => {
   });
 });
 
+test('a failed step is reported on the console with the command output', async () => {
+  const execute = async () => {
+    throw Error('bun run exited 1: TimeoutError: click');
+  };
+  const reported: string[] = [];
+  const options = { steps: selectSteps(['browser']), keepGoing: false };
+  await runGate(
+    options,
+    execute,
+    () => 0,
+    message => reported.push(message),
+  );
+  expect(reported).toEqual(['Gate step browser failed: bun run exited 1: TimeoutError: click']);
+});
+
 test('Vite stop signals its whole group and escalates after the grace period', async () => {
   const signals: [number, string][] = [];
   await stopVite(
