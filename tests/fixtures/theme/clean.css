@@ -1,0 +1,11 @@
+.panel {
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid color-mix(in srgb, var(--color-shadow) 20%, transparent);
+  fill: currentColor;
+  background-image: linear-gradient(transparent, var(--color-surface));
+}
+a:hover,
+#root {
+  color: inherit;
+}

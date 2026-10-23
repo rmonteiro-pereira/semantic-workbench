@@ -30,6 +30,8 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `Dockerfile`, `compose.yaml` | Non-root image, local profile and owner-only Keycloak profile | Secrets |
 | `scripts/container-*.ts` | Docker/Podman image checks and browser suite groups | Delivery pipeline |
 | `scripts/container-hardening.ts` | The read-only, no-capability run flags shared by the container checks and mirrored in `compose.yaml` | Image build logic |
+| `src/theme.css`, `src/theme-palette.ts` | Every colour token, light and dark; the colours data picks at run time | Colour literals anywhere else (`bun run check` fails on them) |
+| `scripts/theme-codemod.ts`, `scripts/check-theme.ts`, `scripts/helpers/color-literals.ts` | Moving literals into tokens, failing on literals outside the theme files, and the shared literal scanner | Token values |
 | `scripts/gate-suites.ts` | Canonical browser gate suites and explicit exclusions | Process spawning |
 | `scripts/ci-validate.ts` | Gate selection, command plans, JUnit summaries and process lifecycle | Azure deployment |
 | `scripts/image.ts` | Image metadata, runtime/scanner commands, vulnerability exceptions and registry push | Pipeline-only build logic |
@@ -198,7 +200,9 @@ editor never receives an older deferred value as an external replacement.
   (`--color-surface`, `--color-accent`, `--color-edge-feeds` and so on). Stylesheets and
   components refer to the names and hold no colour literal. `scripts/theme-codemod.ts` moves
   literals into tokens; `scripts/helpers/color-literals.ts` finds literals and is shared with the
-  codemod.
+  codemod and with `scripts/check-theme.ts`, which `bun run check` runs and which fails for any
+  literal outside `src/theme.css` and `src/theme-palette.ts` (the group colours data picks at run
+  time). The sign-in pages of `server/routes/auth-stylesheet.ts` are served the same tokens.
 - **Configuration**: start-up uses `readConfig()` in `server/config.ts` once for mode, host,
   port, data root, cache root and build identity. Every server-mode variable is listed once, with its default and what start-up checks, in `specs/003-authn-authz/contracts/configuration.md`. Server mode requires issuer discovery and
   a valid administration policy set before serving workspace traffic. The writable-root probe precedes lock acquisition; recovery,
@@ -276,6 +280,7 @@ editor never receives an older deferred value as an external replacement.
 | A Git operation | `server/projects/git.ts` (the command), `scm.ts` (the Source Control behaviour) |
 | The folder a project lives in | `src/scm/repository-folder.ts` (the path check, shared with the server), `server/projects/sparse-folder.ts` (the Git steps), `project-folder.ts` (moving an existing project) |
 | How a file kind is parsed or validated | `src/model.ts`, `src/validation.ts`, `schemas/` |
+| A colour | `src/theme.css` (a token, with its light and its dark value); a colour data picks at run time goes in `src/theme-palette.ts` |
 | A view | the folder named after it in `src/` (`odcs/`, `metrics/`, `mappings/`, `graph/`) |
 | A dialog | the module it belongs to; shared chrome is `src/projects/Modal.tsx`. A dialog opened from another dialog hides its parent's panel (`.workbench-dialog:has(dialog[open])` in `src/style.css`) so only one layer shows |
 
