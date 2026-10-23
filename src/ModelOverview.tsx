@@ -18,6 +18,11 @@ type Props = {
   onClose: () => void;
   onOpenGraph: () => void;
 };
+// A cell of the relationship matrix is shaded in the accent colour; more relationships are darker.
+function relationshipHeat(count: number): string {
+  const percent = Math.round(Math.min(8 + Math.log2(count + 1) * 3.5, 32));
+  return `color-mix(in srgb, var(--color-accent) ${percent}%, transparent)`;
+}
 /** Displays grouped model entities as catalog cards. */
 export function ModelOverview(props: Props) {
   const [mode, setMode] = useState<'areas' | 'matrix'>('areas');
@@ -198,7 +203,7 @@ export function ModelOverview(props: Props) {
                               <button
                                 aria-label={`${from.name} to ${to.name}: ${count} relationships`}
                                 style={{
-                                  background: `rgba(36,124,102,${Math.min(0.08 + Math.log2(count + 1) * 0.035, 0.32)})`,
+                                  background: relationshipHeat(count),
                                 }}
                                 onClick={() => setPair([from.id, to.id])}
                               >

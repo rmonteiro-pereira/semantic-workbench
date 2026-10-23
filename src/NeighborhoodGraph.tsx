@@ -104,7 +104,11 @@ const NODE = { width: 250, height: 96 };
 const LATERAL_DEFAULT_MAX = 10;
 const LARGE_CANVAS = 60;
 const REVEAL_CHUNK = 15;
-const COLORS = { out: '#237c68', in: '#5b4fa8', lateral: '#93a8a0' };
+const COLORS = {
+  out: 'var(--color-edge-out)',
+  in: 'var(--color-edge-in)',
+  lateral: 'var(--color-edge-lateral)',
+};
 // Value types share the Graph view's per-model setting.
 const VALUE_KINDS = new Set(['ValueType', 'Built-in concept']);
 const valuesKey = (name: string) => 'workbench:hide-value-types:' + name;
