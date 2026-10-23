@@ -26,6 +26,9 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `server/projects/instance-lock.ts` | Lease decisions, atomic acquisition, heartbeat and revision hand-over | Workspace recovery |
 | `server/projects/data-root.ts` | Writable-root startup probe with path and uid errors | Workspace writes |
 | `server/startup-log.ts` | Operator diagnostics after initialization | Startup decisions |
+| `server/observability/` | Everything about watching the running server. `settings.ts` reads `SW_LOG_LEVEL`, the connection string and sampling for `config.ts`; `redaction.ts` removes secrets, content and locations by field name and by value; `log.ts` is the one logger (JSON lines in server mode, readable lines in local mode, level filter, sinks); `request-context.ts` carries the request id and the actor pseudonym through `AsyncLocalStorage`; `http-request.ts` wraps each request in a context, span, metric and log line (the middleware passes it the route template from `auth/route-actions.ts`); `tracing.ts` and `metrics.ts` are the only places that touch the OpenTelemetry API; `git-command.ts`, `workspace-work.ts` and `browser-report-recorder.ts` measure Git, scans, validation and browser reports; `telemetry.ts` decides whether export is on, keeps the allow-list of log fields that may leave the server, and loads `pipeline.ts` (SDK providers) and `azure-backends.ts` (Azure Monitor exporters) by dynamic import only when it is | Business rules, access decisions, audit records, any import of the SDK or exporter outside `telemetry.ts` |
+| `server/routes/browser-reports.ts` | `POST /api/telemetry/browser`: 404 while telemetry is off, then rate limit, size limit and strict schema check of the browser's error and timing reports | Recording logic (it calls `observability/browser-report-recorder.ts`) |
+| `src/observability/` | The browser's reporting: `browser-report.ts` is the schema, limits and budgets shared with the server, `reporter.ts` the bounded queue and batching, `page-reporting.ts` the page listeners, the sender and `timeOperation` | Calls to any host but the workbench API; clicks, keystrokes or file content |
 | `server/shutdown.ts` | Signal cleanup shared with hot reload | Workspace logic |
 | `Dockerfile`, `compose.yaml` | Non-root image, local profile and owner-only Keycloak profile | Secrets |
 | `scripts/dev.ts`, `scripts/api-readiness.ts` | Development launcher: starts the API, waits for `/readyz`, then starts Vite, and stops both together | Production serving |
@@ -196,6 +199,19 @@ editor never receives an older deferred value as an external replacement.
   attaches the scope for route filtering. Local mode uses the implicit Admin; server startup injects the cookie session resolver. Server non-GET requests require `X-SW-Request: 1` and an `Origin`
   equal to `HandlerOptions.publicOrigin`, derived from `SW_PUBLIC_URL`; without that configured
   origin they are refused. The logout form requires its session token instead of the header.
+- **Logging and telemetry**: all operational output goes through `observability/log.ts`; no
+  other server module writes to the console (the audit log's own mirror and failure line, which
+  are a security record, and `sw-askpass` are the exceptions). `createAccessMiddleware` wraps each
+  request with `observeRequest`, which gives it an id (the `X-Request-Id` header), a server span, a
+  duration metric and one `http.request` line naming the route template from the route inventory.
+  Application code depends only on `@opentelemetry/api`, which does nothing until a provider is
+  registered. `telemetry.ts` registers one only in server mode with a valid connection string, by
+  importing `pipeline.ts` and `azure-backends.ts` on demand, so a server with telemetry off never
+  loads the SDK (a test walks the static imports of `server/index.ts` and runs a subprocess to
+  prove it). A person appears in logs and telemetry only as the HMAC pseudonym from
+  `request-context.ts`. Browser reports arrive at `routes/browser-reports.ts`, are checked against the
+  schema in `src/observability/browser-report.ts` and become the same metrics and log lines; the
+  route answers 404 unless telemetry is on, and `/api/me` tells the page whether to send.
 - **Audit**: denied decisions, allowed writes (including local draft saves), and allowed reads on
   explicitly audited agent rows are flushed to monthly JSON Lines under `state/audit/`. Records
   include the principal, action, resource, decision, outcome, previous-line hash, and response's
@@ -229,7 +245,7 @@ editor never receives an older deferred value as an external replacement.
   a guard case or listed as exempt with its reason, and agent clients to be admitted only on read
   rows. `applyGuards` in `src/governance/guards.ts` is the pure entry point.
 - **Errors**: services throw specific errors (`server/projects/errors.ts`, `GitError`,
-  `PathError`, `InputError`, `SignInError`); `server/routes/http.ts` maps them to status codes in one place, including the safe sign-in page and attempt-cookie clearing. A `BadRequestError` is the caller's mistake and answers 400 with its message; in server mode any other error answers 500 `Internal error.` and is logged with the request id. The handler passes that mapping into the access middleware, so `server/auth/` never imports `server/routes/`.
+  `PathError`, `InputError`, `SignInError`); `server/routes/http.ts` maps them to status codes in one place, including the safe sign-in page and attempt-cookie clearing. A `BadRequestError` is the caller's mistake and answers 400 with its message; in server mode any other error answers 500 `Internal error.` and is logged, redacted, with the request id. The handler passes that mapping into the access middleware, so `server/auth/` never imports `server/routes/`.
 - **Events**: the server emits `files`, `projects`, `git`, `clone`, `identity` and others
   through `events.ts`; the browser listens with `useEvents` and refetches.
 - **Testing**: `bun test` for logic and handlers; `scripts/*-browser-check.ts` for the UI against
