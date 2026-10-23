@@ -8,7 +8,7 @@
   padding: 0;
   list-style: none;
   font-size: var(--text-small);
-  color: #4d6660;
+  color: var(--color-text-muted);
 }
 .lineage-legend li {
   display: flex;
@@ -20,19 +20,19 @@
   flex: none;
 }
 .lineage-legend .k-object svg {
-  color: #2a6c95;
+  color: var(--color-info);
 }
 .lineage-legend .k-dataset svg {
-  color: #1e6a4f;
+  color: var(--color-accent-text);
 }
 .lineage-legend .k-field svg {
   color: var(--text-muted);
 }
 .lineage-legend .k-metric svg {
-  color: #8a5ad1;
+  color: var(--color-metric);
 }
 .lineage-legend .k-concept svg {
-  color: #a3532b;
+  color: var(--color-orange);
 }
 .lineage-legend .k-external svg {
   color: var(--text-muted);

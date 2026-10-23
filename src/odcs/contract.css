@@ -8,7 +8,7 @@
 .odcs-read-more p {
   margin: 0;
   font-size: 13px;
-  color: #3f5650;
+  color: var(--color-text-secondary);
   max-width: 90ch;
   overflow-wrap: anywhere;
   white-space: pre-line;
@@ -54,16 +54,16 @@
   gap: 8px;
   font-size: 13px;
   padding: 6px 10px;
-  border: 1px solid #dbe3e4;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--color-surface);
 }
 .odcs-section-rows button:hover {
-  background: #f5faf7;
+  background: var(--color-surface-page);
 }
 .odcs-section-rows small {
   font-size: var(--text-small);
-  background: #dcebe5;
+  background: var(--color-accent-soft-strong);
   border-radius: 8px;
   padding: 0 6px;
 }
@@ -94,14 +94,14 @@
   gap: 6px;
   font-size: var(--text-small);
   font-weight: 600;
-  color: #3a5a50;
+  color: var(--color-text-secondary);
 }
 .odcs-sort-control select {
   font-size: var(--text-small);
   padding: 5px;
-  border: 1px solid #dbe3e4;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
-  background: #fff;
+  background: var(--color-surface);
 }
 .odcs-sort-control button {
   padding: 5px 7px;
@@ -130,17 +130,17 @@
 }
 .odcs-form-field > span {
   font-weight: 600;
-  color: #3a5a50;
+  color: var(--color-text-secondary);
 }
 .odcs-form-field :is(input, select, textarea) {
   font: inherit;
   padding: 7px 9px;
-  border: 1px solid #cfdad7;
+  border: 1px solid var(--color-border-strong);
   border-radius: 6px;
-  background: #fff;
+  background: var(--color-surface);
 }
 .odcs-form-field :is(input, select, textarea):disabled {
-  background: #f1f4f3;
+  background: var(--color-surface-sunken);
   color: var(--text-muted);
 }
 .odcs-form-hint {
@@ -162,7 +162,7 @@
 .odcs-form .odcs-form-flag input {
   padding: 0;
   margin: 0;
-  accent-color: #1e6a4f;
+  accent-color: var(--color-accent-text);
 }
 @media (max-width: 700px) {
   .odcs-head-action {
@@ -189,8 +189,8 @@
     clip-path: inset(50%);
   }
   .odcs-table.stack tr {
-    background: #fff;
-    border: 1px solid #dbe3e4;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: 8px;
     padding: 6px 10px;
     margin-bottom: 8px;

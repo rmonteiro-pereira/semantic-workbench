@@ -43,9 +43,9 @@
 .admin-scope input:not([type='checkbox'], [type='radio']),
 .admin-scope select {
   padding: 7px 9px;
-  border: 1px solid #dbe3e4;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
-  background: #fff;
+  background: var(--color-surface);
 }
 /* A form field never stretches across a wide screen; the audit filters keep their own grid. */
 .admin-pane input:not([type='checkbox'], [type='radio']),
@@ -56,7 +56,7 @@
 .admin-scope textarea {
   min-height: 64px;
   padding: 8px;
-  border: 1px solid #dbe3e4;
+  border: 1px solid var(--color-border);
   border-radius: 5px;
 }
 .admin-scope fieldset {
@@ -64,14 +64,14 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  border: 1px solid #e6ecec;
+  border: 1px solid var(--color-border-subtle);
   border-radius: 6px;
   padding: 8px 12px 12px;
 }
 .admin-scope legend {
   font-size: var(--text-small);
   font-weight: 600;
-  color: #3a5a50;
+  color: var(--color-text-secondary);
   padding: 0 4px;
 }
 .admin-scope pre {
@@ -97,12 +97,12 @@
   text-align: left;
   padding: 8px;
   vertical-align: top;
-  border-bottom: 1px solid #eef2f2;
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 .admin-scope th {
   font-size: var(--text-small);
   font-weight: 600;
-  color: #3a5a50;
+  color: var(--color-text-secondary);
 }
 .admin-table {
   overflow-x: auto;
@@ -161,7 +161,7 @@
 /* Tabs look like the segmented switch of the credential guide. */
 .admin-scope .segmented {
   display: inline-flex;
-  border: 1px solid #dbe3e4;
+  border: 1px solid var(--color-border);
   border-radius: 7px;
   overflow: hidden;
 }
@@ -170,11 +170,11 @@
   border-radius: 0;
   padding: 6px 14px;
   font-size: var(--text-small);
-  background: #fff;
+  background: var(--color-surface);
 }
 .admin-scope .segmented button.selected {
-  background: #e5f1ec;
-  color: #1f5e4e;
+  background: var(--color-accent-soft);
+  color: var(--color-accent-hover);
   font-weight: 600;
 }
 .admin-notice {
@@ -186,7 +186,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  border-top: 1px solid #e6ecec;
+  border-top: 1px solid var(--color-border-subtle);
   padding-top: 12px;
 }
 /* A person's name takes the first line of a review entry and what changes for them the next. */
@@ -195,7 +195,7 @@
 }
 .admin-chip {
   display: inline-block;
-  border: 1px solid #dbe3e4;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 3px 6px;
   margin: 2px;
@@ -215,7 +215,7 @@
   font-size: 13px;
 }
 .admin-facts dt {
-  color: #52656b;
+  color: var(--color-text-muted);
 }
 .admin-facts dd {
   margin: 0;
@@ -237,7 +237,7 @@
   overflow: auto;
 }
 .admin-scope [role='alert'] {
-  color: var(--danger, #b33);
+  color: var(--danger, var(--color-danger));
 }
 .admin-filter-disclosure > summary {
   cursor: pointer;
@@ -257,7 +257,7 @@
     width: 100%;
   }
   .admin-records tr {
-    border: 1px solid #e6ecec;
+    border: 1px solid var(--color-border-subtle);
     border-radius: 8px;
     padding: 6px 10px;
     margin-bottom: 8px;
@@ -323,7 +323,7 @@
   flex-direction: column;
   height: 100vh;
   font-size: 14px;
-  background: #f7f9f9;
+  background: var(--color-surface-page);
 }
 .admin-page-header {
   flex: 0 0 auto;
@@ -332,8 +332,8 @@
   gap: 16px;
   height: auto;
   padding: 10px 20px;
-  background: #fff;
-  border-bottom: 1px solid #e0e7e5;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 .admin-page-header h1 {
   flex: 1;
@@ -350,8 +350,8 @@
   min-width: 0;
   overflow-y: auto;
   padding: 16px 12px;
-  background: #fff;
-  border-right: 1px solid #e0e7e5;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border-subtle);
 }
 .admin-nav-list {
   display: flex;
@@ -365,11 +365,11 @@
   text-decoration: none;
 }
 .admin-nav-list a:hover {
-  background: #edf5f2;
+  background: var(--color-surface-hover);
 }
 .admin-nav-list a.selected {
-  background: #e5f1ec;
-  color: #1f5e4e;
+  background: var(--color-accent-soft);
+  color: var(--color-accent-hover);
   font-weight: 600;
 }
 .admin-content {
@@ -414,7 +414,7 @@
     padding: 8px 12px;
     overflow: hidden;
     border-right: 0;
-    border-bottom: 1px solid #e0e7e5;
+    border-bottom: 1px solid var(--color-border-subtle);
   }
   .admin-nav-list {
     flex-direction: row;
@@ -425,8 +425,8 @@
     mask-image: linear-gradient(
       to right,
       transparent,
-      #000 var(--fade-start, 0px),
-      #000 calc(100% - var(--fade-end, 0px)),
+      var(--color-mask-opaque) var(--fade-start, 0px),
+      var(--color-mask-opaque) calc(100% - var(--fade-end, 0px)),
       transparent
     );
   }

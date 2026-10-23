@@ -1,7 +1,7 @@
 /* Styles validation findings and the source repair interface. */
 .validation-report .validation-feature {
   font-weight: 600;
-  color: #6b3e35;
+  color: var(--color-danger-strong);
 }
 .validation-report .validation-location {
   font-size: var(--text-small);
@@ -12,11 +12,11 @@
   font-size: var(--text-small);
   text-transform: uppercase;
   letter-spacing: 0.7px;
-  color: #916c60;
+  color: var(--color-text-muted);
   margin-top: 8px;
 }
 .validation-report .validation-fix {
-  color: #4b6758;
+  color: var(--color-text-muted);
   margin: 6px 0;
 }
 .validation-report li button {
