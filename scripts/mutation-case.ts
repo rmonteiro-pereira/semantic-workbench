@@ -4,6 +4,12 @@ import assert from 'node:assert/strict';
 import { allowEveryRemote } from '../tests/helpers/remote-credentials-fixture';
 const m = await import(process.argv[2]);
 const category = process.argv[3];
+if (category === 'example-registry') {
+  const { EXPECTED_EXAMPLE_METRICS, checkExampleSetMetrics } =
+    await import('./example-metric-checks');
+  for (const setId of Object.keys(EXPECTED_EXAMPLE_METRICS))
+    await checkExampleSetMetrics(setId, m.EXAMPLE_SETS);
+}
 if (category === 'edge-path') {
   const path = 'M 10 20 C 30 40 50 60 70 80';
   assert(m.pathMatchesEndpoints(path, 10, 20, 70, 80));
