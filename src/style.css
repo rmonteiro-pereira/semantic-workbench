@@ -3302,6 +3302,26 @@ main > .status {
     width: 100%;
     min-height: 0;
   }
+  /* The sheet shares the screen with the canvas, so its decoration and spacing shrink. */
+  .inspector .entity-icon {
+    display: none;
+  }
+  .inspector h2 {
+    font-size: 18px;
+    margin: 4px 0 8px;
+  }
+  .inspector label {
+    margin-top: 12px;
+  }
+  .inspector textarea {
+    min-height: 64px;
+  }
+  .inspector .section-label {
+    padding: 10px 0 4px;
+  }
+  .hint {
+    margin: 12px 0;
+  }
   .canvas-row.has-inspector .react-flow__controls,
   .canvas-row.has-inspector .full-graph-status {
     display: none;
