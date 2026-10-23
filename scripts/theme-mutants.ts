@@ -80,7 +80,7 @@ export const themeMutants: [string, string, string, string][] = [
   [
     'theme-codemod',
     'scripts/theme-codemod.ts',
-    "background: ['surface', 'solid', 'text', 'shadow', 'named'],",
+    "background: ['surface', 'solid', 'graphic', 'text', 'shadow', 'named'],",
     "background: ['solid', 'text', 'shadow', 'named'],",
   ],
   [
