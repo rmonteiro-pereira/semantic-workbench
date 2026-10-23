@@ -48,6 +48,7 @@ async function containerFixture(url: string) {
     mock = await startMockOidc({
       clientSecret,
       shape: 'entra',
+      layout: 'entra',
       port: 0,
       redirectUris: [url + '/auth/callback'],
       postLogoutRedirectUris: [url + '/auth/signed-out'],
@@ -93,7 +94,8 @@ async function serverGroup(engine: Engine, image: string, url: string) {
     );
     return name;
   }
-  return { issuer: mock.issuer, start, clean: cleanup };
+  // Entra's authorize and logout endpoints sit beside the issuer, under endpointBase.
+  return { issuer: mock.issuer, endpointBase: mock.endpointBase, start, clean: cleanup };
 }
 
 /** Checks the server image against a mock provider on host loopback. */
@@ -123,7 +125,8 @@ export async function authContainerCheck(engine: Engine, image: string, port: nu
       false,
       { ...process.env, SW_OIDC_ISSUER: group.issuer },
     );
-    await containerSignIn(engine, first, { url, issuer: group.issuer, kind: 'entra' }, began);
+    const target: SignInTarget = { url, issuer: group.endpointBase, kind: 'entra' };
+    await containerSignIn(engine, first, target, began);
     await containerHandover(engine, first, port, group.start);
   });
 }

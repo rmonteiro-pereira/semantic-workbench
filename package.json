@@ -59,6 +59,7 @@
     "deploy:smoke": "bun scripts/deploy-smoke.ts"
   },
   "dependencies": {
+    "@azure/msal-node": "7.0.1",
     "@cedar-policy/cedar-wasm": "4.14.0",
     "@codemirror/commands": "6.11.1",
     "@codemirror/lang-json": "6.0.2",

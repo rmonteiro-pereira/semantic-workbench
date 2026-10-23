@@ -4,23 +4,49 @@ Each decision lists what was chosen, why, and what was rejected. Library version
 and exercised under Bun 1.4.0 in an isolated scratch project on 2026-10-21; the measurements
 below come from that probe.
 
-## R1 OpenID Connect client: `openid-client` 6.8.8
+## R1 Sign-in libraries: MSAL Node 7.0.1 for Entra, `openid-client` 6.8.8 for the others
 
-- **Decision**: `openid-client` 6.8.8 (MIT, maintained by the author of `jose`, built on
-  `oauth4webapi`; Web Crypto and `fetch` only, no Node-specific APIs). Used for discovery,
-  authorization URL with PKCE and nonce, code exchange with ID-token validation, refresh,
-  userinfo, end-session URL and the generic grant used for on-behalf-of (R8).
-- **Evidence**: under Bun 1.4.0 `randomPKCECodeVerifier`, `calculatePKCECodeChallenge`,
-  `discovery`, `authorizationCodeGrant`, `refreshTokenGrant`, `genericGrantRequest` and
-  `buildEndSessionUrl` import and run; installed size 236 KB plus `oauth4webapi` 332 KB.
-- **Client authentication**: client secret (Keycloak, simple Entra setups) or `private_key_jwt`
-  with a client assertion. On Azure the recommended Entra credential is a federated identity
-  credential that trusts the container app's user-assigned managed identity `id-sw-app` (R14;
-  Microsoft documents managed-identity federation with user-assigned identities, and its object
-  id survives re-creating the app): the server asks the platform identity
-  endpoint for a token for `api://AzureADTokenExchange` and sends it as the client assertion, so
-  no client secret exists anywhere.
-- **Rejected**: MSAL Node (Entra-only, Keycloak would need a second path; larger); Azure built-in
+- **Decision**: the server signs people in behind one sign-in provider interface
+  (`server/auth/sign-in-provider.ts`: login URL, callback, refresh, logout, application token,
+  on-behalf-of) and picks the library from `SW_OIDC_PROVIDER`:
+  - **Entra** uses `@azure/msal-node` 7.0.1 (MIT, Microsoft) with an Azure App Registration, as
+    the owner decided: a `ConfidentialClientApplication` runs the authorization code flow with
+    PKCE, state and nonce, silent refresh (`acquireTokenSilent`), client credentials for Graph
+    and on-behalf-of exchanges (R8).
+  - **Generic OpenID Connect and Keycloak** keep `openid-client` 6.8.8 (MIT, built on
+    `oauth4webapi`; Web Crypto and `fetch` only) for discovery, authorization URL with PKCE and
+    nonce, code exchange, refresh, userinfo and the end-session URL.
+- **Shared on both paths**: the server holds every token; the browser holds only the HttpOnly
+  session cookie. ID tokens are verified with `jose` against the provider's keys (R2) and
+  normalized by the same claim mapping, so both paths yield the same principal. The sign-in
+  attempt (state, nonce, PKCE verifier) lives in the same signed attempt cookie (R4).
+- **MSAL token cache**: one cache per session. A cache plugin hands MSAL that session's
+  serialized cache and stores the result back in the session record, which the session store
+  encrypts with AES-256-GCM (R4). No cache is ever written to disk on its own. Application
+  tokens (Graph, on-behalf-of) stay in the process's memory.
+- **No traffic beyond the identity provider**: the server reads the tenant's discovery document
+  once at start-up and hands it to MSAL (`authorityMetadata`) with the sign-in host as its only
+  `knownAuthorities` entry, so MSAL makes no instance-discovery call; region discovery and MSAL's
+  own managed-identity client are not used. The Entra issuer must be
+  `https://<login host>/<SW_ENTRA_TENANT_ID>/v2.0` on `login.microsoftonline.com` or a national
+  cloud's sign-in host (a loopback host only for the mock provider on a developer's machine).
+- **Client authentication**: Entra takes a certificate (PEM private key and thumbprint, both from
+  Key Vault references; preferred), a client secret, or the federated credential of the
+  container app's user-assigned managed identity `id-sw-app` (R14). With
+  `SW_OIDC_CLIENT_ASSERTION=managed-identity` the server asks the platform identity endpoint for
+  a token for `api://AzureADTokenExchange` and passes it to MSAL's client-assertion callback, so
+  no client secret exists anywhere. Keycloak and generic providers take a client secret or
+  `private_key_jwt` with a key file.
+- **Evidence**: under Bun 1.4.0 MSAL Node 7.0.1 runs the code flow, silent refresh, client
+  credentials and on-behalf-of against the mock provider's Entra-shaped endpoints. Installing it
+  adds 16 packages (MSAL Node, `@azure/msal-common`, `jsonwebtoken` and its 13 small
+  dependencies): about 8.6 MB on disk, nearly all of it MSAL's two packages with their
+  CommonJS, ES module and source-map builds. Licences: MIT, except `semver` (ISC),
+  `ecdsa-sig-formatter` (Apache-2.0) and `buffer-equal-constant-time` (BSD-3-Clause).
+  `openid-client` stays at 236 KB plus `oauth4webapi` 332 KB.
+- **Rejected**: `openid-client` for Entra too (one library, but the owner requires Microsoft's
+  supported library and App Registration path for the target's tenant); MSAL for every provider
+  (MSAL serves only Microsoft identity platforms, Keycloak would lose its path); Azure built-in
   authentication ("Easy Auth"; ties the app to one platform, no Keycloak path, harder to test
   locally); browser-side tokens with MSAL.js or keycloak-js (tokens in the browser, the
   live-update stream cannot send an `Authorization` header, owner chose server-held sessions);
@@ -83,8 +109,14 @@ below come from that probe.
 
 ## R5 Microsoft Entra ID specifics
 
-- App registration (single tenant) with redirect `https://<host>/auth/callback`, front-channel
-  logout URL and post-sign-out redirect `https://<host>/auth/signed-out`. No app roles: roles
+- App registration (single tenant) with Web redirects `https://<host>/auth/callback` and
+  `https://<host>/auth/signed-out` (post-sign-out), and the front-channel logout URL
+  `https://<host>/auth/front-channel-logout`. Entra calls it, in a hidden frame and without the
+  session cookie, with the provider session `sid` (and `iss`, which Entra may omit; a different
+  one is refused) when the person signs out elsewhere;
+  the server keeps each session's verified `sid` and ends the matching sessions. Whoever knows a
+  `sid` can end that session; the provider keeps it private. `logout_hint` (from the optional
+  `login_hint` claim) spares the person the account chooser at sign-out. No app roles: roles
   come from the workbench's access grants (R22).
 - Groups claim: "Security groups" (group object IDs) with overage handling, or "Groups assigned
   to the application" when the target assigns the granted groups to the enterprise application
@@ -620,6 +652,8 @@ image, `sha256:4ee8200b0fd00de0e3743b48220f4feadbdb52deb29730ed804f9364bc2be23f`
 `bun add --exact` of the three libraries in the repository on 2026-10-21 (Bun 1.4.0) confirmed the
 probe: `openid-client` 6.8.8 (MIT, 236 KB) with `oauth4webapi` (MIT, 332 KB), `jose` 6.2.13 (MIT,
 412 KB), `@cedar-policy/cedar-wasm` 4.14.0 (Apache-2.0, 13 MB on disk). All three are server-only.
+`@azure/msal-node` 7.0.1 (MIT) was added the same way for Entra sign-in (R1); it is server-only
+too.
 
 ### Decisions taken while building the foundations
 
@@ -667,6 +701,7 @@ probe: `openid-client` 6.8.8 (MIT, 236 KB) with `oauth4webapi` (MIT, 332 KB), `j
 | T087–T093 (guards on every content write, metric approval and deprecation, Steward-only classification changes, owner picker, browser check, mutants) and five review rounds (move, switch, delete, restore and new-project import guarded; the guard carried by every server reader so a missing guard is a type error; a fail-closed write-route inventory; owners matched only on verified identities; the committed owner counted for self-approval; the people list limited to project readers) | Claude (general-purpose subagent), reviewed by Claude |
 | T094–T099 (Azure DevOps on-behalf-of and GitHub tokens per person and command, askpass helper, host allow-list, Admin-only remotes and clones, connect prompts, mutants) and four review rounds (whole-prompt askpass match, canonical and unambiguous addresses, fail-closed server mode, one remote choice per request, single-use consent, per-session token lock, guarded merge without the token) | Claude (general-purpose subagent), reviewed by Claude |
 | T076–T086 (per-person working copies, publish and pull from the default branch, authored commits, copy-aware cache, watchers and suggestions, unpublished work kept in the trash, branch picker and Source Control actions, two-editors check, mutants) and three review rounds (guards inside copies and on publish and pull-default, Push to the default branch for publishers, a fetch that follows the remote only for publishers and through the guard, safe publish with repair, branch names checked, manifest written through a copy, listing cache) | Claude (general-purpose subagent), reviewed by Claude |
+| T143–T152 (Entra sign-in through MSAL behind a sign-in provider interface, per-session encrypted token cache, secret, certificate or managed-identity credentials, Graph and on-behalf-of tokens through the provider, Entra-shaped mock, agent example client, App Registration guide, mutants) and three review rounds (Microsoft sign-in hosts only, library code out of the shared modules, on-behalf-of on both libraries, front-channel logout keyed by the provider session, logout hint, session-upgraded reason) | Claude (general-purpose subagent), reviewed by Claude |
 
 ### Test changes not caused by the specification
 
@@ -770,3 +805,11 @@ probe: `openid-client` 6.8.8 (MIT, 236 KB) with `oauth4webapi` (MIT, 332 KB), `j
   server mode each person's writes and pulls land in their own working copy, so these read the
   result from that copy (and the governance check publishes Bob's approval before Alice's demotion);
   every refusal and permission they assert is unchanged.
+- `tests/auth/authentication-review.test.ts`, `tests/auth/oidc.test.ts`,
+  `tests/auth/client-auth.test.ts`, `tests/auth/auth-pages.test.ts`,
+  `tests/auth/person-response.test.ts`, `tests/auth/remote-credentials.test.ts`,
+  `scripts/auth-remote-check.ts`, `scripts/two-editors-check.ts` and the `signin-config` mutation
+  case: sign-in moved behind a provider interface with Entra on MSAL, so these use the moved
+  imports, the provider error code, a front-channel logout stub, MSAL's extra token scopes, a
+  Microsoft sign-in host for the Entra issuer and the Entra endpoint layout of the mock; what they
+  assert is unchanged.

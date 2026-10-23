@@ -3,8 +3,25 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 import { mkdirSync, openSync, closeSync, readdirSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { sha256 } from '../projects/atomic';
-import type { SignInAttempt } from './oidc';
 import { SignInError } from './sign-in-error';
+
+/** Browser-bound values needed to complete one authorization code exchange. */
+export type SignInAttempt = {
+  state: string;
+  nonce: string;
+  verifier: string;
+  returnTo: string;
+  issuedAt: number;
+};
+
+/** Restricts post-login navigation to paths within the workbench origin. */
+export function safeReturnTo(value: string | null | undefined): string {
+  if (!value?.startsWith('/') || value.startsWith('//') || /[\\\r\n]/.test(value)) return '/';
+  const parsed = new URL(value, 'https://workbench.invalid');
+  return parsed.origin === 'https://workbench.invalid' && !parsed.pathname.startsWith('//')
+    ? parsed.pathname + parsed.search + parsed.hash
+    : '/';
+}
 
 /** Lifetime shared by the signed attempt, replay ledger and browser cookie. */
 export const ATTEMPT_TTL_SECONDS = 600;

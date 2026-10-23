@@ -40,13 +40,11 @@ through each resource's **Access control (IAM)**. CLI entry points are
 `az identity create --help` and `az role assignment create --help`. Wait for role propagation
 before the first pull. These roles belong to the app identity, not the pipeline identity.
 
-Register the single-tenant Entra sign-in application following every step of
+Register the Entra App Registration as described in
+[Entra App Registration](#entra-app-registration) below, then run every step of
 [quickstart §5](../specs/003-authn-authz/quickstart.md#5-microsoft-entra-id-on-the-real-tenant-manual-checklist-run-by-the-owner-recorded-in-verificationmd).
-Register `/auth/callback` and `/auth/signed-out` under the public HTTPS origin; configure groups
-and optional claims `email`, `upn`, `xms_edov`, the `access_as_user` scope, Azure DevOps delegated
-permission and application `GroupMember.Read.All` with admin consent. Do not create workbench
-app roles. Configure a federated credential trusting `id-sw-app`, or keep a client secret in
-Key Vault. The application's managed identity and the pipeline federation are separate trusts.
+Do not create workbench app roles for people: roles come from the Admin panel's grants. The
+application's managed identity and the pipeline federation are separate trusts.
 
 Create the app in **Container Apps** with the environment, identity and registry above. For its
 initial revision use an existing target-approved image pinned by digest; the pipeline needs one
@@ -77,7 +75,8 @@ Configure the app using **Revisions**, **Scale**, **Ingress**, **Volumes**, **Id
 | Public URL | `SW_PUBLIC_URL=https://<host>` |
 | Provider | `SW_OIDC_PROVIDER=entra`, `SW_ENTRA_TENANT_ID=<tenant>`, `SW_OIDC_CLIENT_ID=<client>` |
 | Discovery | `SW_OIDC_ISSUER=https://login.microsoftonline.com/<tenant>/v2.0` |
-| Credential | `SW_OIDC_CLIENT_ASSERTION=managed-identity`, or `SW_OIDC_CLIENT_SECRET` secret reference |
+| Credential | Certificate (preferred): `SW_OIDC_CLIENT_CERTIFICATE_KEY` secret reference and `SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT`; or `SW_OIDC_CLIENT_ASSERTION=managed-identity`; or `SW_OIDC_CLIENT_SECRET` secret reference |
+| Agents | `SW_API_AUDIENCE=<client>` (the `aud` of version 2 access tokens) |
 | Sessions | `SW_SESSION_KEY` references `sw-session-key` |
 | Bootstrap | `SW_BOOTSTRAP_ADMINS` contains at least one verified address or stable tenant/object ID |
 
@@ -88,6 +87,82 @@ Use **Container Apps → Edit and deploy** for these settings. CLI counterparts 
 For optional agent audience, GitHub OAuth, committer and group configuration use the
 [configuration contract](../specs/003-authn-authz/contracts/configuration.md). Secrets are always
 platform references. Deployment preflight names drift before promoting or updating an image.
+
+### Entra App Registration
+
+The workbench signs people in to Entra on the server with Microsoft's MSAL library and this one
+App Registration. Agent clients request tokens for the API it exposes. Create it in the
+Microsoft Entra admin center under **App registrations → New registration**:
+
+1. **Name and audience.** Any name, for example `semantic-workbench`; supported account types
+   **Accounts in this organizational directory only** (single tenant).
+2. **Authentication.** Add the **Web** platform with two redirect URIs:
+   `https://<host>/auth/callback` (sign-in) and `https://<host>/auth/signed-out` (Entra sends the
+   browser there after sign-out; it accepts only a registered URI). Set **Front-channel logout
+   URL** to `https://<host>/auth/front-channel-logout`: when the person signs out of another
+   application, Entra loads it with the tenant's issuer and its session id (`sid`), and the
+   workbench ends the sessions that sign-in started. It needs no cookie, so anyone who knows a
+   `sid` can end that session; Entra keeps the `sid` private, and the route only ever ends
+   sessions. Leave both implicit grant boxes (access tokens, ID tokens) cleared and **Allow
+   public client flows** off.
+3. **Credential.** Choose one, in this order of preference:
+   - **Certificate.** In the Key Vault choose **Certificates → Generate/Import** with content type
+     PEM, download the public `.cer`, and upload it under **Certificates & secrets →
+     Certificates**. Reference the certificate's secret
+     (`https://<vault>.vault.azure.net/secrets/<certificate-name>`) from the container app as
+     `SW_OIDC_CLIENT_CERTIFICATE_KEY`; the PEM holds the private key and the certificate, and
+     the server reads the key. Set `SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT` to the SHA-256
+     thumbprint, `openssl x509 -in <certificate>.pem -noout -fingerprint -sha256 | cut -d= -f2`
+     (colons are ignored; a 40-character SHA-1 thumbprint also works). Rotate by adding the new
+     certificate beside the old one, switching both settings, then removing the old one.
+   - **Federated credential.** Under **Certificates & secrets → Federated credentials** add the
+     scenario **Managed identity** with `id-sw-app` and set
+     `SW_OIDC_CLIENT_ASSERTION=managed-identity`. No secret exists anywhere.
+   - **Client secret.** Create one under **Client secrets**, store it in Key Vault and reference
+     it as `SW_OIDC_CLIENT_SECRET`. Note its expiry date.
+4. **Token configuration.** **Add groups claim → Security groups** (group IDs) for the ID and
+   access tokens, or **Groups assigned to the application** if the granted groups are assigned
+   to the enterprise application, which avoids overage. **Add optional claim → ID** with
+   `email`, `upn`, `xms_edov`, `sid` (front-channel logout names it) and `login_hint` (sent
+   back as `logout_hint`, so sign-out does not ask which account), and **Add optional claim →
+   Access** with `idtyp` (agent tokens without it are refused). When a person belongs to more groups than fit in a token,
+   Entra leaves them out and marks the overage; the server then asks Microsoft Graph which of the
+   granted groups the person is in (needs `GroupMember.Read.All` below; `SW_GROUP_OVERAGE=off`
+   disables it).
+5. **API permissions.** Microsoft Graph delegated `openid`, `profile`, `email`, `offline_access`
+   and `User.Read`. Add the Microsoft Graph application permission `GroupMember.Read.All` only
+   for the Graph lookups: overage resolution and the group names the Admin panel shows. Azure
+   DevOps delegated `user_impersonation` when people push to Azure Repos through the workbench.
+   **Grant admin consent** for the tenant.
+6. **Expose an API.** Set the Application ID URI to `api://<client-id>`. Add the scope
+   `access_as_user` (who can consent: admins and users); the server asks for it at sign-in and
+   uses that token for on-behalf-of exchanges. Agent clients request
+   `api://<client-id>/.default` with their own registration or managed identity (see
+   [agent runtime](../docs/agent-runtime.md#agent-clients-in-server-mode)). An app role for
+   them, for example `Workbench.Agent` with allowed member type **Applications**, is optional:
+   the workbench never reads roles, and an agent reaches only the projects and domains an Admin
+   granted its client ID (**Admin → Projects**, stored in `admin/agents.json`).
+7. **Access token version 2.** In **Manifest** set `requestedAccessTokenVersion` in the `api`
+   section to `2` (`accessTokenAcceptedVersion` in the older manifest format). Agent tokens then
+   carry the version 2 issuer that `SW_OIDC_ISSUER` names and the client ID as `aud`, which is
+   what `SW_API_AUDIENCE` must hold.
+
+Where each value of the registration goes:
+
+| App Registration value | Container app setting | Pipeline variable |
+| --- | --- | --- |
+| Directory (tenant) ID | `SW_ENTRA_TENANT_ID`; `SW_OIDC_ISSUER=https://login.microsoftonline.com/<tenant>/v2.0` (national clouds: `login.microsoftonline.us`, `login.chinacloudapi.cn` or `login.partner.microsoftonline.cn`; no port) | `ENTRA_TENANT_ID` (preflight compares both) |
+| Application (client) ID | `SW_OIDC_CLIENT_ID`, `SW_API_AUDIENCE` | `ENTRA_CLIENT_ID` (preflight compares `SW_OIDC_CLIENT_ID`) |
+| Redirect URI origin | `SW_PUBLIC_URL` | `SW_PUBLIC_URL` |
+| Certificate private key (Key Vault certificate) | `SW_OIDC_CLIENT_CERTIFICATE_KEY=secretref:<name>` | none; preflight requires a Key Vault reference |
+| Certificate SHA-256 thumbprint | `SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT` | none |
+| Federated credential for `id-sw-app` | `SW_OIDC_CLIENT_ASSERTION=managed-identity` | `APP_IDENTITY_NAME` |
+| Client secret (Key Vault secret) | `SW_OIDC_CLIENT_SECRET=secretref:<name>` | none; preflight requires a Key Vault reference |
+| Groups claim | `SW_GROUP_CLAIM` (default `groups`) | none |
+| `GroupMember.Read.All` | `SW_GROUP_OVERAGE=directory` (default) | none |
+
+Secrets never enter the variable group: the container app resolves each `secretref` from Key
+Vault with `id-sw-app`.
 
 ### CLI creation and inspection
 

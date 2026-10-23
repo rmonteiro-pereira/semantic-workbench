@@ -7,6 +7,7 @@ import { authWorkspace } from '../helpers/auth-workspace';
 import { createOidcClient } from '../../server/auth/oidc';
 import { createServerAuthentication, providerDetail } from '../../server/auth/authentication';
 import { createSessionStore } from '../../server/auth/sessions';
+import { SignInError } from '../../server/auth/sign-in-error';
 import { createHandler } from '../../server/handler';
 
 async function setup() {
@@ -220,11 +221,11 @@ test('sign-out audit precedes session termination with explicit outcomes', async
 });
 
 test('the sign-in log names the provider error code but never other error text', () => {
-  const refused = Object.assign(new Error('response body error with code=abc'), {
-    error: 'not_allowed',
-    error_description: 'Offline tokens not allowed',
-  });
+  const cause = new Error('response body error with code=abc');
+  const providerCode = 'not_allowed: Offline tokens not allowed';
+  const refused = new SignInError('attempt-invalid', '/', cause, providerCode);
   expect(providerDetail(refused)).toBe(' (not_allowed: Offline tokens not allowed)');
+  expect(providerDetail(new SignInError('attempt-invalid', '/', cause))).toBe('');
   expect(providerDetail(new Error('secret-code token'))).toBe('');
   expect(providerDetail('not an error')).toBe('');
 });

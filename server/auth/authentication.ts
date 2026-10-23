@@ -1,5 +1,5 @@
 // Composes provider identity, durable sessions and the existing access boundary.
-import { SignInError } from './sign-in-error';
+import { asSignInError, SignInError } from './sign-in-error';
 import { hkdfSync } from 'node:crypto';
 import { join } from 'node:path';
 import type { ServerConfig } from '../config';
@@ -7,7 +7,8 @@ import type { Workspace } from '../projects/workspace';
 import { createAccessControl } from './authorize';
 import { openAdminRepository } from './admin-repo';
 import { createAuditLog } from './audit';
-import { createOidcClient, safeReturnTo, signInError, type OidcClient } from './oidc';
+import { safeReturnTo } from './attempts';
+import { createSignInProvider, type SignInProvider } from './sign-in-provider';
 import { createAttemptStore, ATTEMPT_TTL_SECONDS } from './attempts';
 import { createDirectoryClient, directoryGroupIds } from './directory';
 import { resolvePrincipalGroups, type NormalizedPrincipal, type Principal } from './principal';
@@ -17,24 +18,30 @@ import {
   readCookie,
   sessionCookie,
   type Session,
+  type SessionStore,
 } from './sessions';
 import { requestAuditId, type AuditRequest } from '../request';
 import { createRemoteCredentials, type RemoteCredentialOptions } from './remote-credentials';
 
 /** Opens validated server authentication only after the workspace lease has been acquired. */
 /**
- * Adds the OAuth error code and description a provider returned to the server log line. Only
- * those two standard fields are read: other error messages can quote request data such as an
+ * Adds the provider's OAuth error to the server log line. Only the code each provider stores on
+ * the sign-in error is read: other error messages can quote request data such as an
  * authorization code, so they never reach the log.
  */
-export function providerDetail(cause: unknown) {
-  if (!(cause instanceof Error)) return '';
-  const body = cause as Error & { error?: unknown; error_description?: unknown };
-  if (typeof body.error !== 'string') return '';
-  const description =
-    typeof body.error_description === 'string' ? `: ${body.error_description}` : '';
-  return ` (${body.error}${description})`;
+export function providerDetail(error: unknown) {
+  return error instanceof SignInError && error.providerCode ? ` (${error.providerCode})` : '';
 }
+
+/** Browser authentication services the routes and the access middleware use. */
+export type AuthenticationServices = {
+  login: (returnTo: string, request?: Request) => Promise<Response>;
+  callback: (request: Request) => Promise<Response>;
+  logout: (request: Request, current: Session | null) => Promise<Response>;
+  frontChannelLogout: (request: Request) => Promise<Response>;
+  session: (request: Request) => Promise<Session | null>;
+  sessions: SessionStore;
+};
 
 /** One audited sign-in, sign-out, session or directory event. */
 type SignInEvent = {
@@ -48,10 +55,10 @@ type SignInEvent = {
 export async function createServerAuthentication(
   ws: Workspace,
   config: ServerConfig,
-  suppliedClient?: OidcClient,
+  suppliedClient?: SignInProvider,
   remoteOptions: RemoteCredentialOptions = {},
 ) {
-  const client = suppliedClient ?? (await createOidcClient(config));
+  const client = suppliedClient ?? (await createSignInProvider(config));
   // The process keeps one administration repository: its writes are serialized only within one
   // instance, and each commit replaces the policy every request decides with.
   const repository = openAdminRepository({
@@ -90,13 +97,14 @@ export async function createServerAuthentication(
     ended: (session, reason) =>
       record({ action: 'sessionEnded', principal: session.principal, outcome: 'ok', reason }),
   });
+  await sessions.indexStored();
   const attempts = createAttemptStore(
     new Uint8Array(hkdfSync('sha256', config.sessionKey, '', 'sw-attempt', 32)),
     join(ws.layout.state, 'auth-attempts'),
   );
   function logFailure(request: Request | undefined, error: Error) {
     const requestId = (request as AuditRequest | undefined)?.[requestAuditId] ?? 'startup';
-    console.error(`[auth] ${requestId} ${error.message}${providerDetail(error.cause)}`);
+    console.error(`[auth] ${requestId} ${error.message}${providerDetail(error)}`);
   }
   function recordOrRefuse(event: SignInEvent): Response | undefined {
     try {
@@ -143,8 +151,11 @@ export async function createServerAuthentication(
       if (!(await sessions.update(session))) return null;
       return session;
     } catch (error) {
-      logFailure(request, signInError(error));
-      await sessions.end(session.id, 'refresh-failed');
+      const failure = asSignInError(error);
+      logFailure(request, failure);
+      // A session from before an update that changed its token format ends with its own reason.
+      const upgraded = failure.reason === 'session-upgraded';
+      await sessions.end(session.id, upgraded ? 'session-upgraded' : 'refresh-failed');
       return null;
     }
   }
@@ -191,7 +202,7 @@ export async function createServerAuthentication(
         },
       });
     } catch (error) {
-      const failure = signInError(error);
+      const failure = asSignInError(error);
       logFailure(request, failure);
       const refused = recordOrRefuse({
         action: 'signIn',
@@ -234,7 +245,7 @@ export async function createServerAuthentication(
         },
       });
     } catch (error) {
-      const failure = signInError(error);
+      const failure = asSignInError(error);
       logFailure(request, failure);
       const refused = recordOrRefuse({
         action: 'signIn',
@@ -260,13 +271,39 @@ export async function createServerAuthentication(
       if (refused) return refused;
       await sessions.end(current.id);
     }
-    const redirect = client.logout();
+    const redirect = client.logout(current?.tokens);
     const response =
       request.headers.get('X-SW-Request') === '1'
         ? Response.json({ redirect })
         : new Response(null, { status: 303, headers: { Location: redirect } });
     response.headers.set('Set-Cookie', sessionCookie('', config.publicUrl, 'session', 0));
     return response;
+  }
+  /**
+   * Ends the sessions the provider's session started, when the provider signs the person out
+   * elsewhere. The request carries no cookie: whoever knows the issuer and a session id can end
+   * that session, which the provider keeps private. The answer is always the same empty 200.
+   */
+  async function frontChannelLogout(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+    const sid = url.searchParams.get('sid') ?? '';
+    const issuer = url.searchParams.get('iss');
+    // Entra may leave the issuer out; one that is present must be the configured provider.
+    const accepted = sid !== '' && (issuer === null || issuer === config.oidc.issuer);
+    try {
+      if (accepted) await endProviderSession(sid, request);
+    } catch {
+      // The answer never tells the caller whether anything ended, so a failure is only logged.
+      logFailure(request, new Error('front-channel-logout-failed'));
+    }
+    return new Response(null, { status: 200, headers: { 'Cache-Control': 'no-store' } });
+  }
+  async function endProviderSession(sid: string, request: Request) {
+    const reason = 'provider-signed-out';
+    const ended = await sessions.endByProviderSession(config.oidc.issuer, sid, reason);
+    for (const session of ended) {
+      record({ action: 'signOut', principal: session.principal, outcome: 'ok', request });
+    }
   }
   const groupDirectory = createDirectoryClient({
     graphUrl: config.directory.graphUrl,
@@ -293,6 +330,14 @@ export async function createServerAuthentication(
     void sessions.sweep().catch(() => logFailure(undefined, new Error('session-sweep-failed')));
   }, 1000);
   timer.unref();
+  const authentication: AuthenticationServices = {
+    login,
+    callback,
+    logout,
+    frontChannelLogout,
+    session,
+    sessions,
+  };
   return {
     bearer: client.bearer,
     groupName,
@@ -309,12 +354,13 @@ export async function createServerAuthentication(
     mode: 'server' as const,
     publicOrigin: config.publicUrl,
     providerOrigin,
+    issuerOrigin: new URL(config.oidc.issuer).origin,
     access,
     administration: repository,
     audit,
     principal: async (request: Request) => (await session(request))?.principal ?? null,
     remoteCredentials,
-    authentication: { login, callback, logout, session, sessions },
+    authentication,
     close: () => clearInterval(timer),
   };
 }

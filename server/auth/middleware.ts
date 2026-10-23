@@ -37,6 +37,8 @@ export type HandlerOptions = {
   publicOrigin?: string;
   /** Origin of the provider's end-session page, which the sign-out form is redirected to. */
   providerOrigin?: string;
+  /** Origin of the issuer, the only page allowed to frame the front-channel logout route. */
+  issuerOrigin?: string;
   port?: number;
   authentication?: ServerAuthentication['authentication'];
   /** The one administration repository of the process, which project creation writes to. */

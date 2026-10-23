@@ -1,5 +1,5 @@
 // Holds revocable browser sessions and persists only authenticated ciphertext.
-import { randomBytes } from 'node:crypto';
+import { createHmac, randomBytes } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { atomicWrite, sha256 } from '../projects/atomic';
@@ -12,6 +12,15 @@ export type SessionTokens = {
   refreshToken?: string;
   idToken?: string;
   expiresAt: number;
+  /**
+   * MSAL's serialized token cache of the session (Entra only). It holds the refresh token, so
+   * it lives only inside the encrypted session record.
+   */
+  tokenCache?: string;
+  /** The provider's session (`sid` claim), which front-channel logout names to end this one. */
+  providerSession?: { issuer: string; sid: string };
+  /** Entra's `login_hint` claim, sent back as `logout_hint` so sign-out skips account choice. */
+  loginHint?: string;
 };
 /** A delegated token for one Git host, kept only inside the encrypted session. */
 export type RemoteToken = { token: string; expiresAt?: number };
@@ -98,6 +107,23 @@ export function createSessionStore(options: SessionOptions) {
     return next;
   }
   const path = (hash: string) => join(options.dir, hash + '.json');
+  // Front-channel logout names a provider session. This index finds the workbench sessions it
+  // started without decrypting every record; its keys are HMACs, never the provider's raw id.
+  const providerIndex = new Map<string, Set<string>>();
+  const providerKey = (issuer: string, sid: string) =>
+    createHmac('sha256', options.key)
+      .update(issuer + '\n' + sid)
+      .digest('hex');
+  function indexSession(hash: string, session: Session | undefined, present: boolean) {
+    const provider = session?.tokens.providerSession;
+    if (!provider) return;
+    const key = providerKey(provider.issuer, provider.sid);
+    const hashes = providerIndex.get(key) ?? new Set<string>();
+    if (present) hashes.add(hash);
+    else hashes.delete(hash);
+    if (hashes.size) providerIndex.set(key, hashes);
+    else providerIndex.delete(key);
+  }
 
   async function persist(hash: string, session: Session) {
     const { id: _id, ...payload } = session;
@@ -120,7 +146,9 @@ export function createSessionStore(options: SessionOptions) {
       }),
     );
     persistedAt.set(hash, session.lastSeenAt);
+    indexSession(hash, records.get(hash), false);
     records.set(hash, structuredClone(session));
+    indexSession(hash, session, true);
   }
 
   async function load(hash: string, id = ''): Promise<Session | null> {
@@ -154,13 +182,15 @@ export function createSessionStore(options: SessionOptions) {
     const session = { ...payload, id } as Session;
     persistedAt.set(hash, session.lastSeenAt);
     records.set(hash, session);
+    indexSession(hash, session, true);
     return structuredClone(session);
   }
 
-  async function remove(hash: string, reason: string) {
+  async function remove(hash: string, reason: string): Promise<Session | null> {
     const session = await load(hash);
-    if (!session) return;
+    if (!session) return null;
     if (existsSync(path(hash))) unlinkSync(path(hash));
+    indexSession(hash, session, false);
     records.delete(hash);
     persistedAt.delete(hash);
     for (const listener of listeners.get(hash) ?? []) listener();
@@ -170,6 +200,7 @@ export function createSessionStore(options: SessionOptions) {
     } catch (error) {
       console.error(`[auth] session-ended ${(error as Error).message}`);
     }
+    return session;
   }
   async function get(id: string, touch = true) {
     if (!/^[A-Za-z0-9_-]{43}$/.test(id)) return null;
@@ -232,8 +263,29 @@ export function createSessionStore(options: SessionOptions) {
     }
     return result;
   }
+  /** Reads every stored session once at start-up so front-channel logout can find it. */
+  async function indexStored() {
+    if (!existsSync(options.dir)) return;
+    for (const filename of readdirSync(options.dir)) {
+      if (!/^[a-f0-9]{64}\.json$/.test(filename)) continue;
+      const hash = filename.slice(0, -5);
+      await serialize(hash, () => load(hash));
+    }
+  }
+  /** Ends every workbench session the provider session started; returns the ended sessions. */
+  async function endByProviderSession(issuer: string, sid: string, reason: string) {
+    const hashes = [...(providerIndex.get(providerKey(issuer, sid)) ?? [])];
+    const ended: Session[] = [];
+    for (const hash of hashes) {
+      const session = await serialize(hash, () => remove(hash, reason));
+      if (session) ended.push(session);
+    }
+    return ended;
+  }
   return {
     list,
+    indexStored,
+    endByProviderSession,
     configure(limits: { idleHours: number; absoluteHours: number }) {
       idle = limits.idleHours * 3600000;
       absolute = limits.absoluteHours * 3600000;

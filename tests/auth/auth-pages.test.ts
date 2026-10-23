@@ -53,6 +53,7 @@ test('No access routing reads only the session identity and csrf token', async (
     login: async () => new Response(),
     callback: async () => new Response(),
     logout: async () => new Response(),
+    frontChannelLogout: async () => new Response(),
   });
   const response = await route(new Request('https://workbench.example/auth/no-access'));
   expect(await response!.text()).toContain('Identity only');
@@ -65,6 +66,7 @@ test('identity pages share script-free button and link styles', async () => {
     login: async () => new Response(),
     callback: async () => new Response(),
     logout: async () => new Response(),
+    frontChannelLogout: async () => new Response(),
   });
   const stylesheet = await route(new Request('https://workbench.example/auth/style.css'));
   expect(stylesheet!.headers.get('content-type')).toBe('text/css');

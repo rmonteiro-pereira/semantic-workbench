@@ -10,7 +10,14 @@ export type ProviderKind = 'entra' | 'keycloak' | 'generic';
 export type ClientAuth =
   | { kind: 'secret'; secret: string }
   | { kind: 'managed-identity' }
-  | { kind: 'private-key'; keyPath: string };
+  | { kind: 'private-key'; keyPath: string }
+  | CertificateCredential;
+
+/**
+ * An Entra certificate credential: the PEM private key and the certificate's thumbprint in hex,
+ * SHA-256 (64 characters, preferred) or SHA-1 (40 characters).
+ */
+export type CertificateCredential = { kind: 'certificate'; privateKey: string; thumbprint: string };
 
 /** Settings shared by both modes. */
 type CommonConfig = {
@@ -89,6 +96,17 @@ const GRAPH_ENDPOINTS = [
 
 const DEFAULT_SCOPES = 'openid profile email offline_access';
 
+/**
+ * Microsoft's sign-in hosts of the public and national clouds. An Entra issuer must be one of
+ * them, so the workbench's credential and people's refresh tokens go nowhere else.
+ */
+export const ENTRA_LOGIN_HOSTS = [
+  'login.microsoftonline.com',
+  'login.microsoftonline.us',
+  'login.chinacloudapi.cn',
+  'login.partner.microsoftonline.cn',
+];
+
 /** True when a host name or URL host is a loopback name. */
 export function isLoopbackHost(host: string) {
   return LOOPBACK_HOSTS.includes(host.toLowerCase());
@@ -148,10 +166,11 @@ function readServer(env: Env, common: CommonConfig, problems: ConfigProblem[]): 
   };
   const publicUrl = readPublicUrl(required('SW_PUBLIC_URL'), problems);
   const loopbackPublicUrl = publicUrl !== null && isLoopbackHost(new URL(publicUrl).hostname);
-  const issuer = readIssuer(required('SW_OIDC_ISSUER'), loopbackPublicUrl, problems);
-  const clientId = required('SW_OIDC_CLIENT_ID');
-  const clientAuth = readClientAuth(env, problems);
   const provider = readProvider(env, problems);
+  const issuer = readIssuer(required('SW_OIDC_ISSUER'), loopbackPublicUrl, problems);
+  if (provider === 'entra') checkEntraIssuer(issuer, loopbackPublicUrl, problems);
+  const clientId = required('SW_OIDC_CLIENT_ID');
+  const clientAuth = readClientAuth(env, provider, problems);
   const tenantId = provider === 'entra' ? required('SW_ENTRA_TENANT_ID') : null;
   const sessionKey = readSessionKey(env.SW_SESSION_KEY?.trim() ?? '', problems);
   const bootstrapAdmins = readBootstrapAdmins(required('SW_BOOTSTRAP_ADMINS'), problems);
@@ -234,24 +253,104 @@ function readIssuer(value: string, loopbackPublicUrl: boolean, problems: ConfigP
   return value.replace(/\/+$/, '');
 }
 
-function readClientAuth(env: Env, problems: ConfigProblem[]): ClientAuth {
+// The mock provider on a developer's machine is the only other Entra issuer, and only when the
+// workbench itself runs on loopback, the same rule as for a plain-http issuer.
+function checkEntraIssuer(issuer: string, loopbackPublicUrl: boolean, problems: ConfigProblem[]) {
+  if (!issuer) return;
+  const url = new URL(issuer);
+  const microsoftHost =
+    url.protocol === 'https:' && ENTRA_LOGIN_HOSTS.includes(url.hostname) && !url.port;
+  const developerMock = isLoopbackHost(url.hostname) && loopbackPublicUrl;
+  if (microsoftHost || developerMock) return;
+  problems.push({
+    variable: 'SW_OIDC_ISSUER',
+    message:
+      'with SW_OIDC_PROVIDER=entra must be https://<login host>/<tenant>/v2.0 without a port, ' +
+      `on ${ENTRA_LOGIN_HOSTS.join(', ')}.`,
+  });
+}
+
+function readClientAuth(env: Env, provider: ProviderKind, problems: ConfigProblem[]): ClientAuth {
   const secret = env.SW_OIDC_CLIENT_SECRET?.trim();
   const assertion = env.SW_OIDC_CLIENT_ASSERTION?.trim();
+  const certificate = readCertificate(env, provider, problems);
   if (secret && assertion) {
     problems.push({
       variable: 'SW_OIDC_CLIENT_SECRET or SW_OIDC_CLIENT_ASSERTION',
       message: 'set one of them, not both.',
     });
   }
-  if (!secret && !assertion) {
+  if (certificate && (secret || assertion)) {
     problems.push({
-      variable: 'SW_OIDC_CLIENT_SECRET or SW_OIDC_CLIENT_ASSERTION',
-      message: 'one of them is required in server mode.',
+      variable: 'SW_OIDC_CLIENT_CERTIFICATE_KEY',
+      message: 'set one credential: a certificate, a client secret or an assertion, not several.',
     });
   }
+  if (!secret && !assertion && certificate === undefined) {
+    problems.push({
+      variable: 'SW_OIDC_CLIENT_SECRET or SW_OIDC_CLIENT_ASSERTION',
+      message:
+        'one of them, or SW_OIDC_CLIENT_CERTIFICATE_KEY with ' +
+        'SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT (Entra only), is required in server mode.',
+    });
+  }
+  if (certificate) return certificate;
   if (assertion === 'managed-identity') return { kind: 'managed-identity' };
-  if (assertion) return { kind: 'private-key', keyPath: assertion };
+  if (assertion) return readPrivateKeyPath(assertion, provider, problems);
   return { kind: 'secret', secret: secret ?? '' };
+}
+
+// Entra accepts a signed client assertion only when its header names the certificate, which a
+// bare key file cannot do, so Entra takes the certificate pair instead.
+function readPrivateKeyPath(
+  keyPath: string,
+  provider: ProviderKind,
+  problems: ConfigProblem[],
+): ClientAuth {
+  if (provider === 'entra') {
+    problems.push({
+      variable: 'SW_OIDC_CLIENT_ASSERTION',
+      message:
+        'with Entra use "managed-identity", or a certificate through ' +
+        'SW_OIDC_CLIENT_CERTIFICATE_KEY and SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT.',
+    });
+  }
+  return { kind: 'private-key', keyPath };
+}
+
+/**
+ * Reads the certificate pair. Returns undefined when neither variable is set and null when the
+ * pair is present but unusable, so the caller does not report a missing credential twice.
+ */
+function readCertificate(
+  env: Env,
+  provider: ProviderKind,
+  problems: ConfigProblem[],
+): CertificateCredential | null | undefined {
+  const privateKey = env.SW_OIDC_CLIENT_CERTIFICATE_KEY?.trim();
+  const thumbprint = env.SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT?.replaceAll(':', '').trim();
+  if (!privateKey && !thumbprint) return undefined;
+  const problemCount = problems.length;
+  if (!privateKey || !/-----BEGIN (RSA )?PRIVATE KEY-----/.test(privateKey)) {
+    problems.push({
+      variable: 'SW_OIDC_CLIENT_CERTIFICATE_KEY',
+      message: 'must be the PEM private key of the certificate (-----BEGIN PRIVATE KEY-----).',
+    });
+  }
+  if (!thumbprint || !/^([0-9a-f]{40}|[0-9a-f]{64})$/i.test(thumbprint)) {
+    problems.push({
+      variable: 'SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT',
+      message: 'must be the certificate thumbprint in hex: SHA-256 (64 characters) or SHA-1 (40).',
+    });
+  }
+  if (provider !== 'entra') {
+    problems.push({
+      variable: 'SW_OIDC_CLIENT_CERTIFICATE_KEY',
+      message: 'certificate credentials are supported with SW_OIDC_PROVIDER=entra only.',
+    });
+  }
+  if (problems.length > problemCount) return null;
+  return { kind: 'certificate', privateKey: privateKey!, thumbprint: thumbprint!.toLowerCase() };
 }
 
 function readProvider(env: Env, problems: ConfigProblem[]): ProviderKind {

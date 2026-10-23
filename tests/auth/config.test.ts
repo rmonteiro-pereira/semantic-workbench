@@ -265,3 +265,107 @@ test('Azure DevOps on-behalf-of is an Entra grant and can be turned off', () => 
     expect((other as ServerConfig).adoOnBehalfOf).toBe(false);
   }
 });
+
+describe('Entra certificate credential', () => {
+  const privateKey = '-----BEGIN PRIVATE KEY-----\nMIIE\n-----END PRIVATE KEY-----';
+  const thumbprint = 'AB:'.repeat(31) + 'AB';
+
+  /** The Entra environment with the certificate pair instead of the client secret. */
+  function certificateEnvironment(): Record<string, string> {
+    const env: Record<string, string> = {
+      ...entraEnvironment(),
+      SW_OIDC_CLIENT_CERTIFICATE_KEY: privateKey,
+      SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT: thumbprint,
+    };
+    delete env.SW_OIDC_CLIENT_SECRET;
+    return env;
+  }
+
+  test('the PEM key and the hex thumbprint form the credential', () => {
+    const config = readConfig(certificateEnvironment()) as ServerConfig;
+    expect(config.oidc.clientAuth).toEqual({
+      kind: 'certificate',
+      privateKey,
+      thumbprint: 'ab'.repeat(32),
+    });
+  });
+
+  test('both halves are required and must be well formed', () => {
+    const withoutThumbprint = certificateEnvironment();
+    delete withoutThumbprint.SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT;
+    expect(failingVariables(withoutThumbprint)).toEqual(['SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT']);
+    const shortThumbprint = {
+      ...certificateEnvironment(),
+      SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT: 'ab',
+    };
+    expect(failingVariables(shortThumbprint)).toEqual(['SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT']);
+    const notPem = { ...certificateEnvironment(), SW_OIDC_CLIENT_CERTIFICATE_KEY: 'secret' };
+    expect(failingVariables(notPem)).toEqual(['SW_OIDC_CLIENT_CERTIFICATE_KEY']);
+  });
+
+  test('a certificate is the only credential and is for Entra only', () => {
+    const withSecret = { ...certificateEnvironment(), SW_OIDC_CLIENT_SECRET: 'secret' };
+    expect(failingVariables(withSecret)).toEqual(['SW_OIDC_CLIENT_CERTIFICATE_KEY']);
+    const keycloak = { ...certificateEnvironment(), SW_OIDC_PROVIDER: 'keycloak' };
+    expect(failingVariables(keycloak)).toEqual(['SW_OIDC_CLIENT_CERTIFICATE_KEY']);
+  });
+
+  test('Entra refuses a bare private-key file, which cannot name its certificate', () => {
+    const keyFile: Record<string, string> = {
+      ...entraEnvironment(),
+      SW_OIDC_CLIENT_ASSERTION: '/run/secrets/client.pem',
+    };
+    delete keyFile.SW_OIDC_CLIENT_SECRET;
+    expect(failingVariables(keyFile)).toEqual(['SW_OIDC_CLIENT_ASSERTION']);
+    const generic = { ...keyFile, SW_OIDC_PROVIDER: 'generic' };
+    const config = readConfig(generic) as ServerConfig;
+    expect(config.oidc.clientAuth).toEqual({
+      kind: 'private-key',
+      keyPath: '/run/secrets/client.pem',
+    });
+  });
+});
+
+describe('Entra issuer host', () => {
+  const tenant = '4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f';
+
+  test('Entra accepts the sign-in hosts of the public and national clouds, without a port', () => {
+    for (const host of [
+      'login.microsoftonline.com',
+      'login.microsoftonline.us',
+      'login.chinacloudapi.cn',
+      'login.partner.microsoftonline.cn',
+    ]) {
+      const issuer = `https://${host}/${tenant}/v2.0`;
+      const config = readConfig({ ...entraEnvironment(), SW_OIDC_ISSUER: issuer }) as ServerConfig;
+      expect(config.oidc.issuer).toBe(issuer);
+    }
+    for (const issuer of [
+      `https://login.microsoftonline.com:8443/${tenant}/v2.0`,
+      `https://login.example.org/${tenant}/v2.0`,
+    ]) {
+      expect(failingVariables({ ...entraEnvironment(), SW_OIDC_ISSUER: issuer })).toEqual([
+        'SW_OIDC_ISSUER',
+      ]);
+    }
+  });
+
+  test('a loopback Entra issuer needs a loopback public URL, even over https', () => {
+    const issuer = `https://127.0.0.1:4400/${tenant}/v2.0`;
+    expect(failingVariables({ ...entraEnvironment(), SW_OIDC_ISSUER: issuer })).toEqual([
+      'SW_OIDC_ISSUER',
+    ]);
+    const local = {
+      ...entraEnvironment(),
+      SW_OIDC_ISSUER: issuer,
+      SW_PUBLIC_URL: 'http://127.0.0.1:4310',
+    };
+    expect((readConfig(local) as ServerConfig).oidc.issuer).toBe(issuer);
+    const keycloak = {
+      ...entraEnvironment(),
+      SW_OIDC_PROVIDER: 'keycloak',
+      SW_OIDC_ISSUER: 'https://sso.example.org/realms/workbench',
+    };
+    expect((readConfig(keycloak) as ServerConfig).oidc.issuer).toBe(keycloak.SW_OIDC_ISSUER);
+  });
+});

@@ -1117,6 +1117,71 @@ mutants.push(
   ],
 );
 
+// Entra sign-in through MSAL. Each mutant undoes one guard: the library choice, the cache kept in
+// the session only, PKCE, the state check, a refresh that must bring a new ID token, the
+// certificate credential, group overage, the loopback issuer rule, the sign-in host list, and the
+// front-channel issuer.
+mutants.push(
+  [
+    'msal-choice',
+    'server/auth/sign-in-provider.ts',
+    "return provider === 'entra' ? 'msal' : 'openid-client';",
+    "return 'openid-client';",
+  ],
+  [
+    'msal-cache',
+    'server/auth/msal-provider.ts',
+    'if (context.cacheHasChanged) cache.serialized = context.tokenCache.serialize();',
+    'if (context.cacheHasChanged) cache.serialized = context.tokenCache.serialize();\n' +
+      "      void Bun.write('/tmp/msal-token-cache.json', context.tokenCache.serialize());",
+  ],
+  ['msal-pkce', 'server/auth/msal-provider.ts', '    codeVerifier: attempt.verifier,\n', ''],
+  [
+    'msal-state',
+    'server/auth/msal-provider.ts',
+    '    codeVerifier: attempt.verifier,\n    state: attempt.state,\n',
+    '    codeVerifier: attempt.verifier,\n',
+  ],
+  ['msal-refresh', 'server/auth/msal-provider.ts', '    tokenCache: cache.serialized,\n', ''],
+  [
+    'msal-refresh',
+    'server/auth/msal-provider.ts',
+    "  if (result.idToken === tokens.idToken) throw new SignInError('token-invalid');\n",
+    '',
+  ],
+  [
+    'msal-certificate',
+    'server/auth/msal-provider.ts',
+    'return { clientCertificate: { ...certificate, thumbprintSha256: auth.thumbprint } };',
+    'return { clientSecret: auth.thumbprint };',
+  ],
+  [
+    'msal-certificate',
+    'server/auth/msal-provider.ts',
+    'return { clientCertificate: { ...certificate, thumbprint: auth.thumbprint } };',
+    'return { clientSecret: auth.thumbprint };',
+  ],
+  ['msal-overage', 'server/auth/authentication.ts', 'if (identity.groupOverage) {', 'if (false) {'],
+  [
+    'msal-authority',
+    'server/config.ts',
+    'const developerMock = isLoopbackHost(url.hostname) && loopbackPublicUrl;',
+    'const developerMock = isLoopbackHost(url.hostname);',
+  ],
+  [
+    'msal-host',
+    'server/auth/msal-provider.ts',
+    "url.protocol === 'https:' && ENTRA_LOGIN_HOSTS.includes(url.hostname) && !url.port;",
+    "url.protocol === 'https:' && !url.port;",
+  ],
+  [
+    'front-channel-issuer',
+    'server/auth/authentication.ts',
+    "sid !== '' && (issuer === null || issuer === config.oidc.issuer);",
+    "sid !== '';",
+  ],
+);
+
 let killed = 0;
 // The askpass program is a shell script, so its mutants run the askpass case with the mutated
 // script beside an unchanged Git module.

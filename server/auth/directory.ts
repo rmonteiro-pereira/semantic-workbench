@@ -1,5 +1,6 @@
 // Resolves only configured directory groups using an application credential.
 import type { AccessConfig } from './access-config';
+import { isLoopbackHost } from '../config';
 
 /** Public directory lookup result, including a recoverable unresolved name. */
 export type GroupName = { id: string; displayName: string | null; resolved: boolean };
@@ -59,6 +60,15 @@ export function directoryGroupIds(config: AccessConfig): string[] {
     project.restricted.flatMap(rule => rule.groups),
   );
   return [...new Set([...grants, ...restricted].map(id => id.toLowerCase()))];
+}
+
+/**
+ * The scope of the application token for directory lookups. The mock provider's Graph stand-in
+ * on loopback is addressed with Microsoft Graph's own scope, as the real Graph would be.
+ */
+export function directoryScope(graphUrl: string): string {
+  if (isLoopbackHost(new URL(graphUrl).hostname)) return 'https://graph.microsoft.com/.default';
+  return graphUrl + '/.default';
 }
 
 /** Creates a bounded directory client with injectable token and HTTP edges. */

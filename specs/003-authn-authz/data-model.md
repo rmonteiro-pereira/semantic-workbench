@@ -66,8 +66,23 @@ is for `/api/me`, Users & groups and the access check.
 | `iv`, `ciphertext`, `tag` | base64 (payload below) |
 
 Payload: `{principalId, createdAt, lastSeenAt, expiresAt, idToken, accessToken, accessTokenExpiresAt,
-refreshToken?, claims (normalised principal snapshot), remote: {azureDevOps?: {token, expiresAt},
-github?: {host, token, expiresAt?, refreshToken?}, githubAttempt?: {state, returnTo, expiresAt}}}`. Deleted on sign-out, expiry or End session.
+refreshToken?, tokenCache?, providerSession?, loginHint?, claims (normalised principal snapshot),
+remote: {azureDevOps?: {token, expiresAt}, github?: {host, token, expiresAt?, refreshToken?},
+githubAttempt?: {state, returnTo, expiresAt}}}`. Deleted on sign-out, expiry or End session.
+
+`refreshToken` is set by the openid-client path (Keycloak, generic providers). With Entra, MSAL
+keeps the refresh token in its own token cache instead: `tokenCache` is MSAL's serialized cache of
+this session only (its account, ID token, access token and refresh token). MSAL reads and writes
+it through a cache plugin bound to the session, so it exists only inside this encrypted payload;
+it is never written to disk on its own, never logged and never sent to the browser.
+
+Both libraries also keep `providerSession` (`{issuer, sid}` from the verified `sid` claim) and
+`loginHint` (Entra's optional `login_hint` claim) in the payload. Front-channel logout finds the
+sessions of a provider session through an in-memory index keyed by
+HMAC-SHA256(session key, `issuer` + newline + `sid`), rebuilt from the session records at start-up
+and kept current on create, update, end and sweep; the raw `sid` is never logged. A session
+created before Entra moved to MSAL has no `tokenCache`; its first refresh ends it with the audit
+reason `session-upgraded`.
 
 ## User record (`state/users.json`)
 

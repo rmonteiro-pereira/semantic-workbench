@@ -16,12 +16,19 @@ import {
   type ProviderState,
 } from './mock-oidc-state';
 
-export type { ClaimShape, MockEndpoint, MockOidcOptions } from './mock-oidc-state';
+export type {
+  ClaimShape,
+  ClientCertificate,
+  MockEndpoint,
+  MockOidcOptions,
+} from './mock-oidc-state';
 
 /** Running provider endpoints, request history and isolated test controls. */
 export type MockOidc = {
   origin: string;
   issuer: string;
+  /** Prefix of the authorize, token and logout endpoints: the issuer, or Entra's layout. */
+  endpointBase: string;
   graphUrl: string;
   apiAudience: string;
   calls: { endpoint: string; params: Record<string, string> }[];
@@ -35,23 +42,39 @@ export type MockOidc = {
   setClockOffset(seconds: number): void;
   fail(endpoint: MockEndpoint, mode: 'error' | 'hang' | null): void;
   rotateKeys(): void;
+  /**
+   * Signs a user out at the provider as another application would, calling the workbench's
+   * front-channel logout URL for each of the user's provider sessions. Returns the status codes.
+   */
+  signOutAtProvider(username: string): Promise<number[]>;
   /** Completes authorization as a chosen user and returns the browser redirect URL. */
   authorizeAs(username: string, authorizeUrl: string): Promise<string>;
 };
 
+// Entra publishes its endpoints under these paths of the tenant rather than under the issuer.
+const ENTRA_ENDPOINTS = `/${TEST_TENANT_ID}/oauth2/v2.0`;
+const ENTRA_KEYS = `/${TEST_TENANT_ID}/discovery/v2.0/keys`;
+
+function entraLayout(state: ProviderState): boolean {
+  return state.options.layout === 'entra';
+}
+
 function discoveryEndpoint(state: ProviderState): Response {
+  const authMethods = ['client_secret_basic', 'client_secret_post'];
   return Response.json({
     issuer: state.issuer,
-    authorization_endpoint: `${state.issuer}/authorize`,
-    token_endpoint: `${state.issuer}/token`,
-    jwks_uri: `${state.issuer}/keys`,
-    end_session_endpoint: `${state.issuer}/logout`,
+    authorization_endpoint: `${state.endpointBase}/authorize`,
+    token_endpoint: `${state.endpointBase}/token`,
+    jwks_uri: entraLayout(state) ? state.origin + ENTRA_KEYS : `${state.issuer}/keys`,
+    end_session_endpoint: `${state.endpointBase}/logout`,
     userinfo_endpoint: `${state.issuer}/userinfo`,
     response_types_supported: ['code'],
     subject_types_supported: ['pairwise'],
     code_challenge_methods_supported: ['S256'],
     id_token_signing_alg_values_supported: ['RS256'],
-    token_endpoint_auth_methods_supported: ['client_secret_basic', 'client_secret_post'],
+    token_endpoint_auth_methods_supported: entraLayout(state)
+      ? [...authMethods, 'private_key_jwt']
+      : authMethods,
     grant_types_supported: [
       'authorization_code',
       'refresh_token',
@@ -103,7 +126,7 @@ function authorizePage(state: ProviderState, params: URLSearchParams): Response 
     .join('\n');
   const html =
     '<!doctype html><html><head><title>Mock sign-in</title></head><body>' +
-    `<h1>Mock sign-in</h1><form method="post" action="${state.issuer}/authorize">` +
+    `<h1>Mock sign-in</h1><form method="post" action="${state.endpointBase}/authorize">` +
     `${hidden}${buttons}</form></body></html>`;
   return new Response(html, { headers: { 'content-type': 'text/html; charset=utf-8' } });
 }
@@ -111,7 +134,10 @@ function authorizePage(state: ProviderState, params: URLSearchParams): Response 
 function authorizeRedirect(state: ProviderState, params: URLSearchParams, username: string) {
   if (!Object.hasOwn(state.users, username)) return new Response('Unknown user', { status: 400 });
   const code = crypto.randomUUID();
+  const sid = crypto.randomUUID();
+  state.providerSessions.set(sid, username);
   state.codes.set(code, {
+    sid,
     username,
     clientId: params.get('client_id')!,
     redirectUri: params.get('redirect_uri')!,
@@ -207,6 +233,10 @@ async function graphEndpoint(state: ProviderState, request: Request, path: strin
 function endpointName(state: ProviderState, path: string): string {
   if (/^\/graph\/v1.0\/users\/[^/]+\/checkMemberGroups$/.test(path)) return 'graph-check';
   if (/^\/graph\/v1.0\/groups\/[^/]+$/.test(path)) return 'graph-group';
+  if (entraLayout(state) && path === ENTRA_KEYS) return 'jwks';
+  if (entraLayout(state) && path.startsWith(ENTRA_ENDPOINTS + '/')) {
+    return path.slice(ENTRA_ENDPOINTS.length + 1);
+  }
   const prefix = new URL(state.issuer).pathname.replace(/\/$/, '');
   if (!path.startsWith(`${prefix}/`)) return 'unknown';
   const relative = path.slice(prefix.length);
@@ -310,9 +340,24 @@ function providerControls(state: ProviderState) {
   };
 }
 
+async function signOutAtProvider(state: ProviderState, username: string) {
+  const target = state.options.frontChannelLogoutUri;
+  if (!target) throw new Error('No front-channel logout URL is registered');
+  const sids = [...state.providerSessions].filter(([, user]) => user === username);
+  const statuses: number[] = [];
+  for (const [sid] of sids) {
+    const url = new URL(target);
+    url.searchParams.set('iss', state.issuer);
+    url.searchParams.set('sid', sid);
+    statuses.push((await fetch(url)).status);
+    state.providerSessions.delete(sid);
+  }
+  return statuses;
+}
+
 async function authorizeAs(state: ProviderState, username: string, authorizeUrl: string) {
   const url = new URL(authorizeUrl);
-  const expected = new URL(`${state.issuer}/authorize`);
+  const expected = new URL(`${state.endpointBase}/authorize`);
   if (url.origin !== expected.origin || url.pathname !== expected.pathname) {
     throw new Error('Authorization URL does not belong to this provider');
   }
@@ -325,6 +370,9 @@ async function authorizeAs(state: ProviderState, username: string, authorizeUrl:
 
 /** Starts an isolated provider bound exclusively to the IPv4 loopback interface. */
 export async function startMockOidc(options: MockOidcOptions = {}): Promise<MockOidc> {
+  if (options.layout === 'entra' && (options.shape ?? 'entra') !== 'entra') {
+    throw new Error("Entra's endpoint layout needs Entra-shaped claims.");
+  }
   const state = await createProviderState(options);
   const server = Bun.serve({
     hostname: '127.0.0.1',
@@ -336,15 +384,18 @@ export async function startMockOidc(options: MockOidcOptions = {}): Promise<Mock
   state.issuer = state.origin;
   if (state.options.shape === 'entra') state.issuer += `/${TEST_TENANT_ID}/v2.0`;
   if (state.options.shape === 'keycloak') state.issuer += '/realms/workbench';
+  state.endpointBase = entraLayout(state) ? state.origin + ENTRA_ENDPOINTS : state.issuer;
   state.graphUrl = `${state.origin}/graph`;
   return {
     origin: state.origin,
     issuer: state.issuer,
+    endpointBase: state.endpointBase,
     graphUrl: state.graphUrl,
     apiAudience: state.apiAudience,
     calls: state.calls,
     ...providerControls(state),
     authorizeAs: (username, url) => authorizeAs(state, username, url),
+    signOutAtProvider: username => signOutAtProvider(state, username),
     async stop() {
       state.stopped = true;
       for (const endpoint of state.pending.keys()) releasePending(state, endpoint);

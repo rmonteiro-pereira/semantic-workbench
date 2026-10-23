@@ -1,5 +1,4 @@
 // Adapts the mock provider's token implementation to an in-memory HTTP edge for socketless tests.
-import type { CustomFetch } from 'openid-client';
 import { SignJWT, decodeJwt } from 'jose';
 import { createProviderState, type ClaimShape } from './mock-oidc-state';
 import { tokenEndpoint } from './mock-oidc-grants';
@@ -13,10 +12,7 @@ export async function oidcTransport(shape: ClaimShape = 'entra') {
   let change: Record<string, unknown> = {};
   let wrongSignature = false;
   const config = oidcConfig(state.issuer, state.graphUrl, shape);
-  async function request(
-    input: Parameters<CustomFetch>[0],
-    init: Parameters<CustomFetch>[1],
-  ): Promise<Response> {
+  async function request(input: string, init: RequestInit): Promise<Response> {
     const url = new URL(input);
     if (url.pathname.endsWith('/.well-known/openid-configuration')) {
       return Response.json({

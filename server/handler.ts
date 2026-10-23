@@ -20,7 +20,7 @@ import { readJson } from './request';
 import { InputError, MAX_INPUT_BYTES } from '../src/diagnostics';
 import { NotFoundError, StaleError, type Workspace } from './projects/workspace';
 import { errorResponse, type Route } from './routes/http';
-import { authRoutes } from './routes/auth';
+import { authRoutes, FRONT_CHANNEL_LOGOUT_PATH } from './routes/auth';
 import { meResponse } from './routes/me';
 import { serveStatic, securityHeaders } from './static';
 import { eventRoutes } from './routes/events';
@@ -352,7 +352,11 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
   if (options.mode !== 'server') return boundary;
   return async (request: Request) => {
     const response = await boundary(request);
-    for (const [name, value] of securityHeaders(options.publicOrigin, options.providerOrigin)) {
+    // Only the provider's sign-out page may frame the front-channel logout route.
+    const frontChannel = new URL(request.url).pathname === FRONT_CHANNEL_LOGOUT_PATH;
+    const framing = frontChannel ? options.issuerOrigin : undefined;
+    const headers = securityHeaders(options.publicOrigin, options.providerOrigin, framing);
+    for (const [name, value] of headers) {
       if (name.toLowerCase() !== 'cache-control') response.headers.set(name, value);
     }
     if (!response.headers.has('Cache-Control')) response.headers.set('Cache-Control', 'no-store');

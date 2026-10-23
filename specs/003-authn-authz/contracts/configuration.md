@@ -7,12 +7,14 @@
 | `SW_CACHE_DIR` | both | no (data root) | SQLite cache folder; container local disk recommended |
 | `SW_HOST`, `SW_PORT` | both | no (`127.0.0.1`, 4310) | local mode refuses non-loopback `SW_HOST` |
 | `SW_PUBLIC_URL` | server | yes | external HTTPS origin, e.g. `https://workbench.example.org` |
-| `SW_OIDC_ISSUER` | server | yes | provider issuer URL (Entra: `https://login.microsoftonline.com/<tid>/v2.0`); an `http://` issuer is refused unless `SW_PUBLIC_URL` is a loopback URL (mock OpenID provider and Keycloak compatibility only, FR-141) |
+| `SW_OIDC_ISSUER` | server | yes | provider issuer URL (Entra: `https://login.microsoftonline.com/<tid>/v2.0`); an `http://` issuer is refused unless `SW_PUBLIC_URL` is a loopback URL (mock OpenID provider and Keycloak compatibility only, FR-141); for Entra it must be `https://<login host>/<SW_ENTRA_TENANT_ID>/v2.0` without a port on `login.microsoftonline.com`, `login.microsoftonline.us`, `login.chinacloudapi.cn` or `login.partner.microsoftonline.cn`, or a loopback host only when `SW_PUBLIC_URL` is loopback (the mock provider), else start-up stops |
 | `SW_OIDC_CLIENT_ID` | server | yes | |
+| `SW_OIDC_CLIENT_CERTIFICATE_KEY` | server/entra | one of (preferred for Entra) | PEM private key of the App Registration's certificate (`-----BEGIN PRIVATE KEY-----`); Key Vault reference; set together with the thumbprint |
+| `SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT` | server/entra | with the key | the certificate's thumbprint in hex, SHA-256 (64 characters, preferred) or SHA-1 (40); colons are ignored; Key Vault reference or plain value |
 | `SW_OIDC_CLIENT_SECRET` | server | one of | secret reference |
-| `SW_OIDC_CLIENT_ASSERTION` | server | one of | `managed-identity` (Entra federated credential of `id-sw-app`; uses the platform identity endpoint) or a private key path |
+| `SW_OIDC_CLIENT_ASSERTION` | server | one of | `managed-identity` (Entra federated credential of `id-sw-app`; uses the platform identity endpoint; passed to MSAL as its client assertion) or, for Keycloak and generic providers only, a private key path |
 | `SW_OIDC_SCOPES` | server | no | default `openid profile email offline_access` (+ `api://<client>/access_as_user` for Entra) |
-| `SW_OIDC_PROVIDER` | server | no (`generic`) | `entra`, `keycloak`, `generic` (claim mapping preset) |
+| `SW_OIDC_PROVIDER` | server | no (`generic`) | `entra`, `keycloak`, `generic`: the claim mapping preset and the sign-in library (`entra` signs in through MSAL Node; the others through `openid-client`) |
 | `SW_ENTRA_TENANT_ID` | server/entra | yes for Entra | `tid` allow-list |
 | `SW_GROUP_CLAIM` | server | no (`groups`) | claim holding group ids (Entra) or names/paths (Keycloak) matched against group grants |
 | `SW_GROUP_OVERAGE` | server/entra | no (`directory`) | `directory` (Graph checkMemberGroups) or `off` |

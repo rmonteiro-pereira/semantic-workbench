@@ -174,6 +174,7 @@ export async function twoEditorsCheck() {
   const url = `http://127.0.0.1:${freeAuthPort()}`;
   const mock = await startMockOidc({
     shape: 'entra',
+    layout: 'entra',
     port: 0,
     redirectUris: [url + '/auth/callback'],
     postLogoutRedirectUris: [url + '/auth/signed-out'],
@@ -184,7 +185,8 @@ export async function twoEditorsCheck() {
     try {
       const browser = await chromium.launch({ headless: true });
       try {
-        const target: SignInTarget = { url, issuer: mock.issuer, kind: 'entra' };
+        // Entra's authorize endpoint sits beside the issuer, under endpointBase.
+        const target: SignInTarget = { url, issuer: mock.endpointBase, kind: 'entra' };
         const [alice, frank, bob, carol] = await Promise.all(
           (['alice', 'frank', 'bob', 'carol'] as const).map(name =>
             signedIn(browser, target, name),

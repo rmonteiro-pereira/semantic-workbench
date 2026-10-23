@@ -30,7 +30,8 @@ bun run test:auth              # browser: starts the mock provider (Entra shape)
 Expected: matrix reports 0 mismatches and 0 leaked markers (SC-001, SC-002); every sign-in case of
 SC-019 passes. This is what the target pipeline runs; it needs no network.
 
-Manual run against the mock: `bun run mock-oidc -- --port 8081 --shape entra` prints its issuer
+Manual run against the mock: `bun run mock-oidc -- --port 8081 --shape entra --layout entra`
+(Entra's endpoint paths; the server signs in through MSAL either way) prints its issuer
 (`http://127.0.0.1:8081/<tenant-id>/v2.0`), client id and secret; start the server as below with
 `SW_OIDC_PROVIDER=entra`, that issuer, `SW_ENTRA_TENANT_ID=<tenant-id>` and
 `SW_GRAPH_URL=http://127.0.0.1:8081/graph`, and pick a test user on the chooser page (the mock's
@@ -105,17 +106,20 @@ The target uses Entra only. The mock covers the flow and claim mapping; this che
 what the mock cannot (conditional access, consent, tenant token lifetimes, real Graph and Azure
 DevOps permissions).
 
-1. App registration (single tenant), redirect `https://<host>/auth/callback`, front-channel
-   logout URL, post-sign-out redirect `https://<host>/auth/signed-out`. No app roles are needed
-   (roles come from the workbench's access grants).
+1. App registration (single tenant) as in
+   [deploy/README.md](../../deploy/README.md#entra-app-registration): Web redirects
+   `https://<host>/auth/callback` and `https://<host>/auth/signed-out` (post-sign-out), front-channel
+   logout URL `https://<host>/auth/front-channel-logout`. No app roles are needed for people (roles come from the workbench's
+   access grants).
 2. Token configuration: groups claim "Security groups" emitting group IDs (or "Groups assigned
    to the application" if the target assigns the granted groups to the enterprise application,
    which avoids overage); optional claims `email`, `upn` and `xms_edov` on the ID token.
 3. Expose an API `api://<client-id>` with scope `access_as_user`; add API permission Azure DevOps
    `user_impersonation`; application permission `GroupMember.Read.All` (overage resolution and
    group display names); grant admin consent.
-4. Credential: federated credential for the container app's user-assigned identity `id-sw-app` (or a secret in Key
-   Vault).
+4. Credential: a certificate from Key Vault (preferred), the federated credential for the
+   container app's user-assigned identity `id-sw-app`, or a client secret in Key Vault
+   ([deploy/README.md](../../deploy/README.md#entra-app-registration)).
 5. Create the Azure resources and Azure DevOps items of
    [delivery-pipeline.md](./contracts/delivery-pipeline.md) by hand following `deploy/README.md`
    and deploy through the target's pipeline (§7).

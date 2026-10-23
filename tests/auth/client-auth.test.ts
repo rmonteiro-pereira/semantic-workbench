@@ -1,6 +1,6 @@
 // Checks platform assertion exchange and confidential-client choices without network calls.
 import { expect, test } from 'bun:test';
-import { managedIdentityAssertion } from '../../server/auth/oidc';
+import { managedIdentityAssertion } from '../../server/auth/managed-identity';
 
 test('managed identity asks the platform only for the Azure token-exchange audience', async () => {
   let requested = '';

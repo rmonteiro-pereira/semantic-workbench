@@ -41,17 +41,22 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `server/routes/` | One file per resource (`projects`, `files`, `git`, `clone`, `repos`, `trash`, `metrics`, ...): parse and check the request, call the workspace, shape the response | File or Git operations |
 | `server/projects/workspace.ts` | `openWorkspace()`, the composition root: registry, saves, imports, moves, scans, events, and the wiring of the services below | HTTP parsing |
 | `server/projects/` (other) | One service per concern: `git.ts` (the only place Git runs), `scm.ts` (Source Control), `clone.ts`, `journal.ts` (all-or-nothing renames), `trash.ts`, `repositories.ts` (which folders of a repository are projects: the `.semantic-workbench.json` manifest and detection) and `repository-projects.ts` (registering them), `scanner.ts` and `cache.ts` (the index), `state.ts` (registry, drafts, view settings), `paths.ts` (every path check), `events.ts` (server-sent events), `watcher.ts`, `worktrees.ts` (server-mode working copies: `git worktree`, branch holders, the compare-and-swap publish, the merge from the default branch), `working-copies.ts` (which copy a request reads and writes, per-person index, Source Control and idle release, the copy shown in the project listing), `publishing.ts` (publishing, and the default branch following a fetch), `unpublished-work.ts` (unpublished work kept in the trash and counted for a delete) | Browser code |
-| `server/auth/sessions.ts`, `server/auth/attempts.ts` | Encrypted session persistence, revocation and signed single-use sign-in attempts | Provider protocol |
-| `server/auth/oidc.ts` | OIDC discovery, code exchange, signature checks, refresh and client authentication | Grant decisions |
+| `server/auth/sessions.ts`, `server/auth/attempts.ts` | Encrypted session persistence, revocation, the provider-session index front-channel logout uses (HMAC keys, never the raw `sid`), and signed single-use sign-in attempts with `safeReturnTo` | Provider protocol |
+| `server/auth/sign-in-provider.ts` | The sign-in provider interface (login URL, callback, refresh, logout with the session's `logout_hint`, application token, on-behalf-of) and the choice of library by `SW_OIDC_PROVIDER`: Entra → MSAL, Keycloak and generic → openid-client | Protocol details of either library |
+| `server/auth/msal-provider.ts` | Entra through MSAL Node: authorization code with PKCE, the per-session token cache plugin (the cache lives only in the encrypted session record), silent refresh, sign-out URL, certificate, secret or managed-identity credential, Graph and on-behalf-of application tokens; the Entra authority and discovery checks | Session persistence or grant decisions |
+| `server/auth/oidc.ts` | openid-client path for Keycloak and generic providers: OIDC discovery, code exchange, refresh, on-behalf-of token exchange and client authentication | Grant decisions |
+| `server/auth/managed-identity.ts` | The platform's federated assertion for `SW_OIDC_CLIENT_ASSERTION=managed-identity`, used by both libraries | Token requests to the provider |
+| `server/auth/id-token.ts` | Provider signing keys, ID-token signature checks and the claims a session keeps for sign-out (`sid`, `login_hint`), shared by both libraries | Claim mapping |
 | `server/auth/directory.ts` | App-only group membership requests with bounded batches, and the short-lived group-name cache with bounded concurrent lookups | Role assignments |
-| `server/auth/sign-in-error.ts` | Safe typed sign-in failure reasons | Display text or provider secrets |
+| `server/auth/sign-in-error.ts` | Safe typed sign-in failure reasons, the provider's OAuth code (the only provider text the log gets), and the mapping of failures both libraries share | Display text or provider secrets |
 | `server/auth/csrf.ts` | Public-origin, request-header and logout-form checks | Session persistence |
 | `server/auth/remote-hosts.ts` | Pure decisions on remote addresses: allowed hosts, canonical addresses, one host per remote, and which credential a host takes | I/O |
 | `server/auth/remote-credentials.ts` | Server-mode remote Git: Azure DevOps on-behalf-of and GitHub consent tokens kept in the session, and the credential for one command | Running Git |
 | `server/auth/github-oauth.ts` | GitHub's OAuth consent address and token requests | Session storage |
-| `server/auth/authentication.ts` | Composition of sessions, provider identity, directory resolution and existing grants; owns the one administration repository and reloads policy after its commits; records users through `ws.state` | HTTP route dispatch |
+| `server/auth/authentication.ts` | Composition of sessions, provider identity, directory resolution and existing grants; front-channel logout (ends the sessions a provider session started); owns the one administration repository and reloads policy after its commits; records users through `ws.state` | HTTP route dispatch |
 | `src/auth/` | Once-per-page identity hook, person menu with native CSRF sign-out form, and the Connected accounts dialog | Provider tokens or grant decisions |
 | `scripts/auth-*.ts` | Sign-in orchestration, disposable environments, mock lifecycle checks, Keycloak compatibility and server container checks | Shared browser assertions or generic process lifecycle |
+| `scripts/examples/agent-client.ts` | Runnable example of an agent client that gets its Entra token with MSAL and reads the agent catalog | Anything the server imports |
 | `scripts/helpers/sign-in.ts` | Shared identity, storage, native sign-out and responsive browser assertions | Provider startup |
 | `scripts/helpers/processes.ts` | Command execution, loopback ports, bounded readiness and once-only signal cleanup | Suite selection or provider configuration |
 | `server/routes/auth.ts`, `server/routes/me.ts` | Minimal identity-only pages and current identity responses | Provider tokens in responses |
@@ -91,7 +96,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `src/scm/` | Source Control panel, Commit dialog, Git setup dialogs (`GitSetup.tsx` opens them from anywhere), and the server-mode connect prompt that resumes a remote action (`RemoteConnectPrompt.tsx`) | Git commands; they run on the server |
 | `schemas/` | Pinned JSON Schemas (ODCS, Ossie, the workbench extensions) | Edits to upstream schemas |
 | `public/examples/` | Shipped example projects | Test fixtures |
-| `tests/` | Unit and handler tests (`bun test`), always on temporary data roots; `tests/helpers/mock-oidc.ts` is a loopback OpenID provider with Entra, Keycloak and generic claim shapes and a Microsoft Graph stand-in; `tests/fixtures/auth-workspace/` is the access test workspace and `tests/helpers/auth-identities.ts` its people and groups | Calls to a real identity provider |
+| `tests/` | Unit and handler tests (`bun test`), always on temporary data roots; `tests/helpers/mock-oidc.ts` is a loopback OpenID provider with Entra, Keycloak and generic claim shapes, an optional Entra endpoint layout that drives the MSAL path (`tests/helpers/entra-provider.ts` starts it for tests), and a Microsoft Graph stand-in; `tests/fixtures/auth-workspace/` is the access test workspace and `tests/helpers/auth-identities.ts` its people and groups | Calls to a real identity provider |
 | `scripts/` | Browser checks (Playwright against an isolated API), the mutation suite, example generators, `dev.ts` | |
 
 ## Data flow
@@ -162,6 +167,11 @@ editor never receives an older deferred value as an external replacement.
   migration, scanning and access middleware initialization happen only after ownership.
   `openWorkspace({ root, cacheDir })` accepts explicit paths for isolated tests.
 - **Authentication**: server requests follow cookie → session → principal → grants → boundary.
+  `createSignInProvider` picks the sign-in library once at start-up. `authentication.ts` imports
+  neither library: it sees the provider interface and `SignInError`, whose `providerCode` each
+  provider fills from its own errors, so both libraries share the attempt cookie, sessions,
+  claim mapping, directory lookups, front-channel logout and audit. With Entra, MSAL's token cache of a session travels in
+  `SessionTokens.tokenCache` and is encrypted with the rest of the session record.
   Expired provider credentials trigger refresh before claims and directory membership are normalized
   again. Sessions are AES-256-GCM encrypted on disk and revocable; ending a session closes its live
   streams. Anonymous pages redirect to the provider, while signed-in people without access see
@@ -518,7 +528,8 @@ without validating the token. On the agent routes the token replaces the cookie,
 browser cannot widen or rescue a client call, and the cross-site check is skipped because it
 protects only cookies a browser sends on its own.
 
-`createBearerValidator` in `auth/bearer.ts` is built by `auth/oidc.ts` from the discovered
+`createBearerValidator` in `auth/bearer.ts` is built by the sign-in provider (`auth/msal-provider.ts`
+for Entra, `auth/oidc.ts` otherwise) from the discovered
 `jwks_uri`, with its own jose remote key set: unknown key ids reload the keys at most once every
 five minutes, while the sign-in key set reloads at once so rotation never ends sessions. It
 accepts RS256 and ES256, checks issuer, the `SW_API_AUDIENCE` list, expiry and not-before with

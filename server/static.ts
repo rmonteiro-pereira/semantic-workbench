@@ -5,13 +5,13 @@ import { extname, resolve, sep } from 'node:path';
 // Browsers apply form-action to the redirects a form submission follows, so the sign-out form
 // needs the provider's origin: the workbench answers it with a redirect to the provider's
 // end-session page.
-function contentSecurityPolicy(providerOrigin?: string) {
+function contentSecurityPolicy(providerOrigin?: string, frameAncestors = "'none'") {
   const formAction = providerOrigin ? `'self' ${providerOrigin}` : "'self'";
   // Precompiled schema validators let scripts run without dynamic code evaluation.
   return (
     "default-src 'self'; script-src 'self'; worker-src 'self' blob:; " +
     "img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; " +
-    `object-src 'none'; base-uri 'self'; form-action ${formAction}; frame-ancestors 'none'`
+    `object-src 'none'; base-uri 'self'; form-action ${formAction}; frame-ancestors ${frameAncestors}`
   );
 }
 
@@ -65,9 +65,13 @@ export async function serveStatic(
 }
 
 /** Supplies the shared browser policy for HTML, API and static responses. */
-export function securityHeaders(publicUrl?: string, providerOrigin?: string): Headers {
+export function securityHeaders(
+  publicUrl?: string,
+  providerOrigin?: string,
+  frameAncestors?: string,
+): Headers {
   const headers = new Headers({
-    'Content-Security-Policy': contentSecurityPolicy(providerOrigin),
+    'Content-Security-Policy': contentSecurityPolicy(providerOrigin, frameAncestors),
     'X-Content-Type-Options': 'nosniff',
     'Referrer-Policy': 'same-origin',
     'Cache-Control': 'no-cache',

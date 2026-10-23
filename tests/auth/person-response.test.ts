@@ -34,6 +34,7 @@ test('person response supplies the native logout token but never provider creden
         session: async () => session,
         callback: async () => new Response(null, { status: 302 }),
         logout: async () => new Response(null, { status: 303 }),
+        frontChannelLogout: async () => new Response(null, { status: 200 }),
         login: async () => new Response(null, { status: 302 }),
       },
     });

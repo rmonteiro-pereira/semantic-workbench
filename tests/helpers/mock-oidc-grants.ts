@@ -1,4 +1,6 @@
 // Implements token grants with client authentication and rotating user authorizations.
+import { createPublicKey } from 'node:crypto';
+import { jwtVerify } from 'jose';
 import { TEST_CLIENTS, TEST_TENANT_ID, TEST_WORKBENCH_CLIENT } from './auth-identities';
 import {
   readAccessToken,
@@ -7,6 +9,7 @@ import {
   stableUuid,
   userClaims,
   type Authorization,
+  type RefreshIdToken,
   type ProviderState,
 } from './mock-oidc-state';
 
@@ -15,7 +18,44 @@ export function oauthError(error: string, description: string, status = 400): Re
   return Response.json({ error, error_description: description }, { status });
 }
 
-function authenticateClient(state: ProviderState, request: Request, params: URLSearchParams) {
+const ASSERTION_TYPE = 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer';
+
+/** Hex thumbprint as the base64url value of a JWT `x5t` or `x5t#S256` header. */
+function thumbprintHeader(thumbprint: string): string {
+  return Buffer.from(thumbprint, 'hex').toString('base64url');
+}
+
+/**
+ * Accepts the workbench's signed client assertion when it names the registered certificate,
+ * or the platform's federated assertion of its managed identity.
+ */
+async function assertedClient(state: ProviderState, request: Request, params: URLSearchParams) {
+  const assertion = params.get('client_assertion') ?? '';
+  const { federatedAssertion, clientCertificate } = state.options;
+  if (federatedAssertion && assertion === federatedAssertion) return TEST_WORKBENCH_CLIENT;
+  if (!clientCertificate) return undefined;
+  try {
+    const { payload, protectedHeader } = await jwtVerify(
+      assertion,
+      createPublicKey(clientCertificate.publicKey),
+      {
+        algorithms: ['RS256', 'PS256'],
+        audience: new URL(request.url).origin + new URL(request.url).pathname,
+        issuer: TEST_WORKBENCH_CLIENT.clientId,
+        subject: TEST_WORKBENCH_CLIENT.clientId,
+        // MSAL rounds the assertion's start time up; Entra allows the same clock skew.
+        clockTolerance: 300,
+      },
+    );
+    const named = protectedHeader['x5t#S256'] ?? protectedHeader.x5t;
+    if (named !== thumbprintHeader(clientCertificate.thumbprint) || !payload.exp) return undefined;
+    return TEST_WORKBENCH_CLIENT;
+  } catch {
+    return undefined;
+  }
+}
+
+function secretClient(state: ProviderState, request: Request, params: URLSearchParams) {
   let clientId = params.get('client_id');
   let secret = params.get('client_secret');
   const authorization = request.headers.get('authorization');
@@ -38,15 +78,37 @@ function authenticateClient(state: ProviderState, request: Request, params: URLS
   return clients.find(client => client.clientId === clientId && client.secret === secret);
 }
 
-async function userTokens(state: ProviderState, authorization: Authorization, nonce?: string) {
-  const { username, clientId, scope } = authorization;
+async function authenticateClient(state: ProviderState, request: Request, params: URLSearchParams) {
+  if (params.get('client_assertion_type') === ASSERTION_TYPE) {
+    const asserted = await assertedClient(state, request, params);
+    if (asserted) return asserted;
+  }
+  return secretClient(state, request, params);
+}
+
+/** Entra's `client_info`, which MSAL asks for to name the account in its cache. */
+function clientInfo(state: ProviderState, username: string): string {
+  const user = state.users[username];
+  return Buffer.from(JSON.stringify({ uid: user.oid, utid: TEST_TENANT_ID })).toString('base64url');
+}
+
+async function userTokens(
+  state: ProviderState,
+  authorization: Authorization,
+  options: { nonce?: string; idToken?: RefreshIdToken } = {},
+) {
+  const { username, clientId, scope, sid } = authorization;
   const claims = userClaims(state, username, clientId);
   const idClaims = { ...claims };
-  if (nonce !== undefined) idClaims.nonce = nonce;
-  const idToken = await signToken(state, idClaims, clientId, state.lifetimes.idToken);
+  if (options.nonce !== undefined) idClaims.nonce = options.nonce;
+  if (sid) idClaims.sid = sid;
+  const fresh = await signToken(state, idClaims, clientId, state.lifetimes.idToken);
+  const idToken = options.idToken === 'repeat' ? (authorization.idToken ?? fresh) : fresh;
+  const entra = state.options.shape === 'entra';
+  const accessClaims = entra ? { ...claims, scp: scope, idtyp: 'user' } : { ...claims, scp: scope };
   const accessToken = await signToken(
     state,
-    { ...claims, scp: scope },
+    accessClaims,
     state.apiAudience,
     state.lifetimes.accessToken,
   );
@@ -56,15 +118,18 @@ async function userTokens(state: ProviderState, authorization: Authorization, no
     username,
     clientId,
     scope,
+    sid,
+    idToken,
     expiresAt: Date.now() + state.lifetimes.refreshToken * 1000,
   });
   return Response.json({
     token_type: 'Bearer',
-    id_token: idToken,
+    ...(options.idToken === 'none' ? {} : { id_token: idToken }),
     access_token: accessToken,
     refresh_token: refreshToken,
     expires_in: state.lifetimes.accessToken,
     scope,
+    ...(entra ? { client_info: clientInfo(state, username) } : {}),
   });
 }
 
@@ -84,7 +149,7 @@ function authorizationCodeGrant(state: ProviderState, params: URLSearchParams, c
   ) {
     return oauthError('invalid_grant', 'Expired code or mismatched authorization binding');
   }
-  return userTokens(state, authorization, authorization.nonce);
+  return userTokens(state, authorization, { nonce: authorization.nonce });
 }
 
 function refreshTokenGrant(state: ProviderState, params: URLSearchParams, clientId: string) {
@@ -98,11 +163,18 @@ function refreshTokenGrant(state: ProviderState, params: URLSearchParams, client
     return oauthError('invalid_grant', 'Invalid or expired refresh token');
   }
   state.refreshTokens.delete(token);
-  return userTokens(state, authorization);
+  return userTokens(state, authorization, { idToken: state.options.refreshIdToken });
 }
 
+// Entra ignores the OpenID Connect scopes that MSAL adds to every token request.
+const OPENID_SCOPES = new Set(['openid', 'profile', 'email', 'offline_access']);
+
 function scopeAudience(scope: string): string | undefined {
-  const scopes = scope.trim().split(/\s+/);
+  const scopes = scope
+    .trim()
+    .split(/\s+/)
+    .filter(entry => !OPENID_SCOPES.has(entry));
+  if (!scopes.length) return undefined;
   const separator = scopes[0].lastIndexOf('/');
   if (separator <= 0) return undefined;
   const audience = scopes[0].slice(0, separator);
@@ -129,6 +201,7 @@ async function clientCredentialsGrant(
     azp: clientId,
     appid: clientId,
     idtyp: 'app',
+    ver: '2.0',
   };
   const token = await signToken(state, claims, audience, state.lifetimes.accessToken);
   state.accessTokens.set(token, { clientId });
@@ -169,8 +242,12 @@ async function onBehalfOfGrant(state: ProviderState, params: URLSearchParams, cl
 }
 
 /** Authenticates a client and dispatches its requested token grant. */
-export function tokenEndpoint(state: ProviderState, request: Request, params: URLSearchParams) {
-  const client = authenticateClient(state, request, params);
+export async function tokenEndpoint(
+  state: ProviderState,
+  request: Request,
+  params: URLSearchParams,
+) {
+  const client = await authenticateClient(state, request, params);
   if (!client) return oauthError('invalid_client', 'Invalid client credentials', 401);
   switch (params.get('grant_type')) {
     case 'authorization_code':

@@ -144,9 +144,10 @@ Identity settings used by server sign-in:
 | `SW_MODE` | `local` (default) or `server`. |
 | `SW_PUBLIC_URL` | Required external origin. |
 | `SW_OIDC_ISSUER`, `SW_OIDC_CLIENT_ID` | Required issuer and confidential client registration. |
-| `SW_OIDC_CLIENT_SECRET` | Client secret; use this or an assertion, never both. |
-| `SW_OIDC_CLIENT_ASSERTION` | PKCS#8 RSA private-key file, or `managed-identity`. The latter uses platform `IDENTITY_ENDPOINT` and `IDENTITY_HEADER` for an `api://AzureADTokenExchange` assertion. |
-| `SW_OIDC_PROVIDER` | `entra`, `keycloak`, or `generic` (default), selecting the claim mapping. |
+| `SW_OIDC_CLIENT_CERTIFICATE_KEY`, `SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT` | Entra only, preferred: the App Registration certificate's PEM private key (a Key Vault certificate's PEM, key and certificate together, works as is) and its SHA-256 thumbprint in hex (SHA-1 also accepted). Set both, and no other credential. |
+| `SW_OIDC_CLIENT_SECRET` | Client secret; use one credential only. |
+| `SW_OIDC_CLIENT_ASSERTION` | `managed-identity`, or for Keycloak and generic providers a PKCS#8 RSA private-key file. `managed-identity` uses platform `IDENTITY_ENDPOINT` and `IDENTITY_HEADER` for an `api://AzureADTokenExchange` assertion. |
+| `SW_OIDC_PROVIDER` | `entra`, `keycloak`, or `generic` (default), selecting the claim mapping and the sign-in library: MSAL for `entra`, `openid-client` for the others. |
 | `SW_ENTRA_TENANT_ID` | Required for Entra; only this tenant is accepted. |
 | `SW_OIDC_SCOPES` | Defaults to `openid profile email offline_access`, plus `api://<client-id>/access_as_user` for Entra. |
 | `SW_GROUP_CLAIM` | Group claim name, default `groups`. |
@@ -164,6 +165,22 @@ Identity settings used by server sign-in:
 `SW_SERVE_STATIC` is always enabled in server mode. The remaining variables in the
 [configuration contract](specs/003-authn-authz/contracts/configuration.md) configure agent
 and delegated-credential features; they do not grant browser access.
+
+Entra sign-in runs on the server through Microsoft's MSAL library and an App Registration (setup
+and the mapping of each value to these variables: [deploy/README.md](deploy/README.md#entra-app-registration)).
+The Entra issuer must be `https://login.microsoftonline.com/<tenant>/v2.0` or a national
+cloud's sign-in host (`login.microsoftonline.us`, `login.chinacloudapi.cn`,
+`login.partner.microsoftonline.cn`), without a port; a loopback issuer, the mock provider, is
+accepted only when `SW_PUBLIC_URL` is loopback too. MSAL contacts no other host. MSAL's token
+cache, which holds the refresh token, is kept per session inside the encrypted session record
+and never reaches the browser, a response or a log. Keycloak and generic providers sign in
+through `openid-client`.
+
+When the person signs out of another application, the provider calls
+`GET /auth/front-channel-logout?sid=<provider session>[&iss=<issuer>]` without a cookie. The
+workbench ends the sessions that provider session started (audit reason `provider-signed-out`)
+unless `iss` is present and names another issuer, and always answers an empty 200. Anyone who knows a `sid` can end that session; the provider
+keeps it private. Sign-out sends Entra's `login_hint` back as `logout_hint`.
 
 Entra group overage uses application permission `GroupMember.Read.All` with administrator consent.
 Only group IDs named in grants and restricted paths are checked, in batches of at most 20.
@@ -375,7 +392,8 @@ identity: a client-credentials access token from the same provider, sent as
 
 5. Request a token for the API app's `/.default` scope (its application ID URI, such as
    `api://<API app client id>/.default`) with the client-credentials grant, then call the
-   workbench:
+   workbench. `scripts/examples/agent-client.ts` does this with MSAL, by client credentials or
+   managed identity ([agent runtime](docs/agent-runtime.md#agent-clients-in-server-mode)):
 
 ```sh
 curl "$SW_PUBLIC_URL/api/agent/catalog" -H "Authorization: Bearer $ACCESS_TOKEN"
@@ -499,8 +517,9 @@ container gate invokes it against the server group's existing container and mock
 ## Sign-in testing
 
 Run `bun run test:auth`; it builds the frontend first. The check starts a mock OpenID
-provider and the API on free loopback ports, seeds temporary fixture grants, and drives the
-built frontend with Chromium. It checks every fixture person, role provenance, refresh, expiry,
+provider in Entra's endpoint layout (`/<tenant>/oauth2/v2.0/authorize`, `/token`, `/logout`)
+and the API on free loopback ports, so the server signs in through MSAL as against Entra; it
+seeds temporary fixture grants and drives the built frontend with Chromium. It checks every fixture person, role provenance, refresh, expiry,
 Graph overage and failure, cookie-authenticated events, sign-out, and agent clients' bearer
 tokens next to a signed-in browser. Screenshots of the person
 menu and the three authentication pages cover 390×844, 1280×720, 1440×900 and 2560×1440.

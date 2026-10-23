@@ -133,7 +133,9 @@ the `browser` matrix (`test:auth:keycloak` is a recorded exclusion: compatibilit
 Revision mode `Single`; `minReplicas = maxReplicas = 1`; a volume mounted at `/data` of type
 `AzureFile` or `NfsAzureFile`; user-assigned identity `APP_IDENTITY_NAME` attached; registry
 configured with that identity; `SW_MODE=server`; `SW_HOST=0.0.0.0`; ingress target port 4310;
-secret references point to `KEY_VAULT_NAME`; `SW_OIDC_CLIENT_ID` and `SW_ENTRA_TENANT_ID` equal
+secret references point to `KEY_VAULT_NAME`; `SW_OIDC_CLIENT_SECRET`,
+`SW_OIDC_CLIENT_CERTIFICATE_KEY` and `SW_GITHUB_CLIENT_SECRET`, when set, are secret references;
+`SW_OIDC_CLIENT_ID` and `SW_ENTRA_TENANT_ID` equal
 the variable group's Entra values; `SW_OIDC_ISSUER` equals
 `https://login.microsoftonline.com/<ENTRA_TENANT_ID>/v2.0`. Deployment smoke derives its
 issuer from the target tenant, never from app settings.

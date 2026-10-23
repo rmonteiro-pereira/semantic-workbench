@@ -14,8 +14,9 @@
 ## Summary
 
 v0.4.0 adds a server mode for teams next to the unchanged local mode. The Bun server becomes a
-confidential OpenID Connect client (`openid-client`, code + PKCE) holding encrypted sessions and
-tokens; the browser holds only an HttpOnly cookie. There is no workbench sign-in screen: an
+confidential OpenID Connect client (code + PKCE: MSAL Node with an Azure App Registration for
+Entra, `openid-client` for Keycloak and generic providers) holding encrypted sessions and tokens;
+the browser holds only an HttpOnly cookie. There is no workbench sign-in screen: an
 unauthenticated page goes straight to the provider, and the workbench serves only a **No access**
 page and a signed-out confirmation. Roles come only from access grants that Admins make in the
 Admin panel, to Entra groups (by object ID, display name resolved) or to people by verified
@@ -58,9 +59,24 @@ R6, R14, R17–R21).
 **Language/Version**: TypeScript 5.7, React 19, Bun 1.4 (API, tests), Vite+ 1.2 (build)
 
 **Primary Dependencies**: existing (`yaml`, `ajv`, `node-sql-parser`, CodeMirror, React Flow,
-ELK); **new, server only**: `openid-client` 6.8.8 (MIT, 236 KB + `oauth4webapi` 332 KB),
-`jose` 6.2.13 (MIT, 412 KB), `@cedar-policy/cedar-wasm` 4.14.0 (Apache-2.0, 13 MB on disk, 4.2 MB
-WASM loaded; never bundled for the browser). All three verified under Bun 1.4.0 (research R1–R3).
+ELK); **new, server only**: `@azure/msal-node` 7.0.1 (MIT, Entra sign-in), `openid-client` 6.8.8
+(MIT, 236 KB + `oauth4webapi` 332 KB; Keycloak and generic providers), `jose` 6.2.13 (MIT,
+412 KB), `@cedar-policy/cedar-wasm` 4.14.0 (Apache-2.0, 13 MB on disk, 4.2 MB WASM loaded; never
+bundled for the browser). All verified under Bun 1.4.0 (research R1–R3).
+
+**Why MSAL Node for Entra**: the owner requires Microsoft's supported library and an App
+Registration for the target's tenant. It adds 16 packages, about 8.6 MB on disk (MSAL Node and
+`@azure/msal-common` with their CommonJS, ES module and source-map builds, plus `jsonwebtoken`
+and its 13 small dependencies), all MIT except `semver` (ISC), `ecdsa-sig-formatter`
+(Apache-2.0) and `buffer-equal-constant-time` (BSD-3-Clause). It makes no network call beyond
+the identity provider: the server hands it the tenant's discovery document and its sign-in host
+as the only known authority, so it skips instance discovery, and no Azure region or MSAL
+managed-identity client is configured (research R1). MSAL checks the returned `state` only when
+the request carries one; the server always sets it, and a mutant that drops it is killed. Its
+transitive `jsonwebtoken` signs only the client assertion of the certificate credential; ID and
+access tokens are verified with `jose`. Rejected: keeping `openid-client` for Entra too (one
+library and no new packages, but it fails the owner's requirement of Microsoft's supported
+library and App Registration path).
 Network: only the identity provider (discovery, JWKS, token, end-session, Graph
 `checkMemberGroups` for overage and `GET /groups/{id}` for granted group names; on Azure the
 platform managed-identity endpoint for the Entra client assertion) and Git hosts on explicit action
@@ -166,7 +182,10 @@ server/
 ├── handler.ts                    # authentication middleware, CSRF, route → action, 401/403/404 mapping
 ├── config.ts                     # new: environment parsing and validation (contracts/configuration.md)
 ├── auth/                         # new
+│   ├── sign-in-provider.ts       # sign-in provider interface; Entra → MSAL, others → openid-client
+│   ├── msal-provider.ts          # MSAL Node: code + PKCE, per-session encrypted token cache, refresh, logout, Graph and on-behalf-of tokens
 │   ├── oidc.ts                   # openid-client: discovery, login, callback, refresh, logout
+│   ├── id-token.ts               # provider signing keys and ID-token verification for both libraries
 │   ├── sessions.ts               # session store, AES-GCM persistence, expiry, end-session
 │   ├── principal.ts              # claim normalisation (Entra, Keycloak, generic), verified address
 │   ├── directory.ts              # Microsoft Graph: overage (checkMemberGroups), group display names
