@@ -52,6 +52,8 @@ from the v0.4.0 build). `screenshots/after/` holds the same screens after the fi
 | F65 | Table cards on the lineage canvas and the ODCS graph | A card shows "93 more columns" and page buttons "1 2 ... 11". Cards must show the columns that matter (keys, columns with an edge in view or on the path, search matches), end with "+ N more columns" that expands in place to one scrollable, virtualised list with a filter above about 30 columns and "Show fewer", with no page numbers anywhere and edges anchored to scrolled rows. | owner photo | open |
 | F66 | Edge labels on parallel edges | The word "lines" repeats on several parallel dashed edges. A bundle is labelled once, or its label shows on hover or selection. | owner photo | open |
 | F67 | Built-in examples | The examples have no metrics, so the Metrics view, breakdown, lineage path and SQL preview show nothing for them. Add workbench-authored metrics (simple, derived, foreign-key path; owner and status) bound to real ODCS columns, without editing hash-checked upstream files. | local-ontology-metrics-1280 | open |
+| F68 | Project menu | New feature: Export project... after Import files into this project; byte-exact zip, optional Git history bundle, drafts excluded, server mode filtered by read access and audited, streamed under the size limits. | owner photo | open |
+| F69 | Project menu popup | The menu is cut off by the file list (Delete is half hidden) and fades into the names behind it, because it sits inside the masked, scrolling list. Menus must be opaque, anchored in the viewport and fixed in the shared menu component. | owner photo, shots-measure/menu | open |
 
 ## S2: crammed or hard to read
 
