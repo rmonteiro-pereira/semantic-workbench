@@ -1,3 +1,5 @@
+# Workbench addition: the data contract that the governed metrics of this example bind to.
+# It is not part of any upstream standard example.
 apiVersion: v3.1.0
 kind: DataContract
 id: 6f0d2c1e-8a47-4f0b-9a52-3b7e5d9c4a10

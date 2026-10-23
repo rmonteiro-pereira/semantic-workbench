@@ -5,16 +5,6 @@ import { EXPECTED_EXAMPLE_METRICS, type ExpectedExampleMetrics } from '../exampl
 import { exampleSet } from '../../src/projects/examples';
 import { showSidebar, type Screen } from './screen-tour';
 
-/** The semantic model file that holds each example set's metrics. */
-export const EXAMPLE_METRICS_FILES: Record<string, string> = {
-  ubl: 'ubl.semantic.yaml',
-  commerce: 'sales.ossie.yaml',
-  'mapped-commerce': 'commerce.mapped-semantic.yaml',
-  flights: 'flights.metrics.semantic.yaml',
-  billing: 'billing.semantic.yaml',
-  mall: 'mall.semantic.yaml',
-};
-
 /** Opens the Metrics tab of an example project, expanding the project in the sidebar first. */
 export async function openExampleMetrics(page: Page, setId: string) {
   await showSidebar(page);
@@ -22,13 +12,16 @@ export async function openExampleMetrics(page: Page, setId: string) {
   const project = page.getByRole('treeitem', { name, exact: true });
   if ((await project.getAttribute('aria-expanded')) === 'false')
     await project.getByRole('button', { name, exact: true }).click();
-  await project.getByRole('button', { name: EXAMPLE_METRICS_FILES[setId], exact: true }).click();
-  await page.waitForTimeout(600);
+  await project
+    .getByRole('button', { name: EXPECTED_EXAMPLE_METRICS[setId].file, exact: true })
+    .click();
   await page
     .locator('.tabs')
     .getByRole('button', { name: /^Metrics/ })
     .click();
-  await page.waitForTimeout(800);
+  await expect(metricsList(page).getByRole('status')).toHaveText(
+    `${EXPECTED_EXAMPLE_METRICS[setId].count} metrics`,
+  );
 }
 
 /** The metrics list of the Metrics tab. */
@@ -88,7 +81,7 @@ function metricList(setId: string): Screen['show'] {
 
 /** Lists the metric list and the broken-down metric detail of every example set. */
 export function exampleMetricScreens(): Screen[] {
-  return Object.keys(EXAMPLE_METRICS_FILES).flatMap(setId => [
+  return Object.keys(EXPECTED_EXAMPLE_METRICS).flatMap(setId => [
     { name: `examples-${setId}-metrics`, show: metricList(setId) },
     { name: `examples-${setId}-metric-detail`, show: brokenDownMetric(setId) },
   ]);

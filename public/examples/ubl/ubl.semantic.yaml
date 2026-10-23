@@ -12016,9 +12016,9 @@ relationships:
       - record_id
 metrics:
   - name: order_count
-    datatype: Integer
     description: Count of projected order headers, independent of line and
       bridge-table grain.
+    datatype: Integer
     expression:
       dialects:
         - dialect: ANSI_SQL
@@ -12093,9 +12093,9 @@ metrics:
             ]
           }
   - name: invoiced_amount
-    datatype: Decimal
     description: Line extension amount of invoice lines, before tax and
       document-level charges.
+    datatype: Decimal
     expression:
       dialects:
         - dialect: ANSI_SQL
@@ -12118,8 +12118,8 @@ metrics:
             ]
           }
   - name: invoiced_quantity
-    datatype: Decimal
     description: Quantity invoiced on invoice lines, in each line’s own unit.
+    datatype: Decimal
     expression:
       dialects:
         - dialect: ANSI_SQL
@@ -12142,8 +12142,8 @@ metrics:
             ]
           }
   - name: average_invoiced_price
-    datatype: Decimal
     description: Invoiced amount per invoiced unit. Mixing units of measure distorts it.
+    datatype: Decimal
     expression:
       dialects:
         - dialect: ANSI_SQL
@@ -12168,8 +12168,8 @@ metrics:
             ]
           }
   - name: invoiced_amount_with_tax
-    datatype: Decimal
     description: Line extension amount including the tax of each invoice line.
+    datatype: Decimal
     expression:
       dialects:
         - dialect: ANSI_SQL
@@ -12192,9 +12192,9 @@ metrics:
             ]
           }
   - name: invoiced_line_tax
-    datatype: Decimal
     description: "Tax charged on invoice lines: the amount with tax minus the amount
       without."
+    datatype: Decimal
     expression:
       dialects:
         - dialect: ANSI_SQL
@@ -12221,8 +12221,8 @@ metrics:
             ]
           }
   - name: credited_amount
-    datatype: Decimal
     description: Line extension amount of credit note lines, before tax.
+    datatype: Decimal
     expression:
       dialects:
         - dialect: ANSI_SQL

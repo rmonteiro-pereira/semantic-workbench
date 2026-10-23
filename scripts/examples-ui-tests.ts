@@ -7,6 +7,7 @@ import { readFile } from 'node:fs/promises';
 import { Database } from 'bun:sqlite';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import manifest from '../tests/fixtures/ossie-mapping/manifest.json';
+import { exampleSet } from '../src/projects/examples';
 import { example } from './helpers/examples';
 import { exportFile } from './helpers/header';
 import { closeComposer, composerDialog, openComposer } from './helpers/query-composer';
@@ -574,16 +575,9 @@ try {
   await check(
     'every example lists its governed metrics; a simple, a composed and a cross-table metric show owner, lineage, breakdown and an unexecuted SQL preview',
     async () => {
-      const loaders: Record<string, RegExp> = {
-        ubl: /Load UBL business model/,
-        commerce: /Load commerce workspace/,
-        'mapped-commerce': /Load mapped commerce/,
-        flights: /Load Ossie Flights/,
-        billing: /Load subscription billing/,
-        mall: /Load shopping center administration/,
-      };
       for (const [setId, expected] of Object.entries(EXPECTED_EXAMPLE_METRICS)) {
-        await (await example(page, loaders[setId])).click();
+        const loader = new RegExp(`Load ${exampleSet(setId)!.name}`, 'i');
+        await (await example(page, loader)).click();
         await page
           .locator('.tabs')
           .getByRole('button', { name: /^Metrics/ })

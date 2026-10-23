@@ -216,8 +216,8 @@ export async function checkExamples() {
         recurring_share: 1990 / 2090,
       };
       for (const [metric, total] of Object.entries(addedTotals)) {
-        // These metrics are governed in the semantic model but not mapped to a concept, so the plan
-        // is made over the model.
+        // The mapping has no concept_mappings entry for these metrics, so the plan is made over
+        // the whole semantic model.
         const p = planQuery(context, {
           mappingId: context.mappingId,
           scope: 'model',
