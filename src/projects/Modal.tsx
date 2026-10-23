@@ -95,7 +95,9 @@ export function Modal({
       onKeyDown={trap}
     >
       <section className={`workbench-dialog has-footer size-${size} ${className}`.trim()}>
-        <h2 id={id}>{title}</h2>
+        <h2 id={id} title={title}>
+          {title}
+        </h2>
         <div className="dialog-body">{children}</div>
         <footer className="dialog-footer">
           {footerNote && <p className="dialog-footer-note">{footerNote}</p>}

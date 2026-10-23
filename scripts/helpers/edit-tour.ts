@@ -116,7 +116,11 @@ export async function editContainmentProblems(page: Page, screenName: string): P
       const body = box('dialog[open] .dialog-body');
       if (!footer || !body) problems.push('the drawer has no body and footer');
       else {
-        if (Math.abs(footer.bottom - height) > 2) problems.push('the drawer footer is not pinned');
+        // The item editor fills the window; the wizard is as tall as its step and no taller.
+        const pinnedTo = name === 'metric-wizard' && panel ? panel.bottom : height;
+        if (Math.abs(footer.bottom - pinnedTo) > 2)
+          problems.push('the drawer footer is not pinned');
+        if (footer.bottom > height + 1) problems.push('the drawer footer leaves the window');
         if (body.bottom > footer.top + 1) problems.push('the drawer body runs under its footer');
         if (footer.right > width + 1) problems.push('the drawer footer leaves the screen');
       }
@@ -129,8 +133,9 @@ export async function editContainmentProblems(page: Page, screenName: string): P
       if (scrollers.length > 1) problems.push(`${scrollers.length} nested scroll regions`);
     }
     if (name === 'metric-wizard' && panel) {
-      const picker = box('dialog[open] select[aria-label="Go to step"]');
-      if (!picker || picker.right > panel.right) problems.push('the step picker leaves the dialog');
+      const picker =
+        box('dialog[open] .wizard-stepper-compact') ?? box('dialog[open] .wizard-stepper-list');
+      if (!picker || picker.right > panel.right) problems.push('the step list leaves the dialog');
     }
     if (name === 'metric-detail') {
       const table = box('.metrics-table');
