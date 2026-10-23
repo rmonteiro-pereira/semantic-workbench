@@ -3,7 +3,7 @@
 import type { EventTags } from './events';
 import type { AccessView } from '../auth/authorize';
 import { LOCAL_READER, type Reader } from './reader';
-import { BadRequestError, HiddenResourceError } from './errors';
+import { BadRequestError, HiddenResourceError, MissingFolderError } from './errors';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
@@ -31,6 +31,7 @@ import {
 } from './paths';
 import { serializationOf } from './scanner';
 import { branchShownTo, branchSpelledDifferently } from './worktrees';
+import { fetchMissingContents, folderExistsAt, sparseFolders } from './sparse-folder';
 import type { ContentGuard, FileChange } from '../auth/guards';
 /** Reports drafts or uncommitted changes that prevent a source control operation. */
 export class BlockedError extends Error {
@@ -201,6 +202,44 @@ export function createScm(deps: ScmDeps) {
     const remote = target ? await chosenRemote(d, '') : null;
     return remote ? { pullSource: `${remote.name}/${target}` } : {};
   }
+  // The folder of the repository a sparse project lives in, for the panel header and the rule
+  // below; nothing when the whole repository is checked out. A project in a folder of a repository
+  // that is checked out in full, as in a shared monorepo, is deliberately not limited: its
+  // sibling projects are on disk and their files are committed from the same panel.
+  async function sparseProjectFolder(slug: string, d: string): Promise<{ folder?: string }> {
+    const folders = await sparseFolders(git, d);
+    const folder = prefix(slug).replace(/\/$/, '');
+    return folders.length && folder ? { folder } : {};
+  }
+  // Commits touch only the project's folder: a path outside it never reaches a sparse checkout's
+  // commit, because the rest of the repository belongs to other people's projects.
+  async function assertInsideFolder(slug: string, d: string, repoPaths: string[]) {
+    const { folder } = await sparseProjectFolder(slug, d);
+    if (!folder) return;
+    const outside = repoPaths.filter(path => !path.startsWith(folder + '/'));
+    if (outside.length)
+      throw new BadRequestError(
+        `Only files inside ${folder} can be committed from this project. Outside: ${outside.join(', ')}`,
+      );
+  }
+  // Downloads what a judged change brings before it is read, when the repository holds only a
+  // folder; a full clone has every file already.
+  async function fetchFolderContents(
+    d: string,
+    tip: string,
+    chooseRemote: () => Promise<RemoteChoice | null>,
+  ) {
+    const folders = await sparseFolders(git, d);
+    if (!folders.length) return;
+    const choice = await chooseRemote();
+    if (!choice) return;
+    await fetchMissingContents(git, d, {
+      tip,
+      folders,
+      remote: choice.name,
+      credential: choice.credential,
+    });
+  }
   async function status(slug: string, { view }: Reader) {
     if (!deps.gitAvailable)
       return {
@@ -232,6 +271,7 @@ export function createScm(deps: ScmDeps) {
       ahead: s.ahead,
       behind: s.behind,
       gitAvailable: true,
+      ...(await sparseProjectFolder(slug, d)),
       identityConfigured: deps.signedCommits || (await git.identity(d)),
       merging,
       remotes: Object.fromEntries(
@@ -375,6 +415,10 @@ export function createScm(deps: ScmDeps) {
       readOnly: true,
     });
     const tip = fetchedTip.stdout.trim();
+    await fetchFolderContents(d, tip, async () => ({
+      name: source.remote,
+      credential: source.credential,
+    }));
     await guardMerge(slug, d, tip, guard);
     // The merge is local: filters and merge drivers it runs never see the person's token.
     return git.run(d, ['merge', '--no-edit', tip], { allowFailure: true });
@@ -416,6 +460,13 @@ export function createScm(deps: ScmDeps) {
       const pull = ['pull', '--no-rebase', '--no-edit', ...target];
       return git.run(d, pull, { remote: true, allowFailure: true, credential });
     });
+  // The published default branch follows the remote's after a fetch, and that move is judged on
+  // the files it brings, so a sparse checkout downloads them first.
+  async function fetchDefaultBranchContents(slug: string, d: string, choice: RemoteChoice | null) {
+    if (!deps.defaultBranch) return;
+    const tip = `refs/remotes/${chosenName(choice)}/${await deps.defaultBranch(slug)}`;
+    await fetchFolderContents(d, tip, async () => choice);
+  }
   // Remote actions report Git's result instead of throwing, so the panel can show stderr; Cancel
   // (or the 10-minute limit) ends them.
   async function remoteAction(
@@ -436,8 +487,10 @@ export function createScm(deps: ScmDeps) {
           credential,
         });
         result = { ...result, ok: r.code === 0, stderr: r.stderr.trim() };
-        if (r.code === 0 && request.follow && deps.fetched)
+        if (r.code === 0 && request.follow && deps.fetched) {
+          await fetchDefaultBranchContents(slug, d, choice);
           follow = await deps.fetched(slug, chosenName(choice), request.follow);
+        }
       }
       if (kind === 'pull' || kind === 'sync') {
         const s = await git.status(d);
@@ -504,7 +557,15 @@ export function createScm(deps: ScmDeps) {
     if (s.entries.some(e => e.conflicted))
       throw new GitError('Resolve the conflicted files and stage them before committing.');
     const staged = s.entries.filter(e => e.index !== '.' && !e.untracked);
-    if (!staged.length && !(await git.merging(d)))
+    const merging = await git.merging(d);
+    // A merge commit holds everything the merge brought in, so only a plain commit is limited.
+    if (!merging)
+      await assertInsideFolder(
+        slug,
+        d,
+        staged.map(e => e.path),
+      );
+    if (!staged.length && !merging)
       throw new GitError('Nothing is staged. Stage the changes to include, then commit.');
     const clean = staged.filter(e => e.worktree === '.').map(e => e.path);
     const before = await git.worktreeIds(
@@ -540,6 +601,7 @@ export function createScm(deps: ScmDeps) {
   ) {
     const d = dir(slug);
     const chosen = paths(slug, list, base);
+    await assertInsideFolder(slug, d, chosen);
     if (await git.merging(d)) {
       const s = await git.status(d);
       throw new MergingError(
@@ -588,6 +650,27 @@ export function createScm(deps: ScmDeps) {
     if (clash)
       throw new BadRequestError(`"${target.local}" differs only in letter case from "${clash}".`);
     return target;
+  }
+  // A branch without the project's folder would remove the project from the disk on a sparse
+  // checkout, so the switch is refused with the reason.
+  async function assertBranchHasFolder(slug: string, d: string, tip: string, branch: string) {
+    const { folder } = await sparseProjectFolder(slug, d);
+    if (folder && !(await folderExistsAt(git, d, tip, folder)))
+      throw new MissingFolderError(folder, branch);
+  }
+  async function judgeSwitch(
+    slug: string,
+    d: string,
+    switching: {
+      tip: string;
+      before: string | null;
+      guard: ContentGuard;
+      credentialFor?: CredentialFor;
+    },
+  ) {
+    const { tip, before, guard, credentialFor } = switching;
+    await fetchFolderContents(d, tip, () => chooseRemote(slug, credentialFor));
+    guard(await incomingChanges(slug, d, before, tip), { operation: 'switch' });
   }
   async function resolvedBranch(d: string, name: string, create: boolean) {
     if (create) {
@@ -646,7 +729,9 @@ export function createScm(deps: ScmDeps) {
       reader: Reader = LOCAL_READER,
     ) {
       const d = dir(slug);
-      await git.stage(d, paths(slug, list, base));
+      const chosen = paths(slug, list, base);
+      await assertInsideFolder(slug, d, chosen);
+      await git.stage(d, chosen);
       await after(slug);
       return status(slug, reader);
     },
@@ -664,9 +749,12 @@ export function createScm(deps: ScmDeps) {
     async stageAll(slug: string, stage: boolean, reader: Reader = LOCAL_READER) {
       const d = dir(slug);
       const s = await git.status(d);
+      const { folder } = await sparseProjectFolder(slug, d);
+      const insideProject = (path: string) => !folder || path.startsWith(folder + '/');
       const list = s.entries
         .filter(e => (stage ? e.worktree !== '.' : e.index !== '.' && !e.untracked))
-        .map(e => e.path);
+        .map(e => e.path)
+        .filter(insideProject);
       if (list.length) await (stage ? git.stage(d, list) : git.unstage(d, list));
       await after(slug);
       return status(slug, reader);
@@ -726,6 +814,7 @@ export function createScm(deps: ScmDeps) {
       create: boolean,
       { guard }: Reader,
       authorizeBranch?: (local: string) => void,
+      credentialFor?: CredentialFor,
     ) {
       // Trimmed before any check, so a leading space cannot smuggle an option such as `--detach`.
       const name = typeof branch === 'string' ? branch.trim() : '';
@@ -740,10 +829,11 @@ export function createScm(deps: ScmDeps) {
       await deps.assertBranchFree?.(slug, local);
       const before = await git.head(d);
       // Everyone works in one tree, so the branch's content is checked as if the person wrote it.
-      if (guard && !create) {
+      if (!create) {
         const exists = (await git.branches(d)).local.includes(local);
         const tip = exists ? 'refs/heads/' + local : ref;
-        guard(await incomingChanges(slug, d, before, tip), { operation: 'switch' });
+        await assertBranchHasFolder(slug, d, tip, local);
+        if (guard) await judgeSwitch(slug, d, { tip, before, guard, credentialFor });
       }
       await git.run(d, create ? ['switch', '-c', local] : ['switch', '--end-of-options', local]);
       deps.branchesMoved?.(slug);

@@ -4,11 +4,11 @@
 import { existsSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { atomicWrite } from './atomic';
-import type { Git } from './git';
+import { commitOf, type Git } from './git';
 import type { State } from './state';
 import type { CopyRemoval, UnpublishedWork } from './trash';
 import type { WorkingCopies } from './working-copies';
-import { commitOf, type Worktrees } from './worktrees';
+import type { Worktrees } from './worktrees';
 
 /** What keeping unpublished work needs from the workspace that composes it. */
 export type UnpublishedWorkDeps = {

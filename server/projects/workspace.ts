@@ -53,7 +53,12 @@ import {
 } from './working-copies';
 import { createPublishing } from './publishing';
 import { createUnpublishedWork } from './unpublished-work';
-import { createCloner, rollBackInterruptedClones, type AssignProject } from './clone';
+import {
+  createCloner,
+  rollBackInterruptedClones,
+  type AssignProject,
+  type FolderRequest,
+} from './clone';
 import { createRepositoryProjects } from './repository-projects';
 import { MANIFEST_FILE } from './repositories';
 import { LOCAL_READER, type Reader } from './reader';
@@ -1423,7 +1428,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       { owner }: Reader,
       assign?: AssignProject,
       credential?: RemoteCredential,
-    ) => cloner.start(url, name, { owner, assign, credential }),
+      sparse: FolderRequest = {},
+    ) => cloner.start(url, name, { owner, assign, credential, ...sparse }),
     cancelClone: cloner.cancel,
     // Restore committed bytes through a journaled trash operation so the current version is
     // recoverable.

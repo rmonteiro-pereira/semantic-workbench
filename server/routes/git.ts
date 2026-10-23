@@ -165,7 +165,10 @@ export const createGitRoutes =
         const scm = await sourceControl();
         const checkout = (local: string) => authorizeCheckout(gitTarget, local);
         const create = b.create === true;
-        return Response.json(await scm.switchBranch(slug, b.branch, create, reader, checkout));
+        const credentialFor = delegatedCredentials(req);
+        return Response.json(
+          await scm.switchBranch(slug, b.branch, create, reader, checkout, credentialFor),
+        );
       }
       if (action === 'git/publish') {
         const b = await body(['branch']);
