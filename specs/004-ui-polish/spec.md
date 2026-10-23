@@ -297,7 +297,7 @@ Every finding maps to a requirement. Status values are open, fixed, deferred (wi
 | F02, F04, F05, F06, F07, F14, F15 | R8 | fixed |
 | F09 | R9 | fixed |
 | F10, F11, F21, F22, F23, F24 | R4 | fixed, redesign pass open |
-| F12, F13, F33, F34, F55 | R3 | open |
+| F12, F13, F33, F34, F55 | R3 | fixed |
 | F16 | R4 | not changed, on purpose; revisited by R4.2 |
 | F17, F51, F60 | R7 | F17 and F51 fixed, F60 open |
 | F18, F19 | R1, R9 | text floor fixed; theme isolation open |
