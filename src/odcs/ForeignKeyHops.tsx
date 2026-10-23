@@ -54,7 +54,7 @@ export function ForeignKeyHops({ path, hops, onHops }: Props) {
       {listOpen && (
         <Modal
           title="Foreign keys in this view"
-          size="small"
+          size="narrow"
           onCancel={() => setListOpen(false)}
           footer={
             <button className="primary" onClick={() => setListOpen(false)}>

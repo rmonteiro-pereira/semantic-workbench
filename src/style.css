@@ -691,9 +691,13 @@ main {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 16px;
-  align-items: start;
+  align-items: stretch;
 }
+/* Cards of one row share a height: the entity list takes the spare room and the footer stays at
+   the bottom edge. */
 .business-area {
+  display: flex;
+  flex-direction: column;
   background: var(--color-surface);
   border: 1px solid var(--color-border-subtle);
   border-radius: 10px;
@@ -737,6 +741,8 @@ main {
   color: var(--text-muted);
 }
 .area-entities {
+  flex: 1 1 auto;
+  align-content: start;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 4px;
@@ -789,6 +795,9 @@ main {
   gap: 5px;
   font-size: var(--text-small);
   color: var(--text-muted);
+}
+.business-area footer button:disabled {
+  opacity: 1;
 }
 .business-area footer button {
   border: 0;
@@ -2362,25 +2371,21 @@ main > .status {
 .workbench-dialog dialog[open] {
   visibility: visible;
 }
+/* Every dialog uses one of two widths, one padding and one footer. Narrow suits a short form or a
+   question; wide suits a list, a table or an editor. */
 .workbench-dialog {
+  --dialog-padding: 24px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 14px;
   box-shadow: 0 20px 80px color-mix(in srgb, var(--color-shadow) 20%, transparent);
-  padding: 22px;
-  width: min(560px, 100%);
+  padding: var(--dialog-padding);
+  width: min(480px, 100%);
   max-height: 88vh;
   overflow: auto;
 }
-.workbench-dialog.size-small {
-  width: min(420px, 100%);
-}
-.workbench-dialog.size-large {
+.workbench-dialog.size-wide {
   width: min(880px, 100%);
-}
-.workbench-dialog.size-full {
-  width: min(1400px, 100%);
-  height: 88vh;
 }
 .workbench-dialog.has-footer {
   display: flex;
@@ -2389,28 +2394,36 @@ main > .status {
   padding: 0;
 }
 .workbench-dialog.has-footer > h2 {
-  padding: 20px 22px 0;
+  padding: var(--dialog-padding) var(--dialog-padding) 0;
   flex: none;
 }
 .workbench-dialog.has-footer > .dialog-body {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
-  padding: 0 22px 12px;
+  padding: 0 var(--dialog-padding) 16px;
 }
 .workbench-dialog > .dialog-footer {
   flex: none;
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
   gap: 8px;
-  padding: 12px 22px;
+  padding: 14px var(--dialog-padding);
   border-top: 1px solid var(--color-border-subtle);
   background: var(--color-surface);
   border-radius: 0 0 14px 14px;
 }
+/* The reason the main action is off, next to the buttons it explains. */
+.dialog-footer-note {
+  flex: 1 1 12em;
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--text-muted);
+}
 .workbench-dialog h2 {
-  margin: 0 0 8px;
+  margin: 0 0 12px;
   font-size: 18px;
   overflow-wrap: anywhere;
 }
@@ -2462,12 +2475,12 @@ main > .status {
   color: var(--color-danger-text) !important;
 }
 button.danger {
-  background: var(--color-danger-text);
+  background: var(--color-danger);
   color: var(--color-on-accent);
-  border-color: var(--color-danger-text);
+  border-color: var(--color-danger);
 }
 button.danger:hover {
-  background: var(--color-danger-strong);
+  background: color-mix(in srgb, var(--color-danger) 80%, var(--color-text));
 }
 .undo-toast {
   position: fixed;
@@ -3566,10 +3579,6 @@ button.import {
   background: var(--color-accent-soft);
   border-color: var(--color-accent);
 }
-.import-dialog label.radio:focus-within {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
 .import-dialog label.radio:has(input:disabled) {
   opacity: 0.55;
   cursor: default;
@@ -3615,11 +3624,30 @@ button.import {
   white-space: nowrap;
   gap: 6px;
 }
-.workbench-dialog .dialog-footer button:not(.primary):not(.danger),
-.workbench-dialog .repair-actions button:not(.primary):not(.danger),
-.suggestions-dialog .suggestion button:not(.primary):not(.danger) {
+.workbench-dialog .dialog-footer button:not(:disabled):not(.primary):not(.danger),
+.workbench-dialog .repair-actions button:not(:disabled):not(.primary):not(.danger),
+.suggestions-dialog .suggestion button:not(:disabled):not(.primary):not(.danger) {
   color: var(--color-text);
   border-color: var(--color-border-strong);
+}
+/* A button that cannot be pressed stays readable; the footer note says why. */
+.workbench-dialog .dialog-footer button:disabled {
+  opacity: 1;
+  background: var(--color-surface-sunken);
+  color: var(--text-muted);
+  border-color: var(--color-border-strong);
+}
+/* A hint inside a field reads as a hint, and stays readable next to a typed value. */
+.workbench-dialog ::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+/* One focus ring for every field in a dialog, the same as the fields elsewhere. */
+.workbench-dialog :is(input:not([type='radio'], [type='checkbox']), select, textarea):focus-visible,
+.workbench-dialog label.radio:has(:focus-visible) {
+  outline: none;
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-focus) 20%, transparent);
 }
 .workbench-dialog .dialog-footer button svg,
 .suggestions-dialog .suggestion button svg {
@@ -3632,14 +3660,8 @@ button.import {
   .workbench-dialog {
     max-height: calc(100dvh - 20px);
   }
-  .workbench-dialog.has-footer > h2 {
-    padding: 16px 16px 0;
-  }
-  .workbench-dialog.has-footer > .dialog-body {
-    padding: 0 16px 12px;
-  }
-  .workbench-dialog > .dialog-footer {
-    padding: 12px 16px;
+  .workbench-dialog {
+    --dialog-padding: 16px;
   }
   .workbench-dialog .dialog-footer button {
     flex: 1 0 auto;
@@ -3844,12 +3866,6 @@ button.import {
   flex: none;
 }
 
-.trash-empty p {
-  margin: 0 0 4px;
-}
-.trash-empty small {
-  color: var(--text-muted);
-}
 /* Zoomed far out, card text would be a few pixels tall. The cards then drop their detail lines
    and buttons and show the name at a size that stays readable once scaled down. */
 .zoom-far .node small,

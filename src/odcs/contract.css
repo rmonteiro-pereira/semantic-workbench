@@ -333,12 +333,6 @@
   padding-top: 12px;
   padding-bottom: 18px;
 }
-.odcs-save-hint {
-  flex: 1;
-  align-self: center;
-  color: var(--text-muted);
-  font-size: var(--text-small);
-}
 .odcs-form-field :is(input, select, textarea):focus-visible {
   outline: none;
   border-color: var(--color-focus);

@@ -33,7 +33,7 @@ export function GraphOptions({
       </button>
       {open &&
         createPortal(
-          <Modal title={title} size="small" onCancel={close} footer={doneButton}>
+          <Modal title={title} size="narrow" onCancel={close} footer={doneButton}>
             {intro && <p>{intro}</p>}
             <div className="graph-options">{children}</div>
           </Modal>,

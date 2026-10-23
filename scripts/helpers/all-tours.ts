@@ -1,6 +1,7 @@
 // Every group of screens the responsive suite measures and the capture tools photograph, so a new
 // tour is added in one place.
 import { editScreens } from './edit-tour';
+import { dialogsTourScreens } from './dialogs-tour';
 import { exportScreens } from './export-tour';
 import { odcsScreens } from './odcs-tour';
 import { projectDialogScreens } from './project-dialog-tour';
@@ -38,12 +39,17 @@ export function tourGroups(files: AllTourFiles): TourGroup[] {
     {
       title: 'project dialogs',
       summary: 'readable text and no overlaps',
-      screens: projectDialogScreens(),
+      screens: projectDialogScreens(files.ontology),
     },
     {
       title: 'export dialog',
       summary: 'readable text, no overlaps, contained in the window',
-      screens: exportScreens(),
+      screens: exportScreens(files.ontology),
+    },
+    {
+      title: 'file dialogs',
+      summary: 'readable text and no overlaps',
+      screens: dialogsTourScreens(files.ontology),
     },
     {
       title: 'folder dialogs',

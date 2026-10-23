@@ -228,7 +228,7 @@ function SectionRows({ sections }: { sections: SectionSummary[] }) {
       {open && (
         <Modal
           title={open.label}
-          size="large"
+          size="wide"
           className="odcs-section-dialog"
           onCancel={() => setOpen(null)}
           footer={

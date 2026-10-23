@@ -15,7 +15,7 @@ import {
 import { startMockOidc } from '../tests/helpers/mock-oidc';
 import { freeAuthPort, startAuthApi } from './auth-environment';
 import { authGeometry, check, signIn, type SignInTarget } from './helpers/sign-in';
-import { closeSyncDialog, openSyncDialog } from './helpers/sync-dialog';
+import { closeSyncDialog, openSyncDialog, remoteButton } from './helpers/sync-dialog';
 import {
   SPARSE_FOLDER,
   SPARSE_OTHER_FOLDER,
@@ -168,7 +168,7 @@ async function stewardControls(person: Person) {
   const dialog = await openSyncDialog(person.page);
   await expect(dialog.getByRole('button', { name: 'Publish to main', exact: true })).toBeEnabled();
   await expect(dialog.getByRole('button', { name: 'Push main', exact: true })).toBeHidden();
-  await expect(dialog.getByRole('button', { name: 'Remote…', exact: true })).toBeHidden();
+  await expect(remoteButton(dialog)).toBeHidden();
   return dialog;
 }
 
@@ -178,7 +178,7 @@ async function editorControls(person: Person) {
   await expect(dialog.getByRole('button', { name: 'Publish to main', exact: true })).toBeDisabled();
   await expect(dialog.getByText('Requires Steward to publish to main.')).toBeVisible();
   await expect(dialog.getByRole('button', { name: 'Push main', exact: true })).toBeHidden();
-  await expect(dialog.getByRole('button', { name: 'Remote…', exact: true })).toBeHidden();
+  await expect(remoteButton(dialog)).toBeHidden();
   await expect(dialog.getByRole('button', { name: 'Pull from main', exact: true })).toBeVisible();
   return dialog;
 }

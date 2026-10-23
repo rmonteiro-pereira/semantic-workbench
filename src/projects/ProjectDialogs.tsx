@@ -15,9 +15,20 @@ export function RenameDialog({
 }) {
   const [name, setName] = useState(project.name);
   const [error, setError] = useState('');
+  const footer = (
+    <>
+      <button type="button" onClick={onClose}>
+        Cancel
+      </button>
+      <button className="primary" type="submit" form="rename-project" disabled={!name.trim()}>
+        Rename
+      </button>
+    </>
+  );
   return (
-    <Modal title={`Rename ${project.name}`} onCancel={onClose}>
+    <Modal title={`Rename ${project.name}`} onCancel={onClose} footer={footer}>
       <form
+        id="rename-project"
         onSubmit={async e => {
           e.preventDefault();
           setError('');
@@ -38,14 +49,6 @@ export function RenameDialog({
             {error}
           </p>
         )}
-        <div className="repair-actions">
-          <button type="button" onClick={onClose}>
-            Cancel
-          </button>
-          <button className="primary" type="submit" disabled={!name.trim()}>
-            Rename
-          </button>
-        </div>
       </form>
     </Modal>
   );
@@ -80,10 +83,28 @@ export function MoveDialog({
       } else setError(e.message);
     }
   }
+  const footer = others.length ? (
+    <>
+      <button type="button" onClick={onClose}>
+        Cancel
+      </button>
+      <button
+        className="primary"
+        type="submit"
+        form="move-file"
+        disabled={!target || !toPath.trim()}
+      >
+        Move
+      </button>
+    </>
+  ) : (
+    <button onClick={onClose}>Close</button>
+  );
   return (
-    <Modal title={`Move ${path}`} onCancel={onClose}>
+    <Modal title={`Move ${path}`} onCancel={onClose} footer={footer}>
       {others.length ? (
         <form
+          id="move-file"
           onSubmit={e => {
             e.preventDefault();
             void move();
@@ -108,22 +129,9 @@ export function MoveDialog({
               {error}
             </p>
           )}
-          <div className="repair-actions">
-            <button type="button" onClick={onClose}>
-              Cancel
-            </button>
-            <button className="primary" type="submit" disabled={!target || !toPath.trim()}>
-              Move
-            </button>
-          </div>
         </form>
       ) : (
-        <>
-          <p>There is no other project to move this file to.</p>
-          <div className="repair-actions">
-            <button onClick={onClose}>Close</button>
-          </div>
-        </>
+        <p>There is no other project to move this file to.</p>
       )}
     </Modal>
   );
@@ -141,8 +149,17 @@ export function ImportConflictDialog({
   onChoose: (choice: 'replace' | 'keep-both') => void;
   onClose: () => void;
 }) {
+  const footer = (
+    <>
+      <button onClick={onClose}>Cancel</button>
+      <button onClick={() => onChoose('keep-both')}>Keep both</button>
+      <button className="danger" onClick={() => onChoose('replace')}>
+        Replace
+      </button>
+    </>
+  );
   return (
-    <Modal title={`Files already exist in ${project.name}`} onCancel={onClose}>
+    <Modal title={`Files already exist in ${project.name}`} onCancel={onClose} footer={footer}>
       <ul className="delete-list">
         {conflicts.map(c => (
           <li key={c}>{c}</li>
@@ -152,13 +169,6 @@ export function ImportConflictDialog({
         Replace overwrites these files with the imported ones (committed versions remain in the
         project's Git history). Keep both imports them as "name (2)".
       </p>
-      <div className="repair-actions">
-        <button onClick={onClose}>Cancel</button>
-        <button onClick={() => onChoose('keep-both')}>Keep both</button>
-        <button className="danger" onClick={() => onChoose('replace')}>
-          Replace
-        </button>
-      </div>
     </Modal>
   );
 }
@@ -180,9 +190,24 @@ export function ProjectDomainDialog({
     event.preventDefault();
     onChoose(domain || undefined);
   }
+  const footer = (
+    <>
+      <button type="button" onClick={onClose}>
+        Cancel
+      </button>
+      <button
+        className="primary"
+        type="submit"
+        form="project-domain"
+        disabled={!allowUnassigned && !domain}
+      >
+        Continue
+      </button>
+    </>
+  );
   return (
-    <Modal title="New project's domain" onCancel={onClose}>
-      <form onSubmit={submit}>
+    <Modal title="New project's domain" onCancel={onClose} footer={footer}>
+      <form id="project-domain" onSubmit={submit}>
         <label>
           Domain
           <select value={domain} onChange={event => setDomain(event.target.value)}>
@@ -194,14 +219,6 @@ export function ProjectDomainDialog({
             ))}
           </select>
         </label>
-        <div className="repair-actions">
-          <button type="button" onClick={onClose}>
-            Cancel
-          </button>
-          <button type="submit" disabled={!allowUnassigned && !domain}>
-            Continue
-          </button>
-        </div>
       </form>
     </Modal>
   );

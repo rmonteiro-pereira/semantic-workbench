@@ -33,7 +33,7 @@ export function Suggestions({
         createPortal(
           <Modal
             title="Grouping suggestions"
-            size="medium"
+            size="wide"
             onCancel={() => setOpen(false)}
             className="suggestions-dialog"
             footer={

@@ -36,7 +36,7 @@ test('Escape closes the dialog through onCancel and focus returns to the opener'
 test('the size variant applies and the footer follows the dialog body', async () => {
   await page.getByRole('button', { name: 'Open dialog' }).click();
   const section = page.locator('dialog section.workbench-dialog');
-  expect(await section.getAttribute('class')).toContain('size-large');
+  expect(await section.getAttribute('class')).toContain('size-wide');
   const footer = section.locator('footer.dialog-footer');
   expect(await footer.getByRole('button', { name: 'Done' }).count()).toBe(1);
   // The footer comes after the body.

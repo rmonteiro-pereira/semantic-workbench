@@ -1328,7 +1328,7 @@ export function LineageCanvas({
       {pathInDialog && pathOpen && selectedPathList && (
         <Modal
           title="Selected path"
-          size="small"
+          size="narrow"
           onCancel={() => setPathOpen(false)}
           footer={
             <>

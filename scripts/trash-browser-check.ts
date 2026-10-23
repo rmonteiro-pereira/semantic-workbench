@@ -265,8 +265,8 @@ try {
       const trash = page.getByRole('dialog', { name: 'Trash' });
       await expect(trash).toContainText('scratch.yaml (Scratch)');
       await trash.getByRole('button', { name: 'Restore' }).click();
-      await expect(trash).toContainText('The trash is empty.');
-      await expect(trash).toContainText('Deleted files and projects wait here');
+      await expect(trash).toContainText('Nothing here yet');
+      await expect(trash).toContainText('Deleted projects and files stay here');
       await expect(trash.getByRole('button', { name: 'Empty trash' })).toHaveCount(0);
       await trash.getByRole('button', { name: 'Close' }).click();
       await expect(fileButton('scratch.yaml')).toBeVisible();
@@ -275,7 +275,7 @@ try {
       await page.getByRole('button', { name: 'Trash', exact: true }).click();
       await trash.getByRole('button', { name: 'Delete permanently' }).click();
       await trash.getByRole('button', { name: 'Yes, delete' }).click();
-      await expect(trash).toContainText('The trash is empty.');
+      await expect(trash).toContainText('Nothing here yet');
       await trash.getByRole('button', { name: 'Close' }).click();
       expect(api.ws.trash.list()).toEqual([]);
     },
@@ -327,7 +327,7 @@ try {
     await trash.getByRole('button', { name: 'Empty trash' }).click();
     await expect(trash).toContainText('Permanently delete all');
     await trash.getByRole('button', { name: 'Empty trash' }).click();
-    await expect(trash).toContainText('The trash is empty.');
+    await expect(trash).toContainText('Nothing here yet');
     expect(api.ws.trash.list()).toEqual([]);
   });
   await check('no page reload and no browser errors', async () => {

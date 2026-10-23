@@ -5,6 +5,7 @@ import {
   closeSyncDialog,
   openRemoteDialog,
   openSyncDialog,
+  remoteDialog,
   runSyncAction,
 } from './helpers/sync-dialog';
 import { appUrl } from './helpers/base-url';
@@ -73,7 +74,7 @@ const group = (name: string) => panel().getByRole('region', { name });
 // The remote is edited in the Remote dialog opened from the panel.
 async function setRemote(url: string) {
   await openRemoteDialog(page);
-  const dialog = page.getByRole('dialog', { name: 'Remote' });
+  const dialog = remoteDialog(page);
   await dialog.getByLabel('Remote URL').fill(url);
   await dialog.getByRole('button', { name: 'Save remote' }).click();
   await expect(dialog).toHaveCount(0);

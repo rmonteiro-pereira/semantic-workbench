@@ -59,9 +59,7 @@ function RemovedList({
   const history = deletedScope(impact);
   return (
     <>
-      <li>
-        Project {impact.removes.name ?? name(target.project)}, {history}
-      </li>
+      <li>The project, {history}</li>
       {impact.removes.files.map(file => (
         <li key={file}>{file}</li>
       ))}
@@ -282,8 +280,22 @@ export function DeleteDialog({ target, projects, dirty, onCancel, onDeleted, onR
   }
 
   const waiting = target.kind !== 'clear' && !impact && !error;
+  const footer = (
+    <>
+      <button onClick={onCancel} disabled={busy}>
+        Cancel
+      </button>
+      <button
+        className={removing ? 'primary' : 'danger'}
+        onClick={confirm}
+        disabled={busy || waiting}
+      >
+        {actionText(removing, busy)}
+      </button>
+    </>
+  );
   return (
-    <Modal title={dialogTitle(target, removing, name)} onCancel={onCancel}>
+    <Modal title={dialogTitle(target, removing, name)} onCancel={onCancel} footer={footer}>
       <p>{dialogIntro(target, removing)}</p>
       {shared && impact && (
         <SubprojectChoice impact={impact} mode={mode} onChange={setMode} name={name} />
@@ -303,18 +315,6 @@ export function DeleteDialog({ target, projects, dirty, onCancel, onDeleted, onR
           {error}
         </p>
       )}
-      <div className="repair-actions">
-        <button onClick={onCancel} disabled={busy}>
-          Cancel
-        </button>
-        <button
-          className={removing ? 'primary' : 'danger'}
-          onClick={confirm}
-          disabled={busy || waiting}
-        >
-          {actionText(removing, busy)}
-        </button>
-      </div>
     </Modal>
   );
 }

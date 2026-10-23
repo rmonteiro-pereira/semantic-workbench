@@ -6,7 +6,7 @@ import { screenshotPath } from './screenshots';
 import { headerProblems } from './header';
 import { layoutProblems } from './layout-geometry';
 import { menuSurfaceProblems } from './menu-geometry';
-import { closeSyncDialog, offersSyncDialog, openSyncDialog } from './sync-dialog';
+import { closeSyncDialog, offersSyncDialog, openSyncDialog, remoteButton } from './sync-dialog';
 import { lowContrastProblems, smallTextProblems, textCollisionProblems } from './text-geometry';
 
 /** Supported authentication viewports, including the narrow phone layout. */
@@ -403,7 +403,7 @@ async function checkRoleControls(page: Page, target: SignInTarget, username: Tes
   await page.getByRole('button', { name: 'Source control', exact: false }).click();
   await checkRemoteControl(page, username === 'dave');
   if (!writes) {
-    const commit = page.getByRole('button', { name: 'Commit', exact: true });
+    const commit = page.getByRole('button', { name: /^Commit to / });
     await expect(commit).toBeDisabled();
     await expect(commit).toHaveAttribute('title', /Editor/);
     const denied = await context.request.put(
@@ -484,7 +484,7 @@ export async function agentBearerChecks(browser: Browser, target: SignInTarget) 
 async function checkRemoteControl(page: Page, mayChangeRemote: boolean) {
   if (!mayChangeRemote && !(await offersSyncDialog(page))) return;
   const dialog = await openSyncDialog(page);
-  const remote = dialog.getByRole('button', { name: 'Remote…', exact: true });
+  const remote = remoteButton(dialog);
   if (mayChangeRemote) await expect(remote).toBeVisible();
   else await expect(remote).toBeHidden();
   await closeSyncDialog(dialog);

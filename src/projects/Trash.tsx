@@ -2,6 +2,7 @@
  * files. */
 import { useCapabilities } from '../auth/Capabilities';
 import React, { useEffect, useState } from 'react';
+import { EmptyState } from './EmptyState';
 import { Modal } from './Modal';
 import { api, type TrashItem } from './api';
 // Restore or permanently delete trash entries; emptying the trash asks for confirmation. A restore
@@ -53,15 +54,46 @@ export function TrashDialog({ onClose, version }: { onClose: () => void; version
       else setError(e.message);
     }
   }
+  const emptyingNote =
+    confirming === '*'
+      ? `Permanently delete all ${items?.length} item${items?.length === 1 ? '' : 's'}? This cannot be undone.`
+      : undefined;
+  const footer =
+    confirming === '*' ? (
+      <>
+        <button onClick={() => setConfirming(null)}>Cancel</button>
+        <button
+          className="danger"
+          onClick={() => {
+            setConfirming(null);
+            act(() => api.emptyTrash());
+          }}
+        >
+          Empty trash
+        </button>
+      </>
+    ) : (
+      <>
+        {access.can('purge') && !!items?.length && (
+          <button onClick={() => setConfirming('*')}>Empty trash</button>
+        )}
+        <button onClick={onClose}>Close</button>
+      </>
+    );
   return (
-    <Modal title="Trash" onCancel={onClose} className="trash-dialog">
+    <Modal
+      title="Trash"
+      onCancel={onClose}
+      className="trash-dialog"
+      footer={footer}
+      footerNote={emptyingNote}
+    >
       {items === null ? (
         <p>Loading…</p>
       ) : items.length === 0 ? (
-        <div className="trash-empty">
-          <p>The trash is empty.</p>
-          <small>Deleted files and projects wait here until you empty the trash.</small>
-        </div>
+        <EmptyState title="Nothing here yet">
+          Deleted projects and files stay here until you empty the trash.
+        </EmptyState>
       ) : (
         <ul className="trash-list">
           {items.map(t => (
@@ -111,35 +143,6 @@ export function TrashDialog({ onClose, version }: { onClose: () => void; version
           {error}
         </p>
       )}
-      <div className="repair-actions">
-        {confirming === '*' ? (
-          <>
-            <span>
-              Permanently delete all {items?.length} item{items?.length === 1 ? '' : 's'}? This
-              cannot be undone.
-            </span>
-            <button onClick={() => setConfirming(null)}>Cancel</button>
-            <button
-              className="danger"
-              onClick={() => {
-                setConfirming(null);
-                act(() => api.emptyTrash());
-              }}
-            >
-              Empty trash
-            </button>
-          </>
-        ) : (
-          <>
-            {access.can('purge') && !!items?.length && (
-              <button onClick={() => setConfirming('*')}>Empty trash</button>
-            )}
-            <button className="primary" onClick={onClose}>
-              Close
-            </button>
-          </>
-        )}
-      </div>
     </Modal>
   );
 }
