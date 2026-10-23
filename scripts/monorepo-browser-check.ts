@@ -2,6 +2,7 @@
 // confirmed choice, the grouped tree, the shared Source Control, and Remove versus Delete folder.
 // Every repository is a local bare repository in a temporary folder.
 import { appUrl } from './helpers/base-url';
+import { expectDialogGeometry } from './helpers/dialog-geometry';
 import { chromium, expect, type Page } from '@playwright/test';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -85,9 +86,8 @@ try {
   await page.goto(appUrl());
   await check('a manifest makes Sales and Finance, grouped under their repository', async () => {
     const dialog = await clone(page, declared.bare);
-    await expect(dialog).toContainText(
-      "The repository's manifest made 2 projects: Sales, Finance.",
-    );
+    const made = dialog.getByRole('region', { name: 'Projects made' });
+    await expect(made.getByRole('listitem')).toHaveText(['Sales', 'Finance']);
     await page.screenshot({ path: '/tmp/workbench-monorepo-clone.png' });
     await dialog.getByRole('button', { name: 'Open project' }).click();
     await expect(dialog).toHaveCount(0);
@@ -194,10 +194,12 @@ try {
         await page.getByRole('button', { name: 'Open workspace', exact: true }).click();
       const chooser = await openRepositoryProjects('monorepo');
       await expectFits(chooser, width);
+      await expectDialogGeometry(page, 'projects-in-repository');
       await page.screenshot({ path: `/tmp/workbench-monorepo-projects-${width}.png` });
       await chooser.getByRole('button', { name: 'Cancel' }).click();
       const remove = await openDelete('Sales');
       await expectFits(remove, width);
+      await expectDialogGeometry(page, 'remove-project');
       await page.screenshot({ path: `/tmp/workbench-monorepo-delete-${width}.png` });
       await remove.getByRole('button', { name: 'Cancel' }).click();
     }

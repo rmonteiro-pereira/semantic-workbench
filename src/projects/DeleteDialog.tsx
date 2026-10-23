@@ -96,9 +96,11 @@ function SubprojectChoice({
           checked={mode === 'remove'}
           onChange={() => onChange('remove')}
         />
-        <span>
-          <strong>Remove from workspace</strong>: the folder, its files and the history stay as they
-          are.
+        <span className="choice-text">
+          <span className="choice-title">Remove from workspace</span>
+          <span className="choice-hint">
+            The folder, its files and the history stay as they are.
+          </span>
         </span>
       </label>
       <label className="check-row">
@@ -108,9 +110,12 @@ function SubprojectChoice({
           checked={mode === 'delete'}
           onChange={() => onChange('delete')}
         />
-        <span>
-          <strong>Delete folder</strong>: the folder moves to the trash and the repository shows its
-          files as deleted until you commit.
+        <span className="choice-text">
+          <span className="choice-title">Delete folder</span>
+          <span className="choice-hint">
+            The folder moves to the trash and the repository shows its files as deleted until you
+            commit.
+          </span>
         </span>
       </label>
     </fieldset>
@@ -180,13 +185,15 @@ function dialogTitle(target: DeleteTarget, removing: boolean, name: (slug: strin
   if (target.kind === 'clear') return 'Clear workspace?';
   if (target.kind === 'file') return `Delete ${target.path}?`;
   const label = `project ${name(target.project)}`;
-  return removing ? `Remove ${label} from the workspace?` : `Delete ${label}?`;
+  return removing ? `Remove ${label}?` : `Delete ${label}?`;
 }
 
 function dialogIntro(target: DeleteTarget, removing: boolean) {
   if (target.kind === 'clear')
     return 'Every project moves to the trash with its Git history. Projects that share a repository move together, as one entry.';
-  if (removing) return 'Nothing on disk changes. You can add the folder back later.';
+  if (removing) {
+    return 'The project leaves the workspace. Nothing on disk changes, and you can add the folder back later.';
+  }
   return 'It moves to the trash; you can undo for 10 seconds and restore it from the trash later.';
 }
 
