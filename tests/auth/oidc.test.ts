@@ -2,7 +2,8 @@
 import { expect, test } from 'bun:test';
 import { startMockOidc } from '../helpers/mock-oidc';
 import { oidcConfig } from '../helpers/server-auth';
-import { createOidcClient, safeReturnTo } from '../../server/auth/oidc';
+import { createOidcClient } from '../../server/auth/oidc';
+import { safeReturnTo } from '../../server/auth/attempts';
 
 test('return destinations cannot leave the origin', () => {
   for (const value of [

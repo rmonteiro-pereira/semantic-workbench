@@ -5,7 +5,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect, type Browser, type Locator, type Page } from '@playwright/test';
-import { startAuthApi } from './auth-environment';
+import { startAuthApi, type AuthProvider } from './auth-environment';
 import { check, signIn, type SignInTarget } from './helpers/sign-in';
 import { layoutProblems } from './helpers/layout-geometry';
 import { screenshotPath } from './helpers/screenshots';
@@ -82,7 +82,11 @@ async function connectFlow(page: Page, target: SignInTarget, github: CredentialG
 }
 
 /** Connects GitHub from the push prompt and checks that the push then continues as Alice. */
-export async function remoteCredentialChecks(browser: Browser, target: SignInTarget) {
+export async function remoteCredentialChecks(
+  browser: Browser,
+  target: SignInTarget,
+  provider: AuthProvider,
+) {
   const gitRoot = mkdtempSync(join(tmpdir(), 'workbench-auth-remote-'));
   const tokens = new Map<string, string>();
   const github = startCredentialGitServer(
@@ -90,18 +94,14 @@ export async function remoteCredentialChecks(browser: Browser, target: SignInTar
     async (_user, password) => tokens.get(password) ?? null,
     { ...GITHUB_APP, redirectUri: target.url + '/auth/github/callback' },
   );
-  const api = await startAuthApi(
-    target.url,
-    { issuer: target.issuer, kind: 'entra' },
-    {
-      env: {
-        SW_GITHUB_HOST: github.host,
-        SW_GITHUB_CLIENT_ID: GITHUB_APP.clientId,
-        SW_GITHUB_CLIENT_SECRET: GITHUB_APP.clientSecret,
-      },
-      prepare: root => allowGitHub(root, github),
+  const api = await startAuthApi(target.url, provider, {
+    env: {
+      SW_GITHUB_HOST: github.host,
+      SW_GITHUB_CLIENT_ID: GITHUB_APP.clientId,
+      SW_GITHUB_CLIENT_SECRET: GITHUB_APP.clientSecret,
     },
-  );
+    prepare: root => allowGitHub(root, github),
+  });
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   try {
     const page = await context.newPage();

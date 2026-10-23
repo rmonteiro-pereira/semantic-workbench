@@ -1,8 +1,8 @@
 // Renders identity-only pages and routes the browser's authentication lifecycle.
 import type { Principal } from '../auth/principal';
 import { sessionCookie, type Session } from '../auth/sessions';
-import { safeReturnTo } from '../auth/oidc';
-import { SignInError } from '../auth/sign-in-error';
+import { safeReturnTo } from '../auth/attempts';
+import { SignInError, type SignInReason } from '../auth/sign-in-error';
 import type { RemoteCredentials } from '../auth/remote-credentials';
 import type { Route } from './http';
 import { securityHeaders } from '../static';
@@ -86,12 +86,17 @@ export function authPage(page: AuthPageKind, options: AuthPageOptions = {}) {
   );
 }
 
+/** Where the identity provider ends a workbench session after signing the person out. */
+export const FRONT_CHANNEL_LOGOUT_PATH = '/auth/front-channel-logout';
+
 /** Dependencies needed by public authentication routes. */
 export type AuthRouteOptions = {
   session: (request: Request) => Promise<Session | null>;
   login: (returnTo: string, request?: Request) => Promise<Response>;
   callback: (request: Request) => Promise<Response>;
   logout: (request: Request, session: Session | null) => Promise<Response>;
+  /** Ends the sessions of the provider session the request names; carries no cookie. */
+  frontChannelLogout: (request: Request) => Promise<Response>;
 };
 
 /** The GitHub consent steps of the delegated-credential service. */
@@ -142,6 +147,9 @@ export function createAuthRoutes(options: AuthRouteOptions, consent?: GitHubCons
       }
       return authPage('no-access', { principal: session.principal, csrf: session.csrf });
     }
+    if (request.method === 'GET' && url.pathname === FRONT_CHANNEL_LOGOUT_PATH) {
+      return options.frontChannelLogout(request);
+    }
     if (request.method === 'POST' && url.pathname === '/auth/logout') {
       return options.logout(request, await options.session(request));
     }
@@ -168,11 +176,13 @@ export function authRoutes(options: AuthRouteOptions, consent?: GitHubConsent): 
 
 /** Renders only safe sign-in reasons, including failures starting from a protected page. */
 export function signInErrorResponse(error: SignInError, publicUrl?: string) {
-  const reasons = {
+  const reasons: Record<SignInReason, string> = {
     'tenant-mismatch': 'Tenant mismatch',
     'attempt-invalid': 'Expired or replayed sign-in attempt',
     'token-invalid': 'Invalid or expired provider token',
     'provider-unreachable': 'Provider unreachable',
+    'provider-unsupported': 'Not supported by the identity provider',
+    'session-upgraded': 'Signed out after an update; sign in again',
   };
   const response = authPage('error', { reason: reasons[error.reason], returnTo: error.returnTo });
   if (publicUrl) response.headers.append('Set-Cookie', sessionCookie('', publicUrl, 'auth', 0));

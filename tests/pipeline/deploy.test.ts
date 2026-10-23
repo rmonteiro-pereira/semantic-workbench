@@ -304,3 +304,14 @@ test('production CLI validates its target without loading fake fixtures', async 
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+test('preflight requires the Entra certificate key to be a Key Vault reference', () => {
+  const app = fakeApp();
+  const vault = 'https://sw-vault.vault.azure.net/secrets/certificate';
+  app.secrets.push({ name: 'certificate', url: vault, identity: app.identity });
+  app.env.SW_OIDC_CLIENT_CERTIFICATE_KEY = 'secretref:certificate';
+  app.env.SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT = 'ab'.repeat(32);
+  expect(() => preflight(app, fakeTarget)).not.toThrow();
+  app.env.SW_OIDC_CLIENT_CERTIFICATE_KEY = '-----BEGIN PRIVATE KEY-----';
+  expect(() => preflight(app, fakeTarget)).toThrow('Key Vault SW_OIDC_CLIENT_CERTIFICATE_KEY');
+});

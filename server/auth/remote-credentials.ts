@@ -11,7 +11,8 @@ import {
 import { githubOAuth } from './github-oauth';
 import type { RemoteAddresses, RemoteCredential } from '../projects/git';
 import type { WorkbenchSettings } from './admin-repo';
-import { safeReturnTo, type OidcClient } from './oidc';
+import { safeReturnTo } from './attempts';
+import type { SignInProvider } from './sign-in-provider';
 import type { RemoteTokens, Session, SessionStore } from './sessions';
 import type { Workspace } from '../projects/workspace';
 import type { CredentialFor } from '../projects/scm';
@@ -74,7 +75,7 @@ export type RemoteCredentialOptions = {
 /** What the delegated-credential service needs from the rest of server authentication. */
 export type RemoteCredentialDependencies = RemoteCredentialOptions & {
   config: ServerConfig;
-  client: Pick<OidcClient, 'onBehalfOf'>;
+  client: Pick<SignInProvider, 'onBehalfOf'>;
   session: (request: Request) => Promise<Session | null>;
   sessions: Pick<SessionStore, 'updateRemote'>;
   settings: () => WorkbenchSettings;
@@ -179,7 +180,7 @@ function azureDevOpsAccount(
     if (reused) return reused;
     let issued;
     try {
-      issued = await deps.client.onBehalfOf(session.tokens.accessToken, AZURE_DEVOPS_SCOPE);
+      issued = await deps.client.onBehalfOf(session.tokens.accessToken, [AZURE_DEVOPS_SCOPE]);
     } catch (error) {
       deps.log(`azure-devops-on-behalf-of-failed ${(error as Error).name}`);
       throw new ConnectRequiredError('azure-devops', { cause: error });

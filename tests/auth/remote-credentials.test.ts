@@ -54,7 +54,15 @@ test('an Azure DevOps push uses a token obtained on behalf of the person who pus
   const tokenRequests = setup.provider.calls.filter(
     entry => entry.endpoint === 'token' && entry.params.requested_token_use === 'on_behalf_of',
   );
-  expect(tokenRequests.map(entry => entry.params.scope)).toEqual([
+  // MSAL adds the OpenID Connect scopes to every request; Entra ignores them for this grant.
+  const openIdScopes = new Set(['openid', 'profile', 'offline_access']);
+  const requested = tokenRequests.map(entry =>
+    entry.params.scope
+      .split(' ')
+      .filter(scope => !openIdScopes.has(scope))
+      .join(' '),
+  );
+  expect(requested).toEqual([
     `${AZURE_DEVOPS_AUDIENCE}/.default`,
     `${AZURE_DEVOPS_AUDIENCE}/.default`,
   ]);

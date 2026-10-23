@@ -1924,7 +1924,7 @@ if (category === 'signin-config') {
   const env = {
     SW_MODE: 'server',
     SW_PUBLIC_URL: 'https://workbench.example',
-    SW_OIDC_ISSUER: 'https://provider.example',
+    SW_OIDC_ISSUER: `https://login.microsoftonline.com/${TEST_TENANT_ID}/v2.0`,
     SW_OIDC_CLIENT_ID: 'client',
     SW_OIDC_CLIENT_SECRET: 'secret',
     SW_OIDC_PROVIDER: 'entra',
@@ -1935,7 +1935,13 @@ if (category === 'signin-config') {
     SW_BOOTSTRAP_ADMINS: 'admin@example.org',
   };
   assert.equal(m.readConfig(env).mode, 'server');
-  assert.throws(() => m.readConfig({ ...env, SW_OIDC_ISSUER: 'http://provider.example' }));
+  // A generic provider, so the Entra host rule cannot hide the plain-http rule.
+  const generic = { ...env, SW_OIDC_PROVIDER: 'generic' };
+  assert.equal(
+    m.readConfig({ ...generic, SW_OIDC_ISSUER: 'https://provider.example' }).mode,
+    'server',
+  );
+  assert.throws(() => m.readConfig({ ...generic, SW_OIDC_ISSUER: 'http://provider.example' }));
   assert.throws(() => m.readConfig({ ...env, SW_GRAPH_URL: 'https://attacker.example' }));
 }
 
@@ -3146,4 +3152,155 @@ if (category === 'copy-suggestions') {
     ws.close();
     fixture.dispose();
   }
+}
+
+// Entra sign-in through MSAL: the library choice, the session's token cache at rest, PKCE, the
+// certificate credential and group overage.
+if (category === 'msal-choice') {
+  assert.equal(m.signInLibrary('entra'), 'msal');
+  assert.equal(m.signInLibrary('generic'), 'openid-client');
+  assert.equal(m.signInLibrary('keycloak'), 'openid-client');
+}
+if (category === 'msal-cache') {
+  // MSAL's cache holds refresh tokens; it may live only in the encrypted session record.
+  const helpers = await import('../tests/helpers/entra-provider');
+  const writes: unknown[] = [];
+  const write = Bun.write;
+  Bun.write = ((...args: unknown[]) => {
+    writes.push(args[0]);
+    return Promise.resolve(0);
+  }) as typeof Bun.write;
+  try {
+    await helpers.withEntraProvider(async provider => {
+      const client = await m.createMsalProvider(helpers.entraConfig(provider));
+      const identity = await helpers.signInWith(client, provider, 'alice');
+      assert(identity.tokens.tokenCache);
+    });
+  } finally {
+    Bun.write = write;
+  }
+  assert.deepEqual(writes, [], 'The MSAL token cache was written to a file');
+}
+if (category === 'msal-state') {
+  const helpers = await import('../tests/helpers/entra-provider');
+  await helpers.withEntraProvider(async provider => {
+    const client = await m.createMsalProvider(helpers.entraConfig(provider));
+    // Without the expected state MSAL parses the returned one as its own format and fails.
+    assert((await helpers.signInWith(client, provider, 'alice')).principal.id);
+    const started = await client.login('/');
+    const callback = new URL(await provider.authorizeAs('alice', started.url));
+    callback.searchParams.set('state', 'forged');
+    await assert.rejects(client.callback(callback, started.attempt));
+  });
+}
+if (category === 'msal-refresh') {
+  const helpers = await import('../tests/helpers/entra-provider');
+  await helpers.withEntraProvider(async provider => {
+    const client = await m.createMsalProvider(helpers.entraConfig(provider));
+    const identity = await helpers.signInWith(client, provider, 'alice');
+    assert((await client.refresh(identity.tokens)).principal.id);
+  });
+  await helpers.withEntraProvider(
+    async provider => {
+      const client = await m.createMsalProvider(helpers.entraConfig(provider));
+      const identity = await helpers.signInWith(client, provider, 'alice');
+      await assert.rejects(client.refresh(identity.tokens));
+    },
+    { refreshIdToken: 'repeat' },
+  );
+}
+if (category === 'msal-authority') {
+  const tenant = '4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f';
+  const env = {
+    SW_MODE: 'server',
+    SW_PUBLIC_URL: 'https://workbench.example',
+    SW_OIDC_ISSUER: `https://login.microsoftonline.com/${tenant}/v2.0`,
+    SW_OIDC_CLIENT_ID: 'client',
+    SW_OIDC_CLIENT_SECRET: 'secret',
+    SW_OIDC_PROVIDER: 'entra',
+    SW_ENTRA_TENANT_ID: tenant,
+    SW_SESSION_KEY: Buffer.from(Array.from({ length: 32 }, (_, index) => index + 1)).toString(
+      'base64',
+    ),
+    SW_BOOTSTRAP_ADMINS: 'admin@example.org',
+  };
+  assert.equal(m.readConfig(env).mode, 'server');
+  const loopback = `https://127.0.0.1:4400/${tenant}/v2.0`;
+  assert.throws(() => m.readConfig({ ...env, SW_OIDC_ISSUER: loopback }));
+}
+if (category === 'msal-host') {
+  const tenant = '4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f';
+  const microsoft = m.entraAuthority(`https://login.microsoftonline.com/${tenant}/v2.0`, tenant);
+  assert.equal(microsoft.host, 'login.microsoftonline.com');
+  // MSAL would send the credential and refresh tokens to whatever host it is given.
+  assert.throws(() => m.entraAuthority(`https://login.example.org/${tenant}/v2.0`, tenant));
+}
+if (category === 'front-channel-issuer') {
+  const helpers = await import('../tests/helpers/entra-provider');
+  const { authWorkspace } = await import('../tests/helpers/auth-workspace');
+  const { createHandler } = await import('../server/handler');
+  await helpers.withEntraProvider(async provider => {
+    using fixture = await authWorkspace();
+    const config = helpers.entraConfig(provider);
+    const auth = await m.createServerAuthentication(fixture.ws, config);
+    try {
+      const handler = createHandler(fixture.ws, auth);
+      const origin = 'http://127.0.0.1:4310';
+      const start = await handler(new Request(origin + '/auth/login'));
+      const attempt = start.headers.getSetCookie()[0].split(';')[0];
+      const callback = await provider.authorizeAs('alice', start.headers.get('location')!);
+      const signedIn = await handler(new Request(callback, { headers: { Cookie: attempt } }));
+      const cookie = signedIn.headers
+        .getSetCookie()
+        .find((value: string) => value.startsWith('sw-session='))!
+        .split(';')[0];
+      const id = cookie.slice('sw-session='.length);
+      const sid = (await auth.authentication.sessions.get(id, false)).tokens.providerSession.sid;
+      const query = new URLSearchParams({ iss: 'https://attacker.example/v2.0', sid });
+      await handler(new Request(`${origin}/auth/front-channel-logout?${query}`));
+      const me = await handler(new Request(origin + '/api/me', { headers: { Cookie: cookie } }));
+      assert.equal(me.status, 200, 'Another issuer ended the session');
+    } finally {
+      auth.close();
+    }
+  });
+}
+if (category === 'msal-pkce') {
+  const helpers = await import('../tests/helpers/entra-provider');
+  await helpers.withEntraProvider(async provider => {
+    const client = await m.createMsalProvider(helpers.entraConfig(provider));
+    const identity = await helpers.signInWith(client, provider, 'alice');
+    assert(identity.principal.id);
+  });
+}
+if (category === 'msal-certificate') {
+  const privateKey = '-----BEGIN PRIVATE KEY-----\nkey\n-----END PRIVATE KEY-----';
+  const assertion = async () => 'unused';
+  for (const thumbprint of ['a'.repeat(64), 'b'.repeat(40)]) {
+    const credential = m.msalCredential({ kind: 'certificate', privateKey, thumbprint }, assertion);
+    assert.equal(credential.clientSecret, undefined);
+    assert.equal(credential.clientCertificate?.privateKey, privateKey);
+  }
+}
+if (category === 'msal-overage') {
+  const helpers = await import('../tests/helpers/entra-provider');
+  const { authWorkspace } = await import('../tests/helpers/auth-workspace');
+  const { createHandler } = await import('../server/handler');
+  await helpers.withEntraProvider(async provider => {
+    using fixture = await authWorkspace();
+    const auth = await m.createServerAuthentication(fixture.ws, helpers.entraConfig(provider));
+    try {
+      const handler = createHandler(fixture.ws, auth);
+      const origin = 'http://127.0.0.1:4310';
+      const start = await handler(new Request(origin + '/auth/login'));
+      const attempt = start.headers.getSetCookie()[0].split(';')[0];
+      const callback = await provider.authorizeAs('olga', start.headers.get('location')!);
+      const signedIn = await handler(new Request(callback, { headers: { Cookie: attempt } }));
+      // Olga's groups exceed the token, so only the directory lookup grants her access.
+      assert.equal(signedIn.headers.get('location'), '/');
+      assert(provider.calls.some(call => call.endpoint === 'graph-check'));
+    } finally {
+      auth.close();
+    }
+  });
 }

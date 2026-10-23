@@ -8,8 +8,15 @@ implementation completion. Commands assume the release checkout and the setup gu
 
 1. **Set up the target.** Follow every portal action and CLI help entry in
    [Target setup](README.md). Check all resources, identities, roles, probes, mount ownership,
-   federation, pipeline permissions and environment checks. Expected: all items present and the
-   variable group contains no secrets. Result: [ ] pass [ ] fail.
+   federation, pipeline permissions and environment checks. Check the
+   [Entra App Registration](README.md#entra-app-registration) item by item: both Web redirect
+   URIs, the front-channel logout URL `https://<host>/auth/front-channel-logout`, groups claim
+   and optional claims (`email`, `upn`, `xms_edov`, `sid`, `login_hint` on ID tokens, `idtyp`
+   on access tokens), API permissions with admin consent
+   (`GroupMember.Read.All` only for the Graph lookups), the exposed `api://<client-id>` with
+   `access_as_user`, access token version 2, and the credential (certificate preferred). Record
+   which credential was used. Expected: all items present, every value mapped to its setting as
+   in the guide's table, and the variable group contains no secrets. Result: [ ] pass [ ] fail.
 2. **Hand over `<release-tag>`.** Follow the guide's push or verified bundle sequence: release
    branch, pull request into `main`, then tag. For archive fallback record the commit mapping.
    Inspect the mirror's tag and commit. Expected: the release commit matches (or the archive
@@ -40,10 +47,24 @@ implementation completion. Commands assume the release checkout and the setup gu
    approval to smoke takes at most 15 minutes. Result: [ ] pass [ ] fail.
 6. **Exercise real Entra.** Complete every item of
    [quickstart §5](../specs/003-authn-authz/quickstart.md#5-microsoft-entra-id-on-the-real-tenant-manual-checklist-run-by-the-owner-recorded-in-verificationmd).
+   The redirect goes to `https://login.microsoftonline.com/<tenant>/oauth2/v2.0/authorize` and
+   carries `x-client-SKU=msal.js.node` (MSAL signs in on the server); the browser's cookies,
+   storage and responses hold no token. People signed in before this release are signed out once,
+   at their first token refresh (audit reason `session-upgraded`), and sign in again. Sign out in
+   the workbench: Entra does not ask which account. Run `scripts/examples/agent-client.ts` once
+   with a granted agent registration (see
+   [agent runtime](../docs/agent-runtime.md#agent-clients-in-server-mode)). Check
+   provider-initiated sign-out against the real tenant: sign in to the workbench, open another
+   application of the tenant (for example `https://myapps.microsoft.com`) in the same browser
+   and sign out there; the workbench's next request must return to the Entra sign-in, and the
+   audit log must show `signOut` and `sessionEnded` with reason `provider-signed-out` for that
+   person. If the session survives, check that the App Registration's front-channel logout URL
+   is `https://<host>/auth/front-channel-logout` and that the ID token carries `sid`.
    Expected: direct redirect, bootstrap access, group display name, mixed-case email grant,
    custom role and scoped access, No access for ungranted and unverified guest users, overage
-   lookup and failure behavior, group removal after refresh, stable Signed out page, and an
-   Editor push attributed to that person. Features from later phases that are unavailable must
+   lookup and failure behavior, group removal after refresh, stable Signed out page, the
+   session ended by the sign-out in another application, and an Editor push attributed to that
+   person. Features from later phases that are unavailable must
    be recorded as failures/follow-ups, not marked passed. Result: [ ] pass [ ] fail.
 7. **Restart and hand over.** In Container Apps → Revisions restart the running revision while
    a fixture user has a session and saved edits. Produce the next approved revision: choose
@@ -63,7 +84,8 @@ implementation completion. Commands assume the release checkout and the setup gu
    version tag. Never inject failure into production. Result: [ ] pass [ ] fail.
 9. **Credential and role review.** Inspect repository, pipeline YAML, variable group, logs and
    service connection authentication. Expected: no stored Azure, registry or provider credential;
-   service connection sign-ins use federation. Verify app secrets are Key Vault references and
+   service connection sign-ins use federation. Verify app secrets, including
+   `SW_OIDC_CLIENT_CERTIFICATE_KEY` when the certificate is used, are Key Vault references and
    record the final deploy roles and exact resource scopes. Result: [ ] pass [ ] fail.
 
 Copy this report into `specs/003-authn-authz/verification.md` under **Owner trial**, replacing

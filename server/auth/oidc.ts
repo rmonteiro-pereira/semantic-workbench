@@ -1,12 +1,17 @@
 // Keeps OpenID protocol validation and provider credentials outside HTTP routing.
 import { createBearerValidator } from './bearer';
 import * as oidc from 'openid-client';
-import { importPKCS8, createRemoteJWKSet, jwtVerify, customFetch, errors } from 'jose';
+import { importPKCS8 } from 'jose';
 import { readFile } from 'node:fs/promises';
 import { isLoopbackHost, type ServerConfig } from '../config';
-import { normalizeClaims, ClaimError } from './principal';
+import { normalizeClaims } from './principal';
 import type { SessionTokens } from './sessions';
-import { SignInError } from './sign-in-error';
+import { SignInError, tokenSignInError } from './sign-in-error';
+import { createProviderKeys, sessionClaims, verifyIdToken } from './id-token';
+import { directoryScope } from './directory';
+import { safeReturnTo, type SignInAttempt } from './attempts';
+import { managedIdentityAssertion } from './managed-identity';
+import type { ProviderFetch, SignInDependencies, SignInProvider } from './sign-in-provider';
 
 /** Safe provider diagnostics; credentials are never part of this object. */
 export type ProviderStatus = {
@@ -18,20 +23,18 @@ export type ProviderStatus = {
   jwksRefreshedAt: string | null;
 };
 
+/** The OAuth error code and description a provider returned, the only text safe to log. */
+function providerCode(error: { error: string; error_description?: string }): string {
+  return error.error_description ? `${error.error}: ${error.error_description}` : error.error;
+}
+
 /** Maps typed protocol failures to safe, stable sign-in reasons. */
 export function signInError(error: unknown): SignInError {
-  if (error instanceof SignInError) return error;
-  if (error instanceof ClaimError) {
-    return new SignInError(
-      error.reason === 'tenant-mismatch' ? 'tenant-mismatch' : 'token-invalid',
-      '/',
-      error,
-    );
-  }
+  const shared = tokenSignInError(error);
+  if (shared) return shared;
   if (error instanceof oidc.AuthorizationResponseError || error instanceof oidc.ResponseBodyError) {
-    return new SignInError('attempt-invalid', '/', error);
+    return new SignInError('attempt-invalid', '/', error, providerCode(error));
   }
-  if (error instanceof errors.JOSEError) return new SignInError('token-invalid', '/', error);
   if (error instanceof oidc.ClientError) {
     const detail = error.cause instanceof Error ? error.cause.cause : undefined;
     if (detail && typeof detail === 'object') {
@@ -55,46 +58,6 @@ export function signInError(error: unknown): SignInError {
   return new SignInError('provider-unreachable', '/', error);
 }
 
-/** Browser-bound values needed to complete one authorization code exchange. */
-export type SignInAttempt = {
-  state: string;
-  nonce: string;
-  verifier: string;
-  returnTo: string;
-  issuedAt: number;
-};
-
-/** Restricts post-login navigation to paths within the workbench origin. */
-export function safeReturnTo(value: string | null | undefined): string {
-  if (!value?.startsWith('/') || value.startsWith('//') || /[\\\r\n]/.test(value)) return '/';
-  const parsed = new URL(value, 'https://workbench.invalid');
-  return parsed.origin === 'https://workbench.invalid' && !parsed.pathname.startsWith('//')
-    ? parsed.pathname + parsed.search + parsed.hash
-    : '/';
-}
-
-/** Gets a federated assertion from the platform, without exposing its response to callers. */
-export async function managedIdentityAssertion(
-  env: Record<string, string | undefined> = process.env,
-  request: typeof fetch = fetch,
-): Promise<string> {
-  if (!env.IDENTITY_ENDPOINT || !env.IDENTITY_HEADER) {
-    throw new Error('Managed identity endpoint configuration is missing.');
-  }
-  const url = new URL(env.IDENTITY_ENDPOINT);
-  url.searchParams.set('resource', 'api://AzureADTokenExchange');
-  url.searchParams.set('api-version', '2019-08-01');
-  const response = await request(url, {
-    headers: { 'X-IDENTITY-HEADER': env.IDENTITY_HEADER },
-    signal: AbortSignal.timeout(5000),
-    redirect: 'error',
-  });
-  if (!response.ok) throw new Error('Managed identity assertion unavailable.');
-  const body = (await response.json()) as { access_token?: unknown };
-  if (typeof body.access_token !== 'string') throw new Error('Invalid managed identity assertion.');
-  return body.access_token;
-}
-
 async function authentication(
   config: ServerConfig,
   assertion: () => Promise<string>,
@@ -112,16 +75,23 @@ async function authentication(
   };
 }
 
+/** Adapts the provider fetch to openid-client, whose declared body type is wider than fetch's. */
+function openidFetch(request: ProviderFetch): oidc.CustomFetch {
+  return (url, options) => {
+    const { body, ...rest } = options;
+    const copied = body instanceof Uint8Array ? new Uint8Array(body) : body;
+    return request(url, { ...rest, body: copied ?? undefined });
+  };
+}
+
 /** Discovers the issuer and constructs a confidential client with explicit signature checks. */
 export async function createOidcClient(
   config: ServerConfig,
-  dependencies: {
-    assertion?: () => Promise<string>;
-    now?: () => number;
-    fetch?: oidc.CustomFetch;
-  } = {},
-) {
+  dependencies: SignInDependencies = {},
+): Promise<SignInProvider> {
   const now = dependencies.now ?? Date.now;
+  const request = dependencies.fetch;
+  const customFetch = request && openidFetch(request);
   const issuer = new URL(config.oidc.issuer);
   const publicUrl = new URL(config.publicUrl);
   const insecure = issuer.protocol === 'http:';
@@ -138,25 +108,11 @@ export async function createOidcClient(
       [oidc.clockTolerance]: 300,
     },
     auth,
-    { execute, timeout: 5, [oidc.customFetch]: dependencies.fetch },
+    { execute, timeout: 5, [oidc.customFetch]: customFetch },
   );
   const jwksUri = client.serverMetadata().jwks_uri;
   if (!jwksUri) throw new Error('The provider has no signing key endpoint.');
-  let jwksRefreshedAt: string | null = null;
-  // Reload an unknown key immediately so provider rotation does not end active sessions.
-  const keys = createRemoteJWKSet(new URL(jwksUri), {
-    cooldownDuration: 0,
-    timeoutDuration: 5000,
-    [customFetch]: async (url, init) => {
-      const response = await (dependencies.fetch ?? fetch)(url, {
-        ...init,
-        body: undefined,
-        headers: Object.fromEntries(init.headers),
-      });
-      if (response.ok) jwksRefreshedAt = new Date(now()).toISOString();
-      return response;
-    },
-  });
+  const keys = createProviderKeys(jwksUri, request, now);
   const mapping = {
     provider: config.oidc.provider,
     tenantId: config.oidc.tenantId,
@@ -170,14 +126,7 @@ export async function createOidcClient(
   ) {
     let claims: Record<string, unknown> | undefined;
     if (response.id_token) {
-      claims = (
-        await jwtVerify(response.id_token, keys, {
-          issuer: config.oidc.issuer,
-          audience: config.oidc.clientId,
-          algorithms: ['RS256', 'ES256'],
-          clockTolerance: 300,
-        })
-      ).payload;
+      claims = await verifyIdToken(response.id_token, keys, config);
     }
     if (!claims && previous?.idToken) {
       // Refresh must return current identity claims; retaining the old groups would preserve access.
@@ -200,13 +149,14 @@ export async function createOidcClient(
         idToken: response.id_token ?? previous?.idToken,
         refreshToken: response.refresh_token ?? previous?.refreshToken,
         expiresAt: now() + lifetime * 1000,
+        ...sessionClaims(claims, config.oidc.issuer, previous),
       },
     };
   }
   return {
-    bearer: createBearerValidator(config, jwksUri, dependencies.fetch as typeof fetch | undefined),
+    bearer: createBearerValidator(config, jwksUri, request),
     get jwksRefreshedAt() {
-      return jwksRefreshedAt;
+      return keys.refreshedAt();
     },
     async login(returnTo: string) {
       const attempt: SignInAttempt = {
@@ -247,19 +197,21 @@ export async function createOidcClient(
         throw signInError(error);
       }
     },
-    logout() {
+    logout(tokens?: SessionTokens) {
       if (!client.serverMetadata().end_session_endpoint) return '/auth/signed-out';
-      return oidc.buildEndSessionUrl(client, {
+      const parameters: Record<string, string> = {
         client_id: config.oidc.clientId,
         post_logout_redirect_uri: config.publicUrl + '/auth/signed-out',
-      }).href;
+      };
+      if (tokens?.loginHint) parameters.logout_hint = tokens.loginHint;
+      return oidc.buildEndSessionUrl(client, parameters).href;
     },
     /** Exchanges the person's workbench API token for one another API accepts on their behalf. */
-    async onBehalfOf(assertion: string, scope: string) {
+    async onBehalfOf(userToken: string, scopes: string[]) {
       const response = await oidc.genericGrantRequest(
         client,
         'urn:ietf:params:oauth:grant-type:jwt-bearer',
-        { assertion, scope, requested_token_use: 'on_behalf_of' },
+        { assertion: userToken, scope: scopes.join(' '), requested_token_use: 'on_behalf_of' },
       );
       const lifetime = response.expires_in;
       if (typeof lifetime !== 'number' || !Number.isFinite(lifetime) || lifetime <= 0) {
@@ -268,13 +220,9 @@ export async function createOidcClient(
       return { token: response.access_token, expiresAt: now() + lifetime * 1000 };
     },
     async directoryToken() {
-      const scope = isLoopbackHost(new URL(config.directory.graphUrl).hostname)
-        ? 'https://graph.microsoft.com/.default'
-        : config.directory.graphUrl + '/.default';
+      const scope = directoryScope(config.directory.graphUrl);
       const token = await oidc.clientCredentialsGrant(client, { scope });
       return token.access_token;
     },
   };
 }
-/** Discovered provider operations used by the server authentication boundary. */
-export type OidcClient = Awaited<ReturnType<typeof createOidcClient>>;

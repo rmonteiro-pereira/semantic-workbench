@@ -12,6 +12,50 @@ The runtime is an HTTP tool surface for an agent that performs language interpre
 4. **Export agent context** downloads the resolved layers, raw mapping tree, definitions, AI context, document revisions, and paths. Regular **Export** still exports the original source document byte for byte.
 5. Missing, mismatched or ambiguous references appear as findings and disable query planning. **Edit item** on a finding opens the item editor on the offending mapping item (or Source at its line). Correct it and save; runtime resolution refreshes. Unsaved edits remain separate and the UI explicitly reports that it is showing saved revisions.
 
+## Agent clients in server mode
+
+In server mode an agent calls `/api/agent/catalog`, `/api/agent/context` and `/api/agent/plan`
+with its own application token from Entra, sent as `Authorization: Bearer <token>`. Get the
+token with MSAL, Microsoft's authentication library, either with the agent's own App
+Registration (client credentials, certificate preferred) or as the managed identity of the Azure
+resource the agent runs on. The example client does both and prints the catalog:
+
+```sh
+SW_URL=https://workbench.example.org \
+AGENT_TENANT_ID=<tenant id> \
+AGENT_CLIENT_ID=<agent application id> \
+AGENT_RESOURCE=api://<workbench application id> \
+AGENT_CERTIFICATE_KEY="$(cat agent-key.pem)" \
+AGENT_CERTIFICATE_THUMBPRINT=<certificate SHA-256 thumbprint> \
+bun scripts/examples/agent-client.ts
+```
+
+Use `AGENT_CLIENT_SECRET` instead of the certificate pair, or `AGENT_MANAGED_IDENTITY=1` on an
+Azure resource (with `AGENT_CLIENT_ID` naming a user-assigned identity, or unset for the
+system-assigned one). The client asks for `api://<workbench application id>/.default` with
+client credentials, or for that resource with the managed identity
+(`scripts/examples/agent-client.ts`, functions `requestAgentToken` and `fetchAgentCatalog`).
+
+What the workbench's App Registration and settings provide (set up in
+[deploy/README.md](../deploy/README.md#entra-app-registration)):
+
+- **The API the agent asks for.** The Application ID URI `api://<workbench application id>`.
+  An app role for agents (allowed member type **Applications**) is optional: the workbench never
+  reads roles.
+- **Version 2 access tokens** (`requestedAccessTokenVersion: 2`) with the optional access-token
+  claim `idtyp`, so the token's issuer is `SW_OIDC_ISSUER`, its `aud` is the workbench
+  application id and it says it is an application token.
+- **`SW_API_AUDIENCE`** set to the workbench application id.
+- **A grant** for the agent's client id (its application id, or the managed identity's client id)
+  under **Admin → Projects**, stored in `admin/agents.json`. That grant is the agent's only
+  authorization.
+
+The server validates every bearer token itself with `jose` against the tenant's published keys:
+signature, issuer, audience, expiry, tenant and that it is an application token, never a
+person's. Sign-in in the browser uses MSAL on the server too, but an agent's token never touches
+a browser session. The README's [agent clients](../README.md#agent-clients-in-server-mode)
+section lists the answers for refused, ungranted and deactivated clients.
+
 ## Agent tools
 
 All endpoints use the loopback API (`http://127.0.0.1:4310`) or Vite's `/api` proxy. They operate on the saved files of the folder store: each project is a folder (a Git repository) under the data root, and a document id is `<project>/<path>` (for example `commerce/commerce.mapping.yaml`). Ids from v0.1.0, when documents lived in SQLite, still resolve through the store's `legacy-ids.json`. Unsaved editor drafts are never read. No endpoint executes generated SQL or fetches remote references, schemas, or imports.

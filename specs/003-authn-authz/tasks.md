@@ -355,6 +355,28 @@ allow-list.
 
 ---
 
+## Phase 15: Entra sign-in through MSAL and an App Registration (Priority: P1)
+
+**Goal**: Entra sign-in uses `@azure/msal-node` on the server behind the sign-in provider
+interface; generic OpenID Connect and Keycloak keep `openid-client`; tokens never reach the
+browser; the App Registration setup is documented end to end.
+
+**Independent Test**: `bun test tests/auth/msal-signin.test.ts` and `bun run test:auth` with
+`SW_OIDC_PROVIDER=entra` against the mock provider's Entra-shaped endpoints.
+
+- [X] T143 [P] Tests in tests/auth/msal-signin.test.ts: the provider is chosen by configuration (Entra → MSAL, generic and Keycloak → openid-client); authorization code with PKCE, state and nonce against the mock provider's Entra-shaped endpoints; claims normalized exactly as on the openid-client path; the token cache is per session, encrypted with the session key, never written unencrypted and never in a response or log; silent refresh; sign-out with the front-channel logout URL; client secret and certificate credentials; group overage and group names through a token MSAL acquired
+- [X] T144 Sign-in provider interface in server/auth/sign-in-provider.ts (login URL, callback, refresh, logout, on-behalf-of, application token); the openid-client implementation moves behind it unchanged
+- [X] T145 MSAL implementation in server/auth/msal-provider.ts: ConfidentialClientApplication, authorization code with PKCE, per-session encrypted cache plugin, silent refresh, logout URL; client secret or certificate (thumbprint and private key) read from configuration
+- [X] T146 Directory lookups (group overage, group names) and Azure DevOps on-behalf-of tokens use the provider interface, so Entra acquires them through MSAL
+- [X] T147 Mock OpenID provider: Entra-shaped endpoints and claims (tenant path, `tid`, `oid`, `ver` 2.0, `idtyp`, groups overage `_claim_names`) driving the MSAL path in `test:auth` and in the server-mode container group; nothing contacts Entra
+- [X] T148 Configuration: certificate variables and Key Vault references in deploy/ templates and pipeline variables; contracts/configuration.md, README and .env.server.example
+- [X] T149 [P] Agent clients: docs/agent-runtime.md and an example client in scripts/examples/agent-client.ts that gets its token with MSAL (client credentials or managed identity); the App Registration exposes the API scope or app role agents request; the server keeps validating with `jose`
+- [X] T150 [P] App Registration setup in deploy/README.md and deploy/trial-runbook.md: redirect URI and front-channel logout URL, groups claim and overage, API permissions (openid, profile, email, offline_access, User.Read; GroupMember.Read.All only for the Graph lookup), exposed API for agents, access token version 2, certificate preferred over secret, mapping to environment and pipeline variables
+- [X] T151 Spec, plan (dependency justification: size, licence, no runtime network calls beyond the identity provider), research R1 and data-model (session token cache) updated where they named `openid-client` for Entra
+- [X] T152 Mutants: Entra configured but openid-client chosen; token cache stored unencrypted; PKCE verifier dropped; certificate ignored in favour of a secret; group overage ignored — in scripts/mutation-tests.ts
+
+---
+
 ## Phase 14: Polish and cross-cutting
 
 - [ ] T111 [P] README: both modes, configuration table, Entra guide (primary and the target's provider: no app roles, groups claim, optional claims `email`, `upn`, `xms_edov`, `GroupMember.Read.All` for overage and group names, federated credential, Azure DevOps permission), how access is granted (no sign-in screen, Admin-panel grants by Entra group or e-mail, the verified-address rule and its trust in the tenant's address administration, custom roles, No access page), Keycloak guide (compatibility), what the mock OpenID provider covers and what only the Entra checklist covers, role matrix and what each role sees, Admin panel, bootstrap Admin break-glass recovery, outbound calls of server mode (including the platform managed-identity endpoint when `SW_OIDC_CLIENT_ASSERTION=managed-identity`), delegated credentials, per-person working copies and publishing, audit log, single-instance limit and scale path, residual exposure of commit messages; running the image with Compose (both profiles, host networking and the Docker Desktop setting), the local build scripts (`ci:validate`, `image:*`, `pipeline:*`, `deploy:*`), the Azure DevOps pipeline, the release hand-over to the target's mirror and the links to deploy/README.md and deploy/trial-runbook.md, and that the GitHub repository runs nothing automatically; counts from tests (constitution VII, FR-121)
@@ -368,7 +390,7 @@ allow-list.
 
 - Phase 0 (after 002 merges) → Phase 1 → Phase 2 → Phase 3 (container) → Phase 4 (local build
   scripts and pipeline definition) → Phase 5 (US1) → Phase 6 (Azure delivery definition) →
-  Phases 7–13 → Phase 14.
+  Phases 7–13 → Phase 15 (Entra through MSAL, after Phases 10–12) → Phase 14.
 - In Phase 2, T135 and T137 come before T014 (the entity builder expands grants and loads the
   compiled roles); T024 uses T135 for the Admin count.
 - Phase 3 needs Phase 2 only (local mode through the boundary); T118 before T110.

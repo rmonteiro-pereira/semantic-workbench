@@ -185,6 +185,8 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   publicRow('POST', '/auth/logout'),
   publicRow('GET', '/auth/no-access'),
   publicRow('GET', '/auth/signed-out'),
+  // The provider calls it without the session cookie; the issuer and its session id decide.
+  publicRow('GET', '/auth/front-channel-logout'),
   publicRow('GET', '/auth/github/start'),
   publicRow('GET', '/auth/github/callback'),
   publicRow('GET', '/healthz'),

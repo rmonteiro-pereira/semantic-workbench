@@ -109,6 +109,7 @@ export const routeExamples: { method: string; path: string; body?: unknown }[] =
   { method: 'POST', path: '/auth/logout' },
   { method: 'GET', path: '/auth/no-access' },
   { method: 'GET', path: '/auth/signed-out' },
+  { method: 'GET', path: '/auth/front-channel-logout' },
   { method: 'GET', path: '/auth/github/start' },
   { method: 'GET', path: '/auth/github/callback' },
   { method: 'GET', path: '/healthz' },

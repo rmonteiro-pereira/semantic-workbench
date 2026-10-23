@@ -134,6 +134,16 @@ These replace the misses measured under load earlier; no budget was changed.
 | Browser suites | `test:scm`, `test:git-setup`, `test:projects`, `test:trash`, `test:monorepo` and `test:autosave` passed |
 | `test:container` | passed (local, server-mode and smoke groups) |
 
+## Entra sign-in through MSAL (development machine, 2026-10-22)
+
+| Check | Result |
+| --- | --- |
+| `bun test` | 1,361 passed |
+| `ci:validate --step mutation` | 269 of 269 mutants killed |
+| `test:auth`, `test:admin`, `test:two-editors` | passed, signing in through MSAL against the mock provider's Entra endpoints, including provider-initiated sign-out |
+| `pipeline:lint` | passed |
+| `test:container` | passed on the third run; the first stopped in `test:edges` (the mini-map covered the node being clicked) and the second in `test:git-setup` (credential-guide step); both suites passed twice against the dev server and no budget was changed |
+
 ## Owner trial
 
 The owner records the report of `deploy/trial-runbook.md` here after running it on the target.

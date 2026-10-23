@@ -17,6 +17,10 @@ function parseOptions(args: string[]): MockOidcOptions {
           throw new Error('Invalid claim shape');
         options.shape = value as ClaimShape;
         break;
+      case '--layout':
+        if (value !== 'issuer' && value !== 'entra') throw new Error('Invalid endpoint layout');
+        options.layout = value;
+        break;
       case '--redirect':
         new URL(value);
         (options.redirectUris ??= []).push(value);
@@ -46,6 +50,7 @@ async function main() {
   console.log(
     JSON.stringify({
       issuer: provider.issuer,
+      endpointBase: provider.endpointBase,
       graphUrl: provider.graphUrl,
       origin: provider.origin,
     }),

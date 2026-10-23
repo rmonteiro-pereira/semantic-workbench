@@ -26,13 +26,37 @@ export type MockOidcOptions = {
   redirectUris?: string[];
   postLogoutRedirectUris?: string[];
   overageStyle?: 'hasgroups' | 'claim-sources';
+  /**
+   * Where the endpoints live: under the issuer, or Entra's layout with authorize, token and
+   * logout under `/<tenant>/oauth2/v2.0` and keys under `/<tenant>/discovery/v2.0/keys`.
+   */
+  layout?: 'issuer' | 'entra';
+  /** A certificate the workbench client may authenticate with instead of its secret. */
+  clientCertificate?: ClientCertificate;
+  /** A federated credential the platform would issue for the workbench's managed identity. */
+  federatedAssertion?: string;
+  /** The workbench's front-channel logout URL, which `signOutAtProvider` calls. */
+  frontChannelLogoutUri?: string;
+  /**
+   * The ID token a refresh returns: a new one, as Entra does when `openid` was granted, none, or
+   * the one issued at sign-in again.
+   */
+  refreshIdToken?: RefreshIdToken;
 };
+/** What a refresh answers in place of the ID token. */
+export type RefreshIdToken = 'new' | 'none' | 'repeat';
+/** The certificate's public key (SPKI PEM) and its thumbprint in hex, as Entra registers it. */
+export type ClientCertificate = { publicKey: string; thumbprint: string };
 /** A user authorization bound to the requesting client. */
 export type Authorization = {
   username: string;
   clientId: string;
   scope: string;
   expiresAt: number;
+  /** The provider session the sign-in started, carried into its refresh tokens. */
+  sid?: string;
+  /** The ID token issued with this authorization, which a `repeat` refresh returns again. */
+  idToken?: string;
 };
 /** A short-lived code bound to the original authorization request. */
 export type AuthorizationCode = Authorization & {
@@ -42,13 +66,20 @@ export type AuthorizationCode = Authorization & {
 };
 /** One signing key and its published representation. */
 export type SigningKey = Awaited<ReturnType<typeof createSigningKey>>;
+type OptionalSetting = 'clientCertificate' | 'federatedAssertion' | 'frontChannelLogoutUri';
+
 /** Mutable state owned by a single running provider. */
 export type ProviderState = {
   origin: string;
   issuer: string;
   graphUrl: string;
   apiAudience: string;
-  options: Required<MockOidcOptions>;
+  /** Prefix of the authorize, token and logout endpoints for the configured layout. */
+  endpointBase: string;
+  options: Required<Omit<MockOidcOptions, OptionalSetting>> &
+    Pick<MockOidcOptions, OptionalSetting>;
+  /** The user each provider session (`sid`) belongs to, until the provider signs it out. */
+  providerSessions: Map<string, string>;
   users: Record<string, TestUser>;
   codes: Map<string, AuthorizationCode>;
   refreshTokens: Map<string, Authorization>;
@@ -75,6 +106,7 @@ export async function createProviderState(options: MockOidcOptions): Promise<Pro
     origin: '',
     issuer: '',
     graphUrl: '',
+    endpointBase: '',
     apiAudience: 'api://semantic-workbench',
     options: {
       port: options.port ?? 0,
@@ -85,7 +117,13 @@ export async function createProviderState(options: MockOidcOptions): Promise<Pro
         'http://127.0.0.1:4310/auth/signed-out',
       ],
       overageStyle: options.overageStyle ?? 'claim-sources',
+      layout: options.layout ?? 'issuer',
+      clientCertificate: options.clientCertificate,
+      federatedAssertion: options.federatedAssertion,
+      frontChannelLogoutUri: options.frontChannelLogoutUri,
+      refreshIdToken: options.refreshIdToken ?? 'new',
     },
+    providerSessions: new Map(),
     users: structuredClone(TEST_USERS),
     codes: new Map(),
     refreshTokens: new Map(),
@@ -120,6 +158,8 @@ function entraClaims(state: ProviderState, user: TestUser, clientId: string): JW
     sub: sha256(`${user.oid}:${clientId}`),
     oid: user.oid,
     tid: TEST_TENANT_ID,
+    ver: '2.0',
+    login_hint: `O.${Buffer.from(user.oid).toString('base64url')}`,
     preferred_username: user.upn,
     upn: user.upn,
     email: user.email,

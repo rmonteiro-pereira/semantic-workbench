@@ -237,6 +237,17 @@ Azure DevOps environment with approvals and checks that the target configures.
   role changes are versioned, audited and dry-run ("what changes for whom") like policies
   (FR-026, FR-027).
 
+### Session 2026-10-22 (owner decision on the Entra sign-in library, decided)
+
+- Q: Which library signs people in to Entra? → A (**decided by the owner**): Microsoft's MSAL
+  Node with an Azure App Registration, on the server (authorization code with PKCE, the existing
+  server-side session and HttpOnly cookie, so no token reaches the browser). Generic OpenID
+  Connect providers and Keycloak keep the generic OpenID client. The App Registration's
+  credential is a certificate (preferred) or a client secret, both from Key Vault references, or
+  the federated credential of the container app's managed identity. Agent clients get their
+  tokens with MSAL as well; the server keeps validating them against the provider's keys
+  (FR-010, FR-011, FR-141).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Sign in to a team workbench, and nothing changes locally (Priority: P1)
@@ -838,7 +849,11 @@ credential, Entra sign-in) and returns the filled report.
   supported; both MUST be documented. Automated sign-in tests in `ci:validate` and in the target
   pipeline MUST use the mock OpenID provider (FR-141); Keycloak MUST be exercised by the
   compatibility suite `test:auth:keycloak` on the owner's machine; Entra on a real tenant is
-  verified with the manual checklist.
+  verified with the manual checklist. Entra sign-in MUST use Microsoft's MSAL Node library with
+  an Azure App Registration (certificate preferred, client secret, or managed-identity federated
+  credential); Keycloak and generic providers use a generic OpenID Connect client. MSAL's token
+  cache MUST be kept per session inside the encrypted session record (FR-011) and MUST NOT be
+  written anywhere else.
 - **FR-011**: The browser MUST receive only an opaque session identifier in a cookie that is
   HttpOnly, Secure, SameSite=Lax and host-only. Access, ID and refresh tokens MUST stay on the
   server and MUST NOT appear in any response body, URL, log or audit entry. Only when the public
@@ -1261,8 +1276,11 @@ credential, Entra sign-in) and returns the filled report.
   `checkMemberGroups` (overage resolution) and `GET /groups/{id}` (group display names). Its
   default claim shape MUST be Entra's (`iss` with the tenant id, `oid`, `tid`, `sub`, `name`,
   `preferred_username`, `upn` (guest UPNs with `#EXT#`), `email`, `xms_edov`, `groups`, `roles`
-  only on test users that prove app roles are ignored, `idtyp=app` for applications, and group
-  overage through `hasgroups` or `_claim_names`/`_claim_sources`); Keycloak-shaped (`email`,
+  only on test users that prove app roles are ignored, `ver` 2.0, `idtyp=app` for applications,
+  and group overage through `hasgroups` or `_claim_names`/`_claim_sources`), and it MUST offer
+  Entra's endpoint layout (`/<tenant>/oauth2/v2.0/authorize`, `/token`, `/logout`, keys under
+  `/<tenant>/discovery/v2.0/keys`, `client_info` in token responses, certificate and federated
+  client assertions) so the MSAL path runs against it; Keycloak-shaped (`email`,
   `email_verified`, group names) and generic claim shapes MUST be selectable. Server mode MUST
   refuse an `http://` issuer unless the public URL is a loopback address, and MUST accept as the
   directory endpoint only Microsoft Graph or, under the same loopback condition, the mock's

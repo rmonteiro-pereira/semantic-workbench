@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { openWorkspace, type Workspace } from './projects/workspace';
 import { createHandler } from './handler';
 import { createServerAuthentication, type ServerAuthentication } from './auth/authentication';
-import { createOidcClient } from './auth/oidc';
+import { createSignInProvider } from './auth/sign-in-provider';
 import { readConfig } from './config';
 import { createInstanceLock, instanceLockFiles, revisionIdentity } from './projects/instance-lock';
 import { probeDataRoot } from './projects/data-root';
@@ -14,7 +14,7 @@ import { logWorkspace } from './startup-log';
 import { installShutdownHandlers } from './shutdown';
 
 const config = readConfig();
-const oidc = config.mode === 'server' ? await createOidcClient(config) : undefined;
+const signInProvider = config.mode === 'server' ? await createSignInProvider(config) : undefined;
 const hot = globalThis as { __workbench?: { close(): Promise<void> } };
 await hot.__workbench?.close();
 probeDataRoot(config.dataDir, process.pid, process.getuid?.());
@@ -47,7 +47,7 @@ async function initializeWorkspace() {
     watch: true,
   });
   if (config.mode === 'server') {
-    authentication = await createServerAuthentication(workspace, config, oidc);
+    authentication = await createServerAuthentication(workspace, config, signInProvider);
   }
   handler = createHandler(workspace, {
     port: config.port,

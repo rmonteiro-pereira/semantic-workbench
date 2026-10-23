@@ -94,7 +94,12 @@ export function preflight(app: AppSettings, target: Target) {
         app.secrets.some(secret => app.env.SW_SESSION_KEY === `secretref:${secret.name}`),
     ],
   ];
-  for (const name of ['SW_OIDC_CLIENT_SECRET', 'SW_GITHUB_CLIENT_SECRET']) {
+  const secretSettings = [
+    'SW_OIDC_CLIENT_SECRET',
+    'SW_OIDC_CLIENT_CERTIFICATE_KEY',
+    'SW_GITHUB_CLIENT_SECRET',
+  ];
+  for (const name of secretSettings) {
     if (!app.env[name]) continue;
     checks.push([
       `Key Vault ${name}`,
