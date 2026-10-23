@@ -4,6 +4,7 @@ import type { Deleted, Doc, ProjectInfo } from '../projects/api';
 import type { AutosaveState } from '../projects/autosave';
 import type { DeleteTarget } from '../projects/DeleteDialog';
 import { DeleteDialog } from '../projects/DeleteDialog';
+import { ExportDialog } from '../projects/ExportDialog';
 import { ImportConflictDialog, MoveDialog, RenameDialog } from '../projects/ProjectDialogs';
 import { StaleSaveDialog } from '../projects/StaleSave';
 import { TrashDialog } from '../projects/Trash';
@@ -37,6 +38,8 @@ type Props = {
   setTrashOpen: React.Dispatch<React.SetStateAction<boolean>>;
   renaming: ProjectInfo | null;
   setRenaming: React.Dispatch<React.SetStateAction<ProjectInfo | null>>;
+  exporting: ProjectInfo | null;
+  setExporting: React.Dispatch<React.SetStateAction<ProjectInfo | null>>;
   moving: { project: string; path: string } | null;
   setMoving: React.Dispatch<React.SetStateAction<{ project: string; path: string } | null>>;
   currentRef: React.RefObject<Doc | null>;
@@ -82,6 +85,8 @@ export function FileDialogs({
   setTrashOpen,
   renaming,
   setRenaming,
+  exporting,
+  setExporting,
   moving,
   setMoving,
   currentRef,
@@ -147,6 +152,11 @@ export function FileDialogs({
     void refresh();
   }
 
+  function handleExportDialogDone(message: string) {
+    setExporting(null);
+    setMessage(message);
+  }
+
   function handleMoveDialogDone(to: { project: string; path: string }) {
     if (moving == null) return;
 
@@ -207,6 +217,19 @@ export function FileDialogs({
           project={renaming}
           onClose={() => setRenaming(null)}
           onDone={handleRenameDialogDone}
+        />
+      )}
+      {exporting && (
+        <ExportDialog
+          project={exporting}
+          dirty={
+            current && source !== current.source
+              ? { project: current.project, path: current.path }
+              : null
+          }
+          saveOpenFile={autosave.flush}
+          onClose={() => setExporting(null)}
+          onDone={handleExportDialogDone}
         />
       )}
       {moving && (
