@@ -11,7 +11,8 @@ Schemas: https://docs.oasis-open.org/ubl/os-UBL-2.3/xsd/
 - ubl.owl.ttl: 45 OWL classes and 277 domain/range object properties, with schema provenance.
 - ubl.shacl.ttl: projected aggregate-role cardinality and target-class constraints.
 - ubl.odcs.yaml: 169 normalized tables, basic fields, surrogate IDs and repeatable-role bridge tables.
-- ubl.semantic.yaml: matching datasets, 401 joins and three count metrics.
+- ubl.semantic.yaml: matching datasets, 401 joins and 9 governed metrics.
+- ubl.semantic-mapping.yaml: binds the governed metrics to UBL concepts.
 - model-map.json: extracted references and cardinalities for auditing and regeneration.
 
 This is an application-specific projection of an established business model, not an official OASIS OWL/SHACL or relational standard. UBL components outside the selected subset are not expanded. SHACL covers selected aggregate roles, not complete XML conformance. Analytical keys, normalization and primitive-type mappings are explicit application choices. Repeating XML basic fields become arrays.

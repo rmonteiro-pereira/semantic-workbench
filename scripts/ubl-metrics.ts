@@ -1,0 +1,163 @@
+// Governed metrics of the UBL example, with owner, status and the concepts they measure. The
+// generator writes them into the semantic model and a metrics-only mapping.
+import type { GovernedMetric } from './helpers/example-metrics';
+
+const orderDate = { dimension: 'purchase_order.issue_date', min_grain: 'day' } as const;
+const invoiceDate = { dimension: 'invoice.issue_date', min_grain: 'day' } as const;
+// An invoice or credit note line reaches the item in one join and the item's catalogue document in
+// two. Countries and addresses are reachable by several routes, which the planner refuses.
+const lineDimensions = ['item.name', 'item.brand_name', 'document_reference.id'];
+
+/** The metrics shipped with the UBL example, in the order they are listed. */
+export const governedMetrics: GovernedMetric[] = [
+  {
+    name: 'order_count',
+    datatype: 'Integer',
+    description: 'Count of projected order headers, independent of line and bridge-table grain.',
+    expression: 'COUNT(DISTINCT purchase_order.record_id)',
+    extension: {
+      label: 'Order count',
+      type: 'simple',
+      additivity: 'non_additive',
+      unit: 'orders',
+      format: '#,##0',
+      owner: 'Procurement',
+      status: 'approved',
+      time: orderDate,
+      dimensions: ['supplier_party.customer_assigned_account_id'],
+    },
+    binding: { measures: 'Order' },
+  },
+  {
+    name: 'invoice_count',
+    datatype: 'Integer',
+    expression: 'COUNT(DISTINCT invoice.record_id)',
+    extension: {
+      label: 'Invoice count',
+      type: 'simple',
+      additivity: 'non_additive',
+      unit: 'invoices',
+      format: '#,##0',
+      owner: 'Accounts Payable',
+      status: 'approved',
+      time: invoiceDate,
+      dimensions: ['invoice.invoice_type_code', 'order_reference.customer_reference'],
+    },
+    binding: { measures: 'Invoice' },
+  },
+  {
+    name: 'shipment_count',
+    datatype: 'Integer',
+    expression: 'COUNT(DISTINCT shipment.record_id)',
+    extension: {
+      label: 'Shipment count',
+      type: 'simple',
+      additivity: 'non_additive',
+      unit: 'shipments',
+      format: '#,##0',
+      owner: 'Logistics',
+      status: 'proposed',
+      dimensions: ['delivery.actual_delivery_date'],
+    },
+    binding: { measures: 'Shipment' },
+  },
+  {
+    name: 'invoiced_amount',
+    datatype: 'Decimal',
+    description: 'Line extension amount of invoice lines, before tax and document-level charges.',
+    expression: 'SUM(invoice_line.line_extension_amount)',
+    extension: {
+      label: 'Invoiced amount',
+      type: 'simple',
+      additivity: 'additive',
+      format: '#,##0.00',
+      owner: 'Accounts Payable',
+      status: 'approved',
+      dimensions: lineDimensions,
+    },
+    binding: { measures: 'InvoiceLine', of: 'Item' },
+  },
+  {
+    name: 'invoiced_quantity',
+    datatype: 'Decimal',
+    description: 'Quantity invoiced on invoice lines, in each line’s own unit.',
+    expression: 'SUM(invoice_line.invoiced_quantity)',
+    extension: {
+      label: 'Invoiced quantity',
+      type: 'simple',
+      additivity: 'additive',
+      format: '#,##0.##',
+      owner: 'Accounts Payable',
+      status: 'approved',
+      dimensions: lineDimensions,
+    },
+    binding: { measures: 'InvoiceLine', of: 'Item' },
+  },
+  {
+    name: 'average_invoiced_price',
+    datatype: 'Decimal',
+    description: 'Invoiced amount per invoiced unit. Mixing units of measure distorts it.',
+    expression: 'invoiced_amount / NULLIF(invoiced_quantity, 0)',
+    extension: {
+      label: 'Average invoiced price',
+      type: 'ratio',
+      numerator: 'invoiced_amount',
+      denominator: 'invoiced_quantity',
+      additivity: 'non_additive',
+      format: '#,##0.00',
+      owner: 'Procurement',
+      status: 'proposed',
+      dimensions: lineDimensions,
+    },
+    binding: { measures: 'InvoiceLine', of: 'Item' },
+  },
+  {
+    name: 'invoiced_amount_with_tax',
+    datatype: 'Decimal',
+    description: 'Line extension amount including the tax of each invoice line.',
+    expression: 'SUM(invoice_line.tax_inclusive_line_extension_amount)',
+    extension: {
+      label: 'Invoiced amount with tax',
+      type: 'simple',
+      additivity: 'additive',
+      format: '#,##0.00',
+      owner: 'Accounts Payable',
+      status: 'approved',
+      dimensions: lineDimensions,
+    },
+    binding: { measures: 'InvoiceLine', of: 'Item' },
+  },
+  {
+    name: 'invoiced_line_tax',
+    datatype: 'Decimal',
+    description: 'Tax charged on invoice lines: the amount with tax minus the amount without.',
+    expression: 'invoiced_amount_with_tax - invoiced_amount',
+    extension: {
+      label: 'Invoiced line tax',
+      type: 'derived',
+      inputs: ['invoiced_amount_with_tax', 'invoiced_amount'],
+      additivity: 'additive',
+      format: '#,##0.00',
+      owner: 'Tax',
+      status: 'draft',
+      dimensions: lineDimensions,
+    },
+    binding: { measures: 'InvoiceLine', of: 'Item' },
+  },
+  {
+    name: 'credited_amount',
+    datatype: 'Decimal',
+    description: 'Line extension amount of credit note lines, before tax.',
+    expression: 'SUM(credit_note_line.line_extension_amount)',
+    extension: {
+      label: 'Credited amount',
+      type: 'simple',
+      additivity: 'additive',
+      format: '#,##0.00',
+      owner: 'Accounts Payable',
+      status: 'approved',
+      dimensions: lineDimensions,
+    },
+    binding: { measures: 'CreditNoteLine', of: 'Item' },
+  },
+];

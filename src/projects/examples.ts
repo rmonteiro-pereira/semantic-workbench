@@ -20,11 +20,12 @@ export const EXAMPLE_SETS: ExampleSet[] = [
       'ubl.owl.ttl',
       'ubl.odcs.yaml',
       'ubl.semantic.yaml',
+      'ubl.semantic-mapping.yaml',
       'ubl.shacl.ttl',
     ],
     tab: 'graph',
     message:
-      'Loaded UBL: 45 business entities, 277 roles; OWL, SHACL, ODCS, and semantic datasets.',
+      'Loaded UBL: 45 business entities, 277 roles; OWL, SHACL, ODCS, semantic datasets and 9 governed metrics.',
   },
   {
     id: 'commerce',

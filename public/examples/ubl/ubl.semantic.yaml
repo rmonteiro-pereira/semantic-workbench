@@ -12023,15 +12023,224 @@ metrics:
       dialects:
         - dialect: ANSI_SQL
           expression: COUNT(DISTINCT purchase_order.record_id)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Order count",
+            "type": "simple",
+            "additivity": "non_additive",
+            "unit": "orders",
+            "format": "#,##0",
+            "owner": "Procurement",
+            "status": "approved",
+            "time": {
+              "dimension": "purchase_order.issue_date",
+              "min_grain": "day"
+            },
+            "dimensions": [
+              "supplier_party.customer_assigned_account_id"
+            ]
+          }
   - name: invoice_count
     datatype: Integer
     expression:
       dialects:
         - dialect: ANSI_SQL
           expression: COUNT(DISTINCT invoice.record_id)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Invoice count",
+            "type": "simple",
+            "additivity": "non_additive",
+            "unit": "invoices",
+            "format": "#,##0",
+            "owner": "Accounts Payable",
+            "status": "approved",
+            "time": {
+              "dimension": "invoice.issue_date",
+              "min_grain": "day"
+            },
+            "dimensions": [
+              "invoice.invoice_type_code",
+              "order_reference.customer_reference"
+            ]
+          }
   - name: shipment_count
     datatype: Integer
     expression:
       dialects:
         - dialect: ANSI_SQL
           expression: COUNT(DISTINCT shipment.record_id)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Shipment count",
+            "type": "simple",
+            "additivity": "non_additive",
+            "unit": "shipments",
+            "format": "#,##0",
+            "owner": "Logistics",
+            "status": "proposed",
+            "dimensions": [
+              "delivery.actual_delivery_date"
+            ]
+          }
+  - name: invoiced_amount
+    datatype: Decimal
+    description: Line extension amount of invoice lines, before tax and
+      document-level charges.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(invoice_line.line_extension_amount)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Invoiced amount",
+            "type": "simple",
+            "additivity": "additive",
+            "format": "#,##0.00",
+            "owner": "Accounts Payable",
+            "status": "approved",
+            "dimensions": [
+              "item.name",
+              "item.brand_name",
+              "document_reference.id"
+            ]
+          }
+  - name: invoiced_quantity
+    datatype: Decimal
+    description: Quantity invoiced on invoice lines, in each line’s own unit.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(invoice_line.invoiced_quantity)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Invoiced quantity",
+            "type": "simple",
+            "additivity": "additive",
+            "format": "#,##0.##",
+            "owner": "Accounts Payable",
+            "status": "approved",
+            "dimensions": [
+              "item.name",
+              "item.brand_name",
+              "document_reference.id"
+            ]
+          }
+  - name: average_invoiced_price
+    datatype: Decimal
+    description: Invoiced amount per invoiced unit. Mixing units of measure distorts it.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: invoiced_amount / NULLIF(invoiced_quantity, 0)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Average invoiced price",
+            "type": "ratio",
+            "numerator": "invoiced_amount",
+            "denominator": "invoiced_quantity",
+            "additivity": "non_additive",
+            "format": "#,##0.00",
+            "owner": "Procurement",
+            "status": "proposed",
+            "dimensions": [
+              "item.name",
+              "item.brand_name",
+              "document_reference.id"
+            ]
+          }
+  - name: invoiced_amount_with_tax
+    datatype: Decimal
+    description: Line extension amount including the tax of each invoice line.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(invoice_line.tax_inclusive_line_extension_amount)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Invoiced amount with tax",
+            "type": "simple",
+            "additivity": "additive",
+            "format": "#,##0.00",
+            "owner": "Accounts Payable",
+            "status": "approved",
+            "dimensions": [
+              "item.name",
+              "item.brand_name",
+              "document_reference.id"
+            ]
+          }
+  - name: invoiced_line_tax
+    datatype: Decimal
+    description: "Tax charged on invoice lines: the amount with tax minus the amount
+      without."
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: invoiced_amount_with_tax - invoiced_amount
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Invoiced line tax",
+            "type": "derived",
+            "inputs": [
+              "invoiced_amount_with_tax",
+              "invoiced_amount"
+            ],
+            "additivity": "additive",
+            "format": "#,##0.00",
+            "owner": "Tax",
+            "status": "draft",
+            "dimensions": [
+              "item.name",
+              "item.brand_name",
+              "document_reference.id"
+            ]
+          }
+  - name: credited_amount
+    datatype: Decimal
+    description: Line extension amount of credit note lines, before tax.
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(credit_note_line.line_extension_amount)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Credited amount",
+            "type": "simple",
+            "additivity": "additive",
+            "format": "#,##0.00",
+            "owner": "Accounts Payable",
+            "status": "approved",
+            "dimensions": [
+              "item.name",
+              "item.brand_name",
+              "document_reference.id"
+            ]
+          }
