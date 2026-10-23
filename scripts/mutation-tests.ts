@@ -4,6 +4,7 @@ import { sessionSecurityMutants } from './session-security-mutants';
 import { securityReviewMutants } from './security-review-mutants';
 import { checkoutMutants } from './security-review-checkout-mutants';
 import { polishMutants } from './polish-mutants';
+import { exportMutants } from './export-mutants';
 import { chmod, mkdtemp, rm, symlink } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 const root = process.cwd();
@@ -1428,6 +1429,8 @@ mutants.push(...sessionSecurityMutants);
 mutants.push(...securityReviewMutants, ...checkoutMutants);
 // Wording of refusals shown to people.
 mutants.push(...polishMutants);
+// Project export: the files an archive holds, its size limit, its history rules and its bytes.
+mutants.push(...exportMutants);
 
 async function run(
   category: string,
