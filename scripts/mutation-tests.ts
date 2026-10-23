@@ -1516,9 +1516,15 @@ try {
   killed++;
   console.log('KILLED UI: empty neighborhood node projection');
   // Layout mutants: each must fail the responsive checks that guard it.
+  const layoutMutationMarkers = {
+    overlay: 'INJECTED_OVERLAY_MUTATION',
+    'status-stays': 'INJECTED_STATUS_MUTATION',
+    'small-text': 'INJECTED_SMALL_TEXT_MUTATION',
+  };
   for (const [mutation, only, label] of [
     ['overlay', 'overlaps: Graph', 'status line drawn over the mini-map and zoom controls'],
     ['status-stays', 'status messages', 'status messages never dismiss'],
+    ['small-text', 'screens', 'sidebar label drawn below the minimum text size'],
   ] as const) {
     const child = Bun.spawn([process.execPath, resolve(root, 'scripts/responsive-ui-tests.ts')], {
       env: { ...process.env, RESPONSIVE_MUTATION: mutation, RESPONSIVE_ONLY: only },
@@ -1530,9 +1536,7 @@ try {
     const error = await new Response(child.stderr).text();
     if (code === 0) throw Error('Surviving UI mutant: ' + label);
     if (
-      !output.includes(
-        mutation === 'overlay' ? 'INJECTED_OVERLAY_MUTATION' : 'INJECTED_STATUS_MUTATION',
-      ) ||
+      !output.includes(layoutMutationMarkers[mutation]) ||
       !/expect|Expected|toHaveCount/.test(error)
     )
       throw Error('Invalid UI mutant: ' + label + '\n' + output + error);
@@ -1540,7 +1544,7 @@ try {
     console.log('KILLED UI: ' + label);
   }
   console.log(
-    `${killed}/${mutants.length + askpassMutants.length + 3} targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.`,
+    `${killed}/${mutants.length + askpassMutants.length + 4} targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.`,
   );
 } finally {
   await rm(temp, { recursive: true, force: true });

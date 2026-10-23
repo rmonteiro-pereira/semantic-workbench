@@ -39,9 +39,9 @@
 }
 .metrics-heading small,
 .kpi-header > small {
-  color: #6f8881;
+  color: var(--text-muted);
   letter-spacing: 1.2px;
-  font-size: 10px;
+  font-size: var(--text-small);
   font-weight: 600;
 }
 .metrics-heading h2 {
@@ -61,8 +61,8 @@
 .metrics-filters label {
   display: grid;
   gap: 4px;
-  font-size: 11px;
-  color: #6f8881;
+  font-size: var(--text-small);
+  color: var(--text-muted);
 }
 .metrics-filters select,
 .metrics-filters input {
@@ -99,24 +99,24 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 11px;
+  font-size: var(--text-small);
   margin: 6px 0 8px;
-  color: #6f8881;
+  color: var(--text-muted);
 }
 .metrics-count button {
   padding: 3px 8px;
-  font-size: 11px;
+  font-size: var(--text-small);
 }
 .metrics-empty {
   padding: 28px 4px;
-  color: #6f8881;
+  color: var(--text-muted);
   display: grid;
   gap: 10px;
   justify-items: start;
   max-width: 60ch;
 }
 .muted {
-  color: #8b9c95;
+  color: var(--text-muted);
 }
 .metrics-table-wrap {
   border: 1px solid #dbe3e4;
@@ -131,10 +131,10 @@
 }
 .metrics-table th {
   text-align: left;
-  font-size: 10px;
+  font-size: var(--text-small);
   letter-spacing: 0.8px;
   text-transform: uppercase;
-  color: #6f8881;
+  color: var(--text-muted);
   font-weight: 600;
   padding: 9px 10px;
   background: #f3f7f5;
@@ -160,14 +160,14 @@
 .metrics-group th {
   background: #fbfcfc;
   color: #284d43;
-  font-size: 11px;
+  font-size: var(--text-small);
   text-transform: none;
   letter-spacing: 0;
   border-top: 1px solid #dbe3e4;
 }
 .metrics-group th span {
   margin-left: 8px;
-  color: #8b9c95;
+  color: var(--text-muted);
   font-weight: 400;
 }
 .metrics-name {
@@ -183,8 +183,8 @@
 }
 .metrics-name code,
 .kpi-name {
-  font-size: 10.5px;
-  color: #6f8881;
+  font-size: var(--text-small);
+  color: var(--text-muted);
 }
 .metrics-name:focus-visible {
   outline: 2px solid #50cbb0;
@@ -197,7 +197,7 @@
 .metrics-flag {
   display: inline-block;
   margin-top: 3px;
-  font-size: 10px;
+  font-size: var(--text-small);
   padding: 1px 6px;
   border-radius: 10px;
 }
@@ -207,8 +207,8 @@
 }
 .inferred {
   margin-left: 5px;
-  font-size: 10px;
-  color: #8b9c95;
+  font-size: var(--text-small);
+  color: var(--text-muted);
   font-style: italic;
 }
 .kpi-pill,
@@ -216,7 +216,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 10.5px;
+  font-size: var(--text-small);
   padding: 2px 8px;
   border-radius: 10px;
   border: 1px solid #dbe3e4;
@@ -316,10 +316,10 @@
   display: flex;
   gap: 5px;
   align-items: center;
-  font-size: 10px;
+  font-size: var(--text-small);
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  color: #6f8881;
+  color: var(--text-muted);
   margin-bottom: 5px;
 }
 .kpi-facts dd {
@@ -347,12 +347,12 @@
 }
 .concept-chip small {
   font-weight: 400;
-  font-size: 9.5px;
-  color: #6f8881;
+  font-size: var(--text-small);
+  color: var(--text-muted);
 }
 .layout-note {
   margin-left: 6px;
-  font-size: 10px;
+  font-size: var(--text-small);
   color: #5a4a12;
   background: #fbf6e2;
   padding: 1px 6px;
@@ -367,7 +367,7 @@
   margin-top: 8px;
 }
 .kpi-targets small {
-  color: #6f8881;
+  color: var(--text-muted);
 }
 .kpi-findings {
   list-style: none;
@@ -486,7 +486,7 @@
 .preview-sql {
   margin: 0;
   background: #17323a;
-  color: #e8f2ee;
+  color: var(--text-muted);
   border-radius: 8px;
   padding: 12px 14px;
   font-size: 12px;
@@ -546,17 +546,17 @@
   color: #17323a;
 }
 .tree-id {
-  font-size: 10.5px;
-  color: #6f8881;
+  font-size: var(--text-small);
+  color: var(--text-muted);
 }
 .tree-expr {
   flex-basis: 100%;
-  font-size: 11px;
+  font-size: var(--text-small);
   color: #52656b;
   overflow-wrap: anywhere;
 }
 .tree-role {
-  font-size: 9.5px;
+  font-size: var(--text-small);
   text-transform: uppercase;
   letter-spacing: 0.8px;
   padding: 2px 6px;
@@ -626,7 +626,7 @@
 }
 .chip-row code,
 .rule code {
-  font-size: 11px;
+  font-size: var(--text-small);
   background: #f0f5f3;
   padding: 1px 6px;
   border-radius: 4px;
@@ -642,8 +642,8 @@
 .preview-controls label {
   display: grid;
   gap: 4px;
-  font-size: 11px;
-  color: #6f8881;
+  font-size: var(--text-small);
+  color: var(--text-muted);
 }
 .preview-controls select {
   border: 1px solid #dbe3e4;
@@ -662,8 +662,8 @@
   min-width: 0;
 }
 .preview-controls legend {
-  font-size: 11px;
-  color: #6f8881;
+  font-size: var(--text-small);
+  color: var(--text-muted);
   padding: 0 4px;
 }
 .preview-controls .check {
@@ -687,11 +687,11 @@
   align-items: center;
   gap: 10px;
   margin-bottom: 6px;
-  font-size: 11px;
+  font-size: var(--text-small);
 }
 .not-executed {
   font-weight: 700;
-  font-size: 10.5px;
+  font-size: var(--text-small);
   letter-spacing: 0.6px;
   text-transform: uppercase;
   color: #5a4a12;
@@ -703,13 +703,13 @@
 .copy-sql {
   margin-left: auto;
   padding: 4px 9px;
-  font-size: 11px;
+  font-size: var(--text-small);
 }
 .preview-sql.stale {
   opacity: 0.55;
 }
 .preview-note {
-  font-size: 11px;
+  font-size: var(--text-small);
   margin-top: 6px;
 }
 .preview-refused {
@@ -742,10 +742,10 @@
   gap: 18px;
 }
 .kpi-lineage .lineage-head {
-  font-size: 10px;
+  font-size: var(--text-small);
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  color: #6f8881;
+  color: var(--text-muted);
   padding: 0 12px 6px;
 }
 .kpi-lineage .lineage-row {
@@ -770,8 +770,8 @@
 }
 .kpi-lineage .lineage-cell small {
   display: block;
-  color: #6f8881;
-  font-size: 11px;
+  color: var(--text-muted);
+  font-size: var(--text-small);
 }
 .kpi-lineage .lineage-cell.dataset > div {
   display: flex;
@@ -782,10 +782,10 @@
   position: absolute;
   right: -16px;
   top: 2px;
-  color: #9fb3ab;
+  color: var(--text-muted);
 }
 .kpi-lineage .lineage-field code {
-  font-size: 11.5px;
+  font-size: var(--text-small);
 }
 .odcs-object {
   display: grid;
@@ -810,7 +810,7 @@
 }
 .odcs-property small {
   display: inline;
-  font-size: 10px;
+  font-size: var(--text-small);
 }
 .trust-list {
   list-style: none;
@@ -820,7 +820,7 @@
   gap: 4px;
 }
 .trust {
-  font-size: 11px;
+  font-size: var(--text-small);
   display: flex;
   gap: 6px;
   align-items: baseline;
@@ -829,7 +829,7 @@
 .trust.quality span {
   flex-shrink: 0;
   text-transform: capitalize;
-  font-size: 10px;
+  font-size: var(--text-small);
   font-weight: 700;
   padding: 1px 6px;
   border-radius: 4px;
@@ -845,7 +845,7 @@
   color: #2f4f7a;
   padding: 2px 7px;
   border-radius: 10px;
-  font-size: 10.5px;
+  font-size: var(--text-small);
 }
 .chip-row.sla {
   margin-top: 4px;
@@ -855,7 +855,7 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size: 9.5px;
+  font-size: var(--text-small);
   font-weight: 700;
   letter-spacing: 0.4px;
   padding: 1px 6px;
@@ -910,10 +910,10 @@
     display: block;
     content: attr(data-step);
     flex-basis: 100%;
-    font-size: 9.5px;
+    font-size: var(--text-small);
     text-transform: uppercase;
     letter-spacing: 0.8px;
-    color: #8b9c95;
+    color: var(--text-muted);
   }
   .kpi-lineage .lineage-cell {
     overflow-wrap: normal;
@@ -958,10 +958,10 @@
   .metrics-table td::before {
     content: attr(data-label);
     display: block;
-    font-size: 9.5px;
+    font-size: var(--text-small);
     text-transform: uppercase;
     letter-spacing: 0.7px;
-    color: #8b9c95;
+    color: var(--text-muted);
   }
   .metrics-table td:first-child::before {
     display: none;
@@ -979,7 +979,7 @@
   .step-number {
     width: 22px;
     height: 22px;
-    font-size: 11px;
+    font-size: var(--text-small);
   }
   .explain-step:not(:last-child)::before {
     left: 10px;
@@ -1097,7 +1097,7 @@
 }
 .kpi-unverified {
   margin-left: 6px;
-  font-size: 10.5px;
+  font-size: var(--text-small);
   padding: 1px 7px;
   border-radius: 10px;
   border: 1px solid #e3d6a4;

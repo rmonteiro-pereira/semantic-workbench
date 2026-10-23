@@ -7,7 +7,7 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 11px;
+  font-size: var(--text-small);
   color: #4d6660;
 }
 .lineage-legend li {
@@ -26,7 +26,7 @@
   color: #1e6a4f;
 }
 .lineage-legend .k-field svg {
-  color: #8aa79c;
+  color: var(--text-muted);
 }
 .lineage-legend .k-metric svg {
   color: #8a5ad1;
@@ -35,5 +35,5 @@
   color: #a3532b;
 }
 .lineage-legend .k-external svg {
-  color: #6b7a77;
+  color: var(--text-muted);
 }
