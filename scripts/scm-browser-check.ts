@@ -429,6 +429,11 @@ try {
       [2560, 1440],
     ] as const) {
       await page.setViewportSize({ width, height });
+      // Shrinking the window leaves the sidebar open as a drawer over the panel.
+      await page.waitForTimeout(300);
+      if (await page.locator('#workspace-sidebar[role=dialog]').count()) {
+        await page.keyboard.press('Escape');
+      }
       const column = (await panel().locator('.scm-side').boundingBox())!;
       // The project picker exists only when the workspace holds several projects.
       const picker = panel().getByRole('combobox', { name: 'Project' });
