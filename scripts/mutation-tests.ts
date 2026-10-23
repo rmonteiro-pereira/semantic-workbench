@@ -423,7 +423,12 @@ const mutants: [string, string, string, string][] = [
     "if (technical || !entities.some(e => e.kind === 'OWL class'))",
     'if(true)',
   ],
-  ['routes', 'src/graph/routes.ts', 'top - 22 - above++ * 16', 'top - 22'],
+  [
+    'routes',
+    'src/graph/routes.ts',
+    'while (placed.some(shares)) y += below ? 16 : -16;',
+    'while (false) y += below ? 16 : -16;',
+  ],
   ['routes', 'src/graph/routes.ts', 'start + i * step', 'start'],
   [
     'routes',
@@ -639,8 +644,8 @@ const mutants: [string, string, string, string][] = [
   [
     'lineage',
     'src/odcs/lineage.ts',
-    'port: (id: string) =>\n      visible.has(id) || !card.columns.some(c => c.id === id) ? id : moreRowId(card.id)',
-    'port:(id:string)=>id',
+    'port: (id: string) => (shown.has(id) || !all.some(c => c.id === id) ? id : moreRowId(card.id)),',
+    'port:(id:string)=>id,',
   ],
   [
     'lineage',
@@ -1494,7 +1499,17 @@ for (const script of ['fmt:check', 'lint']) {
   if ((await child.exited) !== 0)
     throw Error(`Baseline failed (${script}): ${await new Response(child.stdout).text()}`);
 }
+// Every anchor is checked before the slow runs, so one pass lists all mutants a refactor orphaned.
+async function assertAnchorsPresent() {
+  const missing: string[] = [];
+  for (const [category, file, before] of mutants) {
+    const source = await Bun.file(file).text();
+    if (!source.includes(before)) missing.push(`${category} ${file}: ${before}`);
+  }
+  if (missing.length) throw Error(`Mutation anchors missing:\n${missing.join('\n')}`);
+}
 try {
+  await assertAnchorsPresent();
   for (const category of new Set(mutants.map(m => m[0]))) {
     const file = mutants.find(m => m[0] === category)![1];
     const result = await run(category, file, await Bun.file(file).text(), 'baseline-' + category);

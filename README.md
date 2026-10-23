@@ -947,7 +947,7 @@ SW_SCREENSHOT_DIR=/tmp/admin-shots bun test tests/admin-geometry.test.tsx  # eve
 
 ### Mutation checks
 
-`bun run test:mutation` is targeted, not a whole-project score. It introduces 496
+`bun run test:mutation` is targeted, not a whole-project score. It introduces 535
 deliberate faults into temporary copies of the code, each of which a test must detect, plus five
 faults injected into a running browser page (an empty neighborhood projection, a status line drawn
 over the map controls, status messages that never dismiss, a label below the minimum text size and

@@ -57,8 +57,8 @@ export const securityReviewMutants: [string, string, string, string][] = [
   [
     'secrev-scm-status',
     'server/projects/scm.ts',
-    'await git.stage(d, paths(slug, list, base));\n      await after(slug);\n      return status(slug, reader);',
-    'await git.stage(d, paths(slug, list, base));\n      await after(slug);\n      return status(slug, LOCAL_READER);',
+    'await git.stage(d, chosen);\n      await after(slug);\n      return status(slug, reader);',
+    'await git.stage(d, chosen);\n      await after(slug);\n      return status(slug, LOCAL_READER);',
   ],
   [
     'secrev-scm-status',

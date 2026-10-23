@@ -168,8 +168,16 @@ function assertKinds(set: ExampleSet, metrics: KpiSummary[], expected: ExpectedE
   assert(composed.inputs.length > 0, `${composed.name} builds on no other metric`);
 }
 
-/** Checks one example set and returns what it shows, for the verification report. */
-export async function checkExampleSetMetrics(setId: string, sets: ExampleSet[] = EXAMPLE_SETS) {
+/**
+ * Checks one example set and returns what it shows, for the verification report. The mutation
+ * harness has a time limit per case, so it explains one metric of each kind instead of all of
+ * them; the delivery gate explains every metric.
+ */
+export async function checkExampleSetMetrics(
+  setId: string,
+  sets: ExampleSet[] = EXAMPLE_SETS,
+  explain: 'all' | 'one of each kind' = 'all',
+) {
   const set = sets.find(candidate => candidate.id === setId)!;
   const expected = EXPECTED_EXAMPLE_METRICS[setId];
   const documents = await readSet(set);
@@ -178,7 +186,11 @@ export async function checkExampleSetMetrics(setId: string, sets: ExampleSet[] =
   assert.equal(metrics.length, expected.count, `${setId} metric count`);
   assertGoverned(set, metrics);
   assertKinds(set, metrics, expected);
-  const contractLinks = assertExplained(documents, metrics);
+  const explained =
+    explain === 'all'
+      ? metrics
+      : metrics.filter(metric => [expected.simple, expected.composed.name].includes(metric.name));
+  const contractLinks = assertExplained(documents, explained);
   const joins = assertPathMetric(documents, expected);
   return { set: setId, metrics: metrics.length, joins, contractLinks };
 }
