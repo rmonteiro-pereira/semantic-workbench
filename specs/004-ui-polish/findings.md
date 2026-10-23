@@ -54,6 +54,7 @@ from the v0.4.0 build). `screenshots/after/` holds the same screens after the fi
 | F67 | Built-in examples | The examples have no metrics, so the Metrics view, breakdown, lineage path and SQL preview show nothing for them. Add workbench-authored metrics (simple, derived, foreign-key path; owner and status) bound to real ODCS columns, without editing hash-checked upstream files. | local-ontology-metrics-1280 | open |
 | F68 | Project menu | New feature: Export project... after Import files into this project; byte-exact zip, optional Git history bundle, drafts excluded, server mode filtered by read access and audited, streamed under the size limits. | owner photo | open |
 | F69 | Project menu popup | The menu is cut off by the file list (Delete is half hidden) and fades into the names behind it, because it sits inside the masked, scrolling list. Menus must be opaque, anchored in the viewport and fixed in the shared menu component. | owner photo, shots-measure/menu | open |
+| F70 | Remote and Clone dialogs | New feature for v0.5.0: a Folder in repository field, with sparse checkout, so a project can live in a subfolder of a shared remote repository and clone, pull and push touch that folder only. | src/scm | open |
 
 ## S2: crammed or hard to read
 
