@@ -1,6 +1,7 @@
 parameters:
   variableGroup: semantic-workbench-target
   acrServiceConnection: sw-azure-push
+  acrPullServiceConnection: sw-azure-pull
   deployServiceConnection: sw-azure-deploy
   deployEnvironment: production
   agentPool: ''

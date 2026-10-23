@@ -3,9 +3,10 @@ import { creationDomain, assignProjectDomain } from '../auth/project-creation';
 import { ACTIONS } from '../auth/actions';
 import { requestReader, requestScope } from '../auth/request-scope';
 import { authorizeWrite } from '../auth/write-access';
-import { readJson } from '../request';
+import { decodeSegment, readJson } from '../request';
 import type { AdminRepository } from '../auth/admin-repo';
 import type { Route } from './http';
+import { BadRequestError } from '../projects/errors';
 const IMPORT_LIMIT = 64_000_000;
 /**
  * Handles project management and imports, creating one project per new import batch. A created
@@ -49,8 +50,8 @@ export function projectRoutes(administration: AdminRepository): Route {
     if (one && req.method === 'PATCH') {
       const body = await readJson(req, 16_000);
       if (!body || typeof body !== 'object' || Object.keys(body).some(k => k !== 'name'))
-        throw Error('Expected {name}.');
-      return Response.json(await ws.renameProject(decodeURIComponent(one[1]), body.name));
+        throw new BadRequestError('Expected {name}.');
+      return Response.json(await ws.renameProject(decodeSegment(one[1]), body.name));
     }
     if (p === '/api/import' && req.method === 'POST') {
       const body = await readJson(req, IMPORT_LIMIT);
@@ -60,7 +61,7 @@ export function projectRoutes(administration: AdminRepository): Route {
         Array.isArray(body) ||
         Object.keys(body).some(k => !['name', 'files', 'domain'].includes(k))
       )
-        throw Error('Expected {name?, files: [{path, source}]}.');
+        throw new BadRequestError('Expected {name?, files: [{path, source}]}.');
       const domain = creationDomain(req, body.domain);
       const result = await ws.importBatch(body, requestReader(req), { domain });
       await assignProjectDomain(deps, req, result.slug, domain);
@@ -77,14 +78,14 @@ export function projectRoutes(administration: AdminRepository): Route {
         typeof body.toProject !== 'string' ||
         (body.toPath !== undefined && typeof body.toPath !== 'string')
       )
-        throw Error('Expected {path, toProject, toPath?}.');
+        throw new BadRequestError('Expected {path, toProject, toPath?}.');
       authorizeWrite(req, 'move', [
-        { type: 'file', project: decodeURIComponent(move[1]), path: body.path },
+        { type: 'file', project: decodeSegment(move[1]), path: body.path },
         { type: 'file', project: body.toProject, path: body.toPath ?? body.path },
       ]);
       return Response.json(
         await ws.moveFile(
-          decodeURIComponent(move[1]),
+          decodeSegment(move[1]),
           body.path,
           body.toProject,
           body.toPath,
@@ -102,9 +103,9 @@ export function projectRoutes(administration: AdminRepository): Route {
         Array.isArray(body) ||
         Object.keys(body).some(k => !['files', 'onConflict'].includes(k))
       )
-        throw Error('Expected {files: [{path, source}], onConflict?}.');
-      if (!Array.isArray(body.files)) throw Error('files must be an array.');
-      const project = decodeURIComponent(into[1]);
+        throw new BadRequestError('Expected {files: [{path, source}], onConflict?}.');
+      if (!Array.isArray(body.files)) throw new BadRequestError('files must be an array.');
+      const project = decodeSegment(into[1]);
       const authorizePaths = (paths: string[]) => {
         authorizeWrite(
           req,

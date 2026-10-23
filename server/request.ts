@@ -1,13 +1,14 @@
 // Reads JSON request bodies with a byte limit, decodes request path segments and marks hidden
 // responses.
 import { PathError } from './projects/paths';
+import { BadRequestError } from './projects/errors';
 
 /** Parses a body within maxBytes, using empty for an absent or empty optional body. */
 export async function readJson(req: Request, maxBytes: number, empty?: object) {
   const reader = req.body?.getReader();
   if (!reader) {
     if (empty) return empty;
-    throw Error('Expected a JSON request.');
+    throw new BadRequestError('Expected a JSON request.');
   }
   const chunks: Uint8Array[] = [];
   let bytes = 0;
@@ -17,7 +18,7 @@ export async function readJson(req: Request, maxBytes: number, empty?: object) {
     bytes += value.byteLength;
     if (bytes > maxBytes) {
       await reader.cancel();
-      throw Error('Request too large.');
+      throw new BadRequestError('Request too large.');
     }
     chunks.push(value);
   }
@@ -32,14 +33,16 @@ export async function readJson(req: Request, maxBytes: number, empty?: object) {
   try {
     return JSON.parse(new TextDecoder().decode(raw));
   } catch {
-    throw Error('Malformed JSON request.');
+    throw new BadRequestError('Malformed JSON request.');
   }
 }
 
 /** Correlates authentication events with the enclosing HTTP request. */
 export const requestAuditId = Symbol('requestAuditId');
-/** A request with its audit correlation identifier. */
-export type AuditRequest = Request & { [requestAuditId]?: string };
+/** The address of the peer that sent the request, attached once at the HTTP boundary. */
+export const requestSourceIp = Symbol('requestSourceIp');
+/** A request with its audit correlation identifier and source address. */
+export type AuditRequest = Request & { [requestAuditId]?: string; [requestSourceIp]?: string };
 
 /**
  * Responses that answer 404 for a resource the caller may not see. The access middleware audits
@@ -47,16 +50,28 @@ export type AuditRequest = Request & { [requestAuditId]?: string };
  */
 export const hiddenResponses = new WeakSet<Response>();
 
+/** Decodes one URL path segment; a malformed escape is the caller's mistake, not a failure. */
+export function decodeSegment(raw: string) {
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    throw new PathError('Malformed path encoding.');
+  }
+}
+
 /** Decodes URL path segments; callers must validate the resulting project path. */
 export function decodePath(raw: string) {
-  return raw
-    .split('/')
-    .map(s => {
-      try {
-        return decodeURIComponent(s);
-      } catch {
-        throw new PathError('Malformed path encoding.');
-      }
-    })
-    .join('/');
+  return raw.split('/').map(decodeSegment).join('/');
+}
+
+/**
+ * Answers an error nobody planned for. The client learns only that something failed; the cause
+ * goes to the server log with the request id, because its text can hold file paths or library
+ * internals.
+ */
+export function internalErrorResponse(e: unknown, requestId = 'unknown') {
+  const name = e instanceof Error ? e.name : 'Error';
+  const message = e instanceof Error ? e.message : String(e);
+  console.error(`[http] ${requestId} ${name}: ${message}`);
+  return Response.json({ error: 'Internal error.' }, { status: 500 });
 }

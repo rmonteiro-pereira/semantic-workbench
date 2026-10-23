@@ -113,3 +113,28 @@ test('container builds use shared metadata and dirty revision tags', async () =>
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test('the checked container runs read-only, without capabilities and with a /tmp tmpfs', async () => {
+  const root = mkdtempSync('/tmp/workbench-container-hardening-');
+  const child = harness(root, 1000);
+  try {
+    const reader = child.stdout.getReader();
+    expect(new TextDecoder().decode((await reader.read()).value)).toContain('ready');
+    reader.releaseLock();
+    child.kill('SIGTERM');
+    await child.exited;
+    const commands = readFileSync(`${root}/commands`, 'utf8')
+      .trim()
+      .split('\n')
+      .map(line => JSON.parse(line) as string[]);
+    const started = commands.find(args => args[1] === 'run')!;
+    expect(started.join(' ')).toContain(
+      '--read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges',
+    );
+    expect(started.indexOf('--read-only')).toBeLessThan(started.indexOf('-v'));
+  } finally {
+    child.kill();
+    await child.exited;
+    rmSync(root, { recursive: true, force: true });
+  }
+});

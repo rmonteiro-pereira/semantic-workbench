@@ -11,6 +11,7 @@ import { authWorkspace } from '../tests/helpers/auth-workspace';
 import { startMockOidc, type MockOidc } from '../tests/helpers/mock-oidc';
 import type { Engine } from './image';
 import { authEnvironment } from './auth-environment';
+import { hardenedRunArguments } from './container-hardening';
 import { check, signIn, signInChecks, type SignInTarget } from './helpers/sign-in';
 
 /** Builds server container arguments with host-loopback provider access and isolated storage. */
@@ -29,6 +30,7 @@ export function serverContainerArguments(
     name,
     '--network',
     'host',
+    ...hardenedRunArguments(),
     ...mapping,
     '-v',
     `${root}:/data${engine === 'podman' ? ':z' : ''}`,

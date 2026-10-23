@@ -67,7 +67,7 @@ function pageContent(page: AuthPageKind, options: AuthPageOptions) {
 }
 
 /** Renders minimal authentication pages without scripts or workspace information. */
-export function authPage(page: AuthPageKind, options: AuthPageOptions = {}) {
+export function authPage(page: AuthPageKind, options: AuthPageOptions = {}, status = 200) {
   const { title, content } = pageContent(page, options);
   const headers = securityHeaders();
   headers.set('Content-Type', 'text/html; charset=utf-8');
@@ -82,7 +82,7 @@ export function authPage(page: AuthPageKind, options: AuthPageOptions = {}) {
       '</h1>' +
       content +
       '</main></body></html>',
-    { headers },
+    { headers, status },
   );
 }
 
@@ -174,6 +174,14 @@ export function authRoutes(options: AuthRouteOptions, consent?: GitHubConsent): 
   return (_workspace, request) => route(request);
 }
 
+/** The HTTP status of each sign-in failure page; the other reasons keep a plain page. */
+const SIGN_IN_FAILURE_STATUS: Partial<Record<SignInReason, number>> = {
+  'attempt-invalid': 400,
+  'token-invalid': 400,
+  'tenant-mismatch': 400,
+  'provider-unreachable': 503,
+};
+
 /** Renders only safe sign-in reasons, including failures starting from a protected page. */
 export function signInErrorResponse(error: SignInError, publicUrl?: string) {
   const reasons: Record<SignInReason, string> = {
@@ -184,7 +192,11 @@ export function signInErrorResponse(error: SignInError, publicUrl?: string) {
     'provider-unsupported': 'Not supported by the identity provider',
     'session-upgraded': 'Signed out after an update; sign in again',
   };
-  const response = authPage('error', { reason: reasons[error.reason], returnTo: error.returnTo });
+  const response = authPage(
+    'error',
+    { reason: reasons[error.reason], returnTo: error.returnTo },
+    SIGN_IN_FAILURE_STATUS[error.reason],
+  );
   if (publicUrl) response.headers.append('Set-Cookie', sessionCookie('', publicUrl, 'auth', 0));
   return response;
 }

@@ -15,6 +15,7 @@ import {
   quoteIdentifier,
   sourceSql,
 } from './sql';
+import { BadRequestError } from '../projects/errors';
 /** Stored source text with its identifier, revision, and optional project. */
 export type StoredDocument = {
   id: string;
@@ -189,7 +190,7 @@ export function buildContext(documents: StoredDocument[], mappingId: string): Ru
   const parsed = parseDocuments(documents);
   const entry = mappingEntries(parsed).find(m => m.id === mappingId);
   if (!entry)
-    throw Error(
+    throw new BadRequestError(
       'Mapping not found. Import a standalone mapping or an ontology with embedded mappings.',
     );
   return assemble(parsed, entry);
@@ -203,10 +204,11 @@ export function modelContext(
 ): RuntimeContext {
   const parsed = parseDocuments(documents);
   const p = parsed.find(x => x.doc.id === documentId);
-  if (!p?.data) throw Error('Semantic model not found.');
+  if (!p?.data) throw new BadRequestError('Semantic model not found.');
   let model: any = p.data;
   for (const k of path) model = model?.[k];
-  if (!model || !Array.isArray(model.datasets)) throw Error('Semantic model not found.');
+  if (!model || !Array.isArray(model.datasets))
+    throw new BadRequestError('Semantic model not found.');
   const entry: Entry = {
     id: `${documentId}#model`,
     doc: p.doc,
@@ -368,7 +370,7 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
       if (ref.table) {
         const id = key(ref.table, ref.column);
         if (!fieldMap.has(id))
-          throw Error(
+          throw new BadRequestError(
             `Unknown semantic field ${ref.table}.${ref.column}. Mapping expressions must use declared logical fields.`,
           );
         fields.add(id);
@@ -376,7 +378,7 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
       else {
         const options = context.fields.filter(f => f.name === ref.column);
         if (options.length !== 1)
-          throw Error(
+          throw new BadRequestError(
             `Unqualified reference ${ref.column} resolves to ${options.length} fields. Qualify it with a dataset name.`,
           );
         fields.add(options[0].id);
@@ -389,14 +391,14 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
   const metricDependencies = (name: string, active = new Set<string>()): RuntimeMetric => {
     const metric = metricMap.get(name)!;
     if (completed.has(name)) return metric;
-    if (active.has(name)) throw Error(`Governed metric dependency cycle at ${name}.`);
-    if (active.size > 64) throw Error('Metric dependency depth exceeds 64.');
+    if (active.has(name)) throw new BadRequestError(`Governed metric dependency cycle at ${name}.`);
+    if (active.size > 64) throw new BadRequestError('Metric dependency depth exceeds 64.');
     const next = new Set(active);
     next.add(name);
     const expressions = metric.definition.expression.dialects;
     const selected = expressions.find((d: any) => d.dialect === 'ANSI_SQL');
     if (!selected)
-      throw Error(
+      throw new BadRequestError(
         `Metric ${name} has no ANSI_SQL expression; choose a supported dialect before planning.`,
       );
     const refs = resolveRefs(selected.expression);
@@ -443,7 +445,7 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
       queue.push(...(c.extends ?? []));
     }
     if (matches.length !== 1)
-      throw Error(
+      throw new BadRequestError(
         `Relationship ${concept}.${name} resolves to ${matches.length} definitions (including inheritance).`,
       );
     return matches[0];
@@ -515,14 +517,14 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
       if (task.kind === 'referent') {
         const relation = inheritedRelationship(concept, node.relationship);
         if ((relation.roles ?? []).length !== 1)
-          throw Error(
+          throw new BadRequestError(
             `Referent ${concept}.${node.relationship} needs exactly one target role for nested resolution.`,
           );
         concept = relation.roles[0].concept;
         relationships = [...relationships, node.relationship];
       }
       concept = node.concept ?? concept;
-      if (!concepts.has(concept)) throw Error(`Unknown ontology concept ${concept}.`);
+      if (!concepts.has(concept)) throw new BadRequestError(`Unknown ontology concept ${concept}.`);
       if (node.expression !== undefined) {
         const refs = resolveRefs(node.expression);
         context.bindings.push({
@@ -589,7 +591,8 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
 export function selectContext(context: RuntimeContext, conceptNames: string[]) {
   const names = new Set(conceptNames);
   for (const n of names)
-    if (!context.concepts.some(c => c.concept === n)) throw Error(`Unknown concept ${n}.`);
+    if (!context.concepts.some(c => c.concept === n))
+      throw new BadRequestError(`Unknown concept ${n}.`);
   const bindings = context.bindings.filter(
     b => names.size === 0 || names.has(b.rootConcept) || names.has(b.concept),
   );
@@ -633,7 +636,7 @@ export type PlanRequest = {
 /** Builds an unexecuted SQL plan, refusing unsupported expressions or ambiguous joins. */
 export function planQuery(context: RuntimeContext, request: PlanRequest) {
   if (context.findings.some(f => f.severity === 'error'))
-    throw Error('Resolve mapping context errors before planning.');
+    throw new BadRequestError('Resolve mapping context errors before planning.');
   const selected =
     request.scope === 'model'
       ? { ...context, bindings: [] as Binding[] }
@@ -642,12 +645,18 @@ export function planQuery(context: RuntimeContext, request: PlanRequest) {
   const fieldMap = new Map(context.fields.map(f => [f.id, f]));
   const metrics = request.metrics.map(id => {
     const m = selected.metrics.find(m => m.id === id);
-    if (!m) throw Error(`Metric ${id} is not reachable through the selected ontology mappings.`);
+    if (!m)
+      throw new BadRequestError(
+        `Metric ${id} is not reachable through the selected ontology mappings.`,
+      );
     return m;
   });
   const dimensions = request.dimensions.map(id => {
     const f = selected.fields.find(f => f.id === id);
-    if (!f) throw Error(`Field ${id} is not reachable through the selected ontology mappings.`);
+    if (!f)
+      throw new BadRequestError(
+        `Field ${id} is not reachable through the selected ontology mappings.`,
+      );
     return f;
   });
   const timeField = request.timeGrain
@@ -657,14 +666,14 @@ export function planQuery(context: RuntimeContext, request: PlanRequest) {
     request.timeGrain &&
     (!timeField || !['day', 'week', 'month', 'quarter', 'year'].includes(request.timeGrain.grain))
   )
-    throw Error('The time field or grain is not available in this model.');
+    throw new BadRequestError('The time field or grain is not available in this model.');
   if (!metrics.length && !dimensions.length)
-    throw Error('Select at least one mapped field or governed metric.');
+    throw new BadRequestError('Select at least one mapped field or governed metric.');
   if (
     new Set(request.metrics).size !== metrics.length ||
     new Set(request.dimensions).size !== dimensions.length
   )
-    throw Error('Duplicate query selections.');
+    throw new BadRequestError('Duplicate query selections.');
   const conditional = selected.bindings.filter(
     b =>
       b.condition &&
@@ -672,7 +681,7 @@ export function planQuery(context: RuntimeContext, request: PlanRequest) {
         b.fields.some(f => request.dimensions.includes(f))),
   );
   if (conditional.length)
-    throw Error(
+    throw new BadRequestError(
       'Selected bindings have population conditions. Review their meaning before query generation; the planner will not silently turn them into query filters.',
     );
   const required = new Set([
@@ -682,11 +691,11 @@ export function planQuery(context: RuntimeContext, request: PlanRequest) {
   ]);
   const metricDatasets = new Set(metrics.flatMap(m => m.datasets));
   if (metricDatasets.size > 1)
-    throw Error(
+    throw new BadRequestError(
       'Multi-fact metric composition needs an explicit grain/aggregation model. No unsafe join was generated.',
     );
   const root = [...metricDatasets][0] ?? dimensions[0]?.dataset;
-  if (!root) throw Error('No physical dataset was resolved.');
+  if (!root) throw new BadRequestError('No physical dataset was resolved.');
   // Reject joins with alternative directed paths, even longer ones, to avoid choosing a business
   // role by distance. Visited sets terminate cycles without introducing reverse edges.
   const outgoing = new Map<string, any[]>();
@@ -721,12 +730,12 @@ export function planQuery(context: RuntimeContext, request: PlanRequest) {
   const joins = new Map<string, any>();
   for (const target of required) {
     if (!distances.has(target))
-      throw Error(`No fan-out-safe declared join from ${root} to ${target}.`);
+      throw new BadRequestError(`No fan-out-safe declared join from ${root} to ${target}.`);
     let current = target;
     while (current !== root) {
       const join = previous.get(current);
       if (reachableWithout(join.name, target))
-        throw Error(
+        throw new BadRequestError(
           `Ambiguous join paths from ${root} to ${target}. Model an explicit relationship before planning.`,
         );
       joins.set(join.name, join);
@@ -743,7 +752,7 @@ export function planQuery(context: RuntimeContext, request: PlanRequest) {
     const ast = parseExpression(expression).expression;
     for (const ref of columnRefs(ast)) {
       if (!ref.table && !currentDataset && metricMap.has(ref.column)) {
-        if (active.has(ref.column)) throw Error('Metric cycle.');
+        if (active.has(ref.column)) throw new BadRequestError('Metric cycle.');
         const next = new Set(active);
         next.add(ref.column);
         const dep = metricMap.get(ref.column)!;
@@ -760,18 +769,22 @@ export function planQuery(context: RuntimeContext, request: PlanRequest) {
       }
       const dataset = ref.table ?? currentDataset;
       const f = dataset ? fieldMap.get(key(dataset, ref.column)) : null;
-      if (!f) throw Error(`Unresolved query field ${dataset ?? ''}.${ref.column}.`);
+      if (!f) throw new BadRequestError(`Unresolved query field ${dataset ?? ''}.${ref.column}.`);
       if (!aliases.has(f.dataset))
-        throw Error(`Dataset ${f.dataset} is not in the declared join plan.`);
+        throw new BadRequestError(`Dataset ${f.dataset} is not in the declared join plan.`);
       const fieldExpr = f.definition.expression?.dialects?.find(
         (d: any) => d.dialect === 'ANSI_SQL',
       )?.expression;
-      if (!fieldExpr) throw Error(`Field ${f.dataset}.${f.name} has no ANSI_SQL expression.`);
+      if (!fieldExpr)
+        throw new BadRequestError(`Field ${f.dataset}.${f.name} has no ANSI_SQL expression.`);
       const physical = parseExpression(fieldExpr).expression;
-      if (!scalar(physical)) throw Error(`Field ${f.dataset}.${f.name} is not scalar.`);
+      if (!scalar(physical))
+        throw new BadRequestError(`Field ${f.dataset}.${f.name} is not scalar.`);
       for (const column of columnRefs(physical)) {
         if (column.table && column.table !== f.dataset)
-          throw Error('Cross-dataset field expressions need an explicit physical binding.');
+          throw new BadRequestError(
+            'Cross-dataset field expressions need an explicit physical binding.',
+          );
         column.node.table = f.dataset;
       }
       if (['binary_expr', 'unary_expr', 'case'].includes(physical.type))
@@ -826,7 +839,7 @@ export function planQuery(context: RuntimeContext, request: PlanRequest) {
           keys.length === j.to_columns.length && keys.every(k => j.to_columns.includes(k)),
       )
     )
-      throw Error(
+      throw new BadRequestError(
         `Join ${j.name} has no declared unique target key. Add primary_key or unique_keys to ${j.to} before aggregating through it.`,
       );
     const conditions = j.from_columns.map(

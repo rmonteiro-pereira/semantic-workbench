@@ -10,7 +10,10 @@ for (const run of ['pr', 'main', 'tag:v0.4.0-alpha.1']) {
     expect(
       deploy.every(
         step =>
-          step.enabled === (run.startsWith('tag:') && !step.command.includes('playwright install')),
+          step.enabled ===
+          (run.startsWith('tag:') &&
+            !step.command.includes('playwright install') &&
+            step.command !== 'bun install --frozen-lockfile'),
       ),
     ).toBe(true);
     expect(deploy.filter(step => step.kind === 'azure').map(step => step.command)).toEqual([

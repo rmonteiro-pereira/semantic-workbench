@@ -1,5 +1,8 @@
 // Introduces faults into temporary source copies and checks that the test suite detects them.
 import { adminMutants } from './admin-mutants';
+import { sessionSecurityMutants } from './session-security-mutants';
+import { securityReviewMutants } from './security-review-mutants';
+import { checkoutMutants } from './security-review-checkout-mutants';
 import { chmod, mkdtemp, rm, symlink } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 const root = process.cwd();
@@ -1182,6 +1185,225 @@ mutants.push(
   ],
 );
 
+// Delivery hardening. Each mutant undoes one decision: the ingress exposure checks, the lock on
+// promoted tags, the refusal to overwrite a commit tag, the main-branch ancestry of a release
+// commit, the service-connection gates of the pipeline files and the read-only container flags.
+mutants.push(
+  [
+    'deploy-ingress',
+    'scripts/deploy.ts',
+    "['ingress external', app.ingress.external],",
+    "['ingress external', true],",
+  ],
+  [
+    'deploy-ingress',
+    'scripts/deploy.ts',
+    "['ingress HTTPS only', !app.ingress.allowInsecure],",
+    "['ingress HTTPS only', true],",
+  ],
+  [
+    'deploy-ingress',
+    'scripts/deploy.ts',
+    "['ingress transport', ['auto', 'http', 'http2'].includes(app.ingress.transport)],",
+    "['ingress transport', true],",
+  ],
+  [
+    'deploy-ingress',
+    'scripts/deploy.ts',
+    "['ingress CORS', app.ingress.corsOrigins.every(origin => origin === target.SW_PUBLIC_URL)],",
+    "['ingress CORS', true],",
+  ],
+  [
+    'deploy-ingress',
+    'scripts/deploy.ts',
+    "['SW_PUBLIC_URL', app.env.SW_PUBLIC_URL === target.SW_PUBLIC_URL],",
+    "['SW_PUBLIC_URL', true],",
+  ],
+  [
+    'deploy-ingress-read',
+    'scripts/deploy-azure.ts',
+    'allowInsecure: ingress?.allowInsecure !== false,',
+    'allowInsecure: ingress?.allowInsecure === true,',
+  ],
+  [
+    'deploy-ingress-read',
+    'scripts/deploy-azure.ts',
+    'external: ingress?.external === true,',
+    'external: true,',
+  ],
+  [
+    'deploy-ingress-read',
+    'scripts/deploy-azure.ts',
+    "if (!Array.isArray(policy.allowedOrigins)) return ['*'];",
+    'if (!Array.isArray(policy.allowedOrigins)) return [];',
+  ],
+  ['deploy-lock', 'scripts/deploy.ts', '  await client.lock(release);\n', ''],
+  [
+    'image-lock',
+    'scripts/image.ts',
+    "    '--write-enabled',\n    'false',",
+    "    '--write-enabled',\n    'true',",
+  ],
+  [
+    'image-lock',
+    'scripts/image.ts',
+    'return [`sha-${release.commit}`, release.tag];',
+    'return [release.tag, `sha-${release.commit}`];',
+  ],
+  [
+    'deploy-lock-client',
+    'scripts/deploy-azure.ts',
+    'for (const tag of releaseTags(release)) await command(',
+    'for (const tag of releaseTags(release).slice(0, 1)) await command(',
+  ],
+  ['image-push-guard', 'scripts/image.ts', 'if (existing !== null) {', 'if (false) {'],
+  [
+    'image-push-guard',
+    'scripts/image.ts',
+    'if (/NAME_UNKNOWN|MANIFEST_UNKNOWN|not found/i.test((error as Error).message)) return null;',
+    'return null;',
+  ],
+  [
+    'image-push-guard',
+    'scripts/image.ts',
+    'if (!existing.locked) throw Error(',
+    'if (false) throw Error(',
+  ],
+  ['image-push-guard', 'scripts/image.ts', '    assertImageLabels(labels, context);\n', ''],
+  [
+    'image-push-guard',
+    'scripts/image.ts',
+    'if (revision !== context.commit || version !== context.version) {',
+    'if (revision !== context.commit) {',
+  ],
+  [
+    'image-push-guard',
+    'scripts/image.ts',
+    '  await runCommand(lockArguments(target, tag), false);\n',
+    '',
+  ],
+  [
+    'image-push-guard',
+    'scripts/image.ts',
+    'if (after?.digest !== digest) throw Error(',
+    'if (false) throw Error(',
+  ],
+  [
+    'image-push-guard',
+    'scripts/image.ts',
+    "if (!match) throw Error('The push did not report an image digest');",
+    "if (!match) return Promise.resolve('sha256:' + 'e'.repeat(64));",
+  ],
+  ['image-push-guard', 'scripts/image.ts', 'locked: value.writeEnabled === false', 'locked: true'],
+  [
+    'deploy-promote-rerun',
+    'scripts/deploy-azure.ts',
+    '      if (current?.digest === release.digest) return;\n',
+    '',
+  ],
+  [
+    'deploy-promote-rerun',
+    'scripts/deploy-azure.ts',
+    'if (current) throw Error(',
+    'if (false) throw Error(',
+  ],
+  [
+    'deploy-ancestry',
+    'scripts/deploy-version.ts',
+    'if (code === 1) throw Error(',
+    'if (false) throw Error(',
+  ],
+  [
+    'deploy-ancestry',
+    'scripts/deploy-version.ts',
+    'if (code !== 0) {\n    throw Error(`Could not compare',
+    'if (false) {\n    throw Error(`Could not compare',
+  ],
+  ['deploy-ancestry', 'scripts/deploy-version.ts', '!/^[a-f0-9]{40}$/.test(commit)', 'false'],
+  ['deploy-ancestry', 'scripts/deploy-version.ts', "commit, 'origin/main']", "commit, 'HEAD']"],
+  [
+    'deploy-ancestry-cli',
+    'scripts/deploy-version.ts',
+    '  await assertCommitOnMain(process.env.SOURCE_VERSION || (await currentCommit()));\n',
+    '',
+  ],
+  [
+    'pipeline-gates',
+    'scripts/pipeline-lint.ts',
+    'if (node.azureSubscription && !connectionFiles.includes(file)) {',
+    'if (false) {',
+  ],
+  [
+    'pipeline-gates',
+    'scripts/pipeline-lint.ts',
+    '      if (job.deployment) continue;\n',
+    '      continue;\n',
+  ],
+  [
+    'pipeline-gates',
+    'scripts/pipeline-lint.ts',
+    'if (step.inputs?.azureSubscription && !gates.some(isReleaseGate)) {',
+    'if (false) {',
+  ],
+  [
+    'pipeline-gates',
+    'scripts/pipeline-lint.ts',
+    'return condition === tagCondition || condition === pushCondition;',
+    'return true;',
+  ],
+  [
+    'pipeline-gates',
+    'scripts/pipeline-lint.ts',
+    "check.inputs?.azureSubscription !== '${{ parameters.acrPullServiceConnection }}' ||",
+    'false ||',
+  ],
+  [
+    'pipeline-gates',
+    'scripts/pipeline-lint.ts',
+    "push.inputs.azureSubscription !== '${{ parameters.acrServiceConnection }}' ||",
+    'false ||',
+  ],
+  ['pipeline-gates', 'scripts/pipeline-lint.ts', 'setup?.parameters?.fetchDepth !== 0', 'false'],
+  [
+    'pipeline-gates',
+    'scripts/pipeline-lint.ts',
+    'if (setup?.parameters?.production !== true) {',
+    'if (false) {',
+  ],
+  [
+    'pipeline-gates',
+    'scripts/pipeline-lint.ts',
+    'if (connectionSteps(jobs[0]).length !== 1 || connectionSteps(jobs[1]).length !== 1) {',
+    'if (false) {',
+  ],
+  [
+    'pipeline-gates',
+    'scripts/pipeline-lint.ts',
+    "bash: 'bun install --frozen-lockfile --production',",
+    "bash: 'bun install --frozen-lockfile',",
+  ],
+  [
+    'pipeline-pr-azure',
+    'scripts/pipeline-dry-run.ts',
+    "if (!branch.startsWith('refs/pull/')) return;",
+    'return;',
+  ],
+  ['container-hardening', 'scripts/container-hardening.ts', "    '--read-only',\n", ''],
+  [
+    'container-hardening',
+    'scripts/container-hardening.ts',
+    "capabilitiesDropped: 'ALL'",
+    "capabilitiesDropped: 'NET_RAW'",
+  ],
+  [
+    'container-hardening',
+    'scripts/container-hardening.ts',
+    "securityOption: 'no-new-privileges'",
+    "securityOption: 'seccomp=unconfined'",
+  ],
+  ['container-hardening', 'scripts/container-hardening.ts', "tmpfs: '/tmp'", "tmpfs: '/data'"],
+);
+
 let killed = 0;
 // The askpass program is a shell script, so its mutants run the askpass case with the mutated
 // script beside an unchanged Git module.
@@ -1199,6 +1421,10 @@ const askpassMutants: [string, string][] = [
 ];
 // Administration cases extend the existing inventory without changing its categories.
 mutants.push(...adminMutants);
+// Authentication, session and HTTP boundary cases extend the inventory the same way.
+mutants.push(...sessionSecurityMutants);
+// Data access, files and Git cases extend the inventory the same way.
+mutants.push(...securityReviewMutants, ...checkoutMutants);
 
 async function run(
   category: string,

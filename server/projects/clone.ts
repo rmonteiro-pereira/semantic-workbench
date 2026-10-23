@@ -14,6 +14,7 @@ import {
 import type { Journal, RecoveryOutcome } from './journal';
 import { projectDir, slugify, uniqueName, type DataLayout } from './paths';
 import type { ProjectEntry } from './state';
+import { BadRequestError } from './errors';
 
 /** Prefix of the staging folders that hold a clone in progress. */
 export const CLONE_STAGING = '.staging-clone-';
@@ -71,7 +72,7 @@ export function nameFromAddress(address: string) {
 function checkName(name: unknown) {
   if (name === undefined || name === null || name === '') return undefined;
   if (typeof name !== 'string' || name.length > 120 || hasControlCharacters(name))
-    throw Error('A project name is 1–120 characters without control characters.');
+    throw new BadRequestError('A project name is 1–120 characters without control characters.');
   return name.trim() || undefined;
 }
 
@@ -122,7 +123,9 @@ export function createCloner(deps: CloneDeps) {
       await deps.lock('registry', async () => {
         const current = deps.projects();
         if (current.some(project => project.slug === slug) || existsSync(projectDir(layout, slug)))
-          throw Error(`A project folder named ${slug} appeared meanwhile; clone again.`);
+          throw new BadRequestError(
+            `A project folder named ${slug} appeared meanwhile; clone again.`,
+          );
         const project: ProjectEntry = {
           slug,
           name,

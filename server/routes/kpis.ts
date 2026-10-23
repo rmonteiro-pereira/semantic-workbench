@@ -1,9 +1,9 @@
 // Previews metric changes and saves related files in one journaled operation. Previews never
 // execute SQL.
-import { OccupiedError } from '../projects/errors';
+import { BadRequestError, OccupiedError } from '../projects/errors';
 import { requestReader } from '../auth/request-scope';
 import { authorizeWrite } from '../auth/write-access';
-import { readJson } from '../request';
+import { decodeSegment, readJson } from '../request';
 import { MAX_INPUT_BYTES } from '../../src/diagnostics';
 import { explainMetric } from '../agent/explain';
 import { planKpiSave, KpiError, type KpiRequest } from '../../src/metrics/metric-save';
@@ -17,10 +17,12 @@ export const kpiRoutes: Route = async (ws, req, url) => {
   if (req.method !== 'POST') return null;
   const batch = url.pathname.match(/^\/api\/projects\/([^/]+)\/save-batch$/);
   if (batch) {
-    const slug = decodeURIComponent(batch[1]);
+    const slug = decodeSegment(batch[1]);
     const body = await readJson(req, MAX_INPUT_BYTES * 6 + 4096);
     if (!object(body) || !Array.isArray(body.files) || Object.keys(body).some(k => k !== 'files'))
-      throw Error('Expected {files: [{path, baseHash, source} or {path, baseHash, patches}]}.');
+      throw new BadRequestError(
+        'Expected {files: [{path, baseHash, source} or {path, baseHash, patches}]}.',
+      );
     for (const f of body.files)
       if (
         !object(f) ||
@@ -29,7 +31,7 @@ export const kpiRoutes: Route = async (ws, req, url) => {
         (f.source === undefined) === (f.patches === undefined) ||
         (f.source !== undefined && typeof f.source !== 'string')
       )
-        throw Error(
+        throw new BadRequestError(
           'Each file needs a path, the SHA-256 of the version the edit started from (null for a new file), and either source or patches.',
         );
     authorizeWrite(
@@ -47,7 +49,7 @@ export const kpiRoutes: Route = async (ws, req, url) => {
   // Keep the older `kpis` paths as aliases for existing clients.
   const m = url.pathname.match(/^\/api\/projects\/([^/]+)\/(?:metrics|kpis)(\/preview)?$/);
   if (!m) return null;
-  const slug = decodeURIComponent(m[1]);
+  const slug = decodeSegment(m[1]);
   const preview = !!m[2];
   ws.project(slug);
   const body = await readJson(req, 256_000);
@@ -73,7 +75,7 @@ export const kpiRoutes: Route = async (ws, req, url) => {
     (body.modelPath !== undefined && !Array.isArray(body.modelPath)) ||
     (!preview && !object(body.baseHashes))
   )
-    throw Error(
+    throw new BadRequestError(
       'Expected {semanticPath, metric: {name, expression, description?, datatype?}, extension, binding?: {measures, of?}, baseHashes}.',
     );
   const { view } = requestReader(req);
@@ -135,7 +137,9 @@ export const kpiRoutes: Route = async (ws, req, url) => {
     if (w.created) return { path: w.path, baseHash: null, source: w.source };
     const hash = body.baseHashes[w.path];
     if (typeof hash !== 'string' || !HASH.test(hash))
-      throw Error(`baseHashes must include the hash of ${w.path} as you last read it.`);
+      throw new BadRequestError(
+        `baseHashes must include the hash of ${w.path} as you last read it.`,
+      );
     return { path: w.path, baseHash: hash, source: w.source };
   });
   authorizeWrite(

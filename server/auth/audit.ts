@@ -1,4 +1,5 @@
-// Appends whitelisted decision records to durable, independently chained monthly files.
+// Appends whitelisted decision records to durable monthly files that form one hash chain, and
+// checks that chain.
 import {
   mkdirSync,
   readdirSync,
@@ -32,10 +33,17 @@ export type AuditInput = {
     resourceAttrs: Record<string, unknown>;
   };
   version?: string;
+  /** How many refusals of this kind from this source were left out since the last record. */
+  suppressed?: number;
   [key: string]: unknown;
 };
 /** A stored record including its UTC timestamp and previous-line digest. */
 export type AuditEntry = AuditInput & { type: 'audit'; at: string; prev: string };
+const ZERO_HASH = '0'.repeat(64);
+
+/** Written to the mirror when a month closes: the hash of that month's last record. */
+export type AuditAnchor = { type: 'audit-anchor'; month: string; tail: string };
+
 /** Synchronous durable audit operations used by request middleware. */
 export type AuditLog = ReturnType<typeof createAuditLog>;
 
@@ -64,6 +72,7 @@ function record(input: AuditInput, at: string, prev: string): AuditEntry {
     principal: pick(input.principal, ['id', 'kind', 'name', 'clientId']),
     resource: pick(input.resource, resourceKeys),
   } as AuditEntry;
+  if (input.suppressed) entry.suppressed = input.suppressed;
   if (input.snapshot) {
     entry.snapshot = {
       grants: [...input.snapshot.grants],
@@ -109,14 +118,26 @@ export function createAuditLog(options: {
     }
     return removed;
   }
-  let chain = { month: '', lastHash: '0'.repeat(64) };
+  let chain = { month: '', lastHash: ZERO_HASH };
+  // The first record of a month continues the chain from the newest earlier month, so a month
+  // file cannot be removed or replaced without breaking the link. The closed month's last hash
+  // goes to the mirror, which keeps it where a person with the data folder cannot rewrite it.
+  function startMonth(month: string) {
+    const own = lines(month).at(-1);
+    if (own !== undefined) return sha256(own);
+    const earlier = months()
+      .filter(stored => stored < month)
+      .at(-1);
+    const tail = earlier === undefined ? undefined : lines(earlier).at(-1);
+    if (earlier === undefined || tail === undefined) return ZERO_HASH;
+    const anchor: AuditAnchor = { type: 'audit-anchor', month: earlier, tail: sha256(tail) };
+    options.mirror?.(JSON.stringify(anchor) + '\n');
+    return anchor.tail;
+  }
   function append(input: AuditInput): AuditEntry {
     const at = now().toISOString();
     const month = at.slice(0, 7);
-    if (chain.month !== month) {
-      const previous = lines(month).at(-1);
-      chain = { month, lastHash: previous === undefined ? '0'.repeat(64) : sha256(previous) };
-    }
+    if (chain.month !== month) chain = { month, lastHash: startMonth(month) };
     const entry = record(input, at, chain.lastHash);
     const line = JSON.stringify(entry) + '\n';
     const descriptor = openSync(join(options.dir, `${month}.jsonl`), 'a', 0o600);
@@ -163,6 +184,145 @@ export function createAuditLog(options: {
   }
   prune();
   return { append, recent, between, prune, entries };
+}
+
+/** One stored month: its name, such as `2026-10`, and its record lines in order. */
+export type StoredMonth = { month: string; lines: string[] };
+
+/** Reads every month file of an audit folder in order, without pruning or changing anything. */
+export function readStoredMonths(dir: string): StoredMonth[] {
+  return readdirSync(dir)
+    .filter(name => /^\d{4}-(0[1-9]|1[0-2])\.jsonl$/.test(name))
+    .sort()
+    .map(name => ({
+      month: name.slice(0, 7),
+      lines: readFileSync(join(dir, name), 'utf8').trimEnd().split('\n').filter(Boolean),
+    }));
+}
+
+/** Where the chain stops being valid, and why. */
+export type ChainBreak = {
+  month: string;
+  /** The 1-based line of the month's file; 0 when the whole month is the problem. */
+  line: number;
+  reason:
+    | 'unreadable'
+    | 'broken-link'
+    | 'anchor-mismatch'
+    | 'anchor-month-missing'
+    | 'mirror-line-missing';
+};
+
+/** The outcome of checking a stored audit chain. */
+export type ChainCheck =
+  | { ok: true; records: number; months: number }
+  | ({ ok: false } & ChainBreak);
+
+/** Whether a line has the `prev` of the line before it; the first line of all is not checked. */
+function linkBroken(line: string, previous: string | undefined): boolean {
+  let entry: { prev?: unknown };
+  try {
+    entry = JSON.parse(line);
+  } catch {
+    return true;
+  }
+  return previous !== undefined && entry.prev !== sha256(previous);
+}
+
+/** Splits a copy of the mirrored output into its anchors and its audit records. */
+export function parseMirror(text: string): { anchors: AuditAnchor[]; records: string[] } {
+  const anchors: AuditAnchor[] = [];
+  const records: string[] = [];
+  for (const line of text.split('\n')) {
+    if (line.includes('"audit-anchor"')) {
+      try {
+        const parsed = JSON.parse(line);
+        if (parsed.type === 'audit-anchor') anchors.push(parsed);
+      } catch {
+        // Not an anchor: some other output that mentions the word.
+      }
+    } else if (line.startsWith('{"') && line.includes('"type":"audit"')) records.push(line);
+  }
+  return { anchors, records };
+}
+
+/** What the chain check compares the stored months with besides themselves. */
+export type ChainChecks = {
+  /** Lines the server mirrored; each of them must still be stored. */
+  mirrored?: string[];
+  /** The retention period in force, which decides which months must still exist. */
+  retentionDays?: number;
+  now?: Date;
+};
+
+/** The oldest month that retention still keeps, such as `2026-10`. */
+export function oldestRetainedMonth(retentionDays = 400, now = new Date()): string {
+  return new Date(now.getTime() - retentionDays * 86_400_000).toISOString().slice(0, 7);
+}
+
+function mirrorBreak(stored: StoredMonth[], mirrored: string[], oldest: string): ChainBreak | null {
+  const known = new Set(stored.flatMap(item => item.lines.map(line => sha256(line))));
+  for (const [index, line] of mirrored.entries()) {
+    const month = /"at":"(\d{4}-\d{2})/.exec(line)?.[1];
+    if (month === undefined || month < oldest) continue;
+    if (!known.has(sha256(line.trimEnd()))) {
+      return { month, line: index + 1, reason: 'mirror-line-missing' };
+    }
+  }
+  return null;
+}
+
+/**
+ * Checks that every record names the hash of the record before it, across month files; that each
+ * anchor from the mirror matches the last record of its month and that its month still exists
+ * when retention keeps it; and that every record the mirror saw is still stored. The first record
+ * that retention left names a record that was pruned, so it cannot be checked.
+ */
+export function verifyAuditChain(
+  stored: StoredMonth[],
+  anchors: AuditAnchor[] = [],
+  checks: ChainChecks = {},
+): ChainCheck {
+  const filled = stored.filter(item => item.lines.length > 0);
+  let previous: string | undefined;
+  let records = 0;
+  for (const { month, lines } of filled) {
+    for (const [index, line] of lines.entries()) {
+      if (linkBroken(line, previous)) {
+        const reason = isReadable(line) ? 'broken-link' : 'unreadable';
+        return { ok: false, month, line: index + 1, reason };
+      }
+      previous = line;
+      records++;
+    }
+  }
+  const oldest = oldestRetainedMonth(checks.retentionDays, checks.now);
+  for (const anchor of anchors) {
+    const found = filled.find(item => item.month === anchor.month);
+    if (!found && anchor.month >= oldest) {
+      return { ok: false, month: anchor.month, line: 0, reason: 'anchor-month-missing' };
+    }
+    if (found && sha256(found.lines.at(-1)!) !== anchor.tail) {
+      return {
+        ok: false,
+        month: anchor.month,
+        line: found.lines.length,
+        reason: 'anchor-mismatch',
+      };
+    }
+  }
+  const lost = mirrorBreak(stored, checks.mirrored ?? [], oldest);
+  if (lost) return { ok: false, ...lost };
+  return { ok: true, records, months: filled.length };
+}
+
+function isReadable(line: string): boolean {
+  try {
+    JSON.parse(line);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /** What an operator needs to find an operation whose audit record could not be written. */

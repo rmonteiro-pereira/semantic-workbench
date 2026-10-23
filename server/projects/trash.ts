@@ -10,7 +10,7 @@ import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { join, posix } from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { atomicWrite, atomicWriteJson, decode, readJsonFile, sha256 } from './atomic';
-import { GoneError, NotFoundError, OccupiedError, StaleError } from './errors';
+import { BadRequestError, GoneError, NotFoundError, OccupiedError, StaleError } from './errors';
 import { JournalCrash, type Journal } from './journal';
 import {
   assertSlug,
@@ -85,6 +85,11 @@ export type TrashContext = {
   registrySteps: (stateStaging: string, next: ProjectEntry[]) => { from: string; to: string }[];
   afterFiles: (slug: string, copy: string | null) => Promise<unknown>;
   /**
+   * The key of the copy a person's change goes to, made on first use; null where they have none
+   * (local mode, agent clients), which means the published state.
+   */
+  writeCopy?: (reader: Reader, slug: string) => Promise<string | null>;
+  /**
    * Before a deletion leaves the workspace: stores each person's unpublished work on what goes
    * in the entry folder. Absent in local mode tests.
    */
@@ -141,7 +146,7 @@ export function createTrash(ctx: TrashContext) {
   // The published files, or one person's working copy of them.
   function filesOf(copy: string | null) {
     if (!copy) return layout;
-    if (!ctx.copyLayout) throw Error('This workspace has no working copies.');
+    if (!ctx.copyLayout) throw new BadRequestError('This workspace has no working copies.');
     return ctx.copyLayout(copy);
   }
   const now = ctx.now ?? Date.now;
@@ -468,7 +473,9 @@ export function createTrash(ctx: TrashContext) {
         emitEntry(e);
         return { kind: 'file', project: project.slug, path };
       }
-      const copy = e.copy ?? null;
+      // A file deleted from the published state, as local mode does, comes back into the person's
+      // own copy in server mode: only publishing may change the published checkout.
+      const copy = e.copy ?? (await ctx.writeCopy?.(reader, slug)) ?? null;
       const files = filesOf(copy);
       if (copy && !existsSync(projectDir(files, slug)))
         throw new NotFoundError('The working copy this file came from no longer exists.');

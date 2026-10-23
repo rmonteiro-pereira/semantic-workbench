@@ -25,6 +25,7 @@ import {
   type ResolvedBinding,
 } from '../../src/metrics/bindings';
 import { modelContext, planQuery, type StoredDocument } from './runtime';
+import { BadRequestError } from '../projects/errors';
 type ProjectDocument = StoredDocument & { path: string };
 type Parsed = { doc: ProjectDocument; data: any };
 type ModelRef = {
@@ -377,9 +378,9 @@ export function explainMetric(
 ): KpiExplanation {
   const parsed = parseProject(documents, slug);
   const refs = semanticModels(parsed).filter(r => r.doc.path === path);
-  if (!refs.length) throw Error(`${path} has no semantic model in project ${slug}.`);
+  if (!refs.length) throw new BadRequestError(`${path} has no semantic model in project ${slug}.`);
   const ref = refs.find(r => list(r.model.metrics).some((m: any) => m?.name === metric));
-  if (!ref) throw Error(`Metric ${metric} is not in ${path}.`);
+  if (!ref) throw new BadRequestError(`Metric ${metric} is not in ${path}.`);
   const all = summaries(parsed, ref);
   const byName = new Map(all.map(k => [k.name, k]));
   const kpi = byName.get(metric)!;

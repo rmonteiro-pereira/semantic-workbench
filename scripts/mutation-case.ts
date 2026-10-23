@@ -1616,6 +1616,12 @@ if (category === 'auth-principal') {
     { ...mapping, provider: 'entra' },
   );
   assert.equal(guest.verifiedEmail, null);
+  // A verified e-mail claim never names a guest either; this does not pass through the user name.
+  const guestEmail = m.normalizeClaims(
+    { tid: 'tenant', oid: 'object', email: 'guest#EXT#@tenant.org', xms_edov: true },
+    { ...mapping, provider: 'entra' },
+  );
+  assert.equal(guestEmail.verifiedEmail, null);
 }
 if (category === 'auth-compiler') {
   const role = {
@@ -2241,6 +2247,10 @@ if (['write-body-legacy', 'write-body-suggestions', 'write-body-trash'].includes
 
 // Admin panel decisions are checked here; every other admin- category is a server mutant.
 const ADMIN_UI_CATEGORIES = new Set(['admin-review', 'admin-save']);
+if (category.startsWith('sec-')) {
+  const { sessionSecurityCase } = await import('./session-security-mutation-cases');
+  await sessionSecurityCase(m, category);
+}
 if (category === 'admin-review') {
   const key = m.proposalKey({ roles: [] }, 'base');
   const result = { dryRunId: 'review', changed: [], people: [], matrixCases: 1, auditCases: 0 };
@@ -2253,6 +2263,10 @@ if (category === 'admin-review') {
 if (category.startsWith('admin-') && !ADMIN_UI_CATEGORIES.has(category)) {
   const { adminMutationCase } = await import('./admin-mutation-cases');
   await adminMutationCase(m, category);
+}
+if (category.startsWith('secrev-')) {
+  const { securityReviewCase } = await import('./security-review-mutation-cases');
+  await securityReviewCase(m, category);
 }
 if (category === 'admin-save') {
   let requests = 0;
@@ -3303,4 +3317,288 @@ if (category === 'msal-overage') {
       auth.close();
     }
   });
+}
+
+// Delivery hardening cases. Each one passes on the real module and fails on every mutant.
+if (category === 'deploy-ingress') {
+  const { fakeApp, fakeTarget } = await import('./deploy-fake');
+  assert.doesNotThrow(() => m.preflight(fakeApp(), fakeTarget));
+  const exposures: ((app: any) => void)[] = [
+    app => (app.ingress.external = false),
+    app => (app.ingress.allowInsecure = true),
+    app => (app.ingress.transport = 'tcp'),
+    app => (app.ingress.corsOrigins = ['*']),
+    app => (app.env.SW_PUBLIC_URL = 'https://other.example'),
+  ];
+  for (const expose of exposures) {
+    const app = fakeApp();
+    expose(app);
+    assert.throws(() => m.preflight(app, fakeTarget), /Preflight failed: ingress|SW_PUBLIC_URL/);
+  }
+}
+if (category === 'deploy-ingress-read') {
+  const { fakeApp, fakeTarget } = await import('./deploy-fake');
+  const response = (ingress: object | undefined) => ({
+    identity: { userAssignedIdentities: { [fakeApp().identity]: {} } },
+    properties: {
+      configuration: { activeRevisionsMode: 'Single', ingress },
+      template: { containers: [{ env: [] }], scale: {} },
+    },
+  });
+  const read = (ingress: object | undefined) =>
+    m.appSettings(response(ingress), fakeTarget).ingress;
+  assert.equal(read(undefined).external, false);
+  assert.equal(read({}).allowInsecure, true);
+  assert.equal(read({ allowInsecure: false, external: true }).allowInsecure, false);
+  assert.equal(read({ allowInsecure: false, external: true }).external, true);
+  assert.deepEqual(read({ corsPolicy: {} }).corsOrigins, ['*']);
+  assert.deepEqual(read({ corsPolicy: { allowedOrigins: ['https://a.example'] } }).corsOrigins, [
+    'https://a.example',
+  ]);
+}
+if (category === 'deploy-lock') {
+  const { fakeAzure, fakeTarget, fakeRelease } = await import('./deploy-fake');
+  const client = fakeAzure();
+  await m.deploy(fakeTarget, fakeRelease, client);
+  assert.deepEqual(
+    client.calls.slice(-2).map((call: unknown[]) => call[0]),
+    ['promote', 'lock'],
+  );
+}
+if (category === 'image-lock') {
+  const { fakeTarget, fakeRelease } = await import('./deploy-fake');
+  assert.deepEqual(m.releaseTags(fakeRelease), [`sha-${fakeRelease.commit}`, fakeRelease.tag]);
+  assert.deepEqual(m.lockArguments(fakeTarget, 'v0.4.0').slice(-2), ['--write-enabled', 'false']);
+}
+if (category === 'deploy-lock-client') {
+  const { fakeTarget, fakeRelease } = await import('./deploy-fake');
+  const calls: string[][] = [];
+  const client = m.azureClient(fakeTarget, async (args: string[]) => {
+    calls.push(args);
+    return '';
+  });
+  await client.lock(fakeRelease);
+  assert.equal(calls.length, 2);
+}
+if (category === 'image-push-guard') {
+  const { fakeTarget } = await import('./deploy-fake');
+  Object.assign(process.env, fakeTarget);
+  const commit = 'a'.repeat(40);
+  const context = { engine: 'docker', commit, version: '0.4.0', created: 'now', source: 'x' };
+  const digest = `sha256:${'e'.repeat(64)}`;
+  const labels = {
+    'org.opencontainers.image.revision': commit,
+    'org.opencontainers.image.version': '0.4.0',
+  };
+  const tagJson = (value: string, writeEnabled: boolean) =>
+    JSON.stringify({ digest: value, writeEnabled });
+  const notFound = () => {
+    throw Error('MANIFEST_UNKNOWN: not found');
+  };
+  const record = (
+    reads: (() => string)[],
+    imageLabels: object | undefined = labels,
+    out?: string,
+  ) => {
+    const calls: string[][] = [];
+    let index = 0;
+    const run = async (args: string[]) => {
+      calls.push(args);
+      if (args[0] === 'az' && args.includes('show')) return reads[index++]();
+      if (args.includes('inspect')) return JSON.stringify({ config: { Labels: imageLabels } });
+      if (args.includes('push')) return out ?? `latest: digest: ${digest} size: 1`;
+      return '';
+    };
+    return { calls, run };
+  };
+  const push = (run: (args: string[]) => Promise<string>) =>
+    m.pushCommitImage(context, 'swfake.azurecr.io', fakeTarget, run);
+  const pushed = (calls: string[][]) => calls.some(args => args.includes('push'));
+  const kept = record([() => tagJson(digest, false)]);
+  assert.deepEqual(await push(kept.run), { digest, kept: true });
+  assert(!pushed(kept.calls));
+  const unlocked = record([() => tagJson(digest, true)]);
+  await assert.rejects(() => push(unlocked.run), /not locked/);
+  assert(!pushed(unlocked.calls));
+  for (const wrong of [
+    { ...labels, 'org.opencontainers.image.revision': 'b'.repeat(40) },
+    { ...labels, 'org.opencontainers.image.version': '0.3.0' },
+  ]) {
+    await assert.rejects(
+      () => push(record([() => tagJson(digest, false)], wrong).run),
+      /Existing image is labelled/,
+    );
+  }
+  const denied = record([
+    () => {
+      throw Error('AuthorizationFailed');
+    },
+  ]);
+  await assert.rejects(() => push(denied.run), /AuthorizationFailed/);
+  assert(!pushed(denied.calls));
+  const fresh = record([notFound, () => tagJson(digest, false)]);
+  assert.deepEqual(await push(fresh.run), { digest, kept: false });
+  assert.equal(fresh.calls.filter(args => args.includes('push')).length, 1);
+  assert(fresh.calls.some(args => args.includes('update') && args.includes('false')));
+  await assert.rejects(
+    () => push(record([notFound, () => tagJson(`sha256:${'f'.repeat(64)}`, false)]).run),
+    /does not point to the pushed digest/,
+  );
+  await assert.rejects(
+    () => push(record([notFound], labels, 'done').run),
+    /did not report an image digest/,
+  );
+}
+if (category === 'deploy-promote-rerun') {
+  const { fakeTarget, fakeRelease } = await import('./deploy-fake');
+  const state = (value: string) => JSON.stringify({ digest: value, writeEnabled: true });
+  const run = (answer: string) => {
+    const calls: string[][] = [];
+    const client = m.azureClient(fakeTarget, async (args: string[]) => {
+      calls.push(args);
+      return answer;
+    });
+    return { calls, client };
+  };
+  const same = run(state(fakeRelease.digest));
+  await same.client.promote(fakeRelease);
+  assert(!same.calls.some(args => args.includes('create')));
+  const different = run(state(`sha256:${'9'.repeat(64)}`));
+  await assert.rejects(() => different.client.promote(fakeRelease), /another digest/);
+}
+if (category === 'deploy-ancestry' || category === 'deploy-ancestry-cli') {
+  const { mkdtempSync, rmSync, writeFileSync } = await import('node:fs');
+  const repository = mkdtempSync('/tmp/sw-mutation-ancestry-');
+  const git = (...args: string[]) => {
+    const result = Bun.spawnSync(['git', '-C', repository, ...args], {
+      env: {
+        ...process.env,
+        GIT_AUTHOR_NAME: 'Tester',
+        GIT_AUTHOR_EMAIL: 'tester@example.invalid',
+        GIT_COMMITTER_NAME: 'Tester',
+        GIT_COMMITTER_EMAIL: 'tester@example.invalid',
+      },
+    });
+    assert.equal(result.exitCode, 0);
+    return result.stdout.toString().trim();
+  };
+  const commitFile = (name: string) => {
+    writeFileSync(`${repository}/${name}`, name);
+    git('add', name);
+    git('commit', '-q', '-m', name);
+    return git('rev-parse', 'HEAD');
+  };
+  try {
+    git('init', '-q', '-b', 'main');
+    const reviewed = commitFile('reviewed');
+    git('update-ref', 'refs/remotes/origin/main', reviewed);
+    git('checkout', '-q', '-b', 'unreviewed');
+    const unreviewed = commitFile('unreviewed');
+    if (category === 'deploy-ancestry') {
+      await m.assertCommitOnMain(reviewed, repository);
+      await assert.rejects(
+        () => m.assertCommitOnMain(unreviewed, repository),
+        /not on origin\/main/,
+      );
+      await assert.rejects(() => m.assertCommitOnMain(reviewed, '/tmp'), /Could not compare/);
+      assert.throws(() => m.mainAncestryArguments('HEAD'), /40-hex/);
+      assert.equal(m.mainAncestryArguments(reviewed).at(-1), 'origin/main');
+    } else {
+      const { fakeTarget } = await import('./deploy-fake');
+      writeFileSync(`${repository}/package.json`, JSON.stringify({ version: '0.4.0' }));
+      const result = Bun.spawnSync([process.execPath, process.argv[2]], {
+        cwd: repository,
+        env: {
+          ...process.env,
+          ...fakeTarget,
+          SOURCE_REF: 'refs/tags/v0.4.0',
+          SOURCE_VERSION: unreviewed,
+        },
+      });
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr.toString(), /not on origin\/main/);
+    }
+  } finally {
+    rmSync(repository, { recursive: true, force: true });
+  }
+}
+if (category === 'pipeline-gates') {
+  const imageJobs = 'deploy/azure-devops/templates/image-jobs.yml';
+  m.lintRules(m.readPipelineInput());
+  const publish = '      - task: PublishPipelineArtifact@1';
+  const extraStep = (condition: string) => `      - task: AzureCLI@2
+        condition: ${condition}
+        inputs:
+          azureSubscription: \${{ parameters.acrServiceConnection }}
+          scriptType: bash
+          scriptLocation: inlineScript
+          inlineScript: bun run check
+${publish}`;
+  const tagGate = "and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))";
+  const variants: [string, string, string, RegExp][] = [
+    [imageJobs, publish, extraStep('always()'), /main or tags only/],
+    [imageJobs, publish, extraStep(tagGate), /exactly one AzureCLI/],
+    [
+      imageJobs,
+      'azureSubscription: ${{ parameters.acrPullServiceConnection }}',
+      'azureSubscription: ${{ parameters.acrServiceConnection }}',
+      /pull connection/,
+    ],
+    [
+      imageJobs,
+      'azureSubscription: ${{ parameters.acrServiceConnection }}',
+      'azureSubscription: ${{ parameters.acrPullServiceConnection }}',
+      /main\/tag-only push/,
+    ],
+    [imageJobs, 'fetchDepth: 0', 'fetchDepth: 1', /full history/],
+    [
+      imageJobs,
+      "condition: >-\n          and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'),\n          startsWith(variables['Build.SourceBranch'], 'refs/tags/v')))",
+      'condition: succeeded()',
+      /main or tags only/,
+    ],
+    [
+      'azure-pipelines.yml',
+      'production: true',
+      'production: false',
+      /production dependencies only/,
+    ],
+    [
+      'azure-pipelines-rollback.yml',
+      '                    ROLLBACK_TARGET: ${{ parameters.target }}\n',
+      '                    ROLLBACK_TARGET: ${{ parameters.target }}\n      - job: extra\n        steps:\n          - task: AzureCLI@2\n            inputs:\n              azureSubscription: ${{ parameters.deployServiceConnection }}\n              scriptType: bash\n              scriptLocation: inlineScript\n              inlineScript: bun run check\n',
+      /service connection outside a deployment/,
+    ],
+  ];
+  for (const [file, before, after, message] of variants) {
+    const input = m.readPipelineInput();
+    assert(input.files[file].includes(before), `Missing anchor in ${file}: ${before}`);
+    input.files[file] = input.files[file].replace(before, after);
+    assert.throws(() => m.lintRules(input), message);
+  }
+  const extra = m.readPipelineInput();
+  extra.files['deploy/azure-devops/templates/extra.yml'] =
+    'steps:\n  - task: AzureCLI@2\n    inputs:\n      azureSubscription: ${{ parameters.acrServiceConnection }}\n      scriptType: bash\n      scriptLocation: inlineScript\n      inlineScript: bun run check\n';
+  assert.throws(() => m.lintRules(extra), /service connection outside a deployment or Image job/);
+}
+if (category === 'pipeline-pr-azure') {
+  const { lintRules, readPipelineInput, readSampleVariables } = await import('./pipeline-lint');
+  const documents = lintRules(readPipelineInput());
+  assert.doesNotThrow(() => m.buildPlan(documents, readSampleVariables(), 'pr'));
+  documents['deploy/azure-devops/templates/image-jobs.yml'].jobs[0].condition = 'succeeded()';
+  assert.throws(
+    () => m.buildPlan(documents, readSampleVariables(), 'pr'),
+    /Pull-request runs must not use a service connection/,
+  );
+}
+if (category === 'container-hardening') {
+  assert.deepEqual(m.hardenedRunArguments(), [
+    '--read-only',
+    '--tmpfs',
+    '/tmp',
+    '--cap-drop',
+    'ALL',
+    '--security-opt',
+    'no-new-privileges',
+  ]);
 }

@@ -20,8 +20,12 @@ import {
   type Session,
   type SessionStore,
 } from './sessions';
-import { requestAuditId, type AuditRequest } from '../request';
+import { requestAuditId, requestSourceIp, type AuditRequest } from '../request';
+import { createAnonymousAuditGate } from './rate-limit';
 import { createRemoteCredentials, type RemoteCredentialOptions } from './remote-credentials';
+
+/** How often expired entries leave the sign-in replay ledger. */
+const ATTEMPT_PRUNE_INTERVAL_MS = 60_000;
 
 /** Opens validated server authentication only after the workspace lease has been acquired. */
 /**
@@ -50,6 +54,8 @@ type SignInEvent = {
   outcome: 'ok' | 'refused' | 'degraded';
   reason?: string;
   request?: Request;
+  /** Refusals of this kind left out of the audit log since its last record. */
+  suppressed?: number;
 };
 
 export async function createServerAuthentication(
@@ -77,7 +83,7 @@ export async function createServerAuthentication(
     context: () => ({ hour: new Date().getUTCHours() }),
   });
   const audit = createAuditLog({ dir: join(ws.layout.state, 'audit'), mirror: console.log });
-  function record({ action, principal, outcome, reason, request }: SignInEvent) {
+  function record({ action, principal, outcome, reason, request, suppressed }: SignInEvent) {
     audit.append({
       requestId: (request as AuditRequest | undefined)?.[requestAuditId] ?? crypto.randomUUID(),
       principal: principal ?? { id: 'anonymous', kind: 'anonymous' },
@@ -87,6 +93,7 @@ export async function createServerAuthentication(
       decision: outcome === 'refused' ? 'deny' : 'allow',
       outcome,
       reason,
+      suppressed,
     });
   }
   const sessions = createSessionStore({
@@ -106,9 +113,19 @@ export async function createServerAuthentication(
     const requestId = (request as AuditRequest | undefined)?.[requestAuditId] ?? 'startup';
     console.error(`[auth] ${requestId} ${error.message}${providerDetail(error)}`);
   }
+  // Failed sign-ins name nobody, so a loop of them could fill the audit log; past its first
+  // few, each source address and failure is recorded once a minute.
+  const auditAnonymous = createAnonymousAuditGate();
   function recordOrRefuse(event: SignInEvent): Response | undefined {
+    let suppressed: number | undefined;
+    if (!event.principal) {
+      const source = (event.request as AuditRequest | undefined)?.[requestSourceIp];
+      const admission = auditAnonymous(source, `${event.action}:${event.reason}`);
+      if (!admission.record) return undefined;
+      suppressed = admission.suppressed;
+    }
     try {
-      record(event);
+      record({ ...event, suppressed });
     } catch {
       logFailure(event.request, new Error('audit-unavailable'));
       return Response.json({ error: 'Audit unavailable' }, { status: 503 });
@@ -142,22 +159,30 @@ export async function createServerAuthentication(
   }
   const refreshing = new Map<string, Promise<Session | null>>();
   async function refresh(session: Session, request: Request): Promise<Session | null> {
+    let renewed: Awaited<ReturnType<typeof client.refresh>>;
     try {
-      const renewed = await client.refresh(session.tokens);
-      if (renewed.principal.id !== session.principal.id)
-        throw new Error('Refresh identity changed.');
-      session.principal = await principalFor(renewed.principal, request);
-      session.tokens = renewed.tokens;
-      if (!(await sessions.update(session))) return null;
-      return session;
+      renewed = await client.refresh(session.tokens);
     } catch (error) {
       const failure = asSignInError(error);
       logFailure(request, failure);
+      // An outage of the provider says nothing about the session, so it stays and the request
+      // is answered 503. Ending it would sign everyone out whenever the provider is down.
+      if (failure.reason === 'provider-unreachable') throw failure;
       // A session from before an update that changed its token format ends with its own reason.
       const upgraded = failure.reason === 'session-upgraded';
       await sessions.end(session.id, upgraded ? 'session-upgraded' : 'refresh-failed');
       return null;
     }
+    if (renewed.principal.id !== session.principal.id) {
+      logFailure(request, new Error('Refresh identity changed.'));
+      await sessions.end(session.id, 'refresh-failed');
+      return null;
+    }
+    // A failure from here on is ours, not the provider's, and answers as an internal error.
+    session.principal = await principalFor(renewed.principal, request);
+    session.tokens = renewed.tokens;
+    if (!(await sessions.update(session))) return null;
+    return session;
   }
   const requests = new WeakMap<Request, Promise<Session | null>>();
   async function resolve(request: Request) {
@@ -330,6 +355,9 @@ export async function createServerAuthentication(
     void sessions.sweep().catch(() => logFailure(undefined, new Error('session-sweep-failed')));
   }, 1000);
   timer.unref();
+  attempts.prune();
+  const pruneTimer = setInterval(attempts.prune, ATTEMPT_PRUNE_INTERVAL_MS);
+  pruneTimer.unref();
   const authentication: AuthenticationServices = {
     login,
     callback,
@@ -361,7 +389,10 @@ export async function createServerAuthentication(
     principal: async (request: Request) => (await session(request))?.principal ?? null,
     remoteCredentials,
     authentication,
-    close: () => clearInterval(timer),
+    close: () => {
+      clearInterval(timer);
+      clearInterval(pruneTimer);
+    },
   };
 }
 /** Authentication services used by HTTP middleware and the live-update route. */

@@ -55,14 +55,15 @@ test('audit lines whitelist fields and chain across writer restarts', () => {
     dir.cleanup();
   }
 });
-test('months start new chains and retention preserves partly retained months and other files', () => {
+test('a new month continues the chain, and retention preserves partly retained months and other files', () => {
   const dir = tempDataDir();
   try {
     let now = new Date('2026-09-30T23:59:59Z');
     const log = createAuditLog({ dir: dir.root, retentionDays: 30, now: () => now });
     log.append(input);
+    const septemberTail = readFileSync(join(dir.root, '2026-09.jsonl'), 'utf8').trimEnd();
     now = new Date('2026-10-01T00:00:00Z');
-    expect(log.append(input).prev).toBe('0'.repeat(64));
+    expect(log.append(input).prev).toBe(sha256(septemberTail));
     writeFileSync(join(dir.root, 'notes.txt'), 'keep');
     writeFileSync(join(dir.root, '2025-01.jsonl'), '');
     expect(log.prune()).toEqual(['2025-01.jsonl']);

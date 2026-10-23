@@ -1,6 +1,6 @@
 // Parses administrative requests and delegates all saves to the versioned access service.
 import type { Route } from './http';
-import { readJson, requestAuditId, type AuditRequest } from '../request';
+import { decodeSegment, readJson, requestAuditId, type AuditRequest } from '../request';
 import type { HandlerOptions } from '../auth/middleware';
 import { requestScope } from '../auth/request-scope';
 import { AdminConfigError, withSettingsDefaults } from '../auth/admin-repo';
@@ -269,7 +269,7 @@ async function getResponse(context: AdminRequest): Promise<unknown> {
   if (path === 'provider') return options.providerStatus ?? LOCAL_PROVIDER;
   if (path === 'who-can') return whoCan(context);
   if (path.startsWith('groups/')) {
-    return service.groupName(decodeURIComponent(path.slice('groups/'.length)));
+    return service.groupName(decodeSegment(path.slice('groups/'.length)));
   }
   const diff = /^versions\/([^/]+)\/diff$/.exec(path);
   if (diff) return service.repository.diff(diff[1], url.searchParams.get('against') ?? undefined);
@@ -280,7 +280,7 @@ async function deactivationResponse(context: AdminRequest, match: RegExpExecArra
   if (typeof body.reason !== 'string' || !body.reason.trim())
     throw new AdminConfigError('Expected reason.');
   const change = { disabled: match[2] === 'deactivate', reason: body.reason };
-  const id = decodeURIComponent(match[1]);
+  const id = decodeSegment(match[1]);
   return context.service.setDeactivated(id, change, actorOf(context.request));
 }
 async function postResponse(context: AdminRequest): Promise<unknown> {
@@ -294,7 +294,7 @@ async function postResponse(context: AdminRequest): Promise<unknown> {
   if (path === 'policies/template') return policyTemplate(policyTemplateFrom(body));
   if (path === 'policies/dry-run') return service.dryRun(body);
   const rollback = /^versions\/([^/]+)\/rollback$/.exec(path);
-  if (rollback) return service.rollback(decodeURIComponent(rollback[1]), body, actorOf(request));
+  if (rollback) return service.rollback(decodeSegment(rollback[1]), body, actorOf(request));
   return null;
 }
 async function changeResponse(context: AdminRequest): Promise<unknown> {
@@ -303,7 +303,7 @@ async function changeResponse(context: AdminRequest): Promise<unknown> {
     return service.save(path, await objectBody(request), actorOf(request));
   }
   if (request.method === 'DELETE' && path.startsWith('sessions/')) {
-    const principal = decodeURIComponent(path.slice('sessions/'.length));
+    const principal = decodeSegment(path.slice('sessions/'.length));
     await options.authentication?.sessions.endPrincipal(principal);
     return { ended: true };
   }

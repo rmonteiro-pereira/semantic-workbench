@@ -1,6 +1,6 @@
 // Holds revocable browser sessions and persists only authenticated ciphertext.
-import { createHmac, randomBytes } from 'node:crypto';
-import { existsSync, readFileSync, readdirSync, unlinkSync } from 'node:fs';
+import { createHmac, hkdfSync, randomBytes } from 'node:crypto';
+import { existsSync, readFileSync, readdirSync, rmSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { atomicWrite, sha256 } from '../projects/atomic';
 import { isLoopbackHost } from '../config';
@@ -83,6 +83,14 @@ export function sessionExpired(session: Session, now: number, idle: number, abso
   return now - session.lastSeenAt >= idle || now - session.createdAt >= absolute;
 }
 
+/**
+ * The key of the provider-session index, kept apart from the key that encrypts sessions so a
+ * leak of the index cannot be used against the encrypted records.
+ */
+export function providerIndexKey(sessionKey: Uint8Array): Uint8Array {
+  return new Uint8Array(hkdfSync('sha256', sessionKey, '', 'sw-provider-index', 32));
+}
+
 /** Creates an encrypted store with serialized mutations and explicit revocation listeners. */
 export function createSessionStore(options: SessionOptions) {
   const now = options.now ?? Date.now;
@@ -110,8 +118,9 @@ export function createSessionStore(options: SessionOptions) {
   // Front-channel logout names a provider session. This index finds the workbench sessions it
   // started without decrypting every record; its keys are HMACs, never the provider's raw id.
   const providerIndex = new Map<string, Set<string>>();
+  const indexKey = providerIndexKey(options.key);
   const providerKey = (issuer: string, sid: string) =>
-    createHmac('sha256', options.key)
+    createHmac('sha256', indexKey)
       .update(issuer + '\n' + sid)
       .digest('hex');
   function indexSession(hash: string, session: Session | undefined, present: boolean) {
@@ -151,11 +160,8 @@ export function createSessionStore(options: SessionOptions) {
     indexSession(hash, session, true);
   }
 
-  async function load(hash: string, id = ''): Promise<Session | null> {
-    const cached = records.get(hash);
-    if (cached) return { ...structuredClone(cached), id };
-    if (!existsSync(path(hash))) return null;
-    const envelope = JSON.parse(readFileSync(path(hash), 'utf8'));
+  async function decryptRecord(hash: string, text: string): Promise<Omit<Session, 'id'>> {
+    const envelope = JSON.parse(text);
     if (envelope.formatVersion !== 1) throw new Error('Unsupported session record.');
     const bytes = Buffer.concat([
       Buffer.from(envelope.ciphertext, 'base64'),
@@ -178,6 +184,28 @@ export function createSessionStore(options: SessionOptions) {
       typeof payload.principal?.id !== 'string'
     ) {
       throw new Error('Invalid session record.');
+    }
+    return payload;
+  }
+  // A record the current key cannot read, such as one left by an earlier SW_SESSION_KEY, can
+  // never become valid again. Deleting it ends that session instead of failing every request.
+  function discardUnreadable(hash: string, error: unknown) {
+    const reason = error instanceof Error ? error.name : 'unknown';
+    console.error(`[auth] session-unreadable ${hash.slice(0, 8)} ${reason}`);
+    rmSync(path(hash), { force: true });
+  }
+
+  async function load(hash: string, id = ''): Promise<Session | null> {
+    const cached = records.get(hash);
+    if (cached) return { ...structuredClone(cached), id };
+    if (!existsSync(path(hash))) return null;
+    const text = readFileSync(path(hash), 'utf8');
+    let payload: Omit<Session, 'id'>;
+    try {
+      payload = await decryptRecord(hash, text);
+    } catch (error) {
+      discardUnreadable(hash, error);
+      return null;
     }
     const session = { ...payload, id } as Session;
     persistedAt.set(hash, session.lastSeenAt);

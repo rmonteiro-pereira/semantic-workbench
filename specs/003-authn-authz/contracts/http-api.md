@@ -12,10 +12,29 @@ rule there. Server mode adds the rules below.
   `401 {error: 'sign-in required'}` with `WWW-Authenticate: Bearer error="invalid_token"`; the
   provider's keys cannot be fetched or read → `503 {error: 'identity provider unavailable'}`
   without that header. A valid client on a route whose row declares no client action → 403.
+- A session whose token refresh fails because the provider cannot be reached keeps the session
+  and answers `503` (the sign-in error page with status 503); a refused refresh (invalid token,
+  tenant mismatch, upgraded token format) ends the session. A session that the current
+  `SW_SESSION_KEY` cannot read counts as ended: the file is deleted and the request is
+  unauthenticated.
 - No principal → `401 {error: 'sign-in required'}` for `/api/*`; for pages, `302` straight to the
   provider's authorization endpoint (the server starts the sign-in as `/auth/login` does, with
   the requested path as `returnTo`). Signed in but deactivated or without any matching grant →
   `302 /auth/no-access` for pages and `403 {error: 'no access'}` for `/api/*`.
+- Rate limits: each source address (the direct socket peer) has a request allowance, and
+  `/auth/login` and `/auth/callback` share a tighter one, because each call can reach the identity
+  provider. A source over its allowance gets `429 {error: 'Too many requests.'}` with
+  `Retry-After` in seconds, before any other handling and without an audit record; the source is
+  logged as `[http] rate-limited <source> <n>` at most once a minute. A signed-in person is
+  limited as themselves, everyone else by client address (see `SW_TRUSTED_PROXY_HOPS` in
+  [configuration.md](./configuration.md)).
+- Unexpected failures: a typed input error (malformed or invalid body, unknown path) is
+  `400 {error}` with its message. Any other failure is `500 {error: 'Internal error.'}`; its cause
+  is written to the server log as `[http] <requestId> <name>: <message>` and never sent. This
+  includes the legacy `/api/documents` and `/api/agent/*` routes. A failed Git command is
+  `500 {error: 'Git failed.'}` with Git's output in the log line; the conflicts, missing remotes,
+  rejected pushes and other failures that have their own errors keep their answers. A malformed
+  percent escape in a path (`%E0%A4%A`) is `400 {error: 'Malformed path encoding.'}`.
 - Non-GET requests require `Origin` = `SW_PUBLIC_URL` origin and `X-SW-Request: 1`, else 403.
   A request authenticated by a valid bearer token is exempt: the check protects cookies.
 - Unreadable target → `404` with the body of a missing resource. Readable target, action denied →
@@ -34,8 +53,8 @@ rule there. Server mode adds the rules below.
 | Method & path | Who | Request | Response |
 | --- | --- | --- | --- |
 | `GET /auth/login` | anyone | `?returnTo=/path` | 302 to provider; sets `__Host-sw-auth` (state, nonce, PKCE verifier); used by **Sign in again**, **Try again** and the smoke test (no page of its own) |
-| `GET /auth/callback` | anyone | provider redirect | validates, creates session, sets `__Host-sw-session`, matches grants; 302 to `returnTo`, or to `/auth/no-access` without a grant; failure → sign-in error page (reason, **Try again**) |
-| `POST /auth/logout` | signed in (also from **No access**) | from the app: `X-SW-Request: 1`; from **No access**: an HTML form with the per-session `csrf` field the page embeds (Origin checked either way) | ends session, `{redirect: <provider end-session URL with post_logout_redirect_uri=/auth/signed-out, or /auth/signed-out>}` for the app; `303` to the same address for the form |
+| `GET /auth/callback` | anyone | provider redirect | validates, creates session, sets `__Host-sw-session`, matches grants; 302 to `returnTo`, or to `/auth/no-access` without a grant; failure → sign-in error page (reason, **Try again**) with status 400 for `attempt-invalid`, `token-invalid` and `tenant-mismatch`, and 503 for `provider-unreachable` |
+| `POST /auth/logout` | signed in (also from **No access**) | from the app: `X-SW-Request: 1`; from **No access**: an HTML form with the per-session `csrf` field the page embeds (Origin checked either way); the form body is read only up to 4096 bytes, and a larger one, declared or not, is refused 403 | ends session, `{redirect: <provider end-session URL with post_logout_redirect_uri=/auth/signed-out, or /auth/signed-out>}` for the app; `303` to the same address for the form |
 | `GET /auth/no-access` | signed in | | minimal HTML: display name and verified address (or username), "An Admin must grant you access to this workbench", **Sign out**; no workspace data; 302 to `/` when the person has access |
 | `GET /auth/front-channel-logout?sid=[&iss=]` | the identity provider (no cookie, no CSRF header) | `sid` must be non-empty and `iss`, when present, equal `SW_OIDC_ISSUER` exactly, else nothing happens; a failure is logged as `front-channel-logout-failed` without the `sid` | ends every session the provider session `sid` started (audit `signOut`, `sessionEnded` reason `provider-signed-out`); always `200` with an empty body, `Cache-Control: no-store`, CSP `frame-ancestors <issuer origin>` |
 | `GET /auth/signed-out` | anyone | | minimal HTML: "You are signed out", **Sign in again** (`/auth/login`); never starts a sign-in by itself |
@@ -78,16 +97,20 @@ rule there. Server mode adds the rules below.
 | `GET /api/projects` | only readable projects; each adds `hiddenFiles: n`, `roles: [roleId]`, `actions: [action]` (allowed actions in that project, from all the person's roles, for the UI), `copy: {branch, inUseBranches} \| null`; files listed from the person's copy (Editor+) or the published state (Viewer) |
 | `GET /api/status` | non-Admins get `{mode, gitAvailable, ready}` only |
 | `GET /api/documents`, agent routes, metrics, `…/explain/:metric`, `…/metrics/preview`, `…/delete-impact`, `/api/suggestions` | computed over the readable set; `delete-impact` adds `hiddenReferences: n` |
-| `GET/PUT/DELETE /api/drafts…`, `/api/documents/:id/grouping` | per person (owner only) |
+| `GET/PUT/DELETE /api/drafts…`, `/api/documents/:id/grouping` | per person (owner only); a draft body is at most about 4 MB, a draft needs a file the person has (404 otherwise), and a person keeps at most 200 drafts per project and 1,000 in all (400) |
+| any route naming a file path | 404, like a hidden file, for a path that spells an existing name in another letter case or a new name that differs from a sibling only in case (the SMB share ignores case) |
 | `GET /api/trash` | entries whose paths are readable and (own or Steward(d)/Admin) |
 | `…/git/log` | readable paths only; `hiddenCommits: n` for commits touching only unreadable paths |
 | `…/git/show`, `…/git/diff`, `…/git/versions` | 404 for unreadable paths |
 | `…/git/commit` | author = principal; trailer `Signed-in-user`; operates on the person's copy |
-| `…/git/switch` | 409 `{inUseBy: name}` when the branch is checked out in another copy |
+| `…/git/switch` | 409 `{inUseBy: name}` when the branch is checked out in another copy; 403 `{branch}` for another person's `work/*` branch whether or not a copy holds it; 400 for a name that is no branch (a tag, a commit, `@{-1}`) |
+| `…/git/branches` | lists no other person's `work/<handle>` branch, local or remote |
+| `…/git/stage`, `…/git/unstage` | answer with the caller's own view of the status |
 | `…/git/fetch|pull|push|sync`, `…/git/commit` with `push: true` | delegated credential (R8); `428 {error, connect: 'github'\|'azure-devops'}` when missing (checked before the commit); remote host not allowed → 400 `{allowedHosts}` |
 | `PUT …/git/remote`, `POST /api/clone`, `PUT /api/repos/:repo/projects` | Admin; host allow-list → 400 `{allowedHosts}` |
 | `GET/PUT …/git/identity`, `GET /api/git/credential-helper` | local mode only; 404 in server mode |
-| `POST /api/clear`, `DELETE /api/projects/:slug` | Admin; delete lists `unpublished: [{name, changes}]` in the impact response |
+| `POST /api/clear`, `DELETE /api/projects/:slug` | Admin; delete lists `unpublished: [{name, changes}]` in the impact response, which only a caller who may delete the project receives |
+| `POST /api/trash/:entry/restore`, `…/undo` | both take an optional body `{domain?}` (restore also `toProject?`, `toPath?`); a restore of a file whose project is gone makes a project, so it needs `createProject` in that domain, which is recorded for it; a file deleted outside any copy returns into the caller's copy |
 
 ## Route → action table (authorization test matrix input)
 

@@ -8,7 +8,15 @@ import type { Issue } from '../../src/diagnostics';
 import { decode, sha256, TEMP_SUFFIX } from './atomic';
 import type { CachedFile, CopyIndex } from './cache';
 import type { Git, FileGitState } from './git';
-import { projectDir, projectPath, projectPrefix, type DataLayout } from './paths';
+import {
+  assertExactCase,
+  CaseVariantError,
+  projectDir,
+  projectPath,
+  projectPrefix,
+  type DataLayout,
+  type DirectoryLister,
+} from './paths';
 import { sqlFindings } from '../sql/lint';
 /** A recognized file syntax, Git ignore file, or unsupported format. */
 export type Serialization =
@@ -133,6 +141,7 @@ export function createScanner(
   cache: CopyIndex,
   git: Git,
   gitAvailable: () => boolean,
+  listDirectory: DirectoryLister = readdirSync,
 ) {
   const queues = new Map<string, Promise<unknown>>();
   // Another working copy may hold the same bytes at the same path; its parse is reused.
@@ -169,6 +178,21 @@ export function createScanner(
         /* File listing still works when the repository has no commits. */
       }
     } else paths = walk(dir);
+    // Git lists paths in the spelling of its index, which a volume that ignores case can keep
+    // apart from the disk's. Each folder is listed once per scan.
+    const listings = new Map<string, string[] | Error>();
+    const listOnce: DirectoryLister = folder => {
+      if (!listings.has(folder)) {
+        try {
+          listings.set(folder, listDirectory(folder));
+        } catch (error) {
+          listings.set(folder, error as Error);
+        }
+      }
+      const listing = listings.get(folder)!;
+      if (listing instanceof Error) throw listing;
+      return listing;
+    };
     const present = new Set<string>();
     const changed: string[] = [];
     const removed: string[] = [];
@@ -178,6 +202,12 @@ export function createScanner(
         path = projectPath(raw);
       } catch {
         continue;
+      }
+      try {
+        assertExactCase(dir, path, listOnce);
+      } catch (error) {
+        if (error instanceof CaseVariantError) continue;
+        throw error;
       }
       let bytes: Uint8Array;
       try {

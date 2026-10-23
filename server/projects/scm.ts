@@ -3,11 +3,12 @@
 import type { EventTags } from './events';
 import type { AccessView } from '../auth/authorize';
 import { LOCAL_READER, type Reader } from './reader';
-import { HiddenResourceError } from './errors';
+import { BadRequestError, HiddenResourceError } from './errors';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   GitError,
+  isBranchName,
   redactCredentials,
   remoteAddress,
   remoteName,
@@ -20,8 +21,16 @@ import {
 } from './git';
 import { MergingError } from './errors';
 import { decode, sha256 } from './atomic';
-import { assertNoLinks, projectPath, projectPrefix, repoDir, type DataLayout } from './paths';
+import {
+  assertExactCase,
+  assertNoLinks,
+  projectPath,
+  projectPrefix,
+  repoDir,
+  type DataLayout,
+} from './paths';
 import { serializationOf } from './scanner';
+import { branchShownTo, branchSpelledDifferently } from './worktrees';
 import type { ContentGuard, FileChange } from '../auth/guards';
 /** Reports drafts or uncommitted changes that prevent a source control operation. */
 export class BlockedError extends Error {
@@ -85,6 +94,8 @@ export type ScmDeps = {
   project: (slug: string) => unknown;
   /** Refuses a branch another working copy has checked out; absent in local mode. */
   assertBranchFree?: (slug: string, branch: string) => Promise<void>;
+  /** The person's own `work/<handle>` branch, the only personal branch they may see or use. */
+  ownBranch?: () => string | null;
   /**
    * The remote branch a pull takes into `branch` when it has no upstream: the default branch for
    * the person's own `work/<handle>` branch, null for any other branch.
@@ -108,6 +119,14 @@ export type ScmDeps = {
     check: (tip: string) => Promise<void>,
   ) => Promise<GitResult>;
 };
+// The local branch name a full ref stands for: `refs/heads/x` and `refs/remotes/origin/x` are both
+// `x`. Null for any other kind of ref.
+function localBranchOf(ref: string): string | null {
+  if (ref.startsWith('refs/heads/')) return ref.slice('refs/heads/'.length);
+  if (!ref.startsWith('refs/remotes/')) return null;
+  const remoteAndBranch = ref.slice('refs/remotes/'.length);
+  return remoteAndBranch.slice(remoteAndBranch.indexOf('/') + 1);
+}
 /** Creates project source control operations with draft checks and workspace notifications. */
 export function createScm(deps: ScmDeps) {
   const { layout, git } = deps;
@@ -130,9 +149,11 @@ export function createScm(deps: ScmDeps) {
   // acts on a file of a sibling project or on a file that belongs to no project.
   const paths = (slug: string, list: unknown, base: PathBase = 'project') => {
     if (!Array.isArray(list) || !list.length || list.length > 5000)
-      throw Error('Expected 1–5000 paths.');
+      throw new BadRequestError('Expected 1–5000 paths.');
     const pre = base === 'repository' ? '' : prefix(slug);
-    return list.map(p => pre + projectPath(String(p)));
+    const chosen = list.map(p => pre + projectPath(String(p)));
+    for (const path of chosen) assertExactCase(repoDir(layout, slug), path);
+    return chosen;
   };
   // Show changes across the repository; paths outside this project keep repository-relative names.
   const fromRepo = (slug: string, path: string) => {
@@ -164,6 +185,8 @@ export function createScm(deps: ScmDeps) {
   }
 
   function requireReadable(slug: string, path: string, view?: AccessView, base?: PathBase) {
+    const repoPath = (base === 'repository' ? '' : prefix(slug)) + projectPath(path);
+    assertExactCase(repoDir(layout, slug), repoPath);
     if (view && !readablePath(slug, path, view, base)) throw new HiddenResourceError();
   }
   // Where Pull takes from when it is not the upstream, such as `origin/main` for a personal
@@ -269,6 +292,9 @@ export function createScm(deps: ScmDeps) {
     let name = remotes.find(remote => remote.name === 'origin')?.name ?? remotes[0]?.name;
     if (upstream) name = upstream.slice(0, upstream.indexOf('/'));
     if (name === undefined) return null;
+    // A remote's name comes from the repository's own configuration, so a repository registered
+    // from disk could name one like an option. Only a plain name reaches the Git commands.
+    remoteName(name);
     // An upstream whose remote was removed leaves no remote to use.
     return remotes.find(remote => remote.name === name) ?? null;
   }
@@ -339,7 +365,7 @@ export function createScm(deps: ScmDeps) {
     guard: ContentGuard,
   ) {
     const refspec = 'refs/heads/' + source.branch;
-    const fetched = await git.run(d, ['fetch', source.remote, refspec], {
+    const fetched = await git.run(d, ['fetch', '--end-of-options', source.remote, refspec], {
       remote: true,
       allowFailure: true,
       credential: source.credential,
@@ -386,7 +412,7 @@ export function createScm(deps: ScmDeps) {
         return guardedPull(slug, d, { remote, branch, credential }, guard);
       }
       // A full ref name, so no branch name is ever read as an option.
-      const target = s.upstream ? [] : [remote, 'refs/heads/' + untracked];
+      const target = s.upstream ? [] : ['--end-of-options', remote, 'refs/heads/' + untracked];
       const pull = ['pull', '--no-rebase', '--no-edit', ...target];
       return git.run(d, pull, { remote: true, allowFailure: true, credential });
     });
@@ -404,7 +430,7 @@ export function createScm(deps: ScmDeps) {
       let result = { ok: true, conflicted: [] as string[], altered: [] as string[], stderr: '' };
       let follow: FollowResult | null = null;
       if (kind === 'fetch') {
-        const r = await git.run(d, ['fetch', '--prune', chosenName(choice)], {
+        const r = await git.run(d, ['fetch', '--prune', '--end-of-options', chosenName(choice)], {
           remote: true,
           allowFailure: true,
           credential,
@@ -419,11 +445,15 @@ export function createScm(deps: ScmDeps) {
       }
       if ((kind === 'push' || kind === 'sync') && result.ok) {
         const s = await git.status(d);
-        const r = await git.run(d, ['push', '-u', chosenName(choice), s.branch], {
-          remote: true,
-          allowFailure: true,
-          credential,
-        });
+        const r = await git.run(
+          d,
+          ['push', '-u', '--end-of-options', chosenName(choice), s.branch],
+          {
+            remote: true,
+            allowFailure: true,
+            credential,
+          },
+        );
         result = {
           ...result,
           ok: r.code === 0,
@@ -456,7 +486,7 @@ export function createScm(deps: ScmDeps) {
       return existsSync(f) ? new Uint8Array(readFileSync(f)) : null;
     }
     if (rev !== 'index' && !REV.test(rev))
-      throw Error('Revision must be HEAD, index, worktree or a commit id.');
+      throw new BadRequestError('Revision must be HEAD, index, worktree or a commit id.');
     return git.blob(d, rev === 'index' ? '' : rev, path);
   }
   const asText = (bytes: Uint8Array | null) => {
@@ -541,6 +571,42 @@ export function createScm(deps: ScmDeps) {
     await after(slug, altered);
     return { commit: r.commit, altered };
   }
+  // The local branch a switch checks out for the name the person gave, found by asking Git what
+  // the name is. `origin/x` is the remote branch whose local branch is `x`; a name that is a tag,
+  // a commit, or `@{-1}` is no branch and is refused, so the name that is authorized is the name
+  // that is checked out.
+  async function branchTarget(d: string, name: string, create: boolean) {
+    const target = await resolvedBranch(d, name, create);
+    // A volume that ignores case keeps `Work/bob` and `work/bob` in one file, so a spelling that
+    // differs only in case from an existing branch is that branch under a name no rule matches.
+    const known = await git.branches(d);
+    const existing = [
+      ...known.local,
+      ...known.remote.map(remote => remote.slice(remote.indexOf('/') + 1)),
+    ];
+    const clash = branchSpelledDifferently(target.local, existing);
+    if (clash)
+      throw new BadRequestError(`"${target.local}" differs only in letter case from "${clash}".`);
+    return target;
+  }
+  async function resolvedBranch(d: string, name: string, create: boolean) {
+    if (create) {
+      if (!(await isBranchName(git, d, name)))
+        throw new BadRequestError(`"${name}" is not a valid branch name.`);
+      return { local: name, ref: '' };
+    }
+    if (name.includes('@{')) throw new BadRequestError(`"${name}" is not a valid branch name.`);
+    const resolved = await git.run(d, ['rev-parse', '--symbolic-full-name', name], {
+      readOnly: true,
+      allowFailure: true,
+    });
+    const ref = resolved.code === 0 ? resolved.stdout.trim() : '';
+    const local = localBranchOf(ref);
+    if (local === null) throw new BadRequestError(`"${name}" is not a branch.`);
+    if (!(await isBranchName(git, d, local)))
+      throw new BadRequestError(`"${local}" is not a valid branch name.`);
+    return { local, ref };
+  }
   return {
     status,
     async diff(
@@ -572,19 +638,30 @@ export function createScm(deps: ScmDeps) {
         afterExists: !!b,
       };
     },
-    async stage(slug: string, list: unknown, base: PathBase = 'project') {
+    // The status they return is the caller's own view, so staging never reveals a hidden path.
+    async stage(
+      slug: string,
+      list: unknown,
+      base: PathBase = 'project',
+      reader: Reader = LOCAL_READER,
+    ) {
       const d = dir(slug);
       await git.stage(d, paths(slug, list, base));
       await after(slug);
-      return status(slug, LOCAL_READER);
+      return status(slug, reader);
     },
-    async unstage(slug: string, list: unknown, base: PathBase = 'project') {
+    async unstage(
+      slug: string,
+      list: unknown,
+      base: PathBase = 'project',
+      reader: Reader = LOCAL_READER,
+    ) {
       const d = dir(slug);
       await git.unstage(d, paths(slug, list, base));
       await after(slug);
-      return status(slug, LOCAL_READER);
+      return status(slug, reader);
     },
-    async stageAll(slug: string, stage: boolean) {
+    async stageAll(slug: string, stage: boolean, reader: Reader = LOCAL_READER) {
       const d = dir(slug);
       const s = await git.status(d);
       const list = s.entries
@@ -592,7 +669,7 @@ export function createScm(deps: ScmDeps) {
         .map(e => e.path);
       if (list.length) await (stage ? git.stage(d, list) : git.unstage(d, list));
       await after(slug);
-      return status(slug, LOCAL_READER);
+      return status(slug, reader);
     },
     // Selected paths use `git commit --only` to preserve unrelated staged and unstaged work.
     // Without paths, commit the index; during a merge, refuse selected-path commits.
@@ -628,11 +705,19 @@ export function createScm(deps: ScmDeps) {
       return { ...result, pushed };
     },
     refresh: (slug: string) => after(slug),
-    async branches(slug: string) {
+    // Another person's personal branch is not listed for someone who may not use it. A reader
+    // with no view is the local person, who sees every branch of their own repository.
+    async branches(slug: string, { view }: Reader = LOCAL_READER) {
       const d = dir(slug);
       const b = await git.branches(d);
       const s = await git.status(d);
-      return { current: s.branch, ...b };
+      if (!view) return { current: s.branch, ...b };
+      const own = deps.ownBranch?.() ?? null;
+      return {
+        current: s.branch,
+        local: b.local.filter(name => branchShownTo(name, own)),
+        remote: b.remote.filter(name => branchShownTo(name, own, true)),
+      };
     },
     // The caller authorizes the branch actually checked out: `origin/x` becomes the local `x`.
     async switchBranch(
@@ -644,35 +729,23 @@ export function createScm(deps: ScmDeps) {
     ) {
       // Trimmed before any check, so a leading space cannot smuggle an option such as `--detach`.
       const name = typeof branch === 'string' ? branch.trim() : '';
-      if (!name || name.startsWith('-') || name.length > 200) throw Error('Give a branch name.');
+      if (!name || name.startsWith('-') || name.length > 200)
+        throw new BadRequestError('Give a branch name.');
       const d = dir(slug);
-      if (
-        (
-          await git.run(d, ['check-ref-format', '--branch', name], {
-            allowFailure: true,
-            readOnly: true,
-          })
-        ).code !== 0
-      )
-        throw Error(`"${name}" is not a valid branch name.`);
+      const { local, ref } = await branchTarget(d, name, create);
       const s = await git.status(d);
       const blocked = blockers(deps.drafts(slug), s.entries);
       if (blocked) throw blocked;
-      // A remote branch (`origin/x`) is checked out as the local tracking branch `x`.
-      const b = await git.branches(d);
-      const local =
-        !create && !b.local.includes(name) && b.remote.includes(name)
-          ? name.slice(name.indexOf('/') + 1)
-          : name;
       authorizeBranch?.(local);
       await deps.assertBranchFree?.(slug, local);
       const before = await git.head(d);
       // Everyone works in one tree, so the branch's content is checked as if the person wrote it.
       if (guard && !create) {
-        const target = b.local.includes(local) ? local : name;
-        guard(await incomingChanges(slug, d, before, target), { operation: 'switch' });
+        const exists = (await git.branches(d)).local.includes(local);
+        const tip = exists ? 'refs/heads/' + local : ref;
+        guard(await incomingChanges(slug, d, before, tip), { operation: 'switch' });
       }
-      await git.run(d, create ? ['switch', '-c', local] : ['switch', local]);
+      await git.run(d, create ? ['switch', '-c', local] : ['switch', '--end-of-options', local]);
       deps.branchesMoved?.(slug);
       const head = await git.head(d);
       const altered =
@@ -705,7 +778,8 @@ export function createScm(deps: ScmDeps) {
     async removeRemote(slug: string, requestedName: unknown) {
       const name = remoteName(requestedName);
       const d = dir(slug);
-      if (!(await git.remotes(d)).has(name)) throw Error(`There is no remote named ${name}.`);
+      if (!(await git.remotes(d)).has(name))
+        throw new BadRequestError(`There is no remote named ${name}.`);
       await git.run(d, ['remote', 'remove', name]);
       await after(slug);
       return { removed: name };
@@ -718,14 +792,19 @@ export function createScm(deps: ScmDeps) {
      * with the person's credential. Its full ref name keeps it from being read as an option.
      */
     async pushDefault(slug: string, credentialFor?: CredentialFor) {
-      if (!deps.defaultBranch) throw Error('This workspace has no default branch to push.');
+      if (!deps.defaultBranch)
+        throw new BadRequestError('This workspace has no default branch to push.');
       const ref = 'refs/heads/' + (await deps.defaultBranch(slug));
       const choice = await chooseRemote(slug, credentialFor);
-      const pushed = await git.run(dir(slug), ['push', chosenName(choice), `${ref}:${ref}`], {
-        remote: true,
-        allowFailure: true,
-        credential: choice?.credential,
-      });
+      const pushed = await git.run(
+        dir(slug),
+        ['push', '--end-of-options', chosenName(choice), `${ref}:${ref}`],
+        {
+          remote: true,
+          allowFailure: true,
+          credential: choice?.credential,
+        },
+      );
       const s = await after(slug);
       const result = { ok: pushed.code === 0, conflicted: [], altered: [] };
       return { ...result, stderr: pushed.stderr.trim(), ahead: s.ahead, behind: s.behind };
@@ -739,7 +818,8 @@ export function createScm(deps: ScmDeps) {
      */
     async pullDefault(slug: string, { guard, copy }: Reader) {
       const merge = deps.mergeDefault;
-      if (!merge) throw Error('Pull from the default branch works on a personal working copy.');
+      if (!merge)
+        throw new BadRequestError('Pull from the default branch works on a personal working copy.');
       const d = dir(slug);
       const check = async (tip: string) => {
         if (guard) await guardMerge(slug, d, tip, guard);
@@ -782,7 +862,7 @@ export function createScm(deps: ScmDeps) {
     },
     async show(slug: string, commit: string, path: string, { view }: Reader) {
       requireReadable(slug, path, view);
-      if (!REV.test(commit)) throw Error('commit must be a commit id.');
+      if (!REV.test(commit)) throw new BadRequestError('commit must be a commit id.');
       const bytes = await git.blob(dir(slug), commit, prefix(slug) + projectPath(path));
       if (!bytes) return { source: '', exists: false };
       return { source: decode(bytes), exists: true, hash: sha256(bytes) };

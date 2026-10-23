@@ -1,6 +1,6 @@
 // Resolves workspace locations and validates project paths. DATA_DIR allows tests to use isolated
 // workspaces.
-import { lstatSync } from 'node:fs';
+import { lstatSync, readdirSync } from 'node:fs';
 import { resolve, sep, join, posix } from 'node:path';
 /** Project and repository folders relative to the workspace projects directory. */
 export type ProjectLocation = { folder: string; repo: string };
@@ -118,14 +118,76 @@ export function projectPrefix(layout: DataLayout, slug: string) {
 }
 // A symlink in any existing path segment could escape the project, including links pulled by Git.
 // Both reads and writes must use this validation.
-/** Returns a contained absolute file path, rejecting existing symlink segments. */
-export function projectFile(layout: DataLayout, slug: string, path: string) {
+function containedFile(layout: DataLayout, slug: string, path: string) {
   const dir = projectDir(layout, slug);
   const rel = projectPath(path);
   const file = resolve(dir, rel);
   if (!file.startsWith(dir + sep)) throw new PathError('Path escapes the project folder.');
   assertNoLinks(dir, rel);
+  return { dir, rel, file };
+}
+
+/**
+ * Returns a contained absolute file path for a path a person named, rejecting existing symlink
+ * segments and any spelling of an existing name in another letter case.
+ */
+export function projectFile(layout: DataLayout, slug: string, path: string) {
+  const { dir, rel, file } = containedFile(layout, slug, path);
+  assertExactCase(dir, rel);
   return file;
+}
+
+/**
+ * Like projectFile for a path that the scanner kept in the index. The scanner has already refused
+ * every path whose spelling differs from the disk's, so the listing of every folder along the way
+ * is not read again for each file of a project.
+ */
+export function indexedFile(layout: DataLayout, slug: string, path: string) {
+  return containedFile(layout, slug, path).file;
+}
+
+/** Lists the names in a directory; tests pass a fake to stand in for another kind of volume. */
+export type DirectoryLister = (directory: string) => string[];
+
+/** A path whose letter case differs from the name on disk, or from a sibling it would alias. */
+export class CaseVariantError extends PathError {
+  constructor() {
+    super('That name differs only in letter case from an existing one.');
+    this.name = 'CaseVariantError';
+  }
+}
+
+const isMissing = (error: unknown) =>
+  ['ENOENT', 'ENOTDIR'].includes((error as NodeJS.ErrnoException).code ?? '');
+
+const foldCase = (name: string) => name.normalize('NFC').toLowerCase();
+
+/**
+ * Refuses a path that spells an existing name in another letter case, and a new name that differs
+ * from a sibling only in case. A case-insensitive volume, such as Azure Files over SMB, opens
+ * `SECRET/plan.yaml` as `secret/plan.yaml`, so a rule written for `secret/**` would not see it.
+ */
+export function assertExactCase(
+  directory: string,
+  rel: string,
+  list: DirectoryLister = readdirSync,
+): void {
+  let at = directory;
+  for (const part of rel.split('/')) {
+    let names: string[];
+    try {
+      names = list(at);
+    } catch (error) {
+      // Nothing exists below a missing directory, so nothing there can collide.
+      if (isMissing(error)) return;
+      throw error;
+    }
+    if (!names.includes(part)) {
+      if (names.some(name => foldCase(name) === foldCase(part))) throw new CaseVariantError();
+      return;
+    }
+    at = join(at, part);
+  }
 }
 /** Rejects symlinks in existing segments of a path beneath the supplied directory. */
 export function assertNoLinks(dir: string, rel: string) {

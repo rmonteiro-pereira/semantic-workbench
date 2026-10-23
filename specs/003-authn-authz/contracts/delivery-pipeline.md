@@ -17,12 +17,12 @@ any identity provider outside the agent; sign-in is tested against the mock Open
 | `image:scan` | `scripts/image.ts scan`: Trivy (local binary, else the Trivy image pinned by digest), `--severity CRITICAL,HIGH --ignore-unfixed --exit-code 1`, `.trivyignore`; `out/image/trivy.json` and `trivy.sarif` | container runtime |
 | `image:sbom` | `scripts/image.ts sbom`: Trivy SPDX JSON to `out/image/sbom.spdx.json` | container runtime |
 | `image:push` | `scripts/image.ts push --registry <name>.azurecr.io`: pushes `sha-<commit>`, prints the digest; refuses a `-dirty` commit; signs in to the registry itself (`az acr login`, using the current Azure CLI session); optional locally, used by the pipeline | `az` signed in |
-| `test:container` | `scripts/container-check.ts` with the suites of `scripts/container-suites.ts`; server group: starts `scripts/mock-oidc.ts` on host loopback and the image in server mode against it | container runtime, host networking |
+| `test:container` | `scripts/container-check.ts` with the suites of `scripts/container-suites.ts`; every container runs `--read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges` (`scripts/container-hardening.ts`, the same restrictions as the `workbench-server` Compose service), so the image writes only to `/data` and `/tmp`; server group: starts `scripts/mock-oidc.ts` on host loopback and the image in server mode against it | container runtime, host networking |
 | `mock-oidc` | `scripts/mock-oidc.ts --port <p> --shape entra\|keycloak\|generic`: runs the mock OpenID provider alone (manual sign-in, debugging); the checks start it themselves | none |
 | `test:auth:keycloak` | Keycloak compatibility suite (`scripts/auth-keycloak-check.ts`): starts the pinned Keycloak with the test realm, runs the sign-in check, removes the container; fails without a container runtime. Not part of `ci:validate` or the pipeline; run on the owner's machine before each release | container runtime |
 | `pipeline:lint` | `scripts/pipeline-lint.ts`: schema validation and repository rules (below) | none |
-| `pipeline:dry-run` | `scripts/pipeline-dry-run.ts --run pr\|main\|tag:<vX.Y.Z>`: expands parameters with `deploy/azure-devops/sample-variables.yml`, prints stages, jobs, steps and conditions; `--execute` also runs the local steps and the Azure steps against the fake Azure client | as the executed steps |
-| `deploy:check-version` | `scripts/deploy-version.ts --tag <vX.Y.Z>`: tag version core equals `package.json`; not older than the highest version ever promoted (the highest version tag in the registry; rollbacks add no tags) | `az` signed in (`--fake` offline) |
+| `pipeline:dry-run` | `scripts/pipeline-dry-run.ts --run pr\|main\|tag:<vX.Y.Z>`: expands parameters with `deploy/azure-devops/sample-variables.yml`, prints stages, jobs, steps and conditions; `--execute` also runs the local steps and the Azure steps against the fake Azure client; a `pr` run fails when any step with a service connection is enabled | as the executed steps |
+| `deploy:check-version` | `scripts/deploy-version.ts --tag <vX.Y.Z>`: tag version core equals `package.json`; the tagged commit (`SOURCE_VERSION`, default `HEAD`) is an ancestor of `origin/main` (`git merge-base --is-ancestor`), so a tag on an unreviewed commit fails before anything is pushed; not older than the highest version ever promoted (the highest version tag in the registry; rollbacks add no tags) | `az` signed in, full Git history (`--fake` offline, skips the main check) |
 | `deploy:azure` | `scripts/deploy.ts deploy --digest <sha256:…> --version <v> --commit <sha>` | `az` signed in (pipeline: service connection) |
 | `deploy:smoke` | `scripts/deploy-smoke.ts <public-url> <version> <commit> [--loopback]` | network to the URL |
 | `deploy:rollback` | `scripts/deploy.ts rollback --to previous\|<vX.Y.Z>` | `az` signed in |
@@ -46,12 +46,20 @@ use the fake Azure client (`scripts/deploy-fake.ts`).
 | Stage | Runs when | Jobs and steps |
 | --- | --- | --- |
 | `Validate` | every run | jobs `verify`, `mutation`, `browser` (literal matrix, one leg per suite of `scripts/gate-suites.ts`, kept equal by the pipeline check; the `auth` leg signs in against the mock OpenID provider on the agent's loopback with Entra-shaped claims), `pipeline` (`pipeline:lint`, `pipeline:dry-run`); each step `bun run ci:validate -- --step <name>`; `PublishTestResults@2` for the JUnit files; screenshots published on failure |
-| `Image` | after `Validate` | on `v*` runs first a job `check` (`AzureCLI@2` with the push connection, read only): `bun run deploy:check-version`, so a wrong tag fails before anything is pushed and before the Deploy stage asks for approval; then `bun run ci:validate -- --step image --step container`; `PublishPipelineArtifact@1` for `out/image/` (bill of materials, scan report); on `main` and `v*` only: `AzureCLI@2` with `${{ parameters.acrServiceConnection }}` → `bun run image:push -- --registry $(ACR_NAME).azurecr.io` (signs in to the registry itself); digest passed as an output variable |
-| `Deploy` | after `Image`, only for `refs/tags/v*`; stage-level `lockBehavior: runLatest` | deployment job on environment `${{ parameters.deployEnvironment }}` (strategy `runOnce`; environment approvals and checks run before the stage starts): `setup-steps.yml` with `browsers: false` (the template checks out once), then `AzureCLI@2` with `${{ parameters.deployServiceConnection }}` → `bun run image:scan -- --ref <registry>@<digest>` (the script signs in to the registry), then `bun run deploy:azure` (preflight; record the running revision; update by digest; wait for running and ready; `deploy:smoke`; automatic rollback on failure; only after smoke passes, promote the version tag on the same digest with `docker buildx imagetools create --tag <registry>/semantic-workbench:vX.Y.Z <registry>/semantic-workbench@<digest>`, which needs only `AcrPush`, no rebuild); summary with digest, revisions and smoke results |
+| `Image` | after `Validate` | on `v*` runs first a job `check` (`AzureCLI@2` with the push connection, read only): `bun run deploy:check-version` with the pull-only connection `${{ parameters.acrPullServiceConnection }}` (`AcrPull`: it lists tags and holds no push right) and a checkout with `fetchDepth: 0`, so a wrong tag or a commit that is not on `main` fails before anything is pushed and before the Deploy stage asks for approval; then `bun run ci:validate -- --step image --step container`; `PublishPipelineArtifact@1` for `out/image/` (bill of materials, scan report); on `main` and `v*` only: `AzureCLI@2` with `${{ parameters.acrServiceConnection }}` → `bun run image:push -- --registry $(ACR_NAME).azurecr.io` (signs in to the registry itself); `image:push` takes the digest from the push, locks `sha-<commit>` at once and re-reads it; it never overwrites an existing `sha-<commit>` tag: a later run on the same commit keeps it only if it is locked and its revision and version labels match, then scans and lists that digest by reference; digest passed as an output variable |
+| `Deploy` | after `Image`, only for `refs/tags/v*`; stage-level `lockBehavior: runLatest` | deployment job on environment `${{ parameters.deployEnvironment }}` (strategy `runOnce`; environment approvals and checks run before the stage starts): `setup-steps.yml` with `browsers: false` (the template checks out once), then `AzureCLI@2` with `${{ parameters.deployServiceConnection }}` → `bun run image:scan -- --ref <registry>@<digest>` (the script signs in to the registry), then `bun run deploy:azure` (preflight; record the running revision; update by digest; wait for running and ready; `deploy:smoke`; automatic rollback on failure; only after smoke passes, promote the version tag on the same digest with `docker buildx imagetools create --tag <registry>/semantic-workbench:vX.Y.Z <registry>/semantic-workbench@<digest>`, which needs only `AcrPush`, no rebuild; then `sha-<commit>` and `vX.Y.Z`, in that order, are locked; a rerun skips the promotion when the version tag is already on the digest with `az acr repository update --write-enabled false`); summary with digest, revisions and smoke results. `setup-steps.yml` runs with `production: true` (`bun install --frozen-lockfile --production`): the deploy scripts need no development dependency |
 | `Rollback` (rollback pipeline) | manual, queued on the tag ref `refs/tags/vX.Y.Z` of the version to restore (so the environment's branch control admits it); parameter `target` = `tag` (default: the version of the ref) or `previous` | stage-level `lockBehavior: runLatest`; deployment job on the same environment with `setup-steps.yml` and `browsers: false`: `bun run deploy:rollback -- --to <vX.Y.Z\|previous>` (preflight, deploy, smoke). The YAML and scripts come from the tag ref, so the rollback pipeline works for tags from the first version that ships it (`v0.4.0`) on. For `previous`, it is queued on the tag of the version currently deployed, and the smoke test expects the version and commit of the restored revision's image labels |
 
 Approvals and checks belong to the environment (configured by the target): approval by named
-people or a group, branch control allowing only `refs/tags/v*`, and the exclusive lock check. The
+people or a group, branch control allowing only `refs/tags/v*`, and the exclusive lock check.
+Approvers compare the tag's commit (`Build.SourceVersion`) with the merged pull request on `main`.
+Branch control on the service connections is mandatory: `sw-azure-deploy` allows
+`refs/tags/v*` only; `sw-azure-push` allows `refs/heads/main` and `refs/tags/v*`, with **Verify
+branch protection**; `sw-azure-pull` allows `refs/tags/v*` only. Tags have no policies, so the
+tag-only connections rely on the allowed refs and the Create tag permission, and the trial
+confirms it. Pull-request build validation runs
+the pull request's own YAML, so only this platform check, not the repository, keeps a changed
+pipeline away from the connections. The
 one-at-a-time behaviour comes from that check together with `lockBehavior: runLatest`, which is
 declared at stage level on `Deploy` and `Rollback` (the check itself has no such option), so only
 the newest waiting run proceeds.
@@ -62,7 +70,8 @@ the newest waiting run proceeds.
 | --- | --- | --- | --- |
 | `variableGroup` | parameter | `semantic-workbench-target` | variable group holding the values below |
 | `acrServiceConnection` | parameter | `sw-azure-push` | ARM service connection (workload identity federation) with `AcrPush` on the registry |
-| `deployServiceConnection` | parameter | `sw-azure-deploy` | ARM service connection (workload identity federation) with `AcrPush` and container-app update rights; may equal the push connection if the target accepts the wider identity |
+| `acrPullServiceConnection` | parameter | `sw-azure-pull` | ARM service connection (workload identity federation) with `AcrPull` on the registry; used only by the tag check |
+| `deployServiceConnection` | parameter | `sw-azure-deploy` | ARM service connection (workload identity federation) with `AcrPush`, the container-app deployer custom role and the registry tag-lock custom role (below); never Contributor |
 | `deployEnvironment` | parameter | `production` | Azure DevOps environment holding the approvals and checks |
 | `agentPool` / `vmImage` | parameter | `''` / `ubuntu-latest` | self-hosted Linux pool with Docker, or the Microsoft-hosted image |
 | `AZURE_SUBSCRIPTION_ID`, `AZURE_TENANT_ID` | variable | — | subscription and tenant of the deployment |
@@ -91,7 +100,7 @@ provider outside the agent); a task other than `AzureCLI@2`,
 version; a container image is
 not pinned by digest; a variable is marked secret, a secret-looking literal appears, or
 `addSpnToEnvironment: true` is set; `azureSubscription` is anything but a service-connection
-parameter; the Deploy stage has no `refs/tags/v*` condition or is not a deployment job on
+parameter; a service connection appears outside `image-jobs.yml`, `deploy-steps.yml` and the deployment jobs of the two pipelines; a step with a service connection in the `Image` stage is not gated by the `refs/tags/v*` or `main`-or-tag condition, or the `check` job does not use the pull connection and a full checkout, or the push step does not use the push connection; a deployment job does not call `setup-steps.yml` with `production: true`; the Deploy stage has no `refs/tags/v*` condition or is not a deployment job on
 `${{ parameters.deployEnvironment }}`; a gate `test:*` script of package.json is missing from
 `scripts/gate-suites.ts`, from `scripts/container-suites.ts` without a recorded exclusion, or from
 the `browser` matrix (`test:auth:keycloak` is a recorded exclusion: compatibility suite run on the owner's machine); `.trivyignore` lines lack `# reason; expires YYYY-MM-DD` or are expired;
@@ -117,22 +126,24 @@ the `browser` matrix (`test:auth:keycloak` is a recorded exclusion: compatibilit
 | Container Apps environment | consumption profile; Azure Files storage registered (an NFS share needs an environment with its own virtual network; SMB otherwise) | — |
 | Storage account + file share | NFS (premium) or SMB with `uid=1000,gid=1000` mount options | — |
 | Key Vault (RBAC) | `sw-session-key`, provider and GitHub app secrets | `id-sw-app`: Key Vault Secrets User |
-| Container registry (admin user off) | repository `semantic-workbench`; retention rule for untagged manifests | `id-sw-app`: `AcrPull`; push and deploy identities: `AcrPush` (pushing and tagging; no import right needed) |
-| Container app | single revision mode, min = max replicas 1, ingress 4310, probes `/healthz` and `/readyz`, volume `/data`, identity `id-sw-app`, env of configuration.md with Key Vault references | deploy identity: Contributor on this resource only, plus, if required, the environment join action and Managed Identity Operator on `id-sw-app` (assigning a user-assigned identity); final set recorded by the owner's trial report |
+| Container registry (admin user off) | repository `semantic-workbench`; retention rule for untagged manifests | `id-sw-app` and the pull connection: `AcrPull`; push and deploy identities: `AcrPush`, both also with the custom role of `deploy/registry-tag-lock-role.json` (pushing and tagging; no import right needed) (the lock role grants repository metadata read and write; ABAC registries need the matching data actions) |
+| Container app | single revision mode, min = max replicas 1, ingress 4310, probes `/healthz` and `/readyz`, volume `/data`, identity `id-sw-app`, env of configuration.md with Key Vault references | deploy identity: the custom role of `deploy/container-app-deployer-role.json` on this resource only (`containerApps/read`, `write`, `revisions/*`, `locations/containerappOperationStatuses/read`, `locations/containerappOperationResults/read`), never Contributor, which includes `listSecrets` and the exec token (`getAuthToken`); plus, if required, the environment join action and Managed Identity Operator on `id-sw-app` (assigning a user-assigned identity); final set recorded by the owner's trial report |
 | `id-sw-app` | user-assigned identity of the container app (created first); federated credential of the Entra sign-in app | as above |
 | Entra app registration (sign-in) | quickstart §5: no app roles; groups claim, optional claims `email`, `upn`, `xms_edov`; application permission `GroupMember.Read.All` with admin consent | — |
-| Service connections `sw-azure-push`, `sw-azure-deploy` | Azure Resource Manager, workload identity federation (automatic, or manual with the target's own app registration or managed identity, copying the issuer and subject shown on the service connection page), scoped as above; pipeline permission granted only to the two pipelines | as above |
+| Service connections `sw-azure-push`, `sw-azure-pull`, `sw-azure-deploy` | Azure Resource Manager, workload identity federation (automatic, or manual with the target's own app registration or managed identity, copying the issuer and subject shown on the service connection page), scoped as above; pipeline permission granted only to the two pipelines; mandatory branch control (`sw-azure-deploy`: `refs/tags/v*`; `sw-azure-push`: `refs/heads/main`, `refs/tags/v*` with Verify branch protection; `sw-azure-pull`: `refs/tags/v*`) | as above |
 | Environment `production` | approvals, branch control (`refs/tags/v*`), exclusive lock | — |
 | Variable group `semantic-workbench-target` | the variables above, none secret; pipeline permission granted only to the two pipelines | — |
 | Agent pool | Microsoft-hosted `ubuntu-latest` or a self-hosted Linux pool with Docker | — |
-| Azure Repos mirror | repository in the target project, updated only by the release hand-over below | people who hand releases over: Contribute and Create tag |
+| Azure Repos mirror | repository in the target project, updated only by the release hand-over below | the release operator only: Contribute and Create tag on `refs/tags/v*` (Deny for everyone else, so a tag always comes from a reviewed commit that the operator chose) |
 | Pipelines | `azure-pipelines.yml` and `azure-pipelines-rollback.yml` imported from the target's Azure Repos mirror of this repository (never connected to this GitHub repository, so nothing runs on it); branch policy on `main` requiring the `Validate` and `Image` stages for pull requests | — |
 
 ## Deploy preflight (fails the deployment, names the setting)
 
 Revision mode `Single`; `minReplicas = maxReplicas = 1`; a volume mounted at `/data` of type
 `AzureFile` or `NfsAzureFile`; user-assigned identity `APP_IDENTITY_NAME` attached; registry
-configured with that identity; `SW_MODE=server`; `SW_HOST=0.0.0.0`; ingress target port 4310;
+configured with that identity; `SW_MODE=server`; `SW_HOST=0.0.0.0`; ingress target port 4310; ingress `external` true, `allowInsecure` false,
+transport `auto`, `http` or `http2`, and no CORS policy (or only `SW_PUBLIC_URL` as the allowed
+origin); `SW_PUBLIC_URL` equals the variable group's `SW_PUBLIC_URL`;
 secret references point to `KEY_VAULT_NAME`; `SW_OIDC_CLIENT_SECRET`,
 `SW_OIDC_CLIENT_CERTIFICATE_KEY` and `SW_GITHUB_CLIENT_SECRET`, when set, are secret references;
 `SW_OIDC_CLIENT_ID` and `SW_ENTRA_TENANT_ID` equal
@@ -169,8 +180,9 @@ to its digest in the registry) or, with `target: previous`, selects the newest p
 below the active version, excluding active and failed digests. Both paths verify the selected
 digest against `sha-<commit>` for its commit label, rescan it, record the active revision, and
 update with automatic recovery through the same environment. Runs on a non-tag ref are refused.
-No version tag is created on failed smoke or rollback. Lock promoted tags against writes because
-AcrPush can otherwise rewrite them. The selected Git tag supplies the pipeline and scripts;
+No version tag is created on failed smoke or rollback. A successful deployment locks the promoted
+version tag and `sha-<commit>` (`az acr repository update --write-enabled false`) because AcrPush
+can otherwise rewrite them. The selected Git tag supplies the pipeline and scripts;
 tags older than this delivery cannot use this rollback pipeline.
 
 ## Release hand-over to the target's Azure Repos mirror (`deploy/README.md`, FR-142)
@@ -180,12 +192,14 @@ Nothing connects the mirror or the pipeline to this GitHub repository. For each 
 1. The owner runs `bun run ci:validate` on the release commit, sets the `package.json` version and
    creates the annotated tag `vX.Y.Z` (pre-releases `vX.Y.Z-alpha.N`).
 2. Hand-over, one of:
-   - **Push** (someone with mirror access and a clone of this repository):
+   - **Push** (the release operator, who alone holds Create tag on `refs/tags/v*`; the person who
+     approves the deployment checks that the tag's commit is the merged pull request's commit):
      `git remote add target <mirror-url>` once; `git push target vX.Y.Z^{commit}:refs/heads/release/vX.Y.Z`;
      open a pull request from `release/vX.Y.Z` into `main` (the branch policy runs Validate and
      Image) and complete it; then `git push target vX.Y.Z`. The tag points to the release commit
      whatever merge type the pull request used, so the tag run builds exactly that commit. Tags
-     are not subject to branch policies; pushing one needs the Create tag permission.
+     are not subject to branch policies; pushing one needs the Create tag permission, and
+     `deploy:check-version` refuses a tag whose commit is not on `origin/main`.
    - **Git bundle** (no shared access): the owner runs
      `git bundle create semantic-workbench-vX.Y.Z.bundle vX.Y.Z` and
      `sha256sum semantic-workbench-vX.Y.Z.bundle > semantic-workbench-vX.Y.Z.bundle.sha256` and

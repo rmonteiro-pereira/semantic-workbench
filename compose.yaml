@@ -7,6 +7,10 @@ services:
         SW_VERSION: ${SW_VERSION:-dev}
         SW_COMMIT: ${SW_COMMIT:-unknown}
     network_mode: host
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ['no-new-privileges:true']
     environment:
       SW_MODE: local
     volumes:
@@ -31,5 +35,9 @@ services:
     env_file: .env.server
     restart: on-failure
     depends_on: [keycloak]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ['no-new-privileges:true']
     volumes:
       - ./.server-workspace:/data

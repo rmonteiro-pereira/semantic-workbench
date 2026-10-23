@@ -11,6 +11,7 @@ import {
 } from 'node:fs';
 import { dirname, basename, join } from 'node:path';
 import { createHash, randomBytes } from 'node:crypto';
+import { BadRequestError } from './errors';
 /** Returns the SHA-256 hex digest of bytes or UTF-8 text. */
 export const sha256 = (bytes: Uint8Array | string) =>
   createHash('sha256').update(bytes).digest('hex');
@@ -23,7 +24,7 @@ export function decode(bytes: Uint8Array) {
   try {
     return decoder.decode(bytes);
   } catch {
-    throw Error('The file is not valid UTF-8 text.');
+    throw new BadRequestError('The file is not valid UTF-8 text.');
   }
 }
 function fsyncDir(dir: string) {

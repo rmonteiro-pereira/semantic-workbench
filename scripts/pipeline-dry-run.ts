@@ -124,6 +124,18 @@ type Expansion = {
 /** Where steps come from; setup steps keep their agent shell variables unexpanded. */
 type StepSource = { file: string; setup?: boolean };
 
+/** Names a checkout step, adding its history depth when it differs from the shallow default. */
+function checkoutCommand(
+  step: PipelineNode,
+  parameters: PipelineNode,
+  variables: Record<string, string>,
+): string {
+  const depth = expand(String(step.fetchDepth ?? '1'), parameters, variables);
+  return depth === '1'
+    ? `checkout: ${step.checkout}`
+    : `checkout: ${step.checkout} (fetchDepth: ${depth})`;
+}
+
 function expandSteps(
   steps: PipelineNode[],
   source: StepSource,
@@ -165,7 +177,7 @@ function expandSteps(
       step.script ??
       step.inputs?.inlineScript ??
       step.task ??
-      `checkout: ${step.checkout}`;
+      checkoutCommand(step, parameters, variables);
     let kind: PlanStep['kind'] = 'local';
     if (setup || step.checkout) kind = 'setup';
     else if (step.task === 'AzureCLI@2') kind = 'azure';
@@ -276,6 +288,15 @@ function planJobs(
   });
 }
 
+/** Refuses a plan in which a pull-request validation run would use an Azure service connection. */
+export function assertNoAzureStepsOnPullRequest(plan: PlanStep[], branch: string): void {
+  if (!branch.startsWith('refs/pull/')) return;
+  const exposed = plan.filter(step => step.kind === 'azure' && step.enabled);
+  if (exposed.length) {
+    throw Error(`Pull-request runs must not use a service connection: ${exposed[0].command}`);
+  }
+}
+
 /** Ensures pipeline local work maps exactly to the local quality gate. */
 export function validatePlan(plan: PlanStep[], rollbackConnection?: string): void {
   if (rollbackConnection !== undefined) {
@@ -345,6 +366,7 @@ export function buildPlan(
     );
   });
   validatePlan(plan, pipelineName === 'rollback' ? parameters.deployServiceConnection : undefined);
+  assertNoAzureStepsOnPullRequest(plan, kind.branch);
   return plan as PlanStep[];
 }
 

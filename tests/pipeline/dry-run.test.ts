@@ -13,7 +13,10 @@ for (const run of ['pr', 'main', 'tag:v0.4.0-alpha.1']) {
     const plan = buildPlan(lintRules(readPipelineInput()), readSampleVariables(), run);
     expect([...new Set(plan.map(step => step.stage))]).toEqual(['Validate', 'Image', 'Deploy']);
     const deploy = plan.filter(
-      step => step.stage === 'Deploy' && !step.command.includes('playwright install'),
+      step =>
+        step.stage === 'Deploy' &&
+        !step.command.includes('playwright install') &&
+        step.command !== 'bun install --frozen-lockfile',
     );
     expect(deploy.every(step => step.enabled === run.startsWith('tag:'))).toBe(true);
     const deployAzure = plan.filter(step => step.stage === 'Deploy' && step.kind === 'azure');

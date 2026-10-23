@@ -17,6 +17,7 @@ the line itself has `"type":"audit"`).
 | `outcome` | `'ok'\|'failed'\|'refused'\|'degraded'` | result of the operation after an allow |
 | `snapshot` | `{grants: [grantId], roles: [roleId], groups, emailMatched: boolean, resourceAttrs}` | for policy dry runs; no names of unreadable items beyond the resource itself |
 | `version` | string? | admin repository commit for `adminChange` |
+| `suppressed` | number? | refusals of the same kind from the same client address left out of the log since the previous record |
 | `prev` | hex | SHA-256 of the previous line in the file |
 
 Never present: tokens, cookies, secrets, document text, diff text, commit messages.
@@ -33,6 +34,14 @@ Authentication uses `signIn`, `signOut`, and `sessionEnded`. A failed directory 
 It carries the enclosing request id during both sign-in and refresh; it does not record a
 sign-in refusal when direct grants still permit access. Protocol failures use `tenant-mismatch`,
 `attempt-invalid`, `token-invalid`, or `provider-unreachable`; display text is never an audit reason.
+
+Refusals that name nobody (a request without a session to a protected route, `reason:
+sign-in-required`; a refused bearer token; a failed sign-in) are recorded for the first 20 of each
+kind per source address, then once a minute per source address and kind, so an unauthenticated
+loop cannot fill the data volume. The next record admitted for that address and kind carries
+`suppressed: n`, the number of refusals left out since the previous one, so the volume is not
+lost. Requests over the per-address rate limit (HTTP 429) are not
+audited. A refusal of a known principal is always recorded.
 
 The sign-in record is durable before a session is created. If that audit write fails, the
 request returns 503 and creates no session file. Session removal continues even when its

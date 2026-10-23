@@ -8,6 +8,17 @@ import { parseTrivyIgnore, targetVariables } from './image';
 
 /** Ordered stages supported by this delivery definition. */
 export const expectedStages = ['Validate', 'Image', 'Deploy'];
+const tagCondition = "and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))";
+const pushCondition =
+  "and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), " +
+  "startsWith(variables['Build.SourceBranch'], 'refs/tags/v')))";
+/** Files that may hold a service connection, each checked further by its own rule. */
+const connectionFiles = [
+  'azure-pipelines.yml',
+  'azure-pipelines-rollback.yml',
+  'deploy/azure-devops/templates/image-jobs.yml',
+  'deploy/azure-devops/templates/deploy-steps.yml',
+];
 /** Parsed YAML mapping, validated against the pinned schema at the file boundary. */
 export type PipelineNode = Record<string, any>;
 /** Repository inputs kept explicit so rule tests need no filesystem mutations. */
@@ -49,7 +60,7 @@ function checkTask(node: PipelineNode) {
     throw Error(`Task is not allowed or major-pinned: ${node.task}`);
   if (
     node.azureSubscription &&
-    !/^\$\{\{ parameters\.(acr|deploy)ServiceConnection \}\}$/.test(node.azureSubscription)
+    !/^\$\{\{ parameters\.(acr|acrPull|deploy)ServiceConnection \}\}$/.test(node.azureSubscription)
   )
     throw Error('azureSubscription must use a service-connection parameter');
   if (
@@ -102,10 +113,7 @@ function checkSecurity(node: PipelineNode) {
 
 function checkDeployment(node: PipelineNode) {
   if (node.stage === 'Deploy') {
-    if (
-      node.condition !==
-      "and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))"
-    ) {
+    if (node.condition !== tagCondition) {
       throw Error('Deploy must be tag-only');
     }
     if (!node.jobs?.some((job: PipelineNode) => job.deployment)) {
@@ -183,23 +191,32 @@ function checkSetup(document: PipelineNode) {
       'unzip -o bun.zip -d "$HOME/.bun-1.4.3"',
       'echo "##vso[task.prependpath]$HOME/.bun-1.4.3/bun-linux-x64"',
     ].join('\n') + '\n';
-  const expected = [
-    install,
-    'bun install --frozen-lockfile',
-    'bun x playwright install --with-deps chromium',
-  ];
   const expectedSteps = [
-    { checkout: 'self' },
-    { bash: expected[0], displayName: 'Install Bun 1.4.3' },
-    { bash: expected[1] },
-    { bash: expected[2], condition: 'and(succeeded(), ${{ parameters.browsers }})' },
+    { checkout: 'self', fetchDepth: '${{ parameters.fetchDepth }}' },
+    { bash: install, displayName: 'Install Bun 1.4.3' },
+    {
+      bash: 'bun install --frozen-lockfile',
+      condition: "and(succeeded(), eq('${{ parameters.production }}', 'false'))",
+    },
+    {
+      bash: 'bun install --frozen-lockfile --production',
+      condition: "and(succeeded(), eq('${{ parameters.production }}', 'true'))",
+    },
+    {
+      bash: 'bun x playwright install --with-deps chromium',
+      condition: 'and(succeeded(), ${{ parameters.browsers }})',
+    },
+  ];
+  const expectedParameters = [
+    { name: 'browsers', type: 'boolean', default: 'true' },
+    { name: 'production', type: 'boolean', default: 'false' },
+    { name: 'fetchDepth', type: 'number', default: '1' },
   ];
   if (
-    JSON.stringify(document.parameters) !==
-      JSON.stringify([{ name: 'browsers', type: 'boolean', default: 'true' }]) ||
+    JSON.stringify(document.parameters) !== JSON.stringify(expectedParameters) ||
     JSON.stringify(steps) !== JSON.stringify(expectedSteps)
   ) {
-    throw Error('Setup must use pinned Bun and frozen browser setup');
+    throw Error('Setup must use pinned Bun, frozen installs and its production switch');
   }
 }
 
@@ -219,10 +236,10 @@ function checkStageTemplates(pipeline: PipelineNode) {
   ) {
     throw Error('Validate must run every time and Image must follow Validate');
   }
-  checkParameters(pipeline);
+  checkParameters(pipeline, { acrPullServiceConnection: 'sw-azure-pull' });
 }
 
-function checkParameters(pipeline: PipelineNode) {
+function checkParameters(pipeline: PipelineNode, extraDefaults: Record<string, string> = {}) {
   if (
     pipeline.variables?.length !== 1 ||
     pipeline.variables[0].group !== '${{ parameters.variableGroup }}'
@@ -236,6 +253,7 @@ function checkParameters(pipeline: PipelineNode) {
     deployEnvironment: 'production',
     agentPool: '',
     vmImage: 'ubuntu-latest',
+    ...extraDefaults,
   };
   for (const [name, value] of Object.entries(defaults)) {
     const parameter = pipeline.parameters?.find((entry: PipelineNode) => entry.name === name);
@@ -283,18 +301,27 @@ function checkImageJobs(documents: Record<string, PipelineNode>) {
   if (jobs?.length !== 2 || jobs[0].job !== 'check' || jobs[1].job !== 'image') {
     throw Error('Image requires check followed by image jobs');
   }
-  const tagCondition =
-    "and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))";
-  const pushCondition =
-    "and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), " +
-    "startsWith(variables['Build.SourceBranch'], 'refs/tags/v')))";
-  const check = jobs[0].steps.find((step: PipelineNode) => step.task === 'AzureCLI@2');
+  const connectionSteps = (job: PipelineNode) =>
+    job.steps.filter((step: PipelineNode) => step.task === 'AzureCLI@2');
+  if (connectionSteps(jobs[0]).length !== 1 || connectionSteps(jobs[1]).length !== 1) {
+    throw Error('Image check and image jobs each need exactly one AzureCLI step');
+  }
+  const check = connectionSteps(jobs[0])[0];
+  const setup = jobs[0].steps.find((step: PipelineNode) =>
+    step.template?.endsWith('setup-steps.yml'),
+  );
   if (
     jobs[0].condition !== tagCondition ||
-    check?.inputs?.inlineScript !== 'bun run deploy:check-version' ||
-    check?.env?.SOURCE_REF !== '$(Build.SourceBranch)'
+    check.inputs?.inlineScript !== 'bun run deploy:check-version' ||
+    check.inputs?.azureSubscription !== '${{ parameters.acrPullServiceConnection }}' ||
+    check.env?.SOURCE_REF !== '$(Build.SourceBranch)' ||
+    check.env?.SOURCE_VERSION !== '$(Build.SourceVersion)' ||
+    setup?.parameters?.fetchDepth !== 0
   ) {
-    throw Error('Tag check must precede publication and use deploy:check-version');
+    throw Error(
+      'Tag check must precede publication, use the pull connection and the full history, ' +
+        'and call deploy:check-version',
+    );
   }
   if (
     jobs[1].dependsOn !== 'check' ||
@@ -312,6 +339,7 @@ function checkImageJobs(documents: Record<string, PipelineNode>) {
     pushIndex <= build ||
     push.condition !== pushCondition ||
     push.name !== 'push' ||
+    push.inputs.azureSubscription !== '${{ parameters.acrServiceConnection }}' ||
     push.inputs.inlineScript !== 'bun run image:push -- --registry $(ACR_NAME).azurecr.io'
   ) {
     throw Error('Image must build and test before a main/tag-only push with digest output');
@@ -323,6 +351,42 @@ function checkImageJobs(documents: Record<string, PipelineNode>) {
     )
   )
     throw Error('Image artifacts are required');
+}
+
+/** Keeps every service connection behind a deployment job or a main/tag-only condition. */
+function checkConnectionGates(documents: Record<string, PipelineNode>) {
+  for (const [file, document] of Object.entries(documents)) {
+    visitMappings(document, node => {
+      if (node.azureSubscription && !connectionFiles.includes(file)) {
+        throw Error(`${file}: service connection outside a deployment or Image job`);
+      }
+    });
+  }
+  for (const file of ['azure-pipelines.yml', 'azure-pipelines-rollback.yml']) {
+    for (const job of (documents[file]?.stages ?? []).flatMap(
+      (stage: PipelineNode) => stage.jobs,
+    )) {
+      if (job.deployment) continue;
+      visitMappings(job, node => {
+        if (node.azureSubscription) throw Error(`${file}: service connection outside a deployment`);
+      });
+    }
+  }
+  const imageJobs = documents['deploy/azure-devops/templates/image-jobs.yml'].jobs;
+  for (const job of imageJobs) {
+    for (const step of job.steps) {
+      const gates = [step.condition, job.condition];
+      if (step.inputs?.azureSubscription && !gates.some(isReleaseGate)) {
+        throw Error(
+          `Image job ${job.job}: a service connection step must run on main or tags only`,
+        );
+      }
+    }
+  }
+}
+
+function isReleaseGate(condition: unknown): boolean {
+  return condition === tagCondition || condition === pushCondition;
 }
 
 function checkTemplateReferences(documents: Record<string, PipelineNode>) {
@@ -376,12 +440,12 @@ function checkStageConnections(
 ) {
   visitMappings(value, node => {
     if (node.azureSubscription) {
-      const name = {
-        Image: 'acrServiceConnection',
-        Deploy: 'deployServiceConnection',
-        Rollback: 'deployServiceConnection',
+      const names = {
+        Image: ['acrServiceConnection', 'acrPullServiceConnection'],
+        Deploy: ['deployServiceConnection'],
+        Rollback: ['deployServiceConnection'],
       }[stage];
-      if (!name || node.azureSubscription !== `\${{ parameters.${name} }}`) {
+      if (!names?.some(name => node.azureSubscription === `\${{ parameters.${name} }}`)) {
         throw Error(`Service connection is not allowed in stage ${stage}`);
       }
     }
@@ -416,10 +480,7 @@ function checkDelivery(documents: Record<string, PipelineNode>) {
   ];
   for (const stage of stages) {
     if (stage.lockBehavior !== 'runLatest') throw Error('Delivery requires stage runLatest lock');
-    if (
-      stage.condition !==
-      "and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))"
-    ) {
+    if (stage.condition !== tagCondition) {
       throw Error('Delivery must be tag-only');
     }
     if (stage.jobs?.length !== 1 || !stage.jobs[0].deployment) {
@@ -431,6 +492,15 @@ function checkDelivery(documents: Record<string, PipelineNode>) {
     stages[0].variables?.imageDigest !== "$[ stageDependencies.Image.image.outputs['push.digest'] ]"
   ) {
     throw Error('Deploy must consume the Image push digest');
+  }
+  for (const stage of stages) {
+    const stageSteps = stage.jobs[0].strategy?.runOnce?.deploy?.steps ?? [];
+    const setup = stageSteps.find((step: PipelineNode) =>
+      step.template?.endsWith('setup-steps.yml'),
+    );
+    if (setup?.parameters?.production !== true) {
+      throw Error(`${stage.stage} must install production dependencies only`);
+    }
   }
   const deployJobSteps = stages[0].jobs[0].strategy?.runOnce?.deploy?.steps ?? [];
   if (
@@ -479,6 +549,7 @@ export function lintRules(input: PipelineInput): Record<string, PipelineNode> {
     ]),
   );
   checkTemplateReferences(documents);
+  checkConnectionGates(documents);
   const pipeline = documents['azure-pipelines.yml'];
   const stages = pipeline?.stages?.map((stage: PipelineNode) => stage.stage);
   if (JSON.stringify(stages) !== JSON.stringify(expectedStages))

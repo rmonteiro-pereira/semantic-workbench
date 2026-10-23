@@ -4,7 +4,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { BranchInUseError, NotFastForwardError } from './errors';
-import { authorship, GitError, type CommitAuthor, type Git } from './git';
+import { authorship, GitError, isBranchName, type CommitAuthor, type Git } from './git';
 import { USER_KEY, type DataLayout } from './paths';
 
 /** One entry of `git worktree list --porcelain`. */
@@ -29,8 +29,36 @@ export const PUBLISHED_HOLDER = 'the published state';
 /** Where a repository's default branch name is remembered once the base checkout is detached. */
 export const DEFAULT_BRANCH_KEY = 'workbench.defaultBranch';
 
+/** The folder of branch names that belong to people's working copies. */
+export const PERSONAL_BRANCH_PREFIX = 'work/';
+
 /** The personal branch every working copy starts on. */
-export const personalBranch = (handle: string) => `work/${handle}`;
+export const personalBranch = (handle: string) => PERSONAL_BRANCH_PREFIX + handle;
+
+const foldBranch = (branch: string) => branch.normalize('NFC').toLowerCase();
+
+/** Whether two branch names are one name on a volume that ignores letter case. */
+export const sameBranchName = (left: string, right: string) =>
+  foldBranch(left) === foldBranch(right);
+
+/** Whether a branch name is some person's personal branch, in whatever letter case. */
+export const isPersonalBranch = (branch: string) =>
+  foldBranch(branch).startsWith(PERSONAL_BRANCH_PREFIX);
+
+/**
+ * Whether a branch is shown to someone whose own personal branch is `own`, or to someone who has
+ * none. A remote branch is judged by the name it has on the remote, `origin/work/x` as `work/x`.
+ */
+export function branchShownTo(branch: string, own: string | null, remote = false) {
+  const name = remote ? branch.slice(branch.indexOf('/') + 1) : branch;
+  return !isPersonalBranch(name) || (own !== null && sameBranchName(name, own));
+}
+
+/** The existing branch a new spelling of a name would be taken for, or undefined. */
+export function branchSpelledDifferently(name: string, existing: string[]) {
+  if (existing.includes(name)) return undefined;
+  return existing.find(other => sameBranchName(other, name));
+}
 
 /** Parses `git worktree list --porcelain` into its entries. */
 export function parseWorktreeList(output: string): WorktreeEntry[] {
@@ -139,16 +167,6 @@ async function defaultBranch(context: WorktreeContext, repo: string) {
   // The remote chooses this name, so it must be a plain branch name before Git sees it again.
   if (named && (await isBranchName(git, dir, named))) return named;
   throw new GitError(`Cannot tell the default branch of ${repo}: its checkout is detached.`);
-}
-
-/** Whether a name is a branch name Git accepts that cannot be read as an option. */
-async function isBranchName(git: Git, dir: string, name: string) {
-  if (name.startsWith('-')) return false;
-  const checked = await git.run(dir, ['check-ref-format', '--branch', name], {
-    readOnly: true,
-    allowFailure: true,
-  });
-  return checked.code === 0;
 }
 
 // The base checkout must not hold the default branch, or a publish would leave its files stale;

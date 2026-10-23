@@ -1,0 +1,15 @@
+{
+  "Name": "Semantic Workbench registry tag locker",
+  "IsCustom": true,
+  "Description": "Reads and changes repository metadata so a deployed release's tags can be made read-only. Grants no push, pull or delete right.",
+  "Actions": [
+    "Microsoft.ContainerRegistry/registries/metadata/read",
+    "Microsoft.ContainerRegistry/registries/metadata/write"
+  ],
+  "NotActions": [],
+  "DataActions": [],
+  "NotDataActions": [],
+  "AssignableScopes": [
+    "/subscriptions/<subscription-id>/resourceGroups/<resource-group>"
+  ]
+}

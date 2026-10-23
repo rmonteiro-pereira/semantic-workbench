@@ -9,6 +9,16 @@ export class StaleError extends Error {
     this.name = 'StaleError';
   }
 }
+/**
+ * Reports a request the caller got wrong, such as a malformed body. Its message is written for
+ * the caller, so the HTTP boundary shows it. Any other error is unexpected and stays private.
+ */
+export class BadRequestError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'BadRequestError';
+  }
+}
 /** Reports a missing workspace resource. */
 export class NotFoundError extends Error {
   constructor(message: string) {
@@ -66,6 +76,14 @@ export class BranchInUseError extends Error {
   ) {
     super(`${branch} is in use by ${inUseBy}.`);
     this.name = 'BranchInUseError';
+  }
+}
+
+/** Refuses to check out the personal branch of another person. */
+export class PersonalBranchError extends Error {
+  constructor(public branch: string) {
+    super(`${branch} is another person's working branch and cannot be checked out.`);
+    this.name = 'PersonalBranchError';
   }
 }
 

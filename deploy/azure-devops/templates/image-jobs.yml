@@ -1,20 +1,27 @@
 parameters:
   - name: acrServiceConnection
     type: string
+  - name: acrPullServiceConnection
+    type: string
 jobs:
   - job: check
     condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
     steps:
       - template: setup-steps.yml
+        parameters:
+          browsers: false
+          fetchDepth: 0
+          production: true
       - task: AzureCLI@2
         inputs:
-          azureSubscription: ${{ parameters.acrServiceConnection }}
+          azureSubscription: ${{ parameters.acrPullServiceConnection }}
           scriptType: bash
           scriptLocation: inlineScript
           addSpnToEnvironment: false
           inlineScript: bun run deploy:check-version
         env:
           SOURCE_REF: $(Build.SourceBranch)
+          SOURCE_VERSION: $(Build.SourceVersion)
   - job: image
     dependsOn: check
     condition: in(dependencies.check.result, 'Succeeded', 'Skipped')

@@ -3,7 +3,7 @@ import type { Action } from './actions';
 import type { AccessScope } from './authorize';
 import type { RemoteCredentials } from './remote-credentials';
 import { LOCAL_READER, type CopyAccess, type Reader } from '../projects/reader';
-import { requestAuditId } from '../request';
+import { requestAuditId, requestSourceIp } from '../request';
 import { guardFor } from './guards';
 
 /** Request scope attached after identity resolution, so routes never resolve identity again. */
@@ -13,6 +13,7 @@ export const requestRemote = Symbol('requestRemote');
 /** A request carrying its already resolved access scope. */
 export type AccessRequest = Request & {
   [requestAuditId]?: string;
+  [requestSourceIp]?: string;
   [requestAccess]?: AccessScope;
   [requestAuditProjects]?: Set<string> | null;
   [requestRemote]?: RemoteCredentials | 'local';

@@ -64,6 +64,11 @@ export type ServerConfig = CommonConfig & {
   committer: { name: string; email: string };
   github: { host: string; clientId: string; clientSecret: string } | null;
   adoOnBehalfOf: boolean;
+  /**
+   * How many reverse proxies in front of the workbench append to X-Forwarded-For. Rate limits
+   * take the client address from the entry that many places from the right; 0 trusts none.
+   */
+  trustedProxyHops: number;
 };
 
 /** The parsed configuration of either mode. */
@@ -206,6 +211,7 @@ function readServer(env: Env, common: CommonConfig, problems: ConfigProblem[]): 
     github: readGitHub(env, problems),
     // On-behalf-of is an Entra grant; other providers cannot issue Azure DevOps tokens.
     adoOnBehalfOf: provider === 'entra' && env.SW_ADO_OBO !== 'false',
+    trustedProxyHops: readTrustedProxyHops(env.SW_TRUSTED_PROXY_HOPS, problems),
   };
 }
 
@@ -399,6 +405,22 @@ function readBootstrapAdmins(value: string, problems: ConfigProblem[]) {
     emails: entries.filter(entry => entry.includes('@')).map(entry => entry.toLowerCase()),
     ids: entries.filter(entry => !entry.includes('@')),
   };
+}
+
+const MAX_TRUSTED_PROXY_HOPS = 5;
+
+function readTrustedProxyHops(value: string | undefined, problems: ConfigProblem[]): number {
+  const text = value?.trim() ?? '';
+  if (text === '') return 0;
+  const hops = Number(text);
+  if (!/^\d+$/.test(text) || hops > MAX_TRUSTED_PROXY_HOPS) {
+    problems.push({
+      variable: 'SW_TRUSTED_PROXY_HOPS',
+      message: `must be a whole number from 0 to ${MAX_TRUSTED_PROXY_HOPS}.`,
+    });
+    return 0;
+  }
+  return hops;
 }
 
 function readGraphUrl(

@@ -2,6 +2,7 @@
 // host takes. Pure functions: the allowed hosts come from the administration settings.
 import { isLoopbackHost } from '../config';
 import type { RemoteAddresses } from '../projects/git';
+import { BadRequestError } from '../projects/errors';
 
 /** Hosts of Azure DevOps Services; a leading `*.` matches any subdomain. */
 export const AZURE_DEVOPS_HOSTS = ['dev.azure.com', '*.visualstudio.com'];
@@ -65,7 +66,7 @@ export function allowedRemoteHost(address: unknown, allowedHosts: string[]): All
     );
   }
   // A password in the address would be stored in plain text in the repository's configuration.
-  if (url.password) throw new Error('A remote address may not contain a password.');
+  if (url.password) throw new BadRequestError('A remote address may not contain a password.');
   const host = url.host.toLowerCase();
   // Host names are compared in lower case, as URLs give them.
   if (!allowedHosts.some(allowed => allowed.toLowerCase() === host)) {
@@ -82,7 +83,7 @@ export function allowedRemoteAddresses(remote: RemoteAddresses, allowedHosts: st
   const fetchHost = storedHost(remote.fetchUrl, allowedHosts);
   const pushHost = storedHost(remote.pushUrl, allowedHosts);
   if (pushHost !== fetchHost) {
-    throw new Error('A remote must fetch and push through the same host in server mode.');
+    throw new BadRequestError('A remote must fetch and push through the same host in server mode.');
   }
   return fetchHost;
 }

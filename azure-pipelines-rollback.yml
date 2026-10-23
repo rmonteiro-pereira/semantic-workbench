@@ -45,6 +45,7 @@ stages:
                 - template: deploy/azure-devops/templates/setup-steps.yml
                   parameters:
                     browsers: false
+                    production: true
                 - task: AzureCLI@2
                   inputs:
                     azureSubscription: ${{ parameters.deployServiceConnection }}

@@ -1,0 +1,18 @@
+{
+  "Name": "Semantic Workbench container app deployer",
+  "IsCustom": true,
+  "Description": "Updates the image of one container app and manages its revisions. Cannot read secret values, request an exec token or change anything else.",
+  "Actions": [
+    "Microsoft.App/containerApps/read",
+    "Microsoft.App/containerApps/write",
+    "Microsoft.App/containerApps/revisions/*",
+    "Microsoft.App/locations/containerappOperationStatuses/read",
+    "Microsoft.App/locations/containerappOperationResults/read"
+  ],
+  "NotActions": [],
+  "DataActions": [],
+  "NotDataActions": [],
+  "AssignableScopes": [
+    "/subscriptions/<subscription-id>/resourceGroups/<resource-group>"
+  ]
+}
