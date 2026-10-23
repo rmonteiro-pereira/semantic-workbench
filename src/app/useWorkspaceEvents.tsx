@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import type { ProjectInfo, Suggestion, WorkspaceStatus } from '../projects/api';
 import { api, loadWorkspace, type Doc } from '../projects/api';
 import { useEvents } from '../projects/useEvents';
+import type { OpenOptions } from './useFileNavigation';
 
 type Options = {
   docsRef: React.RefObject<Map<string, Doc>>;
@@ -18,7 +19,7 @@ type Options = {
   setSuggestions: React.Dispatch<React.SetStateAction<Suggestion[]>>;
   setTrashVersion: React.Dispatch<React.SetStateAction<number>>;
   setStatus: React.Dispatch<React.SetStateAction<WorkspaceStatus | null>>;
-  getOpen: () => (d: Doc) => boolean;
+  getOpen: () => (d: Doc, options?: OpenOptions) => boolean;
   setMessage: React.Dispatch<React.SetStateAction<string>>;
 };
 /** Manages workspace events. */
@@ -114,7 +115,7 @@ export function useWorkspaceEvents({
       .catch(() => {});
     refresh()
       .then(d => {
-        if (d[0]) getOpen()(d[0]);
+        if (d[0]) getOpen()(d[0], { keepDrawer: true });
       })
       .catch(() => setMessage('Cannot reach local API'));
   }, []);
