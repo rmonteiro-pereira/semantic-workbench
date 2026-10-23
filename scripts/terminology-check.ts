@@ -1,4 +1,4 @@
-// Checks metric terminology in the UI and documentation while allowing verbatim user data.
+// Checks metric and table terminology in the UI and documentation while allowing verbatim user data.
 import { appUrl } from './helpers/base-url';
 import { chromium, type Page } from '@playwright/test';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -14,9 +14,13 @@ const sources = readdirSync('public/examples', { recursive: true, withFileTypes:
   .map(f => readFileSync(`${f.parentPath}/${f.name}`, 'utf8'))
   .join('\n');
 const KPI = /KPI/;
+// ODCS schema entries are Tables in the interface; the standard's own name for them stays out.
+const CONTRACT_OBJECT = /contract objects?/i;
+const retiredTerm = (text: string) =>
+  KPI.test(text.replace(/kpi_bindings/g, '')) || CONTRACT_OBJECT.test(text);
 const allowed = (text: string) => {
   const t = text.trim();
-  return !KPI.test(t.replace(/kpi_bindings/g, '')) || (t.length > 3 && sources.includes(t));
+  return !retiredTerm(t) || (t.length > 3 && sources.includes(t));
 };
 const found = new Map<string, Set<string>>();
 async function scan(p: Page, where: string) {
@@ -132,18 +136,19 @@ try {
     .join('\n')
     .split('\n');
   for (const line of readme)
-    if (KPI.test(line.replace(/kpi_bindings/g, ''))) {
+    if (retiredTerm(line)) {
       const k = line.trim().slice(0, 120);
       (found.get(k) ?? found.set(k, new Set()).get(k)!).add('README/docs');
     }
   if (found.size) {
-    console.log(`${found.size} texts say "KPI":`);
+    console.log(`${found.size} texts use a retired term ("KPI" or "contract object"):`);
     for (const [t, w] of found) console.log(`  "${t}"  ← ${[...w].slice(0, 3).join('; ')}`);
     throw Error('Terminology check failed.');
   }
   if (errors.length) throw Error(errors.join('\n'));
   console.log(
-    `Terminology check passed: no "KPI" in ${files.length} files' views, the metric detail, the wizard, README and docs (isolated data root ${api.root}).`,
+    `Terminology check passed: no "KPI" or "contract object" in ${files.length} files' views, ` +
+      `the metric detail, the wizard, README and docs (isolated data root ${api.root}).`,
   );
 } finally {
   await browser.close();

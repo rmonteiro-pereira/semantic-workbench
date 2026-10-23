@@ -51,7 +51,7 @@ function createFields(kind: ItemKind, choices: Choices): FieldSpec[] {
         input: 'text',
         at: ['property'],
         required: true,
-        hint: 'A contract object needs at least one property',
+        hint: 'A table needs at least one property',
       },
       {
         key: 'propertyType',

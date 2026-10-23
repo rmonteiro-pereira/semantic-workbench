@@ -12,7 +12,7 @@ async function openContract(page: Page, file: string) {
     .click();
   await page.waitForTimeout(500);
   // The contract tab remembers the dataset page a previous screen left open.
-  const back = page.getByRole('button', { name: 'All objects' });
+  const back = page.getByRole('button', { name: 'All tables' });
   if (await back.isVisible()) await back.click();
 }
 

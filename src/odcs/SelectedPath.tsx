@@ -6,7 +6,7 @@ import type { LineageCard } from './lineage';
 export type PathItem = { id: string; label: string; kind: string };
 
 const KIND_SHORT: Record<string, string> = {
-  object: 'Contract object',
+  object: 'Table',
   dataset: 'Field',
   metric: 'Metric',
   external: 'External',

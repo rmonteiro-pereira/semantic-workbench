@@ -10,7 +10,7 @@ import './odcs.css';
 import './contract.css';
 // ODCS contract overview: identity and status, then a summary row for each contract-level section
 // that is present (servers, team and roles, service levels, quality, support, pricing, custom
-// properties; each opens in a dialog) and a searchable list of schema objects.
+// properties; each opens in a dialog) and a searchable list of tables.
 const list = (v: unknown): any[] => (Array.isArray(v) ? v : []);
 const text = (v: unknown) =>
   v === undefined || v === null
@@ -25,15 +25,25 @@ export const rulesOf = (o: any) => [
   ...list(o?.quality),
   ...flattenProperties(o?.properties).flatMap(p => list(p.property.quality)),
 ];
-/** Summarizes schema objects with property, constraint and quality-rule counts. */
+// Every schema entry is a table in the interface. ODCS declares its type as `logicalType` (always
+// `object` in the standard) and `physicalType` (`table`, `view`, ...). Only a type that tells
+// tables apart is worth a badge, so the usual `table` and `object` values show nothing.
+const PLAIN_TABLE_TYPES = new Set(['table', 'object']);
+/** Names the type of a table when it is not an ordinary table, such as `view`; otherwise ''. */
+export function tableTypeBadge(table: any): string {
+  const declared = [table?.physicalType, table?.logicalType].filter(Boolean).map(String);
+  const unusual = declared.filter(type => !PLAIN_TABLE_TYPES.has(type.toLowerCase()));
+  return [...new Set(unusual)].join(' · ');
+}
+/** Summarizes tables with property, constraint and quality-rule counts. */
 export function objectFacts(data: any) {
   const schema = list(data?.schema);
   const fks = odcsForeignKeys(data);
   return schema.map((o: any, i: number) => ({
     index: i,
-    name: String(o?.name ?? `object ${i + 1}`),
+    name: String(o?.name ?? `table ${i + 1}`),
     physicalName: text(o?.physicalName),
-    type: [o?.physicalType, o?.logicalType].filter(Boolean).join(' · '),
+    type: tableTypeBadge(o),
     properties: flattenProperties(o?.properties).length,
     pk: flattenProperties(o?.properties).filter(p => p.property.primaryKey === true).length,
     fk: fks.filter(k => k.from === i).length,
@@ -329,7 +339,7 @@ type ObjectRowProps = {
 function ObjectRow({ fact, showKind, showRules, onOpen, onOpenInLineage }: ObjectRowProps) {
   return (
     <tr>
-      <td data-label="Object">
+      <td data-label="Table">
         <span className="odcs-object-cell">
           <button
             className="odcs-link"
@@ -355,7 +365,11 @@ function ObjectRow({ fact, showKind, showRules, onOpen, onOpenInLineage }: Objec
           </small>
         )}
       </td>
-      {showKind && <td data-label="Kind">{fact.type}</td>}
+      {showKind && (
+        <td data-label="Type">
+          {fact.type && <span className="odcs-type-badge">{fact.type}</span>}
+        </td>
+      )}
       <td className="num" data-label="Properties">
         {fact.properties}
       </td>
@@ -376,7 +390,7 @@ function ObjectRow({ fact, showKind, showRules, onOpen, onOpenInLineage }: Objec
   );
 }
 
-/** Displays declared contract sections and a searchable object summary. */
+/** Displays declared contract sections and a searchable table summary. */
 export function ContractOverview({
   data,
   onOpen,
@@ -401,11 +415,11 @@ export function ContractOverview({
     <section className="odcs-page odcs-overview" aria-label="Contract overview">
       <ContractHead data={data} />
       <SectionRows sections={sections} />
-      <section className="odcs-objects" aria-label="Objects">
+      <section className="odcs-objects" aria-label="Tables">
         <div className="odcs-objects-head">
           <h3>
             <Table2 size={15} />
-            Schema objects{' '}
+            Tables{' '}
             <small>
               {shown.length === facts.length ? facts.length : `${shown.length} of ${facts.length}`}
             </small>
@@ -414,19 +428,19 @@ export function ContractOverview({
             <Search size={14} />
             <input
               type="search"
-              aria-label="Find an object"
-              placeholder="Find an object…"
+              aria-label="Find a table"
+              placeholder="Find a table…"
               value={query}
               onChange={e => setQuery(e.target.value)}
             />
           </label>
         </div>
         <div className="odcs-table-wrap">
-          <table className="odcs-table odcs-objects-table stack" aria-label="Schema objects">
+          <table className="odcs-table odcs-objects-table stack" aria-label="Tables">
             <thead>
               <tr>
-                <th>Object</th>
-                {showKind && <th>Kind</th>}
+                <th>Table</th>
+                {showKind && <th>Type</th>}
                 <th className="num">Properties</th>
                 <th>Keys</th>
                 {showRules && <th className="num">Quality rules</th>}
@@ -447,7 +461,7 @@ export function ContractOverview({
             </tbody>
           </table>
         </div>
-        {!shown.length && <p className="odcs-note">No object matches “{query}”.</p>}
+        {!shown.length && <p className="odcs-note">No table matches “{query}”.</p>}
       </section>
     </section>
   );

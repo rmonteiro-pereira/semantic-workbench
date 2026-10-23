@@ -37,7 +37,7 @@ export const kindLabel: Record<ItemKind, string> = {
   field: 'Field',
   join: 'Dataset relationship',
   metric: 'Metric',
-  'odcs-object': 'Contract object',
+  'odcs-object': 'Table',
   'odcs-property': 'Contract property',
   'odcs-foreign-key': 'Foreign key',
   'concept-mapping': 'Concept mapping',

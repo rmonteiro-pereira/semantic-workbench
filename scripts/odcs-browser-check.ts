@@ -72,7 +72,7 @@ async function openFile(path: string, project: string) {
 }
 const contractTab = () => page.locator('.tabs').getByRole('button', { name: 'Contract' });
 const overview = () => page.getByRole('region', { name: 'Contract overview' });
-const dataset = (name: string) => page.getByRole('region', { name: `Dataset ${name}` });
+const dataset = (name: string) => page.getByRole('region', { name: `Table ${name}` });
 async function openDataset(name: string) {
   await overview()
     .getByRole('button', { name: `Open ${name}`, exact: true })
@@ -99,7 +99,7 @@ const noHorizontalScroll = async () =>
 try {
   await page.goto(appUrl());
   await check(
-    'contract overview: identity, status, team, and a searchable object list with counts',
+    'contract overview: identity, status, team, and a searchable table list with counts',
     async () => {
       await openFile('commerce.odcs.yaml', 'Commerce workspace');
       await contractTab().click();
@@ -112,24 +112,23 @@ try {
       await expect(team).toContainText('commerce-data');
       await expect(team).toContainText('owner');
       await closeSection(team);
-      const table = o.getByRole('table', { name: 'Schema objects' });
+      const table = o.getByRole('table', { name: 'Tables' });
       await expect(table.getByRole('row')).toHaveCount(5);
       const orders = table.getByRole('row').filter({ hasText: 'analytics.commerce.orders' });
       await expect(orders).toContainText('6'); // Properties after the "Add currency" commit.
       await expect(orders.locator('td[data-label="Keys"]')).toContainText('1 PK');
       await expect(orders.locator('td[data-label="Keys"]')).toContainText('1 FK');
-      // The physical name is a second line under the object name, not a column of its own.
+      // The physical name is a second line under the table name, not a column of its own.
       expect(await table.getByRole('columnheader').allTextContents()).toEqual([
-        'Object',
-        'Kind',
+        'Table',
         'Properties',
         'Keys',
         'Description',
       ]);
-      await o.getByRole('searchbox', { name: 'Find an object' }).fill('line');
+      await o.getByRole('searchbox', { name: 'Find a table' }).fill('line');
       await expect(table.getByRole('row')).toHaveCount(2);
       await expect(table).toContainText('order_lines');
-      await o.getByRole('searchbox', { name: 'Find an object' }).fill('');
+      await o.getByRole('searchbox', { name: 'Find a table' }).fill('');
       await page.screenshot({ path: '/tmp/workbench-odcs-overview.png' });
     },
   );
@@ -139,7 +138,7 @@ try {
       await openDataset('orders');
       const d = dataset('orders');
       await expect(d.getByRole('heading', { level: 2 })).toHaveText('orders');
-      const header = d.getByRole('group', { name: 'Dataset facts' });
+      const header = d.getByRole('group', { name: 'Table facts' });
       for (const fact of ['table', '6 properties', '0 quality rules', 'Add currency'])
         await expect(header).toContainText(fact);
       // Properties is the default asset tab and contains the schema table.
@@ -213,13 +212,13 @@ try {
         .getByRole('button', { name: 'Open customers' })
         .click();
       await expect(dataset('customers')).toBeVisible();
-      await dataset('customers').getByRole('button', { name: 'All objects' }).click();
+      await dataset('customers').getByRole('button', { name: 'All tables' }).click();
       await expect(overview()).toBeVisible();
     },
   );
   // The asset page's Lineage tab hosts the column-level lineage canvas.
   await check(
-    'Lineage tab: the lineage canvas centred on the object, foreign-key neighbours, the sales metrics; property lineage; Relationships',
+    'Lineage tab: the lineage canvas centred on the table, foreign-key neighbours, the sales metrics; property lineage; Relationships',
     async () => {
       await openDataset('orders');
       await views('orders').getByRole('tab', { name: 'Lineage' }).click();
@@ -231,16 +230,14 @@ try {
       await graph.getByRole('button', { name: 'Fit' }).click();
       await page.waitForTimeout(300);
       for (const name of [
-        'Contract object orders',
-        'Contract object customers',
-        'Contract object order_lines',
+        'Table orders',
+        'Table customers',
+        'Table order_lines',
         'Semantic dataset orders',
       ])
         await expect(graph.getByRole('group', { name }).first()).toBeVisible({ timeout: 8000 });
       await expect(graph.locator('.lineage-card.k-metric')).toHaveCount(3);
-      await expect(graph.getByRole('group', { name: 'Contract object orders' })).toHaveClass(
-        /center/,
-      );
+      await expect(graph.getByRole('group', { name: 'Table orders' })).toHaveClass(/center/);
       const props = dataset('orders').getByRole('table', { name: 'Property lineage' });
       await expect(props.getByRole('row').filter({ hasText: 'amount' })).toContainText(
         'gross_revenue',
@@ -298,7 +295,7 @@ try {
       );
       expect(withRules.length).toBeGreaterThan(0);
       const target = withRules[0].name;
-      await overview().getByRole('searchbox', { name: 'Find an object' }).fill(target);
+      await overview().getByRole('searchbox', { name: 'Find a table' }).fill(target);
       await openDataset(target);
       await views(target).getByRole('tab', { name: 'Data Quality' }).click();
       const rules = dataset(target).getByRole('table', { name: 'Quality rules' });
@@ -313,7 +310,7 @@ try {
       await expect(rules).toContainText('nullValues');
       await expect(rules).toContainText('completeness');
       await expect(rules).toContainText('error');
-      await dataset(target).getByRole('button', { name: 'All objects' }).click();
+      await dataset(target).getByRole('button', { name: 'All tables' }).click();
       const levels = await openSection('Service levels');
       await expect(levels).toContainText('latency');
       await expect(levels).toContainText('retention');
@@ -321,13 +318,13 @@ try {
       await page.screenshot({ path: '/tmp/workbench-odcs-quality.png' });
     },
   );
-  await check('UBL: 169 objects stay searchable and a dataset page opens quickly', async () => {
+  await check('UBL: 169 tables stay searchable and a dataset page opens quickly', async () => {
     await openFile('ubl.odcs.yaml', 'UBL business model');
     await contractTab().click();
-    const table = overview().getByRole('table', { name: 'Schema objects' });
+    const table = overview().getByRole('table', { name: 'Tables' });
     await expect(table.getByRole('row')).toHaveCount(170);
     const t = Date.now();
-    await overview().getByRole('searchbox', { name: 'Find an object' }).fill('invoice');
+    await overview().getByRole('searchbox', { name: 'Find a table' }).fill('invoice');
     await expect(table.getByRole('row').nth(1)).toContainText(/invoice/i);
     expect(Date.now() - t).toBeLessThan(1500);
     const first = (await table

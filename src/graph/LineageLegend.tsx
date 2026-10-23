@@ -7,7 +7,7 @@ import './legend.css';
 /** Names an asset category shown in the shared legend. */
 export type LegendKind = 'object' | 'dataset' | 'field' | 'metric' | 'concept' | 'external';
 export const KIND_LABEL: Record<LegendKind, string> = {
-  object: 'Contract object',
+  object: 'Table',
   dataset: 'Semantic dataset',
   field: 'Field',
   metric: 'Metric',

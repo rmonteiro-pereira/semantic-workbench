@@ -49,7 +49,7 @@ export function useNewItems({ model, current, currentIsRdf, setAdding, setRdfAdd
       item('dataset', 'Open an Ossie semantic model to add a dataset.'),
       item('join', 'Open an Ossie semantic model to add a dataset relationship.'),
       item('metric', 'Open an Ossie semantic model to add a metric.'),
-      item('odcs-object', 'Open an ODCS contract to add a contract object.'),
+      item('odcs-object', 'Open an ODCS contract to add a table.'),
       item('concept-mapping', 'Open an Ossie mapping document to add a concept mapping.'),
       {
         label: 'Add RDF resource…',
