@@ -243,6 +243,7 @@ export function WorkspaceCanvas({
       return (
         <MappingExplorer
           onEditItem={editMappingItem}
+          onOpenSource={() => setTab('source')}
           currentId={current?.id}
           revisionKey={docs.map(d => d.id + ':' + d.hash).join('|')}
           dirty={!!current && source !== current.source}

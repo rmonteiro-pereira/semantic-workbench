@@ -20,6 +20,7 @@ import { editContainmentProblems } from './helpers/edit-tour';
 import { adminScreens, leaveAdminPage } from './helpers/admin-tour';
 import { editTitleProblems, odcsLayoutProblems, sidewaysTableProblems } from './helpers/odcs-tour';
 import { projectDialogBackdropProblems } from './helpers/project-dialog-tour';
+import { pageLayoutProblems } from './helpers/page-layout';
 import { dialogStandardProblems } from './helpers/dialog-geometry';
 import { odcsGraphScreenProblems, odcsGraphScreens } from './helpers/odcs-graph-tour';
 import { EXPECTED_EXAMPLE_METRICS } from './example-metric-checks';
@@ -1469,6 +1470,7 @@ try {
   });
   // Checks that only some groups need on top of the shared ones.
   const extraProblems: Record<string, (page: Page, screen: Screen) => Promise<string[]>> = {
+    screens: (page, screen) => pageLayoutProblems(page, screen.name),
     'edit screens': (page, screen) => editContainmentProblems(page, screen.name),
     'ODCS screens': async (page, screen) => [
       ...(await sidewaysTableProblems(page)),

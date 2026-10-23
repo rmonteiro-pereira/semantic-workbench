@@ -3,6 +3,8 @@ import { apiFetch } from './projects/api';
 import React, { useEffect, useState, useRef } from 'react';
 import type { Binding, Finding, RuntimeContext } from '../server/agent/runtime';
 import { QueryComposer } from './mappings/QueryComposer';
+import { EmptyState } from './projects/EmptyState';
+import './mappings/mapping-explorer.css';
 type MappingOption = { id: string; name: string; filename: string; embedded: boolean };
 const stepLabels = {
   concept: 'Concept',
@@ -62,11 +64,14 @@ export function MappingExplorer({
   revisionKey,
   dirty,
   onEditItem,
+  onOpenSource,
 }: {
   currentId?: string;
   revisionKey: string;
   dirty: boolean;
   onEditItem?: (docId: string, path: (string | number)[]) => void;
+  /** Shows the source of the open file, where a binding is added. */
+  onOpenSource?: () => void;
 }) {
   const requestVersion = useRef(0);
   const [options, setOptions] = useState<MappingOption[]>([]);
@@ -157,6 +162,7 @@ export function MappingExplorer({
       ) : null}
     </>
   );
+  const mappingFile = options.find(m => m.id === mappingId)?.filename;
   const fieldIds = new Set(bindings.flatMap(b => b.fields));
   const metricIds = new Set(bindings.flatMap(b => b.metrics));
   const fields = context?.fields.filter(f => fieldIds.has(f.id)) ?? [];
@@ -236,6 +242,9 @@ export function MappingExplorer({
           <small>CONNECTED LAYERS</small>
           <h2>Ontology mappings</h2>
           <p>Follow business concepts into governed fields, metrics and physical sources.</p>
+          <p className="mapping-heading-note">
+            Export agent context downloads this mapping as JSON for an AI agent.
+          </p>
         </div>
         <div className="mapping-heading-actions">
           <button onClick={() => setComposing(true)} disabled={!context}>
@@ -360,9 +369,26 @@ export function MappingExplorer({
             </div>
             <div className="mapping-detail">
               <h3>{concept || 'All concepts'}</h3>
-              {!bindings.length && <p>No resolved bindings for this selection.</p>}
-              <p className="mapping-grouping-note">View grouped by dataset.</p>
-              <details className="mapping-bindings" open={bindings.length <= 12}>
+              {!bindings.length && (
+                <EmptyState
+                  title={concept ? `No binding for ${concept}` : 'No bindings in this mapping'}
+                  action={
+                    onOpenSource && <button onClick={onOpenSource}>Open Source to add one</button>
+                  }
+                >
+                  {mappingFile ?? 'This mapping'} does not bind{' '}
+                  {concept ? 'this concept' : 'any concept'} to a field or metric yet. Add a binding
+                  to the mapping file and it shows here, grouped by dataset.
+                </EmptyState>
+              )}
+              {bindings.length > 0 && (
+                <p className="mapping-grouping-note">View grouped by dataset.</p>
+              )}
+              <details
+                className="mapping-bindings"
+                open={bindings.length <= 12}
+                hidden={!bindings.length}
+              >
                 <summary>{bindings.length} resolved bindings · source evidence</summary>
                 {[...groups].map(([dataset, items]) => (
                   <details className="mapping-group" data-dataset={dataset} key={dataset} open>
@@ -421,7 +447,7 @@ export function MappingExplorer({
                 ))}
               </details>
               <details>
-                <summary>AI context · source metadata</summary>
+                <summary>AI context · the metadata an agent receives</summary>
                 <pre>{JSON.stringify(context.aiContext, null, 2)}</pre>
               </details>
             </div>

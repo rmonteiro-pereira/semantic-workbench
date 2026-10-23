@@ -311,11 +311,10 @@ export function projectMetrics(documents: StoredDocument[], slug: string): KpiSu
 const aggregationOf = (sql: string) =>
   sql.match(/^\s*([A-Za-z_]+)\s*\(/)?.[1].toUpperCase() ?? null;
 const additivityText: Record<Additivity | 'unknown', string> = {
-  additive: 'Additive: values can be summed across every dimension and across time.',
+  additive: 'Values can be summed across every dimension and across time.',
   semi_additive:
-    'Semi-additive: values can be summed across dimensions but not across time. Over several periods, take the period value named by the period aggregation.',
-  non_additive:
-    'Non-additive: never sum this value. At a coarser grain it is recomputed from its inputs.',
+    'Values can be summed across dimensions but not across time. Over several periods, take the period value named by the period aggregation.',
+  non_additive: 'Never sum this value. At a coarser grain it is recomputed from its inputs.',
   unknown:
     'Additivity is not declared and cannot be inferred from the expression, so no rollup is offered.',
 };

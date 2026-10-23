@@ -20,6 +20,7 @@
 }
 .metrics-view.has-detail .metrics-list {
   border-right: 1px solid var(--color-border);
+  padding-inline: 16px;
 }
 .metrics-detail {
   background: var(--color-surface);
@@ -307,6 +308,10 @@
   container-type: inline-size;
 }
 @container (max-width: 760px) {
+  .metrics-view.has-detail .metrics-table th,
+  .metrics-view.has-detail .metrics-table td {
+    padding-inline: 8px;
+  }
   .metrics-view.has-detail .metrics-table .col-unit,
   .metrics-view.has-detail .metrics-table .col-owner,
   .metrics-view.has-detail .metrics-table .col-concept {
@@ -613,6 +618,7 @@
 .rule-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  align-items: start;
   gap: 10px;
 }
 .rule {
@@ -710,6 +716,7 @@
   font-size: var(--text-small);
 }
 .preview-controls .check input {
+  margin: 0;
   width: 16px;
   height: 16px;
   accent-color: var(--color-accent);

@@ -3,6 +3,7 @@
 import { useCapabilities } from '../auth/Capabilities';
 import { useGitSetup } from './GitSetup';
 import { looksLikeAuthFailure } from './CredentialGuide';
+import { EmptyState } from '../projects/EmptyState';
 import { repositoryLocation } from './repository-location';
 import {
   ConnectPrompt,
@@ -582,6 +583,7 @@ export function SourceControl({
   return (
     <section className="scm" aria-label="Source Control">
       <div className="scm-side">
+        <h2 className="scm-title">Source control</h2>
         <div className="scm-head">
           {projects.length > 1 && (
             <select aria-label="Project" value={project} onChange={e => onProject(e.target.value)}>
@@ -710,7 +712,7 @@ export function SourceControl({
             title={access.control('commit').title ?? 'Commit (Ctrl+Enter)'}
           >
             <GitCommit size={14} />
-            Commit
+            Commit to {status.branch}
           </button>
           {access.local && !status.identityConfigured && (
             <small>
@@ -856,10 +858,10 @@ export function SourceControl({
             )}
           </>
         ) : (
-          <p className="scm-empty">
+          <EmptyState title="No file selected">
             Select a changed file to see its diff, or a file's history to compare two of its
             versions.
-          </p>
+          </EmptyState>
         )}
       </div>
     </section>

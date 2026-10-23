@@ -380,6 +380,7 @@ export function ItemEditor({
                     ref={ref as any}
                     {...common}
                     list={spec.options?.length ? id + '-options' : undefined}
+                    title={texts[spec.key] ?? display(spec, value)}
                     value={texts[spec.key] ?? display(spec, value)}
                     onChange={e => edit(spec, e.target.value)}
                   />
