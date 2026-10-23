@@ -1,0 +1,110 @@
+/* Controls that fold behind one button on a phone. */
+.compact-controls {
+  flex: none;
+}
+.compact-controls > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 34px;
+  font-size: var(--text-small);
+  padding: 6px 9px;
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+}
+.compact-controls > button[aria-expanded='true'] {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent-border);
+}
+.compact-controls-panel {
+  position: fixed;
+  left: 8px;
+  right: 8px;
+  z-index: 40;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  max-height: 60dvh;
+  overflow: auto;
+  padding: 10px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 9px;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-shadow) 14%, transparent);
+}
+
+/* The lineage view on a phone: one short toolbar row, one hop row, and a legend of kinds only, so
+   the canvas keeps more than half of the screen. */
+@media (max-width: 650px) {
+  .lineage-toolbar .lineage-search {
+    flex: 1 1 0;
+    max-width: none;
+  }
+  .lineage-hops .lineage-hops-path,
+  .lineage-hops .lineage-hops-count {
+    display: none;
+  }
+  .lineage-legend .key,
+  .lineage-legend .line {
+    display: none;
+  }
+}
+
+/* The whole-model graph keeps names and area titles readable when it is zoomed out. The canvas
+   sets the sizes from its zoom. */
+.full-graph .full-entity strong {
+  font-size: var(--entity-name-size, 16px);
+  -webkit-line-clamp: var(--entity-name-lines, 2);
+}
+.full-graph .full-area-title {
+  font-size: var(--area-title-size, 20px);
+  right: 12px;
+}
+.full-graph .full-area-title > span {
+  flex: none;
+}
+.full-graph .full-area-title strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.full-graph .full-area-title small {
+  display: var(--entity-detail-display, block);
+  font-size: 12px;
+}
+.full-graph .full-entity.collapsed small {
+  display: var(--entity-detail-display, block);
+}
+
+/* The neighborhood toolbar on a phone wraps instead of scrolling sideways, so no control is cut
+   off. */
+@media (max-width: 650px) {
+  .neighborhood-graph .neighborhood-tools {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+  .neighborhood-graph .neighborhood-tools .center-picker {
+    flex: 1 1 140px;
+    width: auto;
+  }
+}
+
+/* A neighborhood card keeps the same height when it drops its details, so the lines that meet
+   it have room to spread along its side. */
+.react-flow.zoom-far .neighborhood-node .node {
+  box-sizing: border-box;
+  min-height: 96px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* The fade at the end of a scrolling toolbar would also cut off the open panel. */
+.full-graph-tools:has(.compact-controls-panel),
+.neighborhood-tools:has(.compact-controls-panel),
+.neighborhood-tools:has(.center-picker[aria-expanded='true']) {
+  mask-image: none;
+}

@@ -26,6 +26,7 @@ import { SelectedPath } from './SelectedPath';
 import { useNarrowScreen } from '../app/useNarrowScreen';
 import { ZoomButtons } from '../graph/ZoomButtons';
 import { GraphOptions, OptionGroup } from '../graph/GraphOptions';
+import { CompactControls } from '../graph/CompactControls';
 import {
   around,
   aroundHops,
@@ -155,8 +156,10 @@ function LineLabelPill({
 // Column names are 13 px, so this zoom keeps them at 12 px or more on screen.
 const READABLE = 0.93;
 const FIRST_VIEW_MARGIN = 24;
+// A large pane enlarges the first view up to this zoom instead of leaving most of it empty.
+const FIRST_VIEW_MAX_ZOOM = 1.4;
 // Generous guesses of the space the layout leaves between columns and between stacked cards.
-const FIRST_VIEW_COLUMN_GAP = 220;
+const FIRST_VIEW_COLUMN_GAP = 240;
 const FIRST_VIEW_ROW_GAP = 60;
 // A card must fit the pane whole, so a short pane (a phone) shows fewer rows per card.
 function rowBudget(paneHeight: number) {
@@ -728,6 +731,12 @@ export function LineageCanvas({
     w.postMessage({ id: 1, input });
   };
   const lastSet = reach.active.at(-1);
+  // A selected column is named by its last path segment; a selected card by its label.
+  const selectedColumnOnly = !!selected && selected.includes('/') && !graph.cards.has(selected);
+  const selectedLabel = selectedColumnOnly
+    ? selected.slice(selected.lastIndexOf('/') + 1)
+    : labelOf(selected);
+  const pierceOriginLabel = selected ? selectedLabel : labelOf(center);
   const currentIsExpansion = currentStep(walk)?.kind === 'expand';
   const walkTo = useCallback(
     (id: string, via?: string) => {
@@ -917,7 +926,12 @@ export function LineageCanvas({
       return;
     }
     const ids = [...reach.cards].filter(id => !unshown.has(id) && f.getNode(id));
-    await f.fitView({ nodes: ids.map(id => ({ id })), padding: 0.06, maxZoom: 1, duration: 0 });
+    await f.fitView({
+      nodes: ids.map(id => ({ id })),
+      padding: 0.06,
+      maxZoom: FIRST_VIEW_MAX_ZOOM,
+      duration: 0,
+    });
     if (f.getZoom() < READABLE - 0.005) await readableFit(center, []);
   }, [center, reach, unshown, showAll, readableFit]);
   useEffect(() => {
@@ -1041,7 +1055,7 @@ export function LineageCanvas({
   const centreName = centerCard?.label ?? 'the centre';
   const lineageOptions = (
     <GraphOptions
-      title={mapping ? 'Graph options' : 'Lineage options'}
+      title="View options"
       intro={
         mapping
           ? `The view shows ${centreName} and every card within the chosen number of mapping lines of it.`
@@ -1169,36 +1183,38 @@ export function LineageCanvas({
             </ul>
           )}
         </div>
-        <PierceControls
-          direction={direction}
-          onDirection={setDirection}
-          running={piercing}
-          onPierce={() => fullPierce()}
-          onStop={stopPierce}
-          canUndo={currentIsExpansion}
-          onUndo={() => dispatch({ type: 'back' })}
-          title={`Open every card on the path of ${selected ? (selected.includes('/') && !graph.cards.has(selected) ? selected.slice(selected.lastIndexOf('/') + 1) : labelOf(selected)) : labelOf(center)}`}
-        />
-        {toolbarExtra}
-        <span className="lineage-toolbar-spacer" />
-        {lineageOptions}
         <button onClick={fitAll} aria-label="Fit" title="Fit the graph">
           <Scan size={14} />
           <span className="tool-label">Fit</span>
         </button>
-        <ZoomButtons
-          onZoomIn={() => void flow.current?.zoomIn({ duration: 150 })}
-          onZoomOut={() => void flow.current?.zoomOut({ duration: 150 })}
-        />
-        {fullscreen && (
-          <button
-            onClick={fullscreen.toggle}
-            aria-label={fullscreen.active ? 'Exit full screen' : 'Full screen'}
-            title="Full screen (F)"
-          >
-            {fullscreen.active ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-          </button>
-        )}
+        <CompactControls>
+          <PierceControls
+            direction={direction}
+            onDirection={setDirection}
+            running={piercing}
+            onPierce={() => fullPierce()}
+            onStop={stopPierce}
+            canUndo={currentIsExpansion}
+            onUndo={() => dispatch({ type: 'back' })}
+            title={`Open every card on the path of ${pierceOriginLabel}`}
+          />
+          {toolbarExtra}
+          <span className="lineage-toolbar-spacer" />
+          {lineageOptions}
+          <ZoomButtons
+            onZoomIn={() => void flow.current?.zoomIn({ duration: 150 })}
+            onZoomOut={() => void flow.current?.zoomOut({ duration: 150 })}
+          />
+          {fullscreen && (
+            <button
+              onClick={fullscreen.toggle}
+              aria-label={fullscreen.active ? 'Exit full screen' : 'Full screen'}
+              title="Full screen (F)"
+            >
+              {fullscreen.active ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+            </button>
+          )}
+        </CompactControls>
       </div>
       <div className="lineage-subbar">
         {foreignKeys && <ForeignKeyHops path={foreignKeys} hops={steps} onHops={setSteps} />}
@@ -1235,7 +1251,7 @@ export function LineageCanvas({
             <button
               className="lineage-overflow"
               aria-pressed={showAll}
-              title={`Not in the first view: ${overflow.map(labelOf).join(', ')}`}
+              title={`Left out so the cards stay readable at this window size: ${overflow.map(labelOf).join(', ')}`}
               onClick={() => toggleShowAll(!showAll)}
             >
               {showAll
@@ -1307,7 +1323,12 @@ export function LineageCanvas({
         )}
       </div>
       <div className="lineage-foot">
-        <LineageLegend kinds={legendKinds} lines={legendLines} keys={!mapping} />
+        <LineageLegend
+          kinds={legendKinds}
+          lines={legendLines}
+          keys={!mapping}
+          bundles={lines.some(line => line.count > 1)}
+        />
         {mapping ? (
           <small className="lineage-reading">
             The mapping's bindings as the resolver reads them (saved revision) · {reach.cards.size}{' '}
@@ -1318,7 +1339,8 @@ export function LineageCanvas({
             className="lineage-reading"
             title="Lines are matched by declared names: foreign keys as declared (drawn from the referenced column to the referencing one), semantic datasets whose source is a table's physical name or name, fields whose expressions read a column, and metrics over those fields. This is the workbench's reading, not part of ODCS or Ossie."
           >
-            Workbench reading of declared names · {reach.cards.size} of {graph.cards.size} assets
+            Links come from the names the contract declares · showing {reach.cards.size} of{' '}
+            {graph.cards.size} items
             {graph.unmatchedDatasets > 0
               ? ` · ${graph.unmatchedDatasets} ${unmatchedVerb} none of this contract's tables`
               : ''}

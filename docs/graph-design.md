@@ -18,7 +18,7 @@ The overview, relationship matrix and actual graph are complementary representat
 
 1. Preserve original entity IDs and all relationship definitions.
 2. Group parallel directed links by source/target while retaining every original ID and definition in the bundle.
-3. Use the shared **Group by** selection for area boundaries. Auto chooses an available grouping with multiple groups. These are display groupings, not new standard semantics.
+3. Use the shared **Group by** selection for area boundaries. Automatic chooses an available grouping with multiple groups. These are display groupings, not new standard semantics.
 4. Offer **Network (fCoSE)** and **Layered (ELK)** layouts.
 5. For network layout, remove residual overlaps with ELK SPOrE and pack area rectangles with ELK's box packer. Tests check actual rectangle intersections and containment.
 6. Render compound areas and entity nodes in React Flow, with controlled node state, memoized node/edge components, viewport culling, area zoom, an optional mini-map (off until switched on in View options) and manual dragging.

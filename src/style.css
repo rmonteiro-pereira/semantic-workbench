@@ -2087,15 +2087,11 @@ main > .status {
     padding-right: 6px;
     font-size: var(--text-small);
   }
-  .grouping-controls > label {
-    font-size: 0;
-    gap: 0;
-  }
   .grouping-controls > label > select {
-    width: 140px;
+    width: 100px;
   }
   .toolbar .search {
-    flex-basis: 135px;
+    flex-basis: 100px;
   }
 }
 .node strong {
@@ -3891,12 +3887,13 @@ button.import {
   height: calc(var(--far-name-size, 28px) * 0.6);
 }
 .zoom-far .node strong {
+  display: -webkit-box;
   font-size: var(--far-name-size, 28px);
   line-height: 1.2;
   margin: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--far-name-lines, 1);
 }
 .zoom-far .lineage-card-title small {
   display: none;

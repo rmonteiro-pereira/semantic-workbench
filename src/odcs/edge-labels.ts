@@ -11,7 +11,8 @@ const CHAR_WIDTH = 7;
 const LINE_HEIGHT = 15;
 const PAD_X = 8;
 const PAD_Y = 4;
-const GAP_AROUND = 6;
+const GAP_AROUND = 16;
+const LINE_CLEARANCE = 6;
 
 /** A rectangle on the canvas: its top-left corner and its size. */
 export type Rect = { x: number; y: number; w: number; h: number };
@@ -47,7 +48,10 @@ export function placeEdgeLabels(
     const { w, h } = labelSize(request.lines);
     if (request.room !== null && request.room < w + 2 * GAP_AROUND) continue;
     const centre = request.at;
-    for (const shift of [0, h + GAP_AROUND, -(h + GAP_AROUND)]) {
+    // A label sits just above its line, then just below it, and only then on it. An opaque pill
+    // over a line reads as part of the line.
+    const clear = h / 2 + LINE_CLEARANCE;
+    for (const shift of [-clear, clear, 0, h + GAP_AROUND, -(h + GAP_AROUND)]) {
       const spot = { x: centre.x - w / 2, y: centre.y + shift - h / 2, w, h };
       const blocked =
         obstacles.some(o => touches(spot, o)) ||
