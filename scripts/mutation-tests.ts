@@ -5,6 +5,7 @@ import { securityReviewMutants } from './security-review-mutants';
 import { checkoutMutants } from './security-review-checkout-mutants';
 import { polishMutants } from './polish-mutants';
 import { exportMutants } from './export-mutants';
+import { sparseMutants } from './sparse-mutants';
 import { chmod, mkdtemp, rm, symlink } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 const root = process.cwd();
@@ -1431,6 +1432,8 @@ mutants.push(...securityReviewMutants, ...checkoutMutants);
 mutants.push(...polishMutants);
 // Project export: the files an archive holds, its size limit, its history rules and its bytes.
 mutants.push(...exportMutants);
+// The folder a project lives in, and the Git arguments that check out only that folder.
+mutants.push(...sparseMutants);
 
 async function run(
   category: string,
