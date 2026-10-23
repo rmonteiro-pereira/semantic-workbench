@@ -31,6 +31,16 @@ type Props = {
   onClose: () => void;
 };
 
+// Why the preview button is off, in words, or nothing while it is on.
+function previewBlockerOf(props: Props) {
+  if (props.canPreview) return undefined;
+  if (props.loading) return 'The query is being composed.';
+  if (props.metrics.length === 0 && props.dimensions.length === 0) {
+    return 'Choose a metric or a field to group by.';
+  }
+  return 'The mapping has errors. Fix them in Source first.';
+}
+
 /** Lets the user pick governed metrics and group-by fields, then shows the SQL; nothing runs. */
 export function QueryComposer(props: Props) {
   const [fieldFilter, setFieldFilter] = useState('');
@@ -38,6 +48,7 @@ export function QueryComposer(props: Props) {
     () => groupFieldsByDataset(props.fields, fieldFilter),
     [props.fields, fieldFilter],
   );
+  const previewBlocker = previewBlockerOf(props);
   const footer = (
     <>
       <span className="dialog-footer-spacer" />
@@ -55,15 +66,23 @@ export function QueryComposer(props: Props) {
     </>
   );
   return (
-    <Modal title="Compose a query" onCancel={props.onClose} footer={footer} size="large">
+    <Modal
+      title="Compose a query"
+      onCancel={props.onClose}
+      footer={footer}
+      footerNote={previewBlocker}
+      size="wide"
+    >
       <div className="mapping-query">
         <p className="dialog-intro">
-          Select mapped building blocks. Governed formulas remain unchanged; joins must be declared
-          in the semantic model. The SQL is shown, never run.
+          Pick the metrics to calculate and the fields to group them by. The query is shown as SQL
+          and is never run.
         </p>
         <fieldset>
           <legend>Governed metrics</legend>
-          {!props.governed.length && <p>No metrics mapped to this selection.</p>}
+          {!props.governed.length && (
+            <p>No metric is mapped here. Pick a concept that has bindings on the Mappings page.</p>
+          )}
           {props.governed.map(metric => (
             <label key={metric.id}>
               <input
@@ -79,7 +98,9 @@ export function QueryComposer(props: Props) {
         </fieldset>
         <fieldset>
           <legend>Group by mapped fields</legend>
-          {!props.fields.length && <p>No fields mapped to this selection.</p>}
+          {!props.fields.length && (
+            <p>No field is mapped here. Pick a concept that has bindings on the Mappings page.</p>
+          )}
           {props.fields.length > 0 && (
             <input
               type="search"

@@ -258,12 +258,18 @@ function PropertyEditDialog({
         className="primary"
         disabled={!changes.length || saving}
       >
-        Save
+        Save to file
       </button>
     </>
   );
   return (
-    <Modal title={`Edit ${path}`} onCancel={onClose} footer={footer} className="odcs-edit-dialog">
+    <Modal
+      title={`Edit property: ${path}`}
+      onCancel={onClose}
+      footer={footer}
+      footerNote={changes.length ? undefined : 'No changes yet.'}
+      className="odcs-edit-dialog"
+    >
       <form id="property-edit-form" className="odcs-form" onSubmit={save}>
         <LogicalTypeField
           value={draft.logicalType}
@@ -287,11 +293,11 @@ function PropertyEditDialog({
             disabled={!canClassify}
             onChange={e => set({ classification: e.target.value })}
           />
-          {!canClassify && (
-            <small className="odcs-form-hint">
-              Only a Steward or Admin changes a classification.
-            </small>
-          )}
+          <small className="odcs-form-hint">
+            {canClassify
+              ? 'The sensitivity label of this column, such as public or restricted.'
+              : 'Only a Steward or Admin changes a classification.'}
+          </small>
         </label>
         <label className="odcs-form-field">
           <span>Description</span>

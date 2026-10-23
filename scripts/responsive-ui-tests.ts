@@ -19,6 +19,8 @@ import { tourGroups } from './helpers/all-tours';
 import { editContainmentProblems } from './helpers/edit-tour';
 import { adminScreens, leaveAdminPage } from './helpers/admin-tour';
 import { sidewaysTableProblems } from './helpers/odcs-tour';
+import { projectDialogBackdropProblems } from './helpers/project-dialog-tour';
+import { dialogStandardProblems } from './helpers/dialog-geometry';
 import { odcsGraphScreenProblems, odcsGraphScreens } from './helpers/odcs-graph-tour';
 import { EXPECTED_EXAMPLE_METRICS } from './example-metric-checks';
 import { exampleMetricScreens } from './helpers/examples-tour';
@@ -1469,6 +1471,9 @@ try {
   const extraProblems: Record<string, (page: Page, screen: Screen) => Promise<string[]>> = {
     'edit screens': (page, screen) => editContainmentProblems(page, screen.name),
     'ODCS screens': page => sidewaysTableProblems(page),
+    'project dialogs': async (page, screen) =>
+      screen.name.startsWith('project-') ? projectDialogBackdropProblems(page) : [],
+    'export dialog': page => projectDialogBackdropProblems(page),
   };
   for (const group of groups) {
     for (const [width, height] of [
@@ -1482,6 +1487,8 @@ try {
         for (const screen of group.screens) {
           await showScreen(tourPage, screen);
           expect(await screenProblems(tourPage, screen)).toEqual([]);
+          if (screen.dialog)
+            expect(await dialogStandardProblems(tourPage), screen.name).toEqual([]);
           const extra = extraProblems[group.title];
           if (extra) expect(await extra(tourPage, screen)).toEqual([]);
           await noOverflow(tourPage);

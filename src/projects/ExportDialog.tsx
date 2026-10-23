@@ -110,10 +110,10 @@ export function ExportDialog({ project, dirty, saveOpenFile, onClose, onDone }: 
   );
 
   return (
-    <Modal title={`Export ${project.name}`} onCancel={onClose} footer={footer} size="small">
+    <Modal title={`Export ${project.name}`} onCancel={onClose} footer={footer} size="narrow">
       <p className="dialog-intro">
-        Downloads a .zip of the project's files exactly as stored, in their folders, with
-        .gitignore. The .git folder and files Git ignores are left out.
+        Downloads a .zip of the project's files in their folders. Files that Git ignores are left
+        out. Tick the box to add the Git history.
       </p>
       <fieldset className="export-choice">
         <label className="check-row">

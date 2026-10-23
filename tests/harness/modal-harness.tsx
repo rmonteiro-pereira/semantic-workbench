@@ -13,7 +13,7 @@ function App() {
       {open && (
         <Modal
           title="Example"
-          size="large"
+          size="wide"
           onCancel={() => {
             setLog(l => [...l, 'cancel']);
             setOpen(false);

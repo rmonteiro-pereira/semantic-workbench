@@ -76,7 +76,7 @@ export function SettingsSection() {
         <AdminConfirmation
           title="End sessions"
           onCancel={() => setEnd(null)}
-          size="small"
+          size="narrow"
           actions={
             <button className="primary" onClick={endSessions}>
               Confirm end sessions

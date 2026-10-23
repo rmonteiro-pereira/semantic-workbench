@@ -5,6 +5,7 @@ import {
   closeSyncDialog,
   openRemoteDialog,
   openSyncDialog,
+  remoteDialog,
   runSyncAction,
 } from './helpers/sync-dialog';
 import { appUrl } from './helpers/base-url';
@@ -82,7 +83,7 @@ const panel = () => page.getByRole('region', { name: 'Source Control' });
 
 async function setRemote(url: string) {
   await openRemoteDialog(page);
-  const dialog = page.getByRole('dialog', { name: 'Remote' });
+  const dialog = remoteDialog(page);
   await expect(dialog).toBeVisible();
   await expect(dialog.getByLabel('Remote name')).toHaveValue('origin');
   await dialog.getByLabel('Remote URL').fill(url);
@@ -144,7 +145,7 @@ try {
       };
       await page.route('**/git/status', holdStatus);
       await openRemoteDialog(page);
-      const dialog = page.getByRole('dialog', { name: 'Remote' });
+      const dialog = remoteDialog(page);
       await expect(dialog.getByLabel('Remote URL')).toBeDisabled();
       await expect(dialog.getByLabel('Remote name')).toBeDisabled();
       releaseStatus.resolve();
@@ -162,7 +163,7 @@ try {
     async () => {
       const firstCommit = sh(repo, ['rev-list', '--max-parents=0', 'HEAD']).trim();
       await openRemoteDialog(page);
-      const dialog = page.getByRole('dialog', { name: 'Remote' });
+      const dialog = remoteDialog(page);
       const folder = dialog.getByLabel('Folder in repository');
       await folder.fill('/etc');
       await expect(dialog).toContainText('not an absolute path');
@@ -324,7 +325,7 @@ try {
       ).toBe(true);
       await expectDialogGeometry(page, 'clone-repository');
       await page.screenshot({ path: `/tmp/workbench-git-clone-${width}.png` });
-      await dialog.getByRole('button', { name: 'Close' }).click();
+      await dialog.getByRole('button', { name: 'Cancel' }).click();
     }
   });
   await check('browser has no uncaught runtime errors', async () => expect(errors).toEqual([]));

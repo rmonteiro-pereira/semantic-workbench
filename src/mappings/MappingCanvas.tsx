@@ -186,7 +186,7 @@ export function MappingCanvas({
       {finding && (
         <Modal
           title="Mapping finding"
-          size="small"
+          size="narrow"
           onCancel={() => setFinding(null)}
           footer={
             <>

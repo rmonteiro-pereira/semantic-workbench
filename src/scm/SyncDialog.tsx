@@ -57,18 +57,22 @@ function RemoteSection({ status, busy, can, onEditRemote, onRemoteAction }: Remo
   return (
     <section aria-label="Remote">
       <h3>Remote</h3>
-      <p className="scm-sync-remote">
+      <div className="scm-sync-remote">
         {remoteNames.length ? (
           <span className="scm-remote-url" title={status.remotes[remoteNames[0]]}>
             {remoteNames[0]}: {status.remotes[remoteNames[0]]}
           </span>
         ) : (
-          <span>No remote yet. Add one to push and pull.</span>
+          <p>No remote yet. Add one to push and pull.</p>
         )}
-        <button hidden={!can('setRemote')} onClick={onEditRemote}>
-          Remote…
+        <button
+          className={remoteNames.length ? undefined : 'primary'}
+          hidden={!can('setRemote')}
+          onClick={onEditRemote}
+        >
+          {remoteNames.length ? 'Change remote…' : 'Add remote…'}
         </button>
-      </p>
+      </div>
       {remoteNames.length > 0 && (
         <ul className="scm-sync-actions" role="group" aria-label="Remote actions">
           {REMOTE_ACTIONS.filter(({ action }) => mayRun(action, can)).map(
@@ -103,7 +107,7 @@ function ConfirmPublish({
   return (
     <Modal
       title={`Publish to ${target}?`}
-      size="small"
+      size="narrow"
       onCancel={onCancel}
       footer={
         <>
@@ -141,7 +145,7 @@ export function SyncDialog(props: Props) {
   return (
     <Modal
       title="Sync"
-      size="small"
+      size="narrow"
       onCancel={onClose}
       className="scm-sync-dialog"
       footer={<button onClick={onClose}>Close</button>}

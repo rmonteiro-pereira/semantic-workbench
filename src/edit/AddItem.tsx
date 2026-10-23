@@ -63,6 +63,13 @@ function createFields(kind: ItemKind, choices: Choices): FieldSpec[] {
     ];
   return base;
 }
+// "Name and type are required." from the labels of the required fields.
+function requiredHint(labels: string[]) {
+  const names = labels.map((label, index) => (index === 0 ? label : label.toLowerCase()));
+  const list = names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : names[0];
+  return `${list} ${names.length > 1 ? 'are' : 'is'} required.`;
+}
+
 /** Previews and validates a new item before saving it. */
 export function AddItem({
   doc,
@@ -104,8 +111,15 @@ export function AddItem({
     ? listPathFor(kind, document, owner, semanticModelPrefix(document) ?? [])
     : null;
   type Plan =
-    | { error: string; text?: undefined }
-    | { error?: undefined; text: string; inserted: string; line: number; path: Path };
+    | { error: string; incomplete?: boolean; text?: undefined }
+    | {
+        error?: undefined;
+        incomplete?: undefined;
+        text: string;
+        inserted: string;
+        line: number;
+        path: Path;
+      };
   const plan = useMemo((): Plan => {
     if (!kind || !listPath) return { error: 'This document cannot hold this kind of item.' };
     const missing = fields.filter(
@@ -115,8 +129,10 @@ export function AddItem({
           values[f.key] === '' ||
           (Array.isArray(values[f.key]) && !values[f.key].length)),
     );
-    if (missing.length)
-      return { error: `Fill in ${missing.map(f => f.label.toLowerCase()).join(', ')}.` };
+    if (missing.length) {
+      const required = fields.filter(f => f.required).map(f => f.label);
+      return { error: requiredHint(required), incomplete: true };
+    }
     const item = newItem(kind, values);
     const list = itemValue(base, listPath);
     const name = itemName(kind, item);
@@ -197,8 +213,9 @@ export function AddItem({
       title={`Add ${kind ? kindLabel[kind].toLowerCase() : 'item'} to ${doc.path}`}
       onCancel={onClose}
       className="add-item"
-      size="large"
+      size="wide"
       footer={footer}
+      footerNote={plan.incomplete ? plan.error : undefined}
     >
       {kinds.length > 1 && (
         <label>
@@ -287,9 +304,8 @@ export function AddItem({
           })}
         </div>
       )}
-      {plan.error !== undefined ? (
-        <p className="item-note">{plan.error}</p>
-      ) : (
+      {plan.error !== undefined && !plan.incomplete && <p className="item-note">{plan.error}</p>}
+      {plan.error === undefined && (
         <div className="item-preview">
           <strong>Will be added at line {plan.line}</strong>
           <pre aria-label="Text to insert">{plan.inserted.replace(/^\r?\n/, '')}</pre>

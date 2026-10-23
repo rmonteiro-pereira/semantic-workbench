@@ -371,7 +371,7 @@ try {
       };
       const openEditor = async (path: string) => {
         await table.getByRole('button', { name: `Edit ${path}`, exact: true }).click();
-        const dialog = page.getByRole('dialog', { name: `Edit ${path}` });
+        const dialog = page.getByRole('dialog', { name: `Edit property: ${path}` });
         await expect(dialog).toBeVisible();
         return dialog;
       };

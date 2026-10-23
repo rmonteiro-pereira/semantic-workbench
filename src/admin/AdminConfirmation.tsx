@@ -11,7 +11,7 @@ export function AdminConfirmation({
   onCancel,
   actions,
   cancelLabel = 'Cancel',
-  size = 'medium',
+  size = 'narrow',
   lastAdminNotice = false,
   children,
 }: {

@@ -2,7 +2,7 @@
 import type { Page } from '@playwright/test';
 import { openCloneDialog } from './project-dialog-tour';
 import { showSidebar, type Screen } from './screen-tour';
-import { openSyncDialog } from './sync-dialog';
+import { openSyncDialog, remoteButton, remoteDialog } from './sync-dialog';
 
 async function openRemoteWithFolder(page: Page, folder: string) {
   await showSidebar(page);
@@ -12,8 +12,8 @@ async function openRemoteWithFolder(page: Page, folder: string) {
     .click();
   await page.waitForTimeout(500);
   const sync = await openSyncDialog(page);
-  await sync.getByRole('button', { name: 'Remote…', exact: true }).click();
-  const dialog = page.getByRole('dialog', { name: 'Remote' });
+  await remoteButton(sync).click();
+  const dialog = remoteDialog(page);
   await dialog.getByLabel('Remote URL').fill('/tmp/team-repository.git');
   await dialog.getByLabel('Folder in repository').fill(folder);
   return dialog;

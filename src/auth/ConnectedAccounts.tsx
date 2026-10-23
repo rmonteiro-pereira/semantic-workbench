@@ -50,7 +50,7 @@ export function ConnectedAccountsDialog({ me, onClose }: { me: Me; onClose: () =
     </>
   );
   return (
-    <Modal title="Connected accounts" onCancel={onClose} size="small" footer={footer}>
+    <Modal title="Connected accounts" onCancel={onClose} size="narrow" footer={footer}>
       <dl className="connected-accounts">
         <dt>GitHub</dt>
         <dd>{githubStatus(me)}</dd>
