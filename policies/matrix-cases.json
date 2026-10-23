@@ -245,6 +245,14 @@
       }
     },
     {
+      "case": "GET /api/projects/:slug/export",
+      "action": "export",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
       "case": "POST /api/projects/:slug/save-batch",
       "action": "edit",
       "resource": {

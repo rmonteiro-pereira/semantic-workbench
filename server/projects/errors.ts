@@ -102,3 +102,14 @@ export class NothingToPublishError extends Error {
     this.name = 'NothingToPublishError';
   }
 }
+
+/** Refuses a download whose content exceeds the size limit, before anything is sent. */
+export class TooLargeError extends Error {
+  constructor(
+    message: string,
+    public limitBytes: number,
+  ) {
+    super(message);
+    this.name = 'TooLargeError';
+  }
+}

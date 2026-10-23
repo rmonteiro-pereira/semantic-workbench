@@ -19,6 +19,7 @@ export const routeExamples: { method: string; path: string; body?: unknown }[] =
   { method: 'DELETE', path: '/api/projects/missing' },
   { method: 'POST', path: '/api/projects/missing/move' },
   { method: 'POST', path: '/api/projects/missing/import' },
+  { method: 'GET', path: '/api/projects/missing/export' },
   { method: 'POST', path: '/api/projects/missing/save-batch' },
   { method: 'POST', path: '/api/projects/missing/gitignore' },
   { method: 'GET', path: '/api/projects/missing/metrics' },
