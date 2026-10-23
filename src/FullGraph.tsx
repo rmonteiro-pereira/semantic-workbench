@@ -29,6 +29,7 @@ import { ZoomButtons } from './graph/ZoomButtons';
 import { modelOverview } from './overview';
 import { groupRelationships } from './graph-view';
 import { collapseAreas } from './collapse';
+import { FALLBACK_GROUP_COLOR } from './theme-palette';
 import { layoutFullGraph, packNetwork } from './full-layout';
 import type { Entity, Relationship } from './model';
 const sides = [
@@ -334,7 +335,7 @@ export function FullGraph(props: Props) {
                   internalCount:
                     display.internal.get(entityById.get(n.id)?.definition?.collapsedArea)?.length ??
                     0,
-                  color: group?.color ?? '#638c7b',
+                  color: group?.color ?? FALLBACK_GROUP_COLOR,
                 },
           };
         }),
@@ -540,14 +541,14 @@ export function FullGraph(props: Props) {
               : undefined,
           markerEnd: {
             type: MarkerType.ArrowClosed,
-            color: active || adjacent ? '#247d65' : '#8ca49b',
+            color: active || adjacent ? 'var(--color-edge-active)' : 'var(--color-edge-idle)',
             width: 13,
             height: 13,
           },
           zIndex: active ? 4 : 1,
           interactionWidth: 24,
           style: {
-            stroke: active || adjacent ? '#247d65' : '#98aaa3',
+            stroke: active || adjacent ? 'var(--color-edge-active)' : 'var(--color-edge-idle)',
             strokeWidth: active ? 2 : 1.2,
             strokeOpacity: active || adjacent ? 0.95 : focus ? 0.07 : 0.48,
           },
@@ -738,9 +739,13 @@ export function FullGraph(props: Props) {
             maxZoom={2}
             onlyRenderVisibleElements
           >
-            <Background gap={24} color="#dce6e0" />
+            <Background gap={24} color="var(--color-border)" />
             {miniMap && (
-              <MiniMap pannable zoomable nodeColor={n => String(n.data.color ?? '#a4c6b4')} />
+              <MiniMap
+                pannable
+                zoomable
+                nodeColor={n => String(n.data.color ?? 'var(--color-neutral)')}
+              />
             )}
           </ReactFlow>
         </SmartEdgeProvider>
