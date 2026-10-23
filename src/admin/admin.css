@@ -158,10 +158,30 @@
   color: #1f5e4e;
   font-weight: 600;
 }
+/* Each area is a button with a line saying what it is for. */
 .admin-areas {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.admin-areas li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+}
+.admin-dialog .admin-areas button {
+  flex: 0 0 150px;
+  text-align: left;
+}
+.admin-areas span {
+  flex: 1 1 200px;
+  min-width: 0;
+  font-size: var(--text-small);
+  color: var(--text-muted);
 }
 .admin-notice {
   font-size: 12px;
@@ -174,6 +194,10 @@
   gap: 8px;
   border-top: 1px solid #e6ecec;
   padding-top: 12px;
+}
+/* A person's name takes the first line of a review entry and what changes for them the next. */
+.admin-review-detail {
+  display: block;
 }
 .admin-chip {
   display: inline-block;
@@ -221,7 +245,12 @@
 .admin-dialog [role='alert'] {
   color: var(--danger, #b33);
 }
-/* On phones each record becomes a block of lines instead of a cramped row of columns. */
+.admin-filter-disclosure > summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+/* On phones each record becomes a card of labelled lines instead of a cramped row of columns. */
 @media (max-width: 600px) {
   .admin-records thead {
     display: none;
@@ -234,12 +263,20 @@
     width: 100%;
   }
   .admin-records tr {
-    border-bottom: 1px solid #e6ecec;
-    padding: 6px 0;
+    border: 1px solid #e6ecec;
+    border-radius: 8px;
+    padding: 6px 10px;
+    margin-bottom: 8px;
   }
   .admin-records td {
     border: 0;
     padding: 4px 0;
+  }
+  .admin-records td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: var(--text-small);
+    color: var(--text-muted);
   }
   .admin-dialog .admin-table table {
     font-size: 12px;
@@ -264,4 +301,32 @@
   .workspace-header:has(.admin-launcher) > .person-menu {
     grid-column: 5;
   }
+}
+/* Forms put their primary action in the footer; the slot takes no box of its own. */
+.admin-dialog .admin-footer-actions {
+  display: contents;
+}
+/* Only one dialog layer shows: a dialog hides its own panel while a dialog opened from it is
+   open, and the nested dialog stays visible because it sits in the top layer. */
+.admin-dialog:has(dialog[open]) {
+  visibility: hidden;
+}
+.admin-dialog dialog[open] {
+  visibility: visible;
+}
+/* An identifier follows the name it belongs to, quieter and in a face that keeps characters apart. */
+.admin-dialog .admin-id {
+  display: block;
+  font-family: monospace;
+  font-size: var(--text-small);
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+/* The built-in rules fold away so the rules an Admin can change come first. */
+.admin-dialog .admin-builtin-rules > summary {
+  font-weight: 600;
+  cursor: pointer;
+}
+.admin-dialog .admin-builtin-rules details {
+  margin: 6px 0 0 14px;
 }

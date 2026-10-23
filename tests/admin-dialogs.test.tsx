@@ -75,7 +75,7 @@ test('Users passes the no-access filter and prefills a verified address', async 
 
 test('invalid raw policies show line and column and cannot reach dry run', async () => {
   const policies = await openArea('Policies');
-  await browserExpect(policies.getByText('Baseline — read-only', { exact: true })).toBeVisible();
+  await browserExpect(policies.getByText(/^Built-in rules \(\d+\) — read-only$/)).toBeVisible();
   await policies.getByRole('button', { name: 'New rule', exact: true }).click();
   const editor = page.getByRole('dialog', { name: 'Policy editor', exact: true });
   await editor.getByLabel('Advanced raw editor').check();

@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { useMe } from '../auth/useMe';
 import { whenLabel } from './when';
 import { MenuButton } from '../projects/Menu';
-import { AdminDialog, type DialogProps } from './AdminDialog';
+import { AdminDialog, DialogActions, type DialogProps } from './AdminDialog';
 import { adminApi, problemText } from './api';
 import { useAdminData } from './useAdminData';
 import { GrantForm, scopeLabel } from './GrantForm';
@@ -53,8 +53,7 @@ export function UsersDialog({ onClose }: DialogProps) {
                 <td>
                   {user.name}
                   <br />
-                  {user.verifiedEmail ?? user.id}
-                  <br />
+                  <small className="admin-id">{user.verifiedEmail ?? user.id}</small>
                   Last sign-in: {user.lastSignInAt ? whenLabel(user.lastSignInAt) : 'never'}
                   {user.access === 'none' && <p>No access</p>}
                   {user.deactivated && <p>Deactivated</p>}
@@ -62,7 +61,8 @@ export function UsersDialog({ onClose }: DialogProps) {
                 <td>
                   {user.groups.map(group => (
                     <p key={group.id}>
-                      {group.displayName ?? 'name not resolved'} ({group.id})
+                      {group.displayName ?? 'name not resolved'}
+                      <small className="admin-id">{group.id}</small>
                     </p>
                   ))}
                   {user.roleSources.map((source, index) => (
@@ -158,7 +158,12 @@ function UserOperation({
     }
   }
   return (
-    <AdminDialog title={title} onClose={onClose} size="small">
+    <AdminDialog
+      title={title}
+      onClose={onClose}
+      size="small"
+      lastAdminNotice={kind === 'deactivate'}
+    >
       <p>
         {title} for {user.name}? This changes only this workbench.
       </p>
@@ -169,9 +174,15 @@ function UserOperation({
         </label>
       )}
       {error && <p role="alert">{error}</p>}
-      <button disabled={busy || (kind !== 'sessions' && !reason.trim())} onClick={confirm}>
-        Confirm {title.toLowerCase()}
-      </button>
+      <DialogActions>
+        <button
+          className="primary"
+          disabled={busy || (kind !== 'sessions' && !reason.trim())}
+          onClick={confirm}
+        >
+          Confirm {title.toLowerCase()}
+        </button>
+      </DialogActions>
     </AdminDialog>
   );
 }

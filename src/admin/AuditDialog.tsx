@@ -12,6 +12,14 @@ const filterLabels: Record<string, string> = {
   from: 'From',
   to: 'To',
 };
+// Phones start with the filters folded so the results are what the dialog opens on.
+function startsWithFiltersOpen(): boolean {
+  return globalThis.matchMedia?.('(min-width: 601px)').matches ?? true;
+}
+
+function activeFilterCount(filters: Record<string, string>): number {
+  return Object.values(filters).filter(value => value !== '').length;
+}
 /** Filters and pages the server-scoped audit stream and exports only the selected filters. */
 export function AuditDialog({ onClose }: DialogProps) {
   const [filters, setFilters] = useState<Record<string, string>>({});
@@ -50,28 +58,32 @@ export function AuditDialog({ onClose }: DialogProps) {
   }
   return (
     <AdminDialog title="Audit" onClose={onClose}>
-      <fieldset className="admin-filters">
-        <legend>Filters</legend>
-        {Object.entries(filterLabels).map(([name, label]) => (
-          <label key={name}>
-            {label}
-            <input
-              type={name === 'from' || name === 'to' ? 'datetime-local' : 'text'}
-              value={filters[name] ?? ''}
-              onChange={event => filter(name, event.target.value)}
-            />
-          </label>
-        ))}
-        <SelectField
-          label="Decision"
-          value={filters.decision ?? ''}
-          onChange={event => filter('decision', event.target.value)}
-        >
-          <option value="">All</option>
-          <option value="allow">Allow</option>
-          <option value="deny">Deny</option>
-        </SelectField>
-      </fieldset>
+      <details className="admin-filter-disclosure" open={startsWithFiltersOpen()}>
+        <summary>
+          Filters{activeFilterCount(filters) > 0 && ` (${activeFilterCount(filters)})`}
+        </summary>
+        <div className="admin-filters">
+          {Object.entries(filterLabels).map(([name, label]) => (
+            <label key={name}>
+              {label}
+              <input
+                type={name === 'from' || name === 'to' ? 'datetime-local' : 'text'}
+                value={filters[name] ?? ''}
+                onChange={event => filter(name, event.target.value)}
+              />
+            </label>
+          ))}
+          <SelectField
+            label="Decision"
+            value={filters.decision ?? ''}
+            onChange={event => filter('decision', event.target.value)}
+          >
+            <option value="">All</option>
+            <option value="allow">Allow</option>
+            <option value="deny">Deny</option>
+          </SelectField>
+        </div>
+      </details>
       {(error || loadError) && <p role="alert">{error || loadError}</p>}
       <div className="admin-actions">
         <button onClick={() => void download('jsonl')}>Export JSONL</button>
@@ -89,17 +101,17 @@ export function AuditDialog({ onClose }: DialogProps) {
           <tbody>
             {data?.entries.map((entry, index) => (
               <tr key={entry.requestId + index}>
-                <td>
+                <td data-label="When / person">
                   {whenLabel(entry.at)}
                   <br />
                   {entry.principal.name ?? entry.principal.id}
                 </td>
-                <td>
+                <td data-label="Action / resource">
                   {entry.action}
                   <br />
                   {Object.values(entry.resource).join(' · ')}
                 </td>
-                <td>
+                <td data-label="Decision">
                   {entry.decision}
                   {entry.outcome && ` · ${entry.outcome}`}
                   <br />

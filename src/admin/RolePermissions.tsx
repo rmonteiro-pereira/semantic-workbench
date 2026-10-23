@@ -3,6 +3,7 @@ import type { Role } from './types';
 import { SelectField } from './SelectField';
 import { BRANCH_ACTIONS, FILE_ACTIONS, LEVELS, type Action } from '../../server/auth/actions';
 import { commaList } from './change-review';
+import { actionLabel } from './action-labels';
 
 const groups = {
   Read: ['read', 'export', 'history', 'viewOwnState'],
@@ -75,13 +76,17 @@ export function RolePermissions({
                     <input
                       type="checkbox"
                       checked={Boolean(permission)}
+                      aria-describedby={`action-id-${action}`}
                       onChange={() => toggle(action)}
                     />
-                    {action}
+                    {actionLabel(action)}
                   </label>
+                  <small className="admin-id" id={`action-id-${action}`}>
+                    {action}
+                  </small>
                   {permission && (
                     <details>
-                      <summary>Conditions for {action}</summary>
+                      <summary>Conditions for {actionLabel(action).toLowerCase()}</summary>
                       {BRANCH_ACTIONS.includes(action) && (
                         <label>
                           Branch

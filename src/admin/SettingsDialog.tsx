@@ -1,7 +1,7 @@
 import { Fragment, useCallback, useState } from 'react';
 import { useMe } from '../auth/useMe';
 import { whenLabel } from './when';
-import { AdminDialog, type DialogProps } from './AdminDialog';
+import { AdminDialog, DialogActions, type DialogProps } from './AdminDialog';
 import { adminApi, problemText } from './api';
 import { useAdminData } from './useAdminData';
 import { VersionHistory } from './VersionHistory';
@@ -64,7 +64,11 @@ export function SettingsDialog({ onClose }: DialogProps) {
         <AdminDialog title="End sessions" onClose={() => setEnd(null)} size="small">
           <p>End all sessions for {end}?</p>
           {failure && <p role="alert">{failure}</p>}
-          <button onClick={endSessions}>Confirm end sessions</button>
+          <DialogActions>
+            <button className="primary" onClick={endSessions}>
+              Confirm end sessions
+            </button>
+          </DialogActions>
         </AdminDialog>
       )}
       {history && (
