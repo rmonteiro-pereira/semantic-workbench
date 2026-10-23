@@ -159,6 +159,19 @@ export async function authGeometry(
         const cut = await text.evaluate(el => el.scrollWidth > el.clientWidth + 1);
         assert(!cut, `the save state is cut at ${width}×${height}`);
       }
+      // No header action may spill out of its group or sit under the person menu.
+      const spill = await page.evaluate(() => {
+        const group = document.querySelector('.header-actions')?.getBoundingClientRect();
+        const person = document.querySelector('.person-menu')?.getBoundingClientRect();
+        const children = [...document.querySelectorAll('.header-actions > *')];
+        const widest = Math.max(...children.map(child => child.getBoundingClientRect().right));
+        const underPerson = !!group && !!person && group.right > person.left + 1;
+        return { outOfGroup: !!group && widest > group.right + 1, underPerson };
+      });
+      assert(
+        !spill.outOfGroup && !spill.underPerson,
+        `header actions collide at ${width}×${height}`,
+      );
       const trigger = await page
         .getByRole('button', { name: 'Person menu', exact: true })
         .boundingBox();
