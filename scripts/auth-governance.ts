@@ -75,7 +75,7 @@ async function editorRefusals(page: Page, target: SignInTarget) {
   await table.getByRole('tab', { name: /^Properties/ }).click();
   // The edit dialog is where classification looks disabled for an Editor, with the reason beside it.
   await table.getByRole('button', { name: 'Edit amount', exact: true }).click();
-  const dialog = page.getByRole('dialog', { name: 'Edit amount' });
+  const dialog = page.getByRole('dialog', { name: 'Edit orders.amount', exact: true });
   await expect(dialog.getByLabel('Classification')).toBeDisabled();
   await expect(dialog.getByLabel('Description')).toBeEditable();
   await expect(dialog).toContainText('Only a Steward or Admin changes a classification');

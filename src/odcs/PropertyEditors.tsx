@@ -107,6 +107,8 @@ export type PropertyEditor = {
 /** Names the property an open edit dialog works on. */
 export type PropertyEditRequest = {
   objectIndex: number;
+  /** The table's name, shown in the dialog title next to the property. */
+  tableName: string;
   path: string;
   property: Record<string, any>;
   onClose: () => void;
@@ -226,6 +228,7 @@ function LogicalTypeField({
 
 function PropertyEditDialog({
   objectIndex,
+  tableName,
   path,
   property,
   onClose,
@@ -248,7 +251,7 @@ function PropertyEditDialog({
   }
   const footer = (
     <>
-      <span className="dialog-footer-spacer" />
+      <span className="odcs-save-hint">{changes.length ? '' : 'No changes yet'}</span>
       <button type="button" onClick={onClose}>
         Cancel
       </button>
@@ -258,12 +261,17 @@ function PropertyEditDialog({
         className="primary"
         disabled={!changes.length || saving}
       >
-        Save
+        {saving ? 'Saving…' : 'Save to file'}
       </button>
     </>
   );
   return (
-    <Modal title={`Edit ${path}`} onCancel={onClose} footer={footer} className="odcs-edit-dialog">
+    <Modal
+      title={`Edit ${tableName}.${path}`}
+      onCancel={onClose}
+      footer={footer}
+      className="odcs-edit-dialog"
+    >
       <form id="property-edit-form" className="odcs-form" onSubmit={save}>
         <LogicalTypeField
           value={draft.logicalType}

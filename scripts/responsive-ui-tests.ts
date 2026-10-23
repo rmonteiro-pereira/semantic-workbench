@@ -18,7 +18,7 @@ import { screenProblems, showScreen, type Screen } from './helpers/screen-tour';
 import { tourGroups } from './helpers/all-tours';
 import { editContainmentProblems } from './helpers/edit-tour';
 import { adminScreens, leaveAdminPage } from './helpers/admin-tour';
-import { sidewaysTableProblems } from './helpers/odcs-tour';
+import { editTitleProblems, odcsLayoutProblems, sidewaysTableProblems } from './helpers/odcs-tour';
 import { odcsGraphScreenProblems, odcsGraphScreens } from './helpers/odcs-graph-tour';
 import { EXPECTED_EXAMPLE_METRICS } from './example-metric-checks';
 import { exampleMetricScreens } from './helpers/examples-tour';
@@ -1468,7 +1468,11 @@ try {
   // Checks that only some groups need on top of the shared ones.
   const extraProblems: Record<string, (page: Page, screen: Screen) => Promise<string[]>> = {
     'edit screens': (page, screen) => editContainmentProblems(page, screen.name),
-    'ODCS screens': page => sidewaysTableProblems(page),
+    'ODCS screens': async (page, screen) => [
+      ...(await sidewaysTableProblems(page)),
+      ...(await odcsLayoutProblems(page, screen.name)),
+      ...(screen.name === 'odcs-property-edit' ? await editTitleProblems(page) : []),
+    ],
   };
   for (const group of groups) {
     for (const [width, height] of [

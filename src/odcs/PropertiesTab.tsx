@@ -148,7 +148,7 @@ export function PropertiesTab({ data, objectIndex, onOpenObject, editor }: TabPr
         </small>
       </div>
       <div className="odcs-table-wrap">
-        <table className="odcs-table stack" aria-label="Properties">
+        <table className="odcs-table odcs-properties stack" aria-label="Properties">
           <PropertiesHead columns={columns} />
           <tbody>
             {shown.map(row => (
@@ -169,6 +169,7 @@ export function PropertiesTab({ data, objectIndex, onOpenObject, editor }: TabPr
       {editing &&
         editor?.renderDialog({
           objectIndex,
+          tableName: String(object?.name),
           path: editing.path,
           property: editing.property,
           onClose: () => setEditing(null),
@@ -234,7 +235,7 @@ function PropertiesHead({ columns }: { columns: UsedColumns }) {
         {columns.classification && <th>Classification</th>}
         {columns.description && <th>Description</th>}
         {columns.foreignKeys && <th>Foreign keys</th>}
-        {columns.actions && <th>Edit</th>}
+        {columns.actions && <th className="col-actions">Edit</th>}
       </tr>
     </thead>
   );
@@ -372,7 +373,7 @@ function PropertyRow({ row, targets, sentences, columns, onOpenObject, onEdit }:
         </td>
       )}
       {columns.actions && (
-        <td data-label="Edit">
+        <td className="col-actions" data-label="Edit">
           {onEdit && (
             <button
               type="button"
