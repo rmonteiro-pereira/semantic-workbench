@@ -1,6 +1,7 @@
 /** Presentation and event handling for status footer. */
 import { CheckCircle2 } from 'lucide-react';
 import React from 'react';
+import { footerCounts } from './footerCounts';
 type Props = {
   error: string;
   hasSource: boolean;
@@ -8,6 +9,7 @@ type Props = {
   dirty: boolean;
   setShowValidation: React.Dispatch<React.SetStateAction<boolean>>;
   issueCount: number;
+  kind?: string;
   entityCount: number;
   relationshipCount: number;
   message: string;
@@ -21,6 +23,7 @@ export const StatusFooter = React.memo(function StatusFooter({
   dirty,
   setShowValidation,
   issueCount,
+  kind,
   entityCount,
   relationshipCount,
   message,
@@ -51,9 +54,7 @@ export const StatusFooter = React.memo(function StatusFooter({
           )}
           {dirty ? ' · Not saved to file yet' : ''}
         </span>
-        <span>
-          {entityCount} entities · {relationshipCount} relationships
-        </span>
+        <span>{footerCounts(kind, entityCount, relationshipCount)}</span>
       </footer>
       {(message || (error && tab !== 'scm')) && (
         <div role="status" className={`status ${showsWarning ? 'error' : ''}`}>

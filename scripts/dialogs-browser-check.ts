@@ -209,7 +209,14 @@ try {
               });
             await p.keyboard.press('Escape');
             await expect(dialog).toBeHidden();
-            await expect(e.returns ? e.returns(p) : trigger).toBeFocused();
+            // A dialog opened from the phone drawer closes the drawer, so focus goes to the button
+            // that opens it again.
+            const fromDrawer = ['Grouping suggestions', 'Import', 'Trash'].includes(e.name);
+            if (fromDrawer && narrow(p))
+              await expect(
+                p.getByRole('button', { name: 'Open workspace', exact: true }),
+              ).toBeFocused();
+            else await expect(e.returns ? e.returns(p) : trigger).toBeFocused();
           } finally {
             await context.close();
           }

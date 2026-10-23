@@ -1520,11 +1520,15 @@ try {
     overlay: 'INJECTED_OVERLAY_MUTATION',
     'status-stays': 'INJECTED_STATUS_MUTATION',
     'small-text': 'INJECTED_SMALL_TEXT_MUTATION',
+    'save-state-cut': 'INJECTED_SAVE_STATE_MUTATION',
   };
+  // The empty neighborhood projection counts with them.
+  const layoutMutantCount = 1 + Object.keys(layoutMutationMarkers).length;
   for (const [mutation, only, label] of [
     ['overlay', 'overlaps: Graph', 'status line drawn over the mini-map and zoom controls'],
     ['status-stays', 'status messages', 'status messages never dismiss'],
     ['small-text', 'screens', 'sidebar label drawn below the minimum text size'],
+    ['save-state-cut', 'shell:', 'save state cut with an ellipsis in a wide header'],
   ] as const) {
     const child = Bun.spawn([process.execPath, resolve(root, 'scripts/responsive-ui-tests.ts')], {
       env: { ...process.env, RESPONSIVE_MUTATION: mutation, RESPONSIVE_ONLY: only },
@@ -1543,8 +1547,10 @@ try {
     killed++;
     console.log('KILLED UI: ' + label);
   }
+  const total = mutants.length + askpassMutants.length + layoutMutantCount;
   console.log(
-    `${killed}/${mutants.length + askpassMutants.length + 4} targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.`,
+    `${killed}/${total} targeted mutants killed; all unmodified module baselines passed. ` +
+      'Run test:ui for the full browser baseline.',
   );
 } finally {
   await rm(temp, { recursive: true, force: true });

@@ -249,49 +249,51 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
             onOpen={handleProjectTreeOpen}
           />
         </div>
-        <div className="workspace-actions">
-          <button
-            onClick={() => setDeleteTarget({ kind: 'clear' })}
-            disabled={!projects.length || !access.can('clear')}
-            title={access.control('clear').title}
-          >
-            Clear workspace
-          </button>
-          <button onClick={() => setTrashOpen(true)}>Trash</button>
-        </div>
-        <Suggestions
-          items={suggestions}
-          projects={projects}
-          onAccept={handleSuggestionsAccept}
-          onReject={handleSuggestionsReject}
-        />
-        {access.can('createProject') && (
-          <ExampleList
-            examplesOpen={examplesOpen}
-            setExamplesChoice={setExamplesChoice}
-            loadExample={loadExample}
-            busy={busy}
+        <div className="sidebar-footer">
+          <div className="workspace-actions">
+            <button
+              onClick={() => setDeleteTarget({ kind: 'clear' })}
+              disabled={!projects.length || !access.can('clear')}
+              title={access.control('clear').title}
+            >
+              Clear workspace
+            </button>
+            <button onClick={() => setTrashOpen(true)}>Trash</button>
+          </div>
+          <Suggestions
+            items={suggestions}
+            projects={projects}
+            onAccept={handleSuggestionsAccept}
+            onReject={handleSuggestionsReject}
           />
-        )}
-        <button
-          hidden={!access.can('createProject')}
-          className="import"
-          onClick={() => setImporting({})}
-        >
-          <Upload size={16} /> Import…
-        </button>
-        {/* The one file field: the Import dialog opens it for a new or an existing project. */}
-        <input
-          ref={importInput}
-          className="import-input"
-          type="file"
-          multiple
-          tabIndex={-1}
-          aria-hidden="true"
-          accept=".yaml,.yml,.json,.odcs,.ossie,.ttl,.nt,.rdf,.owl,.xml,.shacl,.n3"
-          onChange={handleImportInputChange}
-        />
-        {me && <WorkspaceLocation place={folderPlace(me.mode, access.can('edit'))} />}
+          {access.can('createProject') && (
+            <ExampleList
+              examplesOpen={examplesOpen}
+              setExamplesChoice={setExamplesChoice}
+              loadExample={loadExample}
+              busy={busy}
+            />
+          )}
+          <button
+            hidden={!access.can('createProject')}
+            className="import"
+            onClick={() => setImporting({})}
+          >
+            <Upload size={16} /> Import…
+          </button>
+          {/* The one file field: the Import dialog opens it for a new or an existing project. */}
+          <input
+            ref={importInput}
+            className="import-input"
+            type="file"
+            multiple
+            tabIndex={-1}
+            aria-hidden="true"
+            accept=".yaml,.yml,.json,.odcs,.ossie,.ttl,.nt,.rdf,.owl,.xml,.shacl,.n3"
+            onChange={handleImportInputChange}
+          />
+          {me && <WorkspaceLocation place={folderPlace(me.mode, access.can('edit'))} />}
+        </div>
       </aside>
     </>
   );
