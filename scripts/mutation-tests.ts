@@ -1526,11 +1526,15 @@ try {
   // The empty neighborhood projection counts with them.
   const layoutMutantCount = 1 + Object.keys(layoutMutationMarkers).length;
   for (const [mutation, only, label] of [
-    ['overlay', 'overlaps: Graph', 'status line drawn over the mini-map and zoom controls'],
+    [
+      'overlay',
+      'overlaps: the graph bundle',
+      'status line drawn over the mini-map and zoom controls',
+    ],
     ['status-stays', 'status messages', 'status messages never dismiss'],
     ['small-text', 'screens', 'sidebar label drawn below the minimum text size'],
     ['save-state-cut', 'shell:', 'save state cut with an ellipsis in a wide header'],
-    ['catalog-title', 'screens', 'clamped catalog description without its full-text tooltip'],
+    ['catalog-title', 'edit screens', 'clamped catalog description without its full-text tooltip'],
   ] as const) {
     const child = Bun.spawn([process.execPath, resolve(root, 'scripts/responsive-ui-tests.ts')], {
       env: { ...process.env, RESPONSIVE_MUTATION: mutation, RESPONSIVE_ONLY: only },
