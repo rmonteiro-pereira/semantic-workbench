@@ -1,6 +1,6 @@
 // Checks contract pages, history and byte-preserving property edits in the browser.
 import { appUrl } from './helpers/base-url';
-import { chromium, expect, type Page } from '@playwright/test';
+import { chromium, expect, type Locator, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { parse } from 'yaml';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
@@ -79,6 +79,16 @@ async function openDataset(name: string) {
     .click();
   await expect(dataset(name)).toBeVisible();
 }
+async function openSection(label: string) {
+  await overview().getByRole('button', { name: label }).click();
+  const dialog = page.getByRole('dialog', { name: label });
+  await expect(dialog).toBeVisible();
+  return dialog;
+}
+async function closeSection(dialog: Locator) {
+  await dialog.getByRole('button', { name: 'Close' }).click();
+  await expect(dialog).toHaveCount(0);
+}
 const views = (name: string) => dataset(name).getByRole('tablist', { name: 'Asset views' });
 const noHorizontalScroll = async () =>
   expect(
@@ -98,16 +108,24 @@ try {
       await expect(o.getByRole('heading', { level: 2 })).toHaveText('Commerce warehouse contract');
       for (const fact of ['1.2.0', 'active', 'Commerce', 'Sales analytics', 'v3.1.0'])
         await expect(o).toContainText(fact);
-      await expect(o.getByRole('region', { name: 'Team and roles' })).toContainText(
-        'commerce-data',
-      );
-      await expect(o.getByRole('region', { name: 'Team and roles' })).toContainText('owner');
+      const team = await openSection('Team and roles');
+      await expect(team).toContainText('commerce-data');
+      await expect(team).toContainText('owner');
+      await closeSection(team);
       const table = o.getByRole('table', { name: 'Schema objects' });
       await expect(table.getByRole('row')).toHaveCount(5);
       const orders = table.getByRole('row').filter({ hasText: 'analytics.commerce.orders' });
       await expect(orders).toContainText('6'); // Properties after the "Add currency" commit.
-      await expect(orders.getByRole('cell').nth(4)).toContainText('1 PK');
-      await expect(orders.getByRole('cell').nth(4)).toContainText('1 FK');
+      await expect(orders.locator('td[data-label="Keys"]')).toContainText('1 PK');
+      await expect(orders.locator('td[data-label="Keys"]')).toContainText('1 FK');
+      // The physical name is a second line under the object name, not a column of its own.
+      expect(await table.getByRole('columnheader').allTextContents()).toEqual([
+        'Object',
+        'Kind',
+        'Properties',
+        'Keys',
+        'Description',
+      ]);
       await o.getByRole('searchbox', { name: 'Find an object' }).fill('line');
       await expect(table.getByRole('row')).toHaveCount(2);
       await expect(table).toContainText('order_lines');
@@ -137,26 +155,23 @@ try {
         'true',
       );
       const table = d.getByRole('table', { name: 'Properties' });
-      const headers = await table.getByRole('columnheader').allTextContents();
-      for (const h of [
+      // Columns nobody fills (physical type, classification, tags) are not drawn.
+      expect(await table.getByRole('columnheader').allTextContents()).toEqual([
         'Name',
-        'Logical type',
-        'Physical type',
-        'Required',
-        'Unique',
-        'Primary key',
-        'Classification',
+        'Type',
+        'Constraints',
         'Description',
-        'Tags',
         'Foreign keys',
-      ])
-        expect(headers.some(x => x.includes(h))).toBe(true);
+        'Edit',
+      ]);
       await expect(table.getByRole('row')).toHaveCount(7);
       const id = table.getByRole('row').filter({ hasText: 'order_id' }).first();
-      await expect(id.getByRole('cell').nth(1).getByRole('combobox')).toHaveValue('integer');
-      await expect(id.getByLabel('Primary key of order_id')).toBeChecked();
-      await expect(id.getByLabel('Required of order_id')).toBeChecked();
-      await expect(table.getByLabel('Primary key of amount')).not.toBeChecked();
+      await expect(id.getByRole('cell').nth(1)).toHaveText('integer');
+      await expect(id.getByRole('cell').nth(2)).toContainText('PK');
+      await expect(id.getByRole('cell').nth(2)).toContainText('Required');
+      await expect(id.getByRole('cell').nth(2)).toContainText('Unique');
+      const amount = table.getByRole('row').filter({ hasText: 'amount' });
+      await expect(amount.getByRole('cell').nth(2)).not.toContainText('PK');
       const names = async () =>
         (await table.getByRole('row').locator('td:first-child').allTextContents()).map(s =>
           s.trim(),
@@ -169,7 +184,8 @@ try {
         'status',
         'currency',
       ]);
-      await table.getByRole('button', { name: 'Sort by Name' }).click();
+      const sortBy = d.getByRole('combobox', { name: 'Sort properties by' });
+      await sortBy.selectOption('name');
       expect(await names()).toEqual([
         'amount',
         'currency',
@@ -178,7 +194,7 @@ try {
         'order_id',
         'status',
       ]);
-      await table.getByRole('button', { name: 'Sort by Name' }).click();
+      await d.getByRole('button', { name: /reverse/ }).click();
       expect(await names()).toEqual([
         'status',
         'order_id',
@@ -298,12 +314,10 @@ try {
       await expect(rules).toContainText('completeness');
       await expect(rules).toContainText('error');
       await dataset(target).getByRole('button', { name: 'All objects' }).click();
-      await expect(overview().getByRole('region', { name: 'Service levels' })).toContainText(
-        'latency',
-      );
-      await expect(overview().getByRole('region', { name: 'Service levels' })).toContainText(
-        'retention',
-      );
+      const levels = await openSection('Service levels');
+      await expect(levels).toContainText('latency');
+      await expect(levels).toContainText('retention');
+      await closeSection(levels);
       await page.screenshot({ path: '/tmp/workbench-odcs-quality.png' });
     },
   );
@@ -316,7 +330,14 @@ try {
     await overview().getByRole('searchbox', { name: 'Find an object' }).fill('invoice');
     await expect(table.getByRole('row').nth(1)).toContainText(/invoice/i);
     expect(Date.now() - t).toBeLessThan(1500);
-    const first = (await table.getByRole('row').nth(1).locator('td').first().textContent())!.trim();
+    const first = (await table
+      .getByRole('row')
+      .nth(1)
+      .locator('td')
+      .first()
+      .getByRole('button')
+      .first()
+      .textContent())!.trim();
     await openDataset(first);
     await expect(dataset(first).getByRole('table', { name: 'Properties' })).toBeVisible();
     await page.screenshot({ path: '/tmp/workbench-odcs-ubl.png' });
@@ -351,12 +372,24 @@ try {
             .map(l => l.slice(1)),
         };
       };
-      await table.getByLabel('Required of status').uncheck();
+      const openEditor = async (path: string) => {
+        await table.getByRole('button', { name: `Edit ${path}`, exact: true }).click();
+        const dialog = page.getByRole('dialog', { name: `Edit ${path}` });
+        await expect(dialog).toBeVisible();
+        return dialog;
+      };
+      const saveEditor = async (dialog: Locator) => {
+        await dialog.getByRole('button', { name: 'Save' }).click();
+        await expect(dialog).toHaveCount(0);
+      };
+      const status = await openEditor('status');
+      await status.getByLabel('Required').uncheck();
+      await saveEditor(status);
       await expect.poll(diff).toEqual({ removed: ['        required: true'], added: [] });
       await expect(page.locator('main > .status')).toContainText('Saved required of status');
-      const desc = table.getByLabel('Description of amount');
-      await desc.fill('Order total in USD, after discounts.');
-      await desc.press('Enter');
+      const amountEditor = await openEditor('amount');
+      await amountEditor.getByLabel('Description').fill('Order total in USD, after discounts.');
+      await saveEditor(amountEditor);
       await expect.poll(diff).toEqual({
         removed: ['        description: Order amount in USD.', '        required: true'],
         added: ['        description: Order total in USD, after discounts.'],
@@ -365,18 +398,46 @@ try {
       // can change before the save response arrives; an edit in between is correctly refused as
       // stale).
       await expect(page.locator('main > .status')).toContainText('Saved description of amount');
-      await table.getByLabel('Logical type of currency').selectOption('date');
+      const currency = await openEditor('currency');
+      await currency.getByLabel('Logical type').selectOption('date');
+      await saveEditor(currency);
       await expect.poll(async () => (await diff()).added).toContain('        logicalType: date');
-      await table.getByLabel('Classification of customer_id').fill('internal');
-      await table.getByLabel('Classification of customer_id').press('Enter');
+      await expect(page.locator('main > .status')).toContainText('Saved logicalType of currency');
+      const customer = await openEditor('customer_id');
+      await customer.getByLabel('Classification').fill('internal');
+      await saveEditor(customer);
       await expect
         .poll(async () => (await diff()).added)
         .toContain('        classification: internal');
-      // Escape restores the value without saving.
+      await expect(page.locator('main > .status')).toContainText('Saved classification');
+      // Two fields changed in one dialog are written in one save, and nothing else changes.
+      const orderDate = await openEditor('order_date');
+      await orderDate.getByLabel('Unique').check();
+      await orderDate.getByLabel('Description').fill('Date the order was placed.');
+      await saveEditor(orderDate);
+      await expect
+        .poll(async () => (await diff()).added)
+        .toEqual(
+          expect.arrayContaining([
+            '        unique: true',
+            '        description: Date the order was placed.',
+          ]),
+        );
+      expect((await diff()).removed).toContain('        description: Order order date.');
+      // Cancel and Escape leave the file as it was, and Save stays off until something changes.
       const before = read(commerce.slug, 'commerce.odcs.yaml');
-      await desc.fill('Discarded');
-      await desc.press('Escape');
-      await expect(desc).toHaveValue('Order total in USD, after discounts.');
+      const discarded = await openEditor('amount');
+      await expect(discarded.getByRole('button', { name: 'Save' })).toBeDisabled();
+      await discarded.getByLabel('Description').fill('Discarded');
+      await expect(discarded.getByRole('button', { name: 'Save' })).toBeEnabled();
+      await page.keyboard.press('Escape');
+      await expect(discarded).toHaveCount(0);
+      const reopened = await openEditor('amount');
+      await expect(reopened.getByLabel('Description')).toHaveValue(
+        'Order total in USD, after discounts.',
+      );
+      await reopened.getByRole('button', { name: 'Cancel' }).click();
+      await expect(reopened).toHaveCount(0);
       expect(read(commerce.slug, 'commerce.odcs.yaml')).toBe(before);
       await page.screenshot({ path: '/tmp/workbench-odcs-edit.png' });
       // The History tab sees the saved edits once committed.

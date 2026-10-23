@@ -96,7 +96,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `src/overview.ts`, `src/communities.ts` | Group by: modes, communities, Auto | Rendering |
 | `src/edit/` | Item editors and the patch builders that keep untouched bytes exact | Network calls |
 | `src/editor/` | The CodeMirror source editor (`useCodeMirror`, extensions, navigation) | Saving logic |
-| `src/odcs/` | Contract pages and the column-level lineage canvas (`lineage.ts` builds the graph, `LineageCanvas.tsx` draws it) | |
+| `src/odcs/` | Contract pages (`ContractOverview.tsx`, `DatasetPage.tsx`, `PropertiesTab.tsx`, with the property edit dialog in `PropertyEditors.tsx`) and the column-level lineage canvas (`lineage.ts` builds the graph, `LineageCanvas.tsx` draws it) | |
 | `src/graph/`, `src/FullGraph.tsx`, `src/NeighborhoodGraph.tsx` | Entity graph views, layout and routing | |
 | `src/metrics/`, `src/mappings/`, `src/sql/` | Metrics tab and wizard, mapping views, SQL regions and lint | |
 | `src/projects/` | Client API (`api.ts`), autosave, project tree, delete and trash dialogs, the repository's projects dialog, shared dialog chrome (`Modal.tsx`) | |
