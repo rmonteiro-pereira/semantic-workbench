@@ -1,8 +1,12 @@
 // Generates UBL model examples, declared foreign keys and analytical fixtures.
 import { stringify } from 'yaml';
+import { bindingEntries, metricExtensionEntries } from './helpers/example-metrics';
+import { governedMetrics } from './ubl-metrics';
 const mapping = await Bun.file('public/examples/ubl/model-map.json').json();
 const dir = 'public/examples/ubl/';
 const iri = 'https://example.org/ubl-workbench#';
+const ontologyName = 'UBL 2.3 procurement-to-payment · 45 business entities';
+const semanticModelName = 'UBL procurement-to-payment analytical model';
 const snake = (s: string) =>
   s === 'Order' ? 'purchase_order' : s.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
 const desc = (e: any) =>
@@ -132,7 +136,7 @@ await Bun.write(dir + 'ubl.shacl.ttl', shacl);
 await Bun.write(
   dir + 'ubl.ontology.yaml',
   stringify({
-    name: 'UBL 2.3 procurement-to-payment · 45 business entities',
+    name: ontologyName,
     description:
       'A schema-derived, focused business model spanning procurement, fulfillment, invoicing, tax and settlement. Application projection, not an official OASIS ontology.',
     ontology: mapping.entities.map((e: any) => ({
@@ -177,7 +181,7 @@ await Bun.write(
   dir + 'ubl.semantic.yaml',
   stringify({
     version: '0.2.0.dev0',
-    name: 'UBL procurement-to-payment analytical model',
+    name: semanticModelName,
     description: `${tables.length} normalized datasets, including bridge tables for repeatable roles. Physical sources match the ODCS contract.`,
     datasets: tables.map(t => ({
       name: t.name,
@@ -200,26 +204,28 @@ await Bun.write(
       })),
     })),
     relationships: joins,
-    metrics: [
-      {
-        name: 'order_count',
-        datatype: 'Integer',
-        description:
-          'Count of projected order headers, independent of line and bridge-table grain.',
-        expression: expression('COUNT(DISTINCT purchase_order.record_id)'),
-      },
-      {
-        name: 'invoice_count',
-        datatype: 'Integer',
-        expression: expression('COUNT(DISTINCT invoice.record_id)'),
-      },
-      {
-        name: 'shipment_count',
-        datatype: 'Integer',
-        expression: expression('COUNT(DISTINCT shipment.record_id)'),
-      },
-    ],
+    metrics: governedMetrics.map(metric => ({
+      name: metric.name,
+      datatype: metric.datatype,
+      ...(metric.description ? { description: metric.description } : {}),
+      expression: expression(metric.expression),
+      custom_extensions: metricExtensionEntries(metric.extension),
+    })),
   }),
+);
+// The mapping only carries the metric bindings; it maps no concept to a dataset.
+await Bun.write(
+  dir + 'ubl.semantic-mapping.yaml',
+  '# Workbench addition: binds the governed metrics of ubl.semantic.yaml to UBL concepts.\n' +
+    '# It is not part of the UBL standard or of any upstream example.\n' +
+    stringify({
+      version: '0.2.0.dev0',
+      name: 'UBL metric bindings',
+      ontology_ref: { name: ontologyName, iri: './ubl.ontology.yaml' },
+      semantic_model_ref: { name: semanticModelName, iri: './ubl.semantic.yaml' },
+      concept_mappings: [],
+      custom_extensions: bindingEntries(governedMetrics),
+    }),
 );
 const summary = {
   businessEntities: mapping.entities.length,
@@ -232,8 +238,39 @@ const summary = {
   source: mapping.source,
 };
 await Bun.write(dir + 'summary.json', JSON.stringify(summary, null, 2));
-await Bun.write(
-  dir + 'README.md',
-  `# UBL 2.3 procurement-to-payment\n\n${summary.businessEntities} business entities, ${summary.businessRelationships} named aggregate relationships, derived from OASIS UBL 2.3 XSDs. The selected business documents are Order, Invoice, DespatchAdvice, ReceiptAdvice and CreditNote; shared aggregates include Party, Item, Shipment, Consignment, TaxTotal, PaymentMeans and FinancialAccount.\n\nSource: https://docs.oasis-open.org/ubl/UBL-2.3.html\nSchemas: ${mapping.source}\n\n## Artifacts\n\n- ubl.ontology.yaml: Ossie ontology; source role names and occurrence counts retained.\n- ubl.owl.ttl: 45 OWL classes and 277 domain/range object properties, with schema provenance.\n- ubl.shacl.ttl: projected aggregate-role cardinality and target-class constraints.\n- ubl.odcs.yaml: ${tables.length} normalized tables, basic fields, surrogate IDs and repeatable-role bridge tables.\n- ubl.semantic.yaml: matching datasets, ${joins.length} joins and three count metrics.\n- model-map.json: extracted references and cardinalities for auditing and regeneration.\n\nThis is an application-specific projection of an established business model, not an official OASIS OWL/SHACL or relational standard. UBL components outside the selected subset are not expanded. SHACL covers selected aggregate roles, not complete XML conformance. Analytical keys, normalization and primitive-type mappings are explicit application choices. Repeating XML basic fields become arrays.\n\nRegenerate from the project root: python3 scripts/extract-ubl.py then bun scripts/ubl-example.ts.\n`,
-);
+const readmeLines = [
+  `# UBL 2.3 procurement-to-payment`,
+  ``,
+  [
+    `${summary.businessEntities} business entities,`,
+    `${summary.businessRelationships} named aggregate relationships,`,
+    `derived from OASIS UBL 2.3 XSDs.`,
+    `The selected business documents are Order, Invoice, DespatchAdvice, ReceiptAdvice and CreditNote; shared aggregates include Party, Item, Shipment, Consignment, TaxTotal, PaymentMeans and FinancialAccount.`,
+  ].join(' '),
+  ``,
+  `Source: https://docs.oasis-open.org/ubl/UBL-2.3.html`,
+  `Schemas: ${mapping.source}`,
+  ``,
+  `## Artifacts`,
+  ``,
+  `- ubl.ontology.yaml: Ossie ontology; source role names and occurrence counts retained.`,
+  `- ubl.owl.ttl: 45 OWL classes and 277 domain/range object properties, with schema provenance.`,
+  `- ubl.shacl.ttl: projected aggregate-role cardinality and target-class constraints.`,
+  `- ubl.odcs.yaml: ${tables.length} normalized tables, basic fields, surrogate IDs and repeatable-role bridge tables.`,
+  `- ubl.semantic.yaml: matching datasets, ${joins.length} joins and ${governedMetrics.length} governed metrics.`,
+  `- ubl.semantic-mapping.yaml: binds the governed metrics to UBL concepts.`,
+  `- model-map.json: extracted references and cardinalities for auditing and regeneration.`,
+  ``,
+  [
+    `This is an application-specific projection of an established business model, not an official OASIS OWL/SHACL or relational standard.`,
+    `UBL components outside the selected subset are not expanded.`,
+    `SHACL covers selected aggregate roles, not complete XML conformance.`,
+    `Analytical keys, normalization and primitive-type mappings are explicit application choices.`,
+    `Repeating XML basic fields become arrays.`,
+  ].join(' '),
+  ``,
+  `Regenerate from the project root: python3 scripts/extract-ubl.py then bun scripts/ubl-example.ts.`,
+  ``,
+];
+await Bun.write(dir + 'README.md', readmeLines.join('\n'));
 console.log(summary);
