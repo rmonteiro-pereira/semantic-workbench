@@ -36,6 +36,8 @@ export const StatusFooter = React.memo(function StatusFooter({
     return 'Ready to import';
   }
 
+  // A refused or failed save is a warning, not a success: it has the colours of a failure.
+  const showsWarning = Boolean(error && tab !== 'scm') || message.startsWith('Not saved');
   return (
     <>
       <footer>
@@ -54,7 +56,7 @@ export const StatusFooter = React.memo(function StatusFooter({
         </span>
       </footer>
       {(message || (error && tab !== 'scm')) && (
-        <div role="status" className={`status ${error && tab !== 'scm' ? 'error' : ''}`}>
+        <div role="status" className={`status ${showsWarning ? 'error' : ''}`}>
           {error && tab !== 'scm'
             ? 'Validation failed. Review the findings and repair in Source.'
             : message}

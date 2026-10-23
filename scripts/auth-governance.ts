@@ -100,7 +100,9 @@ async function sourceRefusalMessage(page: Page, target: SignInTarget) {
   const sentence = /Not saved: this would include changing a classification/;
   await expect(page.getByText(sentence).first()).toBeVisible({ timeout: 10_000 });
   await expect(page.getByText(/Not saved: Refused/)).toHaveCount(0);
-  await authGeometry(page, 'guarded-refusal');
+  // A refusal is a warning, not a success bar.
+  await expect(page.locator('main > .status')).toHaveClass(/error/);
+  await authGeometry(page, 'guarded-refusal', 'main > .status');
 }
 
 /** The form takes the whole row, and the outcome of the approval before it is gone. */

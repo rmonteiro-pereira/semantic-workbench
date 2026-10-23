@@ -25,6 +25,33 @@ type AuthPageOptions = {
 
 type AuthPageKind = 'no-access' | 'signed-out' | 'error' | 'connect-failed';
 
+// The same layers mark and wordmark as the workspace sidebar, drawn inline because these pages
+// carry no scripts and load nothing but their stylesheet.
+const BRAND_MARKUP =
+  '<div class="brand"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" ' +
+  'stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ' +
+  'aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 ' +
+  '3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 ' +
+  '3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 ' +
+  '3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/></svg><span>semantic' +
+  '<small>WORKBENCH</small></span></div>';
+
+// A centred card on the workbench background; text sizes follow the workbench type scale.
+const AUTH_STYLESHEET =
+  'body{font:0.9375rem/1.5 system-ui,sans-serif;margin:0;color:#243936;background:#f7f9f9;' +
+  'min-height:100vh;display:flex;align-items:center;justify-content:center}' +
+  'main{box-sizing:border-box;width:min(28rem,calc(100vw - 2rem));margin:1rem;' +
+  'padding:1.75rem;background:white;border:1px solid #dce4e2;border-radius:12px;' +
+  'box-shadow:0 10px 30px #17323a14;overflow-wrap:anywhere}' +
+  '.brand{display:flex;align-items:center;gap:12px;color:#237c68;font-weight:800;' +
+  'font-size:1.375rem;margin-bottom:1.25rem}' +
+  '.brand small{display:block;font-size:0.75rem;font-weight:600;letter-spacing:3px;' +
+  'color:#566c65;margin-top:2px}' +
+  'h1{font-size:1.25rem;margin:0 0 0.75rem}p{margin:0 0 0.75rem}' +
+  'button,a{font:inherit;display:inline-flex;align-items:center;justify-content:center;' +
+  'gap:8px;padding:9px 13px;border:1px solid #dce4e2;border-radius:7px;background:white;' +
+  'color:inherit;text-decoration:none;cursor:pointer}button:hover,a:hover{background:#edf5f2}';
+
 function pageContent(page: AuthPageKind, options: AuthPageOptions) {
   let title = 'Signed out';
   let content = '<p>You are signed out.</p><a href="/auth/login">Sign in again</a>';
@@ -77,7 +104,9 @@ export function authPage(page: AuthPageKind, options: AuthPageOptions = {}, stat
       '<meta name="viewport" content="width=device-width, initial-scale=1">' +
       '<link rel="stylesheet" href="/auth/style.css"><title>' +
       title +
-      ' · Semantic Workbench</title></head><body><main><p>Semantic Workbench</p><h1>' +
+      ' · Semantic Workbench</title></head><body><main>' +
+      BRAND_MARKUP +
+      '<h1>' +
       title +
       '</h1>' +
       content +
@@ -154,15 +183,9 @@ export function createAuthRoutes(options: AuthRouteOptions, consent?: GitHubCons
       return options.logout(request, await options.session(request));
     }
     if (request.method === 'GET' && url.pathname === '/auth/style.css') {
-      return new Response(
-        'body{font:1rem system-ui;margin:0;color:#243936;background:#f7f9f9}' +
-          'main{box-sizing:border-box;max-width:36rem;margin:8vh auto;padding:1.5rem;' +
-          'overflow-wrap:anywhere}button,a{font:inherit;display:inline-flex;' +
-          'align-items:center;justify-content:center;gap:8px;padding:9px 13px;' +
-          'border:1px solid #dce4e2;border-radius:7px;background:white;color:inherit;' +
-          'text-decoration:none;cursor:pointer}button:hover,a:hover{background:#edf5f2}',
-        { headers: { 'Content-Type': 'text/css', 'Cache-Control': 'public, max-age=3600' } },
-      );
+      return new Response(AUTH_STYLESHEET, {
+        headers: { 'Content-Type': 'text/css', 'Cache-Control': 'public, max-age=3600' },
+      });
     }
     return null;
   };
