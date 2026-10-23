@@ -1,0 +1,25 @@
+# Workbench addition: binds the governed metrics of ubl.semantic.yaml to UBL concepts.
+# It is not part of the UBL standard or of any upstream example.
+version: 0.2.0.dev0
+name: UBL metric bindings
+ontology_ref:
+  name: UBL 2.3 procurement-to-payment · 45 business entities
+  iri: ./ubl.ontology.yaml
+semantic_model_ref:
+  name: UBL procurement-to-payment analytical model
+  iri: ./ubl.semantic.yaml
+concept_mappings: []
+custom_extensions:
+  - vendor_name: SEMANTIC_WORKBENCH
+    data: >
+      {"schema": "semantic-workbench/mapping/v1", "kpi_bindings": [
+        {"metric":"average_invoiced_price","measures":"InvoiceLine","of":"Item"},
+        {"metric":"credited_amount","measures":"CreditNoteLine","of":"Item"},
+        {"metric":"invoice_count","measures":"Invoice"},
+        {"metric":"invoiced_amount","measures":"InvoiceLine","of":"Item"},
+        {"metric":"invoiced_amount_with_tax","measures":"InvoiceLine","of":"Item"},
+        {"metric":"invoiced_line_tax","measures":"InvoiceLine","of":"Item"},
+        {"metric":"invoiced_quantity","measures":"InvoiceLine","of":"Item"},
+        {"metric":"order_count","measures":"Order"},
+        {"metric":"shipment_count","measures":"Shipment"}
+      ]}

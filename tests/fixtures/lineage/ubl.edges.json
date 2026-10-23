@@ -1,5 +1,25 @@
 [
  [
+  "dataset:ubl.semantic.yaml#/credit_note_line/line_extension_amount",
+  "metric:ubl.semantic.yaml#/credited_amount",
+  "aggregates"
+ ],
+ [
+  "dataset:ubl.semantic.yaml#/invoice_line/invoiced_quantity",
+  "metric:ubl.semantic.yaml#/invoiced_quantity",
+  "aggregates"
+ ],
+ [
+  "dataset:ubl.semantic.yaml#/invoice_line/line_extension_amount",
+  "metric:ubl.semantic.yaml#/invoiced_amount",
+  "aggregates"
+ ],
+ [
+  "dataset:ubl.semantic.yaml#/invoice_line/tax_inclusive_line_extension_amount",
+  "metric:ubl.semantic.yaml#/invoiced_amount_with_tax",
+  "aggregates"
+ ],
+ [
   "dataset:ubl.semantic.yaml#/invoice/record_id",
   "metric:ubl.semantic.yaml#/invoice_count",
   "aggregates"
@@ -13,6 +33,26 @@
   "dataset:ubl.semantic.yaml#/shipment/record_id",
   "metric:ubl.semantic.yaml#/shipment_count",
   "aggregates"
+ ],
+ [
+  "metric:ubl.semantic.yaml#/invoiced_amount_with_tax",
+  "metric:ubl.semantic.yaml#/invoiced_line_tax",
+  "uses"
+ ],
+ [
+  "metric:ubl.semantic.yaml#/invoiced_amount",
+  "metric:ubl.semantic.yaml#/average_invoiced_price",
+  "uses"
+ ],
+ [
+  "metric:ubl.semantic.yaml#/invoiced_amount",
+  "metric:ubl.semantic.yaml#/invoiced_line_tax",
+  "uses"
+ ],
+ [
+  "metric:ubl.semantic.yaml#/invoiced_quantity",
+  "metric:ubl.semantic.yaml#/average_invoiced_price",
+  "uses"
  ],
  [
   "object:ubl.odcs.yaml#address/additional_street_name",
