@@ -1,7 +1,11 @@
 // Runs focused assertions against candidate modules to detect deliberately introduced faults.
 import { LOCAL_READER } from '../server/projects/reader';
 import assert from 'node:assert/strict';
+import { setActiveBrand } from '../server/brand/active-brand';
+import { loadBrandBundle } from '../server/brand/bundle';
 import { allowEveryRemote } from '../tests/helpers/remote-credentials-fixture';
+// Sign-in pages render the brand, so every candidate runs with the shipped bundle active.
+setActiveBrand(loadBrandBundle());
 const m = await import(process.argv[2]);
 const category = process.argv[3];
 if (category === 'example-registry') {
@@ -2305,6 +2309,10 @@ if (category.startsWith('export-')) {
 if (category.startsWith('theme-')) {
   const { themeMutationCase } = await import('./theme-mutation-cases');
   themeMutationCase(m, category);
+}
+if (category.startsWith('brand-')) {
+  const { brandMutationCase } = await import('./brand-mutation-cases');
+  brandMutationCase(m, category);
 }
 if (category.startsWith('secrev-')) {
   const { securityReviewCase } = await import('./security-review-mutation-cases');

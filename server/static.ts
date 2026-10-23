@@ -1,6 +1,7 @@
 // Serves the built frontend with a same-origin policy and a bounded SPA fallback.
 import { realpath, stat } from 'node:fs/promises';
 import { extname, resolve, sep } from 'node:path';
+import { serveBrand } from './brand/route';
 
 // Browsers apply form-action to the redirects a form submission follows, so the sign-out form
 // needs the provider's origin: the workbench answers it with a redirect to the provider's
@@ -47,6 +48,8 @@ export async function serveStatic(
   if (path.includes('\\') || path.includes('\0') || path.split('/').includes('..')) {
     return new Response('Forbidden', { status: 403, headers });
   }
+  const brandResponse = serveBrand(request, path, headers);
+  if (brandResponse) return brandResponse;
   if (!['GET', 'HEAD'].includes(request.method)) {
     return new Response('Method not allowed', { status: 405, headers });
   }

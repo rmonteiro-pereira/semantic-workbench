@@ -6,6 +6,8 @@ import { createHandler } from './handler';
 import { createServerAuthentication, type ServerAuthentication } from './auth/authentication';
 import { createSignInProvider } from './auth/sign-in-provider';
 import { readConfig } from './config';
+import { loadBrandBundle } from './brand/bundle';
+import { setActiveBrand } from './brand/active-brand';
 import { createInstanceLock, instanceLockFiles, revisionIdentity } from './projects/instance-lock';
 import { probeDataRoot } from './projects/data-root';
 import { healthResponse } from './routes/health';
@@ -16,6 +18,7 @@ import { logWorkspace } from './startup-log';
 import { installShutdownHandlers } from './shutdown';
 
 const config = readConfig();
+setActiveBrand(loadBrandBundle({ directory: config.brandDir }));
 const signInProvider = config.mode === 'server' ? await createSignInProvider(config) : undefined;
 const hot = globalThis as { __workbench?: { close(): Promise<void> } };
 await hot.__workbench?.close();

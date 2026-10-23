@@ -1,5 +1,6 @@
 /** Application entry point and composition of the workspace views. */
 import { Capabilities } from './auth/Capabilities';
+import { BrandProvider } from './brand/BrandContext';
 import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { PersonMenu } from './auth/PersonMenu';
@@ -436,4 +437,8 @@ function App() {
     </Capabilities>
   );
 }
-createRoot(document.getElementById('root')!).render(<App />);
+createRoot(document.getElementById('root')!).render(
+  <BrandProvider>
+    <App />
+  </BrandProvider>,
+);

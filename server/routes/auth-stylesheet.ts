@@ -17,8 +17,7 @@ const AUTH_LAYOUT =
   'overflow-wrap:anywhere}' +
   '.brand{display:flex;align-items:center;gap:12px;color:var(--color-accent);font-weight:800;' +
   'font-size:1.375rem;margin-bottom:1.25rem}' +
-  '.brand small{display:block;font-size:0.75rem;font-weight:600;letter-spacing:3px;' +
-  'color:var(--color-text-muted);margin-top:2px}' +
+  '.brand img{flex:none}' +
   'h1{font-size:1.25rem;margin:0 0 0.75rem}p{margin:0 0 0.75rem}' +
   'button,a{font:inherit;display:inline-flex;align-items:center;justify-content:center;' +
   'gap:8px;padding:9px 13px;border:1px solid var(--color-border);border-radius:7px;' +

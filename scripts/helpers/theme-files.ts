@@ -1,7 +1,6 @@
 // Says which files the theme check and the theme codemod look at.
-import { readdirSync, statSync } from 'node:fs';
-import { join } from 'node:path';
 import type { SourceLanguage } from './color-literals';
+import { walkFiles } from './walk-files';
 
 // These files are where colour literals are allowed to live.
 const THEME_FILES = ['src/theme.css', 'src/theme-palette.ts'];
@@ -24,19 +23,7 @@ export function languageOf(path: string): SourceLanguage | null {
   return null;
 }
 
-function collectFiles(path: string, found: string[]) {
-  if (statSync(path).isFile()) {
-    if (languageOf(path) && !isThemeFile(path)) found.push(path);
-    return;
-  }
-  for (const entry of readdirSync(path)) {
-    if (entry !== 'node_modules') collectFiles(join(path, entry), found);
-  }
-}
-
 /** Lists the files under the given paths that must use tokens instead of colour literals. */
 export function themedFiles(paths: string[] = THEMED_PATHS): string[] {
-  const found: string[] = [];
-  for (const path of paths) collectFiles(path, found);
-  return found;
+  return walkFiles(paths, file => languageOf(file) !== null && !isThemeFile(file));
 }

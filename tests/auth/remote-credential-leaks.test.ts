@@ -1,6 +1,7 @@
 // A delegated token never leaves the command and host it was issued for: not into files, logs,
 // audit or responses, not to a redirect target, and not lost when two requests save at once.
 import { afterAll, beforeAll, expect, test } from 'bun:test';
+import { useDefaultBrand } from '../helpers/brand-fixture';
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -23,6 +24,8 @@ import { repoDir } from '../../server/projects/paths';
 import { createSessionStore } from '../../server/auth/sessions';
 import { createRemoteCredentials } from '../../server/auth/remote-credentials';
 import { localPrincipal } from '../../server/auth/principal';
+
+beforeAll(useDefaultBrand);
 
 let setup: RemoteSetup;
 
