@@ -40,6 +40,9 @@ export function RemoteDialog({ project, onClose }: Props) {
   const [url, setUrl] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  // The fields stay locked until the current remote is known. Prefilling later would otherwise
+  // land in the middle of what the person is already typing.
+  const [loaded, setLoaded] = useState(false);
   const existing = Object.hasOwn(remotes, name);
   const typed = useRef(false);
 
@@ -55,7 +58,8 @@ export function RemoteDialog({ project, onClose }: Props) {
           setUrl(status.remotes[first]);
         }
       })
-      .catch(e => setError((e as Error).message));
+      .catch(e => setError((e as Error).message))
+      .finally(() => setLoaded(true));
   }, [project]);
 
   async function run(action: () => Promise<unknown>) {
@@ -98,6 +102,7 @@ export function RemoteDialog({ project, onClose }: Props) {
           <span>Remote name</span>
           <input
             aria-label="Remote name"
+            disabled={!loaded}
             value={name}
             onChange={e => {
               typed.current = true;
@@ -109,6 +114,7 @@ export function RemoteDialog({ project, onClose }: Props) {
           <span>Remote URL or path</span>
           <input
             aria-label="Remote URL"
+            disabled={!loaded}
             value={url}
             onChange={e => {
               typed.current = true;

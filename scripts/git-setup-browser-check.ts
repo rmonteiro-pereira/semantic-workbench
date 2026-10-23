@@ -1,7 +1,7 @@
 // Checks Git setup from the browser: identity, remote, commit and push, clone, and the credential
 // guide. Every remote is a local bare repository or a local test server; no network remote is used.
 import { appUrl } from './helpers/base-url';
-import { chromium, expect } from '@playwright/test';
+import { chromium, expect, type Route } from '@playwright/test';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -114,6 +114,29 @@ try {
         timeout: 20_000,
       });
       expect(sh(pushTarget, ['log', '-1', '--format=%an']).trim()).toBe('Ana Lima');
+    },
+  );
+  await check(
+    'remote: a slow status keeps the Remote fields locked, so typing is never mixed with the prefill',
+    async () => {
+      const releaseStatus = Promise.withResolvers<void>();
+      const holdStatus = async (route: Route) => {
+        await releaseStatus.promise;
+        await route.fallback();
+      };
+      await page.route('**/git/status', holdStatus);
+      await panel().getByRole('button', { name: 'Remote…' }).click();
+      const dialog = page.getByRole('dialog', { name: 'Remote' });
+      await expect(dialog.getByLabel('Remote URL')).toBeDisabled();
+      await expect(dialog.getByLabel('Remote name')).toBeDisabled();
+      releaseStatus.resolve();
+      await expect(dialog.getByLabel('Remote URL')).toBeEnabled();
+      await expect(dialog.getByLabel('Remote URL')).toHaveValue(pushTarget);
+      await dialog.getByLabel('Remote URL').fill('/elsewhere.git');
+      await expect(dialog.getByLabel('Remote URL')).toHaveValue('/elsewhere.git');
+      await page.unroute('**/git/status', holdStatus);
+      await dialog.getByRole('button', { name: 'Cancel' }).click();
+      await expect(dialog).toHaveCount(0);
     },
   );
   await check(

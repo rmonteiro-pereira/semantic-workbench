@@ -828,3 +828,6 @@ too.
   the tags, the app fixture states its ingress, and Deploy runs a production install.
 - `scripts/mutation-case.ts` (`auth-principal`): one assertion added so the address mutant stays
   killed after guests stopped counting as verified.
+- `scripts/edge-attachment-ui-tests.ts`: the node it drags is chosen after the viewport stops moving
+  and only if both its centre and its drag point are reachable, because a correct layout may place a
+  node under the mini-map and the fit animation may still be running; the assertions are unchanged.
