@@ -30,12 +30,22 @@
 .code-editor-bar button:last-child {
   margin-right: 0;
 }
-.code-editor-syntax {
+.code-editor-syntax,
+.code-editor-badge {
   font-weight: 700;
   color: #1e6a4f;
   background: #e9f4ef;
   border-radius: 8px;
   padding: 1px 8px;
+}
+.code-editor-badge.large {
+  color: #6b4f0d;
+  background: #fbf1d3;
+}
+.code-editor-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 .code-editor-eol {
   color: var(--text-muted);

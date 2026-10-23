@@ -56,14 +56,17 @@ export function EditorStatusBar({
         Ln {cursor.line}, Col {cursor.column}
       </span>
       {modeAvailable && (
-        <>
-          <span title={largeMode ? largeModeDescription : undefined}>
+        <span className="code-editor-mode">
+          <span
+            className={`code-editor-badge${largeMode ? ' large' : ''}`}
+            title={largeMode ? largeModeDescription : undefined}
+          >
             {largeMode ? 'Large file mode' : 'Full parsing'}
           </span>
           <button type="button" onClick={onToggleParsing}>
             {largeMode ? 'Full parsing' : 'Large file mode'}
           </button>
-        </>
+        </span>
       )}
       {checking && (
         <span className="code-editor-checking" role="status">
