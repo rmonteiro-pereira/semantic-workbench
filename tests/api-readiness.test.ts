@@ -50,4 +50,26 @@ describe('waiting for the development API', () => {
     expect(await waitForApi(probe)).toBe('timed-out');
     expect(requested.length).toBe(11);
   });
+
+  test('a server that accepts but never answers does not stall the wait', async () => {
+    const hanging = Bun.serve({
+      port: 0,
+      hostname: '127.0.0.1',
+      fetch: () => new Promise(() => {}),
+    });
+    try {
+      const started = Date.now();
+      const result = await waitForApi({
+        url: `http://127.0.0.1:${hanging.port}/readyz`,
+        timeoutMs: 300,
+        intervalMs: 20,
+        isApiRunning: () => true,
+      });
+
+      expect(result).toBe('timed-out');
+      expect(Date.now() - started).toBeLessThan(5_000);
+    } finally {
+      hanging.stop(true);
+    }
+  });
 });

@@ -28,6 +28,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `server/startup-log.ts` | Operator diagnostics after initialization | Startup decisions |
 | `server/shutdown.ts` | Signal cleanup shared with hot reload | Workspace logic |
 | `Dockerfile`, `compose.yaml` | Non-root image, local profile and owner-only Keycloak profile | Secrets |
+| `scripts/dev.ts`, `scripts/api-readiness.ts` | Development launcher: starts the API, waits for `/readyz`, then starts Vite, and stops both together | Production serving |
 | `scripts/container-*.ts` | Docker/Podman image checks and browser suite groups | Delivery pipeline |
 | `scripts/container-hardening.ts` | The read-only, no-capability run flags shared by the container checks and mirrored in `compose.yaml` | Image build logic |
 | `scripts/gate-suites.ts` | Canonical browser gate suites and explicit exclusions | Process spawning |
