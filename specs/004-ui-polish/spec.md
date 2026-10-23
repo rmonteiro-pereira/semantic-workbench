@@ -314,5 +314,5 @@ Every finding maps to a requirement. Status values are open, fixed, deferred (wi
 | F67 | R12 | open |
 | F68 | R13 | fixed |
 | F69 | R14 | fixed |
-| F70 | R15 | open |
+| F70 | R15 | fixed |
 | F64 | R11 | open |
