@@ -263,7 +263,15 @@ try {
       await openSource('large-case-when.ossie.yaml', large.name);
       const bar = page.locator('.code-editor-bar');
       await expect(bar).toContainText('Large file mode');
-      await expect(bar.getByText('Large file mode')).toHaveAttribute('title', /500,000 characters/);
+      // The mode is a badge like the syntax label, with the switch button beside it.
+      const badge = bar.locator('.code-editor-badge');
+      await expect(badge).toHaveText('Large file mode');
+      await expect(badge).toHaveAttribute('title', /500,000 characters/);
+      const badgeBackground = await badge.evaluate(el => getComputedStyle(el).backgroundColor);
+      expect(badgeBackground).not.toBe('rgba(0, 0, 0, 0)');
+      const badgeBox = (await badge.boundingBox())!;
+      const switchBox = (await bar.getByRole('button', { name: 'Full parsing' }).boundingBox())!;
+      expect(switchBox.x - (badgeBox.x + badgeBox.width)).toBeLessThan(12);
       await expect.poll(() => colorOf('CASE')).toBe(rgb('#0000ff'));
       expect(await colorOf('metrics')).toBe(rgb('#800000'));
       await page.screenshot({ path: '/tmp/workbench-sql-large-mode.png' });

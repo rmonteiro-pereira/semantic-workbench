@@ -331,7 +331,7 @@ The graph, the overview and a contract's lineage canvas share a **Group by** sel
 Source and import-repair editors share one editor (CodeMirror 6). When a document opens (mount or a
 different document ID), YAML files above 500,000 characters use viewport-only SQL and extension-JSON
 colouring with indentation folding to keep typing fast. Typing and external replacements of the same
-document keep that mode. The status bar shows **Large file mode** and offers **Full parsing**;
+document keep that mode. The status bar shows a **Large file mode** badge and offers **Full parsing**;
 switch back with **Large file mode**. This switch overrides the mode until another document opens.
 Colors follow VS Code's Light+ theme for the detected serialization: YAML, JSON, Turtle, N3,
 N-Triples and RDF/XML (`.gitignore` and unknown text stay plain); the JSON inside a
