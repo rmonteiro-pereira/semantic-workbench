@@ -11,6 +11,7 @@ import type { TreeAction } from '../projects/Sidebar';
 import { ProjectTree } from '../projects/Sidebar';
 import { Suggestions } from '../projects/Suggestions';
 import { ExampleMenu } from './ExampleMenu';
+import { ThemeControl } from './ThemeControl';
 
 type Props = {
   compact: boolean;
@@ -282,6 +283,7 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
             onChange={handleImportInputChange}
           />
           {me && <WorkspaceLocation place={folderPlace(me.mode, access.can('edit'))} />}
+          <ThemeControl />
         </div>
       </aside>
     </>
