@@ -10,11 +10,11 @@ const request = (id: string, y: number, priority = 1, width = 260): LabelRequest
   priority,
 });
 
-test('a label sits halfway along its line', () => {
+test('a label sits halfway along its line, just above it', () => {
   const placed = placeEdgeLabels([request('a', 100)], []);
   const spot = placed.get('a')!;
   expect(spot.x + spot.w / 2).toBe(130);
-  expect(spot.y + spot.h / 2).toBe(100);
+  expect(spot.y + spot.h).toBe(100 - 6);
 });
 
 test('a gap too narrow for the label leaves it out of the picture', () => {
@@ -24,7 +24,7 @@ test('a gap too narrow for the label leaves it out of the picture', () => {
 test('two labels on neighbouring lines never overlap; the urgent one keeps its place', () => {
   const placed = placeEdgeLabels([request('late', 100, 2), request('urgent', 104, 0)], []);
   const urgent = placed.get('urgent')!;
-  expect(urgent.y + urgent.h / 2).toBe(104);
+  expect(urgent.y + urgent.h).toBe(104 - 6);
   const late = placed.get('late');
   if (late) expect(late.y >= urgent.y + urgent.h || late.y + late.h <= urgent.y).toBe(true);
 });
