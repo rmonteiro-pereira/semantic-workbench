@@ -299,20 +299,20 @@ Every finding maps to a requirement. Status values are open, fixed, deferred (wi
 | F10, F11, F21, F22, F23, F24 | R4 | fixed, redesign pass open |
 | F12, F13, F33, F34, F55 | R3 | fixed |
 | F16 | R4 | not changed, on purpose; revisited by R4.2 |
-| F17, F51, F60 | R7 | F17 and F51 fixed, F60 open |
+| F17, F51, F60 | R7 | fixed |
 | F18, F19 | R1, R9 | text floor fixed; theme isolation open |
 | F26, F27, F28, F29, F30, F31, F32, F35, F36, F37, F38, F41, F43, F44, F45, F46, F47, F48, F50, F52, F53, F54 | R8 | fixed |
 | F39, F42 | R8 | fixed |
 | F56, F57 | R4 | open |
 | F58 | R5 | open |
-| F59 | R6 | open |
+| F59 | R6 | fixed |
 | F61 | R10 | open |
 | F62 | R1 | open |
 | F63 | R2 | open |
 | F65 | R2a, R4 | open |
 | F66 | R2a | open |
 | F67 | R12 | open |
-| F68 | R13 | open |
-| F69 | R14 | open |
+| F68 | R13 | fixed |
+| F69 | R14 | fixed |
 | F70 | R15 | open |
 | F64 | R11 | open |
