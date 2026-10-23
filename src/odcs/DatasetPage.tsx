@@ -6,7 +6,15 @@ import { ArrowLeft, Table2, Workflow } from 'lucide-react';
 import { odcsForeignKeys } from '../odcs';
 import { scm, type Doc, type GitCommit as Commit } from '../projects/api';
 import { diffObject, flattenProperties, lastChange, type ObjectDiff } from './odcs-diff';
-import { buildLineage, closure, objectId, cardOfNode, type LineageCard } from './lineage';
+import {
+  buildLineage,
+  closure,
+  hopSentence,
+  objectId,
+  cardOfNode,
+  type ForeignKeyHop,
+  type LineageCard,
+} from './lineage';
 import { LineageCanvas } from './LineageCanvas';
 import { projectFiles, projectRevision } from './project-files';
 import { rulesOf, tableTypeBadge } from './ContractOverview';
@@ -359,8 +367,7 @@ function RelationshipsTab({
       column: string;
       direction: 'out' | 'in';
       other: string;
-      otherColumn: string;
-      label: string;
+      hop: ForeignKeyHop;
     }[] = [];
     for (const k of odcsForeignKeys(data))
       k.fromColumns.forEach((c, i) => {
@@ -369,16 +376,20 @@ function RelationshipsTab({
             column: c,
             direction: 'out',
             other: String(schema[k.to]?.name),
-            otherColumn: k.toColumns[i],
-            label: k.label,
+            hop: {
+              child: `${name}.${c}`,
+              parent: `${String(schema[k.to]?.name)}.${k.toColumns[i]}`,
+            },
           });
         if (k.to === objectIndex)
           out.push({
             column: k.toColumns[i],
             direction: 'in',
             other: String(schema[k.from]?.name),
-            otherColumn: c,
-            label: k.label,
+            hop: {
+              child: `${String(schema[k.from]?.name)}.${c}`,
+              parent: `${name}.${k.toColumns[i]}`,
+            },
           });
       });
     return out.sort(
@@ -395,24 +406,23 @@ function RelationshipsTab({
   return (
     <>
       <p className="odcs-note">
-        Foreign keys as declared in the contract. In lineage they are drawn from the referenced
-        column to the referencing one (the workbench's reading).
+        Each foreign key reads child column → the column it references. In lineage, lines are drawn
+        the other way, from the referenced column to the column that holds the key.
       </p>
       <div className="odcs-table-wrap">
         <table className="odcs-table compact stack" aria-label="Relationships">
           <thead>
             <tr>
-              <th>Column</th>
+              <th>Foreign key</th>
               <th>Direction</th>
               <th>Other table</th>
-              <th>Other column</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((r, i) => (
               <tr key={i}>
-                <td data-label="Column">
-                  <code>{r.column}</code>
+                <td data-label="Foreign key">
+                  <code>{hopSentence(r.hop)}</code>
                 </td>
                 <td data-label="Direction">
                   {r.direction === 'out' ? (
@@ -429,9 +439,6 @@ function RelationshipsTab({
                   >
                     {r.other}
                   </button>
-                </td>
-                <td data-label="Other column">
-                  <code>{r.otherColumn}</code>
                 </td>
               </tr>
             ))}
