@@ -286,6 +286,10 @@ try {
       await menu('Flights', 'Delete');
       const dialog = page.getByRole('dialog', { name: 'Delete project Flights?' });
       await expect(dialog).toContainText('including its Git history');
+      // The dialog says how many files go to the trash, as a number that matches the list below.
+      const listed = await dialog.locator('.delete-list li').count();
+      const count = await dialog.locator('.delete-file-count').textContent();
+      expect(count).toMatch(new RegExp(`^${listed - 1} files? go to the trash:$`));
       await dialog.getByRole('button', { name: 'Delete', exact: true }).click();
       await expect(tree().getByRole('treeitem', { name: 'Flights', exact: true })).toHaveCount(0);
       await page.getByRole('button', { name: 'Trash', exact: true }).click();
@@ -305,6 +309,7 @@ try {
     await page.getByRole('button', { name: 'Clear workspace', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Clear workspace?' });
     await expect(dialog).toContainText('Flights');
+    await expect(dialog.locator('.delete-file-count')).toHaveText(/^\d+ files? in \d+ projects?:$/);
     await dialog.getByRole('button', { name: 'Delete', exact: true }).click();
     await expect(page.getByText('No projects yet.')).toBeVisible();
     await expect(page.locator('h1')).toHaveText('Semantic Workbench');

@@ -2478,6 +2478,11 @@ main > .status {
   overflow: auto;
   overflow-wrap: anywhere;
 }
+.delete-file-count {
+  margin: 4px 0;
+  font-size: var(--text-small);
+  font-weight: 600;
+}
 .delete-warning {
   font-size: var(--text-small);
   border: 1px solid var(--color-warning-border);
@@ -3839,17 +3844,6 @@ button.import {
   padding: 7px 11px;
 }
 
-/* The project tree scrolls between the navigation above and the footer below, so Import and the
-   examples are always reachable. */
-.workspace-sidebar .documents {
-  flex: 1 1 auto;
-  min-height: 160px;
-  padding-block: 10px;
-}
-.sidebar-footer {
-  flex: none;
-}
-
 /* Zoomed far out, card text would be a few pixels tall. The cards then drop their detail lines
    and buttons and show the name at a size that stays readable once scaled down. */
 .zoom-far .node small,
@@ -3902,15 +3896,5 @@ button.import {
     width: 100%;
     max-width: var(--content-max-width);
     margin-inline: auto;
-  }
-  /* Dialogs grow with the window so a form does not sit as a narrow strip on a large screen. */
-  .workbench-dialog {
-    width: min(720px, 100%);
-  }
-  .workbench-dialog.size-small {
-    width: min(540px, 100%);
-  }
-  .workbench-dialog.size-large {
-    width: min(1100px, 100%);
   }
 }

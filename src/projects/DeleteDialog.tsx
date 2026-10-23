@@ -26,6 +26,10 @@ function deletedScope(impact: Impact) {
 /** How a subfolder project leaves the workspace: unregistered only, or its folder trashed. */
 type SubprojectMode = 'remove' | 'delete';
 
+function RemovedSummary({ line }: { line: string | null }) {
+  return line ? <p className="delete-file-count">{line}</p> : null;
+}
+
 type Draft = { project: string; path: string };
 
 function RemovedList({
@@ -44,7 +48,7 @@ function RemovedList({
       <>
         {projects.map(project => (
           <li key={project.slug}>
-            {project.name} ({project.files.length} file{project.files.length === 1 ? '' : 's'})
+            {project.name} ({fileCount(project.files.length)})
           </li>
         ))}
       </>
@@ -65,6 +69,22 @@ function RemovedList({
       ))}
     </>
   );
+}
+
+/** Says how many files a deletion takes along, in one phrase. */
+function fileCount(count: number) {
+  return `${count} file${count === 1 ? '' : 's'}`;
+}
+
+/** The line above the list of removed items; a single file needs none. */
+function removedSummary(target: DeleteTarget, impact: Impact | null, projects: ProjectInfo[]) {
+  if (target.kind === 'clear') {
+    const files = projects.reduce((total, project) => total + project.files.length, 0);
+    const projectNoun = projects.length === 1 ? 'project' : 'projects';
+    return `${fileCount(files)} in ${projects.length} ${projectNoun}:`;
+  }
+  if (target.kind === 'file' || !impact) return null;
+  return `${fileCount(impact.removes.files.length)} go to the trash:`;
 }
 
 // A subfolder project shares its repository with other projects, so taking it out of the
@@ -303,6 +323,7 @@ export function DeleteDialog({ target, projects, dirty, onCancel, onDeleted, onR
       {!removing && (
         <>
           <h3>Removed</h3>
+          <RemovedSummary line={removedSummary(target, impact, projects)} />
           <ul className="delete-list">
             <RemovedList target={target} impact={impact} projects={projects} name={name} />
           </ul>

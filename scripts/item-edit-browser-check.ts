@@ -1,6 +1,6 @@
 // Checks item editing and dependent changes in an isolated browser workspace.
 import { appUrl } from './helpers/base-url';
-import { chromium, expect } from '@playwright/test';
+import { chromium, expect, type Locator, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { parse } from 'yaml';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
@@ -8,6 +8,46 @@ import { projectDir, projectFile } from '../server/projects/paths';
 import { editorValue, fillEditor } from './helpers/code-editor';
 import { newItem } from './helpers/header';
 import { LOCAL_READER } from '../server/projects/reader';
+
+// A very long metric name must wrap, never widen the wizard, at every width the app supports: the
+// drawer does not scroll sideways, its footer is in the window, and every step can be reached.
+async function expectWizardFits(page: Page, wizard: Locator) {
+  const original = page.viewportSize()!;
+  const longLabel =
+    'Valor aluguel merchandising gerencial total ' + 'por loja e por mes '.repeat(2);
+  await wizard.getByLabel('Label').fill(longLabel);
+  for (const [width, height] of [
+    [390, 844],
+    [600, 800],
+    [1280, 720],
+    [1440, 900],
+  ]) {
+    await page.setViewportSize({ width, height });
+    await page.waitForTimeout(250);
+    const problems = await page.evaluate(() => {
+      const found: string[] = [];
+      const dialog = document.querySelector('dialog[open] .workbench-dialog') as HTMLElement;
+      const body = dialog.querySelector('.dialog-body') as HTMLElement;
+      const footer = dialog.querySelector('.dialog-footer') as HTMLElement;
+      if (dialog.scrollWidth > dialog.clientWidth + 1) found.push('the drawer scrolls sideways');
+      if (body.scrollWidth > body.clientWidth + 1) found.push('the body scrolls sideways');
+      if (footer.getBoundingClientRect().bottom > innerHeight + 1)
+        found.push('footer below window');
+      const stepper = dialog.querySelector('.wizard-stepper') as HTMLElement;
+      const compact = stepper.querySelector('.wizard-stepper-compact') as HTMLElement;
+      const compactShown = getComputedStyle(compact).display !== 'none';
+      const reachable = compactShown
+        ? compact.querySelectorAll('option').length
+        : stepper.querySelectorAll('.wizard-stepper-list button').length;
+      if (reachable !== 8) found.push(`${reachable} steps listed, not 8`);
+      return found;
+    });
+    expect(problems, `wizard at ${width}x${height}`).toEqual([]);
+  }
+  await page.setViewportSize(original);
+  await wizard.getByLabel('Label').fill('Vacancy rate');
+}
+
 // Each saved item edit must limit the Git diff to that item and its dependent changes. Screenshots
 // use /tmp/workbench-item-*.png.
 const api = await startIsolatedApi();
@@ -321,6 +361,9 @@ try {
         .click();
       await page.getByRole('button', { name: 'New metric' }).click();
       const w = page.getByRole('dialog', { name: 'New metric' });
+      // The wizard drawer takes the height of its first step instead of the whole window.
+      const drawer = await w.locator('section').first().boundingBox();
+      expect(drawer && drawer.height).toBeLessThan(page.viewportSize()!.height - 40);
       await w.getByLabel('Concept measured').fill('Property');
       await w.getByLabel('Concept it is about').fill('Property');
       await w.getByRole('button', { name: 'Next' }).click();
@@ -330,6 +373,7 @@ try {
       await expect(w.getByRole('textbox', { name: 'Name', exact: true })).toHaveValue(
         'vacancy_rate',
       );
+      await expectWizardFits(page, w);
       await w.getByLabel('Metric type').selectOption('ratio');
       await w.getByLabel('Numerator').selectOption('vacant_gla');
       await w.getByLabel('Denominator').selectOption('total_gla');
