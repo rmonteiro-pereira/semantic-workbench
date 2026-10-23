@@ -6,8 +6,8 @@
   gap: 0;
   height: 100%;
   min-height: 0;
-  background: white;
-  border: 1px solid #e3eae8;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 10px;
   overflow: hidden;
 }
@@ -16,10 +16,10 @@
   flex-direction: column;
   gap: 10px;
   padding: 12px;
-  border-right: 1px solid #e8eeec;
+  border-right: 1px solid var(--color-border-subtle);
   overflow: auto;
   min-width: 0;
-  background: #fbfcfc;
+  background: var(--color-surface);
 }
 .scm-main {
   display: flex;
@@ -64,9 +64,9 @@
   flex: 1;
   font-size: 13px;
   padding: 5px 6px;
-  border: 1px solid #dce4e2;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
-  background: white;
+  background: var(--color-surface);
 }
 .branch-picker button {
   font-size: var(--text-small);
@@ -83,7 +83,7 @@
   min-width: 0;
   font-size: 13px;
   padding: 5px 7px;
-  border: 1px solid #cfdad6;
+  border: 1px solid var(--color-border-strong);
   border-radius: 6px;
 }
 .scm-sync {
@@ -91,9 +91,9 @@
   align-items: center;
   gap: 2px;
   font-size: var(--text-small);
-  color: #5a6f68;
+  color: var(--color-text-muted);
   padding: 3px 6px;
-  background: #eef3f1;
+  background: var(--color-surface-sunken);
   border-radius: 10px;
 }
 .scm-remote-url {
@@ -102,7 +102,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #5a6f68;
+  color: var(--color-text-muted);
   font-family: ui-monospace, monospace;
   font-size: var(--text-small);
 }
@@ -111,7 +111,7 @@
   display: block;
   margin: -2px 0 2px;
   font-size: var(--text-small);
-  color: #62786e;
+  color: var(--color-text-muted);
 }
 .scm-note {
   display: flex;
@@ -121,19 +121,19 @@
   border-radius: 7px;
   padding: 8px 10px;
   margin: 0;
-  border: 1px solid #d6e6de;
-  background: #f2f9f5;
-  color: #24503f;
+  border: 1px solid var(--color-accent-border);
+  background: var(--color-surface-hover);
+  color: var(--color-text-secondary);
 }
 .scm-note.warning {
-  border-color: #e3d6a4;
-  background: #fbf6e2;
-  color: #5a4a12;
+  border-color: var(--color-warning-border);
+  background: var(--color-warning-soft);
+  color: var(--color-warning-text);
 }
 .scm-note.waiting {
-  border-color: #c9dbe8;
-  background: #eef5fb;
-  color: #23465f;
+  border-color: var(--color-info-border);
+  background: var(--color-info-soft);
+  color: var(--color-info-text);
   align-items: center;
 }
 .scm-note > div {
@@ -156,7 +156,7 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  border: 2px solid #9cbad0;
+  border: 2px solid var(--color-info-border);
   border-top-color: transparent;
   animation: scm-spin 0.8s linear infinite;
   flex: none;
@@ -176,9 +176,9 @@
   display: grid;
   gap: 6px;
   justify-items: start;
-  color: #8a2c22;
-  background: #fdf1ef;
-  border: 1px solid #efc9c2;
+  color: var(--color-danger-strong);
+  background: var(--color-danger-soft);
+  border: 1px solid var(--color-danger-border);
   border-radius: 7px;
   padding: 8px 10px;
   max-height: 160px;
@@ -206,7 +206,7 @@
   resize: vertical;
   font-size: 13px;
   padding: 7px 8px;
-  border: 1px solid #cfdad6;
+  border: 1px solid var(--color-border-strong);
   border-radius: 6px;
 }
 .scm-commit button {
@@ -214,7 +214,7 @@
   padding: 7px;
 }
 .scm-commit small {
-  color: #8a5a12;
+  color: var(--color-warning-emphasis);
   font-size: var(--text-small);
 }
 .scm-empty {
@@ -230,14 +230,14 @@
   font-size: var(--text-small);
   letter-spacing: 0.4px;
   text-transform: uppercase;
-  color: #4d6660;
+  color: var(--color-text-muted);
 }
 .scm-group h3 small {
-  background: #e3ecea;
+  background: var(--color-surface-sunken);
   border-radius: 9px;
   padding: 0 6px;
   font-size: var(--text-small);
-  color: #3a5a50;
+  color: var(--color-text-secondary);
 }
 .scm-group h3 .link {
   margin-left: auto;
@@ -260,7 +260,7 @@
 }
 .scm-row:hover,
 .scm-row.selected {
-  background: #eaf3ef;
+  background: var(--color-accent-soft);
 }
 /* The name and the tag of its project share the first line; the folder follows below. */
 .scm-file {
@@ -303,13 +303,13 @@
   gap: 3px;
   font-style: normal;
   font-size: var(--text-small);
-  color: #6b5a1e;
-  background: #f6efd6;
+  color: var(--color-warning-text);
+  background: var(--color-warning-soft);
   border-radius: 4px;
   padding: 1px 5px;
 }
 .hidden-file .scm-name {
-  color: #5a6f68;
+  color: var(--color-text-muted);
 }
 .scm-actions {
   display: flex;
@@ -335,27 +335,27 @@
   min-height: 26px;
 }
 .scm-actions button:hover {
-  background: #dcebe5;
+  background: var(--color-accent-soft-strong);
 }
 .scm-state {
   font:
     600 var(--text-small) ui-monospace,
     monospace;
   text-align: center;
-  color: #8a6d1a;
+  color: var(--color-warning-emphasis);
 }
 .s-a,
 .s-u {
-  color: #2c7a4b;
+  color: var(--color-accent-text);
 }
 .s-d {
-  color: #a3392f;
+  color: var(--color-danger-text);
 }
 .s-r {
-  color: #2a6c95;
+  color: var(--color-info);
 }
 .s-\! {
-  color: #b3261e;
+  color: var(--color-danger);
 }
 .scm-ignore {
   grid-column: 1/-1;
@@ -363,8 +363,8 @@
   flex-direction: column;
   gap: 4px;
   font-size: var(--text-small);
-  background: white;
-  border: 1px solid #dfe8e4;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 6px;
   padding: 8px;
   margin: 2px 0 6px;
@@ -377,7 +377,7 @@
 .scm-ignore code {
   margin-left: auto;
   font-size: var(--text-small);
-  color: #5a6f68;
+  color: var(--color-text-muted);
   overflow-wrap: anywhere;
 }
 .scm-ignore div {
@@ -438,7 +438,7 @@
   flex-direction: column;
   min-height: 0;
   flex: 1 1 auto;
-  border: 1px solid #e1e8e6;
+  border: 1px solid var(--color-border-subtle);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -446,9 +446,9 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   font-size: var(--text-small);
-  color: #4d6660;
-  background: #f3f6f5;
-  border-bottom: 1px solid #e1e8e6;
+  color: var(--color-text-muted);
+  background: var(--color-surface-page);
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 .diff-labels span {
   padding: 5px 10px;
@@ -484,7 +484,7 @@
   }
   .scm-side {
     border-right: 0;
-    border-bottom: 1px solid #e8eeec;
+    border-bottom: 1px solid var(--color-border-subtle);
   }
   .scm-main {
     min-height: 420px;
@@ -494,8 +494,8 @@
   margin-left: auto;
   font-size: var(--text-small);
   font-weight: 600;
-  background: #dcebe5;
-  color: #1e6a4f;
+  background: var(--color-accent-soft-strong);
+  color: var(--color-accent-text);
   border-radius: 9px;
   padding: 0 7px;
   min-width: 20px;
@@ -511,7 +511,7 @@
 }
 .branch-picker label > span {
   font-size: var(--text-small);
-  color: #4d6660;
+  color: var(--color-text-muted);
 }
 
 /* Keep actions above independently scrolling history and give stacked diffs real space; on narrow
@@ -551,7 +551,7 @@
 .commit-dialog .commit-scope {
   margin: 0 0 10px;
   font-size: var(--text-small);
-  color: #5c716b;
+  color: var(--color-text-muted);
 }
 .commit-dialog .commit-body {
   display: grid;
@@ -564,7 +564,7 @@
   list-style: none;
   margin: 0;
   padding: 4px;
-  border: 1px solid #dbe3e4;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   overflow: auto;
   min-width: 0;
@@ -577,7 +577,7 @@
   padding: 2px 4px;
 }
 .commit-dialog .commit-files li.selected {
-  background: #eaf3f0;
+  background: var(--color-surface-hover);
 }
 .commit-dialog .commit-files input {
   flex: none;
@@ -613,19 +613,19 @@
 }
 .commit-dialog .commit-kind.k-new,
 .commit-dialog .commit-kind.k-added {
-  color: #1e6a4f;
+  color: var(--color-accent-text);
 }
 .commit-dialog .commit-kind.k-deleted {
-  color: #a3392f;
+  color: var(--color-danger-text);
 }
 .commit-dialog .commit-kind.k-conflicted {
-  color: #b45309;
+  color: var(--color-orange);
 }
 .commit-dialog .commit-diff {
   min-width: 0;
   min-height: 0;
   overflow: auto;
-  border: 1px solid #dbe3e4;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
 }
 .commit-dialog .commit-diff .diff-view {
@@ -640,7 +640,7 @@
   font: inherit;
   font-size: 13px;
   padding: 8px;
-  border: 1px solid #dbe3e4;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   resize: vertical;
 }
@@ -658,7 +658,7 @@
   align-items: center;
   gap: 6px;
   font-size: var(--text-small);
-  color: #7a2e25;
+  color: var(--color-danger-strong);
   min-width: 0;
 }
 .commit-dialog .commit-confirm > span {
@@ -696,7 +696,7 @@
   margin: 0 0 12px;
   font-size: 13px;
   line-height: 1.5;
-  color: #587264;
+  color: var(--color-text-muted);
 }
 .workbench-dialog label.check-row {
   flex-direction: row;
@@ -717,7 +717,7 @@
     monospace;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  color: #8a2c22;
+  color: var(--color-danger-strong);
 }
 .clone-invalid {
   margin: 6px 0 0;
@@ -753,11 +753,11 @@
 .credential-helper {
   padding: 8px 10px;
   border-radius: 6px;
-  background: #f3f7f5;
+  background: var(--color-surface-sunken);
 }
 .credential-guide .segmented {
   display: inline-flex;
-  border: 1px solid #dbe3e4;
+  border: 1px solid var(--color-border);
   border-radius: 7px;
   overflow: hidden;
   margin-top: 6px;
@@ -767,11 +767,11 @@
   border-radius: 0;
   padding: 6px 14px;
   font-size: var(--text-small);
-  background: #fff;
+  background: var(--color-surface);
 }
 .credential-guide .segmented button.selected {
-  background: #e5f1ec;
-  color: #1f5e4e;
+  background: var(--color-accent-soft);
+  color: var(--color-accent-hover);
   font-weight: 600;
 }
 .copyable-command {
@@ -781,9 +781,9 @@
   min-width: 0;
   margin: 6px 0;
   padding: 6px 6px 6px 10px;
-  border: 1px solid #dbe3e4;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
-  background: #f8faf9;
+  background: var(--color-surface-page);
 }
 .copyable-command code {
   flex: 1;
@@ -816,7 +816,7 @@
   display: grid;
   gap: 6px;
   padding: 8px 10px;
-  border: 1px solid #dfe8e3;
+  border: 1px solid var(--color-border-subtle);
   border-radius: 8px;
 }
 .repository-folder .check-row {
@@ -847,8 +847,8 @@
 .scm-project {
   font-style: normal;
   font-size: var(--text-small);
-  color: #29534a;
-  background: #e3efe9;
+  color: var(--color-text-secondary);
+  background: var(--color-accent-soft);
   border-radius: 4px;
   padding: 1px 5px;
   white-space: nowrap;
@@ -859,7 +859,7 @@
 .subproject-choice {
   margin: 0 0 14px;
   padding: 10px 12px;
-  border: 1px solid #dfe8e3;
+  border: 1px solid var(--color-border-subtle);
   border-radius: 8px;
   display: grid;
   gap: 8px;
@@ -882,7 +882,7 @@
 }
 .subproject-choice .choice-title {
   font-weight: 600;
-  color: #243936;
+  color: var(--color-text);
 }
 .subproject-choice .choice-hint {
   font-size: var(--text-small);
@@ -960,7 +960,7 @@
   color: var(--text-muted);
 }
 .workbench-dialog input[aria-invalid='true'] + .folder-hint {
-  color: #8a2c22;
+  color: var(--color-danger-strong);
 }
 .workbench-dialog .folder-confirmation p {
   margin: 0 0 8px;

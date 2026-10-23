@@ -36,8 +36,8 @@ dialog.validation-backdrop:has(.item-editor) {
   font-weight: 700;
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  background: #e9f4ef;
-  color: #1e6a4f;
+  background: var(--color-accent-soft);
+  color: var(--color-accent-text);
   border-radius: 5px;
   padding: 2px 7px;
 }
@@ -45,7 +45,7 @@ button.link {
   border: 0;
   background: none;
   padding: 2px 4px;
-  color: #1e6a4f;
+  color: var(--color-accent-text);
   font-size: var(--text-small);
   gap: 4px;
   display: inline-flex;
@@ -55,7 +55,7 @@ button.link {
 .item-tabs {
   display: flex;
   gap: 3px;
-  background: #eaf0ed;
+  background: var(--color-surface-sunken);
   padding: 3px;
   border-radius: 8px;
   width: fit-content;
@@ -68,9 +68,9 @@ button.link {
   border-radius: 6px;
 }
 .item-tabs .selected {
-  background: white;
-  color: #246e58;
-  box-shadow: 0 1px 4px #314d3a14;
+  background: var(--color-surface);
+  color: var(--color-accent-text);
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--color-shadow) 8%, transparent);
   font-weight: 600;
 }
 .item-fields {
@@ -84,10 +84,10 @@ button.link {
 }
 .item-fields label > span {
   font-weight: 600;
-  color: #3a5a50;
+  color: var(--color-text-secondary);
 }
 .item-fields em {
-  color: #a3392f;
+  color: var(--color-danger-text);
   font-style: normal;
 }
 .item-fields label:has(textarea),
@@ -103,7 +103,7 @@ button.link {
 }
 .item-fields textarea {
   padding: 8px;
-  border: 1px solid #dbe3e4;
+  border: 1px solid var(--color-border);
   border-radius: 5px;
   resize: vertical;
   font-family: inherit;
@@ -128,7 +128,7 @@ button.link {
   display: flex;
   min-height: 260px;
   flex: 1 1 260px;
-  border: 1px solid #dbe3e4;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   overflow: hidden;
 }
@@ -137,9 +137,9 @@ button.link {
   gap: 6px;
   align-items: center;
   font-size: var(--text-small) !important;
-  color: #5a4a12 !important;
-  background: #fbf6e2;
-  border: 1px solid #e3d6a4;
+  color: var(--color-warning-text) !important;
+  background: var(--color-warning-soft);
+  border: 1px solid var(--color-warning-border);
   border-radius: 7px;
   padding: 7px 10px;
   margin: 4px 0;
@@ -147,8 +147,8 @@ button.link {
 .item-dependents,
 .item-references {
   font-size: var(--text-small);
-  border: 1px solid #dfe9e4;
-  background: #f7fbf9;
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-page);
   border-radius: 7px;
   padding: 8px 10px;
 }
@@ -177,7 +177,7 @@ button.link {
   overflow-wrap: anywhere;
 }
 .item-children {
-  border-top: 1px solid #eef2f1;
+  border-top: 1px solid var(--color-border-subtle);
   padding-top: 6px;
 }
 .item-children h3 {
@@ -210,7 +210,7 @@ button.link {
   gap: 8px;
   font-size: var(--text-small);
   padding: 3px 0;
-  border-bottom: 1px solid #f2f5f4;
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 .item-children li span {
   overflow-wrap: anywhere;
@@ -236,26 +236,26 @@ button.link {
   padding: 3px 0;
 }
 .item-findings .error {
-  color: #a3392f;
+  color: var(--color-danger-text);
 }
 .item-findings .warning {
-  color: #7a5d0f;
+  color: var(--color-warning-emphasis);
 }
 .item-editor > .dialog-footer .item-delete {
   margin-right: auto;
-  color: #a3392f;
+  color: var(--color-danger-text);
   gap: 5px;
 }
 .item-state {
   font-size: var(--text-small);
-  color: #5d7268;
+  color: var(--color-text-muted);
 }
 .item-preview {
   font-size: var(--text-small);
 }
 .item-preview pre {
-  background: #f6faf8;
-  border: 1px solid #e3ece7;
+  background: var(--color-surface-page);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 6px;
   padding: 8px 10px;
   font-size: var(--text-small);
@@ -288,7 +288,7 @@ button.link {
 }
 .wizard-body h3 {
   font-size: 15px !important;
-  color: #24393d !important;
+  color: var(--color-text) !important;
   margin: 6px 0 !important;
 }
 .item-fields .wide {
@@ -300,7 +300,7 @@ button.link {
   gap: 4px 12px;
   max-height: 160px;
   overflow: auto;
-  border: 1px solid #e3ece7;
+  border: 1px solid var(--color-border-subtle);
   border-radius: 6px;
   padding: 6px 8px;
 }
@@ -309,13 +309,13 @@ button.link {
   font-size: var(--text-small);
 }
 .formula-line code {
-  background: #f6faf8;
+  background: var(--color-surface-page);
   padding: 2px 6px;
   border-radius: 4px;
 }
 .wizard-preview pre {
-  background: #f6faf8;
-  border: 1px solid #e3ece7;
+  background: var(--color-surface-page);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 6px;
   padding: 8px 10px;
   font-size: var(--text-small);
@@ -338,7 +338,7 @@ button.link {
   overflow-wrap: anywhere;
 }
 .item-subject code {
-  color: #52656b;
+  color: var(--color-text-muted);
 }
 .item-refusal {
   flex-wrap: wrap;
@@ -365,9 +365,9 @@ button.link {
   box-sizing: border-box;
   font-size: var(--text-small);
   padding: 6px 8px;
-  border: 1px solid #dbe3e4;
+  border: 1px solid var(--color-border);
   border-radius: 5px;
-  background: white;
+  background: var(--color-surface);
 }
 .rdf-row textarea {
   resize: vertical;
@@ -386,8 +386,8 @@ button.link {
 }
 .rdf-row.locked input,
 .rdf-row.locked textarea {
-  background: #f6f8f7;
-  color: #52656b;
+  background: var(--color-surface-page);
+  color: var(--color-text-muted);
 }
 .rdf-lock {
   grid-column: 1/-1;
@@ -398,7 +398,7 @@ button.link {
 .rdf-head {
   font-size: var(--text-small);
   font-weight: 600;
-  color: #3a5a50;
+  color: var(--color-text-secondary);
 }
 .rdf-add {
   align-self: flex-start;
@@ -408,7 +408,7 @@ button.link {
 }
 .item-gate {
   font-size: var(--text-small) !important;
-  color: #1e6a4f !important;
+  color: var(--color-accent-text) !important;
   margin: 2px 0;
 }
 @media (max-width: 700px) {
