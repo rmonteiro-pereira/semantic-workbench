@@ -111,3 +111,16 @@ from the v0.4.0 build). `screenshots/after/` holds the same screens after the fi
 Measured before the fixes (`scripts/polish-capture.ts`): no text collisions on any non-dialog
 screen at the four sizes; 17 to 190 text runs per screen below 12 px; no cut-off controls
 reported by the existing control check, because scrolling strips count as reachable.
+
+## S5: strict audit rounds
+
+Each round photographs every screen and dialog at four sizes, in light and dark, in local and server
+mode, and a reviewer who did not build the app reads every image. The reviewer's rows are in
+`specs/004-ui-polish/audit/round-N-<letter>.md`; every S1 and S2 row there is a finding of this
+release, and the round is closed only when the next round reports none.
+
+| Round | Files | Rows (S1 / S2 / S3) | Status |
+| --- | --- | --- | --- |
+| 1, local light | audit/round-1-A.md, round-1-B.md | 3 / 15 / 5 and 3 / 12 / 6 | fixing |
+| 1, local dark | audit/round-1-C.md, round-1-D.md | 1 / 13 / 8 and 5 / 19 / 3 | fixing |
+| 1, server light and dark | to be reviewed after the local rows are fixed | | open |
