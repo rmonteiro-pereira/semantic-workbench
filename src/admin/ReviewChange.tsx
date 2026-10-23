@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { adminApi, AdminApiError, problemText } from './api';
+import { DialogActions } from './AdminDialog';
 import { canConfirm, proposalKey } from './change-review';
 import type { AccessArea, DryRun, Proposal } from './types';
 
@@ -15,9 +16,10 @@ export function DryRunResult({ result }: { result: DryRun }) {
       {result.people.map((person, index) => (
         <p key={index}>
           <strong title={person.principal}>{person.name}</strong>
-          {' · '}
-          {person.project}: access {person.access};{' gained '}
-          {person.gained.join(', ') || 'none'}; lost {person.lost.join(', ') || 'none'}
+          <span className="admin-review-detail">
+            {person.project}: access {person.access}; gained {person.gained.join(', ') || 'none'};
+            lost {person.lost.join(', ') || 'none'}
+          </span>
         </p>
       ))}
       {result.changed.map((change, index) => (
@@ -53,6 +55,7 @@ export function ReviewChange({
   confirmDeleteInUse = false,
   description = 'Save changes',
   changeLabel,
+  inline = false,
 }: {
   area: AccessArea;
   proposal: Proposal;
@@ -62,6 +65,8 @@ export function ReviewChange({
   confirmDeleteInUse?: boolean;
   description?: string;
   changeLabel?: string;
+  /** Leaves the buttons in the body when the dialog holds more than one review. */
+  inline?: boolean;
 }) {
   const [review, setReview] = useState<{ key: string; result: DryRun } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -109,20 +114,22 @@ export function ReviewChange({
   return (
     <section className="admin-review" aria-label={description}>
       {error && <p role="alert">{error}</p>}
-      <button disabled={busy || disabled} onClick={preview}>
-        Dry run
-      </button>
-      {ready && review && (
-        <>
-          <DryRunResult result={review.result} />
-          <button disabled={busy || disabled} onClick={save}>
-            Confirm {description.toLowerCase()}
-          </button>
-          <button disabled={busy} onClick={() => setReview(null)}>
-            Cancel changes
-          </button>
-        </>
-      )}
+      {ready && review && <DryRunResult result={review.result} />}
+      <DialogActions inline={inline}>
+        <button className={ready ? '' : 'primary'} disabled={busy || disabled} onClick={preview}>
+          Dry run
+        </button>
+        {ready && review && (
+          <>
+            <button className="primary" disabled={busy || disabled} onClick={save}>
+              Confirm {description.toLowerCase()}
+            </button>
+            <button disabled={busy} onClick={() => setReview(null)}>
+              Cancel changes
+            </button>
+          </>
+        )}
+      </DialogActions>
     </section>
   );
 }

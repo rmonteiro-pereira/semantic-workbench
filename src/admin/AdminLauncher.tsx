@@ -10,14 +10,36 @@ import { AuditDialog } from './AuditDialog';
 import { SettingsDialog } from './SettingsDialog';
 
 const areas = {
-  'Users & groups': UsersDialog,
-  'Roles & access': RolesAccessDialog,
-  Policies: PoliciesDialog,
-  'Access check': AccessCheckDialog,
-  Projects: ProjectAccessDialog,
-  Audit: AuditDialog,
-  Settings: SettingsDialog,
+  'Users & groups': {
+    Dialog: UsersDialog,
+    description: 'See who has signed in, their groups and roles, and deactivate accounts.',
+  },
+  'Roles & access': {
+    Dialog: RolesAccessDialog,
+    description: 'Grant roles to people and groups, and define custom roles.',
+  },
+  Policies: {
+    Dialog: PoliciesDialog,
+    description: 'Review the built-in access rules and add rules of your own.',
+  },
+  'Access check': {
+    Dialog: AccessCheckDialog,
+    description: 'Ask why a person can or cannot do something, or who can reach a project.',
+  },
+  Projects: {
+    Dialog: ProjectAccessDialog,
+    description: 'Set which domains and projects each group can see.',
+  },
+  Audit: {
+    Dialog: AuditDialog,
+    description: 'Search and export the record of access decisions.',
+  },
+  Settings: {
+    Dialog: SettingsDialog,
+    description: 'Check the sign-in provider, session lifetimes and active sessions.',
+  },
 };
+type AreaName = keyof typeof areas;
 /** Uses the server's capability, including the implicit local administrator. */
 export function canOpenAdmin(me: Me | null): boolean {
   return me?.mode === 'local' || me?.can?.admin === true;
@@ -26,9 +48,9 @@ export function canOpenAdmin(me: Me | null): boolean {
 export function AdminLauncher() {
   const { me } = useMe();
   const [open, setOpen] = useState(false);
-  const [area, setArea] = useState<keyof typeof areas | null>(null);
+  const [area, setArea] = useState<AreaName | null>(null);
   if (!canOpenAdmin(me)) return null;
-  const Area = area ? areas[area] : null;
+  const Area = area ? areas[area].Dialog : null;
   return (
     <>
       <button className="admin-launcher" onClick={() => setOpen(true)}>
@@ -43,12 +65,15 @@ export function AdminLauncher() {
           }}
           size="small"
         >
-          <nav className="admin-areas" aria-label="Admin areas">
-            {Object.keys(areas).map(name => (
-              <button key={name} onClick={() => setArea(name as keyof typeof areas)}>
-                {name}
-              </button>
-            ))}
+          <nav aria-label="Admin areas">
+            <ul className="admin-areas">
+              {(Object.keys(areas) as AreaName[]).map(name => (
+                <li key={name}>
+                  <button onClick={() => setArea(name)}>{name}</button>
+                  <span>{areas[name].description}</span>
+                </li>
+              ))}
+            </ul>
           </nav>
           {Area && <Area onClose={() => setArea(null)} />}
         </AdminDialog>

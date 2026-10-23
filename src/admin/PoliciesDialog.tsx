@@ -47,17 +47,8 @@ export function PoliciesDialog({ onClose }: DialogProps) {
         <button onClick={create}>New rule</button>
         <button onClick={() => setHistory(true)}>History</button>
       </div>
-      <h3>Baseline — read-only</h3>
-      {data?.baseline.map(rule => (
-        <details key={rule.id}>
-          <summary>
-            🔒 {rule.id}
-            {rule.description && ` · ${rule.description}`}
-          </summary>
-          <pre>{rule.text}</pre>
-        </details>
-      ))}
       <h3>Admin rules</h3>
+      {data?.rules.length === 0 && <p>No custom rules yet.</p>}
       {data?.rules.map(rule => (
         <section key={rule.id}>
           <h4>{rule.description || rule.id}</h4>
@@ -78,6 +69,18 @@ export function PoliciesDialog({ onClose }: DialogProps) {
           </button>
         </section>
       ))}
+      <details className="admin-builtin-rules">
+        <summary>Built-in rules ({data?.baseline.length ?? 0}) — read-only</summary>
+        {data?.baseline.map(rule => (
+          <details key={rule.id}>
+            <summary>
+              🔒 {rule.id}
+              {rule.description && ` · ${rule.description}`}
+            </summary>
+            <pre>{rule.text}</pre>
+          </details>
+        ))}
+      </details>
       {edit && data && (
         <PolicyEditor
           initial={edit}

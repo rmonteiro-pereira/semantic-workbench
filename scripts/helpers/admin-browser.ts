@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { expect, type Page } from '@playwright/test';
 import { authViewports } from './sign-in';
 import { layoutProblems } from './layout-geometry';
+import { smallTextProblems, textCollisionProblems } from './text-geometry';
 import { screenshotPath } from './screenshots';
 
 /** The areas the launcher lists, in its order. */
@@ -54,6 +55,8 @@ export async function closeAdminArea(page: Page, name: string) {
 export async function adminGeometry(page: Page, name: string) {
   for (const [width, height] of authViewports) {
     await page.setViewportSize({ width, height });
+    // A dialog opened from another one replaces it on screen: one panel, one Close button.
+    await expect(page.locator('dialog[open] .workbench-dialog:visible')).toHaveCount(1);
     const dialog = page.locator('dialog').last();
     const box = await dialog.locator('.workbench-dialog').first().boundingBox();
     assert(
@@ -73,6 +76,16 @@ export async function adminGeometry(page: Page, name: string) {
       await layoutProblems(page, { ignore: 'dialog:not(:last-of-type) *' }),
       [],
       `${name} at ${width}×${height}`,
+    );
+    assert.deepEqual(
+      await smallTextProblems(page, 'dialog[open]'),
+      [],
+      `${name} text size at ${width}×${height}`,
+    );
+    assert.deepEqual(
+      await textCollisionProblems(page, 'dialog[open]'),
+      [],
+      `${name} text collisions at ${width}×${height}`,
     );
     await page.screenshot({ path: screenshotPath(`/tmp/workbench-admin-${name}-${width}.png`) });
   }

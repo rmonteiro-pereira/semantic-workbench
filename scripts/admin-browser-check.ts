@@ -105,8 +105,8 @@ async function customRole(page: Page) {
   const editor = page.getByRole('dialog', { name: 'New role', exact: true });
   await editor.getByLabel('Name', { exact: true }).fill('Metric reviewer browser');
   await editor.getByLabel('Description', { exact: true }).fill('Review metrics in Sales');
-  await editor.getByLabel('approveMetric', { exact: true }).check();
-  await editor.getByText('Conditions for approveMetric', { exact: true }).click();
+  await editor.getByLabel('Approve metric', { exact: true }).check();
+  await editor.getByText('Conditions for approve metric', { exact: true }).click();
   await editor.getByLabel('Document type', { exact: true }).fill('metric');
   await adminGeometry(page, 'role-editor');
   await review(editor);
@@ -130,7 +130,7 @@ async function customRole(page: Page) {
   await region.getByRole('button', { name: 'Edit', exact: true }).click();
   const edit = page.getByRole('dialog', { name: 'Edit role', exact: true });
   await expect(edit).toContainText(TEST_GROUPS.salesEditors.name);
-  await edit.getByLabel('read', { exact: true }).check();
+  await edit.getByLabel('Read', { exact: true }).check();
   await review(edit);
   await region.getByRole('button', { name: 'Delete', exact: true }).click();
   const deletion = page.getByRole('dialog', { name: 'Delete role', exact: true });

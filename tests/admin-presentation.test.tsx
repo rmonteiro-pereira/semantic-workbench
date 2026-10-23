@@ -1,3 +1,4 @@
+import { actionLabel } from '../src/admin/action-labels';
 import { expect, test } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { DryRunResult } from '../src/admin/ReviewChange';
@@ -95,7 +96,7 @@ test('role conditions only show for applicable selected actions', () => {
       onChange={() => {}}
     />,
   );
-  expect(html).toContain('Conditions for approveMetric');
+  expect(html).toContain('Conditions for approve metric');
   expect(html).toContain('Document type');
   expect(html).not.toContain('Conditions for read');
 });
@@ -155,4 +156,10 @@ test('browser check names screenshots and enforces the three-minute limit', () =
   ]);
   expect(withinAdministrationTime(1_000, 1_000 + ADMINISTRATION_TIME_LIMIT_MS - 1)).toBe(true);
   expect(withinAdministrationTime(1_000, 1_000 + ADMINISTRATION_TIME_LIMIT_MS)).toBe(false);
+});
+
+test('action identifiers read as labels', () => {
+  expect(actionLabel('approveMetric')).toBe('Approve metric');
+  expect(actionLabel('viewOwnState')).toBe('View own state');
+  expect(actionLabel('read')).toBe('Read');
 });

@@ -72,7 +72,12 @@ export function GrantForm({
 }) {
   const { data, error } = useAdminData(loadGrantForm);
   return (
-    <AdminDialog title={initial ? 'Change grant' : 'Add grant'} onClose={onClose} size="medium">
+    <AdminDialog
+      title={initial ? 'Change grant' : 'Add grant'}
+      onClose={onClose}
+      size="medium"
+      lastAdminNotice={Boolean(initial)}
+    >
       {error && <p role="alert">{error}</p>}
       {!data && !error && <p>Loading grants…</p>}
       {data && (
