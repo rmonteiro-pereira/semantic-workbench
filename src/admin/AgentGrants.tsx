@@ -65,7 +65,6 @@ export function AgentGrants({
         baseVersion={version}
         onSaved={onSaved}
         description="Save agent grants"
-        inline
       />
     </section>
   );

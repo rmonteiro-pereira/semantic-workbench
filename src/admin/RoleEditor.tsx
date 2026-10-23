@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AdminDialog, type DialogProps } from './AdminDialog';
+import { AdminPane, type PaneProps } from './AdminPane';
 import { RolePermissions } from './RolePermissions';
 import { GrantForm, GroupName, scopeLabel } from './GrantForm';
 import { ReviewChange } from './ReviewChange';
@@ -7,13 +7,13 @@ import type { Grant, Role, RolesResponse } from './types';
 
 /** Edits custom permissions and manages members through the shared grant form. */
 export function RoleEditor({
-  onClose,
+  onBack,
   onSaved,
   initial,
   roles,
   grants,
   version,
-}: DialogProps & {
+}: PaneProps & {
   onSaved: () => void;
   initial: Role;
   roles: RolesResponse;
@@ -23,9 +23,23 @@ export function RoleEditor({
   const [role, setRole] = useState(initial);
   const [member, setMember] = useState(false);
   const persisted = roles.custom.some(item => item.id === role.id);
+  if (member) {
+    return (
+      <GrantForm
+        roleId={role.id}
+        backLabel="Back to role"
+        onBack={() => setMember(false)}
+        onSaved={onSaved}
+      />
+    );
+  }
   const proposal = { roles: [...roles.custom.filter(item => item.id !== role.id), role] };
   return (
-    <AdminDialog title={persisted ? 'Edit role' : 'New role'} onClose={onClose}>
+    <AdminPane
+      title={persisted ? 'Edit role' : 'New role'}
+      backLabel="Back to roles"
+      onBack={onBack}
+    >
       <label>
         Name
         <input
@@ -70,7 +84,6 @@ export function RoleEditor({
         onSaved={onSaved}
         disabled={!role.name.trim() || !role.permissions.length}
       />
-      {member && <GrantForm roleId={role.id} onClose={() => setMember(false)} onSaved={onSaved} />}
-    </AdminDialog>
+    </AdminPane>
   );
 }

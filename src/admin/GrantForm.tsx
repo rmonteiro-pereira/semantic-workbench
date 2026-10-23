@@ -1,7 +1,7 @@
 import { useMe } from '../auth/useMe';
 import { useEffect, useState } from 'react';
 import { SelectField } from './SelectField';
-import { AdminDialog, type DialogProps } from './AdminDialog';
+import { AdminPane, type PaneProps } from './AdminPane';
 import { newIdentifier } from './identifiers';
 import { adminApi, problemText } from './api';
 import { commaList } from './change-review';
@@ -59,12 +59,14 @@ export function GroupName({
 }
 /** Adds or changes a grant through the same form wherever members are managed. */
 export function GrantForm({
-  onClose,
+  onBack,
+  backLabel,
   onSaved,
   initial,
   email = '',
   roleId = 'viewer',
-}: DialogProps & {
+}: PaneProps & {
+  backLabel: string;
   onSaved: () => void;
   initial?: Grant;
   email?: string;
@@ -72,10 +74,10 @@ export function GrantForm({
 }) {
   const { data, error } = useAdminData(loadGrantForm);
   return (
-    <AdminDialog
+    <AdminPane
       title={initial ? 'Change grant' : 'Add grant'}
-      onClose={onClose}
-      size="medium"
+      backLabel={backLabel}
+      onBack={onBack}
       lastAdminNotice={Boolean(initial)}
     >
       {error && <p role="alert">{error}</p>}
@@ -83,7 +85,7 @@ export function GrantForm({
       {data && (
         <GrantFields {...data} initial={initial} email={email} roleId={roleId} onSaved={onSaved} />
       )}
-    </AdminDialog>
+    </AdminPane>
   );
 }
 

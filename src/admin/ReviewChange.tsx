@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { adminApi, AdminApiError, problemText } from './api';
-import { DialogActions } from './AdminDialog';
+import { AdminConfirmation } from './AdminConfirmation';
 import { canConfirm, proposalKey } from './change-review';
 import type { AccessArea, DryRun, Proposal } from './types';
 
@@ -65,7 +65,10 @@ export function ReviewChange({
   confirmDeleteInUse?: boolean;
   description?: string;
   changeLabel?: string;
-  /** Leaves the buttons in the body when the dialog holds more than one review. */
+  /**
+   * Shows the result and the confirm button in place, for a review that already sits in a
+   * confirmation dialog. Otherwise the result opens in its own dialog.
+   */
   inline?: boolean;
 }) {
   const [review, setReview] = useState<{ key: string; result: DryRun } | null>(null);
@@ -111,25 +114,38 @@ export function ReviewChange({
       setBusy(false);
     }
   }
+  const confirmButtons = (
+    <>
+      <button className="primary" disabled={busy || disabled} onClick={save}>
+        Confirm {description.toLowerCase()}
+      </button>
+      {inline && (
+        <button disabled={busy} onClick={() => setReview(null)}>
+          Cancel changes
+        </button>
+      )}
+    </>
+  );
   return (
     <section className="admin-review" aria-label={description}>
       {error && <p role="alert">{error}</p>}
-      {ready && review && <DryRunResult result={review.result} />}
-      <DialogActions inline={inline}>
+      {inline && ready && review && <DryRunResult result={review.result} />}
+      <div className="admin-actions">
         <button className={ready ? '' : 'primary'} disabled={busy || disabled} onClick={preview}>
           Dry run
         </button>
-        {ready && review && (
-          <>
-            <button className="primary" disabled={busy || disabled} onClick={save}>
-              Confirm {description.toLowerCase()}
-            </button>
-            <button disabled={busy} onClick={() => setReview(null)}>
-              Cancel changes
-            </button>
-          </>
-        )}
-      </DialogActions>
+        {inline && ready && review && confirmButtons}
+      </div>
+      {!inline && ready && review && (
+        <AdminConfirmation
+          title={changeLabel ?? description}
+          onCancel={() => setReview(null)}
+          cancelLabel="Cancel changes"
+          actions={confirmButtons}
+        >
+          <DryRunResult result={review.result} />
+        </AdminConfirmation>
+      )}
     </section>
   );
 }

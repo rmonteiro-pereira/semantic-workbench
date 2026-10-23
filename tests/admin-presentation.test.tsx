@@ -8,9 +8,9 @@ import { RolePermissions } from '../src/admin/RolePermissions';
 import type { Me } from '../src/auth/useMe';
 import builtin from '../policies/builtin-roles.json';
 import { whenLabel } from '../src/admin/when';
-import { decisionLabel } from '../src/admin/AccessCheckDialog';
+import { decisionLabel } from '../src/admin/AccessCheckSection';
 import { inUseMessage } from '../src/admin/ReviewChange';
-import { grantSummary } from '../src/admin/RolesAccessDialog';
+import { grantSummary } from '../src/admin/RolesAccessSection';
 import { newIdentifier } from '../src/admin/identifiers';
 import type { Role } from '../src/admin/types';
 import {
@@ -28,7 +28,7 @@ const me: Me = {
   roleNames: { admin: 'Admin' },
 };
 
-test('launcher uses the capability and local identity, never a custom role name', () => {
+test('the Admin entry uses the capability and local identity, never a custom role name', () => {
   expect(canOpenAdmin(null)).toBe(false);
   expect(canOpenAdmin(me)).toBe(true);
   expect(canOpenAdmin({ ...me, can: { admin: false, audit: true } })).toBe(false);
@@ -146,13 +146,14 @@ test('new identifiers match the access schema patterns and do not repeat', () =>
 
 test('browser check names screenshots and enforces the three-minute limit', () => {
   expect(ADMIN_AREAS.map(screenshotName)).toEqual([
+    'access-grants',
+    'roles',
     'users-groups',
-    'roles-access',
     'policies',
-    'access-check',
-    'projects',
+    'projects-access',
     'audit',
     'settings',
+    'access-check',
   ]);
   expect(withinAdministrationTime(1_000, 1_000 + ADMINISTRATION_TIME_LIMIT_MS - 1)).toBe(true);
   expect(withinAdministrationTime(1_000, 1_000 + ADMINISTRATION_TIME_LIMIT_MS)).toBe(false);

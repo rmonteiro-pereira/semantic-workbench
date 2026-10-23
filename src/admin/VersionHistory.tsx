@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
-import { AdminDialog, type DialogProps } from './AdminDialog';
+import { AdminConfirmation } from './AdminConfirmation';
+import { AdminPane, type PaneProps } from './AdminPane';
 import { SelectField } from './SelectField';
 import { whenLabel } from './when';
 import { adminApi, problemText } from './api';
@@ -9,7 +10,11 @@ import { DiffView } from '../scm/DiffView';
 import type { DryRun, VersionDiff } from './types';
 
 /** Compares administration versions and rolls back after reviewing who gains or loses access. */
-export function VersionHistory({ area = '', onClose }: DialogProps & { area?: string }) {
+export function VersionHistory({
+  area = '',
+  backLabel,
+  onBack,
+}: PaneProps & { area?: string; backLabel: string }) {
   const load = useCallback(async () => {
     const current = await adminApi.versions();
     const versions = area ? await adminApi.versions(area) : current;
@@ -74,7 +79,7 @@ export function VersionHistory({ area = '', onClose }: DialogProps & { area?: st
     clearComparison();
   }
   return (
-    <AdminDialog title="Version history" onClose={onClose}>
+    <AdminPane title="Version history" backLabel={backLabel} onBack={onBack}>
       {(error || loadError) && <p role="alert">{error || loadError}</p>}
       <SelectField
         label="Version"
@@ -118,18 +123,23 @@ export function VersionHistory({ area = '', onClose }: DialogProps & { area?: st
         Roll back
       </button>
       {review && (
-        <section aria-label="Confirm rollback">
+        <AdminConfirmation
+          title="Confirm rollback"
+          onCancel={() => setReview(null)}
+          cancelLabel="Cancel rollback"
+          actions={
+            <button className="primary" disabled={busy} onClick={rollback}>
+              Confirm rollback
+            </button>
+          }
+        >
           <p>
             Restoring version {selected} creates a new commit. Review who gains or loses access,
             then confirm.
           </p>
           <DryRunResult result={review} />
-          <button disabled={busy} onClick={rollback}>
-            Confirm rollback
-          </button>
-          <button onClick={() => setReview(null)}>Cancel rollback</button>
-        </section>
+        </AdminConfirmation>
       )}
-    </AdminDialog>
+    </AdminPane>
   );
 }

@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { AdminDialog, type DialogProps } from './AdminDialog';
+import { AdminPane, type PaneProps } from './AdminPane';
 import { SelectField } from './SelectField';
 import { CodeEditor } from '../editor/CodeEditor';
 import { adminApi, problemText } from './api';
 import { ReviewChange } from './ReviewChange';
 import { PolicyTemplateForm } from './PolicyTemplateForm';
-import { ProjectAccessDialog } from './ProjectAccessDialog';
+import { ProjectAccessSection } from './ProjectAccessSection';
 import type { Policy } from './types';
 import type { Issue } from '../diagnostics';
 
@@ -32,9 +32,9 @@ export function PolicyEditor({
   initial,
   rules,
   version,
-  onClose,
+  onBack,
   onSaved,
-}: DialogProps & { initial: Policy; rules: Policy[]; version: string; onSaved: () => void }) {
+}: PaneProps & { initial: Policy; rules: Policy[]; version: string; onSaved: () => void }) {
   const [policy, setPolicy] = useState(initial);
   const [template, setTemplate] = useState(initial.template ?? templates[0]);
   const [advanced, setAdvanced] = useState(Boolean(initial.text));
@@ -87,8 +87,22 @@ export function PolicyEditor({
     setAdvanced(true);
     setValidated('');
   }
+  if (projects) {
+    return (
+      <AdminPane
+        title="Project access for this rule"
+        backLabel="Back to policy editor"
+        onBack={() => {
+          setProjects(false);
+          onSaved();
+        }}
+      >
+        <ProjectAccessSection />
+      </AdminPane>
+    );
+  }
   return (
-    <AdminDialog title="Policy editor" onClose={onClose}>
+    <AdminPane title="Policy editor" backLabel="Back to policies" onBack={onBack}>
       <label>
         Description
         <input
@@ -155,14 +169,6 @@ export function PolicyEditor({
         disabled={validated !== key}
         onSaved={onSaved}
       />
-      {projects && (
-        <ProjectAccessDialog
-          onClose={() => {
-            setProjects(false);
-            onSaved();
-          }}
-        />
-      )}
-    </AdminDialog>
+    </AdminPane>
   );
 }

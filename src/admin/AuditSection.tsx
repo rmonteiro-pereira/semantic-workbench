@@ -1,5 +1,4 @@
 import { useCallback, useState } from 'react';
-import { AdminDialog, type DialogProps } from './AdminDialog';
 import { whenLabel } from './when';
 import { SelectField } from './SelectField';
 import { adminApi, problemText } from './api';
@@ -12,7 +11,7 @@ const filterLabels: Record<string, string> = {
   from: 'From',
   to: 'To',
 };
-// Phones start with the filters folded so the results are what the dialog opens on.
+// Phones start with the filters folded so the results are what the page opens on.
 function startsWithFiltersOpen(): boolean {
   return globalThis.matchMedia?.('(min-width: 601px)').matches ?? true;
 }
@@ -21,7 +20,7 @@ function activeFilterCount(filters: Record<string, string>): number {
   return Object.values(filters).filter(value => value !== '').length;
 }
 /** Filters and pages the server-scoped audit stream and exports only the selected filters. */
-export function AuditDialog({ onClose }: DialogProps) {
+export function AuditSection() {
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [cursor, setCursor] = useState('');
   const [previous, setPrevious] = useState<string[]>([]);
@@ -57,7 +56,7 @@ export function AuditDialog({ onClose }: DialogProps) {
     }
   }
   return (
-    <AdminDialog title="Audit" onClose={onClose}>
+    <>
       <details className="admin-filter-disclosure" open={startsWithFiltersOpen()}>
         <summary>
           Filters{activeFilterCount(filters) > 0 && ` (${activeFilterCount(filters)})`}
@@ -130,6 +129,6 @@ export function AuditDialog({ onClose }: DialogProps) {
           Next page
         </button>
       </div>
-    </AdminDialog>
+    </>
   );
 }
