@@ -32,6 +32,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `scripts/container-*.ts` | Docker/Podman image checks and browser suite groups | Delivery pipeline |
 | `scripts/container-hardening.ts` | The read-only, no-capability run flags shared by the container checks and mirrored in `compose.yaml` | Image build logic |
 | `src/theme.css`, `src/theme-palette.ts` | Every colour token, light and dark; the colours data picks at run time | Colour literals anywhere else (`bun run check` fails on them) |
+| `public/brand/`, `server/brand/`, `src/brand/` | The brand bundle. `public/brand/` holds the default `logo.svg`, `logo-mark.svg`, `favicon.svg`, `brand.json` and `brand.css`. `server/brand/` loads them once at start (`bundle.ts`, with the operator's `SW_BRAND_DIR` laid over the defaults), cleans each file (`sanitize-svg.ts`, `sanitize-css.ts`, the manifest schema from `src/brand/manifest.ts`) and serves them from memory at `/brand/*` (`route.ts`, called from `server/static.ts`); `css-values.ts` is the one list of forbidden CSS values both cleaners use; `active-brand.ts` is the bundle the sign-in pages read (it throws until start-up sets it). `src/brand/` reads `/brand/brand.json` in the browser (`BrandContext.tsx`: product name, document title) and draws the logo (`BrandLogo.tsx`). `src/control-characters.ts` is the control-character check shared with `src/scm/repository-folder.ts`, and `scripts/helpers/walk-files.ts` is the file walker shared by `check-brand` and `check-theme`. `scripts/check-brand.ts` fails `bun run check` on a hard-coded product name or logo | The product name or logo written anywhere else; reading a brand file at request time |
 | `scripts/theme-codemod.ts`, `scripts/check-theme.ts`, `scripts/helpers/color-literals.ts` | Moving literals into tokens, failing on literals outside the theme files, and the shared literal scanner | Token values |
 | `scripts/gate-suites.ts` | Canonical browser gate suites and explicit exclusions | Process spawning |
 | `scripts/ci-validate.ts` | Gate selection, command plans, JUnit summaries and process lifecycle | Azure deployment |
@@ -209,6 +210,22 @@ editor never receives an older deferred value as an external replacement.
   `prefers-color-scheme` block). `src/theme-preference.ts` reads and stores the choice,
   `src/app/ThemeControl.tsx` is the control in the sidebar footer, and `public/theme-init.js`
   applies the stored choice before the first paint.
+- **Brand**: the product name, the logo, the favicon and the accent come from one bundle. The
+  browser asks for `/brand/brand.json`, `/brand/logo.svg`, `/brand/logo-mark.svg`,
+  `/brand/favicon.svg` and `/brand/brand.css`; `index.html` links the favicon and, last in the
+  body, `brand.css` so its token overrides come after the theme stylesheet. The server answers
+  `/brand/*` from the bundle `server/brand/bundle.ts` loaded at start: the shipped files in
+  `public/brand/` with any file of `SW_BRAND_DIR` laid over them. Only the five known names are
+  read, each is capped (256 KiB for images, 64 KiB for `brand.json` and `brand.css`), SVG is rebuilt
+  from an allow-list of drawing elements, CSS keeps only custom properties under the theme
+  selectors, and a symlink out of the folder is refused. A file that fails is logged by name and
+  the default stays. Every response carries `nosniff` and a policy by file type
+  (`default-src 'none'; style-src 'unsafe-inline'; sandbox` for SVG, `default-src 'none'; sandbox`
+  for the JSON and CSS). In the Vite development server the same files come from `public/brand/`;
+  `SW_BRAND_DIR` applies to the Bun server only. The server-side sign-in pages read the active
+  bundle for their title and mark. The committer identity of server commits is a technical
+  identity and does not follow the brand; `SW_COMMITTER_NAME` changes it. `scripts/check-brand.ts`
+  lists the few places allowed to name the product.
 - **Configuration**: start-up uses `readConfig()` in `server/config.ts` once for mode, host,
   port, data root, cache root and build identity. Every server-mode variable is listed once, with its default and what start-up checks, in `specs/003-authn-authz/contracts/configuration.md`. Server mode requires issuer discovery and
   a valid administration policy set before serving workspace traffic. The writable-root probe precedes lock acquisition; recovery,
@@ -286,6 +303,7 @@ editor never receives an older deferred value as an external replacement.
 | A Git operation | `server/projects/git.ts` (the command), `scm.ts` (the Source Control behaviour) |
 | The folder a project lives in | `src/scm/repository-folder.ts` (the path check, shared with the server), `server/projects/sparse-folder.ts` (the Git steps), `project-folder.ts` (moving an existing project) |
 | How a file kind is parsed or validated | `src/model.ts`, `src/validation.ts`, `schemas/` |
+| The product name, logo, favicon or brand colours | the files in `public/brand/` for the default; an operator's `SW_BRAND_DIR` folder for a deployment (see White-labelling in the README) |
 | A colour | `src/theme.css` (a token, with its light and its dark value); a colour data picks at run time goes in `src/theme-palette.ts` |
 | A view | the folder named after it in `src/` (`odcs/`, `metrics/`, `mappings/`, `graph/`) |
 | A dialog | the module it belongs to; shared chrome is `src/projects/Modal.tsx`: two widths (`narrow` 480 px, `wide` 880 px), one padding, a footer with the dismissing button before the main action (Cancel, Close or Done, as the comment in `Modal.tsx` defines) and a `footerNote` that says why the main action is off. A panel with nothing to show uses `src/projects/EmptyState.tsx`. The stale-save and import-repair dialogs (`StaleSave.tsx`, `ValidationPanel.tsx`) still draw their own `<dialog>` and are not yet on this standard. A dialog opened from another dialog hides its parent's panel (`.workbench-dialog:has(dialog[open])` in `src/style.css`) so only one layer shows |

@@ -27,10 +27,11 @@ export const gateSuites: string[] = [
   'test:mappings-layout',
   'test:mapping-graph',
   'test:theme',
+  'test:brand',
 ];
 
 /** Suites that serve their own built frontend and require server container coverage. */
-export const selfServedSuites = ['test:auth', 'test:two-editors', 'test:admin'];
+export const selfServedSuites = ['test:auth', 'test:two-editors', 'test:admin', 'test:brand'];
 
 /** Explicit reasons why other test scripts are not browser gate suites. */
 export const exclusions = [

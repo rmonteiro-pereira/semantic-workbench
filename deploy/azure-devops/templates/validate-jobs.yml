@@ -76,6 +76,8 @@ jobs:
           suite: test:mapping-graph
         theme:
           suite: test:theme
+        brand:
+          suite: test:brand
     steps:
       - template: setup-steps.yml
       - bash: bun run ci:validate -- --step browser --suite $(suite)

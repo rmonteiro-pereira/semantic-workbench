@@ -1,6 +1,7 @@
 // Remote Git in server mode: each person's own delegated token for one command, the GitHub
 // consent, allowed hosts, Admin-only remote changes, and local mode left as it was.
 import { afterAll, beforeAll, expect, test } from 'bun:test';
+import { useDefaultBrand } from '../helpers/brand-fixture';
 import { readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fixtureFiles } from '../helpers/auth-workspace';
@@ -27,6 +28,8 @@ import {
   credentialKind,
 } from '../../server/auth/remote-hosts';
 import { githubUsable } from '../../server/auth/remote-credentials';
+
+beforeAll(useDefaultBrand);
 
 let setup: RemoteSetup;
 const signIn = (username: string) => setup.signIn(username);

@@ -19,7 +19,7 @@ export const sparseMutants: [string, string, string, string][] = [
     "trimmed.endsWith('/') ? trimmed.slice(0, -1) : trimmed",
     'trimmed',
   ],
-  ['sparse-folder-path', FOLDER, 'charCodeAt(0) < 32', 'charCodeAt(0) < 0'],
+  ['sparse-folder-path', FOLDER, 'if (hasControlCharacter(trimmed))', 'if (false)'],
   ['sparse-folder-path', FOLDER, 'trimmed.length > MAX_FOLDER_LENGTH', 'false'],
   ['sparse-folder-path', FOLDER, "if (typeof input !== 'string')", 'if (false)'],
   [

@@ -35,6 +35,7 @@ COPY --from=build /app/src ./src
 COPY --from=build /app/policies ./policies
 COPY --from=build /app/schemas ./schemas
 COPY --from=build /app/public/examples ./public/examples
+COPY --from=build /app/public/brand ./public/brand
 COPY --from=build /app/dist ./dist
 COPY --from=prod-deps /app/node_modules ./node_modules
 COPY package.json ./

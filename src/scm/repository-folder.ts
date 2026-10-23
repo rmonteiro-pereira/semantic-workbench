@@ -2,6 +2,8 @@
  * Checks the "Folder in repository" a project lives in, such as `semantic/ubl`. The browser and
  * the server run this same check, so a path the dialog accepts is a path the server accepts.
  */
+import { hasControlCharacter } from '../control-characters';
+
 export type RepositoryFolderCheck = { ok: true; folder: string } | { ok: false; message: string };
 
 const MAX_FOLDER_LENGTH = 500;
@@ -11,12 +13,6 @@ const PATTERN_CHARACTERS = /[*?[\]\\]/;
 
 function refuse(message: string): RepositoryFolderCheck {
   return { ok: false, message };
-}
-
-function hasControlCharacter(text: string) {
-  return [...text].some(
-    character => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127,
-  );
 }
 
 function checkSegment(segment: string): string | null {

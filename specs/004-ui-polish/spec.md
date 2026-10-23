@@ -34,6 +34,39 @@ Findings: F18, F19, F62. Checks: `scripts/theme-check.ts` in `bun run check` (ne
 `scripts/theme-browser-check.ts` (new, `bun run test:theme`), contrast measurement in the
 responsive suite `screens:` checks.
 
+## R17. White-label brand bundle
+
+A deployment shows its own name, logo, favicon and accent without a rebuild. The owner asked for
+the logo to be easy to change.
+
+1. One brand bundle in `public/brand/`: `logo.svg` (sidebar), `logo-mark.svg` (compact mark for
+   narrow screens and the sign-in pages), `favicon.svg`, `brand.json` (`productName` 1 to 60
+   characters, `shortName` 1 to 24, optional `supportUrl`, http or https only) and `brand.css`
+   (theme tokens only). Every place that shows the name or the logo reads from it: the sidebar,
+   the header title with no document open, the document title, the favicon and the sign-in pages
+   with their titles.
+2. `SW_BRAND_DIR` names a folder with any subset of those files; a missing file keeps its default.
+   The server serves the bundle at `/brand/*` in both modes. Files are read at start. Start-up
+   stops only when the variable names a folder that cannot be read.
+3. Each file is checked: only the five names, 256 KiB for images and 64 KiB for `brand.json` and
+   `brand.css`, SVG rebuilt from drawing elements with scripts, `foreignObject`, handlers, outside
+   links and `url()` outside the drawing removed, CSS cut down to custom properties under the
+   theme selectors, and a symlink out of the folder refused. An invalid file is logged by name and
+   its default stays. Every brand response carries `nosniff`, its own Content-Type and a policy by
+   type: `default-src 'none'; style-src 'unsafe-inline'; sandbox` for SVG and
+   `default-src 'none'; sandbox` for the JSON and CSS.
+4. `index.html` holds no product name. `brand.css` loads after the theme stylesheet. The Vite
+   development server serves `public/brand/`; `SW_BRAND_DIR` is out of scope there.
+5. `bun run check` fails when the product name, the split wordmark or the inline layers logo
+   appears in `src/`, `server/`, `index.html` or `public/` outside `public/brand/`, with a short
+   allow-list of technical identities (the committer of server commits and the like).
+6. README, `.env.server.example`, `deploy/README.md`, the configuration contract and
+   `ARCHITECTURE.md` describe the bundle, with a Compose and an Azure Files example.
+
+Findings: F77, F78, F79, F80, F81, F82. Checks: `tests/brand/*.test.ts` (new), `scripts/check-brand.ts`
+in `bun run check` (new), `scripts/brand-browser-check.ts` (new, `bun run test:brand`), the `brand-*`
+mutants in `scripts/brand-mutants.ts`.
+
 ## R2. Lineage view redesign
 
 The lineage reads as a column-level lineage diagram: table cards with their columns, and edges
@@ -335,6 +368,7 @@ Every finding maps to a requirement. Status values are open, fixed, deferred (wi
 | F69 | R14 | fixed |
 | F70 | R15 | fixed |
 | F71 | R16 | open |
+| F77, F78, F79, F80, F81, F82 | R17 | fixed |
 | F72 | R8 | open |
 | F73 | R16 | open |
 | F74 | R8 | open |

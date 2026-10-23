@@ -1,5 +1,6 @@
 // Exercises the real authentication boundary using the mock token edge without sockets.
-import { expect, test } from 'bun:test';
+import { beforeAll, expect, test } from 'bun:test';
+import { useDefaultBrand } from '../helpers/brand-fixture';
 import { oidcTransport } from '../helpers/oidc-transport';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { createOidcClient } from '../../server/auth/oidc';
@@ -7,6 +8,8 @@ import { createServerAuthentication } from '../../server/auth/authentication';
 import { openAdminRepository } from '../../server/auth/admin-repo';
 import { TEST_USERS, TEST_TENANT_ID } from '../helpers/auth-identities';
 import { createHandler } from '../../server/handler';
+
+beforeAll(useDefaultBrand);
 
 test('pages redirect, denied identities stay outside, refresh removes grants, logout ends events', async () => {
   const transport = await oidcTransport();

@@ -1,0 +1,9 @@
+/* Brand overrides. This default changes nothing.
+
+   Put only theme tokens here: custom properties from src/theme.css, under :root, under
+   :root[data-theme='dark'], or inside the prefers-color-scheme blocks. Anything else is dropped
+   when the server starts.
+
+   :root { --color-accent: #6a2c91; }
+   :root[data-theme='dark'] { --color-accent: #b98ad6; }
+*/
