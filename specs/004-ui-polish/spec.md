@@ -210,7 +210,7 @@ breakdown, lineage path and SQL preview render (extended); the examples end-to-e
 (`test:examples` and `tests/examples*.test.ts`) asserts the metric counts, validation and that the
 upstream file hashes are unchanged (extended).
 
-Metrics that need an upstream change: none recorded yet.
+Metrics that need an upstream change: none. The official Flights files stay unchanged and its metrics live in three workbench-authored files; `tpcds_semantic_model.yaml` and `enterprise-1000.ossie.yaml` are not loadable examples and gain no metrics.
 
 ## R13. Export project
 
