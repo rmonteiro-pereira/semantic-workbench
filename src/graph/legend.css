@@ -37,3 +37,9 @@
 .lineage-legend .k-external svg {
   color: var(--text-muted);
 }
+
+.lineage-legend .key .prop-badge {
+  font-size: var(--text-small);
+  line-height: 17px;
+  padding: 0 4px;
+}

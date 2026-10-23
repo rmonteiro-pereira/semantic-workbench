@@ -1178,7 +1178,7 @@ if (category === 'lineage') {
   assert.deepEqual([...up.nodes].sort(), ['dataset:s.yaml#/d/v', 'object:c.odcs.yaml#ch/v']);
   const down = m.closure(g, ['object:c.odcs.yaml#p/id'], 'down');
   assert(!down.nodes.has('object:c.odcs.yaml#ch/v'));
-  // An edge to a column on another page attaches to the "more" row.
+  // An edge to a column that is not shown attaches to the "more" row.
   const card = {
     id: 'k',
     kind: 'object',
@@ -1186,7 +1186,10 @@ if (category === 'lineage') {
     file: '',
     columns: Array.from({ length: 12 }, (_, i) => ({ id: `k/c${i}`, path: `c${i}`, badges: [] })),
   };
-  assert.equal(m.pageColumns(card, 0, new Set()).port('k/c11'), m.moreRowId('k'));
+  assert.equal(
+    m.cardRows(card, { focus: new Set(), connected: new Set() }).port('k/c11'),
+    m.moreRowId('k'),
+  );
 }
 if (category === 'mapping-graph') {
   const { buildContext, agentCatalog } = await import(
