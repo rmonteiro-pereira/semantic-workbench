@@ -8,6 +8,7 @@ import { type TreeAction } from '../projects/Sidebar';
 type Options = {
   projects: ProjectInfo[];
   setRenaming: React.Dispatch<React.SetStateAction<ProjectInfo | null>>;
+  setExporting: React.Dispatch<React.SetStateAction<ProjectInfo | null>>;
   setMoving: React.Dispatch<React.SetStateAction<{ project: string; path: string } | null>>;
   setDeleteTarget: React.Dispatch<React.SetStateAction<DeleteTarget | null>>;
   setScmProject: React.Dispatch<React.SetStateAction<string | null>>;
@@ -39,6 +40,7 @@ type Options = {
 export function useProjectActions({
   projects,
   setRenaming,
+  setExporting,
   setMoving,
   setDeleteTarget,
   setScmProject,
@@ -60,6 +62,7 @@ export function useProjectActions({
     const project = projects.find(p => p.slug === a.project);
     if (!project) return;
     if (a.action === 'rename') setRenaming(project);
+    else if (a.action === 'export') setExporting(project);
     else if (a.action === 'move') setMoving({ project: a.project, path: a.path });
     else if (a.action === 'delete-file')
       setDeleteTarget({ kind: 'file', project: a.project, path: a.path });

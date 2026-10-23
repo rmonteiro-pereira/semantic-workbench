@@ -439,6 +439,22 @@ export const api = {
       `/api/projects/${encodeURIComponent(project)}/import`,
       send('POST', { files, ...(onConflict ? { onConflict } : {}) }),
     ).then(r => json<{ written: { path: string; hash: string }[]; commit?: ImportCommit }>(r)),
+  /**
+   * Downloads a project's files as a zip. `omitted` counts the files the person may not read,
+   * which the server leaves out and never names.
+   */
+  async exportProject(project: string, includeHistory: boolean) {
+    const query = includeHistory ? '?history=1' : '';
+    const response = await apiFetch(`/api/projects/${encodeURIComponent(project)}/export${query}`);
+    if (!response.ok) return json<never>(response);
+    const disposition = response.headers.get('Content-Disposition') ?? '';
+    return {
+      blob: await response.blob(),
+      fileName: /filename="([^"]+)"/.exec(disposition)?.[1] ?? `${project}.zip`,
+      files: Number(response.headers.get('X-Export-Files')),
+      omitted: Number(response.headers.get('X-Export-Omitted')),
+    };
+  },
   suggestions: () => apiFetch('/api/suggestions').then(r => json<Suggestion[]>(r)),
   acceptSuggestion: (id: string) =>
     apiFetch(`/api/suggestions/${id}/accept`, send('POST')).then(r =>

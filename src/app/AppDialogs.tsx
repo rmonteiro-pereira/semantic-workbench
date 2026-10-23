@@ -48,6 +48,8 @@ type Props = {
   setTrashOpen: React.Dispatch<React.SetStateAction<boolean>>;
   renaming: ProjectInfo | null;
   setRenaming: React.Dispatch<React.SetStateAction<ProjectInfo | null>>;
+  exporting: ProjectInfo | null;
+  setExporting: React.Dispatch<React.SetStateAction<ProjectInfo | null>>;
   moving: { project: string; path: string } | null;
   setMoving: React.Dispatch<React.SetStateAction<{ project: string; path: string } | null>>;
   currentRef: React.RefObject<Doc | null>;
@@ -166,6 +168,8 @@ export function AppDialogs({
   setTrashOpen,
   renaming,
   setRenaming,
+  exporting,
+  setExporting,
   moving,
   setMoving,
   currentRef,
@@ -258,6 +262,8 @@ export function AppDialogs({
         setTrashOpen={setTrashOpen}
         renaming={renaming}
         setRenaming={setRenaming}
+        exporting={exporting}
+        setExporting={setExporting}
         moving={moving}
         setMoving={setMoving}
         currentRef={currentRef}

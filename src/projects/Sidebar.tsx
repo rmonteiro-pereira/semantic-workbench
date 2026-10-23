@@ -19,6 +19,7 @@ export type TreeAction =
       action:
         | 'rename'
         | 'import'
+        | 'export'
         | 'delete-project'
         | 'gitignore'
         | 'remote'
@@ -127,6 +128,7 @@ function projectMenu(
   return [
     { action: 'renameProject', label: 'Rename', run: run('rename') },
     { action: 'import', label: 'Import files into this project', run: run('import') },
+    { action: 'export', label: 'Export project…', run: run('export') },
     { action: 'edit', label: 'Edit .gitignore', run: run('gitignore') },
     { action: 'setRemote', label: 'Remote…', run: run('remote') },
     {

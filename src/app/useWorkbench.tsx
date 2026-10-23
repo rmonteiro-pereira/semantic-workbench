@@ -66,6 +66,7 @@ export function useWorkbench({ setMessage }: Options) {
   const [trashOpen, setTrashOpen] = useState(false);
   const [trashVersion, setTrashVersion] = useState(0);
   const [renaming, setRenaming] = useState<ProjectInfo | null>(null);
+  const [exporting, setExporting] = useState<ProjectInfo | null>(null);
   const [moving, setMoving] = useState<{ project: string; path: string } | null>(null);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [importConflict, setImportConflict] = useState<{
@@ -289,6 +290,7 @@ export function useWorkbench({ setMessage }: Options) {
   const projectActions = useProjectActions({
     projects,
     setRenaming,
+    setExporting,
     setMoving,
     setDeleteTarget,
     setScmProject,
@@ -341,6 +343,8 @@ export function useWorkbench({ setMessage }: Options) {
     setTrashOpen,
     renaming,
     setRenaming,
+    exporting,
+    setExporting,
     moving,
     setMoving,
     currentRef,

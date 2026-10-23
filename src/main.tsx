@@ -50,6 +50,8 @@ function App() {
     setTrashOpen,
     renaming,
     setRenaming,
+    exporting,
+    setExporting,
     moving,
     setMoving,
     currentRef,
@@ -169,6 +171,8 @@ function App() {
           setTrashOpen={setTrashOpen}
           renaming={renaming}
           setRenaming={setRenaming}
+          exporting={exporting}
+          setExporting={setExporting}
           moving={moving}
           setMoving={setMoving}
           currentRef={currentRef}
