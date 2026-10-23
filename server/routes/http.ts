@@ -25,6 +25,7 @@ import {
   PersonalBranchError,
   NotFastForwardError,
   NothingToPublishError,
+  TooLargeError,
 } from '../projects/errors';
 /** Handles a request or returns null so the next route can try it. */
 export type Route = (
@@ -103,6 +104,8 @@ export function errorResponse(e: unknown, publicUrl?: string, context: ErrorCont
   if (e instanceof NothingToPublishError)
     return Response.json({ error: e.message, nothingToPublish: true }, { status: 409 });
   if (e instanceof NotFoundError) return Response.json({ error: e.message }, { status: 404 });
+  if (e instanceof TooLargeError)
+    return Response.json({ error: e.message, limitBytes: e.limitBytes }, { status: 413 });
   if (e instanceof InputError)
     return Response.json({ error: e.message, issues: e.issues }, { status: 400 });
   if (e instanceof BlockedError)

@@ -126,7 +126,8 @@ export function indexBytes(
     findings: [...result.issues, ...sql],
   };
 }
-function walk(dir: string, prefix = '', out: string[] = []) {
+/** Lists a folder's files without Git, skipping the Git metadata folder. */
+export function walk(dir: string, prefix = '', out: string[] = []) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     if (entry.name === '.git') continue;
     const rel = prefix ? prefix + '/' + entry.name : entry.name;

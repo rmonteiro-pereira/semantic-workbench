@@ -474,6 +474,20 @@ export function createGit(options: GitOptions) {
       const r = await read(cwd, ['ls-files', '-co', '--exclude-standard', '-z']);
       return [...new Set(r.stdout.split('\0').filter(Boolean))];
     },
+    // The full name of the checked-out branch, or null when HEAD points at a commit directly.
+    async currentRef(cwd: string) {
+      const r = await read(cwd, ['symbolic-ref', '-q', 'HEAD'], true);
+      return r.code === 0 ? r.stdout.trim() : null;
+    },
+    // Every path any commit reachable from the revision ever touched, in repository spelling.
+    async historyPaths(cwd: string, rev: string) {
+      const r = await read(cwd, ['log', '--format=', '--name-only', '--no-renames', '-z', rev]);
+      return [...new Set(r.stdout.split('\0').filter(Boolean))];
+    },
+    // Writes the revisions and their history into a bundle file that `git clone` can read.
+    async bundle(cwd: string, file: string, revs: string[]) {
+      await run(cwd, ['bundle', 'create', '-q', file, ...revs]);
+    },
     async status(cwd: string) {
       const r = await read(cwd, [
         'status',

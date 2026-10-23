@@ -34,7 +34,8 @@ import {
   PathError,
   type DataLayout,
 } from './paths';
-import { createScanner, indexBytes } from './scanner';
+import { createScanner, indexBytes, walk } from './scanner';
+import { planProjectExport, type ExportOptions } from './project-export';
 import { movePersonalState, clearPersonalDrafts } from './personal-state';
 import { createState, type ProjectEntry, type Patch } from './state';
 import { createWatcher } from './watcher';
@@ -1515,6 +1516,23 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     trash,
     moveFile,
     importInto,
+    /**
+     * Plans the zip export of a project's files as the reader sees them, or throws before
+     * anything is sent when the project is too large or the history may not be exported.
+     */
+    exportProject: (slug: string, reader: Reader, options: ExportOptions, maxBytes: number) => {
+      entry(slug);
+      const place = copies.readPlace(reader, slug);
+      const deps = {
+        layout: place.layout,
+        git,
+        gitAvailable,
+        scratchDir: join(layout.state, 'exports'),
+        maxBytes,
+        listPaths: (dir: string) => (gitAvailable ? git.lsFiles(dir) : walk(dir)),
+      };
+      return planProjectExport(deps, slug, reader, options);
+    },
     deleteImpact,
     suggestions,
     /** One person's open suggestion count from a shared unrestricted index. */
