@@ -3,15 +3,15 @@
 // use it where they need a metric without attributes or the earlier shape of the lineage canvas.
 import { parseDocument } from 'yaml';
 
-const PLAIN_METRIC_COUNT = 3;
+const PLAIN_METRICS = ['gross_revenue', 'order_count', 'average_order_value'];
 const AVERAGE_ORDER_VALUE = 'SUM(orders.amount) / NULLIF(COUNT(DISTINCT orders.order_id), 0)';
 
-/** Returns the commerce semantic model with its first three metrics as they were written. */
+/** Returns the commerce semantic model with its three original metrics as they were written. */
 export async function plainCommerceModel(): Promise<string> {
   const model = parseDocument(await Bun.file('public/examples/commerce/sales.ossie.yaml').text());
   const plainMetrics = model
     .toJS()
-    .metrics.slice(0, PLAIN_METRIC_COUNT)
+    .metrics.filter((metric: { name: string }) => PLAIN_METRICS.includes(metric.name))
     .map(({ custom_extensions: _attributes, ...metric }: Record<string, any>) =>
       metric.name === 'average_order_value'
         ? {

@@ -20,7 +20,8 @@ import { editContainmentProblems } from './helpers/edit-tour';
 import { adminScreens, leaveAdminPage } from './helpers/admin-tour';
 import { sidewaysTableProblems } from './helpers/odcs-tour';
 import { odcsGraphScreenProblems, odcsGraphScreens } from './helpers/odcs-graph-tour';
-import { EXAMPLE_METRICS_FILES, exampleMetricScreens } from './helpers/examples-tour';
+import { EXPECTED_EXAMPLE_METRICS } from './example-metric-checks';
+import { exampleMetricScreens } from './helpers/examples-tour';
 
 // Isolated API fixture: exercising viewport changes never modifies the local workspace. The UBL
 // ontology is imported first so that it opens first.
@@ -1617,7 +1618,7 @@ try {
   if (!only || 'examples:'.startsWith(only) || only.startsWith('examples:')) {
     const exampleApi = await startIsolatedApi();
     try {
-      for (const setId of Object.keys(EXAMPLE_METRICS_FILES))
+      for (const setId of Object.keys(EXPECTED_EXAMPLE_METRICS))
         await exampleApi.ws.loadExample(setId);
       for (const [width, height] of [
         [390, 844],

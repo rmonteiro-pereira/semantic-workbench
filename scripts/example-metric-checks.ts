@@ -11,6 +11,8 @@ import manifest from '../tests/fixtures/ossie-mapping/manifest.json';
 
 /** Names the metrics a browser or test opens to see each kind of presentation. */
 export type ExpectedExampleMetrics = {
+  // The semantic model file that holds the metrics.
+  file: string;
   count: number;
   simple: string;
   composed: { name: string; type: 'ratio' | 'derived' };
@@ -22,36 +24,42 @@ export type ExpectedExampleMetrics = {
 /** The metrics each example set must show, written down independently of the example files. */
 export const EXPECTED_EXAMPLE_METRICS: Record<string, ExpectedExampleMetrics> = {
   ubl: {
+    file: 'ubl.semantic.yaml',
     count: 9,
     simple: 'invoiced_amount',
     composed: { name: 'average_invoiced_price', type: 'ratio' },
     path: { name: 'invoiced_amount', dimension: 'document_reference.id', joins: 2 },
   },
   commerce: {
+    file: 'sales.ossie.yaml',
     count: 6,
     simple: 'gross_revenue',
     composed: { name: 'average_order_value', type: 'ratio' },
     path: { name: 'units_sold', dimension: 'customers.name', joins: 2 },
   },
   'mapped-commerce': {
+    file: 'commerce.mapped-semantic.yaml',
     count: 4,
     simple: 'gross_revenue',
     composed: { name: 'average_order_value', type: 'ratio' },
     path: { name: 'gross_revenue', dimension: 'customers.region', joins: 1 },
   },
   flights: {
+    file: 'flights.metrics.semantic.yaml',
     count: 7,
     simple: 'flight_count',
     composed: { name: 'delay_recovered', type: 'derived' },
     path: { name: 'total_distance', dimension: 'AIRPORT.name', joins: 2 },
   },
   billing: {
+    file: 'billing.semantic.yaml',
     count: 8,
     simple: 'net_revenue',
     composed: { name: 'gross_billings', type: 'derived' },
     path: { name: 'net_revenue', dimension: 'product_families.name', joins: 4 },
   },
   mall: {
+    file: 'mall.semantic.yaml',
     count: 25,
     simple: 'billed_amount',
     composed: { name: 'net_operating_income', type: 'derived' },
@@ -61,6 +69,7 @@ export const EXPECTED_EXAMPLE_METRICS: Record<string, ExpectedExampleMetrics> = 
 
 /** Files added by the workbench to an example, each of which says so in its first line. */
 export const WORKBENCH_ADDITIONS = [
+  'billing/billing.odcs.yaml',
   'commerce/sales.mapping.yaml',
   'ubl/ubl.semantic-mapping.yaml',
   'ossie/flights.metrics.semantic.yaml',
