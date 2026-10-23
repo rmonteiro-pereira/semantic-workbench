@@ -108,7 +108,7 @@ const edgeTypes = { lineage: LineageEdge };
 const BUNDLE_AT = 8;
 const GROUP_AT = 6;
 const KIND_PLURAL: Record<string, string> = {
-  object: 'objects',
+  object: 'tables',
   dataset: 'datasets',
   metric: 'metrics',
   external: 'references',
@@ -829,13 +829,16 @@ export function LineageCanvas({
   }, [lines, mapping]);
   const centerCard = graph.cards.get(center);
   const selectedCard = selected ? graph.cards.get(cardOfNode(graph, selected)) : undefined;
+  const unmatchedVerb = graph.unmatchedDatasets === 1 ? 'dataset reads' : 'datasets read';
+  const centreName = centerCard?.label ?? 'the centre';
   const lineageOptions = (
     <GraphOptions
       title={mapping ? 'Graph options' : 'Lineage options'}
       intro={
         mapping
-          ? `The view shows ${centerCard?.label ?? 'the centre'} and every card within the chosen number of mapping lines of it.`
-          : `The view shows ${centerCard?.label ?? 'the centre'} with every field and metric that reads it, and contract objects up to the chosen number of foreign-key steps away.`
+          ? `The view shows ${centreName} and every card within the chosen number of mapping lines of it.`
+          : `The view shows ${centreName} with every field and metric that reads it, ` +
+            'and tables up to the chosen number of foreign-key hops away.'
       }
     >
       <OptionGroup title="Steps">
@@ -936,7 +939,7 @@ export function LineageCanvas({
                           : h.kind === 'relationship'
                             ? 'Relationship'
                             : h.kind === 'object'
-                              ? 'Object'
+                              ? 'Table'
                               : h.kind === 'dataset'
                                 ? 'Dataset'
                                 : h.kind === 'metric'
@@ -1088,11 +1091,11 @@ export function LineageCanvas({
         ) : (
           <small
             className="lineage-reading"
-            title="Lines are matched by declared names: foreign keys as declared (drawn from the referenced column to the referencing one), semantic datasets whose source is an object's physical name or name, fields whose expressions read a column, and metrics over those fields. This is the workbench's reading, not part of ODCS or Ossie."
+            title="Lines are matched by declared names: foreign keys as declared (drawn from the referenced column to the referencing one), semantic datasets whose source is a table's physical name or name, fields whose expressions read a column, and metrics over those fields. This is the workbench's reading, not part of ODCS or Ossie."
           >
             Workbench reading of declared names · {reach.cards.size} of {graph.cards.size} assets
             {graph.unmatchedDatasets > 0
-              ? ` · ${graph.unmatchedDatasets} ${graph.unmatchedDatasets === 1 ? 'dataset reads' : 'datasets read'} none of this contract's objects`
+              ? ` · ${graph.unmatchedDatasets} ${unmatchedVerb} none of this contract's tables`
               : ''}
           </small>
         )}

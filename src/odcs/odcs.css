@@ -359,6 +359,18 @@ button.odcs-link.fk:hover {
   padding: 0 5px;
   margin: 0 4px 2px 0;
 }
+.odcs-type-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 0 7px;
+  border: 1px solid #dce8e2;
+  border-radius: 20px;
+  background: #f0f6f2;
+  color: var(--text-muted);
+  font-size: var(--text-small);
+  font-weight: 500;
+  vertical-align: middle;
+}
 .odcs-chip.metric {
   background: #f1ebfb;
   color: #5b3a94;

@@ -71,7 +71,7 @@ async function editorRefusals(page: Page, target: SignInTarget) {
   await openTreeFile(page, target, CONTRACT);
   await page.locator('.tabs').getByRole('button', { name: 'Contract' }).click();
   await page.getByRole('button', { name: 'Open orders', exact: true }).click();
-  const table = page.getByRole('region', { name: 'Dataset orders' });
+  const table = page.getByRole('region', { name: 'Table orders' });
   await table.getByRole('tab', { name: /^Properties/ }).click();
   // The edit dialog is where classification looks disabled for an Editor, with the reason beside it.
   await table.getByRole('button', { name: 'Edit amount', exact: true }).click();
