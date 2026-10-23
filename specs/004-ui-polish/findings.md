@@ -35,6 +35,18 @@ from the v0.4.0 build). `screenshots/after/` holds the same screens after the fi
 | F16 | ODCS graph first view | The first view is cropped: the left card loses its names, the right one its edge. | local-odcs-data-graph-1280 | Fit with padding once layout settles | not changed, on purpose: the first view keeps column names at least 12 px (asserted by the lineage and ODCS suites), and three cards at that size do not fit a 970 px canvas; Fit is in the toolbar. Fitting all cards needs zoom 0.61, text near 8 px |
 | F17 | Header at 1280 px | Title, "Saved to file · 0 uncom…" and "Commit…" are cut with an ellipsis. | local-neighborhood-1280 | Shorter state label with the full text in its title and name | fixed: whole save state from 1200 px; person menu keeps roles in its menu |
 
+## S1 (owner requests, in priority order)
+
+| # | Where | Finding | Screenshot | Status |
+| --- | --- | --- | --- | --- |
+| F55 | Admin panel | The panel is a modal and reads as broken. It must be a page with its own route state, a section navigation on the left (grants, roles, policies, project access, audit and the rest), full-width content and a clear way back; dialogs inside it only for confirmations and dry-run previews. | workbench-admin-audit-390 | open |
+| F56 | ODCS terminology | Everything is labelled "contract object". The schema objects are Tables in all UI text (lists, headings, counts, breadcrumbs, empty states, legend, search); a type other than table shows as a small badge. ODCS terms stay only where they name the standard's fields. | local-contract-contract-1280 | open |
+| F57 | ODCS graph, data view and lineage | The ODCS graph needs the most work: table cards that read at the default zoom, a clear PK/FK legend and edge labels, a first view without crop, no overlapping cards or edges, controls in the shared toolbar and View options, selection and neighbour highlighting. Then the data view and lineage. | local-contract-graph-1280 | open |
+| F58 | Foreign-key steps | The foreign-key hops are confusing in the lineage and graph steps and in the data view. Each hop reads as `orders.customer_id → customers.id`, the direction is clear, the hop count and path show in one place, the stepping control has plain labels and one line of help. | local-contract-graph-1280 | open |
+| F59 | Sidebar Examples | The Examples button becomes a fly-out menu anchored to the button, keyboard accessible. | local-ontology-overview-1280 | open |
+| F60 | Header, top-right corner | Person menu, mode badge, save state and the rest are ungrouped and uneven. Group them, keep the essentials, move the rest into the person or an overflow menu, align heights and spacing, and make it work at 390 px. | server-projects-1280 | open |
+| F61 | Visual audit | Every screen and dialog at four sizes, local and server mode, light and dark where the app has both, reviewed strictly by a separate reviewer until a round finds no S1 or S2 item. | specs/004-ui-polish/screenshots/after | open |
+
 ## S2: crammed or hard to read
 
 | # | Where | Finding | Screenshot | Fix | Status |
