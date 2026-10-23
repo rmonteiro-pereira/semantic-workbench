@@ -212,6 +212,44 @@ upstream file hashes are unchanged (extended).
 
 Metrics that need an upstream change: none recorded yet.
 
+## R13. Export project
+
+The project "..." menu gets **Export project...** after **Import files into this project**.
+
+1. It downloads a .zip of the project's files exactly as stored on disk, byte for byte, the same
+   guarantee as the single-document export. The zip keeps the folder structure and includes the
+   project manifest and `.gitignore`. It excludes `.git` and anything git-ignored.
+2. The dialog offers one option, **Include Git history**, off by default. When on, the zip also
+   holds a `git bundle` of the repository.
+3. Unsaved drafts are not exported. The dialog says so and offers to save first when drafts exist.
+4. In server mode the export holds only the files the person may read. Restricted paths are left
+   out and reported by count only. The export is recorded in the audit log. Viewer and above may
+   export.
+5. The server streams the zip under the existing size limits. A request over the limit is refused
+   with a clear message and nothing is partly sent as a finished file.
+6. A new server route is added to the route inventory and the access table.
+7. Round trip: exporting a project and importing the zip into a new project gives equal file
+   hashes.
+
+Findings: F68. Checks: unit tests for the route, the filtering, the size limit and the round trip;
+mutants for the filtering and the byte-exactness in `scripts/mutation-tests.ts`; a browser check
+`export project downloads a zip that imports back byte-exact` in `scripts/projects-browser-check.ts`
+(or the nearest project suite); a server-mode check that restricted paths are left out and the
+audit entry exists in `test:auth` or `test:admin`.
+
+## R14. Menus and popovers are opaque and never clipped
+
+1. Menus and popovers have an opaque surface token, a border, a shadow and a stacking level above
+   the tree and the canvas.
+2. A menu never sits inside a clipping or masked container: it is anchored to its button and
+   positioned in the viewport, so the project "..." menu is not cut off by the file list and
+   nothing shows through it. The fix is in the shared menu component so every menu gets it.
+3. At the four sizes, every menu stays inside the viewport and shows all its items.
+
+Findings: F69. Checks (new): in `scripts/dialogs-browser-check.ts`, every menu (project, file,
+New, person, Examples) is opaque (computed background alpha is 1), fully visible, inside the
+viewport, and `document.elementFromPoint` at each item's centre returns that item.
+
 ## Traceability
 
 Every finding maps to a requirement. Status values are open, fixed, deferred (with the reason in
@@ -238,4 +276,6 @@ Every finding maps to a requirement. Status values are open, fixed, deferred (wi
 | F65 | R2a, R4 | open |
 | F66 | R2a | open |
 | F67 | R12 | open |
+| F68 | R13 | open |
+| F69 | R14 | open |
 | F64 | R11 | open |
