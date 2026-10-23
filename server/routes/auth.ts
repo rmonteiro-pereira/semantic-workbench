@@ -6,6 +6,7 @@ import { SignInError, type SignInReason } from '../auth/sign-in-error';
 import type { RemoteCredentials } from '../auth/remote-credentials';
 import type { Route } from './http';
 import { securityHeaders } from '../static';
+import { authStylesheet } from './auth-stylesheet';
 
 function escapeHtml(value: string): string {
   return value
@@ -35,23 +36,6 @@ const BRAND_MARKUP =
   '3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 ' +
   '3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/></svg><span>semantic' +
   '<small>WORKBENCH</small></span></div>';
-
-// A centred card on the workbench background. These pages are served without the app's
-// stylesheet, so the colours repeat the design tokens in src/style.css and must change with them.
-const AUTH_STYLESHEET =
-  'body{font:0.9375rem/1.5 system-ui,sans-serif;margin:0;color:#243936;background:#f7f9f9;' +
-  'min-height:100vh;display:flex;align-items:center;justify-content:center}' +
-  'main{box-sizing:border-box;width:min(28rem,calc(100vw - 2rem));margin:1rem;' +
-  'padding:1.75rem;background:white;border:1px solid #dce4e2;border-radius:12px;' +
-  'box-shadow:0 10px 30px #17323a14;overflow-wrap:anywhere}' +
-  '.brand{display:flex;align-items:center;gap:12px;color:#237c68;font-weight:800;' +
-  'font-size:1.375rem;margin-bottom:1.25rem}' +
-  '.brand small{display:block;font-size:0.75rem;font-weight:600;letter-spacing:3px;' +
-  'color:#566c65;margin-top:2px}' +
-  'h1{font-size:1.25rem;margin:0 0 0.75rem}p{margin:0 0 0.75rem}' +
-  'button,a{font:inherit;display:inline-flex;align-items:center;justify-content:center;' +
-  'gap:8px;padding:9px 13px;border:1px solid #dce4e2;border-radius:7px;background:white;' +
-  'color:inherit;text-decoration:none;cursor:pointer}button:hover,a:hover{background:#edf5f2}';
 
 function pageContent(page: AuthPageKind, options: AuthPageOptions) {
   let title = 'Signed out';
@@ -103,6 +87,7 @@ export function authPage(page: AuthPageKind, options: AuthPageOptions = {}, stat
   return new Response(
     '<!doctype html><html lang="en"><head><meta charset="utf-8">' +
       '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+      '<meta name="color-scheme" content="light dark">' +
       '<link rel="stylesheet" href="/auth/style.css"><title>' +
       title +
       ' · Semantic Workbench</title></head><body><main>' +
@@ -184,7 +169,7 @@ export function createAuthRoutes(options: AuthRouteOptions, consent?: GitHubCons
       return options.logout(request, await options.session(request));
     }
     if (request.method === 'GET' && url.pathname === '/auth/style.css') {
-      return new Response(AUTH_STYLESHEET, {
+      return new Response(authStylesheet(), {
         headers: { 'Content-Type': 'text/css', 'Cache-Control': 'public, max-age=3600' },
       });
     }
