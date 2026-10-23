@@ -1,0 +1,187 @@
+# UI polish: requirements
+
+Every requirement has numbered acceptance criteria, the finding or findings it covers in
+`findings.md`, and the browser check that proves it. A check named "new" does not exist yet and is
+written with the change. Status is kept in the last column of the traceability table and is
+reported in the final note.
+
+Shared rules for all requirements:
+
+- Geometry assertions run at 390x844, 1280x720, 1440x900 and 2560x1440 unless a requirement says
+  otherwise.
+- No budget, timeout or assertion is loosened. The 30 ms keystroke and 100 ms graph budgets hold.
+- The `--text-small` 12 px floor holds on every screen.
+
+## R1. Theme isolation
+
+Changing the project's colours is one edit in one place.
+
+1. All colours, surfaces, borders, shadows and focus rings are CSS custom properties defined in one
+   theme file (`src/theme.css`). Names are semantic: `--color-surface`, `--color-text-muted`,
+   `--color-accent`, `--color-pk`, `--color-fk` and so on.
+2. Light and dark are two value sets of the same tokens in that file. Dark applies when the person
+   or the system asks for it, and every screen stays readable in both.
+3. No colour literal (hex, rgb, hsl, named colour) appears outside the theme file: not in CSS, in
+   TSX inline styles, in graph and lineage renderers, in canvas code or in the server's sign-in
+   pages. Data-driven colours (group colours chosen at runtime) are the only exception and are
+   listed in one place.
+4. `bun run check` fails when a colour literal appears outside the theme file.
+5. The README explains how to change the theme with a worked example.
+6. Swapping the accent token in the browser changes the rendered primary button, the selected tab
+   and the graph selection colour.
+
+Findings: F18, F19, F62. Checks: `scripts/theme-check.ts` in `bun run check` (new), theme swap in
+`scripts/theme-browser-check.ts` (new, `bun run test:theme`), contrast measurement in the
+responsive suite `screens:` checks.
+
+## R2. Lineage view redesign
+
+The lineage reads as a column-level lineage diagram: table cards with their columns, and edges
+between columns.
+
+1. Before any code, every defect found in screenshots at the four sizes is listed in
+   `specs/004-ui-polish/lineage-defects.md`.
+2. Card titles and column rows are at least 12 px on screen at the default zoom.
+3. The first view fits without cutting a card in half. When not every card can show whole at a
+   readable size, the cards that do not show are behind a counted control.
+4. No two cards overlap, no edge crosses an unrelated card, edge labels do not overlap each other.
+5. A selected column highlights its path and dims the rest; the path is also written as plain
+   sentences (R5).
+6. **Full pierce** still expands everything reachable and still meets its budget. A fan-out
+   collapse shows a counted row that says what it hides and how to expand it.
+7. Controls are the shared toolbar plus the View options dialog.
+
+Findings: F01, F03, F08, F20, F25, F40, F49, F57, F63. Checks: `lineage:` blocks of
+`scripts/responsive-ui-tests.ts` (extended), `scripts/lineage-browser-check.ts` (extended),
+`test:graph` pierce budget.
+
+## R3. Admin is a page
+
+1. Admin is a full workspace view with its own route state; reload lands on the same section and
+   browser Back works.
+2. A left section navigation lists every section the panel has; the content area uses the full
+   width. At phone width the navigation becomes a compact switcher.
+3. There is a clear way back to the workspace.
+4. The modal version is removed. Dialogs inside Admin are confirmations and dry-run previews only.
+5. Geometry assertions pass for the page at four sizes in server mode.
+
+Findings: F12, F13, F33, F34, F55. Checks: `test:admin`, `test:auth`, the `admin page` block in
+the responsive suite (new).
+
+## R4. ODCS terminology and views
+
+1. Schema objects are called Tables in all UI text: lists, headings, counts, breadcrumbs, empty
+   states, graph legend, search and aria names. A logical type other than table shows as a small
+   badge. ODCS terms remain only where they name the standard's fields or appear in validation
+   messages.
+2. The ODCS graph is the primary target: table cards read at the default zoom, a clear primary key
+   and foreign key legend (kept), relationship edges with readable labels, first view without
+   crop, no overlaps, controls in the toolbar plus View options, selection and neighbour
+   highlighting, the foreign-key hop display (R5).
+3. The ODCS data view (contract page, dataset page tabs) has no sideways-scrolling table, no
+   cut-off column and readable text at four sizes.
+4. Before coding, defects of the ODCS graph are listed in `specs/004-ui-polish/odcs-graph-defects.md`.
+
+Findings: F10, F11, F16, F21, F22, F23, F24, F56, F57. Checks: `test:terminology`, `test:odcs`,
+`odcs-browser-check` graph assertions (new), `ODCS screens:` in the responsive suite.
+
+## R5. Foreign-key hops
+
+1. Each hop is a plain sentence with its direction: `orders.customer_id → customers.id`.
+2. The hop count and the path appear in one place, in the lineage, the graph and the data view.
+3. The stepping control has plain labels and one line of help text.
+4. The path renders legibly (12 px or more, no collisions, whole inside the viewport) at four
+   sizes.
+
+Findings: F58. Checks: FK path check in `scripts/odcs-browser-check.ts` and the responsive suite
+(new).
+
+## R6. Examples menu
+
+1. Examples is a button that opens a fly-out menu anchored to it, built on the shared menu.
+2. Enter or Space opens, arrows move, Escape closes and returns focus, Tab leaves.
+3. On the phone drawer the menu stays inside the viewport.
+
+Findings: F59. Checks: keyboard and geometry check in `scripts/dialogs-browser-check.ts` (new).
+
+## R7. Header corner
+
+1. The corner is grouped: file actions, save state, primary action, account.
+2. Controls share one height (36 px desktop, 34 px phone) and spacing; nothing overlaps or is cut
+   at any width; the save state is whole from 1200 px.
+3. It works at 390 px with icons and accessible names.
+4. Every capability stays reachable by role and name.
+
+Findings: F17, F51, F60. Checks: `shell:` block of the responsive suite, header assertions in
+`scripts/helpers/sign-in.ts`.
+
+## R8. Dialogs, disclosure and no overlap
+
+1. Secondary controls sit behind dialogs or menus instead of in crowded panels.
+2. No overlapping elements on any screen, in any dialog or beside the drawer.
+3. Nested dialogs show one layer; the phone drawer closes behind a dialog.
+
+Findings: F02, F04, F05, F06, F07, F13, F14, F15, F26, F27, F28, F29, F30, F31, F32, F35, F36,
+F37, F38, F41, F43, F44, F45, F46, F47, F48, F50, F52, F53, F54. Checks: `layoutProblems` in every
+suite, `screens:`, `edit screens:`, `ODCS screens:`, `project dialogs:`, `shell:` and `overlaps:`
+blocks of the responsive suite, `test:dialogs`.
+
+## R9. Readable text
+
+1. No text below 12 px on any screen except inside graph cards, which follow R2 and the far-zoom
+   rule (names stay at least 12 px down to zoom 0.27).
+2. Muted text has at least 4.5:1 contrast on its background in light and dark.
+3. Tab strips that scroll show a fade cue.
+
+Findings: F09, F18, F19, F20. Checks: `smallTextProblems` in every tour check; contrast
+measurement (new, `scripts/helpers/text-geometry.ts`).
+
+## R10. Visual audit
+
+1. Every screen and dialog is captured at four sizes in local and server mode, in light and dark.
+2. A separate reviewer reads the screenshots strictly and writes its findings into `findings.md`.
+3. Every S1 and S2 finding is fixed and the capture and review repeat until a round has none.
+4. The final screenshots are in `specs/004-ui-polish/screenshots/after`.
+
+Findings: F61, F64. Checks: `scripts/polish-capture.ts` and `scripts/polish-capture-server.ts`
+report no problems; reviewer rounds recorded in `findings.md`.
+
+## R11. Earlier owner asks that must still hold
+
+| # | Ask | Check |
+| --- | --- | --- |
+| a | The graph has full-screen mode and stays responsive | `test:graph`, `full screen:` in the responsive suite |
+| b | YAML source has VS Code-like highlighting; embedded SQL is highlighted and linted | `test:editor`, `test:sql` |
+| c | Deleting uses a trash icon on the right of each row | `test:trash` |
+| d | The project hierarchy is a list of files | `test:monorepo`, `test:projects` |
+| e | Concept mapping in the graph shows real mappings, not a box full of boxes | `test:mapping-graph`, `test:mappings-layout` |
+| f | Source control works like VS Code's | `test:scm`, `test:git-setup` |
+| g | Entities and relationships are edited by clicking them | `test:item-edit`, `test:rdf-edit` |
+
+Finding: F64. Each row has an acceptance criterion: the check passes and the screen in the after
+screenshots looks right.
+
+## Traceability
+
+Every finding maps to a requirement. Status values are open, fixed, deferred (with the reason in
+`findings.md`) or verified.
+
+| Finding | Requirement | Status |
+| --- | --- | --- |
+| F01, F03, F08, F20, F25, F40, F49 | R2 | fixed except lineage redesign (open) |
+| F02, F04, F05, F06, F07, F14, F15 | R8 | fixed |
+| F09 | R9 | fixed |
+| F10, F11, F21, F22, F23, F24 | R4 | fixed, redesign pass open |
+| F12, F13, F33, F34, F55 | R3 | open |
+| F16 | R4 | not changed, on purpose; revisited by R4.2 |
+| F17, F51, F60 | R7 | F17 and F51 fixed, F60 open |
+| F18, F19 | R1, R9 | text floor fixed; theme isolation open |
+| F26, F27, F28, F29, F30, F31, F32, F35, F36, F37, F38, F41, F43, F44, F45, F46, F47, F48, F50, F52, F53, F54 | R8 | fixed |
+| F39, F42 | R8 | fixed |
+| F56, F57 | R4 | open |
+| F58 | R5 | open |
+| F59 | R6 | open |
+| F61 | R10 | open |
+| F62 | R1 | open |
+| F63 | R2 | open |
+| F64 | R11 | open |
