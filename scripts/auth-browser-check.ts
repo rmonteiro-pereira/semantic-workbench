@@ -18,6 +18,7 @@ import {
 import { mockLifecycleChecks, localAuthSmoke } from './auth-lifecycle';
 import { governanceChecks } from './auth-governance';
 import { remoteCredentialChecks } from './auth-remote-check';
+import { exportProjectChecks } from './helpers/export-server-checks';
 
 /** Confirms MSAL drove the sign-ins, at Entra's authorize and token endpoints. */
 function msalCheck(mock: MockOidc) {
@@ -78,6 +79,7 @@ export async function authBrowserCheck() {
         await localAuthSmoke(browser);
         mock.setUserGroups('alice', [TEST_GROUPS.salesViewers]);
         await readVisibilityChecks(browser, target);
+        await exportProjectChecks(browser, target, api.root);
       } finally {
         await browser.close();
       }

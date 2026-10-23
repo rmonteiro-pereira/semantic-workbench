@@ -5,7 +5,10 @@ import { chromium, expect } from '@playwright/test';
 import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expectEditorValue, fillEditor } from './helpers/code-editor';
+import { geometryProblems } from './helpers/screen-tour';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
+import { sha256 } from '../server/projects/atomic';
+import { readZip } from '../tests/helpers/zip-reader';
 // Browser check: project tree, live refresh after external edits, two-tab stale save, cache
 // deletion and restart. Runs against an isolated temporary data root.
 const api = await startIsolatedApi();
@@ -210,6 +213,69 @@ try {
       await expect(fileButton(a, 'added.yaml')).toBeVisible();
     },
   );
+  await check('export project downloads a zip that imports back byte-exact', async () => {
+    const oddContract = readFileSync(
+      'tests/fixtures/auth-workspace/projects/sales-contracts/orders.odcs.yaml',
+      'utf8',
+    );
+    const files = [
+      { path: 'orders.odcs.yaml', source: '# kept\r\n' + oddContract.replaceAll('\n', '\r\n') },
+      { path: 'models/flights.ontology.yaml', source: shop },
+      { path: '.gitignore', source: '*.log\n' },
+    ];
+    const { slug } = await api.ws.importBatch({ files, name: 'Export source' }, LOCAL_READER);
+    writeFileSync(join(api.root, 'projects', slug, 'debug.log'), 'ignored');
+    api.ws.state.writeDraft(slug, 'orders.odcs.yaml', {
+      baseHash: null,
+      text: 'x: [',
+      patches: [],
+    });
+    await a.reload();
+    const openExport = async () => {
+      await a.getByRole('button', { name: 'Actions for Export source', exact: true }).click();
+      await a.getByRole('menuitem', { name: 'Export project…' }).click();
+      return a.getByRole('dialog', { name: 'Export Export source' });
+    };
+    const dialog = await openExport();
+    await expect(dialog.getByLabel('Include Git history')).not.toBeChecked();
+    await expect(dialog).toContainText('These unsaved edits are not in the export');
+    await expect(dialog).toContainText('orders.odcs.yaml');
+    expect(await geometryProblems(a, 'dialog[open]')).toEqual([]);
+    const downloading = a.waitForEvent('download');
+    await dialog.getByRole('button', { name: 'Export', exact: true }).click();
+    const download = await downloading;
+    expect(download.suggestedFilename()).toBe(`${slug}.zip`);
+    const stored = readZip(new Uint8Array(readFileSync((await download.path())!)));
+    expect([...stored.keys()].sort()).toEqual(files.map(file => file.path).sort());
+    const imported = await api.handler(
+      new Request('http://127.0.0.1:4310/api/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: 'Export round trip',
+          files: [...stored].map(([path, bytes]) => ({
+            path,
+            source: new TextDecoder().decode(bytes),
+          })),
+        }),
+      }),
+    );
+    expect(imported.status).toBe(200);
+    const copy = (await imported.json()).slug;
+    for (const file of files) {
+      const original = sha256(new TextEncoder().encode(file.source));
+      expect(api.ws.readFile(copy, file.path).hash, file.path).toBe(original);
+      expect(sha256(stored.get(file.path)!), file.path).toBe(original);
+    }
+    await expect(a.getByText(/Exported 3 files of Export source/)).toBeVisible();
+    // With the history option the zip also holds a Git bundle.
+    await openExport();
+    await a.getByLabel('Include Git history').check();
+    const withHistory = a.waitForEvent('download');
+    await a.getByRole('dialog').getByRole('button', { name: 'Export', exact: true }).click();
+    const historyZip = readZip(new Uint8Array(readFileSync((await (await withHistory).path())!)));
+    expect(historyZip.has('git-history.bundle')).toBe(true);
+  });
   if (errors.length) throw Error('Browser errors: ' + errors.join('\n'));
   console.log(`${passed} project checks passed on isolated data root ${api.root}.`);
 } finally {
