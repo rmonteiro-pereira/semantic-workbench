@@ -952,3 +952,20 @@
   white-space: normal;
   overflow-wrap: anywhere;
 }
+
+/* The optional folder field of the Clone dialog. */
+.workbench-dialog .folder-hint {
+  font-size: var(--text-small);
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+.workbench-dialog input[aria-invalid='true'] + .folder-hint {
+  color: #8a2c22;
+}
+/* Where the project sits in its repository: remote, branch and folder. */
+.scm-where {
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}

@@ -17,6 +17,7 @@ import {
   NotFoundError,
   StaleError,
   GoneError,
+  MissingFolderError,
   OccupiedError,
   BadRequestError,
   ConflictError,
@@ -102,6 +103,8 @@ export function errorResponse(e: unknown, publicUrl?: string, context: ErrorCont
     return Response.json({ error: e.message, notFastForward: true }, { status: 409 });
   if (e instanceof NothingToPublishError)
     return Response.json({ error: e.message, nothingToPublish: true }, { status: 409 });
+  if (e instanceof MissingFolderError)
+    return Response.json({ error: e.message, missingFolder: e.folder }, { status: 409 });
   if (e instanceof NotFoundError) return Response.json({ error: e.message }, { status: 404 });
   if (e instanceof InputError)
     return Response.json({ error: e.message, issues: e.issues }, { status: 400 });

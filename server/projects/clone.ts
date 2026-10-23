@@ -2,7 +2,7 @@
 // data/projects/ and moves into place with the registry in one journaled step, so a failed,
 // cancelled or interrupted clone leaves nothing behind.
 import { existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, posix } from 'node:path';
 import {
   GitError,
   hasControlCharacters,
@@ -14,7 +14,8 @@ import {
 import type { Journal, RecoveryOutcome } from './journal';
 import { projectDir, slugify, uniqueName, type DataLayout } from './paths';
 import type { ProjectEntry } from './state';
-import { BadRequestError } from './errors';
+import { BadRequestError, MissingFolderError } from './errors';
+import { checkOutFolder, repositoryFolder } from './sparse-folder';
 
 /** Prefix of the staging folders that hold a clone in progress. */
 export const CLONE_STAGING = '.staging-clone-';
@@ -26,6 +27,10 @@ export type CloneEvent = {
   message?: string;
   repo?: string;
   name?: string;
+  /** The folder of the repository the project lives in, when only that folder was checked out. */
+  folder?: string;
+  /** A folder the remote branch does not have; the person may ask to create it with a push. */
+  missingFolder?: string;
   invalid?: string[];
   /** Folders proposed as projects when the repository has no manifest. */
   candidates?: { path: string; files: number }[];
@@ -42,6 +47,13 @@ export type CloneEvent = {
  * done. A failure fails the clone.
  */
 export type AssignProject = (slugs: string[]) => Promise<void>;
+/** The optional folder of a repository to check out instead of the whole repository. */
+export type FolderRequest = {
+  /** Check out only this folder; it becomes the project root. */
+  folder?: unknown;
+  /** With a folder: accept one the remote branch lacks, to be created by the first push. */
+  createFolder?: boolean;
+};
 /** Workspace services a clone needs. */
 export type CloneDeps = {
   layout: DataLayout;
@@ -67,6 +79,11 @@ export function nameFromAddress(address: string) {
     .split(/[/\\:]/)
     .pop()!;
   return last.replace(/\.git$/i, '') || 'Cloned repository';
+}
+
+// A project cloned from a folder is named after that folder, otherwise after the repository.
+function nameFromSource(address: string, folder: string) {
+  return folder ? posix.basename(folder) : nameFromAddress(address);
 }
 
 function checkName(name: unknown) {
@@ -105,20 +122,32 @@ export function createCloner(deps: CloneDeps) {
    * Who receives the clone's events, how each new project gets its access metadata, and in
    * server mode the credential the clone command uses.
    */
-  type CloneOptions = { owner?: string; assign?: AssignProject; credential?: RemoteCredential };
-  type CloneRequest = { address: string; slug: string; name: string } & CloneOptions;
+  type CloneOptions = FolderRequest & {
+    owner?: string;
+    assign?: AssignProject;
+    credential?: RemoteCredential;
+  };
+  type CloneRequest = {
+    address: string;
+    slug: string;
+    name: string;
+    folder: string;
+    createFolder: boolean;
+  } & Pick<CloneOptions, 'owner' | 'assign' | 'credential'>;
   // Clones in progress, so two clones started together never pick the same name or folder.
   const running = new Map<string, { staging: string; slug: string; name: string }>();
 
   // Runs the clone and reports every outcome as an event; it never throws.
   async function cloneInBackground(op: string, request: CloneRequest) {
-    const { address, slug, name, owner, assign, credential } = request;
+    const { address, slug, name, folder, createFolder, owner, assign, credential } = request;
     const staging = join(layout.projects, CLONE_STAGING + op);
     const stateStaging = join(layout.state, `.staging-${op}`);
     try {
       deps.emit({ op, phase: 'cloning', name }, owner);
       mkdirSync(staging, { recursive: true });
-      await git.clone(staging, address, slug, credential);
+      await git.clone(staging, address, slug, credential, { partial: folder !== '' });
+      if (folder)
+        await checkOutFolder(git, join(staging, slug), folder, { createFolder, credential });
       deps.emit({ op, phase: 'scanning', name }, owner);
       await deps.lock('registry', async () => {
         const current = deps.projects();
@@ -132,6 +161,7 @@ export function createCloner(deps: CloneDeps) {
           createdAt: new Date().toISOString(),
           origin: 'clone',
           remoteAddress: redactCredentials(address),
+          ...(folder ? { folder: `${slug}/${folder}`, repo: slug } : {}),
         };
         journal.run(
           'clone',
@@ -146,9 +176,11 @@ export function createCloner(deps: CloneDeps) {
       await deps.scan(slug);
       deps.added(slug);
       const invalid = deps.invalidFiles(slug);
-      const projects = await deps.afterClone(slug);
+      // A folder is the project root; the repository's manifest and layout do not apply to it.
+      const projects = folder ? {} : await deps.afterClone(slug);
       await assign?.(projects.projects ?? [slug]);
-      deps.emit({ op, phase: 'done', repo: slug, name, invalid, ...projects }, owner);
+      const done: CloneEvent = { op, phase: 'done', repo: slug, name, invalid, ...projects };
+      deps.emit(folder ? { ...done, folder } : done, owner);
     } catch (e) {
       rmSync(staging, { recursive: true, force: true });
       rmSync(stateStaging, { recursive: true, force: true });
@@ -159,6 +191,7 @@ export function createCloner(deps: CloneDeps) {
           phase: cancelled ? 'cancelled' : 'failed',
           name,
           message: cancelled ? 'Clone cancelled.' : redactCredentials((e as Error).message),
+          ...(e instanceof MissingFolderError ? { missingFolder: e.folder } : {}),
         },
         owner,
       );
@@ -171,9 +204,10 @@ export function createCloner(deps: CloneDeps) {
     /** Starts a clone and returns at once; progress arrives as events. */
     start(url: unknown, requestedName?: unknown, options: CloneOptions = {}) {
       const address = remoteAddress(url);
+      const folder = repositoryFolder(options.folder);
       const current = deps.projects();
       const pending = [...running.values()];
-      const name = uniqueName(checkName(requestedName) ?? nameFromAddress(address), [
+      const name = uniqueName(checkName(requestedName) ?? nameFromSource(address, folder), [
         ...current.map(project => project.name),
         ...pending.map(clone => clone.name),
       ]);
@@ -185,7 +219,18 @@ export function createCloner(deps: CloneDeps) {
       const slug = slugify(name, taken);
       const op = journal.newId();
       running.set(op, { staging: join(layout.projects, CLONE_STAGING + op), slug, name });
-      void cloneInBackground(op, { address, slug, name, ...options });
+      const { owner, assign, credential } = options;
+      const createFolder = options.createFolder === true;
+      void cloneInBackground(op, {
+        address,
+        slug,
+        name,
+        folder,
+        createFolder,
+        owner,
+        assign,
+        credential,
+      });
       return { op, name, slug };
     },
     /** Stops a running clone; its staging folder is removed. */

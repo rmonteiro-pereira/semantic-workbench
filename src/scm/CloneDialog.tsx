@@ -5,6 +5,7 @@ import { Modal } from '../projects/Modal';
 import { scm, type CloneEvent } from '../projects/api';
 import { useEvents } from '../projects/useEvents';
 import { looksLikeAuthFailure } from './CredentialGuide';
+import { FolderField, useFolderInput } from './FolderField';
 
 type Props = {
   onClose: () => void;
@@ -103,13 +104,17 @@ function CloneResult({ event }: { event: CloneEvent }) {
 type FormProps = {
   url: string;
   name: string;
+  folder: string;
+  folderProblem: string;
   error: string;
   setUrl: (value: string) => void;
   setName: (value: string) => void;
+  setFolder: (value: string) => void;
   onSubmit: (event: React.FormEvent) => void;
 };
 
-function CloneForm({ url, name, error, setUrl, setName, onSubmit }: FormProps) {
+function CloneForm(props: FormProps) {
+  const { url, name, folder, folderProblem, error, setUrl, setName, setFolder, onSubmit } = props;
   return (
     <form className="clone-form" onSubmit={onSubmit}>
       <p className="dialog-intro">
@@ -135,6 +140,12 @@ function CloneForm({ url, name, error, setUrl, setName, onSubmit }: FormProps) {
           placeholder="From the repository name"
         />
       </label>
+      <FolderField
+        value={folder}
+        problem={folderProblem}
+        onChange={setFolder}
+        hint="Check out only this folder of the repository. It becomes the project; the rest of the repository stays off your disk."
+      />
       {error && (
         <p role="alert" className="dialog-error">
           {error}
@@ -151,6 +162,7 @@ type FooterProps = {
   canStart: boolean;
   progress: CloneEvent | null;
   onStart: () => void;
+  onCreateFolder: () => void;
   onCancel: () => void;
   onClose: () => void;
   onOpenProject: (slug: string) => void;
@@ -164,6 +176,7 @@ function CloneFooter(props: FooterProps) {
   const done = progress?.phase === 'done' ? progress : null;
   // A manifest replaces the repository's own project with its folders' projects.
   const cloned = done?.projects?.[0] ?? done?.repo;
+  const missingFolder = progress?.phase === 'failed' ? progress.missingFolder : undefined;
   const choosable = done?.repo && subfolderCandidates(done).length > 0 ? done.repo : undefined;
   return (
     <>
@@ -186,6 +199,11 @@ function CloneFooter(props: FooterProps) {
           Clone
         </button>
       )}
+      {missingFolder && (
+        <button type="button" className="primary" onClick={props.onCreateFolder}>
+          Create {missingFolder} with the first push
+        </button>
+      )}
       {choosable && (
         <button type="button" onClick={() => props.onChooseProjects(choosable)}>
           Choose projects…
@@ -205,6 +223,7 @@ export function CloneDialog({ onClose, onOpenProject, onCredentials, onChoosePro
   const domainChoice = useProjectDomain();
   const [url, setUrl] = useState('');
   const [name, setName] = useState('');
+  const folderInput = useFolderInput();
   const [op, setOp] = useState<{ op: string; name: string } | null>(null);
   const [progress, setProgress] = useState<CloneEvent | null>(null);
   const [error, setError] = useState('');
@@ -217,12 +236,16 @@ export function CloneDialog({ onClose, onOpenProject, onCredentials, onChoosePro
     if (op && data.op === op.op) setProgress(data);
   });
 
-  async function start(event?: React.FormEvent) {
+  async function start(event?: React.FormEvent, createFolder = false) {
     event?.preventDefault();
+    if (folderInput.problem) return;
     setError('');
     try {
       const domain = await domainChoice.choose();
-      const started = await scm.clone(url.trim(), name.trim() || undefined, domain);
+      const started = await scm.clone(url.trim(), name.trim() || undefined, domain, {
+        folder: folderInput.folder,
+        createFolder,
+      });
       setOp(started);
       setProgress(
         latest.current.get(started.op) ?? { op: started.op, phase: 'cloning', name: started.name },
@@ -237,9 +260,10 @@ export function CloneDialog({ onClose, onOpenProject, onCredentials, onChoosePro
     <CloneFooter
       started={!!op}
       running={running}
-      canStart={!!url.trim()}
+      canStart={!!url.trim() && !folderInput.problem}
       progress={progress}
       onStart={() => void start()}
+      onCreateFolder={() => void start(undefined, true)}
       onCancel={() => op && void scm.cancelClone(op.op)}
       onClose={onClose}
       onOpenProject={onOpenProject}
@@ -264,9 +288,12 @@ export function CloneDialog({ onClose, onOpenProject, onCredentials, onChoosePro
         <CloneForm
           url={url}
           name={name}
+          folder={folderInput.text}
+          folderProblem={folderInput.problem}
           error={error}
           setUrl={setUrl}
           setName={setName}
+          setFolder={folderInput.setText}
           onSubmit={start}
         />
       )}

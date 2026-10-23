@@ -4,7 +4,15 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { BranchInUseError, NotFastForwardError } from './errors';
-import { authorship, GitError, isBranchName, type CommitAuthor, type Git } from './git';
+import {
+  authorship,
+  commitOf,
+  GitError,
+  isBranchName,
+  symbolicBranch,
+  type CommitAuthor,
+  type Git,
+} from './git';
 import { USER_KEY, type DataLayout } from './paths';
 
 /** One entry of `git worktree list --porcelain`. */
@@ -130,23 +138,6 @@ const copyDir = ({ layout }: WorktreeContext, key: string, repo: string) =>
   join(layout.worktrees, key, repo);
 const copyExists = (context: WorktreeContext, key: string, repo: string) =>
   existsSync(join(copyDir(context, key, repo), '.git'));
-
-async function symbolicBranch(git: Git, dir: string) {
-  const result = await git.run(dir, ['symbolic-ref', '-q', '--short', 'HEAD'], {
-    readOnly: true,
-    allowFailure: true,
-  });
-  return result.code === 0 ? result.stdout.trim() : null;
-}
-
-/** The commit a revision names in a folder, or null when it names none. */
-export async function commitOf(git: Git, dir: string, rev: string) {
-  const result = await git.run(dir, ['rev-parse', '-q', '--verify', rev + '^{commit}'], {
-    readOnly: true,
-    allowFailure: true,
-  });
-  return result.code === 0 ? result.stdout.trim() : null;
-}
 
 /**
  * The repository's default branch: remembered once the base was detached, otherwise the branch
