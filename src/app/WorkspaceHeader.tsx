@@ -1,4 +1,5 @@
 /** Presentation and event handling for workspace header. */
+import './WorkspaceHeader.css';
 import { useCapabilities } from '../auth/Capabilities';
 import {
   Download,
@@ -130,48 +131,54 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
           </span>
         </div>
         <div className="header-actions">
-          <MenuButton
-            ariaLabel="New"
-            label={<span className="action-label">New</span>}
-            icon={<Plus size={15} />}
-            buttonClassName="new-menu"
-            items={access.can('edit') ? newItems() : []}
-          />
-          <button
-            aria-label="Export"
-            title={hasSource ? 'Download the file exactly as it is' : 'Open a file to export it.'}
-            disabled={!hasSource}
-            onClick={download}
-          >
-            <Download size={15} />
-            <span className="action-label">Export</span>
-          </button>
-          <button
-            className={`save-state s-${saveStatus}`}
-            role="status"
-            aria-label="Save state"
-            disabled={!current}
-            title={`${current ? saveState : 'No file open'} — ${getSaveStateAction()}`}
-            onClick={handleSaveStateClick}
-          >
-            <span className="save-state-text">{current ? saveState : 'No file open'}</span>
-          </button>
-          <button
-            className="primary"
-            onClick={handleCommitClick}
-            disabled={!current || status?.gitAvailable === false || !access.can('commit')}
-            title={
-              access.control('commit').title ??
-              (status?.gitAvailable === false
-                ? 'Git is not available on this machine'
-                : 'Commit changed files of this project')
-            }
-          >
-            <GitCommitIcon size={15} />
-            <span className="action-label">Commit…</span>
-          </button>
+          <div className="header-group header-files" role="group" aria-label="File">
+            <MenuButton
+              ariaLabel="New"
+              label={<span className="action-label">New</span>}
+              icon={<Plus size={15} />}
+              buttonClassName="new-menu"
+              items={access.can('edit') ? newItems() : []}
+            />
+            <button
+              aria-label="Export"
+              title={hasSource ? 'Download the file exactly as it is' : 'Open a file to export it.'}
+              disabled={!hasSource}
+              onClick={download}
+            >
+              <Download size={15} />
+              <span className="action-label">Export</span>
+            </button>
+          </div>
+          <div className="header-group header-state" role="group" aria-label="Save and commit">
+            <button
+              className={`save-state s-${saveStatus}`}
+              role="status"
+              aria-label="Save state"
+              disabled={!current}
+              title={`${current ? saveState : 'No file open'} — ${getSaveStateAction()}`}
+              onClick={handleSaveStateClick}
+            >
+              <span className="save-state-text">{current ? saveState : 'No file open'}</span>
+            </button>
+            <button
+              className="primary"
+              onClick={handleCommitClick}
+              disabled={!current || status?.gitAvailable === false || !access.can('commit')}
+              title={
+                access.control('commit').title ??
+                (status?.gitAvailable === false
+                  ? 'Git is not available on this machine'
+                  : 'Commit changed files of this project')
+              }
+            >
+              <GitCommitIcon size={15} />
+              <span className="action-label">Commit…</span>
+            </button>
+          </div>
         </div>
-        {personMenu}
+        <div className="header-group header-account" role="group" aria-label="Account">
+          {personMenu}
+        </div>
       </header>
     </>
   );

@@ -1,5 +1,6 @@
 // Captures every shopping center document view using an isolated temporary workspace.
 import { appUrl } from './helpers/base-url';
+import { example } from './helpers/examples';
 import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 // Opens every shopping-center document in every applicable view against an isolated temporary data
@@ -26,7 +27,7 @@ const tab = async (name: string) => {
 };
 try {
   await page.goto(appUrl());
-  await page.getByRole('button', { name: /Load shopping center administration/ }).click();
+  await (await example(page, /Load shopping center administration/)).click();
   await expect(page.locator('h1')).toContainText('Shopping center administration ontology', {
     timeout: 30000,
   });

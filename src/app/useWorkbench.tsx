@@ -103,8 +103,8 @@ export function useWorkbench({ setMessage }: Options) {
         },
       });
   };
-  const sidebar = useSidebar({ readSidebarWidth, projects });
-  const { compact, closeWorkspace, setExamplesChoice, examplesOpen } = sidebar;
+  const sidebar = useSidebar({ readSidebarWidth });
+  const { compact, closeWorkspace } = sidebar;
   const workspaceEvents = useWorkspaceEvents({
     docsRef,
     setProjects,
@@ -237,8 +237,6 @@ export function useWorkbench({ setMessage }: Options) {
     }
   }
   const examples = useExamples({
-    setExamplesChoice,
-    examplesOpen,
     getLeaveCurrent: () => leaveCurrent,
     setBusy,
     setMessage,

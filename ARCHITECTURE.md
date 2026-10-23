@@ -277,7 +277,7 @@ Generated modules are checked in so tests and development work immediately; `bui
 regenerate them, and a test verifies identical bytes. Only server access configuration keeps
 runtime Ajv compilation, outside the browser CSP.
 
-The header composes `src/auth/PersonMenu.tsx` through `WorkspaceHeader`'s optional slot.
+The header composes `src/auth/PersonMenu.tsx` and the Admin launcher through `WorkspaceHeader`'s optional account slot. `WorkspaceHeader` groups its controls as file actions, save state with Commit, and account; `src/app/WorkspaceHeader.css` owns the header layout, including the two-row phone layout, and sets one control height for all of them. `scripts/helpers/header.ts` (`headerProblems`) measures that layout in the browser suites, in local and server mode. The sidebar's Examples button is `src/app/ExampleMenu.tsx`, a `MenuButton` from `src/projects/Menu.tsx` that opens upward (`placement="above"`), so its keyboard behaviour is the shared menu's.
 `useMe` keeps the `/api/me` promise in memory once per page, including React effect remounts; rejected requests are discarded so a later mount can retry.
 Local mode renders no person menu. The API returns the session's form CSRF token, never its
 provider credentials; the form posts it to `/auth/logout`. `src/projects/api.ts` owns the

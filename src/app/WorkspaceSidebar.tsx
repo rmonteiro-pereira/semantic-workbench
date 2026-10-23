@@ -10,7 +10,7 @@ import type { DeleteTarget } from '../projects/DeleteDialog';
 import type { TreeAction } from '../projects/Sidebar';
 import { ProjectTree } from '../projects/Sidebar';
 import { Suggestions } from '../projects/Suggestions';
-import { ExampleList } from './ExampleList';
+import { ExampleMenu } from './ExampleMenu';
 
 type Props = {
   compact: boolean;
@@ -31,8 +31,6 @@ type Props = {
   suggestions: Suggestion[];
   setMessage: React.Dispatch<React.SetStateAction<string>>;
   refresh: () => Promise<Doc[]>;
-  examplesOpen: boolean;
-  setExamplesChoice: React.Dispatch<React.SetStateAction<boolean | null>>;
   loadExample: (id: string) => Promise<void>;
   busy: boolean;
   setImporting: React.Dispatch<React.SetStateAction<{ project?: string | undefined } | null>>;
@@ -96,8 +94,6 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
   suggestions,
   setMessage,
   refresh,
-  examplesOpen,
-  setExamplesChoice,
   loadExample,
   busy,
   setImporting,
@@ -266,14 +262,7 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
             onAccept={handleSuggestionsAccept}
             onReject={handleSuggestionsReject}
           />
-          {access.can('createProject') && (
-            <ExampleList
-              examplesOpen={examplesOpen}
-              setExamplesChoice={setExamplesChoice}
-              loadExample={loadExample}
-              busy={busy}
-            />
-          )}
+          {access.can('createProject') && <ExampleMenu loadExample={loadExample} busy={busy} />}
           <button
             hidden={!access.can('createProject')}
             className="import"

@@ -9,6 +9,8 @@ export type MenuItem = {
   icon?: React.ReactNode;
   disabled?: string | false;
   hint?: string;
+  /** A second line under the label, for items that need a short description. */
+  detail?: string;
 };
 /** Opens a keyboard-accessible action menu and restores focus when it closes. */
 export function MenuButton({
@@ -19,6 +21,7 @@ export function MenuButton({
   className = '',
   buttonClassName = '',
   align = 'end',
+  placement = 'below',
   title,
   header,
   menuLabel,
@@ -30,6 +33,8 @@ export function MenuButton({
   className?: string;
   buttonClassName?: string;
   align?: 'start' | 'end';
+  /** Opens the menu upward for buttons that sit at the bottom of a panel. */
+  placement?: 'below' | 'above';
   title?: string;
   header?: React.ReactNode;
   menuLabel?: string;
@@ -124,7 +129,7 @@ export function MenuButton({
         <div
           role="menu"
           aria-label={menuLabel ?? ariaLabel}
-          className={`menu-popup align-${align}`}
+          className={`menu-popup align-${align} place-${placement}`}
         >
           {header}
           {items.map(it => (
@@ -145,6 +150,7 @@ export function MenuButton({
               {it.icon}
               <span>
                 {it.label}
+                {it.detail && <small>{it.detail}</small>}
                 {it.disabled && <small>{it.disabled}</small>}
               </span>
             </button>

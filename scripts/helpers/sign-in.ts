@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { expect, type Browser, type Page, type Route } from '@playwright/test';
 import { TEST_CLIENTS, TEST_USERS, type TestUserName } from '../../tests/helpers/auth-identities';
 import { screenshotPath } from './screenshots';
+import { headerProblems } from './header';
 import { layoutProblems } from './layout-geometry';
 import { closeSyncDialog, offersSyncDialog, openSyncDialog } from './sync-dialog';
 import { smallTextProblems, textCollisionProblems } from './text-geometry';
@@ -152,6 +153,11 @@ export async function authGeometry(
     if (scope) await closeWorkspaceDrawer(page, reopen);
     assert.deepEqual(await layoutProblems(page), [], `${name} at ${width}×${height}`);
     if (scope) await assertTextProblemsEmpty(page, name, scope, width);
+    if (name === 'person-menu' || name === 'viewer-workspace') {
+      // The header keeps its controls apart, aligned and readable in server mode too.
+      assert.deepEqual(await headerProblems(page), [], `header at ${width}×${height}`);
+      await assertTextProblemsEmpty(page, `${name} header`, '.workspace-header', width);
+    }
     if (name === 'person-menu') {
       // The person menu may not squeeze the save state into an ellipsis from 1200 px.
       if (width >= 1200) {
@@ -159,19 +165,6 @@ export async function authGeometry(
         const cut = await text.evaluate(el => el.scrollWidth > el.clientWidth + 1);
         assert(!cut, `the save state is cut at ${width}×${height}`);
       }
-      // No header action may spill out of its group or sit under the person menu.
-      const spill = await page.evaluate(() => {
-        const group = document.querySelector('.header-actions')?.getBoundingClientRect();
-        const person = document.querySelector('.person-menu')?.getBoundingClientRect();
-        const children = [...document.querySelectorAll('.header-actions > *')];
-        const widest = Math.max(...children.map(child => child.getBoundingClientRect().right));
-        const underPerson = !!group && !!person && group.right > person.left + 1;
-        return { outOfGroup: !!group && widest > group.right + 1, underPerson };
-      });
-      assert(
-        !spill.outOfGroup && !spill.underPerson,
-        `header actions collide at ${width}×${height}`,
-      );
       const trigger = await page
         .getByRole('button', { name: 'Person menu', exact: true })
         .boundingBox();

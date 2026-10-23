@@ -4,6 +4,11 @@ import { viewOptions } from './helpers/graph-options';
 import { LOCAL_READER } from '../server/projects/reader';
 import { chromium, expect, type Locator, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
+import {
+  examplesKeyboardProblems,
+  headerScreenProblems,
+  headerScreens,
+} from './helpers/header-tour';
 import { treeRowProblems } from './helpers/tree-geometry';
 import { neighborhoodEdgeProblems, neighborhoodState, pickCenter } from './helpers/edge-geometry';
 import { inspect } from '../src/model';
@@ -263,7 +268,7 @@ try {
         await expect(
           page.getByRole('button', { name: 'ubl.ontology.yaml', exact: true }),
         ).toBeInViewport();
-        await expect(page.getByRole('group', { name: 'Examples' })).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Examples', exact: true })).toBeVisible();
         await expect(page.locator('input[type=file]')).toHaveCount(1);
         // Project tree rows: name, delete icon and menu stay side by side at every viewport.
         await expect(
@@ -1199,13 +1204,14 @@ try {
   // for it to settle, then open it only if the loader is not already on screen.
   async function loadCommerce() {
     await sweep.waitForTimeout(400);
-    const load = sweep.getByRole('button', { name: /Load commerce workspace/ });
+    const examplesButton = sweep.getByRole('button', { name: 'Examples', exact: true });
     const openWorkspace = sweep.getByRole('button', { name: 'Open workspace', exact: true });
-    if (!(await load.isVisible()) && (await openWorkspace.isVisible())) await openWorkspace.click();
-    // The examples sit in a collapsed Examples group once projects exist.
-    if (!(await load.isVisible()))
-      await sweep.getByRole('group', { name: 'Examples' }).locator('summary').click();
-    await load.click();
+    if (!(await examplesButton.isVisible()) && (await openWorkspace.isVisible())) {
+      await openWorkspace.click();
+    }
+    // The examples are the items of the Examples menu.
+    await examplesButton.click();
+    await sweep.getByRole('menuitem', { name: /Load commerce workspace/ }).click();
   }
   await check(
     'status messages: never cover a control, auto-dismiss within 6 s and clear on the next action',
@@ -1313,10 +1319,10 @@ try {
   );
   await sweep.close();
   // The sidebar resizes by pointer and keyboard within 220–520 px and remembers it; names wrap to
-  // two lines and keep their full text; Examples is collapsed when projects exist; one sidebar
+  // two lines and keep their full text; Examples is a menu; one sidebar
   // toggle on desktop, the drawer's close button only below 1100 px.
   await check(
-    'sidebar: resize by pointer and keyboard (220–520, persisted), two-line names, collapsed Examples, one toggle',
+    'sidebar: resize by pointer and keyboard (220–520, persisted), two-line names, Examples menu, one toggle',
     async () => {
       const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
       const page = await context.newPage();
@@ -1393,12 +1399,14 @@ try {
       expect(clipped).toEqual([]);
       expect(await treeRowProblems(page)).toEqual([]);
       await page.screenshot({ path: '/tmp/workbench-sidebar-220.png' });
-      // Examples: collapsed because projects exist; it opens on demand.
-      const examples = page.getByRole('group', { name: 'Examples' });
+      // Examples: a closed menu button that opens on demand, even in the narrowest sidebar.
+      const examples = page.getByRole('button', { name: 'Examples', exact: true });
       await expect(examples).toBeVisible();
-      await expect(page.getByRole('button', { name: /Load UBL business model/ })).toBeHidden();
-      await examples.locator('summary').click();
-      await expect(page.getByRole('button', { name: /Load UBL business model/ })).toBeVisible();
+      await expect(page.getByRole('menuitem', { name: /Load UBL business model/ })).toBeHidden();
+      await examples.click();
+      await expect(page.getByRole('menuitem', { name: /Load UBL business model/ })).toBeVisible();
+      await page.keyboard.press('Escape');
+      await expect(examples).toBeFocused();
       // One toggle on desktop; the drawer's close button is not shown.
       await expect(page.getByRole('button', { name: 'Close workspace drawer' })).toBeHidden();
       await expect(page.getByRole('button', { name: /^(Open|Close) workspace$/ })).toHaveCount(0);
@@ -1501,13 +1509,19 @@ try {
     );
     await shellPage.close();
   }
+<<<<<<< ours
   // The Admin page: every section at each size, with text, collisions and containment checked.
+=======
+  // The header: file actions, save state with Commit and the account sit in groups of one control
+  // height without overlap, and its menus and the Examples menu stay inside the window.
+>>>>>>> theirs
   for (const [width, height] of [
     [390, 844],
     [1280, 720],
     [1440, 900],
     [2560, 1440],
   ]) {
+<<<<<<< ours
     const adminPage = await openPage(width!, height!);
     await check(
       `admin page: ${width}×${height} readable text, no overlaps, content fits`,
@@ -1531,6 +1545,31 @@ try {
       },
     );
     await adminPage.close();
+=======
+    const headerPage = await openPage(width!, height!);
+    await check(
+      `header: ${width}×${height} groups, control height, menus and keyboard`,
+      async () => {
+        for (const screen of headerScreens('ubl.ontology.yaml')) {
+          await showScreen(headerPage, screen);
+          expect(await headerScreenProblems(headerPage, screen)).toEqual([]);
+          expect(await screenProblems(headerPage, screen)).toEqual([]);
+          await noOverflow(headerPage);
+        }
+        await headerPage.keyboard.press('Escape');
+        for (const group of ['File', 'Save and commit', 'Account']) {
+          await expect(headerPage.getByRole('group', { name: group, exact: true })).toBeVisible();
+        }
+        for (const name of ['New', 'Export', 'Commit…', 'Admin']) {
+          await expect(headerPage.getByRole('button', { name, exact: true })).toBeVisible();
+        }
+        const saveState = headerPage.getByRole('status', { name: 'Save state', exact: true });
+        await expect(saveState).toBeVisible();
+        await examplesKeyboardProblems(headerPage);
+      },
+    );
+    await headerPage.close();
+>>>>>>> theirs
   }
   await check('no uncaught browser errors', async () => expect(errors).toEqual([]));
   console.log(`${passed} responsive UI checks passed`);
