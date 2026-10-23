@@ -26,6 +26,7 @@ import {
   NotFastForwardError,
   NothingToPublishError,
 } from '../projects/errors';
+import { log } from '../observability/log';
 /** Handles a request or returns null so the next route can try it. */
 export type Route = (
   ws: Workspace,
@@ -43,8 +44,11 @@ export type ErrorContext = { serverMode?: boolean; requestId?: string };
 function gitFailureResponse(e: GitError, context: ErrorContext) {
   if (!context.serverMode) return Response.json({ error: e.message }, { status: 500 });
   const output = e.result?.stderr.trim();
-  const detail = output ? ` | ${output}` : '';
-  console.error(`[http] ${context.requestId ?? 'unknown'} GitError: ${e.message}${detail}`);
+  log.error('http.git-failed', {
+    requestId: context.requestId ?? 'unknown',
+    errorMessage: e.message,
+    gitOutput: output,
+  });
   return Response.json({ error: 'Git failed.' }, { status: 500 });
 }
 

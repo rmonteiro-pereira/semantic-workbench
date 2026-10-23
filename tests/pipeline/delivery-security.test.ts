@@ -40,6 +40,16 @@ describe('ingress preflight', () => {
     });
   }
 
+  test('a connection string or actor salt must be a Key Vault reference', () => {
+    for (const name of ['APPLICATIONINSIGHTS_CONNECTION_STRING', 'SW_TELEMETRY_ACTOR_SALT']) {
+      const app = fakeApp();
+      app.env[name] = 'plain-value';
+      expect(() => preflight(app, fakeTarget)).toThrow(`Key Vault ${name}`);
+      app.env[name] = `secretref:${app.secrets[0].name}`;
+      expect(() => preflight(app, fakeTarget)).not.toThrow();
+    }
+  });
+
   test('accepts the public URL as the only CORS origin and any HTTP transport', () => {
     for (const transport of ['auto', 'http', 'http2']) {
       const app = fakeApp();

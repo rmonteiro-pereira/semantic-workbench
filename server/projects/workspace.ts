@@ -62,6 +62,7 @@ import { ConflictError, MergingError, OccupiedError } from './errors';
 import { StaleError, NotFoundError } from './errors';
 import { demotionsOf, type ContentGuard, type Demotion } from '../auth/guards';
 import { NEW_PROJECT } from '../auth/resource';
+import { log } from '../observability/log';
 export { StaleError, NotFoundError, GoneError, OccupiedError, ConflictError } from './errors';
 /** A project-relative path and the source text to import there. */
 export type ImportFile = { path: string; source: string };
@@ -728,9 +729,10 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     for (const repo of new Set(projects().map(project => locationOf(project).repo))) {
       const dir = join(layout.projects, repo);
       if (!existsSync(join(dir, '.git'))) continue;
-      const log = options.log ?? console.log;
+      const report =
+        options.log ?? ((line: string) => log.info('workspace.reconcile', { detail: line }));
       const paths = trashed.get(repo) ?? new Set<string>();
-      await restoreTrashedDeletions({ git, dir, repo, trashed: paths, log });
+      await restoreTrashedDeletions({ git, dir, repo, trashed: paths, log: report });
     }
   }
   // A stop between moving the default branch and moving the published files is finished here.
@@ -1127,7 +1129,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
           reader.copy?.author,
         );
       } catch (e) {
-        console.error(`[import] commit failed: ${(e as Error).message}`);
+        log.failure('import.commit-failed', e);
         commit = { committed: false, reason: 'nothing' };
       }
       await rescanIn(place, slug);

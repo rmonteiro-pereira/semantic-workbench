@@ -4,6 +4,11 @@ export const routeExamples: { method: string; path: string; body?: unknown }[] =
   { method: 'GET', path: '/api/me' },
   { method: 'GET', path: '/auth/style.css' },
   { method: 'GET', path: '/api/events' },
+  {
+    method: 'POST',
+    path: '/api/telemetry/browser',
+    body: { reports: [{ kind: 'error', name: 'Error', message: 'example' }] },
+  },
   { method: 'GET', path: '/api/status' },
   { method: 'GET', path: '/api/projects' },
   { method: 'GET', path: '/api/trash' },

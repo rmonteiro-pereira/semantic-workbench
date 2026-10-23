@@ -2,6 +2,8 @@
 // recent events to be replayed after reconnecting.
 import { currentReaders, readableEvent, type EventAccess } from './event-access';
 import type { IndexedFile } from './suggestions';
+import { log } from '../observability/log';
+import { recordStreamChange } from '../observability/metrics';
 /** Maximum number of recent events retained for reconnecting clients. */
 export const RING_SIZE = 1000;
 /** Interval between keepalive messages on open event streams. */
@@ -91,21 +93,21 @@ export function createEvents(options: EventOptions) {
     try {
       index = options.suggestionIndex();
     } catch (error) {
-      console.error('Suggestion refresh failed while indexing files.', error);
+      log.failure('events.suggestion-index-failed', error);
       return;
     }
     if (shared) {
       try {
         sendSharedCount(options.sharedSuggestionCount(index));
       } catch (error) {
-        console.error('Suggestion refresh failed.', error);
+        log.failure('events.suggestion-refresh-failed', error);
       }
     }
     for (const [owner, access] of readers) {
       try {
         sendSuggestionCount(owner, access.suggestions?.(index) ?? 0);
       } catch (error) {
-        console.error(`Suggestion refresh failed for ${owner}.`, error);
+        log.failure('events.suggestion-refresh-failed', error, { owner });
       }
     }
   }
@@ -179,7 +181,13 @@ export function createEvents(options: EventOptions) {
       let timer: ReturnType<typeof setInterval> | undefined;
       let unsubscribe: (() => void) | undefined;
       let unsubscribeAccess: (() => void) | undefined;
+      // A stream can be closed by an abort, a cancel and a failed write; it counts out once.
+      let counted = false;
       const cleanup = () => {
+        if (counted) {
+          counted = false;
+          recordStreamChange(-1);
+        }
         unsubscribe?.();
         unsubscribeAccess?.();
         if (send) {
@@ -211,6 +219,8 @@ export function createEvents(options: EventOptions) {
               }
           }
           clients.set(send, access);
+          counted = true;
+          recordStreamChange(1);
           if (access) {
             pendingCounts.add(send);
             scheduleSuggestions();

@@ -21,6 +21,7 @@ import {
 } from './worktrees';
 import { PersonalBranchError } from './errors';
 import type { Git } from './git';
+import { log } from '../observability/log';
 
 /** Where a project's files are read and written for one request. */
 export type Place = {
@@ -198,7 +199,7 @@ function activate(deps: WorkingCopyDeps, key: string): Personal {
       for (const slug of current) watcher?.add(slug);
     })
     // A failed rescan leaves the index as it was; the next save or Git action rescans again.
-    .catch(error => console.error(`[copies] ${key}: ${(error as Error).message}`));
+    .catch(error => log.failure('copies.rescan-failed', error, { copy: key }));
   return { place, watcher, ready };
 }
 

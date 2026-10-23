@@ -100,11 +100,13 @@ test('the next admitted record says how many refusals were left out', () => {
 test('rate-limited sources are reported once a minute with their count', () => {
   const time = clock();
   const lines: string[] = [];
-  const report = createRateLimitReport(time.now, line => lines.push(line));
+  const report = createRateLimitReport(time.now, (source, refused) =>
+    lines.push(`${source} ${refused}`),
+  );
   for (let refusal = 0; refusal < 50; refusal++) report('10.0.0.1');
   report('10.0.0.2');
-  expect(lines).toEqual(['[http] rate-limited 10.0.0.1 1', '[http] rate-limited 10.0.0.2 1']);
+  expect(lines).toEqual(['10.0.0.1 1', '10.0.0.2 1']);
   time.advance(60);
   report('10.0.0.1');
-  expect(lines.at(-1)).toBe('[http] rate-limited 10.0.0.1 50');
+  expect(lines.at(-1)).toBe('10.0.0.1 50');
 });

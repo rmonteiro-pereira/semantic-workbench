@@ -1,5 +1,6 @@
 // Builds the options of the HTTP listener, so what the production server does at its edge is
 // plain data that tests can read.
+import { log } from './observability/log';
 
 /** What the listener needs from the process that starts it. */
 export type ListenerSettings = {
@@ -26,7 +27,7 @@ export function serveOptions(settings: ListenerSettings) {
     development: false,
     idleTimeout: IDLE_TIMEOUT_SECONDS,
     error: (error: Error) => {
-      console.error(`[http] listener ${error.name}: ${error.message}`);
+      log.failure('http.listener-error', error);
       return Response.json({ error: 'Internal error.' }, { status: 500 });
     },
   };

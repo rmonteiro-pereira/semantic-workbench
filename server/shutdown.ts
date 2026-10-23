@@ -1,4 +1,5 @@
 // Keeps termination signals attached to the same cleanup path as hot reload.
+import { log } from './observability/log';
 
 /** Releases resources before exiting on either termination signal and returns a detach function. */
 export function installShutdownHandlers(close: () => Promise<void>) {
@@ -6,7 +7,7 @@ export function installShutdownHandlers(close: () => Promise<void>) {
     void close().then(
       () => process.exit(0),
       error => {
-        console.error(error);
+        log.failure('shutdown.failed', error);
         process.exit(1);
       },
     );

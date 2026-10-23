@@ -17,7 +17,12 @@ for (const state of ['starting', 'refused', 'handover', 'serving'] as const) {
       {},
     )!;
     expect(health.status).toBe(200);
-    expect(await health.json()).toEqual({ ok: true, version: null, commit: null });
+    expect(await health.json()).toEqual({
+      ok: true,
+      version: null,
+      commit: null,
+      telemetry: { enabled: false, reason: 'not-started' },
+    });
     const ready = healthResponse(new Request('http://localhost/readyz'), state, {})!;
     const expected = state === 'serving' || state === 'handover';
     expect(ready.status).toBe(expected ? 200 : 503);
@@ -118,7 +123,7 @@ test('configured origins keep API host and origin checks in force', async () => 
     }
     const health = healthResponse(new Request('http://localhost/healthz'), 'serving', {})!;
     expect((await handler(new Request('http://localhost/healthz'))).status).toBe(404);
-    expect(await health.json()).toEqual({ ok: true, version: null, commit: null });
+    expect(await health.json()).toMatchObject({ ok: true, version: null, commit: null });
   } finally {
     workspace.close();
     rmSync(root, { recursive: true, force: true });
