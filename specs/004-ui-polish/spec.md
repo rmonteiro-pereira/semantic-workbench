@@ -303,15 +303,15 @@ Every finding maps to a requirement. Status values are open, fixed, deferred (wi
 | F18, F19 | R1, R9 | text floor fixed; theme isolation open |
 | F26, F27, F28, F29, F30, F31, F32, F35, F36, F37, F38, F41, F43, F44, F45, F46, F47, F48, F50, F52, F53, F54 | R8 | fixed |
 | F39, F42 | R8 | fixed |
-| F56, F57 | R4 | open |
-| F58 | R5 | open |
+| F56, F57 | R4 | fixed |
+| F58 | R5 | fixed |
 | F59 | R6 | fixed |
 | F61 | R10 | open |
 | F62 | R1 | open |
 | F63 | R2 | open |
-| F65 | R2a, R4 | open |
-| F66 | R2a | open |
-| F67 | R12 | open |
+| F65 | R2a, R4 | fixed |
+| F66 | R2a | fixed |
+| F67 | R12 | fixed |
 | F68 | R13 | fixed |
 | F69 | R14 | fixed |
 | F70 | R15 | fixed |
