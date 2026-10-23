@@ -3851,8 +3851,7 @@ button.import {
   gap: 8px;
 }
 .header-actions {
-  flex: 0 1 auto;
-  min-width: 0;
+  flex: 0 0 auto;
   align-items: center;
 }
 .header-actions > button,
