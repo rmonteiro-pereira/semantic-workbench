@@ -130,8 +130,24 @@ export function DeleteItem({
       ]),
     ).values(),
   ];
+  const footer = (
+    <>
+      <button type="button" onClick={onClose} disabled={busy}>
+        Cancel
+      </button>
+      <button
+        type="button"
+        className="danger"
+        onClick={confirm}
+        title={access.control('edit').title}
+        disabled={!access.can('edit') || busy || !plan || plan.invalid.length > 0}
+      >
+        {busy ? 'Deleting…' : 'Delete'}
+      </button>
+    </>
+  );
   return (
-    <Modal title={`Delete ${name}?`} onCancel={onClose}>
+    <Modal title={`Delete ${name}?`} onCancel={onClose} footer={footer}>
       <p>
         The {kindLabel[kind].toLowerCase()} is removed from {doc.path} when you press Delete. Git
         keeps the previous version of every file.
@@ -189,20 +205,6 @@ export function DeleteItem({
           {error}
         </p>
       )}
-      <div className="repair-actions">
-        <button type="button" onClick={onClose} disabled={busy}>
-          Cancel
-        </button>
-        <button
-          type="button"
-          className="danger"
-          onClick={confirm}
-          title={access.control('edit').title}
-          disabled={!access.can('edit') || busy || !plan || plan.invalid.length > 0}
-        >
-          {busy ? 'Deleting…' : 'Delete'}
-        </button>
-      </div>
     </Modal>
   );
 }

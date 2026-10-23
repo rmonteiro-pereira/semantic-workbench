@@ -18,10 +18,17 @@ export async function runSyncAction(page: Page, name: string) {
   await expect(dialog).toHaveCount(0);
 }
 
-/** Opens the Remote dialog through the Sync dialog. */
+/** The button of the Sync dialog that opens the remote form, whatever it is called by then. */
+export const remoteButton = (dialog: Locator) =>
+  dialog.getByRole('button', { name: /^(Add|Change) remote…$/ });
+
+/** The remote dialog in either of its steps: the form or the review of a file move. */
+export const remoteDialog = (page: Page) => page.getByRole('dialog', { name: /remote|file move/i });
+
+/** Opens the remote dialog through the Sync dialog. */
 export async function openRemoteDialog(page: Page) {
   const dialog = await openSyncDialog(page);
-  await dialog.getByRole('button', { name: 'Remote…', exact: true }).click();
+  await remoteButton(dialog).click();
   await expect(dialog).toHaveCount(0);
 }
 

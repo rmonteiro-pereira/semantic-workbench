@@ -29,3 +29,7 @@
 .export-note {
   margin: 0 0 8px;
 }
+/* Checkboxes in the export dialog take the brand colour, like the radio choices elsewhere. */
+.export-choice input[type='checkbox'] {
+  accent-color: var(--color-accent);
+}

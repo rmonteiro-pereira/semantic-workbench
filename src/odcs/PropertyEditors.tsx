@@ -251,7 +251,6 @@ function PropertyEditDialog({
   }
   const footer = (
     <>
-      <span className="odcs-save-hint">{changes.length ? '' : 'No changes yet'}</span>
       <button type="button" onClick={onClose}>
         Cancel
       </button>
@@ -270,6 +269,7 @@ function PropertyEditDialog({
       title={`Edit ${tableName}.${path}`}
       onCancel={onClose}
       footer={footer}
+      footerNote={changes.length ? undefined : 'No changes yet.'}
       className="odcs-edit-dialog"
     >
       <form id="property-edit-form" className="odcs-form" onSubmit={save}>
@@ -295,11 +295,11 @@ function PropertyEditDialog({
             disabled={!canClassify}
             onChange={e => set({ classification: e.target.value })}
           />
-          {!canClassify && (
-            <small className="odcs-form-hint">
-              Only a Steward or Admin changes a classification.
-            </small>
-          )}
+          <small className="odcs-form-hint">
+            {canClassify
+              ? 'The sensitivity label of this column, such as public or restricted.'
+              : 'Only a Steward or Admin changes a classification.'}
+          </small>
         </label>
         <label className="odcs-form-field">
           <span>Description</span>

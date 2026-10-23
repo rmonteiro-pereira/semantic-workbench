@@ -25,7 +25,7 @@ export function ImportDialog({
   return (
     <Modal
       title="Import"
-      size="small"
+      size="narrow"
       onCancel={onClose}
       className="import-dialog"
       footer={
@@ -60,7 +60,7 @@ export function ImportDialog({
           />
           <span>
             <strong>A new project</strong>
-            <small>Named after the ontology in the batch.</small>
+            <small>Uses the name of the ontology you import.</small>
           </span>
         </label>
         <label className="radio">

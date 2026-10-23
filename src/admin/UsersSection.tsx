@@ -176,7 +176,7 @@ function UserOperation({
     <AdminConfirmation
       title={title}
       onCancel={onCancel}
-      size="small"
+      size="narrow"
       lastAdminNotice={kind === 'deactivate'}
       actions={
         <button

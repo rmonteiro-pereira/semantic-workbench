@@ -256,7 +256,7 @@ export function CommitDialog({
     </>
   );
   return (
-    <Modal title="Commit" size="large" className="commit-dialog" onCancel={onClose} footer={footer}>
+    <Modal title="Commit" size="wide" className="commit-dialog" onCancel={onClose} footer={footer}>
       {projectName && (
         <p className="commit-scope">
           {projectName}

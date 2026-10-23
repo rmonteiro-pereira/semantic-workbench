@@ -210,7 +210,7 @@ export function RdfAddItem({
       title={`Add to ${doc.path}`}
       onCancel={onClose}
       className="add-item"
-      size="large"
+      size="wide"
       footer={footer}
     >
       <div className="item-fields">
@@ -316,8 +316,24 @@ export function RdfDeleteItem({
       setBusy(false);
     }
   }
+  const footer = (
+    <>
+      <button type="button" onClick={onClose} disabled={busy}>
+        Cancel
+      </button>
+      <button
+        type="button"
+        className="danger"
+        onClick={confirm}
+        title={access.control('edit').title}
+        disabled={!access.can('edit') || busy || !result.ok}
+      >
+        {busy ? 'Deleting…' : 'Delete'}
+      </button>
+    </>
+  );
   return (
-    <Modal title={`Delete ${label}?`} onCancel={onClose}>
+    <Modal title={`Delete ${label}?`} onCancel={onClose} footer={footer}>
       <p>
         The resource's statements are removed from {doc.path} when you press Delete. Git keeps the
         previous version.
@@ -362,20 +378,6 @@ export function RdfDeleteItem({
           {error}
         </p>
       )}
-      <div className="repair-actions">
-        <button type="button" onClick={onClose} disabled={busy}>
-          Cancel
-        </button>
-        <button
-          type="button"
-          className="danger"
-          onClick={confirm}
-          title={access.control('edit').title}
-          disabled={!access.can('edit') || busy || !result.ok}
-        >
-          {busy ? 'Deleting…' : 'Delete'}
-        </button>
-      </div>
     </Modal>
   );
 }

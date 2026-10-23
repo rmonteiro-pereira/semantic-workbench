@@ -30,13 +30,14 @@ export function MetricFiltersDialog({
       <button type="button" onClick={() => onChange(noFilters)}>
         Reset
       </button>
+      <span className="dialog-footer-spacer" />
       <button type="button" className="primary" onClick={onClose}>
         Done
       </button>
     </>
   );
   return (
-    <Modal title="Filters" size="small" onCancel={onClose} footer={footer}>
+    <Modal title="Filters" size="narrow" onCancel={onClose} footer={footer}>
       <label>
         Group by
         <select

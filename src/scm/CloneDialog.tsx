@@ -187,7 +187,7 @@ function CloneFooter(props: FooterProps) {
       )}
       <span className="dialog-footer-spacer" />
       <button type="button" onClick={props.running ? props.onCancel : props.onClose}>
-        {props.running ? 'Cancel' : 'Close'}
+        {props.running || !props.started ? 'Cancel' : 'Close'}
       </button>
       {!props.started && (
         <button
@@ -275,7 +275,12 @@ export function CloneDialog({ onClose, onOpenProject, onCredentials, onChoosePro
   // While Git runs, Escape does not close the dialog: Cancel stops the clone first.
   if (domainChoice.dialog) return domainChoice.dialog;
   return (
-    <Modal title="Clone repository" onCancel={running ? () => {} : onClose} footer={footer}>
+    <Modal
+      title="Clone repository"
+      onCancel={running ? () => {} : onClose}
+      footer={footer}
+      footerNote={op || url.trim() ? undefined : 'Enter a repository URL or path to clone.'}
+    >
       {op ? (
         <div className="clone-progress" aria-live="polite">
           <p role="status">

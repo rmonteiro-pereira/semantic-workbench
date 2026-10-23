@@ -320,11 +320,12 @@ export function MetricWizard({
   );
   const footer = (
     <>
-      <button type="button" onClick={onClose} disabled={busy && step === 7}>
-        Cancel
-      </button>
       <button type="button" onClick={() => setStep(s => s - 1)} disabled={step === 0}>
         Back
+      </button>
+      <span className="dialog-footer-spacer" />
+      <button type="button" onClick={onClose} disabled={busy && step === 7}>
+        Cancel
       </button>
       {step < 7 ? (
         <button
@@ -348,11 +349,12 @@ export function MetricWizard({
       onCancel={onClose}
       className="item-editor kpi-wizard"
       footer={footer}
+      footerNote={step < 7 ? blocking[0] : undefined}
     >
       <section className="wizard-body" aria-label={STEPS[step]}>
         <div className="wizard-progress">
           <h3>
-            Step {step + 1} of {STEPS.length} - {STEPS[step]}
+            Step {step + 1} of {STEPS.length}
           </h3>
           <select
             aria-label="Go to step"
@@ -386,7 +388,7 @@ export function MetricWizard({
             </p>
             <div className="item-fields">
               {field(
-                'Measures',
+                'Business concept',
                 <input
                   list="kpi-concepts"
                   aria-label="Concept measured"
@@ -394,18 +396,18 @@ export function MetricWizard({
                   onChange={e => set({ measures: e.target.value })}
                   placeholder="Concept name"
                 />,
-                'Leave empty to save the metric without concepts',
+                'The concept this metric measures. Leave empty to save the metric without one.',
               )}
               {field(
-                'About',
+                'Computed per',
                 <input
                   list="kpi-concepts"
                   aria-label="Concept it is about"
                   value={d.of}
                   onChange={e => set({ of: e.target.value })}
-                  placeholder="For example Property"
+                  placeholder="Entity name"
                 />,
-                'The entity it is computed per (optional)',
+                'Optional. The entity the value is computed for, such as Property.',
               )}
               <datalist id="kpi-concepts">
                 {concepts.map(c => (

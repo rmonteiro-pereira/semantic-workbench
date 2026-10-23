@@ -1,21 +1,28 @@
 /** Provides modal focus handling and keeps dialog actions visible below scrolling content. */
 import React, { useEffect, useRef } from 'react';
-// The background is inert, Tab stays inside, and closing restores focus. Size controls dialog
-// width; the footer stays visible below the scrolling body.
+// The background is inert, Tab stays inside, and closing restores focus. Every dialog has one of
+// two widths (narrow for a short form or question, wide for a list, table or editor), the same
+// padding, and a footer that stays visible below the scrolling body.
+//
+// Footer rule: the dismissing button comes first and the main action last, on the right. It says
+// Cancel when closing abandons a choice or discards input, Close when the dialog only shows
+// information or keeps its choices, and Done when its controls already apply as they change. A Back button sits at the
+// left through a dialog-footer-spacer. When the main action is off, footerNote says why.
 /** Sent on the window when a dialog opens, so a phone's workspace drawer can close behind it. */
 export const DIALOG_OPENED_EVENT = 'workbench:dialog-opened';
 /** Sent on the window after a dialog closed and gave focus back. */
 export const DIALOG_CLOSED_EVENT = 'workbench:dialog-closed';
 /** Selects the dialog's width preset. */
-export type ModalSize = 'small' | 'medium' | 'large' | 'full';
+export type ModalSize = 'narrow' | 'wide';
 /** Renders a modal with contained focus, a scrolling body and persistent actions. */
 export function Modal({
   title,
   onCancel,
   children,
   className = '',
-  size = 'medium',
+  size = 'narrow',
   footer,
+  footerNote,
   describedBy,
 }: {
   title: string;
@@ -23,7 +30,9 @@ export function Modal({
   children: React.ReactNode;
   className?: string;
   size?: ModalSize;
-  footer?: React.ReactNode;
+  footer: React.ReactNode;
+  /** Why the main action in the footer is off, shown beside the buttons. */
+  footerNote?: string;
   describedBy?: string;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -85,12 +94,13 @@ export function Modal({
       onCancel={cancelThisDialog}
       onKeyDown={trap}
     >
-      <section
-        className={`workbench-dialog size-${size}${footer ? ' has-footer' : ''} ${className}`.trim()}
-      >
+      <section className={`workbench-dialog has-footer size-${size} ${className}`.trim()}>
         <h2 id={id}>{title}</h2>
-        {footer ? <div className="dialog-body">{children}</div> : children}
-        {footer && <footer className="dialog-footer">{footer}</footer>}
+        <div className="dialog-body">{children}</div>
+        <footer className="dialog-footer">
+          {footerNote && <p className="dialog-footer-note">{footerNote}</p>}
+          {footer}
+        </footer>
       </section>
     </dialog>
   );

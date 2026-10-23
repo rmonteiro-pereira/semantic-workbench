@@ -90,7 +90,7 @@ export function IdentityDialog({ project, everyRepository = false, onClose }: Pr
   );
 
   return (
-    <Modal title="Set Git identity" onCancel={onClose} footer={footer} size="small">
+    <Modal title="Set Git identity" onCancel={onClose} footer={footer} size="narrow">
       <form className="identity-form" onSubmit={save}>
         <p className="dialog-intro">
           Commits record a name and an email. They are saved in this repository’s own Git

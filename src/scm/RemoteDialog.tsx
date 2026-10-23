@@ -24,6 +24,12 @@ function confirmLabel(preview: FolderPreview) {
   return preview.kind === 'move' ? 'Move files and save' : 'Check out folder and save';
 }
 
+// The title names the step: the form says what it will do, the preview says what to review.
+function remoteDialogTitle(confirming: FolderPreview | null, existing: boolean) {
+  if (confirming) return 'Review file move';
+  return existing ? 'Change remote' : 'Connect a remote';
+}
+
 function RemoteFooter(props: FooterProps) {
   const { existing, busy, canSave, confirming } = props;
   if (confirming)
@@ -157,7 +163,7 @@ export function RemoteDialog({ project, onClose }: Props) {
   );
 
   return (
-    <Modal title="Remote" onCancel={onClose} footer={footer} size="small">
+    <Modal title={remoteDialogTitle(confirming, existing)} onCancel={onClose} footer={footer}>
       {confirming ? (
         <>
           <FolderConfirmation preview={confirming} />
@@ -206,7 +212,7 @@ export function RemoteDialog({ project, onClose }: Props) {
               typed.current = true;
               folderInput.setText(text);
             }}
-            hint="Where the project lives in the repository. Changing it shows what moves first; empty keeps the current folder."
+            hint="The folder of the repository that holds this project. If you change it, you see which files move before anything changes. Leave it empty to keep the current folder."
           />
           {error && (
             <p role="alert" className="dialog-error">

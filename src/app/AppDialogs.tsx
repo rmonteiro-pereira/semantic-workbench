@@ -334,7 +334,7 @@ export function AppDialogs({
       {showValidation && (source || current) && (
         <Modal
           title="Validation details"
-          size="large"
+          size="wide"
           onCancel={() => setShowValidation(false)}
           className="validation-details"
           footer={
@@ -353,7 +353,7 @@ export function AppDialogs({
       {definition && (
         <Modal
           title={definition.title}
-          size="large"
+          size="wide"
           onCancel={() => setDefinition(null)}
           className="definition-dialog"
           footer={
