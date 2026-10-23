@@ -8,10 +8,16 @@ const FADE_PX = 32;
 export function ScrollStrip({
   className,
   selection,
+  role,
+  label,
   children,
 }: {
   className: string;
   selection?: string;
+  /** The ARIA role of the strip, for a strip that is a tab list. */
+  role?: string;
+  /** The accessible name of the strip, for a strip with a role. */
+  label?: string;
   children: ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -54,7 +60,7 @@ export function ScrollStrip({
   // A newly selected tab is scrolled into view.
   useLayoutEffect(reveal, [selection]);
   return (
-    <div ref={ref} className={className}>
+    <div ref={ref} className={className} role={role} aria-label={label}>
       {children}
     </div>
   );

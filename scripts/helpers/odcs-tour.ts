@@ -33,7 +33,14 @@ function datasetTab(file: string, tab: string): Screen['show'] {
 /** Lists the contract page, its section dialog, the dataset page tabs and the property dialog. */
 export function odcsScreens(contract: string): Screen[] {
   return [
-    { name: 'odcs-contract', show: page => openContract(page, contract) },
+    {
+      name: 'odcs-contract-search',
+      show: async page => {
+        await openContract(page, contract);
+        await page.getByRole('searchbox', { name: 'Find a table' }).fill('order');
+        await page.waitForTimeout(300);
+      },
+    },
     {
       name: 'odcs-contract-section',
       dialog: 'dialog[open]',
@@ -68,4 +75,139 @@ export async function sidewaysTableProblems(page: Page): Promise<string[]> {
         return `${label} scrolls sideways (${wrap.scrollWidth} > ${wrap.clientWidth})`;
       }),
   );
+}
+
+type OdcsMeasure = (page: Page) => Promise<string[]>;
+
+// A contract id wraps neither inside the UUID nor out of its chip.
+const contractIdProblems: OdcsMeasure = page =>
+  page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>('.odcs-contract-id code')]
+      .filter(chip => chip.getClientRects().length > 0)
+      .flatMap(chip => {
+        const box = chip.getBoundingClientRect();
+        const lineHeight = Number.parseFloat(getComputedStyle(chip).lineHeight) || 16;
+        const wrapped = box.height > lineHeight * 1.8;
+        const cut = chip.scrollWidth > chip.clientWidth + 1;
+        return [
+          ...(wrapped ? [`contract id wraps onto ${Math.round(box.height)} px of height`] : []),
+          ...(cut ? ['contract id is cut off'] : []),
+        ];
+      }),
+  );
+
+// Table descriptions show in full: no cell clips its text.
+const descriptionProblems: OdcsMeasure = page =>
+  page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>('.odcs-objects-table td.odcs-desc')]
+      .filter(cell => cell.getClientRects().length > 0)
+      .filter(
+        cell =>
+          cell.scrollWidth > cell.clientWidth + 1 ||
+          /ellipsis/.test(getComputedStyle(cell).textOverflow),
+      )
+      .map(cell => `description is cut: "${cell.innerText.slice(0, 30)}"`),
+  );
+
+// Under the title, the dataset action sits on its own row or well clear of the title block.
+const datasetHeaderProblems: OdcsMeasure = page =>
+  page.evaluate(() => {
+    const action = document.querySelector<HTMLElement>('.odcs-title > .odcs-head-action');
+    const title = document.querySelector<HTMLElement>('.odcs-dataset .odcs-title > div');
+    if (!action || !title || action.getClientRects().length === 0) return [];
+    const actionBox = action.getBoundingClientRect();
+    const titleBox = title.getBoundingClientRect();
+    const below = actionBox.top >= titleBox.bottom - 1;
+    const gap = actionBox.left - titleBox.right;
+    const out: string[] = [];
+    if (!below && gap < 12) out.push(`Open in lineage is ${Math.round(gap)} px from the title`);
+    if (actionBox.right > innerWidth) out.push('Open in lineage runs off the screen');
+    return out;
+  });
+
+// The dataset tabs fit on one row, however narrow the window is.
+const tabRowProblems: OdcsMeasure = page =>
+  page.evaluate(() => {
+    const tops = [...document.querySelectorAll<HTMLElement>('.odcs-tabs [role=tab]')]
+      .filter(tab => tab.getClientRects().length > 0)
+      .map(tab => Math.round(tab.getBoundingClientRect().top));
+    return new Set(tops).size > 1 ? [`dataset tabs wrap onto ${new Set(tops).size} rows`] : [];
+  });
+
+// In the property table a name and its Edit button share one centre line.
+const propertyRowProblems: OdcsMeasure = page =>
+  page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>('.odcs-properties tbody tr')]
+      .filter(row => row.getClientRects().length > 0)
+      // On a phone each row is a stacked card, where the name and the button are on separate lines.
+      .filter(row => getComputedStyle(row).display === 'table-row')
+      .flatMap(row => {
+        const name = row.querySelector<HTMLElement>('.col-name code');
+        const edit = row.querySelector<HTMLElement>('.odcs-row-edit');
+        if (!name || !edit) return [];
+        const nameBox = name.getBoundingClientRect();
+        const editBox = edit.getBoundingClientRect();
+        const offset = Math.abs(
+          nameBox.top + nameBox.height / 2 - (editBox.top + editBox.height / 2),
+        );
+        return offset > 2
+          ? [`${name.innerText} is ${Math.round(offset)} px off its Edit button`]
+          : [];
+      }),
+  );
+
+// Tables keep a readable width on a wide screen instead of stretching across it.
+const tableWidthProblems: OdcsMeasure = page =>
+  page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>('.odcs-page .odcs-table-wrap')]
+      .filter(wrap => wrap.getClientRects().length > 0)
+      .filter(wrap => wrap.getBoundingClientRect().width > 1402)
+      .map(wrap => `a table is ${Math.round(wrap.getBoundingClientRect().width)} px wide`),
+  );
+
+// The Relationships tab explains both direction chips once, above the table.
+const legendProblems: OdcsMeasure = page =>
+  page.evaluate(() => {
+    const table = document.querySelector('table[aria-label="Relationships"]');
+    if (!table || table.getClientRects().length === 0) return [];
+    const legend = document.querySelector('.odcs-legend');
+    const chips = legend ? legend.querySelectorAll('.odcs-dir').length : 0;
+    return chips === 2 ? [] : [`direction legend shows ${chips} chips instead of 2`];
+  });
+
+// A dialog of these pages names its table and leaves room under the title.
+const dialogTitleProblems: OdcsMeasure = page =>
+  page.evaluate(() => {
+    const dialog = document.querySelector<HTMLElement>('dialog[open]');
+    if (!dialog) return [];
+    const title = dialog.querySelector('h2');
+    const body = dialog.querySelector<HTMLElement>('.dialog-body');
+    if (!title || !body) return [];
+    const first = body.firstElementChild;
+    const gap = first
+      ? first.getBoundingClientRect().top - title.getBoundingClientRect().bottom
+      : 99;
+    return gap < 10 ? [`the first field is ${Math.round(gap)} px under the dialog title`] : [];
+  });
+
+/** Returns the layout problems of the ODCS screen now shown, on top of the shared geometry. */
+export async function odcsLayoutProblems(page: Page, screenName: string): Promise<string[]> {
+  const measures: OdcsMeasure[] = [
+    contractIdProblems,
+    descriptionProblems,
+    datasetHeaderProblems,
+    tabRowProblems,
+    propertyRowProblems,
+    tableWidthProblems,
+    legendProblems,
+    dialogTitleProblems,
+  ];
+  const problems = (await Promise.all(measures.map(measure => measure(page)))).flat();
+  return problems.map(problem => `${screenName}: ${problem}`);
+}
+
+/** Says whether the property edit dialog names the table and the property it edits. */
+export async function editTitleProblems(page: Page): Promise<string[]> {
+  const title = await page.locator('dialog[open] h2').first().innerText();
+  return title === 'Edit orders.status' ? [] : [`the edit dialog is titled "${title}"`];
 }

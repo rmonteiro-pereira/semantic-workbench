@@ -2,6 +2,7 @@
 // prints the measured problems of each. Usage:
 //   SW_BASE_URL=http://127.0.0.1:5173 bun scripts/polish-capture.ts <output directory>
 // Set SW_THEME=dark to photograph the dark theme; file names then start with local-dark-.
+// Set SW_ONLY to a text such as odcs- to photograph only the screens whose name contains it.
 import { appUrl } from './helpers/base-url';
 import { chromium } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
@@ -25,7 +26,9 @@ const screens = tourGroups({
   ontology: 'ubl.ontology.yaml',
   contract: 'commerce.odcs.yaml',
   metricsModel: 'mall.semantic.yaml',
-}).flatMap(group => group.screens);
+})
+  .flatMap(group => group.screens)
+  .filter(screen => screen.name.includes(process.env.SW_ONLY ?? ''));
 
 for (const [width, height] of authViewports) {
   const page = await browser.newPage({ viewport: { width, height } });
