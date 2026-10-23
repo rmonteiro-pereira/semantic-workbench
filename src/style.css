@@ -996,14 +996,6 @@ main {
   border-radius: 6px;
   color: #4c6858;
 }
-.layout-choice {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--text-small);
-  padding-left: 4px;
-  color: var(--text-muted);
-}
 .full-graph-status {
   position: absolute;
   left: 55px;
@@ -4044,4 +4036,39 @@ button.import {
 .workbench-dialog .mapping-query fieldset > legend,
 .workbench-dialog .mapping-query fieldset > p {
   grid-column: 1 / -1;
+}
+
+/* Graph toolbars keep their frequent controls in one row. Zoom sits in the toolbar so it never
+   covers a card, and the rest opens in the View options dialog. */
+.zoom-buttons {
+  display: inline-flex;
+  flex: none;
+  gap: 4px;
+}
+.zoom-buttons button {
+  min-width: 32px;
+}
+.graph-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.option-group h3 {
+  margin: 12px 0 6px;
+}
+.option-group-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.option-group-body label {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+.option-group-body button {
+  font-size: 13px;
+  padding: 7px 11px;
 }

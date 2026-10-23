@@ -7,7 +7,6 @@ import {
   ReactFlow,
   getViewportForBounds,
   Background,
-  Controls,
   MiniMap,
   Handle,
   Position,
@@ -25,6 +24,8 @@ import ELK from 'elkjs/lib/elk-api.js';
 import elkWorkerUrl from 'elkjs/lib/elk-worker.min.js?url';
 import { Layers, Maximize, Maximize2, Minimize2, RefreshCw, Focus, Gauge } from 'lucide-react';
 import { useViewRestore, type Fullscreen } from './graph/fullscreen';
+import { GraphOptions, OptionGroup } from './graph/GraphOptions';
+import { ZoomButtons } from './graph/ZoomButtons';
 import { modelOverview } from './overview';
 import { groupRelationships } from './graph-view';
 import { collapseAreas } from './collapse';
@@ -123,21 +124,23 @@ type Props = {
 const VALUE_KINDS = new Set(['ValueType', 'Built-in concept']);
 const valuesKey = (name: string) => 'workbench:hide-value-types:' + name;
 const kpisKey = (name: string) => 'workbench:hide-kpis:' + name;
-function readHide(key: string) {
+// The mini-map is off until a person asks for it; the choice is remembered in this browser.
+const MINI_MAP_KEY = 'workbench:graph-mini-map';
+function readFlag(key: string) {
   try {
     return localStorage.getItem(key) === '1';
   } catch {
     return false;
   }
 }
-function writeHide(key: string, hide: boolean) {
+function writeFlag(key: string, hide: boolean) {
   try {
     if (hide) localStorage.setItem(key, '1');
     else localStorage.removeItem(key);
   } catch {}
 }
-const readHideValues = (name: string) => readHide(valuesKey(name));
-const writeHideValues = (name: string, hide: boolean) => writeHide(valuesKey(name), hide);
+const readHideValues = (name: string) => readFlag(valuesKey(name));
+const writeHideValues = (name: string, hide: boolean) => writeFlag(valuesKey(name), hide);
 /** Displays the model graph with grouping, filtering and entity details. */
 export function FullGraph(props: Props) {
   const container = useRef<HTMLDivElement | null>(null);
@@ -152,6 +155,12 @@ export function FullGraph(props: Props) {
   const [hoverEdge, setHoverEdge] = useState('');
   const [labels, setLabels] = useState(false);
   const [version, setVersion] = useState(0);
+  const [miniMap, setMiniMap] = useState(() => readFlag(MINI_MAP_KEY));
+  const toggleMiniMap = () => {
+    const next = !miniMap;
+    setMiniMap(next);
+    writeFlag(MINI_MAP_KEY, next);
+  };
   const [routeMetrics, setRouteMetrics] = useState<SmartEdgeMetrics | null>(null);
   // Value types (including built-ins) can be hidden with their edges; the choice is remembered per
   // model in this browser.
@@ -170,10 +179,10 @@ export function FullGraph(props: Props) {
     () => new Set(props.entities.filter(e => e.kind === 'Metric').map(e => e.id)),
     [props.entities],
   );
-  const [hideKpis, setHideKpis] = useState(() => readHide(kpisKey(props.name)));
+  const [hideKpis, setHideKpis] = useState(() => readFlag(kpisKey(props.name)));
   const toggleKpis = () =>
     setHideKpis(v => {
-      writeHide(kpisKey(props.name), !v);
+      writeFlag(kpisKey(props.name), !v);
       return !v;
     });
   const hidden = useMemo(
@@ -212,6 +221,18 @@ export function FullGraph(props: Props) {
     }),
     [display, overview],
   );
+  const zoomToGroup = (groupId: string) => {
+    if (!groupId) {
+      fit();
+      return;
+    }
+    void flow.current?.fitView({
+      nodes: [{ id: 'area:' + groupId }],
+      padding: 0.2,
+      maxZoom: 1.1,
+      duration: 350,
+    });
+  };
   const connections = useMemo(() => groupRelationships(display.edges), [display]);
   const entityById = useMemo(() => new Map(display.entities.map(e => [e.id, e])), [display]);
   const groupById = useMemo(() => new Map(overview.groups.map(g => [g.id, g])), [overview]);
@@ -576,86 +597,97 @@ export function FullGraph(props: Props) {
     <div className="full-graph" ref={container}>
       <ScrollStrip className="full-graph-tools">
         {props.toolbarExtra}
-        <div className="layout-choice">
-          <span>Layout</span>
-          <select
-            aria-label="Graph layout"
-            value={algorithm}
-            onChange={e => setAlgorithm(e.target.value as any)}
-          >
-            <option value="network">Network · fCoSE</option>
-            <option value="layered">Layered · ELK</option>
-          </select>
-        </div>
-        <select
-          aria-label="Zoom to group"
-          title={overview.groupingLabel}
-          defaultValue=""
-          onChange={e => {
-            if (!e.target.value) fit();
-            else
-              void flow.current?.fitView({
-                nodes: [{ id: 'area:' + e.target.value }],
-                padding: 0.2,
-                maxZoom: 1.1,
-                duration: 350,
-              });
-          }}
-        >
-          <option value="">Whole model</option>
-          {overview.groups.map(g => (
-            <option key={g.id} value={g.id}>
-              {g.name}
-            </option>
-          ))}
-        </select>
         <button onClick={fit}>
           <Maximize size={13} />
           Fit model
         </button>
-        <button onClick={() => setVersion(v => v + 1)} disabled={busy}>
-          <RefreshCw size={13} />
-          Re-layout
-        </button>
-        <button
-          onClick={() => setCollapsed(new Set(overview.groups.map(g => g.id)))}
-          disabled={collapsed.size === overview.groups.length}
-        >
-          Collapse areas
-        </button>
-        <button onClick={() => setCollapsed(new Set())} disabled={!collapsed.size}>
-          Expand all
-        </button>
-        <button onClick={() => setLabels(v => !v)} aria-pressed={labels}>
-          Labels {labels ? 'on' : 'off'}
-        </button>
-        {valueIds.size > 0 && (
-          <button
-            onClick={toggleValues}
-            aria-pressed={hideValues}
-            title={`${valueIds.size} value types and their relationships`}
-          >
-            Value types {hideValues ? 'hidden' : 'shown'}
-          </button>
-        )}
-        {kpiIds.size > 0 && (
-          <button
-            onClick={toggleKpis}
-            aria-pressed={hideKpis}
-            title={`${kpiIds.size} metric nodes and their relationships`}
-          >
-            <Gauge size={14} />
-            Metrics {hideKpis ? 'hidden' : 'shown'}
-          </button>
-        )}
-        <button onClick={props.onOverview}>
-          <Layers size={13} />
-          Overview
-        </button>
-        <button onClick={props.onNeighborhood}>
-          <Focus size={13} />
-          Neighborhood
-        </button>
+        <ZoomButtons
+          onZoomIn={() => void flow.current?.zoomIn({ duration: 150 })}
+          onZoomOut={() => void flow.current?.zoomOut({ duration: 150 })}
+        />
+        <GraphOptions>
+          <OptionGroup title="Layout">
+            <label>
+              Layout
+              <select
+                aria-label="Graph layout"
+                value={algorithm}
+                onChange={e => setAlgorithm(e.target.value as any)}
+              >
+                <option value="network">Network · fCoSE</option>
+                <option value="layered">Layered · ELK</option>
+              </select>
+            </label>
+            <label>
+              Zoom to group
+              <select
+                aria-label="Zoom to group"
+                title={overview.groupingLabel}
+                defaultValue=""
+                onChange={e => zoomToGroup(e.target.value)}
+              >
+                <option value="">Whole model</option>
+                {overview.groups.map(g => (
+                  <option key={g.id} value={g.id}>
+                    {g.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button onClick={() => setVersion(v => v + 1)} disabled={busy}>
+              <RefreshCw size={13} />
+              Re-layout
+            </button>
+          </OptionGroup>
+          <OptionGroup title="Areas">
+            <button
+              onClick={() => setCollapsed(new Set(overview.groups.map(g => g.id)))}
+              disabled={collapsed.size === overview.groups.length}
+            >
+              Collapse areas
+            </button>
+            <button onClick={() => setCollapsed(new Set())} disabled={!collapsed.size}>
+              Expand all
+            </button>
+          </OptionGroup>
+          <OptionGroup title="Show">
+            <button onClick={() => setLabels(v => !v)} aria-pressed={labels}>
+              Labels {labels ? 'on' : 'off'}
+            </button>
+            {valueIds.size > 0 && (
+              <button
+                onClick={toggleValues}
+                aria-pressed={hideValues}
+                title={`${valueIds.size} value types and their relationships`}
+              >
+                Value types {hideValues ? 'hidden' : 'shown'}
+              </button>
+            )}
+            {kpiIds.size > 0 && (
+              <button
+                onClick={toggleKpis}
+                aria-pressed={hideKpis}
+                title={`${kpiIds.size} metric nodes and their relationships`}
+              >
+                <Gauge size={14} />
+                Metrics {hideKpis ? 'hidden' : 'shown'}
+              </button>
+            )}
+            <button onClick={toggleMiniMap} aria-pressed={miniMap}>
+              Map {miniMap ? 'on' : 'off'}
+            </button>
+          </OptionGroup>
+          <OptionGroup title="Go to">
+            <button onClick={props.onOverview}>
+              <Layers size={13} />
+              Overview
+            </button>
+            <button onClick={props.onNeighborhood}>
+              <Focus size={13} />
+              Neighborhood
+            </button>
+          </OptionGroup>
+        </GraphOptions>
         {props.fullscreen && <FullscreenButton fullscreen={props.fullscreen} />}
       </ScrollStrip>
       {error ? (
@@ -707,8 +739,9 @@ export function FullGraph(props: Props) {
             onlyRenderVisibleElements
           >
             <Background gap={24} color="#dce6e0" />
-            <Controls showInteractive={false} />
-            <MiniMap pannable zoomable nodeColor={n => String(n.data.color ?? '#a4c6b4')} />
+            {miniMap && (
+              <MiniMap pannable zoomable nodeColor={n => String(n.data.color ?? '#a4c6b4')} />
+            )}
           </ReactFlow>
         </SmartEdgeProvider>
       )}

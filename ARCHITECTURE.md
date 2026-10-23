@@ -63,6 +63,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `scripts/auth-*.ts` | Sign-in orchestration, disposable environments, mock lifecycle checks, Keycloak compatibility and server container checks | Shared browser assertions or generic process lifecycle |
 | `scripts/examples/agent-client.ts` | Runnable example of an agent client that gets its Entra token with MSAL and reads the agent catalog | Anything the server imports |
 | `scripts/helpers/sign-in.ts` | Shared identity, storage, native sign-out and responsive browser assertions | Provider startup |
+| `scripts/helpers/graph-options.ts` | Opens and closes the options dialog of a graph toolbar so browser checks drive its controls | Assertions about the controls |
 | `scripts/helpers/text-geometry.ts`, `scripts/helpers/screen-tour.ts` | Browser measurement of text below the 12 px minimum and of text covered by other elements; the list of screens and dialogs that the responsive suite and `scripts/polish-capture.ts` walk | Suite selection |
 | `scripts/helpers/processes.ts` | Command execution, loopback ports, bounded readiness and once-only signal cleanup | Suite selection or provider configuration |
 | `server/routes/auth.ts`, `server/routes/me.ts` | Minimal identity-only pages and current identity responses | Provider tokens in responses |
@@ -96,8 +97,8 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `src/overview.ts`, `src/communities.ts` | Group by: modes, communities, Auto | Rendering |
 | `src/edit/` | Item editors and the patch builders that keep untouched bytes exact | Network calls |
 | `src/editor/` | The CodeMirror source editor (`useCodeMirror`, extensions, navigation) | Saving logic |
-| `src/odcs/` | Contract pages and the column-level lineage canvas (`lineage.ts` builds the graph, `LineageCanvas.tsx` draws it) | |
-| `src/graph/`, `src/FullGraph.tsx`, `src/NeighborhoodGraph.tsx` | Entity graph views, layout and routing | |
+| `src/odcs/` | Contract pages and the column-level lineage canvas (`lineage.ts` builds the graph, `LineageCanvas.tsx` draws it, `SelectedPath.tsx` lists the highlighted path as a side panel or, on a narrow window, a dialog) | |
+| `src/graph/`, `src/FullGraph.tsx`, `src/NeighborhoodGraph.tsx` | Entity graph views, layout and routing; `GraphOptions.tsx` (the options dialog every graph toolbar uses for its secondary controls) and `ZoomButtons.tsx` (zoom in the toolbar, never over the canvas) | |
 | `src/metrics/`, `src/mappings/`, `src/sql/` | Metrics tab and wizard, mapping views, SQL regions and lint | |
 | `src/projects/` | Client API (`api.ts`), autosave, project tree, delete and trash dialogs, the repository's projects dialog, shared dialog chrome (`Modal.tsx`) | |
 | `src/scm/` | Source Control panel (`BranchPicker` shows who holds a branch, `DefaultBranchActions` the Pull, Publish and Push buttons of the default branch), Commit dialog, Git setup dialogs (`GitSetup.tsx` opens them from anywhere), and the server-mode connect prompt that resumes a remote action (`RemoteConnectPrompt.tsx`) | Git commands; they run on the server |

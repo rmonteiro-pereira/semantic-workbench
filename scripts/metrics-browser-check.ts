@@ -1,6 +1,7 @@
 // Checks metric details, explanations and graph navigation in an isolated browser workspace.
 import { LOCAL_READER } from '../server/projects/reader';
 import { appUrl } from './helpers/base-url';
+import { viewOptions } from './helpers/graph-options';
 import { chromium, expect, type Page } from '@playwright/test';
 import { parseDocument } from 'yaml';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
@@ -264,10 +265,24 @@ try {
       // The consolidated Flights file opens on its mapping graph; the metric nodes are in its
       // ontology graph.
       const views = page.getByRole('group', { name: 'Graph view' });
-      const toggle = page.getByRole('button', { name: /^Metrics (shown|hidden)$/ });
-      await expect(views.or(toggle).first()).toBeVisible();
+      const options = page.getByRole('button', { name: /^View options/ });
+      await expect(views.or(options).first()).toBeVisible();
       if (await views.count()) await views.getByRole('button', { name: 'Ontology graph' }).click();
-      await expect(toggle).toHaveText('Metrics shown');
+      // The Metrics switch is in the View options dialog; one helper flips it and reports its label.
+      const flipMetrics = async () => {
+        let label = '';
+        await viewOptions(page, async dialog => {
+          const toggle = dialog.getByRole('button', { name: /^Metrics (shown|hidden)$/ });
+          await toggle.click();
+          label = (await toggle.textContent())?.trim() ?? '';
+        });
+        return label;
+      };
+      await viewOptions(page, async dialog => {
+        await expect(dialog.getByRole('button', { name: /^Metrics (shown|hidden)$/ })).toHaveText(
+          'Metrics shown',
+        );
+      });
       await expect(page.locator('.full-entity.kpi-node')).toHaveCount(1);
       await expect(
         page
@@ -275,10 +290,9 @@ try {
           .filter({ hasText: /^Delay/ })
           .locator('.node-kpi-badge'),
       ).toHaveText('Metric');
-      await toggle.click();
-      await expect(toggle).toHaveText('Metrics hidden');
+      expect(await flipMetrics()).toBe('Metrics hidden');
       await expect(page.locator('.full-entity.kpi-node')).toHaveCount(0);
-      await toggle.click();
+      expect(await flipMetrics()).toBe('Metrics shown');
       await expect(page.locator('.full-entity.kpi-node')).toHaveCount(1);
       await page.locator('.tabs').getByRole('button', { name: 'Catalog', exact: true }).click();
       await expect(

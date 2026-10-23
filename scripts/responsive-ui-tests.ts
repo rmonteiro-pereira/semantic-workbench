@@ -1,7 +1,8 @@
 // Checks responsive layouts, overlays and navigation in an isolated browser workspace.
 import { appUrl } from './helpers/base-url';
+import { viewOptions } from './helpers/graph-options';
 import { LOCAL_READER } from '../server/projects/reader';
-import { chromium, expect, type Page } from '@playwright/test';
+import { chromium, expect, type Locator, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { treeRowProblems } from './helpers/tree-geometry';
 import { neighborhoodEdgeProblems, neighborhoodState, pickCenter } from './helpers/edge-geometry';
@@ -247,11 +248,13 @@ try {
         await pickCenter(page, name40);
         await expect.poll(() => centerOf(page)).toBe('ontology/40');
         await expect.poll(() => neighborhoodEdgeProblems(page)).toEqual([]);
-        if (desktop) {
-          await page.getByRole('button', { name: 'Labels off', exact: true }).click();
-          await expect.poll(() => neighborhoodEdgeProblems(page)).toEqual([]);
-          await page.getByRole('button', { name: 'Labels on', exact: true }).click();
-        }
+        await viewOptions(page, async options => {
+          await options.getByRole('button', { name: 'Labels off', exact: true }).click();
+        });
+        await expect.poll(() => neighborhoodEdgeProblems(page)).toEqual([]);
+        await viewOptions(page, async options => {
+          await options.getByRole('button', { name: 'Labels on', exact: true }).click();
+        });
         if (width === 1280)
           await page.screenshot({ path: '/tmp/workbench-responsive-neighborhood-1280.png' });
         const focused = page.locator('.react-flow__node[data-id="ontology/40"]');
@@ -531,7 +534,6 @@ try {
   // control and inside the viewport; area titles stay inside their area.
   const overlays = [
     '.react-flow__minimap',
-    '.react-flow__controls',
     '.full-graph-status',
     '.graph-bundle-choice',
     'main > .status',
@@ -611,6 +613,32 @@ try {
     const close = p.getByRole('button', { name: 'Close details', exact: true });
     if (await close.count()) await close.first().click();
   };
+  // Below 1100 px the selected path is a dialog opened from the "Selected path" button in the walk
+  // row; from 1100 px it is a panel beside the canvas and the button does not exist.
+  const pathButton = (graph: Locator) => graph.getByRole('button', { name: /^Selected path/ });
+  const pathInDialog = (p: Page) => p.viewportSize()!.width < 1100;
+  async function showSelectedPath(graph: Locator, p: Page) {
+    if (pathInDialog(p)) {
+      await expect(pathButton(graph)).toBeVisible();
+      await pathButton(graph).click();
+      const dialog = p.getByRole('dialog', { name: 'Selected path' });
+      await expect(dialog.getByRole('region', { name: 'Selected path' })).toBeVisible();
+      return;
+    }
+    await expect(pathButton(graph)).toHaveCount(0);
+    await expect(graph.getByRole('region', { name: 'Selected path' })).toBeVisible();
+  }
+  async function hideSelectedPath(graph: Locator, p: Page) {
+    if (pathInDialog(p)) await p.getByRole('button', { name: 'Done', exact: true }).click();
+  }
+  async function clearSelectedPath(graph: Locator, p: Page) {
+    if (pathInDialog(p)) {
+      await pathButton(graph).click();
+      await p.getByRole('button', { name: 'Clear path', exact: true }).click();
+      return;
+    }
+    await graph.getByRole('button', { name: 'Clear the selected path' }).click();
+  }
   // Lineage cards and canvas: at the four reference sizes, with and without a selected path.
   await check(
     'lineage: cards, rows, badges, pager and toolbar fit; cards never overlap; the canvas stays usable beside the path panel',
@@ -637,14 +665,17 @@ try {
           .getByRole('group', { name: 'Contract object orders' })
           .getByRole('button', { name: 'orders.amount', exact: true })
           .click({ force: true });
-        await expect(graph.getByRole('region', { name: 'Selected path' })).toBeVisible();
+        await showSelectedPath(graph, sweep);
+        for (const problem of await layoutProblems(sweep))
+          found.push(`${width}×${height} with the path open: ${problem}`);
+        await hideSelectedPath(graph, sweep);
         await sweep.waitForTimeout(300);
         for (const problem of await lineageProblems(sweep))
           found.push(`${width}×${height} with a path: ${problem}`);
         for (const problem of await layoutProblems(sweep))
           found.push(`${width}×${height} with a path: ${problem}`);
         await sweep.screenshot({ path: `/tmp/workbench-lineage-path-${width}.png` });
-        await graph.getByRole('button', { name: 'Clear the selected path' }).click();
+        await clearSelectedPath(graph, sweep);
       }
       expect(found).toEqual([]);
     },
@@ -709,15 +740,15 @@ try {
       await openFile(sweep, 'ubl.ontology.yaml');
       await tab(sweep, 'Graph');
       await expect(sweep.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60_000 });
-      await sweep
-        .getByRole('button', { name: /^Labels (off|on)$/ })
-        .first()
-        .evaluate(b => {
-          if (b.textContent?.includes('off')) (b as HTMLButtonElement).click();
-        });
-      // With areas collapsed, select a bundled connection (its label counts its relationships) to
-      // show the bundle selector.
-      await sweep.getByRole('button', { name: 'Collapse areas', exact: true }).click();
+      // Labels are turned on and areas collapsed, so a bundled connection (its label counts its
+      // relationships) can be selected to show the bundle selector.
+      await viewOptions(sweep, async options => {
+        const labels = options.getByRole('button', { name: /^Labels (off|on)$/ });
+        if ((await labels.textContent())?.includes('off')) await labels.click();
+        // The mini-map is off by default; it is turned on so the overlap checks cover it.
+        await options.getByRole('button', { name: 'Map off', exact: true }).click();
+        await options.getByRole('button', { name: 'Collapse areas', exact: true }).click();
+      });
       await expect(sweep.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60_000 });
       await sweep.getByRole('button', { name: 'Fit model', exact: true }).click();
       await sweep.waitForTimeout(450);
@@ -752,7 +783,9 @@ try {
           await sweep.screenshot({ path: `/tmp/workbench-overlap-bundle-${width}.png` });
       }
       await closeDetails(sweep);
-      await sweep.getByRole('button', { name: 'Expand all', exact: true }).click();
+      await viewOptions(sweep, async options => {
+        await options.getByRole('button', { name: 'Expand all', exact: true }).click();
+      });
       expect(found).toEqual([]);
     },
   );
@@ -827,7 +860,6 @@ try {
     '.lineage-path',
     '.lineage-foot',
     '.lineage-stage .react-flow__minimap',
-    '.lineage-stage .react-flow__controls',
   ];
   async function assertContained(p: Page, selector: string) {
     for (const element of await p.locator(selector).all()) {
@@ -856,7 +888,8 @@ try {
       .getByRole('group', { name: 'Contract object orders' })
       .getByRole('button', { name: 'orders.amount', exact: true })
       .click({ force: true });
-    await expect(graph.getByRole('region', { name: 'Selected path' })).toBeVisible();
+    await showSelectedPath(graph, p);
+    await hideSelectedPath(graph, p);
   }
   async function sweepLineage(p: Page, width: number) {
     let releaseLayout = () => {};
@@ -883,7 +916,7 @@ try {
     for (const selector of ['.lineage-toolbar', '.lineage-trail', '.lineage-foot']) {
       await expect(p.locator(selector)).toBeVisible();
     }
-    await expect(p.locator('.lineage-stage .react-flow__controls')).toBeVisible();
+    await expect(p.getByRole('button', { name: 'Zoom in', exact: true })).toBeVisible();
     await assertFinalOverlays(p, lineageOverlays);
     await selectLineagePath(p);
     await assertFinalOverlays(p, lineageOverlays);
@@ -1178,14 +1211,15 @@ try {
           .getByRole('group', { name: 'Concept Customer' })
           .locator('.lineage-card-title')
           .click({ force: true });
-        await expect(graph.getByRole('region', { name: 'Selected path' })).toBeVisible();
+        await showSelectedPath(graph, sweep);
+        await hideSelectedPath(graph, sweep);
         await sweep.waitForTimeout(300);
         for (const problem of await lineageProblems(sweep))
           found.push(`${width}×${height} with a selection: ${problem}`);
         for (const problem of await layoutProblems(sweep))
           found.push(`${width}×${height} with a selection: ${problem}`);
         await sweep.screenshot({ path: `/tmp/workbench-mapping-graph-path-${width}.png` });
-        await graph.getByRole('button', { name: 'Clear the selected path' }).click();
+        await clearSelectedPath(graph, sweep);
       }
       expect(found).toEqual([]);
     },

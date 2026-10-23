@@ -1,5 +1,6 @@
 // Checks graph navigation and rendering at multiple scales in an isolated browser workspace.
 import { appUrl } from './helpers/base-url';
+import { viewOptions } from './helpers/graph-options';
 import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { neighborhoodEdgeProblems, neighborhoodState, pickCenter } from './helpers/edge-geometry';
@@ -88,9 +89,31 @@ try {
         '277',
       );
       await page.screenshot({ path: '/tmp/real-graph-network.png' });
-      await page.getByLabel('Graph layout').selectOption('layered');
+      await viewOptions(page, async options => {
+        await options.getByLabel('Graph layout').selectOption('layered');
+      });
       await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
       await page.screenshot({ path: '/tmp/real-graph-layered.png' });
+    },
+  );
+  await check(
+    'full graph: the mini-map is off until switched on, and the choice is remembered',
+    async () => {
+      const miniMap = page.locator('.react-flow__minimap');
+      await expect(miniMap).toHaveCount(0);
+      await viewOptions(page, async options => {
+        await options.getByRole('button', { name: 'Map off', exact: true }).click();
+      });
+      await expect(miniMap).toBeVisible();
+      await page.reload();
+      await openFile('ubl.ontology.yaml');
+      await tab('Graph').click();
+      await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
+      await expect(miniMap).toBeVisible();
+      await viewOptions(page, async options => {
+        await options.getByRole('button', { name: 'Map on', exact: true }).click();
+      });
+      await expect(miniMap).toHaveCount(0);
     },
   );
   const walked: string[] = [];
@@ -168,17 +191,24 @@ try {
   await check(
     'UBL: links between neighbors can be shown and hidden; labels never overlap',
     async () => {
-      const toggle = page.getByRole('button', { name: /^Links between neighbors/ });
+      const toggleLinks = () =>
+        viewOptions(page, async options => {
+          await options.getByRole('button', { name: /^Links between neighbors/ }).click();
+        });
+      const toggleLabels = (from: 'on' | 'off') =>
+        viewOptions(page, async options => {
+          await options.getByRole('button', { name: `Labels ${from}`, exact: true }).click();
+        });
       const before = await page.locator('.neighborhood-canvas .react-flow__edge').count();
-      await toggle.click();
+      await toggleLinks();
       await expect
         .poll(() => page.locator('.neighborhood-canvas .react-flow__edge').count())
         .not.toBe(before);
-      await page.getByRole('button', { name: 'Labels off', exact: true }).click();
+      await toggleLabels('off');
       expect(await neighborhoodEdgeProblems(page)).toEqual([]);
       await shot('ubl-labels');
-      await page.getByRole('button', { name: 'Labels on', exact: true }).click();
-      await toggle.click();
+      await toggleLabels('on');
+      await toggleLinks();
     },
   );
   await check(
@@ -206,12 +236,14 @@ try {
       await page.locator('.neighborhood-canvas .walk-button').first().click();
       await page.waitForTimeout(300);
       expect((await kinds()).every(k => k.includes('OWL class'))).toBe(true);
-      const technical = page.getByRole('button', { name: /^Technical resources hidden/ });
-      await expect(technical).toBeVisible();
-      await technical.click();
-      await expect(
-        page.getByRole('button', { name: 'Technical resources shown', exact: true }),
-      ).toBeVisible();
+      await viewOptions(page, async options => {
+        const technical = options.getByRole('button', { name: /^Technical resources hidden/ });
+        await expect(technical).toBeVisible();
+        await technical.click();
+        await expect(
+          options.getByRole('button', { name: 'Technical resources shown', exact: true }),
+        ).toBeVisible();
+      });
       await shot('owl');
     },
   );

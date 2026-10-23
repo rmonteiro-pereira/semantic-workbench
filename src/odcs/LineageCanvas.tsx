@@ -3,23 +3,13 @@ import React, { memo, useCallback, useEffect, useMemo, useReducer, useRef, useSt
 import {
   ReactFlow,
   Background,
-  Controls,
   BaseEdge,
   getBezierPath,
   type EdgeProps,
   type NodeChange,
   type ReactFlowInstance,
 } from '@xyflow/react';
-import {
-  ArrowLeft,
-  ArrowRight,
-  Maximize2,
-  Minimize2,
-  Scan,
-  Search,
-  SlidersHorizontal,
-  X,
-} from 'lucide-react';
+import { ArrowLeft, ArrowRight, Maximize2, Minimize2, Scan, Search, X } from 'lucide-react';
 import { LineageLegend, type LegendKind } from '../graph/LineageLegend';
 import { edgeSvgStyle, type EdgeKind } from '../graph/edge-styles';
 import { walkReducer, emptyWalk, currentStep, canBack, canForward, canvasAt } from '../graph/walk';
@@ -30,6 +20,10 @@ import { PierceBanner, PierceControls } from '../graph/PierceControls';
 import type { LineagePierceInput, LineagePierceResult } from './lineage-pierce';
 import type { Fullscreen } from '../graph/fullscreen';
 import { Modal } from '../projects/Modal';
+import { SelectedPath } from './SelectedPath';
+import { useNarrowScreen } from '../app/useNarrowScreen';
+import { ZoomButtons } from '../graph/ZoomButtons';
+import { GraphOptions, OptionGroup } from '../graph/GraphOptions';
 import {
   around,
   aroundHops,
@@ -118,13 +112,6 @@ const KIND_PLURAL: Record<string, string> = {
   metric: 'metrics',
   external: 'references',
   concept: 'concepts',
-};
-const KIND_SHORT: Record<string, string> = {
-  object: 'Contract object',
-  dataset: 'Field',
-  metric: 'Metric',
-  external: 'External',
-  concept: 'Concept',
 };
 // The mapping canvas (src/mappings/MappingCanvas.tsx) reuses this canvas with mapping names and
 // lines.
@@ -261,7 +248,9 @@ export function LineageCanvas({
   }, [walk, center]);
   const [query, setQuery] = useState('');
   const [showResults, setShowResults] = useState(false);
-  const [options, setOptions] = useState(false);
+  const [pathOpen, setPathOpen] = useState(false);
+  // On a narrow window, and in the embedded canvas, the path opens in a dialog so the canvas keeps its room.
+  const pathInDialog = useNarrowScreen() || compact;
   const [showMetrics, setShowMetrics] = useState(true);
   const [showExternal, setShowExternal] = useState(true);
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
@@ -838,6 +827,54 @@ export function LineageCanvas({
   }, [lines, mapping]);
   const centerCard = graph.cards.get(center);
   const selectedCard = selected ? graph.cards.get(cardOfNode(graph, selected)) : undefined;
+  const lineageOptions = (
+    <GraphOptions
+      title="Lineage options"
+      intro={
+        mapping
+          ? `The view shows ${centerCard?.label ?? 'the centre'} and every card within the chosen number of mapping lines of it.`
+          : `The view shows ${centerCard?.label ?? 'the centre'} with every field and metric that reads it, and contract objects up to the chosen number of foreign-key steps away.`
+      }
+    >
+      <OptionGroup title="Steps">
+        <label>
+          {mapping ? 'Steps' : 'Foreign-key steps'}
+          <select
+            aria-label={mapping ? 'Mapping steps' : 'Foreign-key steps'}
+            value={steps}
+            onChange={e => setSteps(Number(e.target.value))}
+          >
+            {[1, 2, 3, 4, 5].map(n => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </label>
+      </OptionGroup>
+      <OptionGroup title="Show">
+        <button onClick={() => setShowMetrics(v => !v)} aria-pressed={showMetrics}>
+          Metrics {showMetrics ? 'shown' : 'hidden'}
+        </button>
+        {!mapping && (
+          <button onClick={() => setShowExternal(v => !v)} aria-pressed={showExternal}>
+            References to other contracts {showExternal ? 'shown' : 'hidden'}
+          </button>
+        )}
+      </OptionGroup>
+    </GraphOptions>
+  );
+  const selectedPathList =
+    path && summary.length > 0 ? (
+      <SelectedPath
+        items={summary}
+        selected={selected}
+        onSelect={setSelected}
+        selectedCard={selectedCard}
+        onNeighborhood={onNeighborhood}
+        extra={selectionExtra?.(selected, path)}
+      />
+    ) : null;
   return (
     <section
       className={`lineage-view${compact ? ' compact' : ''}`}
@@ -917,16 +954,6 @@ export function LineageCanvas({
             </ul>
           )}
         </div>
-        <label className="lineage-steps">
-          <span>Steps</span>
-          <select aria-label="Steps" value={steps} onChange={e => setSteps(Number(e.target.value))}>
-            {[1, 2, 3, 4, 5].map(n => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
-        </label>
         <PierceControls
           direction={direction}
           onDirection={setDirection}
@@ -939,13 +966,15 @@ export function LineageCanvas({
         />
         {toolbarExtra}
         <span className="lineage-toolbar-spacer" />
-        <button onClick={() => setOptions(true)} title="Lineage options">
-          <SlidersHorizontal size={14} />
-          <span className="tool-label">Lineage options…</span>
-        </button>
+        {lineageOptions}
         <button onClick={fitAll} aria-label="Fit" title="Fit the graph">
           <Scan size={14} />
+          <span className="tool-label">Fit</span>
         </button>
+        <ZoomButtons
+          onZoomIn={() => void flow.current?.zoomIn({ duration: 150 })}
+          onZoomOut={() => void flow.current?.zoomOut({ duration: 150 })}
+        />
         {fullscreen && (
           <button
             onClick={fullscreen.toggle}
@@ -985,6 +1014,11 @@ export function LineageCanvas({
             </li>
           ))}
         </ol>
+        {pathInDialog && selectedPathList && (
+          <button className="lineage-path-toggle" onClick={() => setPathOpen(true)}>
+            Selected path <span>{summary.length}</span>
+          </button>
+        )}
       </div>
       {lastSet?.kind === 'pierce' && currentStep(walk)?.set === lastSet.id && (
         <PierceBanner
@@ -1020,7 +1054,6 @@ export function LineageCanvas({
             onlyRenderVisibleElements
           >
             <Background gap={22} size={1} />
-            <Controls showInteractive={false} showFitView={false} />
           </ReactFlow>
           {busy && !nodes.length && (
             <p className="lineage-busy" role="status">
@@ -1028,7 +1061,7 @@ export function LineageCanvas({
             </p>
           )}
         </div>
-        {path && summary.length > 0 && (
+        {!pathInDialog && selectedPathList && (
           <aside className="lineage-path" role="region" aria-label="Selected path">
             <header>
               <strong>Selected path</strong>
@@ -1036,27 +1069,7 @@ export function LineageCanvas({
                 <X size={13} />
               </button>
             </header>
-            <ol>
-              {summary.map(s => (
-                <li key={s.id} className={`k-${s.kind}${s.id === selected ? ' current' : ''}`}>
-                  <button onClick={() => setSelected(s.id)}>
-                    <small>{KIND_SHORT[s.kind] ?? s.kind}</small>
-                    <span>{s.label}</span>
-                  </button>
-                </li>
-              ))}
-            </ol>
-            {selectedCard &&
-              (selectedCard.kind === 'dataset' || selectedCard.kind === 'metric') &&
-              onNeighborhood && (
-                <button
-                  className="lineage-path-action"
-                  onClick={() => onNeighborhood(selectedCard)}
-                >
-                  Continue in Neighborhood
-                </button>
-              )}
-            {selectionExtra?.(selected, path)}
+            {selectedPathList}
           </aside>
         )}
       </div>
@@ -1079,60 +1092,23 @@ export function LineageCanvas({
           </small>
         )}
       </div>
-      {options && (
+      {pathInDialog && pathOpen && selectedPathList && (
         <Modal
-          title="Lineage options"
+          title="Selected path"
           size="small"
-          onCancel={() => setOptions(false)}
+          onCancel={() => setPathOpen(false)}
           footer={
-            <button className="primary" onClick={() => setOptions(false)}>
-              Done
-            </button>
+            <>
+              <button onClick={() => setSelected('')}>Clear path</button>
+              <button className="primary" onClick={() => setPathOpen(false)}>
+                Done
+              </button>
+            </>
           }
         >
-          {mapping ? (
-            <p>
-              The view shows {centerCard?.label ?? 'the centre'} and every card within the chosen
-              number of mapping lines of it.
-            </p>
-          ) : (
-            <p>
-              The view shows {centerCard?.label ?? 'the centre'} with every field and metric that
-              reads it, and contract objects up to the chosen number of foreign-key steps away.
-            </p>
-          )}
-          <label>
-            <span>{mapping ? 'Steps' : 'Foreign-key steps'}</span>
-            <select
-              aria-label={mapping ? 'Mapping steps' : 'Foreign-key steps'}
-              value={steps}
-              onChange={e => setSteps(Number(e.target.value))}
-            >
-              {[1, 2, 3, 4, 5].map(n => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="option-check">
-            <input
-              type="checkbox"
-              checked={showMetrics}
-              onChange={e => setShowMetrics(e.target.checked)}
-            />
-            Show metrics
-          </label>
-          {!mapping && (
-            <label className="option-check">
-              <input
-                type="checkbox"
-                checked={showExternal}
-                onChange={e => setShowExternal(e.target.checked)}
-              />
-              Show references to other contracts
-            </label>
-          )}
+          <div role="region" aria-label="Selected path">
+            {selectedPathList}
+          </div>
         </Modal>
       )}
     </section>

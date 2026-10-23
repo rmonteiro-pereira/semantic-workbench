@@ -1,6 +1,7 @@
 // Checks workspace interactions in the browser using isolated example projects.
 import { LOCAL_READER } from '../server/projects/reader';
 import { appUrl } from './helpers/base-url';
+import { viewOptions } from './helpers/graph-options';
 import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { inspect } from '../src/model';
@@ -104,7 +105,8 @@ try {
     await expectNeighborhood();
     await expect(page.locator('.react-flow__edge-text')).toHaveCount(0);
     await expect(await example(page, /Load UBL business model/)).toBeInViewport();
-    await expect(page.getByRole('button', { name: 'Re-center', exact: true })).toBeInViewport();
+    await expect(page.getByRole('button', { name: /^View options/ })).toBeInViewport();
+    await expect(page.getByRole('button', { name: 'Full pierce', exact: true })).toBeInViewport();
   });
   await check('grouped connection exposes all original relationships', async () => {
     const edge = page.locator('.react-flow__edge').first();
@@ -179,8 +181,11 @@ try {
       await expectNeighborhood();
       await page.getByPlaceholder('Find an entity…').fill('Invoice');
       await expect(page.locator('.react-flow__node').first()).toBeVisible();
-      await page.getByRole('button', { name: 'Re-center', exact: true }).click();
-      await expect(page.getByRole('button', { name: 'Re-center', exact: true })).toBeEnabled();
+      await viewOptions(page, async options => {
+        const recenter = options.getByRole('button', { name: 'Re-center', exact: true });
+        await recenter.click();
+        await expect(recenter).toBeEnabled();
+      });
     },
   );
   await check(
@@ -237,7 +242,9 @@ try {
       );
       await expect(page.locator('.react-flow__node-entity')).toHaveCount(45);
       await expect(page.locator('.react-flow__edge')).toHaveCount(183);
-      await page.getByLabel('Zoom to group').selectOption('documents');
+      await viewOptions(page, async options => {
+        await options.getByLabel('Zoom to group').selectOption('documents');
+      });
       await page.waitForTimeout(500);
       await expect(page.locator('.full-graph-status')).toContainText('background worker', {
         timeout: 30000,

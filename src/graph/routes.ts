@@ -236,8 +236,14 @@ export function assignRoutes(
 }
 // Label positions that do not overlap each other or the nodes: each label tries the middle of each
 // segment of its route (longest first), then the same points shifted up and down; widths are
-// estimated from the text (10 px labels).
-/** Places estimated label boxes along routes while avoiding nodes and earlier labels. */
+// estimated from the text (12 px labels).
+/** The space an edge label of this text takes when centred on a point. */
+export function labelBox(text: string, center: [number, number]): Box {
+  const width = text.length * 7.5 + 16;
+  const height = 22;
+  return { x: center[0] - width / 2, y: center[1] - height / 2, width, height };
+}
+/** Puts each label on its line clear of other labels and of nodes, stacking when space is tight. */
 export function placeLabels(
   items: { id: string; text: string; points: [number, number][] }[],
   boxes: Box[],
@@ -246,9 +252,10 @@ export function placeLabels(
   const out = new Map<string, [number, number]>();
   const hits = (a: Box, b: Box) =>
     a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+  const overlapArea = (a: Box, b: Box) =>
+    Math.max(0, Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x)) *
+    Math.max(0, Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y));
   for (const item of items) {
-    const w = item.text.length * 7 + 16;
-    const h = 18;
     const mids = item.points
       .slice(1)
       .map((p, i) => {
@@ -262,22 +269,24 @@ export function placeLabels(
       .map(m => m.at);
     const candidates = [
       ...mids,
-      ...[18, -18, 36, -36, 54, -54].flatMap(dy =>
+      ...[22, -22, 44, -44, 66, -66, 88, -88].flatMap(dy =>
         mids.map(m => [m[0], m[1] + dy] as [number, number]),
       ),
     ];
-    const box = (c: [number, number]): Box => ({
-      x: c[0] - w / 2,
-      y: c[1] - h / 2,
-      width: w,
-      height: h,
-    });
+    const box = (c: [number, number]) => labelBox(item.text, c);
+    const clearOfLabels = (c: [number, number]) => !placed.some(b => hits(b, box(c)));
+    const clearOfNodes = (c: [number, number]) => !boxes.some(b => hits(b, box(c)));
+    // When every spot touches another label, the one that covers the least of them is used.
+    const leastOverlap = () =>
+      candidates.reduce((best, c) => {
+        const covered = (at: [number, number]) =>
+          placed.reduce((sum, b) => sum + overlapArea(b, box(at)), 0);
+        return covered(c) < covered(best) ? c : best;
+      }, mids[0]);
     const free =
-      candidates.find(
-        c => !placed.some(b => hits(b, box(c))) && !boxes.some(b => hits(b, box(c))),
-      ) ??
-      candidates.find(c => !placed.some(b => hits(b, box(c)))) ??
-      mids[0];
+      candidates.find(c => clearOfLabels(c) && clearOfNodes(c)) ??
+      candidates.find(clearOfLabels) ??
+      leastOverlap();
     placed.push(box(free));
     out.set(item.id, free);
   }
