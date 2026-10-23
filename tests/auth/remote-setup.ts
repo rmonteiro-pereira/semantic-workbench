@@ -25,6 +25,7 @@ import {
 import { createServerAuthentication } from '../../server/auth/authentication';
 import { createHandler } from '../../server/handler';
 import { repoDir } from '../../server/projects/paths';
+import { parseWorktreeList } from '../../server/projects/worktrees';
 
 /** The public origin of the workbench under test. */
 export const origin = 'http://127.0.0.1:4310';
@@ -241,6 +242,18 @@ export async function publishSalesBranch(setup: RemoteSetup, cookie: string, bra
   const clone = mkdtempSync(join(setup.gitRoot, 'incoming-'));
   git(clone, ['clone', '-q', '-b', branch, remote, '.']);
   return clone;
+}
+
+/**
+ * The working copy that has a branch checked out: in server mode each person's Git actions run in
+ * their own copy of the repository, not in the published checkout.
+ */
+export function copyOn(setup: RemoteSetup, branch: string) {
+  const { local } = salesRepositories(setup);
+  const listing = git(local, ['worktree', 'list', '--porcelain']);
+  const entry = parseWorktreeList(listing).find(copy => copy.branch === branch);
+  if (!entry) throw new Error(`No working copy has ${branch} checked out.`);
+  return entry.path;
 }
 
 /** Commits one file change in a clone and pushes it straight to the remote's folder. */

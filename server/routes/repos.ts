@@ -1,5 +1,6 @@
 // Lists and registers the project folders of a Git repository that holds several projects.
 import { readJson } from '../request';
+import { requestReader } from '../auth/request-scope';
 import { checkRepositoryRemotes } from '../auth/remote-credentials';
 import type { Route } from './http';
 
@@ -9,7 +10,7 @@ export const repoRoutes: Route = async (ws, req, url) => {
   if (!match) return null;
   const repo = decodeURIComponent(match[1]);
   if (match[2] === 'project-candidates' && req.method === 'GET')
-    return Response.json(await ws.projectCandidates(repo));
+    return Response.json(await ws.projectCandidates(repo, requestReader(req)));
   if (match[2] === 'projects' && req.method === 'PUT') {
     const body = await readJson(req, 256_000);
     if (
@@ -23,10 +24,15 @@ export const repoRoutes: Route = async (ws, req, url) => {
       throw Error('saveManifest must be true or false.');
     await checkRepositoryRemotes(ws, req, repo);
     return Response.json(
-      await ws.registerRepositoryProjects(repo, body.projects, {
-        saveManifest: body.saveManifest === true,
-        manifestBaseHash: body.manifestBaseHash,
-      }),
+      await ws.registerRepositoryProjects(
+        repo,
+        body.projects,
+        {
+          saveManifest: body.saveManifest === true,
+          manifestBaseHash: body.manifestBaseHash,
+        },
+        requestReader(req),
+      ),
     );
   }
   return null;

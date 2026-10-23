@@ -497,7 +497,7 @@ const mutants: [string, string, string, string][] = [
   [
     'files',
     'server/projects/workspace.ts',
-    'if (body.baseHash !== currentHash)\n        throw new StaleError',
+    'if (body.baseHash !== currentHash)\n      throw new StaleError',
     'if(false)throw new StaleError',
   ],
   [
@@ -692,14 +692,14 @@ const mutants: [string, string, string, string][] = [
   [
     'git-exec',
     'server/projects/git.ts',
-    "await run(cwd, ['commit', '-q', '--only', '-F', '-', '--', ...list], { stdin: message })",
-    "await run(cwd,['commit','-q','-F','-'],{stdin:message});",
+    "[...signed.config, 'commit', '-q', ...signed.trailer, '--only', '-F', '-', '--', ...list]",
+    "[...signed.config,'commit','-q',...signed.trailer,'-F','-']",
   ],
   [
     'files',
     'server/projects/workspace.ts',
-    'const r = await git.commitPaths(\n      repo,\n      paths.map(p => prefix + p),\n      message,\n    )',
-    'const r=await git.commitPaths(repo,await git.lsFiles(repo),message);',
+    'const r = await git.commitPaths(\n      repo,\n      paths.map(p => prefix + p),\n      message,\n      author,\n    )',
+    'const r=await git.commitPaths(repo,await git.lsFiles(repo),message,author);',
   ],
   [
     'trash',
@@ -829,8 +829,8 @@ mutants.push(
   [
     'guard-pull',
     'server/routes/git.ts',
-    'scm.pull(slug, reader, credentialFor)',
-    'scm.pull(slug, { ...reader, guard: undefined }, credentialFor)',
+    'scm!.pull(slug, reader, credentialFor)',
+    'scm!.pull(slug, { ...reader, guard: undefined }, credentialFor)',
   ],
   [
     'guard-revert',
@@ -841,8 +841,8 @@ mutants.push(
   [
     'guard-delete',
     'server/routes/trash.ts',
-    'owner, reader)',
-    'owner, { ...reader, guard: undefined })',
+    'decodePath(file[2]), reader)',
+    'decodePath(file[2]), { ...reader, guard: undefined })',
   ],
   [
     'guard-restore',
@@ -1009,6 +1009,111 @@ mutants.push(
     'server/projects/git.ts',
     "args.push('-c', 'http.followRedirects=false');",
     "args.push('-c', 'http.followRedirects=initial');",
+  ],
+);
+
+// Per-person working copies in server mode: commits name their author, publishing only
+// fast-forwards, a branch another copy holds stays refused, drafts and saves stay personal, the
+// published state is never edited, and protected branches need the publish right.
+mutants.push(
+  ['copy-author', 'server/routes/git.ts', 'author: reader.copy?.author,', 'author: undefined,'],
+  [
+    'copy-worktrees',
+    'server/projects/worktrees.ts',
+    'if (ancestor.code !== 0) throw new NotFastForwardError(branch);',
+    'if (false) throw new NotFastForwardError(branch);',
+  ],
+  [
+    'copy-worktrees',
+    'server/projects/worktrees.ts',
+    'if (holder && holder.key !== key) throw new BranchInUseError(branch, holder.name);\n}',
+    'void holder;\n}',
+  ],
+  [
+    'copy-publish',
+    'server/projects/worktrees.ts',
+    "const swap = ['update-ref', 'refs/heads/' + branch, next, previous ?? ''];",
+    "const swap = ['update-ref', 'refs/heads/' + branch, next];",
+  ],
+  ['copy-publish', 'server/projects/worktrees.ts', '  await check(previous, next);\n', ''],
+  [
+    'copy-publish',
+    'server/projects/worktrees.ts',
+    'if (changed.stdout.trim()) throw new BaseChangedError(repo);',
+    'void changed;',
+  ],
+  [
+    'copy-publish',
+    'server/projects/worktrees.ts',
+    "git.run(base, ['status', '--porcelain'], { readOnly: true })",
+    "git.run(base, ['status', '--porcelain', '--untracked-files=no'], { readOnly: true })",
+  ],
+  [
+    'copy-publish',
+    'server/projects/worktrees.ts',
+    "  await git.run(dir, ['checkout', '-q', '--force', '--detach', 'refs/heads/' + remembered]);\n",
+    '',
+  ],
+  [
+    'copy-publish',
+    'server/projects/worktrees.ts',
+    'return await moveDefault(context, repo, move, check);',
+    'return await moveDefault(context, repo, move, async () => {});',
+  ],
+  [
+    'copy-publish',
+    'server/projects/worktrees.ts',
+    'if (named && (await isBranchName(git, dir, named))) return named;',
+    'if (named) return named;',
+  ],
+  [
+    'copy-drafts',
+    'server/projects/state.ts',
+    "ownerState('u' + sha256(owner).slice(0, 20))",
+    "ownerState('u' + sha256('').slice(0, 20))",
+  ],
+  [
+    'copy-save',
+    'server/projects/workspace.ts',
+    'clearPersonalDrafts(state, slug, [p], staging, place.copy ?? undefined)',
+    'clearPersonalDrafts(state, slug, [p], staging)',
+  ],
+  [
+    'copy-save',
+    'server/projects/workspace.ts',
+    'const place = await copies.writePlace(reader, slug, check);\n    const file = projectFile(place.layout, slug, p);',
+    'const place = published;\n    const file = projectFile(place.layout, slug, p);',
+  ],
+  [
+    'copy-protected',
+    'server/auth/git-access.ts',
+    "authorizeRepository(target, 'publish', { branch: published });",
+    'void published;',
+  ],
+  ['copy-protected', 'server/auth/git-access.ts', 'if (push.allow) return;', 'return;'],
+  [
+    'guard-pull-default',
+    'server/routes/git.ts',
+    'scm.pullDefault(slug, reader)',
+    'scm.pullDefault(slug, { ...reader, guard: undefined })',
+  ],
+  [
+    'guard-publish',
+    'server/routes/git.ts',
+    'ws.publish(slug, reader)',
+    'ws.publish(slug, { ...reader, guard: undefined })',
+  ],
+  [
+    'copy-subproject',
+    'server/projects/workspace.ts',
+    'removeCopies: entryDir => unpublished.removeCopies(entryDir),',
+    'removeCopies: () => undefined,',
+  ],
+  [
+    'copy-suggestions',
+    'server/projects/workspace.ts',
+    'if (!reader.copy) return shared;',
+    'return shared;',
   ],
 );
 

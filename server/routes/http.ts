@@ -20,6 +20,9 @@ import {
   OccupiedError,
   ConflictError,
   MergingError,
+  BranchInUseError,
+  NotFastForwardError,
+  NothingToPublishError,
 } from '../projects/errors';
 /** Handles a request or returns null so the next route can try it. */
 export type Route = (
@@ -67,6 +70,12 @@ export function errorResponse(e: unknown, publicUrl?: string) {
       { error: 'merging', message: e.message, conflicts: e.conflicts },
       { status: 409 },
     );
+  if (e instanceof BranchInUseError)
+    return Response.json({ error: e.message, inUseBy: e.inUseBy }, { status: 409 });
+  if (e instanceof NotFastForwardError)
+    return Response.json({ error: e.message, notFastForward: true }, { status: 409 });
+  if (e instanceof NothingToPublishError)
+    return Response.json({ error: e.message, nothingToPublish: true }, { status: 409 });
   if (e instanceof NotFoundError) return Response.json({ error: e.message }, { status: 404 });
   if (e instanceof InputError)
     return Response.json({ error: e.message, issues: e.issues }, { status: 400 });

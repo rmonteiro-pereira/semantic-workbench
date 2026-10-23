@@ -1,12 +1,18 @@
 // Exposes project source control operations. Remote actions run only through explicit requests.
 import { requestReader } from '../auth/request-scope';
-import { authorizeGitPaths, authorizeGitPush, authorizeRepository } from '../auth/git-access';
+import {
+  authorizeCheckout,
+  authorizeGitPaths,
+  authorizeGitPush,
+  authorizePublish,
+  authorizeRepository,
+  mayPublish,
+} from '../auth/git-access';
 import { checkRemoteAddress, delegatedCredentials } from '../auth/remote-credentials';
 import { authorizeWrite } from '../auth/write-access';
 import { existsSync, readFileSync } from 'node:fs';
 import { readJson } from '../request';
 import { decode, sha256 } from '../projects/atomic';
-import { projectFile } from '../projects/paths';
 import { appendIgnore } from '../../src/scm/gitignore';
 import type { Route } from './http';
 // Files are named relative to the project (`paths`) or to its repository root (`repoPaths`), the
@@ -27,8 +33,10 @@ export const gitRoutes: Route = async (ws, req, url) => {
   const slug = decodeURIComponent(m[1]);
   const action = m[2];
   const q = url.searchParams;
-  const scm = ws.scm;
   const reader = requestReader(req);
+  // A person's changes go to their own copy, created on first use. Each action authorizes its
+  // targets first, so a refused request never creates one.
+  const sourceControl = () => ws.scmFor(slug, reader);
   const gitTarget = { ws, request: req, slug };
 
   const body = async (keys: string[]) => {
@@ -43,8 +51,10 @@ export const gitRoutes: Route = async (ws, req, url) => {
     return b;
   };
   if (req.method === 'GET') {
-    if (action === 'git/status') return Response.json(await scm.status(slug, reader));
     if (action === 'git/identity') return Response.json(await ws.identity(slug));
+    // Reading never creates a copy: before their first change a person reads the published state.
+    const scm = ws.readScm(slug, reader);
+    if (action === 'git/status') return Response.json(await scm.status(slug, reader));
     if (action === 'git/diff') {
       const repoPath = q.get('repoPath');
       const path = repoPath ?? q.get('path');
@@ -94,6 +104,7 @@ export const gitRoutes: Route = async (ws, req, url) => {
         paths: b.all === true ? undefined : (b.repoPaths ?? b.paths),
         repository: b.repoPaths !== undefined,
       });
+      const scm = await sourceControl();
       if (b.all === true) return Response.json(await scm.stageAll(slug, stage));
       const { list, base } = chosenPaths(b);
       return Response.json(
@@ -110,12 +121,14 @@ export const gitRoutes: Route = async (ws, req, url) => {
       });
       if (b.push === true) await authorizeGitPush(gitTarget);
       const chosen = b.paths === undefined && b.repoPaths === undefined ? null : chosenPaths(b);
+      const scm = await sourceControl();
       return Response.json(
         await scm.commit(slug, b.message, {
           paths: chosen?.list,
           base: chosen?.base,
           push: b.push === true,
           credentialFor: delegatedCredentials(req),
+          author: reader.copy?.author,
         }),
       );
     }
@@ -129,20 +142,46 @@ export const gitRoutes: Route = async (ws, req, url) => {
     if (action === 'git/switch') {
       authorizeRepository(gitTarget, 'branch');
       const b = await body(['branch', 'create']);
-      return Response.json(await scm.switchBranch(slug, b.branch, b.create === true, reader));
+      const scm = await sourceControl();
+      const checkout = (local: string) => authorizeCheckout(gitTarget, local);
+      const create = b.create === true;
+      return Response.json(await scm.switchBranch(slug, b.branch, create, reader, checkout));
     }
+    if (action === 'git/publish') {
+      const b = await body(['branch']);
+      await authorizePublish(gitTarget, b.branch);
+      return Response.json(await ws.publish(slug, reader));
+    }
+    if (action === 'git/pull-default') {
+      authorizeRepository(gitTarget, 'pull');
+      const scm = await sourceControl();
+      return Response.json(await scm.pullDefault(slug, reader));
+    }
+    // Pushing the default branch changes what everyone pulls, so it needs the right to publish.
+    if (action === 'git/push-default') {
+      await authorizePublish(gitTarget, undefined);
+      // The default branch is shared, so pushing it needs no copy and never starts one.
+      const scm = ws.readScm(slug, reader);
+      return Response.json(await scm.pushDefault(slug, delegatedCredentials(req)));
+    }
+    // Cancel stops what is running and never starts a copy.
+    if (action === 'git/cancel') return Response.json(ws.readScm(slug, reader).cancel(slug));
     if (action === 'git/fetch') authorizeRepository(gitTarget, 'fetch');
     if (action === 'git/pull' || action === 'git/sync') {
       authorizeRepository(gitTarget, 'pull');
     }
-    // Remote commands use the caller's own credential for the remote they reach.
-    const credentialFor = delegatedCredentials(req);
-    if (action === 'git/fetch') return Response.json(await scm.fetch(slug, credentialFor));
-    if (action === 'git/pull') return Response.json(await scm.pull(slug, reader, credentialFor));
     if (action === 'git/push' || action === 'git/sync') await authorizeGitPush(gitTarget);
-    if (action === 'git/push') return Response.json(await scm.push(slug, credentialFor));
-    if (action === 'git/sync') return Response.json(await scm.sync(slug, reader, credentialFor));
-    if (action === 'git/cancel') return Response.json(scm.cancel(slug));
+    const remote = ['git/fetch', 'git/pull', 'git/push', 'git/sync'];
+    const scm = remote.includes(action) ? await sourceControl() : null;
+    // Remote commands run in the person's own copy with their own credential for the remote.
+    const credentialFor = delegatedCredentials(req);
+    if (action === 'git/fetch') {
+      const follow = { reader, mayPublish: () => mayPublish(gitTarget) };
+      return Response.json(await scm!.fetch(slug, credentialFor, follow));
+    }
+    if (action === 'git/pull') return Response.json(await scm!.pull(slug, reader, credentialFor));
+    if (action === 'git/push') return Response.json(await scm!.push(slug, credentialFor));
+    if (action === 'git/sync') return Response.json(await scm!.sync(slug, reader, credentialFor));
     // Use the hash-checked save so concurrent edits are detected and the project is rescanned.
     if (action === 'gitignore') {
       const b = await body(['pattern']);
@@ -150,7 +189,7 @@ export const gitRoutes: Route = async (ws, req, url) => {
         throw Error('pattern must be one line of text.');
       authorizeWrite(req, 'edit', [{ type: 'file', project: slug, path: '.gitignore' }]);
       ws.project(slug);
-      const file = projectFile(ws.layout, slug, '.gitignore');
+      const file = ws.filePath(slug, '.gitignore', reader);
       const bytes = existsSync(file) ? new Uint8Array(readFileSync(file)) : null;
       const current = bytes ? decode(bytes) : '';
       const next = appendIgnore(current, b.pattern);
@@ -168,7 +207,7 @@ export const gitRoutes: Route = async (ws, req, url) => {
       return Response.json({
         hash,
         added: next !== null,
-        tracked: ws.gitAvailable ? await scm.ignoredButTracked(slug) : [],
+        tracked: ws.gitAvailable ? await (await sourceControl()).ignoredButTracked(slug) : [],
       });
     }
     return null;
@@ -179,12 +218,12 @@ export const gitRoutes: Route = async (ws, req, url) => {
     authorizeRepository(gitTarget, 'setRemote');
     // Server mode stores the canonical form of the address it checked.
     const address = checkRemoteAddress(req, b.url);
-    return Response.json(await scm.setRemote(slug, b.name, address));
+    return Response.json(await (await sourceControl()).setRemote(slug, b.name, address));
   }
   if (req.method === 'DELETE' && action === 'git/remote') {
     const b = await body(['name']);
     authorizeRepository(gitTarget, 'setRemote');
-    return Response.json(await scm.removeRemote(slug, b.name));
+    return Response.json(await (await sourceControl()).removeRemote(slug, b.name));
   }
   if (req.method === 'PUT' && action === 'git/identity') {
     const b = await body(['name', 'email', 'allRepositories']);

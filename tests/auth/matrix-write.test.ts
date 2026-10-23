@@ -277,7 +277,11 @@ test('an Editor can move a file when both projects are in its domain', async () 
     }),
   );
   expect(response.status).toBe(200);
-  expect(fixture.ws.readFile('sales-metrics', 'sales.mapping.yaml').source).toContain('Sales');
+  const moved = await handler(
+    request('/api/projects/sales-metrics/files/sales.mapping.yaml', 'GET'),
+  );
+  // The move happened in Alice's own working copy, so she reads the result there.
+  expect((await moved.json()).source).toContain('Sales');
 });
 
 test('restore and undo authorize original paths and cross-project destinations', async () => {

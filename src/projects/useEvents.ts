@@ -13,6 +13,8 @@ export const EVENT_TYPES = [
   'recovery',
   'clone',
   'identity',
+  // Server mode: the default branch moved, so the published state and branch lists changed.
+  'published',
   'resync',
   'access',
 ] as const;

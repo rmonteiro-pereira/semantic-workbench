@@ -3,7 +3,8 @@
 import { archivePersonalState, clearPersonalDrafts, restorePersonalState } from './personal-state';
 import type { EventTags } from './events';
 import type { Reader } from './reader';
-import type { FileChange } from '../auth/guards';
+import { projectLockKey } from './working-copies';
+import type { ContentGuard, FileChange } from '../auth/guards';
 import type { AccessScope } from '../auth/authorize';
 import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { join, posix } from 'node:path';
@@ -39,6 +40,10 @@ export type TrashEntry = {
   deletedAt: string;
   // The person who deleted it; absent for local mode and entries written before attribution.
   deletedBy?: string;
+  // The working copy a file was deleted from in server mode; absent for the published state.
+  copy?: string;
+  // Each person's work on a deleted project that was never published, kept as a patch.
+  unpublished?: UnpublishedWork[];
   hash?: string;
   undoUntil: string;
   batchId: string | null;
@@ -61,15 +66,31 @@ export function ulid(now = Date.now()) {
   for (let i = 0; i < 16; i++) rand += CROCKFORD[bytes[i] % 32];
   return time + rand;
 }
+/**
+ * What a deletion takes out of people's working copies: a whole repository (`folder` empty), or
+ * one subproject folder inside it, and the projects it holds.
+ */
+export type CopyRemoval = { repo: string; folder: string; projects: string[] };
+/** One person's unpublished work on a deleted project, kept in its trash entry. */
+export type UnpublishedWork = { userKey: string; name: string; patch: string; drafts: number };
 /** Workspace services and optional clock used by journaled trash operations. */
 export type TrashContext = {
   layout: DataLayout;
+  /** Where a person's working copy keeps its files; absent where there are no copies. */
+  copyLayout?: (copy: string) => DataLayout;
   state: State;
   journal: Journal;
   lock: <T>(key: string, fn: () => Promise<T> | T) => Promise<T>;
   projects: () => ProjectEntry[];
   registrySteps: (stateStaging: string, next: ProjectEntry[]) => { from: string; to: string }[];
-  afterFiles: (slug: string) => Promise<unknown>;
+  afterFiles: (slug: string, copy: string | null) => Promise<unknown>;
+  /**
+   * Before a deletion leaves the workspace: stores each person's unpublished work on what goes
+   * in the entry folder. Absent in local mode tests.
+   */
+  archiveCopies?: (removed: CopyRemoval, entryDir: string) => Promise<UnpublishedWork[]>;
+  /** After the deletion is in the trash: removes what went from people's working copies. */
+  removeCopies?: (entryDir: string) => void;
   forgetProject: (slug: string) => void;
   adoptProject: (slug: string) => Promise<void>;
   createProject: (
@@ -117,10 +138,18 @@ function deletionUnits(deleted: ProjectEntry[], all: ProjectEntry[]): DeletionUn
 /** Creates deletion and restoration operations that preserve recoverable content and state. */
 export function createTrash(ctx: TrashContext) {
   const { layout, state, journal, lock } = ctx;
+  // The published files, or one person's working copy of them.
+  function filesOf(copy: string | null) {
+    if (!copy) return layout;
+    if (!ctx.copyLayout) throw Error('This workspace has no working copies.');
+    return ctx.copyLayout(copy);
+  }
   const now = ctx.now ?? Date.now;
   function entryTags(entry: TrashEntry): EventTags {
+    // An entry from a person's working copy concerns their unpublished work alone.
+    const copy = entry.copy ? { copy: entry.copy } : {};
     if (entry.deletedBy) {
-      return { owner: entry.deletedBy, projects: [entry.project], paths: entry.paths };
+      return { owner: entry.deletedBy, projects: [entry.project], paths: entry.paths, ...copy };
     }
     return {
       projects: [entry.project],
@@ -162,24 +191,25 @@ export function createTrash(ctx: TrashContext) {
     path: string,
     deletedBy: string | undefined,
     { guard }: Reader,
+    copy: string | null = null,
   ) {
     const p = projectPath(path);
     const project = registryEntry(assertSlug(slug));
-    return lock('project:' + slug, async () => {
-      const file = projectFile(layout, slug, p);
+    return lock(projectLockKey(slug, copy), async () => {
+      const file = projectFile(filesOf(copy), slug, p);
       let bytes: Uint8Array;
       try {
         bytes = readFileSync(file);
       } catch {
         throw new NotFoundError('File not found.');
       }
-      const deleted = { project: slug, path: p, before: documentText(bytes), after: null };
-      guard?.([deleted], { operation: 'delete' });
+      guardDeletion(filesOf(copy), slug, p, guard);
       const view = state.view(slug).files[p];
       const e = newEntry(
         {
           kind: 'file',
           ...(deletedBy ? { deletedBy, paths: [{ project: slug, path: p }] } : {}),
+          ...(copy ? { copy } : {}),
           project: slug,
           projectName: project.name,
           path: p,
@@ -206,7 +236,7 @@ export function createTrash(ctx: TrashContext) {
         delete files[p];
         state.writeView(slug, files);
       }
-      await ctx.afterFiles(slug);
+      await ctx.afterFiles(slug, copy);
       emitEntry(e, e.undoUntil);
       return { entryId: e.entryId, undoUntil: e.undoUntil };
     });
@@ -219,11 +249,13 @@ export function createTrash(ctx: TrashContext) {
     baseHash: string | null,
     committed: Uint8Array | null,
     { owner: deletedBy, guard }: Reader,
+    copy: string | null = null,
   ) {
     const p = projectPath(path);
     const project = registryEntry(assertSlug(slug));
-    return lock('project:' + slug, async () => {
-      const file = projectFile(layout, slug, p);
+    const files = filesOf(copy);
+    return lock(projectLockKey(slug, copy), async () => {
+      const file = projectFile(files, slug, p);
       let current: Uint8Array | null = null;
       try {
         current = readFileSync(file);
@@ -233,22 +265,10 @@ export function createTrash(ctx: TrashContext) {
         throw new StaleError(currentHash, current ? decode(current) : null);
       if (!current && !committed)
         throw new NotFoundError('The file is neither on disk nor in the last commit.');
-      // Reverting brings the committed text back, which must not undo a guarded change the
-      // person may not make. Nothing is demoted: the committed text is restored as it is or not.
-      guard?.(
-        [
-          {
-            project: slug,
-            path: p,
-            before: current ? decode(current) : null,
-            after: committed ? decode(committed) : null,
-          },
-        ],
-        { operation: 'revert' },
-      );
+      guardRevert(files, slug, p, committed, guard);
       const at = now();
       const opId = journal.newId();
-      const staging = join(layout.projects, `.staging-${opId}`);
+      const staging = join(files.projects, `.staging-${opId}`);
       const steps: { from: string; to: string }[] = [];
       let entry: TrashEntry | null = null;
       let entryDir = '';
@@ -259,6 +279,7 @@ export function createTrash(ctx: TrashContext) {
             {
               kind: 'file',
               ...(deletedBy ? { deletedBy, paths: [{ project: slug, path: p }] } : {}),
+              ...(copy ? { copy } : {}),
               project: slug,
               projectName: project.name,
               path: p,
@@ -277,7 +298,7 @@ export function createTrash(ctx: TrashContext) {
           atomicWrite(staged, committed);
           steps.push({ from: staged, to: file });
         }
-        steps.push(...clearPersonalDrafts(state, slug, [p], staging));
+        steps.push(...clearPersonalDrafts(state, slug, [p], staging, copy ?? undefined));
         journal.run('revert', steps, [staging], opId);
       } catch (err) {
         if (err instanceof JournalCrash) throw err;
@@ -285,7 +306,7 @@ export function createTrash(ctx: TrashContext) {
         if (entryDir) rmSync(entryDir, { recursive: true, force: true });
         throw err;
       }
-      await ctx.afterFiles(slug);
+      await ctx.afterFiles(slug, copy);
       if (entry) emitEntry(entry, entry.undoUntil);
       return { hash: committed ? sha256(committed) : null, trashEntry: entry?.entryId ?? null };
     });
@@ -302,6 +323,7 @@ export function createTrash(ctx: TrashContext) {
       const stateStaging = join(layout.state, `.staging-${opId}`);
       const entries: TrashEntry[] = [];
       const steps: { from: string; to: string }[] = [];
+      const archived: string[] = [];
       let removal: { projects: EventTags; entries: EventTags[] } | undefined;
       try {
         for (const unit of deletionUnits(slugs.map(registryEntry), current)) {
@@ -316,8 +338,12 @@ export function createTrash(ctx: TrashContext) {
             : [];
           const e = newEntry({ ...fields, ...(deletedBy ? { deletedBy, paths } : {}) }, at);
           const dir = dirOf(e.entryId);
-          atomicWriteJson(join(dir, 'entry.json'), e);
           entries.push(e);
+          // Each person's unpublished work is kept with the entry before their copies go.
+          const unpublished = (await ctx.archiveCopies?.(copyRemoval(unit), dir)) ?? [];
+          if (unpublished.length) e.unpublished = unpublished;
+          archived.push(dir);
+          atomicWriteJson(join(dir, 'entry.json'), e);
           steps.push(...unitSteps(unit, dir));
           for (const member of members) {
             steps.push(
@@ -341,6 +367,7 @@ export function createTrash(ctx: TrashContext) {
           if (existsSync(projectDir(layout, slug))) await ctx.adoptProject(slug);
         throw err;
       }
+      for (const dir of archived) ctx.removeCopies?.(dir);
       const { projects, entries: entryTags } = removal!;
       ctx.emit('projects', { added: [], removed: slugs, renamed: [] }, projects);
       entries.forEach((entry, index) => emitEntry(entry, entry.undoUntil, entryTags[index]));
@@ -353,6 +380,14 @@ export function createTrash(ctx: TrashContext) {
       projects: ctx.withCurrentReaders('projects', { projects: slugs }),
       entries: entries.map(entry => ctx.withCurrentReaders('trash', entryTags(entry))),
     };
+  }
+  // What a unit takes out of people's copies: its whole repository, or a subproject's folder.
+  function copyRemoval(unit: DeletionUnit): CopyRemoval {
+    if (unit.kind === 'repository')
+      return { repo: unit.repo, folder: '', projects: unit.projects.map(p => p.slug) };
+    const { folder, repo } = locationOf(unit.project);
+    const inside = folder === repo ? '' : folder.slice(repo.length + 1);
+    return { repo, folder: inside, projects: [unit.project.slug] };
   }
   // The trash entry that records one deletion unit, with what its restore needs.
   function unitEntry(unit: DeletionUnit, batchId: string | null) {
@@ -396,9 +431,12 @@ export function createTrash(ctx: TrashContext) {
     id: string,
     target: { toProject?: string; toPath?: string },
     undo: boolean,
-    { view, guard }: Reader,
+    reader: Reader,
   ) {
+    const { view, guard } = reader;
     const { e, dir } = read(id);
+    // Only its owner restores an entry from a working copy, and only while that copy exists.
+    if (e.copy && reader.copy?.key !== e.copy) throw new NotFoundError('Trash entry not found.');
     if (undo && now() > Date.parse(e.undoUntil))
       throw new GoneError('The undo window has passed. Restore the item from the trash instead.');
     if (e.kind === 'file') {
@@ -430,10 +468,14 @@ export function createTrash(ctx: TrashContext) {
         emitEntry(e);
         return { kind: 'file', project: project.slug, path };
       }
-      return lock('project:' + slug, async () => {
-        const dest = projectFile(layout, slug, path);
+      const copy = e.copy ?? null;
+      const files = filesOf(copy);
+      if (copy && !existsSync(projectDir(files, slug)))
+        throw new NotFoundError('The working copy this file came from no longer exists.');
+      return lock(projectLockKey(slug, copy), async () => {
+        const dest = projectFile(files, slug, path);
         if (existsSync(dest)) {
-          const taken = new Set(readdirRecursive(projectDir(layout, slug)));
+          const taken = new Set(readdirRecursive(projectDir(files, slug)));
           throw new OccupiedError(
             `${path} already exists in this project; nothing was overwritten.`,
             { toProject: slug, toPath: disambiguate(path, taken) },
@@ -452,7 +494,7 @@ export function createTrash(ctx: TrashContext) {
         journal.run('restore', steps, [dir]);
         if (e.view !== undefined)
           state.writeView(slug, { ...state.view(slug).files, [path]: e.view });
-        await ctx.afterFiles(slug);
+        await ctx.afterFiles(slug, copy);
         emitEntry(e);
         return { kind: 'file', project: slug, path };
       });
@@ -633,6 +675,7 @@ export function createTrash(ctx: TrashContext) {
       .sort((a, b) => b.entryId.localeCompare(a.entryId))
       .map(e => ({
         ...(e.deletedBy ? { deletedBy: e.deletedBy, paths: e.paths } : {}),
+        ...(e.copy ? { copy: e.copy } : {}),
         entryId: e.entryId,
         kind: e.kind,
         project: e.project,
@@ -696,6 +739,48 @@ function safeReaddir(dir: string) {
     return [];
   }
 }
+/**
+ * Judges deleting a file from a set of folders as removing its content. A missing file is left
+ * for the delete itself to report.
+ */
+export function guardDeletion(
+  files: DataLayout,
+  slug: string,
+  p: string,
+  guard: ContentGuard | undefined,
+) {
+  if (!guard) return;
+  let bytes: Uint8Array;
+  try {
+    bytes = readFileSync(projectFile(files, slug, p));
+  } catch {
+    return;
+  }
+  const deleted = { project: slug, path: p, before: documentText(bytes), after: null };
+  guard([deleted], { operation: 'delete' });
+}
+
+/**
+ * Reverting brings the committed text back, which must not undo a guarded change the person may
+ * not make. Nothing is demoted: the committed text is restored as it is or not.
+ */
+export function guardRevert(
+  files: DataLayout,
+  slug: string,
+  p: string,
+  committed: Uint8Array | null,
+  guard: ContentGuard | undefined,
+) {
+  if (!guard) return;
+  let current: Uint8Array | null = null;
+  try {
+    current = readFileSync(projectFile(files, slug, p));
+  } catch {}
+  const before = current ? decode(current) : null;
+  const after = committed ? decode(committed) : null;
+  guard([{ project: slug, path: p, before, after }], { operation: 'revert' });
+}
+
 /** A file's text, or null when it is binary or not UTF-8, which no guard reads. */
 function documentText(bytes: Uint8Array): string | null {
   if (bytes.subarray(0, 8000).includes(0)) return null;
@@ -769,9 +854,11 @@ export function restoreAction(
  * paths, such as a deleted empty project, is visible to whoever may restore that project.
  */
 export function readableTrash(
-  entry: Pick<TrashEntry, 'project' | 'path' | 'deletedBy' | 'paths'>,
+  entry: Pick<TrashEntry, 'project' | 'path' | 'deletedBy' | 'paths' | 'copy'>,
   scope: AccessScope,
 ): boolean {
+  // An entry from a working copy is its owner's unpublished work, visible to nobody else.
+  if (entry.copy && entry.copy !== scope.principal.key) return false;
   const paths = entry.paths ?? (entry.path ? [{ project: entry.project, path: entry.path }] : []);
   const action = restoreAction(entry, scope);
   if (!paths.length) {

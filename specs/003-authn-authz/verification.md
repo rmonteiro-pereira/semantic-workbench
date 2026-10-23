@@ -124,6 +124,16 @@ These replace the misses measured under load earlier; no budget was changed.
 | Browser suites | `test:scm` and `test:git-setup` passed; `test:git-setup` once stopped at its credential-guide step and passed on rerun |
 | `test:container` | passed (local, server-mode and smoke groups) |
 
+## Your own working copy (development machine, 2026-10-22)
+
+| Check | Result |
+| --- | --- |
+| `bun test` | 1,324 passed |
+| `ci:validate --step mutation` | 257 of 257 mutants killed |
+| `test:auth`, `test:two-editors` | passed; two editors on one repository never affect each other, and a Viewer sees only what was published |
+| Browser suites | `test:scm`, `test:git-setup`, `test:projects`, `test:trash`, `test:monorepo` and `test:autosave` passed |
+| `test:container` | passed (local, server-mode and smoke groups) |
+
 ## Owner trial
 
 The owner records the report of `deploy/trial-runbook.md` here after running it on the target.

@@ -38,6 +38,7 @@ const OPERATION_TEXT: Record<GuardOperation, string> = {
   import: 'Remove the approval or classification from the files, or ask a Steward to import them.',
   move: "Ask a Steward of both projects' domains, or an Admin, to move this file.",
   switch: "Ask a Steward of this project's domain, or an Admin, to switch to this branch.",
+  publish: 'Ask another Steward of this domain, or an Admin, to publish these changes.',
 };
 
 function refusalText(change: GuardedChange, decision: Decision, operation?: GuardOperation) {

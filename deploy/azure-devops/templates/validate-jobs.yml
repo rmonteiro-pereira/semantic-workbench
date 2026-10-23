@@ -24,6 +24,8 @@ jobs:
       matrix:
         auth:
           suite: test:auth
+        two_editors:
+          suite: test:two-editors
         ui:
           suite: test:ui
         responsive:

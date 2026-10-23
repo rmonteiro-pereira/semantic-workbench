@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { TEST_USERS } from '../helpers/auth-identities';
 import { oidcConfig } from '../helpers/server-auth';
 import {
+  copyOn,
   MACHINE_SECRET,
   filesUnder,
   git,
@@ -111,7 +112,8 @@ test('a filter the repository configures never sees the token while a pull merge
     pushIncoming(clone, 'pulled.scan', () => 'Checked out through the filter.\n');
     const pulled = await setup.call(alice, 'POST', projectPath('sales-contracts') + '/git/pull');
     expect(pulled.body.ok).toBe(true);
-    expect(existsSync(join(local, 'pulled.scan'))).toBe(true);
+    // The pull ran in Alice's own working copy.
+    expect(existsSync(join(copyOn(setup, 'filter-scan'), 'pulled.scan'))).toBe(true);
     const environment = readFileSync(seen, 'utf8');
     expect(environment).not.toContain('SW_GIT_TOKEN');
     expect(setup.azureDevOps.passwords.size).toBeGreaterThan(0);

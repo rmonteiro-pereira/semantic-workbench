@@ -85,6 +85,25 @@ async function stewardApproves(page: Page, target: SignInTarget) {
   await detail.getByRole('button', { name: 'Approve', exact: true }).click();
   await expect(detail.getByRole('status').filter({ hasText: 'Approved.' })).toBeVisible();
   await expect(detail.locator('.kpi-status')).toHaveText('approved');
+  await publishApproval(page, target);
+}
+
+/**
+ * The approval is in the Steward's own working copy; committing and publishing it is what lets
+ * every other reader see it.
+ */
+async function publishApproval(page: Page, target: SignInTarget) {
+  const api = (action: string) => `${target.url}/api/projects/${METRICS.project}/git/${action}`;
+  const headers = { Origin: target.url, 'X-SW-Request': '1' };
+  const steps: [string, object][] = [
+    ['stage', { paths: [METRICS.path] }],
+    ['commit', { message: 'Approve order_count' }],
+    ['publish', {}],
+  ];
+  for (const [action, data] of steps) {
+    const response = await page.request.post(api(action), { headers, data });
+    assert.equal(response.status(), 200, `${action}: ${await response.text()}`);
+  }
 }
 
 async function editorDemotion(page: Page, target: SignInTarget) {

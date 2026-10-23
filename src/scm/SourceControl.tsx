@@ -34,9 +34,11 @@ import {
   type GitStatus,
   type ProjectInfo,
   type RemoteResult,
+  type FollowResult,
 } from '../projects/api';
 import { DiffView } from './DiffView';
 import { BranchPicker } from './BranchPicker';
+import { DefaultBranchActions } from './DefaultBranchActions';
 import { ignoreChoices } from './gitignore';
 import './scm.css';
 // Changes include diffs, staging, branches, history and explicit remote actions. Hidden-type files
@@ -126,6 +128,8 @@ export function SourceControl({
   onCommit,
 }: Props) {
   const access = useCapabilities(project);
+  // Server mode: the person's own working copy of this project's repository.
+  const copy = projects.find(item => item.slug === project)?.copy ?? null;
   const [status, setStatus] = useState<GitStatus | null>(null);
   const [error, setError] = useState('');
   // Kept apart from action errors: reloading the status after a failed push must not hide why it
@@ -306,6 +310,31 @@ export function SourceControl({
       return null;
     }
   }
+  // A fetch found the remote's default branch ahead but left the published one where it is.
+  function behindText(follow: FollowResult) {
+    const behind = `${follow.branch} is behind ${follow.remote}`;
+    if (follow.reason === 'guard')
+      return `${behind}: its new commits hold changes only a Steward or Admin may bring in.`;
+    return `${behind}; someone with publish must bring it in.`;
+  }
+  function reportRemote(action: string, r: RemoteResult) {
+    if (r.cancelled) setNote({ tone: 'info', text: `${title(action)} cancelled.` });
+    else if (r.conflicted.length)
+      setNote({
+        tone: 'warning',
+        text: 'The pull stopped on conflicts. Open each file, repair it, stage it, then commit the merge:',
+        paths: r.conflicted,
+      });
+    else if (!r.ok) setError(r.stderr || `${title(action)} failed.`);
+    else if (r.follow && !r.follow.followed)
+      setNote({ tone: 'warning', text: behindText(r.follow) });
+    else if (r.altered.length) altered(r.altered, action);
+    else
+      setNote({
+        tone: 'info',
+        text: `${title(action)} finished${r.ahead || r.behind ? ` · ${r.ahead} to push, ${r.behind} to pull` : ''}.`,
+      });
+  }
   async function remote(action: RemoteAction) {
     if ((action === 'pull' || action === 'sync') && !guard(action)) return;
     const id = ++local.current;
@@ -315,27 +344,33 @@ export function SourceControl({
       await act(
         () => remoteOrConnect(action),
         (r: RemoteResult | null) => {
-          if (!r) return;
-          if (r.cancelled) setNote({ tone: 'info', text: `${title(action)} cancelled.` });
-          else if (r.conflicted.length)
-            setNote({
-              tone: 'warning',
-              text: 'The pull stopped on conflicts. Open each file, repair it, stage it, then commit the merge:',
-              paths: r.conflicted,
-            });
-          else if (!r.ok) setError(r.stderr || `${title(action)} failed.`);
-          else if (r.altered.length) altered(r.altered, action);
-          else
-            setNote({
-              tone: 'info',
-              text: `${title(action)} finished${r.ahead || r.behind ? ` · ${r.ahead} to push, ${r.behind} to pull` : ''}.`,
-            });
+          if (r) reportRemote(action, r);
         },
       );
     } finally {
       onBusy?.(false);
     }
     if (local.current === id) setWaiting(null);
+  }
+  // Server mode: the person's copy takes the published branch in, or publishes to it.
+  function pullDefault() {
+    if (!guard('pull')) return;
+    void act(
+      () => scm.pullDefault(project),
+      r => reportRemote('pull', r),
+    );
+  }
+  function pushDefault() {
+    void act(
+      () => scm.pushDefault(project),
+      r => reportRemote('push', r),
+    );
+  }
+  function publishCopy() {
+    void act(
+      () => scm.publish(project),
+      r => setNote({ tone: 'info', text: `Published to ${r.published}.` }),
+    );
   }
   const switchTo = (branch: string, create: boolean) => {
     if (!guard('switch branches')) return;
@@ -547,6 +582,7 @@ export function SourceControl({
             current={status.branch}
             version={version + tick}
             disabled={busy || !access.can('branch')}
+            inUse={copy?.inUseBranches}
             onSwitch={switchTo}
           />
           <span
@@ -560,6 +596,19 @@ export function SourceControl({
             {status.behind}
           </span>
         </div>
+        {copy && (
+          <DefaultBranchActions
+            copy={copy}
+            canPull={access.can('pull')}
+            canPublish={access.can('publish')}
+            publishTitle={access.control('publish').title}
+            hasRemote={remoteNames.length > 0}
+            disabled={busy}
+            onPull={pullDefault}
+            onPublish={publishCopy}
+            onPushDefault={pushDefault}
+          />
+        )}
         <div className="scm-remote">
           {remoteNames.length ? (
             <span className="scm-remote-url" title={status.remotes[remoteNames[0]]}>
@@ -592,7 +641,9 @@ export function SourceControl({
                   ) : (
                     <ArrowDown size={13} />
                   )}
-                  {title(a)}
+                  {a === 'pull' && status.pullSource
+                    ? `Pull ${status.pullSource} into ${status.branch}`
+                    : title(a)}
                 </button>
               ))}
             </div>
