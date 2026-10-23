@@ -33,6 +33,7 @@ export const EXAMPLE_SETS: ExampleSet[] = [
     files: [
       'commerce.odcs.yaml',
       'sales.ossie.yaml',
+      'sales.mapping.yaml',
       'commerce-business.ossie.yaml',
       'commerce.owl.ttl',
       'commerce.owl',
@@ -41,7 +42,7 @@ export const EXAMPLE_SETS: ExampleSet[] = [
     ],
     tab: 'graph',
     message:
-      'Loaded commerce contracts, semantic model, ontology, OWL, SHACL, and RDF data. Select a document in the sidebar.',
+      'Loaded commerce contracts, semantic model with 6 governed metrics, ontology, OWL, SHACL, and RDF data. Select a document in the sidebar.',
   },
   {
     id: 'commerce-scale',
@@ -60,10 +61,11 @@ export const EXAMPLE_SETS: ExampleSet[] = [
       'commerce.mapping.yaml',
       'commerce.mapped-ontology.yaml',
       'commerce.mapped-semantic.yaml',
+      'commerce.odcs.yaml',
     ],
     tab: 'mappings',
     message:
-      'Loaded mapped commerce: ontology, semantic model, governed metrics, and explicit mappings.',
+      'Loaded mapped commerce: ontology, semantic model, 4 governed metrics, explicit mappings and the data contract.',
   },
   {
     id: 'flights',

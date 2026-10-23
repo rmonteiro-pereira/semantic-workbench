@@ -251,8 +251,10 @@ test('findings sit on the affected card: unknown concept, missing field, ambiguo
     'Customer.nope resolves to 0 definitions',
   );
   const k = changed(f => {
-    f['commerce.mapping.yaml'] +=
-      'custom_extensions:\n  - vendor_name: SEMANTIC_WORKBENCH\n    data: \'{"schema": "semantic-workbench/mapping/v1", "kpi_bindings": [{"metric":"gross_revenue","measures":"Nope"}]}\'\n';
+    f['commerce.mapping.yaml'] = f['commerce.mapping.yaml'].replace(
+      '{"metric":"gross_revenue","measures":"Revenue","of":"Customer"}',
+      '{"metric":"gross_revenue","measures":"Nope"}',
+    );
   });
   const gk = buildMappingGraph(k);
   expect(gk.cards.get(metricId('gross_revenue'))!.findings!.join(' ')).toContain('Nope');

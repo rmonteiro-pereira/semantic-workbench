@@ -240,7 +240,7 @@ try {
       await expect(graph.getByRole('group', { name: 'Table orders' })).toHaveClass(/center/);
       const props = dataset('orders').getByRole('table', { name: 'Property lineage' });
       await expect(props.getByRole('row').filter({ hasText: 'amount' })).toContainText(
-        'gross_revenue',
+        'Gross revenue',
       );
       await expect(props.getByRole('row').filter({ hasText: 'amount' })).toContainText(
         'orders.amount',

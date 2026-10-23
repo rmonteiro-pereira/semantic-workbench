@@ -49,3 +49,12 @@ concept_mappings:
   - concept: OrderCount
     object_mappings:
       - expression: order_count
+custom_extensions:
+  - vendor_name: SEMANTIC_WORKBENCH
+    data: |
+      {"schema": "semantic-workbench/mapping/v1", "kpi_bindings": [
+        {"metric":"active_customers","measures":"Customer"},
+        {"metric":"average_order_value","measures":"Money","of":"Customer"},
+        {"metric":"gross_revenue","measures":"Revenue","of":"Customer"},
+        {"metric":"order_count","measures":"OrderCount","of":"Customer"}
+      ]}

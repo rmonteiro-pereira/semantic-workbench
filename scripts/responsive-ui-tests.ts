@@ -3,6 +3,7 @@ import { appUrl } from './helpers/base-url';
 import { viewOptions } from './helpers/graph-options';
 import { LOCAL_READER } from '../server/projects/reader';
 import { chromium, expect, type Locator, type Page } from '@playwright/test';
+import { plainCommerceModel } from './helpers/commerce-fixture';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import {
   examplesKeyboardProblems,
@@ -36,12 +37,16 @@ await api.ws.importBatch(
 );
 await api.ws.importBatch(
   {
-    files: await Promise.all(
-      ['commerce.odcs.yaml', 'sales.ossie.yaml'].map(async path => ({
-        path,
-        source: await Bun.file(`public/examples/commerce/${path}`).text(),
-      })),
-    ),
+    // With attributes, the average order value builds on two other metrics, which widens the
+    // lineage canvas until the far-zoom title of a metric card is a pixel taller than its card.
+    // These screens keep the earlier plain metrics until the canvas fits that card.
+    files: [
+      {
+        path: 'commerce.odcs.yaml',
+        source: await Bun.file('public/examples/commerce/commerce.odcs.yaml').text(),
+      },
+      { path: 'sales.ossie.yaml', source: await plainCommerceModel() },
+    ],
   },
   LOCAL_READER,
 );

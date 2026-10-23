@@ -33,6 +33,80 @@ metrics:
   - name: gross_revenue
     datatype: Decimal
     expression: {dialects: [{dialect: ANSI_SQL, expression: 'SUM(orders.amount)'}]}
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Gross revenue",
+            "type": "simple",
+            "additivity": "additive",
+            "unit": "USD",
+            "format": "#,##0.00",
+            "owner": "Finance",
+            "status": "approved",
+            "dimensions": [
+              "customers.region"
+            ]
+          }
   - name: order_count
     datatype: Integer
     expression: {dialects: [{dialect: ANSI_SQL, expression: 'COUNT(DISTINCT orders.order_id)'}]}
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Order count",
+            "type": "simple",
+            "additivity": "non_additive",
+            "unit": "orders",
+            "format": "#,##0",
+            "owner": "Sales Operations",
+            "status": "approved",
+            "dimensions": [
+              "customers.region"
+            ]
+          }
+  - name: average_order_value
+    description: Governed gross revenue divided by orders.
+    datatype: Decimal
+    expression: {dialects: [{dialect: ANSI_SQL, expression: "gross_revenue / NULLIF(order_count, 0)"}]}
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Average order value",
+            "type": "ratio",
+            "numerator": "gross_revenue",
+            "denominator": "order_count",
+            "additivity": "non_additive",
+            "unit": "USD",
+            "format": "#,##0.00",
+            "owner": "Finance",
+            "status": "proposed",
+            "dimensions": [
+              "customers.region"
+            ]
+          }
+  - name: active_customers
+    description: Distinct customers with at least one order. Not additive across regions that share customers.
+    datatype: Integer
+    expression: {dialects: [{dialect: ANSI_SQL, expression: COUNT(DISTINCT orders.customer_id)}]}
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Active customers",
+            "type": "simple",
+            "additivity": "non_additive",
+            "unit": "customers",
+            "format": "#,##0",
+            "owner": "Customer Success",
+            "status": "draft",
+            "dimensions": [
+              "customers.region"
+            ]
+          }

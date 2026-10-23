@@ -148,7 +148,8 @@ try {
     await tabs().getByRole('button', { name: 'Catalog' }).click();
     await page
       .locator('.catalog-card')
-      .filter({ hasText: /^EntityTypeCustomer/ })
+      // A concept that metrics measure carries a count of them between its type and its name.
+      .filter({ hasText: /^EntityType(\d+ metrics?)?Customer/ })
       .locator('button')
       .first()
       .click();
@@ -242,7 +243,8 @@ try {
       await tabs().getByRole('button', { name: 'Catalog' }).click();
       await page
         .locator('.catalog-card')
-        .filter({ hasText: /^EntityTypeProduct/ })
+        // A concept that metrics measure carries a count of them between its type and its name.
+        .filter({ hasText: /^EntityType(\d+ metrics?)?Product/ })
         .locator('button')
         .first()
         .click();
