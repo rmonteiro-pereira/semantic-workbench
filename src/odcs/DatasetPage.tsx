@@ -2,7 +2,7 @@
  * rules. */
 import React, { useEffect, useMemo, useState } from 'react';
 import { parse } from 'yaml';
-import { ArrowLeft, ArrowDown, ArrowUp, ArrowUpDown, Search, Table2 } from 'lucide-react';
+import { ArrowLeft, Table2, Workflow } from 'lucide-react';
 import { odcsForeignKeys } from '../odcs';
 import { scm, type Doc, type GitCommit as Commit } from '../projects/api';
 import { diffObject, flattenProperties, lastChange, type ObjectDiff } from './odcs-diff';
@@ -10,7 +10,9 @@ import { buildLineage, closure, objectId, cardOfNode, type LineageCard } from '.
 import { LineageCanvas } from './LineageCanvas';
 import { projectFiles, projectRevision } from './project-files';
 import { rulesOf } from './ContractOverview';
-import { Badge, badge, type BadgeInfo } from '../PropertyBadges';
+import { PropertiesTab } from './PropertiesTab';
+import type { PropertyEditor } from './PropertyEditors';
+import { ReadMore } from './ReadMore';
 import './odcs.css';
 // Quality rules are displayed as declared and never executed. Git history compares versions at
 // property level.
@@ -27,30 +29,6 @@ type Version = Commit & { source: string; data: any };
 
 type Tab = 'Lineage' | 'Relationships' | 'Data Quality' | 'Properties' | 'History';
 const TABS: Tab[] = ['Lineage', 'Relationships', 'Data Quality', 'Properties', 'History'];
-/** Supplies the object, property path and value for an editable table cell. */
-export type PropertyCellProps = {
-  objectIndex: number;
-  path: string;
-  property: Record<string, any>;
-  column: Column;
-};
-type Column = {
-  key: string;
-  label: string;
-  value: (p: Record<string, any>) => string | number | boolean | undefined;
-};
-export const COLUMNS: Column[] = [
-  { key: 'name', label: 'Name', value: () => undefined },
-  { key: 'logicalType', label: 'Logical type', value: p => p.logicalType },
-  { key: 'physicalType', label: 'Physical type', value: p => p.physicalType },
-  { key: 'required', label: 'Required', value: p => p.required === true },
-  { key: 'unique', label: 'Unique', value: p => p.unique === true },
-  { key: 'primaryKey', label: 'Primary key', value: p => p.primaryKey === true },
-  { key: 'classification', label: 'Classification', value: p => p.classification },
-  { key: 'description', label: 'Description', value: p => p.description },
-  { key: 'tags', label: 'Tags', value: p => list(p.tags).join(', ') },
-  { key: 'foreignKeys', label: 'Foreign keys', value: () => undefined },
-];
 type Props = {
   doc: Doc;
   data: any;
@@ -62,8 +40,8 @@ type Props = {
   onNeighborhood?: (card: LineageCard) => void;
   // Changes when Git reports a commit, switch or pull, so History follows commits made elsewhere.
   gitVersion?: number;
-  // Cells that can be edited in place; null renders the value read-only.
-  editor?: (cell: PropertyCellProps) => React.ReactNode | null;
+  // Opens properties in an edit dialog; without it the properties are read-only.
+  editor?: PropertyEditor;
   // Says why cells are read-only, shown above the properties.
   propertiesNote?: string;
 };
@@ -149,6 +127,17 @@ export function DatasetPage({
               </small>
             )}
           </div>
+          {onOpenInLineage && (
+            <button
+              type="button"
+              className="odcs-head-action"
+              aria-label={`Open ${objectName} in lineage`}
+              onClick={() => onOpenInLineage(objectName)}
+            >
+              <Workflow size={14} />
+              Open in lineage
+            </button>
+          )}
         </div>
         <div className="odcs-facts dataset-facts" role="group" aria-label="Dataset facts">
           <span>
@@ -198,7 +187,7 @@ export function DatasetPage({
             </span>
           )}
         </div>
-        {object.description && <p className="odcs-description">{text(object.description)}</p>}
+        {object.description && <ReadMore>{text(object.description)}</ReadMore>}
       </header>
       <div className="odcs-tabs" role="tablist" aria-label="Asset views">
         {TABS.map(t => (
@@ -213,16 +202,16 @@ export function DatasetPage({
             {t === 'Data Quality' && rules.length > 0 && <small>{rules.length}</small>}
           </button>
         ))}
-        {onOpenInLineage && (
-          <button className="odcs-tab-action" onClick={() => onOpenInLineage(objectName)}>
-            Open {objectName} in lineage
-          </button>
-        )}
       </div>
       <div className="odcs-panel" role="tabpanel" aria-label={tab}>
         {tab === 'Properties' && propertiesNote && <p className="odcs-note">{propertiesNote}</p>}
         {tab === 'Properties' && (
-          <SchemaTab data={data} objectIndex={index} onOpenObject={onOpenObject} editor={editor} />
+          <PropertiesTab
+            data={data}
+            objectIndex={index}
+            onOpenObject={onOpenObject}
+            editor={editor}
+          />
         )}
         {tab === 'Lineage' && (
           <LineageTab
@@ -242,228 +231,6 @@ export function DatasetPage({
         {tab === 'Data Quality' && <QualityTab object={object} />}
       </div>
     </section>
-  );
-}
-// Foreign-key targets per property path: property-level relationships and schema-level ones.
-function foreignKeys(data: any, objectIndex: number) {
-  const schema = list(data?.schema);
-  const out = new Map<string, string[]>();
-  for (const k of odcsForeignKeys(data))
-    if (k.from === objectIndex)
-      for (const name of k.label.split(', ')) {
-        const t = String(schema[k.to]?.name);
-        const xs = out.get(name) ?? [];
-        if (!xs.includes(t)) xs.push(t);
-        out.set(name, xs);
-      }
-  return out;
-}
-function SchemaTab({
-  data,
-  objectIndex,
-  onOpenObject,
-  editor,
-}: {
-  data: any;
-  objectIndex: number;
-  onOpenObject: (n: string) => void;
-  editor?: Props['editor'];
-}) {
-  const object = list(data?.schema)[objectIndex];
-  const rows = useMemo(() => flattenProperties(object?.properties), [object]);
-  const fks = useMemo(() => foreignKeys(data, objectIndex), [data, objectIndex]);
-  const [filter, setFilter] = useState('');
-  const [sort, setSort] = useState<{ key: string; dir: 1 | -1 } | null>(null);
-  const valueOf = (r: { path: string; property: any }, key: string) =>
-    key === 'name'
-      ? r.path
-      : key === 'foreignKeys'
-        ? (fks.get(r.path) ?? []).join(', ')
-        : text(COLUMNS.find(c => c.key === key)!.value(r.property));
-  const shown = useMemo(() => {
-    const q = filter.trim().toLowerCase();
-    let out = q
-      ? rows.filter(r => COLUMNS.some(c => valueOf(r, c.key).toLowerCase().includes(q)))
-      : rows;
-    if (sort)
-      out = [...out].sort(
-        (a, b) =>
-          sort.dir *
-          valueOf(a, sort.key).localeCompare(valueOf(b, sort.key), undefined, { numeric: true }),
-      );
-    return out;
-  }, [rows, filter, sort, fks]);
-  const toggle = (key: string) =>
-    setSort(s => (s?.key === key ? { key, dir: s.dir === 1 ? -1 : 1 } : { key, dir: 1 }));
-  return (
-    <>
-      <div className="odcs-toolbar">
-        <label className="odcs-search">
-          <Search size={14} />
-          <input
-            type="search"
-            aria-label="Filter properties"
-            placeholder="Filter properties…"
-            value={filter}
-            onChange={e => setFilter(e.target.value)}
-          />
-        </label>
-        <small>
-          {shown.length === rows.length
-            ? `${rows.length} properties`
-            : `${shown.length} of ${rows.length} properties`}
-        </small>
-      </div>
-      <div className="odcs-table-wrap">
-        <table className="odcs-table" aria-label="Properties">
-          <thead>
-            <tr>
-              {COLUMNS.map(c => (
-                <th
-                  key={c.key}
-                  aria-sort={
-                    sort?.key === c.key ? (sort.dir === 1 ? 'ascending' : 'descending') : undefined
-                  }
-                >
-                  <button
-                    className="odcs-sort"
-                    aria-label={`Sort by ${c.label}`}
-                    onClick={() => toggle(c.key)}
-                  >
-                    {c.label}
-                    {sort?.key === c.key ? (
-                      sort.dir === 1 ? (
-                        <ArrowUp size={11} />
-                      ) : (
-                        <ArrowDown size={11} />
-                      )
-                    ) : (
-                      <ArrowUpDown size={11} className="idle" />
-                    )}
-                  </button>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {shown.map(r => (
-              <PropertyRow
-                key={r.path}
-                objectIndex={objectIndex}
-                path={r.path}
-                property={r.property}
-                targets={fks.get(r.path) ?? []}
-                onOpenObject={onOpenObject}
-                editor={editor}
-              />
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {!shown.length && <p className="odcs-note">No property matches “{filter}”.</p>}
-    </>
-  );
-}
-// The boolean columns render the shared badges, so the table and lineage cards match.
-const BOOLEAN_BADGE: Record<string, BadgeInfo> = {
-  primaryKey: badge('pk'),
-  required: badge('required'),
-  unique: badge('unique'),
-};
-function PropertyRow({
-  objectIndex,
-  path,
-  property,
-  targets,
-  onOpenObject,
-  editor,
-}: {
-  objectIndex: number;
-  path: string;
-  property: Record<string, any>;
-  targets: string[];
-  onOpenObject: (n: string) => void;
-  editor?: Props['editor'];
-}) {
-  const depth = path.split('.').length - 1 + (path.match(/\[\]/g)?.length ?? 0);
-  return (
-    <tr>
-      {COLUMNS.map(c => {
-        const custom = editor?.({ objectIndex, path, property, column: c });
-        if (custom !== undefined && custom !== null)
-          return (
-            <td key={c.key} className={`col-${c.key}`}>
-              {custom}
-            </td>
-          );
-        if (c.key === 'name')
-          return (
-            <td
-              key={c.key}
-              className="col-name"
-              style={depth ? { paddingLeft: 10 + depth * 14 } : undefined}
-            >
-              <code>{path}</code>
-            </td>
-          );
-        if (c.key === 'foreignKeys')
-          return (
-            <td key={c.key}>
-              {targets.map(t => (
-                <button
-                  key={t}
-                  className="odcs-link fk"
-                  aria-label={`Open ${t}`}
-                  title={`Foreign key to ${t}`}
-                  onClick={() => onOpenObject(t)}
-                >
-                  <Badge kind="fk" />
-                  {t}
-                </button>
-              ))}
-            </td>
-          );
-        const v = c.value(property);
-        const flag = BOOLEAN_BADGE[c.key];
-        if (flag)
-          return (
-            <td key={c.key} className={`col-${c.key}`}>
-              {v === true ? (
-                <Badge kind={flag.kind} title={flag.title}>
-                  {flag.label}
-                </Badge>
-              ) : (
-                ''
-              )}
-            </td>
-          );
-        if (c.key === 'classification')
-          return (
-            <td key={c.key} className={`col-${c.key}`}>
-              {text(v) ? (
-                <Badge kind="classification" title={`Classification: ${text(v)}`}>
-                  {text(v)}
-                </Badge>
-              ) : (
-                ''
-              )}
-            </td>
-          );
-        return (
-          <td key={c.key} className={`col-${c.key}`}>
-            {c.key === 'tags' && v
-              ? String(v)
-                  .split(', ')
-                  .map(t => (
-                    <em key={t} className="odcs-tag">
-                      {t}
-                    </em>
-                  ))
-              : text(v)}
-          </td>
-        );
-      })}
-    </tr>
   );
 }
 // The asset's Lineage tab: the lineage canvas centred on this object, and per property the fields
@@ -526,7 +293,7 @@ function LineageTab({
       </div>
       <h3 className="odcs-subhead">Property lineage</h3>
       <div className="odcs-table-wrap">
-        <table className="odcs-table compact" aria-label="Property lineage">
+        <table className="odcs-table compact stack" aria-label="Property lineage">
           <thead>
             <tr>
               <th>Property</th>
@@ -537,10 +304,10 @@ function LineageTab({
           <tbody>
             {rows.map(r => (
               <tr key={r.path}>
-                <td>
+                <td data-label="Property">
                   <code>{r.path}</code>
                 </td>
-                <td>
+                <td data-label="Read by fields">
                   {r.fields.length ? (
                     r.fields.map(f => (
                       <code key={f} className="odcs-chip">
@@ -551,7 +318,7 @@ function LineageTab({
                     <span className="muted">—</span>
                   )}
                 </td>
-                <td>
+                <td data-label="Metrics downstream">
                   {r.metrics.length ? (
                     r.metrics.map(m => (
                       <span key={m} className="odcs-chip metric">
@@ -627,7 +394,7 @@ function RelationshipsTab({
         column to the referencing one (the workbench's reading).
       </p>
       <div className="odcs-table-wrap">
-        <table className="odcs-table compact" aria-label="Relationships">
+        <table className="odcs-table compact stack" aria-label="Relationships">
           <thead>
             <tr>
               <th>Column</th>
@@ -639,17 +406,17 @@ function RelationshipsTab({
           <tbody>
             {rows.map((r, i) => (
               <tr key={i}>
-                <td>
+                <td data-label="Column">
                   <code>{r.column}</code>
                 </td>
-                <td>
+                <td data-label="Direction">
                   {r.direction === 'out' ? (
                     <span className="odcs-dir out">references</span>
                   ) : (
                     <span className="odcs-dir in">referenced by</span>
                   )}
                 </td>
-                <td>
+                <td data-label="Other object">
                   <button
                     className="odcs-link fk"
                     aria-label={`Open ${r.other}`}
@@ -658,7 +425,7 @@ function RelationshipsTab({
                     {r.other}
                   </button>
                 </td>
-                <td>
+                <td data-label="Other column">
                   <code>{r.otherColumn}</code>
                 </td>
               </tr>
@@ -708,7 +475,7 @@ function HistoryTab({
   return (
     <>
       <div className="odcs-table-wrap">
-        <table className="odcs-table compact" aria-label="Versions">
+        <table className="odcs-table compact stack" aria-label="Versions">
           <thead>
             <tr>
               <th>Version</th>
@@ -721,13 +488,15 @@ function HistoryTab({
           <tbody>
             {versions.map(v => (
               <tr key={v.commit} className={v.commit === from || v.commit === to ? 'selected' : ''}>
-                <td>
+                <td data-label="Version">
                   {text(v.data?.version) || '—'} <code>{v.commit.slice(0, 7)}</code>
                 </td>
-                <td>{new Date(v.date).toLocaleString()}</td>
-                <td>{v.author}</td>
-                <td>{v.message}</td>
-                <td className="num">{count(v) ?? <span className="muted">absent</span>}</td>
+                <td data-label="Date">{new Date(v.date).toLocaleString()}</td>
+                <td data-label="Author">{v.author}</td>
+                <td data-label="Message">{v.message}</td>
+                <td className="num" data-label="Properties">
+                  {count(v) ?? <span className="muted">absent</span>}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -829,13 +598,63 @@ export function threshold(r: any) {
     return `not between ${text(r.mustNotBeBetween[0])} and ${text(r.mustNotBeBetween[1])}`;
   return '';
 }
+type QualityRow = { scope: string; rule: any };
+type QualityColumn = { label: string; cell: (row: QualityRow) => React.ReactNode; filled: boolean };
+
+/** Lists the quality table's columns; a column no rule fills is left out. */
+function qualityColumns(rows: QualityRow[]): QualityColumn[] {
+  const filled = (read: (rule: any) => unknown) => rows.some(row => Boolean(read(row.rule)));
+  const columns: QualityColumn[] = [
+    {
+      label: 'Applies to',
+      filled: true,
+      cell: ({ scope }) =>
+        scope === 'Object' ? <span className="muted">Object</span> : <code>{scope}</code>,
+    },
+    { label: 'Rule', filled: filled(r => r.name), cell: ({ rule }) => text(rule.name) },
+    {
+      label: 'Dimension',
+      filled: filled(r => r.dimension),
+      cell: ({ rule }) => text(rule.dimension),
+    },
+    {
+      label: 'Severity',
+      filled: filled(r => r.severity),
+      cell: ({ rule }) =>
+        rule.severity ? (
+          <span className={`odcs-severity s-${text(rule.severity)}`}>{text(rule.severity)}</span>
+        ) : null,
+    },
+    { label: 'Type', filled: filled(r => r.type), cell: ({ rule }) => text(rule.type) },
+    {
+      label: 'Check',
+      filled: filled(r => r.metric ?? r.rule ?? r.query),
+      cell: ({ rule }) => (
+        <>
+          {text(rule.metric ?? rule.rule)}
+          {rule.query && <code className="odcs-query">{text(rule.query)}</code>}
+        </>
+      ),
+    },
+    { label: 'Threshold', filled: filled(threshold), cell: ({ rule }) => threshold(rule) },
+    { label: 'Unit', filled: filled(r => r.unit), cell: ({ rule }) => text(rule.unit) },
+    {
+      label: 'Description',
+      filled: filled(r => r.description),
+      cell: ({ rule }) => text(rule.description),
+    },
+  ];
+  return columns.filter(column => column.filled);
+}
+
 function QualityTab({ object }: { object: any }) {
-  const rules = [
+  const rules: QualityRow[] = [
     ...list(object.quality).map(r => ({ scope: 'Object', rule: r })),
     ...flattenProperties(object.properties).flatMap(p =>
       list(p.property.quality).map(r => ({ scope: p.path, rule: r })),
     ),
   ];
+  const columns = qualityColumns(rules);
   return (
     <>
       <p className="odcs-note">
@@ -845,49 +664,22 @@ function QualityTab({ object }: { object: any }) {
         <p className="odcs-note">This object declares no quality rules.</p>
       ) : (
         <div className="odcs-table-wrap">
-          <table className="odcs-table" aria-label="Quality rules">
+          <table className="odcs-table stack" aria-label="Quality rules">
             <thead>
               <tr>
-                <th>Applies to</th>
-                <th>Rule</th>
-                <th>Dimension</th>
-                <th>Severity</th>
-                <th>Type</th>
-                <th>Check</th>
-                <th>Threshold</th>
-                <th>Unit</th>
-                <th>Description</th>
+                {columns.map(column => (
+                  <th key={column.label}>{column.label}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {rules.map(({ scope, rule: r }, i) => (
+              {rules.map((row, i) => (
                 <tr key={i}>
-                  <td>
-                    {scope === 'Object' ? (
-                      <span className="muted">Object</span>
-                    ) : (
-                      <code>{scope}</code>
-                    )}
-                  </td>
-                  <td>{text(r.name)}</td>
-                  <td>{text(r.dimension)}</td>
-                  <td>
-                    {r.severity ? (
-                      <span className={`odcs-severity s-${text(r.severity)}`}>
-                        {text(r.severity)}
-                      </span>
-                    ) : (
-                      ''
-                    )}
-                  </td>
-                  <td>{text(r.type)}</td>
-                  <td>
-                    {text(r.metric ?? r.rule)}
-                    {r.query && <code className="odcs-query">{text(r.query)}</code>}
-                  </td>
-                  <td>{threshold(r)}</td>
-                  <td>{text(r.unit)}</td>
-                  <td>{text(r.description)}</td>
+                  {columns.map(column => (
+                    <td key={column.label} data-label={column.label}>
+                      {column.cell(row)}
+                    </td>
+                  ))}
                 </tr>
               ))}
             </tbody>

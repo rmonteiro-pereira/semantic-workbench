@@ -10,6 +10,7 @@ import { inspect } from '../src/model';
 import { layoutProblems, lineageProblems } from './helpers/layout-geometry';
 import { screenProblems, showScreen, tourScreens } from './helpers/screen-tour';
 import { editContainmentProblems, editScreens } from './helpers/edit-tour';
+import { odcsScreens, sidewaysTableProblems } from './helpers/odcs-tour';
 
 // Isolated API fixture: exercising viewport changes never modifies the local workspace. The UBL
 // ontology is imported first so that it opens first.
@@ -1371,6 +1372,7 @@ try {
   }
   // Edit drawers, add dialogs, metrics, mappings, the query composer and the catalog.
   const editTour = editScreens({ ontology: 'ubl.ontology.yaml', metricsModel: 'sales.ossie.yaml' });
+  const odcsTour = odcsScreens('commerce.odcs.yaml');
   for (const [width, height] of [
     [390, 844],
     [1280, 720],
@@ -1387,6 +1389,16 @@ try {
       }
     });
     await editPage.close();
+    const odcsPage = await openPage(width!, height!);
+    await check(`ODCS screens: ${width}×${height} readable, no overlaps, tables fit`, async () => {
+      for (const screen of odcsTour) {
+        await showScreen(odcsPage, screen);
+        expect(await screenProblems(odcsPage, screen)).toEqual([]);
+        expect(await sidewaysTableProblems(odcsPage)).toEqual([]);
+        await noOverflow(odcsPage);
+      }
+    });
+    await odcsPage.close();
   }
   await check('no uncaught browser errors', async () => expect(errors).toEqual([]));
   console.log(`${passed} responsive UI checks passed`);

@@ -73,10 +73,18 @@ async function editorRefusals(page: Page, target: SignInTarget) {
   await page.getByRole('button', { name: 'Open orders', exact: true }).click();
   const table = page.getByRole('region', { name: 'Dataset orders' });
   await table.getByRole('tab', { name: /^Properties/ }).click();
-  await expect(table.getByLabel('Classification of amount')).toBeDisabled();
-  await expect(table.getByLabel('Description of amount')).toBeEditable();
+  // The edit dialog is where classification looks disabled for an Editor, with the reason beside it.
+  await table.getByRole('button', { name: 'Edit amount', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Edit amount' });
+  await expect(dialog.getByLabel('Classification')).toBeDisabled();
+  await expect(dialog.getByLabel('Description')).toBeEditable();
+  await expect(dialog).toContainText('Only a Steward or Admin changes a classification');
+  await authGeometry(page, 'property-editors-dialog');
+  await dialog.getByRole('button', { name: 'Cancel' }).click();
   // A confidential property stays read-only for an Editor.
-  await expect(table.getByLabel('Description of customer_email')).toHaveCount(0);
+  await expect(table.getByRole('button', { name: 'Edit customer_email', exact: true })).toHaveCount(
+    0,
+  );
   await expect(table).toContainText('Only a Steward or Admin changes a classification');
   await authGeometry(page, 'property-editors-editor');
 }

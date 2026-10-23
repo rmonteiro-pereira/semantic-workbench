@@ -1,0 +1,247 @@
+/* Contract and dataset pages: calm summaries, clamped prose, stacked cards at phone width and the
+   property edit dialog. */
+.odcs-identity {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px 18px;
+}
+.odcs-read-more p {
+  margin: 0;
+  font-size: 13px;
+  color: #3f5650;
+  max-width: 90ch;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+.odcs-read-more button {
+  margin-top: 2px;
+}
+.odcs-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.odcs-clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.odcs-clamp-one {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.odcs-secondary {
+  display: block;
+  color: var(--text-muted);
+  font-size: var(--text-small);
+}
+.odcs-section-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.odcs-section-rows button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  padding: 6px 10px;
+  border: 1px solid #dbe3e4;
+  border-radius: 8px;
+  background: #fff;
+}
+.odcs-section-rows button:hover {
+  background: #f5faf7;
+}
+.odcs-section-rows small {
+  font-size: var(--text-small);
+  background: #dcebe5;
+  border-radius: 8px;
+  padding: 0 6px;
+}
+.odcs-objects-table td.odcs-desc {
+  width: 38%;
+  max-width: 0;
+  min-width: 160px;
+}
+.odcs-objects-table td:first-child,
+.odcs-table td.col-name {
+  min-width: 140px;
+}
+.odcs-object-cell {
+  flex-wrap: wrap;
+}
+.odcs-title {
+  flex-wrap: wrap;
+}
+.odcs-head-action {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+.odcs-sort-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.odcs-sort-control label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #3a5a50;
+}
+.odcs-sort-control select {
+  font-size: 12px;
+  padding: 5px;
+  border: 1px solid #dbe3e4;
+  border-radius: 6px;
+  background: #fff;
+}
+.odcs-sort-control button {
+  padding: 5px 7px;
+}
+.odcs-row-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  padding: 3px 8px;
+}
+.odcs-table td .prop-badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.odcs-tabs {
+  flex-wrap: wrap;
+}
+.odcs-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.odcs-form .odcs-form-field {
+  gap: 4px;
+  font-size: 13px;
+  margin: 0;
+}
+.odcs-form-field > span {
+  font-weight: 600;
+  color: #3a5a50;
+}
+.odcs-form-field :is(input, select, textarea) {
+  font: inherit;
+  padding: 7px 9px;
+  border: 1px solid #cfdad7;
+  border-radius: 6px;
+  background: #fff;
+}
+.odcs-form-field :is(input, select, textarea):disabled {
+  background: #f1f4f3;
+  color: var(--text-muted);
+}
+.odcs-form-hint {
+  color: var(--text-muted);
+  font-size: var(--text-small);
+}
+.odcs-form-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+.odcs-form .odcs-form-flag {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  margin: 0;
+}
+.odcs-form .odcs-form-flag input {
+  padding: 0;
+  margin: 0;
+  accent-color: #1e6a4f;
+}
+@media (max-width: 700px) {
+  .odcs-head-action {
+    margin-left: 0;
+  }
+  .odcs-table-wrap:has(.stack) {
+    border: 0;
+    background: none;
+    overflow: visible;
+    max-height: none;
+  }
+  .odcs-table.stack,
+  .odcs-table.stack tbody,
+  .odcs-table.stack tr,
+  .odcs-table.stack td {
+    display: block;
+    width: auto;
+  }
+  .odcs-table.stack thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .odcs-table.stack tr {
+    background: #fff;
+    border: 1px solid #dbe3e4;
+    border-radius: 8px;
+    padding: 6px 10px;
+    margin-bottom: 8px;
+  }
+  .odcs-table.stack td,
+  .odcs-table.stack tbody tr:last-child td {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    column-gap: 10px;
+    padding: 4px 0;
+    border: 0;
+    min-width: 0;
+    max-width: none;
+    text-align: left;
+  }
+  .odcs-table.stack td::before {
+    content: attr(data-label);
+    grid-column: 1;
+    grid-row: 1;
+    font-size: var(--text-small);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+  .odcs-table.stack td:empty {
+    display: none;
+  }
+  .odcs-table.stack td > * {
+    grid-column: 2;
+    min-width: 0;
+  }
+  .odcs-table.stack td.odcs-desc .odcs-clamp-one {
+    white-space: normal;
+  }
+  .odcs-table.stack td.col-name {
+    padding-left: 0 !important;
+  }
+  .odcs-objects-table td.odcs-desc {
+    width: auto;
+  }
+  .odcs-form-flags {
+    flex-direction: column;
+  }
+}
