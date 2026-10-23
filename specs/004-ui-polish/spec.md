@@ -250,6 +250,42 @@ Findings: F69. Checks (new): in `scripts/dialogs-browser-check.ts`, every menu (
 New, person, Examples) is opaque (computed background alpha is 1), fully visible, inside the
 viewport, and `document.elementFromPoint` at each item's centre returns that item.
 
+## R15. Git remote into a folder of the repository (v0.5.0)
+
+A project can live in a subfolder of a remote repository, for example `semantic/ubl/` in a team's
+shared repo. Clone, pull and push work against that folder only, without checking out the rest of
+the repo. This extends the existing monorepo model ("Projects in this repository...") and adds no
+parallel one.
+
+1. **Clone.** The Clone dialog and the Remote dialog have an optional field **Folder in
+   repository** (a path like `semantic/ubl`). When set, clone runs with `--filter=blob:none
+   --no-checkout`, then `git sparse-checkout set --cone <folder>`, then checks out the branch.
+   The workbench project root is that folder. The path is validated: relative, no `..`, not
+   absolute, normalised; a bad path is refused with a clear message.
+2. **Remote on an existing local project.** Adding a remote with a folder means the project's
+   files must sit under that folder in the repository. The dialog previews which files move
+   where and needs a confirmation. History is never rewritten.
+3. **Commit, push, pull.** Commits touch only paths inside the folder. Pull and fetch work
+   normally and sparse checkout keeps the rest of the repository absent from disk. Push sends the
+   branch as usual. The source-control panel header shows the folder, for example
+   `origin · main · semantic/ubl`.
+4. **Server mode.** It works with per-user worktrees: `extensions.worktreeConfig` is set and
+   sparse-checkout is configured per worktree. Access filtering and governance guards map
+   project-relative paths correctly. Remote credentials keep working as before.
+5. **Safety.** Git is invoked with argument lists, timeouts, no prompts and serialised per
+   repository. The Git 2.42 minimum guard stays. A folder that does not exist on the remote branch
+   gives a clear error, and the dialog offers to create it on the first push. Changing the folder
+   later is an explicit, previewed action.
+6. **Tests.** Integration tests against local bare repositories, no network: clone into a folder,
+   edit, commit, push, other folders on the remote are untouched, pull changes by others inside and
+   outside the folder, switch branches. Mutants for the path validation and the sparse-checkout
+   arguments. `test:scm` and `test:git-setup` cover the dialog field. The server-mode
+   `test:two-editors` runs with a sparse project.
+7. **Docs.** README Git section and the remote credential guide.
+
+Findings: F70. Checks: `tests/*sparse*.test.ts` (new), mutants in `scripts/mutation-tests.ts`,
+`test:scm`, `test:git-setup`, `test:two-editors`.
+
 ## Traceability
 
 Every finding maps to a requirement. Status values are open, fixed, deferred (with the reason in
@@ -278,4 +314,5 @@ Every finding maps to a requirement. Status values are open, fixed, deferred (wi
 | F67 | R12 | open |
 | F68 | R13 | open |
 | F69 | R14 | open |
+| F70 | R15 | open |
 | F64 | R11 | open |
