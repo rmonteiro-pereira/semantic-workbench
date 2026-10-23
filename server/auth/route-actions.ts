@@ -80,6 +80,8 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   row('DELETE', '/api/projects/:slug', 'deleteProject', project),
   row('POST', '/api/projects/:slug/move', 'move', project),
   row('POST', '/api/projects/:slug/import', 'import', project),
+  // Reads are audited only when asked; an export leaves the server, so each one is recorded.
+  { ...row('GET', '/api/projects/:slug/export', 'export', project), audited: true },
   row('POST', '/api/projects/:slug/save-batch', 'edit', project),
   row('POST', '/api/projects/:slug/gitignore', 'edit', project),
   row('GET', '/api/projects/:slug/metrics', 'read', project),
