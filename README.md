@@ -857,6 +857,49 @@ writable by uid 1000. Stop the profile with `docker compose --profile keycloak d
 credentials and the HTTP cookie exception are for development only, and automated checks never use
 this folder. On Azure, [deploy/README.md](deploy/README.md) creates the container app.
 
+## Theme
+
+Every colour of the interface is a CSS custom property in one file, `src/theme.css`. Other
+stylesheets and components refer to the names, for example `background: var(--color-surface)`.
+Names say what a colour is for: `--color-surface` (a background), `--color-border`,
+`--color-text`, `--color-text-muted`, `--color-accent` (primary buttons, the selected tab, the
+selected graph edge), `--color-warning-soft` (a tinted background) and so on. The file groups
+them with comments: surfaces, borders, text, accent, status colours, shadows, graph edges and
+the code editor.
+
+To change the accent, edit one line of `src/theme.css`:
+
+```css
+--color-accent: #5b4fa8; /* was #247c66 */
+```
+
+The primary buttons, the selected tab and the selected edge in the graph change with it. To try
+a colour without saving it, set the property in the browser's developer tools on the `<html>`
+element.
+
+To add a token, add a line with a semantic name to the right group in `src/theme.css` and use
+it with `var(--color-name)`. A name ends in `-soft` for a tinted background, `-border` for a line
+and `-text` for writing in that hue; a bare hue name is a solid colour for icons and lines.
+
+### Moving colour literals into tokens
+
+`bun scripts/theme-codemod.ts` replaces every colour literal (hex, `rgb()`, named colours) in
+`src/`, `server/` and `index.html` with the closest token of the right job: a background maps to
+a surface or solid colour, a border to a border colour, text to a text colour. Colours that are
+within a small perceptual distance (CIE76 delta E of 9 for backgrounds and borders, 12 for text and
+solid colours) merge into one token; a colour with transparency becomes `color-mix()` of a token.
+It prints each literal it could not map, with the nearest token, so you can add a token or pick one
+by hand. It changes nothing once no literals are left, so run it again after merging a branch
+that brings new colours:
+
+```sh
+bun scripts/theme-codemod.ts --dry-run   # show what would change and what cannot be mapped
+bun scripts/theme-codemod.ts             # rewrite the files
+bun scripts/theme-codemod.ts src/odcs    # limit the run to some paths
+```
+
+Run `bun run fmt` afterwards. `--report` lists every literal with the token it became.
+
 ## Checking your work
 
 ```sh
