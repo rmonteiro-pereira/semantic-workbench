@@ -665,3 +665,16 @@ concept_mappings:
   - concept: RevenuePerInvoice
     object_mappings:
       - expression: revenue_per_invoice
+custom_extensions:
+  - vendor_name: SEMANTIC_WORKBENCH
+    data: >
+      {"schema": "semantic-workbench/mapping/v1", "kpi_bindings": [
+        {"metric":"discounts_given","measures":"InvoiceLine","of":"Plan"},
+        {"metric":"gross_billings","measures":"InvoiceLine","of":"Invoice"},
+        {"metric":"invoice_count","measures":"InvoiceCount","of":"Invoice"},
+        {"metric":"net_revenue","measures":"NetRevenue","of":"Invoice"},
+        {"metric":"recurring_revenue","measures":"RecurringRevenue","of":"Invoice"},
+        {"metric":"recurring_share","measures":"RecurringRevenue","of":"Invoice"},
+        {"metric":"revenue_per_invoice","measures":"RevenuePerInvoice","of":"Invoice"},
+        {"metric":"tax_billed","measures":"InvoiceLine","of":"TaxRate"}
+      ]}

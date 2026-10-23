@@ -354,16 +354,20 @@ try {
     },
   );
   await check(
-    'billing example sidebar action reopens the existing documents without duplicating them',
+    'billing example sidebar action opens its project of four documents once and reopens it without duplicating',
     async () => {
-      const count = store.list().length;
-      await (await example(page, /Load subscription billing/)).click();
-      await expect(page.locator('.mapping-layer-chain')).toContainText(
-        'Subscription billing mappings',
-      );
-      await expect(page.locator('.mapping-binding')).toHaveCount(119);
-      if (store.list().length !== count)
-        throw Error('Example loader duplicated existing definitions');
+      // The uploaded files lack the data contract, so the first load saves the example project.
+      const before = store.list().length;
+      const exampleDocuments = 4;
+      for (let opening = 0; opening < 2; opening++) {
+        await (await example(page, /Load subscription billing/)).click();
+        await expect(page.locator('.mapping-layer-chain')).toContainText(
+          'Subscription billing mappings',
+        );
+        await expect(page.locator('.mapping-binding')).toHaveCount(119);
+        if (store.list().length !== before + exampleDocuments)
+          throw Error('Example loader duplicated or omitted definitions');
+      }
     },
   );
   await check(

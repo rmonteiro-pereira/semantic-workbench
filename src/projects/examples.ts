@@ -85,10 +85,15 @@ export const EXAMPLE_SETS: ExampleSet[] = [
     id: 'billing',
     name: 'Subscription billing',
     folder: 'billing',
-    files: ['billing.mapping.yaml', 'billing.ontology.yaml', 'billing.semantic.yaml'],
+    files: [
+      'billing.mapping.yaml',
+      'billing.ontology.yaml',
+      'billing.semantic.yaml',
+      'billing.odcs.yaml',
+    ],
     tab: 'mappings',
     message:
-      'Loaded subscription billing: 36 business entities, 46 joins, 119 bindings, and 4 governed metrics.',
+      'Loaded subscription billing: 36 business entities, 46 joins, 119 bindings, 8 governed metrics, and a data contract for the tables they read.',
   },
   {
     id: 'mall',
