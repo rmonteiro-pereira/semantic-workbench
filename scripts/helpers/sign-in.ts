@@ -153,6 +153,12 @@ export async function authGeometry(
     assert.deepEqual(await layoutProblems(page), [], `${name} at ${width}×${height}`);
     if (scope) await assertTextProblemsEmpty(page, name, scope, width);
     if (name === 'person-menu') {
+      // The person menu may not squeeze the save state into an ellipsis from 1200 px.
+      if (width >= 1200) {
+        const text = page.locator('.save-state-text');
+        const cut = await text.evaluate(el => el.scrollWidth > el.clientWidth + 1);
+        assert(!cut, `the save state is cut at ${width}×${height}`);
+      }
       const trigger = await page
         .getByRole('button', { name: 'Person menu', exact: true })
         .boundingBox();
