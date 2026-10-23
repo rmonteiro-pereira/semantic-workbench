@@ -27,7 +27,7 @@
 .metrics-back {
   display: none;
   margin-bottom: 14px;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .metrics-view header.metrics-heading,
 .metrics-view header.kpi-header {
@@ -63,7 +63,7 @@
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .count-badge {
   min-width: 18px;
@@ -122,7 +122,7 @@
   border: 0;
   padding: 8px 0;
   width: 100%;
-  font-size: 12px;
+  font-size: var(--text-small);
   color: #243936;
   outline: none;
 }
@@ -162,7 +162,7 @@
 .metrics-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .metrics-table th {
   text-align: left;
@@ -374,7 +374,7 @@
   background: #e9f4ef;
   color: #1e6a4f;
   font-weight: 600;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .concept-chip.of {
   background: #eef3fb;
@@ -417,7 +417,7 @@
   align-items: flex-start;
   padding: 7px 10px;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .kpi-findings li.error {
   background: #fbe9e7;
@@ -465,7 +465,7 @@
   background: #247d65;
   color: #fff;
   font-weight: 700;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .step-body {
   min-width: 0;
@@ -524,7 +524,7 @@
   color: var(--text-muted);
   border-radius: 8px;
   padding: 12px 14px;
-  font-size: 12px;
+  font-size: var(--text-small);
   line-height: 1.55;
   overflow: auto;
   white-space: pre-wrap;
@@ -575,7 +575,7 @@
   background: #f6f8f8;
   border-style: dashed;
   font-family: ui-monospace, monospace;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .tree-card strong {
   color: #17323a;
@@ -633,7 +633,7 @@
   display: grid;
   gap: 4px;
   color: #52656b;
-  font-size: 12px;
+  font-size: var(--text-small);
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
@@ -685,7 +685,7 @@
   border-radius: 6px;
   padding: 7px 9px;
   background: #fff;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .preview-controls fieldset {
   border: 1px solid #e3eae5;
@@ -706,7 +706,7 @@
   align-items: center;
   gap: 6px;
   color: #243936;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .preview-controls .check input {
   width: 16px;
@@ -1039,7 +1039,7 @@
 .metrics-new,
 .kpi-edit {
   flex-shrink: 0;
-  font-size: 12px;
+  font-size: var(--text-small);
   padding: 7px 11px;
   gap: 5px;
 }
@@ -1068,7 +1068,7 @@
   gap: 5px;
   margin-top: 5px;
   padding: 3px 9px;
-  font-size: 12px;
+  font-size: var(--text-small);
   border: 1px solid #c9d8d6;
   border-radius: 6px;
   background: #fff;
@@ -1094,12 +1094,12 @@
 }
 .kpi-approval p {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 /* The reason a disabled button gives, visible without hover so touch screens read it too. */
 .kpi-approval-reason {
   flex: 1 1 200px;
-  font-size: 12px;
+  font-size: var(--text-small);
   color: #62786e;
 }
 .kpi-deprecate {

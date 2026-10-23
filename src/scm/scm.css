@@ -69,7 +69,7 @@
   background: white;
 }
 .branch-picker button {
-  font-size: 12px;
+  font-size: var(--text-small);
   padding: 5px 8px;
   gap: 4px;
 }
@@ -90,7 +90,7 @@
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  font-size: 12px;
+  font-size: var(--text-small);
   color: #5a6f68;
   padding: 3px 6px;
   background: #eef3f1;
@@ -110,14 +110,14 @@
 .scm-hint {
   display: block;
   margin: -2px 0 2px;
-  font-size: 12px;
+  font-size: var(--text-small);
   color: #62786e;
 }
 .scm-note {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  font-size: 12px;
+  font-size: var(--text-small);
   border-radius: 7px;
   padding: 8px 10px;
   margin: 0;
@@ -149,7 +149,7 @@
 }
 .scm-note button {
   padding: 3px 8px;
-  font-size: 12px;
+  font-size: var(--text-small);
   margin-left: auto;
 }
 .spinner {
@@ -193,7 +193,7 @@
   overflow-wrap: anywhere;
 }
 .scm-error button {
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .scm-commit {
   display: flex;
@@ -219,7 +219,7 @@
 }
 .scm-empty {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--text-small);
   margin: 8px 0;
 }
 .scm-group h3 {
@@ -362,7 +362,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 12px;
+  font-size: var(--text-small);
   background: white;
   border: 1px solid #dfe8e4;
   border-radius: 6px;
@@ -386,7 +386,7 @@
   justify-content: flex-end;
 }
 .scm-ignore button {
-  font-size: 12px;
+  font-size: var(--text-small);
   padding: 5px 9px;
 }
 .scm-history ol {
@@ -403,7 +403,7 @@
   background: none;
   padding: 5px 6px;
   text-align: left;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .scm-commit-row small {
   color: var(--text-muted);
@@ -422,14 +422,14 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--text-small);
   min-width: 0;
   flex: 1 1 220px;
 }
 .scm-versions select {
   min-width: 0;
   flex: 1;
-  font-size: 12px;
+  font-size: var(--text-small);
   padding: 5px;
 }
 .diff-view {
@@ -461,7 +461,7 @@
   flex: 1 1 auto;
   overflow: auto;
   font:
-    12px/1.5 ui-monospace,
+    var(--text-small)/1.5 ui-monospace,
     SFMono-Regular,
     Menlo,
     monospace;
@@ -473,7 +473,7 @@
   height: auto;
 }
 .diff-same {
-  font-size: 12px;
+  font-size: var(--text-small);
   color: var(--text-muted);
   margin: 6px 10px;
 }
@@ -510,7 +510,7 @@
   height: auto;
 }
 .branch-picker label > span {
-  font-size: 12px;
+  font-size: var(--text-small);
   color: #4d6660;
 }
 
@@ -550,7 +550,7 @@
 /* Commit dialog: files left, diff right; one column on narrow screens. */
 .commit-dialog .commit-scope {
   margin: 0 0 10px;
-  font-size: 12px;
+  font-size: var(--text-small);
   color: #5c716b;
 }
 .commit-dialog .commit-body {
@@ -597,7 +597,7 @@
   padding: 5px 2px;
   text-align: left;
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .commit-dialog .commit-path {
   min-width: 0;
@@ -657,7 +657,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--text-small);
   color: #7a2e25;
   min-width: 0;
 }
@@ -704,9 +704,6 @@
   gap: 8px;
   font-size: 13px;
 }
-.dialog-footer-spacer {
-  flex: 1;
-}
 .clone-progress p[role='status'] {
   display: flex;
   align-items: center;
@@ -716,7 +713,7 @@
 .clone-progress pre {
   margin: 8px 0 0;
   font:
-    12px/1.45 ui-monospace,
+    var(--text-small)/1.45 ui-monospace,
     monospace;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -726,7 +723,7 @@
   margin: 6px 0 0;
   padding-left: 18px;
   font:
-    12px/1.6 ui-monospace,
+    var(--text-small)/1.6 ui-monospace,
     monospace;
   overflow-wrap: anywhere;
 }
@@ -769,7 +766,7 @@
   border: 0;
   border-radius: 0;
   padding: 6px 14px;
-  font-size: 12px;
+  font-size: var(--text-small);
   background: #fff;
 }
 .credential-guide .segmented button.selected {
@@ -792,14 +789,14 @@
   flex: 1;
   min-width: 0;
   overflow-wrap: anywhere;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .copyable-command button {
   flex: none;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
+  font-size: var(--text-small);
   padding: 4px 8px;
 }
 /* A form's hidden submit button keeps Enter working without showing an empty button. */
@@ -842,7 +839,6 @@
   box-sizing: border-box;
 }
 /* Name and path fields in the project dialogs share one compact size with the folder paths. */
-.compact-field input,
 .repository-folder input[type='text'],
 .repository-folder input:not([type]) {
   font-size: 13px;
@@ -903,7 +899,7 @@
 
 /* The Sync dialog lists each action with a line saying what it does. */
 .scm-sync-open {
-  font-size: 12px;
+  font-size: var(--text-small);
   padding: 4px 9px;
   gap: 4px;
 }

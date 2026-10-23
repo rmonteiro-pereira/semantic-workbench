@@ -29,7 +29,7 @@ dialog.validation-backdrop:has(.item-editor) {
   gap: 8px;
   flex-wrap: wrap;
   margin: 0 0 4px;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .item-kind {
   font-size: var(--text-small);
@@ -46,7 +46,7 @@ button.link {
   background: none;
   padding: 2px 4px;
   color: #1e6a4f;
-  font-size: 12px;
+  font-size: var(--text-small);
   gap: 4px;
   display: inline-flex;
   align-items: center;
@@ -63,7 +63,7 @@ button.link {
 .item-tabs button {
   border: 0;
   background: none;
-  font-size: 12px;
+  font-size: var(--text-small);
   padding: 6px 14px;
   border-radius: 6px;
 }
@@ -110,7 +110,7 @@ button.link {
 }
 .item-fields .code-field {
   font:
-    12px/1.5 ui-monospace,
+    var(--text-small)/1.5 ui-monospace,
     SFMono-Regular,
     Menlo,
     monospace;
@@ -136,7 +136,7 @@ button.link {
   display: flex;
   gap: 6px;
   align-items: center;
-  font-size: 12px !important;
+  font-size: var(--text-small) !important;
   color: #5a4a12 !important;
   background: #fbf6e2;
   border: 1px solid #e3d6a4;
@@ -146,7 +146,7 @@ button.link {
 }
 .item-dependents,
 .item-references {
-  font-size: 12px;
+  font-size: var(--text-small);
   border: 1px solid #dfe9e4;
   background: #f7fbf9;
   border-radius: 7px;
@@ -208,7 +208,7 @@ button.link {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  font-size: 12px;
+  font-size: var(--text-small);
   padding: 3px 0;
   border-bottom: 1px solid #f2f5f4;
 }
@@ -225,7 +225,7 @@ button.link {
   list-style: none;
   margin: 4px 0;
   padding: 0;
-  font-size: 12px;
+  font-size: var(--text-small);
   max-height: 140px;
   overflow: auto;
 }
@@ -247,18 +247,18 @@ button.link {
   gap: 5px;
 }
 .item-state {
-  font-size: 12px;
+  font-size: var(--text-small);
   color: #5d7268;
 }
 .item-preview {
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .item-preview pre {
   background: #f6faf8;
   border: 1px solid #e3ece7;
   border-radius: 6px;
   padding: 8px 10px;
-  font-size: 12px;
+  font-size: var(--text-small);
   max-height: 200px;
   overflow: auto;
   white-space: pre;
@@ -270,7 +270,7 @@ button.link {
   margin: 10px 0 4px;
 }
 .inspector-actions button {
-  font-size: 12px;
+  font-size: var(--text-small);
   padding: 7px 10px;
   gap: 5px;
 }
@@ -306,7 +306,7 @@ button.link {
 }
 .wizard-checks label {
   margin: 2px 0 !important;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .formula-line code {
   background: #f6faf8;
@@ -318,13 +318,13 @@ button.link {
   border: 1px solid #e3ece7;
   border-radius: 6px;
   padding: 8px 10px;
-  font-size: 12px;
+  font-size: var(--text-small);
   max-height: 240px;
   overflow: auto;
   white-space: pre-wrap;
 }
 .wizard-tree {
-  font-size: 12px;
+  font-size: var(--text-small);
   margin: 0;
   padding-left: 18px;
 }
@@ -345,7 +345,7 @@ button.link {
 }
 .item-refusal button {
   margin-left: auto;
-  font-size: 12px;
+  font-size: var(--text-small);
   padding: 4px 9px;
 }
 .rdf-rows {
@@ -363,7 +363,7 @@ button.link {
 .rdf-row textarea {
   width: 100%;
   box-sizing: border-box;
-  font-size: 12px;
+  font-size: var(--text-small);
   padding: 6px 8px;
   border: 1px solid #dbe3e4;
   border-radius: 5px;
@@ -372,7 +372,7 @@ button.link {
 .rdf-row textarea {
   resize: vertical;
   font:
-    12px/1.45 ui-monospace,
+    var(--text-small)/1.45 ui-monospace,
     SFMono-Regular,
     Menlo,
     monospace;
@@ -402,12 +402,12 @@ button.link {
 }
 .rdf-add {
   align-self: flex-start;
-  font-size: 12px;
+  font-size: var(--text-small);
   padding: 6px 10px;
   gap: 5px;
 }
 .item-gate {
-  font-size: 12px !important;
+  font-size: var(--text-small) !important;
   color: #1e6a4f !important;
   margin: 2px 0;
 }

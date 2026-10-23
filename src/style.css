@@ -119,7 +119,7 @@ button:disabled {
   width: 100%;
   border: 0;
   justify-content: flex-start;
-  font-size: 12px;
+  font-size: var(--text-small);
   margin: 3px 0;
   padding: 12px 8px;
 }
@@ -138,7 +138,7 @@ button:disabled {
   display: flex;
   gap: 8px;
   justify-content: center;
-  font-size: 12px;
+  font-size: var(--text-small);
   cursor: pointer;
 }
 .import input {
@@ -159,7 +159,7 @@ button:disabled {
 .hidden-files {
   margin: 2px 0 6px 28px;
   color: #62786e;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 main {
   flex: 1;
@@ -178,7 +178,7 @@ header {
   background: #fff;
 }
 .breadcrumb {
-  font-size: 12px;
+  font-size: var(--text-small);
   color: var(--text-muted);
 }
 .breadcrumb span {
@@ -188,7 +188,7 @@ header {
 .header-actions {
   display: flex;
   gap: 10px;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .primary {
   background: #247c66;
@@ -250,7 +250,7 @@ p {
 .tabs button {
   border: 0;
   background: none;
-  font-size: 12px;
+  font-size: var(--text-small);
   color: var(--text-muted);
 }
 .tabs .selected {
@@ -266,7 +266,7 @@ p {
 .search input {
   border: 0;
   outline: 0;
-  font-size: 12px;
+  font-size: var(--text-small);
   width: 145px;
 }
 .canvas-row {
@@ -321,7 +321,7 @@ p {
   padding: 10px;
   resize: vertical;
   color: #344d40;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .hint {
   font-size: var(--text-small);
@@ -333,7 +333,7 @@ p {
   padding-top: 80px;
 }
 .inspect-empty p {
-  font-size: 12px;
+  font-size: var(--text-small);
   margin-top: 14px;
 }
 .empty {
@@ -351,7 +351,7 @@ p {
 }
 .empty button {
   margin-top: 25px;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .code {
   width: 100%;
@@ -362,7 +362,7 @@ p {
   outline: none;
   background: #f6faf8;
   color: #315044;
-  font: 12px/1.9 monospace;
+  font: var(--text-small)/1.9 monospace;
 }
 .node {
   text-align: left;
@@ -413,7 +413,7 @@ footer span {
 }
 .status {
   padding: 10px 34px;
-  font-size: 12px;
+  font-size: var(--text-small);
   background: #e8f2ed;
 }
 .error {
@@ -441,7 +441,7 @@ footer span {
   margin: 10px 0;
 }
 .field {
-  font: 12px monospace;
+  font: var(--text-small) monospace;
   padding: 10px;
   border-bottom: 1px solid #edf1ef;
 }
@@ -454,7 +454,7 @@ footer span {
   gap: 8px;
 }
 .graph-actions button {
-  font-size: 12px;
+  font-size: var(--text-small);
   box-shadow: 0 2px 8px #24393612;
   background: #fff;
 }
@@ -479,7 +479,7 @@ footer span {
   margin: 5px 0;
   justify-content: flex-start;
   text-align: left;
-  font-size: 12px;
+  font-size: var(--text-small);
   padding: 12px 8px;
   background: #f0f6f2;
 }
@@ -490,7 +490,7 @@ footer span {
   color: var(--text-muted);
 }
 .relationship-details {
-  font-size: 12px;
+  font-size: var(--text-small);
   line-height: 1.7;
 }
 .relationship-details dt {
@@ -578,7 +578,7 @@ main {
   border: 1px solid #dce6e1;
   border-radius: 6px;
   background: white;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .related-edges {
   max-height: 280px;
@@ -709,7 +709,7 @@ main {
   display: flex;
   gap: 7px;
   align-items: center;
-  font-size: 12px;
+  font-size: var(--text-small);
   margin: 0 0 5px;
   font-weight: 650;
   letter-spacing: -0.1px;
@@ -836,7 +836,7 @@ main {
   border: 1px solid #dce8e0;
   width: 100%;
   min-height: 42px;
-  font-size: 12px;
+  font-size: var(--text-small);
   color: #327555;
   border-radius: 6px;
 }
@@ -860,7 +860,7 @@ main {
   align-items: center;
   gap: 9px;
   margin: 0;
-  font-size: 12px;
+  font-size: var(--text-small);
   font-weight: 600;
 }
 .overview-connections p {
@@ -1106,7 +1106,7 @@ main {
   border-radius: 6px;
   padding: 7px 10px;
   font:
-    12px system-ui,
+    var(--text-small) system-ui,
     sans-serif;
   box-shadow: 0 3px 10px #183e271a;
 }
@@ -1185,7 +1185,7 @@ main {
   font-weight: 600;
 }
 .validation-report {
-  font-size: 12px;
+  font-size: var(--text-small);
   text-align: left;
   overflow: auto;
 }
@@ -1248,7 +1248,7 @@ main {
   display: flex;
   flex-direction: column;
   gap: 5px;
-  font-size: 12px;
+  font-size: var(--text-small);
   margin: 10px 0;
 }
 .import-repair input,
@@ -1267,7 +1267,7 @@ main {
   width: 100%;
   height: 330px;
   resize: vertical;
-  font: 12px/1.6 monospace;
+  font: var(--text-small)/1.6 monospace;
   padding: 12px;
   border: 1px solid #dbe3e4;
   border-radius: 5px;
@@ -2096,7 +2096,7 @@ main > .status {
   margin-bottom: 8px;
 }
 .grouping-details p {
-  font-size: 12px;
+  font-size: var(--text-small);
   line-height: 1.5;
   margin: 8px 0;
 }
@@ -2191,7 +2191,7 @@ main > .status {
   border: 0;
   justify-content: flex-start;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--text-small);
   font-weight: 650;
   padding: 8px 6px;
   background: transparent;
@@ -2247,7 +2247,7 @@ main > .status {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  font-size: 12px;
+  font-size: var(--text-small);
   line-height: 1.45;
   padding: 9px 12px;
   border-radius: 7px;
@@ -2270,7 +2270,7 @@ main > .status {
   border-radius: 6px;
   background: #fff;
   padding: 3px 9px;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .git-banner button:not(.git-banner-action) {
   border: 0;
@@ -2430,7 +2430,7 @@ main > .status {
 .item-menu-list button {
   border: 0;
   justify-content: flex-start;
-  font-size: 12px;
+  font-size: var(--text-small);
   padding: 8px 10px;
   background: transparent;
 }
@@ -2448,6 +2448,22 @@ main > .status {
   flex: 1;
   font-size: var(--text-small);
   padding: 7px 6px;
+}
+.dialog-footer-spacer {
+  flex: 1;
+}
+/* Compact text inputs for short names and paths inside dialogs. */
+.compact-field input {
+  font-size: 13px;
+  padding: 6px 8px;
+}
+/* Only one dialog layer shows: a dialog hides its own panel while a dialog opened from it is
+   open, and the nested dialog stays visible because it sits in the top layer. */
+.workbench-dialog:has(dialog[open]) {
+  visibility: hidden;
+}
+.workbench-dialog dialog[open] {
+  visibility: visible;
 }
 .workbench-dialog {
   background: white;
@@ -2502,7 +2518,7 @@ main > .status {
   overflow-wrap: anywhere;
 }
 .workbench-dialog h3 {
-  font-size: 12px;
+  font-size: var(--text-small);
   margin: 14px 0 4px;
   color: #3a5a50;
 }
@@ -2514,7 +2530,7 @@ main > .status {
   display: flex;
   flex-direction: column;
   gap: 5px;
-  font-size: 12px;
+  font-size: var(--text-small);
   margin: 10px 0;
 }
 .workbench-dialog input,
@@ -2525,7 +2541,7 @@ main > .status {
   background: white;
 }
 .delete-list {
-  font-size: 12px;
+  font-size: var(--text-small);
   margin: 4px 0;
   padding-left: 18px;
   max-height: 200px;
@@ -2533,7 +2549,7 @@ main > .status {
   overflow-wrap: anywhere;
 }
 .delete-warning {
-  font-size: 12px;
+  font-size: var(--text-small);
   border: 1px solid #e3d6a4;
   background: #fbf6e2;
   color: #5a4a12;
@@ -2601,7 +2617,7 @@ button.danger:hover {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  font-size: 12px;
+  font-size: var(--text-small);
   overflow-wrap: anywhere;
 }
 .trash-list small {
@@ -2617,7 +2633,7 @@ button.danger:hover {
   padding: 6px 9px;
 }
 .trash-confirm {
-  font-size: 12px;
+  font-size: var(--text-small);
   align-items: center;
 }
 .suggestion {
@@ -2768,7 +2784,7 @@ button.danger:hover {
   padding: 6px 8px;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .center-picker li[aria-selected='true'],
 .center-picker li:hover {
@@ -2875,7 +2891,7 @@ button.danger:hover {
   justify-content: space-between;
   border: 0;
   padding: 6px 8px;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .neighborhood-legend {
   display: flex;
@@ -3308,7 +3324,7 @@ main > .status {
   border: 1px solid #d6e5df;
   background: #f2f8f5;
   color: #285146;
-  font-size: 12px;
+  font-size: var(--text-small);
   font-weight: 600;
   border-radius: 999px;
   padding: 5px 11px;
@@ -3460,11 +3476,11 @@ main > .status {
   padding: 6px 12px;
   background: #f3f8f6;
   border-bottom: 1px solid #dfe9e6;
-  font-size: 12px;
+  font-size: var(--text-small);
   color: #2f4b44;
 }
 .pierce-banner button {
-  font-size: 12px;
+  font-size: var(--text-small);
   padding: 4px 9px;
   border: 1px solid #cfdcd8;
   border-radius: 6px;
@@ -3533,7 +3549,7 @@ main > .status {
 .examples > summary {
   cursor: pointer;
   padding: 7px;
-  font-size: 12px;
+  font-size: var(--text-small);
   font-weight: 650;
   color: #28463d;
 }
@@ -3678,7 +3694,7 @@ button.import {
   font-size: 12.5px;
 }
 .validation-banner button {
-  font-size: 12px;
+  font-size: var(--text-small);
   padding: 4px 10px;
 }
 .view-definition {
@@ -3686,13 +3702,13 @@ button.import {
   align-items: center;
   gap: 6px;
   margin-top: 10px;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .definition-json {
   margin: 0;
   max-height: 60vh;
   overflow: auto;
-  font-size: 12px;
+  font-size: var(--text-small);
   background: #f6f9f8;
   border: 1px solid #e1e9e6;
   border-radius: 8px;
@@ -3707,7 +3723,7 @@ button.import {
   width: 100%;
   margin: 6px 0;
   padding: 7px 9px;
-  font-size: 12px;
+  font-size: var(--text-small);
   color: #6a4b12;
   background: #fbf6ea;
   border: 1px solid #ecdcb5;
@@ -3727,7 +3743,7 @@ button.import {
 .suggestions-dialog .suggestion ul {
   margin: 0 0 8px;
   padding-left: 18px;
-  font-size: 12px;
+  font-size: var(--text-small);
   color: #4f6560;
 }
 .suggestions-dialog .suggestion li {
@@ -3749,7 +3765,7 @@ button.import {
   gap: 8px;
 }
 .import-dialog legend {
-  font-size: 12px;
+  font-size: var(--text-small);
   font-weight: 650;
   color: #28463d;
   margin-bottom: 6px;
@@ -3791,7 +3807,7 @@ button.import {
 }
 .import-dialog label.radio small {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .import-dialog .import-project {
   display: flex;
@@ -3969,7 +3985,7 @@ button.import {
 }
 .adjust-grouping h3 {
   margin: 0 0 8px;
-  font-size: 12px;
+  font-size: var(--text-small);
   text-transform: uppercase;
   letter-spacing: 0.6px;
   color: var(--text-muted);
@@ -4011,7 +4027,7 @@ button.import {
   overflow-wrap: anywhere;
 }
 .grouping-panel > button {
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 @media (max-width: 480px) {
   .adjust-grouping-form label {

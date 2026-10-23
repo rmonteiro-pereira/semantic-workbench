@@ -1,12 +1,13 @@
 /** Persists sidebar preferences and manages responsive drawer focus. */
 import { useEffect, useRef, useState } from 'react';
 import type { ProjectInfo } from '../projects/api';
+import { useNarrowScreen } from './useNarrowScreen';
 import { DIALOG_CLOSED_EVENT, DIALOG_OPENED_EVENT } from '../projects/Modal';
 
 type Options = { readSidebarWidth: () => number; projects: ProjectInfo[] };
 /** Manages sidebar. */
 export function useSidebar({ readSidebarWidth, projects }: Options) {
-  const [compact, setCompact] = useState(() => window.innerWidth < 1100);
+  const compact = useNarrowScreen();
   const [drawerOpen, setSidebarOpen] = useState(false);
   const [sidebarHidden, setSidebarHidden] = useState(() => {
     try {
@@ -39,15 +40,10 @@ export function useSidebar({ readSidebarWidth, projects }: Options) {
   }, [compact, sidebarOpen]);
   const sidebarRef = useRef<HTMLElement | null>(null);
   const workspaceToggle = useRef<HTMLButtonElement | null>(null);
+  // Crossing the breakpoint in either direction starts with the drawer closed.
   useEffect(() => {
-    const media = window.matchMedia('(max-width: 1099px)');
-    const change = () => {
-      setCompact(media.matches);
-      setSidebarOpen(false);
-    };
-    media.addEventListener('change', change);
-    return () => media.removeEventListener('change', change);
-  }, []);
+    setSidebarOpen(false);
+  }, [compact]);
   // A dialog opened from the drawer must not leave the drawer open behind it. The trigger is
   // then out of reach, so focus goes to the workspace button when the dialog closes.
   const drawerOpenRef = useRef(false);

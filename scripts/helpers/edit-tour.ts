@@ -138,10 +138,9 @@ export async function editContainmentProblems(page: Page, screenName: string): P
       const unequal = firstRow.some(card => Math.abs(card.height - firstRow[0].height) > 1);
       if (unequal) problems.push('cards of one row differ in height');
       const clamped = [...document.querySelectorAll<HTMLElement>('.catalog-card p')].some(
-        paragraph =>
-          paragraph.clientHeight > 2 * parseFloat(getComputedStyle(paragraph).lineHeight),
+        paragraph => paragraph.scrollHeight > paragraph.clientHeight && !paragraph.title,
       );
-      if (clamped) problems.push('a card description is taller than two lines');
+      if (clamped) problems.push('a clamped card description has no tooltip with the full text');
     }
     return problems.map(problem => `${name}: ${problem}`);
   }, screenName);

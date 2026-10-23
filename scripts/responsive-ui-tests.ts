@@ -106,6 +106,16 @@ async function openPage(width: number, height: number) {
     );
     console.log('INJECTED_SMALL_TEXT_MUTATION');
   }
+  if (process.env.RESPONSIVE_MUTATION === 'catalog-title') {
+    await page.addInitScript(() =>
+      new MutationObserver(() =>
+        document
+          .querySelectorAll('.catalog-card p[title]')
+          .forEach(paragraph => paragraph.removeAttribute('title')),
+      ).observe(document, { childList: true, subtree: true }),
+    );
+    console.log('INJECTED_CATALOG_TITLE_MUTATION');
+  }
   if (process.env.RESPONSIVE_MUTATION === 'save-state-cut') {
     await page.addInitScript(() =>
       document.addEventListener('DOMContentLoaded', () => {

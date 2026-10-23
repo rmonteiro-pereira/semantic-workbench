@@ -76,12 +76,6 @@
 .odcs-table td.col-name {
   min-width: 140px;
 }
-.odcs-object-cell {
-  flex-wrap: wrap;
-}
-.odcs-title {
-  flex-wrap: wrap;
-}
 .odcs-head-action {
   margin-left: auto;
   display: inline-flex;
@@ -98,12 +92,12 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--text-small);
   font-weight: 600;
   color: #3a5a50;
 }
 .odcs-sort-control select {
-  font-size: 12px;
+  font-size: var(--text-small);
   padding: 5px;
   border: 1px solid #dbe3e4;
   border-radius: 6px;
@@ -116,16 +110,13 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
+  font-size: var(--text-small);
   padding: 3px 8px;
 }
 .odcs-table td .prop-badges {
   display: inline-flex;
   flex-wrap: wrap;
   gap: 4px;
-}
-.odcs-tabs {
-  flex-wrap: wrap;
 }
 .odcs-form {
   display: flex;

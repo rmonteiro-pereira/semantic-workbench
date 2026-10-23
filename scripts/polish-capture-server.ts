@@ -3,6 +3,7 @@
 //   bun scripts/polish-capture-server.ts <output directory> [user]
 import { chromium } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
+import { TEST_USERS } from '../tests/helpers/auth-identities';
 import { startMockOidc } from '../tests/helpers/mock-oidc';
 import { freeAuthPort, startAuthApi } from './auth-environment';
 import { authViewports, signIn, type SignInTarget } from './helpers/sign-in';
@@ -10,7 +11,13 @@ import { screenProblems, showScreen, tourScreens } from './helpers/screen-tour';
 
 const outputDirectory = process.argv[2];
 if (!outputDirectory) throw new Error('Pass an output directory.');
-const user = (process.argv[3] ?? 'alice') as 'alice';
+const requestedUser = process.argv[3] ?? 'alice';
+if (!(requestedUser in TEST_USERS)) {
+  throw new Error(
+    `Unknown user ${requestedUser}; use one of ${Object.keys(TEST_USERS).join(', ')}.`,
+  );
+}
+const user = requestedUser as keyof typeof TEST_USERS;
 mkdirSync(outputDirectory, { recursive: true });
 
 const url = `http://127.0.0.1:${freeAuthPort()}`;
@@ -28,18 +35,12 @@ try {
   const target: SignInTarget = { url, issuer: mock.endpointBase, kind: 'entra' };
   const page = await browser.newPage();
   await signIn(page, target, user);
-  const first = await page
-    .locator('.sidebar [role=treeitem] button.document')
-    .first()
-    .textContent();
-  console.log('first file', first);
   const files = await page.locator('.sidebar button.document span').allTextContents();
-  console.log(files.join(' | '));
   for (const [width, height] of authViewports) {
     await page.setViewportSize({ width, height });
     const screens = tourScreens({
-      ontology: files.find(name => name.includes('ontology')) ?? files[0]!,
-      contract: files.find(name => name.includes('odcs')) ?? files[0]!,
+      ontology: files.find(name => name.includes('ontology')) ?? files[0] ?? '',
+      contract: files.find(name => name.includes('odcs')) ?? files[0] ?? '',
     });
     for (const screen of screens) {
       try {

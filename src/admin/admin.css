@@ -21,7 +21,7 @@
   gap: 4px;
   min-width: 0;
   margin: 4px 0;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 /* A checkbox sits before its text on the same line. */
 .admin-dialog label:has(> input[type='checkbox']) {
@@ -51,7 +51,7 @@
   padding: 8px 12px 12px;
 }
 .admin-dialog legend {
-  font-size: 12px;
+  font-size: var(--text-small);
   font-weight: 600;
   color: #3a5a50;
   padding: 0 4px;
@@ -59,7 +59,7 @@
 .admin-dialog pre {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .admin-dialog p,
 .admin-dialog td {
@@ -82,7 +82,7 @@
   border-bottom: 1px solid #eef2f2;
 }
 .admin-dialog th {
-  font-size: 12px;
+  font-size: var(--text-small);
   font-weight: 600;
   color: #3a5a50;
 }
@@ -150,7 +150,7 @@
   border: 0;
   border-radius: 0;
   padding: 6px 14px;
-  font-size: 12px;
+  font-size: var(--text-small);
   background: #fff;
 }
 .admin-dialog .segmented button.selected {
@@ -184,7 +184,7 @@
   color: var(--text-muted);
 }
 .admin-notice {
-  font-size: 12px;
+  font-size: var(--text-small);
   opacity: 0.8;
   margin: 0;
 }
@@ -205,7 +205,7 @@
   border-radius: 8px;
   padding: 3px 6px;
   margin: 2px;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .admin-dialog .admin-filters {
   display: grid;
@@ -279,14 +279,14 @@
     color: var(--text-muted);
   }
   .admin-dialog .admin-table table {
-    font-size: 12px;
+    font-size: var(--text-small);
   }
 }
 .admin-launcher {
   flex-shrink: 0;
   /* Same size as the header actions beside it, so the header keeps its height. */
   padding: 8px 10px;
-  font-size: 12px;
+  font-size: var(--text-small);
   white-space: nowrap;
 }
 @media (max-width: 699px) {
@@ -305,14 +305,6 @@
 /* Forms put their primary action in the footer; the slot takes no box of its own. */
 .admin-dialog .admin-footer-actions {
   display: contents;
-}
-/* Only one dialog layer shows: a dialog hides its own panel while a dialog opened from it is
-   open, and the nested dialog stays visible because it sits in the top layer. */
-.admin-dialog:has(dialog[open]) {
-  visibility: hidden;
-}
-.admin-dialog dialog[open] {
-  visibility: visible;
 }
 /* An identifier follows the name it belongs to, quieter and in a face that keeps characters apart. */
 .admin-dialog .admin-id {

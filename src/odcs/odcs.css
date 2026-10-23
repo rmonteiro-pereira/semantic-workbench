@@ -27,6 +27,7 @@
 .odcs-title {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
   min-width: 0;
   color: #1e6a4f;
@@ -39,7 +40,7 @@
 }
 .odcs-title small {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .odcs-title > div {
   min-width: 0;
@@ -85,7 +86,7 @@
   padding: 0 8px;
   background: #eef3f1;
   color: #3a5a50;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .odcs-status.s-active {
   background: #e2f3ea;
@@ -95,12 +96,6 @@
 .odcs-status.s-retired {
   background: #fbeceb;
   color: #a3392f;
-}
-.odcs-description {
-  margin: 0;
-  font-size: 13px;
-  color: #3f5650;
-  max-width: 90ch;
 }
 .odcs-purpose {
   display: grid;
@@ -119,26 +114,10 @@
   margin: 0;
   color: #3f5650;
 }
-.odcs-sections {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
-  gap: 12px;
-}
-.odcs-section {
-  background: #fff;
-  border: 1px solid #dbe3e4;
-  border-radius: 10px;
-  padding: 12px 14px;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.odcs-section h3,
 .odcs-objects h3,
 .odcs-subhead {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--text-small);
   letter-spacing: 0.6px;
   text-transform: uppercase;
   color: #4d6660;
@@ -200,7 +179,7 @@
 .odcs-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .odcs-table th {
   text-align: left;
@@ -255,7 +234,7 @@ button.odcs-link {
   padding: 0;
   color: #1e6a4f;
   font-weight: 600;
-  font-size: 12px;
+  font-size: var(--text-small);
   text-decoration: underline;
   text-underline-offset: 2px;
   text-align: left;
@@ -280,12 +259,13 @@ button.odcs-link.fk:hover {
 }
 .odcs-back {
   align-self: flex-start;
-  font-size: 12px;
+  font-size: var(--text-small);
   padding: 5px 10px;
   gap: 5px;
 }
 .odcs-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 3px;
   background: #eaf0ed;
   padding: 3px;
@@ -329,7 +309,7 @@ button.odcs-link.fk:hover {
 }
 .odcs-toolbar small {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .odcs-sort {
   border: 0;
@@ -351,7 +331,7 @@ button.odcs-link.fk:hover {
 .col-name code {
   font-weight: 600;
   color: #243936;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .col-description {
   min-width: 200px;
@@ -368,23 +348,8 @@ button.odcs-link.fk:hover {
 }
 .odcs-note {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--text-small);
   color: #5d736c;
-}
-.odcs-depth {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #3a5a50;
-}
-.odcs-depth select {
-  font-size: 13px;
-  padding: 4px 6px;
-  border: 1px solid #dbe3e4;
-  border-radius: 6px;
-  background: #fff;
 }
 .odcs-chip {
   display: inline-block;
@@ -407,7 +372,7 @@ button.odcs-link.fk:hover {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--text-small);
   font-weight: 600;
   color: #3a5a50;
   min-width: 0;
@@ -416,7 +381,7 @@ button.odcs-link.fk:hover {
 .odcs-compare select {
   min-width: 0;
   flex: 1;
-  font-size: 12px;
+  font-size: var(--text-small);
   padding: 5px;
   border: 1px solid #dbe3e4;
   border-radius: 6px;
@@ -444,7 +409,7 @@ button.odcs-link.fk:hover {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .odcs-change {
   display: inline-block;
@@ -536,10 +501,6 @@ button.odcs-link.fk:hover {
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 18px;
   }
-  .odcs-sections {
-    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
-    align-items: start;
-  }
   .odcs-compare label {
     flex: 0 1 640px;
   }
@@ -569,7 +530,7 @@ button.odcs-link.fk:hover {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 12px;
+  font-size: var(--text-small);
   padding: 6px 9px;
   border: 1px solid #d6e1df;
   border-radius: 7px;
@@ -626,7 +587,7 @@ button.odcs-link.fk:hover {
   padding: 6px 8px;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .lineage-search li:hover {
   background: #eef5f2;
@@ -655,7 +616,7 @@ button.odcs-link.fk:hover {
   gap: 6px;
   padding: 5px 10px;
   border-bottom: 1px solid #eef2f2;
-  font-size: 12px;
+  font-size: var(--text-small);
   min-height: 30px;
   overflow-x: auto;
 }
@@ -686,7 +647,7 @@ button.odcs-link.fk:hover {
   padding: 2px 4px;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--text-small);
   color: #3a5a50;
 }
 .lineage-trail ol button[aria-current] {
@@ -729,7 +690,7 @@ button.odcs-link.fk:hover {
   background: #fff;
   overflow: auto;
   padding: 10px;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .lineage-path header {
   display: flex;
@@ -783,7 +744,7 @@ button.odcs-link.fk:hover {
   text-align: left;
   padding: 3px 0;
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--text-small);
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
@@ -824,7 +785,7 @@ button.odcs-link.fk:hover {
 }
 .lineage-path-action {
   margin-top: 10px;
-  font-size: 12px;
+  font-size: var(--text-small);
   padding: 6px 9px;
   border: 1px solid #d6e1df;
   border-radius: 7px;
@@ -855,7 +816,7 @@ button.odcs-link.fk:hover {
   outline: 1px solid #cfdfd9;
   border-radius: 9px;
   box-shadow: 0 1px 3px #2339361a;
-  font-size: 12px;
+  font-size: var(--text-small);
   overflow: visible;
   transition: opacity 0.15s;
 }
@@ -1003,7 +964,7 @@ button.odcs-link.fk:hover {
   padding: 0 10px;
   text-align: left;
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .lineage-row:hover {
   background: #f2f7f5;
@@ -1054,7 +1015,7 @@ button.odcs-link.fk:hover {
 }
 .lineage-more span {
   padding: 0 10px;
-  font-size: 12px;
+  font-size: var(--text-small);
   color: var(--text-muted);
   font-style: italic;
 }
@@ -1156,6 +1117,7 @@ button.odcs-link.fk:hover {
 .odcs-object-cell {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
 }
 .odcs-lineage-link {
@@ -1197,7 +1159,7 @@ button.odcs-link.fk:hover {
   padding: 6px 12px 6px 28px;
   background: #fff7e6;
   border-bottom: 1px solid #f0dcb4;
-  font-size: 12px;
+  font-size: var(--text-small);
   color: #6b4a12;
 }
 /* Keep header decoration inside HEADER_H; row and pager geometry comes from the layout. */
@@ -1220,7 +1182,7 @@ button.odcs-link.fk:hover {
   border: 1px solid #d6e1df;
   border-radius: 7px;
   background: #fff;
-  font-size: 12px;
+  font-size: var(--text-small);
   color: #3a5a50;
   white-space: nowrap;
   cursor: pointer;
@@ -1276,7 +1238,7 @@ button.odcs-link.fk:hover {
   margin: 14px 0 0;
   padding-top: 12px;
   border-top: 1px solid #dfe8e4;
-  font-size: 12px;
+  font-size: var(--text-small);
   line-height: 18px;
   color: #3a5a50;
 }
@@ -1299,7 +1261,7 @@ button.odcs-link.fk:hover {
   flex: 1;
   min-width: 0;
   overflow-wrap: anywhere;
-  font-size: 12px;
+  font-size: var(--text-small);
   line-height: 1.5;
 }
 .lineage-bindings small {
@@ -1327,7 +1289,7 @@ button.odcs-link.fk:hover {
 .lineage-bindings button {
   flex: none;
   min-height: 34px;
-  font-size: 12px;
+  font-size: var(--text-small);
   padding: 6px 9px;
   border: 1px solid #d6e1df;
   border-radius: 7px;
@@ -1366,7 +1328,7 @@ button.odcs-link.fk:hover {
   border-radius: 0;
   height: 32px;
   padding: 0 10px;
-  font-size: 12px;
+  font-size: var(--text-small);
   background: #fff;
   cursor: pointer;
   white-space: nowrap;
