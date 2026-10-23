@@ -3,6 +3,7 @@ import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { LOCAL_READER } from '../server/projects/reader';
+import { menuSurfaceProblems } from './helpers/menu-geometry';
 // Dialogs must fit six viewports, trap focus and return focus to their trigger after Escape.
 // Screenshots use /tmp/workbench-dialog-*.png.
 const api = await startIsolatedApi();
@@ -217,6 +218,63 @@ try {
         }
       },
     );
+  if (!ONLY || 'menus'.includes(ONLY))
+    await check('menus: opaque, inside the window and reachable at four sizes', async () => {
+      const menuSizes: [number, number][] = [
+        [390, 844],
+        [1280, 720],
+        [1440, 900],
+        [2560, 1440],
+      ];
+      for (const [width, height] of menuSizes) {
+        const context = await browser.newContext({ viewport: { width, height } });
+        const p = await context.newPage();
+        p.on('pageerror', x => errors.push(`menus ${width}: ${x.message}`));
+        try {
+          await routeApi(p, api);
+          await p.goto(appUrl());
+          await expect(p.locator('.project-tree, .projects-empty').first()).toBeAttached();
+          await openFile(p, mall.name, 'mall.ontology.yaml');
+          const openers = [
+            {
+              name: 'New',
+              open: async () => p.getByRole('button', { name: 'New', exact: true }).click(),
+            },
+            {
+              name: 'project',
+              open: async () => {
+                await workspace(p);
+                await p.getByRole('button', { name: `Actions for ${commerce.name}` }).click();
+              },
+            },
+            {
+              name: 'file',
+              open: async () => {
+                await workspace(p);
+                const label = `Actions for mall.ontology.yaml in ${mall.name}`;
+                await p.getByRole('button', { name: label }).click();
+              },
+            },
+            {
+              name: 'Examples',
+              open: async () => {
+                await workspace(p);
+                await p.getByRole('button', { name: 'Examples', exact: true }).click();
+              },
+            },
+          ];
+          for (const opener of openers) {
+            await opener.open();
+            await expect(p.getByRole('menu')).toBeVisible();
+            expect(await menuSurfaceProblems(p), `${opener.name} menu at ${width}`).toEqual([]);
+            await p.keyboard.press('Escape');
+            await expect(p.getByRole('menu')).toHaveCount(0);
+          }
+        } finally {
+          await context.close();
+        }
+      }
+    });
   if (errors.length) throw Error(errors.join('\n'));
   console.log(`${passed} dialog checks passed at six viewports on isolated data root ${api.root}.`);
 } finally {

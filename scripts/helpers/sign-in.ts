@@ -5,6 +5,7 @@ import { TEST_CLIENTS, TEST_USERS, type TestUserName } from '../../tests/helpers
 import { screenshotPath } from './screenshots';
 import { headerProblems } from './header';
 import { layoutProblems } from './layout-geometry';
+import { menuSurfaceProblems } from './menu-geometry';
 import { closeSyncDialog, offersSyncDialog, openSyncDialog } from './sync-dialog';
 import { smallTextProblems, textCollisionProblems } from './text-geometry';
 
@@ -156,7 +157,10 @@ export async function authGeometry(
     if (name === 'person-menu' || name === 'viewer-workspace') {
       // The header keeps its controls apart, aligned and readable in server mode too.
       assert.deepEqual(await headerProblems(page), [], `header at ${width}×${height}`);
-      await assertTextProblemsEmpty(page, `${name} header`, '.workspace-header', width);
+      // An open menu legitimately covers the header's second row on a phone.
+      if (name === 'viewer-workspace') {
+        await assertTextProblemsEmpty(page, `${name} header`, '.workspace-header', width);
+      }
     }
     if (name === 'person-menu') {
       // The person menu may not squeeze the save state into an ellipsis from 1200 px.
@@ -174,6 +178,7 @@ export async function authGeometry(
         trigger.y < title.y + title.height && title.y < trigger.y + trigger.height,
         'Person menu must stay on the first header row',
       );
+      assert.deepEqual(await menuSurfaceProblems(page), [], `person menu surface at ${width}`);
       const summary = page.locator('.person-summary');
       await expect(summary).toBeVisible();
       await expect(summary).not.toHaveAttribute('role', 'menuitem');
