@@ -900,11 +900,20 @@ bun scripts/theme-codemod.ts src/odcs    # limit the run to some paths
 
 Run `bun run fmt` afterwards. `--report` lists every literal with the token it became.
 
+### The theme check
+
+`bun run check` ends with `bun run check:theme`, which fails with `file:line` for every colour
+literal in `src/`, `server/` and `index.html` outside the two theme files. Literals are hex
+values, `rgb()`, `rgba()`, `hsl()` and the named colours; `transparent`, `currentColor` and
+`inherit` are fine. `src/theme.css` holds the tokens. `src/theme-palette.ts` is the only other
+place for literals: it lists the group colours that data picks at run time. The server's sign-in
+pages receive `src/theme.css` too, so their colours follow the tokens.
+
 ## Checking your work
 
 ```sh
 bun test              # 1,547 tests in 217 files
-bun run check         # tsc, fmt:check, oxlint and the comment check
+bun run check         # tsc, fmt:check, oxlint, the comment check and the theme check
 bun run build         # compiles the schemas, then the production frontend
 ```
 
@@ -974,7 +983,7 @@ SW_SCREENSHOT_DIR=/tmp/admin-shots bun test tests/admin-geometry.test.tsx  # eve
 
 ### Mutation checks
 
-`bun run test:mutation` is targeted, not a whole-project score. It introduces 496
+`bun run test:mutation` is targeted, not a whole-project score. It introduces 514
 deliberate faults into temporary copies of the code, each of which a test must detect, plus five
 faults injected into a running browser page (an empty neighborhood projection, a status line drawn
 over the map controls, status messages that never dismiss, a label below the minimum text size and
@@ -985,7 +994,8 @@ folder store; Git safety (no shell strings, no remote command outside an explici
 `--global` identity); the journal, trash and clone staging; sign-in, sessions and the HTTP
 boundary; the access boundary, guards and working copies; the Admin panel (an unpreviewed or
 invalid change activated, a built-in role changed, a deactivated principal allowed, a stale review
-confirmed); the folder path check, the sparse-checkout arguments and the partial clone; and the delivery scripts.
+confirmed); the folder path check, the sparse-checkout arguments and the partial clone; the colour
+literal scanner, the theme check and the theme codemod; and the delivery scripts.
 
 ### The full gate and the delivery scripts
 
