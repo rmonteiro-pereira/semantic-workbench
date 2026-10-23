@@ -247,3 +247,26 @@
 .sql-field-findings li {
   overflow-wrap: anywhere;
 }
+/* The status bar names the first finding, so the triangle in the gutter has a visible message. A
+   long message is cut with an ellipsis and stays complete in the tooltip. */
+.code-editor-bar .code-editor-finding {
+  max-width: min(520px, 100%);
+  min-width: 0;
+  color: var(--color-warning-text);
+  background: var(--color-warning-soft);
+  border-color: var(--color-warning-border);
+}
+.code-editor-bar .code-editor-finding.error {
+  color: var(--color-danger-text);
+  background: var(--color-danger-soft);
+  border-color: var(--color-danger-border);
+}
+.code-editor-finding svg {
+  flex: none;
+}
+.code-editor-finding span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -197,6 +197,15 @@ export function saveStateLabel(s: AutosaveState, uncommitted: number) {
       return `Saved to file · ${changes}`;
   }
 }
+/**
+ * The save-state label for a header with little room: a clean save is just "Saved". Every other
+ * state keeps its full label because it tells the person what to do.
+ */
+export function saveStateShortLabel(s: AutosaveState, uncommitted: number) {
+  if (s.status !== 'saved' && s.status !== 'clean') return saveStateLabel(s, uncommitted);
+  if (uncommitted === 0) return 'Saved';
+  return `Saved · ${uncommitted} to commit`;
+}
 // Validation must match the exact editor text. Saves apply changes against the saved version’s
 // hash and return the next hash. Diff computation and requests start in idle time after the pause,
 // never on a keystroke.

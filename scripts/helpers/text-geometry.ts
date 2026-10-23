@@ -123,9 +123,13 @@ type TextColorSample = {
 };
 
 /** Reads the colour, the colour behind it and the size class of every visible text run. */
-async function sampleTextColors(page: Page, within: string): Promise<TextColorSample[]> {
+async function sampleTextColors(
+  page: Page,
+  within: string,
+  disabledOnly = false,
+): Promise<TextColorSample[]> {
   return page.evaluate(
-    ({ skip, root }) => {
+    ({ skip, root, disabledOnly }) => {
       const scratch = document.createElement('canvas');
       scratch.width = 1;
       scratch.height = 1;
@@ -177,8 +181,12 @@ async function sampleTextColors(page: Page, within: string): Promise<TextColorSa
         const label = node.textContent?.trim();
         const element = node.parentElement;
         if (!label || !element || element.matches(skip)) continue;
-        // Disabled controls are exempt from contrast rules, as WCAG allows.
-        if (element.closest('button:disabled,[aria-disabled="true"],fieldset:disabled')) continue;
+        // WCAG exempts disabled controls from contrast rules, so the normal check skips them and
+        // the disabled check reads only them.
+        const disabled = element.closest(
+          'button:disabled,[aria-disabled="true"],fieldset:disabled',
+        );
+        if (!!disabled !== disabledOnly) continue;
         const style = getComputedStyle(element);
         if (style.visibility === 'hidden' || style.display === 'none') continue;
         const box = element.getBoundingClientRect();
@@ -200,7 +208,7 @@ async function sampleTextColors(page: Page, within: string): Promise<TextColorSa
       }
       return samples;
     },
-    { skip: NOT_INTERFACE_TEXT, root: within },
+    { skip: NOT_INTERFACE_TEXT, root: within, disabledOnly },
   );
 }
 
@@ -213,6 +221,21 @@ export async function lowContrastProblems(page: Page, within = 'body'): Promise<
     const needed = sample.large ? MIN_LARGE_TEXT_CONTRAST : MIN_TEXT_CONTRAST;
     if (ratio >= needed) continue;
     problems.add(`"${sample.label}" has contrast ${ratio.toFixed(2)}:1, needs ${needed}:1`);
+  }
+  return [...problems];
+}
+
+/**
+ * Returns the label of every disabled control, inside the `within` element, that is fainter than
+ * 3:1. A disabled button stays readable even though WCAG would excuse it.
+ */
+export async function lowDisabledContrastProblems(page: Page, within = 'body'): Promise<string[]> {
+  const problems = new Set<string>();
+  for (const sample of await sampleTextColors(page, within, true)) {
+    if (!sample.background) continue;
+    const ratio = contrastRatio(sample.color, sample.background);
+    if (ratio >= MIN_LARGE_TEXT_CONTRAST) continue;
+    problems.add(`disabled "${sample.label}" has contrast ${ratio.toFixed(2)}:1, needs 3:1`);
   }
   return [...problems];
 }

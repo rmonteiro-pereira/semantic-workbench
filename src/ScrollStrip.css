@@ -1,0 +1,30 @@
+/* A strip that scrolls sideways shows a chevron beside each edge that has more items beyond it.
+   The strip keeps a margin for the two cues while it scrolls, and each cue is anchored to the edge
+   of its strip, so a cue never covers an item and showing or hiding it moves nothing. */
+:root {
+  --scroll-cue-width: 24px;
+}
+.scroll-strip-cued {
+  margin-inline: var(--scroll-cue-width);
+}
+.scroll-cue {
+  position: fixed;
+  top: anchor(top);
+  bottom: anchor(bottom);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--scroll-cue-width);
+  color: var(--color-accent-text);
+  cursor: pointer;
+}
+.scroll-cue-start {
+  right: anchor(left);
+}
+.scroll-cue-end {
+  left: anchor(right);
+}
+.scroll-cue:hover {
+  color: var(--color-accent-hover);
+}

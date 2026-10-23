@@ -22,6 +22,13 @@ import { editTitleProblems, odcsLayoutProblems, sidewaysTableProblems } from './
 import { projectDialogBackdropProblems } from './helpers/project-dialog-tour';
 import { pageLayoutProblems } from './helpers/page-layout';
 import { dialogStandardProblems } from './helpers/dialog-geometry';
+import {
+  contentWidthProblems,
+  headerTitleProblems,
+  shellScreens,
+  sidebarTreeProblems,
+  tabStripProblems,
+} from './helpers/shell-tour';
 import { odcsGraphScreenProblems, odcsGraphScreens } from './helpers/odcs-graph-tour';
 import { graphScreenProblems, graphScreens } from './helpers/graph-tour';
 import { EXPECTED_EXAMPLE_METRICS } from './example-metric-checks';
@@ -1725,6 +1732,23 @@ try {
       },
     );
     await canvasPage.close();
+  }
+  // The shell parts of the main screens: header tooltips and short save state, the tab strip cues,
+  // the open file in the sidebar tree and one content width on wide windows.
+  for (const [width, height] of DARK_TOUR_SIZES) {
+    const shellTourPage = await openPage(width, height);
+    await check(`shell screens: ${width}×${height} header, tab strip, tree and width`, async () => {
+      for (const screen of shellScreens('ubl.ontology.yaml', 'commerce.odcs.yaml')) {
+        await showScreen(shellTourPage, screen);
+        expect(await screenProblems(shellTourPage, screen)).toEqual([]);
+        expect(await headerTitleProblems(shellTourPage, width), screen.name).toEqual([]);
+        expect(await tabStripProblems(shellTourPage), screen.name).toEqual([]);
+        expect(await contentWidthProblems(shellTourPage, width), screen.name).toEqual([]);
+        await noOverflow(shellTourPage);
+      }
+      expect(await sidebarTreeProblems(shellTourPage, 'commerce.odcs.yaml')).toEqual([]);
+    });
+    await shellTourPage.close();
   }
   await check('no uncaught browser errors', async () => expect(errors).toEqual([]));
   console.log(`${passed} responsive UI checks passed`);

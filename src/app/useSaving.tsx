@@ -5,7 +5,12 @@ import { validateInWorker } from '../editor/lint';
 import { diffPatches, normalize } from '../editor/patch';
 import type { Doc, ProjectInfo } from '../projects/api';
 import { api, scm as scmApi, StaleSave } from '../projects/api';
-import { failureReason, saveStateLabel, useAutosave } from '../projects/autosave';
+import {
+  failureReason,
+  saveStateLabel,
+  saveStateShortLabel,
+  useAutosave,
+} from '../projects/autosave';
 import { isGitignore } from '../scm/gitignore';
 import { applyDemotions, type Demotion } from '../governance/guards';
 
@@ -116,6 +121,7 @@ export function useSaving({
   }
   const uncommitted = projects.find(p => p.slug === current?.project)?.changes ?? 0;
   const saveState = saveStateLabel(autosave.state, uncommitted);
+  const saveStateShort = saveStateShortLabel(autosave.state, uncommitted);
   // Leaving a file or view: a due valid save is written first; invalid text stays a server draft
   // (no "Discard unsaved changes?" prompt; the draft is announced instead).
   async function leaveCurrent() {
@@ -147,6 +153,7 @@ export function useSaving({
     committing,
     setCommitting,
     saveState,
+    saveStateShort,
     openStale,
     setGitBusy,
   };

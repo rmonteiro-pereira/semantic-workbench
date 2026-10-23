@@ -7,9 +7,14 @@ import { showSidebar, type Screen } from './screen-tour';
 
 /** Opens the Metrics tab of an example project, expanding the project in the sidebar first. */
 export async function openExampleMetrics(page: Page, setId: string) {
-  await showSidebar(page);
   const name = exampleSet(setId)!.name;
   const project = page.getByRole('treeitem', { name, exact: true });
+  // The app closes the phone drawer once while it finishes loading, so a click that lands in
+  // that moment is repeated until the tree shows.
+  await expect(async () => {
+    await showSidebar(page);
+    await expect(project).toBeVisible({ timeout: 2000 });
+  }).toPass({ timeout: 30_000 });
   if ((await project.getAttribute('aria-expanded')) === 'false')
     await project.getByRole('button', { name, exact: true }).click();
   await project

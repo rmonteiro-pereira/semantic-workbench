@@ -1,7 +1,7 @@
 // Tests mapping findings to source ranges and document-level fallbacks.
 import { test, expect } from 'bun:test';
 import { Text } from '@codemirror/state';
-import { issueRange, toDiagnostics } from '../src/editor/lint';
+import { issueRange, summarizeDiagnostics, toDiagnostics } from '../src/editor/lint';
 import { validateInput } from '../src/input';
 
 const doc = (s: string) => Text.of(s.split('\n'));
@@ -45,4 +45,27 @@ test('real findings: located ones become diagnostics, unlocated ones stay docume
   const d = diagnostics.find(x => x.severity === 'error')!;
   expect(d.message.length).toBeGreaterThan(0);
   expect(source.slice(d.from, d.to).length).toBeGreaterThan(0);
+});
+test('the status bar names the first error, else the first finding, with a count', () => {
+  const d = doc('a: 1\nb: 2\nc: 3');
+  const warning = { from: d.line(1).from, to: 1, severity: 'warning' as const, message: 'soft' };
+  const error = {
+    from: d.line(3).from,
+    to: d.line(3).to,
+    severity: 'error' as const,
+    message: 'hard',
+  };
+  expect(summarizeDiagnostics([], d)).toBe(null);
+  expect(summarizeDiagnostics([warning], d)).toEqual({
+    count: 1,
+    line: 1,
+    severity: 'warning',
+    message: 'soft',
+  });
+  expect(summarizeDiagnostics([error, warning], d)).toEqual({
+    count: 2,
+    line: 3,
+    severity: 'error',
+    message: 'hard',
+  });
 });
