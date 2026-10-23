@@ -52,7 +52,7 @@
 .header-account {
   flex: 0 0 auto;
   padding-left: 12px;
-  border-left: 1px solid #e3e9e7;
+  border-left: 1px solid var(--color-border-subtle);
 }
 .header-account:not(:has(button, [role='status'])) {
   display: none;
@@ -73,9 +73,9 @@
 .header-group > .save-state {
   min-width: 90px;
   max-width: min(300px, 26vw);
-  border: 1px solid #d6e5df;
-  background: #f2f8f5;
-  color: #285146;
+  border: 1px solid var(--color-accent-border);
+  background: var(--color-surface-hover);
+  color: var(--color-text-secondary);
   font-size: var(--text-small);
   font-weight: 600;
   border-radius: 999px;
@@ -89,26 +89,26 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #2f8f6b;
+  background: var(--color-success);
 }
 .save-state.s-pending::before,
 .save-state.s-saving::before,
 .save-state.s-waiting::before {
-  background: #c79a2b;
+  background: var(--color-warning-bright);
 }
 .header-group > .save-state.s-invalid,
 .header-group > .save-state.s-stale,
 .header-group > .save-state.s-failed,
 .header-group > .save-state.s-cancelled {
-  background: #fdf1ef;
-  border-color: #f1cfc9;
-  color: #9b3328;
+  background: var(--color-danger-soft);
+  border-color: var(--color-danger-border);
+  color: var(--color-danger-text);
 }
 .save-state.s-invalid::before,
 .save-state.s-stale::before,
 .save-state.s-failed::before,
 .save-state.s-cancelled::before {
-  background: #c2483a;
+  background: var(--color-danger-text);
 }
 /* A refusal is a whole sentence: the pill grows to two lines instead of cutting it. */
 .header-group > .save-state.s-failed {
