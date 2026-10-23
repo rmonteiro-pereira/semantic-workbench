@@ -9,6 +9,7 @@ import { neighborhoodEdgeProblems, neighborhoodState, pickCenter } from './helpe
 import { inspect } from '../src/model';
 import { layoutProblems, lineageProblems } from './helpers/layout-geometry';
 import { screenProblems, showScreen, tourScreens } from './helpers/screen-tour';
+import { editContainmentProblems, editScreens } from './helpers/edit-tour';
 
 // Isolated API fixture: exercising viewport changes never modifies the local workspace. The UBL
 // ontology is imported first so that it opens first.
@@ -31,6 +32,18 @@ await api.ws.importBatch(
         path,
         source: await Bun.file(`public/examples/commerce/${path}`).text(),
       })),
+    ),
+  },
+  LOCAL_READER,
+);
+// A mapping document, so the Mappings tab can open the query composer.
+await api.ws.importBatch(
+  {
+    name: 'Flights',
+    files: await Promise.all(
+      ['flights.ontology.yaml', 'flights.semantic_model.yaml', 'flights.mapping.yaml'].map(
+        async path => ({ path, source: await Bun.file(`public/examples/ossie/${path}`).text() }),
+      ),
     ),
   },
   LOCAL_READER,
@@ -1355,6 +1368,25 @@ try {
       }
     });
     await tourPage.close();
+  }
+  // Edit drawers, add dialogs, metrics, mappings, the query composer and the catalog.
+  const editTour = editScreens({ ontology: 'ubl.ontology.yaml', metricsModel: 'sales.ossie.yaml' });
+  for (const [width, height] of [
+    [390, 844],
+    [1280, 720],
+    [1440, 900],
+    [2560, 1440],
+  ]) {
+    const editPage = await openPage(width!, height!);
+    await check(`edit screens: ${width}×${height} readable text and no overlaps`, async () => {
+      for (const screen of editTour) {
+        await showScreen(editPage, screen);
+        expect(await screenProblems(editPage, screen)).toEqual([]);
+        expect(await editContainmentProblems(editPage, screen.name)).toEqual([]);
+        await noOverflow(editPage);
+      }
+    });
+    await editPage.close();
   }
   await check('no uncaught browser errors', async () => expect(errors).toEqual([]));
   console.log(`${passed} responsive UI checks passed`);

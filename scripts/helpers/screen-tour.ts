@@ -26,7 +26,8 @@ export async function showSidebar(page: Page) {
   if (await show.isVisible()) await show.click();
 }
 
-async function openFile(page: Page, path: string) {
+/** Opens a file from the sidebar. */
+export async function openFile(page: Page, path: string) {
   await showSidebar(page);
   await page.getByRole('button', { name: path, exact: true }).first().click();
   await page.waitForTimeout(600);
@@ -47,7 +48,8 @@ async function pressSidebarButton(page: Page, name: string | RegExp) {
   await page.waitForTimeout(500);
 }
 
-function fileTab(file: string, tab: string): Screen['show'] {
+/** Opens a file and then one of its view tabs. */
+export function fileTab(file: string, tab: string): Screen['show'] {
   return async page => {
     await openFile(page, file);
     await openTab(page, tab);
