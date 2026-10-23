@@ -4,13 +4,14 @@ import { parseDocument, stringify } from 'yaml';
 import { validateInput } from '../src/input';
 import { ansiExpression } from '../src/metrics/deps';
 import { inferredAdditivity, inferredType, readMetricExtension } from '../src/metrics/extension';
-// Metric extensions on copies of the 52 metrics shipped in the examples.
+// Metric extensions on copies of the 59 metrics shipped in the examples.
 const shipped = [
   'billing/billing.semantic.yaml',
   'commerce/sales.ossie.yaml',
   'commerce/commerce.mapped-semantic.yaml',
   'mall/mall.semantic.yaml',
   'ubl/ubl.semantic.yaml',
+  'ossie/flights.metrics.semantic.yaml',
 ];
 // A copy with an extension on every metric: mall's own, inferred ones elsewhere.
 async function annotated(file: string) {
@@ -38,9 +39,9 @@ async function annotated(file: string) {
   });
   return { file, source: doc.toString({ lineWidth: 0 }), count: data.metrics.length };
 }
-test('the 52 shipped metrics carry valid extensions that parse back', async () => {
+test('the 59 shipped metrics carry valid extensions that parse back', async () => {
   const copies = await Promise.all(shipped.map(annotated));
-  expect(copies.reduce((n, c) => n + c.count, 0)).toBe(52);
+  expect(copies.reduce((n, c) => n + c.count, 0)).toBe(59);
   let parsed = 0;
   for (const c of copies) {
     const r = validateInput(c.source, c.file.split('/')[1]);
@@ -53,7 +54,7 @@ test('the 52 shipped metrics carry valid extensions that parse back', async () =
       parsed++;
     }
   }
-  expect(parsed).toBe(52);
+  expect(parsed).toBe(59);
 });
 test('schema errors are located on the offending key inside the block, line and column', async () => {
   for (const c of await Promise.all(shipped.map(annotated))) {

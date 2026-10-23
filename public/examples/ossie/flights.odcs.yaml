@@ -1,0 +1,139 @@
+# Workbench addition: a data contract for the Flights tables behind flights.metrics.semantic.yaml.
+# The upstream Apache Ossie Flights example ships no data contract; this one covers only the
+# columns the governed metrics read and break down by.
+apiVersion: v3.1.0
+kind: DataContract
+id: c3a5e0d2-5b1c-4e47-8f6a-2d9b7e4a1c33
+name: Flights warehouse contract
+version: 1.0.0
+status: active
+domain: Aviation
+dataProduct: Flight operations analytics
+description:
+  purpose: Flight, carrier, route and airport tables that the governed Flights metrics read.
+  limitations: Illustrative contract written for this example. It does not describe a real warehouse.
+schema:
+  - name: FLIGHTS
+    physicalName: DATABASE.SCHEMA.FLIGHTS
+    physicalType: table
+    logicalType: object
+    description: A commercial passenger flight.
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Flight identifier.
+      - name: carrier_code
+        logicalType: string
+        required: true
+        description: Operating carrier.
+        relationships:
+          - type: foreignKey
+            to: CARRIERS.code
+      - name: route_id
+        logicalType: integer
+        required: true
+        description: Route flown.
+        relationships:
+          - type: foreignKey
+            to: ROUTES.id
+      - name: date
+        logicalType: date
+        required: true
+        description: Scheduled departure date.
+      - name: distance
+        logicalType: integer
+        required: true
+        description: Flown distance in statute miles.
+      - name: dep_delay
+        logicalType: integer
+        required: false
+        description: Minutes after the scheduled departure; negative when early.
+      - name: arr_delay
+        logicalType: integer
+        required: false
+        description: Minutes after the scheduled arrival; negative when early.
+        quality:
+          - name: arrival_delay_in_minutes
+            type: text
+            dimension: accuracy
+            severity: warning
+            description: Delay is in whole minutes; early arrivals are negative.
+    quality:
+      - name: one_row_per_flight
+        type: text
+        dimension: uniqueness
+        severity: error
+        description: Each flight appears exactly once.
+  - name: CARRIERS
+    physicalName: DATABASE.SCHEMA.CARRIERS
+    physicalType: table
+    logicalType: object
+    description: An airline, such as Delta, United, or American.
+    properties:
+      - name: code
+        logicalType: string
+        required: true
+        primaryKey: true
+        unique: true
+        description: Carrier code.
+      - name: name
+        logicalType: string
+        required: true
+        description: Carrier name.
+  - name: ROUTES
+    physicalName: DATABASE.SCHEMA.ROUTES
+    physicalType: table
+    logicalType: object
+    description: One or more flights between a departure and an arrival airport.
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        primaryKey: true
+        unique: true
+        description: Route identifier.
+      - name: orig_airport_code
+        logicalType: string
+        required: true
+        description: Departure airport.
+        relationships:
+          - type: foreignKey
+            to: AIRPORTS.code
+      - name: distance
+        logicalType: integer
+        required: true
+        description: Route distance in statute miles.
+  - name: AIRPORTS
+    physicalName: DATABASE.SCHEMA.AIRPORTS
+    physicalType: table
+    logicalType: object
+    description: An airport that is identified by an IATA code.
+    properties:
+      - name: code
+        logicalType: string
+        required: true
+        primaryKey: true
+        unique: true
+        description: IATA code.
+      - name: name
+        logicalType: string
+        required: true
+        description: Airport name.
+      - name: state_code
+        logicalType: string
+        required: true
+        description: State or territory code.
+slaProperties:
+  - property: latency
+    value: 1
+    unit: d
+    element: DATABASE.SCHEMA.FLIGHTS
+  - property: frequency
+    value: 1
+    unit: d
+team:
+  - username: flight-data
+    role: owner

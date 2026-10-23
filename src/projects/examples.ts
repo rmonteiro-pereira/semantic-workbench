@@ -77,10 +77,13 @@ export const EXAMPLE_SETS: ExampleSet[] = [
       'flights.semantic_model.yaml',
       'flights.mapping.yaml',
       'flights.yaml',
+      'flights.metrics.semantic.yaml',
+      'flights.metrics.mapping.yaml',
+      'flights.odcs.yaml',
     ],
     tab: 'fullgraph',
     message:
-      'Loaded official Apache Ossie Flights: ontology, semantic model, standalone and embedded mappings.',
+      'Loaded official Apache Ossie Flights: ontology, semantic model, standalone and embedded mappings, plus workbench-added metrics and a data contract.',
   },
   {
     id: 'billing',

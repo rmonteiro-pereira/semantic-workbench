@@ -119,12 +119,15 @@ test("metricBindings: the mall mapping's KPI bindings resolve to metric ids and 
     expect(m.evidence.filename).toBe('mall.mapping.yaml');
   }
   // Without a SEMANTIC_WORKBENCH extension the list is empty, never missing.
-  for (const x of all.flights) expect(x.context.metricBindings).toEqual([]);
+  const upstreamFlights = all.flights.filter(x => x.filename !== 'flights.metrics.mapping.yaml');
+  expect(upstreamFlights).toHaveLength(2);
+  for (const x of upstreamFlights) expect(x.context.metricBindings).toEqual([]);
 });
 test('the mappings that ship metric bindings list one resolved binding per metric', () => {
   const shipped: [string, string, number][] = [
     ['mapped-commerce', 'commerce.mapping.yaml', 4],
     ['billing', 'billing.mapping.yaml', 8],
+    ['flights', 'flights.metrics.mapping.yaml', 7],
   ];
   for (const [example, filename, count] of shipped) {
     const c = all[example].find(x => x.filename === filename)!.context;
