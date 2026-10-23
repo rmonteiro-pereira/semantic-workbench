@@ -13,6 +13,7 @@ import { screenProblems, showScreen, type Screen } from './helpers/screen-tour';
 import { tourGroups } from './helpers/all-tours';
 import { editContainmentProblems } from './helpers/edit-tour';
 import { sidewaysTableProblems } from './helpers/odcs-tour';
+import { EXAMPLE_METRICS_FILES, exampleMetricScreens } from './helpers/examples-tour';
 
 // Isolated API fixture: exercising viewport changes never modifies the local workspace. The UBL
 // ontology is imported first so that it opens first.
@@ -1504,6 +1505,39 @@ try {
       },
     );
     await shellPage.close();
+  }
+  // The metric screens of every shipped example, in a workspace that holds all of them.
+  if (!only || 'examples:'.startsWith(only) || only.startsWith('examples:')) {
+    const exampleApi = await startIsolatedApi();
+    try {
+      for (const setId of Object.keys(EXAMPLE_METRICS_FILES))
+        await exampleApi.ws.loadExample(setId);
+      for (const [width, height] of [
+        [390, 844],
+        [1280, 720],
+        [1440, 900],
+        [2560, 1440],
+      ]) {
+        const examplePage = await browser.newPage({ viewport: { width: width!, height: height! } });
+        examplePage.on('pageerror', error => errors.push(`${width}×${height}: ${error.message}`));
+        await routeApi(examplePage, exampleApi);
+        await examplePage.goto(appUrl());
+        await expect(examplePage.locator('h1')).toBeVisible();
+        await check(
+          `examples: ${width}×${height} metric screens readable, no overlaps`,
+          async () => {
+            for (const screen of exampleMetricScreens()) {
+              await showScreen(examplePage, screen);
+              expect(await screenProblems(examplePage, screen)).toEqual([]);
+              await noOverflow(examplePage);
+            }
+          },
+        );
+        await examplePage.close();
+      }
+    } finally {
+      await exampleApi.stop();
+    }
   }
   await check('no uncaught browser errors', async () => expect(errors).toEqual([]));
   console.log(`${passed} responsive UI checks passed`);
