@@ -1,0 +1,215 @@
+/* The header holds the sidebar toggle, the title and two clusters on the right: the actions
+   (file actions, then the save state with Commit) and the account (Admin and the person menu). */
+.workspace-header {
+  --header-control-height: 36px;
+  flex: 0 0 auto;
+  height: auto;
+  min-height: 58px;
+  padding: 9px 16px;
+  gap: 12px;
+  justify-content: flex-start;
+}
+.workspace-toggle {
+  flex-shrink: 0;
+  width: var(--header-control-height);
+  height: var(--header-control-height);
+  padding: 0;
+}
+.workspace-title {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px 12px;
+}
+.workspace-title h1 {
+  margin: 0;
+  font-size: clamp(15px, 1.15vw, 21px);
+  line-height: 1.35;
+  font-weight: 650;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.workspace-title .badge {
+  flex-shrink: 0;
+  padding: 4px 8px;
+}
+.header-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.header-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+/* The account cluster sits apart from the actions so it reads as who is signed in. An empty
+   cluster, as in server mode before the person is known, takes no room; an error message stays. */
+.header-account {
+  flex: 0 0 auto;
+  padding-left: 12px;
+  border-left: 1px solid #e3e9e7;
+}
+.header-account:not(:has(button, [role='status'])) {
+  display: none;
+}
+.header-group > button,
+.header-group > .menu-button > button {
+  height: var(--header-control-height);
+  padding: 0 12px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.header-state {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+/* Save state: a pill next to Commit; it opens Commit, the findings or the diff. */
+.header-group > .save-state {
+  min-width: 90px;
+  max-width: min(300px, 26vw);
+  border: 1px solid #d6e5df;
+  background: #f2f8f5;
+  color: #285146;
+  font-size: var(--text-small);
+  font-weight: 600;
+  border-radius: 999px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.save-state::before {
+  content: '';
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2f8f6b;
+}
+.save-state.s-pending::before,
+.save-state.s-saving::before,
+.save-state.s-waiting::before {
+  background: #c79a2b;
+}
+.header-group > .save-state.s-invalid,
+.header-group > .save-state.s-stale,
+.header-group > .save-state.s-failed,
+.header-group > .save-state.s-cancelled {
+  background: #fdf1ef;
+  border-color: #f1cfc9;
+  color: #9b3328;
+}
+.save-state.s-invalid::before,
+.save-state.s-stale::before,
+.save-state.s-failed::before,
+.save-state.s-cancelled::before {
+  background: #c2483a;
+}
+/* A refusal is a whole sentence: the pill grows to two lines instead of cutting it. */
+.header-group > .save-state.s-failed {
+  max-width: min(380px, 32vw);
+  height: auto;
+  min-height: var(--header-control-height);
+  padding-block: 3px;
+  border-radius: 14px;
+  line-height: 1.25;
+}
+.save-state.s-failed .save-state-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.save-state:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.save-state .save-state-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Below 1100 px the file actions and Commit keep their icon; the names stay for assistive
+   technology and in the tooltips. */
+@media (max-width: 1099px) {
+  .header-actions .action-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .header-group > button,
+  .header-group > .menu-button > button {
+    min-width: var(--header-control-height);
+    padding: 0 9px;
+  }
+  .header-group > .save-state {
+    max-width: 180px;
+  }
+}
+
+/* A short window needs every pixel for the graph. */
+@media (max-height: 650px) and (min-width: 700px) {
+  .workspace-header {
+    min-height: 46px;
+    padding-block: 5px;
+  }
+}
+
+/* Phones use two rows: sidebar toggle, title and account on top; file actions, save state and
+   Commit below, with the save state taking the free width so its text stays readable. The
+   selector is specific enough to win over the Admin panel's own header grid. */
+@media (max-width: 699px) {
+  header.workspace-header:has(.header-actions) {
+    --header-control-height: 34px;
+    display: grid;
+    grid-template-columns: var(--header-control-height) minmax(0, 1fr) auto;
+    align-items: center;
+    padding: 7px 9px;
+    gap: 6px;
+  }
+  .workspace-title h1 {
+    font-size: 14px;
+  }
+  .header-actions {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    gap: 6px;
+  }
+  .header-state {
+    flex: 1 1 0;
+  }
+  .header-group > .save-state {
+    flex: 1 1 0;
+    max-width: none;
+    min-width: 0;
+    justify-content: flex-start;
+  }
+  .header-group > .save-state.s-failed {
+    max-width: none;
+  }
+  .header-account {
+    grid-column: 3;
+    grid-row: 1;
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+/* Phones: the title needs the room more than the kind badge (the kind is in the details panel
+   and the Source tab). */
+@media (max-width: 480px) {
+  .workspace-title .badge {
+    display: none;
+  }
+}

@@ -5,25 +5,16 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  max-width: 240px;
+  max-width: 200px;
 }
 .person-label {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-/* The roles are in the menu and the tooltip; the header keeps its room for the save state. */
-@media (max-width: 1499px) {
-  .person-role {
-    display: none;
-  }
-}
-@media (max-width: 1100px) {
-  .person-menu > button {
-    max-width: 120px;
-  }
-}
-@media (max-width: 600px) {
+/* The header shows the name from 1200 px; below that the icon is enough. The roles are in the
+   menu and the tooltip. */
+@media (max-width: 1199px) {
   .person-label {
     display: none;
   }
@@ -47,28 +38,6 @@
   font-size: var(--text-small);
   color: var(--text-muted);
 }
-/* The page-wide button style centres its text; menu items read from the left. */
-.person-menu .menu-popup [role='menuitem'] {
-  justify-content: flex-start;
-  text-align: left;
-}
-@media (max-width: 699px) {
-  .workspace-header:has(.person-menu) {
-    grid-template-columns: 34px minmax(0, 1fr) auto auto;
-  }
-  .person-menu {
-    grid-column: 4;
-    grid-row: 1;
-  }
-  .person-menu > button {
-    height: 34px;
-    padding: 0 8px;
-  }
-  .person-label {
-    display: none;
-  }
-}
-
 .connected-accounts {
   display: grid;
   grid-template-columns: max-content minmax(0, 1fr);

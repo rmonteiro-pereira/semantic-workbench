@@ -185,11 +185,6 @@ header {
   margin: 0 13px;
   color: var(--text-muted);
 }
-.header-actions {
-  display: flex;
-  gap: 10px;
-  font-size: var(--text-small);
-}
 .primary {
   background: #247c66;
   color: #fff;
@@ -473,21 +468,6 @@ footer span {
   font-size: var(--text-small);
   color: var(--text-muted);
   max-width: 65%;
-}
-.scale-example {
-  flex-shrink: 0;
-  margin: 5px 0;
-  justify-content: flex-start;
-  text-align: left;
-  font-size: var(--text-small);
-  padding: 12px 8px;
-  background: #f0f6f2;
-}
-.scale-example small {
-  display: block;
-  font-size: var(--text-small);
-  margin-top: 5px;
-  color: var(--text-muted);
 }
 .relationship-details {
   font-size: var(--text-small);
@@ -1586,57 +1566,11 @@ dialog.validation-backdrop:not([open]) {
 .workspace-sidebar .document {
   padding: 9px 7px;
 }
-.workspace-sidebar .scale-example {
-  padding: 9px 7px;
-  margin: 3px 0;
-}
 .workspace-sidebar .local {
   margin-top: 14px;
 }
 .workspace-scrim {
   display: none;
-}
-.workspace-header {
-  flex: 0 0 auto;
-  height: auto;
-  min-height: 58px;
-  padding: 9px 16px;
-  gap: 12px;
-  justify-content: flex-start;
-}
-.workspace-toggle {
-  flex-shrink: 0;
-  padding: 7px;
-}
-.workspace-title {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.workspace-title h1 {
-  margin: 0;
-  font-size: clamp(15px, 1.15vw, 21px);
-  line-height: 1.35;
-  font-weight: 650;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.workspace-title .badge {
-  flex-shrink: 0;
-  padding: 4px 8px;
-  font-size: var(--text-small);
-}
-.header-actions {
-  flex-shrink: 0;
-  gap: 7px;
-}
-.header-actions button {
-  padding: 8px 10px;
-  white-space: nowrap;
 }
 .toolbar {
   flex: 0 0 auto;
@@ -1852,43 +1786,8 @@ main > .status {
     border-radius: 0;
     background: #193a3455;
   }
-  .workspace-title {
-    flex-wrap: wrap;
-    gap: 3px 10px;
-  }
-  .workspace-title .badge {
-    font-size: var(--text-small);
-    padding: 2px 6px;
-  }
 }
 @media (max-width: 650px) {
-  .workspace-header {
-    padding: 7px 9px;
-    gap: 8px;
-    min-height: 56px;
-  }
-  .workspace-title h1 {
-    font-size: 14px;
-  }
-  .workspace-title .badge {
-    font-size: var(--text-small);
-  }
-  .header-actions {
-    gap: 4px;
-  }
-  .header-actions button {
-    padding: 7px;
-    gap: 4px;
-  }
-  .header-actions .action-label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
   .toolbar {
     margin: 6px 6px 0;
     padding: 6px;
@@ -1986,11 +1885,6 @@ main > .status {
   }
 }
 @media (max-height: 650px) and (min-width: 651px) {
-  .workspace-header {
-    min-height: 46px;
-    padding-top: 5px;
-    padding-bottom: 5px;
-  }
   .toolbar {
     margin-top: 5px;
     padding-top: 4px;
@@ -3242,25 +3136,6 @@ main > .status {
 .workspace-sidebar .section-label {
   margin: 8px;
 }
-.workspace-sidebar .scale-example {
-  padding: 5px 7px;
-  margin: 1px 0;
-  font-size: var(--text-small);
-  min-height: 27px;
-}
-.workspace-sidebar .scale-example > span {
-  min-width: 0;
-  white-space: nowrap;
-}
-/* Keep subtitles in the accessible names of the example loaders. */
-.workspace-sidebar .scale-example small {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
 .workspace-sidebar .local {
   margin-top: 6px;
 }
@@ -3338,100 +3213,6 @@ main > .status {
     max-height: 85%;
     width: 100%;
     z-index: 20;
-  }
-}
-/* Save state indicator: a pill next to Commit…; it opens Commit, the findings or the diff. */
-.header-actions .save-state {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-  max-width: min(300px, 34vw);
-  border: 1px solid #d6e5df;
-  background: #f2f8f5;
-  color: #285146;
-  font-size: var(--text-small);
-  font-weight: 600;
-  border-radius: 999px;
-  padding: 5px 11px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: pointer;
-}
-.header-actions .save-state::before {
-  content: '';
-  flex: none;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #2f8f6b;
-}
-.header-actions .save-state.s-pending::before,
-.header-actions .save-state.s-saving::before,
-.header-actions .save-state.s-waiting::before {
-  background: #c79a2b;
-}
-.header-actions .save-state.s-invalid,
-.header-actions .save-state.s-stale,
-.header-actions .save-state.s-failed,
-.header-actions .save-state.s-cancelled {
-  background: #fdf1ef;
-  border-color: #f1cfc9;
-  color: #9b3328;
-}
-.header-actions .save-state.s-invalid::before,
-.header-actions .save-state.s-stale::before,
-.header-actions .save-state.s-failed::before,
-.header-actions .save-state.s-cancelled::before {
-  background: #c2483a;
-}
-/* A refusal is a whole sentence: the pill grows to two lines instead of cutting it. */
-@media (min-width: 651px) {
-  .header-actions .save-state.s-failed {
-    max-width: min(380px, 40vw);
-    border-radius: 14px;
-    line-height: 1.25;
-  }
-  .header-actions .save-state.s-failed .save-state-text {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    white-space: normal;
-    overflow-wrap: anywhere;
-  }
-}
-.header-actions .save-state:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-.header-actions .save-state .save-state-text {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-/* Narrow headers: the indicator becomes its coloured dot; the text stays for assistive technology
-   and in the tooltip. */
-@media (max-width: 650px) {
-  .header-actions .save-state {
-    width: 34px;
-    height: 34px;
-    padding: 0;
-    justify-content: center;
-    flex: none;
-  }
-  .header-actions .save-state::before {
-    width: 10px;
-    height: 10px;
-  }
-  .header-actions .save-state .save-state-text {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
   }
 }
 
@@ -3568,32 +3349,6 @@ main > .status {
 .project-tree .item-menu {
   margin-top: 2px;
 }
-.examples {
-  flex-shrink: 0;
-  margin: 8px 0;
-}
-.examples > summary {
-  cursor: pointer;
-  padding: 7px;
-  font-size: var(--text-small);
-  font-weight: 650;
-  color: #28463d;
-}
-.examples > summary:focus-visible {
-  outline: 2px solid #2f8a6c;
-  outline-offset: -2px;
-  border-radius: 6px;
-}
-.workspace-sidebar .examples .scale-example {
-  width: 100%;
-}
-.workspace-sidebar .examples .scale-example > span {
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-.workspace-sidebar .examples .scale-example > svg {
-  flex-shrink: 0;
-}
 @media (min-width: 1100px) {
   .workspace-sidebar .brand {
     padding-right: 0;
@@ -3667,9 +3422,14 @@ button.import {
 .menu-popup.align-start {
   left: 0;
 }
+.menu-popup.place-above {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
 .menu-popup [role='menuitem'] {
   display: flex;
   align-items: flex-start;
+  justify-content: flex-start;
   gap: 8px;
   width: 100%;
   text-align: left;
@@ -3846,41 +3606,6 @@ button.import {
   min-width: 0;
 }
 
-/* Let status yield space to the title; keep controls in their reading order. */
-.workspace-header {
-  min-height: 58px;
-  gap: 10px;
-}
-.workspace-title {
-  flex: 1 1 360px;
-  flex-wrap: nowrap;
-  gap: 8px;
-}
-.header-actions {
-  flex: 0 0 auto;
-  align-items: center;
-}
-.header-actions > button,
-.header-actions > .menu-button {
-  flex-shrink: 0;
-}
-.header-actions > button,
-.header-actions > .menu-button > button {
-  height: 36px;
-}
-.header-actions .save-state {
-  flex: 0 0 auto;
-  min-width: 90px;
-  max-width: 300px;
-}
-/* Where the header is tight the label gives way before the buttons do; its full text stays in
-   the tooltip and the accessible name. */
-@media (min-width: 700px) and (max-width: 1199px) {
-  .header-actions .save-state {
-    flex: 0 1 auto;
-    max-width: 180px;
-  }
-}
 .workbench-dialog {
   max-height: min(88dvh, calc(100dvh - 48px));
 }
@@ -3917,39 +3642,6 @@ button.import {
   max-height: min(60dvh, calc(100dvh - 200px));
 }
 @media (max-width: 699px) {
-  .workspace-header {
-    display: grid;
-    grid-template-columns: 34px minmax(0, 1fr) auto;
-    align-items: center;
-    padding: 7px 9px;
-    gap: 6px;
-  }
-  .workspace-title h1 {
-    font-size: 14px;
-  }
-  .header-actions {
-    grid-column: auto;
-    justify-content: flex-end;
-    gap: 4px;
-  }
-  .header-actions > button,
-  .header-actions > .menu-button > button {
-    height: 34px;
-    min-width: 34px;
-    padding: 0 8px;
-  }
-  .header-actions .action-label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-  .header-actions .save-state {
-    min-width: 34px;
-  }
   .workbench-dialog {
     max-height: calc(100dvh - 20px);
   }
@@ -3965,13 +3657,6 @@ button.import {
   .workbench-dialog .dialog-footer button {
     flex: 1 0 auto;
     padding-inline: 8px;
-  }
-}
-/* Phones: the title needs the room more than the kind badge (the kind is in the details panel and
-   the Source tab). */
-@media (max-width: 480px) {
-  .workspace-title .badge {
-    display: none;
   }
 }
 /* Adjust grouping dialog */

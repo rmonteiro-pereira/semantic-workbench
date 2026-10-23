@@ -242,8 +242,6 @@ function App() {
           suggestions={suggestions}
           setMessage={setMessage}
           refresh={refresh}
-          examplesOpen={sidebar.examplesOpen}
-          setExamplesChoice={sidebar.setExamplesChoice}
           loadExample={loadExample}
           busy={busy}
           setImporting={setImporting}
