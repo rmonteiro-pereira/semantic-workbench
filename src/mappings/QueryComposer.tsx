@@ -1,8 +1,9 @@
 /** Dialog that composes a governed query from mapped metrics and fields, and previews its SQL. */
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import type { RuntimeContext } from '../../server/agent/runtime';
 import { Modal } from '../projects/Modal';
 import { SqlCode } from '../sql/SqlCode';
+import { groupFieldsByDataset } from './field-groups';
 
 type Metric = RuntimeContext['metrics'][number];
 type Field = RuntimeContext['fields'][number];
@@ -32,6 +33,11 @@ type Props = {
 
 /** Lets the user pick governed metrics and group-by fields, then shows the SQL; nothing runs. */
 export function QueryComposer(props: Props) {
+  const [fieldFilter, setFieldFilter] = useState('');
+  const fieldGroups = useMemo(
+    () => groupFieldsByDataset(props.fields, fieldFilter),
+    [props.fields, fieldFilter],
+  );
   const footer = (
     <>
       <span className="dialog-footer-spacer" />
@@ -74,16 +80,35 @@ export function QueryComposer(props: Props) {
         <fieldset>
           <legend>Group by mapped fields</legend>
           {!props.fields.length && <p>No fields mapped to this selection.</p>}
-          {props.fields.map(field => (
-            <label key={field.id}>
-              <input
-                type="checkbox"
-                aria-label={`Dimension ${field.dataset}.${field.name}`}
-                checked={props.dimensions.includes(field.id)}
-                onChange={() => props.onToggleDimension(field.id)}
-              />
-              {field.dataset}.{field.name}
-            </label>
+          {props.fields.length > 0 && (
+            <input
+              type="search"
+              aria-label="Find a field"
+              placeholder="Find a field or dataset"
+              value={fieldFilter}
+              onChange={event => setFieldFilter(event.target.value)}
+            />
+          )}
+          {props.fields.length > 0 && !fieldGroups.length && <p>No field matches.</p>}
+          {fieldGroups.map(group => (
+            <section key={group.dataset} className="composer-dataset" aria-label={group.dataset}>
+              <h4>
+                {group.dataset} <span>{group.fields.length}</span>
+              </h4>
+              <div className="composer-fields">
+                {group.fields.map(field => (
+                  <label key={field.id}>
+                    <input
+                      type="checkbox"
+                      aria-label={`Dimension ${field.dataset}.${field.name}`}
+                      checked={props.dimensions.includes(field.id)}
+                      onChange={() => props.onToggleDimension(field.id)}
+                    />
+                    {field.name}
+                  </label>
+                ))}
+              </div>
+            </section>
           ))}
         </fieldset>
         {props.loading && <p role="status">Composing the query…</p>}

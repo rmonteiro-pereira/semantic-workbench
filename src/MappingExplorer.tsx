@@ -335,26 +335,28 @@ export function MappingExplorer({
                   onChange={e => setQuery(e.target.value)}
                 />
               </label>
-              <button aria-pressed={!concept} onClick={() => openConcept('')}>
-                All mapped concepts
-              </button>
-              {concepts.map(c => {
-                const bindingCount = context.bindings.filter(
-                  binding => binding.rootConcept === c.concept || binding.concept === c.concept,
-                ).length;
-                return (
-                  <button
-                    key={c.concept}
-                    aria-pressed={concept === c.concept}
-                    onClick={() => openConcept(c.concept)}
-                  >
-                    {c.concept}
-                    <small>
-                      {bindingCount} {bindingCount === 1 ? 'binding' : 'bindings'}
-                    </small>
-                  </button>
-                );
-              })}
+              <div className="mapping-concept-list">
+                <button aria-pressed={!concept} onClick={() => openConcept('')}>
+                  All mapped concepts
+                </button>
+                {concepts.map(c => {
+                  const bindingCount = context.bindings.filter(
+                    binding => binding.rootConcept === c.concept || binding.concept === c.concept,
+                  ).length;
+                  return (
+                    <button
+                      key={c.concept}
+                      aria-pressed={concept === c.concept}
+                      onClick={() => openConcept(c.concept)}
+                    >
+                      {c.concept}
+                      <small>
+                        {bindingCount} {bindingCount === 1 ? 'binding' : 'bindings'}
+                      </small>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             <div className="mapping-detail">
               <h3>{concept || 'All concepts'}</h3>
