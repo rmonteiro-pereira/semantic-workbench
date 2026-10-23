@@ -218,8 +218,45 @@ export function ItemEditor({
   useEffect(() => {
     firstField.current?.focus();
   }, []);
+  const footer = (
+    <>
+      <button
+        type="button"
+        className="item-delete"
+        hidden={!access.can('edit')}
+        onClick={onDelete}
+        disabled={saving}
+      >
+        <Trash2 size={13} />
+        Delete…
+      </button>
+      <span className="item-state" role="status">
+        {pending && changed
+          ? 'Checking…'
+          : parsed.error
+            ? 'Not one item'
+            : errors.length
+              ? `${errors.length} finding${errors.length === 1 ? '' : 's'} to fix`
+              : changed
+                ? 'Unsaved changes'
+                : 'No changes'}
+      </span>
+      <button type="button" onClick={onClose} disabled={saving}>
+        Cancel
+      </button>
+      <button
+        type="button"
+        className="primary"
+        onClick={save}
+        title={access.control('edit').title}
+        disabled={!canSave || !access.can('edit')}
+      >
+        {saving ? 'Saving…' : 'Save to file'}
+      </button>
+    </>
+  );
   return (
-    <Modal title={title} onCancel={onClose} className="item-editor">
+    <Modal title={title} onCancel={onClose} className="item-editor" footer={footer}>
       <p className="item-editor-where">
         <span className="item-kind">{kindLabel[kind]}</span>
         <span>
@@ -479,41 +516,6 @@ export function ItemEditor({
           {error}
         </p>
       )}
-      <div className="repair-actions item-actions">
-        <button
-          type="button"
-          className="item-delete"
-          hidden={!access.can('edit')}
-          onClick={onDelete}
-          disabled={saving}
-        >
-          <Trash2 size={13} />
-          Delete…
-        </button>
-        <span className="item-state" role="status">
-          {pending && changed
-            ? 'Checking…'
-            : parsed.error
-              ? 'Not one item'
-              : errors.length
-                ? `${errors.length} finding${errors.length === 1 ? '' : 's'} to fix`
-                : changed
-                  ? 'Unsaved changes'
-                  : 'No changes'}
-        </span>
-        <button type="button" onClick={onClose} disabled={saving}>
-          Cancel
-        </button>
-        <button
-          type="button"
-          className="primary"
-          onClick={save}
-          title={access.control('edit').title}
-          disabled={!canSave || !access.can('edit')}
-        >
-          {saving ? 'Saving…' : 'Save to file'}
-        </button>
-      </div>
     </Modal>
   );
 }

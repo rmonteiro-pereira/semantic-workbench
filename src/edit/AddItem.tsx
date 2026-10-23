@@ -174,11 +174,31 @@ export function AddItem({
   const set = (spec: FieldSpec, input: string | boolean) =>
     setRaw(v => ({ ...v, [spec.key]: input }));
   const valueOf = (spec: FieldSpec) => String(raw[spec.key] ?? '');
+  const footer = (
+    <>
+      <button type="button" onClick={onClose} disabled={saving}>
+        Cancel
+      </button>
+      <button
+        type="button"
+        className="primary"
+        onClick={save}
+        title={access.control('edit').title}
+        disabled={
+          !access.can('edit') || plan.text === undefined || pending || errors.length > 0 || saving
+        }
+      >
+        {saving ? 'Saving…' : pending ? 'Checking…' : 'Save to file'}
+      </button>
+    </>
+  );
   return (
     <Modal
       title={`Add ${kind ? kindLabel[kind].toLowerCase() : 'item'} to ${doc.path}`}
       onCancel={onClose}
-      className="item-editor add-item"
+      className="add-item"
+      size="large"
+      footer={footer}
     >
       {kinds.length > 1 && (
         <label>
@@ -291,22 +311,6 @@ export function AddItem({
           {error}
         </p>
       )}
-      <div className="repair-actions">
-        <button type="button" onClick={onClose} disabled={saving}>
-          Cancel
-        </button>
-        <button
-          type="button"
-          className="primary"
-          onClick={save}
-          title={access.control('edit').title}
-          disabled={
-            !access.can('edit') || plan.text === undefined || pending || errors.length > 0 || saving
-          }
-        >
-          {saving ? 'Saving…' : pending ? 'Checking…' : 'Save to file'}
-        </button>
-      </div>
     </Modal>
   );
 }

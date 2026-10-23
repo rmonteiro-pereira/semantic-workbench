@@ -189,8 +189,30 @@ export function RdfAddItem({
       {hint && <small>{hint}</small>}
     </label>
   );
+  const footer = (
+    <>
+      <button type="button" onClick={onClose} disabled={saving}>
+        Cancel
+      </button>
+      <button
+        type="button"
+        className="primary"
+        onClick={save}
+        title={access.control('edit').title}
+        disabled={!access.can('edit') || !ready || pending || errors.length > 0 || saving}
+      >
+        {saving ? 'Saving…' : pending ? 'Checking…' : 'Save to file'}
+      </button>
+    </>
+  );
   return (
-    <Modal title={`Add to ${doc.path}`} onCancel={onClose} className="item-editor add-item">
+    <Modal
+      title={`Add to ${doc.path}`}
+      onCancel={onClose}
+      className="add-item"
+      size="large"
+      footer={footer}
+    >
       <div className="item-fields">
         <label className="wide">
           <span>What to add</span>
@@ -241,20 +263,6 @@ export function RdfAddItem({
           {error}
         </p>
       )}
-      <div className="repair-actions">
-        <button type="button" onClick={onClose} disabled={saving}>
-          Cancel
-        </button>
-        <button
-          type="button"
-          className="primary"
-          onClick={save}
-          title={access.control('edit').title}
-          disabled={!access.can('edit') || !ready || pending || errors.length > 0 || saving}
-        >
-          {saving ? 'Saving…' : pending ? 'Checking…' : 'Save to file'}
-        </button>
-      </div>
     </Modal>
   );
 }

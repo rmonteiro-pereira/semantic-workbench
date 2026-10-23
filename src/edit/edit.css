@@ -12,15 +12,16 @@ dialog.validation-backdrop:has(.item-editor) {
   max-height: 100dvh;
   border-radius: 0;
   border-width: 0 0 0 1px;
+}
+/* The body is the only scrolling region; the footer with Delete, Cancel and Save stays below it. */
+.workbench-dialog.item-editor > .dialog-body {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  overflow: auto;
-  padding: 20px 22px;
 }
-.workbench-dialog.add-item {
-  height: auto;
-  max-height: 100dvh;
+.workbench-dialog.item-editor > .dialog-footer {
+  align-items: center;
+  border-radius: 0;
 }
 .item-editor-where {
   display: flex;
@@ -240,20 +241,7 @@ button.link {
 .item-findings .warning {
   color: #7a5d0f;
 }
-.item-actions {
-  position: sticky;
-  bottom: -20px;
-  background: white;
-  padding: 10px 0 4px;
-  margin-top: auto;
-  align-items: center;
-  flex-wrap: wrap;
-}
-.item-actions button {
-  font-size: 13px;
-  padding: 8px 14px;
-}
-.item-actions .item-delete {
+.item-editor > .dialog-footer .item-delete {
   margin-right: auto;
   color: #a3392f;
   gap: 5px;
@@ -286,75 +274,17 @@ button.link {
   padding: 7px 10px;
   gap: 5px;
 }
-.catalog-card {
-  position: relative;
-}
-.catalog-card .catalog-edit {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  font-size: var(--text-small);
-  padding: 4px 8px;
-  gap: 4px;
-  background: white;
-}
-@media (max-width: 700px) {
-  .item-fields {
-    grid-template-columns: 1fr;
-  }
-  .workbench-dialog.item-editor {
-    padding: 16px;
-  }
-}
-.catalog-card > button:first-child {
-  width: 100%;
-  height: 100%;
-}
-.catalog .catalog-card .catalog-edit {
-  display: inline-flex;
-  align-items: center;
-}
-/* KPI wizard: numbered steps on top, the current step's form below. */
-.wizard-steps {
-  list-style: none;
+/* KPI wizard: one progress line with a step picker, then the current step's form. */
+.wizard-progress {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin: 0 0 6px;
-  padding: 0;
-}
-.wizard-steps button {
-  font-size: var(--text-small);
-  padding: 5px 8px;
-  gap: 5px;
-  border-radius: 14px;
-  background: #f4f8f6;
-  border-color: #e2ebe6;
-}
-.wizard-steps button span {
-  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #dfe9e4;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.wizard-progress select {
+  max-width: 100%;
   font-size: var(--text-small);
-  font-weight: 700;
-}
-.wizard-steps .current {
-  background: #e1f1e8;
-  border-color: #70ad91;
-  color: #1c6b4e;
-  font-weight: 650;
-}
-.wizard-steps .current span {
-  background: #1e6a4f;
-  color: white;
-}
-.wizard-steps .done span {
-  background: #70ad91;
-  color: white;
 }
 .wizard-body h3 {
   font-size: 15px !important;
@@ -497,7 +427,7 @@ button.link {
   max-width: 100vw;
   min-width: 0;
 }
-.item-editor > * {
+.item-editor > .dialog-body > * {
   flex-shrink: 0;
   min-width: 0;
 }
@@ -505,33 +435,12 @@ button.link {
   max-width: 100%;
   flex-wrap: wrap;
 }
-.item-actions {
-  bottom: 0;
-  gap: 8px;
-}
 @media (max-width: 700px) {
   .workbench-dialog.item-editor {
     width: 100vw;
   }
-  .item-actions button {
-    padding: 8px 10px;
-  }
-  .item-actions .item-state {
+  .item-editor > .dialog-footer .item-state {
     flex-basis: 100%;
+    order: -1;
   }
-}
-
-.wizard-steps {
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  min-width: 0;
-}
-.wizard-steps li {
-  flex: 0 0 auto;
-}
-.wizard-steps button {
-  white-space: nowrap;
-  padding: 5px 6px;
-  gap: 3px;
-  font-size: var(--text-small);
 }
