@@ -953,7 +953,7 @@
   overflow-wrap: anywhere;
 }
 
-/* The optional folder field of the Clone dialog. */
+/* The optional folder field of the Clone and Remote dialogs. */
 .workbench-dialog .folder-hint {
   font-size: var(--text-small);
   line-height: 1.4;
@@ -962,6 +962,21 @@
 .workbench-dialog input[aria-invalid='true'] + .folder-hint {
   color: #8a2c22;
 }
+.workbench-dialog .folder-confirmation p {
+  margin: 0 0 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.folder-moves {
+  margin: 0 0 8px;
+  padding-left: 18px;
+  font:
+    var(--text-small)/1.6 ui-monospace,
+    monospace;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
 /* Where the project sits in its repository: remote, branch and folder. */
 .scm-where {
   margin: 0;

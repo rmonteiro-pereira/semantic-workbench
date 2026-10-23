@@ -152,6 +152,18 @@ export type GitStatus = {
   folder?: string;
   changes: GitChange[];
 };
+/** One file as it is now and where a folder change puts it. */
+export type FileMove = { from: string; to: string };
+/** What choosing a folder for a project in its repository would do, shown before it happens. */
+export type FolderPreview = {
+  kind: 'none' | 'move' | 'change';
+  current: string;
+  folder: string;
+  moves: FileMove[];
+  moveCount: number;
+  existsOnBranch: boolean;
+  blocked?: { reason: 'drafts' | 'dirty'; paths: string[] };
+};
 /** Reports completion, cancellation, conflicts and altered paths after a remote action. */
 /** Server mode: what a fetch did to the published default branch when the remote was ahead. */
 export type FollowResult = {
@@ -517,6 +529,16 @@ export const scm = {
     ),
   switch: (p: string, branch: string, create = false) =>
     gitPost<{ branch: string; altered: string[] }>(p, 'git/switch', { branch, create }),
+  /** What moving the project into this folder of its repository would do. */
+  folderPreview: (p: string, folder: string) =>
+    apiFetch(gitUrl(p, 'git/folder') + `?folder=${encodeURIComponent(folder)}`).then(r =>
+      json<FolderPreview>(r),
+    ),
+  /** Moves the project into the folder, or checks out another folder, as previewed. */
+  setFolder: (p: string, folder: string, createFolder = false) =>
+    apiFetch(gitUrl(p, 'git/folder'), send('PUT', { folder, createFolder })).then(r =>
+      json<FolderPreview>(r),
+    ),
   setRemote: (p: string, name: string, url: string) =>
     apiFetch(gitUrl(p, 'git/remote'), send('PUT', { name, url })).then(r =>
       json<{ name: string; url: string }>(r),

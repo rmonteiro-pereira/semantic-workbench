@@ -158,6 +158,45 @@ try {
     },
   );
   await check(
+    'remote: a folder for the project is previewed, confirmed, recorded in a commit and pushed',
+    async () => {
+      const firstCommit = sh(repo, ['rev-list', '--max-parents=0', 'HEAD']).trim();
+      await openRemoteDialog(page);
+      const dialog = page.getByRole('dialog', { name: 'Remote' });
+      const folder = dialog.getByLabel('Folder in repository');
+      await folder.fill('/etc');
+      await expect(dialog).toContainText('not an absolute path');
+      await expect(dialog.getByRole('button', { name: 'Save remote' })).toBeDisabled();
+      await folder.fill('models/shop');
+      await dialog.getByRole('button', { name: 'Save remote' }).click();
+      const moves = dialog.getByRole('list', { name: 'Files that move' });
+      await expect(moves).toContainText('shop.yaml → models/shop/shop.yaml');
+      await expect(dialog).toContainText('History is not rewritten');
+      await expectDialogGeometry(page, 'remote-folder-preview');
+      await dialog.getByRole('button', { name: 'Back' }).click();
+      await expect(folder).toHaveValue('models/shop');
+      await dialog.getByRole('button', { name: 'Save remote' }).click();
+      await dialog.getByRole('button', { name: 'Move files and save' }).click();
+      await expect(dialog).toHaveCount(0);
+      expect(existsSync(join(repo, 'models/shop/shop.yaml'))).toBe(true);
+      expect(existsSync(join(repo, 'shop.yaml'))).toBe(false);
+      expect(sh(repo, ['log', '-1', '--format=%s']).trim()).toBe(
+        'Move the project into models/shop',
+      );
+      expect(sh(repo, ['rev-list', '--max-parents=0', 'HEAD']).trim()).toBe(firstCommit);
+      await expect(panel().getByLabel('Repository location')).toHaveText(
+        'origin · main · models/shop',
+      );
+      await runSyncAction(page, 'Push');
+      await expect(panel().getByRole('status').filter({ hasText: 'Push finished' })).toBeVisible({
+        timeout: 20_000,
+      });
+      expect(sh(pushTarget, ['ls-tree', '-r', '--name-only', 'main']).trim()).toContain(
+        'models/shop/shop.yaml',
+      );
+    },
+  );
+  await check(
     'credential guide: a push refused for credentials offers the guide; it never asks for them',
     async () => {
       await setRemote(`http://127.0.0.1:${host.port}/shop.git`);
