@@ -1,0 +1,37 @@
+/* Styles the catalog cards. */
+/* A catalog card is its open button with the Edit button on a row below it, so the type label
+   never shares a line with Edit and every card in a row has the same layout. */
+.catalog-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding-bottom: 10px;
+  border: 1px solid #dbe3e4;
+  border-radius: 8px;
+  background: white;
+}
+.catalog-card > button:first-child {
+  flex: 1 1 auto;
+  width: 100%;
+  border: 0;
+  background: transparent;
+}
+.catalog-card > button:first-child p {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  margin: 0;
+}
+.catalog .catalog-card .catalog-edit {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-end;
+  margin-right: 10px;
+  font-size: var(--text-small);
+  padding: 4px 8px;
+  gap: 4px;
+  background: white;
+}

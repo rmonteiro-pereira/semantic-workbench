@@ -3,6 +3,7 @@ import { Gauge, Pencil } from 'lucide-react';
 import React from 'react';
 import type { Entity } from '../model';
 import type { ItemTarget, RdfTarget, ValidatedModel } from './types';
+import './catalog.css';
 
 type Props = {
   model: ValidatedModel;
@@ -53,7 +54,7 @@ export function CatalogView({
                   )}
                 </small>
                 <strong>{e.name}</strong>
-                <p>{e.description || 'No description yet'}</p>
+                <p title={e.description || undefined}>{e.description || 'No description yet'}</p>
               </button>
               {(entityTarget(e) || rdfTarget(e)) && (
                 <button
