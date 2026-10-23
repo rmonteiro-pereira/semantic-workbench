@@ -2,6 +2,7 @@
 import type { Text } from '@codemirror/state';
 import type { Diagnostic } from '@codemirror/lint';
 import type { Issue } from '../diagnostics';
+import { timeOperation } from '../observability/page-reporting';
 // Findings → editor diagnostics. A finding with a line (and column) becomes a range from that
 // position to the end of the token there; one without a reliable location stays document-level and
 // is listed above the editor instead of being drawn on a guessed line.
@@ -75,7 +76,8 @@ function post(message: Record<string, unknown>): Promise<Issue[]> {
   });
 }
 /** Requests document validation from the shared worker. */
-export const validateInWorker = (source: string, filename: string) => post({ source, filename });
+export const validateInWorker = (source: string, filename: string) =>
+  timeOperation('validation', post({ source, filename }));
 
 /** Requests SQL field warnings with positions relative to the supplied text. */
 export const lintSqlInWorker = (sql: string, dialect: string | null) =>

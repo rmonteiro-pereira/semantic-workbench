@@ -18,6 +18,11 @@ import {
   type DirectoryLister,
 } from './paths';
 import { sqlFindings } from '../sql/lint';
+import {
+  observeScan,
+  observeValidation,
+  type ValidationTrigger,
+} from '../observability/workspace-work';
 /** A recognized file syntax, Git ignore file, or unsupported format. */
 export type Serialization =
   | 'yaml'
@@ -59,6 +64,7 @@ export function indexBytes(
   path: string,
   bytes: Uint8Array,
   gitState: FileGitState | 'unknown' = 'unknown',
+  trigger: ValidationTrigger = 'save',
 ): Indexed {
   const hash = sha256(bytes);
   const base = { project, path, hash, gitState, indexedAt: new Date().toISOString() };
@@ -107,7 +113,7 @@ export function indexBytes(
       entities: [],
       findings: [],
     };
-  const result = validateInput(source, posix.basename(path));
+  const result = observeValidation(trigger, () => validateInput(source, posix.basename(path)));
   // SQL findings are warnings only and do not make a document invalid.
   const sql =
     serialization === 'yaml' || serialization === 'json'
@@ -158,7 +164,7 @@ export function createScanner(
       const file = { ...known.file, gitState, indexedAt: new Date().toISOString() };
       return [file, cache.entitiesOf(hash, path), known.findings] as const;
     }
-    const indexed = indexBytes(slug, path, bytes, gitState);
+    const indexed = indexBytes(slug, path, bytes, gitState, 'scan');
     return [indexed.file, indexed.entities, indexed.findings] as const;
   }
   async function scan(slug: string) {
@@ -239,7 +245,9 @@ export function createScanner(
   return {
     // Scans of one project are serialized; concurrent requests share the queue.
     scan(slug: string): Promise<{ project: string; changed: string[]; removed: string[] }> {
-      const next = (queues.get(slug) ?? Promise.resolve()).catch(() => {}).then(() => scan(slug));
+      const next = (queues.get(slug) ?? Promise.resolve())
+        .catch(() => {})
+        .then(() => observeScan(() => scan(slug)));
       queues.set(slug, next);
       next
         .catch(() => {})

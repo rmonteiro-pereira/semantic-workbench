@@ -443,7 +443,7 @@ test('a suggestion round builds one shared index and survives one person failing
     expect(indexBuilds).toBe(1);
     expect(seen).toEqual([index, index]);
     expect(seen[0]).toBe(seen[1]);
-    expect(String(failures[0])).toContain('Suggestion refresh failed');
+    expect(String(failures[0])).toContain('events.suggestion-refresh-failed');
     await failing.cancel();
     await working.cancel();
   } finally {

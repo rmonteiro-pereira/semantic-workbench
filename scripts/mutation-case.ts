@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { setActiveBrand } from '../server/brand/active-brand';
 import { loadBrandBundle } from '../server/brand/bundle';
 import { allowEveryRemote } from '../tests/helpers/remote-credentials-fixture';
+import { observabilityCase } from './observability-cases';
 // Sign-in pages render the brand, so every candidate runs with the shipped bundle active.
 setActiveBrand(loadBrandBundle());
 const m = await import(process.argv[2]);
@@ -1810,7 +1811,12 @@ if (category === 'auth-middleware') {
 
 if (category === 'container-health') {
   const health = m.healthResponse(new Request('http://localhost/healthz'), 'serving', {});
-  assert.deepEqual(await health.json(), { ok: true, version: null, commit: null });
+  assert.deepEqual(await health.json(), {
+    ok: true,
+    version: null,
+    commit: null,
+    telemetry: { enabled: false, reason: 'not-started' },
+  });
   const response = m.healthResponse(new Request('http://localhost/api/projects'), 'handover', {});
   assert.equal(response?.status, 503);
   assert.equal(response.headers.get('Retry-After'), '10');
@@ -3733,3 +3739,4 @@ if (category === 'sparse-partial-clone') {
   assert(clones[0].includes('--filter=blob:none') && clones[0].includes('--no-checkout'));
   assert(!clones[1].includes('--filter') && !clones[1].includes('--no-checkout'));
 }
+await observabilityCase(category, m);

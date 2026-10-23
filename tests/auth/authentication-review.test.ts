@@ -106,7 +106,7 @@ test('directory degradation preserves successful sign-in and refresh request ids
     ]);
     expect(log.mock.calls.flat().join('\n')).not.toContain('secret token');
     expect(log.mock.calls.flat().join('\n')).toContain(
-      '[auth] ' + refresh.headers.get('x-request-id'),
+      'auth.failure requestId=' + refresh.headers.get('x-request-id'),
     );
   } finally {
     token.mockRestore();
@@ -170,7 +170,7 @@ test('login and callback errors are logged safely with their request ids', async
       );
       expect(await response.text()).toContain('Try again');
       expect(log.mock.calls.flat().join('\n')).toContain(
-        '[auth] ' + response.headers.get('x-request-id'),
+        'auth.failure requestId=' + response.headers.get('x-request-id'),
       );
     }
     expect(log.mock.calls.flat().join('\n')).not.toMatch(/secret-code| token/);

@@ -34,6 +34,7 @@ import { collapseAreas } from './collapse';
 import { FALLBACK_GROUP_COLOR } from './theme-palette';
 import { layoutFullGraph, packNetwork } from './full-layout';
 import type { Entity, Relationship } from './model';
+import { timeOperation } from './observability/page-reporting';
 const sides = [
   ['n', Position.Top],
   ['e', Position.Right],
@@ -414,7 +415,10 @@ export function FullGraph(props: Props) {
         algorithms: ['layered', 'sporeOverlap'],
         workerFactory: () => new Worker(elkWorkerUrl),
       });
-      layoutFullGraph(display.entities, display.edges, props.name, elk, layoutGrouping)
+      timeOperation(
+        'graph-layout',
+        layoutFullGraph(display.entities, display.edges, props.name, elk, layoutGrouping),
+      )
         .then(apply)
         .catch(e => {
           if (!cancelled) {

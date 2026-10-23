@@ -44,7 +44,10 @@ test('server mode answers an unexpected error with a plain 500 and logs the caus
     expect(response.status).toBe(500);
     expect(await response.text()).toBe('{"error":"Internal error."}');
     const requestId = response.headers.get('X-Request-Id')!;
-    expect(log.mock.calls.flat()).toContain(`[http] ${requestId} Error: ${secret}`);
+    const written = log.mock.calls.flat().join('\n');
+    expect(written).toContain(`http.unexpected-error requestId=${requestId}`);
+    expect(written).toContain('EACCES');
+    expect(written).not.toContain('/srv/workbench');
   } finally {
     log.mockRestore();
   }
@@ -61,7 +64,8 @@ test('a route that is not part of the legacy interface answers the same way', as
     const response = await handler(new Request('http://localhost/api/projects'));
     expect(response.status).toBe(500);
     expect(await response.text()).not.toContain('EACCES');
-    expect(log.mock.calls.flat().join('\n')).toContain(`TypeError: ${secret}`);
+    expect(log.mock.calls.flat().join('\n')).toContain('errorName=TypeError');
+    expect(log.mock.calls.flat().join('\n')).not.toContain('/srv/workbench');
   } finally {
     failure.mockRestore();
     log.mockRestore();
@@ -81,7 +85,8 @@ test('a failure while resolving the caller is also a plain 500', async () => {
     const response = await handler(new Request('http://localhost/api/projects'));
     expect(response.status).toBe(500);
     expect(await response.text()).toBe('{"error":"Internal error."}');
-    expect(log.mock.calls.flat().join('\n')).toContain(secret);
+    expect(log.mock.calls.flat().join('\n')).toContain('EACCES');
+    expect(log.mock.calls.flat().join('\n')).not.toContain('/srv/workbench');
   } finally {
     log.mockRestore();
   }

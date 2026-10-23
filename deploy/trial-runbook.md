@@ -119,6 +119,20 @@ implementation completion. Commands assume the release checkout and the setup gu
     Verify branch protection blocks the tag runs of `sw-azure-push`, turn it off there and
     record it. Result: [ ] pass [ ] fail.
 
+11. **Logging and telemetry (only when the connection string is set).** Confirm in the container
+    app that `APPLICATIONINSIGHTS_CONNECTION_STRING` (and `SW_TELEMETRY_ACTOR_SALT`, if used) are
+    Key Vault references, then open `/healthz` and check that `telemetry.enabled` is true.
+    Run `bun run deploy:smoke -- <url> <version> <commit> --expect-telemetry` and check the
+    `telemetry configured` line. In Log Analytics, check that `ContainerAppConsoleLogs` holds JSON
+    lines with an `http.request` event, and that the `requestId` of one line equals the
+    `X-Request-Id` header of the same request. After a few minutes, in Application Insights
+    check that requests, dependencies (Git commands) and custom metrics (`sw.http.server.requests`)
+    arrive under the cloud role `semantic-workbench`, that a trace and its log lines share one
+    operation id, and that no document text, file name, project name, token or e-mail address
+    appears in any of them. Throw an error in the browser console of a signed-in page and check
+    that a `browser.error` trace arrives. Remove the secret reference, create a revision and
+    check that `telemetry.enabled` is false and nothing arrives. Result: [ ] pass [ ] fail.
+
 Copy this report into `specs/003-authn-authz/verification.md` under **Owner trial**, replacing
 subscription, tenant, registry and resource identifiers with placeholders:
 
@@ -137,6 +151,7 @@ Step 7: pass | fail — <names of the failed checks, no raw output>
 Step 8: pass | fail — <names of the failed checks, no raw output>
 Step 9: pass | fail — <names of the failed checks, no raw output>
 Step 10: pass | fail — <names of the failed checks, no raw output>
+Step 11: pass | fail | skipped — <names of the failed checks, no raw output>
 Digest deployed: sha256:<digest>  Revisions: <before> -> <after>
 SC-015 approval->smoke: <minutes>  rollback: <minutes>
 SC-017 interruption: <seconds>  old-instance shutdown: <seconds>

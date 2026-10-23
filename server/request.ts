@@ -2,6 +2,7 @@
 // responses.
 import { PathError } from './projects/paths';
 import { BadRequestError } from './projects/errors';
+import { log } from './observability/log';
 
 /** Parses a body within maxBytes, using empty for an absent or empty optional body. */
 export async function readJson(req: Request, maxBytes: number, empty?: object) {
@@ -70,8 +71,6 @@ export function decodePath(raw: string) {
  * internals.
  */
 export function internalErrorResponse(e: unknown, requestId = 'unknown') {
-  const name = e instanceof Error ? e.name : 'Error';
-  const message = e instanceof Error ? e.message : String(e);
-  console.error(`[http] ${requestId} ${name}: ${message}`);
+  log.failure('http.unexpected-error', e, { requestId });
   return Response.json({ error: 'Internal error.' }, { status: 500 });
 }

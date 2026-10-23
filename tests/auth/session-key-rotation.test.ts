@@ -7,6 +7,8 @@ import { join } from 'node:path';
 import { createSessionStore } from '../../server/auth/sessions';
 import { localPrincipal } from '../../server/auth/principal';
 import { sessionCookieOf, signInContext } from '../helpers/sign-in-context';
+import { configureLogging } from '../../server/observability/log';
+import { useQuietLogging } from '../helpers/quiet-logging';
 
 const roots: string[] = [];
 afterEach(() => roots.splice(0).forEach(root => rmSync(root, { recursive: true, force: true })));
@@ -25,6 +27,7 @@ test('a session written under another key reads as absent and its file is delete
   const { dir, key } = storeOptions(7);
   const session = await createSessionStore({ dir, key }).create(identity);
   const log = spyOn(console, 'error').mockImplementation(() => {});
+  configureLogging({ level: 'warn', format: 'text' });
   try {
     const rotated = createSessionStore({ dir, key: new Uint8Array(32).fill(8) });
     expect(await rotated.get(session.id)).toBeNull();
@@ -33,6 +36,7 @@ test('a session written under another key reads as absent and its file is delete
     expect(await rotated.end(session.id)).toBeNull();
   } finally {
     log.mockRestore();
+    useQuietLogging();
   }
 });
 

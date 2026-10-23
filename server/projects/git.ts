@@ -4,6 +4,7 @@
 import { relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { BadRequestError } from './errors';
+import { observeGitCommand } from '../observability/git-command';
 /** Default time limit for local Git commands. */
 export const LOCAL_TIMEOUT_MS = 30_000;
 /** Default time limit for remote Git commands. */
@@ -236,7 +237,22 @@ export function createGit(options: GitOptions) {
     const [, ...repository] = relative(copiesRoot, dir).split(sep);
     return repository.length ? resolve(root, ...repository) : dir;
   }
-  async function spawnGit(
+  // Every Git process starts here, so every command is traced and timed once. A cancellable
+  // command is a remote one.
+  function spawnGit(
+    cwd: string,
+    args: string[],
+    stdin?: string,
+    timeout = timeoutMs,
+    cancellable = false,
+    credential?: RemoteCredential,
+    extraEnv: Record<string, string> = {},
+  ): Promise<GitResult> {
+    return observeGitCommand(subcommandOf(args) || 'unknown', args, cancellable, () =>
+      spawnGitProcess(cwd, args, stdin, timeout, cancellable, credential, extraEnv),
+    );
+  }
+  async function spawnGitProcess(
     cwd: string,
     args: string[],
     stdin?: string,

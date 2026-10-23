@@ -9,6 +9,7 @@ import { sparseMutants } from './sparse-mutants';
 import { exampleMetricMutants } from './example-metric-mutants';
 import { themeMutants } from './theme-mutants';
 import { brandMutants } from './brand-mutants';
+import { observabilityMutants } from './observability-mutants';
 import { chmod, mkdtemp, rm, symlink } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 const root = process.cwd();
@@ -1466,6 +1467,8 @@ mutants.push(...exampleMetricMutants);
 mutants.push(...themeMutants);
 // The brand bundle: file checks, cleaners, schema, size caps, headers and the hard-coded scan.
 mutants.push(...brandMutants);
+// Logging, telemetry and browser report faults.
+mutants.push(...observabilityMutants);
 
 async function run(
   category: string,
@@ -1477,10 +1480,13 @@ async function run(
   if (category.startsWith('admin-')) {
     source = source.replaceAll("new URL('../../policies/", `new URL('${root}/policies/`);
   }
-  const rewritten = source.replace(
-    /\bfrom\s*(['"])(\.[^'"]+)\1/g,
-    (_all, q, path) => `from ${q}${resolve(dirname(resolve(root, file)), path)}${q}`,
-  );
+  const absolute = (path: string) => resolve(dirname(resolve(root, file)), path);
+  const rewritten = source
+    .replace(/\bfrom\s*(['"])(\.[^'"]+)\1/g, (_all, q, path) => `from ${q}${absolute(path)}${q}`)
+    .replace(
+      /\bimport\(\s*(['"])(\.[^'"]+)\1\s*\)/g,
+      (_all, q, path) => `import(${q}${absolute(path)}${q})`,
+    );
   const target = resolve(temp, index + '.ts');
   await Bun.write(target, rewritten);
   const child = Bun.spawn(

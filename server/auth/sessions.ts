@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { atomicWrite, sha256 } from '../projects/atomic';
 import { isLoopbackHost } from '../config';
 import type { Principal } from './principal';
+import { log } from '../observability/log';
 
 /** Provider credentials retained exclusively on the server. */
 export type SessionTokens = {
@@ -191,7 +192,7 @@ export function createSessionStore(options: SessionOptions) {
   // never become valid again. Deleting it ends that session instead of failing every request.
   function discardUnreadable(hash: string, error: unknown) {
     const reason = error instanceof Error ? error.name : 'unknown';
-    console.error(`[auth] session-unreadable ${hash.slice(0, 8)} ${reason}`);
+    log.warn('auth.session-unreadable', { session: hash.slice(0, 8), reason });
     rmSync(path(hash), { force: true });
   }
 
@@ -226,7 +227,7 @@ export function createSessionStore(options: SessionOptions) {
     try {
       await options.ended?.(session, reason);
     } catch (error) {
-      console.error(`[auth] session-ended ${(error as Error).message}`);
+      log.failure('auth.session-end-audit-failed', error);
     }
     return session;
   }
