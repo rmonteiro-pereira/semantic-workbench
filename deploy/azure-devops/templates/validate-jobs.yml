@@ -68,6 +68,8 @@ jobs:
           suite: test:monorepo
         dialogs:
           suite: test:dialogs
+        telemetry:
+          suite: test:telemetry
         terminology:
           suite: test:terminology
         mappings_layout:

@@ -33,6 +33,7 @@ import type {
   SignInProvider,
   SignInStart,
 } from './sign-in-provider';
+import { log } from '../observability/log';
 
 const PROVIDER_TIMEOUT_MS = 5000;
 
@@ -306,7 +307,7 @@ async function delegatedToken(context: MsalContext, userToken: string, scopes: s
 function msalLogger(level: LogLevel, message: string, containsPii: boolean) {
   // Personal data is never logged; MSAL marks such messages and they are dropped.
   if (containsPii || level !== LogLevel.Error) return;
-  console.error(`[auth] msal ${message}`);
+  log.error('auth.msal-error', { detail: message });
 }
 
 /** Discovers the Entra tenant and returns MSAL's sign-in operations. */

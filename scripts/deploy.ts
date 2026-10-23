@@ -114,6 +114,9 @@ export function preflight(app: AppSettings, target: Target) {
     'SW_OIDC_CLIENT_SECRET',
     'SW_OIDC_CLIENT_CERTIFICATE_KEY',
     'SW_GITHUB_CLIENT_SECRET',
+    // The connection string holds the instrumentation key, so it is a secret too.
+    'APPLICATIONINSIGHTS_CONNECTION_STRING',
+    'SW_TELEMETRY_ACTOR_SALT',
   ];
   for (const name of secretSettings) {
     if (!app.env[name]) continue;

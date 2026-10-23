@@ -2,6 +2,7 @@
 import { LOCAL_READER } from '../server/projects/reader';
 import assert from 'node:assert/strict';
 import { allowEveryRemote } from '../tests/helpers/remote-credentials-fixture';
+import { observabilityCase } from './observability-cases';
 const m = await import(process.argv[2]);
 const category = process.argv[3];
 if (category === 'edge-path') {
@@ -1797,7 +1798,12 @@ if (category === 'auth-middleware') {
 
 if (category === 'container-health') {
   const health = m.healthResponse(new Request('http://localhost/healthz'), 'serving', {});
-  assert.deepEqual(await health.json(), { ok: true, version: null, commit: null });
+  assert.deepEqual(await health.json(), {
+    ok: true,
+    version: null,
+    commit: null,
+    telemetry: { enabled: false, reason: 'not-started' },
+  });
   const response = m.healthResponse(new Request('http://localhost/api/projects'), 'handover', {});
   assert.equal(response?.status, 503);
   assert.equal(response.headers.get('Retry-After'), '10');
@@ -3634,3 +3640,4 @@ if (category === 'save-failure-wording') {
   const failed = { status: 'failed', message: 'Refused: no.' };
   assert.equal(m.saveStateLabel(failed, 0), 'Not saved: no.');
 }
+await observabilityCase(category, m);

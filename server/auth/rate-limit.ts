@@ -1,6 +1,8 @@
 // Limits how often one source address may act, so an unauthenticated loop cannot exhaust the
 // workbench's own resources.
 
+import { log } from '../observability/log';
+
 /** A bucket holds `burst` requests and refills `perSecond` of them every second. */
 export type RateLimit = { burst: number; perSecond: number };
 
@@ -95,7 +97,8 @@ const REPORT_INTERVAL_MS = 60_000;
  */
 export function createRateLimitReport(
   now: () => number = Date.now,
-  write: (line: string) => void = line => console.error(line),
+  write: (source: string, refused: number) => void = (source, refused) =>
+    log.warn('http.rate-limited', { client: source, refused }),
 ) {
   const sources = new Map<string, { count: number; reportedAt: number }>();
   return (source: string) => {
@@ -103,7 +106,7 @@ export function createRateLimitReport(
     const entry = sources.get(source) ?? { count: 0, reportedAt: Number.NEGATIVE_INFINITY };
     entry.count += 1;
     if (current - entry.reportedAt >= REPORT_INTERVAL_MS) {
-      write(`[http] rate-limited ${source} ${entry.count}`);
+      write(source, entry.count);
       entry.count = 0;
       entry.reportedAt = current;
     }

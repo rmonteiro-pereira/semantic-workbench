@@ -1,6 +1,8 @@
 // Reads the server's environment once at start-up. Local mode needs nothing; server mode needs a
 // complete identity provider configuration, and any missing or unsafe value stops the start.
 
+import { readObservability, type ObservabilitySettings } from './observability/settings';
+
 type Env = Record<string, string | undefined>;
 
 /** Claim mapping preset for the identity provider. */
@@ -32,6 +34,8 @@ type CommonConfig = {
   commit: string | null;
   /** Revision name given by Azure Container Apps, if any. */
   revision: string | null;
+  /** Log level and format, and whether operational telemetry is exported. */
+  observability: ObservabilitySettings;
 };
 
 /** Configuration of the single-user mode on the loopback interface. */
@@ -160,6 +164,7 @@ function readCommon(env: Env, serverMode: boolean, problems: ConfigProblem[]): C
     version: env.SW_VERSION || null,
     commit: env.SW_COMMIT || null,
     revision: env.CONTAINER_APP_REVISION || null,
+    observability: readObservability(env, serverMode, problems),
   };
 }
 

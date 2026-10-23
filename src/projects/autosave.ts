@@ -201,6 +201,7 @@ export function saveStateLabel(s: AutosaveState, uncommitted: number) {
 // hash and return the next hash. Diff computation and requests start in idle time after the pause,
 // never on a keystroke.
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { timeOperation } from '../observability/page-reporting';
 /** Describes a save effect against a specific base hash. */
 export type SaveRequest = Extract<AutosaveEffect, { type: 'save' }>;
 /** Supplies file versions, validation, persistence and callbacks to the autosave driver. */
@@ -272,7 +273,7 @@ export function useAutosave(o: AutosaveOptions) {
   }
   function run(request: SaveRequest) {
     idle(() => {
-      opts.current.save(request).then(
+      timeOperation('save', opts.current.save(request)).then(
         r => {
           const mine = ref.current.file === request.file;
           const stored = r.source ?? request.to;

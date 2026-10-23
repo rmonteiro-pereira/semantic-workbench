@@ -20,9 +20,11 @@ test('a server answers Git failed and logs the output with the request id', asyn
     });
     expect(response.status).toBe(500);
     expect(await response.json()).toEqual({ error: 'Git failed.' });
-    expect(log.mock.calls.flat().join('\n')).toContain(
-      '[http] req-7 GitError: git push failed | fatal: unable to access /srv/data/projects/sales/.git: denied',
-    );
+    const written = log.mock.calls.flat().join('\n');
+    expect(written).toContain('http.git-failed requestId=req-7');
+    expect(written).toContain('git push failed');
+    expect(written).toContain('fatal: unable to access <path>: denied');
+    expect(written).not.toContain('/srv/data');
   } finally {
     log.mockRestore();
   }

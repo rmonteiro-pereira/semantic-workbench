@@ -22,6 +22,8 @@ export type Me = {
   /** Server mode: Azure DevOps tokens can be obtained on the person's behalf. */
   azureDevOpsAvailable?: boolean;
   githubConfigured?: boolean;
+  /** Whether this page may send error and timing reports to the API. */
+  telemetry?: { browserReports: boolean };
 };
 
 let identity: Promise<Me> | undefined;

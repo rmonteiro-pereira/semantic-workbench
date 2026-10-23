@@ -5,6 +5,7 @@
 import { watch, type FSWatcher } from 'node:fs';
 import { join } from 'node:path';
 import type { DataLayout, ProjectLocation } from './paths';
+import { log } from '../observability/log';
 /** Delay used to combine bursts of filesystem changes per project. */
 export const DEBOUNCE_MS = 150;
 /** Interval for rescans that catch missed filesystem events. */
@@ -38,7 +39,7 @@ export function createWatcher(
         gitFlags.delete(slug);
         const next = (running.get(slug) ?? Promise.resolve())
           .then(() => options.onChange(slug, g))
-          .catch(e => console.error(`[watcher] ${slug}: ${(e as Error).message}`));
+          .catch(e => log.failure('watcher.change-failed', e, { project: slug }));
         running.set(slug, next);
       }, debounceMs),
     );
@@ -73,7 +74,7 @@ export function createWatcher(
         });
         watchers.set(repo, w);
       } catch (e) {
-        console.error(`[watcher] cannot watch ${repo}: ${(e as Error).message}`);
+        log.failure('watcher.cannot-watch', e, { repo });
       }
     },
     // Stops the repository's watcher once no other registered project uses it.

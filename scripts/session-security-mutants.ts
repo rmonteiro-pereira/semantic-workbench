@@ -8,7 +8,7 @@ export const sessionSecurityMutants: [string, string, string, string][] = [
     '      throw error;',
   ],
   ['sec-sessions', 'server/auth/sessions.ts', '    rmSync(path(hash), { force: true });', ''],
-  ['sec-sessions', 'server/auth/sessions.ts', '[auth] session-unreadable', '[auth] session-error'],
+  ['sec-sessions', 'server/auth/sessions.ts', 'auth.session-unreadable', 'auth.session-error'],
   [
     'sec-sessions',
     'server/auth/sessions.ts',
@@ -117,7 +117,7 @@ export const sessionSecurityMutants: [string, string, string, string][] = [
   [
     'sec-internal-error',
     'server/request.ts',
-    'console.error(`[http] ${requestId} ${name}: ${message}`);',
+    "log.failure('http.unexpected-error', e, { requestId });",
     '',
   ],
   [

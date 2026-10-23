@@ -23,6 +23,7 @@ export const gateSuites: string[] = [
   'test:git-setup',
   'test:monorepo',
   'test:dialogs',
+  'test:telemetry',
   'test:terminology',
   'test:mappings-layout',
   'test:mapping-graph',

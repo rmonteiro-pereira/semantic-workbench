@@ -10,6 +10,8 @@ import { accessFixture } from './access-fixture';
 import { createHandler } from '../../server/handler';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 import { testWorkspace } from '../helpers/temp-data-dir';
+import { configureLogging } from '../../server/observability/log';
+import { useQuietLogging } from '../helpers/quiet-logging';
 
 const month = () => new Date().toISOString().slice(0, 7);
 const noRefill = { burst: 5, perSecond: 0.0001 };
@@ -175,19 +177,22 @@ test('left out anonymous refusals are counted on the next record', async () => {
 });
 
 test('rate-limited sources are logged once per minute, not once per request', async () => {
+  configureLogging({ level: 'warn', format: 'text' });
   let milliseconds = Date.now();
   using app = await personApp(noRefill, () => milliseconds);
   const log = spyOn(console, 'error').mockImplementation(() => {});
   try {
     for (let request = 0; request < 20; request++) await app.handler(get('/api/projects'));
     const lines = log.mock.calls.flat().filter(line => String(line).includes('rate-limited'));
-    expect(lines).toEqual(['[http] rate-limited 203.0.113.7 1']);
+    expect(lines).toHaveLength(1);
+    expect(String(lines[0])).toMatch(/http.rate-limited .*client=203.0.113.7 refused=1/);
     milliseconds += 60_000;
     await app.handler(get('/api/projects'));
     const later = log.mock.calls.flat().filter(line => String(line).includes('rate-limited'));
-    expect(later.at(-1)).toBe('[http] rate-limited 203.0.113.7 15');
+    expect(String(later.at(-1))).toMatch(/http.rate-limited .*client=203.0.113.7 refused=15/);
   } finally {
     log.mockRestore();
+    useQuietLogging();
   }
 });
 

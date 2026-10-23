@@ -185,3 +185,18 @@ for (const header of ['strict-transport-security', 'set-cookie']) {
     expect(smokeChecks(input, expected, endpoint, false).some(check => !check.ok)).toBe(true);
   });
 }
+
+test('telemetry is checked only when the release is meant to export it', () => {
+  const input = responses();
+  expect(smokeChecks(input, expected, endpoint, false).map(check => check.name)).not.toContain(
+    'telemetry configured',
+  );
+  const off = smokeChecks(input, expected, endpoint, false, true);
+  expect(off.find(check => check.name === 'telemetry configured')?.ok).toBe(false);
+  input.health.body = {
+    ...expected,
+    telemetry: { enabled: true, sampleRatio: 0.1 },
+  } as typeof input.health.body;
+  const on = smokeChecks(input, expected, endpoint, false, true);
+  expect(on.every(check => check.ok)).toBe(true);
+});

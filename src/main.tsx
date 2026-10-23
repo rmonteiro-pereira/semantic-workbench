@@ -16,6 +16,7 @@ import { WorkspaceSidebar } from './app/WorkspaceSidebar';
 import { WorkspaceToolbar } from './app/WorkspaceToolbar';
 import { GitBanner } from './projects/GitBanner';
 import { GitSetupProvider } from './scm/GitSetup';
+import { startBrowserReporting } from './observability/page-reporting';
 // Stylesheet order matters: React Flow's base styles must come after the component styles and
 // before the app's own overrides, as they always have.
 import '@xyflow/react/dist/style.css';
@@ -427,4 +428,5 @@ function App() {
   );
   return <Capabilities projects={projects}>{content}</Capabilities>;
 }
+startBrowserReporting();
 createRoot(document.getElementById('root')!).render(<App />);
