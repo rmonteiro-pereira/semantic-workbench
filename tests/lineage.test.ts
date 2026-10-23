@@ -160,10 +160,15 @@ test('commerce: customers.customer_id → orders.customer_id (parent left of chi
       .filter(e => e.from === 'dataset:sales.ossie.yaml#/orders/amount')
       .map(e => e.to)
       .sort(),
-  ).toEqual([
-    'metric:sales.ossie.yaml#/average_order_value',
-    'metric:sales.ossie.yaml#/gross_revenue',
-  ]);
+  ).toEqual(['metric:sales.ossie.yaml#/gross_revenue']);
+  // The average order value is built on gross revenue, so it reaches the amount through it.
+  expect(g.edges).toContainEqual(
+    expect.objectContaining({
+      from: 'metric:sales.ossie.yaml#/gross_revenue',
+      to: 'metric:sales.ossie.yaml#/average_order_value',
+      kind: 'uses',
+    }),
+  );
   const orders = g.cards.get(o('orders'))!;
   expect(orders.columns.find(c => c.path === 'order_id')!.badges.map(b => b.label)).toEqual([
     'PK',

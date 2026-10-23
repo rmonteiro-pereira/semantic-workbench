@@ -5,13 +5,23 @@
   "aggregates"
  ],
  [
+  "dataset:commerce.mapped-semantic.yaml#/orders/customer_id",
+  "metric:commerce.mapped-semantic.yaml#/active_customers",
+  "aggregates"
+ ],
+ [
   "dataset:commerce.mapped-semantic.yaml#/orders/order_id",
   "metric:commerce.mapped-semantic.yaml#/order_count",
   "aggregates"
  ],
  [
-  "dataset:sales.ossie.yaml#/orders/amount",
-  "metric:sales.ossie.yaml#/average_order_value",
+  "dataset:sales.ossie.yaml#/order_lines/line_amount",
+  "metric:sales.ossie.yaml#/line_revenue",
+  "aggregates"
+ ],
+ [
+  "dataset:sales.ossie.yaml#/order_lines/quantity",
+  "metric:sales.ossie.yaml#/units_sold",
   "aggregates"
  ],
  [
@@ -21,13 +31,38 @@
  ],
  [
   "dataset:sales.ossie.yaml#/orders/order_id",
-  "metric:sales.ossie.yaml#/average_order_value",
+  "metric:sales.ossie.yaml#/order_count",
   "aggregates"
  ],
  [
-  "dataset:sales.ossie.yaml#/orders/order_id",
+  "metric:commerce.mapped-semantic.yaml#/gross_revenue",
+  "metric:commerce.mapped-semantic.yaml#/average_order_value",
+  "uses"
+ ],
+ [
+  "metric:commerce.mapped-semantic.yaml#/order_count",
+  "metric:commerce.mapped-semantic.yaml#/average_order_value",
+  "uses"
+ ],
+ [
+  "metric:sales.ossie.yaml#/gross_revenue",
+  "metric:sales.ossie.yaml#/average_order_value",
+  "uses"
+ ],
+ [
+  "metric:sales.ossie.yaml#/line_revenue",
+  "metric:sales.ossie.yaml#/revenue_per_unit",
+  "uses"
+ ],
+ [
   "metric:sales.ossie.yaml#/order_count",
-  "aggregates"
+  "metric:sales.ossie.yaml#/average_order_value",
+  "uses"
+ ],
+ [
+  "metric:sales.ossie.yaml#/units_sold",
+  "metric:sales.ossie.yaml#/revenue_per_unit",
+  "uses"
  ],
  [
   "object:commerce.odcs.yaml#customers/customer_id",

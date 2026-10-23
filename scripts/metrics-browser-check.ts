@@ -4,6 +4,7 @@ import { appUrl } from './helpers/base-url';
 import { viewOptions } from './helpers/graph-options';
 import { chromium, expect, type Page } from '@playwright/test';
 import { parseDocument } from 'yaml';
+import { plainCommerceModel } from './helpers/commerce-fixture';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 // Checks metric explanations, refused rollups and lineage in split and consolidated examples.
 const api = await startIsolatedApi();
@@ -99,8 +100,15 @@ await api.ws.importBatch(
   },
   LOCAL_READER,
 );
-// Commerce's metrics have no workbench attributes; the last check adds them to one.
-const commerce = await api.ws.loadExample('commerce');
+// The shipped commerce metrics all carry attributes. The last check adds attributes to a metric
+// that has none, so this project holds the commerce model with plain metrics.
+const commerce = await api.ws.importBatch(
+  {
+    name: 'Commerce sales',
+    files: [{ path: 'sales.ossie.yaml', source: await plainCommerceModel() }],
+  },
+  LOCAL_READER,
+);
 const hashes = async () =>
   JSON.stringify(
     (await api.ws.listProjects(LOCAL_READER)).map(p => p.files.map(f => f.path + ':' + f.hash)),

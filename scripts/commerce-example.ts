@@ -1,5 +1,7 @@
 // Generates commerce model examples, RDF instances and analytical fixtures.
 import { stringify } from 'yaml';
+import { governedMetrics } from './commerce-metrics';
+import { bindingEntries, metricExtensionEntries } from './helpers/example-metrics';
 import { graph, parse, serialize } from 'rdflib';
 const dir = 'public/examples/commerce/';
 const tables = [
@@ -90,12 +92,14 @@ await Bun.write(
     team: [{ username: 'commerce-data', role: 'owner' }],
   }),
 );
+const semanticModelName = 'Commerce sales';
+const ontologyName = 'Commerce business ontology';
 const expr = (expression: string) => ({ dialects: [{ dialect: 'ANSI_SQL', expression }] });
 await Bun.write(
   dir + 'sales.ossie.yaml',
   stringify({
     version: '0.2.0.dev0',
-    name: 'Commerce sales',
+    name: semanticModelName,
     description: 'Revenue and order metrics over contracted warehouse tables.',
     datasets: tables.map(t => ({
       name: t.name,
@@ -134,26 +138,28 @@ await Bun.write(
         to_columns: ['product_id'],
       },
     ],
-    metrics: [
-      {
-        name: 'gross_revenue',
-        description:
-          'Order amount before refunds. Aggregate orders only to avoid multiplying totals by lines.',
-        datatype: 'Decimal',
-        expression: expr('SUM(orders.amount)'),
-      },
-      {
-        name: 'order_count',
-        datatype: 'Integer',
-        expression: expr('COUNT(DISTINCT orders.order_id)'),
-      },
-      {
-        name: 'average_order_value',
-        datatype: 'Decimal',
-        expression: expr('SUM(orders.amount) / NULLIF(COUNT(DISTINCT orders.order_id), 0)'),
-      },
-    ],
+    metrics: governedMetrics.map(metric => ({
+      name: metric.name,
+      ...(metric.description ? { description: metric.description } : {}),
+      datatype: metric.datatype,
+      expression: expr(metric.expression),
+      custom_extensions: metricExtensionEntries(metric.extension),
+    })),
   }),
+);
+// The mapping only carries the metric bindings; it maps no concept to a dataset.
+await Bun.write(
+  dir + 'sales.mapping.yaml',
+  '# Workbench addition: binds the governed metrics of sales.ossie.yaml to business concepts.\n' +
+    '# It is not part of any upstream standard example.\n' +
+    stringify({
+      version: '0.2.0.dev0',
+      name: 'Commerce sales mappings',
+      ontology_ref: { name: ontologyName, iri: './commerce-business.ossie.yaml' },
+      semantic_model_ref: { name: semanticModelName, iri: './sales.ossie.yaml' },
+      concept_mappings: [],
+      custom_extensions: bindingEntries(governedMetrics),
+    }),
 );
 const rels = [
   ['Customer', 'places', 'Order'],
@@ -177,7 +183,7 @@ const classes = [
 await Bun.write(
   dir + 'commerce-business.ossie.yaml',
   stringify({
-    name: 'Commerce business ontology',
+    name: ontologyName,
     description: 'Business concepts independent of storage. OWL counterpart uses the same IRIs.',
     ontology: classes.map(concept => ({
       concept,

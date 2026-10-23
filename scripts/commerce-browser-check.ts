@@ -21,10 +21,11 @@ await page
   .getByRole('status')
   .filter({ hasText: 'Loaded commerce contracts' })
   .waitFor({ timeout: 60000 });
-if (docs.length !== 7) throw Error(`Expected 7 documents, got ${docs.length}`);
+if (docs.length !== 8) throw Error(`Expected 8 documents, got ${docs.length}`);
 for (const [filename, kind] of [
   ['commerce.odcs.yaml', 'ODCS'],
   ['sales.ossie.yaml', 'Ossie semantic'],
+  ['sales.mapping.yaml', 'Ossie mappings'],
   ['commerce-business.ossie.yaml', 'Ossie ontology'],
   ['commerce.owl.ttl', 'OWL'],
   ['commerce.owl', 'OWL'],

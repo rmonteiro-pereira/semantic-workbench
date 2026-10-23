@@ -1,0 +1,22 @@
+# Workbench addition: binds the governed metrics of sales.ossie.yaml to business concepts.
+# It is not part of any upstream standard example.
+version: 0.2.0.dev0
+name: Commerce sales mappings
+ontology_ref:
+  name: Commerce business ontology
+  iri: ./commerce-business.ossie.yaml
+semantic_model_ref:
+  name: Commerce sales
+  iri: ./sales.ossie.yaml
+concept_mappings: []
+custom_extensions:
+  - vendor_name: SEMANTIC_WORKBENCH
+    data: |
+      {"schema": "semantic-workbench/mapping/v1", "kpi_bindings": [
+        {"metric":"average_order_value","measures":"Order","of":"Customer"},
+        {"metric":"gross_revenue","measures":"Order","of":"Customer"},
+        {"metric":"line_revenue","measures":"OrderLine","of":"Product"},
+        {"metric":"order_count","measures":"Order","of":"Customer"},
+        {"metric":"revenue_per_unit","measures":"OrderLine","of":"Product"},
+        {"metric":"units_sold","measures":"OrderLine","of":"Product"}
+      ]}

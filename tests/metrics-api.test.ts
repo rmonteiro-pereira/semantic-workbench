@@ -2,9 +2,10 @@
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { parse } from 'yaml';
+import { parse, parseDocument } from 'yaml';
 import { sha256 } from '../server/projects/atomic';
 import { extensionOf } from '../src/edit/item-model';
+import { LOCAL_READER } from '../server/projects/reader';
 import { testWorkspace } from './helpers/temp-data-dir';
 // Metrics endpoints: GET lists every metric with `governed`; POST `metrics` and `metrics/preview`
 // behave exactly like the `kpis` aliases.
@@ -88,9 +89,17 @@ test('POST metrics and metrics/preview equal the kpis aliases byte for byte', as
     b.t.dispose();
   }
 }, 30_000);
+// Every shipped metric has attributes, so this project holds the commerce model with the first
+// metric's attributes removed.
+async function projectWithUngovernedMetric(t: Awaited<ReturnType<typeof testWorkspace>>) {
+  const model = parseDocument(readFileSync('public/examples/commerce/sales.ossie.yaml', 'utf8'));
+  model.deleteIn(['metrics', 0, 'custom_extensions']);
+  const files = [{ path: 'sales.ossie.yaml', source: model.toString() }];
+  return t.ws.importBatch({ files }, LOCAL_READER);
+}
 test('Add attributes: an existing metric without attributes gains only its extension; its expression and every other line keep their bytes', async () => {
   const t = await testWorkspace();
-  const { slug } = await t.ws.loadExample('commerce');
+  const { slug } = await projectWithUngovernedMetric(t);
   try {
     const read = (p: string) => readFileSync(join(t.root, 'projects', slug, p), 'utf8');
     const before = read('sales.ossie.yaml');
