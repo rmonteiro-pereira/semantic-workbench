@@ -409,7 +409,7 @@
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr);
   }
-  /* The sections become one strip that scrolls sideways, with the fade cue of the view tabs. */
+  /* The sections become one strip that scrolls sideways, with the chevron cues of the view tabs. */
   .admin-nav {
     padding: 8px 12px;
     overflow: hidden;
@@ -422,13 +422,6 @@
     overflow-x: auto;
     scrollbar-width: thin;
     scroll-padding-inline: 18px;
-    mask-image: linear-gradient(
-      to right,
-      transparent,
-      var(--color-mask-opaque) var(--fade-start, 0px),
-      var(--color-mask-opaque) calc(100% - var(--fade-end, 0px)),
-      transparent
-    );
   }
   .admin-nav-list a {
     flex-shrink: 0;

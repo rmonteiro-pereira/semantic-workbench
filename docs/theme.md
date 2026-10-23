@@ -101,4 +101,7 @@ tab and the focused graph node to change colour, drives the control, the system 
 stored choice, checks that `theme-init.js` is a blocking script in the head, and measures text
 contrast and overlaps of every tour in both themes at 1280×720. `bun run test:responsive` repeats
 the main tour in dark at the four window sizes. The helpers are `scripts/helpers/theme-tour.ts` and
-`lowContrastProblems` in `scripts/helpers/text-geometry.ts`.
+`lowContrastProblems` and `lowDisabledContrastProblems` (3:1 for disabled buttons) in
+`scripts/helpers/text-geometry.ts`; `controlThemeProblems` in `scripts/helpers/control-geometry.ts`
+fails an input, text area or select that is not filled with a theme colour, and a checkbox or radio
+that keeps the browser's accent. Base form controls follow the tokens in `src/style.css`.

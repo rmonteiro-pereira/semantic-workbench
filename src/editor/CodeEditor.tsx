@@ -28,6 +28,7 @@ export const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorOptions>(functi
     documentLevel,
     cursor,
     checking,
+    findingSummary,
     syntax,
     largeMode,
     modeAvailable,
@@ -63,6 +64,7 @@ export const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorOptions>(functi
         lineEnding={lineEnding}
         cursor={cursor}
         checking={checking}
+        findingSummary={findingSummary}
         lineInput={lineInput}
         onFind={find}
         goToLine={goToLine}

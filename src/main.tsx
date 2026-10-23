@@ -286,6 +286,7 @@ function App() {
             saveStatus={saving.autosave.state.status}
             flush={flushSave}
             saveState={saving.saveState}
+            saveStateShort={saving.saveStateShort}
             error={validationState.result.error}
             setShowValidation={setShowValidation}
             openStale={openStale}

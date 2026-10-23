@@ -1,6 +1,7 @@
 /** Status and navigation controls for the source editor. */
 import type { FormEvent, RefObject } from 'react';
-import { ListOrdered, Search } from 'lucide-react';
+import { AlertTriangle, ListOrdered, Search, XCircle } from 'lucide-react';
+import type { FindingSummary } from './lint';
 import { largeDocumentThreshold } from './documentMode';
 
 const largeModeDescription =
@@ -15,10 +16,18 @@ type Props = {
   lineEnding: string;
   cursor: { line: number; column: number };
   checking: boolean;
+  /** The finding drawn in the editor to name here, so the gutter triangle has a visible message. */
+  findingSummary: FindingSummary | null;
   lineInput: RefObject<HTMLInputElement | null>;
   onFind: () => void;
   goToLine: (line: number) => void;
 };
+
+/** One line for the status bar: the message and its line, with a count when there are more. */
+function describeFinding({ count, line, message }: FindingSummary) {
+  const others = count > 1 ? ` (+${count - 1} more)` : '';
+  return `Line ${line}: ${message}${others}`;
+}
 
 /** Displays file syntax, cursor position, validation status and navigation controls. */
 export function EditorStatusBar({
@@ -29,6 +38,7 @@ export function EditorStatusBar({
   lineEnding,
   cursor,
   checking,
+  findingSummary,
   lineInput,
   onFind,
   goToLine,
@@ -72,6 +82,21 @@ export function EditorStatusBar({
         <span className="code-editor-checking" role="status">
           Checking…
         </span>
+      )}
+      {findingSummary && (
+        <button
+          type="button"
+          className={`code-editor-finding ${findingSummary.severity}`}
+          title={findingSummary.message}
+          onClick={() => goToLine(findingSummary.line)}
+        >
+          {findingSummary.severity === 'error' ? (
+            <XCircle size={13} aria-hidden="true" />
+          ) : (
+            <AlertTriangle size={13} aria-hidden="true" />
+          )}
+          <span>{describeFinding(findingSummary)}</span>
+        </button>
       )}
       <button type="button" onClick={onFind} title="Find and replace (Ctrl+F)">
         <Search size={13} />

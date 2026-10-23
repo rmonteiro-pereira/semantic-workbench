@@ -5,6 +5,7 @@ import {
   initialAutosave,
   isDirty,
   saveStateLabel,
+  saveStateShortLabel,
   type AutosaveEvent,
   type AutosaveState,
 } from '../src/projects/autosave';
@@ -209,6 +210,15 @@ test('labels', () => {
     'Saved to file · 1 uncommitted change',
   );
   expect(saveStateLabel({ ...initialAutosave, status: 'saving' }, 1)).toBe('Saving…');
+});
+test('the short label says only "Saved" when nothing waits to be committed', () => {
+  const saved = { ...initialAutosave, status: 'saved' as const };
+  expect(saveStateShortLabel(saved, 0)).toBe('Saved');
+  expect(saveStateShortLabel(saved, 3)).toBe('Saved · 3 to commit');
+  expect(saveStateShortLabel({ ...saved, status: 'saving' }, 3)).toBe('Saving…');
+  expect(saveStateShortLabel({ ...saved, status: 'stale' }, 0)).toBe(
+    'Not saved: file changed on disk',
+  );
 });
 test('stored text that differs from the sent text is followed unless something was typed since', () => {
   const saving = run([

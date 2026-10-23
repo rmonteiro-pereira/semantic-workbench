@@ -4,7 +4,8 @@ import type { Page } from '@playwright/test';
 import { contrastRatio, parseColor } from './color-literals';
 import type { TourGroup } from './all-tours';
 import { showSidebar, screenProblems, type Screen } from './screen-tour';
-import { lowContrastProblems } from './text-geometry';
+import { controlThemeProblems } from './control-geometry';
+import { lowContrastProblems, lowDisabledContrastProblems } from './text-geometry';
 
 /** The three choices of the Theme control, as the buttons are labelled. */
 export type ThemeChoice = 'System' | 'Light' | 'Dark';
@@ -19,11 +20,17 @@ export async function chooseTheme(page: Page, choice: ThemeChoice) {
 /** The sidebar footer with its Theme control; a phone shows it in the drawer. */
 export const themeScreens: Screen[] = [{ name: 'theme-control', show: showSidebar }];
 
-/** Returns geometry problems and unreadable text of one screen in the theme now applied. */
+/** Returns geometry problems, unreadable text and unthemed controls of one screen in the theme now applied. */
 export async function themedScreenProblems(page: Page, screen: Screen): Promise<string[]> {
   const geometry = await screenProblems(page, screen);
-  const contrast = await lowContrastProblems(page, screen.dialog ?? 'body');
-  return [...geometry, ...contrast.map(problem => `${screen.name}: ${problem}`)];
+  const scope = screen.dialog ?? 'body';
+  const contrast = await lowContrastProblems(page, scope);
+  const disabled = await lowDisabledContrastProblems(page, scope);
+  const controls = await controlThemeProblems(page, scope);
+  return [
+    ...geometry,
+    ...[...contrast, ...disabled, ...controls].map(problem => `${screen.name}: ${problem}`),
+  ];
 }
 
 /** Reads a token as the page resolves it, as a hex string such as `#566c65`. */

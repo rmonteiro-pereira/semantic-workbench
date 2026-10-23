@@ -126,9 +126,8 @@
   white-space: normal;
   overflow-wrap: anywhere;
 }
-.save-state:disabled {
-  opacity: 0.6;
-  cursor: default;
+.header-group > .save-state:disabled {
+  color: var(--text-muted);
 }
 .save-state .save-state-text {
   min-width: 0;
@@ -137,9 +136,22 @@
   white-space: nowrap;
 }
 
-/* Below 1100 px the file actions and Commit keep their icon; the names stay for assistive
-   technology and in the tooltips. */
-@media (max-width: 1099px) {
+/* Below 1500 px the pill draws a short form of its text, so the title keeps the room. The full
+   text stays in the element for tests and assistive technology, and in the tooltip. The text is
+   emptied by a zero font size and the short form comes from the element's data attribute. */
+@media (max-width: 1499px) {
+  .save-state .save-state-text[data-short] {
+    font-size: 0;
+  }
+  .save-state .save-state-text[data-short]::after {
+    content: attr(data-short);
+    font-size: var(--text-small);
+  }
+}
+
+/* From 700 to 1099 px the file actions and Commit keep their icon; the names stay for assistive
+   technology and in the tooltips. A phone has a row of its own for them and shows the names. */
+@media (min-width: 700px) and (max-width: 1099px) {
   .header-actions .action-label {
     position: absolute;
     width: 1px;
@@ -164,6 +176,17 @@
   .workspace-header {
     min-height: 46px;
     padding-block: 5px;
+  }
+}
+
+/* On a phone the row has room for the names of New and Commit but not for a third name, so Export
+   keeps its icon and its tooltip. */
+@media (max-width: 699px) {
+  .header-actions .export-button .action-label {
+    display: none;
+  }
+  .header-group > button {
+    flex: none;
   }
 }
 

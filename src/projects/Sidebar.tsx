@@ -1,6 +1,6 @@
 /** Displays project files and validation status, keeping invalid files available for repair. */
 import { useCapabilities } from '../auth/Capabilities';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ChevronDown,
   ChevronRight,
@@ -270,19 +270,43 @@ function treeEntries(projects: ProjectInfo[]) {
   return entries;
 }
 
+/**
+ * Brings a hidden row to the top of the tree's container. A row that is already fully visible does
+ * not move, so the tree keeps the position the person scrolled to. The row goes to the top, below
+ * the container's scroll padding, because the tree snaps to the start of a row and a row put
+ * anywhere else would be moved again.
+ */
+function revealRow(scroller: HTMLElement, row: HTMLElement) {
+  const frame = scroller.getBoundingClientRect();
+  const box = row.getBoundingClientRect();
+  if (box.top >= frame.top && box.bottom <= frame.bottom) return;
+  const padding = parseFloat(getComputedStyle(scroller).scrollPaddingTop) || 0;
+  scroller.scrollTop += box.top - frame.top - padding;
+}
+
 /** Renders project files with validation status and file actions. */
 export function ProjectTree({
   projects,
   currentId,
+  shown = true,
   onOpen,
   onAction,
 }: {
   projects: ProjectInfo[];
   currentId?: string;
+  /** False while the tree cannot be seen, as in a closed phone drawer, so it has no size to fit. */
+  shown?: boolean;
   onOpen: (project: string, path: string) => void;
   onAction: (action: TreeAction) => void;
 }) {
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
+  const tree = useRef<HTMLUListElement>(null);
+  // The open file stays in view when it is chosen from elsewhere, such as the Source tab.
+  useEffect(() => {
+    const row = tree.current?.querySelector<HTMLElement>('[aria-selected="true"]');
+    const scroller = tree.current?.closest<HTMLElement>('.documents');
+    if (shown && row && scroller) revealRow(scroller, row);
+  }, [currentId, shown]);
   const toggle = (key: string) =>
     setCollapsed(old => {
       const next = new Set(old);
@@ -296,7 +320,7 @@ export function ProjectTree({
     );
   const props = { currentId, onOpen, onAction, collapsed, toggle };
   return (
-    <ul className="project-tree" role="tree" aria-label="Projects">
+    <ul ref={tree} className="project-tree" role="tree" aria-label="Projects">
       {treeEntries(projects).map(entry =>
         'project' in entry ? (
           <ProjectItem key={entry.project.slug} project={entry.project} {...props} />
