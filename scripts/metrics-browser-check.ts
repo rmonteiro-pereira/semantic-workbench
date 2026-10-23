@@ -133,6 +133,23 @@ async function openDrawer(p: Page) {
 }
 const metricsTab = (p: Page = page) => p.locator('.tabs').getByRole('button', { name: /^Metrics/ });
 const list = (p: Page = page) => p.getByRole('region', { name: 'Metrics' });
+const filtersDialog = (p: Page = page) => p.getByRole('dialog', { name: 'Filters' });
+async function openFilters(p: Page = page) {
+  await list(p)
+    .getByRole('button', { name: /^Filters/ })
+    .click();
+  await expect(filtersDialog(p)).toBeVisible();
+}
+async function closeFilters(p: Page = page) {
+  await filtersDialog(p).getByRole('button', { name: 'Done', exact: true }).click();
+  await expect(filtersDialog(p)).toHaveCount(0);
+}
+// Rules and the SQL preview stay closed until their heading is pressed.
+async function openSection(title: 'Rules' | 'SQL preview', p: Page = page) {
+  const section = p.locator('details.on-demand').filter({ hasText: title }).first();
+  if ((await section.getAttribute('open')) === null) await section.locator('summary').click();
+  await expect(section).toHaveAttribute('open', '');
+}
 try {
   await routeApi(page, api);
   await page.goto(appUrl());
@@ -158,16 +175,26 @@ try {
     },
   );
   await check('filter and group: by type, owner and text; grouped rows carry counts', async () => {
+    await openFilters();
     await page.getByRole('combobox', { name: 'Filter by type' }).selectOption('ratio');
+    await closeFilters();
     await expect(list().getByRole('status')).toHaveText('6 of 25 metrics');
+    await expect(list().getByRole('button', { name: /^Filters/ })).toContainText('1');
+    await openFilters();
     await page.getByRole('combobox', { name: 'Group metrics by' }).selectOption('owner');
+    await closeFilters();
     await expect(list().locator('.metrics-group')).toHaveText(['Finance2', 'Leasing4']);
     await page.getByRole('button', { name: 'Clear filters' }).click();
     await expect(list().getByRole('status')).toHaveText('25 metrics');
+    await expect(list().getByRole('button', { name: /^Filters/ })).toContainText('1');
+    await expect(list().locator('.metrics-group').first()).toBeVisible();
+    await openFilters();
+    await page.getByRole('combobox', { name: 'Group metrics by' }).selectOption('none');
+    await closeFilters();
+    await expect(list().getByRole('button', { name: /^Filters/ })).not.toContainText('1');
     await page.getByRole('textbox', { name: 'Find a metric' }).fill('Supplier');
     await expect(list().getByRole('status')).toHaveText('2 of 25 metrics');
     await page.getByRole('textbox', { name: 'Find a metric' }).fill('');
-    await page.getByRole('combobox', { name: 'Group metrics by' }).selectOption('none');
   });
   await check(
     'metric detail: what it measures, its owner, target and the file it is defined in',
@@ -186,14 +213,18 @@ try {
     async () => {
       const region = page.getByRole('region', { name: 'How this metric is calculated' });
       await expect(region).toBeVisible();
+      // Rules and the SQL preview start closed.
+      await expect(region.locator('details.on-demand[open]')).toHaveCount(0);
       await expect(region.getByLabel('Formula in words')).toHaveText('Occupied GLA÷Total GLA');
       const tree = region.getByRole('tree', { name: 'Composition tree' });
       await expect(tree.getByRole('treeitem', { name: 'Numerator: Occupied GLA' })).toBeVisible();
       await expect(tree.getByRole('treeitem', { name: 'Denominator: Total GLA' })).toBeVisible();
+      await openSection('Rules');
       await expect(region.locator('.rule')).toHaveCount(6);
       await expect(
         region.locator('.rule.tone-ok').filter({ hasText: 'Division by zero guarded' }),
       ).toBeVisible();
+      await openSection('SQL preview');
       await expect(region.locator('.not-executed')).toHaveText('Preview · not executed');
       await expect(region.getByLabel('SQL preview, not executed')).toContainText(
         "DATE_TRUNC('month'",
@@ -203,6 +234,7 @@ try {
   );
   await check('refused rollups: summing a ratio, and a stock summed over a quarter', async () => {
     const region = page.getByRole('region', { name: 'How this metric is calculated' });
+    await openSection('SQL preview');
     await region.getByRole('checkbox', { name: 'Sum the metric values' }).check();
     await expect(region.getByRole('alert')).toContainText('Summing ratios gives a wrong result');
     await expect(region.getByLabel('SQL preview, not executed')).toHaveCount(0);
@@ -252,6 +284,7 @@ try {
         await expect(detail.locator('.kpi-facts')).toContainText('MeasuresDelay');
         await expect(detail.locator('.kpi-facts')).toContainText('AboutFlight');
         await expect(detail.locator('.layout-note')).toHaveCount(layout ? 1 : 0);
+        await openSection('SQL preview');
         await expect(detail.getByLabel('SQL preview, not executed')).toContainText(
           'SUM("FLIGHT".dep_delay)',
         );
@@ -332,6 +365,7 @@ try {
           await expect(
             p.getByRole('region', { name: 'How this metric is calculated' }),
           ).toBeVisible();
+          await openSection('SQL preview', p);
           await expect(p.getByLabel('SQL preview, not executed')).toBeVisible();
           expect(await overflow()).toEqual([]);
           if (width === 390) {
@@ -357,14 +391,23 @@ try {
       await openFile('sales.ossie.yaml');
       await metricsTab().click();
       await expect(list().getByRole('status')).toHaveText('3 metrics');
-      const governed = list().getByRole('checkbox', { name: 'Governed only' });
+      const governed = filtersDialog().getByRole('checkbox', { name: 'Governed only' });
+      await openFilters();
       await governed.check();
+      await closeFilters();
       await expect(list().getByRole('status')).toHaveText('0 of 3 metrics');
+      await openFilters();
       await governed.uncheck();
+      await closeFilters();
       await expect(list().getByRole('status')).toHaveText('3 metrics');
+      await expect(list().getByRole('button', { name: /^Add attributes/ })).toHaveCount(0);
       const path = `${api.root}/projects/${commerce.slug}/sales.ossie.yaml`;
       const before = await Bun.file(path).text();
-      await list().getByRole('button', { name: 'Add attributes to gross_revenue' }).click();
+      await list().getByRole('button', { name: 'gross_revenue: explain' }).click();
+      await page
+        .getByRole('region', { name: 'Metric gross_revenue' })
+        .getByRole('button', { name: 'Add attributes', exact: true })
+        .click();
       const w = page.getByRole('dialog', { name: 'Add attributes to gross_revenue' });
       await expect(w).toBeVisible();
       const next = () => w.getByRole('button', { name: 'Next' }).click();
@@ -396,11 +439,17 @@ try {
       expect(b.length - i - j).toBeGreaterThan(0); // Only added lines.
       expect(after).toContain('SUM(orders.amount)');
       expect(after).toContain('"owner": "Sales"');
+      await openFilters();
       await governed.check();
+      await closeFilters();
       await expect(list().getByRole('status')).toHaveText('1 of 3 metrics');
       await expect(list()).toContainText('Gross revenue');
+      await list().getByRole('button', { name: 'Gross revenue: explain' }).click();
       await expect(
-        list().getByRole('button', { name: 'Add attributes to Gross revenue' }),
+        page.getByRole('region', { name: 'Metric Gross revenue' }).getByRole('button', {
+          name: 'Add attributes',
+          exact: true,
+        }),
       ).toHaveCount(0);
       expect(errors).toEqual([]);
     },

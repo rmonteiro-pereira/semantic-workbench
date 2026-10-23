@@ -99,7 +99,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `src/editor/` | The CodeMirror source editor (`useCodeMirror`, extensions, navigation) | Saving logic |
 | `src/odcs/` | Contract pages and the column-level lineage canvas (`lineage.ts` builds the graph, `LineageCanvas.tsx` draws it, `SelectedPath.tsx` lists the highlighted path as a side panel or, on a narrow window, a dialog) | |
 | `src/graph/`, `src/FullGraph.tsx`, `src/NeighborhoodGraph.tsx` | Entity graph views, layout and routing; `GraphOptions.tsx` (the options dialog every graph toolbar uses for its secondary controls) and `ZoomButtons.tsx` (zoom in the toolbar, never over the canvas) | |
-| `src/metrics/`, `src/mappings/`, `src/sql/` | Metrics tab and wizard, mapping views, SQL regions and lint | |
+| `src/metrics/`, `src/mappings/`, `src/sql/` | Metrics tab (list rules in `metric-filters.ts`, table in `MetricsTable.tsx`, filters in `MetricFiltersDialog.tsx`) and wizard, mapping views, SQL regions and lint | |
 | `src/projects/` | Client API (`api.ts`), autosave, project tree, delete and trash dialogs, the repository's projects dialog, shared dialog chrome (`Modal.tsx`) | |
 | `src/scm/` | Source Control panel (`BranchPicker` shows who holds a branch, `DefaultBranchActions` the Pull, Publish and Push buttons of the default branch), Commit dialog, Git setup dialogs (`GitSetup.tsx` opens them from anywhere), and the server-mode connect prompt that resumes a remote action (`RemoteConnectPrompt.tsx`) | Git commands; they run on the server |
 | `schemas/` | Pinned JSON Schemas (ODCS, Ossie, the workbench extensions) | Edits to upstream schemas |

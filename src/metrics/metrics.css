@@ -58,21 +58,54 @@
   align-items: end;
   margin: 18px 0 10px;
 }
-.metrics-filters label {
-  display: grid;
-  gap: 4px;
+.metrics-filters-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+.count-badge {
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: #1e6a4f;
+  color: #fff;
   font-size: var(--text-small);
+  font-weight: 700;
+  text-align: center;
+  line-height: 18px;
+}
+.metrics-ungoverned {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 0;
   color: var(--text-muted);
 }
-.metrics-filters select,
-.metrics-filters input {
-  border: 1px solid #dbe3e4;
-  background: #fff;
-  border-radius: 6px;
-  padding: 8px 9px;
-  font-size: 12px;
-  color: #243936;
-  min-width: 0;
+.metrics-ungoverned .metrics-add-attributes {
+  margin-top: 0;
+}
+/* Rules and the SQL preview stay closed until asked for. */
+.step-body.on-demand > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  list-style: none;
+}
+.step-body.on-demand > summary::-webkit-details-marker {
+  display: none;
+}
+.step-body.on-demand > summary::after {
+  content: 'Show';
+  font-size: var(--text-small);
+  color: #1e6a4f;
+  text-decoration: underline;
+}
+.step-body.on-demand[open] > summary::after {
+  content: 'Hide';
 }
 .metrics-search {
   flex: 1 1 220px;
@@ -89,6 +122,8 @@
   border: 0;
   padding: 8px 0;
   width: 100%;
+  font-size: 12px;
+  color: #243936;
   outline: none;
 }
 .metrics-search:focus-within {
@@ -966,9 +1001,6 @@
   .metrics-table td:first-child::before {
     display: none;
   }
-  .metrics-filters label:not(.metrics-search) {
-    flex: 1 1 40%;
-  }
   .kpi-header h2 {
     font-size: 20px;
   }
@@ -1029,22 +1061,7 @@
     max-width: 640px;
   }
 }
-/* Governed only: a checkbox aligned with the selects; Add attributes on metrics without them. */
-.metrics-filters label.metrics-governed {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: #243936;
-  min-height: 34px;
-  white-space: nowrap;
-}
-.metrics-filters label.metrics-governed input {
-  width: 15px;
-  height: 15px;
-  padding: 0;
-  margin: 0;
-}
+/* Add attributes sits in the detail of a metric that has none. */
 .metrics-add-attributes {
   display: inline-flex;
   align-items: center;
