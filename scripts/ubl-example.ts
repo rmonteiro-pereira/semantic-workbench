@@ -1,6 +1,6 @@
 // Generates UBL model examples, declared foreign keys and analytical fixtures.
 import { stringify } from 'yaml';
-import { bindingEntries, metricExtensionEntries } from './helpers/example-metrics';
+import { bindingsOnlyMappingText, ossieMetric } from './helpers/example-metrics';
 import { governedMetrics } from './ubl-metrics';
 const mapping = await Bun.file('public/examples/ubl/model-map.json').json();
 const dir = 'public/examples/ubl/';
@@ -204,28 +204,21 @@ await Bun.write(
       })),
     })),
     relationships: joins,
-    metrics: governedMetrics.map(metric => ({
-      name: metric.name,
-      datatype: metric.datatype,
-      ...(metric.description ? { description: metric.description } : {}),
-      expression: expression(metric.expression),
-      custom_extensions: metricExtensionEntries(metric.extension),
-    })),
+    metrics: governedMetrics.map(ossieMetric),
   }),
 );
-// The mapping only carries the metric bindings; it maps no concept to a dataset.
 await Bun.write(
   dir + 'ubl.semantic-mapping.yaml',
-  '# Workbench addition: binds the governed metrics of ubl.semantic.yaml to UBL concepts.\n' +
-    '# It is not part of the UBL standard or of any upstream example.\n' +
-    stringify({
-      version: '0.2.0.dev0',
-      name: 'UBL metric bindings',
-      ontology_ref: { name: ontologyName, iri: './ubl.ontology.yaml' },
-      semantic_model_ref: { name: semanticModelName, iri: './ubl.semantic.yaml' },
-      concept_mappings: [],
-      custom_extensions: bindingEntries(governedMetrics),
-    }),
+  bindingsOnlyMappingText({
+    name: 'UBL metric bindings',
+    ontology: { name: ontologyName, iri: './ubl.ontology.yaml' },
+    semanticModel: { name: semanticModelName, iri: './ubl.semantic.yaml' },
+    metrics: governedMetrics,
+    comment: [
+      'binds the governed metrics of ubl.semantic.yaml to UBL concepts.',
+      'It is not part of the UBL standard or of any upstream example.',
+    ],
+  }),
 );
 const summary = {
   businessEntities: mapping.entities.length,

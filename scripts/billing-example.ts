@@ -6,7 +6,7 @@ import { inspect } from '../src/model';
 import { buildContext } from '../server/agent/runtime';
 import { billingContract } from './billing-contract';
 import { governedMetrics } from './billing-metrics';
-import { bindingEntries, metricExtensionEntries } from './helpers/example-metrics';
+import { bindingEntries, ossieMetric } from './helpers/example-metrics';
 // Fictional B2B SaaS billing model. Business relationships and analytic grain are explicit; names
 // are not multiplied to create a synthetic graph benchmark.
 const definitions: [string, string, [string, string, string][]][] = [
@@ -208,12 +208,7 @@ const semantic: any = {
   },
   datasets: [],
   relationships: [],
-  metrics: governedMetrics.map(metric => ({
-    name: metric.name,
-    description: metric.description,
-    expression: expr(metric.expression),
-    custom_extensions: metricExtensionEntries(metric.extension),
-  })),
+  metrics: governedMetrics.map(ossieMetric),
 };
 for (const [concept, table, relations] of definitions) {
   const fieldNames = ['id', 'name', ...relations.map(r => r[2]), ...(extras[concept] ?? [])];
@@ -383,14 +378,18 @@ for (const d of semantic.datasets) {
     sql += `INSERT INTO billing.${d.name} (${columns.join(', ')}) VALUES (${columns.map((c: string) => literal(row[c])).join(', ')});\n`;
 }
 const dir = 'public/examples/billing';
+const CONTRACT_FILE = 'billing.odcs.yaml';
+const CONTRACT_LABEL =
+  '# Workbench addition: the data contract that the governed metrics of this example bind to.\n' +
+  '# It is not part of any upstream standard example.\n';
 await mkdir(dir, { recursive: true });
 for (const [filename, data] of [
   ['billing.ontology.yaml', ontology],
   ['billing.semantic.yaml', semantic],
   ['billing.mapping.yaml', mapping],
-  ['billing.odcs.yaml', billingContract(semantic)],
+  [CONTRACT_FILE, billingContract(semantic)],
 ] as const) {
-  const source = stringify(data);
+  const source = (filename === CONTRACT_FILE ? CONTRACT_LABEL : '') + stringify(data);
   inspect(source, filename);
   await Bun.write(`${dir}/${filename}`, source);
 }
