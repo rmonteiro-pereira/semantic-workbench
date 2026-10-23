@@ -240,6 +240,30 @@ The counts `hiddenFiles`, `hiddenCommits` and `hiddenReferences` stay as deliber
 | `test:auth`, `test:two-editors` | passed |
 | `test:scm`, `test:trash`, `test:projects`, `test:autosave` | passed |
 
+## Release gate (development machine, 2026-10-23)
+
+`bun run ci:validate` on commit 1891220 passed in 1,989 seconds (about 33 minutes) on an idle
+machine, followed by `bun run test:auth:keycloak`.
+
+| Step | Result |
+| --- | --- |
+| verify | `check` (types, formatting, lint, comments), `bun test` 1,548 passed in 217 files, `build` |
+| mutation | 474 of 474 targeted mutants killed, every unmodified module baseline passed, plus the three browser mutants |
+| browser | all 26 suites passed against a fresh Vite server each, including `test:auth`, `test:two-editors` and `test:admin` serving the built frontend through server mode and the mock provider (Entra endpoint layout, MSAL) |
+| timing budgets | `test:graph`: 1,000-entity neighbourhood centred and laid out in 162 ms; `test:editor`: 26.1 ms mean per keystroke without a save and 16.8 ms with an automatic save in flight (budget 30 ms), inline finding 317 ms after the last keystroke (budget 500 ms) |
+| image | `image:build`, `image:scan` (no HIGH or CRITICAL finding), `image:sbom` |
+| container | every workspace suite again against the built image in local mode, the server-mode group with the mock provider, persistence, the single-replica refusal and the deploy smoke check, all with a read-only root filesystem and no capabilities |
+| pipeline | `pipeline:lint` and dry runs for a pull request, `main` and a release tag |
+| `test:auth:keycloak` | passed against Keycloak 26.4 (pinned digest) in 29 seconds |
+
+Earlier runs of the same gate stopped twice in browser suites, each time traced to a cause and
+fixed rather than rerun: the Remote dialog appended a typed address to the previous one when the
+Git status arrived late, and the lineage view hid its cards again after a resize under load. No
+timeout, budget or assertion was changed. The commit after this run only silences the gate's
+console report inside its own unit tests.
+
+SC-010 (Entra), SC-015, SC-016 and the trial are recorded from the owner's report below.
+
 ## Owner trial
 
 The owner records the report of `deploy/trial-runbook.md` here after running it on the target.
