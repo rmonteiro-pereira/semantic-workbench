@@ -8,6 +8,8 @@ import {
   decode,
   encode,
   readJsonFile,
+  replaceFile,
+  type RenameEnvironment,
   sha256,
   TEMP_SUFFIX,
 } from '../server/projects/atomic';
@@ -72,4 +74,48 @@ test('JSON state helpers round-trip and report missing files as null', () => {
   } finally {
     d.cleanup();
   }
+});
+
+/** A rename that fails with the given codes first and then succeeds, on a recorded clock. */
+function lockedRename(failures: string[], platform: NodeJS.Platform = 'win32') {
+  const pauses: number[] = [];
+  let attempts = 0;
+  const environment: RenameEnvironment = {
+    platform,
+    pause: milliseconds => pauses.push(milliseconds),
+    rename: () => {
+      attempts += 1;
+      const code = failures.shift();
+      if (code) throw Object.assign(new Error(`${code}: rename`), { code });
+    },
+  };
+  return { environment, pauses, attempts: () => attempts };
+}
+
+test('on Windows a rename blocked for a moment by another process is retried', () => {
+  const locked = lockedRename(['EPERM', 'EACCES', 'EBUSY']);
+
+  replaceFile('a.tmp', 'a', locked.environment);
+
+  expect(locked.attempts()).toBe(4);
+  expect(locked.pauses).toEqual([10, 20, 40]);
+});
+
+test('on Windows a destination that stays locked fails after the retry budget', () => {
+  const locked = lockedRename(Array(100).fill('EPERM'));
+
+  expect(() => replaceFile('a.tmp', 'a', locked.environment)).toThrow('EPERM');
+  const waited = locked.pauses.reduce((total, pause) => total + pause, 0);
+  expect(waited).toBeGreaterThanOrEqual(2_000);
+  expect(waited).toBeLessThan(2_200);
+});
+
+test('rename errors are not retried on other systems or for other codes', () => {
+  const linux = lockedRename(['EPERM'], 'linux');
+  expect(() => replaceFile('a.tmp', 'a', linux.environment)).toThrow('EPERM');
+  expect(linux.attempts()).toBe(1);
+
+  const missing = lockedRename(['ENOENT']);
+  expect(() => replaceFile('a.tmp', 'a', missing.environment)).toThrow('ENOENT');
+  expect(missing.attempts()).toBe(1);
 });

@@ -521,6 +521,24 @@ const mutants: [string, string, string, string][] = [
   ],
   ['atomic', 'server/projects/atomic.ts', 'const temp = tempPath(path)', 'const temp=path;'],
   [
+    'atomic',
+    'server/projects/atomic.ts',
+    "environment.platform === 'win32' && TRANSIENT_RENAME_CODES.has(code)",
+    'TRANSIENT_RENAME_CODES.has(code)',
+  ],
+  [
+    'atomic',
+    'server/projects/atomic.ts',
+    'if (!retryable || waited >= RENAME_RETRY_BUDGET_MS) throw error;',
+    'if (!retryable) throw error;',
+  ],
+  [
+    'atomic',
+    'server/projects/atomic.ts',
+    "environment.platform === 'win32' && TRANSIENT_RENAME_CODES.has(code)",
+    "environment.platform === 'win32'",
+  ],
+  [
     'migration',
     'server/projects/migration.ts',
     'if (sha256(readFileSync(file)) !== expected)\n          throw',
