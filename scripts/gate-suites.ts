@@ -26,6 +26,7 @@ export const gateSuites: string[] = [
   'test:terminology',
   'test:mappings-layout',
   'test:mapping-graph',
+  'test:theme',
 ];
 
 /** Suites that serve their own built frontend and require server container coverage. */
