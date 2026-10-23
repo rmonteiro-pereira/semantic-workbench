@@ -10,6 +10,9 @@ import manifest from '../tests/fixtures/ossie-mapping/manifest.json';
 import { example } from './helpers/examples';
 import { exportFile } from './helpers/header';
 import { closeComposer, composerDialog, openComposer } from './helpers/query-composer';
+import { EXPECTED_EXAMPLE_METRICS } from './example-metric-checks';
+import { expectMetricPresented, metricsList } from './helpers/examples-tour';
+import { geometryProblems } from './helpers/screen-tour';
 const api = await startIsolatedApi();
 const store = { list: () => api.ws.documents() };
 const db = new Database(':memory:');
@@ -566,6 +569,31 @@ try {
       await page.screenshot({ path: '/tmp/workbench-mapping-finding-edit.png' });
       await editor.getByRole('button', { name: 'Cancel' }).click();
       await expect(editor).toHaveCount(0);
+    },
+  );
+  await check(
+    'every example lists its governed metrics; a simple, a composed and a cross-table metric show owner, lineage, breakdown and an unexecuted SQL preview',
+    async () => {
+      const loaders: Record<string, RegExp> = {
+        ubl: /Load UBL business model/,
+        commerce: /Load commerce workspace/,
+        'mapped-commerce': /Load mapped commerce/,
+        flights: /Load Ossie Flights/,
+        billing: /Load subscription billing/,
+        mall: /Load shopping center administration/,
+      };
+      for (const [setId, expected] of Object.entries(EXPECTED_EXAMPLE_METRICS)) {
+        await (await example(page, loaders[setId])).click();
+        await page
+          .locator('.tabs')
+          .getByRole('button', { name: /^Metrics/ })
+          .click();
+        await expect(metricsList(page).getByRole('status')).toHaveText(`${expected.count} metrics`);
+        for (const kind of ['simple', 'composed', 'path'] as const)
+          await expectMetricPresented(page, setId, kind);
+        expect(await geometryProblems(page)).toEqual([]);
+        await page.screenshot({ path: `/tmp/workbench-example-metrics-${setId}.png` });
+      }
     },
   );
   if (errors.length) throw Error(errors.join('\n'));

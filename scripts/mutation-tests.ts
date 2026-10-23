@@ -6,6 +6,7 @@ import { checkoutMutants } from './security-review-checkout-mutants';
 import { polishMutants } from './polish-mutants';
 import { exportMutants } from './export-mutants';
 import { sparseMutants } from './sparse-mutants';
+import { exampleMetricMutants } from './example-metric-mutants';
 import { chmod, mkdtemp, rm, symlink } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 const root = process.cwd();
@@ -1434,6 +1435,8 @@ mutants.push(...polishMutants);
 mutants.push(...exportMutants);
 // The folder a project lives in, and the Git arguments that check out only that folder.
 mutants.push(...sparseMutants);
+// Example sets that lose a metric, its binding or its contract.
+mutants.push(...exampleMetricMutants);
 
 async function run(
   category: string,
