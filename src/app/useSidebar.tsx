@@ -1,12 +1,11 @@
 /** Persists sidebar preferences and manages responsive drawer focus. */
 import { useEffect, useRef, useState } from 'react';
-import type { ProjectInfo } from '../projects/api';
 import { useNarrowScreen } from './useNarrowScreen';
 import { DIALOG_CLOSED_EVENT, DIALOG_OPENED_EVENT } from '../projects/Modal';
 
-type Options = { readSidebarWidth: () => number; projects: ProjectInfo[] };
+type Options = { readSidebarWidth: () => number };
 /** Manages sidebar. */
-export function useSidebar({ readSidebarWidth, projects }: Options) {
+export function useSidebar({ readSidebarWidth }: Options) {
   const compact = useNarrowScreen();
   const [drawerOpen, setSidebarOpen] = useState(false);
   const [sidebarHidden, setSidebarHidden] = useState(() => {
@@ -20,8 +19,6 @@ export function useSidebar({ readSidebarWidth, projects }: Options) {
   const [sidebarWidth, setSidebarWidth] = useState(readSidebarWidth);
   const [resizingSidebar, setResizingSidebar] = useState(false);
   const sidebarDrag = useRef<{ pointerId: number; x: number; width: number } | null>(null);
-  const [examplesChoice, setExamplesChoice] = useState<boolean | null>(null);
-  const examplesOpen = examplesChoice ?? projects.length === 0;
   useEffect(() => {
     try {
       localStorage.setItem('workbench.sidebarWidth', String(sidebarWidth));
@@ -88,6 +85,8 @@ export function useSidebar({ readSidebarWidth, projects }: Options) {
     focusable()[0]?.focus();
     const keyboard = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        // Escape inside an open menu closes only the menu; the drawer stays.
+        if ((event.target as Element).closest('[role=menu]')) return;
         event.preventDefault();
         closeWorkspace();
       } else if (event.key === 'Tab') {
@@ -110,8 +109,6 @@ export function useSidebar({ readSidebarWidth, projects }: Options) {
   return {
     compact,
     closeWorkspace,
-    setExamplesChoice,
-    examplesOpen,
     sidebarOpen,
     resizingSidebar,
     sidebarWidth,

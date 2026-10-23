@@ -5,8 +5,6 @@ import { api, type Doc } from '../projects/api';
 import { exampleSet } from '../projects/examples';
 
 type Options = {
-  setExamplesChoice: React.Dispatch<React.SetStateAction<boolean | null>>;
-  examplesOpen: boolean;
   getLeaveCurrent: () => () => Promise<void>;
   setBusy: React.Dispatch<React.SetStateAction<boolean>>;
   setMessage: React.Dispatch<React.SetStateAction<string>>;
@@ -23,8 +21,6 @@ type Options = {
 };
 /** Manages examples. */
 export function useExamples({
-  setExamplesChoice,
-  examplesOpen,
   getLeaveCurrent,
   setBusy,
   setMessage,
@@ -41,8 +37,6 @@ export function useExamples({
 }: Options) {
   const domainChoice = useProjectDomain();
   async function loadExample(id: string) {
-    // Loading from the Examples group keeps it as the user left it (open) instead of collapsing it.
-    setExamplesChoice(c => c ?? examplesOpen);
     const set = exampleSet(id)!;
     await getLeaveCurrent()();
     setBusy(true);

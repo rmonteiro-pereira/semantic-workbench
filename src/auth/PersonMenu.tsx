@@ -34,12 +34,7 @@ export function PersonMenu() {
             <span>{personRoles(me).join(', ')}</span>
           </div>
         }
-        label={
-          <span className="person-label">
-            {me.name}
-            <span className="person-role"> · {personRoles(me).join(', ')}</span>
-          </span>
-        }
+        label={<span className="person-label">{me.name}</span>}
         title={details.join(' · ')}
         icon={<UserRound size={18} />}
         items={[

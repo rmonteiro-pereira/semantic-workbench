@@ -1,0 +1,14 @@
+/* The menu is as wide as the sidebar, so it never sticks out of the drawer or the sidebar. */
+.examples-menu {
+  display: flex;
+  width: 100%;
+  margin: 4px 0;
+}
+.examples-menu .menu-popup {
+  left: 0;
+  right: 0;
+  width: auto;
+  min-width: 0;
+  max-width: none;
+  max-height: min(75dvh, 560px);
+}
