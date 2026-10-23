@@ -79,7 +79,7 @@ const ROLES_FOR: Record<UseClass, TokenRole[]> = {
   background: ['surface', 'solid', 'text', 'shadow', 'named'],
   border: ['border', 'solid', 'text', 'named'],
   text: ['text', 'solid', 'named'],
-  shadow: ['shadow', 'solid', 'surface', 'border', 'named'],
+  shadow: ['shadow', 'solid', 'border', 'named'],
   mask: ['mask'],
   any: ['surface', 'border', 'text', 'solid', 'shadow', 'named'],
 };
@@ -108,8 +108,8 @@ function nearestToken(color: Rgba, use: UseClass, tokens: Token[]) {
   return best;
 }
 
-function isDark(color: Rgba): boolean {
-  return luminance(color) < 0.09;
+function isTranslucentDark(color: Rgba): boolean {
+  return color.alpha < 1 && luminance(color) < 0.09;
 }
 
 function transparencyOf(alpha: number): string {
@@ -129,16 +129,16 @@ export function mapLiteral(literal: string, property: string, tokens: Token[]): 
     return { ok: false, reason: 'not a colour the codemod can read' };
   }
   const use = useClassOf(property);
+  // A faint dark colour is a shadow or a dimmed backdrop whatever its exact hue.
+  if (isTranslucentDark(color) && (use === 'shadow' || use === 'background')) {
+    const shadow = tokens.find(token => token.role === 'shadow')!;
+    const replacement = referenceFor(shadow.name, color.alpha);
+    return { ok: true, replacement, token: shadow.name, distance: 0 };
+  }
   const best = nearestToken(color, use, tokens);
   if (best) {
     const replacement = referenceFor(best.token.name, color.alpha);
     return { ok: true, replacement, token: best.token.name, distance: best.distance };
-  }
-  // A faint dark shadow looks the same whatever its exact hue.
-  if (use === 'shadow' && color.alpha < 1 && isDark(color)) {
-    const shadow = tokens.find(token => token.role === 'shadow')!;
-    const replacement = referenceFor(shadow.name, color.alpha);
-    return { ok: true, replacement, token: shadow.name, distance: 0 };
   }
   const suggestions = tokens.filter(token => token.role !== 'named');
   const any = suggestions.sort(
