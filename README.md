@@ -28,7 +28,9 @@ bun install
 bun run dev
 ```
 
-Open http://127.0.0.1:5173. The API listens on http://127.0.0.1:4310. Both bind to loopback.
+Open http://127.0.0.1:5173. The API listens on http://127.0.0.1:4310. `bun run dev` starts the
+frontend only after the API reports ready on `/readyz`, so the first page load never hits a
+refused connection while the API is still scanning the workspace. Both bind to loopback.
 The API answers only requests addressed to a loopback name (so a web page cannot reach it through
 DNS rebinding), refuses writes from other origins and never follows a symbolic link inside a
 project folder. `SW_HOST=0.0.0.0 bun server/index.ts` is refused in local mode.
