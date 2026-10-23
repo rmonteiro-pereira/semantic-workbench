@@ -126,6 +126,13 @@
   padding: 6px 4px;
   gap: 3px;
 }
+/* Why Publish is disabled, in words, because a tooltip is not seen on a touch screen. */
+.scm-hint {
+  display: block;
+  margin: -2px 0 2px;
+  font-size: 12px;
+  color: #62786e;
+}
 .scm-remote-actions button {
   flex: 1;
   font-size: 12px;

@@ -35,6 +35,10 @@ button:disabled {
   opacity: 0.45;
   cursor: default;
 }
+/* The display rule of buttons above would otherwise show a button that is meant to be hidden. */
+[hidden] {
+  display: none !important;
+}
 .shell {
   display: flex;
   min-height: 100vh;
@@ -142,6 +146,12 @@ button:disabled {
   color: #9ba9a3;
   font-size: 10px;
   margin: 8px 12px;
+}
+/* The count of files a person may not open, in the size of the file rows beside it. */
+.hidden-files {
+  margin: 2px 0 6px 28px;
+  color: #62786e;
+  font-size: 12px;
 }
 main {
   flex: 1;

@@ -14,9 +14,13 @@ The runtime is an HTTP tool surface for an agent that performs language interpre
 
 ## Agent clients in server mode
 
-In server mode an agent calls `/api/agent/catalog`, `/api/agent/context` and `/api/agent/plan`
-with its own application token from Entra, sent as `Authorization: Bearer <token>`. Get the
-token with MSAL, Microsoft's authentication library, either with the agent's own App
+An automation calls `/api/agent/catalog`, `/api/agent/context` and `/api/agent/plan` with its own
+identity: an application access token from Entra, sent as `Authorization: Bearer <token>`. It sees
+only the projects an Admin granted to its client ID. Nothing else about the token grants access.
+
+### Get a token
+
+Get the token with MSAL, Microsoft's authentication library, either with the agent's own App
 Registration (client credentials, certificate preferred) or as the managed identity of the Azure
 resource the agent runs on. The example client does both and prints the catalog:
 
@@ -32,29 +36,87 @@ bun scripts/examples/agent-client.ts
 
 Use `AGENT_CLIENT_SECRET` instead of the certificate pair, or `AGENT_MANAGED_IDENTITY=1` on an
 Azure resource (with `AGENT_CLIENT_ID` naming a user-assigned identity, or unset for the
-system-assigned one). The client asks for `api://<workbench application id>/.default` with
-client credentials, or for that resource with the managed identity
-(`scripts/examples/agent-client.ts`, functions `requestAgentToken` and `fetchAgentCatalog`).
+system-assigned one). The client asks for `api://<workbench application id>/.default` with client
+credentials, or for that resource with the managed identity (`scripts/examples/agent-client.ts`,
+functions `requestAgentToken` and `fetchAgentCatalog`). Keycloak and generic providers' client
+tokens are refused: bearer validation follows Entra's token shape.
+
+### Set up the workbench
 
 What the workbench's App Registration and settings provide (set up in
 [deploy/README.md](../deploy/README.md#entra-app-registration)):
 
-- **The API the agent asks for.** The Application ID URI `api://<workbench application id>`.
-  An app role for agents (allowed member type **Applications**) is optional: the workbench never
+- **The API the agent asks for.** The Application ID URI `api://<workbench application id>`. An
+  app role for agents (allowed member type **Applications**) is optional: the workbench never
   reads roles.
-- **Version 2 access tokens** (`requestedAccessTokenVersion: 2`) with the optional access-token
-  claim `idtyp`, so the token's issuer is `SW_OIDC_ISSUER`, its `aud` is the workbench
-  application id and it says it is an application token.
-- **`SW_API_AUDIENCE`** set to the workbench application id.
-- **A grant** for the agent's client id (its application id, or the managed identity's client id)
-  under **Admin → Projects**, stored in `admin/agents.json`. That grant is the agent's only
-  authorization.
+- **Version 2 access tokens** (`requestedAccessTokenVersion: 2` in the `api` section of the
+  manifest, `accessTokenAcceptedVersion` in the older manifest format) with the optional
+  access-token claim `idtyp`, so the token's issuer is `SW_OIDC_ISSUER`, its `aud` is the
+  workbench application id and it says it is an application token. Entra omits `idtyp` unless it
+  is added under **Token configuration**, and every token without it is refused.
+- **`SW_API_AUDIENCE`** set to the workbench application id. A comma-separated list accepts
+  several audiences, for example during a move between apps. Unset, every bearer token is
+  refused.
+- **An application registered in the same tenant** for the automation. It needs no app role.
 
-The server validates every bearer token itself with `jose` against the tenant's published keys:
-signature, issuer, audience, expiry, tenant and that it is an application token, never a
-person's. Sign-in in the browser uses MSAL on the server too, but an agent's token never touches
-a browser session. The README's [agent clients](../README.md#agent-clients-in-server-mode)
-section lists the answers for refused, ungranted and deactivated clients.
+### Grant projects
+
+A client has no access until an Admin grants it projects or whole domains. Open **Admin →
+Projects**, give the client ID the projects or domains it may read, and confirm after the dry
+run. The grant is stored in `admin/agents.json`, one commit in the administration repository like
+any other access change, and is the agent's only authorization:
+
+```json
+{
+  "formatVersion": 1,
+  "clients": [
+    {
+      "clientId": "my-agent",
+      "name": "Sales automation",
+      "projects": ["sales-contracts"],
+      "domains": []
+    }
+  ]
+}
+```
+
+A client reads the files of its granted projects and of every project in a granted domain, and
+nothing else. It never writes. Restricted paths stay hidden from every client. App roles, groups
+and addresses in the token grant nothing. **Users & groups** lists configured clients beside
+people, and **Access check** and the dry run include them, so an Admin can see what a change
+gives or takes from each one.
+
+### Call the API
+
+```sh
+curl "$SW_PUBLIC_URL/api/agent/catalog" -H "Authorization: Bearer $ACCESS_TOKEN"
+curl "$SW_PUBLIC_URL/api/agent/context?mappingId=sales-contracts/sales.mapping.yaml" \
+  -H "Authorization: Bearer $ACCESS_TOKEN"
+curl "$SW_PUBLIC_URL/api/agent/plan" -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H 'Content-Type: application/json' \
+  --data '{"mappingId":"sales-contracts/sales.mapping.yaml","metrics":[],"dimensions":[]}'
+```
+
+### What the server checks and how it answers
+
+- **Token.** The server validates every bearer token itself with `jose`: the signature against the
+  provider's published keys (RS256 or ES256), issuer, `SW_API_AUDIENCE`, expiry and not-before with
+  five minutes of clock skew. It must be an application token (`idtyp=app`, no `scp`) of
+  `SW_ENTRA_TENANT_ID`, and the client ID comes from `azp`. The issuer check admits v2 tokens
+  only: v1 tokens come from `https://sts.windows.net/<tenant>/` and are refused. An unknown
+  signing key reloads the keys at most once every five minutes.
+- **Refusals.** An invalid token gets 401 with `WWW-Authenticate: Bearer error="invalid_token"`.
+  When the provider's keys cannot be fetched or read, the call gets 503 without that header and
+  can be retried. A valid token of a client without a grant, or of a deactivated client, gets 403.
+  A document outside the client's projects answers 404 like a missing one, and context never
+  resolves an ontology or semantic model from a project the client cannot read.
+- **Where tokens work.** Bearer tokens are accepted on `/api/agent/*` only. Anywhere else they get
+  401, even next to a valid session cookie, and a token on a route that declares no client action
+  gets 403. A browser session still works on the agent routes. A client needs no `Origin` or
+  `X-SW-Request` header: those guard cookies a browser sends on its own. Sign-in in the browser
+  uses MSAL on the server too, but an agent's token never touches a browser session.
+- **Audit.** Every call of an agent client is audited under `client:<clientId>`. A refused token
+  is recorded as anonymous, with the reason, and never copied into the log.
 
 ## Agent tools
 

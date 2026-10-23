@@ -26,6 +26,8 @@ jobs:
           suite: test:auth
         two_editors:
           suite: test:two-editors
+        admin:
+          suite: test:admin
         ui:
           suite: test:ui
         responsive:

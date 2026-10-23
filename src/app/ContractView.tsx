@@ -22,6 +22,10 @@ type Props = {
   applySaved: (saved: Saved[], label: string) => void;
   setMessage: React.Dispatch<React.SetStateAction<string>>;
 };
+/** Why some property controls are read-only for people who may not classify. */
+function protectedPropertiesNote(protectedLevel = 'confidential') {
+  return `Only a Steward or Admin changes a classification, or a property classified ${protectedLevel} or above.`;
+}
 /** Renders contract view. */
 export function ContractView({
   contractObject,
@@ -37,6 +41,7 @@ export function ContractView({
   setMessage,
 }: Props) {
   const access = useCapabilities(current.project);
+  const lockedForPerson = !access.local && !access.can('editGuarded');
   return contractObject ? (
     <DatasetPage
       key={contractObject}
@@ -58,6 +63,9 @@ export function ContractView({
         onSaved: applySaved,
         onError: setMessage,
       })}
+      propertiesNote={
+        lockedForPerson ? protectedPropertiesNote(access.classification?.protectedLevel) : undefined
+      }
     />
   ) : (
     <ContractOverview

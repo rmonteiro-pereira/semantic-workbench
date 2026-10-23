@@ -3,6 +3,7 @@ import { adminMutants } from './admin-mutants';
 import { sessionSecurityMutants } from './session-security-mutants';
 import { securityReviewMutants } from './security-review-mutants';
 import { checkoutMutants } from './security-review-checkout-mutants';
+import { polishMutants } from './polish-mutants';
 import { chmod, mkdtemp, rm, symlink } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 const root = process.cwd();
@@ -1425,6 +1426,8 @@ mutants.push(...adminMutants);
 mutants.push(...sessionSecurityMutants);
 // Data access, files and Git cases extend the inventory the same way.
 mutants.push(...securityReviewMutants, ...checkoutMutants);
+// Wording of refusals shown to people.
+mutants.push(...polishMutants);
 
 async function run(
   category: string,

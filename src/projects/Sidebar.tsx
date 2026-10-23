@@ -225,7 +225,9 @@ function ProjectItem({ project, ...props }: { project: ProjectInfo } & TreeProps
       </div>
       {open && (
         <ul role="group">
-          {project.hiddenFiles ? <li>{hiddenFilesLine(project.hiddenFiles)}</li> : null}
+          {project.hiddenFiles ? (
+            <li className="hidden-files">{hiddenFilesLine(project.hiddenFiles)}</li>
+          ) : null}
           {project.files.map(file => (
             <FileItem key={file.path} project={project} file={file} {...props} />
           ))}

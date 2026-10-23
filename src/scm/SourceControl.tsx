@@ -57,6 +57,12 @@ const STATE: Record<string, string> = {
 };
 const letter = (c: GitChange, g: Group) =>
   g === 'conflicts' ? '!' : g === 'staged' ? c.index : c.untracked ? 'U' : c.worktree;
+/** The history note for commits that touch only files the person cannot open. */
+export function hiddenCommitsLine(count: number) {
+  return count === 1
+    ? '1 commit with changes you cannot open'
+    : `${count} commits with changes you cannot open`;
+}
 function groupsOf(changes: GitChange[]) {
   return {
     conflicts: changes.filter(c => c.conflicted),
@@ -776,7 +782,7 @@ export function SourceControl({
               </button>
             )}
           </h3>
-          {hiddenCommits > 0 && <p>{hiddenCommits} commits with changes you cannot open</p>}
+          {hiddenCommits > 0 && <p>{hiddenCommitsLine(hiddenCommits)}</p>}
           <ol>
             {log.map(c => (
               <li key={c.commit}>

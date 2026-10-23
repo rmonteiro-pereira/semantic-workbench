@@ -837,3 +837,24 @@ test('a Steward allowed to read audit records is audited with the rule that let 
   expect(record?.decision).toBe('allow');
   expect(record?.rules).toEqual(['steward-audit']);
 }, 30000);
+
+test('the last-Admin refusal reads as a sentence without the internal area name', async () => {
+  using fixture = await adminFixture();
+  const grants = fixture.repository
+    .load()
+    .grants.map(grant =>
+      grant.roleId === 'admin'
+        ? { ...grant, member: { kind: 'group', groupId: 'nobody-signs-in-with-this-group' } }
+        : grant,
+    );
+  const { dryRunId } = await (
+    await fixture.request('/api/admin/policies/dry-run', 'POST', { grants })
+  ).json();
+  const response = await fixture.request('/api/admin/grants', 'PUT', {
+    grants,
+    dryRunId,
+    baseVersion: await fixture.repository.version(),
+  });
+  const body = await response.json();
+  expect(body.message).toBe('This change would remove the last active Admin.');
+}, 30000);

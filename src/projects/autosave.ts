@@ -164,6 +164,16 @@ export function autosave(
 }
 /** Checks whether editor text differs from the last saved text. */
 export const isDirty = (s: AutosaveState) => s.text !== s.savedText;
+/**
+ * The reason a save failed, ready to follow "Not saved:". A refusal from the server already starts
+ * with "Refused:", which would read as "Not saved: Refused:".
+ */
+export function failureReason(message: string | null | undefined) {
+  if (!message) return 'the save failed';
+  const refusal = /^Refused:\s*(.+)$/.exec(message);
+  if (!refusal) return message;
+  return refusal[1]!;
+}
 // Save-state labels distinguish validation, conflicts and uncommitted changes.
 /** Returns the visible save-state label including uncommitted-change status. */
 export function saveStateLabel(s: AutosaveState, uncommitted: number) {
@@ -178,7 +188,7 @@ export function saveStateLabel(s: AutosaveState, uncommitted: number) {
     case 'stale':
       return 'Not saved: file changed on disk';
     case 'failed':
-      return `Not saved: ${s.message ?? 'the save failed'}`;
+      return `Not saved: ${failureReason(s.message)}`;
     case 'waiting':
       return 'Not saved yet: waiting for Git';
     case 'cancelled':

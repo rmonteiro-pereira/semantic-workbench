@@ -26,3 +26,42 @@ interface phase. Each entry says where it shows, what is wrong and what was done
 | Roles & access grants table, 390 px | Group names read "name not resolved" while their lookup is still running. | fixed: the table shows the name the grants response already carries; the grant form says "looking up name…" while it waits |
 | Refusals in every dialog | The red message repeats the request (`POST /api/admin/users/…%3A…/deactivate`) before the reason. | fixed: dialogs show only the refusal code and sentence, plus a note when a bootstrap Admin can still restore access |
 | Audit, all widths | Read decisions end in "deny ·" because they record no outcome. | fixed: the outcome only appears when recorded |
+
+## Governed metrics and classifications
+
+| Where | Finding | Status |
+| --- | --- | --- |
+| Metric detail, Approve and Deprecate, all widths | A disabled button gave its reason only as a tooltip, which a touch screen never shows. | fixed: the reason ("Requires Steward.", "You own this metric; another Steward decides.") is written beside the button; browser check asserts the text for an Editor and for the metric's owner |
+| Metric detail, Deprecate form, 390 px | The reason field was narrower than the row, and the outcome of the approval before it ("Approved.") floated beside the new form. | fixed: the form takes the whole row and the old outcome is cleared when the form opens; browser check asserts both |
+| Metric wizard, owner step, all widths | The owner field looked like a plain text box; nothing said that people are suggested. | fixed: a line under the field says who the suggestions are; browser check asserts the suggested names and screenshots the step |
+| Metric detail, unverified owner badge, all widths | The badge is readable and wraps under the address at 390 px. | no change |
+| Contract properties as an Editor, all widths | Protected properties and classifications were read-only with no explanation. | fixed: a sentence above the table says who may change them; browser check asserts it |
+| Source editor, refused classification edit, all widths | The message read "Not saved: Refused: this would include…" and the end said "needs Steward in this project's domain, or Admin", which is not a sentence. | fixed: the label drops the repeated prefix and the refusal says "needs Steward access in this project's domain, or Admin access"; unit tests cover both and the browser check asserts the shown sentence |
+| Sidebar, server mode, all widths | The count "N files you cannot open" was drawn larger than the file rows, and the footer said the folders are on this machine. | fixed: row-sized line, and "on the server" with a note that changes stay in the person's own working copy until published; browser check asserts both |
+| Sidebar footer, 1280×720 | With three projects open the footer note sits below the visible part of the sidebar and is reached by scrolling it. | no change: the sidebar already scrolls and the note is secondary |
+
+## Working copies and publishing (Source Control)
+
+| Where | Finding | Status |
+| --- | --- | --- |
+| Source Control as an Editor, all widths | Publish to main was disabled with a tooltip only. | fixed: "Requires Steward to publish to main." under the buttons; two-editors check asserts it |
+| Source Control, all widths | Buttons that carry the `hidden` attribute (Push main for people who may not push) were still drawn, because the page's button rule overrides it. | fixed: one rule keeps hidden elements hidden; two-editors check asserts Push main and Remote… are hidden for a Steward and an Editor |
+| History, Editor with hidden commits | "1 commits with changes you cannot open". | fixed: singular and plural; unit test |
+| Branch picker, all widths | Another person's work branch is no longer offered at all. A branch another copy holds is listed with its holder ("feature/frank (in use by Frank Freitas)") and disabled. | no layout defect: the check asserts the option and keeps the closed picker's geometry at four widths; a headless screenshot cannot draw the open list |
+| Source Control, 2560 px | The panel keeps its 340 px column and leaves the wide diff area empty until a file is chosen. | no change: existing layout, and the diff fills that area |
+
+## Connected accounts, connect prompt and the pages outside the workspace
+
+| Where | Finding | Status |
+| --- | --- | --- |
+| Connected accounts dialog and connect prompt, all widths | Readable and inside the viewport; buttons and the dismiss control keep their size. | no change |
+| Sign-in error page, all widths | The reason ("Expired or replayed sign-in attempt") had no full stop, unlike the other pages. | fixed: every reason ends with one; unit test |
+| Signed out page, all widths | Readable; the button is reachable at every width. | no change |
+| Front-channel logout | It answers an empty 200 for the provider and has no page to capture. | not applicable |
+
+## Admin panel, second pass
+
+| Where | Finding | Status |
+| --- | --- | --- |
+| Users & groups, refusing to deactivate the last Admin | The message read "Deactivate Dave Dias: last-admin: deactivated: this change would remove…", with the internal area name in it. | fixed: the server sentence no longer carries the area name; unit test |
+| Projects, 1280 px and wider | The domain name fields ended at different edges, because each Remove button was as wide as its domain id. | fixed: the button reads "Remove" (its accessible name still names the domain); browser check asserts one right edge |

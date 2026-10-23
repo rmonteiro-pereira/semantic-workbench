@@ -45,6 +45,37 @@ type Props = {
   ) => Promise<void>;
   importFiles: (files: File[]) => Promise<void>;
 };
+/** Where the project folders live, and where an edit goes, for the person signed in. */
+type FolderPlace = 'local' | 'published' | 'own-copy';
+
+/** Says where the project folders live: on this machine, or on the shared server. */
+function WorkspaceLocation({ place }: { place: FolderPlace }) {
+  if (place === 'local') {
+    return (
+      <div className="local">
+        <span className="dot" /> Project folders · on your machine
+        <small>Your definitions stay local.</small>
+      </div>
+    );
+  }
+  const note =
+    place === 'own-copy'
+      ? 'Your changes stay in your own working copy until published.'
+      : 'You see the published definitions.';
+  return (
+    <div className="local">
+      <span className="dot" /> Project folders · on the server
+      <small>{note}</small>
+    </div>
+  );
+}
+
+/** Viewers read the published state; anyone who can edit works in their own copy. */
+function folderPlace(mode: string, canEdit: boolean): FolderPlace {
+  if (mode !== 'server') return 'local';
+  return canEdit ? 'own-copy' : 'published';
+}
+
 /** Renders workspace sidebar. */
 export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
   compact,
@@ -260,10 +291,7 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
           accept=".yaml,.yml,.json,.odcs,.ossie,.ttl,.nt,.rdf,.owl,.xml,.shacl,.n3"
           onChange={handleImportInputChange}
         />
-        <div className="local">
-          <span className="dot" /> Project folders · on your machine
-          <small>Your definitions stay local.</small>
-        </div>
+        {me && <WorkspaceLocation place={folderPlace(me.mode, access.can('edit'))} />}
       </aside>
     </>
   );
