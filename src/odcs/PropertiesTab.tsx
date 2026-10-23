@@ -3,6 +3,7 @@ import React, { useMemo, useState } from 'react';
 import { ArrowDown, ArrowUp, Pencil, Search } from 'lucide-react';
 import { odcsForeignKeys } from '../odcs';
 import { flattenProperties } from './odcs-diff';
+import { hopSentence } from './lineage';
 import { Badge, badge } from '../PropertyBadges';
 import type { PropertyEditor } from './PropertyEditors';
 import './odcs.css';
@@ -46,6 +47,23 @@ function foreignKeys(data: any, objectIndex: number) {
         if (!xs.includes(t)) xs.push(t);
         out.set(name, xs);
       }
+  return out;
+}
+
+// The same keys as plain sentences, `orders.customer_id → customers.id`, by column and target.
+function foreignKeySentences(data: any, objectIndex: number) {
+  const schema = list(data?.schema);
+  const own = String(schema[objectIndex]?.name);
+  const out = new Map<string, string>();
+  for (const k of odcsForeignKeys(data))
+    if (k.from === objectIndex)
+      k.fromColumns.forEach((column, i) => {
+        const parent = `${String(schema[k.to]?.name)}.${k.toColumns[i]}`;
+        out.set(
+          `${column}>${String(schema[k.to]?.name)}`,
+          hopSentence({ child: `${own}.${column}`, parent }),
+        );
+      });
   return out;
 }
 
@@ -100,6 +118,7 @@ export function PropertiesTab({ data, objectIndex, onOpenObject, editor }: TabPr
   const object = list(data?.schema)[objectIndex];
   const rows = useMemo(() => flattenProperties(object?.properties), [object]);
   const targets = useMemo(() => foreignKeys(data, objectIndex), [data, objectIndex]);
+  const sentences = useMemo(() => foreignKeySentences(data, objectIndex), [data, objectIndex]);
   const [filter, setFilter] = useState('');
   const [sort, setSort] = useState<Sort | null>(null);
   const [editing, setEditing] = useState<Row | null>(null);
@@ -137,6 +156,7 @@ export function PropertiesTab({ data, objectIndex, onOpenObject, editor }: TabPr
                 key={row.path}
                 row={row}
                 targets={targets.get(row.path) ?? []}
+                sentences={sentences}
                 columns={columns}
                 onOpenObject={onOpenObject}
                 onEdit={editor?.canEditProperty(row.path, row.property) ? setEditing : undefined}
@@ -239,7 +259,15 @@ function ConstraintBadges({ property }: { property: Property }) {
   );
 }
 
-function ForeignKeyChips({ targets, onOpen }: { targets: string[]; onOpen: (n: string) => void }) {
+function ForeignKeyChips({
+  targets,
+  sentenceOf,
+  onOpen,
+}: {
+  targets: string[];
+  sentenceOf: (target: string) => string | undefined;
+  onOpen: (n: string) => void;
+}) {
   return (
     <>
       {targets.map(target => (
@@ -247,7 +275,7 @@ function ForeignKeyChips({ targets, onOpen }: { targets: string[]; onOpen: (n: s
           key={target}
           className="odcs-link fk"
           aria-label={`Open ${target}`}
-          title={`Foreign key to ${target}`}
+          title={sentenceOf(target) ?? `Foreign key to ${target}`}
           onClick={() => onOpen(target)}
         >
           <Badge kind="fk" />
@@ -294,11 +322,12 @@ function TypeCell({ property }: { property: Property }) {
 type RowProps = {
   row: Row;
   targets: string[];
+  sentences: Map<string, string>;
   columns: UsedColumns;
   onOpenObject: (name: string) => void;
   onEdit?: (row: Row) => void;
 };
-function PropertyRow({ row, targets, columns, onOpenObject, onEdit }: RowProps) {
+function PropertyRow({ row, targets, sentences, columns, onOpenObject, onEdit }: RowProps) {
   const { path, property } = row;
   const depth = path.split('.').length - 1 + (path.match(/\[\]/g)?.length ?? 0);
   const classification = text(property.classification);
@@ -335,7 +364,11 @@ function PropertyRow({ row, targets, columns, onOpenObject, onEdit }: RowProps) 
       )}
       {columns.foreignKeys && (
         <td data-label="Foreign keys">
-          <ForeignKeyChips targets={targets} onOpen={onOpenObject} />
+          <ForeignKeyChips
+            targets={targets}
+            sentenceOf={target => sentences.get(`${row.path}>${target}`)}
+            onOpen={onOpenObject}
+          />
         </td>
       )}
       {columns.actions && (
