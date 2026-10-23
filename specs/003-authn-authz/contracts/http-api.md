@@ -150,6 +150,7 @@ repository projects, metric aliases) exist; none was renamed or dropped.
 | `POST /api/import` | `createProject` | W |
 | `POST /api/projects/:slug/move` | `move` | P (and the target project) |
 | `POST /api/projects/:slug/import` | `import` | P |
+| `GET /api/projects/:slug/export` | `export` (audited; unreadable files are left out and counted) | P |
 | `POST /api/examples/:name` | `createProject` | W |
 | `GET /api/projects/:slug/files/*` | `read` | F |
 | `PUT /api/projects/:slug/files/*` | `edit` | F |

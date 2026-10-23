@@ -130,6 +130,8 @@ The API watches every project folder. Files you change, add or delete outside th
 - After that, **Trash** restores entries or deletes them permanently; emptying the trash asks for confirmation. A restore never overwrites: if a file or project now occupies the original place, the workbench offers a free name instead. A file whose project no longer exists is restored into a new project with the old name; in server mode that is a project creation, so it needs the right to create projects in the chosen domain (`domain` in the request), which is recorded for the new project. A file that was deleted outside any working copy comes back into your own copy.
 - **Clear workspace** moves every project to the trash as its own entry, in one operation.
 - Importing into an existing project a file whose name already exists asks whether to replace it or keep both (`name (2).ext`).
+- **Export project…** in a project's menu (after **Import files into this project**) downloads a `.zip` of the project's files exactly as stored on disk, byte for byte, in their folders and with `.gitignore`. The `.git` folder and anything Git ignores are left out, and so are unsaved drafts: the dialog lists the unsaved edits it knows of and, for the open file, offers **Save and export**. The option **Include Git history**, off by default, adds `git-history.bundle`, a Git bundle that `git clone` reads. The zip is sent as it is built, never held whole, and `GET /api/projects/:slug/export` refuses a project larger than 64,000,000 bytes (the size of an import) with `413` and a message before any byte is sent, so no partial file is ever offered. Importing the files of the zip into a new project gives the same file hashes. The zip is not compressed, so the bytes in it are the bytes on disk.
+  - In server mode the zip holds only the files you may read from your own view of the project. The number of files left out comes back in the `X-Export-Omitted` header and is shown after the download; their names never leave the server. Git history is exported only when no commit ever touched a file you cannot read and the project is the whole repository, and then it holds the branch you have checked out, not other people's working branches. Every export is recorded in the audit log as the action `export` on the project. Viewers and above may export; a person with no access is refused with `403`.
 
 **Grouping suggestions.** When a file has explicit evidence that it belongs with another project, a one-line count below the tree ("1 grouping suggestion") opens the **Grouping suggestions** dialog, which proposes adding it there and lists the evidence. Three kinds count: an Ossie `ontology_ref` or `semantic_model_ref` naming an ontology or semantic model declared in that project, an IRI shared with a file there, or an ODCS physical name equal to a semantic dataset `source` there. Names that are merely similar never count. A file is offered only when nothing links it to the other files of its own project, and only from the smaller project to the larger one (a file imported on its own joins the project it references, not the reverse). **Add to project** moves it; **Dismiss** is remembered for that file's content and target in `state/suggestions.json`. Nothing is regrouped automatically.
 
@@ -482,7 +484,7 @@ else from [the Admin panel](#the-admin-panel).
 
 | Role | What it can do within its scope |
 | --- | --- |
-| Viewer | Read definitions, history and its own view settings; cannot save files or drafts |
+| Viewer | Read definitions, history and its own view settings and export a project as a zip; cannot save files or drafts |
 | Editor | Viewer actions plus edit, import, move and delete files, save drafts and use project Git |
 | Steward | Editor actions plus guarded changes, approval, publishing, project creation and renaming |
 | Admin | All projects, administration, purge, clear, remotes, clone and registration |
@@ -875,7 +877,7 @@ they need no Vite.
 | `test:edges` | Graph edge endpoints against rendered node borders while dragging and zooming |
 | `test:grouping-validation` | Grouping suggestions and validation dialogs, repair of mixed import batches |
 | `test:examples:ui` | Loading the examples, mappings and metric composition |
-| `test:projects` | The project tree, an external edit appearing in an open tab within 2 seconds, a stale save from a second tab, a restart after deleting `cache.sqlite` |
+| `test:projects` | The project tree, an external edit appearing in an open tab within 2 seconds, a stale save from a second tab, a restart after deleting `cache.sqlite`, and a project export that imports back with equal file hashes |
 | `test:trash` | Row trash icons (reachable, at least 28 px, no overlap at 390 and 2560 px), suggestions, delete confirmation, Undo, restore, Clear |
 | `test:metrics` | Metric list, detail, explanation and graph navigation |
 | `test:graph` | The UBL graph and the neighborhood on three models: exact-first center picking, a five-step walk, no shared edge lines |
