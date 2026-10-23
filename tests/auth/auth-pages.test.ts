@@ -1,7 +1,10 @@
 // Checks that public authentication pages reveal identity only and need no scripts.
-import { expect, test } from 'bun:test';
+import { beforeAll, expect, test } from 'bun:test';
+import { useDefaultBrand } from '../helpers/brand-fixture';
 import { authPage } from '../../server/routes/auth';
 import { localPrincipal } from '../../server/auth/principal';
+
+beforeAll(useDefaultBrand);
 
 test('No access escapes identity and includes a script-free sign-out form', async () => {
   const principal = { ...localPrincipal(), name: '<script>bad</script>', username: 'guest' };

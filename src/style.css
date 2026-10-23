@@ -98,12 +98,11 @@ button:disabled:hover {
     800 22px Manrope,
     sans-serif;
 }
-.brand-sub {
+.brand-logo {
   display: block;
-  font: 600 var(--text-small) 'DM Sans';
-  letter-spacing: 3.1px;
-  margin-top: 3px;
-  color: var(--text-muted);
+  height: 40px;
+  width: auto;
+  max-width: 100%;
 }
 .workspace-label,
 .section-label {

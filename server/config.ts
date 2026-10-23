@@ -1,5 +1,8 @@
 // Reads the server's environment once at start-up. Local mode needs nothing; server mode needs a
 // complete identity provider configuration, and any missing or unsafe value stops the start.
+// Reading is pure except for one probe: SW_BRAND_DIR is checked with statSync so a folder that is
+// named but missing is reported with the other problems instead of silently showing the default.
+import { statSync } from 'node:fs';
 
 type Env = Record<string, string | undefined>;
 
@@ -26,6 +29,8 @@ type CommonConfig = {
   dataDir: string;
   /** Folder for the rebuildable SQLite cache; null keeps it in the data root. */
   cacheDir: string | null;
+  /** Folder that holds the operator's brand files; null serves the shipped defaults. */
+  brandDir: string | null;
   serveStatic: boolean;
   inContainer: boolean;
   version: string | null;
@@ -154,6 +159,7 @@ function readCommon(env: Env, serverMode: boolean, problems: ConfigProblem[]): C
     port,
     dataDir: env.DATA_DIR || 'data',
     cacheDir: env.SW_CACHE_DIR || null,
+    brandDir: readBrandDir(env.SW_BRAND_DIR, problems),
     // Server mode serves the frontend from the same origin as the API, always.
     serveStatic: serverMode || env.SW_SERVE_STATIC === '1',
     inContainer: env.SW_IN_CONTAINER === '1',
@@ -161,6 +167,22 @@ function readCommon(env: Env, serverMode: boolean, problems: ConfigProblem[]): C
     commit: env.SW_COMMIT || null,
     revision: env.CONTAINER_APP_REVISION || null,
   };
+}
+
+// A brand folder that is named but missing would silently show the default brand, so it stops the
+// start instead.
+function readBrandDir(value: string | undefined, problems: ConfigProblem[]) {
+  if (!value) return null;
+  let isDirectory = false;
+  try {
+    isDirectory = statSync(value).isDirectory();
+  } catch {
+    isDirectory = false;
+  }
+  if (!isDirectory) {
+    problems.push({ variable: 'SW_BRAND_DIR', message: 'must be an existing, readable folder.' });
+  }
+  return value;
 }
 
 function readServer(env: Env, common: CommonConfig, problems: ConfigProblem[]): ServerConfig {

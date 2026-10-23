@@ -951,11 +951,101 @@ bun run fmt                              # the replacements can change line leng
 
 `--report` lists every literal with the token it became.
 
+## White-labelling
+
+The product name, the logo, the favicon and the accent colour come from one brand bundle, so a
+deployment can show its own identity without a rebuild. The defaults are the files in
+`public/brand/`:
+
+| File | Used for | Largest size |
+| --- | --- | --- |
+| `logo.svg` | The logo in the workspace sidebar | 256 KiB |
+| `logo-mark.svg` | The compact mark: narrow screens and the sign-in pages | 256 KiB |
+| `favicon.svg` | The browser tab icon | 256 KiB |
+| `brand.json` | `productName` (1 to 60 characters), `shortName` (1 to 24) and optionally `supportUrl` (an http or https address) | 64 KiB |
+| `brand.css` | Overrides of the theme tokens in `src/theme.css`, nothing else | 64 KiB |
+
+`SW_BRAND_DIR` names a folder with any subset of those files. A file that is missing keeps its
+default, and the files are read when the server starts, so restart it after a change. The server
+shows them at `/brand/*`, in local and in server mode. Start-up stops only when `SW_BRAND_DIR` is
+set and is not a readable folder.
+
+Every file is checked when it is loaded. A file that fails is named in a `[brand]` warning in the
+log and its default stays in use; the server keeps running.
+
+- **Names:** other files in the folder are ignored. A symlink that leaves the folder is refused.
+- **Sizes:** a file over its limit above is refused.
+- **`brand.json`:** the three keys above; other keys are dropped. `productName` is required and
+  is what the title, the sidebar logo text and the sign-in pages show. `shortName` is required by
+  the schema but reserved for narrow headers and not shown yet; `supportUrl` is optional and
+  reserved for a link to your support page.
+- **SVG:** rebuilt from drawing elements only. Scripts, `foreignObject`, animation, event
+  handlers, every namespaced attribute except `xmlns` and `xml:space`, links that do not point
+  inside the drawing, document-level nodes such as `xml-stylesheet`, and any style value with an
+  escape, `url()` outside a `#fragment`, `image()`, `image-set()`, `cross-fade()`, `src()` or
+  `@import` are removed. The server also sends `nosniff` with every brand file and a
+  Content-Security-Policy: `default-src 'none'; style-src 'unsafe-inline'; sandbox` for SVG and
+  `default-src 'none'; sandbox` for `brand.json` and `brand.css`, so an SVG opened on its own cannot
+  run script. An SVG drawn as
+  an image cannot read the page's fonts or theme; give it its own colours (a
+  `prefers-color-scheme` rule inside the SVG works).
+- **`brand.css`:** custom properties (`--color-accent: #6a2c91;`) under `:root`,
+  `:root[data-theme='dark']`, `:root:not([data-theme='light'])` or inside
+  `@media (prefers-color-scheme: dark|light)`. Any other rule, property, `url()` or `@import` is
+  dropped and logged, as is a value with unbalanced parentheses or quotes. It loads after the theme stylesheet, so it wins.
+
+The development server (`bun run dev`) serves `public/brand/` as it is; `SW_BRAND_DIR` is for the
+Bun server and the image.
+
+Compose, with a `brand` folder next to the compose file:
+
+```yaml
+services:
+  workbench:
+    environment:
+      SW_MODE: local
+      SW_BRAND_DIR: /brand
+    volumes:
+      - ./.data:/data
+      - ./brand:/brand:ro
+```
+
+Azure Container Apps mounts an Azure Files share the same way. Put the files on a share that the
+environment already has as storage (`az containerapp env storage set`), add a volume of type
+`AzureFile` to the app, mount it read-only at `/brand` and set `SW_BRAND_DIR=/brand` next to the
+other settings in [deploy/README.md](deploy/README.md):
+
+```yaml
+properties:
+  template:
+    containers:
+      - name: workbench
+        env:
+          - name: SW_BRAND_DIR
+            value: /brand
+        volumeMounts:
+          - volumeName: brand
+            mountPath: /brand
+    volumes:
+      - name: brand
+        storageType: AzureFile
+        storageName: sw-brand
+```
+
+`bun run check` ends with `bun run check:brand`, which fails with `file:line` when the text
+"Semantic Workbench", the split `semantic` and `WORKBENCH` wordmark or the inline layers logo
+appears in `src/`, `server/`, `index.html` or `public/` outside `public/brand/`. Tests, scripts,
+specs and documentation may name the product. The allow-list in `scripts/check-brand.ts` holds the
+technical identities that must not follow a brand: the committer of server commits (change it with
+`SW_COMMITTER_NAME`), the text of the import commit, the Git lock reason and two agent reply
+sentences. `bun run test:brand` shows a test bundle in the header, the title, the favicon, the
+sign-in pages and the accent, and confirms that a script in a logo does not run.
+
 ## Checking your work
 
 ```sh
 bun test              # 1,547 tests in 217 files
-bun run check         # tsc, fmt:check, oxlint, the comment check and the theme check
+bun run check         # tsc, fmt:check, oxlint, the comment check, the theme check and the brand check
 bun run build         # compiles the schemas, then the production frontend
 ```
 
@@ -1000,6 +1090,7 @@ they need no Vite.
 | `test:git-setup` | Git identity, a remote and a push, a clone, a clone of one folder (a bad folder refused, a missing folder offered), a folder for the project previewed, confirmed, recorded in a commit and pushed, the credential setup guide |
 | `test:monorepo` | Several projects in one repository, grouped tree, shared Source Control, Remove versus Delete folder, and the clone, projects and delete dialogs at four sizes |
 | `test:dialogs` | Dialog fit, focus trap and focus return across the six viewports |
+| `test:brand` | A brand folder given to the built server changes the sidebar logo, the page title, the favicon, the sign-in page mark and name and the accent token; a script in a logo is removed; with no folder the shipped brand shows |
 | `test:theme` | Swapping `--color-accent` in the browser changes the primary button, the selected tab and the graph selection; the Theme control sets, stores and clears dark; System follows the browser; the stored choice is applied by a script before the app loads; muted text keeps 4.5:1 on its surfaces; the main tour in the light theme and every tour in the dark theme at 1280×720 have readable text, enough contrast and no overlaps |
 | `test:terminology` | The interface, this README and `docs/` call every metric a metric and use the older term nowhere except in verbatim data and the stored `kpi_bindings` key |
 | `test:mappings-layout`, `test:mapping-graph` | Binding cards at six viewports; every mapping graph line against the resolver's bindings |

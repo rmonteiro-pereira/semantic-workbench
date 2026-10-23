@@ -4,11 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
+    <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
     <script src="/theme-init.js"></script>
-    <title>Semantic Workbench</title>
+    <title>Workbench</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- Last on purpose: the brand tokens must come after the theme stylesheet to override it. -->
+    <link rel="stylesheet" href="/brand/brand.css" />
   </body>
 </html>

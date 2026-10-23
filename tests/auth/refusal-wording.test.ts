@@ -1,6 +1,7 @@
 // The sentences people read when a save or a sign-in is refused: complete, grammatical and free
 // of the request that caused them.
-import { expect, test } from 'bun:test';
+import { beforeAll, expect, test } from 'bun:test';
+import { useDefaultBrand } from '../helpers/brand-fixture';
 import { readFileSync } from 'node:fs';
 import { createAccessControl } from '../../server/auth/authorize';
 import { GuardedChangeError } from '../../server/auth/guards';
@@ -10,6 +11,8 @@ import { signInErrorResponse } from '../../server/routes/auth';
 import { failureReason, saveStateLabel } from '../../src/projects/autosave';
 import { hiddenCommitsLine } from '../../src/scm/SourceControl';
 import { accessFixture, person } from './access-fixture';
+
+beforeAll(useDefaultBrand);
 
 const CONTRACT = readFileSync(
   'tests/fixtures/auth-workspace/projects/sales-contracts/orders.odcs.yaml',

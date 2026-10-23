@@ -8,6 +8,7 @@ import { exportMutants } from './export-mutants';
 import { sparseMutants } from './sparse-mutants';
 import { exampleMetricMutants } from './example-metric-mutants';
 import { themeMutants } from './theme-mutants';
+import { brandMutants } from './brand-mutants';
 import { chmod, mkdtemp, rm, symlink } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 const root = process.cwd();
@@ -1463,6 +1464,8 @@ mutants.push(...sparseMutants);
 mutants.push(...exampleMetricMutants);
 // Colour literals: the scanner, the theme check and the codemod.
 mutants.push(...themeMutants);
+// The brand bundle: file checks, cleaners, schema, size caps, headers and the hard-coded scan.
+mutants.push(...brandMutants);
 
 async function run(
   category: string,

@@ -3,7 +3,8 @@ import './WorkspaceSidebar.css';
 import { useCapabilities } from '../auth/Capabilities';
 import { useMe } from '../auth/useMe';
 import { useGitSetup } from '../scm/GitSetup';
-import { FileCode, GitBranch, Layers, Network, Upload, X } from 'lucide-react';
+import { FileCode, GitBranch, Network, Upload, X } from 'lucide-react';
+import { BrandLogo } from '../brand/BrandLogo';
 import React from 'react';
 import type { Doc, ProjectInfo, Suggestion } from '../projects/api';
 import { api } from '../projects/api';
@@ -197,10 +198,7 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
           </button>
         )}
         <div className="brand">
-          <Layers size={26} />
-          <span>
-            semantic<span className="brand-sub">WORKBENCH</span>
-          </span>
+          <BrandLogo className="brand-logo" />
         </div>
         <div
           className="workspace-label"

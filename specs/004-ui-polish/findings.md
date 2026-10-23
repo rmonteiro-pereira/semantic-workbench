@@ -61,6 +61,12 @@ from the v0.4.0 build). `screenshots/after/` holds the same screens after the fi
 | F74 | Delete dialogs | The dialog lists files without saying how many go to the trash. | local-trash-delete | A line with the count above the list | open |
 | F75 | Sidebar tree | Scrolling stops with a row cut at the top edge; repository rows were not snap targets. | local-monorepo-390 | Rows snap to the top edge, repository rows included | open |
 | F76 | Dialogs from 1920 px | An old rule made narrow dialogs 720 px wide on large screens, a third width. | local-trash-2560 | Rule removed; dialogs keep the two standard widths | open |
+| F77 | Sidebar, header, document title, sign-in pages | The product name is written into the code in four places, so a deployment cannot show its own name. | responsive: sidebar | The name is read from `brand.json` in the browser and from the active brand on the server | fixed |
+| F78 | Sidebar and sign-in pages | The logo is an inline icon and a text wordmark, copied into two files. | responsive: sidebar | The logo is `logo.svg` and `logo-mark.svg` in the brand bundle, shown as images | fixed |
+| F79 | Deployment | Changing the name or logo needs a rebuild of the image. | test:brand | `SW_BRAND_DIR` mounts a folder; the server serves it at `/brand/*` | fixed |
+| F80 | Brand files | A mounted logo or stylesheet could carry script or load outside content. | test:brand | SVG is rebuilt from an allow-list, CSS keeps theme tokens only, sizes are capped and every response is sandboxed | fixed |
+| F81 | Code base | Nothing stops the product name or logo from coming back into code. | none | `scripts/check-brand.ts` in `bun run check` | fixed |
+| F82 | Browser tab | The page has no favicon of its own. | test:brand | `favicon.svg` in the brand bundle, linked from `index.html` and the sign-in pages | fixed |
 
 ## S2: crammed or hard to read
 

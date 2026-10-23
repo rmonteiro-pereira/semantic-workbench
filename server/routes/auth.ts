@@ -7,6 +7,7 @@ import type { RemoteCredentials } from '../auth/remote-credentials';
 import type { Route } from './http';
 import { securityHeaders } from '../static';
 import { authStylesheet } from './auth-stylesheet';
+import { activeBrand } from '../brand/active-brand';
 
 function escapeHtml(value: string): string {
   return value
@@ -26,16 +27,16 @@ type AuthPageOptions = {
 
 type AuthPageKind = 'no-access' | 'signed-out' | 'error' | 'connect-failed';
 
-// The same layers mark and wordmark as the workspace sidebar, drawn inline because these pages
-// carry no scripts and load nothing but their stylesheet.
-const BRAND_MARKUP =
-  '<div class="brand"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" ' +
-  'stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ' +
-  'aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 ' +
-  '3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 ' +
-  '3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 ' +
-  '3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/></svg><span>semantic' +
-  '<small>WORKBENCH</small></span></div>';
+// The compact logo and product name of the active brand. The mark is a separate request, so the
+// pages stay free of inline images and scripts.
+function brandMarkup(): string {
+  return (
+    '<div class="brand"><img src="/brand/logo-mark.svg" width="28" height="28" alt="">' +
+    '<span>' +
+    escapeHtml(activeBrand().manifest.productName) +
+    '</span></div>'
+  );
+}
 
 function pageContent(page: AuthPageKind, options: AuthPageOptions) {
   let title = 'Signed out';
@@ -88,10 +89,14 @@ export function authPage(page: AuthPageKind, options: AuthPageOptions = {}, stat
     '<!doctype html><html lang="en"><head><meta charset="utf-8">' +
       '<meta name="viewport" content="width=device-width, initial-scale=1">' +
       '<meta name="color-scheme" content="light dark">' +
-      '<link rel="stylesheet" href="/auth/style.css"><title>' +
+      '<link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">' +
+      '<link rel="stylesheet" href="/auth/style.css">' +
+      '<link rel="stylesheet" href="/brand/brand.css"><title>' +
       title +
-      ' · Semantic Workbench</title></head><body><main>' +
-      BRAND_MARKUP +
+      ' · ' +
+      escapeHtml(activeBrand().manifest.productName) +
+      '</title></head><body><main>' +
+      brandMarkup() +
       '<h1>' +
       title +
       '</h1>' +

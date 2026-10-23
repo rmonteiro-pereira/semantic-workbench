@@ -1,5 +1,6 @@
 // Exercises authentication failure boundaries with an in-memory provider and disposable workspace.
-import { expect, spyOn, test } from 'bun:test';
+import { beforeAll, expect, spyOn, test } from 'bun:test';
+import { useDefaultBrand } from '../helpers/brand-fixture';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { oidcTransport } from '../helpers/oidc-transport';
@@ -9,6 +10,8 @@ import { createServerAuthentication, providerDetail } from '../../server/auth/au
 import { createSessionStore } from '../../server/auth/sessions';
 import { SignInError } from '../../server/auth/sign-in-error';
 import { createHandler } from '../../server/handler';
+
+beforeAll(useDefaultBrand);
 
 async function setup() {
   const transport = await oidcTransport();

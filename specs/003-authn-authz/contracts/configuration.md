@@ -5,6 +5,7 @@
 | `SW_MODE` | both | no (`local`) | `local` or `server` |
 | `DATA_DIR` | both | no (`data/`) | data root; `/data` in the container |
 | `SW_CACHE_DIR` | both | no (data root) | SQLite cache folder; container local disk recommended |
+| `SW_BRAND_DIR` | both | no (the shipped `public/brand/`) | folder with any of `logo.svg`, `logo-mark.svg`, `favicon.svg`, `brand.json`, `brand.css`; each file is checked and falls back to its default when invalid; start-up stops only when the variable is set and the folder is missing or unreadable |
 | `SW_HOST`, `SW_PORT` | both | no (`127.0.0.1`, 4310) | local mode refuses non-loopback `SW_HOST` |
 | `SW_PUBLIC_URL` | server | yes | external HTTPS origin, e.g. `https://workbench.example.org` |
 | `SW_OIDC_ISSUER` | server | yes | provider issuer URL (Entra: `https://login.microsoftonline.com/<tid>/v2.0`); an `http://` issuer is refused unless `SW_PUBLIC_URL` is a loopback URL (mock OpenID provider and Keycloak compatibility only, FR-141); for Entra it must be `https://<login host>/<SW_ENTRA_TENANT_ID>/v2.0` without a port on `login.microsoftonline.com`, `login.microsoftonline.us`, `login.chinacloudapi.cn` or `login.partner.microsoftonline.cn`, or a loopback host only when `SW_PUBLIC_URL` is loopback (the mock provider), else start-up stops |

@@ -1,6 +1,7 @@
 /** Presentation and event handling for workspace header. */
 import './WorkspaceHeader.css';
 import { useCapabilities } from '../auth/Capabilities';
+import { useBrand } from '../brand/BrandContext';
 import {
   Download,
   GitCommit as GitCommitIcon,
@@ -64,6 +65,7 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
   status,
 }: Props) {
   const access = useCapabilities(current?.project);
+  const { productName } = useBrand();
   function getWorkspaceToggleLabel() {
     if (compact) {
       if (sidebarOpen) {
@@ -111,6 +113,9 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
     setCommitting(true);
   }
 
+  // With no document open, the header names the product.
+  const title = model?.name ?? current?.filename ?? productName;
+
   return (
     <>
       <header className="workspace-header">
@@ -126,9 +131,7 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
           {renderWorkspaceToggleIcon()}
         </button>
         <div className="workspace-title">
-          <h1 title={model?.name ?? current?.filename ?? 'Semantic Workbench'}>
-            {model?.name ?? current?.filename ?? 'Semantic Workbench'}
-          </h1>
+          <h1 title={title}>{title}</h1>
           <span className="badge">
             <span className="dot" />
             {model?.kind ?? 'ODCS + Apache Ossie'}

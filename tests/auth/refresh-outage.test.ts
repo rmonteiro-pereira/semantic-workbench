@@ -1,7 +1,10 @@
 // A provider outage during token refresh must not sign anyone out; a refusal of the token must.
-import { expect, spyOn, test } from 'bun:test';
+import { beforeAll, expect, spyOn, test } from 'bun:test';
+import { useDefaultBrand } from '../helpers/brand-fixture';
 import { SignInError, type SignInReason } from '../../server/auth/sign-in-error';
 import { sessionCookieOf, signInContext } from '../helpers/sign-in-context';
+
+beforeAll(useDefaultBrand);
 
 async function expiredSession() {
   const context = await signInContext();
