@@ -164,7 +164,7 @@ try {
         'Table customers',
         'Table order_lines',
         'Semantic dataset orders',
-        'Metric gross_revenue',
+        'Metric Gross revenue',
       ])
         await expect(card(n)).toBeVisible();
     },
@@ -289,10 +289,10 @@ try {
       await expect(card('Table customers')).toHaveClass(/dim/);
       const panel = graph().getByRole('region', { name: 'Selected path' });
       await expect(panel).toContainText('orders.amount');
-      await expect(panel).toContainText('gross_revenue');
+      await expect(panel).toContainText('Gross revenue');
       const items = await panel.locator('li').allTextContents();
       expect(items.findIndex(t => t.includes('orders.amount'))).toBeLessThan(
-        items.findIndex(t => t.includes('gross_revenue')),
+        items.findIndex(t => t.includes('Gross revenue')),
       );
       await page.keyboard.press('Escape');
       await expect(graph().locator('g[data-on-path="true"]')).toHaveCount(0);

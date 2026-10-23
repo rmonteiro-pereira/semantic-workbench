@@ -425,6 +425,7 @@ test('an example loader opens a project that already holds the identical example
         'commerce.mapping.yaml',
         'commerce.mapped-ontology.yaml',
         'commerce.mapped-semantic.yaml',
+        'commerce.odcs.yaml',
       ].map(async path => ({ path, source: await example('commerce', path) })),
     );
     const imported = await t.ws.importBatch({ files }, LOCAL_READER);

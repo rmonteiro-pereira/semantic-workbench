@@ -155,15 +155,219 @@ metrics:
       dialects:
         - dialect: ANSI_SQL
           expression: SUM(orders.amount)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Gross revenue",
+            "type": "simple",
+            "additivity": "additive",
+            "unit": "USD",
+            "format": "#,##0.00",
+            "owner": "Finance",
+            "status": "approved",
+            "time": {
+              "dimension": "orders.order_date",
+              "min_grain": "day",
+              "allowed_grains": [
+                "day",
+                "week",
+                "month",
+                "quarter",
+                "year"
+              ]
+            },
+            "dimensions": [
+              "customers.name",
+              "orders.status"
+            ]
+          }
   - name: order_count
     datatype: Integer
     expression:
       dialects:
         - dialect: ANSI_SQL
           expression: COUNT(DISTINCT orders.order_id)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Order count",
+            "type": "simple",
+            "additivity": "non_additive",
+            "unit": "orders",
+            "format": "#,##0",
+            "owner": "Sales Operations",
+            "status": "approved",
+            "time": {
+              "dimension": "orders.order_date",
+              "min_grain": "day",
+              "allowed_grains": [
+                "day",
+                "week",
+                "month",
+                "quarter",
+                "year"
+              ]
+            },
+            "dimensions": [
+              "customers.name",
+              "orders.status"
+            ]
+          }
   - name: average_order_value
     datatype: Decimal
     expression:
       dialects:
         - dialect: ANSI_SQL
-          expression: SUM(orders.amount) / NULLIF(COUNT(DISTINCT orders.order_id), 0)
+          expression: gross_revenue / NULLIF(order_count, 0)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Average order value",
+            "type": "ratio",
+            "numerator": "gross_revenue",
+            "denominator": "order_count",
+            "additivity": "non_additive",
+            "unit": "USD",
+            "format": "#,##0.00",
+            "owner": "Finance",
+            "status": "approved",
+            "time": {
+              "dimension": "orders.order_date",
+              "min_grain": "day",
+              "allowed_grains": [
+                "day",
+                "week",
+                "month",
+                "quarter",
+                "year"
+              ]
+            },
+            "dimensions": [
+              "customers.name",
+              "orders.status"
+            ],
+            "targets": [
+              {
+                "grain": "month",
+                "direction": "higher_is_better",
+                "value": 120
+              }
+            ]
+          }
+  - name: units_sold
+    description: Product units on order lines. Cancelled orders are included; filter
+      by order status to exclude them.
+    datatype: Integer
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(order_lines.quantity)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Units sold",
+            "type": "simple",
+            "additivity": "additive",
+            "unit": "units",
+            "format": "#,##0",
+            "owner": "Merchandising",
+            "status": "approved",
+            "time": {
+              "dimension": "orders.order_date",
+              "min_grain": "day",
+              "allowed_grains": [
+                "day",
+                "week",
+                "month",
+                "quarter",
+                "year"
+              ]
+            },
+            "dimensions": [
+              "products.name",
+              "customers.name",
+              "orders.status"
+            ]
+          }
+  - name: line_revenue
+    description: Revenue of order lines. Aggregate lines, not orders, when slicing
+      by product.
+    datatype: Decimal
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(order_lines.line_amount)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Line revenue",
+            "type": "simple",
+            "additivity": "additive",
+            "unit": "USD",
+            "format": "#,##0.00",
+            "owner": "Merchandising",
+            "status": "approved",
+            "time": {
+              "dimension": "orders.order_date",
+              "min_grain": "day",
+              "allowed_grains": [
+                "day",
+                "week",
+                "month",
+                "quarter",
+                "year"
+              ]
+            },
+            "dimensions": [
+              "products.name",
+              "customers.name",
+              "orders.status"
+            ]
+          }
+  - name: revenue_per_unit
+    description: Line revenue divided by units sold.
+    datatype: Decimal
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: line_revenue / NULLIF(units_sold, 0)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {
+            "schema": "semantic-workbench/metric/v1",
+            "label": "Revenue per unit",
+            "type": "ratio",
+            "numerator": "line_revenue",
+            "denominator": "units_sold",
+            "additivity": "non_additive",
+            "unit": "USD",
+            "format": "#,##0.00",
+            "owner": "Merchandising",
+            "status": "proposed",
+            "time": {
+              "dimension": "orders.order_date",
+              "min_grain": "day",
+              "allowed_grains": [
+                "day",
+                "week",
+                "month",
+                "quarter",
+                "year"
+              ]
+            },
+            "dimensions": [
+              "products.name",
+              "customers.name"
+            ]
+          }
