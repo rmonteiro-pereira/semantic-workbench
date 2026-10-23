@@ -343,7 +343,7 @@ test('example loaders create the example project once and reopen it afterwards',
       slug: 'flights',
       name: 'Ossie Flights',
       created: true,
-      commit: { committed: true, message: 'Import 4 files' },
+      commit: { committed: true, message: 'Import 7 files' },
     });
     expect(await (await api(t, 'POST', '/api/examples/flights')).json()).toEqual({
       slug: 'flights',
