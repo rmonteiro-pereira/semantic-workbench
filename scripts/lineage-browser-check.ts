@@ -169,6 +169,41 @@ try {
     },
   );
   await check(
+    'commerce: resizing the window never turns a measured card back into an unmeasured one',
+    async () => {
+      await openContract('commerce.odcs.yaml', 'Commerce workspace');
+      // React Flow hides a card until it has measured it, so a card that turns hidden again after
+      // being shown was handed back unmeasured.
+      await page.evaluate(() => {
+        const watched = window as typeof window & { cardsHiddenAgain: string[] };
+        watched.cardsHiddenAgain = [];
+        const observer = new MutationObserver(records => {
+          for (const record of records) {
+            const node = record.target as HTMLElement;
+            const isCard = node.classList.contains('react-flow__node-card');
+            if (isCard && node.style.visibility === 'hidden') {
+              watched.cardsHiddenAgain.push(node.getAttribute('data-id') ?? '');
+            }
+          }
+        });
+        observer.observe(document.body, {
+          subtree: true,
+          attributes: true,
+          attributeFilter: ['style'],
+        });
+      });
+      for (const width of [1024, 390, 1440, 1280, 800, 1440]) {
+        await page.setViewportSize({ width, height: 800 });
+        await page.waitForTimeout(300);
+      }
+      const hiddenAgain = await page.evaluate(
+        () => (window as typeof window & { cardsHiddenAgain: string[] }).cardsHiddenAgain,
+      );
+      expect(hiddenAgain).toEqual([]);
+      await page.setViewportSize({ width: 1440, height: 900 });
+    },
+  );
+  await check(
     'legend and badges: kinds and line styles in the footer; PK, FK and Required on the rows',
     async () => {
       const legend = graph().getByRole('list', { name: 'Legend' });

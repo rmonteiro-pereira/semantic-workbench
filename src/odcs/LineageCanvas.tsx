@@ -7,6 +7,7 @@ import {
   BaseEdge,
   getBezierPath,
   type EdgeProps,
+  type NodeChange,
   type ReactFlowInstance,
 } from '@xyflow/react';
 import {
@@ -156,6 +157,21 @@ const readSteps = (key?: string) => {
     return 1;
   }
 };
+type NodeSize = { width: number; height: number };
+// React Flow forgets a card's measured size whenever it receives a fresh node object, and a card
+// that is never measured again stays hidden. This keeps the sizes React Flow reports so each new
+// node object can carry its card's last size.
+function useMeasuredNodeSizes() {
+  const sizes = useRef(new Map<string, NodeSize>());
+  const recordSizes = useCallback((changes: NodeChange[]) => {
+    for (const change of changes) {
+      if (change.type === 'dimensions' && change.dimensions) {
+        sizes.current.set(change.id, change.dimensions);
+      }
+    }
+  }, []);
+  return { sizes, recordSizes };
+}
 // Lays out in ELK's worker (elk-api + elk-worker, as the Graph view does); returns the latest
 // positions (the previous ones stay while a new layout runs).
 function useLayout(cards: LayoutCard[], edges: LayoutEdge[], key: string) {
@@ -446,6 +462,7 @@ export function LineageCanvas({
     [layoutCards, layoutEdges],
   );
   const { result: elk, busy } = useLayout(layoutCards, layoutEdges, layoutKey);
+  const { sizes: measuredSizes, recordSizes } = useMeasuredNodeSizes();
   // ELK positions, then each expansion's new cards beside their origin, in order; nothing placed
   // moves.
   const result = useMemo(() => {
@@ -635,6 +652,7 @@ export function LineageCanvas({
           id,
           type: 'card',
           position: result.layout.positions[id],
+          measured: measuredSizes.current.get(id),
           data: data as unknown as Record<string, unknown>,
           draggable: false,
           selectable: false,
@@ -988,6 +1006,7 @@ export function LineageCanvas({
           <ReactFlow
             nodes={nodes}
             edges={edges}
+            onNodesChange={recordSizes}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
             onInit={i => {

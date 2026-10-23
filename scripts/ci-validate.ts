@@ -116,6 +116,7 @@ export async function runGate(
   options: GateOptions,
   execute: (step: GateStep, suite?: string) => Promise<void>,
   now: () => number,
+  report: (message: string) => void = console.error,
 ): Promise<GateResult[]> {
   const results: GateResult[] = [];
   for (const step of options.steps) {
@@ -125,6 +126,8 @@ export async function runGate(
       await execute(step, options.suite);
     } catch (cause) {
       error = (cause instanceof Error ? cause.message : String(cause)) || 'Unknown step failure';
+      // The failing command's output is otherwise only in the JUnit report, so show it here too.
+      report(`Gate step ${step} failed: ${error}`);
     }
     results.push({ step, seconds: (now() - started) / 1000, ...(error ? { error } : {}) });
     if (error && !options.keepGoing) break;

@@ -877,7 +877,7 @@ they need no Vite.
 | `test:editor` | Colors per serialization, inline findings within 500 ms, Go to line, byte-exact CRLF saves, typing latency in a 1.9 MB file |
 | `test:item-edit`, `test:rdf-edit` | Item editors, add, delete, rename, the metric wizard and status rules; the same for Turtle, RDF/XML, N-Triples, N3 and SHACL resources, with `git diff` limited to the edited item |
 | `test:scm` | Commit, branch, switch, push to a local bare remote, pull from a second clone, conflict repair, `.gitignore`, history, the credential wait and the missing-Git banner |
-| `test:odcs`, `test:lineage` | Contract pages and byte-preserving property edits; every drawn lineage line against the expected edge lists, path emphasis within 200 ms |
+| `test:odcs`, `test:lineage` | Contract pages and byte-preserving property edits; every drawn lineage line against the expected edge lists, path emphasis within 200 ms, cards staying measured across window resizes |
 | `test:autosave` | Automatic saves, stale drafts and commits against a local remote |
 | `test:sql` | Embedded SQL colors, warning locations and unchanged export bytes |
 | `test:git-setup` | Git identity, a remote and a push, a clone, the credential setup guide |
