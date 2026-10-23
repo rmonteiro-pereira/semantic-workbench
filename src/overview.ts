@@ -1,6 +1,12 @@
 /** Groups model entities into overview areas using declared or inferred structure. */
 import type { Entity, Relationship } from './model';
 import { conceptMappingLinks, isInheritance, suggestCommunities } from './communities';
+import {
+  GROUP_PALETTE,
+  TYPE_GROUP_COLOR,
+  UNASSIGNED_GROUP_COLOR,
+  paletteColorFor,
+} from './theme-palette';
 
 /** Selects the source of model group boundaries. */
 export type GroupingMode = 'auto' | 'declared' | 'namespaces' | 'suggested' | 'types' | 'example';
@@ -33,7 +39,7 @@ const areas = [
     id: 'documents',
     name: 'Business documents',
     description: 'Procurement, invoicing and evidence',
-    color: '#417fa8',
+    color: GROUP_PALETTE[0],
     names: [
       'Order',
       'Invoice',
@@ -50,14 +56,14 @@ const areas = [
     id: 'parties',
     name: 'Trading parties',
     description: 'Buyers, suppliers and people',
-    color: '#9165ad',
+    color: GROUP_PALETTE[1],
     names: ['Party', 'CustomerParty', 'SupplierParty', 'Person', 'Contact'],
   },
   {
     id: 'lines',
     name: 'Document lines',
     description: 'Line-level commitments and quantities',
-    color: '#478a87',
+    color: GROUP_PALETTE[2],
     names: [
       'OrderLine',
       'LineItem',
@@ -71,14 +77,14 @@ const areas = [
     id: 'products',
     name: 'Products & pricing',
     description: 'What is traded and how it is priced',
-    color: '#b28546',
+    color: GROUP_PALETTE[3],
     names: ['Item', 'CommodityClassification', 'Price', 'AllowanceCharge'],
   },
   {
     id: 'fulfillment',
     name: 'Fulfillment & transport',
     description: 'Delivery, cargo and movement',
-    color: '#568866',
+    color: GROUP_PALETTE[4],
     names: [
       'Delivery',
       'Shipment',
@@ -94,31 +100,24 @@ const areas = [
     id: 'tax',
     name: 'Tax & totals',
     description: 'Tax calculation and monetary totals',
-    color: '#ab6d64',
+    color: GROUP_PALETTE[5],
     names: ['TaxTotal', 'TaxSubtotal', 'TaxCategory', 'TaxScheme', 'MonetaryTotal'],
   },
   {
     id: 'payment',
     name: 'Payment & finance',
     description: 'Settlement, terms and banking',
-    color: '#6884ad',
+    color: GROUP_PALETTE[6],
     names: ['PaymentMeans', 'PaymentTerms', 'FinancialAccount', 'FinancialInstitution', 'Branch'],
   },
   {
     id: 'places',
     name: 'Places',
     description: 'Addresses and geographical context',
-    color: '#9a8870',
+    color: GROUP_PALETTE[7],
     names: ['Address', 'Location', 'Country'],
   },
 ];
-const groupColor = (id: string) => {
-  let hash = 0;
-  for (const char of id) hash = (Math.imul(hash, 31) + char.charCodeAt(0)) >>> 0;
-  return ['#417fa8', '#9165ad', '#478a87', '#b28546', '#568866', '#ab6d64', '#6884ad', '#9a8870'][
-    hash % 8
-  ];
-};
 const normalize = (name: string) => name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
 const byName = new Map(
   areas.flatMap(area => area.names.map(name => [normalize(name), area] as const)),
@@ -133,12 +132,11 @@ type Group = {
 };
 type Counts = { declared: number; suggested: number; corrected: number; unassigned: number };
 
-const UNASSIGNED_COLOR = '#85958e';
 const BUILTINS: Group = {
   id: 'builtins',
   name: 'Built-in concepts',
   description: 'Standard primitive concepts',
-  color: UNASSIGNED_COLOR,
+  color: UNASSIGNED_GROUP_COLOR,
   provenance: 'Definition type',
 };
 
@@ -146,7 +144,7 @@ const typeGroup = (entity: Entity): Group => ({
   id: entity.kind,
   name: entity.kind,
   description: 'Grouped by definition type',
-  color: '#658b80',
+  color: TYPE_GROUP_COLOR,
   provenance: 'Definition type',
 });
 
@@ -207,7 +205,7 @@ function declaredGroup(entity: Entity, counts: Counts): Group {
       id: 'unassigned',
       name: 'Unassigned',
       description: 'No domain declared in this entity definition',
-      color: UNASSIGNED_COLOR,
+      color: UNASSIGNED_GROUP_COLOR,
       provenance: 'No declaration',
     };
   }
@@ -219,7 +217,7 @@ function declaredGroup(entity: Entity, counts: Counts): Group {
       domains.length > 1
         ? 'Primary declared domain; additional affiliations retained'
         : 'Declared in this entity definition',
-    color: groupColor('domain:' + domains[0]),
+    color: paletteColorFor('domain:' + domains[0]),
     provenance: 'Declared domain',
   };
 }
@@ -232,7 +230,7 @@ function namespaceGroup(entity: Entity, counts: Counts): Group {
       id,
       name: ns.prefix !== undefined ? (ns.prefix || '(default)') + ':' : ns.iri,
       description: ns.iri,
-      color: groupColor(id),
+      color: paletteColorFor(id),
       provenance: ns.prefix !== undefined ? 'Declared prefix' : 'IRI namespace',
     };
   }
@@ -242,7 +240,7 @@ function namespaceGroup(entity: Entity, counts: Counts): Group {
     id: 'no-namespace',
     name: 'No IRI',
     description: 'No global identifier declared on this definition',
-    color: UNASSIGNED_COLOR,
+    color: UNASSIGNED_GROUP_COLOR,
     provenance: 'No declaration',
   };
 }
@@ -259,7 +257,7 @@ function communityGroup(entity: Entity, context: GroupingContext, counts: Counts
         description: users.size
           ? 'Value types used by multiple suggested communities'
           : 'No business owner can be inferred',
-        color: UNASSIGNED_COLOR,
+        color: UNASSIGNED_GROUP_COLOR,
         provenance: 'Structural suggestion',
       };
   }
@@ -269,7 +267,7 @@ function communityGroup(entity: Entity, context: GroupingContext, counts: Counts
       id: 'community:' + anchor,
       name: context.byId.get(anchor)?.name ?? anchor,
       description: 'Suggested from business relationships; named after an anchor entity',
-      color: groupColor('community:' + anchor),
+      color: paletteColorFor('community:' + anchor),
       provenance: 'Structural suggestion',
     };
   }
@@ -323,7 +321,7 @@ function assignGroups(
         color:
           groups.get(correction)?.color ??
           areas.find(a => a.id === correction)?.color ??
-          groupColor(correction),
+          paletteColorFor(correction),
         provenance: 'User correction',
       };
     }

@@ -2,13 +2,13 @@
 import { expect, test } from 'bun:test';
 import { Text } from '@codemirror/state';
 import { tags } from '@lezer/highlight';
-import { lightHighlight } from '../src/editor/languages';
+import { syntaxHighlight } from '../src/editor/languages';
 import { highlightVisibleYaml } from '../src/editor/largeYaml';
 import { visibleYamlRegions } from '../src/editor/viewportYaml';
 
 function marksFor(source: string, from = 0, to = source.length) {
   const doc = Text.of(source.split('\n'));
-  const decorations = highlightVisibleYaml(doc, [{ from, to }], lightHighlight);
+  const decorations = highlightVisibleYaml(doc, [{ from, to }], syntaxHighlight);
   const marks: { text: string; className: string }[] = [];
   for (let cursor = decorations.iter(); cursor.value; cursor.next()) {
     expect(cursor.from).toBeGreaterThanOrEqual(from);
@@ -31,11 +31,11 @@ test('Multiline SQL retains comments and uses the existing keyword classes', () 
   const marks = marksFor(source);
   expect(marks).toContainEqual({
     text: 'SELECT',
-    className: lightHighlight.style([tags.keyword])!,
+    className: syntaxHighlight.style([tags.keyword])!,
   });
   expect(marks).toContainEqual({
     text: '/* start\n\n        still a comment */',
-    className: lightHighlight.style([tags.comment])!,
+    className: syntaxHighlight.style([tags.comment])!,
   });
 });
 
@@ -50,7 +50,7 @@ test('Extension JSON is colored with JSON tokens and decorations stay inside the
   const to = source.indexOf('}') + 1;
   expect(marksFor(source, from, to)).toContainEqual({
     text: 'true',
-    className: lightHighlight.style([tags.bool])!,
+    className: syntaxHighlight.style([tags.bool])!,
   });
 });
 

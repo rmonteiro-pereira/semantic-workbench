@@ -1069,7 +1069,7 @@ main {
   border-radius: 0 2px 2px 0;
 }
 .full-entity.focused {
-  border-color: var(--color-success);
+  border-color: var(--color-accent);
   background: var(--color-surface-page);
 }
 .full-entity .react-flow__handle {

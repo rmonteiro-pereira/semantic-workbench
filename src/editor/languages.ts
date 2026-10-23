@@ -132,7 +132,7 @@ const largeYaml = StreamLanguage.define({
 /** Returns the CodeMirror language configuration for a source syntax. */
 export function languageFor(syntax: SyntaxName, largeDocument = false) {
   if (syntax === 'YAML' && largeDocument)
-    return new LanguageSupport(largeYaml, largeYamlSupport(lightHighlight));
+    return new LanguageSupport(largeYaml, largeYamlSupport(syntaxHighlight));
   if (syntax === 'YAML') return new LanguageSupport(extensionYaml, yaml().support);
   if (syntax === 'JSON') return new LanguageSupport(sqlJson, json().support);
   if (syntax === 'RDF/XML') return xml();
@@ -140,31 +140,42 @@ export function languageFor(syntax: SyntaxName, largeDocument = false) {
     return new LanguageSupport(rdfLanguage);
   return [];
 }
-// Colors after VS Code's Light+ theme: YAML keys and XML tags dark red, YAML values and keywords
-// blue, JSON keys dark blue, strings red-brown, numbers green, comments green, IRIs teal.
+// The colors are the syntax tokens of src/theme.css. The light theme follows VS Code's Light+ (YAML
+// keys and XML tags dark red, values and keywords blue, strings red-brown, numbers and comments
+// green, IRIs teal) and the dark theme follows Dark+.
 /** Supplies the shared token colors for syntax trees and viewport decorations. */
-export const lightHighlight = HighlightStyle.define([
-  { tag: t.propertyName, color: '#0451a5' },
-  { tag: t.definition(t.propertyName), color: '#800000' },
-  { tag: [t.tagName], color: '#800000' },
-  { tag: [t.attributeName], color: '#e50000' },
-  { tag: [t.attributeValue], color: '#0000ff' },
-  { tag: [t.string, t.special(t.string)], color: '#a31515' },
-  { tag: [t.number, t.integer, t.float], color: '#098658' },
-  { tag: [t.bool, t.null, t.keyword, t.atom, t.literal], color: '#0000ff' },
-  { tag: [t.comment, t.lineComment, t.blockComment], color: '#008000', fontStyle: 'italic' },
-  { tag: [t.meta, t.processingInstruction, t.documentMeta], color: '#795e26' },
-  { tag: [t.url, t.link], color: '#267f99' },
-  { tag: t.namespace, color: '#267f99' },
-  { tag: t.variableName, color: '#001080' },
-  { tag: [t.typeName, t.className], color: '#267f99' },
-  { tag: [t.operator, t.punctuation, t.separator, t.bracket], color: '#3b3b3b' },
-  { tag: [t.labelName, t.special(t.variableName)], color: '#af00db' },
-  { tag: t.invalid, color: '#cd3131', textDecoration: 'underline wavy' },
+export const syntaxHighlight = HighlightStyle.define([
+  { tag: t.propertyName, color: 'var(--color-syntax-property)' },
+  { tag: t.definition(t.propertyName), color: 'var(--color-syntax-tag)' },
+  { tag: [t.tagName], color: 'var(--color-syntax-tag)' },
+  { tag: [t.attributeName], color: 'var(--color-syntax-attribute)' },
+  { tag: [t.attributeValue], color: 'var(--color-syntax-keyword)' },
+  { tag: [t.string, t.special(t.string)], color: 'var(--color-syntax-string)' },
+  { tag: [t.number, t.integer, t.float], color: 'var(--color-syntax-number)' },
+  { tag: [t.bool, t.null, t.keyword, t.atom, t.literal], color: 'var(--color-syntax-keyword)' },
+  {
+    tag: [t.comment, t.lineComment, t.blockComment],
+    color: 'var(--color-syntax-comment)',
+    fontStyle: 'italic',
+  },
+  { tag: [t.meta, t.processingInstruction, t.documentMeta], color: 'var(--color-syntax-meta)' },
+  { tag: [t.url, t.link], color: 'var(--color-syntax-type)' },
+  { tag: t.namespace, color: 'var(--color-syntax-type)' },
+  { tag: t.variableName, color: 'var(--color-syntax-variable)' },
+  { tag: [t.typeName, t.className], color: 'var(--color-syntax-type)' },
+  {
+    tag: [t.operator, t.punctuation, t.separator, t.bracket],
+    color: 'var(--color-syntax-operator)',
+  },
+  { tag: [t.labelName, t.special(t.variableName)], color: 'var(--color-syntax-label)' },
+  { tag: t.invalid, color: 'var(--color-syntax-invalid)', textDecoration: 'underline wavy' },
 ]);
 // Plain YAML values are blue as in VS Code; elsewhere (XML text) content keeps the default color.
-const yamlValues = HighlightStyle.define([{ tag: t.content, color: '#0000ff' }], {
-  scope: extensionYaml,
-});
+const yamlValues = HighlightStyle.define(
+  [{ tag: t.content, color: 'var(--color-syntax-keyword)' }],
+  {
+    scope: extensionYaml,
+  },
+);
 /** Installs source token styles. */
-export const highlighting = [syntaxHighlighting(yamlValues), syntaxHighlighting(lightHighlight)];
+export const highlighting = [syntaxHighlighting(yamlValues), syntaxHighlighting(syntaxHighlight)];

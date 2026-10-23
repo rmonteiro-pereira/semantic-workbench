@@ -2,16 +2,16 @@
 import React, { useMemo } from 'react';
 import { highlightCode } from '@lezer/highlight';
 import { StandardSQL } from '@codemirror/lang-sql';
-import { lightHighlight } from '../editor/languages';
+import { syntaxHighlight } from '../editor/languages';
 // Read-only SQL previews: the same SQL grammar and colors as the Source editor, drawn as spans
 // inside the preview's <code> so its text stays exactly the SQL.
 let mounted = false;
 /** Highlights a read-only SQL preview without changing its text. */
 export function SqlCode({ sql }: { sql: string }) {
-  if (!mounted && typeof document !== 'undefined' && lightHighlight.module) {
+  if (!mounted && typeof document !== 'undefined' && syntaxHighlight.module) {
     const style = document.createElement('style');
     style.dataset.sqlHighlight = '';
-    style.textContent = lightHighlight.module.getRules();
+    style.textContent = syntaxHighlight.module.getRules();
     document.head.appendChild(style);
     mounted = true;
   }
@@ -21,7 +21,7 @@ export function SqlCode({ sql }: { sql: string }) {
       highlightCode(
         sql,
         StandardSQL.language.parser.parse(sql),
-        lightHighlight,
+        syntaxHighlight,
         (text, cls) => out.push({ text, cls }),
         () => out.push({ text: '\n', cls: '' }),
       );
