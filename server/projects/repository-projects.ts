@@ -25,6 +25,7 @@ import {
   type RepositoryProject,
 } from './repositories';
 import type { ProjectEntry, createState } from './state';
+import { LOCAL_READER, type Reader } from './reader';
 
 /** Workspace services the repository projects need. */
 export type RepositoryProjectDeps = {
@@ -39,6 +40,13 @@ export type RepositoryProjectDeps = {
   emit: (event: string, data: unknown, tags: EventTags) => void;
   /** Adds the principals who may hear of each tagged project, decided before it is removed. */
   withCurrentReaders: (event: string, tags: EventTags) => EventTags;
+  /**
+   * Server mode: the folder of the repository a person reads the manifest from or, with
+   * `write`, writes it into (their own working copy). Absent: the repository's own folder.
+   */
+  manifestFolder?: (repo: string, reader: Reader, write: boolean) => Promise<string>;
+  /** Server mode: after the manifest was written into a person's copy, such as to commit it. */
+  manifestSaved?: (dir: string, reader: Reader) => Promise<void>;
 };
 
 /** What a repository offers as projects: its manifest, detected folders and registered ones. */
@@ -128,9 +136,16 @@ export function createRepositoryProjects(deps: RepositoryProjectDeps) {
     return repoPath(repo);
   }
 
-  async function candidates(repo: string): Promise<ProjectCandidates> {
+  // Where a person reads or writes the manifest: their own copy in server mode, else the
+  // repository folder itself.
+  async function manifestDir(repo: string, reader: Reader, write: boolean) {
     const dir = checkRepository(repo);
-    const { text, hash } = readManifestFile(dir);
+    return deps.manifestFolder ? deps.manifestFolder(repo, reader, write) : dir;
+  }
+
+  async function candidates(repo: string, reader: Reader = LOCAL_READER) {
+    const dir = checkRepository(repo);
+    const { text, hash } = readManifestFile(await manifestDir(repo, reader, false));
     let manifest: ProjectCandidates['manifest'] = null;
     let manifestError: string | undefined;
     if (text !== null)
@@ -139,7 +154,7 @@ export function createRepositoryProjects(deps: RepositoryProjectDeps) {
       } catch (e) {
         manifestError = (e as Error).message;
       }
-    return {
+    const found: ProjectCandidates = {
       manifest,
       ...(manifestError ? { manifestError } : {}),
       manifestHash: hash,
@@ -150,6 +165,7 @@ export function createRepositoryProjects(deps: RepositoryProjectDeps) {
         path: pathInRepo(project, repo),
       })),
     };
+    return found;
   }
 
   /** Makes exactly these folders the repository's projects. Folders already registered keep
@@ -159,15 +175,20 @@ export function createRepositoryProjects(deps: RepositoryProjectDeps) {
     repo: string,
     requested: unknown,
     options: { saveManifest?: boolean; manifestBaseHash?: unknown } = {},
+    reader: Reader = LOCAL_READER,
   ) {
     const dir = checkRepository(repo);
     const folders = checkProjectFolders(requested);
     for (const folder of folders) checkFolderExists(dir, folder.path);
+    if (options.saveManifest && folders.some(folder => folder.path === ''))
+      throw new PathError('A manifest lists folders below the root.');
+    // In server mode the manifest is a change like any other: it goes into the person's copy,
+    // committed there, and reaches the published state when they publish.
+    const target = options.saveManifest ? await manifestDir(repo, reader, true) : dir;
     return deps.lock('registry', async () => {
       if (options.saveManifest) {
-        if (folders.some(folder => folder.path === ''))
-          throw new PathError('A manifest lists folders below the root.');
-        saveManifest(dir, folders, options.manifestBaseHash);
+        saveManifest(target, folders, options.manifestBaseHash);
+        if (target !== dir) await deps.manifestSaved?.(target, reader);
       }
       const current = deps.projects();
       const before = inRepo(repo, current);

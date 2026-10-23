@@ -57,3 +57,30 @@ export class HiddenResourceError extends Error {
     this.name = 'HiddenResourceError';
   }
 }
+
+/** Names the person (or the published state) whose working copy already holds a branch. */
+export class BranchInUseError extends Error {
+  constructor(
+    public branch: string,
+    public inUseBy: string,
+  ) {
+    super(`${branch} is in use by ${inUseBy}.`);
+    this.name = 'BranchInUseError';
+  }
+}
+
+/** Refuses a publish whose working copy does not contain the current default branch tip. */
+export class NotFastForwardError extends Error {
+  constructor(public branch: string) {
+    super(`Pull from ${branch} first: publishing must be a fast-forward of ${branch}.`);
+    this.name = 'NotFastForwardError';
+  }
+}
+
+/** A publish asked of someone who has no working copy of the repository yet. */
+export class NothingToPublishError extends Error {
+  constructor() {
+    super('Nothing to publish: you have not changed this repository.');
+    this.name = 'NothingToPublishError';
+  }
+}

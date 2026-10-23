@@ -16,8 +16,18 @@ export type ProjectFile = {
   gitState: string;
   hash: string;
 };
+/** A branch another person's working copy (or the published state) has checked out. */
+export type BranchInUse = { branch: string; inUseBy: string };
+/** Server mode: the person's own working copy of a project's repository. */
+export type WorkingCopyInfo = {
+  branch: string;
+  defaultBranch: string;
+  inUseBranches: BranchInUse[];
+};
 /** Summarizes a project, its Git state and indexed files. */
 export type ProjectInfo = {
+  /** Server mode only: the person's working copy, or null when they read the published state. */
+  copy?: WorkingCopyInfo | null;
   hiddenFiles?: number;
   /** Server mode only: the actions the signed-in person may take on this project. */
   actions?: string[];
@@ -130,6 +140,8 @@ export type GitChange = {
 export type GitStatus = {
   branch: string;
   upstream: string;
+  /** Server mode: where Pull takes from on a personal branch, such as `origin/main`. */
+  pullSource?: string;
   ahead: number;
   behind: number;
   gitAvailable: boolean;
@@ -139,7 +151,16 @@ export type GitStatus = {
   changes: GitChange[];
 };
 /** Reports completion, cancellation, conflicts and altered paths after a remote action. */
+/** Server mode: what a fetch did to the published default branch when the remote was ahead. */
+export type FollowResult = {
+  branch: string;
+  remote: string;
+  followed: boolean;
+  reason?: 'publish' | 'guard';
+};
 export type RemoteResult = {
+  /** Fetch in server mode, when the remote's default branch was ahead. */
+  follow?: FollowResult;
   ok: boolean;
   cancelled?: boolean;
   ahead: number;
@@ -436,6 +457,8 @@ async function gitPost<T>(project: string, action: string, body?: unknown): Prom
   const response = await apiFetch(gitUrl(project, action), send('POST', body));
   if (response.status === 409) {
     const b = await response.json();
+    // A branch in use or a publish that is not a fast-forward is explained by its message.
+    if (b.error !== 'drafts' && b.error !== 'dirty') throw Object.assign(Error(b.error), b);
     throw new Blocked(b.error, b.paths ?? [], b.message ?? b.error);
   }
   return json<T>(response);
@@ -518,6 +541,12 @@ export const scm = {
   remote: (p: string, action: 'fetch' | 'pull' | 'push' | 'sync') =>
     gitPost<RemoteResult>(p, 'git/' + action),
   cancel: (p: string) => gitPost<{ cancelled: boolean }>(p, 'git/cancel'),
+  /** Server mode: fast-forwards the default branch to the person's copy. */
+  publish: (p: string) => gitPost<{ published: string; commit: string }>(p, 'git/publish', {}),
+  /** Server mode: merges the default branch into the person's branch. */
+  pullDefault: (p: string) => gitPost<RemoteResult>(p, 'git/pull-default', {}),
+  /** Server mode: pushes the default branch to the remote; Stewards and Admins only. */
+  pushDefault: (p: string) => gitPost<RemoteResult>(p, 'git/push-default', {}),
   log: (p: string, path?: string, limit = 50) =>
     apiFetch(
       gitUrl(p, 'git/log') + `?limit=${limit}${path ? '&path=' + encodeURIComponent(path) : ''}`,

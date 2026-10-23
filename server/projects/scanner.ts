@@ -6,7 +6,7 @@ import { validateInput } from '../../src/input';
 import { rdfSyntax } from '../../src/rdf';
 import type { Issue } from '../../src/diagnostics';
 import { decode, sha256, TEMP_SUFFIX } from './atomic';
-import type { Cache, CachedFile } from './cache';
+import type { CachedFile, CopyIndex } from './cache';
 import type { Git, FileGitState } from './git';
 import { projectDir, projectPath, projectPrefix, type DataLayout } from './paths';
 import { sqlFindings } from '../sql/lint';
@@ -130,11 +130,27 @@ function walk(dir: string, prefix = '', out: string[] = []) {
 /** Creates serialized project scans that refresh the cache and publish file changes. */
 export function createScanner(
   layout: DataLayout,
-  cache: Cache,
+  cache: CopyIndex,
   git: Git,
   gitAvailable: () => boolean,
 ) {
   const queues = new Map<string, Promise<unknown>>();
+  // Another working copy may hold the same bytes at the same path; its parse is reused.
+  function indexedOnce(
+    slug: string,
+    path: string,
+    bytes: Uint8Array,
+    gitState: FileGitState | 'unknown',
+  ) {
+    const hash = sha256(bytes);
+    const known = cache.parsedElsewhere(slug, path, hash);
+    if (known) {
+      const file = { ...known.file, gitState, indexedAt: new Date().toISOString() };
+      return [file, cache.entitiesOf(hash, path), known.findings] as const;
+    }
+    const indexed = indexBytes(slug, path, bytes, gitState);
+    return [indexed.file, indexed.entities, indexed.findings] as const;
+  }
   async function scan(slug: string) {
     const dir = projectDir(layout, slug);
     let paths: string[];
@@ -179,8 +195,7 @@ export function createScanner(
           cache.put({ ...old, gitState }, cache.entities(slug, path), cache.findings(slug, path));
         continue;
       }
-      const indexed = indexBytes(slug, path, bytes, gitState);
-      cache.put(indexed.file, indexed.entities, indexed.findings);
+      cache.put(...indexedOnce(slug, path, bytes, gitState));
       changed.push(path);
     }
     for (const old of cache.files(slug))

@@ -2458,8 +2458,12 @@ if (category.startsWith('guard-')) {
     'guard-delete',
     'guard-restore',
     'guard-import',
+    'guard-pull-default',
+    'guard-publish',
   ];
   if (routeCategories.includes(category)) {
+    const { readFileSync, writeFileSync } = await import('node:fs');
+    const { join } = await import('node:path');
     const cases = await import('../tests/auth/guard-cases');
     const { authWorkspace } = await import('../tests/helpers/auth-workspace');
     const origin = 'http://127.0.0.1:4310';
@@ -2494,23 +2498,24 @@ if (category.startsWith('guard-')) {
       await refused(fixture, named('import with replace'));
     }
     if (category === 'guard-revert') {
-      const file = fixture.ws.readFile('sales-contracts', 'orders.odcs.yaml');
-      const source = cases.reclassified(file.source);
-      await fixture.ws.saveFile(
-        'sales-contracts',
-        'orders.odcs.yaml',
-        {
-          baseHash: file.hash,
-          source,
-        },
-        LOCAL_READER,
-      );
-      await refused(fixture, cases.revertCase(fixture.ws));
+      // Alice's copy holds a classification change nobody committed.
+      const copy = await cases.openCopyAs(fixture.ws, 'alice');
+      const contract = join(copy, 'orders.odcs.yaml');
+      writeFileSync(contract, cases.reclassified(readFileSync(contract, 'utf8')));
+      await refused(fixture, cases.revertCase(fixture.ws, copy));
     }
     if (category === 'guard-restore') {
       const file = 'catalog.odcs.yaml';
       const source = cases.unprotectedContract(fixture.ws);
       await fixture.ws.saveFile('sales-contracts', file, { baseHash: null, source }, LOCAL_READER);
+      // Committed, so Alice's working copy starts with the contract she then deletes.
+      const repository = join(fixture.root, 'projects', 'sales-contracts');
+      const identity = ['-c', 'user.name=Someone', '-c', 'user.email=someone@example.org'];
+      for (const args of [
+        ['add', file],
+        [...identity, 'commit', '-q', '-m', 'Add catalog'],
+      ])
+        assert.equal(Bun.spawnSync(['git', ...args], { cwd: repository }).exitCode, 0);
       const deletion = {
         ...cases.deleteCase(),
         path: `/api/projects/sales-contracts/files/${file}`,
@@ -2520,6 +2525,10 @@ if (category.startsWith('guard-')) {
       await refused(fixture, undo);
       await refused(fixture, { ...undo, path: undo.path.replace('/undo', '/restore') });
     }
+    if (category === 'guard-pull-default')
+      await refused(fixture, await cases.pullDefaultCase(fixture));
+    if (category === 'guard-publish')
+      await refused(fixture, await cases.publishCase(fixture), 'bob');
     if (category === 'guard-pull') {
       const remote = cases.remoteWithReclassification(fixture.ws, fixture.root);
       try {
@@ -2831,5 +2840,310 @@ if (category === 'remote-consent') {
     await assert.rejects(credentials.credentialFor(request, 'dev.azure.com'));
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+// Per-person working copies: shared helpers for the cases below.
+async function copyFixture() {
+  const { authWorkspace } = await import('../tests/helpers/auth-workspace');
+  const { createAccessControl } = await import('../server/auth/authorize');
+  const { accessFixture, person } = await import('../tests/auth/access-fixture');
+  const { attachRemoteCredentials, requestAccess } = await import('../server/auth/request-scope');
+  const { allowEveryRemote } = await import('../tests/helpers/remote-credentials-fixture');
+  const fixture = await authWorkspace();
+  const access = createAccessControl(accessFixture());
+  // A request carrying the person's resolved scope, as the access middleware leaves it.
+  const scoped = (
+    name: 'alice' | 'bob' | 'frank',
+    path: string,
+    method = 'GET',
+    body?: unknown,
+  ) => {
+    const request = new Request('http://localhost' + path, {
+      method,
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    });
+    Object.assign(request, {
+      [requestAccess]: access.forRequest(access.principalFor(person(name))),
+    });
+    attachRemoteCredentials(request, allowEveryRemote());
+    return request;
+  };
+  const keyOf = (name: 'alice' | 'bob' | 'frank') => access.principalFor(person(name)).key;
+  return { fixture, access, person, scoped, keyOf };
+}
+
+if (category === 'copy-author') {
+  const { requestReader } = await import('../server/auth/request-scope');
+  const { join } = await import('node:path');
+  const { fixture, scoped, keyOf } = await copyFixture();
+  try {
+    const reader = requestReader(scoped('alice', '/'));
+    const current = fixture.ws.readFile('sales-contracts', 'orders.odcs.yaml', reader);
+    const edited = { baseHash: current.hash, source: current.source + '# alice\n' };
+    await fixture.ws.saveFile('sales-contracts', 'orders.odcs.yaml', edited, reader);
+    const request = scoped('alice', '/api/projects/sales-contracts/git/commit', 'POST', {
+      message: 'Alice commits',
+      paths: ['orders.odcs.yaml'],
+    });
+    const response = await m.gitRoutes(fixture.ws, request, new URL(request.url));
+    assert.equal(response.status, 200);
+    const copy = join(fixture.ws.layout.worktrees, keyOf('alice'), 'sales-contracts');
+    const log = Bun.spawnSync(['git', 'log', '-1', '--format=%an'], { cwd: copy });
+    assert.equal(log.stdout.toString().trim(), 'Alice Andrade');
+  } finally {
+    fixture.dispose();
+  }
+}
+
+if (category === 'copy-worktrees') {
+  const { createGit } = await import('../server/projects/git');
+  const { writeFileSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const { fixture } = await copyFixture();
+  try {
+    const { layout } = fixture.ws;
+    const git = createGit({ projectsRoot: layout.projects, worktreesRoot: layout.worktrees });
+    const ann = { key: 'u' + 'a'.repeat(20), handle: 'ann', name: 'Ann' };
+    const ben = { key: 'u' + 'b'.repeat(20), handle: 'ben', name: 'Ben' };
+    const worktrees = m.createWorktrees({ layout, git, people: () => [ann, ben] });
+    const commitIn = (dir: string, name: string) => {
+      writeFileSync(join(dir, name), name);
+      for (const args of [
+        ['add', name],
+        ['commit', '-q', '-m', name],
+      ])
+        assert.equal(Bun.spawnSync(['git', ...args], { cwd: dir }).exitCode, 0);
+    };
+    commitIn((await worktrees.ensure('sales-contracts', ann)).dir, 'ann.txt');
+    commitIn((await worktrees.ensure('sales-contracts', ben)).dir, 'ben.txt');
+    // A branch another copy holds, or the published one, is refused by name.
+    await assert.rejects(worktrees.assertFree('sales-contracts', ben.key, 'work/ann'), /by Ann/);
+    await assert.rejects(worktrees.assertFree('sales-contracts', ben.key, 'main'), /published/);
+    const unchecked = async () => {};
+    await worktrees.publish('sales-contracts', ann.key, unchecked);
+    // Ben's copy does not contain Ann's publish, so publishing it would rewrite main.
+    await assert.rejects(worktrees.publish('sales-contracts', ben.key, unchecked), /fast-forward/);
+  } finally {
+    fixture.dispose();
+  }
+}
+
+if (category === 'copy-publish') {
+  const { createGit } = await import('../server/projects/git');
+  const { rmSync, writeFileSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const { fixture } = await copyFixture();
+  try {
+    const { layout } = fixture.ws;
+    const git = createGit({ projectsRoot: layout.projects, worktreesRoot: layout.worktrees });
+    const ann = { key: 'u' + 'a'.repeat(20), handle: 'ann', name: 'Ann' };
+    const ben = { key: 'u' + 'b'.repeat(20), handle: 'ben', name: 'Ben' };
+    const worktrees = m.createWorktrees({ layout, git, people: () => [ann, ben] });
+    const run = (dir: string, args: string[]) => {
+      const identity = ['-c', 'user.name=Someone', '-c', 'user.email=someone@example.org'];
+      const result = Bun.spawnSync(['git', ...identity, ...args], { cwd: dir });
+      assert.equal(result.exitCode, 0, result.stderr.toString());
+      return result.stdout.toString().trim();
+    };
+    const commitIn = (dir: string, name: string) => {
+      writeFileSync(join(dir, name), name);
+      run(dir, ['add', name]);
+      run(dir, ['commit', '-q', '-m', name]);
+      return run(dir, ['rev-parse', 'HEAD']);
+    };
+    // A remote's default branch that reads as an option is refused.
+    const hr = join(layout.projects, 'hr-people');
+    run(hr, ['checkout', '-q', '--detach']);
+    run(hr, ['update-ref', 'refs/remotes/origin/-evil', 'HEAD']);
+    run(hr, ['symbolic-ref', 'refs/remotes/origin/HEAD', 'refs/remotes/origin/-evil']);
+    await assert.rejects(worktrees.defaultBranch('hr-people'), /Cannot tell/);
+    const base = join(layout.projects, 'sales-contracts');
+    const tip = () => run(base, ['rev-parse', 'refs/heads/main']);
+    const annCommit = commitIn((await worktrees.ensure('sales-contracts', ann)).dir, 'ann.txt');
+    const benDir = (await worktrees.ensure('sales-contracts', ben)).dir;
+    const before = tip();
+    // A guard refusal and a new file in the published checkout each leave main alone.
+    const refuse = async () => {
+      throw new Error('refused');
+    };
+    await assert.rejects(worktrees.publish('sales-contracts', ann.key, refuse), /refused/);
+    writeFileSync(join(base, 'stray.txt'), 'stray');
+    const unchecked = async () => {};
+    await assert.rejects(worktrees.publish('sales-contracts', ann.key, unchecked), /changes/);
+    rmSync(join(base, 'stray.txt'));
+    assert.equal(tip(), before);
+    // Ben publishes after Ann's check: Ann's compare-and-swap fails and Ben's tip stays.
+    run(benDir, ['merge', '-q', '--ff-only', annCommit]);
+    const benTip = commitIn(benDir, 'ben.txt');
+    const raced = async () => {
+      run(base, ['update-ref', 'refs/heads/main', benTip, before]);
+    };
+    await assert.rejects(worktrees.publish('sales-contracts', ann.key, raced), /fast-forward/);
+    assert.equal(tip(), benTip);
+    // The branch moved without the published files: the next start puts them back in step.
+    assert.notEqual(run(base, ['rev-parse', 'HEAD']), benTip);
+    await worktrees.repairBase('sales-contracts');
+    assert.equal(run(base, ['rev-parse', 'HEAD']), benTip);
+    // The remote is ahead, but the guards refuse what it brings, so main stays.
+    const remoteTip = commitIn(benDir, 'remote.txt');
+    run(base, ['update-ref', 'refs/remotes/origin/main', remoteTip]);
+    await assert.rejects(worktrees.followRemote('sales-contracts', 'origin', refuse), /refused/);
+    assert.equal(tip(), benTip);
+  } finally {
+    fixture.dispose();
+  }
+}
+
+if (category === 'copy-drafts') {
+  const { tempDataDir } = await import('../tests/helpers/temp-data-dir');
+  const { dataLayout } = await import('../server/projects/paths');
+  const data = tempDataDir();
+  try {
+    const state = m.createState(dataLayout(data.root));
+    const draft = { baseHash: null, text: 'alice words', patches: [] };
+    state.forOwner('tenant:alice').writeDraft('sales', 'a.yaml', draft);
+    assert.equal(state.forOwner('tenant:alice').draft('sales', 'a.yaml').text, 'alice words');
+    assert.equal(state.forOwner('tenant:frank').draft('sales', 'a.yaml'), null);
+  } finally {
+    data.cleanup();
+  }
+}
+
+if (category === 'copy-save') {
+  const { createHandler } = await import('../server/handler');
+  const { readFileSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const { fixture, access, person } = await copyFixture();
+  fixture.ws.close();
+  const ws = await m.openWorkspace({ root: fixture.root });
+  try {
+    const origin = 'http://127.0.0.1:4310';
+    const { allowEveryRemote } = await import('../tests/helpers/remote-credentials-fixture');
+    const as = (name: 'alice' | 'frank') =>
+      createHandler(ws, {
+        mode: 'server',
+        remoteCredentials: allowEveryRemote(),
+        publicOrigin: origin,
+        access,
+        principal: () => access.principalFor(person(name)),
+      });
+    const call = (name: 'alice' | 'frank', path: string, method = 'GET', body?: unknown) =>
+      as(name)(
+        new Request(origin + path, {
+          method,
+          headers: { Origin: origin, 'X-SW-Request': '1' },
+          ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+        }),
+      );
+    const file = '/api/projects/sales-contracts/files/orders.odcs.yaml';
+    const draft = '/api/drafts/sales-contracts/orders.odcs.yaml';
+    await call('frank', draft, 'PUT', { baseHash: null, text: 'frank words', patches: [] });
+    const published = join(ws.layout.projects, 'sales-contracts', 'orders.odcs.yaml');
+    const before = readFileSync(published, 'utf8');
+    const current = await (await call('alice', file)).json();
+    const saved = await call('alice', file, 'PUT', {
+      baseHash: current.hash,
+      source: current.source + '# alice\n',
+    });
+    assert.equal(saved.status, 200);
+    // Alice's save lands in her copy and outdates only her drafts.
+    assert.equal(readFileSync(published, 'utf8'), before);
+    assert.equal((await call('frank', draft)).status, 200);
+  } finally {
+    ws.close();
+    fixture.dispose();
+  }
+}
+
+if (category === 'copy-protected') {
+  const { fixture, scoped } = await copyFixture();
+  try {
+    const target = (name: 'alice' | 'bob') => ({
+      ws: fixture.ws,
+      request: scoped(name, '/api/projects/sales-contracts/git/publish', 'POST'),
+      slug: 'sales-contracts',
+    });
+    // An Editor neither publishes nor checks out the protected main; the Steward publishes.
+    await assert.rejects(m.authorizePublish(target('alice'), undefined), /not authorized/);
+    assert.throws(() => m.authorizeCheckout(target('alice'), 'main'), /not authorized/);
+    await m.authorizePublish(target('bob'), undefined);
+  } finally {
+    fixture.dispose();
+  }
+}
+
+if (category === 'copy-subproject') {
+  const { existsSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const { tempDataDir } = await import('../tests/helpers/temp-data-dir');
+  const { bareRepository } = await import('../tests/helpers/git-fixtures');
+  const { LOCAL_READER } = await import('../server/projects/reader');
+  const { createAccessControl } = await import('../server/auth/authorize');
+  const { accessFixture, person } = await import('../tests/auth/access-fixture');
+  const { saveText, signedIn } = await import('../tests/auth/working-copy-fixture');
+  const remote = bareRepository('monorepo');
+  const data = tempDataDir();
+  const ws = await m.openWorkspace({ root: data.root });
+  try {
+    const started = ws.clone(remote.bare, undefined, LOCAL_READER);
+    const cloned = () =>
+      ws.events.replay(0)!.some(event => {
+        const clone = event.data as { op?: string; phase?: string };
+        return event.event === 'clone' && clone.op === started.op && clone.phase === 'done';
+      });
+    for (let attempt = 0; attempt < 400 && !cloned(); attempt++) await Bun.sleep(10);
+    const projects = ws.state.registry().projects;
+    const sales = projects.find(project => project.name === 'Sales')!;
+    const finance = projects.find(project => project.name === 'Finance')!;
+    const options = accessFixture();
+    const assigned = { stewards: [], restricted: [], protectedBranches: [] };
+    options.config.projects.projects[sales.slug] = { domain: 'sales', ...assigned };
+    options.config.projects.projects[finance.slug] = { domain: 'hr', ...assigned };
+    const access = createAccessControl({
+      ...options,
+      knownProjects: () => projects.map(project => project.slug),
+    });
+    const as = signedIn(ws, access);
+    const alice = as(person('alice'));
+    const dave = as(person('dave'));
+    const edit = (text: string) => text + '# alice\n';
+    const saved = await saveText(alice.call, sales.slug, 'sales.ontology.yaml', edit);
+    assert.equal(saved.status, 200);
+    const body = { mode: 'delete', confirm: true };
+    const deleted = await dave.call(`/api/projects/${sales.slug}`, 'DELETE', body);
+    assert.equal(deleted.status, 200);
+    // The deleted subproject's folder leaves Alice's copy; the rest of it stays.
+    const copy = join(ws.layout.worktrees, alice.principal.key, sales.repo!);
+    assert.equal(existsSync(join(copy, 'domains/sales')), false);
+    assert.equal(existsSync(join(copy, 'domains/finance')), true);
+  } finally {
+    ws.close();
+    data.cleanup();
+    remote.dispose();
+  }
+}
+
+if (category === 'copy-suggestions') {
+  const { requestReader } = await import('../server/auth/request-scope');
+  const { fixture, scoped } = await copyFixture();
+  fixture.ws.close();
+  const ws = await m.openWorkspace({ root: fixture.root });
+  try {
+    const alice = requestReader(scoped('alice', '/'));
+    const frank = requestReader(scoped('frank', '/'));
+    const model = ws.readFile('sales-metrics', 'sales.semantic.yaml').source;
+    // Proposed, not approved: an Editor may create a model but not approve its metrics.
+    const extra = model
+      .replace('name: Sales semantic model', 'name: Extra semantic model')
+      .replace('"status": "approved"', '"status": "proposed"');
+    const file = { baseHash: null, source: extra };
+    await ws.saveFile('sales-metrics', 'extra.semantic.yaml', file, alice);
+    // Alice's unpublished model suggests groupings to her alone.
+    assert.equal(ws.suggestionCount(alice, []), 3);
+    assert.equal(ws.suggestionCount(frank, []), 0);
+  } finally {
+    ws.close();
+    fixture.dispose();
   }
 }

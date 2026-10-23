@@ -296,17 +296,17 @@ tests/auth/directory.test.ts` and
 
 **Independent Test**: `bun test tests/auth/worktrees.test.ts` and `bun run test:two-editors`.
 
-- [ ] T076 [P] [US4] Worktree tests in tests/auth/worktrees.test.ts: creation on first use on `work/<handle>` (unique handle), base checkout detached and never edited, branch in use elsewhere refused with name, publish fast-forward via compare-and-swap `update-ref`, not fast-forward → 409, pull-default merge, Git queue shared by all copies of a repository, idle release keeps files and drafts (FR-070 to FR-077)
-- [ ] T077 [P] [US4] Authorship tests in tests/auth/authorship.test.ts: author = principal name/email, committer = service, trailer `Signed-in-user: <id>`; identity routes 404 in server mode
-- [ ] T078 [US4] Working copies server/projects/worktrees.ts (`git worktree add -b`, `lock`, list porcelain → in-use map, publish, pull-default, removal) and copy-aware paths in server/projects/paths.ts
-- [ ] T079 [US4] Copy-aware scanning, cache keys (copy, project, path) with entities by blob hash, watchers per active copy with 30-minute idle release, `SW_CACHE_DIR` in server/projects/workspace.ts, server/projects/cache.ts, server/projects/watcher.ts
-- [ ] T080 [US4] Per-person drafts, views, grouping corrections and suggestion state under `state/users/<userKey>/` in server/projects/state.ts and server/handler.ts (grouping routes)
-- [ ] T081 [US4] Viewer reads the published state; Editor+ reads their copy; `published` event in server/projects/workspace.ts and server/projects/events.ts
-- [ ] T082 [US4] Commits with author env, service committer and trailer in server/projects/git.ts; publish and pull-default routes in server/routes/git.ts
-- [ ] T083 [US4] Server-mode project delete and clear: list unpublished work, store per-person patches and drafts in the trash entry, remove worktrees, journaled, in server/projects/trash.ts (data-model Trash entry)
-- [ ] T084 [US4] UI: branch picker "in use by", **Publish to <default>**, **Pull from <default>**, identity dialog hidden in server mode, in src/scm/BranchPicker.tsx, src/scm/SourceControl.tsx, src/scm/CommitDialog.tsx
-- [ ] T085 [US4] Browser check scripts/two-editors-check.ts: two contexts (alice, frank) on one repository; edits, stage, commit, switch, pull never affect the other; authors correct; publish visible to carol-like Viewer of Sales (SC-007)
-- [ ] T086 [US4] Mutants: commit author not principal; publish not fast-forward; switch to a branch in use; draft keyed without person; base checkout edited; push or publish to a protected branch by an Editor — in scripts/mutation-tests.ts
+- [X] T076 [P] [US4] Worktree tests in tests/auth/worktrees.test.ts: creation on first use on `work/<handle>` (unique handle), base checkout detached and never edited, branch in use elsewhere refused with name, publish fast-forward via compare-and-swap `update-ref`, not fast-forward → 409, pull-default merge, Git queue shared by all copies of a repository, idle release keeps files and drafts (FR-070 to FR-077)
+- [X] T077 [P] [US4] Authorship tests in tests/auth/authorship.test.ts: author = principal name/email, committer = service, trailer `Signed-in-user: <id>`; identity routes 404 in server mode
+- [X] T078 [US4] Working copies server/projects/worktrees.ts (`git worktree add -b`, `lock`, list porcelain → in-use map, publish, pull-default, removal) and copy-aware paths in server/projects/paths.ts
+- [X] T079 [US4] Copy-aware scanning, cache keys (copy, project, path) with entities by blob hash, watchers per active copy with 30-minute idle release, `SW_CACHE_DIR` in server/projects/workspace.ts, server/projects/cache.ts, server/projects/watcher.ts
+- [X] T080 [US4] Per-person drafts, views, grouping corrections and suggestion state under `state/users/<userKey>/` in server/projects/state.ts and server/handler.ts (grouping routes)
+- [X] T081 [US4] Viewer reads the published state; Editor+ reads their copy; `published` event in server/projects/workspace.ts and server/projects/events.ts
+- [X] T082 [US4] Commits with author env, service committer and trailer in server/projects/git.ts; publish and pull-default routes in server/routes/git.ts
+- [X] T083 [US4] Server-mode project delete and clear: list unpublished work, store per-person patches and drafts in the trash entry, remove worktrees, journaled, in server/projects/trash.ts (data-model Trash entry)
+- [X] T084 [US4] UI: branch picker "in use by", **Publish to <default>**, **Pull from <default>**, identity dialog hidden in server mode, in src/scm/BranchPicker.tsx, src/scm/SourceControl.tsx, src/scm/CommitDialog.tsx
+- [X] T085 [US4] Browser check scripts/two-editors-check.ts: two contexts (alice, frank) on one repository; edits, stage, commit, switch, pull never affect the other; authors correct; publish visible to carol-like Viewer of Sales (SC-007)
+- [X] T086 [US4] Mutants: commit author not principal; publish not fast-forward; switch to a branch in use; draft keyed without person; base checkout edited; push or publish to a protected branch by an Editor — in scripts/mutation-tests.ts
 
 ---
 

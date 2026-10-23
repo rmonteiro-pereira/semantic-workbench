@@ -8,6 +8,8 @@ export type ProjectLocation = { folder: string; repo: string };
 export type DataLayout = {
   root: string;
   projects: string;
+  /** Per-person Git working copies in server mode: `worktrees/<userKey>/<repo>/`. */
+  worktrees: string;
   state: string;
   views: string;
   drafts: string;
@@ -30,6 +32,7 @@ export function dataLayout(
   return {
     root: r,
     projects: join(r, 'projects'),
+    worktrees: join(r, 'worktrees'),
     state,
     views: join(state, 'views'),
     drafts: join(state, 'drafts'),
@@ -41,6 +44,17 @@ export function dataLayout(
     registry: join(state, 'projects.json'),
     legacyIds: join(state, 'legacy-ids.json'),
   };
+}
+/** A person's working-copy folder name: `u` and 20 hex digits, so it holds no personal data. */
+export const USER_KEY = /^u[0-9a-f]{20}$/;
+/**
+ * The layout one person's working copies are read and written through. Their repositories sit
+ * under `worktrees/<userKey>/` exactly as the published ones sit under `projects/`, so every
+ * project path helper below resolves inside the copy without knowing about copies.
+ */
+export function copyLayout(layout: DataLayout, userKey: string): DataLayout {
+  if (!USER_KEY.test(userKey)) throw new PathError('Invalid working copy id.');
+  return { ...layout, projects: join(layout.worktrees, userKey) };
 }
 /** Signals an invalid project name, identifier, or unsafe filesystem path. */
 export class PathError extends Error {

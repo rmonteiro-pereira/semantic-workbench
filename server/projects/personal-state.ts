@@ -24,10 +24,19 @@ function replaceView(
 /** A file's source and destination when its personal state follows a move or restore. */
 export type PersonalMove = { project: string; path: string; target: string; targetPath: string };
 
-/** Moves every owner's draft and grouping using the same journal as the source file. */
-export function movePersonalState(state: State, move: PersonalMove, staging: string): Step[] {
+/**
+ * Moves every owner's draft and grouping using the same journal as the source file. A move inside
+ * one person's working copy moves only that person's state (`only` is their key).
+ */
+export function movePersonalState(
+  state: State,
+  move: PersonalMove,
+  staging: string,
+  only?: string,
+): Step[] {
   const { project, path, target, targetPath } = move;
-  return state.personalStates().flatMap(({ key, state: personal }) => {
+  const owners = state.personalStates().filter(({ key }) => !only || key === only);
+  return owners.flatMap(({ key, state: personal }) => {
     const steps: Step[] = [];
     const root = join(staging, key);
     const draft = personal.draft(project, path);
@@ -145,14 +154,21 @@ export function restorePersonalState(
   });
 }
 
-/** Removes drafts in the file transaction, including owners without an active session. */
+/**
+ * Removes drafts in the file transaction, including owners without an active session. A save in
+ * one person's working copy outdates only that person's drafts (`only` is their key).
+ */
 export function clearPersonalDrafts(
   state: State,
   project: string,
   paths: string[],
   staging: string,
+  only?: string,
 ): Step[] {
-  return [{ key: 'shared', state }, ...state.personalStates()].flatMap(personal =>
+  const owners = only
+    ? state.personalStates().filter(({ key }) => key === only)
+    : [{ key: 'shared', state }, ...state.personalStates()];
+  return owners.flatMap(personal =>
     paths.flatMap((path, index) => {
       const draft = personal.state.draftFile(project, path);
       return existsSync(draft)

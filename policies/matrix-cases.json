@@ -580,6 +580,30 @@
       }
     },
     {
+      "case": "POST /api/projects/:slug/git/publish",
+      "action": "publish",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/git/pull-default",
+      "action": "pull",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/git/push-default",
+      "action": "publish",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
       "case": "PUT /api/projects/:slug/git/remote",
       "action": "setRemote",
       "resource": {

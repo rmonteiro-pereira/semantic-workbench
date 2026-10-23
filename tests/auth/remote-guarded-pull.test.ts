@@ -5,12 +5,12 @@ import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { TEST_USERS } from '../helpers/auth-identities';
 import {
+  copyOn,
   git,
   projectPath,
   publishSalesBranch,
   pushIncoming,
   salesFile,
-  salesRepositories,
   startRemoteSetup,
   type RemoteSetup,
 } from './remote-setup';
@@ -32,8 +32,9 @@ function fetchIdentitiesSince(start: number) {
     .map(request => request.identity);
 }
 
-function localHead() {
-  return git(salesRepositories(setup).local, ['rev-parse', 'HEAD']).trim();
+// Each person's Git actions run in their own working copy, found by the branch it has out.
+function headOf(branch: string) {
+  return git(copyOn(setup, branch), ['rev-parse', 'HEAD']).trim();
 }
 
 test('an Editor’s guarded pull and sync fetch with her own Azure DevOps token', async () => {
@@ -58,7 +59,7 @@ test('an Editor’s guarded pull and sync fetch with her own Azure DevOps token'
   const syncFetches = fetchIdentitiesSince(beforeSync);
   expect(syncFetches.length).toBeGreaterThan(0);
   expect(new Set(syncFetches)).toEqual(new Set([TEST_USERS.alice.oid]));
-  expect(localHead()).toBe(tip);
+  expect(headOf('alice-incoming')).toBe(tip);
 });
 
 test('a refused pull leaves HEAD as it was, and a commit pushed after the fetch is not merged', async () => {
@@ -70,11 +71,11 @@ test('a refused pull leaves HEAD as it was, and a commit pushed after the fetch 
   pushIncoming(clone, orders, reclassify);
 
   // An Editor may not bring in a classification change, so nothing changes on her side.
-  const head = localHead();
+  const head = headOf('reclassified');
   const refused = await setup.call(alice, 'POST', sales + '/git/pull');
   expect(refused.status).toBe(403);
   expect(refused.body.guarded.length).toBeGreaterThan(0);
-  expect(localHead()).toBe(head);
+  expect(headOf('reclassified')).toBe(head);
 
   // A Steward may. On a fresh branch, so the fetch has objects to download, a commit lands on the
   // remote while the fetch runs, after the branch tips were listed; it stays out of the merge.
@@ -94,6 +95,6 @@ test('a refused pull leaves HEAD as it was, and a commit pushed after the fetch 
   expect(pulled.status).toBe(200);
   expect(pulled.body.ok).toBe(true);
   expect(lateTip).not.toBe('');
-  expect(localHead()).toBe(stewardTip);
-  expect(existsSync(join(salesRepositories(setup).local, late))).toBe(false);
+  expect(headOf('steward-pull')).toBe(stewardTip);
+  expect(existsSync(join(copyOn(setup, 'steward-pull'), late))).toBe(false);
 });

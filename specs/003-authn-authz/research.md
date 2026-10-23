@@ -180,9 +180,17 @@ below come from that probe.
 - **Publish**: in the person's copy, check `git merge-base --is-ancestor <default> HEAD`, then
   `git update-ref refs/heads/<default> <new> <old>` (compare-and-swap) and
   `git -C <base> checkout --detach <default>`; not a fast-forward → refused with **Pull from
-  default branch** (`git merge --no-ff <default>` in the copy). With a remote, pushing the default
-  branch is followed by the same local update; fetch fast-forwards the local default when
-  possible.
+  default branch** (`git merge --no-ff <default>` in the copy). Publishing never pushes. **Push
+  <default>** (needs `publish`) runs `git push <remote> refs/heads/<default>:refs/heads/<default>`
+  with the person's credential. A fetch fast-forwards the local default branch, through the same
+  compare-and-swap and checkout, when the remote's is ahead, the person fetching holds `publish`
+  and the content guards accept the incoming commits; otherwise, and on diverged history,
+  nothing moves and the fetch says why.
+- **Remote pulls**: on the person's own `work/<handle>` branch, which has no upstream, Pull takes
+  `refs/heads/<default>` from the chosen remote and the panel says so ("Pull origin/main into
+  work/alice"); other branches keep the normal upstream behaviour. Refspecs are full ref names,
+  and a default branch read from `refs/remotes/origin/HEAD` must pass
+  `git check-ref-format --branch` and not start with `-`.
 - **Authorship**: `git -c user.name=<service> -c user.email=<service>` as committer and
   `GIT_AUTHOR_NAME`/`GIT_AUTHOR_EMAIL` from the principal, `--trailer "Signed-in-user: <tid:oid>"`
   (Git ≥ 2.32; workbench requires 2.40).
@@ -658,6 +666,7 @@ probe: `openid-client` 6.8.8 (MIT, 236 KB) with `oauth4webapi` (MIT, 332 KB), `j
 | T100–T103 (bearer validation, client principals from agent grants, agent-call audit, mutants) and two review rounds (Entra v2 audience and issuer, per-row client action, provider failures answered 503, one client constructor, cross-site check skipped for clients, cookie never outranks a token) | Codex (gpt-6-astra) started it; finished, reviewed and merged onto the Admin panel by Claude general-purpose subagents |
 | T087–T093 (guards on every content write, metric approval and deprecation, Steward-only classification changes, owner picker, browser check, mutants) and five review rounds (move, switch, delete, restore and new-project import guarded; the guard carried by every server reader so a missing guard is a type error; a fail-closed write-route inventory; owners matched only on verified identities; the committed owner counted for self-approval; the people list limited to project readers) | Claude (general-purpose subagent), reviewed by Claude |
 | T094–T099 (Azure DevOps on-behalf-of and GitHub tokens per person and command, askpass helper, host allow-list, Admin-only remotes and clones, connect prompts, mutants) and four review rounds (whole-prompt askpass match, canonical and unambiguous addresses, fail-closed server mode, one remote choice per request, single-use consent, per-session token lock, guarded merge without the token) | Claude (general-purpose subagent), reviewed by Claude |
+| T076–T086 (per-person working copies, publish and pull from the default branch, authored commits, copy-aware cache, watchers and suggestions, unpublished work kept in the trash, branch picker and Source Control actions, two-editors check, mutants) and three review rounds (guards inside copies and on publish and pull-default, Push to the default branch for publishers, a fetch that follows the remote only for publishers and through the guard, safe publish with repair, branch names checked, manifest written through a copy, listing cache) | Claude (general-purpose subagent), reviewed by Claude |
 
 ### Test changes not caused by the specification
 
@@ -755,3 +764,9 @@ probe: `openid-client` 6.8.8 (MIT, 236 KB) with `oauth4webapi` (MIT, 332 KB), `j
   (`allowEveryRemote()` where credentials are not the subject), because server mode refuses to start
   without one; `tests/auth/reader.test.ts` allows the clone's optional credential;
   `tests/helpers/server-auth.ts` takes optional extra environment. No assertion changed.
+- `tests/auth/matrix.test.ts` (six guard cases), `tests/auth/matrix-write.test.ts`,
+  `tests/auth/remote-guarded-pull.test.ts`, `tests/auth/remote-credential-leaks.test.ts`,
+  `tests/auth/guard-cases.ts`, `scripts/auth-governance.ts` and `scripts/mutation-case.ts`: in
+  server mode each person's writes and pulls land in their own working copy, so these read the
+  result from that copy (and the governance check publishes Bob's approval before Alice's demotion);
+  every refusal and permission they assert is unchanged.

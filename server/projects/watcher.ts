@@ -93,6 +93,8 @@ export function createWatcher(
       watchers.get(repo)?.close();
       watchers.delete(repo);
     },
+    /** The repository folders watched now. */
+    watching: () => [...watchers.keys()],
     close() {
       clearInterval(interval);
       for (const w of watchers.values()) w.close();

@@ -40,7 +40,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `server/bin/sw-askpass` | The askpass program Git runs in server mode; it answers from the environment of that one command, for its host only | Stored credentials |
 | `server/routes/` | One file per resource (`projects`, `files`, `git`, `clone`, `repos`, `trash`, `metrics`, ...): parse and check the request, call the workspace, shape the response | File or Git operations |
 | `server/projects/workspace.ts` | `openWorkspace()`, the composition root: registry, saves, imports, moves, scans, events, and the wiring of the services below | HTTP parsing |
-| `server/projects/` (other) | One service per concern: `git.ts` (the only place Git runs), `scm.ts` (Source Control), `clone.ts`, `journal.ts` (all-or-nothing renames), `trash.ts`, `repositories.ts` (which folders of a repository are projects: the `.semantic-workbench.json` manifest and detection) and `repository-projects.ts` (registering them), `scanner.ts` and `cache.ts` (the index), `state.ts` (registry, drafts, view settings), `paths.ts` (every path check), `events.ts` (server-sent events), `watcher.ts` | Browser code |
+| `server/projects/` (other) | One service per concern: `git.ts` (the only place Git runs), `scm.ts` (Source Control), `clone.ts`, `journal.ts` (all-or-nothing renames), `trash.ts`, `repositories.ts` (which folders of a repository are projects: the `.semantic-workbench.json` manifest and detection) and `repository-projects.ts` (registering them), `scanner.ts` and `cache.ts` (the index), `state.ts` (registry, drafts, view settings), `paths.ts` (every path check), `events.ts` (server-sent events), `watcher.ts`, `worktrees.ts` (server-mode working copies: `git worktree`, branch holders, the compare-and-swap publish, the merge from the default branch), `working-copies.ts` (which copy a request reads and writes, per-person index, Source Control and idle release, the copy shown in the project listing), `publishing.ts` (publishing, and the default branch following a fetch), `unpublished-work.ts` (unpublished work kept in the trash and counted for a delete) | Browser code |
 | `server/auth/sessions.ts`, `server/auth/attempts.ts` | Encrypted session persistence, revocation and signed single-use sign-in attempts | Provider protocol |
 | `server/auth/oidc.ts` | OIDC discovery, code exchange, signature checks, refresh and client authentication | Grant decisions |
 | `server/auth/directory.ts` | App-only group membership requests with bounded batches, and the short-lived group-name cache with bounded concurrent lookups | Role assignments |
@@ -298,7 +298,9 @@ it is visible to whoever may restore that project, in listings and events.
 
 Suggestion counts are per person in server mode. The workspace always sends a payload-free
 `suggestions` trigger; the event hub debounces it, builds one unrestricted file index per round
-and narrows it to each connected principal's view. A failure for one person is logged and does
+and narrows it to each connected principal's view. An Editor's count is computed over their own
+copy's files where they have one (`personalIndex()` in `workspace.ts`), so unpublished work
+suggests groupings to its author only. A failure for one person is logged and does
 not stop the others. Each person receives a count only when it changes. Clients without a
 personal scope (local mode) share one count, also announced only when it changes.
 Without server sessions (local mode), every access reload closes the live-update streams and
@@ -325,6 +327,60 @@ Repository ownership always uses the longest matching project prefix. History re
 `git log --name-only -z` invocation, exposing readable commits and a hidden-commit count;
 local history retains its array response.
 
+### Working copies in server mode
+
+A person who may edit a project works in their own `git worktree` of its repository,
+`worktrees/<userKey>/<repo>/`, on `work/<handle>`. `server/projects/working-copies.ts` decides the
+place of each request: `readPlace()` returns the person's copy when it exists and they may still
+change the project, otherwise the published state (`projects/<repo>/`, detached at the default
+branch); `writePlace()` sends every change a person makes to their copy, whichever role allowed
+it, creating the copy on first use after the route has authorized every target. Reads, including
+Source Control reads, never create a copy. `copyLayout()` in `paths.ts` maps a
+copy to a `DataLayout` whose `projects` folder is the person's, so every path helper, the scanner,
+Source Control and trash work unchanged inside it. Local mode and Viewers always get the published
+place, so local behaviour is the v0.3.0 behaviour.
+
+The cache keys files and findings by copy, project and path (the published state is copy `''`)
+and entities by blob hash and file name, so a file with the same bytes in several copies is
+parsed once. Each active copy has its own watcher, released after 30 minutes without use
+(`IDLE_RELEASE_MS` in `working-copies.ts`); its files, index rows and drafts stay. Events about a
+copy carry the `copy` tag and reach only its owner's streams. Trash entries from a copy record it:
+`readableTrash()` shows them to their owner alone, and a restore goes back into that copy.
+
+`server/projects/worktrees.ts` runs the Git side. The Git queue keys a copy on its base
+repository, so all copies of one repository are serialized. Publishing refuses a changed
+published checkout, checks that the copy contains the default branch tip, moves the branch with
+`git update-ref <ref> <new> <old>` (a compare-and-swap) and force-moves the published checkout;
+anything else is `NotFastForwardError` (409). `server/projects/publishing.ts` then rescans the
+published state and emits `published`. When the workspace opens, `repairBase()` finishes a
+publish that stopped between the two moves, and a failed checkout runs it at once. A fetch in a
+copy moves the default branch forward through the same `moveDefault()` when the remote is
+ahead, only for someone `mayPublish()` (in `git-access.ts`) allows and with the same
+`judgePublish()` guard check as a publish; otherwise the fetch reports `follow.followed: false`
+with the reason. Push <default> sends the default branch with the person's credential, needs
+`publish` and runs on the published place, so it never creates a copy.
+The worktree list is cached per repository until a copy is created or removed, switches
+branch, or the default branch moves; a project listing reads the default branch once per
+repository. An Admin's manifest goes through `writePlace()` like any change: it is written and
+committed in their copy, then published; a copy in the middle of a merge refuses it before the
+registry changes. Pull from the default branch is `scm.pullDefault()`,
+the same blocker, conflict and rewritten-bytes handling as a pull around `mergeDefault()`.
+Publishing never pushes: it moves the local default branch, and Push stays a separate action.
+Remote commands run in the person's copy with their credential; a guarded pull fetches with it,
+judges the fetched commit and merges that commit locally (`guardedPull()` in `scm.ts`). Pull from
+the default branch never reaches a remote.
+Publish and Pull from the default branch run the content guards on the exact commits they move
+or merge (`changesBetween()` and `guardMerge()` in `scm.ts`). `writePlace()` takes a precheck
+that judges a first write against the published state before the copy is created, so a refused
+write leaves no copy.
+Branch holders come from `git worktree list --porcelain` joined with the users registry; the
+default branch is held by the published state. Commits pass the person
+as author through `authorship()` in `git.ts`: the service is the committer and a
+`Signed-in-user` trailer names the person. Deleting a repository's project archives each
+person's unpublished work into the trash entry as a binary patch before the copies are removed.
+Deleting a subproject (`CopyRemoval` in `trash.ts` names its folder) archives a patch limited to
+that folder and removes the folder from every copy, leaving the rest of each copy alone.
+
 ### Write authorization and UI capabilities
 
 The route inventory authorizes each request before dispatch. Rows marked `targets: 'body'`
@@ -340,7 +396,9 @@ Restoration checks the original target and the destination with the action `rest
 picks. A hidden write target answers 404 like a missing one, before the workspace looks at it.
 `server/auth/git-access.ts` maps repository paths to projects and checks
 every project sharing a repository before switch, fetch, pull, sync, push or a remote change
-(`setRemote`). A target denial returns
+(`setRemote`). Publishing needs `publish` on the default branch for the same projects, and
+in server mode checking out a protected branch needs it too, because a copy that holds a branch
+changes it by committing. A target denial returns
 through middleware for one audit record and a 403/404 response without changing workspace bytes.
 
 `server/auth/project-creation.ts` validates domain selection through Cedar and persists the

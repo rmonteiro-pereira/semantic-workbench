@@ -360,7 +360,8 @@ export type GuardOperation =
   | 'restore'
   | 'import'
   | 'move'
-  | 'switch';
+  | 'switch'
+  | 'publish';
 
 /** How a write applies the guards: saves demote approved metrics, other operations name
  * themselves so a refusal can say who may do them. */

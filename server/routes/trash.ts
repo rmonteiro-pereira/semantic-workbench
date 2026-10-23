@@ -37,13 +37,17 @@ export const trashRoutes: Route = async (ws, req, url) => {
   const impact = p.match(/^\/api\/projects\/([^/]+)\/delete-impact$/);
   if (impact && req.method === 'GET') {
     const path = url.searchParams.get('path');
-    return Response.json(ws.deleteImpact(decodeURIComponent(impact[1]), path ?? undefined, reader));
+    const slug = decodeURIComponent(impact[1]);
+    const result = ws.deleteImpact(slug, path ?? undefined, reader);
+    // Deleting a whole project in server mode also discards everyone's unpublished work on it.
+    if (!view || path !== null) return Response.json(result);
+    return Response.json({ ...result, unpublished: await ws.unpublishedWork(slug) });
   }
   const file = p.match(/^\/api\/projects\/([^/]+)\/files\/(.+)$/);
   if (file && req.method === 'DELETE') {
     requireConfirm(await readJson(req, 4096));
     return Response.json(
-      await ws.trash.deleteFile(decodeURIComponent(file[1]), decodePath(file[2]), owner, reader),
+      await ws.deleteFile(decodeURIComponent(file[1]), decodePath(file[2]), reader),
     );
   }
   const project = p.match(/^\/api\/projects\/([^/]+)$/);

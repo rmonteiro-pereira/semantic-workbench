@@ -1,7 +1,7 @@
 // Runs the installed Git with argument arrays, timeouts, and a queue per repository. In local
 // mode credentials come from Git configuration; in server mode a remote command receives the
 // signed-in person's credential for that command only. Terminal prompts are disabled.
-import { resolve, sep } from 'node:path';
+import { relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 /** Default time limit for local Git commands. */
 export const LOCAL_TIMEOUT_MS = 30_000;
@@ -23,6 +23,8 @@ export class GitError extends Error {
 /** Configures the allowed repository root, Git binary, environment, and timeouts. */
 export type GitOptions = {
   projectsRoot: string;
+  /** Root of the per-person working copies; Git may also run there in server mode. */
+  worktreesRoot?: string;
   binary?: string;
   timeoutMs?: number;
   remoteTimeoutMs?: number;
@@ -36,6 +38,8 @@ export type RunOptions = {
   remote?: boolean;
   /** Server mode only: the credential this one remote command may use. */
   credential?: RemoteCredential;
+  /** Extra variables for this one command, such as the commit author. */
+  env?: Record<string, string>;
 };
 /**
  * A server-mode credential for one remote command: a person's token, or none for a public
@@ -75,6 +79,36 @@ export function credentialSetup(credential: RemoteCredential) {
 export function maskToken(text: string, credential?: RemoteCredential) {
   if (credential?.kind !== 'token' || !credential.token) return text;
   return text.replaceAll(credential.token, '***');
+}
+/** The signed-in person a server-mode commit is written for. */
+export type CommitAuthor = { name: string; email: string; id: string };
+/** The committer of every server-mode commit: the workbench service itself. */
+export const SERVICE_COMMITTER = { name: 'Semantic Workbench', email: 'workbench@localhost' };
+/** The trailer naming the stable id of the person a server-mode commit was written for. */
+export const SIGNED_IN_TRAILER = 'Signed-in-user';
+// Names and addresses come from the identity provider; a line break would forge a header line.
+const oneLine = (text: string) => [...text].filter(char => !hasControlCharacters(char)).join('');
+/**
+ * The configuration, environment and trailer that make a commit authored by the person and
+ * committed by the service. Without a person the repository's own identity is used, as in local
+ * mode.
+ */
+export function authorship(author?: CommitAuthor): {
+  config: string[];
+  env: Record<string, string>;
+  trailer: string[];
+} {
+  if (!author) return { config: [], env: {}, trailer: [] };
+  return {
+    config: [
+      '-c',
+      `user.name=${SERVICE_COMMITTER.name}`,
+      '-c',
+      `user.email=${SERVICE_COMMITTER.email}`,
+    ],
+    env: { GIT_AUTHOR_NAME: oneLine(author.name), GIT_AUTHOR_EMAIL: oneLine(author.email) },
+    trailer: ['--trailer', `${SIGNED_IN_TRAILER}: ${oneLine(author.id)}`],
+  };
 }
 /** Removes repository overrides and injected Git configuration, then disables terminal prompts. */
 export function gitEnv(base: Record<string, string | undefined> = process.env) {
@@ -147,6 +181,7 @@ export function subcommandOf(args: string[]) {
 /** Creates a Git runner restricted to project repositories with serialized mutations. */
 export function createGit(options: GitOptions) {
   const root = resolve(options.projectsRoot);
+  const copiesRoot = options.worktreesRoot ? resolve(options.worktreesRoot) : null;
   const binary = options.binary ?? 'git';
   const timeoutMs = options.timeoutMs ?? LOCAL_TIMEOUT_MS;
   const remoteTimeoutMs = options.remoteTimeoutMs ?? REMOTE_TIMEOUT_MS;
@@ -154,8 +189,16 @@ export function createGit(options: GitOptions) {
   const cancels = new Map<string, () => void>();
   function insideProjects(cwd: string) {
     const dir = resolve(cwd);
-    if (!dir.startsWith(root + sep)) throw new GitError('Git may only run inside data/projects/.');
-    return dir;
+    if (dir.startsWith(root + sep)) return dir;
+    if (copiesRoot && dir.startsWith(copiesRoot + sep)) return dir;
+    throw new GitError('Git may only run inside data/projects/ or data/worktrees/.');
+  }
+  // Every working copy of a repository shares its refs and objects, so the copies queue behind
+  // the base repository: `worktrees/<userKey>/<repo>` waits with `projects/<repo>`.
+  function queueKey(dir: string) {
+    if (!copiesRoot || !dir.startsWith(copiesRoot + sep)) return dir;
+    const [, ...repository] = relative(copiesRoot, dir).split(sep);
+    return repository.length ? resolve(root, ...repository) : dir;
   }
   async function spawnGit(
     cwd: string,
@@ -164,6 +207,7 @@ export function createGit(options: GitOptions) {
     timeout = timeoutMs,
     cancellable = false,
     credential?: RemoteCredential,
+    extraEnv: Record<string, string> = {},
   ): Promise<GitResult> {
     if (!Array.isArray(args) || args.some(a => typeof a !== 'string'))
       throw new GitError('Git arguments must be an array of strings.');
@@ -171,9 +215,11 @@ export function createGit(options: GitOptions) {
     try {
       proc = Bun.spawn([binary, ...args], {
         cwd,
-        env: credential
-          ? { ...gitEnv(options.env), ...credentialSetup(credential).env }
-          : gitEnv(options.env),
+        env: {
+          ...gitEnv(options.env),
+          ...extraEnv,
+          ...(credential ? credentialSetup(credential).env : {}),
+        },
         stdin: stdin === undefined ? 'ignore' : new TextEncoder().encode(stdin),
         stdout: 'pipe',
         stderr: 'pipe',
@@ -243,6 +289,7 @@ export function createGit(options: GitOptions) {
         opts.timeout ?? (opts.remote ? remoteTimeoutMs : timeoutMs),
         !!opts.remote,
         opts.credential,
+        opts.env,
       );
       if (r.code !== 0 && !opts.allowFailure)
         throw new GitError(
@@ -252,13 +299,14 @@ export function createGit(options: GitOptions) {
       return r;
     };
     if (opts.readOnly) return exec();
-    const previous = queues.get(dir) ?? Promise.resolve();
+    const key = queueKey(dir);
+    const previous = queues.get(key) ?? Promise.resolve();
     const next = previous.catch(() => {}).then(exec);
-    queues.set(dir, next);
+    queues.set(key, next);
     next
       .catch(() => {})
       .finally(() => {
-        if (queues.get(dir) === next) queues.delete(dir);
+        if (queues.get(key) === next) queues.delete(key);
       });
     return next;
   }
@@ -304,11 +352,13 @@ export function createGit(options: GitOptions) {
     cwd: string,
     paths: string[],
     message: string,
+    author?: CommitAuthor,
   ): Promise<CommitPathsResult> {
     if (typeof message !== 'string' || !message.trim())
       throw new GitError('A commit message is required.');
     if (!Array.isArray(paths) || !paths.length) throw new GitError('Name the files to commit.');
-    if (!(await identity(cwd))) return { committed: false, reason: 'no-identity' };
+    // A server-mode commit is authored by the signed-in person, so no repository identity is needed.
+    if (!author && !(await identity(cwd))) return { committed: false, reason: 'no-identity' };
     if (await merging(cwd)) return { committed: false, reason: 'merging' };
     const changed = new Set<string>();
     for (const c of chunks(paths)) {
@@ -330,7 +380,12 @@ export function createGit(options: GitOptions) {
       untracked.push(...r.stdout.split('\0').filter(Boolean));
     }
     for (const c of chunks(untracked)) await run(cwd, ['add', '--', ...c]);
-    await run(cwd, ['commit', '-q', '--only', '-F', '-', '--', ...list], { stdin: message });
+    const signed = authorship(author);
+    await run(
+      cwd,
+      [...signed.config, 'commit', '-q', ...signed.trailer, '--only', '-F', '-', '--', ...list],
+      { stdin: message, env: signed.env },
+    );
     const head = await read(cwd, ['rev-parse', '-q', '--verify', 'HEAD']);
     return { committed: true, commit: head.stdout.trim() };
   }
@@ -389,11 +444,14 @@ export function createGit(options: GitOptions) {
       await run(cwd, ['config', 'core.safecrlf', 'false']);
     },
     addAll: (cwd: string) => run(cwd, ['add', '-A', '--', '.']),
-    commit: async (cwd: string, message: string, allowEmpty = false) => {
+    commit: async (cwd: string, message: string, allowEmpty = false, author?: CommitAuthor) => {
       if (typeof message !== 'string' || !message.trim())
         throw new GitError('A commit message is required.');
-      return run(cwd, ['commit', '-q', ...(allowEmpty ? ['--allow-empty'] : []), '-F', '-'], {
+      const signed = authorship(author);
+      const empty = allowEmpty ? ['--allow-empty'] : [];
+      return run(cwd, [...signed.config, 'commit', '-q', ...empty, ...signed.trailer, '-F', '-'], {
         stdin: message,
+        env: signed.env,
       });
     },
     // Tracked and untracked files, with .gitignore applied by Git itself.

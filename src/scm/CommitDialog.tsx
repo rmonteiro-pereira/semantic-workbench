@@ -147,7 +147,8 @@ export function CommitDialog({
       live = false;
     };
   }, [project, change?.repoPath, status]);
-  const identity = status?.identityConfigured !== false;
+  // In server mode commits are written for the signed-in person, so no Git identity is asked for.
+  const identity = !access.local || status?.identityConfigured !== false;
   const canCommit =
     access.can('commit') &&
     !!message.trim() &&

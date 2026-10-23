@@ -28,7 +28,10 @@ function eventAccess(ws: Workspace, request: Request): EventAccess | undefined {
   return {
     scope,
     owner,
-    // The reader is resolved on each count, so a policy change applies to the next one.
+    // Events about a person's own working copy carry its key and reach only that person.
+    copy: scope.principal.key,
+    // The reader is resolved on each count, so a policy change applies to the next one. It
+    // carries the person's copies, so counts come from the files they edit.
     suggestions: index => ws.suggestionCount(requestReader(request), index),
   };
 }

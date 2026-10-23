@@ -61,7 +61,8 @@ Container settings are read once at startup:
 
 - `SW_HOST` and `SW_PORT`: loopback address and port (defaults `127.0.0.1:4310`).
 - `DATA_DIR`: persistent root (`/data` in the image).
-- `SW_CACHE_DIR`: rebuildable SQLite cache folder (`/tmp/sw-cache` in the image).
+- `SW_CACHE_DIR`: rebuildable SQLite cache folder (`/tmp/sw-cache` in the image). Put it on
+  local disk: in server mode it also indexes every person's working copy.
 - `SW_SERVE_STATIC=1`: serve `dist/` from the API; enabled in the image.
 - `SW_IN_CONTAINER=1`: print the host networking instructions; set by the image.
 - `SW_VERSION` and `SW_COMMIT`: build arguments and health metadata.
@@ -189,6 +190,69 @@ Live events and reconnect replay are filtered for each reader. In server mode an
 change reloads only the open tabs of the people it affects; in local mode an access change reloads
 every open tab. Non-Admins receive only readiness, mode and Git availability from
 `/api/status`. Local mode retains its existing shared workspace behavior.
+
+### Your own working copy in server mode
+
+Everyone who may edit a project works in their own Git working copy of its repository, under
+`DATA_DIR/worktrees/<key>/<repo>/`. The copy is created with the person's first change there (a
+save, import, move, delete or Source Control action), on a personal branch `work/<handle>` (for
+example `work/alice`) taken from the default branch; until then they read the published state.
+Branch, staged changes, uncommitted edits, drafts, view settings, grouping corrections and
+grouping suggestions are per person: one person's save, stage, commit, branch
+switch or pull never changes another person's files. Viewers, and anyone who cannot edit a
+project, read its published state: the default branch as `DATA_DIR/projects/<repo>/` holds it.
+Nobody edits that folder; it stays detached at the tip of the default branch.
+
+- **Commits** carry the signed-in person as author (name and e-mail from the provider), the
+  workbench as committer and a `Signed-in-user: <id>` trailer. The Git identity dialog is local
+  mode only.
+- **Branch** lists every branch; a branch another person's copy holds shows "in use by <name>" and
+  cannot be chosen. The default branch is held by the published state. A protected branch can be
+  checked out only by someone who may publish to it.
+- **Pull from <default>** merges the default branch into your branch, refused while you have
+  unsaved edits or uncommitted changes, like any pull. The content guards judge the exact commit
+  it merges, as they judge a pull from a remote.
+- **Fetch**, **Pull**, **Push** and **Sync** run in your own copy with your own remote
+  credential. On your own `work/<handle>` branch, which has no upstream, Pull takes the remote's
+  default branch and says so ("Pull origin/main into work/alice"); any other branch pulls its
+  upstream as usual. **Pull from <default>** is local and uses no credential.
+- A **Fetch** that finds the remote's default branch ahead of the local one moves the local
+  default branch and the published state forward, the same compare-and-swap way a publish does,
+  but only when the person fetching may publish and the content guards accept what the remote
+  brings. Otherwise the fetch still succeeds and the panel says "main is behind origin; someone
+  with publish must bring it in". When the two have diverged, nothing moves.
+- **Publish to <default>** (Stewards of the project's domain and Admins) fast-forwards the default
+  branch to your branch with a compare-and-swap, then refreshes the published state for every
+  reader. When someone published meanwhile, it is refused with "Pull from <default> first".
+  Without a copy there is nothing to publish (409), and none is created. The content guards judge
+  the published commits as the publisher's own changes, so an approval made in a copy reaches the
+  default branch only through someone allowed to make it.
+- Publishing does not push. **Push <default>** (Stewards and Admins) sends the default branch, as
+  published here, to the remote with your credential, without needing a copy; **Push** sends
+  your own branch.
+- Saving a repository's project folders as a manifest (Admins) writes and commits the manifest in
+  the Admin's copy; it reaches the published state when they publish.
+- Every write into a copy is guarded like a write anywhere else. A person's first write is
+  judged against the published state before their copy is made, so a refused write leaves no
+  copy behind.
+- A copy unused for 30 minutes stops being watched; its files, index and drafts stay, and the next
+  use rescans it.
+- A file deleted or reverted in a copy goes to the trash as that person's entry: nobody else
+  lists or restores it, and it goes back into the same copy.
+- Deleting a project or clearing the workspace lists each person's unpublished work in the
+  confirmation and keeps it in the trash entry as a binary patch per person
+  (`unpublished/<key>.patch`), with their drafts. Deleting a subproject (its repository stays)
+  does the same for that folder: it leaves every copy, and work on it that was not published is
+  kept as a patch of that folder.
+- Grouping suggestions come from each Editor's own copy, so an unpublished change suggests a
+  grouping to its author only. Viewers get suggestions from the published state.
+- If the server stops between moving the default branch and updating the published files, the
+  next start finishes the update.
+- A repository without any commit gets copies through `git worktree add --orphan`, which needs
+  Git 2.42 or newer; the container image refuses to build with an older Git.
+
+Git commands of all copies of one repository run one at a time, because the copies share the
+repository's history and branches.
 
 ### Roles in server mode
 
@@ -352,8 +416,9 @@ Run `bun run ci:validate` for the complete quality gate. It runs these steps in 
 1. `verify`: `check`, `bun test`, production `build`.
 2. `mutation`: `test:mutation`, with a temporary Vite server for its browser mutants.
 3. `browser`: every suite in `scripts/gate-suites.ts`. Workspace suites use a fresh Vite server
-   on a free loopback port via `SW_BASE_URL`. `test:auth` builds and serves `dist/` through its
-   own server-mode API and starts its mock provider; it needs no Vite. All use temporary data.
+   on a free loopback port via `SW_BASE_URL`. `test:auth` and `test:two-editors` build and serve
+   `dist/` through their own server-mode API and start their mock provider; they need no Vite.
+   All use temporary data.
 4. `image`: `image:build`, `image:scan`, `image:sbom`.
 5. `container`: `test:container` against the built image.
 6. `pipeline`: `pipeline:lint` and dry runs for PR, main and `v0.4.0-alpha.1`.
@@ -374,7 +439,7 @@ Checks with hard-coded `/tmp` paths retain those defaults and are not collected 
 Copy failures are reported separately from suite failures. Cancellation stops Vite's process group.
 The full gate needs Chromium and Docker or Podman; a missing runtime fails the image/container
 steps. The gate does not include the owner's separate `test:auth:keycloak` compatibility check.
-The sign-in suite is included; admin and two-editor suites join when implemented.
+The sign-in and two-editor suites are included; the admin suite joins when implemented.
 
 - `bun run image:build`: chooses Docker, then Podman, or accepts `--engine docker|podman`.
   Podman builds use `--format docker` to retain HEALTHCHECK. Tags are `semantic-workbench:dev`
@@ -442,6 +507,13 @@ menu and the three authentication pages cover 390×844, 1280×720, 1440×900 and
 `SW_SCREENSHOT_DIR` selects the output folder; otherwise screenshots go to `/tmp`.
 The gate and the pipeline include this suite without an external identity service.
 
+`bun run test:two-editors` builds the frontend, then signs Alice and Frank (two Sales Editors),
+Bob (the Sales Steward) and Carol (narrowed to Sales Viewers) into their own browser contexts
+against the mock provider. It checks that edits, drafts, branches, commits and pulls stay in each
+Editor's working copy, that each commit names its author, that a branch held by another copy is
+refused, and that Bob's **Publish to main** reaches Carol. Its Source Control screenshots cover the
+same four viewports. The gate and the pipeline include it.
+
 `bun run test:auth:keycloak` is a separate compatibility check for the owner's machine. It
 selects Docker or Podman, starts the digest-pinned Keycloak 26.4 realm on a free loopback port,
 uses the same browser sign-in checks, checks agent client credentials, and removes the container
@@ -480,6 +552,7 @@ Everything stays under the data root, `data/` by default. Set `DATA_DIR` to use 
 ```text
 data/
 ├── projects/<project>/   one folder per project: your files, byte for byte, in a Git working tree
+├── worktrees/<key>/      server mode: each person's working copies, one per repository
 ├── state/                projects.json (project registry), views/ (grouping corrections per file),
 │                         drafts/, journal/ (unfinished multi-file operations), suggestions.json
 │                         (dismissed grouping suggestions), legacy-ids.json, audit/ (one

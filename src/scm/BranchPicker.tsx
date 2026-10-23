@@ -1,7 +1,19 @@
 /** Displays the current branch and offers branch creation and switching. */
 import React, { useEffect, useState } from 'react';
 import { GitBranch, Plus } from 'lucide-react';
-import { scm } from '../projects/api';
+import { scm, type BranchInUse } from '../projects/api';
+
+const holderOf = (inUse: BranchInUse[], branch: string) =>
+  inUse.find(item => item.branch === branch)?.inUseBy;
+
+/** One branch of the list; a branch held by another working copy names who holds it. */
+function BranchOption({ branch, holder }: { branch: string; holder?: string }) {
+  return (
+    <option value={branch} disabled={holder !== undefined}>
+      {holder === undefined ? branch : `${branch} (in use by ${holder})`}
+    </option>
+  );
+}
 
 /** Displays and switches branches or creates a new branch. */
 export function BranchPicker({
@@ -9,12 +21,15 @@ export function BranchPicker({
   current,
   version,
   disabled,
+  inUse = [],
   onSwitch,
 }: {
   project: string;
   current: string;
   version: number;
   disabled: boolean;
+  /** Branches other working copies hold in server mode; they cannot be switched to. */
+  inUse?: BranchInUse[];
   onSwitch: (branch: string, create: boolean) => void;
 }) {
   const [branches, setBranches] = useState<{ local: string[]; remote: string[] }>({
@@ -53,9 +68,7 @@ export function BranchPicker({
         >
           <optgroup label="Local">
             {branches.local.map(b => (
-              <option key={b} value={b}>
-                {b}
-              </option>
+              <BranchOption key={b} branch={b} holder={holderOf(inUse, b)} />
             ))}
             {!branches.local.includes(current) && (
               <option value={current}>{current || '(no branch)'}</option>

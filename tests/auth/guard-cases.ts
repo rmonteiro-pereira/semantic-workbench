@@ -10,6 +10,7 @@ import type { TestUserName } from '../helpers/auth-identities';
 import { sh } from '../helpers/scm';
 import { LOCAL_READER } from '../../server/projects/reader';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
+import { sha256 } from '../../server/projects/atomic';
 import { accessFixture, person } from './access-fixture';
 
 /** A write request and the guarded part it must name when an Editor sends it. */
@@ -120,14 +121,19 @@ export function guardedSaves(ws: Workspace): GuardCase[] {
   return [...classificationCases(ws), metricCase(ws)];
 }
 
-/** A revert that would restore the classification a Steward changed and did not commit. */
-export function revertCase(ws: Workspace): GuardCase {
-  const file = ws.readFile('sales-contracts', CONTRACT);
+/**
+ * A revert that would restore the classification a Steward changed and did not commit, in the
+ * published checkout or, given its folder, in a person's working copy.
+ */
+export function revertCase(ws: Workspace, copy?: string): GuardCase {
+  const baseHash = copy
+    ? sha256(readFileSync(join(copy, CONTRACT)))
+    : ws.readFile('sales-contracts', CONTRACT).hash;
   return {
     name: 'revert',
     method: 'POST',
     path: '/api/projects/sales-contracts/git/revert',
-    body: { path: CONTRACT, baseHash: file.hash },
+    body: { path: CONTRACT, baseHash },
     guarded: { file: CONTRACT, pointer: AMOUNT, kind: 'classification' },
   };
 }
@@ -175,6 +181,29 @@ export function guardHandler(ws: Workspace, name: TestUserName) {
     publicOrigin: origin,
     remoteCredentials: allowEveryRemote(),
   });
+}
+
+/**
+ * Starts one person's working copy of a project's repository, as their first Source Control
+ * action does, and returns its folder.
+ */
+export async function openCopyAs(ws: Workspace, name: TestUserName, project = 'sales-contracts') {
+  const stage = { method: 'POST', path: `/api/projects/${project}/git/stage`, body: { all: true } };
+  const opened = await sendCase(guardHandler(ws, name), { ...stage, name: 'stage' } as GuardCase);
+  expect(opened.status).toBe(200);
+  const key = createAccessControl(accessFixture()).principalFor(person(name)).key;
+  return join(ws.layout.worktrees, key, project);
+}
+
+/** A file as one person reads it: from their own working copy where they have one. */
+export async function readAs(ws: Workspace, name: TestUserName, project: string, path: string) {
+  const handler = guardHandler(ws, name);
+  const response = await handler(
+    new Request(`${origin}/api/projects/${project}/files/${path}`, {
+      headers: { Origin: origin, 'X-SW-Request': '1' },
+    }),
+  );
+  return (await response.json()) as { source: string; hash: string };
 }
 
 /** Sends one case's request through a handler. */
@@ -293,6 +322,51 @@ export function branchWithReclassification(ws: Workspace, root: string) {
   } satisfies GuardCase;
 }
 
+const IDENTITY = ['-c', 'user.name=Someone', '-c', 'user.email=someone@example.org'];
+
+/**
+ * Someone publishes a reclassified contract after Alice's working copy was made, so pulling the
+ * default branch into her copy brings in a guarded change.
+ */
+export async function pullDefaultCase({ ws, root }: CaseContext): Promise<BuiltCase> {
+  await openCopyAs(ws, 'alice');
+  const published = join(root, 'projects', 'sales-contracts');
+  const branch = sh(published, ['config', 'workbench.defaultBranch']).trim();
+  const source = readFileSync(join(published, CONTRACT), 'utf8');
+  writeFileSync(join(published, CONTRACT), reclassified(source));
+  sh(published, [...IDENTITY, 'commit', '-q', '-am', 'Reclassify amount']);
+  sh(published, ['update-ref', 'refs/heads/' + branch, 'HEAD']);
+  return {
+    name: 'pull-default',
+    method: 'POST',
+    path: '/api/projects/sales-contracts/git/pull-default',
+    body: {},
+    guarded: { file: CONTRACT, pointer: AMOUNT, kind: 'classification' },
+  };
+}
+
+/**
+ * Bob's working copy holds a commit, made outside the workbench, that makes him the owner of a
+ * metric and approves it. Publishing it would approve his own metric for every reader.
+ */
+export async function publishCase({ ws }: CaseContext): Promise<BuiltCase> {
+  const copy = await openCopyAs(ws, 'bob', 'sales-metrics');
+  const source = readFileSync(join(copy, METRICS), 'utf8');
+  const approved = source.replace(
+    '"owner": "alice@example.org", "status": "proposed"',
+    '"owner": "bob@example.org", "status": "approved"',
+  );
+  writeFileSync(join(copy, METRICS), approved);
+  sh(copy, [...IDENTITY, 'commit', '-q', '-am', 'Approve order count']);
+  return {
+    name: 'publish',
+    method: 'POST',
+    path: '/api/projects/sales-metrics/git/publish',
+    body: {},
+    guarded: { file: METRICS, pointer: '/metrics/1', kind: 'metric-status' },
+  };
+}
+
 /** What a case builder starts from: a fixture workspace and its data root. */
 export type CaseContext = { ws: Workspace; root: string };
 
@@ -339,6 +413,8 @@ export const GUARD_CASES = {
   'new-project import': ({ ws }: CaseContext) => newProjectImport(ws, 'bob@example.org'),
   move: () => moveCase(),
   switch: ({ ws, root }: CaseContext) => branchWithReclassification(ws, root),
+  'pull-default': pullDefaultCase,
+  publish: publishCase,
 } satisfies Record<string, (context: CaseContext) => BuiltCase | Promise<BuiltCase>>;
 
 /**
@@ -362,6 +438,10 @@ export const GUARDED_ROUTES: Record<string, keyof typeof GUARD_CASES> = {
   'POST /api/projects/:slug/git/switch': 'switch',
   'POST /api/projects/:slug/git/pull': 'pull',
   'POST /api/projects/:slug/git/sync': 'pull',
+  'POST /api/projects/:slug/git/pull-default': 'pull-default',
+  // Publishing is guarded rather than exempt: commits made in a copy reach the default branch
+  // only when the publisher may make the guarded changes they hold.
+  'POST /api/projects/:slug/git/publish': 'publish',
 };
 
 /** Every Admin panel route: the Admin edits access rules there, never project content. */
@@ -403,6 +483,8 @@ export const GUARD_EXEMPTIONS: Record<string, string> = {
   'PUT /api/projects/:slug/git/remote':
     'Admin only; names a remote, whose text a guarded pull checks',
   'DELETE /api/projects/:slug/git/remote': 'Admin only; removes a remote and changes no file',
+  'POST /api/projects/:slug/git/push-default':
+    'Stewards and Admins only; sends the default branch, whose commits a guarded publish judged',
   'GET /api/audit': 'reads the audit log',
   'GET /api/audit/export': 'exports the audit log',
 };
