@@ -26,6 +26,8 @@ import { Layers, Maximize, Maximize2, Minimize2, RefreshCw, Focus, Gauge } from 
 import { useViewRestore, type Fullscreen } from './graph/fullscreen';
 import { GraphOptions, OptionGroup } from './graph/GraphOptions';
 import { ZoomButtons } from './graph/ZoomButtons';
+import { startsCollapsed, textSizesAt } from './graph/overview-capacity';
+import { CompactControls } from './graph/CompactControls';
 import { modelOverview } from './overview';
 import { groupRelationships } from './graph-view';
 import { collapseAreas } from './collapse';
@@ -146,6 +148,10 @@ const writeHideValues = (name: string, hide: boolean) => writeFlag(valuesKey(nam
 export function FullGraph(props: Props) {
   const container = useRef<HTMLDivElement | null>(null);
   const [viewport, setViewport] = useState({ x: 0, y: 0, zoom: 1 });
+  // The zoom rounded down in steps of 0.05. Text sizes follow it while the canvas moves, never
+  // read smaller than planned, and do not redraw every edge on each frame.
+  const [zoomStep, setZoomStep] = useState(1);
+  const followZoom = (zoom: number) => setZoomStep(Math.floor(zoom * 20) / 20);
   const [size, setSize] = useState({ width: 1200, height: 650 });
   const flow = useRef<ReactFlowInstance<any, any> | null>(null);
   const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
@@ -205,9 +211,19 @@ export function FullGraph(props: Props) {
     () => modelOverview(graphEntities, graphEdges, props.name, false, props.grouping),
     [graphEntities, graphEdges, props.name, props.grouping],
   );
-  const [collapsed, setCollapsed] = useState<Set<string>>(() =>
-    overview.entities.length > 250 ? new Set(overview.groups.map(g => g.id)) : new Set(),
+  // Until a person collapses or expands areas, the first view follows the pane: areas show as one
+  // card each when the entities would not read at the size the pane gives them.
+  const [firstPane, setFirstPane] = useState<{ width: number; height: number } | null>(null);
+  const [collapseChoice, setCollapseChoice] = useState<Set<string> | null>(null);
+  const autoCollapsed = useMemo(
+    () =>
+      firstPane && startsCollapsed(overview.entities.length, firstPane)
+        ? new Set(overview.groups.map(g => g.id))
+        : new Set<string>(),
+    [overview, firstPane],
   );
+  const collapsed = collapseChoice ?? autoCollapsed;
+  const setCollapsed = (next: Set<string>) => setCollapseChoice(next);
   const display = useMemo(() => collapseAreas(overview, collapsed), [overview, collapsed]);
   const layoutGrouping = useMemo<GroupingOptions>(
     () => ({
@@ -222,6 +238,11 @@ export function FullGraph(props: Props) {
     }),
     [display, overview],
   );
+  const expandArea = (areaId: string) => {
+    const next = new Set(collapsed);
+    next.delete(areaId);
+    setCollapsed(next);
+  };
   const zoomToGroup = (groupId: string) => {
     if (!groupId) {
       fit();
@@ -240,9 +261,11 @@ export function FullGraph(props: Props) {
   useEffect(() => {
     const el = container.current;
     if (!el) return;
-    const observer = new ResizeObserver(([entry]) =>
-      setSize({ width: entry.contentRect.width, height: entry.contentRect.height }),
-    );
+    const observer = new ResizeObserver(([entry]) => {
+      const pane = { width: entry.contentRect.width, height: entry.contentRect.height };
+      setSize(pane);
+      setFirstPane(first => first ?? pane);
+    });
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
@@ -285,6 +308,8 @@ export function FullGraph(props: Props) {
       );
   }, []);
   useEffect(() => {
+    // The first view waits for the pane size, which decides whether areas start collapsed.
+    if (!firstPane) return;
     let cancelled = false;
     let worker: Worker | undefined;
     let elk: { layout: (g: any) => Promise<any>; terminateWorker: () => void } | undefined;
@@ -404,7 +429,7 @@ export function FullGraph(props: Props) {
       worker?.terminate();
       elk?.terminateWorker();
     };
-  }, [overview, display, algorithm, version, layoutGrouping]);
+  }, [overview, display, algorithm, version, layoutGrouping, firstPane]);
   // Full screen keeps the view it started from and puts it back on exit.
   const held = useViewRestore(
     !!props.fullscreen?.active,
@@ -432,10 +457,10 @@ export function FullGraph(props: Props) {
     };
   }, [busy, fit]);
   useEffect(() => {
-    setCollapsed(
-      overview.entities.length > 250 ? new Set(overview.groups.map(g => g.id)) : new Set(),
-    );
-  }, [props.grouping, hideValues, hideKpis]);
+    // A person who opened every area keeps them open under another grouping; any other choice
+    // belonged to the old groups.
+    setCollapseChoice(choice => (choice?.size === 0 ? choice : null));
+  }, [props.grouping]);
   const selectedGroup = overview.groupOf.get(props.selected);
   const focus =
     hover ||
@@ -550,7 +575,8 @@ export function FullGraph(props: Props) {
           style: {
             stroke: active || adjacent ? 'var(--color-edge-active)' : 'var(--color-edge-idle)',
             strokeWidth: active ? 2 : 1.2,
-            strokeOpacity: active || adjacent ? 0.95 : focus ? 0.07 : 0.48,
+            strokeOpacity:
+              active || adjacent ? 0.95 : focus ? 0.07 : viewport.zoom < 0.6 ? 0.22 : 0.48,
           },
         };
       }),
@@ -593,103 +619,112 @@ export function FullGraph(props: Props) {
     () => new Map(props.entities.map(e => [e.id, e])),
     [props.entities],
   );
+  const sizes = textSizesAt(zoomStep);
+  const textStyle = {
+    '--entity-name-size': `${sizes.entityName}px`,
+    '--entity-name-lines': sizes.entityLines,
+    '--area-title-size': `${sizes.areaTitle}px`,
+    '--entity-detail-display': sizes.showDetail ? 'block' : 'none',
+  } as React.CSSProperties;
   const metrics = useCallback((m: SmartEdgeMetrics) => setRouteMetrics(m), []);
   return (
-    <div className="full-graph" ref={container}>
+    <div className="full-graph" ref={container} style={textStyle}>
       <ScrollStrip className="full-graph-tools">
         {props.toolbarExtra}
         <button onClick={fit}>
           <Maximize size={13} />
           Fit model
         </button>
-        <ZoomButtons
-          onZoomIn={() => void flow.current?.zoomIn({ duration: 150 })}
-          onZoomOut={() => void flow.current?.zoomOut({ duration: 150 })}
-        />
-        <GraphOptions>
-          <OptionGroup title="Layout">
-            <label>
-              Layout
-              <select
-                aria-label="Graph layout"
-                value={algorithm}
-                onChange={e => setAlgorithm(e.target.value as any)}
-              >
-                <option value="network">Network · fCoSE</option>
-                <option value="layered">Layered · ELK</option>
-              </select>
-            </label>
-            <label>
-              Zoom to group
-              <select
-                aria-label="Zoom to group"
-                title={overview.groupingLabel}
-                defaultValue=""
-                onChange={e => zoomToGroup(e.target.value)}
-              >
-                <option value="">Whole model</option>
-                {overview.groups.map(g => (
-                  <option key={g.id} value={g.id}>
-                    {g.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button onClick={() => setVersion(v => v + 1)} disabled={busy}>
-              <RefreshCw size={13} />
-              Re-layout
-            </button>
-          </OptionGroup>
-          <OptionGroup title="Areas">
-            <button
-              onClick={() => setCollapsed(new Set(overview.groups.map(g => g.id)))}
-              disabled={collapsed.size === overview.groups.length}
-            >
-              Collapse areas
-            </button>
-            <button onClick={() => setCollapsed(new Set())} disabled={!collapsed.size}>
-              Expand all
-            </button>
-          </OptionGroup>
-          <OptionGroup title="Show">
-            <button onClick={() => setLabels(v => !v)} aria-pressed={labels}>
-              Labels {labels ? 'on' : 'off'}
-            </button>
-            {valueIds.size > 0 && (
-              <button
-                onClick={toggleValues}
-                aria-pressed={hideValues}
-                title={`${valueIds.size} value types and their relationships`}
-              >
-                Value types {hideValues ? 'hidden' : 'shown'}
+        <CompactControls>
+          <ZoomButtons
+            onZoomIn={() => void flow.current?.zoomIn({ duration: 150 })}
+            onZoomOut={() => void flow.current?.zoomOut({ duration: 150 })}
+          />
+          <GraphOptions>
+            <OptionGroup title="Layout">
+              <label>
+                Layout
+                <select
+                  aria-label="Graph layout"
+                  value={algorithm}
+                  onChange={e => setAlgorithm(e.target.value as any)}
+                >
+                  <option value="network">Network · fCoSE</option>
+                  <option value="layered">Layered · ELK</option>
+                </select>
+              </label>
+              <label>
+                Zoom to group
+                <select
+                  aria-label="Zoom to group"
+                  title={overview.groupingLabel}
+                  defaultValue=""
+                  onChange={e => zoomToGroup(e.target.value)}
+                >
+                  <option value="">Whole model</option>
+                  {overview.groups.map(g => (
+                    <option key={g.id} value={g.id}>
+                      {g.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button onClick={() => setVersion(v => v + 1)} disabled={busy}>
+                <RefreshCw size={13} />
+                Re-layout
               </button>
-            )}
-            {kpiIds.size > 0 && (
+            </OptionGroup>
+            <OptionGroup title="Areas">
               <button
-                onClick={toggleKpis}
-                aria-pressed={hideKpis}
-                title={`${kpiIds.size} metric nodes and their relationships`}
+                onClick={() => setCollapsed(new Set(overview.groups.map(g => g.id)))}
+                disabled={collapsed.size === overview.groups.length}
               >
-                <Gauge size={14} />
-                Metrics {hideKpis ? 'hidden' : 'shown'}
+                Collapse areas
               </button>
-            )}
-            <button onClick={toggleMiniMap} aria-pressed={miniMap}>
-              Map {miniMap ? 'on' : 'off'}
-            </button>
-          </OptionGroup>
-          <OptionGroup title="Go to">
-            <button onClick={props.onOverview}>
-              <Layers size={13} />
-              Overview
-            </button>
-            <button onClick={props.onNeighborhood}>
-              <Focus size={13} />
-              Neighborhood
-            </button>
-          </OptionGroup>
-        </GraphOptions>
-        {props.fullscreen && <FullscreenButton fullscreen={props.fullscreen} />}
+              <button onClick={() => setCollapsed(new Set())} disabled={!collapsed.size}>
+                Expand all
+              </button>
+            </OptionGroup>
+            <OptionGroup title="Show">
+              <button onClick={() => setLabels(v => !v)} aria-pressed={labels}>
+                Labels {labels ? 'on' : 'off'}
+              </button>
+              {valueIds.size > 0 && (
+                <button
+                  onClick={toggleValues}
+                  aria-pressed={hideValues}
+                  title={`${valueIds.size} value types and their relationships`}
+                >
+                  Value types {hideValues ? 'hidden' : 'shown'}
+                </button>
+              )}
+              {kpiIds.size > 0 && (
+                <button
+                  onClick={toggleKpis}
+                  aria-pressed={hideKpis}
+                  title={`${kpiIds.size} metric nodes and their relationships`}
+                >
+                  <Gauge size={14} />
+                  Metrics {hideKpis ? 'hidden' : 'shown'}
+                </button>
+              )}
+              <button onClick={toggleMiniMap} aria-pressed={miniMap}>
+                Map {miniMap ? 'on' : 'off'}
+              </button>
+            </OptionGroup>
+            <OptionGroup title="Go to">
+              <button onClick={props.onOverview}>
+                <Layers size={13} />
+                Overview
+              </button>
+              <button onClick={props.onNeighborhood}>
+                <Focus size={13} />
+                Neighborhood
+              </button>
+            </OptionGroup>
+          </GraphOptions>
+          {props.fullscreen && <FullscreenButton fullscreen={props.fullscreen} />}
+        </CompactControls>
       </ScrollStrip>
       {error ? (
         <div role="alert" className="full-graph-loading">
@@ -704,18 +739,14 @@ export function FullGraph(props: Props) {
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
             onNodesChange={onNodesChange}
+            onMove={(_, v) => followZoom(v.zoom)}
             onMoveEnd={(_, v) => setViewport(v)}
             onInit={instance => {
               flow.current = instance;
               if (nodes.length) setTimeout(fit, 80);
             }}
             onNodeClick={(_, n) => {
-              if (n.data.collapsedArea)
-                setCollapsed(old => {
-                  const next = new Set(old);
-                  next.delete(String(n.data.collapsedArea));
-                  return next;
-                });
+              if (n.data.collapsedArea) expandArea(String(n.data.collapsedArea));
               else if (n.type === 'entity') props.onSelectEntity(n.id);
             }}
             onNodeDoubleClick={(_, n) => {
@@ -779,23 +810,17 @@ export function FullGraph(props: Props) {
         className="full-graph-status"
         data-entity-count={overview.entities.length}
         data-relationship-count={overview.links.length}
+        data-routing={routeMetrics?.executedOn ?? 'pending'}
       >
-        {overview.entities.length} entities · {overview.links.length} relationships ·{' '}
-        {connections.length} bundled connections
-        {hideValues && <> · {valueIds.size} value types hidden</>}
-        {hideKpis && <> · {kpiIds.size} metrics hidden</>}
+        {hideValues && <span>{valueIds.size} value types hidden</span>}
+        {hideKpis && <span>{kpiIds.size} metrics hidden</span>}
         {collapsed.size > 0 && (
-          <strong>{collapsed.size} areas collapsed · click a count to expand</strong>
+          <strong>
+            {collapsed.size} areas shown as one card each so names stay readable · click a card to
+            open it
+          </strong>
         )}
-        <span>Double-click an area to zoom · Drag to adjust</span>
-        {edges.some(e => e.data.routeDetailed) ? (
-          <small>
-            Routing: {routeMetrics?.executedOn === 'worker' ? 'background worker' : 'pending'}
-            {routeMetrics?.deferred ? ' · routes pending' : ''}
-          </small>
-        ) : (
-          <small>Overview paths · zoom in for obstacle routing</small>
-        )}
+        <span>Double-click a group to zoom in</span>
       </div>
     </div>
   );

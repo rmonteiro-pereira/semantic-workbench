@@ -1,5 +1,5 @@
 /** Displays a centered relationship graph with expansion and navigation history. */
-import { useFarZoom } from './graph/FarZoom';
+import { DETAIL_ZOOM, LOWEST_FIT_ZOOM, useFarZoom } from './graph/FarZoom';
 import { ScrollStrip } from './ScrollStrip';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -36,6 +36,7 @@ import { PIERCE_BUDGET, PIERCE_MAX } from './graph/pierce';
 import { PierceBanner, PierceControls, usePierce } from './graph/PierceControls';
 import { GraphOptions, OptionGroup } from './graph/GraphOptions';
 import { ZoomButtons } from './graph/ZoomButtons';
+import { CompactControls, useCompactToolbar } from './graph/CompactControls';
 import type { Entity, Relationship } from './model';
 import {
   groupRelationships,
@@ -44,6 +45,8 @@ import {
   projectModel,
   NEIGHBOR_PAGE,
 } from './graph-view';
+// A phone shows half as many neighbors at first, so the cards stay big enough to read.
+const PHONE_NEIGHBOR_PAGE = 6;
 import { neighborhoodLayout, NEIGHBOR_COLUMN, NEIGHBOR_ROW } from './layout';
 import {
   assignRoutes,
@@ -143,7 +146,9 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   const [technical, setTechnical] = useState(false);
   const [labels, setLabels] = useState(false);
   const [hovered, setHovered] = useState('');
-  const [limit, setLimit] = useState(NEIGHBOR_PAGE);
+  const compact = useCompactToolbar();
+  const pageSize = compact ? PHONE_NEIGHBOR_PAGE : NEIGHBOR_PAGE;
+  const [limit, setLimit] = useState(pageSize);
   const [relationship, setRelationship] = useState('');
   const kpiCount = useMemo(() => all.filter(e => e.kind === 'Metric').length, [all]);
   const [hideValues, setHideValues] = useState(() => readHideValues(props.modelName));
@@ -244,9 +249,9 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   const pierceSet = canvasState.active.filter(s => s.kind === 'pierce').at(-1);
   // Paging and the relationship filter belong to one center.
   useEffect(() => {
-    setLimit(NEIGHBOR_PAGE);
+    setLimit(pageSize);
     setRelationship('');
-  }, [center]);
+  }, [center, pageSize]);
   const groups = useMemo(() => groupRelationships(shownEdges), [shownEdges]);
   const membership = JSON.stringify([center, shownEntities.map(e => e.id)]);
   // Base positions from the column layout; each expansion places only its new nodes beside its
@@ -427,6 +432,8 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
     );
   };
   const undoable = walk.steps[walk.index]?.kind === 'expand';
+  const pierceOrigin =
+    selected && canvasState.nodes.includes(selected) ? nameOf(selected) : 'the center';
   // A new centre or document stops a running pierce .
   useEffect(() => () => pierce.stop(), [center, docId]);
   const viaFor = (target: string) => {
@@ -634,11 +641,16 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
     void fitBounds(
       { x: cx - halfW, y: cy - halfH, width: 2 * halfW, height: 2 * halfH },
       { padding: 0.06, duration: 0 },
-    );
+    ).then(() => {
+      // A canvas too wide for the pane opens on the centre at a zoom where names still read.
+      if (getViewport().zoom < LOWEST_FIT_ZOOM) {
+        void setCenter(cx, cy, { zoom: LOWEST_FIT_ZOOM, duration: 0 });
+      }
+    });
   };
-  // After an expansion or pierce, show what it added around its origin at a readable zoom (node
-  // names, 16 px, at 12 px or more); the zoom-out controls and Re-center show the whole canvas.
-  const READABLE = 0.75;
+  // After an expansion or pierce, show what it added around its origin at a zoom where cards keep
+  // their detail lines; the zoom-out controls and Re-center show the whole canvas.
+  const READABLE = DETAIL_ZOOM;
   const focusLatest = () => {
     const s = canvasState.active.at(-1);
     if (!s) {
@@ -733,6 +745,34 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   const offTrail = !step || step.doc !== docId || step.center !== center;
   const cross = centerEntity && props.crossFile ? props.crossFile(centerEntity) : [];
   const kpiFor = centerEntity ? (kpiBadges?.get(centerEntity.name) ?? []) : [];
+  // The counts and paging sit in the toolbar, or in the row below it on a phone, where the
+  // toolbar keeps only the centre picker and the Controls button.
+  const neighborCounts = (
+    <>
+      <span className="neighborhood-counts" role="status" aria-label="Neighbor counts">
+        {centerEntity ? (
+          <>
+            {view.shown} of {view.total} neighbors
+            {view.hidden > 0 && (
+              <>
+                {' '}
+                · <strong>{view.hidden} hidden</strong>
+              </>
+            )}
+          </>
+        ) : (
+          'No center'
+        )}
+      </span>
+      {view.hidden > 0 && (
+        <button onClick={() => setLimit(l => l + pageSize)}>
+          {Math.min(pageSize, view.hidden)} more{' '}
+          {Math.min(pageSize, view.hidden) === 1 ? 'neighbor' : 'neighbors'}
+        </button>
+      )}
+      {limit > pageSize && <button onClick={() => setLimit(pageSize)}>Fewer</button>}
+    </>
+  );
   return (
     <div className="neighborhood-graph">
       <ScrollStrip className="neighborhood-tools">
@@ -792,133 +832,115 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
             </ul>
           )}
         </div>
-        <span className="neighborhood-counts" role="status" aria-label="Neighbor counts">
-          {centerEntity ? (
-            <>
-              {view.shown} of {view.total} neighbors
-              {view.hidden > 0 && (
-                <>
-                  {' '}
-                  · <strong>{view.hidden} hidden</strong>
-                </>
-              )}
-            </>
-          ) : (
-            'No center'
-          )}
-        </span>
-        {view.hidden > 0 && (
-          <button onClick={() => setLimit(l => l + NEIGHBOR_PAGE)}>
-            {Math.min(NEIGHBOR_PAGE, view.hidden)} more{' '}
-            {Math.min(NEIGHBOR_PAGE, view.hidden) === 1 ? 'neighbor' : 'neighbors'}
-          </button>
-        )}
-        {limit > NEIGHBOR_PAGE && <button onClick={() => setLimit(NEIGHBOR_PAGE)}>Fewer</button>}
-        <PierceControls
-          direction={direction}
-          onDirection={setDirection}
-          running={pierce.running}
-          onPierce={() => void fullPierce()}
-          onStop={pierce.stop}
-          canUndo={undoable}
-          onUndo={() => props.onWalkTo(walk.index - 1)}
-          title={`Expand everything reachable from ${selected && canvasState.nodes.includes(selected) ? nameOf(selected) : 'the center'}`}
-        />
-        <ZoomButtons
-          onZoomIn={() => void zoomIn({ duration: 150 })}
-          onZoomOut={() => void zoomOut({ duration: 150 })}
-        />
-        <GraphOptions>
-          <OptionGroup title="Neighbors">
-            {view.relationships.length > 1 && (
-              <label>
-                Relationship
-                <select
-                  aria-label="Filter neighbors by relationship"
-                  value={relationship}
-                  onChange={e => setRelationship(e.target.value)}
-                >
-                  <option value="">
-                    All ({view.relationships.reduce((n, r) => n + r.count, 0)})
-                  </option>
-                  {view.relationships.map(r => (
-                    <option key={r.label} value={r.label}>
-                      {r.label} ({r.count})
+        {!compact && neighborCounts}
+        <CompactControls>
+          <PierceControls
+            direction={direction}
+            onDirection={setDirection}
+            running={pierce.running}
+            onPierce={() => void fullPierce()}
+            onStop={pierce.stop}
+            canUndo={undoable}
+            onUndo={() => props.onWalkTo(walk.index - 1)}
+            title={`Expand everything reachable from ${pierceOrigin}`}
+          />
+          <ZoomButtons
+            onZoomIn={() => void zoomIn({ duration: 150 })}
+            onZoomOut={() => void zoomOut({ duration: 150 })}
+          />
+          <GraphOptions>
+            <OptionGroup title="Neighbors">
+              {view.relationships.length > 1 && (
+                <label>
+                  Relationship
+                  <select
+                    aria-label="Filter neighbors by relationship"
+                    value={relationship}
+                    onChange={e => setRelationship(e.target.value)}
+                  >
+                    <option value="">
+                      All ({view.relationships.reduce((n, r) => n + r.count, 0)})
                     </option>
-                  ))}
-                </select>
-              </label>
-            )}
-            <button
-              onClick={() => setLateral(!lateral)}
-              aria-pressed={lateral}
-              title="Relationships among the visible neighbors"
-            >
-              Links between neighbors ({lateralCount}) {lateral ? 'on' : 'off'}
-            </button>
-            {view.technicalHidden > 0 || technical ? (
+                    {view.relationships.map(r => (
+                      <option key={r.label} value={r.label}>
+                        {r.label} ({r.count})
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
               <button
-                onClick={() => setTechnical(v => !v)}
-                aria-pressed={technical}
-                title="OWL properties, restrictions and other RDF resources"
+                onClick={() => setLateral(!lateral)}
+                aria-pressed={lateral}
+                title="Relationships among the visible neighbors"
               >
-                Technical resources {technical ? 'shown' : `hidden (${view.technicalHidden})`}
+                Links between neighbors ({lateralCount}) {lateral ? 'on' : 'off'}
               </button>
-            ) : null}
-          </OptionGroup>
-          <OptionGroup title="Show">
-            <button onClick={() => setLabels(v => !v)} aria-pressed={labels}>
-              Labels {labels ? 'on' : 'off'}
-            </button>
-            {valueCount > 0 && (
+              {view.technicalHidden > 0 || technical ? (
+                <button
+                  onClick={() => setTechnical(v => !v)}
+                  aria-pressed={technical}
+                  title="OWL properties, restrictions and other RDF resources"
+                >
+                  Technical resources {technical ? 'shown' : `hidden (${view.technicalHidden})`}
+                </button>
+              ) : null}
+            </OptionGroup>
+            <OptionGroup title="Show">
+              <button onClick={() => setLabels(v => !v)} aria-pressed={labels}>
+                Labels {labels ? 'on' : 'off'}
+              </button>
+              {valueCount > 0 && (
+                <button
+                  onClick={() =>
+                    setHideValues(v => {
+                      writeHideValues(props.modelName, !v);
+                      return !v;
+                    })
+                  }
+                  aria-pressed={hideValues}
+                  title={`${valueCount} value types and built-in concepts`}
+                >
+                  Value types {hideValues ? 'hidden' : 'shown'}
+                </button>
+              )}
+              {kpiCount > 0 && (
+                <button
+                  onClick={() => setHideKpis(v => !v)}
+                  aria-pressed={hideKpis}
+                  title={`${kpiCount} metric nodes`}
+                >
+                  <Gauge size={14} />
+                  Metrics {hideKpis ? 'hidden' : 'shown'}
+                </button>
+              )}
+            </OptionGroup>
+            <OptionGroup title="Layout">
               <button
-                onClick={() =>
-                  setHideValues(v => {
-                    writeHideValues(props.modelName, !v);
-                    return !v;
-                  })
-                }
-                aria-pressed={hideValues}
-                title={`${valueCount} value types and built-in concepts`}
+                onClick={() => {
+                  setNodes(build());
+                  setFitted('');
+                }}
+                title="Put every node back in its column"
               >
-                Value types {hideValues ? 'hidden' : 'shown'}
+                Re-center
               </button>
-            )}
-            {kpiCount > 0 && (
-              <button
-                onClick={() => setHideKpis(v => !v)}
-                aria-pressed={hideKpis}
-                title={`${kpiCount} metric nodes`}
-              >
-                <Gauge size={14} />
-                Metrics {hideKpis ? 'hidden' : 'shown'}
-              </button>
-            )}
-          </OptionGroup>
-          <OptionGroup title="Layout">
-            <button
-              onClick={() => {
-                setNodes(build());
-                setFitted('');
-              }}
-              title="Put every node back in its column"
-            >
-              Re-center
-            </button>
-          </OptionGroup>
-          <OptionGroup title="Go to">
-            <button onClick={props.onOverview}>Model overview</button>
-            <button onClick={props.onFullGraph}>Full graph</button>
-          </OptionGroup>
-        </GraphOptions>
-        {props.fullscreen && <FullscreenButton fullscreen={props.fullscreen} />}
-        <span className="neighborhood-legend" aria-hidden="true">
-          <span className="in">Incoming</span>
-          <span className="out">Outgoing</span>
-          {lateral && <span className="lateral">Between neighbors</span>}
-        </span>
+            </OptionGroup>
+            <OptionGroup title="Go to">
+              <button onClick={props.onOverview}>Model overview</button>
+              <button onClick={props.onFullGraph}>Full graph</button>
+            </OptionGroup>
+          </GraphOptions>
+          {props.fullscreen && <FullscreenButton fullscreen={props.fullscreen} />}
+          <span className="neighborhood-legend" aria-hidden="true">
+            <span className="in">Incoming</span>
+            <span className="out">Outgoing</span>
+            {lateral && <span className="lateral">Between neighbors</span>}
+          </span>
+        </CompactControls>
       </ScrollStrip>
       <div className="neighborhood-links">
+        {compact && neighborCounts}
         <nav className="walk-trail" aria-label="Walk">
           <button
             aria-label="Back"
@@ -963,12 +985,20 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
             )}
           </ol>
         </nav>
-        {cross.map(t => (
-          <button key={t.doc + t.entity} onClick={() => props.onCrossFile?.(t)} title={t.reason}>
-            <FileSymlink size={13} />
-            Continue in <strong>{t.file}</strong> · {t.name}
-          </button>
-        ))}
+        {cross.length > 0 && (
+          <CompactControls label="Other files">
+            {cross.map(t => (
+              <button
+                key={t.doc + t.entity}
+                onClick={() => props.onCrossFile?.(t)}
+                title={t.reason}
+              >
+                <FileSymlink size={13} />
+                Continue in <strong>{t.file}</strong> · {t.name}
+              </button>
+            ))}
+          </CompactControls>
+        )}
         {kpiFor.length > 0 && centerEntity && (
           <button onClick={() => props.onOpenKpis?.(centerEntity.name)}>
             <Gauge size={13} />

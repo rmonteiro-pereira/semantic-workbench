@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Network, Square, Undo2 } from 'lucide-react';
 import type { Direction, Link } from './expansion';
 import type { PierceNode, PierceOptions, PierceResult } from './pierce';
-// Shared Full pierce controls: Full pierce, the Pierce direction radio group, Stop while running,
+// Shared controls to show everything connected (the full pierce): the button, the Pierce direction radio group, Stop while running,
 // Undo expansion. The closure runs in pierce.worker.ts; Stop or a new run terminates the previous
 // worker.
 /** Runs graph traversal in a worker and terminates superseded or stopped runs. */
@@ -87,7 +87,7 @@ export function PierceControls({
         title={title ?? 'Expand everything reachable in the chosen direction'}
       >
         <Network size={13} />
-        Full pierce
+        Show all connected
       </button>
       <span role="radiogroup" aria-label="Pierce direction" className="pierce-direction">
         {(['out', 'in', 'both'] as Direction[]).map(d => (
