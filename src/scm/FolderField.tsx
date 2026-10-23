@@ -1,4 +1,4 @@
-/** The optional "Folder in repository" field of the Clone dialog. */
+/** The optional "Folder in repository" field of the Clone and Remote dialogs. */
 import { useState } from 'react';
 import { checkRepositoryFolder } from './repository-folder';
 

@@ -483,6 +483,8 @@ export const GUARD_EXEMPTIONS: Record<string, string> = {
   'PUT /api/projects/:slug/git/remote':
     'Admin only; names a remote, whose text a guarded pull checks',
   'DELETE /api/projects/:slug/git/remote': 'Admin only; removes a remote and changes no file',
+  'PUT /api/projects/:slug/git/folder':
+    'Admin only and refused in server mode; moves a project’s files inside its repository and changes no text',
   'POST /api/projects/:slug/git/push-default':
     'Stewards and Admins only; sends the default branch, whose commits a guarded publish judged',
   'GET /api/audit': 'reads the audit log',

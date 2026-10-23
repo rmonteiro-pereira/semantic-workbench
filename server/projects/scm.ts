@@ -222,6 +222,21 @@ export function createScm(deps: ScmDeps) {
         `Only files inside ${folder} can be committed from this project. Outside: ${outside.join(', ')}`,
       );
   }
+  // A project moved into a folder of a team repository has history of its own, which the team's
+  // branch does not contain. While everything the project holds is inside its folder, its first
+  // pull may join the two; once it holds the team's other folders the histories are related, and
+  // a pull from an unrelated repository is refused as usual.
+  async function unrelatedHistories(d: string) {
+    const folders = await sparseFolders(git, d);
+    if (!folders.length) return [];
+    const tree = await git.run(d, ['ls-tree', '--name-only', 'HEAD'], {
+      readOnly: true,
+      allowFailure: true,
+    });
+    const top = tree.stdout.split('\n').filter(Boolean);
+    const onlyTheFolder = top.every(name => folders.some(folder => folder.split('/')[0] === name));
+    return tree.code === 0 && onlyTheFolder ? ['--allow-unrelated-histories'] : [];
+  }
   // Downloads what a judged change brings before it is read, when the repository holds only a
   // folder; a full clone has every file already.
   async function fetchFolderContents(
@@ -421,7 +436,9 @@ export function createScm(deps: ScmDeps) {
     }));
     await guardMerge(slug, d, tip, guard);
     // The merge is local: filters and merge drivers it runs never see the person's token.
-    return git.run(d, ['merge', '--no-edit', tip], { allowFailure: true });
+    return git.run(d, ['merge', '--no-edit', ...(await unrelatedHistories(d)), tip], {
+      allowFailure: true,
+    });
   }
   // Unsaved edits and uncommitted changes block a merge; conflicts and bytes rewritten by hooks
   // are reported, whichever merge runs.
@@ -457,7 +474,8 @@ export function createScm(deps: ScmDeps) {
       }
       // A full ref name, so no branch name is ever read as an option.
       const target = s.upstream ? [] : ['--end-of-options', remote, 'refs/heads/' + untracked];
-      const pull = ['pull', '--no-rebase', '--no-edit', ...target];
+      const unrelated = await unrelatedHistories(d);
+      const pull = ['pull', '--no-rebase', '--no-edit', ...unrelated, ...target];
       return git.run(d, pull, { remote: true, allowFailure: true, credential });
     });
   // The published default branch follows the remote's after a fetch, and that move is judged on

@@ -468,6 +468,14 @@
       }
     },
     {
+      "case": "GET /api/projects/:slug/git/folder",
+      "action": "history",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
       "case": "GET /api/projects/:slug/git/log",
       "action": "history",
       "resource": {
@@ -621,6 +629,14 @@
     },
     {
       "case": "DELETE /api/projects/:slug/git/remote",
+      "action": "setRemote",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "PUT /api/projects/:slug/git/folder",
       "action": "setRemote",
       "resource": {
         "type": "project",
