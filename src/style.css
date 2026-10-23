@@ -1323,6 +1323,10 @@ dialog.validation-backdrop:not([open]) {
   align-items: start;
   gap: 20px;
 }
+.mapping-explorer > label {
+  display: block;
+  margin-top: 16px;
+}
 .mapping-heading-actions {
   display: flex;
   flex-wrap: wrap;
@@ -1350,22 +1354,24 @@ dialog.validation-backdrop:not([open]) {
   margin: 5px 0;
 }
 .mapping-layer-chain {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin: 18px 0;
-}
-.mapping-layer-chain span {
-  padding: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  margin: 14px 0 18px;
+  padding: 10px 14px;
   border: 1px solid #dbe3e4;
   border-radius: 8px;
   background: white;
+}
+.mapping-layer-chain span {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
   color: var(--text-muted);
 }
 .mapping-layer-chain strong {
-  display: block;
+  min-width: 0;
   color: #284d43;
-  margin-top: 7px;
   overflow-wrap: anywhere;
 }
 .mapping-columns {
@@ -1452,20 +1458,20 @@ dialog.validation-backdrop:not([open]) {
   font-size: var(--text-small);
   color: #587a6f;
 }
-@media (max-width: 1099px) {
-  .mapping-layer-chain {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-.mapping-query fieldset {
-  max-height: 280px;
-  overflow: auto;
-}
 .mapping-concepts {
   grid-area: concepts;
   overflow-wrap: break-word;
   max-height: 65vh;
+  display: flex;
+  flex-direction: column;
+}
+.mapping-concept-list {
+  min-height: 0;
   overflow: auto;
+  scroll-snap-type: y proximity;
+}
+.mapping-concept-list > button {
+  scroll-snap-align: start;
 }
 .mapping-columns > * {
   min-width: 0;
@@ -1974,10 +1980,8 @@ main > .status {
     gap: 8px;
   }
   .mapping-layer-chain {
-    gap: 7px;
-  }
-  .mapping-layer-chain span {
-    padding: 10px;
+    flex-direction: column;
+    gap: 2px;
   }
   .validation-backdrop {
     padding: 10px;
@@ -4042,6 +4046,23 @@ button.import {
   gap: 0 12px;
 }
 .workbench-dialog .mapping-query fieldset > legend,
-.workbench-dialog .mapping-query fieldset > p {
+.workbench-dialog .mapping-query fieldset > p,
+.workbench-dialog .mapping-query fieldset > input[type='search'],
+.workbench-dialog .mapping-query fieldset > .composer-dataset {
   grid-column: 1 / -1;
+}
+.workbench-dialog .mapping-query fieldset > input[type='search'] {
+  width: 100%;
+  box-sizing: border-box;
+}
+.workbench-dialog .composer-dataset h4 {
+  margin: 8px 0 2px;
+  font-size: var(--text-small);
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+.workbench-dialog .composer-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0 12px;
 }
