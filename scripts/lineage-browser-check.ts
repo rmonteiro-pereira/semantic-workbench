@@ -169,6 +169,36 @@ try {
     },
   );
   await check(
+    'commerce: zoomed far out, card names are drawn larger and stay at least 11.5 px on screen',
+    async () => {
+      await openContract('commerce.odcs.yaml', 'Commerce workspace');
+      await fit();
+      const flow = graph().locator('.react-flow');
+      for (
+        let step = 0;
+        step < 12 && !(await flow.evaluate(el => el.classList.contains('zoom-far')));
+        step++
+      ) {
+        await graph().getByRole('button', { name: 'Zoom out', exact: true }).click();
+        await page.waitForTimeout(250);
+      }
+      await expect(flow).toHaveClass(/zoom-far/);
+      const names = await graph()
+        .locator('.lineage-card-title strong')
+        .evaluateAll(titles =>
+          titles
+            .filter(title => title.getBoundingClientRect().width > 0)
+            .map(title => {
+              const scale =
+                title.getBoundingClientRect().height / (title as HTMLElement).offsetHeight;
+              return parseFloat(getComputedStyle(title).fontSize) * scale;
+            }),
+        );
+      expect(names.length).toBeGreaterThan(0);
+      expect(Math.min(...names)).toBeGreaterThanOrEqual(11.5);
+    },
+  );
+  await check(
     'commerce: resizing the window never turns a measured card back into an unmeasured one',
     async () => {
       await openContract('commerce.odcs.yaml', 'Commerce workspace');

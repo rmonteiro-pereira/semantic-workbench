@@ -4,7 +4,6 @@ import {
   Download,
   GitCommit as GitCommitIcon,
   Menu,
-  MoreHorizontal,
   PanelLeftClose,
   PanelLeftOpen,
   Plus,
@@ -138,20 +137,15 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
             buttonClassName="new-menu"
             items={access.can('edit') ? newItems() : []}
           />
-          <MenuButton
-            ariaLabel="More actions"
-            title="More actions"
-            icon={<MoreHorizontal size={16} />}
-            items={[
-              {
-                label: 'Export',
-                icon: <Download size={14} />,
-                run: download,
-                disabled: hasSource ? false : 'Open a file to export it.',
-                hint: 'Download the file exactly as it is',
-              },
-            ]}
-          />
+          <button
+            aria-label="Export"
+            title={hasSource ? 'Download the file exactly as it is' : 'Open a file to export it.'}
+            disabled={!hasSource}
+            onClick={download}
+          >
+            <Download size={15} />
+            <span className="action-label">Export</span>
+          </button>
           <button
             className={`save-state s-${saveStatus}`}
             role="status"

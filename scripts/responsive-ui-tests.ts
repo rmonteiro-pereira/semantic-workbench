@@ -106,6 +106,16 @@ async function openPage(width: number, height: number) {
     );
     console.log('INJECTED_SMALL_TEXT_MUTATION');
   }
+  if (process.env.RESPONSIVE_MUTATION === 'far-names-small') {
+    await page.addInitScript(() =>
+      document.addEventListener('DOMContentLoaded', () => {
+        const style = document.createElement('style');
+        style.textContent = '.zoom-far .node strong{font-size:12px!important}';
+        document.head.append(style);
+      }),
+    );
+    console.log('INJECTED_FAR_NAMES_MUTATION');
+  }
   if (process.env.RESPONSIVE_MUTATION === 'catalog-title') {
     await page.addInitScript(() =>
       new MutationObserver(() =>
@@ -323,6 +333,52 @@ try {
           await visibleGraph(page);
         }
         await noOverflow(page);
+      },
+    );
+    await check(
+      `${width}×${height}: zoomed far out, neighborhood names stay readable and details give way`,
+      async () => {
+        await page
+          .locator('.tabs')
+          .getByRole('button', { name: 'Neighborhood', exact: true })
+          .click();
+        await pickCenter(page, name40);
+        await expect.poll(() => centerOf(page)).toBe('ontology/40');
+        const flow = page.locator('.react-flow').first();
+        // Zoom out until the far layout starts, then one step more to cross a level.
+        let zoomedOut = 0;
+        const isFar = () => flow.evaluate(el => el.classList.contains('zoom-far'));
+        for (let step = 0; step < 12 && !(await isFar()); step++) {
+          await page.getByRole('button', { name: 'Zoom out', exact: true }).click();
+          await page.waitForTimeout(250);
+          zoomedOut++;
+        }
+        await page.getByRole('button', { name: 'Zoom out', exact: true }).click();
+        await page.waitForTimeout(250);
+        zoomedOut++;
+        await expect(flow).toHaveClass(/zoom-far/);
+        const sizes = await page.evaluate(() =>
+          [...document.querySelectorAll<HTMLElement>('.neighborhood-node .node strong')]
+            .filter(name => name.getBoundingClientRect().width > 0)
+            .map(name => {
+              const scale = name.getBoundingClientRect().height / name.offsetHeight;
+              return parseFloat(getComputedStyle(name).fontSize) * scale;
+            }),
+        );
+        expect(sizes.length).toBeGreaterThan(0);
+        expect(Math.min(...sizes)).toBeGreaterThanOrEqual(11.5);
+        const button = await page
+          .locator('.neighborhood-node .node-actions button')
+          .first()
+          .evaluate(el => {
+            const box = el.getBoundingClientRect();
+            return { width: box.width, height: box.height };
+          });
+        expect(Math.min(button.width, button.height)).toBeGreaterThanOrEqual(11);
+        for (let step = 0; step < zoomedOut; step++) {
+          await page.getByRole('button', { name: 'Zoom in', exact: true }).click();
+        }
+        await page.waitForTimeout(250);
       },
     );
     if (desktop)
@@ -987,7 +1043,6 @@ try {
     'Grouping suggestions',
     'Import',
     'View definition',
-    'Export menu',
     'Lineage options',
     'Trash',
   ];
@@ -1024,8 +1079,7 @@ try {
     } else if (name === 'Validation details') {
       await p.getByRole('button', { name: /^Validation details/ }).click();
     } else {
-      const label = name === 'Commit' ? /^Commit/ : /^More actions$/;
-      await header.getByRole('button', { name: label }).click();
+      await header.getByRole('button', { name: /^Commit/ }).click();
     }
   }
   async function assertUnclipped(p: Page, selector: string) {
@@ -1089,14 +1143,7 @@ try {
   }
   async function sweepDialog(p: Page, name: string, width: number) {
     await openSweepDialog(p, name);
-    if (name === 'Export menu') {
-      await expect(p.getByRole('menu')).toBeVisible();
-      await expect(p.getByRole('menuitem', { name: /^Export/ })).toBeVisible();
-      await assertContained(p, '[role=menu]');
-      await noOverflow(p);
-    } else {
-      await assertDialogLayout(p);
-    }
+    await assertDialogLayout(p);
     const area = name.toLowerCase().replaceAll(' ', '-');
     await p.screenshot({ path: `/tmp/workbench-final-sweep-dialog-${area}-${width}.png` });
     await p.keyboard.press('Escape');

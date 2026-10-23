@@ -366,8 +366,7 @@ export async function readVisibilityChecks(browser: Browser, target: SignInTarge
       assertReadable(Buffer.concat(chunks).toString('utf8'));
     };
     await downloadText(async () => {
-      await page.getByRole('button', { name: 'More actions', exact: true }).click();
-      await page.getByRole('menuitem', { name: 'Export', exact: true }).click();
+      await page.getByRole('button', { name: 'Export', exact: true }).click();
     });
     await page.getByRole('button', { name: /^Mappings/ }).click();
     await expect(page.getByRole('button', { name: 'Export agent context' })).toBeEnabled();

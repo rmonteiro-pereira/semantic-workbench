@@ -1,6 +1,9 @@
 /** Provides horizontal overflow cues and scrolls selected tabs into view. */
 import { useLayoutEffect, useRef, type ReactNode } from 'react';
 
+// Width of the fade that tells a person more tabs are out of sight.
+const FADE_PX = 32;
+
 /** Scroll cues follow the actual overflow; tab selection only scrolls this strip. */
 export function ScrollStrip({
   className,
@@ -15,10 +18,10 @@ export function ScrollStrip({
   const update = () => {
     const strip = ref.current;
     if (!strip) return;
-    strip.style.setProperty('--fade-start', strip.scrollLeft > 1 ? '18px' : '0px');
+    strip.style.setProperty('--fade-start', strip.scrollLeft > 1 ? `${FADE_PX}px` : '0px');
     strip.style.setProperty(
       '--fade-end',
-      strip.scrollWidth - strip.clientWidth - strip.scrollLeft > 1 ? '18px' : '0px',
+      strip.scrollWidth - strip.clientWidth - strip.scrollLeft > 1 ? `${FADE_PX}px` : '0px',
     );
   };
   const reveal = () => {
@@ -28,8 +31,9 @@ export function ScrollStrip({
     if (selected && strip.scrollWidth > strip.clientWidth) {
       const outer = strip.getBoundingClientRect();
       const inner = selected.getBoundingClientRect();
-      if (inner.left < outer.left + 18) strip.scrollLeft -= outer.left + 18 - inner.left;
-      else if (inner.right > outer.right - 18) strip.scrollLeft += inner.right - outer.right + 18;
+      if (inner.left < outer.left + FADE_PX) strip.scrollLeft -= outer.left + FADE_PX - inner.left;
+      else if (inner.right > outer.right - FADE_PX)
+        strip.scrollLeft += inner.right - outer.right + FADE_PX;
     }
     update();
   };

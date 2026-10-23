@@ -111,12 +111,6 @@ const entries: Entry[] = [
     trigger: p => p.getByRole('button', { name: 'View definition' }),
   },
   {
-    name: 'Export menu',
-    dialog: '',
-    open: p => openFile(p, mall.name, 'mall.ontology.yaml'),
-    trigger: p => header(p, 'More actions'),
-  },
-  {
     name: 'Lineage options',
     dialog: 'Lineage options',
     open: async p => {

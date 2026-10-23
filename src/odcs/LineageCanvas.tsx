@@ -1,4 +1,5 @@
 /** Displays column-level lineage with path highlighting, paging and reversible graph expansion. */
+import { useFarZoom } from '../graph/FarZoom';
 import React, { memo, useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import {
   ReactFlow,
@@ -239,6 +240,7 @@ export function LineageCanvas({
       if (storageKey) localStorage.setItem(storageKey, String(n));
     } catch {}
   };
+  const farZoom = useFarZoom();
   const [selected, setSelected] = useState('');
   const [pages, setPages] = useState<Record<string, number>>({});
   // Expansions and pierces are walk steps on this canvas: Back / Undo expansion restore it.
@@ -1038,6 +1040,8 @@ export function LineageCanvas({
       <div className="lineage-stage">
         <div className="lineage-flow" ref={stage}>
           <ReactFlow
+            className={farZoom.className}
+            style={farZoom.style}
             nodes={nodes}
             edges={edges}
             onNodesChange={recordSizes}
@@ -1054,6 +1058,7 @@ export function LineageCanvas({
             onlyRenderVisibleElements
           >
             <Background gap={22} size={1} />
+            {farZoom.watcher}
           </ReactFlow>
           {busy && !nodes.length && (
             <p className="lineage-busy" role="status">

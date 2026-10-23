@@ -58,7 +58,10 @@ export function TrashDialog({ onClose, version }: { onClose: () => void; version
       {items === null ? (
         <p>Loading…</p>
       ) : items.length === 0 ? (
-        <p>The trash is empty.</p>
+        <div className="trash-empty">
+          <p>The trash is empty.</p>
+          <small>Deleted files and projects wait here until you empty the trash.</small>
+        </div>
       ) : (
         <ul className="trash-list">
           {items.map(t => (
@@ -128,13 +131,9 @@ export function TrashDialog({ onClose, version }: { onClose: () => void; version
           </>
         ) : (
           <>
-            <button
-              hidden={!access.can('purge')}
-              onClick={() => setConfirming('*')}
-              disabled={!items?.length}
-            >
-              Empty trash
-            </button>
+            {access.can('purge') && !!items?.length && (
+              <button onClick={() => setConfirming('*')}>Empty trash</button>
+            )}
             <button className="primary" onClick={onClose}>
               Close
             </button>

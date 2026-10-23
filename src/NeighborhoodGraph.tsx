@@ -1,4 +1,5 @@
 /** Displays a centered relationship graph with expansion and navigation history. */
+import { useFarZoom } from './graph/FarZoom';
 import { ScrollStrip } from './ScrollStrip';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -599,6 +600,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   // Fit once the nodes of a new membership are measured; refit when the canvas is resized.
   const canvas = useRef<HTMLDivElement>(null);
   const { fitBounds, getViewport, setViewport, setCenter, zoomIn, zoomOut } = useReactFlow();
+  const farZoom = useFarZoom();
   const [fitted, setFitted] = useState('');
   const held = useViewRestore(
     !!props.fullscreen?.active,
@@ -1017,6 +1019,8 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
           </div>
         ) : (
           <ReactFlow
+            className={farZoom.className}
+            style={farZoom.style}
             nodes={rendered}
             edges={visibleEdges}
             edgeTypes={relationshipEdgeTypes}
@@ -1045,6 +1049,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
             onEdgeMouseLeave={() => setHovered('')}
           >
             <Background gap={22} size={1} />
+            {farZoom.watcher}
           </ReactFlow>
         )}
       </div>

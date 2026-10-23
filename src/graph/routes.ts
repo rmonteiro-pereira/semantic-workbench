@@ -83,6 +83,38 @@ export function routePoints(
 // the right (source) and left (target) edges at mid height.
 /** Records a positioned rectangle used for graph layout. */
 export type Box = { x: number; y: number; width: number; height: number };
+/** Height of the nth self loop above a box. */
+const loopTop = (box: Box, index: number) => box.y - 14 - index * 10;
+
+/**
+ * Chooses the height of each long-edge lane. A lane runs just beyond the boxes it passes, not
+ * around the whole canvas, clears the self loops above those boxes and moves outward past any
+ * lane already placed over the same stretch.
+ */
+function createLanePlacer(boxes: Map<string, Box>, edges: { source: string; target: string }[]) {
+  const loopCount = new Map<string, number>();
+  for (const e of edges)
+    if (e.source === e.target) loopCount.set(e.source, (loopCount.get(e.source) ?? 0) + 1);
+  const entries = [...boxes];
+  const clearanceAbove = ([id, box]: [string, Box]) => {
+    const loops = loopCount.get(id) ?? 0;
+    return loops ? loopTop(box, loops - 1) - 8 : box.y;
+  };
+  const placed: { y: number; left: number; right: number; below: boolean }[] = [];
+  return (left: number, right: number, below: boolean) => {
+    const passed = entries.filter(([, b]) => b.x + b.width > left && b.x < right);
+    const reach = passed.length ? passed : entries;
+    let y = below
+      ? Math.max(...reach.map(([, b]) => b.y + b.height)) + 22
+      : Math.min(...reach.map(clearanceAbove)) - 22;
+    const shares = (lane: (typeof placed)[number]) =>
+      lane.below === below && lane.left < right && left < lane.right && Math.abs(lane.y - y) < 16;
+    while (placed.some(shares)) y += below ? 16 : -16;
+    placed.push({ y, left, right, below });
+    return y;
+  };
+}
+
 /** Assigns edge lanes and handle offsets between positioned node rectangles. */
 export function assignRoutes(
   edges: (Link & { id: string })[],
@@ -91,8 +123,6 @@ export function assignRoutes(
   const routes = new Map<string, EdgeRoute>();
   const all = [...boxes.values()];
   if (!all.length) return routes;
-  const top = Math.min(...all.map(b => b.y));
-  const bottom = Math.max(...all.map(b => b.y + b.height));
   // The free gap right of x (next column's left edge) and left of x (previous column's right
   // edge).
   const rightOf = (x: number) => {
@@ -111,8 +141,7 @@ export function assignRoutes(
     g.needs.push(n);
     gaps.set(k, g);
   };
-  let above = 0;
-  let below = 0;
+  const placeLane = createLanePlacer(boxes, edges);
   for (const e of [...edges].sort((a, b) => a.id.localeCompare(b.id))) {
     const s = boxes.get(e.source);
     const t = boxes.get(e.target);
@@ -122,8 +151,7 @@ export function assignRoutes(
     const tx = t.x;
     const ty = t.y + t.height / 2;
     if (e.source === e.target) {
-      // A self loop sits just above its own card, but still takes a lane slot above the row.
-      above++;
+      // A self loop sits just above its own card.
       routes.set(e.id, { route: 'loop', outX: 0, inX: 0, top: s.y - 14 });
       need(rightOf(sx), { edge: e.id, slot: 'outX', order: sy });
       need(leftOf(tx), { edge: e.id, slot: 'inX', order: ty });
@@ -148,7 +176,7 @@ export function assignRoutes(
     const backward = tx <= sx;
     routes.set(e.id, {
       route: 'lane',
-      laneY: backward ? bottom + 22 + below++ * 16 : top - 22 - above++ * 16,
+      laneY: placeLane(Math.min(sx, tx), Math.max(sx, tx), backward),
       outX: 0,
       inX: 0,
     });
@@ -161,7 +189,7 @@ export function assignRoutes(
     if (e.source === e.target && routes.get(e.id)?.route === 'loop') {
       const n = loopHeights.get(e.source) ?? 0;
       loopHeights.set(e.source, n + 1);
-      (routes.get(e.id) as any).top = boxes.get(e.source)!.y - 14 - n * 10;
+      (routes.get(e.id) as any).top = loopTop(boxes.get(e.source)!, n);
     }
   // Spread every vertical segment of a gap evenly across it, ordered to limit crossings.
   for (const { range, needs } of gaps.values()) {

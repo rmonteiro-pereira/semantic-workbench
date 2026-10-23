@@ -46,7 +46,7 @@ async function openMapping(path: string, project: string) {
     .click();
   await page.locator('.tabs').getByRole('button', { name: 'Graph' }).click();
   await expect(graph().locator('.lineage-card').first()).toBeVisible({ timeout: 15000 });
-  await graph().getByRole('button', { name: 'Fit' }).click();
+  await graph().getByRole('button', { name: 'Fit', exact: true }).click();
   await page.waitForTimeout(400);
 }
 async function compare(g: MappingGraph, label: string) {
@@ -92,7 +92,7 @@ async function shots(name: string) {
   ]) {
     await page.setViewportSize({ width: w, height: h });
     await page.waitForTimeout(300);
-    await graph().getByRole('button', { name: 'Fit' }).click();
+    await graph().getByRole('button', { name: 'Fit', exact: true }).click();
     await page.waitForTimeout(300);
     await page.screenshot({ path: `/tmp/workbench-mapping-graph-${name}-${w}.png` });
     expect(
@@ -132,7 +132,7 @@ try {
   await check(
     'selecting a concept (Region) emphasises its mappings, dims the rest, and lists its bindings with Edit item',
     async () => {
-      await graph().getByRole('button', { name: 'Fit' }).click();
+      await graph().getByRole('button', { name: 'Fit', exact: true }).click();
       await card('Concept Region').locator('.lineage-card-title').click();
       await expect.poll(() => graph().locator('g[data-on-path="true"]').count()).toBeGreaterThan(0);
       await expect.poll(() => graph().locator('.lineage-card.dim').count()).toBeGreaterThan(0);
@@ -166,7 +166,7 @@ try {
         .getByRole('button', { name: 'Order.customer', exact: true })
         .click();
       await page.waitForTimeout(300);
-      await graph().getByRole('button', { name: 'Fit' }).click();
+      await graph().getByRole('button', { name: 'Fit', exact: true }).click();
       await page.waitForTimeout(300);
       for (const [d, f] of [
         ['orders', 'customer_id'],
@@ -292,7 +292,7 @@ try {
       await graph().getByRole('button', { name: 'Full pierce' }).click();
       await expect(graph().getByLabel('Walk', { exact: true })).toContainText('pierced Customer');
       await page.waitForTimeout(500);
-      await graph().getByRole('button', { name: 'Fit' }).click();
+      await graph().getByRole('button', { name: 'Fit', exact: true }).click();
       await page.waitForTimeout(300);
       const ids = await graph()
         .locator('.lineage-card')
@@ -353,7 +353,9 @@ try {
         .first()
         .click();
       await page.waitForTimeout(400);
-      await graph().getByRole('button', { name: 'Fit' }).click();
+      // The first view of a metric also shows the datasets behind its concepts.
+      await expect(graph().locator('g[data-edge-kind="object"]').first()).toBeAttached();
+      await graph().getByRole('button', { name: 'Fit', exact: true }).click();
       await page.waitForTimeout(300);
       await expect(
         graph().locator(
