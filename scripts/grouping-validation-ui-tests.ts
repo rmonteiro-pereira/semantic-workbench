@@ -1,5 +1,6 @@
 // Checks grouping suggestions and validation dialogs in an isolated browser workspace.
 import { appUrl } from './helpers/base-url';
+import { showEveryEntity } from './helpers/graph-options';
 import { chromium, expect, type Locator } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
@@ -46,6 +47,9 @@ async function groupingDetails() {
 async function graphReady() {
   await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60_000 });
   await expect(page.locator('.react-flow__node-entity').first()).toBeVisible();
+  // A small pane opens with one card per area; these checks measure entity cards.
+  await showEveryEntity(page);
+  await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60_000 });
 }
 async function allFlightsContained() {
   await expect
@@ -206,7 +210,10 @@ try {
       const mode = page.getByLabel('Group model by', { exact: true });
       await mode.selectOption('types');
       // After an explicit choice, Auto still names its own choice.
-      await expect(mode.locator('option[value="auto"]')).toHaveText('Auto: communities');
+      await expect(mode.locator('option[value="auto"]')).toHaveAttribute(
+        'title',
+        'Currently groups by related entities',
+      );
       await mode.selectOption('suggested');
       await groupingDetails();
       await page.getByRole('button', { name: 'Adjust grouping…', exact: true }).click();
@@ -269,7 +276,10 @@ try {
         'Only the contract-level domain is declared',
       );
       await expect(mode.locator('option[value="namespaces"]')).toContainText('No IRIs declared');
-      await expect(mode.locator('option[value="auto"]')).toHaveText('Auto: example areas');
+      await expect(mode.locator('option[value="auto"]')).toHaveAttribute(
+        'title',
+        'Currently groups by business areas',
+      );
       await mode.selectOption('suggested');
       const canvas = page.getByRole('region', { name: 'Lineage graph' });
       await expect(

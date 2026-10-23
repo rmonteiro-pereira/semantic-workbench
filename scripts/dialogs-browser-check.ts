@@ -1,4 +1,5 @@
 // Checks dialog fit, focus trapping and dismissal across supported viewports.
+import { revealGraphControls } from './helpers/graph-options';
 import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
@@ -112,13 +113,14 @@ const entries: Entry[] = [
     trigger: p => p.getByRole('button', { name: 'View definition' }),
   },
   {
-    name: 'Lineage options',
-    dialog: 'Lineage options',
+    name: 'View options',
+    dialog: 'View options',
     open: async p => {
       await openFile(p, commerce.name, 'commerce.odcs.yaml');
       await p.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
+      await revealGraphControls(p);
     },
-    trigger: p => p.getByRole('button', { name: /Lineage options/ }),
+    trigger: p => p.getByRole('button', { name: /View options/ }),
   },
   {
     name: 'Trash',

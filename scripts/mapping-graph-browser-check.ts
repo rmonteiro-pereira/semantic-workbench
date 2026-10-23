@@ -268,7 +268,7 @@ try {
     },
   );
   await check(
-    'Expand, Collapse and Full pierce work on the mapping canvas: Full pierce from Customer opens exactly the cards its mappings reach',
+    'Expand, Collapse and Show all connected work on the mapping canvas: Show all connected from Customer opens exactly the cards its mappings reach',
     async () => {
       const g = expected('commerce.mapping.yaml');
       await graph().getByRole('textbox', { name: 'Find assets' }).fill('Customer');
@@ -289,7 +289,7 @@ try {
         direction: 'both',
         budget: 150,
       });
-      await graph().getByRole('button', { name: 'Full pierce' }).click();
+      await graph().getByRole('button', { name: 'Show all connected' }).click();
       await expect(graph().getByLabel('Walk', { exact: true })).toContainText('pierced Customer');
       await page.waitForTimeout(500);
       await graph().getByRole('button', { name: 'Fit', exact: true }).click();

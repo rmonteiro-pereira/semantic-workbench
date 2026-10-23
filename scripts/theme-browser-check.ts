@@ -7,6 +7,7 @@ import { tourGroups } from './helpers/all-tours';
 import { openFile, showScreen } from './helpers/screen-tour';
 import { chooseTheme, themedScreenProblems, tokenContrast, tokenValue } from './helpers/theme-tour';
 import { luminance, parseColor } from './helpers/color-literals';
+import { showEveryEntity } from './helpers/graph-options';
 
 const api = await startIsolatedApi();
 for (const id of ['ubl', 'commerce', 'mall']) await api.ws.loadExample(id);
@@ -49,6 +50,7 @@ async function accentCheck() {
     .locator('.tabs')
     .getByRole('button', { name: /^Graph/ })
     .click();
+  await showEveryEntity(page);
   await page.locator('.react-flow__node[data-id="ontology/0"] .full-entity').click();
   const focused = page.locator('.full-entity.focused').first();
   await expect(focused).toBeVisible();

@@ -4,7 +4,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { parse } from 'yaml';
 import { buildLineage, closure, cardOfNode, selectionNodes } from '../src/odcs/lineage';
 import { lineagePierce } from '../src/odcs/lineage-pierce';
-// Lineage Full pierce: the cards of a column's complete upstream and downstream path.
+// Lineage Show all connected: the cards of a column's complete upstream and downstream path.
 const files = readdirSync('public/examples/ubl')
   .filter(f => /\.ya?ml$/.test(f))
   .map(f => ({ path: f, data: parse(readFileSync(`public/examples/ubl/${f}`, 'utf8')) }));
