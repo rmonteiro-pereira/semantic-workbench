@@ -40,7 +40,7 @@ Expanding a card places newly revealed cards beside it through `src/graph/increm
 
 The first view tries to fit the displayed graph while keeping column names readable. If that would shrink the text too far, it focuses on the centre and its neighbours, then on the centre alone if necessary. A tall centre card opens at its header and first rows. **Fit** explicitly fits all displayed cards and can zoom out further. It takes precedence over a pending first-view adjustment.
 
-Selecting a column highlights its upstream and downstream paths and dims unrelated rows and lines. The **Selected path** panel lists the connected objects, fields and metrics in dependency order. Selecting a panel entry changes the highlighted path. **Clear the selected path** restores the unselected view. For semantic datasets and metrics, **Continue in Neighborhood** opens entity exploration.
+Selecting a column highlights its upstream and downstream paths and dims unrelated rows and lines. The **Selected path** list shows the connected objects, fields and metrics in dependency order: a panel beside the canvas from 1100 px, and a dialog opened from the **Selected path** button below that. Selecting a panel entry changes the highlighted path. **Clear the selected path** restores the unselected view. For semantic datasets and metrics, **Continue in Neighborhood** opens entity exploration.
 
 ## Validation
 

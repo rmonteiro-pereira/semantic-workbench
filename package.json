@@ -13,6 +13,8 @@
     "lint": "bunx --bun oxlint --quiet src server scripts tests",
     "lint:full": "bunx --bun oxlint src server scripts tests",
     "test:ui": "bun scripts/ui-tests.ts",
+    "polish:capture": "bun scripts/polish-capture.ts",
+    "polish:capture:server": "bun scripts/polish-capture-server.ts",
     "test:mutation": "bun scripts/mutation-tests.ts",
     "examples:generate": "bun scripts/billing-example.ts && bun scripts/mall-example.ts",
     "test:examples": "bun scripts/verify-examples.ts",

@@ -36,7 +36,8 @@ const BRAND_MARKUP =
   '3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/></svg><span>semantic' +
   '<small>WORKBENCH</small></span></div>';
 
-// A centred card on the workbench background; text sizes follow the workbench type scale.
+// A centred card on the workbench background. These pages are served without the app's
+// stylesheet, so the colours repeat the design tokens in src/style.css and must change with them.
 const AUTH_STYLESHEET =
   'body{font:0.9375rem/1.5 system-ui,sans-serif;margin:0;color:#243936;background:#f7f9f9;' +
   'min-height:100vh;display:flex;align-items:center;justify-content:center}' +

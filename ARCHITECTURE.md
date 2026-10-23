@@ -63,7 +63,8 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `scripts/auth-*.ts` | Sign-in orchestration, disposable environments, mock lifecycle checks, Keycloak compatibility and server container checks | Shared browser assertions or generic process lifecycle |
 | `scripts/examples/agent-client.ts` | Runnable example of an agent client that gets its Entra token with MSAL and reads the agent catalog | Anything the server imports |
 | `scripts/helpers/sign-in.ts` | Shared identity, storage, native sign-out and responsive browser assertions | Provider startup |
-| `scripts/polish-capture.ts`, `scripts/polish-capture-server.ts` | Photograph the screen tour at the four sizes in local mode and in server mode (mock sign-in) and print the measured problems of each screen | Assertions of the suites |
+| `scripts/polish-capture.ts`, `scripts/polish-capture-server.ts` (`bun run polish:capture`, `polish:capture:server`) | Photograph the screen tour at the four sizes in local mode and in server mode (mock sign-in) and print the measured problems of each screen | Assertions of the suites |
+| `scripts/helpers/edit-tour.ts`, `scripts/helpers/odcs-tour.ts` | The editing, metrics, mapping and data contract screens and dialogs as screens of the responsive suite | Suite selection |
 | `scripts/helpers/graph-options.ts` | Opens and closes the options dialog of a graph toolbar so browser checks drive its controls | Assertions about the controls |
 | `scripts/helpers/text-geometry.ts`, `scripts/helpers/screen-tour.ts` | Browser measurement of text below the 12 px minimum and of text covered by other elements; the list of screens and dialogs that the responsive suite and `scripts/polish-capture.ts` walk | Suite selection |
 | `scripts/helpers/sync-dialog.ts`, `scripts/helpers/dialog-geometry.ts`, `scripts/helpers/project-dialog-tour.ts` | Driving the Source control Sync dialog from the browser suites; the fit, text-size and collision assertions for an open dialog; the Source control and project dialogs as screens of the responsive suite. `authGeometry` in `sign-in.ts` takes the element whose text it measures | Suite selection |
@@ -252,7 +253,7 @@ editor never receives an older deferred value as an external replacement.
 | A Git operation | `server/projects/git.ts` (the command), `scm.ts` (the Source Control behaviour) |
 | How a file kind is parsed or validated | `src/model.ts`, `src/validation.ts`, `schemas/` |
 | A view | the folder named after it in `src/` (`odcs/`, `metrics/`, `mappings/`, `graph/`) |
-| A dialog | the module it belongs to; shared chrome is `src/projects/Modal.tsx` |
+| A dialog | the module it belongs to; shared chrome is `src/projects/Modal.tsx`. A dialog opened from another dialog hides its parent's panel (`.workbench-dialog:has(dialog[open])` in `src/style.css`) so only one layer shows |
 
 The runtime image copies `src/` because server imports span parsing, validation, metrics, SQL,
 RDF and project models with transitive dependencies across those modules. Keeping that tree

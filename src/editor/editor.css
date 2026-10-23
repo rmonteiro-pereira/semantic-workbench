@@ -65,7 +65,7 @@
   gap: 4px;
   border-bottom: 1px solid #efe3b8;
   background: #fffaf0;
-  font-size: 12px;
+  font-size: var(--text-small);
   max-height: 120px;
   overflow: auto;
 }
@@ -127,11 +127,11 @@
 .code-editor-host .cm-panels {
   background: #f8fbfa;
   border-color: #e3eae5;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .code-editor-host .cm-panels input,
 .code-editor-host .cm-panels button {
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .code-editor-host .cm-lintRange-error {
   background-image: none;
@@ -146,7 +146,7 @@
   text-underline-offset: 3px;
 }
 .code-editor-host .cm-tooltip-lint {
-  font-size: 12px;
+  font-size: var(--text-small);
   max-width: 520px;
 }
 .code-editor.code {
@@ -242,7 +242,7 @@
   margin: 0;
   padding: 0 0 0 16px;
   color: #8a5a00;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .sql-field-findings li {
   overflow-wrap: anywhere;
