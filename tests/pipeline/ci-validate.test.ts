@@ -50,11 +50,12 @@ describe('local quality gate', () => {
       return clock;
     };
     const options = { steps: selectSteps(['verify', 'pipeline']), keepGoing: false };
-    const stopped = await runGate(options, execute, now);
+    const quiet = () => {};
+    const stopped = await runGate(options, execute, now, quiet);
     expect(stopped).toHaveLength(1);
     expect(summarize(stopped).failed).toEqual(['verify']);
     expect(renderJUnit(stopped[0])).toContain('&lt;test&gt; &amp; &quot;details&quot;');
-    const continued = await runGate({ ...options, keepGoing: true }, execute, now);
+    const continued = await runGate({ ...options, keepGoing: true }, execute, now, quiet);
     expect(continued).toHaveLength(2);
     expect(summarize(continued).seconds).toBe(2);
     expect(renderJUnit(continued[1])).toContain('failures="0"');
@@ -130,6 +131,7 @@ test('screenshots stay within their suite and copy errors preserve suite failure
         }
       },
       () => 0,
+      () => {},
     );
     expect(results[0].error).toBe('suite failed');
     expect(errors).toHaveLength(1);
