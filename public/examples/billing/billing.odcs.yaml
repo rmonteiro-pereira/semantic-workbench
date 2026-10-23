@@ -1,0 +1,248 @@
+apiVersion: v3.1.0
+kind: DataContract
+id: 6f0d2c1e-8a47-4f0b-9a52-3b7e5d9c4a10
+name: Subscription billing contract
+version: 1.0.0
+status: active
+domain: Billing
+dataProduct: Revenue analytics
+description:
+  purpose: Invoice, plan and currency tables that the governed billing metrics read.
+  limitations: Synthetic demonstration data. USD only. Covers the tables behind
+    the metrics, not the whole billing model.
+schema:
+  - name: invoice_lines
+    physicalName: billing.invoice_lines
+    physicalType: table
+    logicalType: object
+    description: Billing table invoice_lines.
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        description: invoice_lines id.
+        primaryKey: true
+        unique: true
+      - name: name
+        logicalType: string
+        required: true
+        description: invoice_lines name.
+      - name: invoice_id
+        logicalType: integer
+        required: true
+        description: invoice_lines invoice id.
+        relationships:
+          - type: foreignKey
+            to: invoices.id
+      - name: subscription_item_id
+        logicalType: integer
+        required: true
+        description: invoice_lines subscription item id.
+        relationships:
+          - type: foreignKey
+            to: subscription_items.id
+      - name: tax_rate_id
+        logicalType: integer
+        required: true
+        description: invoice_lines tax rate id.
+      - name: quantity
+        logicalType: number
+        required: true
+        description: Billed quantity of the line.
+      - name: unit_price
+        logicalType: number
+        required: true
+        description: Price per unit in USD before discount.
+        quality:
+          - name: unit_price_not_negative
+            type: text
+            dimension: accuracy
+            severity: error
+            description: A unit price is never negative.
+      - name: discount_amount
+        logicalType: number
+        required: true
+        description: Discount granted on the line in USD.
+        quality:
+          - name: discount_within_line
+            type: text
+            dimension: accuracy
+            severity: warning
+            description: A discount does not exceed quantity × unit price.
+      - name: tax_amount
+        logicalType: number
+        required: true
+        description: Tax charged on the line in USD.
+      - name: is_recurring
+        logicalType: integer
+        required: true
+        description: One for recurring lines, zero for usage-only lines.
+    quality:
+      - name: one_row_per_invoice_line
+        type: text
+        dimension: uniqueness
+        severity: error
+        description: Each invoice line appears exactly once.
+  - name: invoices
+    physicalName: billing.invoices
+    physicalType: table
+    logicalType: object
+    description: Billing table invoices.
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        description: invoices id.
+        primaryKey: true
+        unique: true
+      - name: name
+        logicalType: string
+        required: true
+        description: invoices name.
+      - name: account_id
+        logicalType: integer
+        required: true
+        description: invoices account id.
+      - name: billing_cycle_id
+        logicalType: integer
+        required: true
+        description: invoices billing cycle id.
+      - name: currency_id
+        logicalType: integer
+        required: true
+        description: invoices currency id.
+        relationships:
+          - type: foreignKey
+            to: currencies.id
+      - name: legal_entity_id
+        logicalType: integer
+        required: true
+        description: invoices legal entity id.
+      - name: invoice_date
+        logicalType: date
+        required: true
+        description: Date the invoice was issued.
+  - name: subscription_items
+    physicalName: billing.subscription_items
+    physicalType: table
+    logicalType: object
+    description: Billing table subscription_items.
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        description: subscription_items id.
+        primaryKey: true
+        unique: true
+      - name: name
+        logicalType: string
+        required: true
+        description: subscription_items name.
+      - name: subscription_id
+        logicalType: integer
+        required: true
+        description: subscription_items subscription id.
+      - name: plan_id
+        logicalType: integer
+        required: true
+        description: subscription_items plan id.
+        relationships:
+          - type: foreignKey
+            to: plans.id
+  - name: plans
+    physicalName: billing.plans
+    physicalType: table
+    logicalType: object
+    description: Billing table plans.
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        description: plans id.
+        primaryKey: true
+        unique: true
+      - name: name
+        logicalType: string
+        required: true
+        description: plans name.
+      - name: product_id
+        logicalType: integer
+        required: true
+        description: plans product id.
+        relationships:
+          - type: foreignKey
+            to: products.id
+      - name: tier
+        logicalType: string
+        required: true
+        description: Commercial tier of the plan.
+  - name: products
+    physicalName: billing.products
+    physicalType: table
+    logicalType: object
+    description: Billing table products.
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        description: products id.
+        primaryKey: true
+        unique: true
+      - name: name
+        logicalType: string
+        required: true
+        description: products name.
+      - name: family_id
+        logicalType: integer
+        required: true
+        description: products family id.
+        relationships:
+          - type: foreignKey
+            to: product_families.id
+  - name: product_families
+    physicalName: billing.product_families
+    physicalType: table
+    logicalType: object
+    description: Billing table product_families.
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        description: product_families id.
+        primaryKey: true
+        unique: true
+      - name: name
+        logicalType: string
+        required: true
+        description: product_families name.
+  - name: currencies
+    physicalName: billing.currencies
+    physicalType: table
+    logicalType: object
+    description: Billing table currencies.
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        description: currencies id.
+        primaryKey: true
+        unique: true
+      - name: name
+        logicalType: string
+        required: true
+        description: currencies name.
+      - name: code
+        logicalType: string
+        required: true
+        description: ISO 4217 currency code.
+slaProperties:
+  - property: latency
+    value: 1
+    unit: d
+    element: billing.invoice_lines
+  - property: frequency
+    value: 1
+    unit: d
+team:
+  - username: billing-data
+    role: owner

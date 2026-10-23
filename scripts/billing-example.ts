@@ -4,6 +4,9 @@ import { mkdir } from 'node:fs/promises';
 import { stringify } from 'yaml';
 import { inspect } from '../src/model';
 import { buildContext } from '../server/agent/runtime';
+import { billingContract } from './billing-contract';
+import { governedMetrics } from './billing-metrics';
+import { bindingEntries, metricExtensionEntries } from './helpers/example-metrics';
 // Fictional B2B SaaS billing model. Business relationships and analytic grain are explicit; names
 // are not multiplied to create a synthetic graph benchmark.
 const definitions: [string, string, [string, string, string][]][] = [
@@ -205,32 +208,12 @@ const semantic: any = {
   },
   datasets: [],
   relationships: [],
-  metrics: [
-    {
-      name: 'net_revenue',
-      description:
-        'Invoice-line quantity × unit price minus line discount, excluding tax and credits.',
-      expression: expr('SUM(invoice_lines.net_amount)'),
-    },
-    {
-      name: 'recurring_revenue',
-      description: 'Only recurring invoice lines; usage-only lines are excluded.',
-      expression: expr(
-        'SUM(CASE WHEN invoice_lines.is_recurring = 1 THEN invoice_lines.net_amount ELSE 0 END)',
-      ),
-    },
-    {
-      name: 'invoice_count',
-      description:
-        'Distinct invoices represented by the selected lines. Not additive across product or plan groups.',
-      expression: expr('COUNT(DISTINCT invoice_lines.invoice_id)'),
-    },
-    {
-      name: 'revenue_per_invoice',
-      description: 'Governed net revenue divided by distinct represented invoices.',
-      expression: expr('net_revenue / NULLIF(invoice_count, 0)'),
-    },
-  ],
+  metrics: governedMetrics.map(metric => ({
+    name: metric.name,
+    description: metric.description,
+    expression: expr(metric.expression),
+    custom_extensions: metricExtensionEntries(metric.extension),
+  })),
 };
 for (const [concept, table, relations] of definitions) {
   const fieldNames = ['id', 'name', ...relations.map(r => r[2]), ...(extras[concept] ?? [])];
@@ -256,6 +239,7 @@ const mapping: any = {
   ontology_ref: { name: ontology.name, iri: './billing.ontology.yaml' },
   semantic_model_ref: { name: semantic.name, iri: './billing.semantic.yaml' },
   concept_mappings: [],
+  custom_extensions: bindingEntries(governedMetrics),
 };
 for (const [concept, table, relations] of definitions) {
   const component: any = {
@@ -404,6 +388,7 @@ for (const [filename, data] of [
   ['billing.ontology.yaml', ontology],
   ['billing.semantic.yaml', semantic],
   ['billing.mapping.yaml', mapping],
+  ['billing.odcs.yaml', billingContract(semantic)],
 ] as const) {
   const source = stringify(data);
   inspect(source, filename);
@@ -442,5 +427,11 @@ await Bun.write(
   ) + '\n',
 );
 console.log(
-  `Generated ${definitions.length} business entities, ${semantic.relationships.length} declared joins, ${context.bindings.length} resolved bindings, 4 governed metrics and 8 billing rows.`,
+  [
+    `Generated ${definitions.length} business entities`,
+    `${semantic.relationships.length} declared joins`,
+    `${context.bindings.length} resolved bindings`,
+    `${governedMetrics.length} governed metrics`,
+    '8 billing rows.',
+  ].join(', '),
 );

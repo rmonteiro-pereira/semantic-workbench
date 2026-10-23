@@ -1,0 +1,160 @@
+// Governed metrics of the subscription billing example, with owner, status and the concepts they
+// measure. The generator writes them into the semantic model and the mapping.
+import type { GovernedMetric } from './helpers/example-metrics';
+
+const invoiceDate = {
+  dimension: 'invoices.invoice_date',
+  min_grain: 'day',
+  allowed_grains: ['day', 'week', 'month', 'quarter', 'year'],
+} as const;
+// Plan tier is two joins from an invoice line, product family four, currency two.
+const revenueDimensions = ['plans.tier', 'product_families.name', 'currencies.code'];
+
+/** The metrics shipped with the billing example, in the order they are listed. */
+export const governedMetrics: GovernedMetric[] = [
+  {
+    name: 'net_revenue',
+    description:
+      'Invoice-line quantity × unit price minus line discount, excluding tax and credits.',
+    expression: 'SUM(invoice_lines.net_amount)',
+    extension: {
+      label: 'Net revenue',
+      type: 'simple',
+      additivity: 'additive',
+      unit: 'USD',
+      format: '#,##0.00',
+      owner: 'Finance',
+      status: 'approved',
+      time: invoiceDate,
+      dimensions: revenueDimensions,
+    },
+    binding: { measures: 'NetRevenue', of: 'Invoice' },
+  },
+  {
+    name: 'recurring_revenue',
+    description: 'Only recurring invoice lines; usage-only lines are excluded.',
+    expression:
+      'SUM(CASE WHEN invoice_lines.is_recurring = 1 THEN invoice_lines.net_amount ELSE 0 END)',
+    extension: {
+      label: 'Recurring revenue',
+      type: 'simple',
+      additivity: 'additive',
+      unit: 'USD',
+      format: '#,##0.00',
+      owner: 'Finance',
+      status: 'approved',
+      time: invoiceDate,
+      dimensions: revenueDimensions,
+    },
+    binding: { measures: 'RecurringRevenue', of: 'Invoice' },
+  },
+  {
+    name: 'invoice_count',
+    description:
+      'Distinct invoices represented by the selected lines. Not additive across product or plan groups.',
+    expression: 'COUNT(DISTINCT invoice_lines.invoice_id)',
+    extension: {
+      label: 'Invoice count',
+      type: 'simple',
+      additivity: 'non_additive',
+      unit: 'invoices',
+      format: '#,##0',
+      owner: 'Billing Operations',
+      status: 'approved',
+      time: invoiceDate,
+      dimensions: revenueDimensions,
+    },
+    binding: { measures: 'InvoiceCount', of: 'Invoice' },
+  },
+  {
+    name: 'revenue_per_invoice',
+    description: 'Governed net revenue divided by distinct represented invoices.',
+    expression: 'net_revenue / NULLIF(invoice_count, 0)',
+    extension: {
+      label: 'Revenue per invoice',
+      type: 'ratio',
+      numerator: 'net_revenue',
+      denominator: 'invoice_count',
+      additivity: 'non_additive',
+      unit: 'USD',
+      format: '#,##0.00',
+      owner: 'Finance',
+      status: 'approved',
+      time: invoiceDate,
+      dimensions: revenueDimensions,
+    },
+    binding: { measures: 'RevenuePerInvoice', of: 'Invoice' },
+  },
+  {
+    name: 'recurring_share',
+    description: 'Share of net revenue that comes from recurring invoice lines.',
+    expression: 'recurring_revenue / NULLIF(net_revenue, 0)',
+    extension: {
+      label: 'Recurring share',
+      type: 'ratio',
+      numerator: 'recurring_revenue',
+      denominator: 'net_revenue',
+      additivity: 'non_additive',
+      unit: 'ratio',
+      format: '0.0%',
+      owner: 'Finance',
+      status: 'proposed',
+      time: invoiceDate,
+      dimensions: revenueDimensions,
+      targets: [{ grain: 'month', direction: 'higher_is_better', value: 0.9 }],
+    },
+    binding: { measures: 'RecurringRevenue', of: 'Invoice' },
+  },
+  {
+    name: 'discounts_given',
+    description: 'Discount amount granted on invoice lines, before tax.',
+    expression: 'SUM(invoice_lines.discount_amount)',
+    extension: {
+      label: 'Discounts given',
+      type: 'simple',
+      additivity: 'additive',
+      unit: 'USD',
+      format: '#,##0.00',
+      owner: 'Sales Operations',
+      status: 'approved',
+      time: invoiceDate,
+      dimensions: revenueDimensions,
+    },
+    binding: { measures: 'InvoiceLine', of: 'Plan' },
+  },
+  {
+    name: 'tax_billed',
+    description: 'Tax amount charged on invoice lines. It is not part of net revenue.',
+    expression: 'SUM(invoice_lines.tax_amount)',
+    extension: {
+      label: 'Tax billed',
+      type: 'simple',
+      additivity: 'additive',
+      unit: 'USD',
+      format: '#,##0.00',
+      owner: 'Tax',
+      status: 'approved',
+      time: invoiceDate,
+      dimensions: ['plans.tier', 'currencies.code'],
+    },
+    binding: { measures: 'InvoiceLine', of: 'TaxRate' },
+  },
+  {
+    name: 'gross_billings',
+    description: 'Net revenue plus the discounts given: what the lines would bill at list price.',
+    expression: 'net_revenue + discounts_given',
+    extension: {
+      label: 'Gross billings',
+      type: 'derived',
+      inputs: ['net_revenue', 'discounts_given'],
+      additivity: 'additive',
+      unit: 'USD',
+      format: '#,##0.00',
+      owner: 'Finance',
+      status: 'draft',
+      time: invoiceDate,
+      dimensions: revenueDimensions,
+    },
+    binding: { measures: 'InvoiceLine', of: 'Invoice' },
+  },
+];
