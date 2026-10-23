@@ -7,6 +7,10 @@ import { parse } from 'yaml';
 import { readdirSync } from 'node:fs';
 import { buildLineage, selectionNodes } from '../src/odcs/lineage';
 import { lineagePierce } from '../src/odcs/lineage-pierce';
+import { layoutProblems } from './helpers/layout-geometry';
+import { smallTextProblems, textCollisionProblems } from './helpers/text-geometry';
+import { hopRowProblems, odcsGraphProblems } from './helpers/odcs-graph-geometry';
+import { anchorReport, drawnLabels, paginationControls } from './helpers/odcs-graph-flow';
 // Every visible edge must match a reference edge, and all reference edges between visible rows
 // must appear. Path highlighting has a 200 ms budget; the first UBL view has a 2 s budget.
 const api = await startIsolatedApi();
@@ -42,6 +46,9 @@ const card = (name: string) => graph().getByRole('group', { name, exact: true })
 async function openContract(path: string, project: string) {
   // Timed from opening the file (the Graph tab stays selected between files).
   const t = Date.now();
+  // On a phone the workspace tree is a drawer.
+  const drawer = page.getByRole('button', { name: 'Open workspace', exact: true });
+  if (await drawer.isVisible()) await drawer.click();
   await tree()
     .getByRole('treeitem', { name: project })
     .getByRole('button', { name: path, exact: true })
@@ -330,7 +337,7 @@ try {
     await shots('mall');
   });
   await check(
-    'UBL (169 tables): first view within 2 s, centred on consignment; drawn lines match; paging shows the next columns',
+    'UBL (169 tables): first view within 2 s, centred on consignment; drawn lines match; the card opens in place',
     async () => {
       const ms = await openContract('ubl.odcs.yaml', examples.ubl.name);
       console.log(`  first view ${ms} ms`);
@@ -344,18 +351,19 @@ try {
       await expect(group).toContainText('more tables');
       const before = await graph().locator('.lineage-card').count();
       await group.getByRole('button', { name: /^Expand / }).click();
-      await expect.poll(() => graph().locator('.lineage-card').count()).toBeGreaterThan(before);
+      // The new cards arrive after ELK has laid them out, so fit again until they are on screen.
+      await expect
+        .poll(async () => {
+          await fit();
+          return graph().locator('.lineage-card').count();
+        })
+        .toBeGreaterThan(before);
       await compare('ubl');
-      const pager = center.getByRole('navigation');
-      await expect(pager).toBeVisible();
-      const first = await center.locator('li[data-id]').first().getAttribute('data-id');
-      await pager.getByRole('button', { name: 'Page 2' }).click();
-      await expect(pager.getByRole('button', { name: 'Page 2' })).toHaveAttribute(
-        'aria-current',
-        'page',
-      );
-      expect(await center.locator('li[data-id]').first().getAttribute('data-id')).not.toBe(first);
-      await expect(center.locator('.lineage-more')).toBeVisible();
+      // Cards never page: a wide table opens in place into one scrolling list.
+      await expect(center.getByRole('navigation')).toHaveCount(0);
+      await center.getByRole('button', { name: /^Show all \d+ columns of consignment/ }).click();
+      const list = center.getByRole('region', { name: 'Columns of consignment' });
+      await expect(list).toBeVisible();
       await compare('ubl');
       await shots('ubl');
     },
@@ -448,6 +456,158 @@ try {
         `${want.cards.length} cards shown`,
       );
       await page.screenshot({ path: '/tmp/workbench-lineage-pierce.png' });
+    },
+  );
+  await check(
+    'graph: at four sizes the first view of three contracts has whole cards, readable column names, clear lines and labels, and a legend',
+    async () => {
+      const contracts = [
+        ['commerce.odcs.yaml', 'Commerce workspace'],
+        ['mall.odcs.yaml', examples.mall.name],
+        ['ubl.odcs.yaml', examples.ubl.name],
+      ] as const;
+      for (const [width, height] of [
+        [390, 844],
+        [1280, 720],
+        [1440, 900],
+        [2560, 1440],
+      ] as const) {
+        await page.setViewportSize({ width, height });
+        for (const [file, project] of contracts) {
+          const where = `${file} ${width}×${height}`;
+          await page.locator('.tabs').getByRole('button', { name: 'Overview' }).click();
+          await openContract(file, project);
+          await page.waitForTimeout(700);
+          expect(await odcsGraphProblems(page), where).toEqual([]);
+          expect(await layoutProblems(page), `${where} layout`).toEqual([]);
+          expect(await smallTextProblems(page, '.lineage-view'), where).toEqual([]);
+          expect(await textCollisionProblems(page, '.lineage-view'), where).toEqual([]);
+          // Cards that do not fit wait behind a counted control; Show all brings them in.
+          const showAll = page.getByRole('button', { name: /^\d+ of \d+ cards shown · Show all$/ });
+          if (await showAll.isVisible()) {
+            const before = await page.locator('.lineage-card').count();
+            await showAll.click();
+            await expect
+              .poll(() => page.locator('.lineage-card').count(), { timeout: 8000 })
+              .toBeGreaterThan(before);
+          }
+        }
+      }
+      await page.setViewportSize({ width: 1440, height: 900 });
+    },
+  );
+  await check('graph: no canvas card has page buttons; wide tables open in place', async () => {
+    for (const [file, project] of [
+      ['mall.odcs.yaml', examples.mall.name],
+      ['ubl.odcs.yaml', examples.ubl.name],
+    ] as const) {
+      await page.locator('.tabs').getByRole('button', { name: 'Overview' }).click();
+      await openContract(file, project);
+      await fit();
+      expect(await paginationControls(page), file).toBe(0);
+    }
+  });
+  await check(
+    'graph: a card opens in place with a filter and Show fewer; its lines stay on their rows, and rows out of view keep a marker',
+    async () => {
+      // consignment has more than 30 columns, so its opened card carries a filter box.
+      await graph().getByRole('textbox', { name: 'Find assets' }).fill('consignment');
+      await graph()
+        .getByRole('listbox', { name: 'Asset results' })
+        .getByRole('option')
+        .filter({ hasText: 'Table' })
+        .first()
+        .click();
+      await expect(card('Table consignment')).toHaveClass(/center/);
+      await page.waitForTimeout(600);
+      const center = graph().locator('.lineage-card.center');
+      const centreName = ((await center.getAttribute('aria-label')) ?? '').replace('Table ', '');
+      const more = center.getByRole('button', { name: /^Show all \d+ columns of / });
+      await more.click();
+      const list = center.getByRole('region', { name: `Columns of ${centreName}` });
+      await expect(list).toBeVisible();
+      await expect(center.getByRole('searchbox', { name: /^Filter columns of/ })).toBeVisible();
+      await page.waitForTimeout(500);
+      const top = await anchorReport(page, `Table ${centreName}`);
+      expect(top.problems).toEqual([]);
+      expect(top.onRow).toBeGreaterThan(0);
+      expect(top.onEdge).toBeGreaterThan(0);
+      expect(top.markers).toBeGreaterThan(0);
+      await list.evaluate(el => {
+        el.scrollTop = 400;
+      });
+      await page.waitForTimeout(500);
+      const scrolled = await anchorReport(page, `Table ${centreName}`);
+      expect(scrolled.problems).toEqual([]);
+      expect(scrolled.onRow).toBeGreaterThan(0);
+      // The filter narrows the list; clearing it brings every column back.
+      const filter = center.getByRole('searchbox', { name: /^Filter columns of/ });
+      await filter.fill('carrier');
+      await expect(center.getByText(/\d+ of \d+ columns/)).toBeVisible();
+      await filter.fill('');
+      await center.getByRole('button', { name: 'Show fewer' }).click();
+      await expect(list).toHaveCount(0);
+      await expect(more).toBeVisible();
+      expect(await paginationControls(page)).toBe(0);
+    },
+  );
+  await check(
+    'graph: a bundle of lines is labelled once and no label repeats the word lines',
+    async () => {
+      await page.locator('.tabs').getByRole('button', { name: 'Overview' }).click();
+      await openContract('mall.odcs.yaml', examples.mall.name);
+      await page.waitForTimeout(500);
+      expect(await odcsGraphProblems(page)).toEqual([]);
+      await fit();
+      const labels = await drawnLabels(page);
+      for (const label of labels) expect(label.text).not.toMatch(/lines/);
+      const bundles = labels.filter(label => /^\d+$/.test(label.text));
+      const pairs = bundles.map(label => `${label.fromCard}>${label.toCard}`);
+      expect(new Set(pairs).size).toBe(pairs.length);
+    },
+  );
+  await check(
+    'foreign-key hops: the hop control, the path line and the list of keys read as sentences at four sizes',
+    async () => {
+      await page.locator('.tabs').getByRole('button', { name: 'Overview' }).click();
+      await openContract('commerce.odcs.yaml', 'Commerce workspace');
+      const hops = graph().getByRole('group', { name: 'How far to follow foreign keys' });
+      await expect(hops.getByRole('button', { name: '1 hop' })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
+      await hops.getByRole('button', { name: '2 hops' }).click();
+      await expect(hops.getByRole('button', { name: '2 hops' })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
+      await hops.getByRole('button', { name: '1 hop' }).click();
+      for (const [width, height] of [
+        [390, 844],
+        [1280, 720],
+        [1440, 900],
+        [2560, 1440],
+      ] as const) {
+        await page.setViewportSize({ width, height });
+        await page.waitForTimeout(300);
+        expect(await hopRowProblems(page), `${width}×${height}`).toEqual([]);
+        expect(await smallTextProblems(page, '.lineage-hops')).toEqual([]);
+        expect(await textCollisionProblems(page, '.lineage-hops')).toEqual([]);
+        const row = graph().locator('.lineage-hops');
+        await expect(row).toContainText('orders → ');
+        await expect(row).toContainText('1 hop');
+        await graph()
+          .getByRole('button', { name: /^Foreign keys \(\d+\)$/ })
+          .click();
+        const dialog = page.getByRole('dialog', { name: 'Foreign keys in this view' });
+        await expect(dialog).toContainText('orders.customer_id → customers.customer_id');
+        await expect(dialog).toContainText('orders references customers');
+        expect(await smallTextProblems(page, 'dialog[open]')).toEqual([]);
+        expect(await textCollisionProblems(page, 'dialog[open]')).toEqual([]);
+        expect(await layoutProblems(page)).toEqual([]);
+        await dialog.getByRole('button', { name: 'Done' }).click();
+      }
+      await page.setViewportSize({ width: 1440, height: 900 });
     },
   );
   await check('no browser errors', async () => {

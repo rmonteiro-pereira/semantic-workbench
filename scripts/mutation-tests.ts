@@ -1523,6 +1523,7 @@ try {
     'save-state-cut': 'INJECTED_SAVE_STATE_MUTATION',
     'catalog-title': 'INJECTED_CATALOG_TITLE_MUTATION',
     'far-names-small': 'INJECTED_FAR_NAMES_MUTATION',
+    'graph-column-small': 'INJECTED_GRAPH_COLUMN_MUTATION',
   };
   // The empty neighborhood projection counts with them.
   const layoutMutantCount = 1 + Object.keys(layoutMutationMarkers).length;
@@ -1536,6 +1537,7 @@ try {
     ['small-text', 'screens', 'sidebar label drawn below the minimum text size'],
     ['save-state-cut', 'shell:', 'save state cut with an ellipsis in a wide header'],
     ['far-names-small', '1280×720: zoomed far', 'card names drawn small when zoomed far out'],
+    ['graph-column-small', 'ODCS graph: 1280×720', 'ODCS graph column names drawn at 8 px'],
     ['catalog-title', 'edit screens', 'clamped catalog description without its full-text tooltip'],
   ] as const) {
     const child = Bun.spawn([process.execPath, resolve(root, 'scripts/responsive-ui-tests.ts')], {

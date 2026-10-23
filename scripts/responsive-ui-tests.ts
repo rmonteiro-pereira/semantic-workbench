@@ -12,6 +12,7 @@ import { screenProblems, showScreen, type Screen } from './helpers/screen-tour';
 import { tourGroups } from './helpers/all-tours';
 import { editContainmentProblems } from './helpers/edit-tour';
 import { sidewaysTableProblems } from './helpers/odcs-tour';
+import { odcsGraphScreenProblems, odcsGraphScreens } from './helpers/odcs-graph-tour';
 
 // Isolated API fixture: exercising viewport changes never modifies the local workspace. The UBL
 // ontology is imported first so that it opens first.
@@ -115,6 +116,16 @@ async function openPage(width: number, height: number) {
       }),
     );
     console.log('INJECTED_FAR_NAMES_MUTATION');
+  }
+  if (process.env.RESPONSIVE_MUTATION === 'graph-column-small') {
+    await page.addInitScript(() =>
+      document.addEventListener('DOMContentLoaded', () => {
+        const style = document.createElement('style');
+        style.textContent = '.lineage-row-name{font-size:8px!important}';
+        document.head.append(style);
+      }),
+    );
+    console.log('INJECTED_GRAPH_COLUMN_MUTATION');
   }
   if (process.env.RESPONSIVE_MUTATION === 'catalog-title') {
     await page.addInitScript(() =>
@@ -736,7 +747,7 @@ try {
   }
   // Lineage cards and canvas: at the four reference sizes, with and without a selected path.
   await check(
-    'lineage: cards, rows, badges, pager and toolbar fit; cards never overlap; the canvas stays usable beside the path panel',
+    'lineage: cards, rows, badges, lists and toolbar fit; cards never overlap; the canvas stays usable beside the path panel',
     async () => {
       const found: string[] = [];
       await sweep.setViewportSize({ width: 1440, height: 900 });
@@ -979,6 +990,8 @@ try {
     const graph = p.getByRole('region', { name: 'Lineage graph' });
     await expect(graph.locator('.lineage-card').first()).toBeVisible();
     await graph.getByRole('button', { name: 'Fit', exact: true }).click();
+    // Fit shows every card, which lays them out again before the view settles.
+    await p.waitForTimeout(800);
     await graph
       .getByRole('group', { name: 'Table orders' })
       .getByRole('button', { name: 'orders.amount', exact: true })
@@ -1499,6 +1512,28 @@ try {
       },
     );
     await shellPage.close();
+  }
+  // The ODCS graph and its dialogs: whole cards, readable column names, clear lines and labels, a
+  // legend, the hop row, and readable text without collisions.
+  for (const [width, height] of [
+    [390, 844],
+    [1280, 720],
+    [1440, 900],
+    [2560, 1440],
+  ]) {
+    const graphPage = await openPage(width!, height!);
+    await check(
+      `ODCS graph: ${width}×${height} whole cards, clear lines, legend, readable`,
+      async () => {
+        for (const screen of odcsGraphScreens('commerce.odcs.yaml')) {
+          await showScreen(graphPage, screen);
+          expect(await screenProblems(graphPage, screen)).toEqual([]);
+          expect(await odcsGraphScreenProblems(graphPage, screen)).toEqual([]);
+          await noOverflow(graphPage);
+        }
+      },
+    );
+    await graphPage.close();
   }
   await check('no uncaught browser errors', async () => expect(errors).toEqual([]));
   console.log(`${passed} responsive UI checks passed`);

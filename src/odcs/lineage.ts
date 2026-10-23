@@ -108,6 +108,25 @@ export function cardOfNode(graph: LineageGraph, node: string) {
   return owners.get(node) ?? node;
 }
 const columnOwner = new WeakMap<LineageGraph, Map<string, string>>();
+// A foreign key reads child to parent: the column that holds the key, then the column it points
+// at. The lines on the canvas run the other way (parent to child, the workbench's reading of
+// lineage), so the sentence, not the line, tells which table references which.
+/** Names a column as `table.column`, or a card by its label. */
+export function nodeName(graph: LineageGraph, node: string) {
+  const owner = graph.cards.get(cardOfNode(graph, node));
+  if (!owner) return node;
+  const column = owner.columns.find(c => c.id === node);
+  return column ? `${owner.label}.${column.path}` : owner.label;
+}
+/** The two ends of a foreign key as `table.column` names. */
+export type ForeignKeyHop = { child: string; parent: string };
+/** Reads a foreign-key line as child to parent; returns null for any other kind of line. */
+export function foreignKeyHop(graph: LineageGraph, edge: ColumnEdge): ForeignKeyHop | null {
+  if (edge.kind !== 'foreign-key') return null;
+  return { child: nodeName(graph, edge.to), parent: nodeName(graph, edge.from) };
+}
+/** Writes a hop as one plain sentence, such as `orders.customer_id → customers.id`. */
+export const hopSentence = (hop: ForeignKeyHop) => `${hop.child} → ${hop.parent}`;
 /** Builds column dependencies from declared contract references and parsed model expressions. */
 export function buildLineage(
   files: ProjectFile[],
@@ -485,6 +504,8 @@ export function around(g: LineageGraph, center: string, steps = 1) {
     out.delete(c);
     return out;
   };
+  // The foreign-key hop at which each table joined the view; the tables the centre reads are hop 0.
+  const hops = new Map<string, number>(objects.map(c => [c, 0]));
   let frontier = objects;
   for (let s = 0; s < steps; s++) {
     const next: string[] = [];
@@ -492,6 +513,7 @@ export function around(g: LineageGraph, center: string, steps = 1) {
       for (const n of fkNeighbours(c))
         if (!shown.has(n)) {
           shown.add(n);
+          hops.set(n, s + 1);
           next.push(n);
         }
     frontier = next;
@@ -503,7 +525,7 @@ export function around(g: LineageGraph, center: string, steps = 1) {
       for (const x of fkNeighbours(c)) if (!shown.has(x)) n++;
     if (n) hidden.set(c, n);
   }
-  return { cards: shown, hidden };
+  return { cards: shown, hidden, hops };
 }
 // The mapping canvas' reach: cards within `steps` lines of the centre in any direction, plus the
 // cards holding rows a shown link passes through; neighbours one line further are counted as
@@ -552,33 +574,51 @@ export function aroundHops(g: LineageGraph, center: string, steps = 1) {
   }
   return { cards: shown, hidden };
 }
-// Paging: ten columns per page; columns on the highlighted path are pinned above the page; an edge
-// to a column that is not shown attaches to the card's "more" row.
-export const PAGE_SIZE = 10;
+// Rows of a card. A collapsed card shows the columns that matter: those on the selected path or
+// matching the search, those with a line in the current view, and the keys. Small cards show every
+// column. The rest sit behind one "+ N more columns" row, and an edge to a hidden column attaches
+// to that row. An opened card lists every column in a scrolling list instead.
+/** Cards with this many columns or fewer always show every column. */
+export const SMALL_CARD = 8;
+/** The most rows a collapsed card shows, unless a full pierce asks for every connected column. */
+export const COLLAPSED_MAX = 14;
+/** Cards with more columns than this get a filter box when they are opened. */
+export const FILTER_AT = 30;
 /** Returns the synthetic row identifier for hidden columns on a card. */
 export const moreRowId = (card: string) => `${card}/#more`;
-/** Pages columns while pinning highlighted path rows and counting hidden columns. */
-export function pageColumns(
+/** Says why a column is worth a row; lower ranks win a place first. */
+export type ColumnWhy = { focus: ReadonlySet<string>; connected: ReadonlySet<string> };
+const isKey = (column: LineageColumn) =>
+  column.badges.some(b => b.kind === 'pk' || b.kind === 'fk') || !!column.fk?.length;
+function columnRank(column: LineageColumn, why: ColumnWhy) {
+  if (why.focus.has(column.id)) return 0;
+  if (why.connected.has(column.id)) return 1;
+  return isKey(column) ? 2 : 3;
+}
+/** Chooses the rows of a card and the row an edge to each column attaches to. */
+export function cardRows(
   card: LineageCard,
-  page: number,
-  pinned: Set<string>,
-  size = PAGE_SIZE,
+  why: ColumnWhy,
+  options: { open?: boolean; uncapped?: boolean; maxRows?: number } = {},
 ) {
-  const pages = Math.max(1, Math.ceil(card.columns.length / size));
-  const p = Math.min(Math.max(0, page), pages - 1);
-  const onPage = card.columns.slice(p * size, p * size + size);
-  const pinnedRows = card.columns.filter(c => pinned.has(c.id) && !onPage.includes(c));
-  const rows = [...pinnedRows, ...onPage];
-  const visible = new Set(rows.map(r => r.id));
-  const hidden = card.columns.length - rows.length;
+  const all = card.columns;
+  let rows = all;
+  if (!options.open && all.length > SMALL_CARD) {
+    const ranked = all.map((column, index) => ({ column, index, rank: columnRank(column, why) }));
+    const wanted = ranked.filter(x => x.rank < 3);
+    const chosen = options.uncapped
+      ? wanted
+      : [...wanted]
+          .sort((a, b) => a.rank - b.rank || a.index - b.index)
+          .slice(0, options.maxRows ?? COLLAPSED_MAX);
+    rows = chosen.sort((a, b) => a.index - b.index).map(x => x.column);
+  }
+  const shown = new Set(rows.map(r => r.id));
   return {
-    page: p,
-    pages,
     rows,
-    pinned: pinnedRows.map(r => r.id),
-    hidden,
-    port: (id: string) =>
-      visible.has(id) || !card.columns.some(c => c.id === id) ? id : moreRowId(card.id),
+    hidden: all.length - rows.length,
+    filterable: all.length > FILTER_AT,
+    port: (id: string) => (shown.has(id) || !all.some(c => c.id === id) ? id : moreRowId(card.id)),
   };
 }
 // The asset search: objects (name, physical name) and their columns, datasets and their fields,
@@ -633,4 +673,34 @@ export function defaultCenter(g: LineageGraph) {
       objects[0] as LineageCard | undefined,
     )?.id ?? ''
   );
+}
+
+/** One foreign key the view follows: the hop it belongs to and the sentence that names it. */
+export type ForeignKeyStep = { hop: number; sentence: string; child: string; parent: string };
+/** The tables the view reaches, by hop, and the foreign keys that connect them. */
+export type ForeignKeyPath = { levels: string[][]; steps: ForeignKeyStep[] };
+/** Lists the foreign keys between the tables of a view as plain sentences, grouped by the hop at
+ * which the farther table joined, and the table names of each hop in order. */
+export function foreignKeyPath(g: LineageGraph, hops: ReadonlyMap<string, number>): ForeignKeyPath {
+  const levels: string[][] = [];
+  for (const [card, hop] of hops) {
+    const label = g.cards.get(card)?.label;
+    if (label) (levels[hop] ??= []).push(label);
+  }
+  const steps: ForeignKeyStep[] = [];
+  for (const edge of g.edges) {
+    const hop = foreignKeyHop(g, edge);
+    const from = cardOfNode(g, edge.from);
+    const to = cardOfNode(g, edge.to);
+    if (!hop || !hops.has(from) || !hops.has(to)) continue;
+    const reached = Math.max(1, hops.get(from)!, hops.get(to)!);
+    steps.push({
+      hop: reached,
+      sentence: hopSentence(hop),
+      child: g.cards.get(to)?.label ?? hop.child,
+      parent: g.cards.get(from)?.label ?? hop.parent,
+    });
+  }
+  steps.sort((a, b) => a.hop - b.hop || a.sentence.localeCompare(b.sentence));
+  return { levels: levels.map(names => names ?? []), steps };
 }

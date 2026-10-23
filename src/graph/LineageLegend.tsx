@@ -1,6 +1,7 @@
 /** Shares asset icons and line-style labels between lineage and mapping canvases. */
 import React from 'react';
 import { Boxes, Columns3, Database, Gauge, Table2, Link2 } from 'lucide-react';
+import { Badge, badge } from '../PropertyBadges';
 import { LEGEND_LINES, type LegendLine } from './edge-styles';
 import './legend.css';
 // Asset icons and edge-style labels are shared so all canvases use the same legend.
@@ -33,10 +34,13 @@ export const KindIcon = ({ kind, size = 12 }: { kind: LegendKind; size?: number 
 export function LineageLegend({
   kinds = ['object', 'dataset', 'field', 'metric'],
   lines = ['foreign-key', 'feeds'],
+  keys = false,
   className = '',
 }: {
   kinds?: LegendKind[];
   lines?: LegendLine[];
+  /** Adds the primary key and foreign key badges, as they appear on card rows. */
+  keys?: boolean;
   className?: string;
 }) {
   return (
@@ -47,6 +51,18 @@ export function LineageLegend({
           {KIND_LABEL[k]}
         </li>
       ))}
+      {keys && (
+        <>
+          <li className="key">
+            <Badge kind="pk" title={badge('pk').title} />
+            Primary key
+          </li>
+          <li className="key">
+            <Badge kind="fk" title="Foreign key to another table" />
+            Points to another table
+          </li>
+        </>
+      )}
       {lines.map(l => {
         const s = LEGEND_LINES[l];
         return (

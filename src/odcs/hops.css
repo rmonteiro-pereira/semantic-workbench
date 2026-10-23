@@ -1,0 +1,93 @@
+/* The foreign-key hop row of the lineage canvas and the dialog that lists the keys. */
+.lineage-hops {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  padding: 5px 10px;
+  border-bottom: 1px solid #eef2f2;
+  font-size: var(--text-small);
+}
+.lineage-hops-title {
+  font-weight: 600;
+  color: #3a5a50;
+}
+.lineage-hops-steps {
+  display: inline-flex;
+  border: 1px solid #d6e1df;
+  border-radius: 7px;
+  overflow: hidden;
+}
+.lineage-hops-steps button {
+  min-width: 30px;
+  height: 28px;
+  border: 0;
+  border-right: 1px solid #d6e1df;
+  border-radius: 0;
+  background: #fff;
+  font-size: var(--text-small);
+  cursor: pointer;
+}
+.lineage-hops-steps button:last-child {
+  border-right: 0;
+}
+.lineage-hops-steps button[aria-pressed='true'] {
+  background: #e4efeb;
+  font-weight: 700;
+}
+.lineage-hops-path {
+  flex: 1 1 160px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #2d4a42;
+}
+.lineage-hops-count {
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: #f0f6f2;
+  border: 1px solid #dce8e2;
+  white-space: nowrap;
+}
+.lineage-hops-list {
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid #d6e1df;
+  border-radius: 7px;
+  background: #fff;
+  font-size: var(--text-small);
+  cursor: pointer;
+}
+.lineage-hops-help {
+  margin: 0 0 10px;
+  color: var(--text-muted);
+}
+.lineage-hop-group h3 {
+  margin: 12px 0 4px;
+  font-size: 14px;
+}
+.lineage-hop-group ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lineage-hop-group li {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 5px 0;
+  border-bottom: 1px solid #eef2f2;
+}
+.lineage-hop-group li span {
+  font-size: var(--text-small);
+  color: var(--text-muted);
+}
+/* On a phone the embedded canvas needs its room: the path line gives way to the hop badge. */
+@media (max-width: 700px) {
+  .lineage-view.compact .lineage-hops-path,
+  .lineage-view.compact .lineage-hops-title {
+    display: none;
+  }
+}

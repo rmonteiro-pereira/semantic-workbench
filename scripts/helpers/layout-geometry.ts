@@ -168,7 +168,7 @@ export async function lineageProblems(page: Page): Promise<string[]> {
       const r = c.getBoundingClientRect();
       const label = c.getAttribute('aria-label');
       for (const el of c.querySelectorAll(
-        '.lineage-card-head > *, .lineage-card-marks > *, .lineage-rows li, .lineage-row > *, .property-badge, .lineage-pager > *, .lineage-more span',
+        '.lineage-card-head > *, .lineage-card-marks > *, .lineage-rows li, .lineage-row > *, .property-badge, .lineage-list-foot > *, .lineage-more-button',
       )) {
         const e = el.getBoundingClientRect();
         if (e.width < 1) continue;
