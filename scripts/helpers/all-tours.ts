@@ -3,6 +3,7 @@
 import { editScreens } from './edit-tour';
 import { odcsScreens } from './odcs-tour';
 import { projectDialogScreens } from './project-dialog-tour';
+import { sparseScreens } from './sparse-tour';
 import { tourScreens, type Screen } from './screen-tour';
 
 /** Files the tours open. */
@@ -37,6 +38,11 @@ export function tourGroups(files: AllTourFiles): TourGroup[] {
       title: 'project dialogs',
       summary: 'readable text and no overlaps',
       screens: projectDialogScreens(),
+    },
+    {
+      title: 'folder dialogs',
+      summary: 'readable text and no overlaps',
+      screens: sparseScreens(),
     },
   ];
 }
