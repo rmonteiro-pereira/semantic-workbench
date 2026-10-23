@@ -430,6 +430,7 @@ returns to the requested path. An anonymous API call answers 401.
   names a safe failure reason and offers **Try again**. It answers 400 for an expired, replayed or
   invalid attempt, an invalid token or a tenant mismatch, and 503 when the provider cannot be
   reached.
+  These pages are a centred card with the workbench logo and load only their stylesheet.
 - Frontend assets need the same access as the workspace. Health probes and the minimal
   authentication pages are public.
 - **Cookies.** Sessions use opaque 256-bit identifiers in `__Host-sw-session`
