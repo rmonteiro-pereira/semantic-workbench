@@ -192,8 +192,45 @@ export function RdfItemEditor({
   const set = (key: string, patch: Partial<Row>) =>
     setRows(rs => rs.map(r => (r.key === key ? { ...r, ...patch } : r)));
   const refusal = ok?.refusal;
+  const footer = (
+    <>
+      <button
+        type="button"
+        className="item-delete"
+        hidden={!access.can('edit')}
+        onClick={onDelete}
+        disabled={saving || !!refusal}
+      >
+        <Trash2 size={13} />
+        Delete…
+      </button>
+      <span className="item-state" role="status">
+        {pending
+          ? 'Checking…'
+          : result && !result.ok
+            ? 'Not applied'
+            : errors.length
+              ? `${errors.length} finding${errors.length === 1 ? '' : 's'} to fix`
+              : rowsChanged || textChanged
+                ? 'Unsaved changes'
+                : 'No changes'}
+      </span>
+      <button type="button" onClick={onClose} disabled={saving}>
+        Cancel
+      </button>
+      <button
+        type="button"
+        className="primary"
+        onClick={save}
+        title={access.control('edit').title}
+        disabled={!canSave || !access.can('edit')}
+      >
+        {saving ? 'Saving…' : 'Save to file'}
+      </button>
+    </>
+  );
   return (
-    <Modal title={`Edit ${label}`} onCancel={onClose} className="item-editor">
+    <Modal title={`Edit ${label}`} onCancel={onClose} className="item-editor" footer={footer}>
       <p className="item-editor-where">
         <span className="item-kind">{kind}</span>
         <span>
@@ -388,41 +425,6 @@ export function RdfItemEditor({
           {error}
         </p>
       )}
-      <div className="repair-actions item-actions">
-        <button
-          type="button"
-          className="item-delete"
-          hidden={!access.can('edit')}
-          onClick={onDelete}
-          disabled={saving || !!refusal}
-        >
-          <Trash2 size={13} />
-          Delete…
-        </button>
-        <span className="item-state" role="status">
-          {pending
-            ? 'Checking…'
-            : result && !result.ok
-              ? 'Not applied'
-              : errors.length
-                ? `${errors.length} finding${errors.length === 1 ? '' : 's'} to fix`
-                : rowsChanged || textChanged
-                  ? 'Unsaved changes'
-                  : 'No changes'}
-        </span>
-        <button type="button" onClick={onClose} disabled={saving}>
-          Cancel
-        </button>
-        <button
-          type="button"
-          className="primary"
-          onClick={save}
-          title={access.control('edit').title}
-          disabled={!canSave || !access.can('edit')}
-        >
-          {saving ? 'Saving…' : 'Save to file'}
-        </button>
-      </div>
     </Modal>
   );
 }

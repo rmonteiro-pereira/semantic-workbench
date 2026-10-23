@@ -1,7 +1,7 @@
 /** Validates metric creation step by step and previews the server's plan without executing SQL. */
 import { CompositionTree } from './Explanation';
 import React, { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, Check } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import type { KpiExplanation, KpiSummary } from '../../server/agent/explain';
 import { Modal } from '../projects/Modal';
 import { api, StaleSave, type Doc, type KpiSaveRequest } from '../projects/api';
@@ -318,32 +318,54 @@ export function MetricWizard({
       ))}
     </div>
   );
+  const footer = (
+    <>
+      <button type="button" onClick={onClose} disabled={busy && step === 7}>
+        Cancel
+      </button>
+      <button type="button" onClick={() => setStep(s => s - 1)} disabled={step === 0}>
+        Back
+      </button>
+      {step < 7 ? (
+        <button
+          type="button"
+          className="primary"
+          onClick={() => go(step + 1)}
+          disabled={blocking.length > 0 || (step === 6 && !preview)}
+        >
+          Next
+        </button>
+      ) : (
+        <button type="button" className="primary" onClick={save} disabled={busy || !preview}>
+          {busy ? 'Saving…' : 'Save to file'}
+        </button>
+      )}
+    </>
+  );
   return (
     <Modal
       title={existing ? `Add attributes to ${existing.label}` : 'New metric'}
       onCancel={onClose}
       className="item-editor kpi-wizard"
+      footer={footer}
     >
-      <ol className="wizard-steps" aria-label="Steps">
-        {STEPS.map((s, i) => (
-          <li key={s}>
-            <button
-              type="button"
-              aria-current={i === step ? 'step' : undefined}
-              className={i === step ? 'current' : i < done ? 'done' : ''}
-              disabled={i > done}
-              onClick={() => setStep(i)}
-            >
-              <span>{i < step ? <Check size={11} /> : i + 1}</span>
-              {s}
-            </button>
-          </li>
-        ))}
-      </ol>
       <section className="wizard-body" aria-label={STEPS[step]}>
-        <h3>
-          {step + 1}. {STEPS[step]}
-        </h3>
+        <div className="wizard-progress">
+          <h3>
+            Step {step + 1} of {STEPS.length} - {STEPS[step]}
+          </h3>
+          <select
+            aria-label="Go to step"
+            value={step}
+            onChange={event => setStep(Number(event.target.value))}
+          >
+            {STEPS.map((name, index) => (
+              <option key={name} value={index} disabled={index > done}>
+                {index + 1}. {name}
+              </option>
+            ))}
+          </select>
+        </div>
         {step === 0 && bound && (
           <p>
             {existing!.label} is already bound: it measures <strong>{d.measures || '—'}</strong>
@@ -945,28 +967,6 @@ export function MetricWizard({
           </p>
         )}
       </section>
-      <div className="repair-actions item-actions">
-        <button type="button" onClick={onClose} disabled={busy && step === 7}>
-          Cancel
-        </button>
-        <button type="button" onClick={() => setStep(s => s - 1)} disabled={step === 0}>
-          Back
-        </button>
-        {step < 7 ? (
-          <button
-            type="button"
-            className="primary"
-            onClick={() => go(step + 1)}
-            disabled={blocking.length > 0 || (step === 6 && !preview)}
-          >
-            Next
-          </button>
-        ) : (
-          <button type="button" className="primary" onClick={save} disabled={busy || !preview}>
-            {busy ? 'Saving…' : 'Save to file'}
-          </button>
-        )}
-      </div>
     </Modal>
   );
 }
