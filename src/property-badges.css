@@ -9,7 +9,7 @@
 }
 .prop-badge {
   display: inline-block;
-  font-size: 10px;
+  font-size: var(--text-small);
   font-weight: 700;
   line-height: 15px;
   letter-spacing: 0.2px;
@@ -48,7 +48,7 @@
   background: #e4eef7;
   color: #1f5476;
   border-color: #c5d9ea;
-  font-size: 11px;
+  font-size: var(--text-small);
   line-height: 17px;
 }
 .prop-badge.b-unmapped {
@@ -56,6 +56,6 @@
   color: #485b54;
   border-color: #cbd6d1;
   font-weight: 600;
-  font-size: 11px;
+  font-size: var(--text-small);
   line-height: 17px;
 }

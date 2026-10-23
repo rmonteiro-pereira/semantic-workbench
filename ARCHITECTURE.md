@@ -63,6 +63,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `scripts/auth-*.ts` | Sign-in orchestration, disposable environments, mock lifecycle checks, Keycloak compatibility and server container checks | Shared browser assertions or generic process lifecycle |
 | `scripts/examples/agent-client.ts` | Runnable example of an agent client that gets its Entra token with MSAL and reads the agent catalog | Anything the server imports |
 | `scripts/helpers/sign-in.ts` | Shared identity, storage, native sign-out and responsive browser assertions | Provider startup |
+| `scripts/helpers/text-geometry.ts`, `scripts/helpers/screen-tour.ts` | Browser measurement of text below the 12 px minimum and of text covered by other elements; the list of screens and dialogs that the responsive suite and `scripts/polish-capture.ts` walk | Suite selection |
 | `scripts/helpers/processes.ts` | Command execution, loopback ports, bounded readiness and once-only signal cleanup | Suite selection or provider configuration |
 | `server/routes/auth.ts`, `server/routes/me.ts` | Minimal identity-only pages and current identity responses | Provider tokens in responses |
 | `server/auth/actions.ts` | Action names, built-in role ids and classification levels | Policy evaluation, I/O |
@@ -167,6 +168,10 @@ editor never receives an older deferred value as an external replacement.
 
 ## Cross-cutting concerns
 
+- **Text size and colour**: `src/style.css` defines `--text-small` (12 px, the smallest text the
+  interface shows) and `--text-muted` (the softest text colour, at least 4.5:1 contrast on white).
+  Stylesheets use the two variables instead of literal small sizes or pale greys. The responsive
+  suite fails when any screen of its tour shows text under 12 px.
 - **Configuration**: start-up uses `readConfig()` in `server/config.ts` once for mode, host,
   port, data root, cache root and build identity. Every server-mode variable is listed once, with its default and what start-up checks, in `specs/003-authn-authz/contracts/configuration.md`. Server mode requires issuer discovery and
   a valid administration policy set before serving workspace traffic. The writable-root probe precedes lock acquisition; recovery,

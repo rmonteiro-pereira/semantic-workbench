@@ -860,13 +860,15 @@ SW_BASE_URL=http://127.0.0.1:5180 bun run test:projects
 
 `SW_BASE_URL` defaults to `http://127.0.0.1:5173` (the older name `UI_URL` is still accepted).
 `SW_SCREENSHOT_DIR` keeps a suite's screenshots in one folder; without it they go to `/tmp`.
+`bun scripts/polish-capture.ts <folder>` photographs the same tour of screens at the four sizes
+and prints what the checks find on each, which is the quickest way to review a visual change.
 `test:auth`, `test:two-editors` and `test:admin` build the frontend and serve it themselves, so
 they need no Vite.
 
 | Script | What it checks |
 | --- | --- |
 | `test:ui` | Real downloads and exports of every example, reopening examples, grouped relationship selection, unobstructed controls, unsaved edits, re-import |
-| `test:responsive` | Six viewports from 390×844 to 2560×1440: no horizontal scroll, no cut-off control, no overlapping floating element, drawers, full screen in Graph and Neighborhood |
+| `test:responsive` | Six viewports from 390×844 to 2560×1440: no horizontal scroll, no cut-off control, no overlapping floating element, drawers, full screen in Graph and Neighborhood; and a tour of every screen and dialog at 390, 1280, 1440 and 2560 px with text of at least 12 px, no text covered by or overlapping other text, and no cut-off control |
 | `test:edges` | Graph edge endpoints against rendered node borders while dragging and zooming |
 | `test:grouping-validation` | Grouping suggestions and validation dialogs, repair of mixed import batches |
 | `test:examples:ui` | Loading the examples, mappings and metric composition |
@@ -909,9 +911,9 @@ SW_SCREENSHOT_DIR=/tmp/admin-shots bun test tests/admin-geometry.test.tsx  # eve
 ### Mutation checks
 
 `bun run test:mutation` is targeted, not a whole-project score. It introduces 474
-deliberate faults into temporary copies of the code, each of which a test must detect, plus three
+deliberate faults into temporary copies of the code, each of which a test must detect, plus four
 faults injected into a running browser page (an empty neighborhood projection, a status line drawn
-over the map controls and status messages that never dismiss). Each module's unmodified baseline
+over the map controls, status messages that never dismiss and a label below the minimum text size). Each module's unmodified baseline
 must pass first, and formatting and lint must be clean. It never changes application sources.
 The faults cover validation, RDF, size limits, layout, grouping, exports, edits, metrics and the
 folder store; Git safety (no shell strings, no remote command outside an explicit action, no

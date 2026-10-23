@@ -38,7 +38,7 @@
   overflow-wrap: anywhere;
 }
 .odcs-title small {
-  color: #6f8881;
+  color: var(--text-muted);
   font-size: 12px;
 }
 .odcs-title > div {
@@ -60,10 +60,10 @@
 }
 .odcs-facts dt,
 .odcs-facts b {
-  font-size: 10px;
+  font-size: var(--text-small);
   letter-spacing: 0.7px;
   text-transform: uppercase;
-  color: #6f8881;
+  color: var(--text-muted);
   font-weight: 600;
 }
 .odcs-facts dd {
@@ -74,7 +74,7 @@
   flex-direction: column;
 }
 .dataset-facts code {
-  font-size: 11px;
+  font-size: var(--text-small);
   background: #eef3f1;
   border-radius: 4px;
   padding: 0 4px;
@@ -109,10 +109,10 @@
   font-size: 13px;
 }
 .odcs-purpose dt {
-  font-size: 10px;
+  font-size: var(--text-small);
   letter-spacing: 0.7px;
   text-transform: uppercase;
-  color: #6f8881;
+  color: var(--text-muted);
   font-weight: 600;
 }
 .odcs-purpose dd {
@@ -163,7 +163,7 @@
   font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
-  color: #6f8881;
+  color: var(--text-muted);
 }
 .odcs-search {
   display: flex;
@@ -173,7 +173,7 @@
   border-radius: 7px;
   background: #fff;
   padding: 0 8px;
-  color: #6f8881;
+  color: var(--text-muted);
   min-width: 0;
   flex: 0 1 280px;
 }
@@ -204,10 +204,10 @@
 }
 .odcs-table th {
   text-align: left;
-  font-size: 10px;
+  font-size: var(--text-small);
   letter-spacing: 0.7px;
   text-transform: uppercase;
-  color: #6f8881;
+  color: var(--text-muted);
   font-weight: 600;
   padding: 8px 10px;
   background: #f3f7f5;
@@ -239,7 +239,7 @@
   font-variant-numeric: tabular-nums;
 }
 .odcs-table code {
-  font-size: 11px;
+  font-size: var(--text-small);
   overflow-wrap: anywhere;
 }
 .odcs-desc {
@@ -310,7 +310,7 @@ button.odcs-link.fk:hover {
 }
 .odcs-tabs small {
   margin-left: 5px;
-  font-size: 10px;
+  font-size: var(--text-small);
   background: #dcebe5;
   border-radius: 8px;
   padding: 0 5px;
@@ -328,7 +328,7 @@ button.odcs-link.fk:hover {
   gap: 8px 14px;
 }
 .odcs-toolbar small {
-  color: #6f8881;
+  color: var(--text-muted);
   font-size: 12px;
 }
 .odcs-sort {
@@ -360,7 +360,7 @@ button.odcs-link.fk:hover {
 .odcs-tag {
   display: inline-block;
   font-style: normal;
-  font-size: 11px;
+  font-size: var(--text-small);
   background: #eef3f1;
   border-radius: 4px;
   padding: 0 6px;
@@ -388,7 +388,7 @@ button.odcs-link.fk:hover {
 }
 .odcs-chip {
   display: inline-block;
-  font-size: 11px;
+  font-size: var(--text-small);
   background: #eef3f1;
   border-radius: 4px;
   padding: 0 5px;
@@ -450,7 +450,7 @@ button.odcs-link.fk:hover {
   display: inline-block;
   min-width: 62px;
   text-align: center;
-  font-size: 10px;
+  font-size: var(--text-small);
   font-weight: 700;
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -481,7 +481,7 @@ button.odcs-link.fk:hover {
   text-decoration: none;
 }
 .odcs-severity {
-  font-size: 11px;
+  font-size: var(--text-small);
   border-radius: 4px;
   padding: 0 6px;
   background: #eef3f1;
@@ -500,7 +500,7 @@ button.odcs-link.fk:hover {
   white-space: pre-wrap;
 }
 .muted {
-  color: #93a8a1;
+  color: var(--text-muted);
 }
 @media (max-width: 700px) {
   .odcs-page {
@@ -678,12 +678,12 @@ textarea.odcs-edit.text {
   background: #eef5f2;
 }
 .lineage-search li.none {
-  color: #6a7d78;
+  color: var(--text-muted);
   cursor: default;
 }
 .lineage-search .asset-kind {
   flex: none;
-  font-size: 10px;
+  font-size: var(--text-small);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -739,7 +739,7 @@ textarea.odcs-edit.text {
 }
 .lineage-trail ol li + li::before {
   content: '›';
-  color: #9aaba7;
+  color: var(--text-muted);
   margin-right: 4px;
 }
 .lineage-trail ol button {
@@ -756,7 +756,7 @@ textarea.odcs-edit.text {
   font-weight: 600;
 }
 .lineage-trail small {
-  color: #7a8c88;
+  color: var(--text-muted);
   margin-right: 4px;
 }
 .lineage-stage {
@@ -829,8 +829,8 @@ textarea.odcs-edit.text {
 .lineage-path ol > li::before {
   content: counter(path-step);
   flex: 0 0 16px;
-  color: #6a7d78;
-  font-size: 11px;
+  color: var(--text-muted);
+  font-size: var(--text-small);
   text-align: right;
 }
 .lineage-path ol > li button {
@@ -851,7 +851,7 @@ textarea.odcs-edit.text {
 }
 .lineage-path ol > li button small {
   flex: none;
-  font-size: 10px;
+  font-size: var(--text-small);
   font-weight: 600;
   color: #526960;
   background: #eef3f1;
@@ -892,8 +892,8 @@ textarea.odcs-edit.text {
 .lineage-reading {
   min-width: 0;
   overflow-wrap: anywhere;
-  font-size: 11px;
-  color: #6a7d78;
+  font-size: var(--text-small);
+  color: var(--text-muted);
 }
 .lineage-card {
   box-sizing: border-box;
@@ -979,8 +979,8 @@ textarea.odcs-edit.text {
 }
 .lineage-card-title small {
   line-height: 14px;
-  font-size: 11.5px;
-  color: #6a7d78;
+  font-size: var(--text-small);
+  color: var(--text-muted);
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -992,7 +992,7 @@ textarea.odcs-edit.text {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 9.5px;
+  font-size: var(--text-small);
   font-weight: 700;
   letter-spacing: 0.4px;
   text-transform: uppercase;
@@ -1071,7 +1071,7 @@ textarea.odcs-edit.text {
   overflow: hidden;
   text-overflow: ellipsis;
   color: #627970;
-  font-size: 11px;
+  font-size: var(--text-small);
   white-space: nowrap;
 }
 .lineage-row .prop-badges {
@@ -1085,7 +1085,7 @@ textarea.odcs-edit.text {
   padding: 0 4px;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 11px;
+  font-size: var(--text-small);
   line-height: 17px;
 }
 .lineage-rows li.on-path .lineage-row {
@@ -1102,7 +1102,7 @@ textarea.odcs-edit.text {
 .lineage-more span {
   padding: 0 10px;
   font-size: 12px;
-  color: #6a7d78;
+  color: var(--text-muted);
   font-style: italic;
 }
 .lineage-pager {
@@ -1119,7 +1119,7 @@ textarea.odcs-edit.text {
   border: 1px solid #d6e1df;
   background: #fff;
   border-radius: 4px;
-  font-size: 11px;
+  font-size: var(--text-small);
   cursor: pointer;
   padding: 0 4px;
 }
@@ -1142,7 +1142,7 @@ textarea.odcs-edit.text {
   stroke-width: 2.6px !important;
 }
 .lineage-bundle {
-  font-size: 10px;
+  font-size: var(--text-small);
   fill: #4d6660;
   paint-order: stroke;
   stroke: #fff;
@@ -1195,7 +1195,7 @@ textarea.odcs-edit.text {
   padding: 5px 10px;
 }
 .odcs-dir {
-  font-size: 11px;
+  font-size: var(--text-small);
   font-weight: 600;
   border-radius: 4px;
   padding: 1px 6px;
@@ -1301,7 +1301,7 @@ textarea.odcs-edit.text {
   flex-wrap: nowrap;
 }
 .lineage-card-marks .prop-badge {
-  font-size: 11px;
+  font-size: var(--text-small);
   line-height: 17px;
 }
 .lineage-finding {
@@ -1359,7 +1359,7 @@ textarea.odcs-edit.text {
 }
 .lineage-bindings small {
   display: inline-block;
-  font-size: 11px;
+  font-size: var(--text-small);
   font-weight: 600;
   line-height: 17px;
   color: #526960;
@@ -1373,7 +1373,7 @@ textarea.odcs-edit.text {
   display: block;
   margin-top: 5px;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 11px;
+  font-size: var(--text-small);
   line-height: 1.6;
   color: #526960;
   white-space: pre-wrap;

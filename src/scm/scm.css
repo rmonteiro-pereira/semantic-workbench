@@ -108,7 +108,7 @@
   white-space: nowrap;
   color: #5a6f68;
   font-family: ui-monospace, monospace;
-  font-size: 11px;
+  font-size: var(--text-small);
 }
 .scm-remote-actions {
   display: flex;
@@ -213,7 +213,7 @@
 .scm-error pre {
   margin: 0;
   font:
-    11px/1.45 ui-monospace,
+    var(--text-small)/1.45 ui-monospace,
     monospace;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -245,10 +245,10 @@
 }
 .scm-commit small {
   color: #8a5a12;
-  font-size: 11px;
+  font-size: var(--text-small);
 }
 .scm-empty {
-  color: #7d9188;
+  color: var(--text-muted);
   font-size: 12px;
   margin: 8px 0;
 }
@@ -257,7 +257,7 @@
   align-items: center;
   gap: 6px;
   margin: 0 0 4px;
-  font-size: 11px;
+  font-size: var(--text-small);
   letter-spacing: 0.4px;
   text-transform: uppercase;
   color: #4d6660;
@@ -266,14 +266,14 @@
   background: #e3ecea;
   border-radius: 9px;
   padding: 0 6px;
-  font-size: 10px;
+  font-size: var(--text-small);
   color: #3a5a50;
 }
 .scm-group h3 .link {
   margin-left: auto;
   text-transform: none;
   letter-spacing: 0;
-  font-size: 11px;
+  font-size: var(--text-small);
 }
 .scm-group ul,
 .scm-group ol {
@@ -311,8 +311,8 @@
   overflow-wrap: anywhere;
 }
 .scm-file small {
-  color: #7d9188;
-  font-size: 11px;
+  color: var(--text-muted);
+  font-size: var(--text-small);
   overflow-wrap: anywhere;
 }
 .scm-label {
@@ -320,7 +320,7 @@
   align-items: center;
   gap: 3px;
   font-style: normal;
-  font-size: 10px;
+  font-size: var(--text-small);
   color: #6b5a1e;
   background: #f6efd6;
   border-radius: 4px;
@@ -357,7 +357,7 @@
 }
 .scm-state {
   font:
-    600 11px ui-monospace,
+    600 var(--text-small) ui-monospace,
     monospace;
   text-align: center;
   color: #8a6d1a;
@@ -394,7 +394,7 @@
 }
 .scm-ignore code {
   margin-left: auto;
-  font-size: 11px;
+  font-size: var(--text-small);
   color: #5a6f68;
   overflow-wrap: anywhere;
 }
@@ -424,8 +424,8 @@
   font-size: 12px;
 }
 .scm-commit-row small {
-  color: #7d9188;
-  font-size: 10.5px;
+  color: var(--text-muted);
+  font-size: var(--text-small);
 }
 .scm-commit-row:disabled {
   opacity: 1;
@@ -463,7 +463,7 @@
 .diff-labels {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  font-size: 11px;
+  font-size: var(--text-small);
   color: #4d6660;
   background: #f3f6f5;
   border-bottom: 1px solid #e1e8e6;
@@ -492,7 +492,7 @@
 }
 .diff-same {
   font-size: 12px;
-  color: #7d9188;
+  color: var(--text-muted);
   margin: 6px 10px;
 }
 @media (max-width: 900px) {
@@ -510,7 +510,7 @@
 }
 .nav-count {
   margin-left: auto;
-  font-size: 11px;
+  font-size: var(--text-small);
   font-weight: 600;
   background: #dcebe5;
   color: #1e6a4f;
@@ -623,11 +623,11 @@
 }
 .commit-dialog .commit-kind {
   flex: none;
-  font-size: 10px;
+  font-size: var(--text-small);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  color: #6a7d78;
+  color: var(--text-muted);
 }
 .commit-dialog .commit-kind.k-new,
 .commit-dialog .commit-kind.k-added {
@@ -837,7 +837,7 @@
   overflow-wrap: anywhere;
 }
 .repository-folder small {
-  color: #6b8077;
+  color: var(--text-muted);
 }
 .repository-folder input[type='text'],
 .repository-folder input:not([type]) {
@@ -847,7 +847,7 @@
 }
 .scm-project {
   font-style: normal;
-  font-size: 10px;
+  font-size: var(--text-small);
   color: #29534a;
   background: #e3efe9;
   border-radius: 4px;

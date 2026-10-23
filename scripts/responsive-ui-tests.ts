@@ -7,6 +7,7 @@ import { treeRowProblems } from './helpers/tree-geometry';
 import { neighborhoodEdgeProblems, neighborhoodState, pickCenter } from './helpers/edge-geometry';
 import { inspect } from '../src/model';
 import { layoutProblems, lineageProblems } from './helpers/layout-geometry';
+import { screenProblems, showScreen, tourScreens } from './helpers/screen-tour';
 
 // Isolated API fixture: exercising viewport changes never modifies the local workspace. The UBL
 // ontology is imported first so that it opens first.
@@ -78,6 +79,16 @@ async function openPage(width: number, height: number) {
       }),
     );
     console.log('INJECTED_OVERLAY_MUTATION');
+  }
+  if (process.env.RESPONSIVE_MUTATION === 'small-text') {
+    await page.addInitScript(() =>
+      document.addEventListener('DOMContentLoaded', () => {
+        const style = document.createElement('style');
+        style.textContent = '.workspace-label{font-size:9px!important}';
+        document.head.append(style);
+      }),
+    );
+    console.log('INJECTED_SMALL_TEXT_MUTATION');
   }
   if (process.env.RESPONSIVE_MUTATION === 'status-stays')
     await page.route('**/src/main.tsx*', async route => {
@@ -1293,6 +1304,24 @@ try {
       await context.close();
     },
   );
+  // Every screen and dialog of the tour: readable text, no collisions, nothing cut off.
+  const tour = tourScreens({ ontology: 'ubl.ontology.yaml', contract: 'commerce.odcs.yaml' });
+  for (const [width, height] of [
+    [390, 844],
+    [1280, 720],
+    [1440, 900],
+    [2560, 1440],
+  ]) {
+    const tourPage = await openPage(width!, height!);
+    await check(`screens: ${width}×${height} readable text and no overlaps`, async () => {
+      for (const screen of tour) {
+        await showScreen(tourPage, screen);
+        expect(await screenProblems(tourPage, screen)).toEqual([]);
+        await noOverflow(tourPage);
+      }
+    });
+    await tourPage.close();
+  }
   await check('no uncaught browser errors', async () => expect(errors).toEqual([]));
   console.log(`${passed} responsive UI checks passed`);
 } finally {
