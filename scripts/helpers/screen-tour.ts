@@ -90,13 +90,17 @@ export async function showScreen(page: Page, screen: Screen) {
   await page.waitForTimeout(300);
 }
 
-/** Returns control, text size and text collision problems of the screen now shown. */
-export async function screenProblems(page: Page, screen: Screen): Promise<string[]> {
-  const within = screen.dialog ?? 'body';
-  const problems = [
+/** Returns control, text size and text collision problems inside the `within` element. */
+export async function geometryProblems(page: Page, within = 'body'): Promise<string[]> {
+  return [
     ...(await layoutProblems(page)),
     ...(await smallTextProblems(page, within)),
     ...(await textCollisionProblems(page, within)),
   ];
+}
+
+/** Returns control, text size and text collision problems of the screen now shown. */
+export async function screenProblems(page: Page, screen: Screen): Promise<string[]> {
+  const problems = await geometryProblems(page, screen.dialog ?? 'body');
   return problems.map(problem => `${screen.name}: ${problem}`);
 }

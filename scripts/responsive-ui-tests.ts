@@ -11,6 +11,7 @@ import { layoutProblems, lineageProblems } from './helpers/layout-geometry';
 import { screenProblems, showScreen, tourScreens } from './helpers/screen-tour';
 import { editContainmentProblems, editScreens } from './helpers/edit-tour';
 import { odcsScreens, sidewaysTableProblems } from './helpers/odcs-tour';
+import { projectDialogScreens } from './helpers/project-dialog-tour';
 
 // Isolated API fixture: exercising viewport changes never modifies the local workspace. The UBL
 // ontology is imported first so that it opens first.
@@ -438,6 +439,10 @@ try {
     [1440, 900],
   ];
   async function tab(p: Page, name: string) {
+    // Source control has no view tabs; Model explorer in the sidebar brings them back.
+    if (await p.getByRole('region', { name: 'Source Control' }).count()) {
+      await sidebarNav(p, /^Model explorer/);
+    }
     if (!(await p.locator('.tabs').isVisible())) return;
     await p.locator('.tabs').getByRole('button', { name, exact: true }).click();
   }
@@ -1373,6 +1378,8 @@ try {
   // Edit drawers, add dialogs, metrics, mappings, the query composer and the catalog.
   const editTour = editScreens({ ontology: 'ubl.ontology.yaml', metricsModel: 'sales.ossie.yaml' });
   const odcsTour = odcsScreens('commerce.odcs.yaml');
+  // The Source control and project dialogs: readable text, no collisions, nothing cut off.
+  const dialogTour = projectDialogScreens();
   for (const [width, height] of [
     [390, 844],
     [1280, 720],
@@ -1399,6 +1406,15 @@ try {
       }
     });
     await odcsPage.close();
+    const dialogPage = await openPage(width!, height!);
+    await check(`project dialogs: ${width}×${height} readable text and no overlaps`, async () => {
+      for (const screen of dialogTour) {
+        await showScreen(dialogPage, screen);
+        expect(await screenProblems(dialogPage, screen)).toEqual([]);
+        await noOverflow(dialogPage);
+      }
+    });
+    await dialogPage.close();
   }
   await check('no uncaught browser errors', async () => expect(errors).toEqual([]));
   console.log(`${passed} responsive UI checks passed`);

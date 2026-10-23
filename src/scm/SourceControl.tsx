@@ -5,6 +5,7 @@ import { useGitSetup } from './GitSetup';
 import { looksLikeAuthFailure } from './CredentialGuide';
 import {
   ConnectPrompt,
+  actionTitle,
   connectRequired,
   useResumeAfterConnect,
   type RemoteAction,
@@ -38,7 +39,7 @@ import {
 } from '../projects/api';
 import { DiffView } from './DiffView';
 import { BranchPicker } from './BranchPicker';
-import { DefaultBranchActions } from './DefaultBranchActions';
+import { SyncDialog } from './SyncDialog';
 import { ignoreChoices } from './gitignore';
 import './scm.css';
 // Changes include diffs, staging, branches, history and explicit remote actions. Hidden-type files
@@ -155,6 +156,7 @@ export function SourceControl({
   const [connect, setConnect] = useState<{ kind: ConnectKind; action: RemoteAction } | null>(null);
   const [busy, setBusy] = useState(false);
   const [ignoring, setIgnoring] = useState<string | null>(null);
+  const [syncOpen, setSyncOpen] = useState(false);
   const openGitSetup = useGitSetup();
   const [historyFile, setHistoryFile] = useState<string | undefined>(historyPath);
   const [log, setLog] = useState<Commit[]>([]);
@@ -324,21 +326,21 @@ export function SourceControl({
     return `${behind}; someone with publish must bring it in.`;
   }
   function reportRemote(action: string, r: RemoteResult) {
-    if (r.cancelled) setNote({ tone: 'info', text: `${title(action)} cancelled.` });
+    if (r.cancelled) setNote({ tone: 'info', text: `${actionTitle(action)} cancelled.` });
     else if (r.conflicted.length)
       setNote({
         tone: 'warning',
         text: 'The pull stopped on conflicts. Open each file, repair it, stage it, then commit the merge:',
         paths: r.conflicted,
       });
-    else if (!r.ok) setError(r.stderr || `${title(action)} failed.`);
+    else if (!r.ok) setError(r.stderr || `${actionTitle(action)} failed.`);
     else if (r.follow && !r.follow.followed)
       setNote({ tone: 'warning', text: behindText(r.follow) });
     else if (r.altered.length) altered(r.altered, action);
     else
       setNote({
         tone: 'info',
-        text: `${title(action)} finished${r.ahead || r.behind ? ` · ${r.ahead} to push, ${r.behind} to pull` : ''}.`,
+        text: `${actionTitle(action)} finished${r.ahead || r.behind ? ` · ${r.ahead} to push, ${r.behind} to pull` : ''}.`,
       });
   }
   async function remote(action: RemoteAction) {
@@ -431,6 +433,12 @@ export function SourceControl({
       </section>
     );
   const remoteNames = Object.keys(status.remotes);
+  // Without a remote, a working copy or the right to add a remote, the dialog would be empty.
+  const offersSync = remoteNames.length > 0 || copy !== null || access.can('setRemote');
+  function fromSync(run: () => void) {
+    setSyncOpen(false);
+    run();
+  }
   const repo = projects.find(item => item.slug === project)?.repo;
   const sharedRepository = projects.filter(item => item.repo === repo).length > 1;
   const canCommit =
@@ -601,58 +609,11 @@ export function SourceControl({
             <ArrowDown size={12} />
             {status.behind}
           </span>
-        </div>
-        {copy && (
-          <DefaultBranchActions
-            copy={copy}
-            canPull={access.can('pull')}
-            canPublish={access.can('publish')}
-            publishTitle={access.control('publish').title}
-            hasRemote={remoteNames.length > 0}
-            disabled={busy}
-            onPull={pullDefault}
-            onPublish={publishCopy}
-            onPushDefault={pushDefault}
-          />
-        )}
-        <div className="scm-remote">
-          {remoteNames.length ? (
-            <span className="scm-remote-url" title={status.remotes[remoteNames[0]]}>
-              {remoteNames[0]}: {status.remotes[remoteNames[0]]}
-            </span>
-          ) : (
-            <span className="scm-remote-url">No remote yet. Add one to push and pull.</span>
-          )}
-          <button
-            hidden={!access.can('setRemote')}
-            onClick={() => openGitSetup({ kind: 'remote', project })}
-          >
-            Remote…
-          </button>
-          {remoteNames.length > 0 && (
-            <div className="scm-remote-actions" role="group" aria-label="Remote">
-              {(['fetch', 'pull', 'push', 'sync'] as const).map(a => (
-                <button
-                  key={a}
-                  hidden={
-                    !access.can(a === 'sync' ? 'pull' : a) || (a === 'sync' && !access.can('push'))
-                  }
-                  onClick={() => void remote(a)}
-                  disabled={busy}
-                >
-                  {a === 'sync' ? (
-                    <RefreshCw size={13} />
-                  ) : a === 'push' ? (
-                    <ArrowUp size={13} />
-                  ) : (
-                    <ArrowDown size={13} />
-                  )}
-                  {a === 'pull' && status.pullSource
-                    ? `Pull ${status.pullSource} into ${status.branch}`
-                    : title(a)}
-                </button>
-              ))}
-            </div>
+          {offersSync && (
+            <button className="scm-sync-open" onClick={() => setSyncOpen(true)}>
+              <RefreshCw size={13} />
+              Sync…
+            </button>
           )}
         </div>
         {waiting && (
@@ -812,6 +773,20 @@ export function SourceControl({
           </ol>
         </section>
       </div>
+      {syncOpen && (
+        <SyncDialog
+          project={project}
+          status={status}
+          copy={copy}
+          busy={busy}
+          onClose={() => setSyncOpen(false)}
+          onRemoteAction={action => fromSync(() => void remote(action))}
+          onEditRemote={() => fromSync(() => openGitSetup({ kind: 'remote', project }))}
+          onPullDefault={() => fromSync(pullDefault)}
+          onPublish={() => fromSync(publishCopy)}
+          onPushDefault={() => fromSync(pushDefault)}
+        />
+      )}
       <div className="scm-main">
         {selected && diff ? (
           diff.binary ? (
@@ -884,7 +859,6 @@ export function SourceControl({
     </section>
   );
 }
-const title = (a: string) => a[0].toUpperCase() + a.slice(1);
 function versionName(rev: string, log: Commit[] = []) {
   if (rev === 'worktree') return 'Working tree';
   if (rev === 'index') return 'Last commit and staged changes';

@@ -4,6 +4,7 @@ import { expect, type Browser, type Page, type Route } from '@playwright/test';
 import { TEST_CLIENTS, TEST_USERS, type TestUserName } from '../../tests/helpers/auth-identities';
 import { screenshotPath } from './screenshots';
 import { layoutProblems } from './layout-geometry';
+import { closeSyncDialog, offersSyncDialog, openSyncDialog } from './sync-dialog';
 import { smallTextProblems, textCollisionProblems } from './text-geometry';
 
 /** Supported authentication viewports, including the narrow phone layout. */
@@ -139,22 +140,18 @@ async function signedInPerson(
 }
 
 /** Captures a page at every supported viewport after checking control geometry. */
-export async function authGeometry(page: Page, name: string) {
+export async function authGeometry(
+  page: Page,
+  name: string,
+  scope?: string,
+  reopen?: (page: Page) => Promise<void>,
+) {
   const original = page.viewportSize();
   for (const [width, height] of authViewports) {
     await page.setViewportSize({ width, height });
+    if (scope) await closeWorkspaceDrawer(page, reopen);
     assert.deepEqual(await layoutProblems(page), [], `${name} at ${width}×${height}`);
-    const scope = (await page.locator('dialog[open]').count()) ? 'dialog[open]' : 'body';
-    assert.deepEqual(
-      await smallTextProblems(page, scope),
-      [],
-      `${name} text size at ${width}×${height}`,
-    );
-    assert.deepEqual(
-      await textCollisionProblems(page, scope),
-      [],
-      `${name} text collisions at ${width}×${height}`,
-    );
+    if (scope) await assertTextProblemsEmpty(page, name, scope, width);
     if (name === 'person-menu') {
       const trigger = await page
         .getByRole('button', { name: 'Person menu', exact: true })
@@ -209,7 +206,7 @@ export async function signInChecks(browser: Browser, target: SignInTarget) {
   try {
     await page.goto(target.url + '/auth/callback?error=access_denied');
     await expect(page.getByRole('heading', { name: 'Sign-in error' })).toBeVisible();
-    await authGeometry(page, 'sign-in-error');
+    await authGeometry(page, 'sign-in-error', 'main');
   } finally {
     await page.close();
   }
@@ -257,10 +254,10 @@ async function checkPerson(browser: Browser, target: SignInTarget, username: Tes
     if (username !== 'erin' && username !== 'gina') assert.equal(identityRequests, 1);
     if (username === 'alice') {
       await page.getByRole('button', { name: 'Person menu' }).click();
-      await authGeometry(page, 'person-menu');
+      await authGeometry(page, 'person-menu', '.menu-popup', openPersonMenu);
       await page.keyboard.press('Escape');
     }
-    if (username === 'erin') await authGeometry(page, 'no-access');
+    if (username === 'erin') await authGeometry(page, 'no-access', 'main');
     assertNoCredentials(
       await page.evaluate(() => ({
         cookie: document.cookie,
@@ -271,7 +268,7 @@ async function checkPerson(browser: Browser, target: SignInTarget, username: Tes
     assert(!(await page.evaluate(() => document.cookie)).includes('sw-session'));
     await check(`sign-out ${username}`, () => signOut(page, target));
     if (username === 'alice') {
-      await authGeometry(page, 'signed-out');
+      await authGeometry(page, 'signed-out', 'main');
       await page.getByRole('link', { name: 'Sign in again' }).click();
       assert(page.url().startsWith(target.issuer));
     }
@@ -386,9 +383,7 @@ async function checkRoleControls(page: Page, target: SignInTarget, username: Tes
   if (username === 'dave') await expect(remove).toBeVisible();
   else await expect(remove).toHaveCount(0);
   await page.getByRole('button', { name: 'Source control', exact: false }).click();
-  const remote = page.getByRole('button', { name: 'Remote…', exact: true });
-  if (username === 'dave') await expect(remote).toBeVisible();
-  else await expect(remote).toBeHidden();
+  await checkRemoteControl(page, username === 'dave');
   if (!writes) {
     const commit = page.getByRole('button', { name: 'Commit', exact: true });
     await expect(commit).toBeDisabled();
@@ -403,7 +398,7 @@ async function checkRoleControls(page: Page, target: SignInTarget, username: Tes
     assert.equal(denied.status(), 403);
   }
   await page.getByRole('button', { name: 'Person menu' }).click();
-  await authGeometry(page, `roles-${username}`);
+  await authGeometry(page, `roles-${username}`, '.menu-popup', openPersonMenu);
 }
 
 /** Exercises built-in and custom role controls and forged writes in signed-in browser sessions. */
@@ -465,4 +460,38 @@ export async function agentBearerChecks(browser: Browser, target: SignInTarget) 
   } finally {
     await context.close();
   }
+}
+
+// Only an Admin may change the remote; the control lives in the Sync dialog.
+async function checkRemoteControl(page: Page, mayChangeRemote: boolean) {
+  if (!mayChangeRemote && !(await offersSyncDialog(page))) return;
+  const dialog = await openSyncDialog(page);
+  const remote = dialog.getByRole('button', { name: 'Remote…', exact: true });
+  if (mayChangeRemote) await expect(remote).toBeVisible();
+  else await expect(remote).toBeHidden();
+  await closeSyncDialog(dialog);
+}
+
+// Text is measured inside the screen or dialog that the check is about: a whole workspace page
+// holds a graph and a sidebar that other checks own.
+async function assertTextProblemsEmpty(page: Page, name: string, scope: string, width: number) {
+  assert.deepEqual(await smallTextProblems(page, scope), [], `${name} text size at ${width}`);
+  assert.deepEqual(await textCollisionProblems(page, scope), [], `${name} collisions at ${width}`);
+}
+
+// Shrinking a desktop window leaves the sidebar open as a drawer over the page. A person would
+// close it, and text under it cannot be measured. Closing it also closes a menu that was open,
+// so the caller says how to open that menu again.
+async function closeWorkspaceDrawer(page: Page, reopen?: (page: Page) => Promise<void>) {
+  // The layout switches to the drawer a moment after the window changes size.
+  await page.waitForTimeout(300);
+  const close = page.getByRole('button', { name: 'Close workspace drawer' });
+  if (!(await close.isVisible())) return;
+  await close.click();
+  await reopen?.(page);
+}
+
+/** Opens the person menu from the header. */
+async function openPersonMenu(page: Page) {
+  await page.getByRole('button', { name: 'Person menu', exact: true }).click();
 }
