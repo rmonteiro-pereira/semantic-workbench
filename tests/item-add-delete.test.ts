@@ -110,7 +110,7 @@ test('deleting a dataset lists its joins and the metrics that read it', () => {
     'expression: SUM(orders.amount)',
   );
 });
-test('deleting a contract object lists foreign keys that point at it; the result validates', () => {
+test('deleting a table lists foreign keys that point at it; the result validates', () => {
   const docs = [doc('commerce.odcs.yaml')];
   const refs = findReferences(
     { kind: 'odcs-object', name: 'customers', docId: docs[0].id, path: ['schema', 0] },

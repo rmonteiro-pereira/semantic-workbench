@@ -586,7 +586,7 @@ try {
       'Dataset page',
       async p => {
         await p.getByRole('button', { name: 'Open orders', exact: true }).click();
-        await expect(p.getByRole('region', { name: 'Dataset orders' })).toBeVisible();
+        await expect(p.getByRole('region', { name: 'Table orders' })).toBeVisible();
       },
     ],
     [
@@ -763,7 +763,7 @@ try {
         for (const problem of await lineageProblems(sweep))
           found.push(`${width}×${height}: ${problem}`);
         await graph
-          .getByRole('group', { name: 'Contract object orders' })
+          .getByRole('group', { name: 'Table orders' })
           .getByRole('button', { name: 'orders.amount', exact: true })
           .click({ force: true });
         await showSelectedPath(graph, sweep);
@@ -986,7 +986,7 @@ try {
     await expect(graph.locator('.lineage-card').first()).toBeVisible();
     await graph.getByRole('button', { name: 'Fit', exact: true }).click();
     await graph
-      .getByRole('group', { name: 'Contract object orders' })
+      .getByRole('group', { name: 'Table orders' })
       .getByRole('button', { name: 'orders.amount', exact: true })
       .click({ force: true });
     await showSelectedPath(graph, p);

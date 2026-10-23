@@ -9,7 +9,7 @@ import { diffObject, flattenProperties, lastChange, type ObjectDiff } from './od
 import { buildLineage, closure, objectId, cardOfNode, type LineageCard } from './lineage';
 import { LineageCanvas } from './LineageCanvas';
 import { projectFiles, projectRevision } from './project-files';
-import { rulesOf } from './ContractOverview';
+import { rulesOf, tableTypeBadge } from './ContractOverview';
 import { PropertiesTab } from './PropertiesTab';
 import type { PropertyEditor } from './PropertyEditors';
 import { ReadMore } from './ReadMore';
@@ -45,7 +45,7 @@ type Props = {
   // Says why cells are read-only, shown above the properties.
   propertiesNote?: string;
 };
-/** Displays one contract object's properties, lineage, relationships, history and quality. */
+/** Displays one table's properties, lineage, relationships, history and quality. */
 export function DatasetPage({
   doc,
   data,
@@ -98,10 +98,10 @@ export function DatasetPage({
   }, [doc.project, doc.path, doc.hash, gitVersion]);
   if (!object)
     return (
-      <section className="odcs-page" aria-label={`Dataset ${objectName}`}>
+      <section className="odcs-page" aria-label={`Table ${objectName}`}>
         <button className="odcs-back" onClick={onBack}>
           <ArrowLeft size={14} />
-          All objects
+          All tables
         </button>
         <p className="odcs-note">{objectName} is no longer in this contract.</p>
       </section>
@@ -111,16 +111,21 @@ export function DatasetPage({
   const changed = versions ? lastChange(versions, objectName) : null;
   const tags = list(object.tags);
   return (
-    <section className="odcs-page odcs-dataset" aria-label={`Dataset ${objectName}`}>
+    <section className="odcs-page odcs-dataset" aria-label={`Table ${objectName}`}>
       <button className="odcs-back" onClick={onBack}>
         <ArrowLeft size={14} />
-        All objects
+        All tables
       </button>
       <header className="odcs-head">
         <div className="odcs-title">
           <Table2 size={20} />
           <div>
-            <h2>{objectName}</h2>
+            <h2>
+              {objectName}
+              {tableTypeBadge(object) && (
+                <span className="odcs-type-badge">{tableTypeBadge(object)}</span>
+              )}
+            </h2>
             {object.physicalName && (
               <small>
                 <code>{text(object.physicalName)}</code>
@@ -139,7 +144,7 @@ export function DatasetPage({
             </button>
           )}
         </div>
-        <div className="odcs-facts dataset-facts" role="group" aria-label="Dataset facts">
+        <div className="odcs-facts dataset-facts" role="group" aria-label="Table facts">
           <span>
             <b>Type</b>
             <span>
@@ -277,7 +282,7 @@ function LineageTab({
       }),
     [graph, card],
   );
-  if (!card) return <p className="odcs-note">No lineage for this object.</p>;
+  if (!card) return <p className="odcs-note">No lineage for this table.</p>;
   return (
     <>
       <div className="odcs-lineage-host">
@@ -385,7 +390,7 @@ function RelationshipsTab({
   }, [data, objectIndex]);
   if (!rows.length)
     return (
-      <p className="odcs-note">{name} has no foreign keys and no other object references it.</p>
+      <p className="odcs-note">{name} has no foreign keys and no other table references it.</p>
     );
   return (
     <>
@@ -399,7 +404,7 @@ function RelationshipsTab({
             <tr>
               <th>Column</th>
               <th>Direction</th>
-              <th>Other object</th>
+              <th>Other table</th>
               <th>Other column</th>
             </tr>
           </thead>
@@ -416,7 +421,7 @@ function RelationshipsTab({
                     <span className="odcs-dir in">referenced by</span>
                   )}
                 </td>
-                <td data-label="Other object">
+                <td data-label="Other table">
                   <button
                     className="odcs-link fk"
                     aria-label={`Open ${r.other}`}
@@ -609,7 +614,7 @@ function qualityColumns(rows: QualityRow[]): QualityColumn[] {
       label: 'Applies to',
       filled: true,
       cell: ({ scope }) =>
-        scope === 'Object' ? <span className="muted">Object</span> : <code>{scope}</code>,
+        scope === 'Table' ? <span className="muted">Table</span> : <code>{scope}</code>,
     },
     { label: 'Rule', filled: filled(r => r.name), cell: ({ rule }) => text(rule.name) },
     {
@@ -649,7 +654,7 @@ function qualityColumns(rows: QualityRow[]): QualityColumn[] {
 
 function QualityTab({ object }: { object: any }) {
   const rules: QualityRow[] = [
-    ...list(object.quality).map(r => ({ scope: 'Object', rule: r })),
+    ...list(object.quality).map(r => ({ scope: 'Table', rule: r })),
     ...flattenProperties(object.properties).flatMap(p =>
       list(p.property.quality).map(r => ({ scope: p.path, rule: r })),
     ),
@@ -661,7 +666,7 @@ function QualityTab({ object }: { object: any }) {
         Rules are shown as declared in the contract; the workbench does not run them.
       </p>
       {!rules.length ? (
-        <p className="odcs-note">This object declares no quality rules.</p>
+        <p className="odcs-note">This table declares no quality rules.</p>
       ) : (
         <div className="odcs-table-wrap">
           <table className="odcs-table stack" aria-label="Quality rules">

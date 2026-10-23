@@ -34,7 +34,7 @@ export type CardData = {
   onOpenAsset?: (card: Card) => void;
 };
 const KIND_NAME: Record<string, string> = {
-  object: 'Contract object',
+  object: 'Table',
   dataset: 'Semantic dataset',
   metric: 'Metric',
   external: 'External reference',
@@ -150,7 +150,7 @@ export const LineageCardNode = memo(({ data }: NodeProps) => {
                 title={
                   d.group
                     ? `Show these cards`
-                    : `Show ${d.hiddenNeighbours} more connected ${d.hiddenNeighbours === 1 ? 'object' : 'objects'}`
+                    : `Show ${d.hiddenNeighbours} more connected ${d.hiddenNeighbours === 1 ? 'table' : 'tables'}`
                 }
                 onClick={() => d.onExpand(c.id)}
               >

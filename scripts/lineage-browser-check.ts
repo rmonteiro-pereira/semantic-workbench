@@ -150,12 +150,12 @@ try {
     'commerce: the Graph tab opens the lineage canvas centred on orders; drawn lines match the expected edges both ways',
     async () => {
       await openContract('commerce.odcs.yaml', 'Commerce workspace');
-      await expect(card('Contract object orders')).toHaveClass(/center/);
+      await expect(card('Table orders')).toHaveClass(/center/);
       // The first view may leave outer cards off screen at a readable zoom; Fit shows them all.
       expect(await compare('commerce')).toBeGreaterThan(5);
       for (const n of [
-        'Contract object customers',
-        'Contract object order_lines',
+        'Table customers',
+        'Table order_lines',
         'Semantic dataset orders',
         'Metric gross_revenue',
       ])
@@ -237,14 +237,14 @@ try {
     'legend and badges: kinds and line styles in the footer; PK, FK and Required on the rows',
     async () => {
       const legend = graph().getByRole('list', { name: 'Legend' });
-      for (const t of ['Contract object', 'Metric']) await expect(legend).toContainText(t);
+      for (const t of ['Table', 'Metric']) await expect(legend).toContainText(t);
       await expect(legend.locator('li').filter({ hasText: 'Foreign key' })).toHaveCount(1);
-      const orderId = card('Contract object orders').getByRole('button', {
+      const orderId = card('Table orders').getByRole('button', {
         name: 'orders.order_id',
       });
       for (const b of ['PK', 'Required']) await expect(orderId).toContainText(b);
       await expect(
-        card('Contract object orders').getByRole('button', { name: 'orders.customer_id' }),
+        card('Table orders').getByRole('button', { name: 'orders.customer_id' }),
       ).toContainText('FK');
     },
   );
@@ -275,11 +275,11 @@ try {
       console.log(`  highlight ${ms.toFixed(0)} ms`);
       expect(ms).toBeLessThanOrEqual(200);
       await expect(
-        card('Contract object orders').getByRole('button', { name: 'orders.amount' }),
+        card('Table orders').getByRole('button', { name: 'orders.amount' }),
       ).toHaveAttribute('aria-pressed', 'true');
       const on = graph().locator('g[data-on-path="true"]');
       expect(await on.count()).toBeGreaterThanOrEqual(3);
-      await expect(card('Contract object customers')).toHaveClass(/dim/);
+      await expect(card('Table customers')).toHaveClass(/dim/);
       const panel = graph().getByRole('region', { name: 'Selected path' });
       await expect(panel).toContainText('orders.amount');
       await expect(panel).toContainText('gross_revenue');
@@ -294,21 +294,21 @@ try {
   await check(
     'walk: Walk here re-centres on customers, the trail records it, Back and Forward return; Find assets walks too',
     async () => {
-      await card('Contract object customers').getByRole('button', { name: 'Walk here' }).click();
-      await expect(card('Contract object customers')).toHaveClass(/center/);
+      await card('Table customers').getByRole('button', { name: 'Walk here' }).click();
+      await expect(card('Table customers')).toHaveClass(/center/);
       const trail = graph().getByLabel('Walk', { exact: true });
       await expect(trail.locator('li')).toHaveCount(2);
       await trail.getByRole('button', { name: 'Back' }).click();
-      await expect(card('Contract object orders')).toHaveClass(/center/);
+      await expect(card('Table orders')).toHaveClass(/center/);
       await trail.getByRole('button', { name: 'Forward' }).click();
-      await expect(card('Contract object customers')).toHaveClass(/center/);
+      await expect(card('Table customers')).toHaveClass(/center/);
       await graph().getByRole('textbox', { name: 'Find assets' }).fill('order_lines');
       await graph()
         .getByRole('listbox', { name: 'Asset results' })
         .getByRole('option')
         .first()
         .click();
-      await expect(card('Contract object order_lines')).toHaveClass(/center/);
+      await expect(card('Table order_lines')).toHaveClass(/center/);
       await expect(trail.locator('li')).toHaveCount(3);
       await trail.getByRole('button', { name: 'Back' }).click();
       await trail.getByRole('button', { name: 'Back' }).click();
@@ -330,18 +330,18 @@ try {
     await shots('mall');
   });
   await check(
-    'UBL (169 objects): first view within 2 s, centred on consignment; drawn lines match; paging shows the next columns',
+    'UBL (169 tables): first view within 2 s, centred on consignment; drawn lines match; paging shows the next columns',
     async () => {
       const ms = await openContract('ubl.odcs.yaml', examples.ubl.name);
       console.log(`  first view ${ms} ms`);
       expect(ms).toBeLessThanOrEqual(2000);
       const center = graph().locator('.lineage-card.center');
-      await expect(center).toHaveAttribute('aria-label', 'Contract object consignment');
+      await expect(center).toHaveAttribute('aria-label', 'Table consignment');
       expect(await renderedRowPx()).toBeGreaterThanOrEqual(12);
-      // The fan-out of bridge tables is one "N more objects" card, which opens on request.
+      // The fan-out of bridge tables is one "N more tables" card, which opens on request.
       await fit();
       const group = graph().locator('.lineage-card.group').first();
-      await expect(group).toContainText('more objects');
+      await expect(group).toContainText('more tables');
       const before = await graph().locator('.lineage-card').count();
       await group.getByRole('button', { name: /^Expand / }).click();
       await expect.poll(() => graph().locator('.lineage-card').count()).toBeGreaterThan(before);
@@ -382,10 +382,10 @@ try {
       await graph()
         .getByRole('listbox', { name: 'Asset results' })
         .getByRole('option')
-        .filter({ hasText: 'Object' })
+        .filter({ hasText: 'Table' })
         .first()
         .click();
-      await expect(card('Contract object invoice_line')).toHaveClass(/center/);
+      await expect(card('Table invoice_line')).toHaveClass(/center/);
       await page.waitForTimeout(500);
       await fit();
       const before = await cardPositions();
