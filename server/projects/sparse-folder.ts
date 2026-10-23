@@ -8,6 +8,7 @@ import { join } from 'node:path';
 import { checkRepositoryFolder } from '../../src/scm/repository-folder';
 import { BadRequestError, MissingFolderError } from './errors';
 import { commitOf, symbolicBranch, type Git, type RemoteCredential } from './git';
+import { assertNoLinks } from './paths';
 
 /** Validates a folder typed by a person; '' means the whole repository. */
 export function repositoryFolder(input: unknown): string {
@@ -99,7 +100,11 @@ export async function checkOutFolder(
     throw new MissingFolderError(folder, branch ?? 'the default branch');
   }
   await checkOutFolders(git, dir, [folder], options.credential);
-  if (!present) mkdirSync(join(dir, folder), { recursive: true });
+  if (!present) {
+    // A tracked link at the root or in a parent folder must not carry the new folder elsewhere.
+    assertNoLinks(dir, folder);
+    mkdirSync(join(dir, folder), { recursive: true });
+  }
 }
 
 /** The commit whose folder contents are needed, and the remote and credential to get them. */

@@ -87,6 +87,9 @@ export const createGitRoutes =
           ),
         );
       }
+      if (action === 'git/folder') {
+        return Response.json(await ws.projectFolders.preview(slug, q.get('folder'), reader));
+      }
       if (action === 'git/branches') return Response.json(await scm.branches(slug, reader));
       if (action === 'git/log')
         return Response.json(
@@ -242,6 +245,14 @@ export const createGitRoutes =
       // Server mode stores the canonical form of the address it checked.
       const address = checkRemoteAddress(req, b.url);
       return Response.json(await (await sourceControl()).setRemote(slug, b.name, address));
+    }
+    if (req.method === 'PUT' && action === 'git/folder') {
+      const b = await body(['folder', 'createFolder']);
+      if (b.createFolder !== undefined && typeof b.createFolder !== 'boolean')
+        throw new BadRequestError('createFolder must be true or false.');
+      authorizeRepository(gitTarget, 'setRemote');
+      const options = { createFolder: b.createFolder === true };
+      return Response.json(await ws.projectFolders.apply(slug, b.folder, options, reader));
     }
     if (req.method === 'DELETE' && action === 'git/remote') {
       const b = await body(['name']);

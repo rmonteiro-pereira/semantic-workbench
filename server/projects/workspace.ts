@@ -60,6 +60,7 @@ import {
   type FolderRequest,
 } from './clone';
 import { createRepositoryProjects } from './repository-projects';
+import { createProjectFolders } from './project-folder';
 import { MANIFEST_FILE } from './repositories';
 import { LOCAL_READER, type Reader } from './reader';
 import { BadRequestError, HiddenResourceError } from './errors';
@@ -1295,6 +1296,23 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       );
     return value.trim();
   }
+  const projectFolders = createProjectFolders({
+    layout,
+    git,
+    journal,
+    projects,
+    lock,
+    projectLockKey: slug => projectLockKey(slug, null),
+    registrySteps,
+    drafts: slug =>
+      state
+        .drafts()
+        .filter(draft => draft.project === slug)
+        .map(draft => draft.path),
+    refreshed: async slug => {
+      await scm.refresh(slug);
+    },
+  });
   const repositoryProjects = createRepositoryProjects({
     layout,
     git,
@@ -1418,6 +1436,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     projectCandidates: (repo: string, reader?: Reader) =>
       repositoryProjects.candidates(repo, reader),
     registerRepositoryProjects: repositoryProjects.register,
+    /** Previews and applies moving a project into a folder of its repository. */
+    projectFolders,
     /** Takes a project out of the workspace without deleting anything: its folder, history,
      * drafts and view settings stay where they are. */
     /** Takes a subfolder project out of the workspace without deleting anything. */

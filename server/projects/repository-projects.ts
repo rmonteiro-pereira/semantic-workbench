@@ -117,7 +117,7 @@ function planProjects(
 }
 
 // The project's folder relative to its repository root ('' for the root itself).
-function pathInRepo(project: ProjectEntry, repo: string) {
+export function pathInRepo(project: ProjectEntry, repo: string) {
   const folder = locationOf(project).folder;
   return folder === repo ? '' : folder.slice(repo.length + 1);
 }
