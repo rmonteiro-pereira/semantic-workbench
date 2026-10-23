@@ -55,6 +55,31 @@ Findings: F01, F03, F08, F20, F25, F40, F49, F57, F63. Checks: `lineage:` blocks
 `scripts/responsive-ui-tests.ts` (extended), `scripts/lineage-browser-check.ts` (extended),
 `test:graph` pierce budget.
 
+## R2a. Table cards without pagination (lineage, ODCS graph and mapping graph)
+
+The cards of the lineage canvas and the ODCS graph show "93 more columns" and page buttons
+"1 2 ... 11". Page numbers go away.
+
+1. By default a card shows the columns that matter: primary key columns, foreign key columns,
+   columns with an edge in the current view or on the current path, and columns that match the
+   search.
+2. The card ends with one plain line, for example "+ 93 more columns", that expands the card in
+   place.
+3. Expanded, the card lists every column in one scrollable list inside the card, with a maximum
+   height, virtualised for very wide tables. A card of more than about 30 columns has a small
+   filter box. "Show fewer" collapses it again.
+4. No page numbers or pager buttons appear on any canvas card.
+5. **Full pierce** still shows every connected column.
+6. Edges anchor to rows inside the scrolled list. When a connected row is scrolled out of view,
+   the edge points to the list edge and carries a marker.
+7. Edge labels do not repeat on bundled or parallel edges: a bundle is labelled once, or its label
+   shows on hover or selection.
+
+Findings: F65, F66. Checks (new): `no pager on any canvas card` in `scripts/lineage-browser-check.ts`
+and `scripts/odcs-browser-check.ts`; `card expands and collapses in place with filter and Show
+fewer` in the same suites; `edges stay anchored on expanded cards, with an edge marker for rows
+scrolled out` in the responsive suite `lineage:` block; `parallel edges carry one label`.
+
 ## R3. Admin is a page
 
 1. Admin is a full workspace view with its own route state; reload lands on the same section and
@@ -184,4 +209,6 @@ Every finding maps to a requirement. Status values are open, fixed, deferred (wi
 | F61 | R10 | open |
 | F62 | R1 | open |
 | F63 | R2 | open |
+| F65 | R2a, R4 | open |
+| F66 | R2a | open |
 | F64 | R11 | open |
