@@ -3344,6 +3344,21 @@ main > .status {
 .header-actions .save-state.s-cancelled::before {
   background: #c2483a;
 }
+/* A refusal is a whole sentence: the pill grows to two lines instead of cutting it. */
+@media (min-width: 651px) {
+  .header-actions .save-state.s-failed {
+    max-width: min(380px, 40vw);
+    border-radius: 14px;
+    line-height: 1.25;
+  }
+  .header-actions .save-state.s-failed .save-state-text {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
 .header-actions .save-state:disabled {
   opacity: 0.6;
   cursor: default;

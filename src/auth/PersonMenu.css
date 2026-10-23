@@ -26,11 +26,25 @@
 .person-summary {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
+  font-size: 13px;
   padding: 10px 12px;
   text-align: left;
   border-bottom: 1px solid #dce3e0;
   overflow-wrap: anywhere;
+}
+/* The name is the heading of the summary, so it stays at the size of the items below it. */
+.person-summary strong {
+  font-size: 13px;
+}
+.person-summary span {
+  font-size: var(--text-small);
+  color: var(--text-muted);
+}
+/* The page-wide button style centres its text; menu items read from the left. */
+.person-menu .menu-popup [role='menuitem'] {
+  justify-content: flex-start;
+  text-align: left;
 }
 @media (max-width: 699px) {
   .workspace-header:has(.person-menu) {
