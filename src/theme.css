@@ -14,9 +14,8 @@
   --color-surface-page: #f7f9f9;
   --color-surface-sunken: #eef3f1;
   --color-surface-hover: #edf5f2;
-  /* Dark panels on a light page, such as tooltips, and the writing on them. */
-  --color-surface-inverse: #24393d;
-  --color-text-inverse: #ffffff;
+  /* Dark panels on a light page, such as tooltips. Their writing is --color-text-inverse. */
+  --color-surface-inverse: #26453d;
 
   /* Borders: dividers, outlines of cards and inputs, and stronger edges of inputs. */
   --color-border-subtle: #e6ecea;
@@ -30,6 +29,7 @@
   --color-text-secondary: #3a5a50;
   --color-text-muted: #566c65;
   --color-on-accent: #ffffff;
+  --color-text-inverse: #ffffff;
 
   /* Accent: the brand colour of primary buttons, selected tabs and the selected graph edge. */
   --color-accent: #247c66;
@@ -63,6 +63,7 @@
   --color-violet-soft: #f1ebfb;
   --color-violet-border: #d9d3ee;
   --color-orange: #aa4e1f;
+  --color-metric: #8a5ad1;
   --color-rose: #86304f;
   --color-rose-soft: #f6eaf0;
   --color-rose-border: #ebcfdc;
@@ -80,7 +81,7 @@
   --color-edge-object: var(--color-info);
   --color-edge-referent: var(--color-accent-text);
   --color-edge-link: var(--color-warning);
-  --color-edge-measures: #8a5ad1;
+  --color-edge-measures: var(--color-metric);
   --color-edge-of: var(--color-edge-measures);
   --color-edge-out: var(--color-accent);
   --color-edge-in: var(--color-violet);
