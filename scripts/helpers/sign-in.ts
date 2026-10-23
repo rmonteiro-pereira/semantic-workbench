@@ -4,6 +4,7 @@ import { expect, type Browser, type Page, type Route } from '@playwright/test';
 import { TEST_CLIENTS, TEST_USERS, type TestUserName } from '../../tests/helpers/auth-identities';
 import { screenshotPath } from './screenshots';
 import { layoutProblems } from './layout-geometry';
+import { smallTextProblems, textCollisionProblems } from './text-geometry';
 
 /** Supported authentication viewports, including the narrow phone layout. */
 export const authViewports = [
@@ -143,6 +144,17 @@ export async function authGeometry(page: Page, name: string) {
   for (const [width, height] of authViewports) {
     await page.setViewportSize({ width, height });
     assert.deepEqual(await layoutProblems(page), [], `${name} at ${width}×${height}`);
+    const scope = (await page.locator('dialog[open]').count()) ? 'dialog[open]' : 'body';
+    assert.deepEqual(
+      await smallTextProblems(page, scope),
+      [],
+      `${name} text size at ${width}×${height}`,
+    );
+    assert.deepEqual(
+      await textCollisionProblems(page, scope),
+      [],
+      `${name} text collisions at ${width}×${height}`,
+    );
     if (name === 'person-menu') {
       const trigger = await page
         .getByRole('button', { name: 'Person menu', exact: true })
