@@ -197,6 +197,9 @@ try {
       await expectDialogGeometry(page, 'projects-in-repository');
       await page.screenshot({ path: `/tmp/workbench-monorepo-projects-${width}.png` });
       await chooser.getByRole('button', { name: 'Cancel' }).click();
+      // Opening a dialog closes the phone drawer; the delete button lives in the tree.
+      if (width < 1100)
+        await page.getByRole('button', { name: 'Open workspace', exact: true }).click();
       const remove = await openDelete('Sales');
       await expectFits(remove, width);
       await expectDialogGeometry(page, 'remove-project');

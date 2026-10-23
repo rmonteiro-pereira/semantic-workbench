@@ -2,6 +2,10 @@
 import React, { useEffect, useRef } from 'react';
 // The background is inert, Tab stays inside, and closing restores focus. Size controls dialog
 // width; the footer stays visible below the scrolling body.
+/** Sent on the window when a dialog opens, so a phone's workspace drawer can close behind it. */
+export const DIALOG_OPENED_EVENT = 'workbench:dialog-opened';
+/** Sent on the window after a dialog closed and gave focus back. */
+export const DIALOG_CLOSED_EVENT = 'workbench:dialog-closed';
 /** Selects the dialog's width preset. */
 export type ModalSize = 'small' | 'medium' | 'large' | 'full';
 /** Renders a modal with contained focus, a scrolling body and persistent actions. */
@@ -27,9 +31,11 @@ export function Modal({
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
     dialog.current?.showModal();
+    window.dispatchEvent(new Event(DIALOG_OPENED_EVENT));
     return () => {
       dialog.current?.close();
       previous?.focus();
+      window.dispatchEvent(new Event(DIALOG_CLOSED_EVENT));
     };
   }, []);
   // Escape belongs to this dialog: it must not also close a drawer or menu the dialog sits in.

@@ -2721,8 +2721,8 @@ button.danger:hover {
   border-radius: 6px;
   background: #fff;
   padding: 0 8px;
-  min-width: 200px;
-  flex: 0 1 260px;
+  min-width: 150px;
+  flex: 0 1 200px;
   color: #5c7c68;
 }
 .center-picker input {
@@ -3828,9 +3828,17 @@ button.import {
   height: 36px;
 }
 .header-actions .save-state {
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   min-width: 90px;
-  max-width: 260px;
+  max-width: 300px;
+}
+/* Where the header is tight the label gives way before the buttons do; its full text stays in
+   the tooltip and the accessible name. */
+@media (min-width: 700px) and (max-width: 1199px) {
+  .header-actions .save-state {
+    flex: 0 1 auto;
+    max-width: 180px;
+  }
 }
 .workbench-dialog {
   max-height: min(88dvh, calc(100dvh - 48px));
@@ -3866,11 +3874,6 @@ button.import {
 }
 .definition-json {
   max-height: min(60dvh, calc(100dvh - 200px));
-}
-@media (min-width: 700px) and (max-width: 1366px) {
-  .header-actions .save-state {
-    max-width: 180px;
-  }
 }
 @media (max-width: 699px) {
   .workspace-header {
@@ -4107,4 +4110,23 @@ button.import {
 .option-group-body button {
   font-size: 13px;
   padding: 7px 11px;
+}
+
+/* The project tree scrolls between the navigation above and the footer below, so Import and the
+   examples are always reachable. Rows scrolled past an edge fade out instead of being cut in the
+   middle of their text. */
+.workspace-sidebar .documents {
+  flex: 1 1 auto;
+  min-height: 160px;
+  padding-block: 10px;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 10px,
+    #000 calc(100% - 10px),
+    transparent 100%
+  );
+}
+.sidebar-footer {
+  flex: none;
 }

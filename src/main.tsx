@@ -416,6 +416,7 @@ function App() {
             dirty={!!current && source !== current.source}
             setShowValidation={setShowValidation}
             issueCount={validationState.validation.issues.length}
+            kind={validationState.model?.kind}
             entityCount={validationState.model?.entities.length ?? 0}
             relationshipCount={validationState.model?.edges.length ?? 0}
             message={message}

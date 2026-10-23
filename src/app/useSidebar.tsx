@@ -1,6 +1,7 @@
 /** Persists sidebar preferences and manages responsive drawer focus. */
 import { useEffect, useRef, useState } from 'react';
 import type { ProjectInfo } from '../projects/api';
+import { DIALOG_CLOSED_EVENT, DIALOG_OPENED_EVENT } from '../projects/Modal';
 
 type Options = { readSidebarWidth: () => number; projects: ProjectInfo[] };
 /** Manages sidebar. */
@@ -46,6 +47,28 @@ export function useSidebar({ readSidebarWidth, projects }: Options) {
     };
     media.addEventListener('change', change);
     return () => media.removeEventListener('change', change);
+  }, []);
+  // A dialog opened from the drawer must not leave the drawer open behind it. The trigger is
+  // then out of reach, so focus goes to the workspace button when the dialog closes.
+  const drawerOpenRef = useRef(false);
+  drawerOpenRef.current = compact && drawerOpen;
+  useEffect(() => {
+    let focusToggleOnClose = false;
+    const closeDrawer = () => {
+      focusToggleOnClose = drawerOpenRef.current;
+      setSidebarOpen(false);
+    };
+    const restoreFocus = () => {
+      const lost = !document.activeElement || document.activeElement === document.body;
+      if (focusToggleOnClose && lost) workspaceToggle.current?.focus();
+      focusToggleOnClose = false;
+    };
+    window.addEventListener(DIALOG_OPENED_EVENT, closeDrawer);
+    window.addEventListener(DIALOG_CLOSED_EVENT, restoreFocus);
+    return () => {
+      window.removeEventListener(DIALOG_OPENED_EVENT, closeDrawer);
+      window.removeEventListener(DIALOG_CLOSED_EVENT, restoreFocus);
+    };
   }, []);
   function closeWorkspace() {
     setSidebarOpen(false);

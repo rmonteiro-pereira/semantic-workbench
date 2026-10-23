@@ -829,7 +829,7 @@ export function LineageCanvas({
   const selectedCard = selected ? graph.cards.get(cardOfNode(graph, selected)) : undefined;
   const lineageOptions = (
     <GraphOptions
-      title="Lineage options"
+      title={mapping ? 'Graph options' : 'Lineage options'}
       intro={
         mapping
           ? `The view shows ${centerCard?.label ?? 'the centre'} and every card within the chosen number of mapping lines of it.`

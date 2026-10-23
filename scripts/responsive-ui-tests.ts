@@ -106,6 +106,16 @@ async function openPage(width: number, height: number) {
     );
     console.log('INJECTED_SMALL_TEXT_MUTATION');
   }
+  if (process.env.RESPONSIVE_MUTATION === 'save-state-cut') {
+    await page.addInitScript(() =>
+      document.addEventListener('DOMContentLoaded', () => {
+        const style = document.createElement('style');
+        style.textContent = '.header-actions .save-state{max-width:90px!important}';
+        document.head.append(style);
+      }),
+    );
+    console.log('INJECTED_SAVE_STATE_MUTATION');
+  }
   if (process.env.RESPONSIVE_MUTATION === 'status-stays')
     await page.route('**/src/main.tsx*', async route => {
       const response = await route.fetch();
@@ -1415,6 +1425,51 @@ try {
       }
     });
     await dialogPage.close();
+  }
+  // The shell: header status, graph toolbars, the sidebar footer and dialogs opened from the drawer.
+  for (const [width, height] of [
+    [390, 844],
+    [1280, 720],
+    [1440, 900],
+    [2560, 1440],
+  ]) {
+    const shellPage = await openPage(width!, height!);
+    await check(
+      `shell: ${width}×${height} header, toolbars, sidebar footer and drawer`,
+      async () => {
+        const phone = width! < 1100;
+        // From 1200 px the header shows the whole save state instead of cutting it with an ellipsis.
+        if (width! >= 1200) {
+          const text = shellPage.locator('.save-state-text');
+          const cut = await text.evaluate(el => el.scrollWidth > el.clientWidth + 1);
+          expect(cut, 'the save state is cut').toBe(false);
+        }
+        // Graph toolbars keep their frequent controls to at most two rows: the rest is in a dialog.
+        const toolbar = async (selector: string) =>
+          (await shellPage.locator(selector).boundingBox())!;
+        expect((await toolbar('.full-graph-tools')).height).toBeLessThanOrEqual(58);
+        await shellPage.locator('.tabs').getByRole('button', { name: 'Neighborhood' }).click();
+        await expect(shellPage.locator('.neighborhood-tools')).toBeVisible();
+        expect((await toolbar('.neighborhood-tools')).height).toBeLessThanOrEqual(phone ? 58 : 104);
+        // The sidebar keeps Import and the examples in view below a scrolling project tree.
+        await showSidebar(shellPage);
+        const footer = (await shellPage.locator('.sidebar-footer').boundingBox())!;
+        expect(footer.y + footer.height).toBeLessThanOrEqual(height! + 1);
+        await expect(shellPage.getByRole('button', { name: /^Import/ })).toBeInViewport();
+        const tree = (await shellPage.locator('.workspace-sidebar .documents').boundingBox())!;
+        expect(tree.height).toBeGreaterThanOrEqual(150);
+        // A dialog opened from the phone drawer closes the drawer, and focus goes back to the
+        // workspace button.
+        if (phone) {
+          await shellPage.getByRole('button', { name: 'Trash', exact: true }).click();
+          await expect(shellPage.getByRole('dialog', { name: 'Trash' })).toBeVisible();
+          await expect(shellPage.locator('#workspace-sidebar')).toHaveAttribute('inert', '');
+          await shellPage.keyboard.press('Escape');
+          await expect(shellPage.getByRole('button', { name: 'Open workspace' })).toBeFocused();
+        }
+      },
+    );
+    await shellPage.close();
   }
   await check('no uncaught browser errors', async () => expect(errors).toEqual([]));
   console.log(`${passed} responsive UI checks passed`);
