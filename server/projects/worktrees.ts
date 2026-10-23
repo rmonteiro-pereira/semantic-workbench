@@ -14,6 +14,7 @@ import {
   type Git,
 } from './git';
 import { USER_KEY, type DataLayout } from './paths';
+import { checkOutFolders, sparseFolders } from './sparse-folder';
 
 /** One entry of `git worktree list --porcelain`. */
 export type WorktreeEntry = {
@@ -228,14 +229,19 @@ async function ensure(context: WorktreeContext, repo: string, owner: CopyOwner) 
   const branch = personalBranch(owner.handle);
   const start = await defaultBranch(context, repo);
   await assertFree(context, repo, owner.key, branch);
+  // A repository checked out only in a folder gives every copy the same folder, set in the copy's
+  // own configuration, and the files arrive after that, so nothing else is ever written to disk.
+  const folders = await sparseFolders(git, base);
+  const held = folders.length ? ['--no-checkout'] : [];
   if (await commitOf(git, base, 'refs/heads/' + branch)) {
-    await git.run(base, ['worktree', 'add', '-q', dir, branch]);
+    await git.run(base, ['worktree', 'add', '-q', ...held, dir, branch]);
   } else if (await commitOf(git, base, 'refs/heads/' + start)) {
-    await git.run(base, ['worktree', 'add', '-q', '-b', branch, dir, start]);
+    await git.run(base, ['worktree', 'add', '-q', ...held, '-b', branch, dir, start]);
   } else {
     // A repository without any commit has no default branch to start from yet.
     await git.run(base, ['worktree', 'add', '-q', '--orphan', '-b', branch, dir]);
   }
+  if (folders.length) await checkOutFolders(git, dir, folders);
   await git.run(base, ['worktree', 'lock', '--reason', 'Semantic Workbench working copy', dir]);
   context.listings?.delete(repo);
   return { dir, created: true };
