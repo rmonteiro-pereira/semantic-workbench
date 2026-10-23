@@ -147,7 +147,7 @@ The workbench only opens folders under `data/projects/`. Git runs locally with t
 - **Add to .gitignore** on a changed file adds the exact path, its extension (`*.csv`) or its folder; if the file is already committed, the panel says Git keeps tracking it. **Edit .gitignore** in a project's menu opens the file as plain text in Source; saving it updates the workspace and the panel at once.
 - **History** in a file's menu lists its commits; pick any two versions (or the working tree) to compare.
 
-**Clone.** **Import… → Clone a Git repository…** opens **Clone repository**: a URL or path and an optional project name (a taken name gets a free one, such as `team (2)`). The clone runs only from this action, shows its progress with **Cancel**, and gives up after 10 minutes. It lands in a staging folder under `data/projects/` and moves into place with the project registry in one journaled step, so a failed, cancelled or interrupted clone leaves nothing behind (an interrupted one is rolled back on the next start). Line-ending conversion is off (`core.autocrlf=false`), symbolic links arrive as plain files (`core.symlinks=false`), submodules are not fetched and `ext::` transports are refused. Files are checked as on any scan: invalid ones are listed in the dialog and marked in the tree, never rewritten.
+**Clone.** **Import… → Clone a Git repository…** opens **Clone repository**: a URL or path and an optional project name (a taken name gets a free one, such as `team (2)`). The clone runs only from this action, shows its progress with **Cancel**, and gives up after 10 minutes. It lands in a staging folder under `data/projects/` and moves into place with the project registry in one journaled step, so a failed, cancelled or interrupted clone leaves nothing behind (an interrupted one is rolled back on the next start). Line-ending conversion is off (`core.autocrlf=false`), symbolic links arrive as plain files (`core.symlinks=false`), submodules are not fetched and `ext::` transports are refused. Files are checked as on any scan. The result lists the **Projects made** and, when a file is not a valid definition, the **Files to repair**; those files are marked in the tree and never rewritten.
 
 **Several projects in one repository.** A team repository can hold several projects in subfolders, such as `domains/sales` and `domains/finance`. A `.semantic-workbench.json` file at the repository root declares them:
 
@@ -886,7 +886,7 @@ they need no Vite.
 | `test:autosave` | Automatic saves, stale drafts and commits against a local remote |
 | `test:sql` | Embedded SQL colors, warning locations and unchanged export bytes |
 | `test:git-setup` | Git identity, a remote and a push, a clone, the credential setup guide |
-| `test:monorepo` | Several projects in one repository, grouped tree, shared Source Control, Remove versus Delete folder |
+| `test:monorepo` | Several projects in one repository, grouped tree, shared Source Control, Remove versus Delete folder, and the clone, projects and delete dialogs at four sizes |
 | `test:dialogs` | Dialog fit, focus trap and focus return across the six viewports |
 | `test:terminology` | The interface, this README and `docs/` call every metric a metric and use the older term nowhere except in verbatim data and the stored `kpi_bindings` key |
 | `test:mappings-layout`, `test:mapping-graph` | Binding cards at six viewports; every mapping graph line against the resolver's bindings |
