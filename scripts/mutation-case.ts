@@ -2264,6 +2264,10 @@ if (category.startsWith('admin-') && !ADMIN_UI_CATEGORIES.has(category)) {
   const { adminMutationCase } = await import('./admin-mutation-cases');
   await adminMutationCase(m, category);
 }
+if (category.startsWith('export-')) {
+  const { exportMutationCase } = await import('./export-mutation-cases');
+  await exportMutationCase(m, category);
+}
 if (category.startsWith('secrev-')) {
   const { securityReviewCase } = await import('./security-review-mutation-cases');
   await securityReviewCase(m, category);
