@@ -7,7 +7,8 @@ import { TEST_USERS } from '../tests/helpers/auth-identities';
 import { startMockOidc } from '../tests/helpers/mock-oidc';
 import { freeAuthPort, startAuthApi } from './auth-environment';
 import { authViewports, signIn, type SignInTarget } from './helpers/sign-in';
-import { screenProblems, showScreen, tourScreens } from './helpers/screen-tour';
+import { screenProblems, showScreen } from './helpers/screen-tour';
+import { tourGroups } from './helpers/all-tours';
 
 const outputDirectory = process.argv[2];
 if (!outputDirectory) throw new Error('Pass an output directory.');
@@ -38,10 +39,11 @@ try {
   const files = await page.locator('.sidebar button.document span').allTextContents();
   for (const [width, height] of authViewports) {
     await page.setViewportSize({ width, height });
-    const screens = tourScreens({
+    const screens = tourGroups({
       ontology: files.find(name => name.includes('ontology')) ?? files[0] ?? '',
       contract: files.find(name => name.includes('odcs')) ?? files[0] ?? '',
-    });
+      metricsModel: files.find(name => name.includes('semantic')) ?? files[0] ?? '',
+    }).flatMap(group => group.screens);
     for (const screen of screens) {
       try {
         await showScreen(page, screen);
