@@ -186,6 +186,32 @@ report no problems; reviewer rounds recorded in `findings.md`.
 Finding: F64. Each row has an acceptance criterion: the check passes and the screen in the after
 screenshots looks right.
 
+## R12. Built-in examples include metrics
+
+The examples loaded from the Examples menu show governed metrics.
+
+1. Every example where metrics make sense, at least the ODCS and Ossie ones, ships a few realistic
+   metrics in the workbench's normal format: definitions in the Ossie `custom_extensions` under the
+   vendor `SEMANTIC_WORKBENCH`, and KPI bindings at the mapping-file root (`kpi_bindings`).
+2. Each such example has a simple metric (a SUM or COUNT over one table), a ratio or derived metric
+   that builds on other metrics, and one that walks a foreign-key path across two or more tables.
+3. Each metric has an owner and a status, so governed-metrics behaviour is visible.
+4. Each metric binds to real ODCS columns, so the breakdown, the lineage path and the SQL preview
+   all have content. The workbench still never executes anything.
+5. Upstream example files stay unmodified and hash-checked. The metrics live in workbench-authored
+   files inside the example project (a mapping or extension file), labelled as workbench
+   additions. A metric that can only be expressed by changing an upstream file is not added;
+   the spec names it instead (see the open list below).
+6. Opening each example shows its metrics in the Metrics view; every metric's breakdown, lineage
+   path and SQL preview render; all examples validate cleanly.
+
+Findings: F67. Checks: `test:examples:ui` asserts the metric count of each example and that the
+breakdown, lineage path and SQL preview render (extended); the examples end-to-end test
+(`test:examples` and `tests/examples*.test.ts`) asserts the metric counts, validation and that the
+upstream file hashes are unchanged (extended).
+
+Metrics that need an upstream change: none recorded yet.
+
 ## Traceability
 
 Every finding maps to a requirement. Status values are open, fixed, deferred (with the reason in
@@ -211,4 +237,5 @@ Every finding maps to a requirement. Status values are open, fixed, deferred (wi
 | F63 | R2 | open |
 | F65 | R2a, R4 | open |
 | F66 | R2a | open |
+| F67 | R12 | open |
 | F64 | R11 | open |
