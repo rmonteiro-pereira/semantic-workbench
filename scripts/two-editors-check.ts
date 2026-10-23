@@ -14,6 +14,7 @@ import {
 import { startMockOidc } from '../tests/helpers/mock-oidc';
 import { freeAuthPort, startAuthApi } from './auth-environment';
 import { authGeometry, check, signIn, type SignInTarget } from './helpers/sign-in';
+import { closeSyncDialog, openSyncDialog } from './helpers/sync-dialog';
 
 const PROJECT = 'sales-contracts';
 const ORDERS = 'orders.odcs.yaml';
@@ -116,7 +117,7 @@ async function alicePicker(alice: Person) {
   // Playwright does not treat an option as a form control, so the attribute is checked.
   await expect(held).toHaveAttribute('disabled', '');
   // A headless screenshot cannot draw the open list, so this keeps the closed picker's layout.
-  await authGeometry(alice.page, 'two-editors-branch-picker');
+  await authGeometry(alice.page, 'two-editors-branch-picker', '.scm');
 }
 
 async function branchesStayPersonal(alice: Person, frank: Person) {
@@ -157,29 +158,34 @@ async function commitsCarryTheirAuthors(root: string, alice: Person, frank: Pers
 
 /** A Steward may publish; with no remote there is nothing to push, and remotes are Admin-only. */
 async function stewardControls(person: Person) {
-  const { page } = person;
-  await expect(page.getByRole('button', { name: 'Publish to main', exact: true })).toBeEnabled();
-  await expect(page.getByRole('button', { name: 'Push main', exact: true })).toBeHidden();
-  await expect(page.getByRole('button', { name: 'Remote…', exact: true })).toBeHidden();
+  const dialog = await openSyncDialog(person.page);
+  await expect(dialog.getByRole('button', { name: 'Publish to main', exact: true })).toBeEnabled();
+  await expect(dialog.getByRole('button', { name: 'Push main', exact: true })).toBeHidden();
+  await expect(dialog.getByRole('button', { name: 'Remote…', exact: true })).toBeHidden();
+  return dialog;
 }
 
-/** An Editor cannot publish, and the panel says so in words beside the disabled button. */
+/** An Editor cannot publish, and the dialog says so in words beside the disabled button. */
 async function editorControls(person: Person) {
-  const { page } = person;
-  await expect(page.getByRole('button', { name: 'Publish to main', exact: true })).toBeDisabled();
-  await expect(page.getByText('Requires Steward to publish to main.')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Push main', exact: true })).toBeHidden();
-  await expect(page.getByRole('button', { name: 'Remote…', exact: true })).toBeHidden();
-  await expect(page.getByRole('button', { name: 'Pull from main', exact: true })).toBeVisible();
+  const dialog = await openSyncDialog(person.page);
+  await expect(dialog.getByRole('button', { name: 'Publish to main', exact: true })).toBeDisabled();
+  await expect(dialog.getByText('Requires Steward to publish to main.')).toBeVisible();
+  await expect(dialog.getByRole('button', { name: 'Push main', exact: true })).toBeHidden();
+  await expect(dialog.getByRole('button', { name: 'Remote…', exact: true })).toBeHidden();
+  await expect(dialog.getByRole('button', { name: 'Pull from main', exact: true })).toBeVisible();
+  return dialog;
 }
 
 async function publishReachesTheViewer(bob: Person, carol: Person) {
   await appendLine(bob, ORDERS, 'published by bob');
   await commitFile(bob, ORDERS, 'Bob publishes orders');
   await openSourceControl(bob);
-  await stewardControls(bob);
-  await authGeometry(bob.page, 'two-editors-publish-steward');
-  await bob.page.getByRole('button', { name: 'Publish to main', exact: true }).click();
+  const sync = await stewardControls(bob);
+  await authGeometry(bob.page, 'two-editors-publish-steward', 'dialog[open]');
+  await sync.getByRole('button', { name: 'Publish to main', exact: true }).click();
+  const confirm = bob.page.getByRole('dialog', { name: 'Publish to main?', exact: true });
+  await authGeometry(bob.page, 'two-editors-publish-confirm', 'dialog[open]');
+  await confirm.getByRole('button', { name: 'Publish to main', exact: true }).click();
   await expect(bob.page.getByText('Published to main.')).toBeVisible();
   assert((await readSource(carol, ORDERS)).includes('published by bob'));
   const projects = (await carol.call('/api/projects')).body;
@@ -188,7 +194,8 @@ async function publishReachesTheViewer(bob: Person, carol: Person) {
 
 async function pullsStayPersonal(alice: Person, frank: Person) {
   await openSourceControl(frank);
-  await frank.page.getByRole('button', { name: 'Pull from main', exact: true }).click();
+  const sync = await openSyncDialog(frank.page);
+  await sync.getByRole('button', { name: 'Pull from main', exact: true }).click();
   await expect(frank.page.getByText(/^Pull finished/)).toBeVisible();
   assert((await readSource(frank, ORDERS)).includes('published by bob'));
   assert.equal((await branchOf(frank)).branch, 'feature/frank');
@@ -197,8 +204,10 @@ async function pullsStayPersonal(alice: Person, frank: Person) {
   assert(!aliceOrders.includes('published by bob'));
   assert.equal((await branchOf(alice)).branch, 'work/alice');
   assert.equal((await alice.call(`/api/drafts/${PROJECT}/people.mapping.yaml`)).status, 200);
-  await editorControls(frank);
-  await authGeometry(frank.page, 'two-editors-source-control');
+  const editorSync = await editorControls(frank);
+  await authGeometry(frank.page, 'two-editors-sync-editor', 'dialog[open]');
+  await closeSyncDialog(editorSync);
+  await authGeometry(frank.page, 'two-editors-source-control', '.scm');
 }
 
 /** Runs the two-person check against its own API and mock identity provider. */

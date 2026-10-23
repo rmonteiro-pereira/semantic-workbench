@@ -137,12 +137,12 @@ The API watches every project folder. Files you change, add or delete outside th
 
 The workbench only opens folders under `data/projects/`. Git runs locally with terminal prompts disabled; the only network use is an explicit clone, fetch, pull, push or sync (below).
 
-**Source Control.** **Source control** in the sidebar opens a VS Code-like panel for one project (the open file's, or any other from its project picker):
+**Source Control.** **Source control** in the sidebar opens a VS Code-like panel for one project (the open file's, or any other from its project picker). The model tabs and the entity search do not show on this screen:
 
 - **Changes**, **Staged changes** and **Merge conflicts**, with each file's state; clicking a file shows its diff side by side with changed lines marked (staged: last commit → staged; changes: staged → working tree). Files of types the workbench does not read are listed too, labelled *not shown in workspace*: they can be diffed, staged and committed, not edited. Files matched by `.gitignore` are not listed.
 - **Stage** / **Unstage** per file or all, a commit message (required) and **Commit**. Files the workbench saved are committed byte for byte (managed repositories set `core.autocrlf=false`). Git hooks and filters run as configured; when one changes a file's bytes during a commit, pull or switch, the panel lists the files whose bytes on disk differ from what was saved or committed.
 - **Branch** lists local and remote branches; switching or **New branch** rescans the project, so every view shows that branch's content.
-- **Remote…** (in the panel or a project's ⋯ menu) opens the **Remote** dialog: a name (default `origin`) and a URL, SSH address or folder path; it changes or removes the remote too. Addresses that run a helper program (`transport::address`) or look like an option are refused. Then **Fetch**, **Pull**, **Push** or **Sync** (pull, then push), with commits to push and to pull shown next to the branch. Pull merges (`--no-rebase`); a conflict stops it, lists the conflicted files (also marked invalid in the tree), and the merge is committed after you repair each file in Source and stage it.
+- **Sync…** opens a dialog with the remote and its actions, each with a line saying what it does. **Remote…** (there or in a project's ⋯ menu) opens the **Remote** dialog: a name (default `origin`) and a URL, SSH address or folder path; it changes or removes the remote too. Addresses that run a helper program (`transport::address`) or look like an option are refused. Then **Fetch**, **Pull**, **Push** or **Sync** (pull, then push), with commits to push and to pull shown next to the branch. Pull merges (`--no-rebase`); a conflict stops it, lists the conflicted files (also marked invalid in the tree), and the merge is committed after you repair each file in Source and stage it.
 - Pull, Sync and switching branches are refused while the project has edits not saved to file (kept as drafts) or uncommitted changes, and the refusal offers **Commit…**; nothing is stashed automatically. Untracked files do not block: Git itself refuses to overwrite them.
 - **Add to .gitignore** on a changed file adds the exact path, its extension (`*.csv`) or its folder; if the file is already committed, the panel says Git keeps tracking it. **Edit .gitignore** in a project's menu opens the file as plain text in Source; saving it updates the workspace and the panel at once.
 - **History** in a file's menu lists its commits; pick any two versions (or the working tree) to compare.
@@ -528,7 +528,7 @@ suggestions are per person. One person's save, stage, commit, branch switch or p
 another person's files. Grouping suggestions come from each Editor's own copy, so an unpublished
 change suggests a grouping to its author only.
 
-Each Source Control action has one meaning in server mode:
+Each Source Control action has one meaning in server mode. Pull, Publish and Push of the default branch are in the **Sync…** dialog, and **Publish to <default>** asks for confirmation first:
 
 | Action | Who | What it does |
 | --- | --- | --- |
@@ -868,7 +868,7 @@ they need no Vite.
 | Script | What it checks |
 | --- | --- |
 | `test:ui` | Real downloads and exports of every example, reopening examples, grouped relationship selection, unobstructed controls, unsaved edits, re-import |
-| `test:responsive` | Six viewports from 390×844 to 2560×1440: no horizontal scroll, no cut-off control, no overlapping floating element, drawers, full screen in Graph and Neighborhood; and a tour of every screen and dialog (including the edit drawers, metrics, mappings, composer and catalog) at 390, 1280, 1440 and 2560 px with text of at least 12 px, no text covered by or overlapping other text, and no cut-off control |
+| `test:responsive` | Six viewports from 390×844 to 2560×1440: no horizontal scroll, no cut-off control, no overlapping floating element, drawers, full screen in Graph and Neighborhood; and a tour of every screen and dialog (including the edit drawers, metrics, mappings, composer and catalog, the ODCS pages, and the Sync, clone, rename and delete-project dialogs) at 390, 1280, 1440 and 2560 px with text of at least 12 px, no text covered by or overlapping other text, and no cut-off control |
 | `test:edges` | Graph edge endpoints against rendered node borders while dragging and zooming |
 | `test:grouping-validation` | Grouping suggestions and validation dialogs, repair of mixed import batches |
 | `test:examples:ui` | Loading the examples, mappings and metric composition |
@@ -878,7 +878,7 @@ they need no Vite.
 | `test:graph` | The UBL graph and the neighborhood on three models: exact-first center picking, a five-step walk, no shared edge lines |
 | `test:editor` | Colors per serialization, inline findings within 500 ms, Go to line, byte-exact CRLF saves, typing latency in a 1.9 MB file |
 | `test:item-edit`, `test:rdf-edit` | Item editors, add, delete, rename, the metric wizard and status rules; the same for Turtle, RDF/XML, N-Triples, N3 and SHACL resources, with `git diff` limited to the edited item |
-| `test:scm` | Commit, branch, switch, push to a local bare remote, pull from a second clone, conflict repair, `.gitignore`, history, the credential wait and the missing-Git banner |
+| `test:scm` | Commit, branch, switch, push to a local bare remote, pull from a second clone, conflict repair, `.gitignore`, history, the credential wait, the missing-Git banner, and the panel and its Sync dialog at four sizes |
 | `test:odcs`, `test:lineage` | Contract pages, section dialogs and byte-preserving property edits through the edit dialog; every drawn lineage line against the expected edge lists, path emphasis within 200 ms, cards staying measured across window resizes |
 | `test:autosave` | Automatic saves, stale drafts and commits against a local remote |
 | `test:sql` | Embedded SQL colors, warning locations and unchanged export bytes |
