@@ -88,18 +88,45 @@ async function attached(label: string) {
     throw error;
   }
 }
+// Resolves once the canvas viewport has stopped moving, so a fit or zoom animation cannot carry a
+// node under an overlay between choosing it and clicking it.
+async function waitForViewportToSettle() {
+  await page.evaluate(
+    () =>
+      new Promise<void>(resolve => {
+        const stillFrames = 10;
+        let unchangedFrames = 0;
+        let lastTransform = '';
+        const watch = () => {
+          const viewport = document.querySelector('.react-flow__viewport');
+          const transform = viewport ? getComputedStyle(viewport).transform : '';
+          unchangedFrames = transform === lastTransform ? unchangedFrames + 1 : 0;
+          lastTransform = transform;
+          if (unchangedFrames >= stillFrames) resolve();
+          else requestAnimationFrame(watch);
+        };
+        watch();
+      }),
+  );
+}
+// Picks a node whose own area is reachable at the click point (its centre) and at the drag point.
+// A correct layout may put some nodes under the mini-map, and those cannot be clicked.
 async function targetSelector(selector: string) {
+  await waitForViewportToSettle();
   const candidates = page.locator(selector);
   for (let i = 0; i < (await candidates.count()); i++) {
     const candidate = candidates.nth(i);
     if (
       await candidate.evaluate(n => {
         const r = n.getBoundingClientRect();
-        const x = r.x + Math.min(r.width / 2, 60);
-        const y = r.y + Math.min(r.height / 2, 18);
-        return (
-          document.elementFromPoint(x, y)?.closest('.react-flow__node') ===
-          n.closest('.react-flow__node')
+        const points = [
+          { x: r.x + r.width / 2, y: r.y + r.height / 2 },
+          { x: r.x + Math.min(r.width / 2, 60), y: r.y + Math.min(r.height / 2, 18) },
+        ];
+        const owner = n.closest('.react-flow__node');
+        return points.every(
+          point =>
+            document.elementFromPoint(point.x, point.y)?.closest('.react-flow__node') === owner,
         );
       })
     )
