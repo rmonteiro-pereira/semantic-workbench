@@ -6,16 +6,16 @@
   flex-wrap: wrap;
   gap: 6px 10px;
   padding: 5px 10px;
-  border-bottom: 1px solid #eef2f2;
+  border-bottom: 1px solid var(--color-border-subtle);
   font-size: var(--text-small);
 }
 .lineage-hops-title {
   font-weight: 600;
-  color: #3a5a50;
+  color: var(--color-text-secondary);
 }
 .lineage-hops-steps {
   display: inline-flex;
-  border: 1px solid #d6e1df;
+  border: 1px solid var(--color-border);
   border-radius: 7px;
   overflow: hidden;
 }
@@ -23,9 +23,9 @@
   min-width: 30px;
   height: 28px;
   border: 0;
-  border-right: 1px solid #d6e1df;
+  border-right: 1px solid var(--color-border);
   border-radius: 0;
-  background: #fff;
+  background: var(--color-surface);
   font-size: var(--text-small);
   cursor: pointer;
 }
@@ -33,7 +33,7 @@
   border-right: 0;
 }
 .lineage-hops-steps button[aria-pressed='true'] {
-  background: #e4efeb;
+  background: var(--color-accent-soft);
   font-weight: 700;
 }
 .lineage-hops-path {
@@ -42,21 +42,21 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #2d4a42;
+  color: var(--color-text-secondary);
 }
 .lineage-hops-count {
   padding: 1px 8px;
   border-radius: 10px;
-  background: #f0f6f2;
-  border: 1px solid #dce8e2;
+  background: var(--color-surface-hover);
+  border: 1px solid var(--color-border-subtle);
   white-space: nowrap;
 }
 .lineage-hops-list {
   height: 28px;
   padding: 0 10px;
-  border: 1px solid #d6e1df;
+  border: 1px solid var(--color-border);
   border-radius: 7px;
-  background: #fff;
+  background: var(--color-surface);
   font-size: var(--text-small);
   cursor: pointer;
 }
@@ -78,7 +78,7 @@
   flex-direction: column;
   gap: 1px;
   padding: 5px 0;
-  border-bottom: 1px solid #eef2f2;
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 .lineage-hop-group li span {
   font-size: var(--text-small);

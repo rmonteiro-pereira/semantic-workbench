@@ -19,8 +19,8 @@
   align-items: stretch;
   justify-content: flex-start;
   gap: 10px;
-  background: #fff;
-  border: 1px solid #dbe3e4;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 14px 16px;
 }
@@ -30,12 +30,12 @@
   flex-wrap: wrap;
   gap: 10px;
   min-width: 0;
-  color: #1e6a4f;
+  color: var(--color-accent-text);
 }
 .odcs-title h2 {
   margin: 0;
   font-size: 20px;
-  color: #243936;
+  color: var(--color-text);
   overflow-wrap: anywhere;
 }
 .odcs-title small {
@@ -76,7 +76,7 @@
 }
 .dataset-facts code {
   font-size: var(--text-small);
-  background: #eef3f1;
+  background: var(--color-surface-sunken);
   border-radius: 4px;
   padding: 0 4px;
 }
@@ -84,18 +84,18 @@
   display: inline-block;
   border-radius: 9px;
   padding: 0 8px;
-  background: #eef3f1;
-  color: #3a5a50;
+  background: var(--color-surface-sunken);
+  color: var(--color-text-secondary);
   font-size: var(--text-small);
 }
 .odcs-status.s-active {
-  background: #e2f3ea;
-  color: #1e6a4f;
+  background: var(--color-accent-soft-strong);
+  color: var(--color-accent-text);
 }
 .odcs-status.s-deprecated,
 .odcs-status.s-retired {
-  background: #fbeceb;
-  color: #a3392f;
+  background: var(--color-danger-soft);
+  color: var(--color-danger-text);
 }
 .odcs-purpose {
   display: grid;
@@ -112,7 +112,7 @@
 }
 .odcs-purpose dd {
   margin: 0;
-  color: #3f5650;
+  color: var(--color-text-secondary);
 }
 .odcs-objects h3,
 .odcs-subhead {
@@ -120,7 +120,7 @@
   font-size: var(--text-small);
   letter-spacing: 0.6px;
   text-transform: uppercase;
-  color: #4d6660;
+  color: var(--color-text-muted);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -148,9 +148,9 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid #dbe3e4;
+  border: 1px solid var(--color-border);
   border-radius: 7px;
-  background: #fff;
+  background: var(--color-surface);
   padding: 0 8px;
   color: var(--text-muted);
   min-width: 0;
@@ -166,13 +166,13 @@
   background: none;
 }
 .odcs-search:focus-within {
-  border-color: #7fb3a0;
-  box-shadow: 0 0 0 2px #dcefe7;
+  border-color: var(--color-accent-border-strong);
+  box-shadow: 0 0 0 2px var(--color-accent-border);
 }
 .odcs-table-wrap {
-  border: 1px solid #dbe3e4;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--color-surface);
   overflow: auto;
   max-width: 100%;
 }
@@ -189,8 +189,8 @@
   color: var(--text-muted);
   font-weight: 600;
   padding: 8px 10px;
-  background: #f3f7f5;
-  border-bottom: 1px solid #dbe3e4;
+  background: var(--color-surface-sunken);
+  border-bottom: 1px solid var(--color-border);
   white-space: nowrap;
   position: sticky;
   top: 0;
@@ -198,17 +198,17 @@
 }
 .odcs-table td {
   padding: 7px 10px;
-  border-bottom: 1px solid #edf2ef;
+  border-bottom: 1px solid var(--color-border-subtle);
   vertical-align: top;
 }
 .odcs-table tbody tr:last-child td {
   border-bottom: 0;
 }
 .odcs-table tbody tr:hover td {
-  background: #f5faf7;
+  background: var(--color-surface-page);
 }
 .odcs-table tr.selected td {
-  background: #e9f6f1;
+  background: var(--color-accent-soft);
 }
 .odcs-table.compact td {
   padding: 5px 10px;
@@ -222,7 +222,7 @@
   overflow-wrap: anywhere;
 }
 .odcs-desc {
-  color: #4f655f;
+  color: var(--color-text-muted);
   min-width: 220px;
 }
 .odcs-overview .odcs-table-wrap {
@@ -232,7 +232,7 @@ button.odcs-link {
   border: 0;
   background: none;
   padding: 0;
-  color: #1e6a4f;
+  color: var(--color-accent-text);
   font-weight: 600;
   font-size: var(--text-small);
   text-decoration: underline;
@@ -246,16 +246,16 @@ button.odcs-link.fk {
   margin: 0 6px 2px 0;
   font-weight: 500;
   text-decoration: none;
-  background: #eaf4ef;
+  background: var(--color-accent-soft);
   border-radius: 5px;
   padding: 1px 6px;
 }
 button.odcs-link:hover {
   background: none;
-  color: #14513b;
+  color: var(--color-accent-hover);
 }
 button.odcs-link.fk:hover {
-  background: #d8ece3;
+  background: var(--color-accent-soft-strong);
 }
 .odcs-back {
   align-self: flex-start;
@@ -267,7 +267,7 @@ button.odcs-link.fk:hover {
   display: flex;
   flex-wrap: wrap;
   gap: 3px;
-  background: #eaf0ed;
+  background: var(--color-surface-sunken);
   padding: 3px;
   border-radius: 8px;
   width: fit-content;
@@ -283,15 +283,15 @@ button.odcs-link.fk:hover {
   white-space: nowrap;
 }
 .odcs-tabs .selected {
-  background: #fff;
-  color: #246e58;
-  box-shadow: 0 1px 4px #314d3a14;
+  background: var(--color-surface);
+  color: var(--color-accent-text);
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--color-shadow) 8%, transparent);
   font-weight: 600;
 }
 .odcs-tabs small {
   margin-left: 5px;
   font-size: var(--text-small);
-  background: #dcebe5;
+  background: var(--color-accent-soft-strong);
   border-radius: 8px;
   padding: 0 5px;
 }
@@ -323,25 +323,25 @@ button.odcs-link.fk:hover {
 }
 .odcs-sort:hover {
   background: none;
-  color: #243936;
+  color: var(--color-text);
 }
 .odcs-sort .idle {
   opacity: 0.35;
 }
 .col-name code {
   font-weight: 600;
-  color: #243936;
+  color: var(--color-text);
   font-size: var(--text-small);
 }
 .col-description {
   min-width: 200px;
-  color: #4f655f;
+  color: var(--color-text-muted);
 }
 .odcs-tag {
   display: inline-block;
   font-style: normal;
   font-size: var(--text-small);
-  background: #eef3f1;
+  background: var(--color-surface-sunken);
   border-radius: 4px;
   padding: 0 6px;
   margin: 0 4px 2px 0;
@@ -349,12 +349,12 @@ button.odcs-link.fk:hover {
 .odcs-note {
   margin: 0;
   font-size: var(--text-small);
-  color: #5d736c;
+  color: var(--color-text-muted);
 }
 .odcs-chip {
   display: inline-block;
   font-size: var(--text-small);
-  background: #eef3f1;
+  background: var(--color-surface-sunken);
   border-radius: 4px;
   padding: 0 5px;
   margin: 0 4px 2px 0;
@@ -363,17 +363,17 @@ button.odcs-link.fk:hover {
   display: inline-block;
   margin-left: 8px;
   padding: 0 7px;
-  border: 1px solid #dce8e2;
+  border: 1px solid var(--color-border-subtle);
   border-radius: 20px;
-  background: #f0f6f2;
+  background: var(--color-surface-hover);
   color: var(--text-muted);
   font-size: var(--text-small);
   font-weight: 500;
   vertical-align: middle;
 }
 .odcs-chip.metric {
-  background: #f1ebfb;
-  color: #5b3a94;
+  background: var(--color-violet-soft);
+  color: var(--color-violet);
 }
 .odcs-compare {
   display: flex;
@@ -386,7 +386,7 @@ button.odcs-link.fk:hover {
   gap: 6px;
   font-size: var(--text-small);
   font-weight: 600;
-  color: #3a5a50;
+  color: var(--color-text-secondary);
   min-width: 0;
   flex: 1 1 260px;
 }
@@ -395,13 +395,13 @@ button.odcs-link.fk:hover {
   flex: 1;
   font-size: var(--text-small);
   padding: 5px;
-  border: 1px solid #dbe3e4;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
-  background: #fff;
+  background: var(--color-surface);
 }
 .odcs-changes {
-  background: #fff;
-  border: 1px solid #dbe3e4;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 12px 14px;
   font-size: 13px;
@@ -436,40 +436,40 @@ button.odcs-link.fk:hover {
   margin-right: 8px;
 }
 .odcs-change.added {
-  background: #e2f3ea;
-  color: #1e6a4f;
+  background: var(--color-accent-soft-strong);
+  color: var(--color-accent-text);
 }
 .odcs-change.removed {
-  background: #fbeceb;
-  color: #a3392f;
+  background: var(--color-danger-soft);
+  color: var(--color-danger-text);
 }
 .odcs-change.changed {
-  background: #fdf3dc;
-  color: #8a5a12;
+  background: var(--color-warning-soft);
+  color: var(--color-warning-emphasis);
 }
 .odcs-values {
   overflow-wrap: anywhere;
 }
 .odcs-values del {
-  color: #a3392f;
+  color: var(--color-danger-text);
 }
 .odcs-values ins {
-  color: #1e6a4f;
+  color: var(--color-accent-text);
   text-decoration: none;
 }
 .odcs-severity {
   font-size: var(--text-small);
   border-radius: 4px;
   padding: 0 6px;
-  background: #eef3f1;
+  background: var(--color-surface-sunken);
 }
 .odcs-severity.s-error {
-  background: #fbeceb;
-  color: #a3392f;
+  background: var(--color-danger-soft);
+  color: var(--color-danger-text);
 }
 .odcs-severity.s-warning {
-  background: #fdf3dc;
-  color: #8a5a12;
+  background: var(--color-warning-soft);
+  color: var(--color-warning-emphasis);
 }
 .odcs-query {
   display: block;
@@ -524,7 +524,7 @@ button.odcs-link.fk:hover {
   flex-direction: column;
   min-height: 0;
   height: 100%;
-  background: #fbfdfc;
+  background: var(--color-surface);
 }
 .lineage-toolbar {
   flex-shrink: 0;
@@ -532,9 +532,9 @@ button.odcs-link.fk:hover {
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
-  border-bottom: 1px solid #e3eaea;
+  border-bottom: 1px solid var(--color-border-subtle);
   flex-wrap: wrap;
-  background: #fff;
+  background: var(--color-surface);
 }
 .lineage-toolbar button {
   height: 34px;
@@ -544,9 +544,9 @@ button.odcs-link.fk:hover {
   gap: 5px;
   font-size: var(--text-small);
   padding: 6px 9px;
-  border: 1px solid #d6e1df;
+  border: 1px solid var(--color-border);
   border-radius: 7px;
-  background: #fff;
+  background: var(--color-surface);
   cursor: pointer;
 }
 .lineage-toolbar-spacer {
@@ -559,10 +559,10 @@ button.odcs-link.fk:hover {
   display: flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid #d6e1df;
+  border: 1px solid var(--color-border);
   border-radius: 7px;
   padding: 0 8px;
-  background: #fff;
+  background: var(--color-surface);
   min-width: 0;
   flex: 1 1 150px;
   max-width: 300px;
@@ -585,10 +585,10 @@ button.odcs-link.fk:hover {
   margin: 0;
   padding: 4px;
   list-style: none;
-  background: #fff;
-  border: 1px solid #d6e1df;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  box-shadow: 0 12px 32px #17323a24;
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--color-shadow) 14%, transparent);
   max-height: 320px;
   overflow: auto;
 }
@@ -602,7 +602,7 @@ button.odcs-link.fk:hover {
   font-size: var(--text-small);
 }
 .lineage-search li:hover {
-  background: #eef5f2;
+  background: var(--color-surface-hover);
 }
 .lineage-search li.none {
   color: var(--text-muted);
@@ -614,7 +614,7 @@ button.odcs-link.fk:hover {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  color: #5d736c;
+  color: var(--color-text-muted);
   min-width: 54px;
 }
 .lineage-search .asset-name {
@@ -626,7 +626,7 @@ button.odcs-link.fk:hover {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  border-bottom: 1px solid #eef2f2;
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 .lineage-subbar > .lineage-trail {
   flex: 1 1 auto;
@@ -649,15 +649,15 @@ button.odcs-link.fk:hover {
   align-items: center;
   gap: 6px;
   padding: 5px 10px;
-  border-bottom: 1px solid #eef2f2;
+  border-bottom: 1px solid var(--color-border-subtle);
   font-size: var(--text-small);
   min-height: 30px;
   overflow-x: auto;
 }
 .lineage-trail > button {
   flex: none;
-  border: 1px solid #d6e1df;
-  background: #fff;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
   border-radius: 6px;
   padding: 3px 6px;
   cursor: pointer;
@@ -682,10 +682,10 @@ button.odcs-link.fk:hover {
   border-radius: 5px;
   cursor: pointer;
   font-size: var(--text-small);
-  color: #3a5a50;
+  color: var(--color-text-secondary);
 }
 .lineage-trail ol button[aria-current] {
-  background: #e4efeb;
+  background: var(--color-accent-soft);
   font-weight: 600;
 }
 .lineage-trail small {
@@ -712,7 +712,7 @@ button.odcs-link.fk:hover {
   inset: auto 0 50% 0;
   text-align: center;
   font-size: 13px;
-  color: #5d736c;
+  color: var(--color-text-muted);
 }
 .lineage-path {
   box-sizing: border-box;
@@ -720,8 +720,8 @@ button.odcs-link.fk:hover {
   width: 280px;
   min-height: 0;
   overscroll-behavior: contain;
-  border-left: 1px solid #e3eaea;
-  background: #fff;
+  border-left: 1px solid var(--color-border-subtle);
+  background: var(--color-surface);
   overflow: auto;
   padding: 10px;
   font-size: var(--text-small);
@@ -786,13 +786,13 @@ button.odcs-link.fk:hover {
   flex: none;
   font-size: var(--text-small);
   font-weight: 600;
-  color: #526960;
-  background: #eef3f1;
+  color: var(--color-text-muted);
+  background: var(--color-surface-sunken);
   border-radius: 4px;
   padding: 1px 5px;
 }
 .selected-path > li.current {
-  background: #fff6e6;
+  background: var(--color-warning-soft);
   border-radius: 5px;
 }
 .selected-path > li button span {
@@ -807,10 +807,10 @@ button.odcs-link.fk:hover {
   margin-left: auto;
   padding: 3px 9px;
   font-size: var(--text-small);
-  border: 1px solid #d9aa52;
+  border: 1px solid var(--color-warning-line);
   border-radius: 6px;
-  background: #fff6e6;
-  color: #6b4a12;
+  background: var(--color-warning-soft);
+  color: var(--color-warning-text);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -822,12 +822,12 @@ button.odcs-link.fk:hover {
   margin-left: auto;
   padding: 3px 9px;
   font-size: var(--text-small);
-  border: 1px solid #d6e1df;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
-  background: #fff;
+  background: var(--color-surface);
 }
 .lineage-path-toggle span {
-  background: #e4efeb;
+  background: var(--color-accent-soft);
   border-radius: 8px;
   padding: 0 6px;
   margin-left: 4px;
@@ -836,9 +836,9 @@ button.odcs-link.fk:hover {
   margin-top: 10px;
   font-size: var(--text-small);
   padding: 6px 9px;
-  border: 1px solid #d6e1df;
+  border: 1px solid var(--color-border);
   border-radius: 7px;
-  background: #fff;
+  background: var(--color-surface);
   cursor: pointer;
 }
 .lineage-foot {
@@ -849,8 +849,8 @@ button.odcs-link.fk:hover {
   gap: 6px 14px;
   flex-wrap: wrap;
   padding: 6px 10px;
-  border-top: 1px solid #e3eaea;
-  background: #fff;
+  border-top: 1px solid var(--color-border-subtle);
+  background: var(--color-surface);
 }
 .lineage-reading {
   min-width: 0;
@@ -860,50 +860,50 @@ button.odcs-link.fk:hover {
 }
 .lineage-card {
   box-sizing: border-box;
-  background: #fff;
+  background: var(--color-surface);
   border: 0;
-  outline: 1px solid #cfdfd9;
+  outline: 1px solid var(--color-border-strong);
   border-radius: 9px;
-  box-shadow: 0 1px 3px #2339361a;
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--color-shadow) 10%, transparent);
   font-size: var(--text-small);
   overflow: visible;
   transition: opacity 0.15s;
 }
 .lineage-card.k-object {
-  --card-accent: #2a6c95;
+  --card-accent: var(--color-info);
 }
 .lineage-card.k-dataset {
-  --card-accent: #1e6a4f;
+  --card-accent: var(--color-accent-text);
 }
 .lineage-card.k-metric {
-  --card-accent: #8a5ad1;
+  --card-accent: var(--color-metric);
 }
 .lineage-card.k-concept {
-  --card-accent: #a3532b;
+  --card-accent: var(--color-orange);
 }
 .lineage-card.k-external {
-  --card-accent: #8c9a97;
+  --card-accent: var(--color-neutral);
   outline-style: dashed;
 }
 .lineage-card[style*='--card-tint'] {
   background:
     linear-gradient(
-        color-mix(in srgb, var(--card-tint) 14%, #fff),
-        color-mix(in srgb, var(--card-tint) 14%, #fff)
+        color-mix(in srgb, var(--card-tint) 14%, var(--color-surface)),
+        color-mix(in srgb, var(--card-tint) 14%, var(--color-surface))
       )
       top/100% 64px no-repeat,
-    #fff;
+    var(--color-surface);
 }
 .lineage-card.center {
   box-shadow:
-    0 0 0 3px #2a6c9533,
-    0 2px 8px #2339362a;
+    0 0 0 3px color-mix(in srgb, var(--color-info) 20%, transparent),
+    0 2px 8px color-mix(in srgb, var(--color-shadow) 16%, transparent);
 }
 .lineage-card.dim {
   opacity: 0.42;
 }
 .lineage-card.on-path {
-  outline-color: #d18a1c;
+  outline-color: var(--color-warning-bright);
 }
 .lineage-card:not(.dim):has(.on-path) .lineage-rows li:not(.on-path) {
   opacity: 0.65;
@@ -915,7 +915,7 @@ button.odcs-link.fk:hover {
   gap: 6px;
   padding: 5px 6px 4px 10px;
   border-top: 3px solid var(--card-accent);
-  border-bottom: 1px solid #edf2f1;
+  border-bottom: 1px solid var(--color-border-subtle);
   border-radius: 9px 9px 0 0;
   background: transparent;
 }
@@ -964,7 +964,7 @@ button.odcs-link.fk:hover {
 .lineage-card-kind em {
   font-style: normal;
   background: var(--card-accent);
-  color: #fff;
+  color: var(--color-on-accent);
   border-radius: 3px;
   padding: 0 4px;
   margin-left: 2px;
@@ -983,12 +983,12 @@ button.odcs-link.fk:hover {
   width: 30px;
   height: 32px;
   cursor: pointer;
-  color: #4d6660;
+  color: var(--color-text-muted);
   line-height: 0;
 }
 .lineage-card-actions button:hover {
-  border-color: #d6e1df;
-  background: #f4f8f7;
+  border-color: var(--color-border);
+  background: var(--color-surface-page);
 }
 .lineage-rows {
   list-style: none;
@@ -1016,7 +1016,7 @@ button.odcs-link.fk:hover {
   font-size: var(--text-small);
 }
 .lineage-row:hover {
-  background: #f2f7f5;
+  background: var(--color-surface-sunken);
 }
 .lineage-row-name {
   flex: 1 1 90px;
@@ -1033,7 +1033,7 @@ button.odcs-link.fk:hover {
   max-width: 72px;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #627970;
+  color: var(--color-text-muted);
   font-size: var(--text-small);
   white-space: nowrap;
 }
@@ -1052,14 +1052,14 @@ button.odcs-link.fk:hover {
   line-height: 17px;
 }
 .lineage-rows li.on-path .lineage-row {
-  background: #fff6e6;
-  box-shadow: inset 3px 0 0 #d18a1c;
+  background: var(--color-warning-soft);
+  box-shadow: inset 3px 0 0 var(--color-warning-bright);
 }
 .lineage-rows li.pinned {
-  box-shadow: inset 0 -1px #e5d3b0;
+  box-shadow: inset 0 -1px var(--color-warning-border);
 }
 .lineage-row[aria-pressed='true'] {
-  background: #fbe8c5 !important;
+  background: var(--color-warning-soft-strong) !important;
   font-weight: 600;
 }
 .lineage-more-button {
@@ -1071,13 +1071,13 @@ button.odcs-link.fk:hover {
   padding: 0 10px;
   text-align: left;
   font-size: var(--text-small);
-  color: #1f5476;
+  color: var(--color-info-text);
   font-weight: 600;
   cursor: pointer;
 }
 .lineage-more-button:hover,
 .lineage-more-button:focus-visible {
-  background: #eef5f9;
+  background: var(--color-info-soft);
   text-decoration: underline;
 }
 .lineage-list-filter {
@@ -1085,13 +1085,13 @@ button.odcs-link.fk:hover {
   display: flex;
   align-items: center;
   padding: 4px 8px;
-  border-bottom: 1px solid #edf2f1;
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 .lineage-list-filter input {
   width: 100%;
   height: 26px;
   box-sizing: border-box;
-  border: 1px solid #d6e1df;
+  border: 1px solid var(--color-border);
   border-radius: 5px;
   padding: 0 8px;
   font-size: var(--text-small);
@@ -1117,8 +1117,8 @@ button.odcs-link.fk:hover {
   align-items: center;
 }
 .lineage-list li.on-path .lineage-row {
-  background: #fff6e6;
-  box-shadow: inset 3px 0 0 #d18a1c;
+  background: var(--color-warning-soft);
+  box-shadow: inset 3px 0 0 var(--color-warning-bright);
 }
 .lineage-list-marker {
   position: absolute;
@@ -1129,9 +1129,9 @@ button.odcs-link.fk:hover {
   gap: 3px;
   padding: 0 8px;
   border-radius: 10px;
-  background: #fbe8c5;
-  color: #6b4a12;
-  border: 1px solid #d9aa52;
+  background: var(--color-warning-soft-strong);
+  color: var(--color-warning-text);
+  border: 1px solid var(--color-warning-line);
   font-size: var(--text-small);
   line-height: 18px;
   pointer-events: none;
@@ -1143,23 +1143,23 @@ button.odcs-link.fk:hover {
   align-items: center;
   justify-content: space-between;
   padding: 0 8px 0 10px;
-  border-top: 1px solid #edf2f1;
+  border-top: 1px solid var(--color-border-subtle);
   font-size: var(--text-small);
   color: var(--text-muted);
 }
 .lineage-list-foot button {
   height: 24px;
-  border: 1px solid #d6e1df;
-  background: #fff;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
   border-radius: 5px;
   font-size: var(--text-small);
-  color: #1f5476;
+  color: var(--color-info-text);
   cursor: pointer;
 }
 .lineage-card .react-flow__handle.clamped {
   width: 9px;
   height: 9px;
-  background: #d18a1c;
+  background: var(--color-warning-bright);
   opacity: 1;
 }
 .lineage-card .react-flow__handle {
@@ -1167,22 +1167,22 @@ button.odcs-link.fk:hover {
   height: 6px;
   min-width: 0;
   min-height: 0;
-  background: #9fb3ad;
+  background: var(--color-neutral);
   border: 0;
   opacity: 0.7;
 }
 .lineage-edge.on-path path.react-flow__edge-path {
-  stroke: #d18a1c !important;
+  stroke: var(--color-warning-bright) !important;
   stroke-width: 2.6px !important;
 }
 .lineage-edge-label rect {
-  fill: #fff;
-  stroke: #cfdfd9;
+  fill: var(--color-surface);
+  stroke: var(--color-border-strong);
   stroke-width: 1px;
 }
 .lineage-edge-label text {
   font-size: var(--text-small);
-  fill: #3a4f49;
+  fill: var(--color-text-secondary);
   pointer-events: none;
 }
 .lineage-edge-label.hover {
@@ -1195,9 +1195,9 @@ button.odcs-link.fk:hover {
 }
 .lineage-bundle {
   font-size: var(--text-small);
-  fill: #4d6660;
+  fill: var(--color-text-muted);
   paint-order: stroke;
-  stroke: #fff;
+  stroke: var(--color-surface);
   stroke-width: 3px;
 }
 @media (max-width: 700px) {
@@ -1209,7 +1209,7 @@ button.odcs-link.fk:hover {
     width: 100%;
     max-height: 40%;
     border-left: 0;
-    border-top: 1px solid #e3eaea;
+    border-top: 1px solid var(--color-border-subtle);
     padding: 8px 10px;
   }
   .lineage-toolbar {
@@ -1234,7 +1234,7 @@ button.odcs-link.fk:hover {
 .odcs-lineage-host {
   height: min(62vh, 640px);
   min-height: 420px;
-  border: 1px solid #dbe3e4;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   overflow: hidden;
 }
@@ -1245,12 +1245,12 @@ button.odcs-link.fk:hover {
   padding: 1px 6px;
 }
 .odcs-dir.out {
-  background: #fbf1e1;
-  color: #7f5414;
+  background: var(--color-warning-soft);
+  color: var(--color-warning-emphasis);
 }
 .odcs-dir.in {
-  background: #e4eef7;
-  color: #1f5476;
+  background: var(--color-info-soft);
+  color: var(--color-info-text);
 }
 .odcs-object-cell {
   display: inline-flex;
@@ -1265,12 +1265,12 @@ button.odcs-link.fk:hover {
   padding: 3px;
   line-height: 0;
   cursor: pointer;
-  color: #2a6c95;
+  color: var(--color-info);
 }
 .odcs-lineage-link:hover,
 .odcs-lineage-link:focus-visible {
-  border-color: #cfe0e8;
-  background: #eef5f9;
+  border-color: var(--color-border);
+  background: var(--color-info-soft);
 }
 
 /* Mapping canvas cards and bindings. */
@@ -1286,29 +1286,29 @@ button.odcs-link.fk:hover {
 }
 .mapping-graph-state {
   padding: 24px;
-  color: #5d736c;
+  color: var(--color-text-muted);
   font-size: 13px;
 }
 .mapping-graph-state.error {
-  color: #9b2c2c;
+  color: var(--color-danger-text);
 }
 .mapping-graph-findings {
   margin: 0;
   padding: 6px 12px 6px 28px;
-  background: #fff7e6;
-  border-bottom: 1px solid #f0dcb4;
+  background: var(--color-warning-soft);
+  border-bottom: 1px solid var(--color-warning-border);
   font-size: var(--text-small);
-  color: #6b4a12;
+  color: var(--color-warning-text);
 }
 /* Keep header decoration inside HEADER_H; row and list geometry comes from the layout. */
 .mapping-canvas .lineage-card.k-concept .lineage-card-head {
-  background: #fbefe7;
+  background: var(--color-danger-soft);
 }
 .mapping-canvas .lineage-card.k-dataset .lineage-card-head {
-  background: #edf6f1;
+  background: var(--color-accent-soft);
 }
 .mapping-canvas .lineage-card.k-metric .lineage-card-head {
-  background: #f3eefb;
+  background: var(--color-violet-soft);
 }
 .lineage-check {
   box-sizing: border-box;
@@ -1317,11 +1317,11 @@ button.odcs-link.fk:hover {
   gap: 6px;
   height: 34px;
   padding: 0 8px;
-  border: 1px solid #d6e1df;
+  border: 1px solid var(--color-border);
   border-radius: 7px;
-  background: #fff;
+  background: var(--color-surface);
   font-size: var(--text-small);
-  color: #3a5a50;
+  color: var(--color-text-secondary);
   white-space: nowrap;
   cursor: pointer;
 }
@@ -1329,7 +1329,7 @@ button.odcs-link.fk:hover {
   width: 14px;
   height: 14px;
   margin: 0;
-  accent-color: #1e6a4f;
+  accent-color: var(--color-accent-text);
 }
 .lineage-card-marks {
   display: flex;
@@ -1352,9 +1352,9 @@ button.odcs-link.fk:hover {
 .lineage-finding {
   box-sizing: border-box;
   flex: none;
-  border: 1px solid #d9aa52;
-  background: #fff3d6;
-  color: #805000;
+  border: 1px solid var(--color-warning-line);
+  background: var(--color-warning-soft-strong);
+  color: var(--color-warning-emphasis);
   border-radius: 6px;
   width: 32px;
   height: 32px;
@@ -1369,16 +1369,16 @@ button.odcs-link.fk:hover {
   height: 16px;
 }
 .lineage-finding:hover {
-  background: #ffe7ad;
-  border-color: #b88022;
+  background: var(--color-warning-wash);
+  border-color: var(--color-warning);
 }
 .lineage-bindings-heading {
   margin: 14px 0 0;
   padding-top: 12px;
-  border-top: 1px solid #dfe8e4;
+  border-top: 1px solid var(--color-border-subtle);
   font-size: var(--text-small);
   line-height: 18px;
-  color: #3a5a50;
+  color: var(--color-text-secondary);
 }
 .lineage-bindings {
   list-style: none;
@@ -1393,7 +1393,7 @@ button.odcs-link.fk:hover {
   gap: 10px;
   justify-content: space-between;
   padding: 10px 0;
-  border-bottom: 1px solid #edf2f1;
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 .lineage-bindings li > span {
   flex: 1;
@@ -1407,9 +1407,9 @@ button.odcs-link.fk:hover {
   font-size: var(--text-small);
   font-weight: 600;
   line-height: 17px;
-  color: #526960;
-  background: #eef3f1;
-  border: 1px solid #dfe8e4;
+  color: var(--color-text-muted);
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 4px;
   padding: 0 5px;
   margin: 0 6px 4px 0;
@@ -1420,7 +1420,7 @@ button.odcs-link.fk:hover {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--text-small);
   line-height: 1.6;
-  color: #526960;
+  color: var(--color-text-muted);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -1429,16 +1429,16 @@ button.odcs-link.fk:hover {
   min-height: 34px;
   font-size: var(--text-small);
   padding: 6px 9px;
-  border: 1px solid #d6e1df;
+  border: 1px solid var(--color-border);
   border-radius: 7px;
-  background: #fff;
-  color: #3a5a50;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
   cursor: pointer;
 }
 .lineage-bindings button:hover:not(:disabled),
 .lineage-toolbar button:hover {
-  background: #f2f7f5;
-  border-color: #a9c2b8;
+  background: var(--color-surface-sunken);
+  border-color: var(--color-border-strong);
 }
 .lineage-bindings button:disabled {
   opacity: 0.5;
@@ -1447,7 +1447,7 @@ button.odcs-link.fk:hover {
 .lineage-finding:focus-visible,
 .lineage-bindings button:focus-visible,
 .graph-view-switch button:focus-visible {
-  outline: 2px solid #2a6c95;
+  outline: 2px solid var(--color-info);
   outline-offset: -3px;
 }
 .graph-view-switch {
@@ -1455,7 +1455,7 @@ button.odcs-link.fk:hover {
   display: inline-flex;
   height: 34px;
   max-width: 100%;
-  border: 1px solid #d6e1df;
+  border: 1px solid var(--color-border);
   border-radius: 7px;
   overflow: hidden;
   flex: none;
@@ -1467,18 +1467,18 @@ button.odcs-link.fk:hover {
   height: 32px;
   padding: 0 10px;
   font-size: var(--text-small);
-  background: #fff;
+  background: var(--color-surface);
   cursor: pointer;
   white-space: nowrap;
 }
 .graph-view-switch button + button,
 .lineage-toolbar .graph-view-switch button + button {
-  border-left: 1px solid #d6e1df;
+  border-left: 1px solid var(--color-border);
 }
 .graph-view-switch button[aria-pressed='true'],
 .lineage-toolbar .graph-view-switch button[aria-pressed='true'] {
-  background: #e4efeb;
-  color: #245642;
+  background: var(--color-accent-soft);
+  color: var(--color-accent-hover);
   font-weight: 600;
 }
 @media (max-width: 700px) {
@@ -1496,7 +1496,7 @@ button.odcs-link.fk:hover {
 }
 .lineage-card.group {
   outline-style: dashed;
-  background: #f7faf9;
+  background: var(--color-surface-page);
 }
 .lineage-card.group .lineage-card-title small {
   white-space: normal;
