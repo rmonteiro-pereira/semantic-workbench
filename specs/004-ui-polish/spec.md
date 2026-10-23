@@ -286,6 +286,25 @@ parallel one.
 Findings: F70. Checks: `tests/*sparse*.test.ts` (new), mutants in `scripts/mutation-tests.ts`,
 `test:scm`, `test:git-setup`, `test:two-editors`.
 
+## R16. Wizards never scroll sideways (issue 10)
+
+The metric attributes wizard showed a seven-step strip that scrolled sideways with tiny labels, a
+two-line body above a large empty area, and no strategy for long metric names.
+
+1. A shared stepper (`src/projects/WizardStepper.tsx`) replaces any scrolling step strip. Below
+   1200 px it is one line, "Step 2 of 8 · Data", a progress bar and a menu of all steps; from
+   1200 px it is a vertical list that marks completed, current and pending steps. Labels are at
+   least 12 px. It never scrolls sideways.
+2. Cancel, Back and Next sit in the shared dialog footer; the body takes the height of its step.
+3. Long identifiers wrap (overflow-wrap anywhere) and the dialog title carries the full name.
+4. Every multi-step wizard uses the shared stepper.
+5. At 390, 600, 1280 and 1440 px: no horizontal scrollbar in the wizard, every step reachable,
+   the footer visible without scrolling, a long-name fixture wraps without overflow.
+
+Findings: F71 (issue 10). Checks: the wizard walk in `scripts/item-edit-browser-check.ts` (new long
+name check at four widths), the `metric-wizard` screen in the `edit screens:` block of the
+responsive suite.
+
 ## Traceability
 
 Every finding maps to a requirement. Status values are open, fixed, deferred (with the reason in
@@ -315,4 +334,10 @@ Every finding maps to a requirement. Status values are open, fixed, deferred (wi
 | F68 | R13 | fixed |
 | F69 | R14 | fixed |
 | F70 | R15 | fixed |
+| F71 | R16 | open |
+| F72 | R8 | open |
+| F73 | R16 | open |
+| F74 | R8 | open |
+| F75 | R8 | open |
+| F76 | R8 | open |
 | F64 | R11 | open |

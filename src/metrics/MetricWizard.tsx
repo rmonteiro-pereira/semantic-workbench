@@ -1,4 +1,5 @@
 /** Validates metric creation step by step and previews the server's plan without executing SQL. */
+import { WizardStepper } from '../projects/WizardStepper';
 import { CompositionTree } from './Explanation';
 import React, { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
@@ -352,622 +353,609 @@ export function MetricWizard({
       footerNote={step < 7 ? blocking[0] : undefined}
     >
       <section className="wizard-body" aria-label={STEPS[step]}>
-        <div className="wizard-progress">
-          <h3>
-            Step {step + 1} of {STEPS.length}
-          </h3>
-          <select
-            aria-label="Go to step"
-            value={step}
-            onChange={event => setStep(Number(event.target.value))}
-          >
-            {STEPS.map((name, index) => (
-              <option key={name} value={index} disabled={index > done}>
-                {index + 1}. {name}
-              </option>
-            ))}
-          </select>
-        </div>
-        {step === 0 && bound && (
-          <p>
-            {existing!.label} is already bound: it measures <strong>{d.measures || '—'}</strong>
-            {d.of && (
-              <>
-                {' '}
-                of <strong>{d.of}</strong>
-              </>
-            )}
-            . The binding stays as it is.
-          </p>
-        )}
-        {step === 0 && !bound && (
-          <>
+        <WizardStepper steps={STEPS} current={step} reachable={done} onGo={setStep} />
+        <div className="wizard-step">
+          {step === 0 && bound && (
             <p>
-              Which business concept does this metric measure, and what is it about? The binding is
-              stored in the project's mapping document.
+              {existing!.label} is already bound: it measures <strong>{d.measures || '—'}</strong>
+              {d.of && (
+                <>
+                  {' '}
+                  of <strong>{d.of}</strong>
+                </>
+              )}
+              . The binding stays as it is.
             </p>
-            <div className="item-fields">
-              {field(
-                'Business concept',
-                <input
-                  list="kpi-concepts"
-                  aria-label="Concept measured"
-                  value={d.measures}
-                  onChange={e => set({ measures: e.target.value })}
-                  placeholder="Concept name"
-                />,
-                'The concept this metric measures. Leave empty to save the metric without one.',
-              )}
-              {field(
-                'Computed per',
-                <input
-                  list="kpi-concepts"
-                  aria-label="Concept it is about"
-                  value={d.of}
-                  onChange={e => set({ of: e.target.value })}
-                  placeholder="Entity name"
-                />,
-                'Optional. The entity the value is computed for, such as Property.',
-              )}
-              <datalist id="kpi-concepts">
-                {concepts.map(c => (
-                  <option key={c} value={c} />
-                ))}
-              </datalist>
-              {d.measures && !concepts.includes(d.measures) && (
-                <p className="item-note wide">
-                  <AlertTriangle size={13} />
-                  {d.measures} is not a concept of the project's ontology; the metric will show a
-                  finding until it exists.
-                </p>
-              )}
-            </div>
-          </>
-        )}
-        {step === 1 && (
-          <>
-            <p>The semantic model whose datasets and metrics this metric reads.</p>
-            <div className="item-fields">
-              {existing ? (
-                <p className="wide">
-                  {existing.model} ({existing.file})
-                </p>
-              ) : (
-                field(
-                  'Semantic model',
-                  select(
-                    d.file,
-                    v => set({ file: v, field: '', numerator: '', denominator: '', inputs: '' }),
-                    models.map(m => (
-                      <option key={m.file + m.path.join('/')} value={m.file}>
-                        {m.name} ({m.file})
-                      </option>
-                    )),
+          )}
+          {step === 0 && !bound && (
+            <>
+              <p>
+                Which business concept does this metric measure, and what is it about? The binding
+                is stored in the project's mapping document.
+              </p>
+              <div className="item-fields">
+                {field(
+                  'Business concept',
+                  <input
+                    list="kpi-concepts"
+                    aria-label="Concept measured"
+                    value={d.measures}
+                    onChange={e => set({ measures: e.target.value })}
+                    placeholder="Concept name"
+                  />,
+                  'The concept this metric measures. Leave empty to save the metric without one.',
+                )}
+                {field(
+                  'Computed per',
+                  <input
+                    list="kpi-concepts"
+                    aria-label="Concept it is about"
+                    value={d.of}
+                    onChange={e => set({ of: e.target.value })}
+                    placeholder="Entity name"
+                  />,
+                  'Optional. The entity the value is computed for, such as Property.',
+                )}
+                <datalist id="kpi-concepts">
+                  {concepts.map(c => (
+                    <option key={c} value={c} />
+                  ))}
+                </datalist>
+                {d.measures && !concepts.includes(d.measures) && (
+                  <p className="item-note wide">
+                    <AlertTriangle size={13} />
+                    {d.measures} is not a concept of the project's ontology; the metric will show a
+                    finding until it exists.
+                  </p>
+                )}
+              </div>
+            </>
+          )}
+          {step === 1 && (
+            <>
+              <p>The semantic model whose datasets and metrics this metric reads.</p>
+              <div className="item-fields">
+                {existing ? (
+                  <p className="wide">
+                    {existing.model} ({existing.file})
+                  </p>
+                ) : (
+                  field(
                     'Semantic model',
-                    'Choose…',
-                  ),
-                  undefined,
-                  true,
-                )
-              )}
-              {model && (
-                <p className="wide">
-                  {model.datasets.length} datasets · {model.metrics.length} metrics:{' '}
-                  {model.datasets.map(x => x.name).join(', ')}
-                </p>
-              )}
-            </div>
-          </>
-        )}
-        {step === 2 && existing && (
-          <div className="item-fields">
-            {field(
-              'Label',
-              <input
-                aria-label="Label"
-                value={d.label}
-                onChange={e => set({ label: e.target.value })}
-              />,
-            )}
-            {field(
-              'Name',
-              <input aria-label="Name" value={d.name} readOnly />,
-              'As written in the semantic model',
-            )}
-            {field(
-              'Type',
-              select(
-                d.type,
-                v => set({ type: (v || 'simple') as KpiType }),
-                (['simple', 'ratio', 'derived', 'cumulative', 'filtered'] as KpiType[]).map(t => (
-                  <option key={t} value={t}>
-                    {typeLabel[t]}
-                  </option>
-                )),
-                'Metric type',
-              ),
-              existing.typeDeclared ? undefined : 'Read from the expression',
-            )}
-            {d.type === 'ratio' && (
-              <>
-                {field(
-                  'Numerator',
-                  select(
-                    d.numerator,
-                    v => set({ numerator: v }),
-                    model?.metrics.map(metricOption),
-                    'Numerator',
-                    'Choose…',
-                  ),
+                    select(
+                      d.file,
+                      v => set({ file: v, field: '', numerator: '', denominator: '', inputs: '' }),
+                      models.map(m => (
+                        <option key={m.file + m.path.join('/')} value={m.file}>
+                          {m.name} ({m.file})
+                        </option>
+                      )),
+                      'Semantic model',
+                      'Choose…',
+                    ),
+                    undefined,
+                    true,
+                  )
                 )}
-                {field(
-                  'Denominator',
-                  select(
-                    d.denominator,
-                    v => set({ denominator: v }),
-                    model?.metrics.map(metricOption),
-                    'Denominator',
-                    'Choose…',
-                  ),
+                {model && (
+                  <p className="wide">
+                    {model.datasets.length} datasets · {model.metrics.length} metrics:{' '}
+                    {model.datasets.map(x => x.name).join(', ')}
+                  </p>
                 )}
-              </>
-            )}
-            {['derived', 'cumulative', 'filtered'].includes(d.type) &&
-              field(
-                'Input metrics',
+              </div>
+            </>
+          )}
+          {step === 2 && existing && (
+            <div className="item-fields">
+              {field(
+                'Label',
                 <input
-                  aria-label="Input metrics"
-                  value={d.inputs}
-                  onChange={e => set({ inputs: e.target.value })}
+                  aria-label="Label"
+                  value={d.label}
+                  onChange={e => set({ label: e.target.value })}
                 />,
-                'Metric names, separated by commas',
               )}
-            {field(
-              'Additivity',
-              select(
-                d.additivity,
-                v => set({ additivity: v }),
-                ['additive', 'semi_additive', 'non_additive'].map(a => (
-                  <option key={a}>{a}</option>
-                )),
-                'Additivity',
-                'From the type',
-              ),
-            )}
-            <p className="wide formula-line">
-              Expression (kept as written): <code>{expression || '—'}</code>
-            </p>
-          </div>
-        )}
-        {step === 2 && !existing && (
-          <div className="item-fields">
-            {field(
-              'Label',
-              <input
-                aria-label="Label"
-                value={d.label}
-                onChange={e =>
-                  set({
-                    label: e.target.value,
-                    ...(d.name === snake(d.label) || !d.name
-                      ? { name: snake(e.target.value) }
-                      : {}),
-                  })
-                }
-                placeholder="Vacancy rate"
-              />,
-            )}
-            {field(
-              'Name',
-              <input
-                aria-label="Name"
-                value={d.name}
-                onChange={e => set({ name: e.target.value })}
-              />,
-              'The metric name in the semantic model',
-            )}
-            {field(
-              'Type',
-              select(
-                d.type,
-                v => set({ type: (v || 'simple') as KpiType }),
-                (['simple', 'ratio', 'derived', 'cumulative', 'filtered'] as KpiType[]).map(t => (
-                  <option key={t} value={t}>
-                    {typeLabel[t]}
-                  </option>
-                )),
-                'Metric type',
-              ),
-            )}
-            {d.type === 'simple' && (
-              <>
-                {field(
-                  'Aggregation',
-                  select(
-                    d.aggregation,
-                    v => set({ aggregation: v || 'SUM' }),
-                    AGGREGATIONS.map(a => <option key={a}>{a}</option>),
-                    'Aggregation',
-                  ),
-                )}
-                {field(
-                  'Field',
-                  select(
-                    d.field,
-                    v => set({ field: v }),
-                    fields.map(f => <option key={f}>{f}</option>),
-                    'Field to aggregate',
-                    'Choose…',
-                  ),
-                )}
-              </>
-            )}
-            {d.type === 'ratio' && (
-              <>
-                {field(
-                  'Numerator',
-                  select(
-                    d.numerator,
-                    v => set({ numerator: v }),
-                    model?.metrics.map(metricOption),
+              {field(
+                'Name',
+                <input aria-label="Name" value={d.name} readOnly />,
+                'As written in the semantic model',
+              )}
+              {field(
+                'Type',
+                select(
+                  d.type,
+                  v => set({ type: (v || 'simple') as KpiType }),
+                  (['simple', 'ratio', 'derived', 'cumulative', 'filtered'] as KpiType[]).map(t => (
+                    <option key={t} value={t}>
+                      {typeLabel[t]}
+                    </option>
+                  )),
+                  'Metric type',
+                ),
+                existing.typeDeclared ? undefined : 'Read from the expression',
+              )}
+              {d.type === 'ratio' && (
+                <>
+                  {field(
                     'Numerator',
-                    'Choose…',
-                  ),
-                )}
-                {field(
-                  'Denominator',
-                  select(
-                    d.denominator,
-                    v => set({ denominator: v }),
-                    model?.metrics.map(metricOption),
+                    select(
+                      d.numerator,
+                      v => set({ numerator: v }),
+                      model?.metrics.map(metricOption),
+                      'Numerator',
+                      'Choose…',
+                    ),
+                  )}
+                  {field(
                     'Denominator',
-                    'Choose…',
-                  ),
-                  'Division by zero gives no value (NULLIF)',
-                )}
-              </>
-            )}
-            {['derived', 'cumulative', 'filtered'].includes(d.type) && (
-              <>
-                {field(
+                    select(
+                      d.denominator,
+                      v => set({ denominator: v }),
+                      model?.metrics.map(metricOption),
+                      'Denominator',
+                      'Choose…',
+                    ),
+                  )}
+                </>
+              )}
+              {['derived', 'cumulative', 'filtered'].includes(d.type) &&
+                field(
                   'Input metrics',
                   <input
                     aria-label="Input metrics"
-                    list="kpi-metrics"
                     value={d.inputs}
-                    onChange={e =>
-                      set({
-                        inputs: e.target.value,
-                        ...(!d.expression && d.type !== 'derived'
-                          ? { expression: list(e.target.value)[0] ?? '' }
-                          : {}),
-                      })
-                    }
+                    onChange={e => set({ inputs: e.target.value })}
                   />,
                   'Metric names, separated by commas',
                 )}
-                <datalist id="kpi-metrics">
-                  {model?.metrics.map(m => (
-                    <option key={m} value={m} />
-                  ))}
-                </datalist>
-                {field(
-                  'Expression',
-                  <SqlField
-                    ariaLabel="Expression"
-                    dialect="ANSI_SQL"
-                    rows={2}
-                    value={d.expression}
-                    onChange={v => set({ expression: v })}
-                  />,
-                  'ANSI SQL over the input metrics; warnings never block',
-                  true,
-                )}
-              </>
-            )}
-            {d.type === 'cumulative' && (
-              <>
-                {field(
-                  'Window',
-                  select(
-                    d.window,
-                    v => set({ window: v }),
-                    ['to_date', 'rolling', 'all'].map(w => <option key={w}>{w}</option>),
-                    'Window',
-                  ),
-                )}
-                {field(
-                  'Window grain',
-                  select(
-                    d.windowGrain,
-                    v => set({ windowGrain: v }),
-                    GRAINS.map(g => <option key={g}>{g}</option>),
-                    'Window grain',
-                  ),
-                )}
-                {d.window === 'rolling' &&
-                  field(
-                    'Length',
+              {field(
+                'Additivity',
+                select(
+                  d.additivity,
+                  v => set({ additivity: v }),
+                  ['additive', 'semi_additive', 'non_additive'].map(a => (
+                    <option key={a}>{a}</option>
+                  )),
+                  'Additivity',
+                  'From the type',
+                ),
+              )}
+              <p className="wide formula-line">
+                Expression (kept as written): <code>{expression || '—'}</code>
+              </p>
+            </div>
+          )}
+          {step === 2 && !existing && (
+            <div className="item-fields">
+              {field(
+                'Label',
+                <input
+                  aria-label="Label"
+                  value={d.label}
+                  onChange={e =>
+                    set({
+                      label: e.target.value,
+                      ...(d.name === snake(d.label) || !d.name
+                        ? { name: snake(e.target.value) }
+                        : {}),
+                    })
+                  }
+                  placeholder="Vacancy rate"
+                />,
+              )}
+              {field(
+                'Name',
+                <input
+                  aria-label="Name"
+                  value={d.name}
+                  onChange={e => set({ name: e.target.value })}
+                />,
+                'The metric name in the semantic model',
+              )}
+              {field(
+                'Type',
+                select(
+                  d.type,
+                  v => set({ type: (v || 'simple') as KpiType }),
+                  (['simple', 'ratio', 'derived', 'cumulative', 'filtered'] as KpiType[]).map(t => (
+                    <option key={t} value={t}>
+                      {typeLabel[t]}
+                    </option>
+                  )),
+                  'Metric type',
+                ),
+              )}
+              {d.type === 'simple' && (
+                <>
+                  {field(
+                    'Aggregation',
+                    select(
+                      d.aggregation,
+                      v => set({ aggregation: v || 'SUM' }),
+                      AGGREGATIONS.map(a => <option key={a}>{a}</option>),
+                      'Aggregation',
+                    ),
+                  )}
+                  {field(
+                    'Field',
+                    select(
+                      d.field,
+                      v => set({ field: v }),
+                      fields.map(f => <option key={f}>{f}</option>),
+                      'Field to aggregate',
+                      'Choose…',
+                    ),
+                  )}
+                </>
+              )}
+              {d.type === 'ratio' && (
+                <>
+                  {field(
+                    'Numerator',
+                    select(
+                      d.numerator,
+                      v => set({ numerator: v }),
+                      model?.metrics.map(metricOption),
+                      'Numerator',
+                      'Choose…',
+                    ),
+                  )}
+                  {field(
+                    'Denominator',
+                    select(
+                      d.denominator,
+                      v => set({ denominator: v }),
+                      model?.metrics.map(metricOption),
+                      'Denominator',
+                      'Choose…',
+                    ),
+                    'Division by zero gives no value (NULLIF)',
+                  )}
+                </>
+              )}
+              {['derived', 'cumulative', 'filtered'].includes(d.type) && (
+                <>
+                  {field(
+                    'Input metrics',
                     <input
-                      aria-label="Window length"
-                      value={d.windowLength}
-                      onChange={e => set({ windowLength: e.target.value })}
+                      aria-label="Input metrics"
+                      list="kpi-metrics"
+                      value={d.inputs}
+                      onChange={e =>
+                        set({
+                          inputs: e.target.value,
+                          ...(!d.expression && d.type !== 'derived'
+                            ? { expression: list(e.target.value)[0] ?? '' }
+                            : {}),
+                        })
+                      }
+                    />,
+                    'Metric names, separated by commas',
+                  )}
+                  <datalist id="kpi-metrics">
+                    {model?.metrics.map(m => (
+                      <option key={m} value={m} />
+                    ))}
+                  </datalist>
+                  {field(
+                    'Expression',
+                    <SqlField
+                      ariaLabel="Expression"
+                      dialect="ANSI_SQL"
+                      rows={2}
+                      value={d.expression}
+                      onChange={v => set({ expression: v })}
+                    />,
+                    'ANSI SQL over the input metrics; warnings never block',
+                    true,
+                  )}
+                </>
+              )}
+              {d.type === 'cumulative' && (
+                <>
+                  {field(
+                    'Window',
+                    select(
+                      d.window,
+                      v => set({ window: v }),
+                      ['to_date', 'rolling', 'all'].map(w => <option key={w}>{w}</option>),
+                      'Window',
+                    ),
+                  )}
+                  {field(
+                    'Window grain',
+                    select(
+                      d.windowGrain,
+                      v => set({ windowGrain: v }),
+                      GRAINS.map(g => <option key={g}>{g}</option>),
+                      'Window grain',
+                    ),
+                  )}
+                  {d.window === 'rolling' &&
+                    field(
+                      'Length',
+                      <input
+                        aria-label="Window length"
+                        value={d.windowLength}
+                        onChange={e => set({ windowLength: e.target.value })}
+                      />,
+                    )}
+                </>
+              )}
+              {d.type === 'filtered' && (
+                <>
+                  {field(
+                    'Filter field',
+                    select(
+                      d.filterField,
+                      v => set({ filterField: v }),
+                      fields.map(f => <option key={f}>{f}</option>),
+                      'Filter field',
+                    ),
+                  )}
+                  {field(
+                    'Operator',
+                    select(
+                      d.filterOperator,
+                      v => set({ filterOperator: v }),
+                      [
+                        'equals',
+                        'not_equals',
+                        'in',
+                        'not_in',
+                        'gt',
+                        'gte',
+                        'lt',
+                        'lte',
+                        'is_null',
+                        'is_not_null',
+                      ].map(o => <option key={o}>{o}</option>),
+                      'Filter operator',
+                    ),
+                  )}
+                  {field(
+                    'Value',
+                    <input
+                      aria-label="Filter value"
+                      value={d.filterValue}
+                      onChange={e => set({ filterValue: e.target.value })}
                     />,
                   )}
-              </>
-            )}
-            {d.type === 'filtered' && (
-              <>
-                {field(
-                  'Filter field',
-                  select(
-                    d.filterField,
-                    v => set({ filterField: v }),
-                    fields.map(f => <option key={f}>{f}</option>),
-                    'Filter field',
-                  ),
-                )}
-                {field(
-                  'Operator',
-                  select(
-                    d.filterOperator,
-                    v => set({ filterOperator: v }),
-                    [
-                      'equals',
-                      'not_equals',
-                      'in',
-                      'not_in',
-                      'gt',
-                      'gte',
-                      'lt',
-                      'lte',
-                      'is_null',
-                      'is_not_null',
-                    ].map(o => <option key={o}>{o}</option>),
-                    'Filter operator',
-                  ),
-                )}
-                {field(
-                  'Value',
-                  <input
-                    aria-label="Filter value"
-                    value={d.filterValue}
-                    onChange={e => set({ filterValue: e.target.value })}
-                  />,
-                )}
-              </>
-            )}
-            {field(
-              'Additivity',
-              select(
-                d.additivity,
-                v => set({ additivity: v }),
-                ['additive', 'semi_additive', 'non_additive'].map(a => (
-                  <option key={a}>{a}</option>
-                )),
+                </>
+              )}
+              {field(
                 'Additivity',
-                'From the type',
-              ),
-              d.type === 'ratio' ? 'A ratio is never summed across groups' : undefined,
-            )}
-            {field(
-              'Description',
-              <textarea
-                aria-label="Description"
-                rows={2}
-                value={d.description}
-                onChange={e => set({ description: e.target.value })}
-              />,
-              undefined,
-              true,
-            )}
-            <p className="wide formula-line">
-              Expression: <code>{expression || '—'}</code>
-            </p>
-          </div>
-        )}
-        {step === 3 && (
-          <div className="item-fields">
-            {field(
-              'Time dimension',
-              select(
-                d.timeDimension,
-                v => set({ timeDimension: v }),
-                fields.map(f => <option key={f}>{f}</option>),
+                select(
+                  d.additivity,
+                  v => set({ additivity: v }),
+                  ['additive', 'semi_additive', 'non_additive'].map(a => (
+                    <option key={a}>{a}</option>
+                  )),
+                  'Additivity',
+                  'From the type',
+                ),
+                d.type === 'ratio' ? 'A ratio is never summed across groups' : undefined,
+              )}
+              {field(
+                'Description',
+                <textarea
+                  aria-label="Description"
+                  rows={2}
+                  value={d.description}
+                  onChange={e => set({ description: e.target.value })}
+                />,
+                undefined,
+                true,
+              )}
+              <p className="wide formula-line">
+                Expression: <code>{expression || '—'}</code>
+              </p>
+            </div>
+          )}
+          {step === 3 && (
+            <div className="item-fields">
+              {field(
                 'Time dimension',
-                'None',
-              ),
-              'The date field the metric is reported over',
-            )}
-            {field(
-              'Minimum grain',
-              select(
-                d.minGrain,
-                v => set({ minGrain: v }),
-                GRAINS.map(g => <option key={g}>{g}</option>),
+                select(
+                  d.timeDimension,
+                  v => set({ timeDimension: v }),
+                  fields.map(f => <option key={f}>{f}</option>),
+                  'Time dimension',
+                  'None',
+                ),
+                'The date field the metric is reported over',
+              )}
+              {field(
                 'Minimum grain',
-              ),
-            )}
-            {field(
-              'Allowed grains',
-              multi(d.grains, [...GRAINS], v => set({ grains: v }), 'Allowed grains'),
-              undefined,
-              true,
-            )}
-            {field(
-              'Breakdowns',
-              multi(d.dimensions, fields, v => set({ dimensions: v }), 'Breakdowns'),
-              'Fields the metric may be broken down by',
-              true,
-            )}
-          </div>
-        )}
-        {step === 4 && (
-          <div className="item-fields">
-            {field(
-              'Direction',
-              select(
-                d.direction,
-                v => set({ direction: v }),
-                [
-                  ['higher_is_better', 'Higher is better'],
-                  ['lower_is_better', 'Lower is better'],
-                ].map(([v, l]) => (
-                  <option key={v} value={v}>
-                    {l}
-                  </option>
-                )),
-                'Target direction',
-                'No target',
-              ),
-            )}
-            {field(
-              'Target',
-              <input
-                aria-label="Target value"
-                inputMode="decimal"
-                value={d.target}
-                onChange={e => set({ target: e.target.value })}
-                disabled={!d.direction}
-              />,
-            )}
-            {field(
-              'Per',
-              select(
-                d.targetGrain,
-                v => set({ targetGrain: v }),
-                GRAINS.map(g => <option key={g}>{g}</option>),
-                'Target grain',
-              ),
-            )}
-            {field(
-              'Warning at',
-              <input
-                aria-label="Warning threshold"
-                inputMode="decimal"
-                value={d.warning}
-                onChange={e => set({ warning: e.target.value })}
-                disabled={!d.direction}
-              />,
-            )}
-            {field(
-              'Critical at',
-              <input
-                aria-label="Critical threshold"
-                inputMode="decimal"
-                value={d.critical}
-                onChange={e => set({ critical: e.target.value })}
-                disabled={!d.direction}
-              />,
-            )}
-          </div>
-        )}
-        {step === 5 && (
-          <div className="item-fields">
-            {field(
-              'Owner',
-              <OwnerInput
-                project={project}
-                value={d.owner}
-                onChange={owner => set({ owner })}
-                verified={d.owner === existing?.owner ? existing?.ownerVerified : undefined}
-              />,
-            )}
-            {field(
-              'Steward',
-              <input
-                aria-label="Steward"
-                value={d.steward}
-                onChange={e => set({ steward: e.target.value })}
-              />,
-            )}
-            {field(
-              'Status',
-              select(
-                d.status,
-                v => set({ status: v || 'proposed' }),
-                STATUSES.slice(0, 2).map(s => <option key={s}>{s}</option>),
+                select(
+                  d.minGrain,
+                  v => set({ minGrain: v }),
+                  GRAINS.map(g => <option key={g}>{g}</option>),
+                  'Minimum grain',
+                ),
+              )}
+              {field(
+                'Allowed grains',
+                multi(d.grains, [...GRAINS], v => set({ grains: v }), 'Allowed grains'),
+                undefined,
+                true,
+              )}
+              {field(
+                'Breakdowns',
+                multi(d.dimensions, fields, v => set({ dimensions: v }), 'Breakdowns'),
+                'Fields the metric may be broken down by',
+                true,
+              )}
+            </div>
+          )}
+          {step === 4 && (
+            <div className="item-fields">
+              {field(
+                'Direction',
+                select(
+                  d.direction,
+                  v => set({ direction: v }),
+                  [
+                    ['higher_is_better', 'Higher is better'],
+                    ['lower_is_better', 'Lower is better'],
+                  ].map(([v, l]) => (
+                    <option key={v} value={v}>
+                      {l}
+                    </option>
+                  )),
+                  'Target direction',
+                  'No target',
+                ),
+              )}
+              {field(
+                'Target',
+                <input
+                  aria-label="Target value"
+                  inputMode="decimal"
+                  value={d.target}
+                  onChange={e => set({ target: e.target.value })}
+                  disabled={!d.direction}
+                />,
+              )}
+              {field(
+                'Per',
+                select(
+                  d.targetGrain,
+                  v => set({ targetGrain: v }),
+                  GRAINS.map(g => <option key={g}>{g}</option>),
+                  'Target grain',
+                ),
+              )}
+              {field(
+                'Warning at',
+                <input
+                  aria-label="Warning threshold"
+                  inputMode="decimal"
+                  value={d.warning}
+                  onChange={e => set({ warning: e.target.value })}
+                  disabled={!d.direction}
+                />,
+              )}
+              {field(
+                'Critical at',
+                <input
+                  aria-label="Critical threshold"
+                  inputMode="decimal"
+                  value={d.critical}
+                  onChange={e => set({ critical: e.target.value })}
+                  disabled={!d.direction}
+                />,
+              )}
+            </div>
+          )}
+          {step === 5 && (
+            <div className="item-fields">
+              {field(
+                'Owner',
+                <OwnerInput
+                  project={project}
+                  value={d.owner}
+                  onChange={owner => set({ owner })}
+                  verified={d.owner === existing?.owner ? existing?.ownerVerified : undefined}
+                />,
+              )}
+              {field(
+                'Steward',
+                <input
+                  aria-label="Steward"
+                  value={d.steward}
+                  onChange={e => set({ steward: e.target.value })}
+                />,
+              )}
+              {field(
                 'Status',
-              ),
-              'A new metric is a draft or proposed for review',
-            )}
-            {field(
-              'Unit',
-              <input
-                aria-label="Unit"
-                value={d.unit}
-                onChange={e => set({ unit: e.target.value })}
-                placeholder="ratio, m², BRL"
-              />,
-            )}
-            {field(
-              'Format',
-              <input
-                aria-label="Format"
-                value={d.format}
-                onChange={e => set({ format: e.target.value })}
-                placeholder="0.0%"
-              />,
-            )}
-          </div>
-        )}
-        {step === 6 &&
-          (busy && !preview ? (
-            <p role="status">Explaining the {existing ? 'metric' : 'new metric'}…</p>
-          ) : (
-            preview && (
-              <div className="wizard-preview">
-                <p>
-                  <strong>{d.label}</strong> = <code>{preview.explanation.formula}</code>
-                </p>
-                <h4>Built from</h4>
-                <CompositionTree className="wizard-tree" node={preview.explanation.tree} />
-                <h4>SQL preview</h4>
-                {'refused' in preview.explanation.sqlPreview ? (
-                  <p className="item-note">{preview.explanation.sqlPreview.refused}</p>
-                ) : (
-                  <pre aria-label="Preview · not executed">
-                    <code>
-                      <SqlCode sql={preview.explanation.sqlPreview.sql} />
-                    </code>
+                select(
+                  d.status,
+                  v => set({ status: v || 'proposed' }),
+                  STATUSES.slice(0, 2).map(s => <option key={s}>{s}</option>),
+                  'Status',
+                ),
+                'A new metric is a draft or proposed for review',
+              )}
+              {field(
+                'Unit',
+                <input
+                  aria-label="Unit"
+                  value={d.unit}
+                  onChange={e => set({ unit: e.target.value })}
+                  placeholder="ratio, m², BRL"
+                />,
+              )}
+              {field(
+                'Format',
+                <input
+                  aria-label="Format"
+                  value={d.format}
+                  onChange={e => set({ format: e.target.value })}
+                  placeholder="0.0%"
+                />,
+              )}
+            </div>
+          )}
+          {step === 6 &&
+            (busy && !preview ? (
+              <p role="status">Explaining the {existing ? 'metric' : 'new metric'}…</p>
+            ) : (
+              preview && (
+                <div className="wizard-preview">
+                  <p>
+                    <strong>{d.label}</strong> = <code>{preview.explanation.formula}</code>
+                  </p>
+                  <h4>Built from</h4>
+                  <CompositionTree className="wizard-tree" node={preview.explanation.tree} />
+                  <h4>SQL preview</h4>
+                  {'refused' in preview.explanation.sqlPreview ? (
+                    <p className="item-note">{preview.explanation.sqlPreview.refused}</p>
+                  ) : (
+                    <pre aria-label="Preview · not executed">
+                      <code>
+                        <SqlCode sql={preview.explanation.sqlPreview.sql} />
+                      </code>
+                    </pre>
+                  )}
+                  <small>Preview, not executed.</small>
+                </div>
+              )
+            ))}
+          {step === 7 && preview && (
+            <div className="wizard-preview">
+              <p>Saving writes these changes in one step:</p>
+              {preview.changes.map(c => (
+                <div key={c.path}>
+                  <h4>
+                    {c.path}
+                    {c.created ? ' (new file)' : ''}
+                  </h4>
+                  <pre aria-label={`Changes to ${c.path}`}>
+                    {c.added.map(l => '+ ' + l).join('\n')}
+                    {c.removed.length ? '\n' + c.removed.map(l => '- ' + l).join('\n') : ''}
                   </pre>
-                )}
-                <small>Preview, not executed.</small>
-              </div>
-            )
-          ))}
-        {step === 7 && preview && (
-          <div className="wizard-preview">
-            <p>Saving writes these changes in one step:</p>
-            {preview.changes.map(c => (
-              <div key={c.path}>
-                <h4>
-                  {c.path}
-                  {c.created ? ' (new file)' : ''}
-                </h4>
-                <pre aria-label={`Changes to ${c.path}`}>
-                  {c.added.map(l => '+ ' + l).join('\n')}
-                  {c.removed.length ? '\n' + c.removed.map(l => '- ' + l).join('\n') : ''}
-                </pre>
-              </div>
-            ))}
-          </div>
-        )}
-        {blocking.length > 0 && (
-          <ul className="item-findings" aria-label="Before the next step">
-            {blocking.map(p => (
-              <li key={p} className="error">
-                <AlertTriangle size={12} />
-                {p}
-              </li>
-            ))}
-          </ul>
-        )}
-        {error && (
-          <p role="alert" className="dialog-error">
-            {error}
-          </p>
-        )}
+                </div>
+              ))}
+            </div>
+          )}
+          {blocking.length > 0 && (
+            <ul className="item-findings" aria-label="Before the next step">
+              {blocking.map(p => (
+                <li key={p} className="error">
+                  <AlertTriangle size={12} />
+                  {p}
+                </li>
+              ))}
+            </ul>
+          )}
+          {error && (
+            <p role="alert" className="dialog-error">
+              {error}
+            </p>
+          )}
+        </div>
       </section>
     </Modal>
   );

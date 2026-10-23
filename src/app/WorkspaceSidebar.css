@@ -1,15 +1,15 @@
 /* The sidebar: navigation on top, the project tree in the middle, the workspace actions below. */
 
 /* The tree is the part that scrolls. A thin scrollbar, a shadow at each edge that has more rows
-   beyond it, and a line above and below tell a person it scrolls. Scrolling comes to rest on the
-   start of a row instead of in the middle of its text. */
+   beyond it, and a line above and below tell a person it scrolls. Scrolling always comes to rest with a row
+   starting at the top edge, so no row is cut at the top; the shadow at the bottom edge says more rows follow. */
 .workspace-sidebar .documents {
   flex: 1 1 auto;
   min-height: 160px;
   padding-block: 6px;
   overflow-y: auto;
   scrollbar-width: thin;
-  scroll-snap-type: y proximity;
+  scroll-snap-type: y mandatory;
   scroll-padding-block: 6px;
   border-block: 1px solid var(--color-border-subtle);
   background:
@@ -20,7 +20,7 @@
     linear-gradient(transparent, color-mix(in srgb, var(--color-shadow) 40%, transparent)) bottom /
       100% 14px no-repeat scroll;
 }
-.documents .project-tree .project > .tree-row,
+.documents .project-tree :is(.repository, .project) > .tree-row,
 .documents .project-tree .project-file {
   scroll-snap-align: start;
 }
