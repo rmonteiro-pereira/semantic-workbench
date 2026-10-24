@@ -29,8 +29,8 @@
   font-weight: 650;
   min-width: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .workspace-title .badge {
   flex-shrink: 0;

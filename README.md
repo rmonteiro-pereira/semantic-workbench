@@ -275,6 +275,11 @@ Standards references: [ODCS schema](https://github.com/bitol-io/open-data-contra
 
 ### Editing one item
 
+ODCS section dialogs centre on the viewport, and Relationships uses the same readable width
+as the other table sections. Catalog names stay on one line; hover a shortened name to read it in full. Phone item forms
+stack their fields in one column. Dialog hints occupy a full footer row above the actions.
+The wizard marks the current step with a filled row and keeps pending steps plain.
+
 **ODCS contracts.** An open data contract gets a **Contract** tab: the contract's identity and status in a small grid (long purpose and limitations are clamped, with **Read more**), one button per section the contract declares (servers, team and roles, service levels, quality, support, pricing, custom properties; each shows a count and opens the section in a dialog, and sections the contract does not have are not drawn), and a searchable list of its tables: name and physical name, type badge (only for a view or other unusual type), property count, key chips and a one-line description (169 UBL objects filter as you type; descriptions wrap in full, and the contract id is a one-line monospace chip with a **Copy** button). On a phone the list becomes cards. **Open** an object for its dataset page, in the style of Marquez: a header card with type, property and rule counts, the last commit that changed the object, tags and an **Open in lineage** button, then five tabs in one scrolling row with an edge fade on a phone (it opens on **Properties**); on a phone **Open in lineage** sits on its own row under the title.
 
 - **Lineage**: the column-level lineage canvas (below) centred on the object, and a table listing, per property, the fields and metrics that read it.
@@ -1137,7 +1142,7 @@ sign-in pages and the accent, and confirms that a script in a logo does not run.
 ## Checking your work
 
 ```sh
-bun test              # 1,547 tests in 217 files
+bun test              # 1,832 tests in 257 files
 bun run check         # tsc, fmt:check, oxlint, the comment check, the theme check and the brand check
 bun run build         # compiles the schemas, then the production frontend
 ```

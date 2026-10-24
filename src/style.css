@@ -1334,7 +1334,7 @@ dialog.validation-backdrop {
   background: transparent;
 }
 dialog.validation-backdrop::backdrop {
-  background: color-mix(in srgb, var(--color-shadow) 33%, transparent);
+  background: color-mix(in srgb, var(--color-shadow) 60%, transparent);
 }
 dialog.validation-backdrop:not([open]) {
   display: none;
@@ -2434,9 +2434,11 @@ main > .status {
   background: var(--color-surface);
   border-radius: 0 0 14px 14px;
 }
-/* The reason the main action is off, next to the buttons it explains. */
-.dialog-footer-note {
-  flex: 1 1 12em;
+/* Hints use their own row so narrow dialogs keep action labels whole. */
+.workbench-dialog .dialog-footer-note {
+  flex: 1 0 100%;
+  max-width: none;
+  min-width: 100%;
   margin: 0;
   font-size: var(--text-small);
   color: var(--text-muted);

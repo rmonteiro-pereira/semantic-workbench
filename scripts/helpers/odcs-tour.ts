@@ -171,6 +171,14 @@ const legendProblems: OdcsMeasure = page =>
     const table = document.querySelector('table[aria-label="Relationships"]');
     if (!table || table.getClientRects().length === 0) return [];
     const legend = document.querySelector('.odcs-legend');
+    const panel = table.closest('.odcs-relationships');
+    const content = table.closest('.odcs-panel');
+    if (panel && content && innerWidth >= 1400) {
+      const panelWidth = panel.getBoundingClientRect().width;
+      if (panelWidth < Math.min(1400, content.clientWidth) - 2) {
+        return ['the relationships panel is narrower than the readable content width'];
+      }
+    }
     const chips = legend ? legend.querySelectorAll('.odcs-dir').length : 0;
     return chips === 2 ? [] : [`direction legend shows ${chips} chips instead of 2`];
   });

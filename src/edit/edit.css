@@ -14,10 +14,12 @@ dialog.validation-backdrop:has(.item-editor) {
   border-width: 0 0 0 1px;
 }
 /* The body is the only scrolling region; the footer with Delete, Cancel and Save stays below it. */
-.workbench-dialog.item-editor > .dialog-body {
+.workbench-dialog.item-editor.has-footer > .dialog-body {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  padding-bottom: 32px;
+  scrollbar-width: thin;
 }
 .workbench-dialog.item-editor > .dialog-footer {
   align-items: center;
@@ -500,4 +502,10 @@ button.link {
 .workbench-dialog.item-editor.kpi-wizard {
   height: auto;
   align-self: flex-start;
+}
+
+@media (max-width: 480px) {
+  .item-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

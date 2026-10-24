@@ -21,6 +21,12 @@ export async function headerTitleProblems(page: Page, width: number): Promise<st
     const found: string[] = [];
     const title = document.querySelector<HTMLElement>('.workspace-title h1');
     if (!title?.getAttribute('title')) found.push('the file title has no tooltip');
+    if (
+      title &&
+      (title.scrollWidth > title.clientWidth + 1 || title.scrollHeight > title.clientHeight + 1)
+    ) {
+      found.push('the file title is clipped');
+    }
     for (const button of document.querySelectorAll<HTMLElement>('.header-actions button')) {
       const drawn = button.querySelector('.action-label');
       const hidden = !drawn || getComputedStyle(drawn).position === 'absolute';
@@ -46,28 +52,30 @@ export async function headerTitleProblems(page: Page, width: number): Promise<st
 export async function tabStripProblems(page: Page): Promise<string[]> {
   return page.evaluate(() => {
     const found: string[] = [];
-    const strip = document.querySelector<HTMLElement>('.tabs');
-    if (!strip) return found;
-    const box = strip.getBoundingClientRect();
-    const scrolls = strip.scrollWidth > strip.clientWidth + 1;
-    const more = (side: 'start' | 'end') => {
-      const remaining = strip.scrollWidth - strip.clientWidth - strip.scrollLeft;
-      return side === 'start' ? strip.scrollLeft > 1 : remaining > 1;
-    };
-    for (const side of ['start', 'end'] as const) {
-      const cue = document.querySelector<HTMLElement>(`.scroll-cue-${side}`);
-      const shown = !!cue && !cue.hidden;
-      if (shown !== (scrolls && more(side))) found.push(`the ${side} cue disagrees with the strip`);
-      if (!cue || !shown) continue;
-      const cueBox = cue.getBoundingClientRect();
-      const overlaps = cueBox.right > box.left + 1 && cueBox.left < box.right - 1;
-      if (overlaps) found.push(`the ${side} cue covers the tab strip`);
-    }
-    const selected = strip.querySelector<HTMLElement>('.selected');
-    if (selected && scrolls) {
-      const tab = selected.getBoundingClientRect();
-      if (tab.left < box.left - 1 || tab.right > box.right + 1) {
-        found.push('the active tab is cut by the strip');
+    for (const strip of document.querySelectorAll<HTMLElement>('.tabs, .odcs-tabs')) {
+      const box = strip.getBoundingClientRect();
+      const scrolls = strip.scrollWidth > strip.clientWidth + 1;
+      const more = (side: 'start' | 'end') => {
+        const remaining = strip.scrollWidth - strip.clientWidth - strip.scrollLeft;
+        return side === 'start' ? strip.scrollLeft > 1 : remaining > 1;
+      };
+      for (const side of ['start', 'end'] as const) {
+        const sibling = side === 'start' ? strip.previousElementSibling : strip.nextElementSibling;
+        const cue = sibling instanceof HTMLElement ? sibling : null;
+        const shown = !!cue && !cue.hidden;
+        if (shown !== (scrolls && more(side)))
+          found.push(`the ${side} cue disagrees with the strip`);
+        if (!cue || !shown) continue;
+        const cueBox = cue.getBoundingClientRect();
+        const overlaps = cueBox.right > box.left + 1 && cueBox.left < box.right - 1;
+        if (overlaps) found.push(`the ${side} cue covers the tab strip`);
+      }
+      const selected = strip.querySelector<HTMLElement>('.selected');
+      if (selected && scrolls) {
+        const tab = selected.getBoundingClientRect();
+        if (tab.left < box.left - 1 || tab.right > box.right + 1) {
+          found.push('the active tab is cut by the strip');
+        }
       }
     }
     return found;

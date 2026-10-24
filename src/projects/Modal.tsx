@@ -31,7 +31,7 @@ export function Modal({
   className?: string;
   size?: ModalSize;
   footer: React.ReactNode;
-  /** Why the main action in the footer is off, shown beside the buttons. */
+  /** Why the main action in the footer is off, shown above the buttons. */
   footerNote?: string;
   describedBy?: string;
 }) {

@@ -136,3 +136,16 @@ release, and the round is closed only when the next round reports none.
 | 1, local light | audit/round-1-A.md, round-1-B.md | 3 / 15 / 5 and 3 / 12 / 6 | fixing |
 | 1, local dark | audit/round-1-C.md, round-1-D.md | 1 / 13 / 8 and 5 / 19 / 3 | fixing |
 | 1, server light and dark | to be reviewed after the local rows are fixed | | open |
+
+## Round 2 remediation in progress
+
+The baseline rows and current evidence are tracked in [the resolution ledger](audit/round-2-resolution.md).
+The release audit remains open until fresh captures and independent review find no S1/S2 rows.
+
+| Finding | Area | Remediation | Status |
+| --- | --- | --- | --- |
+| F83 | Shared navigation | Reveal selected tabs after cue sizing and resizing; wrap header titles. | open: shell matrix passes; final audit pending |
+| F84 | Catalog | Keep long titles on one line with their full name in a tooltip. | open: edit matrix passes; final audit pending |
+| F85 | Item forms and wizard | Stack phone fields, preserve scroll padding, and distinguish the current step. | open: strengthened edit matrix passes; final audit pending |
+| F86 | Dialog chrome | Full-row footer hints and a stronger native-dialog scrim. | open: strengthened edit matrix passes; final audit pending |
+| F87 | ODCS layout | Keep modal overlays out of page width limits and remove the narrower Relationships cap. | open: strengthened assertions reproduced the defects; rerun pending |

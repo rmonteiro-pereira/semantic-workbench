@@ -198,6 +198,12 @@ editor never receives an older deferred value as an external replacement.
 
 ## Cross-cutting concerns
 
+`ScrollStrip` reserves cue margins before revealing the selected tab and repeats that reveal
+when its contents or size change. Native dialogs are excluded from ODCS content-width caps;
+the shared dialog geometry check verifies viewport centring. Relationships shares the other
+ODCS sections’ readable width.
+Catalog title tooltips and current-step fills are checked by the edit tour at all four sizes.
+
 - **Text size and colour**: `src/style.css` defines `--text-small` (12 px, the smallest text the
   interface shows) and `--text-muted` (the softest text colour, at least 4.5:1 contrast on white).
   Stylesheets use the two variables instead of literal small sizes or pale greys. The responsive
