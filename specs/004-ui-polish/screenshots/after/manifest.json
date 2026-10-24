@@ -1,6 +1,6 @@
 {
-  "capture_head": "2ce466ca0e39184b573e6631525c0e524c3b7ceb",
-  "round": 14,
+  "capture_head": "fb098531c69398cd0b68ae44e1b2d309df5fc1ea",
+  "round": 16,
   "conversion": "JPEG quality 95, chroma subsampling 0, original dimensions; no crop or resize",
   "images": [
     {
@@ -9,7 +9,7 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "3224d073a0d7ed4f6895c0938d4be5caa142f8f3ea9b65281731bc3f3d273586",
+      "source_png_sha256": "ff5eee48648c6895ef4e5822ecace67170adc409c970e6cf4c2e2812bf2ca0aa",
       "jpeg_sha256": "fe57f8134ca63384c5c2bdbb412b229f6fc84349579bc1dc8a5816f46602e8aa"
     },
     {
@@ -45,8 +45,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "b369210776b30e1660fb8af1efb4c1fd846b05761112e6af0526c9ea6e892894",
-      "jpeg_sha256": "7c4de250af2e8f0de6e4f46e3e1b3f388b90f0ab3c8d290078d1b4ea94727c92"
+      "source_png_sha256": "0ce78501a0b17241126b06484e5f2d1fe3fa21b24ddf6bcba5cb11d44d514ed2",
+      "jpeg_sha256": "ffc1efda34d98d39b06ae18e90e7b9ae6132117d821a6b020305f563cc2b0f54"
     },
     {
       "file": "server-admin-access-check-1440.jpg",
@@ -81,8 +81,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "8c98b82e355afb068ae6d1c90c0b9f9488487945f7b5015a51334c5bc5e777b4",
-      "jpeg_sha256": "55eda243c860198b23f4901e03f55622699ab1a01811914afa686f4276ab1751"
+      "source_png_sha256": "7dd708bb05f1a64999e8de9199460ebe3f4726f990788b614c8494274f982404",
+      "jpeg_sha256": "41532760824e2a36a655a7a944f3f07adcca870bbd2879d90549bd1543ef17ba"
     },
     {
       "file": "server-admin-audit-1440.jpg",
@@ -90,8 +90,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "fc7307fd12fae4ae85762016e47149c7ac0d8e4f130f9134da999e9398e481be",
-      "jpeg_sha256": "9a2168e27348b9942c8d1a9eacd2b778d900afb1ba516c361560e77608db4bc0"
+      "source_png_sha256": "39e0d9cdba2c5153b93159c95c87d7a283137c35681351f8b42319bd8c25f604",
+      "jpeg_sha256": "e8ce90eb5efd7a44ad9b7d69eb8ceac6d97fa2f106d39af5e4440e273e83d4f9"
     },
     {
       "file": "server-admin-audit-2560.jpg",
@@ -99,8 +99,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "b40fd266e4d2e8fc50140d221fd3787913d83104820b84850974f5aec60d68b8",
-      "jpeg_sha256": "dfd18ef900598286ecfbe4b7d9bd7e754e1a2e14f47c930b3a9472c589ddf1d3"
+      "source_png_sha256": "cc0dc1ba1ed8a4bb6b23e8dca5cd9b4ad4b89017db0e3346ffb4447d854613cf",
+      "jpeg_sha256": "4c04eb35aeea0edeeb5ef40b872a2343fc130e7ab28db67e6372d98eaec72eff"
     },
     {
       "file": "server-admin-audit-390.jpg",
@@ -108,8 +108,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "71c6de9a9c163b86b6ef5dbde4e2e0a32303fac873b55188fd06ec016a6dc524",
-      "jpeg_sha256": "fe62c1ac26760f28449eb1df214e957f997c6afbf3c4be710d742fc47d743a4c"
+      "source_png_sha256": "be519d43e8a88a66ebd28995a15a289b7f5eca6024dbd4abc986c43374354040",
+      "jpeg_sha256": "642a6a743d9847a09ec2f5a71069e829b36a73db6f7a626716e9a4d0933627ba"
     },
     {
       "file": "server-admin-grants-1280.jpg",
@@ -261,8 +261,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "415617dce2f1a8f3895b55e75548e5ac51f3dbe09824db97d1072f1c007df60f",
-      "jpeg_sha256": "a01aca12289eeddb715099109b23aaeccd345b036df1ebd8c5ca400741c7524f"
+      "source_png_sha256": "4bdf4287665bb0d88e3b3559321e2c19b7441840a8948d0a36c0e207f5aa2f0e",
+      "jpeg_sha256": "ea420bbe4d9be30f349b1f13c9d64b83bebb660a9e0bb4e5afdb2e385580f780"
     },
     {
       "file": "server-admin-settings-1440.jpg",
@@ -270,8 +270,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "7e8bd44acfabcec7a8d75870b94e53831354c0c3d8cc973b5b4cb45e1641a6dd",
-      "jpeg_sha256": "ad4bb080d3c3f043d17ab38839deaa86d80ce1b62404d92ce190c5450986295f"
+      "source_png_sha256": "154f2ce1e5db4d0fd8a4e2393a3c7d5c7927f1c77c8565b5ec7f065945d62187",
+      "jpeg_sha256": "6044b3500692d1c54eda951c32bac1a9f8d477335793987b35979bd8ca97eaec"
     },
     {
       "file": "server-admin-settings-2560.jpg",
@@ -279,8 +279,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "e99fabd0b780edd3d90d7ee8e2e8219db7351b65b081fbab33b031186c130b84",
-      "jpeg_sha256": "bfe51a589929d73b8add971cb6059c5e2f96e59fb9d595c2e2f7a3af56e4e5ae"
+      "source_png_sha256": "a2f4dccda739685d796c6b5a142b8c793e4339c734c207fdb29e01341b54436b",
+      "jpeg_sha256": "a4b2530bdc32ea3c5dbd49a80f4f1454b5c11bdcbbc49ab96dbbf14ec0e3ffc3"
     },
     {
       "file": "server-admin-settings-390.jpg",
@@ -288,8 +288,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "f1ea87ce0d7d00423c2debf7be52163687355b6b257a9808819ea28b7ada8a2a",
-      "jpeg_sha256": "d2060780bc3d0f9bec4220cfde13aa557b207bdd1779348139934885ddb72592"
+      "source_png_sha256": "ca51bdcbc894e64b133a2366d3d8674043a64a85af4cffd202282da2c2d95b74",
+      "jpeg_sha256": "60dd4a33e24d9b92faf3b544b337696e425776f04b308bf5004199210e90a68b"
     },
     {
       "file": "server-admin-users-1280.jpg",
@@ -297,8 +297,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "78afc52e259377094970fa906374f61928d00228e81ade1b00b3406ac8de618d",
-      "jpeg_sha256": "c81fba17aad1facd2789250def8cf38cb1213d5b87a6c58794262488017ba076"
+      "source_png_sha256": "c01c76f3ffe24cf88e49176a114e8e5cae519f747f90103103e0862291f3aa8d",
+      "jpeg_sha256": "0550ed76c99d76075169a352e951fb06e0717b4f85a9c2f2c2fa3e3aecc1d076"
     },
     {
       "file": "server-admin-users-1440.jpg",
@@ -306,8 +306,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "1064e95261f70b08fb3f71840229140f3da84583718cf65f1b4074b043776a9e",
-      "jpeg_sha256": "b9ecac909e34a468cfc3f0be073eff6f223d4a1b52020f9bf2503d253ec2b024"
+      "source_png_sha256": "346e3d193e0d2877063c84ee63cb7b6a6c2b8cd02623d5e387dbbe623686d36b",
+      "jpeg_sha256": "e786dbe71b0119b09acb6c5f87fb1025ebb0355f9738126ebd0a2c2e745d6061"
     },
     {
       "file": "server-admin-users-2560.jpg",
@@ -315,8 +315,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "682430e83391d4ea9ac5ab84945d37a40bb22574433b3141b992249de6b0f9f9",
-      "jpeg_sha256": "b4dd81b0d976306c5f1b4042de5b1b111ad27d21711d065753eddf5a58a5214a"
+      "source_png_sha256": "04488876de85c208790d9589cbdfb559832a838120f9216ab02b92686547dbf3",
+      "jpeg_sha256": "820d0195265578911672c1a2aa414553269b43f40792a30cc419981c1229db52"
     },
     {
       "file": "server-admin-users-390.jpg",
@@ -324,8 +324,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "216677f80cdc303f92b9ea3eca1d632fa01b9dd00501ad1073e1622c96fcb1e4",
-      "jpeg_sha256": "f27c1cedf57d3df93e98439237339be1314c64ced8e3a0077e88af7c52e411c8"
+      "source_png_sha256": "c547086b49767597f2990b32eb820726dff5afd6d78b4fff04e65f34632081d8",
+      "jpeg_sha256": "c0d2524dd75322616ca601dbfa071f00b07253b8d69d2a4026214eb83e90e531"
     },
     {
       "file": "server-catalog-1280.jpg",
@@ -441,8 +441,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "27a5e156488061b7a43f7647fad3deeb97c0b91be5c49e76d01115d66f6b298b",
-      "jpeg_sha256": "81839a7a140ad8ea60f34c110fbfc04170d17b881359391ed932d36843453bf9"
+      "source_png_sha256": "f1b3dfeb59bbc9ac52c770d1202baa87bd6a88da1b9b510f5fbfdce1b10b8d39",
+      "jpeg_sha256": "80e4abc251c906a2399a0311b20d0ed4f4fdeb0c638d9dfc9863f6872e9d4e69"
     },
     {
       "file": "server-clone-repository-1440.jpg",
@@ -450,8 +450,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "18e5be52878f413299e89a722e46237b67fa84d7c27aa95c0e3f49cb3035434c",
-      "jpeg_sha256": "1820475e74b7007677f63cf5bcef8e4b665c52fdc872e2767af9f9febf28cfd2"
+      "source_png_sha256": "638cb532c5bd7baba816bcdd3a54b36336e0e9d4cb57474c6b2e9a0d0d29c865",
+      "jpeg_sha256": "96a8c1c22f0c3146d772ed842d234cb74d5598dad47f978b25b96f7ae2eb3bf6"
     },
     {
       "file": "server-clone-repository-2560.jpg",
@@ -459,8 +459,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "9c0244193802d6a2f70c6deede9eb6b7f7f53b9c7906d3c96829573381dc54d6",
-      "jpeg_sha256": "3a98fbd95e3aae1a1f4bf987611f1d84642fd54bac76b03d6999240ec8c4ad31"
+      "source_png_sha256": "6082cb5109b95b3955e39cbe24816818633937af2b4468fc2015213a8bb380de",
+      "jpeg_sha256": "9886b9c66929a9128b8ed807dc3a75657aa9100bdb727c77f010071be0123ce4"
     },
     {
       "file": "server-clone-repository-390.jpg",
@@ -477,8 +477,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "1bdc80cd019e26122e0a9aa36d6bd1081a3c8193c665a30950276eb2493d7c69",
-      "jpeg_sha256": "a72c677a90afada40e39d82adb26c7cd86a27dff7ecbe685bac8ed5ade796888"
+      "source_png_sha256": "22b63fbd8a65e6b74b86960a31727dd01448262d4d43aa04beee6e59f495b5dd",
+      "jpeg_sha256": "062570a1baf90e80f89476c736cbc2dc18b9c100c8e225db06752c85f483d1be"
     },
     {
       "file": "server-contract-contract-1440.jpg",
@@ -513,8 +513,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "b76c933d9cacf84f9d3655e9dfbaa6bbbbafcf5485b603aa5c1f584c42e753be",
-      "jpeg_sha256": "0c39ba567ac011b83348a75b1286a193023d672db29840513186b44eb344cc2e"
+      "source_png_sha256": "70a2f8bb186a6716d00cca1d9cdeed063fddae0d4ec00cccaeda21e100e932b5",
+      "jpeg_sha256": "1cd3019342c9a2643ec6aa603e35d9b985bfcb5a90e6808a35fe39d802a6b707"
     },
     {
       "file": "server-contract-graph-1440.jpg",
@@ -621,7 +621,7 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "18b8056fd551cbec57cdf1eba42c8b7549f21f5eb96682dc966f1795f819c23e",
+      "source_png_sha256": "826902f3831ac9579d382e5b84780bb8ea38d24320ee377eaf783b8e99b2f332",
       "jpeg_sha256": "625373f55199f1c3e0b7a665a4dd2d9e52fbd7a0f8544b7ab1d92c87393f92e2"
     },
     {
@@ -864,8 +864,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "82c4507ba53c56eb2c4ada5b87f740042c8cf259c99773a181bfb75036fff466",
-      "jpeg_sha256": "588d95185edb62a7a89f2261f8d0ed43e14abea8d73b0856723ffe1caf653745"
+      "source_png_sha256": "ab882f46e249271e12cafa12f5dcc01eacd9b5d1824559ab9871f29bfce0becf",
+      "jpeg_sha256": "dd51a2e3a05f85d67f77750c0464c1f63075e0225ec91a22499e00965b84dfe2"
     },
     {
       "file": "server-odcs-contract-search-1280.jpg",
@@ -891,8 +891,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "3b2c777066e3e8fb92f753a2ca870da1ffb0041f13a1cdcf83a39ec93c6fac79",
-      "jpeg_sha256": "4502250a5efbbe5d5947722b0c8d5db8c6d6a3192bd24bacd9167a82f111be86"
+      "source_png_sha256": "0f44144ccadaa98da5a9d394a2304a789f8f3e4895eb8ac1a7b23efd2282954d",
+      "jpeg_sha256": "551c5b0005784b0f5b51610be13b5e987ebee3da0471a7b320b73404aa247aaf"
     },
     {
       "file": "server-odcs-contract-search-390.jpg",
@@ -927,8 +927,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "fcefbe511e37f4874bf537d3a822fb9978bea0d2dc78c9753c0699869c24d06f",
-      "jpeg_sha256": "4cb6a10be45e8688287b8c0e64c8ec7cfaa54f429e805160b58b7dd78be4cb2f"
+      "source_png_sha256": "6ab8690db565b0a7ecd3cb865b514ec773a940460adc4d235aa97683ca260b44",
+      "jpeg_sha256": "8226737733aec65ad68d10895d5cebca14f151b9cc23529859cb06e6c612e094"
     },
     {
       "file": "server-odcs-contract-section-390.jpg",
@@ -945,8 +945,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "825dc2227da9684a742e2ab924a4275513657e2062510b8cd13ed96fac83a309",
-      "jpeg_sha256": "b3ff36d7251b28936700dddfc13d3be43037c55f53e7590a470ef407785fb35e"
+      "source_png_sha256": "3ee491b3dbbeaee6d2160084b6e01c8a8fe5dd46b494c2da29b11530115ae27a",
+      "jpeg_sha256": "87cd5599acb303118dd4bee1095808dc3d5e8371d0f0842cdee53d2c73d16bb4"
     },
     {
       "file": "server-odcs-dataset-history-1440.jpg",
@@ -954,8 +954,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "358fd0d83db7853c2f8464bf1a237ade3c1cd196afdd72dc41329340de8c699c",
-      "jpeg_sha256": "e621eb0a8032e9754c8d9ec8680270326144145b3bc4cb911745955b10874cc9"
+      "source_png_sha256": "683aba5047257d2297c587eb08e7c51b440928875702eab63a7d773abb8093c4",
+      "jpeg_sha256": "a7726dd7f6713559a50b80bac4679de4f71bde035bd11df9d3f6350f0afa12ef"
     },
     {
       "file": "server-odcs-dataset-history-2560.jpg",
@@ -963,8 +963,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "214b00a96355f9cf504823cb32a8c056eff5a57f1fab50045a6ad4d603f563ed",
-      "jpeg_sha256": "a24d473dc9018e487e01dce6a159bac57c3e4f8e8831098904a980949c1d58a7"
+      "source_png_sha256": "6dfa3b26d64039dc4ee96b4ce4a2627f6b22805e95e2cba5afb47175456df782",
+      "jpeg_sha256": "c564d594f03c4a39a63c7c9742a4600d80f397c515c8c240467f9130ebfbffc9"
     },
     {
       "file": "server-odcs-dataset-history-390.jpg",
@@ -972,8 +972,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "3e3239857cddf0ab521437fb194e94e4ec9dc1f016e0b0c4937ed362e3234df5",
-      "jpeg_sha256": "66f040f9c0aa97814cc850210a74346cf3310136e42bbc718ea0ed184d605ab1"
+      "source_png_sha256": "33958b85e0da0248664bc2a0f57d3796941e968a298aca66ba02898cd89af460",
+      "jpeg_sha256": "64a98d2d3a7f7b1661807bf0e0f6824f7d8f5842c71b7048d8e45cc9f5f2c37b"
     },
     {
       "file": "server-odcs-dataset-properties-1280.jpg",
@@ -981,8 +981,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "1bf983cccae750e5caa5fbe51080d88b38df0695d277ce26775bf3d0257ca388",
-      "jpeg_sha256": "94a523f86e7fbf53e1da0dd22f4c0b50bd6d5b07011d9efa3016efe2c7a84448"
+      "source_png_sha256": "812ff368ff587ada36e573c9def91971bfb327c603394be440c315109879d1c5",
+      "jpeg_sha256": "371b0a1ff828996ce1e74b674cae4e1345b115c26e2597e7575131cceafa1774"
     },
     {
       "file": "server-odcs-dataset-properties-1440.jpg",
@@ -990,8 +990,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "5b523d72b7e5b3a61072667f267eb2bafbf15bf8403a1d5a48f83f269771aac5",
-      "jpeg_sha256": "92359539a039f6be176e64f90fa444ac8c1332bc50ede7e837dc7091420dd27d"
+      "source_png_sha256": "3b9297620117b4f00770c9913c4827df8ef4fae547406cb23f6ed594ea5dfdb4",
+      "jpeg_sha256": "34e7634e49d97e732cc77d49614eacbd4ba20d9674e62f82a7b94bf161d7bedf"
     },
     {
       "file": "server-odcs-dataset-properties-2560.jpg",
@@ -999,8 +999,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "5d4605f220f67a7cd473f7c8757c4548ec32a53449dde9142e38f0efe17542e7",
-      "jpeg_sha256": "e56d17f48ae400d22abddd8f4d8329b3c794e4e11e1fc5dbd96d3d52178bb58f"
+      "source_png_sha256": "8fc4aaf099409391f42b11d15555d6205033541afc9b986521ba873dd02cb339",
+      "jpeg_sha256": "0a847d8c0a5f00a919254629facf4d679f328b927c6ed7a9a49db39c03185b3a"
     },
     {
       "file": "server-odcs-dataset-properties-390.jpg",
@@ -1008,8 +1008,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "ce85185a7e7bb319757b968b75e63ecc9f3a5fa36aca4b64c614a556a407fc1d",
-      "jpeg_sha256": "982d7607497655d7756ff2790dc1989daa445263977a998523c857b40ba60313"
+      "source_png_sha256": "6a4e5196f91a674f31eebb9b5fddf0f9ce851d044397e074b2be83371c8cc2a4",
+      "jpeg_sha256": "71a81cb00a84e8be41f0c406d664c83c0d436b2aeb6d851a16f640535389d0d1"
     },
     {
       "file": "server-odcs-dataset-quality-1280.jpg",
@@ -1017,8 +1017,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "e70197945aef641a249cfbd97223babe31987aaccc0c21a5b3f732198b03da6f",
-      "jpeg_sha256": "396a1d3deba5bbd18d569fe872e64aab47447c7bbb0d531abc3849f751133a39"
+      "source_png_sha256": "a6d793b6140ea1f1a4e59b22253816b35f300f1cbb4652d3cf6c3d01b5427149",
+      "jpeg_sha256": "2fe06d6c339147683b7267b0d1d9988ed49ecdde1e84ee72b969d530a42a7a48"
     },
     {
       "file": "server-odcs-dataset-quality-1440.jpg",
@@ -1026,8 +1026,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "0a2f8ee70e749718a13a75ac9480515ffa95e233498c76ee097ba8ebedc91b41",
-      "jpeg_sha256": "d41c9675723c6c82516c2c8ad60bbe50922d95a2e8b01973b867452992d2337d"
+      "source_png_sha256": "ac8ed91e57f67c45058a0c7df175fa9ebf2b5be6c4819e9f416b83375748a357",
+      "jpeg_sha256": "657ecf6d28121301664bc2e4bf522c7bfea36b1e0b02fb63476ad35163e784d2"
     },
     {
       "file": "server-odcs-dataset-quality-2560.jpg",
@@ -1035,8 +1035,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "02a966d639af1ef2cf93c11a1ccdf160760ca981191508bb5b2a8ca41366b628",
-      "jpeg_sha256": "5f722c852075a279189c9c5fe3d20c6dfb8434c0be307301e4220f3dcb1ba93f"
+      "source_png_sha256": "9d3b1b04c5747a03ade45604b7d6b8d74ec01766ca4d24384835bef857413e35",
+      "jpeg_sha256": "9c34a0af1943b3acf29f909c8864a42ed17ea2128ba02a848f2102b29c9cbaac"
     },
     {
       "file": "server-odcs-dataset-quality-390.jpg",
@@ -1044,8 +1044,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "601401faad592bb0fc48c47c55bfa93ae349d9c053096ee3da33c73fea363302",
-      "jpeg_sha256": "fd2512f1d72eb23424911d023121257e06a3c18aeda8633df5caa1b68526be62"
+      "source_png_sha256": "15eb37a4f6ee3c177d362f2cda0e42ff231bc978aa2a3815f9245fa457da3a9d",
+      "jpeg_sha256": "74cc67d392fce720aa3433161f9dd6e67aed9d6c5e041bc3a7fc5b425f1f0b48"
     },
     {
       "file": "server-odcs-dataset-relationships-1280.jpg",
@@ -1053,8 +1053,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "2073c8f1515ff3b9e0717a17692d0dad6664ceeae1cd6103afb7bf50e7d773d9",
-      "jpeg_sha256": "ac6b9373cbab0befae35b79adb45a1e0c1033c98ea0f737a971543c40dca6b51"
+      "source_png_sha256": "c66e15b727ac3616469e3aa3799fdb9bb7f41efafcb6036ddd624292ce5a8971",
+      "jpeg_sha256": "b56929a11ecf9eba967c2328d47c2b073a1f42e0be6e8de7c8f8ce282b4a3fb6"
     },
     {
       "file": "server-odcs-dataset-relationships-1440.jpg",
@@ -1062,8 +1062,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "b0227108fff4f8745e1c1802fa3b7e87bfe6057f00324e9d7c6a4faee2c8ecff",
-      "jpeg_sha256": "28a98765382580b99dd25e3d7f753c5fedc2785cf8dd7ba907faeb1ed1491e5e"
+      "source_png_sha256": "1bc5b454692fc660174a23ed6494a33e42c9e6f59a036983fbaf2dc3bb36e466",
+      "jpeg_sha256": "b715fc85e884d7254611598548ecbeca77fc518cc4ae7b5bb9d5330e1b661d63"
     },
     {
       "file": "server-odcs-dataset-relationships-2560.jpg",
@@ -1071,8 +1071,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "bc53a8dbdbebdceee6a95223e9a5e7c3929f334e067d9e268f44f89d01880c97",
-      "jpeg_sha256": "6ca18f048db7eb52618eb66090fe11895680a65cc34e9b727e30ae2234c9eae3"
+      "source_png_sha256": "6c8a801bd54aef6b5efe5030529c4c48cf95367be74361e4070f9865e8ea6e5b",
+      "jpeg_sha256": "28c2826a8f1f3d163922c6e7b760ad22b145a3f711567453f72599364bd56445"
     },
     {
       "file": "server-odcs-dataset-relationships-390.jpg",
@@ -1080,8 +1080,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "2b28e548e1c64a5af76bf485d1bd2dc1b8c21d8aabeba84e02394658abc1722b",
-      "jpeg_sha256": "579ba302395a0442cddf26f86ad679be521fa040aa3fe325cc6c511aec70253b"
+      "source_png_sha256": "dc4447ddf5bd28eac35115120be5aa952d822c82902d434cc90d0112f41c1104",
+      "jpeg_sha256": "6fb93be3676990966b889aea789e5e0871c8fc965d74bbd75e2376d9bdddd404"
     },
     {
       "file": "server-odcs-property-edit-1280.jpg",
@@ -1107,8 +1107,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "bd433f53e66e9a9350f9733cf415d94017994776192f57abd78ed3ab9d0d6af9",
-      "jpeg_sha256": "1a6639ca25580f5772b280abd6ecb497fda6b2dd97f0c89b1bcf88d412f2e82b"
+      "source_png_sha256": "afd3eeabf6611684ae8e415a1c0180605cdfe1b2864c74067ae29dab33a6e4a9",
+      "jpeg_sha256": "27c6d7b9c7b70c291cc19f665af7e01030fa42c65fdf9e35a25770bc9141d7e6"
     },
     {
       "file": "server-odcs-property-edit-390.jpg",
@@ -1125,8 +1125,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "5ef1a9535ea004fee291e5cd590ca98ff3142057be3f08111c9cc574415c3b12",
-      "jpeg_sha256": "62c876fe5027d30e64973b4d3477b781b15b8f8c64db4ddb59441ac85a0d8842"
+      "source_png_sha256": "83a0f0303d79a3d7997007b42b6bbf44c8e06b0958a1d98e6e166eebdc25f2f9",
+      "jpeg_sha256": "22e248275f26ad8d809a004fc343d28759ee17e5e09ae0683a30bb4852d55a30"
     },
     {
       "file": "server-ontology-catalog-1440.jpg",
@@ -1134,8 +1134,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "02f1d237ceae47450b63d2b88083e3fcdfcf2ba1436083160ade61416dd01903",
-      "jpeg_sha256": "56313a5c6dcfdb2d7ddff02e519338b31823cb99fd5cd32fdf7f7badd6c979ed"
+      "source_png_sha256": "5274703fa8e4ad132f5ae90d84dc8e30ed26d97f84fe82694af22a11be4151af",
+      "jpeg_sha256": "9fc6b22513065684c36607de748e457c4ff4c7a2b53a607e50fae6b609377719"
     },
     {
       "file": "server-ontology-catalog-2560.jpg",
@@ -1161,8 +1161,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "6a319399bb0ed89eb3e420b832fb7e75d760f61da91103fc6f93213c389cd6be",
-      "jpeg_sha256": "5bb70506912344d0a31c6c6028fc901312f0f4bf4f5cab8336e22db476185a4a"
+      "source_png_sha256": "70a4cf10c3f0fdc9a962d32ccd20d1b5c441e148ff67eaad2449bee67bad1e74",
+      "jpeg_sha256": "200b811210dca6d3586935d0416c2bcc8b49e2abc9118b9d97c1f1d5ba4361d7"
     },
     {
       "file": "server-ontology-graph-1440.jpg",
@@ -1170,8 +1170,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "02417ae39a0cde23ccde20b1fea5ad0c9b0d17ee2a89231cd49fc351f461f10d",
-      "jpeg_sha256": "643d4ec86fd05b8dbfbd7acd5a1c340515580973964a4264ec72d56742c7b621"
+      "source_png_sha256": "76abfc0d8dfaeabd3ce8ef3817946fd9fc7dc13ee0f5929ad6065e24e9efb956",
+      "jpeg_sha256": "7527d306ebd44b36e6c828ca214df515436bc26a5822b190f3092ca556f9dada"
     },
     {
       "file": "server-ontology-graph-2560.jpg",
@@ -1188,8 +1188,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "27b68e5413d154e5555f995b580a31763b07fd36d615c90ed32f9419ad98a0a9",
-      "jpeg_sha256": "186a10fe2462befb46f80510ff76317805bb5882e48a8ab331878e92a3bd7f18"
+      "source_png_sha256": "7582ca9a3daa955df63aa1ea88c42c0f0a16b5d16b20372e99c9fad7bbc277bf",
+      "jpeg_sha256": "b0f5ed6420028ead71c042c2d21cf102c7eccc56501722241fc467347a8bb30f"
     },
     {
       "file": "server-ontology-graph-fullscreen-1280.jpg",
@@ -1206,8 +1206,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "4063a2e249b6d1a4351bcceca65cccbbfdabe728f9d56e04eb3b0c054e04b167",
-      "jpeg_sha256": "d6c3e1cdfcacc5f729841417adfbca1aa7bf779b16d3f1594a44b55d4db78930"
+      "source_png_sha256": "c1d18d86913b26de66f5509f18d804a08433e584b1bf195417e6fa8053ee9599",
+      "jpeg_sha256": "44238680d8bd3c6f120809bea34370add87d70b601a1fb035df4df4627158de3"
     },
     {
       "file": "server-ontology-graph-fullscreen-2560.jpg",
@@ -1215,8 +1215,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "4f95eb1e0260c4837deabaa621f7d36d5ce6ddb738b318fa7770329a6fb87879",
-      "jpeg_sha256": "d6d10f43136e7169e2b5770c47a4a3e7b1759a9c37befc6706f64e276286adfc"
+      "source_png_sha256": "37fa7a58553ef0a6d4dd2f1e7fe7aaa0fc4b11266929e190cf8fee27e9f5df13",
+      "jpeg_sha256": "699140e19db4b065f38ae7377b9f1580143db8bff4ced6914c26a26a691f3610"
     },
     {
       "file": "server-ontology-graph-fullscreen-390.jpg",
@@ -1233,8 +1233,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "f80f7cfb6b1136177d923c54a3b24a8cae5bff8649efbecd47d0f72a6c8bb3e1",
-      "jpeg_sha256": "52ee5d4acb626ffffc677251fd2f3c694170d4517159a84c48e395b4cc2fefa4"
+      "source_png_sha256": "16cdeb02ca26ae72221501623330743668ceb2e940a0a5a3358fdd4fa626306d",
+      "jpeg_sha256": "017508a7890dbf25eb5c815af23b4020eb7fba1eace9128f5f97784f722663e1"
     },
     {
       "file": "server-ontology-mappings-1440.jpg",
@@ -1242,8 +1242,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "ebd193a03a81b9cf957d94bff9502040d8018dd6f8c06c3e997969daa4f5ebce",
-      "jpeg_sha256": "a22130a6c3f611fd27df2300d4e400a07cc10a43434c8e215d0f8710eb824a5f"
+      "source_png_sha256": "4a862867121073964d7677598f6460c24019c2a3b0d488180013d3a21d69e56c",
+      "jpeg_sha256": "5580e171f0945d1236e50bea2db40f90b0989e8fd94154b9f6b84508a49ae5bd"
     },
     {
       "file": "server-ontology-mappings-2560.jpg",
@@ -1269,8 +1269,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "9852058a41b3ec7fba19ffb9e4f13157d61f64e0531c2a033d65c2c72d9b7375",
-      "jpeg_sha256": "366715e4738f149922379f026f181f9f6339986a127f75da8d20cba9c60655a1"
+      "source_png_sha256": "a667beb2270dacee830e22f6b76899c0d3ba572a6fd67b7279d437c5b70f75c5",
+      "jpeg_sha256": "317f406e4b0527c5e3dce7ca81fcfbe2222814209b9374e0a61fcbfd248fb004"
     },
     {
       "file": "server-ontology-metrics-1440.jpg",
@@ -1278,8 +1278,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "427b5b7f12a7c46d2d6f96b882376ea8220cfc9afec94c687e2517135836adc8",
-      "jpeg_sha256": "9a4e95dcddd161d0b788257317735bd7e98ce9f63b6d6451dc0c8963d84b8c35"
+      "source_png_sha256": "2264a11b4a6bc4a1f020c44c9b9bc8539b298678e4a99b3ba65ef997e0d639cc",
+      "jpeg_sha256": "d81d11facd82f1d0a0393d3a263cf3b00ff5386dc4e26263280bdadb8d8b62f6"
     },
     {
       "file": "server-ontology-metrics-2560.jpg",
@@ -1305,8 +1305,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "c54e79fddc28efc072461f25f46ea15cd3cc4d4a59d39d845122d1116ae937f0",
-      "jpeg_sha256": "a5b81574bc5c7673600c26ab7a2e5f032c2d6f12c874ae1b5ae633c3295522a4"
+      "source_png_sha256": "fef2abed841fe322925d054e0a4600748fa7f55ecd52edc9441f0a416c4b3d7b",
+      "jpeg_sha256": "d6bf505ee01f37ce4e7809e5339afb67d55586592f68d722e52dcaa6bc2ff464"
     },
     {
       "file": "server-ontology-neighborhood-1440.jpg",
@@ -1314,8 +1314,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "fd65225963852d295c27fa50ece070a18c898aafaf866ee70e522512f0aba4ca",
-      "jpeg_sha256": "400e8d8a25a8a95ae944b654db005c7f762b80a369d7e548adaade451ea8aa4d"
+      "source_png_sha256": "c331c99a1a7c13c3361eba30d943c567502b6a5cefceb0e23583b528e453fa08",
+      "jpeg_sha256": "99b2282cde2b85bfa810e713ab43aec81434d27b618b3dbf9bc35cd38c516f25"
     },
     {
       "file": "server-ontology-neighborhood-2560.jpg",
@@ -1413,8 +1413,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "e7d9124c535b932540011f1ba66d03ede23593b3245e2252eeabab0ed2ff9216",
-      "jpeg_sha256": "7f70f8b358e2f1bf5e472b2bdc0e603fbab3eba9d48ef282c33e25c9ed625453"
+      "source_png_sha256": "f9da115755e431fe36fd8922882a532af69de6be81c1fe33c87fb9b8a276ae59",
+      "jpeg_sha256": "39f269c507f24826a4c2c5011ac7b1342350907a72b8f5dac0473bd9f6ca00da"
     },
     {
       "file": "server-ontology-neighborhood-labels-zoomed-1440.jpg",
@@ -1440,8 +1440,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "0e78aad8492b7202dc030f303c4861fb693fa9a12d081d1aa330a7e8df2fa8b7",
-      "jpeg_sha256": "a329b37e9318fe08068dbad3a00c9ed2e24c1fa24285845d67d3da62a8c54b81"
+      "source_png_sha256": "190c0c61f832983b21cb20a2ffd778af6bd1fdbe3544f23d8f1706a894c3fad2",
+      "jpeg_sha256": "2a1041158dd939fc8342c1ecf4a0fa03ebebe5e9ce5d87597f1fdb1d7a6d1b8f"
     },
     {
       "file": "server-ontology-overview-1280.jpg",
@@ -1449,8 +1449,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "146fda07487aa7647c2db4c9c2bdc39003a5d3dee78ecfd95263ac07dc801839",
-      "jpeg_sha256": "aa66c38330cdef7a78446f20742ae62024f7c4ca685aaca33aeeab3c2e5377f5"
+      "source_png_sha256": "941bcf64cd89ad86a6a388b2a818c425bf57a767ec21ba4286bfd21392e343c9",
+      "jpeg_sha256": "a8f67c2a2903a439452b20c5c94425a56aef1460171788c1dda25b1e1c0c5f54"
     },
     {
       "file": "server-ontology-overview-1440.jpg",
@@ -1458,8 +1458,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "7795c179ff2afdd59969a5d5d444193219115f9c3aa81857d1025bd333ce0673",
-      "jpeg_sha256": "04741055ca1bb1586b1f331e171acd503fe0fe464c9b99d9862e2574f0e8bf8d"
+      "source_png_sha256": "1ca0524d559d63f03499b688bc3f02cc48bd41129c009e9952eafa13ba713db6",
+      "jpeg_sha256": "fdf4d41f86fb9bf8c16757f87aaa0bd4e04202adcf6d00db8d5da29e7eb06683"
     },
     {
       "file": "server-ontology-overview-2560.jpg",
@@ -1476,8 +1476,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "4f4b0a4f88dfcf47435955f94611b6e974ec9a37225b028846bf2d22fd0d7bc6",
-      "jpeg_sha256": "15c8bd0ea72bb9cbafd89e715c45799ba2ca3d74e4ab12de2db872ea82dfa7b3"
+      "source_png_sha256": "602503d8aa28af2c8e846851734837f48ad107914a4263bf69faebc1752847f0",
+      "jpeg_sha256": "0875d076730960965742c59d883829ea8a19c7b70cab0c71a290c23428863201"
     },
     {
       "file": "server-ontology-source-1280.jpg",
@@ -1485,8 +1485,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "a947f8e3ae4ac79b7b2668e97bbff366319a8a7c7332ffa66dee7cdc22075427",
-      "jpeg_sha256": "84900c976d3d01e946ae11c8db34b0eed4516a4d6cfd966ae359e3aee852df63"
+      "source_png_sha256": "1a54ac0b121cdc36ec225b343598abdf44138e7f9370912f0f0b858e822dbbf7",
+      "jpeg_sha256": "ff733a51f97c184529e742408c238b909e2fb8d1a65a555b080c2b950f1cccef"
     },
     {
       "file": "server-ontology-source-1440.jpg",
@@ -1494,8 +1494,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "b6d1525ac6cdde4f600e5e3682f3cdbff9f908583672e6646dd9441f0bcae777",
-      "jpeg_sha256": "5c3346b4c6bbf6b7c8a4f87286faa23cbf58f05baccf747f6e82cdd4831764bc"
+      "source_png_sha256": "be8d7db386bfab1148d9eb4d5471f7d5b28d0959547356677bc12e7552cc463e",
+      "jpeg_sha256": "c6899646388e5758ad790f5f0142b6a6297dce7841ab8f2a6625b0dd64cfd166"
     },
     {
       "file": "server-ontology-source-2560.jpg",
@@ -1701,8 +1701,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "45d73a7ec53920840086b76b74a2d8b78e06030851914c77a9cfe24d56e06dc9",
-      "jpeg_sha256": "92dd24e30bda8114ac9fdbf04b7f6aff2a16c6b2e6acca524fa03e7b7ab2ba6a"
+      "source_png_sha256": "c146748459b0086b57a8ab965ba994a2ac251ca21fa50edb26cc0cb07f5ed5a5",
+      "jpeg_sha256": "3012a7fdae600259dba2b69bf8715ef8889b439fedbd73bdaa4fa924eba95583"
     },
     {
       "file": "server-remote-folder-1440.jpg",
@@ -1710,8 +1710,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "5c439ea34d2167cb3ff4ae80bcae7a55379df90d5105aa1280de49fc734dc771",
-      "jpeg_sha256": "4cafee45b62a2bcc03817323b8dfcc24ba38ce2c51082a4441701defda6cc36a"
+      "source_png_sha256": "a0b7485de4c5a74df6294204048e801f4ed036fdc53536d4416affef91881310",
+      "jpeg_sha256": "dfc550f59fc4ece9452a770ae6ba3ee5454c1c49229a0928b8e292d7e4b70a5a"
     },
     {
       "file": "server-remote-folder-2560.jpg",
@@ -1719,8 +1719,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "aae7292aa6847323417c3ef74a0d8d4ce0f936372661a54fb6dd7a99667d11a4",
-      "jpeg_sha256": "0c60beb85dba2b8eeb3eef51cfd5ac90a02936c6d82e481cd6c8f1db82537feb"
+      "source_png_sha256": "207c2f3c5ef52a3d2caf6e24af79b1fd1d49a6285f4411d1d0a893063bd5b783",
+      "jpeg_sha256": "ee9de02db23676edbac2b183d581a92963fd36c0774d026272d382022db946c6"
     },
     {
       "file": "server-remote-folder-390.jpg",
@@ -1728,8 +1728,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "f8ca8a3dc58fbfc1768404976a2e32a6e086af76f0c6e11cc594b8ff35ab1823",
-      "jpeg_sha256": "5cfc1fa97678d0c613725dfb83b5d65ddaafaa9a60ab01a281879a1f1c06c4c2"
+      "source_png_sha256": "226377d8821409459e4aafc73b1edac7fe5c571330de413d3fb3e56a8c5b0fda",
+      "jpeg_sha256": "6967c85c9a41e7f24ac295a0fbd5f15b1b68752b02eae2f2a7f0aa3f0cb3e39e"
     },
     {
       "file": "server-remote-folder-refused-1280.jpg",
@@ -1737,8 +1737,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "99c2e8243ec855591380cde626861ea3165b35ee3159386b9fffe2c2d613db0f",
-      "jpeg_sha256": "dcdef56d9e3f5a9748d94ae53e02bd99e2db2e8ed0267dabdbc334696e60e84f"
+      "source_png_sha256": "0d6ed3535087d7e41dfb40032cc0ce25b83a9373bef3170c6f500cc4d247cdad",
+      "jpeg_sha256": "131b8e7dace0f137c30b1efcb3021cf69572be0025e963592fbc5e38883c86a1"
     },
     {
       "file": "server-remote-folder-refused-1440.jpg",
@@ -1746,8 +1746,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "2fd592a0e162c038f1700b5eae931d16da764aa7837b5ea310657e7c85e8d0c8",
-      "jpeg_sha256": "44b47ffe58ace24badc5fefae779f90e09e0e093a3a63fb7d1c4a1a6dfb78bd8"
+      "source_png_sha256": "b83d2633f8f4150b4b3acae67fb63e95819fb6dcdf61f6d83795eec6208c5d60",
+      "jpeg_sha256": "28fec9cfce2f6e7c1f5f85ac9f77daebf9efd6fa4e9d06611f767fe350ed5eef"
     },
     {
       "file": "server-remote-folder-refused-2560.jpg",
@@ -1755,8 +1755,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "8c0c89a1d2925d2a531ae49f833a2c9ebd703aa88a5413bff144f7b34e97d282",
-      "jpeg_sha256": "b5910ad54eb246fc3f2da704ca4b913e211a7b0b1abaceeab6dcaa76cac02522"
+      "source_png_sha256": "c4434795f058f4092be892554f9c04d08024707e39034983d53101a88ef1968d",
+      "jpeg_sha256": "a3d73897ba54582ff7cbe2c233e711444e7f44eb9d66ad76144b830a6f26698a"
     },
     {
       "file": "server-remote-folder-refused-390.jpg",
@@ -1773,8 +1773,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "66b66532bc7d72200b240f2fd8a786808b032c4fc243a02ba6e9b705f4dce576",
-      "jpeg_sha256": "76d1fa819b4d50e194c44c72aeb42bde1316a7a6da3b3c71178bcdfeba97dbb5"
+      "source_png_sha256": "9259b2806ff5b4789ed74ea10b79ea648e68cfa1e9158261a51e60d29d0c5e6c",
+      "jpeg_sha256": "f9a9c6a2ee0aac4a8beca5a5ecf2948ec4f468ec477b20f1a342c02bda5da120"
     },
     {
       "file": "server-sidebar-projects-1440.jpg",
@@ -1782,8 +1782,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "ae6fd272f44c8ce8d61dd84fdf57e18aae31e0091e4ff7ee2c3f7e956856392c",
-      "jpeg_sha256": "b741cad341a20e07e9d53b242dd51cc1c3dc4bc454ac19f4441851f451ac8ee3"
+      "source_png_sha256": "1aac397047e24f507427104f2a8a18069e73e919ead9697270237aab68bc2e49",
+      "jpeg_sha256": "91d7b02c8bea480dd88f9eef200479d8959a10a81300e839f6f065a7a767ffce"
     },
     {
       "file": "server-sidebar-projects-2560.jpg",
@@ -1800,8 +1800,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "2917a4e68d9b5c108650ce57d43523c6f96b9b64bdb7078cc897b0557ccc2644",
-      "jpeg_sha256": "062678d33f14d661861cf6bc254b3e3e36bf64d24b21787f76611d405309e47a"
+      "source_png_sha256": "3a88be75c0a7392899644a1e10db4bde4b443effea7b435beb3a5537e3bd5945",
+      "jpeg_sha256": "19c0db020e19bdee8890a95052a3451b777fed10eb41f99a35e431b6b10e1e30"
     },
     {
       "file": "server-source-control-1280.jpg",
@@ -1809,8 +1809,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "9d0c335fdd2969f53e491789fa19767f249560a23a816356fee71f40e1ed3b60",
-      "jpeg_sha256": "091ffc4443860d9a665f9ccb5bbb22e981e06903383be3e5547925e09e8806a7"
+      "source_png_sha256": "c9654fc0bf6373bea0575c1cabd26389c9e2cd67005c3c999fd4df3ae8815f71",
+      "jpeg_sha256": "5cf00c910c590f1f326e2b8a72b2ed1d1635eedc0df7d2c037c0122ade68f54f"
     },
     {
       "file": "server-source-control-1440.jpg",
@@ -1818,8 +1818,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "693380b3065b1f6520b30298cfabf7650906c0ca75e8606e6961bfed9df4d305",
-      "jpeg_sha256": "f8d45bc830b86f79527c9d2cc84aa2c07a57c410726031a3a46bfa2f664a6199"
+      "source_png_sha256": "8c0f321009286a299927fbf223b49dbee13d818b2d4803186a4543b4a0731dee",
+      "jpeg_sha256": "35a42ffd0680ce9201ab50725579648a8f73177278d5f22a25cb5b8a0bcbf50f"
     },
     {
       "file": "server-source-control-2560.jpg",
@@ -1827,8 +1827,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "873b534fe02a4a94feb6b5a3daddf8e203ee0f528b990366147f6019c95f77bd",
-      "jpeg_sha256": "6c07bcfa58bc8aa7b36c15ce69a6a991325c930ac35c75b136cb576613b6eb08"
+      "source_png_sha256": "9489b98b3776fa99b41cd4c5fa581310cbaf16c147a9f8f90e7ebbe318902f54",
+      "jpeg_sha256": "81eb8e59853c3f437cdca699b9d34db06f06a9971f795dde550c9ed92b7e3f3a"
     },
     {
       "file": "server-source-control-390.jpg",
@@ -1836,8 +1836,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "c01a1297810686345d9771a9a88632fa4cab92ab84e5f80668c43346bdac037f",
-      "jpeg_sha256": "182cf203c4cf3344f68bbae5d0ec87400c5d2291b1fe76033e144f7542af5645"
+      "source_png_sha256": "70b731fcc216964c3bfa87affcabaa6e065b70d1da0692bffd9060ce0abcb776",
+      "jpeg_sha256": "41b900cfd3008a76f2a38b12765e950a39517b0dbd43bd8fd46143f83f444d51"
     },
     {
       "file": "server-source-control-sync-1280.jpg",
@@ -1845,8 +1845,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "d2d100ff8736a87e490b39d45fa777f2b7621e57275e462ba15bc604c04e575b",
-      "jpeg_sha256": "b4d5ab694388b230fc69fa5b1e8dad2016160fd61cbf37ff8b275a511bb08cbd"
+      "source_png_sha256": "13ca7b96c5bb56e5716a2be5fe15a55b99204a5a5602d667d02a6275bd9bf24e",
+      "jpeg_sha256": "b9c3f7ae772ddc13441d2f0a53924222e3e4c5cb8394911b0ca151aa9df13c5e"
     },
     {
       "file": "server-source-control-sync-1440.jpg",
@@ -1854,8 +1854,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "b9ba337444a9b07fd1f896efc0f4724a7c9368cc06dd00794deb0c0c173f7053",
-      "jpeg_sha256": "d1087ab046a68bb54bda712412ea3d40b227a39fccac05ac34517b0283c12556"
+      "source_png_sha256": "5e8b7e9808c674e1688f1a6ce34e309d35552702e18f6d7bc15974763e241622",
+      "jpeg_sha256": "55326a9fd6184ba280a76f8e79c749cc9863cdb0b55b599dec1364d7b7256eff"
     },
     {
       "file": "server-source-control-sync-2560.jpg",
@@ -1863,8 +1863,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "21d8f6349a3346eea52fe4b917699ca22ff21045a37eac00d073b411d52262fe",
-      "jpeg_sha256": "004a5a4abfd16065d440485a888463539416a76b7a1c0524d3f785c0121ff161"
+      "source_png_sha256": "61ee28757c95b6464df57d1ffb8e6a06316efa32584e8dd132bd3530bd72a26a",
+      "jpeg_sha256": "cd89d6e99cf43615f3df57b30026a1c7a3f95fbe2670fe4141a97c9ddda6cddd"
     },
     {
       "file": "server-source-control-sync-390.jpg",
@@ -1881,8 +1881,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "a300695a14026bc0e9216b52c63f973348708f28ea7804fd7a6923ffe606b998",
-      "jpeg_sha256": "9b5436a6872ba556e047344bf94cf691dac0bd132480e8eafd28d4e7de9a4465"
+      "source_png_sha256": "2fd6257da486cd75bd4769f9ff9d34bee095a1fe57622dfcfc99ac047cfc0e75",
+      "jpeg_sha256": "6510be304fbdaf6640e43cf246e06ad510b7c7f15843044dff6a2db8e97bf284"
     },
     {
       "file": "server-source-editor-1440.jpg",
@@ -1989,8 +1989,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "0a1b8309b882b671e63347f153db5a40f30c02042d5f0cc6c651ae14e621b2fc",
-      "jpeg_sha256": "169175d715cf1f663ce1ce13b0286240f788d31c70e74c2d6eaad7b3fb85b7fb"
+      "source_png_sha256": "7fb724d27b2eb56619da139dd3bf299085c88945c7bb9afb52841f681d8a0f3c",
+      "jpeg_sha256": "8efd6bf58b806e72df424653bd045b6cbcaa50a3031084151661eccc027a994e"
     },
     {
       "file": "server-dark-admin-access-check-1440.jpg",
@@ -2025,8 +2025,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "6bec1e0ef67197ba0f1225676e53b1a7832684f1c04409115e7b3d5366229922",
-      "jpeg_sha256": "0ca6405b47ec1e70815830e1f842469a02a61a267950fcfd71333d6aa7242ec6"
+      "source_png_sha256": "dab52835a87a27b75f68ed9c02ca54504f128f2c9cd540e399d4a1e18115682d",
+      "jpeg_sha256": "8df8dd961005663428536a9e8e5db33ab3d1d1e327a2d68d14de464c89f1e436"
     },
     {
       "file": "server-dark-admin-audit-1440.jpg",
@@ -2034,8 +2034,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "a8a172843e9dee659bec1fb3570d15a3efc9c06ab395818de3040335cfad5a95",
-      "jpeg_sha256": "e4f73278a2b329334182f1b3e3067fcee1c24354ad90a2d48c3531a9896c1c56"
+      "source_png_sha256": "9a73e874303de9ea036266784d2a0c4346f6258acda46f041105f582e0531aab",
+      "jpeg_sha256": "51859c8fb1603b6dd6e0d8703fab1beb0c6228c55e3ab042576ab14b80457390"
     },
     {
       "file": "server-dark-admin-audit-2560.jpg",
@@ -2043,8 +2043,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "971a4be30469dbb9e338d6b2fc75fca5eca4b71be28c1b5e7eea1088999202bc",
-      "jpeg_sha256": "99429aa33d2704e24976b6b5085640fee99477adae25cdea78b330d43e47f63c"
+      "source_png_sha256": "e8bca67bca024581e64c22bbb1dec9456e3f59c08e11418ed0a68ca80ac21975",
+      "jpeg_sha256": "1f7eb6715f77d57def0d850e23bdd5e55f6865939d7460ad77265f12dd9360ef"
     },
     {
       "file": "server-dark-admin-audit-390.jpg",
@@ -2052,8 +2052,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "229d8da620b0414973ff699502a212c67a045415c368bb17f5edfb32769db666",
-      "jpeg_sha256": "7f64b7bfad047f71aeeafdf9c126023f6a162ed2c0d49318f47ecf7f2e66665a"
+      "source_png_sha256": "288b4543be4c73df989df70233742963004f992dfaa399249dc258623c945db9",
+      "jpeg_sha256": "3c3bd7b77159d63446a4bf2c92de96aa93ba08b2ec5fcd08e47b0469cf608289"
     },
     {
       "file": "server-dark-admin-grants-1280.jpg",
@@ -2205,8 +2205,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "38eb8e183d4262f61d39e29a07e51e25ac55ecbfd9c989df220a9c4178ebe820",
-      "jpeg_sha256": "576a192d1ed5cbffc4697e0e11db69bba6db7a08ea07fbef50a7b301bb7c2665"
+      "source_png_sha256": "f1e0af06242df0213031ef192cba68229495211e88aba9f3faadbf059a7e46e8",
+      "jpeg_sha256": "f5445065a3b232bb1430307ff0ace2b5b4a2e62761aa56c4fe017252a8efd8c4"
     },
     {
       "file": "server-dark-admin-settings-1440.jpg",
@@ -2214,8 +2214,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "28e55da7874eabf39d51996267ac95b8f55ed002272276ddc63159f7d82e3adc",
-      "jpeg_sha256": "57af55f2a08baf8d53f70473eec132e5bd634db0ab24e0f72d21a1cd14be155a"
+      "source_png_sha256": "0c2e49dbfae1b5fccc6f1fc76ff046dce9ffe2a96cb036d55e0c0dc2ef17f50c",
+      "jpeg_sha256": "32ea0d0b8df1aab3ba7f667f8ca3e665d94ff6e9bc8acece9dfad3d10b6c2a68"
     },
     {
       "file": "server-dark-admin-settings-2560.jpg",
@@ -2223,8 +2223,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "1d0be48ab5beb9230bb0258d6ea70775de51b46c1d001a2c3751c23d825a02ca",
-      "jpeg_sha256": "665a2ab5004a66ba2bd3bd39f971420255ee88d78eca93947b707602dc6291b5"
+      "source_png_sha256": "cd55517a63738347b4df3067b9f9602795ed3040b9d0301b26580116dbc48cee",
+      "jpeg_sha256": "0677b5185c81174cc815f6fc0b9cdfdea85cbe1a1b55ac43f0b85d6249865c0f"
     },
     {
       "file": "server-dark-admin-settings-390.jpg",
@@ -2232,8 +2232,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "fb51bcfeac7caa027cd4b0d62dc68c259f5e15ef0d8dd6116baada6b6008d0a2",
-      "jpeg_sha256": "90d3814ce4aa397401ecfc0ce402ee68a6c68fb7a777d214726b0a66b05531cc"
+      "source_png_sha256": "5a610bb00caf2b07411c37f038f8c23c54d08e4f76a10d98f6e04fafae36a25c",
+      "jpeg_sha256": "602ebeb63a481598e3cc2d69acb851c3cfca13868e73e625cd545732b4ddad2c"
     },
     {
       "file": "server-dark-admin-users-1280.jpg",
@@ -2241,8 +2241,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "6574f9593c258662d1de27e349f1003769d71eb0c2c289d69ce6195c16d78160",
-      "jpeg_sha256": "b79a443ba1fe0e9e4f2e8b4ed5c3bdd0b642d19b87c6061cebea8f0969e0938c"
+      "source_png_sha256": "7991bae442dbcefb7bf1fbc833a7a3b16cfb32767a1211eefe37a817f4a34c2b",
+      "jpeg_sha256": "88dd0af0e210932d40141ca5e70bdd5b3c39a9c2c2c230c9c7493f84fef5380d"
     },
     {
       "file": "server-dark-admin-users-1440.jpg",
@@ -2250,8 +2250,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "d4c59d43ca1c8caeb1afb0b8dafcff586a3bca1f0212ddc5220ad72af35e00fa",
-      "jpeg_sha256": "b132df686367164731381f3fc04408b45702c2ce1f16a72f0e137152ce776d3b"
+      "source_png_sha256": "9ccbd193d7444b816844da8cd56867445b7978e9b0162edd00131cc4e3a2cf8c",
+      "jpeg_sha256": "e2c1d866c64cf33fddfa757a10ac78e4b6e24a5362c0bf620a3a7f38e10347f9"
     },
     {
       "file": "server-dark-admin-users-2560.jpg",
@@ -2259,8 +2259,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "23acdf6fa2f6e3860ae2ca620ad1eadafa2ea4813c32f0f40a76164d53e7976d",
-      "jpeg_sha256": "1f7b5e01658364e86aad5b64247b4a15cca9ff108795687bafce61ea0ac22506"
+      "source_png_sha256": "a177b37ed2bed08458419cda37298a9ba8577791bf58040cf9c0d85586d4dfe6",
+      "jpeg_sha256": "863ad114e8bfd191a9cde0f616cb8aa4d798276a17dd061e2d2f0d223a030e36"
     },
     {
       "file": "server-dark-admin-users-390.jpg",
@@ -2268,8 +2268,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "21e0aaf1422a97241593d56492486c83d69c3fac38a35415c0e185e2c9d1ed5a",
-      "jpeg_sha256": "9cbb2788071c425b50ea083ed969368e66263256deb75810fd89a79336e5c9a1"
+      "source_png_sha256": "098131a6f269ea6374ebfd9dc5ad5142db5baca269bbf793b796881bc800fe3a",
+      "jpeg_sha256": "2cab60471dd135535bc98894b723cd8196bb373938bccea51fa3d30df7a0863d"
     },
     {
       "file": "server-dark-catalog-1280.jpg",
@@ -2277,8 +2277,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "3d786b74d327b114d2b3c560fa519d61510d0b64f19af96bdee62fa6e153e87e",
-      "jpeg_sha256": "606223025175a2cbe46c43eca81c98c957304bf02ebfd097d62d4f32532492bf"
+      "source_png_sha256": "6fd53f52f13e05f47693748a9c8cda2da040406310b6caf81938cffbdf14094e",
+      "jpeg_sha256": "efb0e8189aa7d50615db9dc78197f859858eb3a39cf6a2bc38ac805ee67782bb"
     },
     {
       "file": "server-dark-catalog-1440.jpg",
@@ -2385,8 +2385,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "29818b91926ce7315973235a948e33f8308c4e1afbdaf849428f9eee3057fdd5",
-      "jpeg_sha256": "273114cb2b96e697781e5c12410836e1607dd571991bfddd7ee4466999f8a4d9"
+      "source_png_sha256": "72720805ccdb353f7ee315af76c2d42f2f79772be0783fcecff2de449d5a7bfe",
+      "jpeg_sha256": "edd567393794eb5e56703b3abb21d74253c46176d2a940d558826644a5f821eb"
     },
     {
       "file": "server-dark-clone-repository-1440.jpg",
@@ -2394,8 +2394,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "733bf76c52f4d6ccadf8d65425c4dee20b7878560c3fee9bfb224e3354538322",
-      "jpeg_sha256": "d04063cf5ceeadb9813bcbb48ea246fb76a5b4d350134742440c1f70aac352d5"
+      "source_png_sha256": "7b0b25bb8fb3928d6dcf1125b7783bb6bb44bbbd8f6c2c69786e5e46eeea1bf4",
+      "jpeg_sha256": "3e238aa298c3028a19d75b34fb480768d5a081a609311a1cc92fd32e0992be21"
     },
     {
       "file": "server-dark-clone-repository-2560.jpg",
@@ -2403,8 +2403,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "17f70a27de1536f68ad436a94ef91f73647d2c69158b0942e94a48175eba2375",
-      "jpeg_sha256": "629db95cc918571fac4ef85db28d8d077d06ae5c84a0997dba58356c4ef55135"
+      "source_png_sha256": "a9862f2aaa4fe94ecf8609c5c1bfbe8cd7e2a52ef226b1ddc40d6323b2d57e7a",
+      "jpeg_sha256": "c7789e7aeaf463d8e078428375671542c74070d5e390e34113ac34ab95ec4a7e"
     },
     {
       "file": "server-dark-clone-repository-390.jpg",
@@ -2421,8 +2421,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "c38507f37671804fd8f3dbe6ae9812f0d1d4dc0f874dedab55df2ba6dcc03aa9",
-      "jpeg_sha256": "54fafbdae150b09bce8abdac67c64117e1e2039f9842d4da40143d4bb055e011"
+      "source_png_sha256": "4d19ed0f2477f2788d6efdcca2cb247d60c3df6cd9759d8e574fec52761bac4a",
+      "jpeg_sha256": "abef82993446655fd840a4bc119128d00c15ae75de16d15cf61eb0aa81ac4cd2"
     },
     {
       "file": "server-dark-contract-contract-1440.jpg",
@@ -2457,8 +2457,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "3212655fc72755b41c86b180b9c5c91c014fad8255499a0b1092da4fc6c78192",
-      "jpeg_sha256": "5db4c74404b64c647bbbb46d3658a9e67bee1c77b516b51a6b373e19092f7adf"
+      "source_png_sha256": "6d2db266e0967a5700b009b9dbb1c0c318be0f591048599b49b9481dd1785eac",
+      "jpeg_sha256": "dd600a9ed9ce2d3d459679016c1b557e3445dea47ce5bb61a1b559ce49d2a1b4"
     },
     {
       "file": "server-dark-contract-graph-1440.jpg",
@@ -2547,8 +2547,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "ce0d607e445c85196728e57e65a589892965b1147db8b41a6e25782acc9a6e56",
-      "jpeg_sha256": "48838d3752161f064e98af92d221478f1722a53351fef8e3229c8cab015a7fe4"
+      "source_png_sha256": "9839278178809667413530fd23ff787e72f76882e0d9bcf59751c425a7d55805",
+      "jpeg_sha256": "ade6e3ef76dc757ea3182dd9bf01b7dab3cf67621416795b957f3d3c97ccb663"
     },
     {
       "file": "server-dark-import-390.jpg",
@@ -2889,8 +2889,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "665eaa48bab9a68aa2956e8de23ca473142f3a565e78d7b052fa11c9a5c98035",
-      "jpeg_sha256": "eeb05ffb3b5f01eddf9f2b69bfa80247340e32be69968f1eb7f79ecd52565434"
+      "source_png_sha256": "c8bf8504b0d62618cf991b3e7e5c2ea7ff3254cc84d1400705adf3b1fccacf42",
+      "jpeg_sha256": "9e35fd8fb05be8c937bfcd6af01c4362a893a99e9f372e97906dea0b0532cdae"
     },
     {
       "file": "server-dark-odcs-dataset-history-1440.jpg",
@@ -2898,8 +2898,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "45525bbd073e0661d6d41df77bf6a40a3f088fe8d6e0945875f1411c77c91e04",
-      "jpeg_sha256": "9f10f218c7079a40e8990bcba6b04426df914ebb222611610cc30def9f844a34"
+      "source_png_sha256": "c4735c8b55313949989af4c94998e96431ccb655482418cd26a1a5899d65a018",
+      "jpeg_sha256": "52b0604d08c7a8fe04b2be2e172defb5caaf8f4fc6a9eef0861a463a88543531"
     },
     {
       "file": "server-dark-odcs-dataset-history-2560.jpg",
@@ -2907,8 +2907,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "a5a5e287bbeaaaadbfbd3764669d9f5bcbdc1cbbad37aa7ab352125d743504e6",
-      "jpeg_sha256": "6f37a44f3c2b441063a29517e4b5780224921b8c763ca7172127f9554ceabab9"
+      "source_png_sha256": "97614f12da90b41978a2c2712ea598deedb45a04da8ad8025655857a6c3b0a31",
+      "jpeg_sha256": "b2f668c3a73e88aaf56aef173ebff724827d78101a1f025bc93ec49782e71fb3"
     },
     {
       "file": "server-dark-odcs-dataset-history-390.jpg",
@@ -2916,8 +2916,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "85907fcd0c99cb2cd2b2261be27646cde72e8820cc3bea36a0ff9b96f5ab88bc",
-      "jpeg_sha256": "dce7038b5447b1704f8e1b380c1a7e33ef5dcfa670b1d4f19008651887fb4136"
+      "source_png_sha256": "cecf4b6fceb862afc86d4c5e8e8340df4061906123903c36c9562ce08a91392b",
+      "jpeg_sha256": "3c150ecba86eee8cf1370e98b6b72eb9359059dbf8b7c74e49bff77af461cbb2"
     },
     {
       "file": "server-dark-odcs-dataset-properties-1280.jpg",
@@ -2925,8 +2925,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "02a490389de5049d0d38a40f9b2b5aef0ea6e98fd04de829839bfb178af884c7",
-      "jpeg_sha256": "133f8e8f2d19a3c0c2ad7fb415856ee1cbd39a82374f507ea589d1ce01dc6abe"
+      "source_png_sha256": "0e125cc04cf31878bcedda05653cae868c7ff38973e74d3c2ceb0281aba42030",
+      "jpeg_sha256": "bcf3f1ada1c5bdb3d5815a4c49e34560a19b6eddcc54f4492d2f84a3b535092f"
     },
     {
       "file": "server-dark-odcs-dataset-properties-1440.jpg",
@@ -2934,8 +2934,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "4bc8b8e7fa00a17001d8713cd33f3cf50705dc2a780ba593fe33862ba839a923",
-      "jpeg_sha256": "fa394231b1de50e134277c4a251e7afedc2a5fc37791c166b5c36a6789bb567a"
+      "source_png_sha256": "aa68e61ec13ea5aed921909f7c4120e1b053cd51539d84ae2f092dc13e19d18c",
+      "jpeg_sha256": "12c6f663745fc8fe9edcc850ad5ae262c67b0b3e32ebe5c023afda7556b2ef1f"
     },
     {
       "file": "server-dark-odcs-dataset-properties-2560.jpg",
@@ -2943,8 +2943,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "749e2c1dfa7f2869a3c10c6171dfbb6875e4654f41d31e8556d23692107420a8",
-      "jpeg_sha256": "4a42c7df44fbdc423795fd39f17470a95c17a379a0ea58d751dc8595857e1eac"
+      "source_png_sha256": "5b73430538e1cd7ba524d992502105cfbc46b5567ca52f58627a79a6c2eb3403",
+      "jpeg_sha256": "0198e4af289caf980e0569aa36de5687b2a95bf8c6303f28ede74ce1a5e78e54"
     },
     {
       "file": "server-dark-odcs-dataset-properties-390.jpg",
@@ -2952,8 +2952,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "56e010d1845234a5ef30332d8c71552c4a813f87071e85c4f4f2c4b8fd82fc4d",
-      "jpeg_sha256": "86e9d3a4e2d76cdae3c710b8f969d157f2ee1e6cadde61c49c70c93d79ef617b"
+      "source_png_sha256": "9a86b81d7a28fc0e60111da6a2260326ddc484b9a4ab2b1b8e6e858439432bb5",
+      "jpeg_sha256": "51e1978cc8e7d0b96d5898af3d5b144350dbbfce79168f424696a3db6770bbd0"
     },
     {
       "file": "server-dark-odcs-dataset-quality-1280.jpg",
@@ -2961,8 +2961,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "2eacbf5c5ae8b16f4241d8d4c6c3973b44696abcacf6fb41131fc398b34053d9",
-      "jpeg_sha256": "5bff7bc8f546942e684458f2e57e200404b880f4a166b19801dfd941322d0693"
+      "source_png_sha256": "d668bb1e0709efb1dcb2eb0729e991f80970fb63cf953c76bfea431672f61ddd",
+      "jpeg_sha256": "eb7b8ea17c28b696ff42f1db596db918be4477b4b66fcdebc30ca5bf7662b922"
     },
     {
       "file": "server-dark-odcs-dataset-quality-1440.jpg",
@@ -2970,8 +2970,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "6648643ed1d32aa4b39ef217a3b35530f44ff14f305a10f7a7de219da86c4cdd",
-      "jpeg_sha256": "e4a6520bc488445f020069863ed153d3db671829e25080d8de518424bfd30225"
+      "source_png_sha256": "5d8565c126493e80e397b4c5a4616aa24b0c1ac0d150dd8c09e026c929269593",
+      "jpeg_sha256": "4ef1aa9f67815b4b35ad16fac5780e8dd6ba8cd3275208bcea4b0ac2fef83b67"
     },
     {
       "file": "server-dark-odcs-dataset-quality-2560.jpg",
@@ -2979,8 +2979,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "561bdb58876aa17e454b6fabae9a0d3d3bae072685fdd27f8284f30848cabdf4",
-      "jpeg_sha256": "70f6889c10b2548b9192f0f8507b4a1a3958b24c6028a82c6e04860fb3384858"
+      "source_png_sha256": "cc811175c74ced9c37b41b38c3b291fadc616ac73c1f046f0a90b098a24f2895",
+      "jpeg_sha256": "bced036bfaa01bf1b86faaf6479f0841365382db48911b8e03ad6fbd1357b4fd"
     },
     {
       "file": "server-dark-odcs-dataset-quality-390.jpg",
@@ -2988,8 +2988,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "11653da7600785aeab2273c3d1f98d3682bd352d31342ed5a695ae3c9a2c5762",
-      "jpeg_sha256": "87efa4e8140ad70633f88c977110147166e8ea432be1c5c71167baf01cb89afa"
+      "source_png_sha256": "139cd0831b64c4a01e07ac7e5fa32ba45a334868a54cf3fe503ba4f804f11ee4",
+      "jpeg_sha256": "d7db9a7c8b6edcb97e9e4c2268f289bcbb7734eeb1686e13a82ae89f3ad74362"
     },
     {
       "file": "server-dark-odcs-dataset-relationships-1280.jpg",
@@ -2997,8 +2997,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "9b4a1f0336f8ff71d4dc8cacdf92fb58933818ae9da7d4c1cdbfea9e4860213b",
-      "jpeg_sha256": "95490f24bb8ff70eabcf540938f7fb7d307b15149f99c03f19719baa1109cc12"
+      "source_png_sha256": "aca0b5f0e0973f2f7c06418207b29b1424ab21b76144f6374c2d0cefa1407ee9",
+      "jpeg_sha256": "e0ebc4f9f9408d1e6adbd002a349a84492424afb83179e1e372e2ae483c96248"
     },
     {
       "file": "server-dark-odcs-dataset-relationships-1440.jpg",
@@ -3006,8 +3006,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "0e518d48b8ad44b9397cfbfef2c31c22980a554a362b137638bc06fd4b3c4183",
-      "jpeg_sha256": "8f8714366682c0c91107c78cb25aa4fdf195fe8a50996f3555806ecf190b4dee"
+      "source_png_sha256": "0e45b73c8ca9aa4a60f52ef036ad323bf09487a96ce2996395ff495786a45e90",
+      "jpeg_sha256": "5195c4fca5eec385862983425e005d82bbfb0c71e733dfcdbaeacd2975a9beab"
     },
     {
       "file": "server-dark-odcs-dataset-relationships-2560.jpg",
@@ -3015,8 +3015,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "952ff2f43abff42f7e838b7ebb7c72da0cf80cc1fd12518a01e2ea1d0ef57b84",
-      "jpeg_sha256": "b06c9f213b241c10e53f1997f9790a5e3fde265805509500610e03cb17157d44"
+      "source_png_sha256": "63ed7aa07753f16e42140d57f952fe2f88c8133cfc614657e92d2cf752b28581",
+      "jpeg_sha256": "6e0f48add6ad78333a54de227a128c01affa3a946e57c3f227c2940cef64718b"
     },
     {
       "file": "server-dark-odcs-dataset-relationships-390.jpg",
@@ -3024,8 +3024,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "415a6012a3c955570384ce1a92fc52eec18bef06537ca63427ef01717b904f8c",
-      "jpeg_sha256": "53b2d68e662408b74c09c82e6542d7914505084fb3d0d111863c134356185e48"
+      "source_png_sha256": "71d5339740870e1a5b70ed111c1ac47beb47e34885a1dbfb56067078df8a025b",
+      "jpeg_sha256": "60917fd3356ee2f5aec07979c22b83ead43d77f09df81ece7c469214cf90bc00"
     },
     {
       "file": "server-dark-odcs-property-edit-1280.jpg",
@@ -3051,8 +3051,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "85ba457d7591e7b1ab212cd6752c6ee0ffdd14b0bc55c9a06786a37d0063cfe7",
-      "jpeg_sha256": "4bda3f949003e71e6eed24c1ddd82f96ffb498b08f659868d53c539455d724e3"
+      "source_png_sha256": "b5d8237818d7cce57fdad79f842b25874a9da39cf7ceb9ccdf49f973d5bc3832",
+      "jpeg_sha256": "13b260579910ca66608abc0dbf30526165fbaa2cce293b8008b7396303e0919f"
     },
     {
       "file": "server-dark-odcs-property-edit-390.jpg",
@@ -3078,8 +3078,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "ba677a5f586214ac5cb16418b3ab37eb32711f594ff0aaa94cdbcf88cde9103b",
-      "jpeg_sha256": "d42e751a7bf4e36309dbf9cceb29cd196db292fa571f308247f90b0d331f4c09"
+      "source_png_sha256": "5099bda48a82e21c4836449fe64c8b31cf23d3a3ca1ad23b35e3844779ae59dd",
+      "jpeg_sha256": "bec8f9dcfc8bd82a436e4728b8fc0ea7091bd8477f4471779584987bb914ff2c"
     },
     {
       "file": "server-dark-ontology-catalog-2560.jpg",
@@ -3186,8 +3186,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "4c976762589140239faee17711f51b3fe0761d74cae0953be983dae1de44660e",
-      "jpeg_sha256": "0998c80a3906af49b24934b20a1d2a5322d252101e759516975fa846bcadc195"
+      "source_png_sha256": "800c906bfd6e2dee680daea924190ca03ed5da70076de6861bec7849416ec0d2",
+      "jpeg_sha256": "5ae70dcb73197b3db9ceda63a8375f489c3668df7af10a45213cd92a76ba59db"
     },
     {
       "file": "server-dark-ontology-mappings-2560.jpg",
@@ -3213,8 +3213,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "ad28baefb1518e71bea1be1f530fbe74339af6a70f9bb67235c3c2c4cdbb96d5",
-      "jpeg_sha256": "1fd1666e328fe924875d27bffd47a95c44a1f54815fb5b0360baf89bd1e05f57"
+      "source_png_sha256": "bdd7865834a0d790cbc0873b8b8e54d55f3b21df8430f9c4c4e8a8126c016d60",
+      "jpeg_sha256": "5c1fcc62a2a676b1bf9f50f7856d6e348f239dfeec076925a35734f65b187c63"
     },
     {
       "file": "server-dark-ontology-metrics-1440.jpg",
@@ -3258,8 +3258,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "315e0292011a2140f21546b400526358b4a8c9b506c4dbf6ec4e4c68b7dbdf9e",
-      "jpeg_sha256": "41391dec4caedbaeee1243185ccc964477faf7ea9ed67ec21f7a511482e72f95"
+      "source_png_sha256": "ad76caedf1e675a495f900ee4470836eed8adae93c7ce824a8ebab08a7ac52a6",
+      "jpeg_sha256": "5a2621a3ecac610bf8b46051ed950f1098d946b0e0d72d36426bdad647938d2c"
     },
     {
       "file": "server-dark-ontology-neighborhood-2560.jpg",
@@ -3357,8 +3357,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "b07e6fd58cbd18a3372313f0321fe645e405df3ea901be0f9eb2fbc1ff587ee6",
-      "jpeg_sha256": "59a0d44015fbd0dd16bbc3bd9e8a78a8a1d238423362135ae74d99cf5a8c3d69"
+      "source_png_sha256": "58eeaf0018104436bd55b4f5bde67b9132b82c901a1f56f44a0e2f42c2d7c728",
+      "jpeg_sha256": "202c1b3cd483f5451d93b663ff67ff7288c5bc3d16f53af368a519a1ade8e343"
     },
     {
       "file": "server-dark-ontology-neighborhood-labels-zoomed-1440.jpg",
@@ -3384,8 +3384,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "e480ca0b18d3605fb3a356a02300783f450018014faf0a21014de4903b1cfdca",
-      "jpeg_sha256": "4b94d4b967c815010cd23913a7e6923ce44e0200c6fc9e0438eae59fd582cb10"
+      "source_png_sha256": "f6250aa4605a7a902fb3f56ee6f8150a23f6bc14dd29e159d7b83bddbc747954",
+      "jpeg_sha256": "7b2d13c1683d7f6ef3668814591cc541bff2dfafe1e4abf083a4d75c983d7823"
     },
     {
       "file": "server-dark-ontology-overview-1280.jpg",
@@ -3402,8 +3402,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "aa0d21bb36e592d7c82f52cf3ff3a723e9ffa2e40f34cab3e486eeb751f7d0d8",
-      "jpeg_sha256": "f40ce6b7e472c360ffd1d8c99e93c93bd7029229a60aa453843937dff5491091"
+      "source_png_sha256": "a46a31495c0f5ff88491315d97dbd4e3ff18874d680b1f9f03f819370148b232",
+      "jpeg_sha256": "c4cacebcd7bd3ece8388daa71bbf8c614fffbe4c40955651dd7383b35815c749"
     },
     {
       "file": "server-dark-ontology-overview-2560.jpg",
@@ -3429,8 +3429,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "d6b9e621f62b8f120eab24a74ac88e6311404a80bd2bdf2ccd29c52405a1a1b2",
-      "jpeg_sha256": "35a3a3f43d856dab35e0890e806056aa0a08af5eca71b16aceab0ffcf898b9c0"
+      "source_png_sha256": "34544df445b53f20e49c4f05bbfd7e42c4f3136aa9a79d1850f448cac00e63bb",
+      "jpeg_sha256": "294d0be11530eb5adfee21c09b168700032f286a69ad8d71c58d3fa80208d09e"
     },
     {
       "file": "server-dark-ontology-source-1440.jpg",
@@ -3645,8 +3645,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "5686816ec806e59f8cf18090169549b16f0d393548ea4fc198e3f20340fb2593",
-      "jpeg_sha256": "bd62b2da9fc46b8a6c0a41a9324f88ae43a2ac733d2a51904611e101871499ac"
+      "source_png_sha256": "bfc43f9131233d247de66a88582e7b64b371d7cf7ac7720a37528bec8217e8ac",
+      "jpeg_sha256": "f5ad64e53d7a0c0b85459db3b8bf369eea41ae7298225ffeeec4960260929f9b"
     },
     {
       "file": "server-dark-remote-folder-1440.jpg",
@@ -3654,8 +3654,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "6b4c2a5c937cf24c8557594c78db55946e58328ef95706f62863ace624364ab3",
-      "jpeg_sha256": "1b79517d9c7854a5df0902a066870a74f6fee20a7e43289d7a308c53e7157d25"
+      "source_png_sha256": "3170eb6b3ed034e5d54a943d24abda77afd262a3425da0678dc77ac2965179bf",
+      "jpeg_sha256": "d54f9b6e339771cc642cb12558ae434b57365f96a3d3c17be0b1e1dc7483f3ad"
     },
     {
       "file": "server-dark-remote-folder-2560.jpg",
@@ -3663,8 +3663,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "b40df66fa1f4fa6c6def32bbbf2574eb6873d0219a724c0c57719327bb731b0b",
-      "jpeg_sha256": "d0656511c3f8c426ce2d18ab0527423ceb1eb0b6774bb22c34270292a26fdfa6"
+      "source_png_sha256": "58be6db378ad986b6fb7e5a32313b221d3f09495533265179131c3fcb97faa12",
+      "jpeg_sha256": "d1c1f8a954c739d0728b063a773922609dcfcb37d7a5c20381f1db28913759b9"
     },
     {
       "file": "server-dark-remote-folder-390.jpg",
@@ -3681,8 +3681,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "0aa12a7b564deeee35f4efa512ab97c21af54c9ef23a942c56fcd80b5abfdde1",
-      "jpeg_sha256": "13140f769276b2d8524c62c82adb31e281aace4535272fe47b6636b1eb6b9ff6"
+      "source_png_sha256": "5fd5bd21862b84ae65dfca98484f88ddd424e10e5946d2008a4a6fbc4adb09ea",
+      "jpeg_sha256": "ad6baf901d844dda797bd544bc95f61f712f7879123fe8bc3f54706c2647b944"
     },
     {
       "file": "server-dark-remote-folder-refused-1440.jpg",
@@ -3690,8 +3690,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "4e212a95a14ed7e1f4a69fd2efdb2f17e505beaca0f6d1cf9ae6adfa0f30c3c4",
-      "jpeg_sha256": "4c45a63e9d12c88ece95aa6d8f6b8263d6e53a71c1ed35644b417fe6809d0466"
+      "source_png_sha256": "5f904fb0323c8313dd3d9fc09d4e5bf520667540c07d70b04a8db5ac7fb17c7e",
+      "jpeg_sha256": "3a6b6ee32f515f73978d330a1d5d8d2dfbf4707070ddc37a5be02276f4080184"
     },
     {
       "file": "server-dark-remote-folder-refused-2560.jpg",
@@ -3699,8 +3699,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "6049c2fb251a75f35ea5fee60ceed5fdef7dc1ce15def7376154d3c917c3dedb",
-      "jpeg_sha256": "a00b49cf8e5256f651ae52412e393ace76820cc5d046b42549d7814b622f7fff"
+      "source_png_sha256": "48e3eb707a576ddb7614f8fedc0eab1b0cfb238973508ae9194d9f5ff4909cf6",
+      "jpeg_sha256": "349422999a47095ad52c4b40ffadb739ba759a92eda9d022cef36faf78d1f539"
     },
     {
       "file": "server-dark-remote-folder-refused-390.jpg",
@@ -3726,8 +3726,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "0a0f09e4dff8eb21741ed484ad715aa3f36320b8542689547a8ed71a06da2953",
-      "jpeg_sha256": "c46b9d7e4a511c216aa163861a39122575163af0a4a3c7859600fde56fb6894b"
+      "source_png_sha256": "425526d3a7941221a6541bf88b619c04743f8647756bd9211fb0631618ccba89",
+      "jpeg_sha256": "fcecad9507a61818e0cfa0e876374c96766b8c2a5ee0b6756189c99144ecea4b"
     },
     {
       "file": "server-dark-sidebar-projects-2560.jpg",
@@ -3744,8 +3744,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "5b005a3086b80a4391487ed5be745043c1265aef3758537ec7e4b22fb84114c2",
-      "jpeg_sha256": "f5a60c523a395fbc43ac33c8595502077e49a2931c3862df44fa39bc77f34050"
+      "source_png_sha256": "e85c3f28f75c386dfd2c1b1fa7b872bd700e0f66079fd169b9786d94f8fd19e0",
+      "jpeg_sha256": "a8d8904cd2025db5fa0d84ebb33f9b5b45b10a18733af6160c4c96e79a676e8f"
     },
     {
       "file": "server-dark-source-control-1280.jpg",
@@ -3753,8 +3753,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "5f6ec82b6b6fb627cd8f2b0325993fc987f8048a47641dcb6cccdfa355674d52",
-      "jpeg_sha256": "1428ce3dc0c87e3f799602fe663336adb0a459a3df907b0534dcf3a646bb13bc"
+      "source_png_sha256": "5a259c1bd7ac0ad24de2db8747b56926d29b016f81eec80f5925e95ae3a24fc8",
+      "jpeg_sha256": "b7dc4452a35a6e39efe287dae99fdad4daab4a99cfa32d22bb64731e6a27f3f7"
     },
     {
       "file": "server-dark-source-control-1440.jpg",
@@ -3762,8 +3762,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "fe93cdfbed9961ca3298f497698ee60370a9b6cdb44cb00454d1ee399ef0a735",
-      "jpeg_sha256": "d10281e3837ece14823b1c3d74b187dc989d2d4b65fbb61bb99ac4285c82ee1f"
+      "source_png_sha256": "9d7cf8df6fe049cf2246a2844bf43eee31428591fb4792310be94f9ccddf7462",
+      "jpeg_sha256": "8824b240c9b95a2e26934a4e8395794c48b8a6a41ae09ade6257c98839639cd4"
     },
     {
       "file": "server-dark-source-control-2560.jpg",
@@ -3771,8 +3771,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "3a6d28cc1a2a5802d5e6c6fc871f61019137e36a38255af6722632585ed09821",
-      "jpeg_sha256": "c7bf3ca388b89729037e82002efbb1c98516eb9ce3e41deff2cdb3366f08d61d"
+      "source_png_sha256": "1b226d51b12e58f217ae2c19ee53ceede11973ea6f4e5e7dc79c0eddade16c98",
+      "jpeg_sha256": "eff4ef00593035769f625c452cdc79a1dcb81734bbab57f968d9829450881d95"
     },
     {
       "file": "server-dark-source-control-390.jpg",
@@ -3780,8 +3780,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "647ad9c39f47c420db6a0fefc01c8a42b06a1875028cfbecc22c8103875dff66",
-      "jpeg_sha256": "f61374e54475b9aa1c70cd87bd2ee5560fbe0cf482c8ed48cf7186c78dd87269"
+      "source_png_sha256": "5c3d39a67f19245d41c3c7314ec1bd6d60c24e0c536bd795852ef119449797cf",
+      "jpeg_sha256": "3d595a060946e1101c25b0d17c31569f5ef6271ae0fccc85b93d922b8dc2d782"
     },
     {
       "file": "server-dark-source-control-sync-1280.jpg",
@@ -3789,8 +3789,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "56cdf9b705fde1bd07499a7036a02b2641a895f346893e51fc59b4bbd32c5114",
-      "jpeg_sha256": "a3d4f361813da715879e48714b6427fcbef1a988d9786db51449e778ea0e3cc6"
+      "source_png_sha256": "3af477ea85578e4429b1ffbbdbdd56f11060fa0d14e93f3fea8d53167f2b7751",
+      "jpeg_sha256": "5c72672d4ebb1005364d0c4f0d4dea7a433f3d48900b088e59814d5fa5c3a94c"
     },
     {
       "file": "server-dark-source-control-sync-1440.jpg",
@@ -3798,8 +3798,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "c9c89407bee62bc537cd19466ed0f81ba6d9a20de204b9440da652d5da3fa1c2",
-      "jpeg_sha256": "d391841079745719f0a9818089623667f897fd3457ee4794f65a246576e1590a"
+      "source_png_sha256": "5322e53ad904b5c0853fd261156358f3fa6856fcd293355dfa0cdc7f62b90984",
+      "jpeg_sha256": "074667ef5d6d3a1aadc102a5a9523ef1b5e685149b0ffcd4d65cdc6936981814"
     },
     {
       "file": "server-dark-source-control-sync-2560.jpg",
@@ -3807,8 +3807,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "af5c44888a692f06690ab39260657811267f416c6fbe296520fc596b3a65bec3",
-      "jpeg_sha256": "4ddbc7dfd2615737754a99842d44a9116150d6e4c0c0202ea6964cadc113b926"
+      "source_png_sha256": "3b3e895a80b0b0e99536a03d792109a548f02e3ef55b51d962e48141ff96ec06",
+      "jpeg_sha256": "3518e0d42e10a580ae7fdbd731975685e5de213396f6806b7207beade6788ada"
     },
     {
       "file": "server-dark-source-control-sync-390.jpg",
@@ -3843,8 +3843,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "e5ef7bef916600339120b6dff179441894818c25de7a9c36dc4cdd31c8b2dfcb",
-      "jpeg_sha256": "e0b9f2ae9f919b6af820fc2ff05f149a0f781017c36bcc3d175475ad13b55a06"
+      "source_png_sha256": "ee7179f4c6c026b0b237132c72455df407dfd2a954de3ab35abf4d61a859c813",
+      "jpeg_sha256": "46b9daf9ed3f0f9f6a19b28d9adfb66a2e58a70fe4923749448c95547b10cd62"
     },
     {
       "file": "server-dark-source-editor-390.jpg",
@@ -3861,8 +3861,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "e9dbe0cd351e3f6bfe7c76e9e171c155bbb477bc7409add70d8db43f0120d891",
-      "jpeg_sha256": "6d0f7d03ab3c53b6c1e3c9e5617c2da74eb40c6a29d53a68b29ea4849821c730"
+      "source_png_sha256": "8f0f7c2ce35d67d2e969760400079014b42899456ec7e04601beb720d2efb9ff",
+      "jpeg_sha256": "49b779fabfdb5255bcc5845d53711e1f071c6b5e9a7ad588bd41e4e92efe347e"
     },
     {
       "file": "server-dark-trash-1440.jpg",
@@ -3879,8 +3879,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "9eb583537482fd47ba93f6a787f0d104a9bdb15149c3a2b9a3ed2e2c75395bef",
-      "jpeg_sha256": "7425d8230397c72f2d553c72606a76a2a0e73c1f9ba5fb9afcee83194acd17d1"
+      "source_png_sha256": "57892be781fc121a39c18b19a2451876c833d5d85bd783fefd33d16374197cae",
+      "jpeg_sha256": "7f3bd4737869208d6e820a80187bc9dc5787653b3c8259c77ace7e4a36c49393"
     },
     {
       "file": "server-dark-trash-390.jpg",
@@ -3915,8 +3915,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "290322c78d7592bc7a460f10dc391ab7189510627bbeb63ceaf57998d1f1dd78",
-      "jpeg_sha256": "162610acac02491ccd92a455a20ff67c05573824f60a1bb8bfaf216627f7e37c"
+      "source_png_sha256": "da49c81f2f4ad2768992016a7191d329c18e32370062f71f3010c3a500a008a0",
+      "jpeg_sha256": "f7cf1cc1dd2e4f5eba7234e5ad61bfa5e19ea4ac94443eef72bf9bf81f2c4af7"
     },
     {
       "file": "local-add-concept-390.jpg",
@@ -3942,8 +3942,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "fc52bc2017f59ae11aaa37b42487386a2bab057cd0a00a4d16b8b5431cc18c88",
-      "jpeg_sha256": "9ef124ee05a9cac7311dadb9deab27a465dbd9d19e1b19035f98fdb3ee504b63"
+      "source_png_sha256": "c98f51b93c7b713f526e2ac34e5c139f65e3038989b5f99d87d34d7a2b31dd1d",
+      "jpeg_sha256": "d48405d5080ae200b71f3f57705fa7795d6a3473e06e427ef0f6d2c91a4c3b41"
     },
     {
       "file": "local-admin-access-check-2560.jpg",
@@ -3969,8 +3969,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "829599d65428b9564fc9a6f3c981d1043c2acfb45fac1210a824c92d2815d9f2",
-      "jpeg_sha256": "34bda7959d780b6e14a29adeb20379ede0c69d196556b6576740a175127448d9"
+      "source_png_sha256": "fa2b881c4275efa6ff8aaa055632269530212c4b450968428b8204743381d753",
+      "jpeg_sha256": "06046994d14e35a00f550fd1218095d9d326d4a8189b88a81271eb0a0dad0101"
     },
     {
       "file": "local-admin-audit-1440.jpg",
@@ -3978,8 +3978,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "de65736c363adba63d7851d144c2ef8e7e02997b5635849639f34965b1147967",
-      "jpeg_sha256": "84435426596d20fd0a6950ae05442c50a3ff095684f7e84550252c1142f329bf"
+      "source_png_sha256": "3ea6d4697a3c7ab556e108c9e177b2b26b5038b603f149258c516c0d8a1e7048",
+      "jpeg_sha256": "7bf0905861dc102b4e887b87b62188b80b6ace4a743a6107dad73b6643ecb630"
     },
     {
       "file": "local-admin-audit-2560.jpg",
@@ -3987,8 +3987,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "3692ff78d3c173ff946b8a967fb0db6ae4f9acab8b42a2ce9a756ebd85728459",
-      "jpeg_sha256": "0dc2c8505406d53613b95de96ab4c6aa0449fc144cd76da0cb6481343ba4a5d4"
+      "source_png_sha256": "15c820f34a331fa68a7f348c138ec16f7ac41c88df6bf42725fa3462e6d58d31",
+      "jpeg_sha256": "f3b239e1eae055c011cb65ad7d1b6e94f8124a901419f5b3c34b89f02d3e7da3"
     },
     {
       "file": "local-admin-audit-390.jpg",
@@ -3996,8 +3996,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "1a1850b3ee4c867f5475b2829d2ef2a13328edb165f22f762a01dd538a6ecc42",
-      "jpeg_sha256": "aed5a46066831b18db09da50d9dbd28c15ead9494a1fa5936589f6c2377b19e3"
+      "source_png_sha256": "8a6970f54cb50973a218550ef25db7f496e46bdf41b30ffd8d7cb76e69b48414",
+      "jpeg_sha256": "790fc47b756487dcc27da5b22c806de8d99ac8ab047d5eebdfc5cc264621ab6d"
     },
     {
       "file": "local-admin-grants-1280.jpg",
@@ -4077,8 +4077,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "f0ed0d8f157c0991a1c0c347f88bc86ea34dbb87c46e220c91a75a8e36b59299",
-      "jpeg_sha256": "229e2c4f97abf7d5decf7958e07454947ae114b145db54c0e0a50b801f9fe62e"
+      "source_png_sha256": "f1c2726aae5a15a82186c4015b3915ee5ebec230c338b605a909f5a35af02b9c",
+      "jpeg_sha256": "f14a4fb99ee34f94419668a200a7a11f42657c20c143da0a10f7e0e623df46fc"
     },
     {
       "file": "local-admin-projects-1440.jpg",
@@ -4086,8 +4086,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "c6e0af3fcb7747111110100c3aa74fc130ebd3c3826625cad3327166312e8970",
-      "jpeg_sha256": "56891d3fb70993e652b8a249cac9c44f7dc71b94fe92b9a32d028b02edbde8ee"
+      "source_png_sha256": "1cb11569ff5e738c7fdfff9de41e573efb89c071eeb97007477ecd3184cff44f",
+      "jpeg_sha256": "39091224f18f935d204028fa7c9c66fa87ae9dce1df82c376c301f3027891664"
     },
     {
       "file": "local-admin-projects-2560.jpg",
@@ -4239,8 +4239,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "e18cd520d78e18a2d203fa509334344221d5714afafc630c02c952bf684205f9",
-      "jpeg_sha256": "6cd164483bc77b899a7593472b3dbd2cef4e5c296503a0fcc9dbc7c70ae8270b"
+      "source_png_sha256": "345e109447998e7867ddc8bd38d89aa847e3fd051d08693945e7a36bb895fc55",
+      "jpeg_sha256": "d22a185bb832d71a6c15a211751f5cad4d66897e39d0bf98e6130345a024f4c3"
     },
     {
       "file": "local-catalog-390.jpg",
@@ -4248,8 +4248,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "ae9a44fb5b8dd226a9ce3e43ca9e98f3678dd9a186d20ef0adc03682c2a1d7bd",
-      "jpeg_sha256": "d40e65fe85b8685e39465d1ce3871aec46f636195c387a060d60aa9a933b4a15"
+      "source_png_sha256": "11eff5eeae0db3f33cb0d1d095832abba1eb25e3800a93ce9193c08cfac51da5",
+      "jpeg_sha256": "b84c6e49577af9742e70d5aa72638be0b6fb12133b435140d4aac4518250b2cd"
     },
     {
       "file": "local-clone-folder-1280.jpg",
@@ -4284,8 +4284,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "31f70cbae8b9f3915fbd80b9de9ff61bb4323c91d506ee180515a2bfbc656c3e",
-      "jpeg_sha256": "ee6cff3241c8c7b3fb6c66032f77d598779c9be6090ed1d33f79ab97908b655f"
+      "source_png_sha256": "fe2dd4f626d62fdb8a1703c93058425206a828e1b6052b27ca908dc37621996f",
+      "jpeg_sha256": "d30a59ab019885d260b5492452d393203ef7c9e424b635cd7c4715e2329ed244"
     },
     {
       "file": "local-clone-folder-refused-1280.jpg",
@@ -4320,8 +4320,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "ba8bb8890d741b75da44cb8ab6186648b8575e30f0f8176d85c5521c1ff5e7a6",
-      "jpeg_sha256": "697582f4caf7da69acf2213a2d202640e5a6cfc539137a2cd1bf8c58166306e8"
+      "source_png_sha256": "cd5321ee785ae638aded9c1e13e64d44bae7cc372674a2faba5f9556a1591612",
+      "jpeg_sha256": "d21776a8491adeef3b63e0831673c8cd56e09b4315b810a58fa69835d620223e"
     },
     {
       "file": "local-clone-repository-1280.jpg",
@@ -4329,8 +4329,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "d93c0321f69c33989886c6ad2b1e522d6553acac582b019173fac71f2a44ff9a",
-      "jpeg_sha256": "f409f44bf616f477980d48bca184042b3f062ff3e3bd37fb8e6afea71074fc14"
+      "source_png_sha256": "631383943b5e49bcc67c291dc9b88ac0d59640cd73c20ae07ca42e8c8b292230",
+      "jpeg_sha256": "e8082c7e5617a937c59411f0af5e3abcda82babddf5e0f077dc5cb4a77f881b2"
     },
     {
       "file": "local-clone-repository-1440.jpg",
@@ -4338,8 +4338,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "87dee10b95399d9c5ca7c78c25c669853a52fcf5f9ce92f26933d0cfca5c6edc",
-      "jpeg_sha256": "c49f6b674bebe01ac74b2091f7828a6df7d95cd4cf02752ff161b095e268856e"
+      "source_png_sha256": "5c7304a6cfd9321a34316634c7b077d19fcd9bcda684011c980c585db9d5d3a5",
+      "jpeg_sha256": "a595ee51e439f262601b6ae46b97443e689be49adb9a91c83b135142ca3b1ba9"
     },
     {
       "file": "local-clone-repository-2560.jpg",
@@ -4347,8 +4347,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "39ae742a066b0eb58701d6f76f89f59f5647bb83e3f3e8e511ade3dcacd9899f",
-      "jpeg_sha256": "29d96fd57a8458baa6d07c590add027b165daa21ab571efe46569731a3ca28f2"
+      "source_png_sha256": "bfcf464278a7e9fe29bea80276191198266a5042a61a1f5af8e3096488d1be79",
+      "jpeg_sha256": "b7c853bf804aa2278f7bcfc195dfa11632cba075fc5c561fe54a22e692e85960"
     },
     {
       "file": "local-clone-repository-390.jpg",
@@ -4464,8 +4464,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "aa9d20c850cad07e6d87fac1fc3d52a3c67c56483ad24630c4feba9586798d4d",
-      "jpeg_sha256": "a0d1f59e27f2d592974b3ec3ae964dac9e937e3e6cd34907a20a4467da722bb0"
+      "source_png_sha256": "0dc1cc69a228c52fc1d937934f68af272673b85f94bab1612749572ce01971b0",
+      "jpeg_sha256": "654cc88539d663281a09d9940fb2da9f43cce116bd62a95354a697224792e735"
     },
     {
       "file": "local-import-1280.jpg",
@@ -4491,8 +4491,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "bb30ed43177dcd9bac4a6dd15ec047fdd36e212b34874a05c5273ce760bb23a7",
-      "jpeg_sha256": "53d520d2e3e67aac2378591bf7d96df1394191fbf04755ea09bb0ec5e3cf99cf"
+      "source_png_sha256": "25d332ebcb850bda1297ed39ac873d5f59de4a7a495aaa4d7ec716c910b1b461",
+      "jpeg_sha256": "9ab1aadeaf0bf66c606428f70ff190f6afa3cec8d2283851a8cbc8af7913330c"
     },
     {
       "file": "local-import-390.jpg",
@@ -4509,8 +4509,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "a772a21d44fdbc63aa0a919f31f18fb397ee0e829726dd1c5bc61d69729cd413",
-      "jpeg_sha256": "e43e2ae90769f908c085d9ebef7f89940f568c4aebedc9000a912dc2baae3c44"
+      "source_png_sha256": "7540265f53d326c94f3e3a34608754420540fa04aafc09dfd5ef3c7fb37b257a",
+      "jpeg_sha256": "ef4fc2ffc23679f1985b2e8705172357acf42f7f30abdf31aaf95d5596678a8b"
     },
     {
       "file": "local-item-editor-1440.jpg",
@@ -4527,8 +4527,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "741509556100018a4b5d9288fa4416607d753fa12ce5fba617e9d02e67f5b596",
-      "jpeg_sha256": "30cacc9a3a18dd020b9ccb452373c4c4ebd5a84b6b03b1054086711f308002df"
+      "source_png_sha256": "0807f574f1d2f91a4d216501c537b1084102d6eaecd8668c818a872a006c8646",
+      "jpeg_sha256": "308b656d7a334722ba7aaf8d3db98f3f55064cf0ba09f122b9209f0d2d04975d"
     },
     {
       "file": "local-item-editor-390.jpg",
@@ -4545,8 +4545,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "5e81aaaffa221962c36819b0b116f866ff2816d4cab2465e0d1eb508a6b0cef2",
-      "jpeg_sha256": "cdce3489cb10d895239bb9c6a2a1d9f87b9632a1ac24586e25fe3f295b8ba05e"
+      "source_png_sha256": "ca6340781ffc6ef457ad701b885e91106651ddc75de0c9a5f8777e0409811606",
+      "jpeg_sha256": "477d441344761bd7371a21aaa81e68118e91dac9431494af7fa6b64513c3251f"
     },
     {
       "file": "local-mapping-graph-1440.jpg",
@@ -4554,8 +4554,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "f986552125093809d410a26453b78e3325efdfad7885610aab62d97ed439aac2",
-      "jpeg_sha256": "40e7fc98ea132a662498aa5ff0057d814431ce812d0162125d56d50113c72334"
+      "source_png_sha256": "e682d534fafcd9089c8608c02638fb0f3dc4ff9fcd71e00a984663ff4fa45d3a",
+      "jpeg_sha256": "1fe45b7d56b86bd05d8cb86e83b316054615f774c44aa47a75621147beb6cbaf"
     },
     {
       "file": "local-mapping-graph-2560.jpg",
@@ -4599,8 +4599,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "41ddc85e47f9a14c86566fafa61247e1d4bb048576fa2272846b105a97b35907",
-      "jpeg_sha256": "874a1341596b7f4792ef76f6619377676d91af2cd5e5c162751ffcb87c6d2130"
+      "source_png_sha256": "f14eeb840b16d7243320182d25c157dc2ce3af818fb1d99ee14c9d450751bf27",
+      "jpeg_sha256": "aa8b277ad43f953c255b69c226830da0a74e5a409a1a44d2e4b507f568f310c7"
     },
     {
       "file": "local-mappings-390.jpg",
@@ -4617,8 +4617,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "ce8ba337620385bc29d046baebd3911818653a0e9fc6648104916b3262a350b2",
-      "jpeg_sha256": "8736a22ca9da8fa54c4df8599c8b09ee05952c7a962222c9aba5c84cd1588751"
+      "source_png_sha256": "9ca356455c81025e0a29daa2a42bf0f26a9e06f6a31f34d526b8c5c234365670",
+      "jpeg_sha256": "d5a7aa0c6c47c82fdbfedd7d77851781712622489ac3dd8f8590e9ff7887761b"
     },
     {
       "file": "local-metric-detail-1440.jpg",
@@ -4626,8 +4626,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "2e498a078a4d66e7d1f6e1facce54110c9f8ed1142e32f9f5ea36ed87d674c1a",
-      "jpeg_sha256": "e79486e6907fa3d14a161b6c274f038f11523df66e5328ff25b3002e430dfd8e"
+      "source_png_sha256": "08453eea79b54dc1fe42009a54754174562da084d1eca2edbd18f2d39c6ed604",
+      "jpeg_sha256": "3e9a913647322e5a43cfe3eda4f5b83345ac85c7218b47c4b4576306af3564d9"
     },
     {
       "file": "local-metric-detail-2560.jpg",
@@ -4635,8 +4635,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "c740d3d4f1b17713a55a1064c6e9af46a52162b3d48c1b51340a72d6349f045d",
-      "jpeg_sha256": "73d55bed503bd96e6393dbe6063b56e9b096459361b4a730bfa3312475c55380"
+      "source_png_sha256": "82bfaa66aaa44f4b9889ff90bc695b2398bb828eea842297409ee258a6f8a7cd",
+      "jpeg_sha256": "f0a89f1164163b1eafdbc1181641c3b79cf34e50a7f67200060cc45a283c6b77"
     },
     {
       "file": "local-metric-detail-390.jpg",
@@ -4653,8 +4653,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "4398e1f04e96fdfee4243f384060cde056d37014f43a64176ae9e05849ec22f4",
-      "jpeg_sha256": "fae01d0f7f85e89ff961a192729e008120d525f34d0429a139225d046f49fa2f"
+      "source_png_sha256": "f70cfe016d555827144bf8b606421fbd8a612abec774c63416f3f08eba42f613",
+      "jpeg_sha256": "086b3204ef5bd9817527cf9c6fa9b56751c509f965d5592abcf2ca297c124946"
     },
     {
       "file": "local-metric-wizard-1440.jpg",
@@ -4662,8 +4662,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "6540c75c20ae0d69bcb32ccff5ca57046640354b82b185e800c00d96e27e1e38",
-      "jpeg_sha256": "ea3c0f3a9f4f3472a23e11b6a98f499dc222878ea8abb530b9c20ad2f5ffe23e"
+      "source_png_sha256": "53238c2381f5d90808bd9878727b20959ff7793141fd59aa9f46955a06c716fc",
+      "jpeg_sha256": "335bee9ca0f749fe22ef2d0042c4451aa2877b8d348955a7e620ecce93e54798"
     },
     {
       "file": "local-metric-wizard-2560.jpg",
@@ -4671,8 +4671,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "4ce4dea388a0cba3e88b2773dca75dca32c804a5ea48d4df1bcbe7ef62e06b27",
-      "jpeg_sha256": "60318265d19b7df5519c8e3b7c9f88d484e8581b8a88570a68ab22a39e1a5880"
+      "source_png_sha256": "986cecca688a45f7471c4cf328377d7f7ccf4bf94a584f3136147fcd4dbbf49e",
+      "jpeg_sha256": "a4f2c90a1126bd908a29a272454d95f02bbafbefc6d753abc35230cc9b19f962"
     },
     {
       "file": "local-metric-wizard-390.jpg",
@@ -4689,8 +4689,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "52edbbbe9d67cc496085ee57c0074fa9b9bbf3e389a0b44dc66aafe729a6f47d",
-      "jpeg_sha256": "443cf61732d880bef1313642861fe4dcb483470366ab5c3880eb4c178a15bbbd"
+      "source_png_sha256": "349c0b0df1bcae9615f3d89d8175c9ba9cf1433fbf148aface2dfaf4af1668e8",
+      "jpeg_sha256": "e5ff2e854d77bcd29b61d164cbc9fc6cf507910173c56757b8017ab19abced68"
     },
     {
       "file": "local-metrics-filters-1440.jpg",
@@ -4698,8 +4698,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "258a2f81e1ada65c20c4f177388a1674917aea8c65d182c9122fb9b1522e46d7",
-      "jpeg_sha256": "81d67672ed4d23dc4583e9534cb3d129ffb062f836d7b318e9b17a25c0b8ef1d"
+      "source_png_sha256": "4c2bba45aa0f2d01923a9d7221f96342c3773a451d44ab1ffa8029f86b80a455",
+      "jpeg_sha256": "e9bae5db9dc952700382f48646ead2d215144a6f90916ffea667177f3e03f9f1"
     },
     {
       "file": "local-metrics-filters-2560.jpg",
@@ -4707,8 +4707,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "a2dc4e7f4730dbf2d5031a90f96b8bd2fdc2602f117840a950c24522d5fd5fe4",
-      "jpeg_sha256": "b2184c3b388cd327948d8b7d5b46da77b5de7fb95a25f264766727a9428c1464"
+      "source_png_sha256": "221913645619e744a0b442772672bb6da5e3405a0c9fef4e07be0b6152e49a63",
+      "jpeg_sha256": "f317d90c2c4f8d99d4850b4abc9f4333893d5df397ed40f36768e219a23f87eb"
     },
     {
       "file": "local-metrics-filters-390.jpg",
@@ -4725,8 +4725,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "aef0b28a9f1f769b48e2d55940aedbe4b352b22706e391f0a3bbcac57b3c95f7",
-      "jpeg_sha256": "0d614dd69400ac1f3374aa94238764078a90934be11041e9a8ee459dbaba0622"
+      "source_png_sha256": "640e7bff590b5ee204a1a75a50178147c8a8aa490cc8b6aa0a9f22bfa8410141",
+      "jpeg_sha256": "9d99cba3c615569e3b6ed8a00a12de810ddc3b72d00dc6008118152c67673ee0"
     },
     {
       "file": "local-metrics-list-1440.jpg",
@@ -4734,8 +4734,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "b591af48a603baacc9923d6ee09482f6d85a2d39ca3a5ff176df8ba6532e9575",
-      "jpeg_sha256": "c8c576cb09ccfc571ba34815dd4314ff36ac4ab03d9b7bc4d534da169869ad5c"
+      "source_png_sha256": "10eee4a573725e99535a53e5fef31e7974670f0efa2ac28c8bdb35d1363af694",
+      "jpeg_sha256": "a084e0c452761430568da1bde2bf97d419554f2e49cf30c2d730438ce45f81f6"
     },
     {
       "file": "local-metrics-list-2560.jpg",
@@ -4743,8 +4743,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "591fff4129eb87941d33be9f7f31eb6e989b74baf108131a0863e5c6c51068e9",
-      "jpeg_sha256": "7de0a9e7c7417316a6b84e8e68f6d60de346300ef69b45e7f470e797041c11db"
+      "source_png_sha256": "ef4ed3a10a8c3b1bdf46ea0526ad4b95ad333dfc40f36f1e43b4b30ff8d613c7",
+      "jpeg_sha256": "5fcf0d254b0a5082720c956d569541f2cb028515830c5ca8f8ef254d5b4865ff"
     },
     {
       "file": "local-metrics-list-390.jpg",
@@ -4779,8 +4779,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "0a7fd15a1af81ebfae2adc76d1d7b3425873c1aa04a6db80ace0a74449ec497d",
-      "jpeg_sha256": "1204b4430ace1414db460d7221c8c0cbfa90901ff59abdf0db8b38b020410eaf"
+      "source_png_sha256": "5fbb1a3d3dd294dcfd079bea2067fba8514a9b8af232910e2a954b525ab19be9",
+      "jpeg_sha256": "8948c466d7c2c2591ddb2260318ebe204bb1dfa2c0b3a2e497fe22f31a781f57"
     },
     {
       "file": "local-odcs-contract-search-390.jpg",
@@ -4815,8 +4815,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "f0c7ae2da142f3a42557bfa4c946e8fab5f4ebdfebad749b446c47eb6caa7d08",
-      "jpeg_sha256": "c7ae30703ddbfcd6c973fcfb2e309aa41809740634a5d47df13fb720e8f6dd46"
+      "source_png_sha256": "b3a4bd8dc8a941a76c5dcd11f14b79500663898de748336f07536d5a792efe31",
+      "jpeg_sha256": "1a317e35fbe23001b77319606b0b1f14bc682050133565cb13adc9a55035cb64"
     },
     {
       "file": "local-odcs-contract-section-390.jpg",
@@ -4833,8 +4833,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "56a4e1e71e42a4740396b9b4ca4712dd2e2932c938f747957bd195cbbc25b6b8",
-      "jpeg_sha256": "5721af9bc6caac3ef69fb5758e9de85cb93c177acdfbf34e8284e58f87b04c2d"
+      "source_png_sha256": "5a34d30c07a08c8933ea205074acdf55b2334f3b54a42e46e2bbb628d33b609b",
+      "jpeg_sha256": "f72728d53b40d7028481f77271afcf41d897876f05151e4af9e0488836567d17"
     },
     {
       "file": "local-odcs-dataset-history-1440.jpg",
@@ -4842,8 +4842,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "19c2f2a292fe1c5a41e4df77fcff0f220f3089d0857eabe0924482322bfb8411",
-      "jpeg_sha256": "f9a80d7bb55a120616eb8bbd66517c3499e5132aecf7921a563ef377520e6c85"
+      "source_png_sha256": "faeeb44dcc240a913bfcf4319b02073072dad87252d499d4ef21742b4a23fea9",
+      "jpeg_sha256": "bbe9872f001113023cc85f31e1c5878b543072e2809e20db568ecdf97c2070cb"
     },
     {
       "file": "local-odcs-dataset-history-2560.jpg",
@@ -4851,8 +4851,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "bf4e2203e289dfaa403e93f18def100826cd0de0d67770b157a89e375e29c740",
-      "jpeg_sha256": "c17173f9958ca29890268850d6802aa4e56ba7ca654913b88d82ee3e2029c5fb"
+      "source_png_sha256": "15c260ca782b666784211a34e5ef35bf7791f4b38d73c0da4576873cf6da1efc",
+      "jpeg_sha256": "a18aa1b4d2cedfbde8f56f23bd9e453ec7510b3091380aa5d468244c5959d493"
     },
     {
       "file": "local-odcs-dataset-history-390.jpg",
@@ -4860,8 +4860,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "c0ba56aba038a7208b0d0a41979ed9f1abf2f45aeaaa678657fed22adc35017f",
-      "jpeg_sha256": "3daf13ec4aaa3d3bf9c6915203e173d63793e4174cd9773b6ee97cc2ac73975b"
+      "source_png_sha256": "c17deeb341e4b09e53426bfdd18fc7b563cb6a88d8ad11fd299a4cc87b407aa9",
+      "jpeg_sha256": "87083ed38ba0cdb60da356884a212e4ef2f7e82c5d6bbfa3aaa24f35701eba4a"
     },
     {
       "file": "local-odcs-dataset-properties-1280.jpg",
@@ -4869,8 +4869,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "481854c9944e06d1f721f5b622244c2f4bac693003b1816137ca140d23dab9a1",
-      "jpeg_sha256": "8ac1983a1216f5109dcfcfff59c698a776b6897c07f2da06d610fc5164aeaad5"
+      "source_png_sha256": "542ff01af0bf8bf38fd1b91370dccac9292ed6e31fe5633443224061edd68128",
+      "jpeg_sha256": "a1add394ec09b53bab93a8f7ec3e1579d26a6e8d7e8b80637b22e7456e837ba8"
     },
     {
       "file": "local-odcs-dataset-properties-1440.jpg",
@@ -4878,8 +4878,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "16f9660ecd1731daee052b2875d5e33d4401c2c1c35d6ee7918d0ae26185a0c1",
-      "jpeg_sha256": "e7cafffa902fac5c04071f3cdf81c0bb36ce67344734ff047792a19092247063"
+      "source_png_sha256": "b519b0720046370258bea0d241f22754b7b7614ea384f234e0b77da1c43fc6af",
+      "jpeg_sha256": "0cdbf280ca6b2a4fee5451abc313bfc4677f1ef95725e8821bafd5668b032fda"
     },
     {
       "file": "local-odcs-dataset-properties-2560.jpg",
@@ -4887,8 +4887,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "e43ddf5c44d0b131c820eca43176224c26f9a43efd46a7c119d612b0dc4b8014",
-      "jpeg_sha256": "6f49a4e0a301cdf68820336a4133f0c2c5462a694ec204ceb22e98c1be7e99da"
+      "source_png_sha256": "fcc4f0c17cfb7d887d6f87102b7bf4db91662616d82dce273654ee5f308f7777",
+      "jpeg_sha256": "b02cc3db40b148c1616159e4a95dd0252ecfbe7e46940ff5a3b003a806e7b9c6"
     },
     {
       "file": "local-odcs-dataset-properties-390.jpg",
@@ -4896,8 +4896,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "841dc037044fd20952ab1868ed105f41f92ee4541bc38896878c01983f2fb8a5",
-      "jpeg_sha256": "99e52602b15d41423b1269e05a1aa5cb0f1be1461b4ed670c2f8c4657e40212d"
+      "source_png_sha256": "3d0974c84196c3df2d7c1a83fa848641984ce7e27e01455a8778219322bd0de8",
+      "jpeg_sha256": "cf25f29514a0288e344df32dc0a6599133b8d3133d3dc361d1ae99464061f5b8"
     },
     {
       "file": "local-odcs-dataset-quality-1280.jpg",
@@ -4905,8 +4905,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "330a75094a9ffd6690041cadcf1c1d71ec39ab2f88c5bcd5bca4144d05b6a8d4",
-      "jpeg_sha256": "7230042a5e0e4172ca9bfa285ff2a3120d5468dc02626393698406d205a02069"
+      "source_png_sha256": "c3281046ffb542ca3bb73693e9ff41397e5abacaf661ed51fae7f36500ae5b59",
+      "jpeg_sha256": "0876ce4c6c7136b0d366246366c52a4e81e90cfa50e759195df2249be777c563"
     },
     {
       "file": "local-odcs-dataset-quality-1440.jpg",
@@ -4914,8 +4914,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "75e291e40e46bb65c8fde755239703fbc337c97c76afee21d6aa6f7fc30cd106",
-      "jpeg_sha256": "20bdd8f379c2be8ebe5de814d806e6bd834b2e78b26d1d4150a1809eff8b45a0"
+      "source_png_sha256": "fcc02b8475fc38ed67b132309ca370d3c3d408257c651ab016781438edacc3af",
+      "jpeg_sha256": "fced62850e943aea712fe4c9ce5f5b9e373540433b6b383aadd73459a77344db"
     },
     {
       "file": "local-odcs-dataset-quality-2560.jpg",
@@ -4923,8 +4923,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "44c4ef5629f4ca9ff52993853f557ab8257cdb26e101ceec1a4b20b05280b40d",
-      "jpeg_sha256": "8b8b6d21dad8f9fa124fad89ed54a5a2a57d6bb2173d9c4d95ecd9bda981334f"
+      "source_png_sha256": "4320c36a8d84a2751a919e95a3aa44e787073d4b8b5805168f71c6d4393ee533",
+      "jpeg_sha256": "1bec9efe9cd6c51df7f72b9936a53baa4d7e8650a05a3082387e4cede36974f4"
     },
     {
       "file": "local-odcs-dataset-quality-390.jpg",
@@ -4932,8 +4932,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "34c3f0def83549d39f55a0fb902a6abfd3f4b5cb76f0b12bf21f2e7366f4aa04",
-      "jpeg_sha256": "2df67664c480f46cb5c44056d06c55c7e375c5999edf2a7f39b654ec052a7849"
+      "source_png_sha256": "ada788aab98669949d14e32a4db2791a2153c6b7398542c8de4ec5046d333066",
+      "jpeg_sha256": "c40cc4f9a922d7d96051b009b6b8b4aee787de0a9a2a563fa8dac404cbeb5b45"
     },
     {
       "file": "local-odcs-dataset-relationships-1280.jpg",
@@ -4941,8 +4941,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "3790c73505ce4e02595e1aecdd45c9d40e0e7913c304fce89041457dd325a017",
-      "jpeg_sha256": "a6ba8ee381e0e5d7275d836d04525be45f7b49fe9fc2dfb214dc444d8b69e7c9"
+      "source_png_sha256": "948b056f17da2b9132596ad8a8e16d9e2ed0db29a71b599e7426efb67f15847e",
+      "jpeg_sha256": "77a12bb9ea26dddf32a88058922dceec9ac515b4490e6494d373e878a4bf5ceb"
     },
     {
       "file": "local-odcs-dataset-relationships-1440.jpg",
@@ -4950,8 +4950,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "d07cc4567645fa20c75376b104948cf10315aca1ef3e6abb185f35aed0e021cd",
-      "jpeg_sha256": "6b009c8257425fb9045fd574049035a76991314e0d1177f42e95f82aa4c4b3a5"
+      "source_png_sha256": "3f456bf08605d13a1a9bdb941b988055c95776caf5b6e93a67149f6f7f635ccf",
+      "jpeg_sha256": "d491f5906fbd2db07032015fbec24d8b5632fb646d7aa0a3d9bf1ddbf38d5639"
     },
     {
       "file": "local-odcs-dataset-relationships-2560.jpg",
@@ -4959,8 +4959,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "c851a42ee3198ab486353a058d13b8b506e317ef61dd6468943216c0862b72a0",
-      "jpeg_sha256": "695975e04036413450f13f057182833553235cc2c26db22ad1b3dccbe02b7b25"
+      "source_png_sha256": "928b9e07067f734da5988bf225e94171d959aea7335ea43a14f7df7ac6c2c96c",
+      "jpeg_sha256": "421143882ba31ae9084f94e8ff6e31e5d3c5a5ed3c0dfbfcadd9204e9a4e70e5"
     },
     {
       "file": "local-odcs-dataset-relationships-390.jpg",
@@ -4968,8 +4968,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "cddd842d62408aa8f29abdb06edf59e243cc2b5c5cafa3dd8fdad86fbb9cab6a",
-      "jpeg_sha256": "51a683cd3c0a8b839edc448b9bbe0560ebab5e0554fc2e4825d8a5eb5e32ea98"
+      "source_png_sha256": "7cd4efc1fb5526378173f86d9049eb0dad66d14e3112fb4fec5cefffda55d2b4",
+      "jpeg_sha256": "71ec6ad763f3f825bf37a48671932a4a7c5240676d0de2198e63401f8a3916b3"
     },
     {
       "file": "local-odcs-property-edit-1280.jpg",
@@ -4995,8 +4995,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "5954caa711498eef278bd2a09ca79e6577a62387d7fc3cf9696d7f33969b4fb2",
-      "jpeg_sha256": "6904a56f6dca8012face015c88885de2bd6ad07aae77a8a286ddebe203af0904"
+      "source_png_sha256": "b2841c40412744448250c1a7fdb416af56a0b54ba15813752274fd9e5d97e1a4",
+      "jpeg_sha256": "ab05754f2754ac3bbddaff20d97d3c584783db0b8ab6f55dc9c132788dc7f9eb"
     },
     {
       "file": "local-odcs-property-edit-390.jpg",
@@ -5013,8 +5013,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "31fb5accb34bcf833cb68488e60a238f69315cca2fae259600514849f212f0b7",
-      "jpeg_sha256": "4151df790389be3ac27daff74f0de69cb5104b01239718cb7f533977a7ad8509"
+      "source_png_sha256": "177825abdd7b1bd4283f9f6c49be1fbe1274c3360300e3647a9b3dab6dd34602",
+      "jpeg_sha256": "6a9aa1aea09b6933676dbd8df8bb6610873b7a2844d7a3f04538032fbbc47768"
     },
     {
       "file": "local-ontology-catalog-1440.jpg",
@@ -5022,8 +5022,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "717d1bdb16c3156fff9253fb08ac6b8b6dfdf84847ff849ad8216d5a680abc79",
-      "jpeg_sha256": "faf18d3e00ccbfe14ef681a7a8b4f1c8726cb182a5a5c27a8ef3f3276f097cf4"
+      "source_png_sha256": "2a53b628560d6623d4d3ef665bef996f8516cb3a3a40229ff5475af07ab7b53c",
+      "jpeg_sha256": "ee15eed1546546e5c8ac4b07893f3c72b5a84734e0d326a9505882c9963ef0c2"
     },
     {
       "file": "local-ontology-catalog-2560.jpg",
@@ -5031,8 +5031,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "69c9f4df7e3d5d90aa8218f23a89a74b784b3cc438576bf679269d58c84ba490",
-      "jpeg_sha256": "92557060207dd4419b89abfcec700a5fa5b0d31e25860ea3a7417dee396aa652"
+      "source_png_sha256": "c797c9ef7362a271c730bc678fe4534d138e1beb76ba29a1bbd197196be55aae",
+      "jpeg_sha256": "d1aa4801f5a81eb1bbf7c17aa6a5f819e9f5bfcd8f5bdeb1ed358e618a925fc6"
     },
     {
       "file": "local-ontology-catalog-390.jpg",
@@ -5049,8 +5049,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "68fb7bc072c73dbebd5898b36f5d5687c56599ef4565f4ddee25ea1acaa99e78",
-      "jpeg_sha256": "f897911f40262f65d4db02f9790be602617c0df445bfccc9b12c926e9519ccbe"
+      "source_png_sha256": "a9a5270da49e49b1682d725b09727c035e661a69a296cbf1cfc5dc19fb85144a",
+      "jpeg_sha256": "f765280fa133856d90cf77d97683ab7e15339c5a38dd094f86cb5577bbae335c"
     },
     {
       "file": "local-ontology-graph-1440.jpg",
@@ -5058,8 +5058,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "d08739ebcbfacda3f9320a91becd515002580d92bb2a7477026c7fd8d87681f1",
-      "jpeg_sha256": "9d3f3a7945fe1b52d8603b2e460af4ace1576cc156d28b1043136c29267302f3"
+      "source_png_sha256": "ab1293a824272f025af3e2a95ee90339088db78f0b64809f69a8404d30a0b748",
+      "jpeg_sha256": "55b31f2492d93d623892759826b363396d43fc297a3b3de8987f53e571510a65"
     },
     {
       "file": "local-ontology-graph-2560.jpg",
@@ -5067,8 +5067,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "ffba72c14ef682f4bdd0628e21f9caa9905cf8b3c16b08af6522c64107b1900d",
-      "jpeg_sha256": "a9ad7ffe3bafae4140bbcbc3cc909aba80ac4b14ecc423d99b2828f979931f46"
+      "source_png_sha256": "e75c53a42b709e6bef48b05aff0e61b04207f02db69941570f370054be3eb52f",
+      "jpeg_sha256": "9fb32b23638bc634040de635e972511098bc1af3ca02ef6ace66d167589a049e"
     },
     {
       "file": "local-ontology-graph-390.jpg",
@@ -5076,8 +5076,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "97d3e888f6452540c69172ba12f71cac061c6fd80e231c0ee1850cfab65ebf21",
-      "jpeg_sha256": "cc19179e5851b6bd47595646eaedeb718b6052324daf2321dc2cf6199f9c8095"
+      "source_png_sha256": "77a7486a6fd574229e7168962ad97a38bd98895942a0d409358c4ee88903ca91",
+      "jpeg_sha256": "a0e0947ea747f02ea6fc4c5b6d8485ca8d79b521fc3d5e97ca04974ba61eb3bc"
     },
     {
       "file": "local-ontology-graph-fullscreen-1280.jpg",
@@ -5112,8 +5112,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "d3d0b0a032ae4de8a141dd10a22e55d75429f7b39fd4ee3b86f1da246cb139eb",
-      "jpeg_sha256": "51053a72b5ea71b15e86d11379951d0a9e71aa9af1590628d1b5322b816188f6"
+      "source_png_sha256": "734bc364214b977951e3ff6b7b8fb6324bdd36000ca180d9bfcc12a51bb2241b",
+      "jpeg_sha256": "eb6b00e54af9509be6be50995c321983a90d91bb69f0b43a1193ec133e8b63cc"
     },
     {
       "file": "local-ontology-mappings-1280.jpg",
@@ -5130,8 +5130,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "d8afa22cb02adc80632ffb76023ddf1269c06ddfc0da2783e117e68fb284985f",
-      "jpeg_sha256": "543299f3feddb96a9753b772b7c9c6a129cb0b359a28210fed1acf614c0d564f"
+      "source_png_sha256": "ddae8f3643a3d037fafe93c56d3e922c47f76b7110686cbfcbdcc8dcb330db5e",
+      "jpeg_sha256": "a080be806846b3f3bc4b523deed7aabe75eb143416c22b62d7e73287fe78adb3"
     },
     {
       "file": "local-ontology-mappings-2560.jpg",
@@ -5139,8 +5139,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "ba75544044be18652334be1d1c0edb5f33ab395aed865f1a8f3373aa68e391d8",
-      "jpeg_sha256": "65e28e578ef8caf1a2c6488ec15852cdbba5c54bbb3d3966f6eafdfeab84b398"
+      "source_png_sha256": "b0f66b13dd59ac8fd0cb3a4d78609ecf3db41af157f3ad5484746ffba2edd598",
+      "jpeg_sha256": "339dcf826a0f78855b317a7c1cce6c4dde547ebfd8d2119b298442eb6dd0ca32"
     },
     {
       "file": "local-ontology-mappings-390.jpg",
@@ -5157,8 +5157,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "f7d424c6b35c7f057e6c6e7b06249915937a56b7aee511c4e090056fff174bf0",
-      "jpeg_sha256": "b60b266cb91199c4cb5f48757a8c7f15e1b2c554b9b2e78422fff1df574f9251"
+      "source_png_sha256": "958456a2eeca61ef3fb29bf4d07b4d2833e7745e81409386cb1973e75a6a8e21",
+      "jpeg_sha256": "1c4c0cab55a7cbd6316fceb3c3a56c688057d45a00fecfc0e0c34f22779b85b5"
     },
     {
       "file": "local-ontology-metrics-1440.jpg",
@@ -5166,8 +5166,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "2cbb4726751f8f51f8a424f94f43d67b3cde20be5b026ac97796d0e7783bb633",
-      "jpeg_sha256": "8b945692712ef03eba4772ea2862e706a29ba467f73a0bc9f2aadc043ebd7b62"
+      "source_png_sha256": "a4f1fb823b03a92922cd5c9a744ec1f3a9f5fd542a09f1e7129aa08d5ebcc095",
+      "jpeg_sha256": "bfdb5e70a3889cd5c8e6909fa616376c657ce20916f9c66abdd4be4087ea480d"
     },
     {
       "file": "local-ontology-metrics-2560.jpg",
@@ -5175,8 +5175,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "1908f3edd235488787e58eea565cb16fe89276a4480e8e4578487f8cffb9fbbc",
-      "jpeg_sha256": "ecef7f0ef57a533686097f1b5e93f78b2190547f5af554ca63f15c9d6048ea1f"
+      "source_png_sha256": "ce7c981ae67ee0eaad7dea21ace8a20460c3fc3b33cfec42123ecefee68562aa",
+      "jpeg_sha256": "96f77a883252b73fb6fd9ef199d07e35df632bb047cd841dda7d4bd8ea6e60be"
     },
     {
       "file": "local-ontology-metrics-390.jpg",
@@ -5193,8 +5193,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "d90a15a920db3823e36151bb11babefc1562ff7f62c55f77331546edb87471c5",
-      "jpeg_sha256": "f4f196e7031d5fbeb4c104fd89f5f5c234a51467306f08466f20e7145ec50380"
+      "source_png_sha256": "b0093bd9b7feca0037b3271dce3456a305c7cb21aaaedb74fb0045f6310475d1",
+      "jpeg_sha256": "fe9cf5d19679d6fdc1563d8d73c87a13bec9f0c70d802b9cb727e319a5c6e530"
     },
     {
       "file": "local-ontology-neighborhood-1440.jpg",
@@ -5202,8 +5202,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "88621448d6ab9b8a30a38a0d167876e2d5c586dfdfa15b8bb57563e4ce6f648a",
-      "jpeg_sha256": "e274c2e9cbe608f8a8515a7db7a90585ffe4c026776dfe5af8da859ed7a1ff5a"
+      "source_png_sha256": "2d2b377e99992165eced476acd784f0940e6d84b640466bc0f2634608e473a1b",
+      "jpeg_sha256": "4bdc0670a848875a069edbe75012d0ef10362aa362a748731920f6a73f944e84"
     },
     {
       "file": "local-ontology-neighborhood-2560.jpg",
@@ -5211,8 +5211,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "be900e94292d83f17eb4acd889aa45fa1d392e802d97a60edfb2db0e311503bf",
-      "jpeg_sha256": "1e25de611c570996071f687e283cedcc445b2724b5c2eada877cf2ea0ee6a24d"
+      "source_png_sha256": "e15af02fca842015ce7ffe00d2ce7e5e1a17b11acee2a9083e9566290d225b32",
+      "jpeg_sha256": "a4e99bff2d03fe734d2230fe41fb23b7edb2e253b2aca354d9fb149126a21792"
     },
     {
       "file": "local-ontology-neighborhood-390.jpg",
@@ -5265,8 +5265,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "deae1d364dfbe411836eac54c174631f9e1999179d8872aaf3067d0c9e158a3e",
-      "jpeg_sha256": "8a2651bf08f1b966a0cbc1230dd11c6d2919c98d0e0443897b9ae67224a10fa6"
+      "source_png_sha256": "c5ac91112e632daa574a8fcdc6d730322d84017574e1f534bb4851af5c5adbe8",
+      "jpeg_sha256": "3ab766ae7b6bcf51c1c61eebbc5bc3ea0bae026e3dd3c9cdf153def99e828b2b"
     },
     {
       "file": "local-ontology-neighborhood-hover-label-1440.jpg",
@@ -5301,8 +5301,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "c344483cf30c1b83434dac2e9fd384178d0ae5eb56413c317a97b160c797f43a",
-      "jpeg_sha256": "9a241bbdee52df82e4527e4fad181e3eb45a5915dce85dfd94de68fdef77414b"
+      "source_png_sha256": "ad160192e3c30de48198d43433697e25f687f7c3882f34a89694eaa425a4d81f",
+      "jpeg_sha256": "a183010bf6696d0ac263327ba099c7b8dfe9152245d562138e57855ccb10bdd8"
     },
     {
       "file": "local-ontology-neighborhood-labels-zoomed-1440.jpg",
@@ -5310,8 +5310,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "be8c07f70c1b2dad0834ecf363302606bfea25c965c34cbb88bbb76b42a8b8e4",
-      "jpeg_sha256": "0d2b22d8a1bad11ce45c5009455c167fcded6c32f21823829f9c01e0299fcc84"
+      "source_png_sha256": "8f9a7a89a4b758a8d758a48d8d7f440d4f1ca9dcd6644ff259efe7b09b36364c",
+      "jpeg_sha256": "b2f20d6eded8a1e5124806ba9f83d4ad532438445b9a739591c6640537aeaeed"
     },
     {
       "file": "local-ontology-neighborhood-labels-zoomed-2560.jpg",
@@ -5319,8 +5319,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "81ea4c7847cecb9fb1d3aa38d91f43f0596bd41643f31b1db602585890ecd3a7",
-      "jpeg_sha256": "b4a1330b5a45a85dfa95b1c050f2e4e7300be8c09e4b40e2c3bd203e22dcde8e"
+      "source_png_sha256": "aa9a8921b19b73f026d0c4eac1940cfb93d746c7a81427dbd62b77e033b50626",
+      "jpeg_sha256": "3eabbf8e63715f0fd9c30dd23f8438b9cab4c623bba55b772e37f22ae203dd10"
     },
     {
       "file": "local-ontology-neighborhood-labels-zoomed-390.jpg",
@@ -5328,8 +5328,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "10af0a18e3babbc13c453044cf46debcdec1e110c91a9b60633f48faa5432f75",
-      "jpeg_sha256": "f30801091ee3d6d197fb8352211c12d8dd4db75fd443e3223d6e440b6b45f70a"
+      "source_png_sha256": "42485579bca20c56c0241b124adf07a6e1a8105b1b0e82492c82d9d6029d08a3",
+      "jpeg_sha256": "ca144d1a8d3566db36bf5222bf9a46fdf958041a46c5abc28d116b598b9fccec"
     },
     {
       "file": "local-ontology-overview-1280.jpg",
@@ -5337,8 +5337,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "4f81525a9b815ad0cca45793ab7174f5129646e90fe2d52d671f3733225f84f3",
-      "jpeg_sha256": "f9fbf51972b61d1234fffcee293c1a4848ae440d50377b4f57cd2951692b5a3d"
+      "source_png_sha256": "a19931c12202066ba0e2d3518294c6dda088e81c1709f84c233902b79852cd4c",
+      "jpeg_sha256": "0cecf192af84c1710d227a1d4ebfc76b6e29520e1638287b54942d8dd9d49546"
     },
     {
       "file": "local-ontology-overview-1440.jpg",
@@ -5346,8 +5346,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "9031bd3f989d8b197e5472bea7583d0e490066e939e7e340dc4fe371c47fc888",
-      "jpeg_sha256": "34b74ef801604cdbdc0167447db5dc6a480090201d16f222410f17cb4681e08a"
+      "source_png_sha256": "0352f0f5749a2b0f66fc0c9e325452cd4ac249a88ac1a4eab6d0459bac686285",
+      "jpeg_sha256": "b4f3b7f346d5b1afd06bfe636f9ec871aed8724a363c4222ec79105ad6402266"
     },
     {
       "file": "local-ontology-overview-2560.jpg",
@@ -5373,8 +5373,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "c14a78de70524f72e64806c4b5edafb98dc47ba02340d3465fd68c5c807709ae",
-      "jpeg_sha256": "fe1b7846fa50e65e2a5692aff09ed9cd156d7666f1c994bff733b2b6918c5558"
+      "source_png_sha256": "585c601c1adca7ac04b4eed9c5f0da19db55f1fc849bf393da92cf9e4652b187",
+      "jpeg_sha256": "482cac72b2ae13461a8d506667d939a6458bc72858a8a99d793e4f1e9519adaf"
     },
     {
       "file": "local-ontology-source-1440.jpg",
@@ -5382,8 +5382,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "aa83db46e46b23677f5b07587517c79d47078537588eef572eac4b72a8d7633b",
-      "jpeg_sha256": "7b1f374c76eceb7ab4e176826b5ad51b2b65a46035fe252fa9986fd6214e7479"
+      "source_png_sha256": "47ce2df128bd23cad3f16046d835bc4cb7807908df5549c84a6451e72d5c896b",
+      "jpeg_sha256": "c1ce099ec098336eb7e6f52107bed6165e816e3edfbaba01dec442c5861b0abf"
     },
     {
       "file": "local-ontology-source-2560.jpg",
@@ -5391,8 +5391,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "39bda1c65f6268e7b165cc16524d6ebd91d868b737e7f03cbad4e2ec95b4690f",
-      "jpeg_sha256": "39dc9ad1102a0919cd4ec1a5f065fdab97c56c1e0d3d7c0fcce392d0b71f16ae"
+      "source_png_sha256": "028850dd31e952a8f9f57ddde81e170161e32b0f5b5b872fe010c409d6984110",
+      "jpeg_sha256": "b487ad7b12281aea718d6262aa7758e8cbc1b8e35e38a9ed9242c2a26b843049"
     },
     {
       "file": "local-ontology-source-390.jpg",
@@ -5409,8 +5409,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "902500cd3b3557b2405d3783c05551a9715397b8272d6d460342b40c6b9c0b94",
-      "jpeg_sha256": "d3c31645808ffb1b04b2a446036c15f3d16dffa146a35654ade6619ed1cfb38c"
+      "source_png_sha256": "0f420e1aadc7beaab1edb626a981b9005b70d61f4b1ccceb2abe1ebd40aab1da",
+      "jpeg_sha256": "3024d56ac413f01df0c6f8f2689c5d725fc201f10db761397abb140cc8010e48"
     },
     {
       "file": "local-project-delete-1440.jpg",
@@ -5427,8 +5427,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "2a34e0b54fea0828b8c3ac12cd6340a67aef0b298d9fd08ce7b08fb45a7bf5af",
-      "jpeg_sha256": "f823aca6238450593796e7d31c3eb0cd9eeb0827addbaefce058fc0f77896a64"
+      "source_png_sha256": "3216af1b76ee26c9952b1dabf8d19bed687777b565755ac404c087445a535512",
+      "jpeg_sha256": "aad9f62e2e4bc8054d409a59db3965480b2ec63526c7bf6baf2256f834dbfcba"
     },
     {
       "file": "local-project-delete-390.jpg",
@@ -5436,8 +5436,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "11dd32580c56fc23aaf6baf49125f03827ca15eda45ada7921cca8cfd826b9e0",
-      "jpeg_sha256": "7b9fff63d0f620ba26cb8b4add910441b9cfd39069a0834b00d731cbcbb4d227"
+      "source_png_sha256": "40797768485c177d1ffd31bbc25739e19d5b46feb8379b002604e1aef9474b5a",
+      "jpeg_sha256": "169278b35c4559fc6f80d4a3e76e5e0a3576a9f17b2429c75a4040587d7e1086"
     },
     {
       "file": "local-project-export-1280.jpg",
@@ -5472,8 +5472,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "71101697bc764eeedb303bbc4217a05bb02e8cc511531f71d44b50b154e170ea",
-      "jpeg_sha256": "6b19c80ba734e7b8cab0cf68ee1546ab28a042b914680e3eff1553e4908584e1"
+      "source_png_sha256": "eedc1f95a4489680859229841cd771d25d5d6808ea9aa701cff9b513ac431ce0",
+      "jpeg_sha256": "07dfac9389798f510a64a98a4b16d8e3163dbf3a1b5b8faa2a60475f77ed6b5e"
     },
     {
       "file": "local-project-export-history-1280.jpg",
@@ -5508,8 +5508,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "4ae7defe12ce01ce50f248a6836df56bbd72dac870f1c0d533a91a633bb21fff",
-      "jpeg_sha256": "f569fcaa7d2b3050d30f24f5b02580b6c64faafa34fbbadca4d9d8e5cde93eb0"
+      "source_png_sha256": "c205b637de229693a7dc79064c6ab677e6a596002bcab73c42d3f0dbc7fd7e07",
+      "jpeg_sha256": "da9047ca2df86310e1c301b0ae7e04057d80dd57e20aa4447b1ac02ee1381be1"
     },
     {
       "file": "local-project-rename-1280.jpg",
@@ -5517,8 +5517,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "e926b8935b7dfa09647472a50e1c3b159fc02c16c36faa88db99804c74982e3b",
-      "jpeg_sha256": "57877a98fc6a772e0ff2875e1701934f004b3387aee4de8a25aff3c7a388bfc6"
+      "source_png_sha256": "2bd8f52e2018612bbad20de53aa718ed5acfbbfa1a6ab9dd4dc7365b4a38e9b4",
+      "jpeg_sha256": "901bf536bfd5fe8c211d42039eb5e6ceb622410a6f61a7bde82f61e01245b0d1"
     },
     {
       "file": "local-project-rename-1440.jpg",
@@ -5535,8 +5535,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "63dc3c7769890fe413df7b270e1ad4f326b7c8ee992f17f639cb8cc275c294ac",
-      "jpeg_sha256": "8f1556ac0eb0b6518c5721f3416daa71f643c33988bb94e8f5f00bf78b559b07"
+      "source_png_sha256": "857700ac41e8f29ac4168fe01ae6740ab964a943c9293eaf29354d58f9c8daac",
+      "jpeg_sha256": "260c4a11c98c3d4373a04520040cace294ba4f307afdceb40a6e0f67ace56627"
     },
     {
       "file": "local-project-rename-390.jpg",
@@ -5544,8 +5544,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "2b5164bcf37b79cc3bcd79fac7eeaac8dd8c9ed4fa7d241e0b9c78f3ce35215d",
-      "jpeg_sha256": "7ea3a60e37a9228e7d67a0accb5090fbbd5c2cad246f1b6bdba31a5d814723f5"
+      "source_png_sha256": "8ed8bf246b065ac49c4c5c3440bdbf4c4302d8318255627ef266d61ca6c81290",
+      "jpeg_sha256": "79f5212c743f80c0e216b806b9ceb65f861b67c333d1cbccc6f4a2bed879819c"
     },
     {
       "file": "local-query-composer-1280.jpg",
@@ -5571,8 +5571,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "a8912e011656ebff6b65688ba1a94152e5a95b09531ac074aa813428c5f63eb7",
-      "jpeg_sha256": "0952fdc6bc8480e0f56e3f8bbd0fb619a98a8498e97302515932c0be09dec58e"
+      "source_png_sha256": "639203120883cbb281eb9a4e7e4cfc4c777cc269be61c2e5bccbe84e182a8a73",
+      "jpeg_sha256": "0d9b342b7d876a7a7cb18e038f961f8d99283e44f07b7b275ec6ebfc3691592c"
     },
     {
       "file": "local-query-composer-390.jpg",
@@ -5589,8 +5589,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "59cbce2fdfce259578430a1d8b88f5be136bf70de7fc0c71167006cd7645ef45",
-      "jpeg_sha256": "ed388e778ad85ceda7a75db647782c741f8dc2ba719ffebc789efaad965679d6"
+      "source_png_sha256": "466b87b48d364114f0342edd0ff852615e93b73875ca76d9951607becebfbfa7",
+      "jpeg_sha256": "6adc6eb6976ff85cf537f5d756e6346067c341241e91acf3cacb1ac34847fc8d"
     },
     {
       "file": "local-remote-folder-1440.jpg",
@@ -5598,8 +5598,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "4c07c4785de336f2a819d98bb5338e3646df585311bc133503f5a11e2b01f961",
-      "jpeg_sha256": "d4b8a709bd1b8c391a5d89d2727b407d1d4f3a50cda9c47f003e6cbff325e857"
+      "source_png_sha256": "b0ab615886766a9386df93a833c2e1045b4ecd41fd5898070c7dbb322525b5ea",
+      "jpeg_sha256": "e4d4aa24f78eb71cce7ed84c6f2790828f82930d93c068fcf65ede900aa48281"
     },
     {
       "file": "local-remote-folder-2560.jpg",
@@ -5607,8 +5607,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "09993f1b9f0abafa465ac4cd78efa4ab657d0f8453fc2da2caa22df7db965923",
-      "jpeg_sha256": "e3196b31a1e11d5e288b63584727402bb75fa064c5fa14603b07caa961e45413"
+      "source_png_sha256": "52351fe533dff059dbbfde0f0a405475993ba276442782d32c601819e8552efc",
+      "jpeg_sha256": "6a9b30056bb01dc672fb25b8f1db340dca500373085b23e3cd71804496199865"
     },
     {
       "file": "local-remote-folder-390.jpg",
@@ -5625,8 +5625,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "a29d818e0b5b78fff50bc6990557c6e75e1934fdaf8e97319a46f71b8873ff25",
-      "jpeg_sha256": "e9eeac4c6c66e618071ef2d66253142c2c922d839a1a02aa26191e8b0d3754ee"
+      "source_png_sha256": "c49ad0b225b9c8fc4d8544e6f1baeb4a1286082f3695b0f4570908b40b5d971d",
+      "jpeg_sha256": "15fff047dc0b5a7f3f073493fdc95da19a05c557351fb679720793ea934327fa"
     },
     {
       "file": "local-remote-folder-preview-1440.jpg",
@@ -5634,8 +5634,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "c0d3376a3fc0de4d97453e11ccd7a47113588c756e31bac8ee601f90e590fab0",
-      "jpeg_sha256": "92212799bf697f82967ba2305b463fd14b5678c72acaa0feb88f19e6606d238c"
+      "source_png_sha256": "bca4d613fa1318301325dd3fad598e1268bd4eb50225f8e9f71f03442bae1e38",
+      "jpeg_sha256": "eca7fc9e3199aac480200b32b530fa12294096c5308c5455a3a8f484cf7a68f0"
     },
     {
       "file": "local-remote-folder-preview-2560.jpg",
@@ -5643,8 +5643,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "38f671d7726ff73555d7c71cb23a9501a0add4b31ed38a780a7ba600c034aa9c",
-      "jpeg_sha256": "04591767871bec8b5324474faa443cc6408607814f28400237821f461b0b120d"
+      "source_png_sha256": "44dfaa52a393b13dd0613c6e71f997a1aad9964ddd485175013fcefd09d4da71",
+      "jpeg_sha256": "205403206eb389c12dd715117949a1fe4e12485a50adffa4fd04d4a246e450fc"
     },
     {
       "file": "local-remote-folder-preview-390.jpg",
@@ -5697,8 +5697,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "2c362456b47e15703667d6fa2732cdda8100b5cc8658abffab8051e1d16e0869",
-      "jpeg_sha256": "21b3d0207f1989972331bc670c45f2dff9177d97d2a152f9c569fbce4a714f91"
+      "source_png_sha256": "3c52faf8dc83e1b30f1d8e86e7980464475889950845134e88b827f792b8b566",
+      "jpeg_sha256": "5b6678e22470a2fb063e435090b0445175e4af745f3e16e31e8f37383733931d"
     },
     {
       "file": "local-source-control-1440.jpg",
@@ -5706,8 +5706,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "79dc5f54c590c4959681785eeeb84e11cf049cbf0ab34b7d6390d87770f9ebc5",
-      "jpeg_sha256": "8f3ec43634256c6e855317573cf5dadebad8d7345fd38a99ea241a1ca9e35072"
+      "source_png_sha256": "4db4f40b823243abc106798cc18bea9b12b2695580c9d3e695fcf7b027c4a1d4",
+      "jpeg_sha256": "960d54ac729e37aebb03151fdb4466063e63ae435707bf7a4eb7c984688d1b8f"
     },
     {
       "file": "local-source-control-2560.jpg",
@@ -5715,8 +5715,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "a4465e96968160adecd86081225d5c7023a63f365b8ea11c88b9406153107980",
-      "jpeg_sha256": "4a8b33a05644fab91bdd2700152378972008671ea32a6fbaab261168bad1af0c"
+      "source_png_sha256": "0339a6cb8793b2c3243969ce2305984e66eda8a0fc40363011a13592e6de4bfb",
+      "jpeg_sha256": "4f0259ab5c2f90ed67d4094bb400060b3199fbe651ae6e66ea81763bda28d24f"
     },
     {
       "file": "local-source-control-390.jpg",
@@ -5724,8 +5724,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "bf2e000cecf2602128924e87b2523d3b8e7d6a1f5dd8ffec60fdfc0bf5475a65",
-      "jpeg_sha256": "d26109ed732acd57b91e9c03dfb902e3435b0afb8ceb47a286a2080605ff4e28"
+      "source_png_sha256": "694b25f421bcc2ef83b958bc62cc51314ed7a0280740b71be2705cd9f5409928",
+      "jpeg_sha256": "56081ba081d71813173057e3e9fcd7587d66e11b8cff2bab543825525c458fd7"
     },
     {
       "file": "local-source-control-sync-1280.jpg",
@@ -5733,8 +5733,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "5c3565832da2df069a2297d858b46a84b405f2689b54292939a9b561c5b58d68",
-      "jpeg_sha256": "0332f949fdc10108155bb3ccd91c2d9fc15d8460d3b9ca42a51dffa419226c0b"
+      "source_png_sha256": "4959e29a9a78d304bf8aefaf94cc388451bc170cb275003993e7e6a6c40993f6",
+      "jpeg_sha256": "a5e9b00e2d83be2a1fb982e5247550dabef0989b4c18857ff614c66f8f87d88b"
     },
     {
       "file": "local-source-control-sync-1440.jpg",
@@ -5742,8 +5742,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "6b7ab660aa56ef36792a8e3554be6febee8ead523dcf1ab52f3948a1a48be57e",
-      "jpeg_sha256": "4bfa65301189b7c93ecf33b76f3768a66381780bdf05688f9726f2493fb5f40f"
+      "source_png_sha256": "f2dfb7294a09c30df5977479cd1414649140a88b2565b7424d461f27938d43da",
+      "jpeg_sha256": "5cf9dfaf0e40dfd45edb8b7442f74c2d9487e5413493a348839d2c2d763bc94c"
     },
     {
       "file": "local-source-control-sync-2560.jpg",
@@ -5751,8 +5751,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "ede9d885e8c02835ec49a9b68ba269d0b2aed8652c15d95ad967a3a77601bfba",
-      "jpeg_sha256": "17df254c9f976cedbc10641d0ab08b8707c0a4076b64ce4dd77cc5d2ddf77993"
+      "source_png_sha256": "a0ee898e339c2b448694790ae4609b7284991ba9e1b74191300e21762b8cb63b",
+      "jpeg_sha256": "8c5f781d8b8082241000302a628d605bfaafdc62eb2f8b5c9a571a9c3270808b"
     },
     {
       "file": "local-source-control-sync-390.jpg",
@@ -5787,8 +5787,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "3a87adc082bdd946494364e62c98c1863c47482abe9e4752e9a9e95095a93081",
-      "jpeg_sha256": "61c1abdc7eb520a67fb098781d9643279eb92f2a6ef956e713cf794ffa29223e"
+      "source_png_sha256": "6424ef2cd4f66bc8e2c8798dfffae3e8de3c7b150735140a67a36f3bb5a02244",
+      "jpeg_sha256": "8f5065003583b5fbb49fc0ef044293f24e5259c8ecf760850772cd684f1e4423"
     },
     {
       "file": "local-source-editor-390.jpg",
@@ -5823,8 +5823,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "5a039e81fb3016b8befdb03bc4839b591900f788d83600b182909812b91b93e4",
-      "jpeg_sha256": "92675d6bb071f0e656832bf1eb04d8a82ea058712727f6ef7e22c8a95ec3fc7b"
+      "source_png_sha256": "01c2f1376df71a1eeae4600b82f2f6380a1e923da72b5cd4c7036870b674e2cc",
+      "jpeg_sha256": "177c5d0b8415fd355ed0681aec87a1f3f20804300a9377ab73d565e50713cff7"
     },
     {
       "file": "local-trash-390.jpg",
@@ -5850,7 +5850,7 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "43c4c1395f7bcc45245f2e448fadf7bb101cd614df35b31e621d3d3bccf97de9",
+      "source_png_sha256": "187305e690a0095c1480f4794d53a0b3db6574877e9b47f404568d21df3fb0ca",
       "jpeg_sha256": "34d888da090a94e9399963b32d35b6d98c5ef3b82f4d5049f1b900e734ff4a13"
     },
     {
@@ -5859,8 +5859,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "7bb05fdb9cfd0f9cd9692d6ec1401d3c309180e7a3b98a727f43655962ad4ce1",
-      "jpeg_sha256": "220dbd2ad035a0864aa55ea528c91546b76310d4c1bcb02572178dda2f50e3a7"
+      "source_png_sha256": "cf262ff554075579c54a0c0c892f7e69166c9729a2f4c9c7902e75401305e498",
+      "jpeg_sha256": "fc172db1ad8dc133dccd6887e1a1752cec9ddb5eb4fd79d9dee48ff59bfa27ce"
     },
     {
       "file": "local-dark-add-concept-390.jpg",
@@ -5886,8 +5886,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "c1ea396dc810cac1ef8c67a51f2c57263e5b33a734c06ab8f927ea5935b49804",
-      "jpeg_sha256": "ead20ac490fa74c85386e611fd95be1c42450ba689f92a74e67d63275bc15a03"
+      "source_png_sha256": "3f830a034ea3d6b6d9c3a7af61c61cf8c89cef5c53a7029eb37ae8eba3f88537",
+      "jpeg_sha256": "46df521012aa87831cfdde9d5df57e84cb5461bb1213cb71db8b2d6fc8e457e5"
     },
     {
       "file": "local-dark-admin-access-check-2560.jpg",
@@ -5913,8 +5913,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "9b28836abeb397dd020d959cf4c254c9dc77ca63508492060bc730b72d6a8291",
-      "jpeg_sha256": "a610e18b9781d19010a79783b171ad261ddd9e8d64ae099c09f933bb39a545a3"
+      "source_png_sha256": "f4d4c82c6ab499f1bc4319318d40a04b73d682f0bc9e01972ff5b9f67e52a3f1",
+      "jpeg_sha256": "4706a6acf90dbf9b6b58aa7d4c191b4bec7a7b7fa497a8e8d82f471c6858f333"
     },
     {
       "file": "local-dark-admin-audit-1440.jpg",
@@ -5922,8 +5922,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "89ab170ab516c6e9631039dc180a4e26e0d6c32568ea532b5c28af9faf9fa516",
-      "jpeg_sha256": "00330bae04b96e779f9e03c292346db0381404a6869ac3a57b02054f51b19a87"
+      "source_png_sha256": "7e907371d1d87f519f14eacef17503dd8739b14964009257e2d17095199e7f43",
+      "jpeg_sha256": "43c185b9571b1ef1fbf172717ff972feeb6b986f82c3ea8090b22793ca1fb142"
     },
     {
       "file": "local-dark-admin-audit-2560.jpg",
@@ -5931,8 +5931,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "d266a2c83086c823ca83fbad5afe3ecd808b12e7e2d1d3816f1dd997ee2011fd",
-      "jpeg_sha256": "ecdd01555f0e9208e4cfc37eaaa5d17c0a4f89e54015ae608ae6f41f04b093d9"
+      "source_png_sha256": "1dc83ca7c1dd218a9faff99e842fdf049cd20dca6c2ac18c453d91b6ec8a5af8",
+      "jpeg_sha256": "7915af5fc131cbde303a06eda45ccccf73ad48fdcb9f0aed8341ec0763fe17ba"
     },
     {
       "file": "local-dark-admin-audit-390.jpg",
@@ -5940,8 +5940,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "e9fc305434cb14c0575558d8fa48f086e20ff93a9ab4c9560297a32c9523a9fb",
-      "jpeg_sha256": "1d433f20b78cc7bac5ae205a4ae701e6a5970af275d5c8adcfcacfa500f66495"
+      "source_png_sha256": "fba096bd6657f5ab71804acf8d6965e0d30a57cc20ed7668193eb5bc933b3b96",
+      "jpeg_sha256": "d884f1e65ed12b71516ef1a6fcf1da75df123975140731fac9540f6ac1e57844"
     },
     {
       "file": "local-dark-admin-grants-1280.jpg",
@@ -6021,8 +6021,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "a3b2000f4f975111deeb03b3e8a00546b4481646b0fb016bcf64b18312abcfd5",
-      "jpeg_sha256": "93aa99cb3d55d670fc17326dcdaad486588c80ce83bdd9e58bbee746adbd12ff"
+      "source_png_sha256": "600c9bff8e34d105980dda185d4272901316cfd5019150933069ec3fa93c1155",
+      "jpeg_sha256": "3b2ab22bc8788f713995d0c38abb14b140ef8021dea8e97255a250fb54f02f62"
     },
     {
       "file": "local-dark-admin-projects-1440.jpg",
@@ -6030,8 +6030,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "48f535273eb755c517bca15a93af1420469781a94947fc13b65bcb41fe79ca54",
-      "jpeg_sha256": "ee0d5a5c95e77d542344c96b534f63ccf37d9b015e4d09353868de3834cff287"
+      "source_png_sha256": "c787b88d763091a42e93c3d0fe149cede45c23049371818770d32c2e8f6fe6a8",
+      "jpeg_sha256": "1b74899ba1924b7475f118f6a91194060b4da1cd6c4977e987f37ac7d084d302"
     },
     {
       "file": "local-dark-admin-projects-2560.jpg",
@@ -6183,8 +6183,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "a8ec26b6ee130a0208eab012103d8f037a62bce4e4dd1c0f6d5decb081621cfd",
-      "jpeg_sha256": "ac4b21f869bdab41ea223f0e1d8cd089dff90736c7641b3b35525cad3e18d38c"
+      "source_png_sha256": "85764881abe660fc6579cf7ff415f4787535d96fe2f591bcec56bcf79dee8d66",
+      "jpeg_sha256": "ff461dc0fb49d6e228b59edc5d6eb6ee462e0cb53ba483db1b1c9f2d33310640"
     },
     {
       "file": "local-dark-catalog-390.jpg",
@@ -6192,8 +6192,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "a80d60897bb972b705040554f0fe9acbec9cd58486060bccf48c95e8a3ad0429",
-      "jpeg_sha256": "322b66be20c1bd9992a55a22bb1d0d3c92993d9a385203a8ce905b6ffe1a8cda"
+      "source_png_sha256": "c979dfb3feaed037b2ebba2cbb6bc86f42c67cb4721a91fc4d1e508232661cfc",
+      "jpeg_sha256": "4910860755b3c463449b6fc345c3285f9776ec5a9d7ad81c4933f764ecc97dbd"
     },
     {
       "file": "local-dark-clone-folder-1280.jpg",
@@ -6201,8 +6201,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "ef8eca70a18edd61f7e007913dcbb22e615ece43b39de15495e0f794aedbe8f5",
-      "jpeg_sha256": "c5e5799e559b3d04a72ca68832709b553380aa6914073139b10e25941e0bcad4"
+      "source_png_sha256": "a12f3a4bf634bdb982fb04750386dc97f5257cea0ca5bbabaf0c24cc735e2874",
+      "jpeg_sha256": "de2f8b9f7adbe48c30a5d3fdf2fbcd7770e68d15b0ee4c0d06ac288d3ebc55e1"
     },
     {
       "file": "local-dark-clone-folder-1440.jpg",
@@ -6219,8 +6219,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "9aa4fa6530dc6d803c68785c540e4f1363c1a844e0e2b96e01120252c20cf382",
-      "jpeg_sha256": "0a9540bc07b4089c3c26707f7c4d72be889706d111a2b483392cbe22495b8ea9"
+      "source_png_sha256": "affea2c05c85e0616b34ef539a9ee74564e3db8744f927ca22666189bae6cd2a",
+      "jpeg_sha256": "9b8bae63f6232363abe97fc4df9c38d6ffd97c5ce4617469a3b9f4b73601e8aa"
     },
     {
       "file": "local-dark-clone-folder-390.jpg",
@@ -6228,7 +6228,7 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "28d5eed9a209c8ff9261161b4c6d7b0a64df2ca08201da1d8d4a5b1fb97437de",
+      "source_png_sha256": "6d8d448a0c43e958f4ba70da9960c2f93654f010d2410deda2af6202bb3d94cb",
       "jpeg_sha256": "4908422c2e1aa0375db5ebed60f640812ff1cc2e09ec34323d7b039ee21535a8"
     },
     {
@@ -6264,8 +6264,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "570701d896e7505afc628843293ad870711c49ab2bd1dc54cbf879c967d4c9e7",
-      "jpeg_sha256": "59eb51ec0a4a38e61a5ee8edcf8e1139def8834bfe7d032907cd5642041e2711"
+      "source_png_sha256": "948ad8d5a06e12f59f67bb3d96cc278d23da8d55929a47dbccedbfc62a7d0715",
+      "jpeg_sha256": "579b97a8f689ea106307e099500f81dd6d9ab5497c750f0f27aa6d6d4850e7fe"
     },
     {
       "file": "local-dark-clone-repository-1280.jpg",
@@ -6273,8 +6273,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "05744498748799f90943b75d7201ea8e0afb303aee277099fa57d80b67df8ffd",
-      "jpeg_sha256": "dbb5b24e03eab17173cefaa1d9f7b17cac527337f0f86494900062eb797b56a3"
+      "source_png_sha256": "e0011b5ec66da53da99b9d505d9047ce7e172e4a4b5e0c6a631fa77bc6a3f134",
+      "jpeg_sha256": "5b9520bd50e3748791056f8a7576eaf428b3432af51ef7dfe76b48b2413671a0"
     },
     {
       "file": "local-dark-clone-repository-1440.jpg",
@@ -6282,8 +6282,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "1cdd3a6e5e6c8677bb916b3e900a923ed3d5971436dac65b25bdb26db9ac4f10",
-      "jpeg_sha256": "be88fb1261c158dc69c41d9351351f2ee42d5425c25bc5a9b842d71ff676f086"
+      "source_png_sha256": "ad791283fe2f8f28d4c787c1a119879b3341a39e102ee37c5d739abfdea5a3a9",
+      "jpeg_sha256": "41504ffe8e1db7d7f517ecb67ee56fce643e0f464ad4b44161cc38e9e958bef1"
     },
     {
       "file": "local-dark-clone-repository-2560.jpg",
@@ -6291,8 +6291,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "98a787398adb45c8b9b9ba18e90209f6e4246e2f236bb89ec8d5f7c8527f3513",
-      "jpeg_sha256": "38ad4f6d8d67588e5f04079ee02d9baf486ed189d5c141a72e32ba8186657e64"
+      "source_png_sha256": "1fe0a2bfd9f8c17302f53bc88a6630242e81976ab9d328c0633894108b21a647",
+      "jpeg_sha256": "ee7034bbd28530a345df13670bd3ba4003d5a40513c6877f3efae711570fc53d"
     },
     {
       "file": "local-dark-clone-repository-390.jpg",
@@ -6408,8 +6408,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "538e3e0c7d42ff008907cb9f0a48149788ec78d815960b5e46216b92908e91ff",
-      "jpeg_sha256": "6fdd86a0105bf9c3299348a16097012fde5f7df5809995afc6c1979262abee09"
+      "source_png_sha256": "755c3f7e876a2a8d3c5256c61f60e4c444111efe8ba920572e9c6e7d93fd79cc",
+      "jpeg_sha256": "8f4fa073638ea19d59c6f229d8ae1c6ac10c56c8cd06ab96df256627fff51b43"
     },
     {
       "file": "local-dark-import-1280.jpg",
@@ -6435,8 +6435,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "719476f4de90cbb7333424637318530281196c1b646e05af35578dba36d308a7",
-      "jpeg_sha256": "aa6d20275dd4481df28cc99e9dcda1c929079a46bd4ca51d81bd58a45f485ba3"
+      "source_png_sha256": "11669ba22fc741e1f4f2151df55541601acf37be5b4308fe5f457789f33ca311",
+      "jpeg_sha256": "0e9522a2e4bc1a5b9a0bcc9acc728d813aab6394743f3eb4761cd8a391842e98"
     },
     {
       "file": "local-dark-import-390.jpg",
@@ -6462,7 +6462,7 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "3d298895b14431dc7a35849f563b91c7278ecc2a8a3ef8ce4eafbfbf530d61db",
+      "source_png_sha256": "89330b86d29973552d6101f48af24c9f69a1f49ee1b761ee0175bdb704d3492a",
       "jpeg_sha256": "62922af653bb540b537925cf609c1084e1318ecdbbe77f51050d16ed54d23214"
     },
     {
@@ -6471,8 +6471,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "ab1564bfb52b46284c98abf4ed58b43ca55da10c8c091ebdd3ae4cf3037023d9",
-      "jpeg_sha256": "37d5a6313c52b9ddd63406713a10c0f6fa9cd9a43730e601c0f2522910e42b5d"
+      "source_png_sha256": "7fd8156a5aa0764c4ecba3b78ada66ccb496f098be7997d680986a22b57ab2bc",
+      "jpeg_sha256": "67fb543fbf84250c9083935bba3f63d4061f7a19b70bb7d78f428bb172bcf190"
     },
     {
       "file": "local-dark-item-editor-390.jpg",
@@ -6498,8 +6498,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "f16784760d561704adf66fc08cc6a3c27aa15d860c3c0f6f08b757c243fe5334",
-      "jpeg_sha256": "c34495b17082d9f3ee6ff7089d56b4cab905267aa0d9daf5d5118405e38f663f"
+      "source_png_sha256": "3381900bccfdf453eedfe220fad1484e4e5d334a29a3d09c6a19a24f2443a64f",
+      "jpeg_sha256": "8d0ff9a4b65037b12c6f109b6656a377c70dbf09bb89aa7cb3b18a818697181d"
     },
     {
       "file": "local-dark-mapping-graph-2560.jpg",
@@ -6561,8 +6561,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "250a96650190ecfa786a82583a48720d595468321077ee5c57c464ef7efa6116",
-      "jpeg_sha256": "4645522ce874768dd85b8981570ee7403e246aaa521fff897793fc10d48c8fa1"
+      "source_png_sha256": "bbb14b74549407fcbea44383c9797d0408573febedf3850b892420a974744a85",
+      "jpeg_sha256": "1a8e80587482df4bc9573e04a1877e4ebbcdb58de8908c9b37c76a7a0f3fd30e"
     },
     {
       "file": "local-dark-metric-detail-1440.jpg",
@@ -6570,8 +6570,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "803f7db2b860e41a0b3641bc0604f9213c06f6515d42b3dbab3df46c483b9743",
-      "jpeg_sha256": "572c5a152b7091153e3e5470be7b8e7f62b758718d683c687cdc2435a96620af"
+      "source_png_sha256": "6aee9fc216a5a84c9da30ca53aa0dcac887359e743c9ea002244b6c15a7325fe",
+      "jpeg_sha256": "b5ab1c13e1e6183c8dc19f4d9d3b78d78cef5cfa80763fd795e3f7a8ceb9e204"
     },
     {
       "file": "local-dark-metric-detail-2560.jpg",
@@ -6579,8 +6579,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "4bbb1d5579c39c5e1061e673b25000231a7085e993487a341e224f787f951af3",
-      "jpeg_sha256": "12286fbb25f3e3d59c95136ee5df55110ada0adc9ac8d26a78a1977a1eecb296"
+      "source_png_sha256": "8f48aa410fa850e7fd259347c1eb228466de20a99993e2bcf0a8bf461ffe0919",
+      "jpeg_sha256": "4d792f431ad4c138876c3e593faf14315b231ff3e27e7cfe428ea64ef5b455c6"
     },
     {
       "file": "local-dark-metric-detail-390.jpg",
@@ -6597,8 +6597,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "b2a1c3ad3f9f863a20f23675f1c5bca76a3dcd6c7e2fba893775669993039b9c",
-      "jpeg_sha256": "73384e5d656e9cf4602add3940428852d827658fe1b2cf2ba9ee80f878ae25b9"
+      "source_png_sha256": "4e860ad8b45973a1fddc636ca32c67b019fa3178f501b2b397ad21f8ba526230",
+      "jpeg_sha256": "08f204a989426fbc2285796fe90febb3b180f38c9c6ce4cda88c393d2fd6b4ff"
     },
     {
       "file": "local-dark-metric-wizard-1440.jpg",
@@ -6606,8 +6606,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "92aa9ac5d41cbbaa8f6b33cdd6c6f64e703086f8180ec6cf3404b6163d7b18a5",
-      "jpeg_sha256": "476a53ae54d06ea003f9e5a58f20be4ccca42ff69c99761673699fb9b47d42c1"
+      "source_png_sha256": "8640bcb4e9e236c0eba3940f24f6374eefff7c916f11d3591c3991897b87cab7",
+      "jpeg_sha256": "715397f79c1a90473c5732f1ff1f9ad3ec3bbfc2fe5003f3fc4cb4f56d811b05"
     },
     {
       "file": "local-dark-metric-wizard-2560.jpg",
@@ -6615,8 +6615,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "04386f769034ab9e27f59083453065a33df3a4c81cee7c17c0c1aaacb1a54790",
-      "jpeg_sha256": "ab097ee3869e39a80ee44e55aec11b3ad1be30b9420c551e071bc96370980f0b"
+      "source_png_sha256": "74ed06208504553ceeb69ac4138839f5309d124ebdcc7ecc29c906db49835a5b",
+      "jpeg_sha256": "5ccb98f0eceb65faa68810597cbc1971c0b84abee693e07bb1dbe4c7eafc6622"
     },
     {
       "file": "local-dark-metric-wizard-390.jpg",
@@ -6633,8 +6633,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "e57e06f37b5e8e8f303962b36cb1e89bd2dd4ace8a57f6372b021c6ece07896d",
-      "jpeg_sha256": "707ee2bc800298767f6a9e956b9435a3237ab4d50b7dbf8c36256edf02be4173"
+      "source_png_sha256": "a5e945fcfdc1970fe1d580ace2a4fc2f73be2e6634b9d3096bb409b773d542f9",
+      "jpeg_sha256": "2ff64cbf0e453a706a10a97228069aae9431f953226ec61ba9e61f77a76d2d8e"
     },
     {
       "file": "local-dark-metrics-filters-1440.jpg",
@@ -6642,8 +6642,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "ac9c16b4b1f78105712807d133ab43c69461fb2a86a96e19e50c869ef0f68f0f",
-      "jpeg_sha256": "74c59a093b083c5ebf5a9cae3fa688e92ed91269464f13d40ea6d7dec2ff7567"
+      "source_png_sha256": "d21abf3f7d40b258c215e7049a303de4d47f94b368b8dd3c5dd31bbfde092938",
+      "jpeg_sha256": "60ea2e50f0df5ff007c7579a310b3ed82f6372c4e11df033c039ebb2031e3ad2"
     },
     {
       "file": "local-dark-metrics-filters-2560.jpg",
@@ -6651,8 +6651,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "9da754219343bafc285322ef7ef4e68d9f2dfbbb7426bb2e7da443937fbdcfc4",
-      "jpeg_sha256": "cc4e532aa918a2d7afc1161ef31cad76b797b3feed1281295fc0b21e643cbe94"
+      "source_png_sha256": "ac576ffcf8944d9054153b19548ed8fe7ce66084b2fbcd34b454bb9cd85f3412",
+      "jpeg_sha256": "978d2662e05bf9d2d49d8b9fb524020822eeacf67d20e603917b382511d470c9"
     },
     {
       "file": "local-dark-metrics-filters-390.jpg",
@@ -6678,8 +6678,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "78927322a031a2bc4c9ecc21b02f2fdda1425df8424b3c29e1baba95bd0ec484",
-      "jpeg_sha256": "ec4bc4596d6d94710fc0382dd96accb8e5b491548637ae3200e58c5e5eb0a01c"
+      "source_png_sha256": "7c670f3fecf68440a5fe1d69ed3ba8c9fb28f6eab8dc68979de70e0231424efb",
+      "jpeg_sha256": "c6d84a711b9b25d658261ada1dd02d8773ba39a287e66192c10d04cb30b13b15"
     },
     {
       "file": "local-dark-metrics-list-2560.jpg",
@@ -6687,8 +6687,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "965c957cc457091e799157c919e7055cc6f9ce7069a83c2d721b1d1b7655ec80",
-      "jpeg_sha256": "08994ffef1d4fbc6c38636e5a46e4df76fadb381a79e1a2dc5eb36a2c8a2c21a"
+      "source_png_sha256": "96a40ab5e4dec00aab5fdda95f530af13e3c4b6622064d8e40b7ff45e47abc1d",
+      "jpeg_sha256": "cc3cd9a2cae832e65f87b63794d9d28a0719fbee1cd2709ea191b0f37ece46d5"
     },
     {
       "file": "local-dark-metrics-list-390.jpg",
@@ -6732,8 +6732,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "20952271e142f8454ec4456ae76da7684fd585d4989f4df23271f31fd449c279",
-      "jpeg_sha256": "75d1b5589539248445060e11ef426e0f09e28dd46ac994182c90bc50cb0995f9"
+      "source_png_sha256": "a71ba4d859efba67684824976d8bef462a3747b14c2acb26d82bccc76e191fe8",
+      "jpeg_sha256": "c524d688a5d197128f077b74720305b71564dafd523c5eed6e3ee13207076dcc"
     },
     {
       "file": "local-dark-odcs-contract-section-1280.jpg",
@@ -6777,8 +6777,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "3a77a0434d18a133f9ec93f4a8b47eccc54c6e1d14a9a5b056a6df51c2cc312a",
-      "jpeg_sha256": "5eb97c32a053186ce08a421577c112112337c39eb8f7f7d2128d33fc99f0a1e0"
+      "source_png_sha256": "38558084f55887c3e36030157cfd0c8d2405aab8891cbe5a9a66c96b91632e4b",
+      "jpeg_sha256": "d7d24a031037bf02f183c0c3d46d1022c671c211a2d34b27d75c33c8e97e4f1c"
     },
     {
       "file": "local-dark-odcs-dataset-history-1440.jpg",
@@ -6786,8 +6786,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "b6a1a545cf6d171d91f9f2b41f13c9d875376daca33dfebabaf84376148c042a",
-      "jpeg_sha256": "5f3f0b3e8d2e10976549cf032ed7c82392875e4e0176b4c8c9c4c6d3bfb8f86a"
+      "source_png_sha256": "c9f42c8aa332064867fb68ad442a0bfdf393549a137c7f1a46361dc5b9e7bab6",
+      "jpeg_sha256": "6f3cd1ed60e661dbdbbf2a51a20710fc99230b71ed1cffbaac9a1d92cd5158ae"
     },
     {
       "file": "local-dark-odcs-dataset-history-2560.jpg",
@@ -6795,8 +6795,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "3ed3f84e9089e9045fc224b4847e2676275f3baa3f114ce1ecc5f6ca69bc77e4",
-      "jpeg_sha256": "21f02a3701d84e40eae48fbfe8c7305b49eefdaabf3be311c3d53d9bbaf6d0c9"
+      "source_png_sha256": "5ca41b55e7de8281012c491b6db0fcf10c6ddb7e420f09b1be226ce562e47125",
+      "jpeg_sha256": "df3fe75dc190309d187ed4b47868e0f14038e8e4271f8bdcf059e98f9f35d945"
     },
     {
       "file": "local-dark-odcs-dataset-history-390.jpg",
@@ -6804,8 +6804,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "d7585cfa5a0646229d183b1802528876897216a16a8a3e0ce95429591da5f7b5",
-      "jpeg_sha256": "200826b4e6ae2fbd1ecf9198c7a9b6c8580336ad3fda06860822780fc1b9feb6"
+      "source_png_sha256": "1eb105291f1e413a671876cec678d3b9a248e29fa587c5ecab67def6772e0795",
+      "jpeg_sha256": "092a475191d8503d43afe7f735f92c95696ff93cf95e0f153dc130e77583a885"
     },
     {
       "file": "local-dark-odcs-dataset-properties-1280.jpg",
@@ -6813,8 +6813,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "2557cb7984e486d835809050b3eb9362f2bee4d0074be17e570f567d43687f5c",
-      "jpeg_sha256": "99cc37d808bacf9bf8502b637f70408615ba8f72a4e36a250489d4ef66e6ba78"
+      "source_png_sha256": "1e93224d85d87374635f24c25213bcc5b1e9ac60e515aadfc0b00d862f11a874",
+      "jpeg_sha256": "1dc0d10609387443bfc193ad28565b7e43ab690c0889e5dcf44955e463f95fd4"
     },
     {
       "file": "local-dark-odcs-dataset-properties-1440.jpg",
@@ -6822,8 +6822,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "2ad1583c97df7ab3c0c441c0521264cfdc30d3c464ae38136633f4cf033600fe",
-      "jpeg_sha256": "2c23315cfceecf6dc29531acc581e2e64bdfc862b6d952da55fb1a873c48a4d3"
+      "source_png_sha256": "b6663d3470e774137eb2f86896b0498d3fa292c0825886b3b57ade26fe70fdce",
+      "jpeg_sha256": "e9efb64bef271945e91d91890317625ed51f309cd4f2a92ba83c660faeef4a90"
     },
     {
       "file": "local-dark-odcs-dataset-properties-2560.jpg",
@@ -6831,8 +6831,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "268f85e8cb9f59792628e2d28b948deaf8896c825406bbee870c6dbc9e912c4a",
-      "jpeg_sha256": "3440bed6426228a74224379417e81f36f2f80a9ca6743d33c9c6cad7c276f266"
+      "source_png_sha256": "8de60b30b2f7c76c9db1acaac85cb0963967b732db1fe285a052dc7473b811fa",
+      "jpeg_sha256": "d55f32cd01328edda2418426816ee2b39e80df161ba6504bf6b5ffd14eb84c53"
     },
     {
       "file": "local-dark-odcs-dataset-properties-390.jpg",
@@ -6840,8 +6840,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "cdf3bfc5a0b3f3222fae1893901e8012b16aaa8052aff8e49c21cd364adba159",
-      "jpeg_sha256": "dadeff813316e121610cdda5cbd1697e9ab1e18ac6718e8172c2978460892a27"
+      "source_png_sha256": "e794fb2570b9b58618f2f23f5f1b4308f89b94b950e5d82d5b55bbcc6abd5e29",
+      "jpeg_sha256": "bdc5143fc22d0205104555e7a02fffab961d6bc2ee96d9bd3a2adbb4d5ed8d1f"
     },
     {
       "file": "local-dark-odcs-dataset-quality-1280.jpg",
@@ -6849,8 +6849,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "0929f1109edc7614db803d1ac65ff07cbe473d23d52cc189c8d070b825b1bd3b",
-      "jpeg_sha256": "e407db1888b956daaee846d641d2caa000bfa7236684036a8c23105d12fbad83"
+      "source_png_sha256": "d098f5a057f2e5e7beefa5b6065f446a71d04c052e13bb116cbfc69dd4540514",
+      "jpeg_sha256": "33a10b89af495d10fad8659ed9811e058f9b8c4404bd7fc9fc27b14aa1a58682"
     },
     {
       "file": "local-dark-odcs-dataset-quality-1440.jpg",
@@ -6858,8 +6858,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "7da4f43a2eb305f6db140313d491631372dd6c09c1461af1bfd6295c1566eb05",
-      "jpeg_sha256": "101c6b97bb9d026d5761e894918fe32a4d18526613afee33df7588a470be3816"
+      "source_png_sha256": "eabc52b7cc3b99810e6e481d459086036323a4f7f6dd24b8ad7fd10d5aaeedca",
+      "jpeg_sha256": "57fa90b3ce458720dcb61006efb07f1f8033ad2f765a8796ccae12d840328271"
     },
     {
       "file": "local-dark-odcs-dataset-quality-2560.jpg",
@@ -6867,8 +6867,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "3672c01dc61239e0637537487321486d9f3dec577ab2363ab2dba340f95b2d20",
-      "jpeg_sha256": "d1d46208fbf019c9d5c73fc0c6e6184d2be4b0e3488e9e37004317ada7c2a323"
+      "source_png_sha256": "2384963d720ef37e69f76ec56917218219da4f380e99fa38aba924aeb6b6a4a7",
+      "jpeg_sha256": "2d88d145b59a66b7f8b421d7574ff415389f5fe0567d7b598b3b6aa15384b6cd"
     },
     {
       "file": "local-dark-odcs-dataset-quality-390.jpg",
@@ -6876,8 +6876,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "7eeec73a09d0759b14fc20bfe6406e1f9f17f02a054b15e089aadd1d97e7468a",
-      "jpeg_sha256": "8a4c502deaee4bfda25b16758c3ee622d180ed024abac369fda7a7a986155e7e"
+      "source_png_sha256": "e2b86cefb9d0f7f866755e935b752ee2b1fa411b3a8946bc3551dcddc5b29b9e",
+      "jpeg_sha256": "043ec1aac2f77c81ee93b854ac8665eb1a649af52ace3fa29b338fea7feee127"
     },
     {
       "file": "local-dark-odcs-dataset-relationships-1280.jpg",
@@ -6885,8 +6885,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "9949afc6f824175cd863b0bb0f4d7edabfaf8850b6bc7764852a6a53a25fdd4c",
-      "jpeg_sha256": "259e23c7715a7c276a4acfc5b6c5da8f86d140b1f33e0c90eeee4bee33f17bd8"
+      "source_png_sha256": "f90403aa0a825ba9bc2ca464cc69912e67591b2767517686be6629ef6a951563",
+      "jpeg_sha256": "b2a48e0e9e8647d8362b1f10d517c3ddfa2796b2763774cc3ae40e90bcb68eca"
     },
     {
       "file": "local-dark-odcs-dataset-relationships-1440.jpg",
@@ -6894,8 +6894,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "23f062ec4711778d99ef15818b6269ad2151da7b6b17901db78e186f448923bb",
-      "jpeg_sha256": "b9be1d62814f09ea54fa8c585accd3990fdce2651d15755d240d4bc7ec668dea"
+      "source_png_sha256": "a0cb2ae47da98f7e04c91635f8c98d75321ffb0831e3bb2e011fe0622dbce63b",
+      "jpeg_sha256": "6285f5222690a9c7664a66f7632b19de25ca231d8971473818bbe4ae13a19024"
     },
     {
       "file": "local-dark-odcs-dataset-relationships-2560.jpg",
@@ -6903,8 +6903,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "9ea5fbf8fe6c11fb8e374eced148f5b562a513b1efbdb1c700836cd150819fc4",
-      "jpeg_sha256": "2bb01ca0ffffd5b39848265f30987f3dedf340604ca45cb270299f6e15eb35c8"
+      "source_png_sha256": "5843a964f9c8de1e0ec7b168fc36b853c9c56b2faf455c3c28fabb7e2dad05d4",
+      "jpeg_sha256": "f37bd3ecf6a943b43a004c087ef43cc323344bd62fb52aadd3b22c84af3ba349"
     },
     {
       "file": "local-dark-odcs-dataset-relationships-390.jpg",
@@ -6912,8 +6912,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "8106c251e0491a3ae1db001f56967b86427e001295709a65f8f1fac0d89c64ed",
-      "jpeg_sha256": "729d08a7815961d056c5fbfb884d1972c7b1fd4b791981968634c393c6bbd95a"
+      "source_png_sha256": "9c6832220dc0fdc4478d0b1aadfeab4276bdf6272bf6b9117de51dfec904821a",
+      "jpeg_sha256": "a161fb7ee6d5c59fcfcd85516970ea8d1d5e5d83d70a96883fa07fcbd915c186"
     },
     {
       "file": "local-dark-odcs-property-edit-1280.jpg",
@@ -6939,8 +6939,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "999d23c22a0dacf1aa8cc1b81a46d3c35ca7145d3da8c9df1db5896ea3bcca3b",
-      "jpeg_sha256": "d651dfbff173a5da365c0c6d7366f2d1b17ded1bc87744ea939da3920d7c633e"
+      "source_png_sha256": "5ed5db6a307936450abcf1cd6614214722fc0371b715ba72133e653e92778955",
+      "jpeg_sha256": "622d35191941f8eb9aea6904edffa99faa157a6eb58f22dede4a94623c2843eb"
     },
     {
       "file": "local-dark-odcs-property-edit-390.jpg",
@@ -6957,8 +6957,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "0e97137f7f60518898045c78294147286fbebeecb5c2e63b10b4900f3e61220f",
-      "jpeg_sha256": "55172d19a95b27b0be1b67be3ab8af89063d5987b74f43d634884c1e7cc84fa2"
+      "source_png_sha256": "9dc38b9a5193c080934683cc653f9406e842ec717efb27c538defb6fed33f5c7",
+      "jpeg_sha256": "bc450913ec47ab0845b76e19cbbebe3bdb72a8dfd71f5dd6094b57ea08f4d40d"
     },
     {
       "file": "local-dark-ontology-catalog-1440.jpg",
@@ -6975,8 +6975,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "a65f3c0183c09c5fa306f499f21b1f0cf04adef7961bf0f04d4d922d02612260",
-      "jpeg_sha256": "cb392c4d4a9c6e7f61b53a732fcafad66c883cd76f4b28f4bee1c02e8b8b69c5"
+      "source_png_sha256": "cc71482aa58ad069d6240b40133deefc9f424e7db620dd7bd4d5587834cf9f2e",
+      "jpeg_sha256": "6d42d9295209d8c2716e7c43cf631baa1c6f85ac62370d2e338c53913a7f4a5a"
     },
     {
       "file": "local-dark-ontology-catalog-390.jpg",
@@ -6993,8 +6993,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "07b7fac82ee76a7c7fcae4567ea84951edef8476795bcaceea951d784a3b54a4",
-      "jpeg_sha256": "a65bfbc35d85b370f0ed33ef820a1464df17488528f6ee24b5f8a0c41b04efb7"
+      "source_png_sha256": "8b05b1d5389c06e8f021eb4fc8f38f0d0b3be8838a9d8c6cc9fca183e1d0ce9d",
+      "jpeg_sha256": "588e3930fe23fc52c0ed1c0824afd5eda5766f9ff9853522e0d5a6f870ab41e0"
     },
     {
       "file": "local-dark-ontology-graph-1440.jpg",
@@ -7020,8 +7020,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "6fb2d74da60b299bfb6b264eadd2a3fa1c224bb80518edc8a18c786e915ab207",
-      "jpeg_sha256": "e0721b644d2b5af6edea018d5a634d6b2d84a513222643c1b03e2998ab0a099b"
+      "source_png_sha256": "1e0eda1ad7a939a70520d770a121fb109a1a90d541df2af5361456a09f7b6d82",
+      "jpeg_sha256": "1365c8f908ff680a0086b302594839060ec3c8df8393f22fad6aba4fcbddd520"
     },
     {
       "file": "local-dark-ontology-graph-fullscreen-1280.jpg",
@@ -7029,8 +7029,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "69d5e22e5f4cc7c8cbf566f62e7163bbfc699d8823a5cd714a9b952832594c2c",
-      "jpeg_sha256": "416716fc7026931edf19aa62ef3b7d3ae4b27d9980a8f51e158909fe5f1203ec"
+      "source_png_sha256": "ac83064d0ed29da503267d70a747da9ecc63138908790938d678073a6d0e5a5d",
+      "jpeg_sha256": "ae09580ca5a072c553ba35ee68015e5f35c767ca23de66a4ed360a187dc972a6"
     },
     {
       "file": "local-dark-ontology-graph-fullscreen-1440.jpg",
@@ -7074,8 +7074,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "eec2b72877054fa0b3e97e5342784e331aefc56554541bd77717f7e5c9b6fd98",
-      "jpeg_sha256": "af792ecba96a140430e435fe9e49698292e57f211675fe62193d6cb24cb565d5"
+      "source_png_sha256": "1b2fa376c7b1b957cdf5f9b5a22f144c9b2833d079b7e5edf21373fdd7a4d8d8",
+      "jpeg_sha256": "4cd45d6e5a5e0020aa853e92eb400185407b6e6ba151cfa0cf7a8817b55013f0"
     },
     {
       "file": "local-dark-ontology-mappings-2560.jpg",
@@ -7083,8 +7083,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "fe1c6517ccc8fbb599f7a3e7dc9ab22934a7665a6aa0b407d0bdfbd7f744fef8",
-      "jpeg_sha256": "7353b6da2568213cd3ded6b02e1e10006ed66678adf60fa9108e3b86edb78b25"
+      "source_png_sha256": "16fff9edee1c1b6c8d5e1dfa569de2d79b19b1e2890f6893971e0130f42d7ef0",
+      "jpeg_sha256": "c185c4cd35b6077c8fe57d82a188b29e7baf55353b2a0468610b5754dde7070d"
     },
     {
       "file": "local-dark-ontology-mappings-390.jpg",
@@ -7101,8 +7101,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "bc2dd9d415194ad54f7bc649cb834ec9a527da0521d53cdef222953d1e95749a",
-      "jpeg_sha256": "632cc05613dc19e9853fd648dd4a682a36155b8611b9a3159a0d96a0cee9cc94"
+      "source_png_sha256": "a9d2b58372b04d55a0a310743dd053d6e9ce59a7e7c8908abd00f0d3c6ff283e",
+      "jpeg_sha256": "6d227cac48d195ac00662d94b81a2aa8cb17ac4536a0b9cde28930a6e3ed7762"
     },
     {
       "file": "local-dark-ontology-metrics-1440.jpg",
@@ -7110,7 +7110,7 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "065ff4baafbb4ead669f24ac19e33f07547595577a0c3b3055be508c7aa386aa",
+      "source_png_sha256": "8f3a5e5b5391dc81eeb970bd5324c25e91ba776308af51a2f3472db41c76697c",
       "jpeg_sha256": "df4716c06d250eb95ea3f0a802297811a494ad4150939693f65c2f3446d20d5e"
     },
     {
@@ -7119,8 +7119,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "4fd718856d6828e8b3232ae2024014600416b9ec14d5a7509a9ab14d44426207",
-      "jpeg_sha256": "69ca591c20fd4e1b8cb567e5a241dc808bbc530f41a72580440be22ff2be5a90"
+      "source_png_sha256": "e98393da28059818580c7875f1ebe9954547907a2959fce7a4a9028eddcfbb0b",
+      "jpeg_sha256": "e8d90106d1ca6143d746390e700fcd3fa7d6a6078ff2db9665b4e75faf3243cc"
     },
     {
       "file": "local-dark-ontology-metrics-390.jpg",
@@ -7137,8 +7137,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "9ccb9f94d89cf4c5dc72f80a948ba16acc618b726c2aef1c3df48a11f22f1209",
-      "jpeg_sha256": "fc76eb6241be32a470a955ac53bfe37a1b76f017083554a924e2bed357e25738"
+      "source_png_sha256": "ee1c5c6db5da0f4a4df0734d0cc6fea77effe4ff378340ba31a9fb67ef4f450d",
+      "jpeg_sha256": "a98d1d158736460e3d0736798347620146057e10f1259714b4d4ca05d88c7d5f"
     },
     {
       "file": "local-dark-ontology-neighborhood-1440.jpg",
@@ -7155,8 +7155,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "db5693e29f4880c0184084fc55688b1722d85de427b51c17e146e8f724cecdfa",
-      "jpeg_sha256": "9faeaf972f9796004b9c7b93e4464e13ad0a84af51ffb7469b6fff5142073cf8"
+      "source_png_sha256": "8c1f1e927c81950e97f66335640b42d172acc3d0ecbd5f31e98cba443553c21c",
+      "jpeg_sha256": "cc14529a4355d8f418d4bd6edf4ed1b50d91635d7390b0e847d37b36abb1fe61"
     },
     {
       "file": "local-dark-ontology-neighborhood-390.jpg",
@@ -7209,8 +7209,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "ae7b2266a042baaf2a1e9d61f0c473918269286dcdf6786c80014e6f9547022b",
-      "jpeg_sha256": "c64eb896b5fcb60f3540fe9d8fbef77fe9565db1372859534ee27014858eceb1"
+      "source_png_sha256": "b78ac3f6fcee3f1c830ba3efe354d387a0aa1252fb84fa2635dad2d6f6e0c565",
+      "jpeg_sha256": "9f886a88a2108edda6d83a78691364e257431f8ab6615ca7190d7b57108621e7"
     },
     {
       "file": "local-dark-ontology-neighborhood-hover-label-1440.jpg",
@@ -7218,8 +7218,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "96d01b2cb4f65e3770c0c422f780896f36d4d6d748b9a26064e27a5ef2b27fb2",
-      "jpeg_sha256": "bf777e0a2245f14a9f3c95b0d2ccd10ceccdb8877a7526bf2914cd85dfe36368"
+      "source_png_sha256": "1e97d2b13c7307ac1427c316be42951ad93573bcd6037373cf79a268a7be419c",
+      "jpeg_sha256": "85a7b2475ce095fa784bf09e5ea49f142cb2505f83b7f66f02d0cba66a9ec64e"
     },
     {
       "file": "local-dark-ontology-neighborhood-hover-label-2560.jpg",
@@ -7227,8 +7227,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "d6fe3d9b6fcfc7aabf0285432a4359b9935bec08dd42bdacda1f30da39dfd2ec",
-      "jpeg_sha256": "49fb912971d965b9e4bebb21a501dd8e06f7f8e8e74e5639ae9dc83922d0e0b3"
+      "source_png_sha256": "079e627099abf34b05a92b701e8a0f3a365998ff0c637faa5e49391ad6f3c753",
+      "jpeg_sha256": "76d30a8a28bbef469732c5e4b019486ec8664309773a9233f079914fff2aedf4"
     },
     {
       "file": "local-dark-ontology-neighborhood-hover-label-390.jpg",
@@ -7245,8 +7245,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "203dbe2b0498f7572734444422dfcab9da49f080814bf4d2ab8f89401f9b4417",
-      "jpeg_sha256": "0cd3ad536c75cb8f3b5c33f57ae402747bd4dee2bbcdd1ec37c81c11a8f2cb20"
+      "source_png_sha256": "5d2768f1a0449bef23d72617e72fc0944c12a7b31f4f980c8e14189825995911",
+      "jpeg_sha256": "ea19e3543e8db6d9f03c208dc458b43efc1e44397a5c9f0f667c74d1f07a70cb"
     },
     {
       "file": "local-dark-ontology-neighborhood-labels-zoomed-1440.jpg",
@@ -7254,8 +7254,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "efffd05cc5b0791e9f6ae064fa739ed23f19f6ac2e32a6cd45bf4d871ad73542",
-      "jpeg_sha256": "65d3228cdb1246c1339bed8d1cef2d08bdbfd46ecd527a5d6a8be5280485d976"
+      "source_png_sha256": "02110f4b0df6f9d0f05f1cd4ef5b0409fc1511c4f6adc802081054a1f07f0100",
+      "jpeg_sha256": "75eea296b6c3c7b230b506f79470452fedb1e5a9cb8417534e8415a5cfde2d1d"
     },
     {
       "file": "local-dark-ontology-neighborhood-labels-zoomed-2560.jpg",
@@ -7263,8 +7263,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "f69aa7b6c43e9ac47c6314c811362368ee542273236e36ffdb26ac26fa0c30b5",
-      "jpeg_sha256": "356ee2aa7c93d3da3b953c81eb74100748531e0a47f4e1d316d58454a50a34b1"
+      "source_png_sha256": "30faff68f12568ecd356fe58ba23e524ed311ef0d5e9590dabf5a330e9c26a93",
+      "jpeg_sha256": "5eeecc19a86fd8d3f919db48dd7a3e7dd8c9f3cd5d425079fcd9c020c65df4d5"
     },
     {
       "file": "local-dark-ontology-neighborhood-labels-zoomed-390.jpg",
@@ -7272,8 +7272,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "2e74135806b2290fb55528d8ae4ff7eb075024846cf0087d46fcd4157e3d969e",
-      "jpeg_sha256": "ff3be6aba022b2d967adecd31d7370852beb38fe44aac078e18c8c0fe9e3669c"
+      "source_png_sha256": "bc580db8d20609192e0e4903f47db52f04b014c4bed2208889a3bd7ce1edef82",
+      "jpeg_sha256": "c165192270225ad3699aa256cae923ae6e09b960ce1d50b04109435ca0c47925"
     },
     {
       "file": "local-dark-ontology-overview-1280.jpg",
@@ -7281,8 +7281,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "fa6d5e002885d2394bac144c365e20d54151e12a92b57ce484f2c3aabc779d3a",
-      "jpeg_sha256": "b203353c2744193eadccb44d969508b402f5d045539e6fab538a298fc4543267"
+      "source_png_sha256": "991899e1f3b2c08144dccad92198d91e8f095a4414ddfb717ab65f098e6e587f",
+      "jpeg_sha256": "2b9b5d6c1b3273886e8ad9edf58fe379f8d2f6979f4f1c1061d9739ed295a905"
     },
     {
       "file": "local-dark-ontology-overview-1440.jpg",
@@ -7317,8 +7317,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "b1bd9b61acf328c3cdfdb87d4120357f8147987572c4cac9d93b2d2ffaf1697c",
-      "jpeg_sha256": "a6c1f33b340b61aa54a5af763962ecb2736b55784468989952c521f7d516450e"
+      "source_png_sha256": "3f814ce356d1409d86366bd9f580743c2cf0a5d204b6647baf99247cd1b27a07",
+      "jpeg_sha256": "99111265ea0e591e6097288516690414e1f9e59ca9952a4458919a3e515146a2"
     },
     {
       "file": "local-dark-ontology-source-1440.jpg",
@@ -7326,7 +7326,7 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "81318a38a3d2d0499b66e268edb6d78fb5eeed658c9322d3ed34f9d807d5900b",
+      "source_png_sha256": "a2de1dd9e5912f1a9d8a70d8a28da3d63cf070c8a5c5e7fc538c7874bc75ccfd",
       "jpeg_sha256": "05473758ac789bef90027552eee5c06a705a5794eb2cc405ca9165fc169e5a5e"
     },
     {
@@ -7335,8 +7335,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "4336797266cfed4e38374f5f462fb9d77eb3a5c08e5a6d622b371be7fda11147",
-      "jpeg_sha256": "c76ad024734fe289fb9674dd216afe99a994f53794453ac125d463219f66198f"
+      "source_png_sha256": "0975add1da9a195fb98b7a018cc7802849abb3018d2eda84e6b4a3ec62075414",
+      "jpeg_sha256": "ce6716b5cd1d2d1424f9d2be6a5a074e3c6d0c408bd9297ecf99dc7fb87b7add"
     },
     {
       "file": "local-dark-ontology-source-390.jpg",
@@ -7353,8 +7353,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "0063199ff6c683a33caaee6d231f285fe48667057e54b160e0e3895a2bbedf8d",
-      "jpeg_sha256": "edd4832d21a40901ed6df28b0a32a4514077989a2d0201727d4b8f5a428e0bf5"
+      "source_png_sha256": "3466d2ca11d70c521fca996c22126bcfb27474e9651a6fd49e92fdc938a4d1f2",
+      "jpeg_sha256": "64ca3e496d752b994737fdd6bb7141b198a8dccbfcedfea93f073247fd7bf514"
     },
     {
       "file": "local-dark-project-delete-1440.jpg",
@@ -7371,8 +7371,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "4f322c438eda9660c5aab788843871fb92f72253e28897763f91e4cc78e7ef83",
-      "jpeg_sha256": "f30cd28980f5432e1b36188cc1bd0eb5a3b9d6901f804ed23eac9da071ae236a"
+      "source_png_sha256": "db53804b7d7a307ccb8ea062d998070af58e924052e360ed0786edcc2b0ce051",
+      "jpeg_sha256": "c5b3c63866c4f439b0976856b7ac9d58f4d8d51bea625e449e9304a5320726f7"
     },
     {
       "file": "local-dark-project-delete-390.jpg",
@@ -7380,7 +7380,7 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "b9121c3995c70bfc9a8714cb87ddc7a7682216a9213c7c2bf8a241e6e66a999b",
+      "source_png_sha256": "440e7de0cdcaa219cc7070f8083f5b819228d50c31a7bbf168165c133c0ad475",
       "jpeg_sha256": "ca431bcb9e153da6d25d75bd599a333e4e3e26b1421068d07a474d11667ceedd"
     },
     {
@@ -7407,8 +7407,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "2b3ea2ead1f6e2840ff6cb34f482c2322d9c308e47e0efe6ba27b6df0f9998f1",
-      "jpeg_sha256": "adccc7d75eafec052ab0c82b112fd86c5812707303a841a084fb9282043c48c0"
+      "source_png_sha256": "72956311177361a067eef1eb794391680f4f84a34993933d7547ea28b437bf27",
+      "jpeg_sha256": "1610965589288d900f5d00c414aadf728ad3d681e36078e8237c5e3a1c12501a"
     },
     {
       "file": "local-dark-project-export-390.jpg",
@@ -7416,8 +7416,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "5cd61597e46254148322834cb26901759928145eae1dc1924c1029de828664f5",
-      "jpeg_sha256": "34f0cad8c076b5c44503e0a8b3b2c31670e3116e13737382c42c8d1acf202099"
+      "source_png_sha256": "e50f0465413bb6dee5a98dac1eb5c184ab52cb3ac86ac70ae9ce031dba0b3ed7",
+      "jpeg_sha256": "97e3ad6988aef49d1be9922692bf80769ef8b38cf076d5161b5892f7d0256e3e"
     },
     {
       "file": "local-dark-project-export-history-1280.jpg",
@@ -7452,8 +7452,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "bf28de48f73556271297f5b9d77d00b582326f2bfe4d4011c35766d4a1d1282e",
-      "jpeg_sha256": "856eb764a7ed601d74970479563fabcf6f23d688eac45545284dbd10b5669bf1"
+      "source_png_sha256": "852a7b418b6f1f420790570bfad250153e06b71638b0516c8d94e1e7a9707704",
+      "jpeg_sha256": "da67f854b58dbdd823a7acce9033a4aaaa920fc70b6a23752fd548bb863ecd9f"
     },
     {
       "file": "local-dark-project-rename-1280.jpg",
@@ -7461,8 +7461,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "ca3d3c59159676e9a14dbac173cd61848a45038767fe161aa96e5b9254fe4865",
-      "jpeg_sha256": "11c48c271ee7f04377ad2722100f20b4a829479b109f733bc95ab32b4bb1a602"
+      "source_png_sha256": "3c485df41f1871d11b1a3e6aa329ed83db2317885b8dd178d3fa4670ed0aa0c8",
+      "jpeg_sha256": "63ac829f1d42dc4859d5eaa4949df64d9250283d2a71b48016888e3ea5d19e12"
     },
     {
       "file": "local-dark-project-rename-1440.jpg",
@@ -7479,8 +7479,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "c138745c0ae68e49913d000a47b188cc4e1649d6ce821c074eeac152492026b8",
-      "jpeg_sha256": "a7806e8a03e3b83798ab4dbdd62c0929c89c03666ad2bdd4689dee7687168ec7"
+      "source_png_sha256": "f613c63c73d48d98c34b8992df06dbaea7b48024cab486b065b16821e7c9699d",
+      "jpeg_sha256": "17cfee923315e0f8d5048256898555fd9fb35d58ecb28f5df6e536cf2e95d88e"
     },
     {
       "file": "local-dark-project-rename-390.jpg",
@@ -7488,8 +7488,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "52678424dd7bd2bef1b22b9ac28e804d9447f4d155b592c5e70e16aaa55cb577",
-      "jpeg_sha256": "4fdfb5ade92c858a04054cc123cf301ad8655b75e47250fc4612f7a79c71f589"
+      "source_png_sha256": "618bd76befbf073c1288a3e2d12a83d7988133a4f4fe7bd2900d805d1c92e733",
+      "jpeg_sha256": "fb9e8b88c46d121bf2a87e3870c869d35ec9e150b1d497be9009eca68563d007"
     },
     {
       "file": "local-dark-query-composer-1280.jpg",
@@ -7506,8 +7506,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "4cdfcc754bc9099006be7bf8b2dcdcc92c3de48396f83333755214ed926978f2",
-      "jpeg_sha256": "cbdfdb4359fcb7ebd0b45f282e9368dfabd217b207a2130b64b09e207fe8ef2d"
+      "source_png_sha256": "018e1e7b28673a43e534afcc36423c30e19ff17573d21de44a2294ea5c342499",
+      "jpeg_sha256": "e10f8ca1ebe40fa97895e5a76916ee0fe5bed42f43f7bf57a6e252fd12f013a2"
     },
     {
       "file": "local-dark-query-composer-2560.jpg",
@@ -7515,8 +7515,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "4b4939272d357f62d68abb323c478f49eabd1f865ca81eedc0640249ea2717bd",
-      "jpeg_sha256": "cdb2afb35ff3c0e5aba6effb37b264a7cf73a112441ae5a2a49b11afcd3aca69"
+      "source_png_sha256": "144370bd5e5909f9ea1c4237232cff2ccbb063a403b5e8a2365cbb1cbe172c97",
+      "jpeg_sha256": "33237618f6af1e85f693738d2881ce08c65e83531e37a4fa1db6e3885fe4b264"
     },
     {
       "file": "local-dark-query-composer-390.jpg",
@@ -7533,8 +7533,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "a7cd2f6cea88d18e05423de7d66bc4abca7268f2fdfcd036f715eb3771401a2c",
-      "jpeg_sha256": "bf356eb9ef494774d985d2635c61382711020c1826495bf061f082ecd462616a"
+      "source_png_sha256": "5821aacb14d086260eddda43c2cd9484880283dc248ccd3b2c80fdb70df0da31",
+      "jpeg_sha256": "14f703b4e939ba85fab20c6e9ad2d31a07b6c06b752e6b7c98bf79fa085fb6f0"
     },
     {
       "file": "local-dark-remote-folder-1440.jpg",
@@ -7542,8 +7542,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "d634c2b5864c4d6db3b66b4899d3a70beb122eab76d0e58210effc35b70b1fb8",
-      "jpeg_sha256": "685d39bee476ede00bb2748223b7d9e4341962551bbb5862b0ba85bdc8338fa1"
+      "source_png_sha256": "50275a2e4332e6ba0ea77e2bf98f58399f291fd7371df0490d32ca68f4463ffa",
+      "jpeg_sha256": "3b3a89c8ef7bce1fe95e6c3e346d33f2acff065dcf4903668e670071bba245df"
     },
     {
       "file": "local-dark-remote-folder-2560.jpg",
@@ -7551,8 +7551,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "785af5c9d96fb5c4b0236eedc22591c918cdd3059d0d9b117040410bdbbd9943",
-      "jpeg_sha256": "0c94373eaa81369b51eee4af073c557804a2e6b8446f8169d814e7cb5a6c05c2"
+      "source_png_sha256": "35523f9f4bc0bee92a01fb589cfa9225adbf775b0b6ccbfae3deb86887cb900a",
+      "jpeg_sha256": "6e19e7829cc1f15044028d9228bb1171d6d6f792d18e6d155a9b78ce1d5925a4"
     },
     {
       "file": "local-dark-remote-folder-390.jpg",
@@ -7560,8 +7560,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "5dbfb21d98362cb2583fff077cc6546226770885904df0e059b312b30438b0b3",
-      "jpeg_sha256": "c06e9711a1ee657deec2b205cf43bb6ff2f214451b884f5b9115139c6de04138"
+      "source_png_sha256": "e022067468054c1a415fc6762aa42514c70c0ae447e3137186a339e655dc99bf",
+      "jpeg_sha256": "810df8224202f094df141e4b2cf2dd03284f4a4d9fa7db8577f5343abbe6b3d3"
     },
     {
       "file": "local-dark-remote-folder-preview-1280.jpg",
@@ -7569,8 +7569,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "c51b0806a36bc42d5fbf34bde10fa1cd8077b1d8b494606f301a307855246ea1",
-      "jpeg_sha256": "2e8829880d7df3bf66e087aab569f868d369a13deaca9f74a92bee177498e029"
+      "source_png_sha256": "3b758bb72227f88a3f1964a9926c59634798dbfd606c2a29a138ded07d0c8561",
+      "jpeg_sha256": "3f5b7b6bd240bd0c4ab10ec485605dfa0b4d313a4812c4681b5f45833b9549da"
     },
     {
       "file": "local-dark-remote-folder-preview-1440.jpg",
@@ -7578,8 +7578,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "452300a24497d0690d864933a6855cbe14313db0b843fed7ce4d478adaa3ec86",
-      "jpeg_sha256": "c8c36b84ca3a103de6a31a43802602b1cc450fdd4a7a480092952269f410546b"
+      "source_png_sha256": "4942408c41d0b190f9b5e8ab6ba6f5d599497121282314298ce9b8ef3302a52f",
+      "jpeg_sha256": "fb256369293a7912f4793b418ae8668cdc4933c9ea67366b92671ee50c77b29c"
     },
     {
       "file": "local-dark-remote-folder-preview-2560.jpg",
@@ -7587,8 +7587,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "00be9977533050a4675a47394b210cbcee3c872cc1785fd3ae38374a6284c7e3",
-      "jpeg_sha256": "39a7c2ca300b9ef70ae035b474364d8b6c6444de3931bc64325d709c3d69c7a5"
+      "source_png_sha256": "dd5aa8ddaa9f0310e013e8139922b694cbf35c986763bc7f67cc853675bd3a5b",
+      "jpeg_sha256": "9f42d486f723d1af01bb00b0a6d81ad00b5a97164a85c5e3dc37929e9f02c9f5"
     },
     {
       "file": "local-dark-remote-folder-preview-390.jpg",
@@ -7623,8 +7623,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "1515b90ee5f642a3f24f84420056a9ecc8fb0a9dd836f5a6d3f86c58b8b73bd5",
-      "jpeg_sha256": "201f20f7ee1d8068bfc061042aa9a757ca65edc18794b59f61a79fe1133528a4"
+      "source_png_sha256": "2de6f8a32e6f910bc3f78df6964df4cf6d6ba8fa2474b0ab6f8fb96bf8796fcf",
+      "jpeg_sha256": "bb932e1f4ecbb72a99583a99178007fa65dc63d27a9a64099d859fc4fb9c78a1"
     },
     {
       "file": "local-dark-sidebar-projects-390.jpg",
@@ -7641,8 +7641,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "21c77a486b9d77a87c4cd0def39de66a623d3f6b17059b5020a66d3903769eb7",
-      "jpeg_sha256": "68399fcfa715f68726b34253e2f571160ae498dc186a2e9c92d84397b4dd1bd5"
+      "source_png_sha256": "1a22f87bbaafc64ad7c3db6b166d9e877aea24492f1e5637eff34d81f1f77d7a",
+      "jpeg_sha256": "3269e2e700f05685ddb31cf86f537696dd4a11a8076098e1f61a1b958aadfc0c"
     },
     {
       "file": "local-dark-source-control-1440.jpg",
@@ -7650,8 +7650,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "faf159a9a93e866efd41f10117e371d9034f5ae5f3fdeae1b145c084512e7766",
-      "jpeg_sha256": "bef3a3699f60e0ac2ecea20e28caced6d0cbf5e263bbe3240d69131c1eb87f61"
+      "source_png_sha256": "d212cc44c37635f7e5db6a70644233c762a8a4f8780ff106521e5a20da676f3f",
+      "jpeg_sha256": "340a1ab54a340375a88d9437c80f6c67a049bc73591b8d8144f28ee7a53b76a6"
     },
     {
       "file": "local-dark-source-control-2560.jpg",
@@ -7659,8 +7659,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "2676de941bf748f207446f282f798a99d4f4577ee69a80a3dda4613c9b82a191",
-      "jpeg_sha256": "2b333688712dfe9db6870d7263601ee4aac935d60f77f9ec1c876ca8ebfec311"
+      "source_png_sha256": "0f939383ffe2939ec157441e92ebd8d88e0549bd7039963d4c54f27a57012241",
+      "jpeg_sha256": "e0a9cf0ebc87289ca4a35c73c929f3827485593a0dc38441902c1404482f573e"
     },
     {
       "file": "local-dark-source-control-390.jpg",
@@ -7668,8 +7668,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "b0cac45f659bc2bd7babe36f3e48de0e533b3457d5928cb479bd97dd77132d83",
-      "jpeg_sha256": "36f441fa61dc9ba6448babd93b70b67a2b9737a01f96563459436053197667e4"
+      "source_png_sha256": "78c76073849685872785e2d93acc25a64640835835a3fb0b5ef02dcff1b9199d",
+      "jpeg_sha256": "0d20e21d0b3c96258436533eae68d35edf9838f6854889a75f22b0dc85c9810f"
     },
     {
       "file": "local-dark-source-control-sync-1280.jpg",
@@ -7677,8 +7677,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "6c4bc5614e5b64432593ee5b75a837603b2ab0a6f33c82cc7fac6155e6f95bd6",
-      "jpeg_sha256": "301127d1d780f1ec0ea06c4e09834622c9b3c6d409150c01e5d4e8c48787736f"
+      "source_png_sha256": "8590798588c369c2644598e99682fd5e60616ae6952c8b0fd38b9a77bb4a9131",
+      "jpeg_sha256": "35633bbf253d7bcf41e1f48742222834872dd6f5f396ef9fdfe83717c33ce09f"
     },
     {
       "file": "local-dark-source-control-sync-1440.jpg",
@@ -7686,8 +7686,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "5150633e31a3100f56e39a62b50f20d610d865e6fa2c92240283017b7dbe33d6",
-      "jpeg_sha256": "feaa9a54b1bca609f234c6fa7104cb8533994cfa988ee02e13c572337365fddf"
+      "source_png_sha256": "75c378fbea78cba66481e5b9542f9b2fea19a4144d7d1f20f6a1751a0ba502ce",
+      "jpeg_sha256": "26a006ae84f0b1932daf27f9c31a7d5aa574dd8f61749762adf1afc3ed3b3465"
     },
     {
       "file": "local-dark-source-control-sync-2560.jpg",
@@ -7695,8 +7695,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "f8fd6926d9aea16bba1a09453422a26d03fe6c65e6d1f7bb0f61585d36fddcf1",
-      "jpeg_sha256": "e7b6e550994daa8bce9da8633d614b0f774d2810f3ec04167b0c9ea87daf82d5"
+      "source_png_sha256": "949609da5845f5e4263bc88e00a6444c7ac36119d5b3bf955bbca954feaf096c",
+      "jpeg_sha256": "4bcbd543ab5f4a7be4278fcd170e60436dcbcbadc6284e08590987e2712f7d6e"
     },
     {
       "file": "local-dark-source-control-sync-390.jpg",
@@ -7731,8 +7731,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "6b9b4850c9314f4ab531b44d7f83cd2122c58c36afb73470db1dfa1c5fadfc39",
-      "jpeg_sha256": "5091916fdbffdee01367deb009b66be832a5fdc6ca2861348440d8b352ee41ca"
+      "source_png_sha256": "06dbfd771818acffb57e82b5fc94b8bf92908abd7769722dc4e94c8a99908a7e",
+      "jpeg_sha256": "0302793e1a36aa8eebd9309c03308ed5db85cc92b2a1f596cb1e6139b53698a9"
     },
     {
       "file": "local-dark-source-editor-390.jpg",
@@ -7767,8 +7767,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "84ca8d4a203c5ab9de8529fd2caec673c1353e341baa025482dc780cee02566d",
-      "jpeg_sha256": "955df007c9eda89d38f4cef19941a9960076cff2220d20a1a85ab96af4eccf6d"
+      "source_png_sha256": "fc5727a2541b18185516904a0971e3673bff064e80bbd6ffccf475792fcdfcef",
+      "jpeg_sha256": "415254aa1d6c3a32ab8d0803263eb27df8e5510ee00915e5e96056da3cb54eb5"
     },
     {
       "file": "local-dark-trash-390.jpg",

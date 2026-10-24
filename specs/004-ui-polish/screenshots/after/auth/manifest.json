@@ -1,6 +1,6 @@
 {
-  "capture_head": "2ce466ca0e39184b573e6631525c0e524c3b7ceb",
-  "round": 14,
+  "capture_head": "fb098531c69398cd0b68ae44e1b2d309df5fc1ea",
+  "round": 16,
   "conversion": "JPEG quality 95, chroma subsampling 0, original dimensions; no crop or resize",
   "images": [
     {
@@ -9,8 +9,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "6adde6e49f916853bae70a9419edb43f1851f410127b5f46fc6ed4742307208f",
-      "jpeg_sha256": "215a952296929b026edc131d085b128d59575e5d97546f86978e1f425f96e8f5"
+      "source_png_sha256": "c1589f4d28e384527f2ad57dfd51e04d8cb7e438cc615eb99e3a235db553beb2",
+      "jpeg_sha256": "9614772cded340c441b85541f7e9e9a727814df9e7a264630ef90cc9f1efe0c8"
     },
     {
       "file": "auth/light/workbench-auth-connect-prompt-1440.jpg",
@@ -18,8 +18,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "0590ac77301400b8653423569fee6e751da9dc43a993d807e8771f8dbe6df391",
-      "jpeg_sha256": "7b270a7e85fea12e8922d85e854685a6c527c309f16d824203fd33d1d550f298"
+      "source_png_sha256": "84ea307684a9006262f2b8343920bb721240a4aa4adfb4c77849b7371465c4b3",
+      "jpeg_sha256": "8d530eba30920f1d72639df58a8a57bcd56306e89951feda41c6889fb8c001ba"
     },
     {
       "file": "auth/light/workbench-auth-connect-prompt-2560.jpg",
@@ -27,8 +27,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "b06f87a246dbf10d87847245c143650c28c37c7aa3d4af72f4d8d05961f17b7e",
-      "jpeg_sha256": "a00574f8d8b311bf5122c4daa8e1a3ec64ba5dd80156c2599942724616c0d701"
+      "source_png_sha256": "bdd0041cd1f605688f0153c6f5bd75f0da07f099b72573319c6d4b911afb5037",
+      "jpeg_sha256": "dc6b87c91c22d8d0a1afaed223d4234a17e69a2330282e5d068a877dd9cc2863"
     },
     {
       "file": "auth/light/workbench-auth-connect-prompt-390.jpg",
@@ -36,8 +36,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "68b2abb48c796dc1dd9afb4d408fe85af0d7c4e1b54048e1373ecc5603797f38",
-      "jpeg_sha256": "17d6bdd9419c483e9edbd9ceeb22b264cd11e81630854744ac14d53a4bcefe4f"
+      "source_png_sha256": "842dc3ac00e8773c8ff2147eba27a7398e6889be263a1671972893432d50c45b",
+      "jpeg_sha256": "d68be00055bcb1a7658871a53a10e9eed543e314faf4745494fd3289b33b84ce"
     },
     {
       "file": "auth/light/workbench-auth-connected-accounts-1280.jpg",
@@ -63,8 +63,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "a87096b3383015a3922e68cdeff203ca2aec893cb1654ee6564124fb751515e7",
-      "jpeg_sha256": "3ab671c9805a4136735ca82f3562a3a3f1f2b110580592409ccbc7a90cd49bdb"
+      "source_png_sha256": "ff577310e529e0f73e8d666f669982e4d5979337a413c77448e78efc65516f29",
+      "jpeg_sha256": "4d15d8f3c3d18e53db1ff0147a0a6307c1031ebc15a4b9bf96ef3f794d73cf46"
     },
     {
       "file": "auth/light/workbench-auth-connected-accounts-390.jpg",
@@ -81,8 +81,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "6172e5c10386dd1df63f5c43c49099eff17c63c87c89167d745ecdfef3c47287",
-      "jpeg_sha256": "3951d27ce46d96227c73376b0925e30442481a564924c5dea2d03a3017a5c5de"
+      "source_png_sha256": "5d32114061768d92e519fe7e67f0f34fca507a9d1fdfa60afb3bc7a055264cd9",
+      "jpeg_sha256": "fa451e50c39d43c4b1f10bd8c6e49fc37d7223c82cdb00ec9991493496f6b0a3"
     },
     {
       "file": "auth/light/workbench-auth-connected-github-1440.jpg",
@@ -90,8 +90,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "320afcc3f4161b5f899b478260bdb0f6f6ab5348c64abf8748b31431002b1ea2",
-      "jpeg_sha256": "49efdf97b12d86e723e55203793abe779399935b18fc0bcb37abf4f393c1c414"
+      "source_png_sha256": "b7d748005ca8eb1b09a81fd08f7890adaf79031bddf77abdf2000d8559600377",
+      "jpeg_sha256": "2cdff2d6634d582384290cef678ec3e2ada6ae45dda522468850d7e44f2a90ee"
     },
     {
       "file": "auth/light/workbench-auth-connected-github-2560.jpg",
@@ -99,8 +99,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "b60e842eae95effab0dc9d55e659b074270142e51e38dc27dc59aab188ee928f",
-      "jpeg_sha256": "0e960ac1de8c41c54d8bab4908456cda3b89a076b5a302c1bd40e86549b008d9"
+      "source_png_sha256": "54457a8458d67bd574ffebd3e197ac158412fa82f43bf376b4c9bcc37d6f487f",
+      "jpeg_sha256": "4a43c3f49a07cf8731c5ab4827575337e21f23ec2a34c4a4e119fbfb9bd3d5c4"
     },
     {
       "file": "auth/light/workbench-auth-connected-github-390.jpg",
@@ -189,8 +189,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "96bebc9f9fd6b6279235b473df8d9097b325fd04ca071760fefefeea2732e8b7",
-      "jpeg_sha256": "463f7f9826abbdadf0b174150cbe1445b1eb2a3939119cf8e994131a9d3953bf"
+      "source_png_sha256": "b2c0cb5ea2a8caceb458991d804ccfff31806703b0e796f6289a6d4c486ece5b",
+      "jpeg_sha256": "73476202721387ef8887c959ac12a5a8c45f34284e345ffb8896cfda7fe48486"
     },
     {
       "file": "auth/light/workbench-auth-metric-approve-steward-1440.jpg",
@@ -234,8 +234,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "a59e9d9f43da1c96441048260799c3a475f60f5d689edbf2ecda924f6668c6e6",
-      "jpeg_sha256": "8d430564c06ecc649a7ed5a45455d75b2305d20c2e4b1670f5f98dc643fb63d5"
+      "source_png_sha256": "c5d04594389f5edc3831792d432719a28154f85d5ad8bc9c9b61fda67a60b955",
+      "jpeg_sha256": "2f18c9030ae92371bd18441a03d54971990409254baddbc9a7a333d8bca9b2fc"
     },
     {
       "file": "auth/light/workbench-auth-metric-deprecate-form-2560.jpg",
@@ -396,8 +396,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "ec30855b70f822de9621f3dbfe0c7ae2172378d100fa1d4d8a8bd4cd7f487557",
-      "jpeg_sha256": "a26e54919633ca0bb722e241d7c741048372242b90621a91a3437a65a23dd01b"
+      "source_png_sha256": "1dc361fe96d2954656974e6496c40f435cae44e38f74843ed8e8f9b4fcc9e775",
+      "jpeg_sha256": "9e8ecbaeca71cd679aaafa73cdcbeafd7965bd4dd5986d6e3e30c0abe056e8fa"
     },
     {
       "file": "auth/light/workbench-auth-property-editors-dialog-1280.jpg",
@@ -423,8 +423,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "c11b516ddeb492d9539178dc076f0432a7c1f959c974e08eeef42f4e8e5edcf7",
-      "jpeg_sha256": "7a6062e8f551cfbd1a51890e609eabc20d1b79006a1538d2b9e081481612d5eb"
+      "source_png_sha256": "111fdf0782a1e8b2051a735c258acbb5696efe1751587de613e30536a1c0df18",
+      "jpeg_sha256": "7bcb6c44f1ea28168b03bc45319c9e505368417f76908dfa96ca0a25e956d4c8"
     },
     {
       "file": "auth/light/workbench-auth-property-editors-dialog-390.jpg",
@@ -441,8 +441,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "b299c35dd896d66b83fb0de9197b7116b5ee2065627b2868b2fb8a12a95166b4",
-      "jpeg_sha256": "7c3317524c59e0ac759c0c06afe8a1139a5e37414327f360bde43839e724ff36"
+      "source_png_sha256": "4faeb7f5a1b9fdde0c7196c7d3aa83550f9f38cc38f06e9a752bfe1707130f9b",
+      "jpeg_sha256": "d30cfb1a4fb9d9349d8b51e47b1b37aa4c8cdab10a0cb7b1566c1caad5b8fa69"
     },
     {
       "file": "auth/light/workbench-auth-property-editors-editor-1440.jpg",
@@ -450,8 +450,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "46a46a9e5214af6f52ba564878fb0c12cd7d70786bb3a93054c37b3a0fe2a20d",
-      "jpeg_sha256": "f9f3f11ef56cf1a3e79c45ecffd4d422ce95ccbf538def3173ff336b6722463f"
+      "source_png_sha256": "eb0520e4d4b8a6a6e53d351fa83eb891e7b51b17e7b8e4249cd308c4ff894b81",
+      "jpeg_sha256": "4e12ee90413c65a9b13308273acecef65fd5771303a18b51057c1b3a24c36032"
     },
     {
       "file": "auth/light/workbench-auth-property-editors-editor-2560.jpg",
@@ -459,8 +459,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "1cb7b6a9b474ec9af2b64f7aa692d066e0e75b8cc39f62c62fa6cf25377e88d5",
-      "jpeg_sha256": "f478e3ee7bb3cdd7550fe591553730f3c8da581646bf27891a38aab694a52d85"
+      "source_png_sha256": "74cd412542cfbc8143f9cf35308130984ebfced5777da0fdc07fa86a84c21b55",
+      "jpeg_sha256": "a2deb7a83492d510205f0a059cd8c6e612076fe74951a85157b884e1f056dc0d"
     },
     {
       "file": "auth/light/workbench-auth-property-editors-editor-390.jpg",
@@ -468,8 +468,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "26c06a0109ec89d026639d1bc9755b1ff0c2ef1c6a816c7281c04111b5e9f179",
-      "jpeg_sha256": "1ced6796abb596fac45e2f6b0f60747e4b209f5fd0351ff2f7465016570bb56b"
+      "source_png_sha256": "38c6731ac5a14b57625e81e7b62ce726038b980ef9a6af2e858e5e3e4a19cf12",
+      "jpeg_sha256": "baa9ace075ef529bedab3bdac6f0c45f766491c5af4b7c036e6b43ccce046332"
     },
     {
       "file": "auth/light/workbench-auth-roles-alice-1280.jpg",
@@ -477,8 +477,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "8b1cab4b58099e2b7e8755ffa93b86d0b2a4e7ecf10520d9c5ca3d5b95669a5b",
-      "jpeg_sha256": "4483c88688dba3732da76587e38329b96d473f166a5e63c00e0727b09478e6e5"
+      "source_png_sha256": "514b892a3e92c3fef69bd4cef2c7f810d61828814cffb23a8b3ee29f24b5d340",
+      "jpeg_sha256": "3dc01c2cf260015566b9585a648b7a6214ba9fde8792b89d1fa55c5a0d644ff3"
     },
     {
       "file": "auth/light/workbench-auth-roles-alice-1440.jpg",
@@ -486,8 +486,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "767d7cdecb90f5f52b3af139af411016fbf1ecce1dabfc0158fa58796030a6dd",
-      "jpeg_sha256": "bfbd6cdc3b1d7bb6a57ef5bbbb2c5d4115a9267eda5eeea545bed672591aac73"
+      "source_png_sha256": "2f7348b9244de6c8a7ee074e9d86b0a16ae7b660ba521e059c87d458d0f498c2",
+      "jpeg_sha256": "61b52f13772209bbfe8eb1717d6e78da32bd239d228e68e9b23026acf470c1be"
     },
     {
       "file": "auth/light/workbench-auth-roles-alice-2560.jpg",
@@ -495,8 +495,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "8817515d6b64a501397200c84290966b97b9657f3b8f6d32459fc74d4c770216",
-      "jpeg_sha256": "389491ac4dca9edef48df1694e970d87714da056a458528b8157fcf9d03dabf7"
+      "source_png_sha256": "9c50f9a34a3bc6100de5b29c0344d119e04bc8b7fddee7603ae777b87d9e1494",
+      "jpeg_sha256": "e9cf9e8715db6e66994edbe7722289fab125f15f698f47d8c4b744a0e2e0d420"
     },
     {
       "file": "auth/light/workbench-auth-roles-alice-390.jpg",
@@ -504,8 +504,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "a64b46200fa17440a698b4f4f643ff1d06da6c4f7480560646e994f18f907b5d",
-      "jpeg_sha256": "50863c650cb13c65d0a72f1f834b8c8ae48a654932510d0bd967060dd2bcade3"
+      "source_png_sha256": "376e8ff1ffaf71c90db1f7a791261532998cd9f7751cceb6ca38b21e2d796cab",
+      "jpeg_sha256": "26da91e0fd3f5025843b0b23b6b595615d4d738a385a0f8c471ed17e91521bc6"
     },
     {
       "file": "auth/light/workbench-auth-roles-bob-1280.jpg",
@@ -513,8 +513,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "89f6e6f795f8f1616260984dedb0f445434a6c93f087be4f25f50c5e350e3a09",
-      "jpeg_sha256": "c8138d2cd9cad652da0c60f3ae4844086b97a7ec0d14bb4164a559c1c8d9ae2b"
+      "source_png_sha256": "c1ba82598234220458b9762bf79b55c6b10f33c9615da51e72dbd50d66941a64",
+      "jpeg_sha256": "5cd4366f748be9d75be4d75a44379d2280658cf5872a9f8391f22df16be9cccd"
     },
     {
       "file": "auth/light/workbench-auth-roles-bob-1440.jpg",
@@ -522,8 +522,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "eab95053348911910955a0a65c8cd12daecb2b2e971321fc4aea1cfc0c6cb1d4",
-      "jpeg_sha256": "a04b6623651c607b89b0aa1caf1a25fec07778ac3bc8f12c2c7de7ec535e9680"
+      "source_png_sha256": "ec91a13be5ae8f7f67736d7bb5fcbd56b623f6b1c210cb22d4bcbdfd26ecb062",
+      "jpeg_sha256": "60482a4086e24cee79e3c8581ad357cc3397383b67311ec93a54014ac86cfa96"
     },
     {
       "file": "auth/light/workbench-auth-roles-bob-2560.jpg",
@@ -531,8 +531,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "378845088e547190c2e67b3c03d513b9eddf66744f669d04f61017d30fd1b898",
-      "jpeg_sha256": "2f9dd9659f1aa68cdbc7ebf9d9cd41eb1af217a9aafc92baad6a18b3b5c3f9cf"
+      "source_png_sha256": "0096e165a11202ee58cb567c57ebf382b4f67ebcbc202dbe1b3cc228b4802c24",
+      "jpeg_sha256": "db53cb711c45aeea00f33ea9273c4e32624ce4db8d472dccdb2ed69a4a56c5a2"
     },
     {
       "file": "auth/light/workbench-auth-roles-bob-390.jpg",
@@ -540,8 +540,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "4b9d7cc2f06aa12d047df51e6f30666cf9f33577703f587035ce22de46c2baea",
-      "jpeg_sha256": "8256985676165dbf515f4c76e35a920ce8cc3aef59b38b39cd536bcf91c6afce"
+      "source_png_sha256": "9b8dcaae3bd3194e00f170107956a13cef32cd4e64aa76098cf9c117fe7053d6",
+      "jpeg_sha256": "de5a73ebe3712bb6ae1f1cbca0e67217abd66dc4a5c4842da03306d4d0eeaa66"
     },
     {
       "file": "auth/light/workbench-auth-roles-carol-1280.jpg",
@@ -549,8 +549,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "979c66abe6b3b8f452bc73e9a4752cafda87b3ecc39ced3207981530bd67c4a5",
-      "jpeg_sha256": "5329f117169c09ce46b336f0879173d870754f340348f73f8f1dd9c48003555d"
+      "source_png_sha256": "7988172239fc6c8fd14132802632ea72bcc83cf917d0e65fd07971ba35029a87",
+      "jpeg_sha256": "93123853e01103bb3e37acf008f9c9a4048ed0a449d75b04701e3441e38325ea"
     },
     {
       "file": "auth/light/workbench-auth-roles-carol-1440.jpg",
@@ -558,8 +558,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "d72a01474e090be39efbca17aa11de3455de38765bf83bfa437746d6d420d36d",
-      "jpeg_sha256": "ccb523d2961725b2ef71bacf04d4aa0b6840e1cdcd18dbeef9df174c741b47a5"
+      "source_png_sha256": "e9831570b4a2522b7ebc4315fc9c570b5654cac6921e00429032fbcf9afaeb5f",
+      "jpeg_sha256": "369b302f725cc262e26d9af051c48b9f932f6f820ee061a6ebf0f9042234e2c9"
     },
     {
       "file": "auth/light/workbench-auth-roles-carol-2560.jpg",
@@ -567,8 +567,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "0db75cfe388d62e9772d8d361497842856398ece32ff2665e012d839555ac7e4",
-      "jpeg_sha256": "0c7dd935792a8ba94eddc3ad479c0027352d8e88688fc5bd5cccdf54d3e4f42b"
+      "source_png_sha256": "134581a36ed4b0826923a4877613751eaa1f4ffa067ea5090da67d10666b20a8",
+      "jpeg_sha256": "6897206dd36ebe0ac0eb29f37a91d5a65a8ce3caac764fcadc81f89c945682bc"
     },
     {
       "file": "auth/light/workbench-auth-roles-carol-390.jpg",
@@ -576,8 +576,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "09fabdf172cca8c583578c2e194ccd9b1ac97c7e9f02a1960b7a27ad62610b58",
-      "jpeg_sha256": "8c16c744acf5073072082b32a821344b23483db06d7181c84c1ef70ed362dff7"
+      "source_png_sha256": "9f918efc09a6c44f5629e99c04feff50562d1463cc379c7041823ac5d91d68b2",
+      "jpeg_sha256": "9fdf3f44e299bf36e78fc6e6e52fa333b07b1f6b58ce4bd85e59972adc019767"
     },
     {
       "file": "auth/light/workbench-auth-roles-dave-1280.jpg",
@@ -585,8 +585,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "dc319b0805b2abd6fc1271ec079d4ab200c3e0d4709cedf7d696b5c4237ee612",
-      "jpeg_sha256": "56e14cd1a7eeb118e7f92764765b2f69edcde9d77f65bad62e11a4c9a23b3224"
+      "source_png_sha256": "b732d8346bae794ac8ad01f9e9afbe1fc5a6f62552d1b7db10866f7cff99ea23",
+      "jpeg_sha256": "603242b36b18d40b62afd740bdcd60c11118bbc94437516cfd089411606b28b0"
     },
     {
       "file": "auth/light/workbench-auth-roles-dave-1440.jpg",
@@ -594,8 +594,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "54d595a8b2a73b47311133e2861c4a36dc9129ea5dc6c9ada1eb265ca4abd24b",
-      "jpeg_sha256": "351ea44e2929154633a522bef71ee2e9f8ecb4cbf0929e5f319ff34e4d5f5bf4"
+      "source_png_sha256": "776ec3bece30e0e70e39828bd2432e1cb5d5bee07727e071d1161e388e6c6ac3",
+      "jpeg_sha256": "d321d280f65c68e1ada327ae54be4f14f34d0ad87bb2d8a002d5133ed8a43796"
     },
     {
       "file": "auth/light/workbench-auth-roles-dave-2560.jpg",
@@ -603,8 +603,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "81f7faeb264cd0f3e0786cde99ad170427c3213e8a763e91655b0492493e4994",
-      "jpeg_sha256": "5c770cf617872ed79454c19ff62c6e42d0189cee6c51fb0947242eac55d935b0"
+      "source_png_sha256": "abf3f2832dbe0b77b3c398003a7ef9158b27849b3581318922bbdd9694cd4605",
+      "jpeg_sha256": "bd9907d0bc32878ffbc3530f42e309d4194d9f1c862d0d1e0912131912b1ebaa"
     },
     {
       "file": "auth/light/workbench-auth-roles-dave-390.jpg",
@@ -612,8 +612,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "a97349d5e8cb414016022e503797e9d2c4cc79988fd43a0ebbdcfdb95bef1ea2",
-      "jpeg_sha256": "ecac0fb668326bbf116f6cd4b719580a3a8b56534264eeaad9782473d3d2c088"
+      "source_png_sha256": "600279c234869cc2bb7254cc7b9e142ed5f2cc69a09e5de6d15c3f80d501e5c7",
+      "jpeg_sha256": "1d9d009544897a202d132167283fa92a1befdbb09c077a606d76b6473fd9a1c8"
     },
     {
       "file": "auth/light/workbench-auth-roles-hank-1280.jpg",
@@ -621,8 +621,8 @@
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "37c89a7e28c3007c1e12f7ba7c6004a2258e1c5d8bd31c55e322789580410db8",
-      "jpeg_sha256": "b91ae9a3b4723a72cb33f13ca58a8c2bc9e8c78824a998aa8e164937ac23d357"
+      "source_png_sha256": "7ef253b074c6a604318038bc25ebf2d782508af94e1f5d84bd7f6f6bd45b958e",
+      "jpeg_sha256": "ffc22c1e271d11e5c541b44e2051e0dffc8eaa8d8496be717500e616d262c5f6"
     },
     {
       "file": "auth/light/workbench-auth-roles-hank-1440.jpg",
@@ -630,8 +630,8 @@
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "d80643fcc19f36028c2b9bb00267e775fd2b528fd5d3cb0b9f877d86e82779ac",
-      "jpeg_sha256": "3abc7ffcbc1d60917ef779bb764ef3779d2cf297275b9446d1c3ea6330eeba5c"
+      "source_png_sha256": "77b73f080076c154176cfb0289856eb05dc5423531c4c889c332c099f585ba36",
+      "jpeg_sha256": "f458dda34ba8d74488a3e5d6b7217cd8506e0a770e2825a3b24205c775c40f73"
     },
     {
       "file": "auth/light/workbench-auth-roles-hank-2560.jpg",
@@ -639,8 +639,8 @@
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "df8d4705f78adcd2de9ef27d1ed8746a313e044481692726bcbad9c406ff07c8",
-      "jpeg_sha256": "ae92232afae972985fc238ee9d3e7f61bf4ae7861457ce055234ae79138d2e79"
+      "source_png_sha256": "6a7d1f4ff9c678142fd3ec96808e41be8a610fc30cede117456b50db5ac7d6db",
+      "jpeg_sha256": "aa01e2908d0290c83b2ed680fa6becbad046bcc2bd917e73750e7ef5d5d671be"
     },
     {
       "file": "auth/light/workbench-auth-roles-hank-390.jpg",
@@ -648,8 +648,8 @@
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "8d35b0928b28e50abb21b70df65893bd8e57199a9add065b26c34a8c2710dab3",
-      "jpeg_sha256": "7b84eede68d1ee4ed3be1771be581388cf67116220cdad51bf31eba8748b87ac"
+      "source_png_sha256": "27e6147b0aeeb6441457f9c8b90afe7500fbf075e8a6169fc18d225133187b73",
+      "jpeg_sha256": "2d8dcf7983d30d3b35c39fc7d46e5889be8ff33cb525c1f42a44050d1b129ec3"
     },
     {
       "file": "auth/light/workbench-auth-sign-in-error-1280.jpg",
@@ -765,8 +765,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "da8bcf9e17be85efd91987781a3c693743be46b2da63812fb5757ad1acb50a16",
-      "jpeg_sha256": "140c3b52b1e38dba228fb459dc422d26af086278ca2b69d2022872cec383cb93"
+      "source_png_sha256": "f6975d424f872767ce8bdc193b54bbf9db403823e3410eabd164282be5e015d8",
+      "jpeg_sha256": "4d4434339ddcd436c4be95490bee38b12cb356b9ff885b2f9a9d979123ba3cc5"
     },
     {
       "file": "auth/dark/workbench-auth-connect-prompt-1440.jpg",
@@ -774,8 +774,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "bb9d5b81bb42cbb82f6a5e7e9f688264650e671b5272a4b918024da7ab290817",
-      "jpeg_sha256": "ce36d26e79803376a25d536d1ec71325959edac21a1c696a091d7dd5a5e18919"
+      "source_png_sha256": "c71c7df13c80569bde780d799e890b00d5904199b54294bf05b3ca5d72b5fc63",
+      "jpeg_sha256": "d6ec7885aac520627d3bd4cc2694f8808136afa731e974a3ba179c5cf5b2b5df"
     },
     {
       "file": "auth/dark/workbench-auth-connect-prompt-2560.jpg",
@@ -783,8 +783,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "a380a44622ac6c8a87aa716eb8bafc9c0fc5b70a3122ea138fbb720e0c23e782",
-      "jpeg_sha256": "b1b659400b66db2b19f17f48fd0fdd890c1bdf8086b86ef11590d275b896778b"
+      "source_png_sha256": "5de1d82ed789d3f1338d95ded4b52ca0eeef49ba83a6834b90af2f4373479eea",
+      "jpeg_sha256": "5faf586fe9f7f818b48dd7ab3c557e90f38a8512782eadd45a80e3060126a5f7"
     },
     {
       "file": "auth/dark/workbench-auth-connect-prompt-390.jpg",
@@ -792,8 +792,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "1305746a10217284a08f48b724d0abc4dc3db234348e8191277bc1ce5464085a",
-      "jpeg_sha256": "c6bb0311c5ba7d373b14cbffc65d8b926e3f8c910bff03d5f29a6d2e5bd47bc3"
+      "source_png_sha256": "9185ec94ced0e5d12059e22688be15a435a14c7a5ceac3e96aed5edf85108865",
+      "jpeg_sha256": "7ea0a3e58fae58072bd8b3a984d6cea22cb5f9357d73f909d51166983f96c0fa"
     },
     {
       "file": "auth/dark/workbench-auth-connected-accounts-1280.jpg",
@@ -819,8 +819,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "67801c1590bc44a5165365435f19284c56515d1e06e1c3b9111ae6b1bae0d669",
-      "jpeg_sha256": "d503c61037c87b3fae0f01570f7a418d8b881cc16653b4cfa4ec4023a1da24a6"
+      "source_png_sha256": "06e59985b84d6ce6ff83f84e19b7c44dc1e50ab1276a8204e6411514ccd3a462",
+      "jpeg_sha256": "01a8e15a155f3ed044533c9e65b15d19243d0e42bda6902984947c3bcf9098ef"
     },
     {
       "file": "auth/dark/workbench-auth-connected-accounts-390.jpg",
@@ -837,8 +837,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "d6a6291704a30f17abe2affe8e04794c636a16de51b196da41630d01acb01be9",
-      "jpeg_sha256": "56af9d88a8dce703a066886201c474eb92b1e8d52dd2035791b40523e4d91f74"
+      "source_png_sha256": "a13a17bfa98b46bf76ad67d95d9afdb518a3c403e85173613fbfcab3bbf4bc81",
+      "jpeg_sha256": "d20ed28ec004d21c40a902624e88ea57756092e4cd7bdcdbfcec265dd858c54f"
     },
     {
       "file": "auth/dark/workbench-auth-connected-github-1440.jpg",
@@ -846,8 +846,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "4cd9b9142198c7251500ef54bdbee0a360cff398a342cd3af4b8ee9d4d601ec9",
-      "jpeg_sha256": "3044ff35f2747aba8c2ad6fedf90c833b6d16635299ef435f05ce4570d9b3773"
+      "source_png_sha256": "bd3b7f37fd184339ea57a3ac08d6e288a8ff15fd25accb373d78ee660590522e",
+      "jpeg_sha256": "766b403a258831476eba6f101f832a65b31c41de9222b3b9688ed03fba1f8519"
     },
     {
       "file": "auth/dark/workbench-auth-connected-github-2560.jpg",
@@ -855,8 +855,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "69203afcce9c3764e49853587f31ee86443cf01bcd487333e53ac627a8a9b2a0",
-      "jpeg_sha256": "a9d6d0db89a73837c7b75bcd56c7493b0615d94c721f06dd18de7ebaf76776d8"
+      "source_png_sha256": "096a0ad5549f39d7dc034337b0b7e4654efaa5caa282d49b54f1edf44f917bc8",
+      "jpeg_sha256": "c5cb030ca9821fbe93c36a85787d5e28b2cf2a0a22f55e88100d881271957462"
     },
     {
       "file": "auth/dark/workbench-auth-connected-github-390.jpg",
@@ -873,8 +873,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "9d0bb72ed19f617884bd5fccadeb3da27a9259783cd18802250c938796529a2d",
-      "jpeg_sha256": "75d25cec189a84f3d14df93ed1c1ba5728de57c270e752800cdf9393cbcf9758"
+      "source_png_sha256": "cb879aa4b5ce74112a3e77d6408d6977292ee4231a18fa69f3a162ae23ea5dd6",
+      "jpeg_sha256": "6c67f4776e101a027f5e67bca1c43cbeb86eba7c2e2130112aacd7e98584ea61"
     },
     {
       "file": "auth/dark/workbench-auth-guarded-refusal-1440.jpg",
@@ -945,8 +945,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "f2640ee424e21a53ac91f572bfc77fe0083d37e12eeec000f1fb6d64f8cd4fe2",
-      "jpeg_sha256": "d584d6b17e01b483e9e79868185a8170c34d4502b8364e465210e3306b518bc0"
+      "source_png_sha256": "0dbff47eefd93d4144c79a97f7e4e605bf0f9660ea51f50cf728c4ac463823dd",
+      "jpeg_sha256": "88fa0e3b28fe69bc652bd284831a53dfc627139340c53e8dd021dd5b26c5f074"
     },
     {
       "file": "auth/dark/workbench-auth-metric-approve-steward-1440.jpg",
@@ -1179,8 +1179,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "8e27a9d431bd5caed17050a613e694bc49b5704a71729b5b6827dc31dde89b20",
-      "jpeg_sha256": "c12ec10c89989dce70990bcfea709d52555517ecb361422e41d563571eb4be1a"
+      "source_png_sha256": "30a24ebcd10d0605aa5c66369408c03a158d661ae2ce7f993a2a67cf38af10f5",
+      "jpeg_sha256": "5c0bd9db5d10e71470736331d0bafc0c14893c350d15a998fb7a454a5c529983"
     },
     {
       "file": "auth/dark/workbench-auth-property-editors-dialog-390.jpg",
@@ -1197,8 +1197,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "52d3d815276397ebc06dbe6cb66da88099275dcb307de91d26c508e6c074076f",
-      "jpeg_sha256": "a1fe1e713f348059aa93338d8c4f8de2c393c8a878675c69e072320941213f46"
+      "source_png_sha256": "a0053e201fe12759196cd51494f02345e8be8884d0d497bbfbafe101a082ce2a",
+      "jpeg_sha256": "907da2683a7d4a591b51efdb3bbf23ad1f4a45f53462ac736c4a214c914d0afe"
     },
     {
       "file": "auth/dark/workbench-auth-property-editors-editor-1440.jpg",
@@ -1206,8 +1206,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "eee128f6e5a608d1605215d58d8b8931580ccf979f0aa5900a72df96b93b279a",
-      "jpeg_sha256": "60f34db6f01f68c9728845575a7e5abf35eb4c0f676363518f46392f089eeef9"
+      "source_png_sha256": "f8c4b8a5b27f0c6c8bf901bffa30b262761fdbe1efad6f4cb36fda90a6b690b2",
+      "jpeg_sha256": "6088739dccf42a55d2082a007541b3a26bff8f88ef1220f31b28c7cf72340f40"
     },
     {
       "file": "auth/dark/workbench-auth-property-editors-editor-2560.jpg",
@@ -1215,8 +1215,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "68c1a5d0289d5c27df2cd89f0b90fad6ec450bb2f25114ea4acc623a12828d44",
-      "jpeg_sha256": "aba5eeee32ac90789e479b7803af4d3f5458732781a175b522e4a99ac3bf2ac2"
+      "source_png_sha256": "2277112f20aedb9cf922f0a31ad03553d615f717a119a33448e94af97a468aee",
+      "jpeg_sha256": "a1bcd5af067bcd4ff81255662fa3f5724f72ef6f2f20f00e9d9ca5b253cf43cc"
     },
     {
       "file": "auth/dark/workbench-auth-property-editors-editor-390.jpg",
@@ -1224,8 +1224,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "451a97e843f9073c7ef286b38b09e179807599441fdc5c9243b7464b8ec98258",
-      "jpeg_sha256": "e8928e8da6721f64ecdc2f4c0be3a4767be4d2719a37f95b195a918723138804"
+      "source_png_sha256": "6a6eb72d5a9d583a974766877dd6a19bff3860489411839f17af0dc391b71b1e",
+      "jpeg_sha256": "bfaffe8e4ef754d421ef1c6e0767097c72797d77d2c9b9858e8f44d967aeb1b0"
     },
     {
       "file": "auth/dark/workbench-auth-roles-alice-1280.jpg",
@@ -1233,8 +1233,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "fe357992cfa2d4f8dd61a272ef3230d928a14948b879be113b66dee01c568961",
-      "jpeg_sha256": "250c9ab3a40746829b688409e19fa037750cbbdcad3a18e5cd6d636177434d61"
+      "source_png_sha256": "2d21a521f019059e1af8e3a289a5698f3d0bbec4338a2a6608aaf4b4a651cdd7",
+      "jpeg_sha256": "3934a16e862c526b10047ce01d667cc6b275c0c67277fe0c671fa23b6d23db26"
     },
     {
       "file": "auth/dark/workbench-auth-roles-alice-1440.jpg",
@@ -1242,8 +1242,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "6dca820e73a02290b6c230805e4daf9eedbbb6aa4af4091bf3befb38ad7fd87e",
-      "jpeg_sha256": "a1afdbbe1de8bf3d585e9c181a3640cf55230df88e8db2187259a7aa8f002e55"
+      "source_png_sha256": "b4068edc3bb9d48c97b5d0b1f5cfe399f680796acb076ccd55ca87af17e36013",
+      "jpeg_sha256": "213b8b9c5a65ff0b7ecd96f4b7fcc5c5e6dd3b4fbc8dfe4741b5dd3b71d37524"
     },
     {
       "file": "auth/dark/workbench-auth-roles-alice-2560.jpg",
@@ -1251,8 +1251,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "cfad79aae68165d08ee765cca19d3a103f2bebb4192c159ad26a741926838b4a",
-      "jpeg_sha256": "0ad14c82492e2d65ea6bfce632dfbca00c61caf3b72b7d997f2c6b65f8e2c0b6"
+      "source_png_sha256": "18f9a8444e04443242825766ce45efd29056df546ef297cc22559d0004a487ee",
+      "jpeg_sha256": "be3f57ba360b42f0f79f5bf44da906554b6e1faa6f4e5819eadea6151d7f49a6"
     },
     {
       "file": "auth/dark/workbench-auth-roles-alice-390.jpg",
@@ -1260,8 +1260,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "1b8cffc763c99ff4d465dd437f0c468017fed95c3f2cc3a283bc1902428a802e",
-      "jpeg_sha256": "d81dbbda7324c4e6bd647f9aa09029f0c144b59e328b6985105181ef3fe89227"
+      "source_png_sha256": "5154854e40d334af721e335f67de5ec0ca6c8c8ba0f88d618313bc5a91618a79",
+      "jpeg_sha256": "3ec50e8c44a44333232e068f019baaed964b1c8dff08c8ced7d5e9669674501b"
     },
     {
       "file": "auth/dark/workbench-auth-roles-bob-1280.jpg",
@@ -1269,8 +1269,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "293ef651065d22e9455ebc7bfdf995ca3405b47fb402f433a460447ae9257a16",
-      "jpeg_sha256": "6be5a99ed41ab2327bded4f4f0155f674b774283987ddfc485c3894ce720e821"
+      "source_png_sha256": "43b6816b010ca6a53c239b4cca7b3a54ac0f39e290e0f677d314c902d7d29a31",
+      "jpeg_sha256": "afafd729ac517868ef51c3d993815719877a1ccb657d7a438722e10018f76e10"
     },
     {
       "file": "auth/dark/workbench-auth-roles-bob-1440.jpg",
@@ -1278,8 +1278,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "ca4048614bd57248d9efe017cfd02098173616bc0e11923de0ef849b1311f092",
-      "jpeg_sha256": "a710b5f3dddacc308c175067fe7c20f0a882a0f813caf73a7c4f820fb0e3b5c1"
+      "source_png_sha256": "ede5fc6c4e5b5e8c18406e18c6521c649dca9d812b934d37f23f41b809834578",
+      "jpeg_sha256": "85d379d1aff16c286be14646ece1f1bb3025ceea492fc5d06cfed55ac470266a"
     },
     {
       "file": "auth/dark/workbench-auth-roles-bob-2560.jpg",
@@ -1287,8 +1287,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "428fa32297adfea9ee533aee0d9bb8da1dcdd84457ad9e541f07e12862d31bc2",
-      "jpeg_sha256": "453218495f7a5dc7680f1182d3416e1f51f9f6c426989088e300a1cd3f2a4aac"
+      "source_png_sha256": "14f37f2b86b2a1ea985af2c18e92bee1e9f0fb88de960005276675d254a00dc1",
+      "jpeg_sha256": "d3ba52d37cd31f9144f51645883e312ffefbd6848ce25a3abec3bc70c251ab73"
     },
     {
       "file": "auth/dark/workbench-auth-roles-bob-390.jpg",
@@ -1296,8 +1296,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "9e2807410c4ecf468b8d5f6c469f0b047241a72e6f12cd3f3974caf467ef83b6",
-      "jpeg_sha256": "1bb3af512ec235c92e8eeba3e1e4a7eeb4f90e6360163b5e15ddaa632ae75b70"
+      "source_png_sha256": "0d5a56b2e8fe0f9a587742b248004b1681360a2c57f76ba55acb4c7b037f26ff",
+      "jpeg_sha256": "0ccfabbec9b2412e290769dad3e54fc59703ee8e5c70384fa9b426cf370f8eb8"
     },
     {
       "file": "auth/dark/workbench-auth-roles-carol-1280.jpg",
@@ -1305,8 +1305,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "ca61274b1df5f9163bfb5a139115babec232bd0426c14a7f9221e4f8aab157ca",
-      "jpeg_sha256": "5c8e3be713a58303023c78885b5901612461155f1ee9262b68d6523d5177c712"
+      "source_png_sha256": "f3b59fb4dc279ddfff616e1060c3579d7b31dff85ede9382ddd7e9da857f6a34",
+      "jpeg_sha256": "19149dc65bbd895adf46e7188b78b6a2d5444423a4ce95f44717b09800b86d19"
     },
     {
       "file": "auth/dark/workbench-auth-roles-carol-1440.jpg",
@@ -1314,8 +1314,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "1131ee55b5a31e8a7eec3ab10a05335fde442471c2277d4286106a916cac90b5",
-      "jpeg_sha256": "c91ce088d6e0cdd1593f597393571a6ae05948c3b1731e2a105aacc5c65481e0"
+      "source_png_sha256": "aff5d7a755f0312ab8e5c599bc9a2f5a08310a06dc7e0333012b26d4106e9584",
+      "jpeg_sha256": "a4ce57a36f029215ce7fd14463de1a493aebfbc0de5c18fa473b91269cc4ea6b"
     },
     {
       "file": "auth/dark/workbench-auth-roles-carol-2560.jpg",
@@ -1323,8 +1323,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "ed21489b0b4f87e670768cab2fc0b25d15aa7c7453ae63b093932daf9c9f5983",
-      "jpeg_sha256": "388d1c238a2c828da528c4ee7af23c129a8a26377ce372c69102fc19a3307e96"
+      "source_png_sha256": "ca361750e8b9f69a765c5a8b88f7ea96f049232499ea781bd1df224106b7df11",
+      "jpeg_sha256": "2e7dcff1b84c37cffb50b3b04e538b06eb941706f6b590bc6fe52efa7c360d97"
     },
     {
       "file": "auth/dark/workbench-auth-roles-carol-390.jpg",
@@ -1332,8 +1332,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "e11a54efa58ba8f127a158fa60111ec46c495bdc744e7fd3df3db099c9cfd259",
-      "jpeg_sha256": "365fee2550af2bdcf13e8b106a72e08d20ada938accdcf445c28df382ebce83c"
+      "source_png_sha256": "36eb9b655862389e691fc4011add3e6a26cde56c2225033d58e65d6d32c6ec92",
+      "jpeg_sha256": "3044f4facf3a8aac569f641cea62bde607ecccb6e0ae88fd858a446503fa50f5"
     },
     {
       "file": "auth/dark/workbench-auth-roles-dave-1280.jpg",
@@ -1341,8 +1341,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "bf15a6f4491c6b6b05430e47d2482e2d6a269a94f9cf3abfa7308dd118b661f8",
-      "jpeg_sha256": "9985580f163982142531673ee211d711bea276cb767be1d02a4280aba0539f4c"
+      "source_png_sha256": "ea8443b0bb6711d742496870214a4fdbf3f74f2d25ea6d2e4c4c6659223652a2",
+      "jpeg_sha256": "2a83c6b0e8bdfda51171e59bba6be2db93b5d9b15f10941554ae3a03a8b0abcf"
     },
     {
       "file": "auth/dark/workbench-auth-roles-dave-1440.jpg",
@@ -1350,8 +1350,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "5c1c51fbdb0512f5de6f6e02e47d6d41232129c3c1c9392b58a72bcd09fadf37",
-      "jpeg_sha256": "b390074baf61e19ec8684718aa8fb69be75476f4e193e7b4001ae525883b0847"
+      "source_png_sha256": "6fe96fbd81c13b92ba7dc5fc721623b47c055038e18c283b6938add893bae1c8",
+      "jpeg_sha256": "3523a34398ff7a628927f3dc3faee84015cf1dc76021c084ec03d4d1c60512b1"
     },
     {
       "file": "auth/dark/workbench-auth-roles-dave-2560.jpg",
@@ -1359,8 +1359,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "46ac36ea67220d35555fabb845c8699b93009a4ea8b7af4aaf012ddeb5c284e3",
-      "jpeg_sha256": "4c83bd190a722ee96e12dd204694558d1f075c3958a86e0e2d1cd75c42125fc1"
+      "source_png_sha256": "fa24bf55f8545f0d9e53e8dd83c4944f8ebf165d5abbaee052d58b7c2ffdaf54",
+      "jpeg_sha256": "a916f33971468acd0c68599c79dc7dcb2a3cfe057f9a001317c567151cce2d9c"
     },
     {
       "file": "auth/dark/workbench-auth-roles-dave-390.jpg",
@@ -1368,8 +1368,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "b8ef8d2b96f72b85d608df26b43b83dc6259c87e6ecb27dbc61ddb27c5d42253",
-      "jpeg_sha256": "540fd0f12e95b1b2e16e6b6b378f410980c61d43936f8dd537b8c694c592db85"
+      "source_png_sha256": "cb6dfe00dad9dbb79d128ac04644d1b9f859692b34809a130cd176d2ae5b2976",
+      "jpeg_sha256": "908dad2674e4c8ae6b28fbbe61a487dea8139e29599ddae38ffafc22ed778a48"
     },
     {
       "file": "auth/dark/workbench-auth-roles-hank-1280.jpg",
@@ -1377,8 +1377,8 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "3b55b07e756e7fe6342740eac3dad2f4d73f72dccad6c7be47c0db6edbe51475",
-      "jpeg_sha256": "0a7bce5964079807da0f009f4ea8172fafabc7a53ac03bc2d30ce3657c946f1b"
+      "source_png_sha256": "d09fff146ab39b204f2c13af3295a4345301dc1d4586adffffff762110f72284",
+      "jpeg_sha256": "01e71547c9a95bec0c1ab9ca1f78bd0f4434ab320f136d92963d59c72f27d22d"
     },
     {
       "file": "auth/dark/workbench-auth-roles-hank-1440.jpg",
@@ -1386,8 +1386,8 @@
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "e0ebdbd7cd7db78d866f62d444be32bfb722d8556d7b4af36f0113a8f1414812",
-      "jpeg_sha256": "3fa09480a981b318c71007b5d6320f8e62fd11b86d07fe7a9aa640ec0d15f33c"
+      "source_png_sha256": "33cea82e51eef0fa7dce744d9e73e9fc64768041fde0aa8a5a7584408c39df2a",
+      "jpeg_sha256": "6bba41639ee80c1093da24dc3c99d370fc15203bc06f958ae8aeecf76e875b82"
     },
     {
       "file": "auth/dark/workbench-auth-roles-hank-2560.jpg",
@@ -1395,8 +1395,8 @@
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "85eb549a2a8e80319488f2ca4c4062376b9108969541c250c63e520592781946",
-      "jpeg_sha256": "9cc7b701f346b639f60af73ef353bc2f5e6f1580adfe5465f3405de0e69d6a6e"
+      "source_png_sha256": "ca16083ead862abcbeefde1770c3f4c493cf5a80200f6c38cf83d49c80572701",
+      "jpeg_sha256": "dd2b7ff80bbd2ebaaa825142b70263cc4d03437492fa7a0245b7a4e49d9d6a79"
     },
     {
       "file": "auth/dark/workbench-auth-roles-hank-390.jpg",
@@ -1404,8 +1404,8 @@
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "8107f4fae1e50b36c403fce930c9b8a27e463745b70d5bef64d216e14cdf927b",
-      "jpeg_sha256": "7de14366c655dd47f0e3b76df1b97301854a1222f1dc123875b3211c8a828ca4"
+      "source_png_sha256": "2892a379da8f8704e3dbf29f64d9ae10a66811688925deef001c7956bdd5c0d8",
+      "jpeg_sha256": "7dab6df7c2b524667230829164b1e1aa756d74f06f31b7c8c43bcb2dfc8be160"
     },
     {
       "file": "auth/dark/workbench-auth-sign-in-error-1280.jpg",
