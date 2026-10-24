@@ -389,3 +389,4 @@ Every finding maps to a requirement. Status values are open, fixed, deferred (wi
 | F122 | R7, R8 | open: round 11 visual audit clear; final gate pending |
 | F123 | R10, R11 | open: round 11 visual audit clear; final gate pending |
 | F125 | R1, R10 | open: round 11 visual audit clear; final gate pending |
+| F126 | R10, R11 | open: 137 responsive checks pass; final gate pending |

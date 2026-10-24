@@ -550,3 +550,26 @@ source changes are needed, so the round 11 product screenshots remain valid. Thi
 test scenario correction, not a machine-load rerun. The full gate restarts after focused proof.
 Focused replay passed all 20 UI checks. Full static checks, formatter and readability pass;
 independent actual-diff review reports SHIP.
+
+## Full gate attempt 5: initial graph readiness
+
+At `d82fc17`, unit tests passed 1,844 / 129,520 assertions / 258 files (255.67 seconds);
+static checks, build, 654/654 mutation targets, standalone large graph/all-expand and UBL,
+authentication, Keycloak, two-editor, Admin and all 20 UI checks passed. Responsive testing
+passed its resize, fullscreen, overlay, navigation and sidebar behavior checks, then measured
+`sidebar-projects` before UBL's initial fit had completed and reported a crossing relationship.
+
+A fresh four-width probe recorded raw Bezier fallbacks at initial node visibility, then clean
+routes after fitting (300–1,000 ms in the diagnostic runs). A completed worker batch alone
+cannot establish readiness: another initial path may still be a fallback. Independent root-cause
+review confirmed that layout clears busy before its scheduled fit and that live fallbacks remain
+necessary during drag. The shared responsive page setup now additionally requires whole,
+centered model bounds and three unchanged viewport/node/path samples using the existing default
+polling budget. The original strict clearance assertion and all existing timeouts/budgets remain.
+The whole/centered bounds function is shared with authentication capture rather than duplicated.
+No application behavior changed; the round 11 product images remain valid. This is a measurement
+readiness correction, not a load-only rerun or a claim of a settled visual defect.
+The full responsive replay passed all 137 checks, including every viewport tour, the loading
+phone drawer and unfiltered browser-error assertion. Formatter, full static checks and readability
+pass; independent actual-diff review reports SHIP. Remaining browser suites are preflighted
+before the next complete final-head gate to surface any other stale post-polish scenario.
