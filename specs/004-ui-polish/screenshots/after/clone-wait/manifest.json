@@ -1,6 +1,6 @@
 {
-  "capture_head": "58aa8c4d828b8857e81b1be15aa5d822faad3103",
-  "round": 13,
+  "capture_head": "2ce466ca0e39184b573e6631525c0e524c3b7ceb",
+  "round": 14,
   "conversion": "JPEG quality 95, subsampling 0; original dimensions, no crop or resize",
   "images": [
     {
@@ -8,64 +8,64 @@
       "theme": "dark",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "796fa754e12127944c5e5169b5eee7c0fe1c138757332f64c70162cad3cf2d85",
-      "jpeg_sha256": "d6bc4953d19007adfcab892d71b929370285dff5d2dc769511d33d16d7edd750"
+      "source_png_sha256": "6dff57b89156a7ca62e6a1070eb9d04069e7ade9473081405972cd3bca2f9f59",
+      "jpeg_sha256": "cddbb329fc61c9f28a7c71f8bbed427135c454c443f6d6a1a0d71d6e9d497c59"
     },
     {
       "file": "clone-wait/workbench-clone-connecting-dark-1440.jpg",
       "theme": "dark",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "a4030733665f3c8ce5374193731a4d084a5567568ca0cb924e7a4b7afdafb109",
-      "jpeg_sha256": "4208d70dbe67512012b6814ee0c2c9c7afe6920800a3424181707cd38b774de1"
+      "source_png_sha256": "348816c8dca05b401daa3d8a6287cc07ad31a29fa0ce84f4df02a8fd0c8857e0",
+      "jpeg_sha256": "1088db7d5fc9bac8c66dadbdc3ef41c58d85974e5a313c68d6d2d617191a4bd7"
     },
     {
       "file": "clone-wait/workbench-clone-connecting-dark-2560.jpg",
       "theme": "dark",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "74c77c6ccbebdacbb3ff978e39c80afeb2a1643382c9a4dd64d4fb9f455be681",
-      "jpeg_sha256": "d617f1a8c430188ecbd664b079cab71448a65af86efb2bc739f799469d3fad67"
+      "source_png_sha256": "2537375b97656bc2b9ad369472b2b390015d878d4c7319df492951006c80702f",
+      "jpeg_sha256": "de7ba633f5c2aa6a3c4ce863e7d94cd41eba220b822257d55d16f9d2c4387bd7"
     },
     {
       "file": "clone-wait/workbench-clone-connecting-dark-390.jpg",
       "theme": "dark",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "5bd516427eacae7375199d3be4957edb48a27dade008555f90bc9922784c14a7",
-      "jpeg_sha256": "8e7182896aab55ba917c50916f2ce4b0a433256470b6884f2b09195e78e1a8fd"
+      "source_png_sha256": "f52450cf6b2253eeb6e42910e64618e4107cd48fd42dfd268e722e06229f64f2",
+      "jpeg_sha256": "777fecb9e5e1ac76f6f8157ab16972a06c9e3fe0b7f3bb2796bf29c5a7d79b19"
     },
     {
       "file": "clone-wait/workbench-clone-connecting-light-1280.jpg",
       "theme": "light",
       "width": 1280,
       "height": 720,
-      "source_png_sha256": "6c41a1684703626a8c510f561c7528e9a7574b3c6c60cd8fa23bac7a81a5d3a6",
-      "jpeg_sha256": "fbb30371b8edf014757dae50c2d7bed322c1ea16c6f9ea56202b643ffdeaec8a"
+      "source_png_sha256": "a2b8415eaf1754b7101eac7f5ad8c9dcd948db0a162a9b398bb8f441cef0427d",
+      "jpeg_sha256": "5de489a8078ad1626a88537586651fa4125b804bd6c4473af7376788d329c715"
     },
     {
       "file": "clone-wait/workbench-clone-connecting-light-1440.jpg",
       "theme": "light",
       "width": 1440,
       "height": 900,
-      "source_png_sha256": "ad054dfd47b693486083918312a08b8266120e6b8a3238bc9f647109213ddf2a",
-      "jpeg_sha256": "10b55a2ed2f52065bf742d292bd68855eeec52716933ef407cb458c739be9fe1"
+      "source_png_sha256": "885c00e7381639b6eeccb6a735fbf499418490e64dfbffed24eca8cfef8c1e92",
+      "jpeg_sha256": "1f498deda03f0d9bbe911c82a733c3cb341671e271294ca1ce6391a0c1dece2a"
     },
     {
       "file": "clone-wait/workbench-clone-connecting-light-2560.jpg",
       "theme": "light",
       "width": 2560,
       "height": 1440,
-      "source_png_sha256": "03338a870b24099fe0541b1f4e6732886896fe19135a51156e84fcbdf600c126",
-      "jpeg_sha256": "5939b363ed98a73bb69e1d43a98945a45c9426e210f5766341c8e7b51af2ed90"
+      "source_png_sha256": "5267e3e7c44a0a6aac921dd60200e22f89b5ef07e65e14208a4305f23c125371",
+      "jpeg_sha256": "47ae24a5128e13779c3ee1ef287f902fb17dced0d96db14b37ba4f000e0add35"
     },
     {
       "file": "clone-wait/workbench-clone-connecting-light-390.jpg",
       "theme": "light",
       "width": 390,
       "height": 844,
-      "source_png_sha256": "fa0c02e75894f57a55c4d93cf47ea9c2a0d2136fb021dccba56234901782ec13",
-      "jpeg_sha256": "fd8be38846ad6245c922a0cb76935abb04bc172a6c39719141a7d3dfeea31e1e"
+      "source_png_sha256": "13e60a000197b46c7ac05bfc06fadb8a3e86fe03be218d1bb0af268316fecd47",
+      "jpeg_sha256": "4482d9d394d69607a00e0cc09ac6a743488cba6dcae23c8ae737f1489e2138cd"
     }
   ]
 }

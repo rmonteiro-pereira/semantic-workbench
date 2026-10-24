@@ -62,3 +62,16 @@ Exact review union, original dimensions and source/output hashes were validated 
 The 18 minor rows repeat three patterns: sidebar scroll boundaries, a long-name orphan line,
 and phone deprecation form spacing. These remain nonblocking S3 observations.
 The final full gate and supplemental R11 acceptance proof are still pending.
+
+## Round 14: complete fresh security-update visual result
+
+At `2ce466ca0e39184b573e6631525c0e524c3b7ceb`, authentication light/dark passed 84 images each;
+local/server light/dark passed 216 each, with zero geometry or legibility problems, skips or
+browser errors. Git setup passed and produced eight delayed connection-wait images across
+four widths and both themes. Independent native review accounts for all 1,040 originals:
+0 S1 / 0 S2 / 18 repeated S3 rows. Original dimensions and source/output hashes are
+validated for every saved JPEG. No crop or resize was applied.
+
+The dependency and runtime security updates retain the clean complete visual result. The full
+49-command gate now restarts at this artifact commit; supplemental R11 evidence will be
+refreshed at the verified gate head. Earlier failures remain documented, without relaxed checks.

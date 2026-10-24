@@ -358,36 +358,49 @@ Every finding maps to a requirement. Status values are open, fixed, deferred (wi
 | F56, F57 | R4 | fixed |
 | F58 | R5 | fixed |
 | F59 | R6 | fixed |
-| F61 | R10 | open: round 13 visual audit clear; final gate pending |
-| F62 | R1 | open: round 13 visual audit clear; final gate pending |
-| F63 | R2 | open: round 13 visual audit clear; final gate pending |
+| F61 | R10 | open: round 14 visual audit clear; final gate pending |
+| F62 | R1 | open: round 14 visual audit clear; final gate pending |
+| F63 | R2 | open: round 14 visual audit clear; final gate pending |
 | F65 | R2a, R4 | fixed |
 | F66 | R2a | fixed |
 | F67 | R12 | fixed |
 | F68 | R13 | fixed |
 | F69 | R14 | fixed |
 | F70 | R15 | fixed |
-| F71 | R16 | open: round 13 visual audit clear; final gate pending |
+| F71 | R16 | open: round 14 visual audit clear; final gate pending |
 | F77, F78, F79, F80, F81, F82 | R17 | fixed |
-| F72 | R8 | open: round 13 visual audit clear; final gate pending |
-| F73 | R16 | open: round 13 visual audit clear; final gate pending |
-| F74 | R8 | open: round 13 visual audit clear; final gate pending |
-| F75 | R8 | open: round 13 visual audit clear; final gate pending |
-| F76 | R8 | open: round 13 visual audit clear; final gate pending |
-| F64 | R11 | open: round 13 clear; supplemental R11 browser proof and gate pending |
-| F83, F89, F90, F99 | R7, R8, R10 | open: round 13 visual audit clear; final gate pending |
-| F84, F85, F86, F87, F91, F92, F93, F96, F98 | R4, R8, R16 | open: round 13 visual audit clear; final gate pending |
-| F88, F95, F100, F101, F102, F103, F104, F107 | R2, R9 | open: round 13 visual audit clear; final gate pending |
-| F94, F109 | R11 | open: round 13 visual audit clear; final gate pending |
-| F97 | R15 | open: round 13 visual audit clear; final gate pending |
-| F105, F106, F108, F110, F111 | R3 | open: round 13 visual audit clear; final gate pending |
-| F112 | R2, R9 | open: round 13 visual audit clear; final gate pending |
-| F113, F114, F115, F116 | R3 | open: round 13 visual audit clear; final gate pending |
-| F117 | R9 | open: round 13 visual audit clear; final gate pending |
-| F120 | R8, R11 | open: round 13 visual audit clear; final gate pending |
-| F121 | R8, R10, R17 | open: round 13 visual audit clear; final gate pending |
-| F122 | R7, R8 | open: round 13 visual audit clear; final gate pending |
-| F123 | R10, R11 | open: round 13 visual audit clear; final gate pending |
-| F125 | R1, R10 | open: round 13 visual audit clear; final gate pending |
+| F72 | R8 | open: round 14 visual audit clear; final gate pending |
+| F73 | R16 | open: round 14 visual audit clear; final gate pending |
+| F74 | R8 | open: round 14 visual audit clear; final gate pending |
+| F75 | R8 | open: round 14 visual audit clear; final gate pending |
+| F76 | R8 | open: round 14 visual audit clear; final gate pending |
+| F64 | R11 | open: round 14 clear; supplemental R11 browser proof and gate pending |
+| F83, F89, F90, F99 | R7, R8, R10 | open: round 14 visual audit clear; final gate pending |
+| F84, F85, F86, F87, F91, F92, F93, F96, F98 | R4, R8, R16 | open: round 14 visual audit clear; final gate pending |
+| F88, F95, F100, F101, F102, F103, F104, F107 | R2, R9 | open: round 14 visual audit clear; final gate pending |
+| F94, F109 | R11 | open: round 14 visual audit clear; final gate pending |
+| F97 | R15 | open: round 14 visual audit clear; final gate pending |
+| F105, F106, F108, F110, F111 | R3 | open: round 14 visual audit clear; final gate pending |
+| F112 | R2, R9 | open: round 14 visual audit clear; final gate pending |
+| F113, F114, F115, F116 | R3 | open: round 14 visual audit clear; final gate pending |
+| F117 | R9 | open: round 14 visual audit clear; final gate pending |
+| F120 | R8, R11 | open: round 14 visual audit clear; final gate pending |
+| F121 | R8, R10, R17 | open: round 14 visual audit clear; final gate pending |
+| F122 | R7, R8 | open: round 14 visual audit clear; final gate pending |
+| F123 | R10, R11 | open: round 14 visual audit clear; final gate pending |
+| F125 | R1, R10 | open: round 14 visual audit clear; final gate pending |
 | F126 | R10, R11 | open: 137 responsive checks pass; final gate pending |
-| F127 | R11, R15 | open: clone ordering, readiness and round 13 pass; final gate pending |
+| F127 | R11, R15 | open: clone ordering, readiness and round 14 pass; final gate pending |
+
+## Round 14: complete fresh security-update visual result
+
+At `2ce466ca0e39184b573e6631525c0e524c3b7ceb`, authentication light/dark passed 84 images each;
+local/server light/dark passed 216 each, with zero geometry or legibility problems, skips or
+browser errors. Git setup passed and produced eight delayed connection-wait images across
+four widths and both themes. Independent native review accounts for all 1,040 originals:
+0 S1 / 0 S2 / 18 repeated S3 rows. Original dimensions and source/output hashes are
+validated for every saved JPEG. No crop or resize was applied.
+
+The dependency and runtime security updates retain the clean complete visual result. The full
+49-command gate now restarts at this artifact commit; supplemental R11 evidence will be
+refreshed at the verified gate head. Earlier failures remain documented, without relaxed checks.

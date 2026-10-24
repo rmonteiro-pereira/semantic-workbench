@@ -1508,7 +1508,7 @@ The clone progress reducer adds four ordering tests and three targeted mutation 
 mutation inventory is 657 targets. Final release totals and verified results are recorded in
 `specs/004-ui-polish/FINAL.md` after the complete gate.
 
-The final fresh UI audit is round 13: 1,040 native images, including local/server in both
+The final fresh UI audit is round 14: 1,040 native images, including local/server in both
 themes, authentication and delayed clone connection states at all four sizes. All originals
 were individually reviewed: 0 S1 / 0 S2 / 18 repeated S3 rows. Final images and source/output
 hash manifests are in `specs/004-ui-polish/screenshots/after/`. The full release gate remains
