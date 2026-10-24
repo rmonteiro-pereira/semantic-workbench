@@ -786,3 +786,8 @@ themes, authentication and delayed clone connection states at all four sizes. Al
 were individually reviewed: 0 S1 / 0 S2 / 18 repeated S3 rows. Final images and source/output
 hash manifests are in `specs/004-ui-polish/screenshots/after/`. The full release gate remains
 pending; the completion record will be in `specs/004-ui-polish/FINAL.md`.
+
+The authentication expiry browser fixture expires its refresh token before the access token.
+Equal lifetimes allow token timestamp rounding to rotate a fresh refresh token before expiry,
+so that setup does not deterministically reach an ended session. The original expiry deadline
+and provider-redirection assertions remain unchanged.

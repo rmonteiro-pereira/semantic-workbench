@@ -674,3 +674,23 @@ all 1,040 originals exactly once: 0 S1 / 0 S2 / 18 repeated S3 rows. Source/outp
 original dimensions were validated for every saved JPEG. No crop or resize was applied.
 The repeated minor rows cover only F118, F119 and F124. The full gate now restarts on the
 artifact commit with unchanged runtime source. Earlier attempts remain recorded above.
+
+## Full gate attempt 8: deterministic authentication expiry fixture
+
+At `7efc10c`, container validation passed all 25 local suites and 30 explicit server/persistence
+PASS lines; standalone large-graph and UBL checks passed. Unit passed 1,848 tests with 129,528
+assertions across 259 files (249.12 seconds). Static checks, build and all 657 mutation targets
+passed. Authentication then timed out at the unchanged 30-second session-expiry assertion.
+Machine load was low; this was not dismissed as load.
+
+The fixture gave rotating refresh tokens and access tokens equal six-second lifetimes.
+MSAL's rounded access-token expiry can precede the refresh-token deadline, so a successful
+refresh issues another six-second refresh token and polling can keep the session alive.
+The expiry scenario now gives refresh tokens a one-second lifetime while retaining six-second
+access tokens. This forces expired renewal credentials before access renewal, preserving
+the complete original expiry and automatic provider-redirection assertions and timing budget.
+Only the test fixture changes; the captured product remains identical to round 13.
+
+The full focused authentication suite passed, including expiry and automatic provider return.
+Static checks, formatter and readability pass; independent actual-diff review reports SHIP.
+No product source changed, so the clean round-13 visual matrix remains current.

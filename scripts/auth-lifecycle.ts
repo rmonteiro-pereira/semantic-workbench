@@ -126,7 +126,8 @@ async function openFileUnlessLeft(page: Page) {
 }
 
 async function expiredSession(browser: Browser, target: SignInTarget, mock: MockOidc) {
-  mock.setLifetimes({ accessToken: 6, refreshToken: 6 });
+  // Expire refresh first so rounded access-token expiry cannot keep rotating the session.
+  mock.setLifetimes({ accessToken: 6, refreshToken: 1 });
   const context = await browser.newContext();
   const page = await context.newPage();
   try {
