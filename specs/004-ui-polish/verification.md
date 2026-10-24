@@ -611,3 +611,22 @@ had passed because capture delayed the query; the mutation trace without that de
 the stale state. This is a deterministic readiness correction, not a machine-load rerun.
 Focused mapping-layout replay passed all four checks at six viewports. Full static checks,
 formatter and readability pass; independent actual-diff review reports SHIP.
+
+## Full gate attempt 6: worker proof before viewport-only zoom
+
+At `d3b3c36`, unit tests passed 1,844 / 129,520 assertions / 258 files (236.74 seconds),
+static checks and build passed, mutation killed 654/654 targets, and all 32 direct browser suites
+passed (including 137 responsive checks). Example data validation passed. Container UI then
+received `data-routing=main` where the scenario expected `worker` after Zoom to group.
+
+A production-static replay and an isolated container UI replay passed without changes, so the
+failure was not dismissed as machine load. A container mutation trace recorded real worker
+execution. The routing scheduler explicitly emits a zero-duration `main` metric for cache-only
+batches; the latest metric after viewport-only work is not a durable record of the earlier
+routing executor. The unchanged worker assertion and 30-second budget now run immediately after
+selecting Network, before Zoom to group. All entity, edge, selection and navigation assertions
+remain. This is a scenario-phase correction; no application behavior changed. Earlier successful
+results are retained, but the complete final-head gate restarts after focused validation.
+Focused Vite UI replay passed all 20 checks. The built-container UI replay also passed, including
+container metadata, persistence and the single-root lock checks. Full static checks, formatter
+and readability pass; independent actual-diff review reports SHIP.

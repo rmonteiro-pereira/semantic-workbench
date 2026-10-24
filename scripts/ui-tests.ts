@@ -253,13 +253,13 @@ try {
       await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
       await expect(page.locator('.react-flow__node-entity')).toHaveCount(45);
       await expect(page.locator('.react-flow__edge')).toHaveCount(183);
+      await expect(page.locator('.full-graph-status')).toHaveAttribute('data-routing', 'worker', {
+        timeout: 30000,
+      });
       await viewOptions(page, async options => {
         await options.getByLabel('Zoom to group').selectOption('documents');
       });
       await page.waitForTimeout(500);
-      await expect(page.locator('.full-graph-status')).toHaveAttribute('data-routing', 'worker', {
-        timeout: 30000,
-      });
       await page.locator('.react-flow__node[data-id="ontology/0"] .full-entity').click();
       await expect(page.locator('.inspector h2')).toHaveText('Order');
       await page.getByRole('button', { name: 'Close details', exact: true }).click();
