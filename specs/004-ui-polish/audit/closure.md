@@ -3,7 +3,7 @@
 Round 8 is the first complete local/server, light/dark round with no S1 or S2 findings.
 Round 9 repeats the complete clean result after the resize runtime correction. All 864 fresh
 native images were independently reviewed; every filename is listed in its partition.
-Final capture and product head: `a5c45ee02294f887ba37c7b01172b70d350bf6ab`.
+Round 9 tour capture and product head: `a5c45ee02294f887ba37c7b01172b70d350bf6ab`.
 The eight S3 rows repeat two minor patterns, retained as F118/F119.
 
 Counts below are observed serious rows, including repeats between themes and focused reviews;
@@ -28,3 +28,10 @@ history rather than counted as work performed during this release completion.
 The required new server reports are named `round-2-SA.md` and `round-2-SB.md`; they came from
 the fourth capture iteration. No separate round-4 visual set is claimed. Later rounds include
 explicit diagnostic and focused sets; rounds 8 and 9 establish the complete clean result.
+
+
+The round 9 tour's 864 images remain clear, but its 84-image authentication supplement found
+four serious rows (two repeated logo rows, one refusal header, one unsettled graph capture).
+See `round-9-AUTH-A.md`, `round-9-AUTH-B.md` and `round-9-AUTH-C.md`. The complete release
+visual result is reopened until a fresh round, including the settled authentication views,
+finds no serious rows. Round 10 will replace the saved final tour after these corrections.

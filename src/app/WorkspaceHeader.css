@@ -69,6 +69,21 @@
   min-width: 0;
 }
 
+/* Long save refusals yield space to a readable document title. */
+@media (min-width: 700px) {
+  .workspace-title {
+    flex-basis: 160px;
+    flex-shrink: 0;
+  }
+  .header-actions {
+    flex-shrink: 1;
+    min-width: 0;
+  }
+  .header-files {
+    flex-shrink: 0;
+  }
+}
+
 /* Save state: a pill next to Commit; it opens Commit, the findings or the diff. */
 .header-group > .save-state {
   min-width: 90px;

@@ -375,6 +375,11 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
     const framing = frontChannel ? options.issuerOrigin : undefined;
     const headers = securityHeaders(options.publicOrigin, options.providerOrigin, framing);
     for (const [name, value] of headers) {
+      // Brand files retain the stricter policy assigned by the sanitized bundle route.
+      if (name.toLowerCase() === 'content-security-policy') {
+        const brandAsset = new URL(request.url).pathname.startsWith('/brand/');
+        if (brandAsset && response.headers.has(name)) continue;
+      }
       if (name.toLowerCase() !== 'cache-control') response.headers.set(name, value);
     }
     if (!response.headers.has('Cache-Control')) response.headers.set('Cache-Control', 'no-store');

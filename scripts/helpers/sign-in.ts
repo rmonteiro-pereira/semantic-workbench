@@ -8,6 +8,12 @@ import { layoutProblems } from './layout-geometry';
 import { menuSurfaceProblems } from './menu-geometry';
 import { closeSyncDialog, offersSyncDialog, openSyncDialog, remoteButton } from './sync-dialog';
 import { lowContrastProblems, smallTextProblems, textCollisionProblems } from './text-geometry';
+import {
+  assertAuthBrandLoaded,
+  assertAuthContentSettled,
+  assertAuthHeaderGeometry,
+  authPageErrors,
+} from './auth-page-geometry';
 
 /** Supported authentication viewports, including the narrow phone layout. */
 export const authViewports = [
@@ -83,6 +89,7 @@ export async function signIn(
   username: TestUserName,
   expected: ExpectedRole | undefined = DEFAULT_ROLES[username],
 ) {
+  authPageErrors(page);
   const start = performance.now();
   const path = '/?auth-check=return';
   const response = await page.goto(target.url + path);
@@ -149,9 +156,14 @@ export async function authGeometry(
   reopen?: (page: Page) => Promise<void>,
 ) {
   const original = page.viewportSize();
+  const errors = authPageErrors(page);
+  await page.emulateMedia({ colorScheme: process.env.SW_THEME === 'dark' ? 'dark' : 'light' });
   for (const [width, height] of authViewports) {
     await page.setViewportSize({ width, height });
     if (scope) await closeWorkspaceDrawer(page, reopen);
+    await assertAuthContentSettled(page);
+    if (scope === 'main') await assertAuthBrandLoaded(page);
+    await assertAuthHeaderGeometry(page);
     assert.deepEqual(await layoutProblems(page), [], `${name} at ${width}×${height}`);
     if (scope) await assertTextProblemsEmpty(page, name, scope, width);
     if (name === 'person-menu' || name === 'viewer-workspace') {
@@ -186,6 +198,7 @@ export async function authGeometry(
       await expect(page.getByRole('menu')).toHaveAccessibleName('Person menu for Alice Andrade');
       await expect(page.getByRole('menuitem')).toHaveCount(2);
     }
+    assert.deepEqual(errors, [], `Uncaught browser errors before ${name} at ${width}`);
     await page.screenshot({ path: screenshotPath(`/tmp/workbench-auth-${name}-${width}.png`) });
   }
   // The pages without scripts take the dark theme from the system setting.

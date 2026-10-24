@@ -457,3 +457,37 @@ committed correction rather than continuing after a failed unit suite.
 Focused correction checks passed: 19 tests / 33,794 assertions across the authorization matrix
 and sparse-worktree files (22.76 seconds), formatter, full static checks and readable-code scan.
 Independent review of the actual diff reports SHIP.
+
+
+## Release gate attempt 3: supplemental visual findings
+
+At `c0a81f6`, the unit suite passed 1,843 tests / 129,471 assertions across 257 files in
+243.15 seconds. Static checks and build passed. Mutation testing killed 654/654 targeted
+mutants with all original baselines passing. Large graph, UBL, authentication, Keycloak,
+two-editor and Admin browser suites passed. The gate was deliberately stopped during `test:ui`
+after strict review of all 84 authentication screenshots found serious visual defects outside
+the main tour. This was not a machine-load rerun or an assertion timeout.
+
+The sanitized brand bundle was incorrectly protected as a workspace page, breaking identity-page
+logos before sign-in or without grants. A long refusal could shrink the title to zero width
+and grow the 1280 px header to 404 px. Authentication snapshots also ran before graph resize
+fitting or calculation loading finished. Corrections use the existing brand route and header
+layout; captures now require decoded branding, bounded headers and settled, fitted content.
+No timeout or timing budget is increased. A fresh complete round and full gate are required.
+
+
+Focused correction checks passed: 12 unit tests / 408 assertions across brand access, brand
+routes and route inventory; full static checks, build and readability scan. The strengthened
+light authentication replay passed 36 checks and saved 84 images. Independent native review
+confirmed all 12 identity-page brand images and all four refusal-header views clean. A first
+settled-content review still found desktop viewer positioning too early; the capture now also
+requires the node bounds to be centered on both axes. A second light replay passed all 36
+checks; independent review of all 12 menu/metric/viewer images found no S1/S2/S3.
+The authentication supplement now also supports the dark theme and rejects uncaught browser
+errors. The next full round includes both 84-image authentication sets, in addition to the
+864-image local/server tour. The access-matrix generator produced no diff because public
+brand assets introduce no protected authorization case.
+
+The dark authentication replay passed all 36 checks and saved 84 images with no uncaught browser
+errors. Final independent code review reports SHIP. Error collection now also starts before
+shared sign-in navigation, retaining any initial workspace error for the subsequent capture.
