@@ -1316,7 +1316,7 @@ sections, a real mapping graph, Graph and Neighborhood in full screen, a hovered
 label, and all labels at detail zoom. At four viewports this is 216 images per mode/theme, or
 864 for the complete matrix. Local capture loads mapped commerce
 explicitly so its concept-mapping graph uses a real mapping document. Both tools accept `SW_ONLY` as a
-screen-name substring filter for supplementary captures. Captures stop on geometry failures,
+screen-name substring filter for supplementary captures. Captures stop on uncaught browser errors and geometry failures,
 including graph heading collisions, edge contrast and width, and undersized names. Full-screen
 measurements cover the visible full-screen canvas. Neither tool uses the owner's data directory.
 Keep source, formatting and builds frozen throughout a capture: schema generation reloads Vite.

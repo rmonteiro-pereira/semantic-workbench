@@ -736,3 +736,10 @@ the capture commit, original dimensions and source/output hashes. Conversion pre
 viewport without cropping or resizing. Capture runs freeze source and builds because schema
 generation causes Vite reloads. The standalone large-graph and UBL browser checks supplement the
 29 canonical suites in `scripts/gate-suites.ts`; they use the same isolated API boundary.
+
+Resize observers in the shared strip and whole-model graph queue layout-changing publication
+for the next animation frame. The graph commits pane state synchronously inside that frame, so
+React cannot defer it into a later observer delivery. Pending frames are cancelled on cleanup;
+unchanged pane sizes preserve state identity. This avoids changing an ancestor during the
+browser's resize delivery. Other size hooks retain their existing measurement behavior.
+Both release capture tools reject uncaught browser errors as well as geometry problems.

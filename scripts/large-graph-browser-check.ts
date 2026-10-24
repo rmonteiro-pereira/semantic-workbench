@@ -1,9 +1,17 @@
 // Checks large graph rendering and interactions in the browser.
 import { appUrl } from './helpers/base-url';
 import { viewOptions } from './helpers/graph-options';
-import { chromium, expect } from '@playwright/test';
+import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { LOCAL_READER } from '../server/projects/reader';
+async function openGraphOverview(page: Page) {
+  await page.getByRole('button', { name: /^View options/ }).click();
+  const options = page.getByRole('dialog', { name: 'View options' });
+  await expect(options).toBeVisible();
+  await options.getByRole('button', { name: 'Overview', exact: true }).click();
+  await expect(options).toHaveCount(0);
+}
+
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1905, height: 1000 } });
 const errors: string[] = [];
@@ -20,9 +28,7 @@ try {
     'data-relationship-count',
     '5000',
   );
-  await viewOptions(page, async options => {
-    await options.getByRole('button', { name: 'Overview', exact: true }).click();
-  });
+  await openGraphOverview(page);
   await expect(page.locator('.area-entities button')).toHaveCount(1000, { timeout: 10000 });
   const start = performance.now();
   await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();

@@ -1,4 +1,5 @@
 /** Displays the complete model graph with grouping, filtering and a detail inspector. */
+import { flushSync } from 'react-dom';
 import { ScrollStrip } from './ScrollStrip';
 import type { GroupingOptions } from './overview';
 import { RoutedEdge } from './RoutedEdge';
@@ -295,13 +296,26 @@ export function FullGraph(props: Props) {
   useEffect(() => {
     const el = container.current;
     if (!el) return;
+    let resizeFrame = 0;
     const observer = new ResizeObserver(([entry]) => {
       const pane = { width: entry.contentRect.width, height: entry.contentRect.height };
-      setSize(pane);
-      setFirstPane(first => first ?? pane);
+      cancelAnimationFrame(resizeFrame);
+      // Pane state changes can reflow the toolbar and invalidate the current resize delivery.
+      resizeFrame = requestAnimationFrame(() => {
+        // Commit before the next layout pass instead of leaving a batched update for an observer.
+        flushSync(() => {
+          setSize(previous =>
+            previous.width === pane.width && previous.height === pane.height ? previous : pane,
+          );
+          setFirstPane(first => first ?? pane);
+        });
+      });
     });
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(resizeFrame);
+    };
   }, []);
   const fit = useCallback(() => {
     const instance = flow.current;

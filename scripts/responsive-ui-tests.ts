@@ -106,7 +106,8 @@ let passed = 0;
 // RESPONSIVE_ONLY runs only the checks whose names start with it (the mutation harness uses it).
 const only = process.env.RESPONSIVE_ONLY;
 async function check(name: string, action: () => Promise<void>) {
-  if (only && !name.startsWith(only)) return;
+  const alwaysRun = name === 'no uncaught browser errors';
+  if (only && !name.startsWith(only) && !alwaysRun) return;
   await action();
   console.log('PASS', name);
   passed++;

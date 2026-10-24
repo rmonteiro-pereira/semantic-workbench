@@ -95,6 +95,8 @@ await withCleanup(stopCapture, async () => {
   await loginPage.close();
   for (const [width, height] of authViewports) {
     const page = await context.newPage();
+    const browserErrors: string[] = [];
+    page.on('pageerror', error => browserErrors.push(error.message));
     await page.setViewportSize({ width, height });
     await page.goto(url);
     await page.locator('.workspace-sidebar button.document').first().waitFor({ state: 'attached' });
@@ -119,6 +121,9 @@ await withCleanup(stopCapture, async () => {
         continue;
       }
       const problems = await screenProblems(page, screen);
+      if (browserErrors.length) {
+        throw new Error(`Uncaught browser errors on ${screen.name}: ${browserErrors.join('; ')}`);
+      }
       await page.screenshot({ path: `${outputDirectory}/${prefix}-${screen.name}-${width}.png` });
       console.log(`MEASURE ${screen.name} ${width} problems=${problems.length}`);
       for (const problem of problems.slice(0, 8)) console.log('   ', problem);

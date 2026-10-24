@@ -358,7 +358,7 @@ Every finding maps to a requirement. Status values are open, fixed, deferred (wi
 | F56, F57 | R4 | fixed |
 | F58 | R5 | fixed |
 | F59 | R6 | fixed |
-| F61 | R10 | fixed: round 8, 864 independently reviewed images, zero S1/S2 |
+| F61 | R10 | open: round 8 visually clear; runtime follow-up requires fresh capture |
 | F62 | R1 | open |
 | F63 | R2 | open |
 | F65 | R2a, R4 | fixed |
@@ -384,3 +384,4 @@ Every finding maps to a requirement. Status values are open, fixed, deferred (wi
 | F112 | R2, R9 | open: final audit pending |
 | F113, F114, F115, F116 | R3 | open: final audit pending |
 | F117 | R9 | open: final audit pending |
+| F120 | R8, R11 | open: resize runtime follow-up and complete verification pending |
