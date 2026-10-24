@@ -16,7 +16,7 @@ const { values } = parseArgs({
   options: {
     image: { type: 'string' },
     build: { type: 'boolean' },
-    port: { type: 'string', default: '4310' },
+    port: { type: 'string', default: process.env.SW_CONTAINER_PORT ?? '4310' },
     suite: { type: 'string', default: 'all' },
   },
 });

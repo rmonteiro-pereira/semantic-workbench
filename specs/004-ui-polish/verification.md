@@ -784,3 +784,18 @@ validated for every saved JPEG. No crop or resize was applied.
 The expansion viewport fix retains the clean complete visual result. The full
 49-command gate now restarts at this artifact commit; supplemental R11 evidence will be
 refreshed at the verified gate head. Earlier failures remain documented, without relaxed checks.
+
+## Post-round-16 gate startup: owner API port collision
+
+At `2b3abfc`, two launch attempts stopped immediately at container preflight because 4310
+was occupied. The listener was the owner’s `bun --hot server/index.ts` in the main checkout,
+started after the previous full gate. No container suite ran and the owner process was left
+untouched. Container validation now accepts `SW_CONTAINER_PORT` as its default base port;
+the existing explicit `--port` takes precedence. This also configures the CI container step
+without changing its assertions or deadlines. Focused inert-runtime tests verify both paths.
+The full gate will restart on a free base port, 4315. Product runtime and the complete clean
+round-16 screenshots remain unchanged by this test-runner configuration change.
+
+Focused container-runner verification passed seven tests and 28 assertions, including
+environment-default and explicit-flag precedence. Formatter, static, readability and independent
+actual-diff review pass. Ports 4315 and 4316 are free at restart preflight.
