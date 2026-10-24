@@ -1,6 +1,7 @@
 // The screens and dialogs a person reaches from the sidebar and the view tabs. The responsive
 // suite measures each of them at every viewport size, and the screenshot tool captures them.
 import { expect, type Page } from '@playwright/test';
+import { NARROW_SCREEN_PX } from '../../src/app/useNarrowScreen';
 import { adminPageProblems } from './admin-page-geometry';
 import { graphCanvasProblems } from './graph-canvas-geometry';
 import { layoutProblems } from './layout-geometry';
@@ -19,6 +20,9 @@ export type TourFiles = { ontology: string; contract: string };
 
 /** Opens the sidebar drawer on a phone and shows the sidebar on a desktop. */
 export async function showSidebar(page: Page) {
+  const compact = (page.viewportSize()?.width ?? 0) < NARROW_SCREEN_PX;
+  const toggleLabel = compact ? /^(Open|Close) workspace$/ : /^(Show|Hide) sidebar$/;
+  await expect(page.locator('.workspace-toggle')).toHaveAttribute('aria-label', toggleLabel);
   const open = page.getByRole('button', { name: 'Open workspace', exact: true });
   if (await open.isVisible()) {
     await open.click();
