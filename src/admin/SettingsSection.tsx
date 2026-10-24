@@ -1,5 +1,6 @@
 import { Fragment, useCallback, useState } from 'react';
 import { useMe } from '../auth/useMe';
+import { EmptyState } from '../projects/EmptyState';
 import { whenLabel } from './when';
 import { AdminConfirmation } from './AdminConfirmation';
 import { adminApi, problemText } from './api';
@@ -60,16 +61,24 @@ export function SettingsSection() {
             version={data.version}
             onSaved={reload}
           />
-          <h3>Active sessions</h3>
-          {data.sessions.map((session, index) => (
-            <section key={index}>
-              <p>
-                {session.name} ({session.principal}) · created {whenLabel(session.createdAt)} · last
-                seen {whenLabel(session.lastSeenAt)}
-              </p>
-              <button onClick={() => setEnd(session.principal)}>End session</button>
-            </section>
-          ))}
+          <section aria-label="Active sessions">
+            <h3>Active sessions</h3>
+            {data.sessions.length === 0 && (
+              <EmptyState title="No active sessions">
+                {local && 'No sign-in is needed in local mode. '}
+                Sessions appear when people sign in to server mode.
+              </EmptyState>
+            )}
+            {data.sessions.map((session, index) => (
+              <section key={index}>
+                <p>
+                  {session.name} ({session.principal}) · created {whenLabel(session.createdAt)} ·
+                  last seen {whenLabel(session.lastSeenAt)}
+                </p>
+                <button onClick={() => setEnd(session.principal)}>End session</button>
+              </section>
+            ))}
+          </section>
         </>
       )}
       {end && (
@@ -171,7 +180,11 @@ function SettingsEditor({
         />
       </label>
       <h3>Remote-credential policy</h3>
-      <p>Allowed hosts: {settings.remote.allowedHosts.join(', ')}</p>
+      <p>
+        Allowed hosts:{' '}
+        {settings.remote.allowedHosts.join(', ') ||
+          'None configured (server mode refuses remote access).'}
+      </p>
       <p>Azure DevOps on-behalf-of: {settings.remote.azureDevOpsObo ? 'On' : 'Off'}</p>
       <p>
         GitHub: {settings.remote.github.host} ·{' '}

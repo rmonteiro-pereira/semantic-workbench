@@ -1,6 +1,7 @@
 // Every group of screens the responsive suite measures and the capture tools photograph, so a new
 // tour is added in one place.
 import { expect } from '@playwright/test';
+import { graphScreens } from './graph-tour';
 import { adminScreens } from './admin-tour';
 import { revealGraphControls } from './graph-options';
 import { graphControlsProblems } from './graph-paint-geometry';
@@ -86,6 +87,16 @@ export function captureScreens(files: CaptureFiles): Screen[] {
   return [
     ...tourGroups(files).flatMap(group => group.screens),
     { name: 'mapping-graph', show: fileTab(files.mapping, 'Graph') },
+    {
+      ...graphScreens(files.ontology).find(
+        screen => screen.name === 'graph-neighborhood-hover-label',
+      )!,
+      name: 'ontology-neighborhood-hover-label',
+    },
+    {
+      ...graphScreens(files.ontology).find(screen => screen.name === 'graph-neighborhood-labels')!,
+      name: 'ontology-neighborhood-labels-zoomed',
+    },
     fullscreen('Graph'),
     fullscreen('Neighborhood'),
     ...adminScreens(),

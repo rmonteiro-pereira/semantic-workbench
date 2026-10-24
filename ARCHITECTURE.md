@@ -216,6 +216,9 @@ the controls in the focus order and retaining the space and cues needed to scrol
 built-in role headings, action prerequisites and the shared navigation strip. Admin content owns vertical scrolling;
 its direct children retain their natural height. The shared strip also hides clipped Admin links.
 
+Graph attribution uses the shared small-text and muted tokens and participates in the ordinary
+interface legibility checks.
+
 The sidebar tree snaps rows flush to its border and uses a scrollbar instead of text fades.
 At short heights, its footer pairs Examples and Import in the existing action grid.
 
@@ -227,6 +230,21 @@ branch holder wraps below the branch selector instead of being cut inside its se
 Neighborhood action buttons retain 24 px screen targets and 12 px icons at fitted zoom.
 Zoom compensation runs before paint; unreadable metric badges stay hidden in compact cards.
 Mapping graph footers distinguish reachable assets from the total graph inventory.
+
+Neighborhood relationship labels use the same discrete zoom compensation as card names.
+`RelationshipEdge` uses React Flow's `EdgeLabelRenderer` above the paths and scales each label
+with its opaque background; `placeLabels`
+reserves those scaled bounds before painting. The graph browser matrix measures canvas and label screen
+transforms, label size, and clearance from cards and other labels. Admin geometry also checks
+empty grants, session guidance, remote-host policy values, and scope-specific preview actions.
+
+Displaced relationship labels have solid leaders to the nearest point on their route.
+Labels that would cross the canvas boundary stay hidden until panning brings them fully inside.
+The shared label layer stays above every relationship path.
+
+At zoom below 1, Neighborhood shows readable relationship labels on hover or selection.
+View options explains that all labels appear after zooming in; dense overviews avoid detached
+labels around the cards. The all-label browser view uses detail zoom explicitly.
 
 The whole-model graph reserves two compensated heading lines above entity cards. Names grow
 to preserve a full 12 px floor in compact views; default edges keep their screen width and at

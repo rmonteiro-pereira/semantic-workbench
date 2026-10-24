@@ -8,7 +8,7 @@ export const MIN_TEXT_PX = 12;
 // Graph nodes and edge labels are scaled by the canvas zoom, and the code editor has its own
 // type scale, so neither counts as interface text.
 const NOT_INTERFACE_TEXT =
-  'details:not([open]) > :not(summary),details:not([open]) > :not(summary) *,[inert] *,.react-flow__node,.react-flow__node *,.react-flow__edge,.react-flow__edge *,.react-flow__minimap,.react-flow__minimap *,.cm-editor,.cm-editor *,.sr-only,.react-flow__attribution,.react-flow__attribution *,[aria-hidden="true"],[aria-hidden="true"] *,svg,svg *';
+  'details:not([open]) > :not(summary),details:not([open]) > :not(summary) *,[inert] *,.react-flow__node,.react-flow__node *,.react-flow__edge,.react-flow__edge *,.react-flow__edgelabel-renderer,.react-flow__edgelabel-renderer *,.react-flow__minimap,.react-flow__minimap *,.cm-editor,.cm-editor *,.sr-only,[aria-hidden="true"],[aria-hidden="true"] *,svg,svg *';
 
 /** Returns visible text, inside the `within` element, whose size is below the minimum. */
 export async function smallTextProblems(page: Page, within = 'body'): Promise<string[]> {

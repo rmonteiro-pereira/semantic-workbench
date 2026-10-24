@@ -146,3 +146,33 @@
 .full-graph .full-entity {
   padding-block: var(--entity-card-padding-block, 9px);
 }
+
+/* Labels share one plane above every relationship, including selected edges. */
+.neighborhood-graph .react-flow__edges {
+  z-index: 0;
+}
+.neighborhood-graph .react-flow__edgelabel-renderer {
+  z-index: 1;
+}
+.neighborhood-graph .react-flow__nodes {
+  z-index: 2;
+}
+.relationship-label {
+  position: absolute;
+  width: max-content;
+  padding: 2px 4px;
+  border-radius: 2px;
+  background: var(--color-surface-page);
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  line-height: 1.2;
+  white-space: nowrap;
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+.relationship-label-leader {
+  stroke: var(--color-text-muted);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}

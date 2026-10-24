@@ -54,6 +54,7 @@ export function useFarZoom() {
   return {
     className: far ? 'zoom-far' : undefined,
     style,
+    labelScale: far ? nameSizeOf(level) / READABLE_NAME_PX : 1,
     watcher: <FarZoomWatcher onChange={setLevel} />,
   };
 }

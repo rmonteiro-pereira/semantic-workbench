@@ -105,7 +105,7 @@ test('project changes require review and preserve unrelated restrictions', async
   await area.getByLabel('Domain for sales', { exact: true }).selectOption('');
   await area
     .getByRole('region', { name: 'Save project access', exact: true })
-    .getByRole('button', { name: 'Dry run', exact: true })
+    .getByRole('button', { name: 'Preview project access', exact: true })
     .click();
   await browserExpect(
     page.getByRole('dialog').getByRole('button', { name: 'Confirm save project access' }),

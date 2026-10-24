@@ -381,3 +381,6 @@ Every finding maps to a requirement. Status values are open, fixed, deferred (wi
 | F94, F109 | R11 | open: complete audit pending |
 | F97 | R15 | open: full gate pending |
 | F105, F106, F108, F110, F111 | R3 | open: focused fixes and final audit pending |
+| F112 | R2, R9 | open: final audit pending |
+| F113, F114, F115, F116 | R3 | open: final audit pending |
+| F117 | R9 | open: final audit pending |

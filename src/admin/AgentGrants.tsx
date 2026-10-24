@@ -59,6 +59,7 @@ export function AgentGrants({
         </fieldset>
       ))}
       <button onClick={addClient}>Add client</button>
+      <p>Preview client access before saving these grants.</p>
       <ReviewChange
         area="agents"
         proposal={config}

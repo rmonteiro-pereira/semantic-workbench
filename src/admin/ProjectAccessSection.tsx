@@ -126,6 +126,7 @@ export function ProjectsEditor({
           onChange={value => changeProject(slug, value)}
         />
       ))}
+      <p>Preview changes to domains and project access before saving.</p>
       <ReviewChange
         area="projects"
         proposal={config}

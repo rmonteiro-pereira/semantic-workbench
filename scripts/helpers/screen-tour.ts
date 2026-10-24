@@ -33,6 +33,10 @@ export async function openFile(page: Page, path: string) {
   await showSidebar(page);
   await page.getByRole('button', { name: path, exact: true }).first().click();
   await page.waitForTimeout(600);
+  await expect(page.locator('.workspace-sidebar .document.chosen')).toHaveAttribute(
+    'aria-label',
+    path,
+  );
 }
 
 async function openTab(page: Page, name: string) {
@@ -42,6 +46,7 @@ async function openTab(page: Page, name: string) {
   await button.click();
   await expect(button).toHaveAttribute('aria-current', 'page');
   await page.waitForTimeout(800);
+  await expect(button).toHaveAttribute('aria-current', 'page');
 }
 
 async function pressSidebarButton(page: Page, name: string | RegExp) {
@@ -57,6 +62,10 @@ export function fileTab(file: string, tab: string): Screen['show'] {
     await page.getByRole('button', { name: 'Model explorer', exact: true }).click();
     await openFile(page, file);
     await openTab(page, tab);
+    await expect(page.locator('.workspace-sidebar .document.chosen')).toHaveAttribute(
+      'aria-label',
+      file,
+    );
   };
 }
 
@@ -118,6 +127,15 @@ export async function screenProblems(page: Page, screen: Screen): Promise<string
     within = '.canvas-row.is-fullscreen';
   }
   const problems = await geometryProblems(page, within);
+  if (
+    screen.name.startsWith('ontology-neighborhood') &&
+    !(await page.locator('.neighborhood-graph').isVisible())
+  ) {
+    problems.push('the intended Neighborhood canvas is not visible');
+  }
+  if (screen.name.endsWith('hover-label')) {
+    await expect(page.locator('.neighborhood-graph .relationship-label').first()).toBeVisible();
+  }
   if (screen.name.startsWith('admin-')) problems.push(...(await adminPageProblems(page)));
   const mapping = page.locator('[aria-label="Mapping graph"] .lineage-reading');
   if (await mapping.isVisible()) {

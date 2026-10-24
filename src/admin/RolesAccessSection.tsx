@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { EmptyState } from '../projects/EmptyState';
 import { useMe } from '../auth/useMe';
 import { AdminConfirmation } from './AdminConfirmation';
 import { whenLabel } from './when';
@@ -82,6 +83,12 @@ export function RolesAccessSection({ view }: { view: 'grants' | 'roles' }) {
       </div>
       {data && view === 'grants' && (
         <>
+          {data.grants.length === 0 && (
+            <EmptyState title="No access grants yet">
+              {me?.mode === 'local' && 'Local mode gives you full access. '}
+              Use Add grant to give a person or group a role in server mode.
+            </EmptyState>
+          )}
           <div className="admin-table">
             <table className="admin-records">
               <thead>
