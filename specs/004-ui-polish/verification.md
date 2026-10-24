@@ -423,3 +423,18 @@ interaction subset 3/3, including the unconditional uncaught-browser-error asser
 All four graph/shell release sizes passed. The complete 108-view instrumented replay had zero
 observer errors. Build, final static/readability/docs checks and independent review passed.
 The next complete capture uses the stricter error guard and the committed resize fix.
+
+
+## Round 9: complete visual and runtime recheck
+
+Frozen source/capture head: `a5c45ee02294f887ba37c7b01172b70d350bf6ab`. The four
+mode/theme captures each produced 216 images, all zero-problem measurements, no skips and no
+uncaught browser errors. All 864 fresh original PNGs were independently inspected at native
+size and every filename is accounted for in the twelve `round-9-*.md` reports: **0 S1, 0 S2,
+8 S3 rows**, repeating the two disclosed minor patterns. Round 9 supersedes round 8 as final
+capture evidence after the resize correction. The saved JPEGs preserve native dimensions,
+quality 95 and no chroma subsampling; their manifest records both source and output hashes.
+The full release gate and the separate R11 acceptance evidence remain pending.
+
+Capture completion times on 24 October 2026 (UTC): server light 07:40:07; server dark
+07:45:20; local light 07:51:24; local dark 07:57:27. The source remained frozen throughout.

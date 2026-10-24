@@ -1,8 +1,9 @@
 # Serious finding closure ledger
 
 Round 8 is the first complete local/server, light/dark round with no S1 or S2 findings.
-All 864 native images were independently reviewed; every filename is listed in its partition.
-Capture and product head: `6363a0e16699c6a891728de2d69acc4e4c78e4e9`.
+Round 9 repeats the complete clean result after the resize runtime correction. All 864 fresh
+native images were independently reviewed; every filename is listed in its partition.
+Final capture and product head: `a5c45ee02294f887ba37c7b01172b70d350bf6ab`.
 The eight S3 rows repeat two minor patterns, retained as F118/F119.
 
 Counts below are observed serious rows, including repeats between themes and focused reviews;
@@ -17,6 +18,7 @@ they are not counts of distinct defects. Earlier incomplete captures remain diag
 | Round 6 full server and focused | 16 fixed | Admin geometry, navigation, action targets, count scope and wording; `31f4dbc` |
 | Round 7 full and focused | 16 fixed | Local guidance, compensated opaque labels, route leaders, clipping and attribution; `6363a0e` |
 | Round 8 complete | 0 to fix | 864 native reviews; 0 S1 / 0 S2; 8 repeated S3 rows |
+| Round 9 complete | 0 to fix | 864 fresh native reviews; 0 S1 / 0 S2; 8 repeated S3 rows; no uncaught browser errors |
 
 Round 2's six triages are LA-3, LB-14, LC-1, LC-3, LC-6 and LD-11. Their baseline rows
 explain the screenshot interpretation or intentional readable behavior; the full matrix and
@@ -25,4 +27,4 @@ history rather than counted as work performed during this release completion.
 
 The required new server reports are named `round-2-SA.md` and `round-2-SB.md`; they came from
 the fourth capture iteration. No separate round-4 visual set is claimed. Later rounds include
-explicit diagnostic and focused sets; only round 8 establishes the complete clean result.
+explicit diagnostic and focused sets; rounds 8 and 9 establish the complete clean result.
