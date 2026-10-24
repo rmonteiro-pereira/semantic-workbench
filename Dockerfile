@@ -16,8 +16,9 @@ FROM docker.io/oven/bun:1.4-slim@sha256:686427843343e931d31dcca0c95221040dec48a8
 # Server mode gives each person a working copy with `git worktree add --orphan` when a repository
 # has no commit yet; that option needs Git 2.42.
 RUN export DEBIAN_FRONTEND=noninteractive \
-    && apt-get update && apt-get install -y --no-install-recommends git \
+    && apt-get update && apt-get install -y --no-install-recommends git libbrotli1 \
     && dpkg --compare-versions "$(git --version | cut -d ' ' -f 3)" ge 2.42 \
+    && dpkg --compare-versions "$(dpkg-query -W -f='${Version}' libbrotli1)" ge 1.1.0-2+deb13u1 \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 ARG SW_VERSION=dev

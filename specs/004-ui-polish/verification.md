@@ -694,3 +694,37 @@ Only the test fixture changes; the captured product remains identical to round 1
 The full focused authentication suite passed, including expiry and automatic provider return.
 Static checks, formatter and readability pass; independent actual-diff review reports SHIP.
 No product source changed, so the clean round-13 visual matrix remains current.
+
+## Full gate attempt 9: CI runtime and security updates
+
+At `fce9c814a9ed60cac417e2da064bccd935dba9c5`, container validation passed all 25 local suites
+and 30 explicit PASS lines. Unit passed 1,848 tests, 129,528 assertions and 259 files (242.23
+seconds); static checks, build, 657/657 mutation targets, all 32 direct browser suites and the
+example-data check passed. All 137 responsive checks passed with no uncaught browser errors.
+
+CI first passed verification, then its isolated Vite failed all three unchanged 60-second startup
+deadlines. Machine load was low. There was no real Node executable on PATH, so the package
+wrapper routed its node child through Bun. Five wrapper and five direct-Bun startup probes
+failed readiness; with the existing Node 24.11.0 executable on PATH, five wrapper probes and
+20 confirmation launches all became ready in under 0.5 seconds. Independent evidence review
+supported the runtime correction. No code, assertion or budget changed. The complete CI was
+rerun at the same head with Node on PATH; failed logs and a structured retry record were retained.
+
+The rerun passed verify (1,848 tests, zero failures, 261.21 seconds), mutation (657/657) and
+every canonical browser suite. Vite became ready without a startup retry. Image scanning then
+found two fixable HIGH vulnerabilities: CVE-2026-109461 in MSAL Node 7.0.1 (fixed in 7.1.0),
+and CVE-2026-111497 in runtime `libbrotli1` (fixed in `1.1.0-2+deb13u1`). The primary records
+are the [MSAL advisory](https://github.com/advisories/GHSA-xcx6-jx8p-x3h5) and
+[distribution security update](https://lists.debian.org/debian-security-announce/2026/msg00498.html).
+No scan exception or severity change was made. CI container/pipeline and the ten-run streak
+had not started. The dependency lock is updated to MSAL Node 7.1.0, and the container explicitly
+installs the patched Brotli package and refuses an older version. Focused validation follows
+before the new-head capture and full gate.
+
+The focused production image build installed `libbrotli1` version `1.1.0-2+deb13u1`. Both
+unchanged scanner formats passed with zero gated vulnerabilities and zero secrets. All 48
+focused authentication/provider tests passed (seven files, 5.01 seconds), and the complete
+authentication browser suite passed with MSAL Node 7.1.0, including expiry, provider logout,
+group refresh, credential consent and filtered export. Formatter and static checks pass.
+Independent actual-diff review reports SHIP. A fresh complete visual round and full new-head
+gate follow; no final success is inferred from these focused checks.
