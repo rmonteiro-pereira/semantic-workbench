@@ -780,3 +780,9 @@ event between a response and React's next commit from being lost. `tests/clone-p
 checks both event orders, unrelated operations and retries. The Git setup browser suite holds
 the event connection, measures the waiting dialog at all four sizes in both themes, then verifies
 missing-folder failure and recovery without changing the original timing assertion.
+
+The final fresh UI audit is round 13: 1,040 native images, including local/server in both
+themes, authentication and delayed clone connection states at all four sizes. All originals
+were individually reviewed: 0 S1 / 0 S2 / 18 repeated S3 rows. Final images and source/output
+hash manifests are in `specs/004-ui-polish/screenshots/after/`. The full release gate remains
+pending; the completion record will be in `specs/004-ui-polish/FINAL.md`.
