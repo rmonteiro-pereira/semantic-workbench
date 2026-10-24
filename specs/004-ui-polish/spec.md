@@ -189,7 +189,7 @@ blocks of the responsive suite, `test:dialogs`.
 1. No text below 12 px on any screen except inside graph cards, which follow R2 and the far-zoom
    rule (names stay at least 12 px down to zoom 0.27).
 2. Muted text has at least 4.5:1 contrast on its background in light and dark.
-3. Tab strips that scroll show a fade cue.
+3. Tab strips that scroll show chevron cues beside the available directions and hide clipped labels.
 
 Findings: F09, F18, F19, F20. Checks: `smallTextProblems` in every tour check; contrast
 measurement (new, `scripts/helpers/text-geometry.ts`).
