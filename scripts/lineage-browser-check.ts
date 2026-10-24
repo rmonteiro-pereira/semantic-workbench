@@ -594,7 +594,8 @@ try {
         expect(await smallTextProblems(page, '.lineage-hops')).toEqual([]);
         expect(await textCollisionProblems(page, '.lineage-hops')).toEqual([]);
         const row = graph().locator('.lineage-hops');
-        await expect(row).toContainText('orders → ');
+        await expect(row.locator('.lineage-hops-path')).toHaveText('orders · 2 connected tables');
+        await expect(row.locator('.lineage-hops-path')).toHaveAttribute('title', /^orders → /);
         await expect(row).toContainText('1 hop');
         await graph()
           .getByRole('button', { name: /^Foreign keys \(\d+\)$/ })
