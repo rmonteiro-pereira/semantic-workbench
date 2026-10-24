@@ -75,7 +75,13 @@ export function ScrollStrip({
   // Observers are attached once: size changes and added or removed controls refresh the cues.
   useLayoutEffect(() => {
     const strip = ref.current!;
-    const resize = new ResizeObserver(reveal);
+    let resizeFrame = 0;
+    const scheduleReveal = () => {
+      cancelAnimationFrame(resizeFrame);
+      resizeFrame = requestAnimationFrame(reveal);
+    };
+    // Changing cue margins during resize delivery can resize an ancestor already measured.
+    const resize = new ResizeObserver(scheduleReveal);
     const mutate = new MutationObserver(reveal);
     resize.observe(strip);
     mutate.observe(strip, { childList: true, subtree: true, characterData: true });
@@ -92,6 +98,7 @@ export function ScrollStrip({
     strip.addEventListener('scroll', update, { passive: true });
     return () => {
       resize.disconnect();
+      cancelAnimationFrame(resizeFrame);
       mutate.disconnect();
       strip.removeEventListener('focusin', revealFocused);
       strip.removeEventListener('scroll', update);

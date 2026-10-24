@@ -45,7 +45,7 @@ from the v0.4.0 build). `screenshots/after/` holds the same screens after the fi
 | F58 | Foreign-key steps | The foreign-key hops are confusing in the lineage and graph steps and in the data view. Each hop reads as `orders.customer_id → customers.id`, the direction is clear, the hop count and path show in one place, the stepping control has plain labels and one line of help. | local-contract-graph-1280 | fixed: Hops row, path line, foreign-key dialog and sentences in the data view |
 | F59 | Sidebar Examples | The Examples button becomes a fly-out menu anchored to the button, keyboard accessible. | local-ontology-overview-1280 | fixed: Examples is a fly-out menu on the shared menu |
 | F60 | Header, top-right corner | Person menu, mode badge, save state and the rest are ungrouped and uneven. Group them, keep the essentials, move the rest into the person or an overflow menu, align heights and spacing, and make it work at 390 px. | server-projects-1280 | fixed: header grouped into file, save and account clusters at 36/34 px, icons only below 1100 px |
-| F61 | Visual audit | Every screen and dialog at four sizes, local and server mode, light and dark where the app has both, reviewed strictly by a separate reviewer until a round finds no S1 or S2 item. | specs/004-ui-polish/screenshots/after | fixed: round 8, 864 native images, zero S1/S2; final images and hashes saved |
+| F61 | Visual audit | Every screen and dialog at four sizes, local and server mode, light and dark where the app has both, reviewed strictly by a separate reviewer until a round finds no S1 or S2 item. | specs/004-ui-polish/screenshots/after | open: round 8 was visually clear; resize runtime fix requires fresh final capture |
 | F62 | Theme | Colours are literals spread over CSS, inline styles and renderers, so changing the palette is hard. One theme file of semantic tokens, light and dark value sets, a check that fails on a literal elsewhere, docs and a browser check that swaps the accent. | src/style.css | open |
 | F63 | Lineage view | A dedicated redesign pass: defects listed first, readable cards, clean first view, no overlaps, path highlight, plain hop sentences, Full pierce kept, understandable fan-out collapse, shared toolbar plus View options. | local-contract-graph-1280 | open |
 | F64 | Earlier owner asks | Full-screen graph, YAML highlighting with SQL, trash icons, file list hierarchy, real concept mappings, VS Code-like source control and click-to-edit must still work and look right after the polish. | specs/004-ui-polish/screenshots/after | open |
@@ -207,7 +207,8 @@ The complete frozen capture at `6363a0e16699c6a891728de2d69acc4e4c78e4e9` contai
 54 states at four sizes in local/server mode and light/dark: 864 images. All measurements
 report zero problems, with no skipped views. Three independent reviewers inspected every native
 image; all twelve reports account for every filename. They found **0 S1, 0 S2 and 8 S3 rows**,
-representing the two repeated minor patterns below. R10's visual loop is complete.
+representing the two repeated minor patterns below. A subsequent resize runtime correction
+requires a fresh complete round before final R10 closure.
 
 The [closure ledger](audit/closure.md) links earlier serious rows to their fixes. Final JPEGs
 retain native dimensions, with source/output hashes in `screenshots/after/manifest.json`.
@@ -216,3 +217,9 @@ retain native dimensions, with source/output hashes in `screenshots/after/manife
 | --- | --- | --- | --- |
 | F118 | Sidebar scroll boundary | A partial next row can appear above fixed actions. | deferred S3: scrolling and actions remain usable; no unreadable content |
 | F119 | Neighborhood long names | DocumentReference can wrap with a final two-letter line at 1440 px. | deferred S3: the complete name remains readable above the size floor |
+
+## Resize delivery follow-up
+
+| Finding | Area | Remediation | Status |
+| --- | --- | --- | --- |
+| F120 | Graph and strip resize delivery | Queue layout-changing resize publication outside observer delivery; cancel pending work and reject uncaught errors in capture. | open: instrumented reproduction and fresh complete audit pending |

@@ -375,3 +375,51 @@ reproduces. No browser error assertion is suppressed or weakened.
 The pending full gate includes all 29 canonical browser suites, Keycloak compatibility, the
 standalone large-graph check with all areas expanded, the standalone UBL check and example data
 verification. Retired inspection scripts documented in README are not current release suites.
+
+## Standalone gate setup and resize delivery investigation
+
+The first release gate stopped at the standalone large-graph check: selecting Overview closes
+View options, but the shared driver then tried to click the removed Done button. The script now
+uses a named navigation step that asserts the dialog opens and closes. All original assertions
+and timeouts remain. The focused all-area rerun passed 1,000 entities / 5,000 relationships,
+with no browser errors (initial layout 758 ms, full expansion 11,070 ms). The standalone UBL
+check also passed: six documents, 45 business entities, 277 relationships, no errors.
+This was a stale test setup failure, not a machine-load rerun.
+
+Instrumenting observer creation and delivery reproduced an uncaught notification-loop error
+during 1280 px Neighborhood full-screen entry. The shared strip synchronously changed cue
+margins during delivery. Queuing that publication removed the error in ten repeated full-screen
+entries, but a longer trace found a second feedback path on the phone Catalog transition:
+FullGraph's pane state changed its descendant height from 505.21875 to 489.21875 in one delivery.
+FullGraph pane publication and the shared stage-size observer now also run in the next frame;
+unchanged sizes retain state identity and cleanup cancels pending frames. No library error is
+suppressed. Capture now rejects every uncaught browser error at every viewport.
+
+The first post-strip trace was invalidated later by source edits while it was still running:
+Vite reloaded FullGraph and stage-size at 07:21:33 UTC and the selected Metrics assertion failed
+at 07:21:38. That failure is excluded from product-navigation evidence. The trace's earlier
+observer event remains valid diagnostic evidence. A fresh frozen 108-view instrumented replay
+is running; the complete visual round and release gate will restart after focused checks.
+Static, readable-code and structure checks passed for the standalone test correction; independent
+review reports SHIP. Independent review also found no safety blockers in the resize scheduling.
+
+The first frame-only pane update was also insufficient: the frozen trace reproduced the phone
+Catalog transition error. React could leave the frame's state update batched until a later
+React Flow observer forced a commit. FullGraph now commits pane publication synchronously inside
+the scheduled frame, before the next layout pass. The unrelated stage-size experiment was
+reverted. A focused four-view Catalog replay at 390/1280 then reported no observer error.
+The longer first-frame trace was stopped deliberately after reproduction, before any source
+change. A fresh full 108-view instrumented replay is running against the narrowed correction.
+No timeout, assertion or browser error reporting was weakened.
+
+The narrowed correction completed the full 108-view instrumented replay with zero observer
+errors and zero geometry problems. Build passed. The strengthened graph matrix passed all four
+viewports plus its now-unconditional uncaught-browser-error assertion (five checks). Formatter,
+static, readable-code and documentation sync checks passed. Shell/full-screen focused checks and
+a fresh complete round remain pending before committing final audit evidence.
+
+Focused resize verification completed: graph matrix 5/5, shell matrix 5/5 and full-screen
+interaction subset 3/3, including the unconditional uncaught-browser-error assertion in each.
+All four graph/shell release sizes passed. The complete 108-view instrumented replay had zero
+observer errors. Build, final static/readability/docs checks and independent review passed.
+The next complete capture uses the stricter error guard and the committed resize fix.

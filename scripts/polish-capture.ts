@@ -43,6 +43,8 @@ await withCleanup(
 
     for (const [width, height] of authViewports) {
       const page = await browser.newPage({ viewport: { width, height } });
+      const browserErrors: string[] = [];
+      page.on('pageerror', error => browserErrors.push(error.message));
       if (dark) await page.addInitScript(() => localStorage.setItem('workbench.theme', 'dark'));
       await routeApi(page, api);
       await page.goto(appUrl());
@@ -55,6 +57,9 @@ await withCleanup(
           throw error;
         }
         const problems = await screenProblems(page, screen);
+        if (browserErrors.length) {
+          throw new Error(`Uncaught browser errors on ${screen.name}: ${browserErrors.join('; ')}`);
+        }
         await page.screenshot({ path: `${outputDirectory}/${prefix}-${screen.name}-${width}.png` });
         console.log(`MEASURE ${screen.name} ${width} problems=${problems.length}`);
         for (const problem of problems.slice(0, 8)) console.log('   ', problem);
