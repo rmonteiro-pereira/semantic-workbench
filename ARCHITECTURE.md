@@ -766,3 +766,8 @@ native-dialog descendants while whole-page layout assertions retain their contro
 
 Routing assertions select the algorithm they exercise: Layered retains ELK routes, while the
 Network scenario verifies live worker routing. Both preserve the complete model counts.
+
+`scripts/helpers/graph-readiness.ts` owns whole/centered model bounds shared with authentication
+capture and the responsive initial-fit stability assertion. It requires unchanged viewport,
+node bounds and rendered paths before measurements; live routing fallbacks remain authoritative
+while a person drags. Strict post-readiness geometry assertions retain their original limits.

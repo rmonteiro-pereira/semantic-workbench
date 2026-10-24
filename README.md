@@ -1495,3 +1495,6 @@ and source/output hash manifests are under `specs/004-ui-polish/`.
 
 The UI interaction suite verifies whole-model counts in the default Layered layout, then selects
 Network explicitly to prove worker routing without depending on a layout default.
+
+Responsive page setup waits for the initial graph fit and stable viewport/node/path measurements
+before checking edges. Visible nodes or a completed worker batch alone do not mean fitting ended.

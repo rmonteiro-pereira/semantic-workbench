@@ -1,6 +1,7 @@
 // Checks responsive layouts, overlays and navigation in an isolated browser workspace.
 import { tabStripProblems } from './helpers/strip-geometry';
 import { appUrl } from './helpers/base-url';
+import { expectInitialGraphSettled } from './helpers/graph-readiness';
 import { revealGraphControls, showEveryEntity, viewOptions } from './helpers/graph-options';
 import { LOCAL_READER } from '../server/projects/reader';
 import { chromium, expect, type Locator, type Page } from '@playwright/test';
@@ -202,6 +203,7 @@ async function openPage(width: number, height: number) {
   await expect(page.locator('h1')).toContainText('UBL');
   await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60_000 });
   await expect(page.locator('.react-flow__node-entity').first()).toBeVisible();
+  await expectInitialGraphSettled(page);
   return page;
 }
 async function noOverflow(page: Page) {

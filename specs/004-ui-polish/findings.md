@@ -249,3 +249,7 @@ tour was stopped while incomplete; no complete round 10 is claimed. See `audit/r
 | Finding | Area | Remediation | Status |
 | --- | --- | --- | --- |
 | F125 | Account-dialog dark capture | Use the shared authentication capture helper and assert the active CSS color scheme. | open: round 11 visual audit clear; final gate pending |
+
+| Finding | Area | Remediation | Status |
+| --- | --- | --- | --- |
+| F126 | Initial graph measurement | Require fitted whole/centered bounds and stable node/path geometry before responsive measurements; retain strict clearance assertions and live drag behavior. | open: 137 responsive checks pass; final gate pending |
