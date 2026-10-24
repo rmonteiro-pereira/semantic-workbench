@@ -759,8 +759,9 @@ group yields room for long refusal messages.
 Account/connection dialog screenshots delegate to the shared authentication capture helper;
 separate drivers must not bypass theme, settled-content, geometry or browser-error assertions.
 
-The release audit combines 864 workspace-tour images with 168 authentication images across both
-themes. Eighteen independent reports account for all 1,032 originals. Authentication screenshots
+The release audit combines 864 workspace-tour images, 168 authentication images and eight
+clone connection-wait images across both themes. Nineteen reports cover all 1,040 originals.
+Authentication screenshots
 share the same capture contract, including remote dialogs. Header geometry excludes top-layer
 native-dialog descendants while whole-page layout assertions retain their control bounds.
 
@@ -784,8 +785,8 @@ missing-folder failure and recovery without changing the original timing asserti
 The final fresh UI audit is round 16: 1,040 native images, including local/server in both
 themes, authentication and delayed clone connection states at all four sizes. All originals
 were individually reviewed: 0 S1 / 0 S2 / 18 repeated S3 rows. Final images and source/output
-hash manifests are in `specs/004-ui-polish/screenshots/after/`. The full release gate remains
-pending; the completion record will be in `specs/004-ui-polish/FINAL.md`.
+hash manifests are in `specs/004-ui-polish/screenshots/after/`. The full release gate passes; the
+completion record is `specs/004-ui-polish/FINAL.md`.
 
 The authentication expiry browser fixture expires its refresh token before the access token.
 Equal lifetimes allow token timestamp rounding to rotate a fresh refresh token before expiry,
@@ -801,10 +802,22 @@ Neighborhood expansion now chooses its readable viewport before publishing it, a
 transient fit-all render of offscreen nodes. `src/graph/expansion-viewport.ts` holds the pure
 choice; `tests/expansion-viewport.test.ts` adds three tests and
 `scripts/graph-expansion-checks.ts` checks all four sizes in both themes through `test:graph`.
-Three targeted faults bring the mutation inventory to 660. Final release totals are recorded
-in `specs/004-ui-polish/FINAL.md` after the complete new-head gate.
+Three targeted faults bring the mutation inventory to 660. The complete new-head gate passes;
+release totals are recorded in `specs/004-ui-polish/FINAL.md`.
 
 Container validation uses `SW_CONTAINER_PORT` as its base port (default 4310); an explicit
 `--port` takes precedence. Set a free base port such as 4315 when another local API uses 4310.
 The setting also reaches the container step of `ci:validate`; checks require the base port
 and its successor to be free before starting. It configures only validation, not the application server.
+
+The v0.5.0 completion record is [FINAL.md](specs/004-ui-polish/FINAL.md). The verified gate passes
+1,853 tests (129,539 assertions, 260 files), 660/660 mutation targets, 32 direct browser suites (29
+canonical, Keycloak and two standalone graph checks), container validation, all six CI steps and ten
+consecutive lineage runs. The 1,040-image round 16 matrix is supplemented by 61 R11 proof images
+under `specs/004-ui-polish/screenshots/after/r11/`, for 1,101 saved images. Each manifest retains source hashes and
+original dimensions.
+
+CI starts each Vite process with Node 24.11+ available on PATH. The package wrapper otherwise
+routes its node executable through Bun in this environment, where child launches can stay alive
+without listening. The API, commands and test runner continue using Bun. Readiness deadlines
+and bounded startup cleanup are unchanged.

@@ -44,9 +44,11 @@ visual review and replaces the saved final tour, including both authentication t
 | Round 10 capture coverage | 1 fixed | Shared account-dialog theme setup and computed CSS theme assertion; `f648e4a` |
 | Round 11 complete | 0 to fix | 1,032 native reviews; 0 S1 / 0 S2 / 12 S3 |
 
-The release completion resolves **116 observed serious rows** across baseline, repeated and
+At the round-11 milestone, the ledger recorded **116 observed serious rows** across baseline,
+repeated and
 focused reviews, plus six justified baseline triages. This is not a distinct-defect count.
-Round 11 is the complete expanded-scope clean result, at `f648e4aaaa07a4ce82c340cafa84baefad71328a`.
+Round 11 was the complete expanded-scope clean result at that milestone, at
+`f648e4aaaa07a4ce82c340cafa84baefad71328a`.
 The twelve main-tour and six authentication reports account for every fresh original.
 
 
@@ -55,13 +57,13 @@ The twelve main-tour and six authentication reports account for every fresh orig
 | Round 12 clone progress diagnostic and focus | 1 fixed | Atomic progress state and connection readiness; `58aa8c4`; eight focused originals clear |
 | Round 13 complete expanded scope | 0 to fix | 1,040 fresh originals: 0 S1 / 0 S2 / 18 repeated S3 rows |
 
-Round 13 supersedes round 11 as the final complete visual round, at
+Round 13 superseded round 11 at that milestone, at
 `58aa8c4d828b8857e81b1be15aa5d822faad3103`. Its twelve tour partitions cover 864
 images, six authentication partitions cover 168, and the clone-wait report covers eight.
 Exact review union, original dimensions and source/output hashes were validated for all 1,040.
 The 18 minor rows repeat three patterns: sidebar scroll boundaries, a long-name orphan line,
 and phone deprecation form spacing. These remain nonblocking S3 observations.
-The final full gate and supplemental R11 acceptance proof are still pending.
+The final full gate and supplemental R11 acceptance proof subsequently passed; see FINAL.md.
 
 ## Round 14: complete fresh security-update visual result
 
@@ -72,13 +74,13 @@ four widths and both themes. Independent native review accounts for all 1,040 or
 0 S1 / 0 S2 / 18 repeated S3 rows. Original dimensions and source/output hashes are
 validated for every saved JPEG. No crop or resize was applied.
 
-The dependency and runtime security updates retain the clean complete visual result. The full
-49-command gate now restarts at this artifact commit; supplemental R11 evidence will be
-refreshed at the verified gate head. Earlier failures remain documented, without relaxed checks.
+Round 16 supersedes round 13 as the final complete visual round. The dependency and
+runtime security updates retain the clean result. The subsequent 49-command gate and fresh
+supplemental R11 evidence pass at the recorded verified head. Earlier failures remain documented.
 
 Round 15 records one additional S2 expansion render stall, fixed by direct readable viewport
 publication. The ledger now totals 117 observed serious rows resolved, plus six justified
-baseline triages. Fresh complete round 16 and the full gate remain pending.
+baseline triages. Fresh complete round 16 and the full gate subsequently passed; see FINAL.md.
 
 ## Round 16: complete fresh expansion-fix visual result
 
@@ -89,6 +91,12 @@ four widths and both themes. Independent native review accounts for all 1,040 or
 0 S1 / 0 S2 / 18 repeated S3 rows. Original dimensions and source/output hashes are
 validated for every saved JPEG. No crop or resize was applied.
 
-The expansion viewport fix retains the clean complete visual result. The full
-49-command gate now restarts at this artifact commit; supplemental R11 evidence will be
-refreshed at the verified gate head. Earlier failures remain documented, without relaxed checks.
+The expansion viewport fix retains the clean complete visual result. The subsequent
+49-command gate and refreshed R11 acceptance evidence pass at the verified head in FINAL.md.
+Earlier failures remain documented, without relaxed checks.
+
+
+The final gate passes all 49 commands at `d631e56e770ebf08d3b3d8901c61e1a2933897d6`. R11
+supplemental acceptance reviews 61 images with no S1/S2. All requirements, including R10/R11 and
+issue 10, are verified. F118, F119, F124, F128, F129 and F130 remain deferred S3 polish; see
+FINAL.md.

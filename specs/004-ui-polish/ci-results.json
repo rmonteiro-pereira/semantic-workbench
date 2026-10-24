@@ -1,0 +1,30 @@
+{
+  "seconds": 5018.651000000001,
+  "failed": [],
+  "results": [
+    {
+      "step": "verify",
+      "seconds": 251.167
+    },
+    {
+      "step": "mutation",
+      "seconds": 919.694
+    },
+    {
+      "step": "browser",
+      "seconds": 2068.062
+    },
+    {
+      "step": "image",
+      "seconds": 68.978
+    },
+    {
+      "step": "container",
+      "seconds": 1707.306
+    },
+    {
+      "step": "pipeline",
+      "seconds": 3.444
+    }
+  ]
+}

@@ -345,52 +345,52 @@ Every finding maps to a requirement. Status values are open, fixed, deferred (wi
 
 | Finding | Requirement | Status |
 | --- | --- | --- |
-| F01, F03, F08, F20, F25, F40, F49 | R2 | fixed except lineage redesign (open) |
+| F01, F03, F08, F20, F25, F40, F49 | R2 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
 | F02, F04, F05, F06, F07, F14, F15 | R8 | fixed |
 | F09 | R9 | fixed |
-| F10, F11, F21, F22, F23, F24 | R4 | fixed, redesign pass open |
+| F10, F11, F21, F22, F23, F24 | R4 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
 | F12, F13, F33, F34, F55 | R3 | fixed |
-| F16 | R4 | not changed, on purpose; revisited by R4.2 |
+| F16 | R4 | verified: settled whole-card fit with readable columns |
 | F17, F51, F60 | R7 | fixed |
-| F18, F19 | R1, R9 | text floor fixed; theme isolation open |
+| F18, F19 | R1, R9 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
 | F26, F27, F28, F29, F30, F31, F32, F35, F36, F37, F38, F41, F43, F44, F45, F46, F47, F48, F50, F52, F53, F54 | R8 | fixed |
 | F39, F42 | R8 | fixed |
 | F56, F57 | R4 | fixed |
 | F58 | R5 | fixed |
 | F59 | R6 | fixed |
-| F61 | R10 | open: round 16 visual audit clear; final gate pending |
-| F62 | R1 | open: round 16 visual audit clear; final gate pending |
-| F63 | R2 | open: round 16 visual audit clear; final gate pending |
+| F61 | R10 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
+| F62 | R1 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
+| F63 | R2 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
 | F65 | R2a, R4 | fixed |
 | F66 | R2a | fixed |
 | F67 | R12 | fixed |
 | F68 | R13 | fixed |
 | F69 | R14 | fixed |
 | F70 | R15 | fixed |
-| F71 | R16 | open: round 16 visual audit clear; final gate pending |
+| F71 | R16 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
 | F77, F78, F79, F80, F81, F82 | R17 | fixed |
-| F72 | R8 | open: round 16 visual audit clear; final gate pending |
-| F73 | R16 | open: round 16 visual audit clear; final gate pending |
-| F74 | R8 | open: round 16 visual audit clear; final gate pending |
-| F75 | R8 | open: round 16 visual audit clear; final gate pending |
-| F76 | R8 | open: round 16 visual audit clear; final gate pending |
-| F64 | R11 | open: round 16 clear; supplemental R11 browser proof and gate pending |
-| F83, F89, F90, F99 | R7, R8, R10 | open: round 16 visual audit clear; final gate pending |
-| F84, F85, F86, F87, F91, F92, F93, F96, F98 | R4, R8, R16 | open: round 16 visual audit clear; final gate pending |
-| F88, F95, F100, F101, F102, F103, F104, F107 | R2, R9 | open: round 16 visual audit clear; final gate pending |
-| F94, F109 | R11 | open: round 16 visual audit clear; final gate pending |
-| F97 | R15 | open: round 16 visual audit clear; final gate pending |
-| F105, F106, F108, F110, F111 | R3 | open: round 16 visual audit clear; final gate pending |
-| F112 | R2, R9 | open: round 16 visual audit clear; final gate pending |
-| F113, F114, F115, F116 | R3 | open: round 16 visual audit clear; final gate pending |
-| F117 | R9 | open: round 16 visual audit clear; final gate pending |
-| F120 | R8, R11 | open: round 16 visual audit clear; final gate pending |
-| F121 | R8, R10, R17 | open: round 16 visual audit clear; final gate pending |
-| F122 | R7, R8 | open: round 16 visual audit clear; final gate pending |
-| F123 | R10, R11 | open: round 16 visual audit clear; final gate pending |
-| F125 | R1, R10 | open: round 16 visual audit clear; final gate pending |
-| F126 | R10, R11 | open: 137 responsive checks pass; final gate pending |
-| F127 | R11, R15 | open: clone ordering, readiness and round 16 pass; final gate pending |
+| F72 | R8 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
+| F73 | R16 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
+| F74 | R8 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
+| F75 | R8 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
+| F76 | R8 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
+| F64 | R11 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
+| F83, F89, F90, F99 | R7, R8, R10 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
+| F84, F85, F86, F87, F91, F92, F93, F96, F98 | R4, R8, R16 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
+| F88, F95, F100, F101, F102, F103, F104, F107 | R2, R9 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
+| F94, F109 | R11 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
+| F97 | R15 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
+| F105, F106, F108, F110, F111 | R3 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
+| F112 | R2, R9 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
+| F113, F114, F115, F116 | R3 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
+| F117 | R9 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
+| F120 | R8, R11 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
+| F121 | R8, R10, R17 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
+| F122 | R7, R8 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
+| F123 | R10, R11 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
+| F125 | R1, R10 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
+| F126 | R10, R11 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
+| F127 | R11, R15 | fixed/verified: round 16, R11 proof and final 49-command gate pass |
 
 ## Round 14: complete fresh security-update visual result
 
@@ -401,13 +401,12 @@ four widths and both themes. Independent native review accounts for all 1,040 or
 0 S1 / 0 S2 / 18 repeated S3 rows. Original dimensions and source/output hashes are
 validated for every saved JPEG. No crop or resize was applied.
 
-The dependency and runtime security updates retain the clean complete visual result. The full
-49-command gate now restarts at this artifact commit; supplemental R11 evidence will be
-refreshed at the verified gate head. Earlier failures remain documented, without relaxed checks.
+At this milestone, the dependency and runtime security updates retained the clean visual result.
+The subsequent expansion fix, final round 16 and complete gate are recorded in [FINAL.md](FINAL.md).
 
 | Finding | Requirements | Status |
 | --- | --- | --- |
-| F131 | R2, R9, R11 | fixed: direct readable expansion viewport; ten clean graph runs; round 16 visual audit clear; final gate pending |
+| F131 | R2, R9, R11 | fixed/verified: round 16, eight viewport transitions and final full gate pass |
 
 ## Round 16: complete fresh expansion-fix visual result
 
@@ -418,6 +417,40 @@ four widths and both themes. Independent native review accounts for all 1,040 or
 0 S1 / 0 S2 / 18 repeated S3 rows. Original dimensions and source/output hashes are
 validated for every saved JPEG. No crop or resize was applied.
 
-The expansion viewport fix retains the clean complete visual result. The full
-49-command gate now restarts at this artifact commit; supplemental R11 evidence will be
-refreshed at the verified gate head. Earlier failures remain documented, without relaxed checks.
+The expansion viewport fix retains the clean complete visual result. The subsequent
+49-command gate and refreshed R11 evidence passed at the verified head in [FINAL.md](FINAL.md).
+Earlier failures remain documented, without relaxed checks.
+
+## Final requirement status
+
+All requirements are verified at the recorded gate head. See FINAL.md for provenance.
+
+| Requirement | Behavior | Status | Evidence |
+| --- | --- | --- | --- |
+| R1 | Theme isolation | verified | theme, colour-literal check, round 16 light/dark |
+| R2 | Lineage redesign | verified | lineage, responsive, ten consecutive lineage runs |
+| R2a | Table cards without pagination | verified | lineage, ODCS, mapping graph |
+| R3 | Admin page | verified | admin, responsive, server tour |
+| R4 | ODCS terminology and views | verified | ODCS, terminology, examples UI |
+| R5 | Foreign-key hops | verified | lineage four-size hop controls and key dialog |
+| R6 | Examples menu | verified | examples UI, responsive sidebar checks |
+| R7 | Header corner | verified | responsive header and shell matrix, authentication |
+| R8 | Dialogs and no overlap | verified | dialogs, responsive, all round 16 partitions |
+| R9 | Readable text | verified | responsive, theme contrast, graph suites |
+| R10 | Visual audit | verified | round 16: 1,040 originals, 0 S1 / 0 S2 |
+| R11 | Earlier owner asks | verified | seven acceptance rows and 61 native supplemental images |
+| R12 | Example metrics | verified | examples, examples UI, metrics |
+| R13 | Export project | verified | projects, UI, authentication |
+| R14 | Opaque reachable menus | verified | dialogs, responsive, theme, round 16 |
+| R15 | Repository folder clone | verified | monorepo, Git setup, server refusal contract |
+| R16 | Wizard stepper / issue 10 | verified | item edit, responsive wizard matrix, round 16 |
+| R17 | Brand bundle | verified | brand, static brand check, authentication light/dark |
+
+| Finding | Requirements | Status |
+| --- | --- | --- |
+| F118 | R10 | deferred S3: partial sidebar scroll boundary |
+| F119 | R9, R10 | deferred S3: complete long name with orphan final line |
+| F124 | R8, R10 | deferred S3: usable phone deprecation form spacing |
+| F128 | R11 | deferred S3: operation wording; rename references explain recovery |
+| F129 | R11 | deferred S3: duplicate readable refusal explanation |
+| F130 | R11 | deferred S3: singular noun agreement in clear counts |

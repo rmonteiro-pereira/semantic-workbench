@@ -1,0 +1,303 @@
+{
+  "verified_head": "d631e56e770ebf08d3b3d8901c61e1a2933897d6",
+  "base_url": "http://127.0.0.1:5175",
+  "container_base_port": 4315,
+  "node_version": "24.11.0",
+  "visual_capture_head": "fb098531c69398cd0b68ae44e1b2d309df5fc1ea",
+  "commands": [
+    {
+      "command": "container",
+      "status": "PASS",
+      "seconds": 1754.0,
+      "log_sha256": "42eaba824ed7617488dfad014a77554b5e74a5d3d963b6c0a800c9d9b201b2e6"
+    },
+    {
+      "command": "browser-large-graph",
+      "status": "PASS",
+      "seconds": 22.0,
+      "log_sha256": "642d8260ef86e73b41ddbde4098c0cc6a4e4c7409c4074296a8aaae8468b677b"
+    },
+    {
+      "command": "browser-ubl",
+      "status": "PASS",
+      "seconds": 6.0,
+      "log_sha256": "176b054e4af00a70004130d2a1c4d975bfc41e6cf1e9dc33fd775487fe5fcccf"
+    },
+    {
+      "command": "unit",
+      "status": "PASS",
+      "seconds": 269.0,
+      "log_sha256": "a666f1b40ab2c261defd12979c9d0ca79fa6bc0058c45a5b95a5bc23aa3f15f3"
+    },
+    {
+      "command": "check",
+      "status": "PASS",
+      "seconds": 11.0,
+      "log_sha256": "a66c80e35f84deb25372f12ea5952ec417597cf1a824d21e9905dc2727e99405"
+    },
+    {
+      "command": "build",
+      "status": "PASS",
+      "seconds": 2.0,
+      "log_sha256": "e36a662808f4d458ad565bc7d22823060072ae2b03d822dda1aeaeeba9322765"
+    },
+    {
+      "command": "mutation",
+      "status": "PASS",
+      "seconds": 967.0,
+      "log_sha256": "35df099d76ddf68bd085e1f13d8ba6e6faff6c8273acf80ea68cf4aa25119055"
+    },
+    {
+      "command": "browser-auth",
+      "status": "PASS",
+      "seconds": 60.0,
+      "log_sha256": "69430e03fcfa8cca7358be2b88e8cdc70b0c2ed5ab877c3637d9a24970d805da"
+    },
+    {
+      "command": "browser-auth-keycloak",
+      "status": "PASS",
+      "seconds": 35.0,
+      "log_sha256": "b967f77bfd827dc3988481f6c137ecab820dd50ab90a6f40cd2a1716126f6642"
+    },
+    {
+      "command": "browser-two-editors",
+      "status": "PASS",
+      "seconds": 21.0,
+      "log_sha256": "63279e4a6d4920d2bfd64212e5de2bf0d8026d7d0bd7dfbfa5f6292df30cb577"
+    },
+    {
+      "command": "browser-admin",
+      "status": "PASS",
+      "seconds": 39.0,
+      "log_sha256": "29191c409aeecbd4f2ece556a1a177f3059dea39272f79850cf0acac689006a1"
+    },
+    {
+      "command": "browser-ui",
+      "status": "PASS",
+      "seconds": 19.0,
+      "log_sha256": "32b39eaf21bed4495c0d49e6c9adae6f7bd097c7eb270b97fbd1dd4b2b69aa5b"
+    },
+    {
+      "command": "browser-responsive",
+      "status": "PASS",
+      "seconds": 1107.0,
+      "log_sha256": "144a702fbbbb978efea242174840d97050005c1c4e6743bddaf1278f7de916e8"
+    },
+    {
+      "command": "browser-edges",
+      "status": "PASS",
+      "seconds": 9.0,
+      "log_sha256": "360af60e44503d51cb9e3c34fa940933f12bede48f2efabce8e440b2d139020b"
+    },
+    {
+      "command": "browser-grouping-validation",
+      "status": "PASS",
+      "seconds": 11.0,
+      "log_sha256": "a8d2a4e27dc70b3cb064e2bb743a82d1561f70c45e7cd7829d6152f348af8829"
+    },
+    {
+      "command": "browser-examples-ui",
+      "status": "PASS",
+      "seconds": 41.0,
+      "log_sha256": "8452e76927848c80ddc2444e49aea5f212df59736f51ceb81810e591330a800e"
+    },
+    {
+      "command": "browser-projects",
+      "status": "PASS",
+      "seconds": 10.0,
+      "log_sha256": "a82a8d649d1046d2ec8cdf927d846fa85c78512cc6e7c3970b705cfbf816d678"
+    },
+    {
+      "command": "browser-trash",
+      "status": "PASS",
+      "seconds": 18.0,
+      "log_sha256": "d1eb93a892e871f1cc12553d47680296d3025cbfc88a11644e46e9ac4ae66a79"
+    },
+    {
+      "command": "browser-metrics",
+      "status": "PASS",
+      "seconds": 18.0,
+      "log_sha256": "91c25d0934e811e78abf29022a812805bb5721d96b7630bf89fae9ef974aedb6"
+    },
+    {
+      "command": "browser-graph",
+      "status": "PASS",
+      "seconds": 35.0,
+      "log_sha256": "ab3f80f03c57afa5c6e13f62c9f761090016a273ca707cb88bfad9669c908d4d"
+    },
+    {
+      "command": "browser-editor",
+      "status": "PASS",
+      "seconds": 25.0,
+      "log_sha256": "aa102b97e1917fb4f66ef166bda376b4557dc028c9572cc310841535895d1996"
+    },
+    {
+      "command": "browser-item-edit",
+      "status": "PASS",
+      "seconds": 19.0,
+      "log_sha256": "a7910f2257abea9996e852687266cee24a7396a44e8237ab0c396dcd3da81913"
+    },
+    {
+      "command": "browser-rdf-edit",
+      "status": "PASS",
+      "seconds": 10.0,
+      "log_sha256": "4e89704a45b8dd34759b5658cb53e3d3dc2a94d4020742f7924dcecc97913c28"
+    },
+    {
+      "command": "browser-scm",
+      "status": "PASS",
+      "seconds": 18.0,
+      "log_sha256": "a8e896b91fcb499b7f2e923efa751f047e4bbbab5f30dc2a5f7522e63a4cd3ea"
+    },
+    {
+      "command": "browser-odcs",
+      "status": "PASS",
+      "seconds": 8.0,
+      "log_sha256": "b53a094aa4b7079b63bad295096c52311e5f8fa0a441c898a7796383cda9ea1e"
+    },
+    {
+      "command": "browser-lineage",
+      "status": "PASS",
+      "seconds": 66.0,
+      "log_sha256": "f2eee95badd8225775daf0876ae74f37d4e0b196aee2ce37a516282d4fafafe7"
+    },
+    {
+      "command": "browser-autosave",
+      "status": "PASS",
+      "seconds": 13.0,
+      "log_sha256": "76611635a039a7fe72a0565a2c8e14077bed788e82c8dbe50c697ed411454482"
+    },
+    {
+      "command": "browser-sql",
+      "status": "PASS",
+      "seconds": 9.0,
+      "log_sha256": "19d7b1d655da5a033fc61fafa38e3a85ff5ef5c422da763b923fcc8e70a2529e"
+    },
+    {
+      "command": "browser-git-setup",
+      "status": "PASS",
+      "seconds": 7.0,
+      "log_sha256": "3fb5a831afcf68f1a486c9ab611657b0ddae19b790596438bf998df67b938adb"
+    },
+    {
+      "command": "browser-monorepo",
+      "status": "PASS",
+      "seconds": 6.0,
+      "log_sha256": "629a64b16f9612a8676663c0c7c0a35588c1779dfcd6fc91fa8fc0bf65aafc49"
+    },
+    {
+      "command": "browser-dialogs",
+      "status": "PASS",
+      "seconds": 82.0,
+      "log_sha256": "293cf7cd1f893a0929b913fe1e3f61b65dfe309e271ec2bf9064a3851c8847dd"
+    },
+    {
+      "command": "browser-telemetry",
+      "status": "PASS",
+      "seconds": 69.0,
+      "log_sha256": "a77cfcb759470ac49b3f47b869e10ee801d7d9498dce752d2805aa57ec0bbef6"
+    },
+    {
+      "command": "browser-terminology",
+      "status": "PASS",
+      "seconds": 62.0,
+      "log_sha256": "759a041346988ad1128ecb653421ac4f8d9510cf64c2b6c344423446ce29caf5"
+    },
+    {
+      "command": "browser-mappings-layout",
+      "status": "PASS",
+      "seconds": 33.0,
+      "log_sha256": "dc3dec5099ae84f02bd73587c82a76800c26082a45336a1843fa81ec09b332cc"
+    },
+    {
+      "command": "browser-mapping-graph",
+      "status": "PASS",
+      "seconds": 41.0,
+      "log_sha256": "0eceeb383c0fa3a8bd4bebfd9f15e118656e8106d97e03e8118d651f9ae2e098"
+    },
+    {
+      "command": "browser-theme",
+      "status": "PASS",
+      "seconds": 106.0,
+      "log_sha256": "380eb7307b7385523b4d9fadef9d5143c7e048074f892077b4725aca83a0add8"
+    },
+    {
+      "command": "browser-brand",
+      "status": "PASS",
+      "seconds": 3.0,
+      "log_sha256": "52bbb1224ba8bc02644d378e1a008628df46ccac8a75fe7551416c3dbf8bd41a"
+    },
+    {
+      "command": "browser-examples",
+      "status": "PASS",
+      "seconds": 15.0,
+      "log_sha256": "b1ca45612b029d10cbb18ad1fda55bcc3afd7549c0d2d735e7cb9b86374fcf3f"
+    },
+    {
+      "command": "ci",
+      "status": "PASS",
+      "seconds": 5018.0,
+      "log_sha256": "bf15832a25896fbac5dbf990b3ebdbe88186d2126f8839153e7497d0be416b3f"
+    },
+    {
+      "command": "lineage-1",
+      "status": "PASS",
+      "seconds": 68.0,
+      "log_sha256": "832fa76c7a01b222eb92b7639688a31eef87bd6ca5dfd27c7801500652b09715"
+    },
+    {
+      "command": "lineage-2",
+      "status": "PASS",
+      "seconds": 67.0,
+      "log_sha256": "73abb562738aa6d15bd48cef78691988f143f5bba7ed8efd24c0bccbd2421711"
+    },
+    {
+      "command": "lineage-3",
+      "status": "PASS",
+      "seconds": 66.0,
+      "log_sha256": "47e76a3f66bb7a648c459b917308a7d83cfc3f31690d9c08fd68bf9eb80b03d2"
+    },
+    {
+      "command": "lineage-4",
+      "status": "PASS",
+      "seconds": 67.0,
+      "log_sha256": "b47c208b2b9b8c97a8390a3ca8d293a00ad216dce0de3f13d9af9785688d55d5"
+    },
+    {
+      "command": "lineage-5",
+      "status": "PASS",
+      "seconds": 67.0,
+      "log_sha256": "e73161f60cda456f7692d8eabbee7ea130c617d158f7252b1628d464d24fd8b5"
+    },
+    {
+      "command": "lineage-6",
+      "status": "PASS",
+      "seconds": 67.0,
+      "log_sha256": "ef0c2b0e473db82976deb1f6da9b2e601569327c8b9f074a3c42fc9d5e1e8a23"
+    },
+    {
+      "command": "lineage-7",
+      "status": "PASS",
+      "seconds": 66.0,
+      "log_sha256": "3789e5966b52e7ed00a025bfdae71e3fce1138e2d0384dacf37af50da0cdfacc"
+    },
+    {
+      "command": "lineage-8",
+      "status": "PASS",
+      "seconds": 67.0,
+      "log_sha256": "a08f3b1e93d142fdb4340983c2c1c0dd4f299b7be23f1076871943a9c4c768ba"
+    },
+    {
+      "command": "lineage-9",
+      "status": "PASS",
+      "seconds": 67.0,
+      "log_sha256": "33007995a11c1d384db4773a1ccbb5176f9cef86482a58e11abcf0c65f50b492"
+    },
+    {
+      "command": "lineage-10",
+      "status": "PASS",
+      "seconds": 66.0,
+      "log_sha256": "28402b4b349d9943a27d5c7c0f2fa164a95e511929ffd53cbcbff85c04b00982"
+    }
+  ]
+}
