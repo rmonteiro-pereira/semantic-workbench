@@ -763,3 +763,6 @@ The release audit combines 864 workspace-tour images with 168 authentication ima
 themes. Eighteen independent reports account for all 1,032 originals. Authentication screenshots
 share the same capture contract, including remote dialogs. Header geometry excludes top-layer
 native-dialog descendants while whole-page layout assertions retain their control bounds.
+
+Routing assertions select the algorithm they exercise: Layered retains ELK routes, while the
+Network scenario verifies live worker routing. Both preserve the complete model counts.

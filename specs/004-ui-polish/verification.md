@@ -534,3 +534,19 @@ Saved JPEGs retain native dimensions without crop or resize, quality 95 and no c
 main and authentication manifests record the capture head and source/output hashes.
 Full static checks and formatter passed. The full final gate and supplemental R11 browser proof
 run after this audit artifact commit, with source and builds frozen during each browser run.
+
+## Full gate attempt 4: explicit graph routing scenario
+
+At `e5d8819`, standalone large-graph/all-expand and UBL passed. Unit tests passed 1,844 tests,
+129,520 assertions across 258 files (247.27 seconds). Static checks and build passed. Mutation
+killed 654/654 targets with all baselines passing. Authentication (36 checks), Keycloak,
+two-editor and Admin suites passed. The UI suite then failed its worker-routing expectation:
+it stayed on the new default Layered layout, whose retained ELK routes legitimately report main
+routing. The large-graph driver already explicitly selects Network when proving worker routing.
+The UI driver now first asserts Layered and its complete node/edge counts, explicitly selects
+Network, reasserts those same counts, then retains the original worker-routing assertion and
+30-second timeout. No assertion or budget was removed or relaxed. No application or capture
+source changes are needed, so the round 11 product screenshots remain valid. This is a stale
+test scenario correction, not a machine-load rerun. The full gate restarts after focused proof.
+Focused replay passed all 20 UI checks. Full static checks, formatter and readability pass;
+independent actual-diff review reports SHIP.
