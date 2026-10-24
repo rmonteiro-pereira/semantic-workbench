@@ -79,3 +79,16 @@ refreshed at the verified gate head. Earlier failures remain documented, without
 Round 15 records one additional S2 expansion render stall, fixed by direct readable viewport
 publication. The ledger now totals 117 observed serious rows resolved, plus six justified
 baseline triages. Fresh complete round 16 and the full gate remain pending.
+
+## Round 16: complete fresh expansion-fix visual result
+
+At `fb098531c69398cd0b68ae44e1b2d309df5fc1ea`, authentication light/dark passed 84 images each;
+local/server light/dark passed 216 each, with zero geometry or legibility problems, skips or
+browser errors. Git setup passed and produced eight delayed connection-wait images across
+four widths and both themes. Independent native review accounts for all 1,040 originals:
+0 S1 / 0 S2 / 18 repeated S3 rows. Original dimensions and source/output hashes are
+validated for every saved JPEG. No crop or resize was applied.
+
+The expansion viewport fix retains the clean complete visual result. The full
+49-command gate now restarts at this artifact commit; supplemental R11 evidence will be
+refreshed at the verified gate head. Earlier failures remain documented, without relaxed checks.
