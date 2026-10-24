@@ -1504,6 +1504,7 @@ try {
     screens: (page, screen) => pageLayoutProblems(page, screen.name),
     'edit screens': (page, screen) => editContainmentProblems(page, screen.name),
     'ODCS screens': async (page, screen) => [
+      ...(await tabStripProblems(page)),
       ...(await sidewaysTableProblems(page)),
       ...(await odcsLayoutProblems(page, screen.name)),
       ...(screen.name === 'odcs-property-edit' ? await editTitleProblems(page) : []),

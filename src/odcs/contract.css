@@ -304,12 +304,9 @@
   white-space: nowrap;
 }
 /* The ODCS pages keep a readable measure on wide screens instead of stretching their tables. */
-.odcs-page > :not(.odcs-back, .odcs-panel),
-.odcs-panel > :not(.odcs-lineage-host) {
+.odcs-page > :not(.odcs-back, .odcs-panel, dialog),
+.odcs-panel > :not(.odcs-lineage-host, dialog) {
   max-width: min(100%, 1400px);
-}
-.odcs-panel > .odcs-relationships {
-  max-width: min(100%, 960px);
 }
 /* The dialogs of these pages use the same gap under the title as the other dialogs. */
 .workbench-dialog.has-footer.odcs-edit-dialog > .dialog-body,

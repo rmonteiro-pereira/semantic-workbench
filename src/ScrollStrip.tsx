@@ -42,6 +42,7 @@ export function ScrollStrip({
   const reveal = () => {
     const strip = ref.current;
     if (!strip) return;
+    update();
     const selected = selection === undefined ? null : strip.querySelector<HTMLElement>('.selected');
     if (selected && strip.scrollWidth > strip.clientWidth) {
       const outer = strip.getBoundingClientRect();
@@ -63,8 +64,8 @@ export function ScrollStrip({
   // Observers are attached once: size changes and added or removed controls refresh the cues.
   useLayoutEffect(() => {
     const strip = ref.current!;
-    const resize = new ResizeObserver(update);
-    const mutate = new MutationObserver(update);
+    const resize = new ResizeObserver(reveal);
+    const mutate = new MutationObserver(reveal);
     resize.observe(strip);
     mutate.observe(strip, { childList: true, subtree: true, characterData: true });
     strip.addEventListener('scroll', update, { passive: true });

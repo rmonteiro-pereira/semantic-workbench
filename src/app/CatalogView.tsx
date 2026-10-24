@@ -54,7 +54,7 @@ export function CatalogView({
                     </span>
                   )}
                 </small>
-                <strong>{e.name}</strong>
+                <strong title={e.name}>{e.name}</strong>
                 <p title={e.description || undefined}>{e.description || 'No description yet'}</p>
               </button>
               {(entityTarget(e) || rdfTarget(e)) && (

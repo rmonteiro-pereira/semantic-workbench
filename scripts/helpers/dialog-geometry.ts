@@ -38,8 +38,32 @@ export async function dialogStandardProblems(page: Page): Promise<string[]> {
       const available = innerWidth - 2 * (innerWidth <= phoneMax ? phoneMargin : margin);
       const standard = widths.some(width => Math.abs(box.width - Math.min(width, available)) < 2);
       if (!drawer && !standard) problems.push(`the dialog is ${box.width}px wide`);
+      if (!drawer && Math.abs(box.left + box.width / 2 - innerWidth / 2) > 2) {
+        problems.push('the dialog is not centred horizontally');
+      }
+      if (!drawer && Math.abs(box.top + box.height / 2 - innerHeight / 2) > 2) {
+        problems.push('the dialog is not centred vertically');
+      }
       const footer = panel.querySelector<HTMLElement>(':scope > .dialog-footer');
       if (!footer) return [...problems, 'the dialog has no footer'];
+      const note = footer.querySelector('.dialog-footer-note');
+      if (note) {
+        const noteBox = note.getBoundingClientRect();
+        for (const button of footer.querySelectorAll('button')) {
+          if (noteBox.bottom > button.getBoundingClientRect().top + 1) {
+            problems.push('the footer hint shares the action row');
+          }
+        }
+      }
+      const backdrop = panel.closest('dialog')!;
+      const scrim = getComputedStyle(backdrop, '::backdrop').backgroundColor;
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d')!;
+      context.fillStyle = scrim;
+      context.fillRect(0, 0, 1, 1);
+      if (context.getImageData(0, 0, 1, 1).data[3] < 150) {
+        problems.push('the dialog scrim does not separate it from the page');
+      }
       const title = panel.querySelector<HTMLElement>(':scope > h2')!;
       const titleInset = getComputedStyle(title).paddingLeft;
       const footerInset = getComputedStyle(footer).paddingLeft;

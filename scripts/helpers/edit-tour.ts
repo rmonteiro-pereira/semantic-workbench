@@ -106,12 +106,22 @@ export async function editContainmentProblems(page: Page, screenName: string): P
     const height = innerHeight;
     const box = (selector: string) => document.querySelector(selector)?.getBoundingClientRect();
     const panel = box('dialog[open] .workbench-dialog');
+    if (width <= 480 && panel) {
+      const fields = document.querySelector<HTMLElement>('dialog[open] .item-fields');
+      if (fields && getComputedStyle(fields).gridTemplateColumns.split(' ').length !== 1) {
+        problems.push('phone item fields do not stack in one column');
+      }
+    }
     if (name === 'add-concept' && panel) {
       const offCentre = Math.abs(panel.left + panel.width / 2 - width / 2);
       if (offCentre > 2) problems.push(`the add dialog is ${offCentre}px off centre`);
       if (panel.left < 0 || panel.right > width) problems.push('the add dialog leaves the screen');
     }
     if (name === 'item-editor' || name === 'metric-wizard') {
+      const bodyElement = document.querySelector<HTMLElement>('dialog[open] .dialog-body');
+      if (bodyElement && Number.parseFloat(getComputedStyle(bodyElement).paddingBottom) < 24) {
+        problems.push('the drawer has no space below the last field');
+      }
       const footer = box('dialog[open] .dialog-footer');
       const body = box('dialog[open] .dialog-body');
       if (!footer || !body) problems.push('the drawer has no body and footer');
@@ -136,6 +146,18 @@ export async function editContainmentProblems(page: Page, screenName: string): P
       const picker =
         box('dialog[open] .wizard-stepper-compact') ?? box('dialog[open] .wizard-stepper-list');
       if (!picker || picker.right > panel.right) problems.push('the step list leaves the dialog');
+      const current = document.querySelector<HTMLElement>(
+        '.wizard-stepper-list [aria-current="step"]',
+      );
+      if (current && current.getClientRects().length > 0) {
+        const style = getComputedStyle(current);
+        const pending = document.querySelector('.wizard-stepper-list button:disabled');
+        if (style.justifyContent !== 'flex-start')
+          problems.push('step labels are not left aligned');
+        if (pending && style.backgroundColor === getComputedStyle(pending).backgroundColor) {
+          problems.push('the current step has the same fill as a pending step');
+        }
+      }
     }
     if (name === 'metric-detail') {
       const table = box('.metrics-table');
@@ -157,6 +179,11 @@ export async function editContainmentProblems(page: Page, screenName: string): P
         paragraph => paragraph.scrollHeight > paragraph.clientHeight && !paragraph.title,
       );
       if (clamped) problems.push('a clamped card description has no tooltip with the full text');
+      for (const title of document.querySelectorAll<HTMLElement>('.catalog-card strong')) {
+        if (title.scrollWidth > title.clientWidth && title.title !== title.textContent) {
+          problems.push('a truncated catalog title has no full name tooltip');
+        }
+      }
     }
     return problems.map(problem => `${name}: ${problem}`);
   }, screenName);
