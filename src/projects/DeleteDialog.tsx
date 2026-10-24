@@ -82,7 +82,9 @@ function removedSummary(target: DeleteTarget, impact: Impact | null, projects: P
     return `${fileCount(files)} in ${projects.length} ${projectNoun}:`;
   }
   if (target.kind === 'file' || !impact) return null;
-  return `${fileCount(impact.removes.files.length)} go to the trash:`;
+  const count = impact.removes.files.length;
+  const verb = count === 1 ? 'goes' : 'go';
+  return `${fileCount(count)} ${verb} to the trash:`;
 }
 
 // A subfolder project shares its repository with other projects, so taking it out of the

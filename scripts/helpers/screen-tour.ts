@@ -1,6 +1,6 @@
 // The screens and dialogs a person reaches from the sidebar and the view tabs. The responsive
 // suite measures each of them at every viewport size, and the screenshot tool captures them.
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { layoutProblems } from './layout-geometry';
 import { smallTextProblems, textCollisionProblems } from './text-geometry';
 
@@ -20,10 +20,10 @@ export async function showSidebar(page: Page) {
   const open = page.getByRole('button', { name: 'Open workspace', exact: true });
   if (await open.isVisible()) {
     await open.click();
-    return;
   }
   const show = page.getByRole('button', { name: 'Show sidebar', exact: true });
   if (await show.isVisible()) await show.click();
+  await expect(page.locator('.workspace-sidebar')).toBeVisible();
 }
 
 /** Opens a file from the sidebar. */
@@ -35,11 +35,11 @@ export async function openFile(page: Page, path: string) {
 
 async function openTab(page: Page, name: string) {
   const tabs = page.locator('.tabs');
-  if (await tabs.isVisible()) {
-    // A tab may carry a count, as in "Metrics 3".
-    await tabs.getByRole('button', { name: new RegExp(`^${name}`) }).click();
-    await page.waitForTimeout(800);
-  }
+  await expect(tabs).toBeVisible();
+  const button = tabs.getByRole('button', { name: new RegExp(`^${name}`) });
+  await button.click();
+  await expect(button).toHaveAttribute('aria-current', 'page');
+  await page.waitForTimeout(800);
 }
 
 async function pressSidebarButton(page: Page, name: string | RegExp) {
@@ -51,6 +51,8 @@ async function pressSidebarButton(page: Page, name: string | RegExp) {
 /** Opens a file and then one of its view tabs. */
 export function fileTab(file: string, tab: string): Screen['show'] {
   return async page => {
+    await showSidebar(page);
+    await page.getByRole('button', { name: 'Model explorer', exact: true }).click();
     await openFile(page, file);
     await openTab(page, tab);
   };
@@ -78,7 +80,14 @@ export function tourScreens({ ontology, contract }: TourFiles): Screen[] {
     { name: 'source-control', show: page => pressSidebarButton(page, /Source control/) },
     { name: 'source-editor', show: page => pressSidebarButton(page, /Source editor/) },
     { name: 'trash', show: page => pressSidebarButton(page, 'Trash'), dialog: 'dialog[open]' },
-    { name: 'import', show: page => pressSidebarButton(page, /Import/), dialog: 'dialog[open]' },
+    {
+      name: 'import',
+      show: async page => {
+        await pressSidebarButton(page, /Import/);
+        await expect(page.getByText('Uses the name of the definition you import.')).toBeVisible();
+      },
+      dialog: 'dialog[open]',
+    },
   );
   return screens;
 }
@@ -102,5 +111,15 @@ export async function geometryProblems(page: Page, within = 'body'): Promise<str
 /** Returns control, text size and text collision problems of the screen now shown. */
 export async function screenProblems(page: Page, screen: Screen): Promise<string[]> {
   const problems = await geometryProblems(page, screen.dialog ?? 'body');
+  if (screen.name === 'source-control') {
+    const branch = page.getByRole('combobox', { name: 'Branch', exact: true });
+    await expect(branch).toBeVisible();
+    const selected = await branch.locator('option:checked').textContent();
+    if (selected?.includes('(in use by')) {
+      problems.push('the selected branch hides its holder inside the native selector');
+    }
+    const holder = page.locator('.branch-holder');
+    if (await holder.count()) await expect(holder).toBeVisible();
+  }
   return problems.map(problem => `${screen.name}: ${problem}`);
 }

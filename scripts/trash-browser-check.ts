@@ -289,7 +289,8 @@ try {
       // The dialog says how many files go to the trash, as a number that matches the list below.
       const listed = await dialog.locator('.delete-list li').count();
       const count = await dialog.locator('.delete-file-count').textContent();
-      expect(count).toMatch(new RegExp(`^${listed} files? go to the trash:$`));
+      const phrase = listed === 1 ? 'file goes' : 'files go';
+      expect(count).toBe(`${listed} ${phrase} to the trash:`);
       await dialog.getByRole('button', { name: 'Delete', exact: true }).click();
       await expect(tree().getByRole('treeitem', { name: 'Flights', exact: true })).toHaveCount(0);
       await page.getByRole('button', { name: 'Trash', exact: true }).click();

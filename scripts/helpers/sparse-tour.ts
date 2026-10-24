@@ -1,5 +1,5 @@
 // The Clone and Remote dialogs with the Folder in repository field, for the responsive suite.
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { openCloneDialog } from './project-dialog-tour';
 import { showSidebar, type Screen } from './screen-tour';
 import { openSyncDialog, remoteButton, remoteDialog } from './sync-dialog';
@@ -16,6 +16,9 @@ async function openRemoteWithFolder(page: Page, folder: string) {
   const dialog = remoteDialog(page);
   await dialog.getByLabel('Remote URL').fill('/tmp/team-repository.git');
   await dialog.getByLabel('Folder in repository').fill(folder);
+  await expect(dialog.locator('.folder-hint')).toContainText(
+    'In server mode, clone the folder instead.',
+  );
   return dialog;
 }
 

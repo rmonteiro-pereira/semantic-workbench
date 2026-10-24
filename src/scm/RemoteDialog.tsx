@@ -212,7 +212,7 @@ export function RemoteDialog({ project, onClose }: Props) {
               typed.current = true;
               folderInput.setText(text);
             }}
-            hint="The folder of the repository that holds this project. If you change it, you see which files move before anything changes. Leave it empty to keep the current folder."
+            hint="Leave empty to keep the current folder. Changing it previews a file move in local mode. In server mode, clone the folder instead."
           />
           {error && (
             <p role="alert" className="dialog-error">

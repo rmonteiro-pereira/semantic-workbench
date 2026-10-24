@@ -1284,7 +1284,9 @@ The server tour defaults to the fixture administrator (`dave`) so every dialog i
 an optional final username selects a narrower permission set. Its temporary orders contract
 includes a Team section and a status field needed by the tour. Existing-project folder changes
 show the server refusal rather than a local move preview. An administrator capture fails on any
-skipped screen. Neither capture tool uses the owner's data directory.
+skipped screen. Local captures also fail on a skipped screen. Each viewport starts on a fresh
+page; tab navigation explicitly enters Model explorer and verifies the selected tab before
+photographing it. Neither capture tool uses the owner's data directory.
 
 ### Mutation checks
 

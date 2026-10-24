@@ -1016,3 +1016,10 @@
   text-transform: none;
   letter-spacing: normal;
 }
+
+.branch-holder {
+  flex-basis: 100%;
+  font-size: var(--text-small);
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}

@@ -1,6 +1,6 @@
 // Captures every main screen and dialog at the four supported viewport sizes in local mode and
 // prints the measured problems of each. Usage:
-//   SW_BASE_URL=http://127.0.0.1:5173 bun scripts/polish-capture.ts <output directory>
+//   SW_BASE_URL=http://127.0.0.1:5175 bun scripts/polish-capture.ts <output directory>
 // Set SW_THEME=dark to photograph the dark theme; file names then start with local-dark-.
 // Set SW_ONLY to a text such as odcs- to photograph only the screens whose name contains it.
 import { appUrl } from './helpers/base-url';
@@ -10,6 +10,7 @@ import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { authViewports } from './helpers/sign-in';
 import { screenProblems, showScreen } from './helpers/screen-tour';
 import { tourGroups } from './helpers/all-tours';
+import { withCleanup } from './helpers/processes';
 
 const outputDirectory = process.argv[2];
 if (!outputDirectory) throw new Error('Pass an output directory.');
@@ -18,37 +19,47 @@ mkdirSync(outputDirectory, { recursive: true });
 const dark = process.env.SW_THEME === 'dark';
 const prefix = dark ? 'local-dark' : 'local';
 const api = await startIsolatedApi();
-await api.ws.loadExample('ubl');
-await api.ws.loadExample('commerce');
-await api.ws.loadExample('mall');
-const browser = await chromium.launch();
-const screens = tourGroups({
-  ontology: 'ubl.ontology.yaml',
-  contract: 'commerce.odcs.yaml',
-  metricsModel: 'mall.semantic.yaml',
-})
-  .flatMap(group => group.screens)
-  .filter(screen => screen.name.includes(process.env.SW_ONLY ?? ''));
-
-for (const [width, height] of authViewports) {
-  const page = await browser.newPage({ viewport: { width, height } });
-  if (dark) await page.addInitScript(() => localStorage.setItem('workbench.theme', 'dark'));
-  await routeApi(page, api);
-  await page.goto(appUrl());
-  await page.waitForTimeout(1500);
-  for (const screen of screens) {
+let browser: Awaited<ReturnType<typeof chromium.launch>> | undefined;
+await withCleanup(
+  async () => {
     try {
-      await showScreen(page, screen);
-    } catch (error) {
-      console.log('SKIP', screen.name, width, String(error).split('\n')[0]);
-      continue;
+      await browser?.close();
+    } finally {
+      await api.stop();
     }
-    await page.screenshot({ path: `${outputDirectory}/${prefix}-${screen.name}-${width}.png` });
-    const problems = await screenProblems(page, screen);
-    console.log(`MEASURE ${screen.name} ${width} problems=${problems.length}`);
-    for (const problem of problems.slice(0, 8)) console.log('   ', problem);
-  }
-  await page.close();
-}
-await browser.close();
-await api.stop();
+  },
+  async () => {
+    await api.ws.loadExample('ubl');
+    await api.ws.loadExample('commerce');
+    await api.ws.loadExample('mall');
+    browser = await chromium.launch();
+    const screens = tourGroups({
+      ontology: 'ubl.ontology.yaml',
+      contract: 'commerce.odcs.yaml',
+      metricsModel: 'mall.semantic.yaml',
+    })
+      .flatMap(group => group.screens)
+      .filter(screen => screen.name.includes(process.env.SW_ONLY ?? ''));
+
+    for (const [width, height] of authViewports) {
+      const page = await browser.newPage({ viewport: { width, height } });
+      if (dark) await page.addInitScript(() => localStorage.setItem('workbench.theme', 'dark'));
+      await routeApi(page, api);
+      await page.goto(appUrl());
+      await page.waitForTimeout(1500);
+      for (const screen of screens) {
+        try {
+          await showScreen(page, screen);
+        } catch (error) {
+          console.log('SKIP', screen.name, width, String(error).split('\n')[0]);
+          throw error;
+        }
+        await page.screenshot({ path: `${outputDirectory}/${prefix}-${screen.name}-${width}.png` });
+        const problems = await screenProblems(page, screen);
+        console.log(`MEASURE ${screen.name} ${width} problems=${problems.length}`);
+        for (const problem of problems.slice(0, 8)) console.log('   ', problem);
+      }
+      await page.close();
+    }
+  },
+);

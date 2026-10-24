@@ -30,11 +30,6 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-@media (max-width: 480px) {
-  .mapping-explorer .mapping-layer-chain {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
 .mapping-layer-chain > span {
   text-transform: uppercase;
   font-size: var(--text-small);

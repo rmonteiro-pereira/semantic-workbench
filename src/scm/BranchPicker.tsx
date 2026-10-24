@@ -50,6 +50,8 @@ export function BranchPicker({
       live = false;
     };
   }, [project, version]);
+  const holder = holderOf(inUse, current);
+  const currentLabel = holder ? `${current} (in use by ${holder})` : current;
   const remoteOnly = branches.remote.filter(
     r => !branches.local.includes(r.slice(r.indexOf('/') + 1)),
   );
@@ -60,6 +62,7 @@ export function BranchPicker({
         <span>Branch</span>
         <select
           aria-label="Branch"
+          title={currentLabel}
           value={current}
           disabled={disabled}
           onChange={e => {
@@ -68,7 +71,11 @@ export function BranchPicker({
         >
           <optgroup label="Local">
             {branches.local.map(b => (
-              <BranchOption key={b} branch={b} holder={holderOf(inUse, b)} />
+              <BranchOption
+                key={b}
+                branch={b}
+                holder={b === current ? undefined : holderOf(inUse, b)}
+              />
             ))}
             {!branches.local.includes(current) && (
               <option value={current}>{current || '(no branch)'}</option>
@@ -123,6 +130,7 @@ export function BranchPicker({
           New branch
         </button>
       )}
+      {holder && <span className="branch-holder">In use by {holder}</span>}
     </div>
   );
 }

@@ -85,12 +85,20 @@ await withCleanup(stopCapture, async () => {
   );
   browser = await chromium.launch({ headless: true });
   const target: SignInTarget = { url, issuer: mock.endpointBase, kind: 'entra' };
-  const page = await browser.newPage();
-  if (dark) await page.addInitScript(() => localStorage.setItem('workbench.theme', 'dark'));
-  await signIn(page, target, user);
-  const files = await page.locator('.workspace-sidebar button.document span').allTextContents();
+  const context = await browser.newContext();
+  const loginPage = await context.newPage();
+  if (dark) await loginPage.addInitScript(() => localStorage.setItem('workbench.theme', 'dark'));
+  await signIn(loginPage, target, user);
+  const files = await loginPage
+    .locator('.workspace-sidebar button.document span')
+    .allTextContents();
+  await loginPage.close();
   for (const [width, height] of authViewports) {
+    const page = await context.newPage();
     await page.setViewportSize({ width, height });
+    await page.goto(url);
+    await page.locator('.workspace-sidebar button.document').first().waitFor({ state: 'attached' });
+    await page.locator('.tabs').waitFor();
     const screens = tourGroups({
       ontology: files.find(name => name.includes('ontology')) ?? files[0] ?? '',
       contract:
@@ -114,5 +122,6 @@ await withCleanup(stopCapture, async () => {
       console.log(`MEASURE ${screen.name} ${width} problems=${problems.length}`);
       for (const problem of problems.slice(0, 8)) console.log('   ', problem);
     }
+    await page.close();
   }
 });
