@@ -71,7 +71,7 @@ export function ProjectFields({
           onChange={stewards => onChange({ ...project, stewards })}
         />
       </label>
-      <p>These contacts grant no permissions. Assign roles in Roles & access.</p>
+      <p>These contacts grant no permissions. Assign roles in Access grants.</p>
       <label>
         Protected branches
         <ListInput

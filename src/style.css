@@ -2909,6 +2909,14 @@ button.danger:hover {
   margin-top: 6px;
   min-height: 0;
 }
+.node-actions button {
+  min-width: 24px;
+  min-height: 24px;
+}
+.node-actions button svg {
+  min-width: 12px;
+  min-height: 12px;
+}
 .node-actions:empty {
   display: none;
 }
@@ -3859,16 +3867,19 @@ button.import {
 .zoom-far .node-actions {
   gap: 10px;
 }
+.zoom-far .node-actions .kpi-badge {
+  display: none;
+}
 .zoom-far .node-actions button {
   font-size: 0;
-  min-width: calc(var(--far-name-size, 28px) * 1.1);
-  min-height: calc(var(--far-name-size, 28px) * 1.1);
+  min-width: calc(var(--far-name-size, 28px) * 2);
+  min-height: calc(var(--far-name-size, 28px) * 2);
   padding: 4px;
   justify-content: center;
 }
 .zoom-far .node-actions button svg {
-  width: calc(var(--far-name-size, 28px) * 0.6);
-  height: calc(var(--far-name-size, 28px) * 0.6);
+  width: var(--far-name-size, 28px);
+  height: var(--far-name-size, 28px);
 }
 .zoom-far .node strong {
   display: -webkit-box;

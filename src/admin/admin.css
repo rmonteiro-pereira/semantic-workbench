@@ -377,6 +377,13 @@
   overflow: auto;
   padding: 20px 28px 32px;
   gap: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) var(--color-surface-page);
+  scrollbar-gutter: stable;
+}
+/* The page owns vertical scrolling; its tables and sections must keep their complete content. */
+.admin-content > * {
+  flex-shrink: 0;
 }
 .admin-content h2 {
   margin: 0;

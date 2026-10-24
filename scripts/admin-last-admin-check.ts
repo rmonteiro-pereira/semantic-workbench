@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { expect, type Browser, type Route } from '@playwright/test';
+import { useDefaultBrand } from '../tests/helpers/brand-fixture';
 import { authWorkspace } from '../tests/helpers/auth-workspace';
 import { oidcTransport } from '../tests/helpers/oidc-transport';
 import { createOidcClient } from '../server/auth/oidc';
@@ -30,6 +31,7 @@ async function forward(route: Route, handler: ReturnType<typeof createHandler>) 
 
 /** Exercises the real guard without bootstrap recovery, using the actual handler in process. */
 export async function lastAdminBrowserCheck(browser: Browser) {
+  useDefaultBrand();
   using fixture = await authWorkspace();
   const transport = await oidcTransport();
   // Production requires recovery identities; this fixture isolates the last ordinary Admin guard.
@@ -57,7 +59,11 @@ export async function lastAdminBrowserCheck(browser: Browser) {
     ]);
     await context.route(config.publicUrl + '/**', route => forward(route, handler));
     const page = await context.newPage();
+    const manifest = page.waitForResponse(
+      response => new URL(response.url()).pathname === '/brand/brand.json',
+    );
     await page.goto(config.publicUrl);
+    assert.equal((await manifest).status(), 200, 'The in-process server must load its brand');
     const users = await adminArea(page, 'Users & groups');
     await users.getByRole('button', { name: 'Actions for Dave Dias', exact: true }).click();
     await page.getByRole('menuitem', { name: 'Deactivate', exact: true }).click();

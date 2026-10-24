@@ -30,7 +30,7 @@
 }
 
 /* A cue explains hidden tabs; a clipped fragment adds no readable information. */
-:is(.tabs, .odcs-tabs) > [data-scroll-clipped='true'] {
+:is(.tabs, .odcs-tabs, .admin-nav-list) > [data-scroll-clipped='true'] {
   clip-path: inset(50%);
   pointer-events: none;
 }

@@ -1,5 +1,5 @@
 /** Tells a graph canvas when it is zoomed out too far to read card details. */
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useLayoutEffect, useState, type CSSProperties } from 'react';
 import { useStore } from '@xyflow/react';
 
 // Detail lines are 12 px, so cards drop them below their natural scale.
@@ -34,7 +34,7 @@ function nameSizeOf(level: number) {
 // reports the level to the component that owns it.
 function FarZoomWatcher({ onChange }: { onChange: (level: number) => void }) {
   const level = useStore(state => levelOf(state.transform[2]));
-  useEffect(() => onChange(level), [level, onChange]);
+  useLayoutEffect(() => onChange(level), [level, onChange]);
   return null;
 }
 

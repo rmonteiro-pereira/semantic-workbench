@@ -138,8 +138,8 @@ export function RolesAccessSection({ view }: { view: 'grants' | 'roles' }) {
         <>
           <RoleMatrix roles={data.roles.builtIn} actions={data.roles.actions} />
           {data.roles.builtIn.map(item => (
-            <section key={item.id} aria-label={item.name}>
-              <h3>🔒 {item.name} — read-only</h3>
+            <section key={item.id} aria-label={item.name} className="admin-builtin-role">
+              <h3>🔒 {item.name} — Built-in role</h3>
               <p>{item.description}</p>
               <button onClick={() => duplicate(item)}>Duplicate as custom role</button>
             </section>

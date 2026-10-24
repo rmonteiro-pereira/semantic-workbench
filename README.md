@@ -759,6 +759,8 @@ Admins open the Admin page from the header's **Admin** button. In server mode on
 in local mode the implicit Admin does. The page replaces the workspace; **Back to workspace**
 returns to it with the open file and view as they were. A section navigation on the left lists the
 sections (a scrolling strip above the content on a phone), and the content uses the full width.
+The page scrolls vertically as one region; tables keep every row instead of clipping within nested
+scrollers. Phone navigation hides incomplete neighboring labels and reveals the selected section.
 Each section has its own address, `#/admin/<section>` (`grants`, `roles`, `users`, `policies`,
 `projects`, `audit`, `settings`, `access-check`), so reload and the browser's Back button land on
 the same section. Editors open in place of the list with a **Back to** button. Dialogs appear only
@@ -770,7 +772,9 @@ for confirmations and for the dry-run preview: a form's **Dry run** opens the pr
 - **Access grants:** give a built-in or custom role to a group or a verified
   address. The group's directory name is shown when the lookup succeeds; otherwise the grant keeps
   the ID and says "name not resolved".
-- **Roles:** the four built-in roles are read-only:
+- **Access check:** choose a signed-in person or copy their ID from Users & groups.
+  Check access can target the workspace with Project blank; Who can access requires a project.
+- **Roles:** the four built-in role definitions are fixed and labelled **Built-in role**:
   duplicate one to make a custom role, pick its actions and optional conditions, save it, then add
   members through the grant form. Custom roles cannot hold the `admin` action. Deleting a custom
   role lists the people who hold it and removes its grants in the same change.

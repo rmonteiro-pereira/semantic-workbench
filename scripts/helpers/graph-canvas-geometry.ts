@@ -59,6 +59,17 @@ export async function graphCanvasProblems(page: Page, which: Which): Promise<str
         }
       }
       if (which === 'neighborhood') {
+        for (const button of root.querySelectorAll('.node-actions button')) {
+          const bounds = button.getBoundingClientRect();
+          if (!onScreen(bounds)) continue;
+          if (bounds.width < 24 || bounds.height < 24) {
+            out.push('a neighborhood card control is smaller than twenty-four screen pixels');
+          }
+          const icon = button.querySelector('svg')?.getBoundingClientRect();
+          if (icon && (icon.width < 12 || icon.height < 12)) {
+            out.push('a neighborhood card control icon is smaller than twelve screen pixels');
+          }
+        }
         for (const name of root.querySelectorAll<HTMLElement>('.node strong')) {
           const clipped =
             name.scrollWidth > name.clientWidth || name.scrollHeight > name.clientHeight;

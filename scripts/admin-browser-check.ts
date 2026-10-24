@@ -81,7 +81,7 @@ async function timedAdministration(page: Page, erin: Page, target: SignInTarget)
   assert(identity.roles.projects['sales-contracts'].includes('editor'));
   const access = await adminArea(page, 'Access check');
   await access
-    .getByLabel('Principal', { exact: true })
+    .getByLabel('Person ID', { exact: true })
     .fill(TEST_TENANT_ID + ':' + TEST_USERS.alice.oid);
   await access.getByLabel('Project', { exact: true }).fill('sales-contracts');
   await access.getByRole('button', { name: 'Check access', exact: true }).click();

@@ -49,9 +49,9 @@ export function ScrollStrip({
     strip.classList.toggle('scroll-strip-cued', strip.scrollWidth > strip.clientWidth + 1);
     startCue.current.hidden = strip.scrollLeft <= 1;
     endCue.current.hidden = strip.scrollWidth - strip.clientWidth - strip.scrollLeft <= 1;
-    if (!strip.matches('.tabs, .odcs-tabs')) return;
+    if (!strip.matches('.tabs, .odcs-tabs, .admin-nav-list')) return;
     const frame = strip.getBoundingClientRect();
-    for (const tab of strip.querySelectorAll<HTMLElement>(':scope > button')) {
+    for (const tab of strip.querySelectorAll<HTMLElement>(':scope > button, :scope > a')) {
       const bounds = tab.getBoundingClientRect();
       const clipped = bounds.left < frame.left - 1 || bounds.right > frame.right + 1;
       tab.dataset.scrollClipped = String(clipped);
@@ -81,7 +81,7 @@ export function ScrollStrip({
     mutate.observe(strip, { childList: true, subtree: true, characterData: true });
     function revealFocused(event: FocusEvent) {
       if (!(event.target instanceof HTMLElement)) return;
-      const control = event.target.closest('button');
+      const control = event.target.closest<HTMLElement>('button, a');
       if (!control || control.parentElement !== strip) return;
       requestAnimationFrame(() => {
         revealControl(strip, control);

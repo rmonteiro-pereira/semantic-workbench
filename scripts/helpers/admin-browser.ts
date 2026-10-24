@@ -5,6 +5,7 @@ import { layoutProblems } from './layout-geometry';
 import { smallTextProblems, textCollisionProblems } from './text-geometry';
 import { screenshotPath } from './screenshots';
 import { ADMIN_SECTIONS } from '../../src/admin/admin-sections';
+import { adminPageProblems } from './admin-page-geometry';
 
 /** The sections the Admin page lists, in its navigation order. */
 export const ADMIN_AREAS = ADMIN_SECTIONS.map(section => section.label);
@@ -104,7 +105,10 @@ export async function adminGeometry(page: Page, name: string) {
     const dialogOpen = (await page.locator('dialog[open]').count()) > 0;
     const scope = dialogOpen ? 'dialog[open]' : '.admin-page';
     if (dialogOpen) await adminDialogFits(page, name, width, height);
-    else await adminPageFits(page, name, width, height);
+    else {
+      await adminPageFits(page, name, width, height);
+      assert.deepEqual(await adminPageProblems(page), [], name);
+    }
     assert.deepEqual(await layoutProblems(page), [], `${name} at ${width}×${height}`);
     assert.deepEqual(
       await smallTextProblems(page, scope),

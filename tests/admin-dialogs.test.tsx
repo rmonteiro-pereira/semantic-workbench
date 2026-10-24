@@ -47,7 +47,7 @@ test('grant edits invalidate review and server guard errors stay visible', async
 test('built-in roles are locked and duplication exposes a custom role form', async () => {
   const roles = await openArea('Roles');
   const role = roles.getByRole('region', { name: 'Viewer', exact: true });
-  await browserExpect(role).toContainText('read-only');
+  await browserExpect(role).toContainText('Built-in role');
   await browserExpect(role.getByRole('button', { name: 'Delete', exact: true })).toHaveCount(0);
   await role.getByRole('button', { name: 'Duplicate as custom role' }).click();
   const form = page.getByRole('region', { name: 'New role', exact: true });
