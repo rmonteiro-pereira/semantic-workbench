@@ -24,6 +24,7 @@ import { pageLayoutProblems } from './helpers/page-layout';
 import { dialogStandardProblems } from './helpers/dialog-geometry';
 import {
   contentWidthProblems,
+  expectKeyboardTabReveal,
   headerTitleProblems,
   shellScreens,
   sidebarTreeProblems,
@@ -1746,6 +1747,7 @@ try {
         expect(await tabStripProblems(shellTourPage), screen.name).toEqual([]);
         expect(await contentWidthProblems(shellTourPage, width), screen.name).toEqual([]);
         await noOverflow(shellTourPage);
+        await expectKeyboardTabReveal(shellTourPage);
       }
       expect(await sidebarTreeProblems(shellTourPage, 'commerce.odcs.yaml')).toEqual([]);
     });

@@ -56,6 +56,7 @@ export function CatalogView({
                 </small>
                 <strong title={e.name}>{e.name}</strong>
                 <p title={e.description || undefined}>{e.description || 'No description yet'}</p>
+                <span className="catalog-details">View details</span>
               </button>
               {(entityTarget(e) || rdfTarget(e)) && (
                 <button

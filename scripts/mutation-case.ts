@@ -9,6 +9,11 @@ import { observabilityCase } from './observability-cases';
 setActiveBrand(loadBrandBundle());
 const m = await import(process.argv[2]);
 const category = process.argv[3];
+if (category === 'graph-detail-zoom') {
+  assert.equal(m.textSizesAt(1).showDetail, true);
+  assert.equal(m.textSizesAt(0.99).showDetail, false);
+  assert.equal(m.textSizesAt(0.75).showDetail, false);
+}
 if (category === 'example-registry') {
   const { EXPECTED_EXAMPLE_METRICS, checkExampleSetMetrics } =
     await import('./example-metric-checks');

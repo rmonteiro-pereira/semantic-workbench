@@ -81,7 +81,10 @@ export function QueryComposer(props: Props) {
         <fieldset>
           <legend>Governed metrics</legend>
           {!props.governed.length && (
-            <p>No metric is mapped here. Pick a concept that has bindings on the Mappings page.</p>
+            <p>
+              No metric is mapped here. Close this dialog and add metric bindings in the source
+              file.
+            </p>
           )}
           {props.governed.map(metric => (
             <label key={metric.id}>
@@ -99,7 +102,9 @@ export function QueryComposer(props: Props) {
         <fieldset>
           <legend>Group by mapped fields</legend>
           {!props.fields.length && (
-            <p>No field is mapped here. Pick a concept that has bindings on the Mappings page.</p>
+            <p>
+              No field is mapped here. Close this dialog and add field bindings in the source file.
+            </p>
           )}
           {props.fields.length > 0 && (
             <input

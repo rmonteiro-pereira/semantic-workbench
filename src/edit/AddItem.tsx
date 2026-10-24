@@ -63,11 +63,11 @@ function createFields(kind: ItemKind, choices: Choices): FieldSpec[] {
     ];
   return base;
 }
-// "Name and type are required." from the labels of the required fields.
+// The hint names the missing inputs so a disabled Save still explains the next step.
 function requiredHint(labels: string[]) {
   const names = labels.map((label, index) => (index === 0 ? label : label.toLowerCase()));
   const list = names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : names[0];
-  return `${list} ${names.length > 1 ? 'are' : 'is'} required.`;
+  return `Enter ${list.toLowerCase()} to continue.`;
 }
 
 /** Previews and validates a new item before saving it. */
@@ -267,7 +267,7 @@ export function AddItem({
                     value={valueOf(spec)}
                     onChange={e => set(spec, e.target.value)}
                   >
-                    <option value="">—</option>
+                    <option value="">Choose {spec.label.toLowerCase()}</option>
                     {(spec.options ?? []).filter(Boolean).map(o => (
                       <option key={o} value={o}>
                         {o}

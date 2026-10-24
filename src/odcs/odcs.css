@@ -1236,6 +1236,7 @@ button.odcs-link.fk:hover {
   overflow: hidden;
 }
 .odcs-dir {
+  white-space: nowrap;
   font-size: var(--text-small);
   font-weight: 600;
   border-radius: 4px;

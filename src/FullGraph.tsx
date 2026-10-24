@@ -574,7 +574,7 @@ export function FullGraph(props: Props) {
             width: 13,
             height: 13,
           },
-          zIndex: active ? 4 : 1,
+          zIndex: -2,
           interactionWidth: 24,
           style: {
             stroke: active || adjacent ? 'var(--color-edge-active)' : 'var(--color-edge-idle)',

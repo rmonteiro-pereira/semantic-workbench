@@ -39,7 +39,7 @@ function MetricRow({
           </span>
         )}
       </td>
-      <td data-label="Type">
+      <td data-label="Type" className="col-type">
         <span className={`kpi-pill type-${kpi.type}`}>{typeLabel[kpi.type]}</span>
         {!kpi.typeDeclared && (
           <small className="inferred" title="Not declared; read from the expression">
@@ -100,7 +100,9 @@ export function MetricsTable({
         <thead>
           <tr>
             <th scope="col">Metric</th>
-            <th scope="col">Type</th>
+            <th scope="col" className="col-type">
+              Type
+            </th>
             {columns.unit && (
               <th scope="col" className="col-unit">
                 Unit

@@ -152,7 +152,7 @@ try {
   await check('Delete folder moves only that subfolder to the trash', async () => {
     const dialog = await openDelete('Finance');
     await dialog.getByRole('radio', { name: /Delete folder/ }).check();
-    await expect(dialog.getByRole('heading', { name: 'Removed' })).toBeVisible();
+    await expect(dialog.getByRole('heading', { name: 'Moved to trash' })).toBeVisible();
     await dialog.getByRole('button', { name: 'Delete', exact: true }).click();
     await expect(dialog).toHaveCount(0);
     expect(existsSync(join(repo, 'domains/finance'))).toBe(false);

@@ -108,3 +108,13 @@
 .neighborhood-tools:has(.center-picker[aria-expanded='true']) {
   mask-image: none;
 }
+
+/* Badges follow the same legibility threshold as the other graph details. */
+.full-graph .full-entity .kpi-kind,
+.full-graph .full-entity .node-kpi-badge {
+  display: var(--entity-detail-display, block);
+}
+.full-graph .full-area-title {
+  background: var(--color-surface-page);
+  border-radius: 4px;
+}

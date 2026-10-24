@@ -497,11 +497,21 @@ button.link {
   display: none !important;
 }
 
-/* The metric wizard is a short form, so its drawer takes the height of the current step and only
-   scrolls when a step is taller than the window. */
+/* A short wizard stays centred at its content height instead of resembling a broken drawer. */
+dialog.validation-backdrop:has(.kpi-wizard) {
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}
 .workbench-dialog.item-editor.kpi-wizard {
   height: auto;
-  align-self: flex-start;
+  max-height: calc(100dvh - 32px);
+  align-self: center;
+  border-radius: 14px;
+  border-width: 1px;
+}
+.workbench-dialog.kpi-wizard > .dialog-footer {
+  border-radius: 0 0 14px 14px;
 }
 
 @media (max-width: 480px) {

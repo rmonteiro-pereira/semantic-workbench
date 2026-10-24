@@ -39,6 +39,14 @@ export async function graphCanvasProblems(page: Page, which: Which): Promise<str
         const px = sizeOnScreen(name);
         if (px < minName) out.push(`name "${name.textContent}" is ${px.toFixed(1)} px on screen`);
       }
+      if (which === 'model') {
+        const details = '.full-area-title small, .full-entity small, .full-entity .node-kpi-badge';
+        for (const detail of root.querySelectorAll(details)) {
+          if (!onScreen(detail.getBoundingClientRect())) continue;
+          const pixels = sizeOnScreen(detail);
+          if (pixels < 12) out.push(`model detail text is ${pixels.toFixed(1)} px on screen`);
+        }
+      }
       if (which === 'neighborhood') {
         for (const detail of root.querySelectorAll('.node small, .node > span')) {
           if (!onScreen(detail.getBoundingClientRect())) continue;

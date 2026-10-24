@@ -8,6 +8,17 @@ const EDGE_CLEARANCE_PX = 8;
 // How much of the visible width one click on a cue moves the strip.
 const CUE_SCROLL_SHARE = 0.6;
 
+// Native focus may leave a control partly visible; reserve the same clearance as selection.
+function revealControl(strip: HTMLElement, control: HTMLElement) {
+  const outer = strip.getBoundingClientRect();
+  const inner = control.getBoundingClientRect();
+  if (inner.left < outer.left + EDGE_CLEARANCE_PX) {
+    strip.scrollLeft -= outer.left + EDGE_CLEARANCE_PX - inner.left;
+  } else if (inner.right > outer.right - EDGE_CLEARANCE_PX) {
+    strip.scrollLeft += inner.right - outer.right + EDGE_CLEARANCE_PX;
+  }
+}
+
 /** Scroll cues follow the actual overflow; tab selection only scrolls this strip. */
 export function ScrollStrip({
   className,
@@ -38,6 +49,13 @@ export function ScrollStrip({
     strip.classList.toggle('scroll-strip-cued', strip.scrollWidth > strip.clientWidth + 1);
     startCue.current.hidden = strip.scrollLeft <= 1;
     endCue.current.hidden = strip.scrollWidth - strip.clientWidth - strip.scrollLeft <= 1;
+    if (!strip.matches('.tabs, .odcs-tabs')) return;
+    const frame = strip.getBoundingClientRect();
+    for (const tab of strip.querySelectorAll<HTMLElement>(':scope > button')) {
+      const bounds = tab.getBoundingClientRect();
+      const clipped = bounds.left < frame.left - 1 || bounds.right > frame.right + 1;
+      tab.dataset.scrollClipped = String(clipped);
+    }
   };
   const reveal = () => {
     const strip = ref.current;
@@ -45,14 +63,7 @@ export function ScrollStrip({
     update();
     const selected = selection === undefined ? null : strip.querySelector<HTMLElement>('.selected');
     if (selected && strip.scrollWidth > strip.clientWidth) {
-      const outer = strip.getBoundingClientRect();
-      const inner = selected.getBoundingClientRect();
-      const clearance = EDGE_CLEARANCE_PX;
-      if (inner.left < outer.left + clearance) {
-        strip.scrollLeft -= outer.left + clearance - inner.left;
-      } else if (inner.right > outer.right - clearance) {
-        strip.scrollLeft += inner.right - outer.right + clearance;
-      }
+      revealControl(strip, selected);
     }
     update();
   };
@@ -68,10 +79,21 @@ export function ScrollStrip({
     const mutate = new MutationObserver(reveal);
     resize.observe(strip);
     mutate.observe(strip, { childList: true, subtree: true, characterData: true });
+    function revealFocused(event: FocusEvent) {
+      if (!(event.target instanceof HTMLElement)) return;
+      const control = event.target.closest('button');
+      if (!control || control.parentElement !== strip) return;
+      requestAnimationFrame(() => {
+        revealControl(strip, control);
+        update();
+      });
+    }
+    strip.addEventListener('focusin', revealFocused);
     strip.addEventListener('scroll', update, { passive: true });
     return () => {
       resize.disconnect();
       mutate.disconnect();
+      strip.removeEventListener('focusin', revealFocused);
       strip.removeEventListener('scroll', update);
     };
   }, []);

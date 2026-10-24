@@ -198,6 +198,24 @@ editor never receives an older deferred value as an external replacement.
 
 ## Cross-cutting concerns
 
+The metric wizard overrides the item drawer placement through its existing shared dialog class: it
+keeps content height and viewport centering. ScrollStrip hides partial tab labels while preserving
+the controls in the focus order and retaining the space and cues needed to scroll to them.
+
+The sidebar tree snaps rows flush to its border and uses a scrollbar instead of text fades.
+At short heights, its footer pairs Examples and Import in the existing action grid.
+
+The metrics split view retains Unit and hides Type first when space is tight. Phone cards use
+inline labels for values and let type/status chips explain themselves. Source Control keeps a
+page margin and places its visibly labelled commit counts below branch actions.
+
+The whole-model graph keeps its 12 px detail lines only at zoom 1 or higher. Small header counts and badges
+share that threshold; names use the existing zoom compensation. The browser measures detail
+font size multiplied by the actual viewport scale, and a targeted mutant guards the cutoff.
+
+Delete confirmation separates the project/history scope from its counted list of files.
+Mapping empty states name the source-file bindings needed before query preview can run.
+
 `ScrollStrip` reserves cue margins before revealing the selected tab and repeats that reveal
 when its contents or size change. Native dialogs are excluded from ODCS content-width caps;
 the shared dialog geometry check verifies viewport centring. Relationships shares the other

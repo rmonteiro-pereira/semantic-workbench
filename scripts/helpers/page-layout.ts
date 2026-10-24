@@ -37,6 +37,19 @@ export async function pageLayoutProblems(page: Page, screenName: string) {
       }
     }
     if (name === 'source-control') {
+      const sourceControl = document.querySelector('.scm');
+      const header = document.querySelector('.workspace-header');
+      if (
+        sourceControl &&
+        header &&
+        sourceControl.getBoundingClientRect().top - header.getBoundingClientRect().bottom < 10
+      ) {
+        problems.push('Source control has no gap below the header');
+      }
+      const counts = document.querySelector('.scm-sync');
+      if (counts && !/to push.*to pull/s.test(counts.textContent ?? '')) {
+        problems.push('the source-control counts have no visible labels');
+      }
       const title = document.querySelector('.scm-title');
       if (!title) problems.push('the Source control page has no heading');
       const select = document.querySelector('.scm-head > select');

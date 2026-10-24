@@ -608,9 +608,9 @@ export function SourceControl({
             title={status.upstream ? `Tracking ${status.upstream}` : 'No upstream branch yet'}
           >
             <ArrowUp size={12} />
-            {status.ahead}
+            {status.ahead} to push
             <ArrowDown size={12} />
-            {status.behind}
+            {status.behind} to pull
           </span>
           {offersSync && (
             <button className="scm-sync-open" onClick={() => setSyncOpen(true)}>

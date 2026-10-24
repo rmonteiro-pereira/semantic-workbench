@@ -104,6 +104,9 @@ The sections below apply to both modes unless they say otherwise. Server mode di
 
 ### Where your data lives
 
+The sidebar file list scrolls without fading names. On short windows Examples and Import share
+a row to leave more height for files.
+
 Everything stays under the data root, `data/` by default. Set `DATA_DIR` to use another folder (the tests and browser checks always use temporary ones):
 
 ```text
@@ -242,9 +245,15 @@ Graph connections group parallel relationships; the inspector exposes each origi
 
 ### Complete interactive graph
 
+Collapsed area cards keep their entity count as the primary label. Smaller duplicate header
+counts and relationship summaries follow the detail zoom threshold.
+
+Small graph summaries and metric badges hide when zoom would make them smaller than
+12 px. Entity names remain zoom-aware, and group headings stay opaque over relationship lines.
+
 The **Graph** tab is a real React Flow canvas, separate from the preserved **Overview** and relationship matrix. It retains every business entity and relationship, with directed parallel-link bundles exposing original definitions. The toolbar has **Fit model**, zoom in and out, **View options…** and full screen. **View options…** offers the **Network (fCoSE)** and **Layered (ELK)** layouts, area zoom, **Re-layout**, **Collapse areas** and **Expand all**, a **Value types** switch that hides value types and built-in concepts with their relationships (remembered per model in this browser), switches for labels, metrics and a **Map** (the mini-map, off until asked for and then remembered), and links to the Overview and Neighborhood. The canvas has compound business-area boundaries, explicit overlap cleanup, selection highlighting and manual dragging.
 
-Detailed edge routing uses React Flow Smart Edge's shared background worker. At whole-model zoom, the canvas uses inexpensive native paths; obstacle-aware routes are computed for visible or selected connections at useful detail. This avoids queueing thousands of costly routes for edges too small to inspect. The first view follows the window: when the entities would not read at 12 px on screen (about 15 entities in a 1280 px window, about 70 in a 2560 px one, always above 250), each area opens as one card with its entity count; click an area card, or use **Expand all** in View options, to open it. Internal links remain folded into the area card until expansion. When the canvas is zoomed out further, names and area titles grow so they stay readable and unfocused links fade.
+Detailed edge routing uses React Flow Smart Edge's shared background worker. At whole-model zoom, the canvas uses inexpensive native paths; obstacle-aware routes are computed for visible or selected connections at useful detail. This avoids queueing thousands of costly routes for edges too small to inspect. The first view follows the window: when the entities would not read at 12 px on screen (about 15 entities in a 1280 px window, about 70 in a 2560 px one, always above 250), each area opens as one card with its readable entity count; click an area card, or use **Expand all** in View options, to open it. Internal links remain folded into the area card until expansion. When the canvas is zoomed out further, names and area titles grow so they stay readable and unfocused links fade.
 
 Research and architectural choices, including React Flow, ELK, Cytoscape/fCoSE and Sigma, are recorded in [docs/graph-design.md](docs/graph-design.md).
 
@@ -275,12 +284,21 @@ Standards references: [ODCS schema](https://github.com/bitol-io/open-data-contra
 
 ### Editing one item
 
+Short metric wizards stay centered at their content height. Disabled buttons retain readable
+labels and use a dashed border to distinguish them from enabled actions. Catalog cards explicitly
+label their **View details** action. Tab strips hide clipped neighboring labels until scrolling
+reveals the complete control; keyboard focus still scrolls each control into view.
+
+New-item forms name the inputs needed before saving. Delete confirmations list only files under
+the file count and describe the project history separately. Query composition explains how to
+add bindings when none are available. The mapping filter includes all concepts.
+
 ODCS section dialogs centre on the viewport, and Relationships uses the same readable width
 as the other table sections. Catalog names stay on one line; hover a shortened name to read it in full. Phone item forms
 stack their fields in one column. Dialog hints occupy a full footer row above the actions.
 The wizard marks the current step with a filled row and keeps pending steps plain.
 
-**ODCS contracts.** An open data contract gets a **Contract** tab: the contract's identity and status in a small grid (long purpose and limitations are clamped, with **Read more**), one button per section the contract declares (servers, team and roles, service levels, quality, support, pricing, custom properties; each shows a count and opens the section in a dialog, and sections the contract does not have are not drawn), and a searchable list of its tables: name and physical name, type badge (only for a view or other unusual type), property count, key chips and a one-line description (169 UBL objects filter as you type; descriptions wrap in full, and the contract id is a one-line monospace chip with a **Copy** button). On a phone the list becomes cards. **Open** an object for its dataset page, in the style of Marquez: a header card with type, property and rule counts, the last commit that changed the object, tags and an **Open in lineage** button, then five tabs in one scrolling row with an edge fade on a phone (it opens on **Properties**); on a phone **Open in lineage** sits on its own row under the title.
+**ODCS contracts.** An open data contract gets a **Contract** tab: the contract's identity and status in a small grid (long purpose and limitations are clamped, with **Read more**), one button per section the contract declares (servers, team and roles, service levels, quality, support, pricing, custom properties; each shows a count and opens the section in a dialog, and sections the contract does not have are not drawn), and a searchable list of its tables: name and physical name, type badge (only for a view or other unusual type), property count, key chips and a one-line description (169 UBL objects filter as you type; descriptions wrap in full, and the contract id is a one-line monospace chip with a **Copy** button). On a phone the list becomes cards. **Open** an object for its dataset page, in the style of Marquez: a header card with type, property and rule counts, the last commit that changed the object, tags and an **Open in lineage** button, then five tabs in one scrolling row with cues for hidden tabs on a phone (it opens on **Properties**); on a phone **Open in lineage** sits on its own row under the title.
 
 - **Lineage**: the column-level lineage canvas (below) centred on the object, and a table listing, per property, the fields and metrics that read it.
 - **Relationships**: the object's foreign keys, both the ones it declares (references) and the ones that point at it (referenced by), each as one sentence such as `orders.customer_id references customers.id` (child column, then the column it references) and a link to the other table. One legend above the table explains the two direction chips. The Properties tab shows the same sentence as the tooltip of a foreign-key chip.
@@ -306,6 +324,9 @@ Select an entity, relationship or metric anywhere (graph, neighborhood, overview
 Removing a statement that has a comment next to it asks for confirmation. **Delete** removes the resource's statements and the statements in the same file that name it (listed first); other project files that still name it are listed to fix in Source.
 
 ### Metrics
+
+Phone metric cards use inline field labels and type/status chips. The split view keeps the unit
+visible so values retain their meaning. Source Control labels commits to push and pull.
 
 The **Metrics** tab lists every metric of the open file's project: label, type, unit, status, owner and the ontology concept it measures, with search and one **Filters** button (a badge counts the settings in use; **Clear filters** keeps the grouping) that opens a dialog with grouping (owner, type, status, concept, file), type, status and owner filters; a column with no value in any metric (unit, status, owner, concept) is not drawn. **Governed only** keeps the metrics that carry workbench attributes; the detail of a metric without them (type and additivity are then read from its expression) offers **Add attributes**, which opens the metric wizard prefilled from it and saves only its attributes, leaving its name and expression as written. Selecting a metric opens its detail beside the list (in place of it on narrow screens):
 

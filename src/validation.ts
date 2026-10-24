@@ -225,7 +225,7 @@ export function validateStructured(data: any, applyPinnedSchema = true): Issue[]
     else
       warn(
         '/ontology',
-        'Only the basic checks ran: the full ontology schema applies to version 0.2.0.dev0, and this file declares another version.',
+        'Basic checks only. Use ontology version 0.2.0.dev0 for full schema checks.',
       );
     arr(data.ontology_mappings, '/ontology_mappings').forEach((m, i) => {
       const prefix = `/ontology_mappings/${i}`;

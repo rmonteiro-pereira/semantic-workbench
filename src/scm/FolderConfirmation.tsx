@@ -16,7 +16,7 @@ function MoveSummary({ preview }: { preview: FolderPreview }) {
   const hidden = preview.moveCount - listed.length;
   return (
     <>
-      <p>{`${preview.moveCount} files move into ${preview.folder} of the repository.`}</p>
+      <p>{`${preview.moveCount} files will be moved into the folder ${preview.folder}.`}</p>
       <p>A commit records the move. History is not rewritten and nothing is deleted.</p>
       <ul className="folder-moves" aria-label="Files that move">
         {listed.map(move => (

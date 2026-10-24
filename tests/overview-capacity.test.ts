@@ -28,3 +28,9 @@ test('names keep their size while readable and grow once zoomed out', () => {
   expect(zoomedOut.showDetail).toBe(false);
   expect(textSizesAt(1).showDetail).toBe(true);
 });
+
+test('unscaled twelve-pixel details disappear before they become smaller on screen', () => {
+  expect(textSizesAt(1).showDetail).toBe(true);
+  expect(textSizesAt(0.99).showDetail).toBe(false);
+  expect(textSizesAt(0.75).showDetail).toBe(false);
+});

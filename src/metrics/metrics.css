@@ -312,7 +312,7 @@
   .metrics-view.has-detail .metrics-table td {
     padding-inline: 8px;
   }
-  .metrics-view.has-detail .metrics-table .col-unit,
+  .metrics-view.has-detail .metrics-table .col-type,
   .metrics-view.has-detail .metrics-table .col-owner,
   .metrics-view.has-detail .metrics-table .col-concept {
     display: none;
@@ -1131,4 +1131,20 @@
 }
 .owner-unverified {
   color: var(--color-warning-text);
+}
+
+/* Chips name their own type and status; the other phone fields keep short inline labels. */
+@media (max-width: 700px) {
+  .metrics-table td::before {
+    display: inline;
+    margin-right: 6px;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .metrics-table td:is([data-label='Type'], [data-label='Status'])::before {
+    display: none;
+  }
+  .metrics-table .metrics-name strong {
+    font-size: 14px;
+  }
 }

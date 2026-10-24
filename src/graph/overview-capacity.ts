@@ -18,7 +18,8 @@ export function textSizesAt(zoom: number) {
   const areaTitle = Math.min(48, Math.max(20, Math.ceil(13 / zoom)));
   // Two lines of the larger name no longer fit the card, so it keeps one.
   const entityLines = entityName > 17 ? 1 : 2;
-  const showDetail = zoom >= READABLE_ZOOM;
+  // Detail starts at 12 canvas pixels, so it needs an unscaled view to stay readable.
+  const showDetail = zoom >= 1;
   return { entityName, areaTitle, entityLines, showDetail };
 }
 
