@@ -1,5 +1,6 @@
 // Checks graph navigation and rendering at multiple scales in an isolated browser workspace.
 import { appUrl } from './helpers/base-url';
+import { checkExpansionViewports } from './graph-expansion-checks';
 import { viewOptions } from './helpers/graph-options';
 import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
@@ -536,6 +537,7 @@ try {
       expect(errors).toEqual([]);
     },
   );
+  await checkExpansionViewports(browser, api);
   console.log(`${passed} graph and neighborhood checks passed on isolated data root ${api.root}.`);
 } finally {
   await browser.close();

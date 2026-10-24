@@ -1505,7 +1505,8 @@ workspace updates…** while it waits. A failed clone retains its reason and rec
 including creating a missing repository folder with the first push.
 
 The clone progress reducer adds four ordering tests and three targeted mutation faults; the
-mutation inventory is 657 targets. Final release totals and verified results are recorded in
+mutation inventory is now 660 targets after the expansion viewport coverage below.
+Final release totals and verified results are recorded in
 `specs/004-ui-polish/FINAL.md` after the complete gate.
 
 The final fresh UI audit is round 14: 1,040 native images, including local/server in both
@@ -1523,3 +1524,10 @@ The release runtime uses MSAL Node 7.1.0 and explicitly installs the current `li
 security update. The container build requires `libbrotli1` at least `1.1.0-2+deb13u1`; a stale
 package mirror fails the build. Image scanning retains its original HIGH/CRITICAL gate and
 no vulnerability exceptions are approved.
+
+Neighborhood expansion now chooses its readable viewport before publishing it, avoiding a
+transient fit-all render of offscreen nodes. `src/graph/expansion-viewport.ts` holds the pure
+choice; `tests/expansion-viewport.test.ts` adds three tests and
+`scripts/graph-expansion-checks.ts` checks all four sizes in both themes through `test:graph`.
+Three targeted faults bring the mutation inventory to 660. Final release totals are recorded
+in `specs/004-ui-polish/FINAL.md` after the complete new-head gate.

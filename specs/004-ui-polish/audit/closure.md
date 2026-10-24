@@ -75,3 +75,7 @@ validated for every saved JPEG. No crop or resize was applied.
 The dependency and runtime security updates retain the clean complete visual result. The full
 49-command gate now restarts at this artifact commit; supplemental R11 evidence will be
 refreshed at the verified gate head. Earlier failures remain documented, without relaxed checks.
+
+Round 15 records one additional S2 expansion render stall, fixed by direct readable viewport
+publication. The ledger now totals 117 observed serious rows resolved, plus six justified
+baseline triages. Fresh complete round 16 and the full gate remain pending.
