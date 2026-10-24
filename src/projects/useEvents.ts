@@ -1,5 +1,5 @@
 /** Subscribes to workspace change notifications and requests refreshed state after reconnects. */
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { reloadForAccessChange } from './api';
 // Events describe changes, so the callback refetches state. EventSource replays missed events
 // using Last-Event-ID; if replay is unavailable, resync requests a full refresh.
@@ -18,8 +18,9 @@ export const EVENT_TYPES = [
   'resync',
   'access',
 ] as const;
-/** Subscribes to workspace events and requests refreshed state after reconnects. */
+/** Subscribes to workspace events and reports whether updates can currently arrive. */
 export function useEvents(onChange: (event: string, data: any) => void) {
+  const [connected, setConnected] = useState(false);
   const handler = useRef(onChange);
   handler.current = onChange;
   useEffect(() => {
@@ -44,13 +45,16 @@ export function useEvents(onChange: (event: string, data: any) => void) {
     });
     // After a reconnect, refetch once in case the server restarted with a new event sequence.
     source.onopen = () => {
+      setConnected(true);
       if (opened) handler.current('resync', {});
       opened = true;
     };
+    source.onerror = () => setConnected(false);
     return () => {
       for (const [type, listener] of listeners)
         source.removeEventListener(type, listener as EventListener);
       source.close();
     };
   }, []);
+  return connected;
 }

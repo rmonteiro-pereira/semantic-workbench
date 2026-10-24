@@ -1,6 +1,7 @@
 // Checks Git setup from the browser: identity, remote, commit and push, clone, and the credential
 // guide. Every remote is a local bare repository or a local test server; no network remote is used.
 import { expectDialogGeometry } from './helpers/dialog-geometry';
+import { lowContrastProblems, smallTextProblems } from './helpers/text-geometry';
 import {
   closeSyncDialog,
   openRemoteDialog,
@@ -9,7 +10,7 @@ import {
   runSyncAction,
 } from './helpers/sync-dialog';
 import { appUrl } from './helpers/base-url';
-import { chromium, expect, type Route } from '@playwright/test';
+import { chromium, expect, type Locator, type Route } from '@playwright/test';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -80,6 +81,32 @@ async function check(name: string, run: () => Promise<void>) {
   console.log('PASS', name);
 }
 const panel = () => page.getByRole('region', { name: 'Source Control' });
+
+async function expectCloneWaiting(dialog: Locator) {
+  const cloneButton = dialog.getByRole('button', { name: 'Clone', exact: true });
+  for (const theme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme: theme });
+    await expect
+      .poll(() => page.evaluate(() => getComputedStyle(document.documentElement).colorScheme))
+      .toBe(theme);
+    for (const [width, height] of [
+      [390, 844],
+      [1280, 720],
+      [1440, 900],
+      [2560, 1440],
+    ]) {
+      await page.setViewportSize({ width, height });
+      await expect(cloneButton).toBeDisabled();
+      await expect(dialog).toContainText('Connecting to workspace updates…');
+      await expectDialogGeometry(page, `Clone connecting ${theme} at ${width}`);
+      expect(await smallTextProblems(page, 'dialog[open]')).toEqual([]);
+      expect(await lowContrastProblems(page, 'dialog[open]')).toEqual([]);
+      await page.screenshot({ path: `/tmp/workbench-clone-connecting-${theme}-${width}.png` });
+    }
+  }
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.setViewportSize({ width: 1440, height: 900 });
+}
 
 async function setRemote(url: string) {
   await openRemoteDialog(page);
@@ -255,6 +282,14 @@ try {
   await check(
     'clone: a folder of the repository becomes the project, and a missing folder offers a push',
     async () => {
+      let releaseUpdates: () => void = () => {};
+      const updatesReady = new Promise<void>(resolve => {
+        releaseUpdates = resolve;
+      });
+      await page.route('**/api/events', async route => {
+        await updatesReady;
+        await route.continue({ url: api.url + '/api/events' });
+      });
       await page.getByRole('button', { name: 'Import…' }).click();
       await page.getByRole('button', { name: 'Clone a Git repository…' }).click();
       const dialog = page.getByRole('dialog', { name: 'Clone repository' });
@@ -263,7 +298,12 @@ try {
       await expect(dialog).toContainText('may not contain ".."');
       await expect(dialog.getByRole('button', { name: 'Clone', exact: true })).toBeDisabled();
       await dialog.getByLabel('Folder in repository').fill('semantic/none');
-      await dialog.getByRole('button', { name: 'Clone', exact: true }).click();
+      const cloneButton = dialog.getByRole('button', { name: 'Clone', exact: true });
+      await expectCloneWaiting(dialog);
+      releaseUpdates();
+      await expect(cloneButton).toBeEnabled();
+      await page.unroute('**/api/events');
+      await cloneButton.click();
       await expect(dialog.getByRole('status')).toContainText('The clone failed.', {
         timeout: 20_000,
       });
