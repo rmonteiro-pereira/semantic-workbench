@@ -1365,8 +1365,7 @@ export function LineageCanvas({
             className="lineage-reading"
             title="Lines are matched by declared names: foreign keys as declared (drawn from the referenced column to the referencing one), semantic datasets whose source is a table's physical name or name, fields whose expressions read a column, and metrics over those fields. This is the workbench's reading, not part of ODCS or Ossie."
           >
-            Links come from the names the contract declares · showing {reach.cards.size} of{' '}
-            {graph.cards.size} items
+            Links follow the names declared in this contract.
             {graph.unmatchedDatasets > 0
               ? ` · ${graph.unmatchedDatasets} ${unmatchedVerb} none of this contract's tables`
               : ''}

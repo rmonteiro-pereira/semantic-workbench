@@ -69,8 +69,9 @@ export function ModelOverview(props: Props) {
           <div className="overview-eyebrow">FULL MODEL</div>
           <h2>One model. {overview.groups.length} groups.</h2>
           <p>
-            {overview.entities.length} entities · {overview.links.length} relationships. Select an
-            entity to trace its connections.
+            {overview.entities.length} entities · {overview.links.length} relationships. Counts
+            beside entity names are declared relationships. Select an entity to trace its
+            connections.
           </p>
         </div>
         <div className="overview-view-actions">
@@ -134,7 +135,9 @@ export function ModelOverview(props: Props) {
                       </h3>
                       <p>{group.description}</p>
                     </div>
-                    <span className="area-count">{group.entities.length}</span>
+                    <span className="area-count" title="Entities in this area">
+                      {group.entities.length} entities
+                    </span>
                   </header>
                   <div className="area-entities">
                     {entities.map(e => (

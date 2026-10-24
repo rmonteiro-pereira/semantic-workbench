@@ -29,12 +29,15 @@ type Props = {
   error: string;
   onPreview: () => void;
   onClose: () => void;
+  onOpenSource?: () => void;
 };
 
 // Why the preview button is off, in words, or nothing while it is on.
 function previewBlockerOf(props: Props) {
   if (props.canPreview) return undefined;
   if (props.loading) return 'The query is being composed.';
+  if (!props.governed.length && !props.fields.length)
+    return 'Add bindings in Source to compose a query.';
   if (props.metrics.length === 0 && props.dimensions.length === 0) {
     return 'Choose a metric or a field to group by.';
   }
@@ -78,6 +81,9 @@ export function QueryComposer(props: Props) {
           Pick the metrics to calculate and the fields to group them by. The query is shown as SQL
           and is never run.
         </p>
+        {!props.governed.length && !props.fields.length && props.onOpenSource && (
+          <button onClick={props.onOpenSource}>Open Source to add bindings</button>
+        )}
         <fieldset>
           <legend>Governed metrics</legend>
           {!props.governed.length && (

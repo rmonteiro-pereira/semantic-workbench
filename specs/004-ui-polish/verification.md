@@ -54,3 +54,30 @@ No timing budget, timeout or assertion was relaxed. No load-related rerun has be
 - These are documented diagnostic reruns, not machine-load reruns. Existing timing budgets,
   timeouts and assertions are unchanged. The mutation inventory has one new zoom-cutoff fault;
   the complete mutation run remains part of the pending final release gate.
+
+## Source actions and graph explanations
+
+- Mapping layout: 4 checks passed, including selected-document Source navigation at six sizes.
+- Two diagnostic runs corrected the new test setup: EmptyState titles are strong text rather
+  than headings, and reopening an original project requires expanding its collapsed tree row.
+  The navigation, source-content and viewport assertions were retained.
+- Focused graph units: 11 passed, 31 assertions across two files.
+- Both new edge-label bounds faults were killed individually: ignoring bounds and omitting the
+  caller's bounds. The complete mutation inventory still awaits its final gate run.
+- The complete responsive matrix is running. No timing budget or timeout was changed.
+
+- The complete responsive run passed the main, edit, ODCS, project, export, file, folder, shell,
+  admin, header, ODCS graph and example tours, then failed dark-theme contrast on deliberately
+  transparent clipped tabs. The strip now clips those fragments geometrically while retaining
+  opaque theme colors and keyboard focusability. The containment assertion checks the clip;
+  focused and selected controls must also have no clip. Contrast assertions remain unchanged.
+
+- Dark theme rerun: all 4 viewport checks passed. Keyboard shell rerun: all 4 passed.
+- The new direction-label assertion initially ran before opening the phone Controls panel.
+  Its setup now opens that panel, checks the exact label and restores the previous folded state.
+- Neighborhood details now disappear below natural scale; its geometry floor is strengthened
+  from 11 to 12 rendered pixels. The new graph matrix is being rerun.
+
+- Final strengthened graph matrix: 4 checks passed. Static check and build passed afterward.
+- Readable-code, documentation sync and architecture structure checks passed. Independent
+  architecture review reports SHIP. Full release gate and complete visual review remain pending.

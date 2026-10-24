@@ -156,6 +156,26 @@ const propertyRowProblems: OdcsMeasure = page =>
       }),
   );
 
+// Stacked property cards name the edit action once and keep its button compact.
+const propertyActionProblems: OdcsMeasure = page =>
+  page.evaluate(() => {
+    if (innerWidth > 700) return [];
+    return [...document.querySelectorAll<HTMLElement>('.odcs-properties .col-actions')].flatMap(
+      cell => {
+        const button = cell.querySelector('button');
+        if (!button) return [];
+        const problems: string[] = [];
+        if (getComputedStyle(cell, '::before').content !== 'none') {
+          problems.push('property action repeats its Edit label');
+        }
+        if (button.getBoundingClientRect().width > 100) {
+          problems.push('property Edit button stretches across its card');
+        }
+        return problems;
+      },
+    );
+  });
+
 // Tables keep a readable width on a wide screen instead of stretching across it.
 const tableWidthProblems: OdcsMeasure = page =>
   page.evaluate(() =>
@@ -177,6 +197,11 @@ const legendProblems: OdcsMeasure = page =>
       const panelWidth = panel.getBoundingClientRect().width;
       if (panelWidth < Math.min(1400, content.clientWidth) - 2) {
         return ['the relationships panel is narrower than the readable content width'];
+      }
+    }
+    for (const chip of legend?.querySelectorAll('.odcs-dir') ?? []) {
+      if (getComputedStyle(chip).whiteSpace !== 'nowrap') {
+        return ['a relationship direction badge can wrap into multiple lines'];
       }
     }
     const chips = legend ? legend.querySelectorAll('.odcs-dir').length : 0;
@@ -206,6 +231,7 @@ export async function odcsLayoutProblems(page: Page, screenName: string): Promis
     datasetHeaderProblems,
     tabRowProblems,
     propertyRowProblems,
+    propertyActionProblems,
     tableWidthProblems,
     legendProblems,
     dialogTitleProblems,

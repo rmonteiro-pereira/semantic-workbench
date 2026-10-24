@@ -5,7 +5,7 @@ import type { Page } from '@playwright/test';
 
 /** The smallest on-screen size of an entity name, and of a detail line where one is shown. */
 export const MIN_NAME_PX = 11.5;
-export const MIN_DETAIL_PX = 11;
+export const MIN_DETAIL_PX = 12;
 /** The share of the window height the canvas keeps on a phone. */
 export const MIN_PHONE_CANVAS_SHARE = 0.55;
 
@@ -40,6 +40,10 @@ export async function graphCanvasProblems(page: Page, which: Which): Promise<str
         if (px < minName) out.push(`name "${name.textContent}" is ${px.toFixed(1)} px on screen`);
       }
       if (which === 'model') {
+        const caption = root.querySelector('.full-graph-status');
+        if (!caption?.textContent?.includes('Color = area · Line = relationship')) {
+          out.push('the whole-model graph has no area and relationship legend');
+        }
         const details = '.full-area-title small, .full-entity small, .full-entity .node-kpi-badge';
         for (const detail of root.querySelectorAll(details)) {
           if (!onScreen(detail.getBoundingClientRect())) continue;
@@ -48,6 +52,13 @@ export async function graphCanvasProblems(page: Page, which: Which): Promise<str
         }
       }
       if (which === 'neighborhood') {
+        for (const name of root.querySelectorAll<HTMLElement>('.node strong')) {
+          const clipped =
+            name.scrollWidth > name.clientWidth || name.scrollHeight > name.clientHeight;
+          if (clipped && name.title !== name.textContent) {
+            out.push('a truncated neighbor name has no full-name tooltip');
+          }
+        }
         for (const detail of root.querySelectorAll('.node small, .node > span')) {
           if (!onScreen(detail.getBoundingClientRect())) continue;
           const px = sizeOnScreen(detail);
@@ -60,6 +71,14 @@ export async function graphCanvasProblems(page: Page, which: Which): Promise<str
       const overlap = (a: DOMRect, b: DOMRect) =>
         Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1 &&
         Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1;
+      const frames = [...root.querySelectorAll('.react-flow__node-businessArea')].map(frame =>
+        frame.getBoundingClientRect(),
+      );
+      frames.forEach((first, index) => {
+        if (frames.slice(index + 1).some(second => overlap(first, second))) {
+          out.push('two business-area frames overlap');
+        }
+      });
       cards.forEach((first, index) =>
         cards.slice(index + 1).forEach(second => {
           if (overlap(first.rect, second.rect)) out.push('two cards overlap');

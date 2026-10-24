@@ -20,7 +20,7 @@ LB-14 needs no palette change on the baseline: the actual dark screenshot uses d
 not white text, on the salmon Delete button. Confirm computed contrast during theme verification
 before resolving that row.
 
-The next batch implements the following rows, with full audit closure still pending:
+The second batch implements the following rows, with full audit closure still pending:
 
 | Baseline rows | Change | Verification |
 | --- | --- | --- |
@@ -33,4 +33,12 @@ The next batch implements the following rows, with full audit closure still pend
 | LB-13, LC-21 | Add Source Control margin, move its empty state near controls, label counts and keep Sync with branch controls. | New geometry assertions; full page matrix pending. |
 | LA-14, LB-7 (wording) | Short schema-coverage note with the exact supported version. | Static checks pass; final source capture pending. |
 
-Rows not listed here remain open. No S1/S2-free round has been established.
+The original LA–LD tables now carry a disposition for every row. Fixed rows describe the code
+change; triaged rows explain the observed behavior or screenshot interpretation. S3 preferences
+remain deferred unless covered by a shared fix. All dispositions still await the full fresh audit.
+
+The third batch adds selected-mapping Source actions, one unbound-concept summary, page-owned
+mapping scroll, equal summary columns, graph count units and legend, wrapped area names, bounded
+edge labels, concise path summaries, first-position schema findings, quality Source navigation,
+compact phone editor chrome, standard Sync typography and a single phone property Edit label.
+The mapping navigation regression passes all six sizes. No S1/S2-free round has been established.

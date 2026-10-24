@@ -31,5 +31,6 @@
 
 /* A cue explains hidden tabs; a clipped fragment adds no readable information. */
 :is(.tabs, .odcs-tabs) > [data-scroll-clipped='true'] {
-  opacity: 0;
+  clip-path: inset(50%);
+  pointer-events: none;
 }

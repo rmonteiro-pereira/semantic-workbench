@@ -40,3 +40,16 @@ test('label size grows with its longest line', () => {
   expect(labelSize(['ab']).w).toBeLessThan(labelSize(['abcdef']).w);
   expect(labelSize(['a', 'b']).h).toBeGreaterThan(labelSize(['a']).h);
 });
+
+test('labels stay inside fitted card bounds or remain available on hover', () => {
+  const bounds = { x: 0, y: 0, w: 400, h: 200 };
+  const placed = placeEdgeLabels([request('top', 2), request('bottom', 198)], [], bounds);
+  expect(placed.size).toBeGreaterThan(0);
+  for (const spot of placed.values()) {
+    expect(spot.x).toBeGreaterThanOrEqual(bounds.x);
+    expect(spot.y).toBeGreaterThanOrEqual(bounds.y);
+    expect(spot.x + spot.w).toBeLessThanOrEqual(bounds.w);
+    expect(spot.y + spot.h).toBeLessThanOrEqual(bounds.h);
+  }
+  expect(placeEdgeLabels([request('outside', -200)], [], bounds).size).toBe(0);
+});

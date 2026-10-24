@@ -41,7 +41,7 @@ export function ForeignKeyHops({ path, hops, onHops }: Props) {
         ))}
       </div>
       <span className="lineage-hops-path" title={route}>
-        {route}
+        {path.levels[0]?.join(', ')} · {path.levels.slice(1).flat().length} connected tables
       </span>
       <span className="lineage-hops-count" aria-label={`${hopsWord(reached)} reached`}>
         {hopsWord(reached)}

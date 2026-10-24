@@ -7,7 +7,7 @@ This is a targeted regression review, not a complete release round. Each screen 
 | # | Severity | Screen and size | Defect | Remediation |
 | --- | --- | --- | --- | --- |
 | R3-LF-1 | S2 | `local[-dark]-metric-wizard-{1280,1440,2560}.png` | The short wizard looks like an incomplete drawer attached to the upper-right corner. | Centre the content-height wizard using the shared modal surface. |
-| R3-LF-2 | S2 | `local[-dark]-metric-wizard-390.png` | The compact progress line and selector repeat the step name. Disabled Back resembles an enabled secondary action. | Retain the shared stepper; distinguish disabled controls without fading their labels. Step-name simplification remains open. |
+| R3-LF-2 | S2 | `local[-dark]-metric-wizard-390.png` | The compact progress line and selector repeat the step name. Disabled Back resembles an enabled secondary action. | Retain the shared stepper; distinguish disabled controls without fading their labels. The compact progress line now shows the count, with the step named once in its menu. |
 | R3-LF-3 | S1 | `local[-dark]-odcs-dataset-relationships-390.png` | The selected tab is whole, but a neighboring label appears as “neage” beside its cue. Catalog has a similar fragment. | Keep whole labels and cues; hide clipped neighboring fragments until scrolled into view. |
 | R3-LF-4 | S2 | `local[-dark]-odcs-dataset-relationships-390.png` | The “referenced by” badge wraps into two lines. | Keep direction badges on one line. |
 | R3-LF-5 | S2 | `local[-dark]-catalog-{1280,1440}.png`, `local[-dark]-odcs-dataset-relationships-{1280,1440}.png` | Sidebar fades expose rounded row fragments. | Remove the fade and unused inset; reclaim short-window footer height. |

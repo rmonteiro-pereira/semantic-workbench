@@ -6,6 +6,7 @@ import { chromium, expect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { LOCAL_READER } from '../server/projects/reader';
+import { fileTab, showSidebar } from './helpers/screen-tour';
 
 const VIEWPORTS: [number, number][] = [
   [1280, 720],
@@ -168,6 +169,52 @@ try {
     }
     expect(found.slice(0, 20)).toEqual([]);
   });
+  await check(
+    'empty mapping actions open the selected mapping source at every viewport',
+    async () => {
+      const emptyMapping =
+        read('commerce/commerce.mapping.yaml')
+          .split('concept_mappings:')[0]
+          .replace('name: Commerce ontology mapping', 'name: Unbound mapping regression') +
+        'concept_mappings: []\n';
+      await api.ws.importBatch(
+        {
+          name: 'Unbound commerce',
+          files: files('commerce', commerceTrio).map(file => ({
+            ...file,
+            source: file.path === 'commerce.mapping.yaml' ? emptyMapping : file.source,
+          })),
+        },
+        LOCAL_READER,
+      );
+      const document = api.ws
+        .documentsFor(LOCAL_READER)
+        .find(
+          candidate =>
+            candidate.project === 'unbound-commerce' &&
+            candidate.filename === 'commerce.mapping.yaml',
+        )!;
+      for (const [width, height] of VIEWPORTS) {
+        await page.setViewportSize({ width, height });
+        await showSidebar(page);
+        const commerceProject = page.getByRole('treeitem', { name: 'Commerce', exact: true });
+        if ((await commerceProject.getAttribute('aria-expanded')) === 'false') {
+          await commerceProject.getByRole('button', { name: 'Commerce', exact: true }).click();
+        }
+        await fileTab('commerce.mapped-ontology.yaml', 'Mappings')(page);
+        await chooser.selectOption(document.id);
+        await expect(page.getByText('No bindings in this mapping', { exact: true })).toBeVisible();
+        await expect(page.locator('.mapping-concept-list > button')).toHaveCount(1);
+        await page.getByRole('button', { name: 'Compose a query…', exact: true }).click();
+        await page
+          .getByRole('button', { name: 'Open Source to add bindings', exact: true })
+          .click();
+        await expect(page.locator('.tabs .selected')).toHaveText('Source');
+        await expect(page.locator('.workspace-title h1')).toHaveText('Unbound mapping regression');
+        await expect(page.getByLabel('Definition source')).toContainText('concept_mappings: []');
+      }
+    },
+  );
   await check('browser has no uncaught runtime errors', async () => expect(errors).toEqual([]));
   console.log(`${passed} mapping layout checks passed on isolated data root ${api.root}.`);
 } finally {

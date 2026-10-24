@@ -55,8 +55,8 @@ export function usePierce() {
   return { run, stop, running };
 }
 const LABELS: Record<Direction, [string, string]> = {
-  out: ['Out', 'Outgoing'],
-  in: ['In', 'Incoming'],
+  out: ['Outgoing', 'Outgoing'],
+  in: ['Incoming', 'Incoming'],
   both: ['Both', 'Both'],
 };
 /** Selects traversal direction and offers start, stop and undo actions. */
@@ -89,6 +89,7 @@ export function PierceControls({
         <Network size={13} />
         Show all connected
       </button>
+      <span className="pierce-direction-label">Expand:</span>
       <span role="radiogroup" aria-label="Pierce direction" className="pierce-direction">
         {(['out', 'in', 'both'] as Direction[]).map(d => (
           <button
@@ -96,7 +97,7 @@ export function PierceControls({
             role="radio"
             aria-checked={direction === d}
             aria-label={LABELS[d][1]}
-            title={`${LABELS[d][1]} relationships`}
+            title={`Follow ${LABELS[d][1].toLowerCase()} relationships on the next expansion`}
             onClick={() => onDirection(d)}
           >
             {LABELS[d][0]}

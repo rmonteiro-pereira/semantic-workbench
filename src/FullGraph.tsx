@@ -819,12 +819,9 @@ export function FullGraph(props: Props) {
         {hideValues && <span>{valueIds.size} value types hidden</span>}
         {hideKpis && <span>{kpiIds.size} metrics hidden</span>}
         {collapsed.size > 0 && (
-          <strong>
-            {collapsed.size} areas shown as one card each so names stay readable · click a card to
-            open it
-          </strong>
+          <strong>{collapsed.size} area cards · Select an area to open it</strong>
         )}
-        <span>Double-click a group to zoom in</span>
+        <span title="Double-click a group to zoom in">Color = area · Line = relationship</span>
       </div>
     </div>
   );

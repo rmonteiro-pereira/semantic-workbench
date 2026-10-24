@@ -73,12 +73,16 @@ export async function tabStripProblems(page: Page): Promise<string[]> {
       for (const tab of strip.querySelectorAll<HTMLElement>(':scope > button')) {
         const bounds = tab.getBoundingClientRect();
         const partial = bounds.left < box.left - 1 || bounds.right > box.right + 1;
-        if (partial && getComputedStyle(tab).opacity !== '0') {
+        if (partial && getComputedStyle(tab).clipPath !== 'inset(50%)') {
           found.push('a clipped tab label is visible');
         }
       }
       const selected = strip.querySelector<HTMLElement>('.selected');
-      if (selected && getComputedStyle(selected).opacity !== '1') {
+      if (
+        selected &&
+        (getComputedStyle(selected).opacity !== '1' ||
+          getComputedStyle(selected).clipPath !== 'none')
+      ) {
         found.push('the active tab is hidden');
       }
       if (selected && scrolls) {
@@ -165,6 +169,7 @@ export async function expectKeyboardTabReveal(page: Page): Promise<void> {
   const focused = buttons.nth(candidate);
   await expect(focused).toBeFocused();
   await expect(focused).toHaveCSS('opacity', '1');
+  await expect(focused).toHaveCSS('clip-path', 'none');
   const inside = await focused.evaluate(button => {
     const frame = button.parentElement!.getBoundingClientRect();
     const bounds = button.getBoundingClientRect();
@@ -174,4 +179,5 @@ export async function expectKeyboardTabReveal(page: Page): Promise<void> {
   const selected = strip.locator('.selected');
   await selected.focus();
   await expect(selected).toHaveCSS('opacity', '1');
+  await expect(selected).toHaveCSS('clip-path', 'none');
 }

@@ -1007,3 +1007,12 @@
   order: 1;
   flex-basis: 100%;
 }
+
+.scm-sync-remote button {
+  font-size: 13px;
+}
+.scm-sync-dialog h3 {
+  color: var(--color-text);
+  text-transform: none;
+  letter-spacing: normal;
+}

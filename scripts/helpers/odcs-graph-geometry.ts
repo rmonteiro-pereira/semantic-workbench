@@ -84,6 +84,16 @@ export async function odcsGraphProblems(
           .map(t => t.textContent)
           .join(' '),
       }));
+      for (const label of labels) {
+        if (
+          label.rect.left < pane.left - 1 ||
+          label.rect.right > pane.right + 1 ||
+          label.rect.top < pane.top - 1 ||
+          label.rect.bottom > pane.bottom + 1
+        ) {
+          out.push(`label "${label.text}" is clipped by the canvas`);
+        }
+      }
       for (const label of labels)
         for (const card of cards)
           if (hit(label.rect, card.rect)) out.push(`label "${label.text}" covers ${card.name}`);

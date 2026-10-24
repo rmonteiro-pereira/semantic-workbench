@@ -1,7 +1,7 @@
 /* The layer summary is a grid of label and value pairs that stay aligned at every width. */
 .mapping-explorer .mapping-layer-chain {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px 20px;
 }
 .mapping-explorer .mapping-layer-chain span {
@@ -9,10 +9,12 @@
   align-items: flex-start;
   gap: 2px;
 }
-/* A faded bottom edge shows that the concept list goes on past the last visible card. */
+/* The page owns scrolling so the final concept never ends behind a second scroll mask. */
 .mapping-concept-list {
-  padding-bottom: 24px;
-  mask-image: linear-gradient(to bottom, var(--color-mask-opaque) calc(100% - 28px), transparent);
+  max-height: none;
+  overflow: visible;
+  padding-bottom: 16px;
+  mask-image: none;
 }
 .mapping-heading-note {
   margin: 0;
@@ -21,4 +23,31 @@
 /* The legend of a group sits clear of the border line it interrupts. */
 .workbench-dialog .mapping-query fieldset > legend {
   padding: 0 8px;
+}
+
+@media (max-width: 1199px) {
+  .mapping-explorer .mapping-layer-chain {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 480px) {
+  .mapping-explorer .mapping-layer-chain {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.mapping-layer-chain > span {
+  text-transform: uppercase;
+  font-size: var(--text-small);
+}
+.mapping-layer-chain strong {
+  text-transform: none;
+}
+.mapping-empty-concepts {
+  padding: 12px;
+  color: var(--text-muted);
+  font-size: var(--text-small);
+}
+
+.mapping-explorer .mapping-concepts {
+  max-height: none;
 }

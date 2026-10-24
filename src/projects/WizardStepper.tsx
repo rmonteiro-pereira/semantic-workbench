@@ -13,7 +13,7 @@ type Props = {
 
 /**
  * Shows where a person is in a wizard and lets them move between the steps they reached. On a
- * narrow window it is one line, "Step 2 of 8 · Data", a progress bar and a menu of all steps; on a
+ * narrow window it is one line, "Step 2 of 8", a progress bar and a menu of all steps; on a
  * wide window it is a vertical list that marks completed, current and pending steps. Neither ever
  * scrolls sideways.
  */
@@ -23,7 +23,7 @@ export function WizardStepper({ steps, current, reachable, onGo }: Props) {
     <nav className="wizard-stepper" aria-label="Wizard steps">
       <div className="wizard-stepper-compact">
         <h3 className="wizard-stepper-title">
-          Step {current + 1} of {steps.length} · {steps[current]}
+          Step {current + 1} of {steps.length}
         </h3>
         <div
           className="wizard-stepper-bar"

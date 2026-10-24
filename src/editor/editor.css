@@ -270,3 +270,10 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Phone navigation needs the room more than the optional cursor coordinate readout. */
+@media (max-width: 480px) {
+  .code-editor-position {
+    display: none;
+  }
+}
