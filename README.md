@@ -1498,3 +1498,12 @@ Network explicitly to prove worker routing without depending on a layout default
 
 Responsive page setup waits for the initial graph fit and stable viewport/node/path measurements
 before checking edges. Visible nodes or a completed worker batch alone do not mean fitting ended.
+
+Clone waits for workspace updates to connect before enabling **Clone**, so a fast local
+operation cannot finish before its progress can be received. The dialog says **Connecting to
+workspace updates…** while it waits. A failed clone retains its reason and recovery actions,
+including creating a missing repository folder with the first push.
+
+The clone progress reducer adds four ordering tests and three targeted mutation faults; the
+mutation inventory is 657 targets. Final release totals and verified results are recorded in
+`specs/004-ui-polish/FINAL.md` after the complete gate.

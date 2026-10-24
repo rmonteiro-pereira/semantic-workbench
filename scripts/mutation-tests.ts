@@ -18,6 +18,14 @@ const temp = await mkdtemp('/tmp/workbench-mutations-');
 // tree as the real sources, without relying on Bun caches.
 await symlink(resolve(root, 'node_modules'), resolve(temp, 'node_modules'), 'dir');
 const mutants: [string, string, string, string][] = [
+  ['clone-progress', 'src/scm/clone-progress.ts', 'state.events[operation.op]', 'undefined'],
+  ['clone-progress', 'src/scm/clone-progress.ts', 'event.op !== state.operation?.op', 'false'],
+  [
+    'clone-progress',
+    'src/scm/clone-progress.ts',
+    'return { ...state, events, progress: event };',
+    'return { ...state, events, progress: state.progress };',
+  ],
   ['deploy-smoke', 'scripts/deploy-smoke.ts', 'health.version === expected.version', 'true'],
   ['deploy-smoke', 'scripts/deploy-smoke.ts', 'input.projects.status === 401', 'true'],
   ['deploy-smoke', 'scripts/deploy-smoke.ts', "ready.state === 'serving'", 'true'],

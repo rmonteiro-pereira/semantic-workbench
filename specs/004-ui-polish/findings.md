@@ -253,3 +253,9 @@ tour was stopped while incomplete; no complete round 10 is claimed. See `audit/r
 | Finding | Area | Remediation | Status |
 | --- | --- | --- | --- |
 | F126 | Initial graph measurement | Require fitted whole/centered bounds and stable node/path geometry before responsive measurements; retain strict clearance assertions and live drag behavior. | open: 137 responsive checks pass; final gate pending |
+
+## Clone progress follow-up
+
+| Finding | Area | Remediation | Status |
+| --- | --- | --- | --- |
+| F127 | Clone progress delivery | Wait for workspace update readiness and apply response/event transitions atomically so fast failures and completion remain visible. | open: focused ordering tests and Git setup matrix pass; fresh audit and final gate pending |

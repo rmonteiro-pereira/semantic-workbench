@@ -9,6 +9,27 @@ import { observabilityCase } from './observability-cases';
 setActiveBrand(loadBrandBundle());
 const m = await import(process.argv[2]);
 const category = process.argv[3];
+if (category === 'clone-progress') {
+  const operation = { op: 'clone-one', name: 'Orders' };
+  const failure = { op: operation.op, phase: 'failed', message: 'Folder missing.' };
+  const early = m.cloneProgressReducer(m.initialCloneProgress, {
+    type: 'progress',
+    event: failure,
+  });
+  const started = m.cloneProgressReducer(early, { type: 'started', operation });
+  assert.deepEqual(started.progress, failure);
+  const running = m.cloneProgressReducer(m.initialCloneProgress, { type: 'started', operation });
+  const finished = m.cloneProgressReducer(running, { type: 'progress', event: failure });
+  assert.deepEqual(finished.progress, failure);
+  const unrelated = m.cloneProgressReducer(running, {
+    type: 'progress',
+    event: { op: 'another-clone', phase: 'done' },
+  });
+  assert.deepEqual(unrelated.progress, running.progress);
+  const retry = { op: 'clone-retry', name: operation.name };
+  const restarted = m.cloneProgressReducer(finished, { type: 'started', operation: retry });
+  assert.deepEqual(restarted.progress, { ...retry, phase: 'cloning' });
+}
 if (category === 'folder-refusal-reason') {
   const folders = m.createProjectFolders({});
   const reader = { ...LOCAL_READER, view: {} };

@@ -771,3 +771,12 @@ Network scenario verifies live worker routing. Both preserve the complete model 
 capture and the responsive initial-fit stability assertion. It requires unchanged viewport,
 node bounds and rendered paths before measurements; live routing fallbacks remain authoritative
 while a person drags. Strict post-readiness geometry assertions retain their original limits.
+
+`src/projects/useEvents.ts` returns connection readiness as well as delivering notifications.
+`src/scm/CloneDialog.tsx` requires readiness before starting a clone. Its pure state transition
+in `src/scm/clone-progress.ts` retains events received before the start response and applies later
+events against the active operation. Processing both through one reducer prevents a terminal
+event between a response and React's next commit from being lost. `tests/clone-progress.test.ts`
+checks both event orders, unrelated operations and retries. The Git setup browser suite holds
+the event connection, measures the waiting dialog at all four sizes in both themes, then verifies
+missing-folder failure and recovery without changing the original timing assertion.

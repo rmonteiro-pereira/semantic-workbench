@@ -630,3 +630,36 @@ results are retained, but the complete final-head gate restarts after focused va
 Focused Vite UI replay passed all 20 checks. The built-container UI replay also passed, including
 container metadata, persistence and the single-root lock checks. Full static checks, formatter
 and readability pass; independent actual-diff review reports SHIP.
+
+## Full gate attempt 7: terminal clone progress delivery
+
+At `065558a`, the complete container gate passed 25 local browser suites and 30 explicit
+PASS lines, including persistence, root locking and revision handover. Standalone graphs,
+unit tests (1,844 / 129,520 assertions / 258 files, 240.47 seconds), static checks, build,
+654/654 mutation targets, authentication, Keycloak, two-editor, Admin, UI, 137 responsive checks,
+edges, grouping, examples UI, projects, trash, metrics, graph, editor, item/RDF editing, SCM,
+ODCS, lineage, autosave and SQL passed. Git setup then stayed at Cloning beyond its unchanged
+20-second missing-folder failure assertion. CI and the ten-run streak had not started.
+
+Machine load was low. Delaying the new clone dialog's event connection by 1,500 ms reproduced
+the exact failure using only local repositories. Connection readiness is now exposed by the
+shared event hook and required before starting a clone. A readiness-only correction still lost
+an event between the POST response and React committing the active operation. One pure reducer
+now applies both start responses and progress events against current state, retaining early
+events and refusing to replace the active clone with another operation's outcome.
+
+Four unit tests cover early and late failure, unrelated events and a retry; all pass (eight
+assertions). The browser test deliberately holds the event connection, asserts disabled Clone
+and readable waiting guidance with geometry and contrast checks at all four sizes in light and
+dark, releases it, then retains the original 20-second failure, missing-folder explanation,
+create-and-retry and valid sparse-clone assertions. All 11 Git setup checks pass. No timeout,
+timing budget or assertion was loosened. This is a real progress-delivery fix, so a fresh
+complete visual round is required before restarting the final-head gate.
+
+The clone reducer mutation baseline passes and all three new targeted faults are killed; the
+inventory is now 657 targets. Full static checks, formatter, readability and production build
+pass. Independent actual-diff review reports SHIP. Focused native visual review and the fresh
+complete audit are recorded separately.
+The focused round 12 native review inspected all eight waiting-state originals and found
+0 S1, 0 S2 and 0 S3. The diagnostic serious row and complete disposition are in
+`audit/round-12-progress.md`; no complete round 12 is claimed.

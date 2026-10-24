@@ -1,9 +1,10 @@
 import { useProjectDomain } from '../projects/useProjectDomain';
 /** Dialog that clones a repository by URL or path into a new project, with progress and Cancel. */
-import React, { useRef, useState } from 'react';
+import React, { useReducer, useState } from 'react';
 import { Modal } from '../projects/Modal';
 import { scm, type CloneEvent } from '../projects/api';
 import { useEvents } from '../projects/useEvents';
+import { cloneProgressReducer, initialCloneProgress } from './clone-progress';
 import { looksLikeAuthFailure } from './CredentialGuide';
 import { FolderField, useFolderInput } from './FolderField';
 
@@ -200,7 +201,12 @@ function CloneFooter(props: FooterProps) {
         </button>
       )}
       {missingFolder && (
-        <button type="button" className="primary" onClick={props.onCreateFolder}>
+        <button
+          type="button"
+          className="primary"
+          disabled={!props.canStart}
+          onClick={props.onCreateFolder}
+        >
           Create {missingFolder} with the first push
         </button>
       )}
@@ -224,21 +230,18 @@ export function CloneDialog({ onClose, onOpenProject, onCredentials, onChoosePro
   const [url, setUrl] = useState('');
   const [name, setName] = useState('');
   const folderInput = useFolderInput();
-  const [op, setOp] = useState<{ op: string; name: string } | null>(null);
-  const [progress, setProgress] = useState<CloneEvent | null>(null);
+  const [cloneState, dispatchProgress] = useReducer(cloneProgressReducer, initialCloneProgress);
+  const op = cloneState.operation;
+  const progress = cloneState.progress;
   const [error, setError] = useState('');
 
-  // A quick clone can finish before the request that started it returns, so keep every event.
-  const latest = useRef(new Map<string, CloneEvent>());
-  useEvents((type, data: CloneEvent) => {
-    if (type !== 'clone') return;
-    latest.current.set(data.op, data);
-    if (op && data.op === op.op) setProgress(data);
+  const updatesConnected = useEvents((type, data: CloneEvent) => {
+    if (type === 'clone') dispatchProgress({ type: 'progress', event: data });
   });
 
   async function start(event?: React.FormEvent, createFolder = false) {
     event?.preventDefault();
-    if (folderInput.problem) return;
+    if (folderInput.problem || !updatesConnected) return;
     setError('');
     try {
       const domain = await domainChoice.choose();
@@ -246,10 +249,7 @@ export function CloneDialog({ onClose, onOpenProject, onCredentials, onChoosePro
         folder: folderInput.folder,
         createFolder,
       });
-      setOp(started);
-      setProgress(
-        latest.current.get(started.op) ?? { op: started.op, phase: 'cloning', name: started.name },
-      );
+      dispatchProgress({ type: 'started', operation: started });
     } catch (e) {
       setError((e as Error).message);
     }
@@ -260,7 +260,7 @@ export function CloneDialog({ onClose, onOpenProject, onCredentials, onChoosePro
     <CloneFooter
       started={!!op}
       running={running}
-      canStart={!!url.trim() && !folderInput.problem}
+      canStart={updatesConnected && !!url.trim() && !folderInput.problem}
       progress={progress}
       onStart={() => void start()}
       onCreateFolder={() => void start(undefined, true)}
@@ -272,6 +272,13 @@ export function CloneDialog({ onClose, onOpenProject, onCredentials, onChoosePro
     />
   );
 
+  function footerNote() {
+    if (!updatesConnected) return 'Connecting to workspace updates…';
+    if (op) return undefined;
+    if (!url.trim()) return 'Enter a repository URL or path to clone.';
+    return undefined;
+  }
+
   // While Git runs, Escape does not close the dialog: Cancel stops the clone first.
   if (domainChoice.dialog) return domainChoice.dialog;
   return (
@@ -279,7 +286,7 @@ export function CloneDialog({ onClose, onOpenProject, onCredentials, onChoosePro
       title="Clone repository"
       onCancel={running ? () => {} : onClose}
       footer={footer}
-      footerNote={op || url.trim() ? undefined : 'Enter a repository URL or path to clone.'}
+      footerNote={footerNote()}
     >
       {op ? (
         <div className="clone-progress" aria-live="polite">
