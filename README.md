@@ -22,6 +22,9 @@ More documents: [ARCHITECTURE.md](ARCHITECTURE.md) (map of the code),
 ## Run it locally
 
 Requires Bun 1.4+ and, for version control of projects, Git 2.40+.
+Full CI validation also needs Node 24.11+ on PATH for isolated Vite processes. The API and tests
+continue to run with Bun. Without a real Node executable, the package wrapper can route Vite
+through Bun and silently fail readiness in child launches.
 
 ```sh
 bun install
@@ -1489,9 +1492,8 @@ The code style is part of the project's constitution (Readable Code):
 - [ARCHITECTURE.md](ARCHITECTURE.md) is the map of the code; update it with any new module, route
   or setting, together with the [configuration contract](specs/003-authn-authz/contracts/configuration.md).
 
-The release visual audit includes the complete 864-image workspace matrix plus 84 light and
-84 dark authentication captures: 1,032 native images. Its eighteen independent review reports
-and source/output hash manifests are under `specs/004-ui-polish/`.
+The release visual audit covers 1,040 native images in nineteen independent reports.
+Its source/output hash manifests are under `specs/004-ui-polish/`.
 
 The UI interaction suite verifies whole-model counts in the default Layered layout, then selects
 Network explicitly to prove worker routing without depending on a layout default.
@@ -1507,13 +1509,13 @@ including creating a missing repository folder with the first push.
 The clone progress reducer adds four ordering tests and three targeted mutation faults; the
 mutation inventory is now 660 targets after the expansion viewport coverage below.
 Final release totals and verified results are recorded in
-`specs/004-ui-polish/FINAL.md` after the complete gate.
+[FINAL.md](specs/004-ui-polish/FINAL.md).
 
 The final fresh UI audit is round 16: 1,040 native images, including local/server in both
 themes, authentication and delayed clone connection states at all four sizes. All originals
 were individually reviewed: 0 S1 / 0 S2 / 18 repeated S3 rows. Final images and source/output
-hash manifests are in `specs/004-ui-polish/screenshots/after/`. The full release gate remains
-pending; the completion record will be in `specs/004-ui-polish/FINAL.md`.
+hash manifests are in `specs/004-ui-polish/screenshots/after/`. The full release gate passes; the
+completion record is `specs/004-ui-polish/FINAL.md`.
 
 The authentication expiry browser fixture expires its refresh token before the access token.
 Equal lifetimes allow token timestamp rounding to rotate a fresh refresh token before expiry,
@@ -1529,10 +1531,17 @@ Neighborhood expansion now chooses its readable viewport before publishing it, a
 transient fit-all render of offscreen nodes. `src/graph/expansion-viewport.ts` holds the pure
 choice; `tests/expansion-viewport.test.ts` adds three tests and
 `scripts/graph-expansion-checks.ts` checks all four sizes in both themes through `test:graph`.
-Three targeted faults bring the mutation inventory to 660. Final release totals are recorded
-in `specs/004-ui-polish/FINAL.md` after the complete new-head gate.
+Three targeted faults bring the mutation inventory to 660. The complete new-head gate passes;
+release totals are recorded in `specs/004-ui-polish/FINAL.md`.
 
 Container validation uses `SW_CONTAINER_PORT` as its base port (default 4310); an explicit
 `--port` takes precedence. Set a free base port such as 4315 when another local API uses 4310.
 The setting also reaches the container step of `ci:validate`; checks require the base port
 and its successor to be free before starting. It configures only validation, not the application server.
+
+The v0.5.0 completion record is [FINAL.md](specs/004-ui-polish/FINAL.md). The verified gate passes
+1,853 tests (129,539 assertions, 260 files), 660/660 mutation targets, 32 direct browser suites (29
+canonical, Keycloak and two standalone graph checks), container validation, all six CI steps and ten
+consecutive lineage runs. The 1,040-image round 16 matrix is supplemented by 61 R11 proof images
+under `specs/004-ui-polish/screenshots/after/r11/`, for 1,101 saved images. Each manifest retains source hashes and
+original dimensions.

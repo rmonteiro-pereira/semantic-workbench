@@ -1,0 +1,49 @@
+{
+  "command": "bun run ci:validate",
+  "failed_summary": {
+    "seconds": 444.151,
+    "failed": [
+      "mutation"
+    ],
+    "results": [
+      {
+        "step": "verify",
+        "seconds": 248.769
+      },
+      {
+        "step": "mutation",
+        "seconds": 195.382,
+        "error": "Vite did not become ready at http://127.0.0.1:35687"
+      }
+    ]
+  },
+  "failed_log_sha256": "2e62405329436175462b4c89bce0c6448a933fe66ed32d3ab4601f860a99e564",
+  "cause": "No real Node executable on PATH; the package wrapper selected Bun for isolated Vite child processes, which stayed alive without listening.",
+  "correction": "Expose the existing Node 24.11.0 executable on PATH for the complete unchanged-head CI rerun.",
+  "confirmation_launches": 20,
+  "confirmation_ready_milliseconds": [
+    355,
+    343,
+    421,
+    363,
+    378,
+    389,
+    383,
+    391,
+    373,
+    374,
+    382,
+    332,
+    386,
+    369,
+    378,
+    324,
+    347,
+    332,
+    324,
+    385
+  ],
+  "assertions_or_timing_budgets_changed": false,
+  "machine_load_only_failure": false,
+  "attempted_head": "fce9c814a9ed60cac417e2da064bccd935dba9c5"
+}

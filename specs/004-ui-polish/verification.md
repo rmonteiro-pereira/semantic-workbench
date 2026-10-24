@@ -799,3 +799,38 @@ round-16 screenshots remain unchanged by this test-runner configuration change.
 Focused container-runner verification passed seven tests and 28 assertions, including
 environment-default and explicit-flag precedence. Formatter, static, readability and independent
 actual-diff review pass. Ports 4315 and 4316 are free at restart preflight.
+
+## Final complete gate and acceptance
+
+All 49 commands passed consecutively at `d631e56e770ebf08d3b3d8901c61e1a2933897d6`. Direct browser
+checks used `SW_BASE_URL=http://127.0.0.1:5175`; container checks used isolated temporary roots and
+base ports 4315/4316. Node 24.11.0 was available on PATH for CI Vite launches. No source edits or
+formatter runs occurred during the gate. The owner API, real data and port 5173 were untouched.
+
+| Gate | Result |
+| --- | --- |
+| bun test | 1,853 passed; 0 failed; 129,539 assertions; 260 files |
+| bun --bun run check | passed |
+| bun --bun run build | passed |
+| bun run test:mutation | 660/660 targets killed; all baselines passed |
+| Direct browser suites | 32 passed, plus example-data validation; Vite 5175 |
+| bun run test:container | 25 local suites; 30 explicit server/persistence checks passed |
+| bun run ci:validate | 6/6 steps passed; zero image vulnerabilities and secrets |
+| Consecutive test:lineage | 10/10 passed without interruption |
+
+All six CI steps passed: verify, mutation, browser, image, container and mocked pipeline. The image
+scan reported zero vulnerabilities and zero secrets, with no exceptions. The final gate required no
+rerun. Earlier failures and focused reruns remain above; no timing budget, timeout or assertion was
+loosened.
+
+Exact command durations and log hashes are retained in [gate-results.json](gate-results.json). The
+six CI step records are in [ci-results.json](ci-results.json). Supplemental fresh R11 proof reviews
+61 originals at the gate head. The branch-selector replay waits for enabled `main`; the
+click-to-edit walk covers entities and relationships at four sizes in both themes. All supplemental
+reviews have zero S1/S2; their minor observations are catalogued in findings.md.
+
+Round 16 supplies 1,040 individually reviewed native originals, 0 S1 / 0 S2 / 18 S3. Together with
+the 61 supplemental proof images, 1,101 saved JPEGs preserve original dimensions and source/output
+hashes. Runtime files are unchanged from the visual capture head; only test-port configuration
+differs at the gate head. The completion commit adds documentation and evidence only. See
+[FINAL.md](FINAL.md).
