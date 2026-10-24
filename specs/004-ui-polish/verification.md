@@ -275,3 +275,25 @@ zero S2 and zero S3. The strengthened Admin matrix passed all four viewports aga
 last-Admin fixture rerun exited zero with its manifest-response assertion and no brand-load errors.
 Static checks, production build, readable-code, documentation sync and structure checks pass.
 Independent architecture review reports SHIP. Full four-mode audit and the final gate remain open.
+
+
+## Round 7 full audit
+
+The complete four-mode capture started from pushed code head
+`31f4dbcbd1e8aa4a17a1e05719cc31232875a7c1`, with no product changes during capture. Each mode
+must produce 208 PNGs and 208 zero-problem measurements with no skips before the runner marks it
+complete. Review partitions contain 68, 68 and 72 native images per mode. Review is in progress;
+no clean-round result is claimed yet. README and graph-design prose are being reconciled with
+existing behavior, including the full 12 px floor, Layered routing and compensated action sizes.
+
+
+Both server themes completed 208 zero-problem measurements with no skips. Independent review
+of all 416 server images found zero S1/S2. Local capture then stopped at its first mapping graph:
+`commerce.mapping.yaml` belongs to mapped commerce, which the local harness had not loaded.
+This is a deterministic fixture omission, not machine load. The harness now loads that example
+explicitly. The interrupted 41-image local batch is diagnostic only; all local captures and reviews
+restart from a fresh root. Application code remains at `31f4dbc`; completed server evidence is valid.
+
+The corrected local mapping capture passed all four viewports with zero geometry problems.
+Static, formatter, readable-code and documentation checks pass. The fixture-only change does not
+alter application source or invalidate the 416 completed server captures.

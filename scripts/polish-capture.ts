@@ -31,6 +31,7 @@ await withCleanup(
   async () => {
     await api.ws.loadExample('ubl');
     await api.ws.loadExample('commerce');
+    await api.ws.loadExample('mapped-commerce');
     await api.ws.loadExample('mall');
     browser = await chromium.launch();
     const screens = captureScreens({

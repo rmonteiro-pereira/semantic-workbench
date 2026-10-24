@@ -247,6 +247,7 @@ the shared dialog geometry check verifies viewport centring. Relationships share
 ODCS sections’ readable width.
 Catalog title tooltips and current-step fills are checked by the edit tour at all four sizes.
 `helpers/all-tours.ts` keeps the normal browser tours and the complete capture screen list together.
+Local capture explicitly loads mapped commerce for its real mapping document.
 Capture-only coverage reuses Admin navigation and adds real mapping and full-screen graph views;
 it does not duplicate the responsive suite’s Admin matrix. The in-process last-Admin browser
 fixture loads the shipped brand just like server startup and asserts its manifest response.

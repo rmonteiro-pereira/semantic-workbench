@@ -19,11 +19,19 @@ The overview, relationship matrix and actual graph are complementary representat
 1. Preserve original entity IDs and all relationship definitions.
 2. Group parallel directed links by source/target while retaining every original ID and definition in the bundle.
 3. Use the shared **Group by** selection for area boundaries. Automatic chooses an available grouping with multiple groups. These are display groupings, not new standard semantics.
-4. Offer **Network (fCoSE)** and **Layered (ELK)** layouts.
+4. Start with **Layered (ELK)** and offer **Network (fCoSE)** in View options.
 5. For network layout, remove residual overlaps with ELK SPOrE and pack area rectangles with ELK's box packer. Tests check actual rectangle intersections and containment.
 6. Render compound areas and entity nodes in React Flow, with controlled node state, memoized node/edge components, viewport culling, area zoom, an optional mini-map (off until switched on in View options) and manual dragging.
-7. Use inexpensive native routes at whole-model zoom, and route around nodes through a shared background worker for visible or selected connections at detail zoom. Show names on hover/selection, with an optional label toggle. Highlight connected entities without removing the remainder of the model.
-8. Models above 250 visible business entities open with collapsed areas. Area counts expose the folded entities; clicking one expands that area. **Expand all** restores the full graph. Internal relationships are folded into the area count, and remain accessible after expansion; they are not deleted from the source.
+7. Keep ELK's orthogonal routes in Layered while their endpoints match the live handles.
+   Compound-container origins normalize route coordinates into the canvas. Moving a card falls
+   back to routing from its live handles. Network uses inexpensive native routes at whole-model
+   zoom and a shared obstacle-routing worker at detail zoom. Selection highlights connected
+   entities without removing the rest of the model.
+8. Counted areas open when the entity count or actual layout proportions would cram names.
+   Models above 250 visible business entities always open collapsed. Fully collapsed areas use
+   compact box packing. Area cards reserve 96 canvas pixels for their summaries; headings reserve
+   two compensated lines above them. **Expand all** restores every entity. Internal relationships
+   stay in the area count and remain accessible after expansion.
 9. Fit the whole model for spatial orientation, then zoom to an area or entity for reading. A finite viewport cannot show arbitrarily many full-size entity labels simultaneously.
 
 ## Column-level lineage canvas
@@ -40,14 +48,27 @@ A foreign key reads child to parent, `orders.customer_id → customers.id`, whic
 
 Expanding a card places newly revealed cards beside it through `src/graph/incremental-layout.ts`. Existing cards keep their positions. The walk records which cards each expansion introduced, so Collapse and Undo expansion remove only that expansion's contribution. Walking to another centre starts a fresh canvas. Full pierce computes a bounded traversal in a worker and lays out the resulting cards through ELK.
 
-The first view never shows a card cut by the edge of the pane. `src/odcs/lineage-view.ts` places the cards in columns the way the layout does and adds them nearest first (tables before datasets, metrics last) while the columns still fit the pane at the readable zoom of 0.93, which keeps 13 px column names at 12 px or more on screen. Only those cards are laid out; if the real layout turns out larger, the last card added leaves and the rest are laid out again. The cards left out wait behind a counted control, "N of M cards shown · Show all", and a path that reaches one of them brings every card in. The first view of a metric in a mapping graph also shows the datasets of the concepts the metric binds. **Fit** shows every card and fits them, and can zoom out further. It takes precedence over a pending first-view adjustment. Zoomed out below 0.6, Neighborhood and lineage cards drop their detail lines and show the name at a size that stays at least 12 px on screen down to a zoom of about 0.27.
+The first view never shows a card cut by the edge of the pane. `src/odcs/lineage-view.ts` places the
+cards in columns the way the layout does and adds them nearest first (tables before datasets,
+metrics last) while the columns still fit the pane at the readable zoom of 0.93, which keeps 13 px
+column names at 12 px or more on screen. Only those cards are laid out; if the real layout turns out
+larger, the last card added leaves and the rest are laid out again. The cards left out wait behind a
+counted control, "N of M cards shown · Show all", and a path that reaches one of them brings every
+card in. The first view of a metric in a mapping graph also shows the datasets of the concepts the
+metric binds. **Fit** shows every card and fits them, and can zoom out further. It takes precedence
+over a pending first-view adjustment. Neighborhood drops detail lines below zoom 1 and compensates
+names to remain at least 12 px on screen down to about 0.27. Its action targets stay at least 24 px
+with 12 px icons at fitted zoom. Lineage enlarges compact card titles within its fixed header
+height; Fit can zoom below the readable first-view scale.
 
 Selecting a column highlights its upstream and downstream paths and dims unrelated rows and lines. The **Selected path** list shows the connected objects, fields and metrics in dependency order: a panel beside the canvas from 1100 px, and a dialog opened from the **Selected path** button below that. Selecting a panel entry changes the highlighted path. **Clear the selected path** restores the unselected view. For semantic datasets and metrics, **Continue in Neighborhood** opens entity exploration.
 
 ## Validation
 
 - The UBL graph contains 45 entities, 277 relationships and 183 directed parallel-link bundles, with selectable original definitions.
-- Geometry tests assert every entity appears exactly once, has a parent, stays inside its parent, and overlaps no other entity after cleanup. The layered layout produces a route for every bundle.
+- Geometry tests assert every entity appears exactly once, has a parent, stays inside its parent,
+  and overlaps no other entity after cleanup. The layered layout produces a route for every bundle,
+  with absolute endpoint checks for all 183 routes.
 - Collapse tests account for every original entity and relationship across visible links and folded internal links.
 - Browser checks exercise the real workspace, full graph, both engines, area zoom, selection, return to overview, downloads, and large-model expansion. They capture screenshots under `/tmp`.
 - Mutation checks include deliberately removing overlap cleanup and dropping entity nodes.
@@ -59,5 +80,11 @@ Documents live in the folder store: each project is a repository root or a decla
 ## Neighborhood, full screen and layout checks
 
 The Neighborhood view projects a center with its incoming neighbors on the left and outgoing neighbors on the right, keeps links between neighbors as an option, pages hidden neighbors and keeps a walk history. Graph and Neighborhood can fill the screen (Fullscreen API, with a window-filling fallback); leaving restores the zoom and selection. The responsive suite checks every view from 390×844 to 2560×1440 for horizontal scroll, cut-off controls and floating overlays (mini-map, status line, bundle selector, toasts, inspector; zoom lives in the toolbar, not over the canvas) drawn over each other or over a control.
+
+Neighborhood rows are 180 canvas pixels apart so full-detail cards keep a visible gap. Phone
+Controls reposition after full-screen and viewport changes, and their direction selector wraps.
+Browser assertions measure graph heading/card collisions, count clipping, 12 px name containment,
+3:1 default edge paint contrast, screen-width strokes and routes crossing unrelated cards.
+Mapping graph footers label reachable and total assets separately from visible card counts.
 
 The graph engines are not OWL reasoners or SHACL validators. Layout positions are browser-session state; document export preserves the original definitions rather than exporting a screenshot.
