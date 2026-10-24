@@ -40,7 +40,7 @@ try {
   const page = await browser.newPage();
   if (dark) await page.addInitScript(() => localStorage.setItem('workbench.theme', 'dark'));
   await signIn(page, target, user);
-  const files = await page.locator('.sidebar button.document span').allTextContents();
+  const files = await page.locator('.workspace-sidebar button.document span').allTextContents();
   for (const [width, height] of authViewports) {
     await page.setViewportSize({ width, height });
     const screens = tourGroups({
