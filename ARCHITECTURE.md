@@ -743,3 +743,8 @@ React cannot defer it into a later observer delivery. Pending frames are cancell
 unchanged pane sizes preserve state identity. This avoids changing an ancestor during the
 browser's resize delivery. Other size hooks retain their existing measurement behavior.
 Both release capture tools reject uncaught browser errors as well as geometry problems.
+
+
+The authorization read-route matrix distinguishes access decisions from supported operations.
+An allowed server folder preview must return its exact clone-instead refusal; denied targets
+retain their authorization status. Both paths still pass through hidden-content response scanning.

@@ -74,6 +74,29 @@ describe('read matrix', () => {
   }, 30000);
 });
 
+async function expectAllowedReadResponse(
+  method: string,
+  path: string,
+  response: Response,
+  name: TestUserName,
+) {
+  // Server folder previews refuse the operation after checking project visibility.
+  if (method === 'GET' && /^\/api\/projects\/[^/]+\/git\/folder$/.test(path)) {
+    expect(response.status).toBe(400);
+    expect(await response.clone().json()).toEqual({
+      error:
+        'Choosing a folder for an existing project works in local mode. ' +
+        'Clone the folder instead.',
+    });
+    return;
+  }
+  expect(
+    response.status,
+    `${name}: ${path}: ${response.status === 400 ? await response.clone().text() : ''}`,
+  ).not.toBe(400);
+  expect([200, 404]).toContain(response.status);
+}
+
 describe('read route inventory', () => {
   test('every read route rejects hidden targets and scans its response', async () => {
     const previewBody = {
@@ -148,13 +171,7 @@ describe('read route inventory', () => {
           );
           if (!principal.grants.length) expect(response.status).toBe(403);
           else if (!decision.allow) expect(response.status).toBe(decision.status);
-          else {
-            expect(
-              response.status,
-              `${name}: ${path}: ${response.status === 400 ? await response.clone().text() : ''}`,
-            ).not.toBe(400);
-            expect([200, 404]).toContain(response.status);
-          }
+          else await expectAllowedReadResponse(example.method, path, response, name);
           if (path === '/api/events' && response.status === 200) {
             const stream = response.body!.getReader();
             const frame = new TextDecoder().decode((await stream.read()).value);
