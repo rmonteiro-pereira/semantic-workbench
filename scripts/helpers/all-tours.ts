@@ -1,5 +1,10 @@
 // Every group of screens the responsive suite measures and the capture tools photograph, so a new
 // tour is added in one place.
+import { expect } from '@playwright/test';
+import { adminScreens } from './admin-tour';
+import { revealGraphControls } from './graph-options';
+import { graphControlsProblems } from './graph-paint-geometry';
+import { fileTab } from './screen-tour';
 import { editScreens } from './edit-tour';
 import { dialogsTourScreens } from './dialogs-tour';
 import { exportScreens } from './export-tour';
@@ -57,5 +62,32 @@ export function tourGroups(files: AllTourFiles): TourGroup[] {
       summary: 'readable text and no overlaps',
       screens: sparseScreens(files.serverMode),
     },
+  ];
+}
+
+/** Files for complete visual captures, including a document with real concept mappings. */
+export type CaptureFiles = AllTourFiles & { mapping: string };
+
+/** Adds administration, mapping and full-screen views to the shared screen tours. */
+export function captureScreens(files: CaptureFiles): Screen[] {
+  const fullscreen = (tab: string): Screen => ({
+    name: `ontology-${tab.toLowerCase()}-fullscreen`,
+    show: async page => {
+      await fileTab(files.ontology, tab)(page);
+      await revealGraphControls(page);
+      await page.getByRole('button', { name: 'Enter full screen', exact: true }).click();
+      await expect(page.locator('.canvas-row.is-fullscreen')).toBeVisible();
+      await revealGraphControls(page);
+      expect(await graphControlsProblems(page)).toEqual([]);
+      const controls = page.getByRole('button', { name: 'Controls', exact: true });
+      if (await controls.isVisible()) await controls.click();
+    },
+  });
+  return [
+    ...tourGroups(files).flatMap(group => group.screens),
+    { name: 'mapping-graph', show: fileTab(files.mapping, 'Graph') },
+    fullscreen('Graph'),
+    fullscreen('Neighborhood'),
+    ...adminScreens(),
   ];
 }

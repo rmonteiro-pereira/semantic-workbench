@@ -12,19 +12,31 @@ const CARD_HEIGHT = 60;
 const SPACE_PER_CARD = 6;
 const LARGE_MODEL = 250;
 
+/** Reserves room for both the entity count and relationship guidance in a collapsed area. */
+export function modelCardHeight(collapsed: boolean): number {
+  return collapsed ? 96 : CARD_HEIGHT;
+}
+
 /** Returns the type sizes, in canvas units, that keep names readable once the canvas is scaled. */
 export function textSizesAt(zoom: number) {
-  const entityName = zoom >= READABLE_ZOOM ? 16 : Math.min(30, Math.ceil(12 / zoom));
+  const entityName = zoom >= READABLE_ZOOM ? 16 : Math.min(44, Math.ceil(12 / zoom));
   const areaTitle = Math.min(48, Math.max(20, Math.ceil(13 / zoom)));
   // Two lines of the larger name no longer fit the card, so it keeps one.
   const entityLines = entityName > 17 ? 1 : 2;
+  const entityPadding = entityName > 30 ? 2 : 9;
   // Detail starts at 12 canvas pixels, so it needs an unscaled view to stay readable.
   const showDetail = zoom >= 1;
-  return { entityName, areaTitle, entityLines, showDetail };
+  return { entityName, areaTitle, entityLines, entityPadding, showDetail };
 }
 
 /** The pane the graph is drawn in, in screen pixels. */
 export type PaneSize = { width: number; height: number };
+
+/** Keeps a long or tall initial layout behind counted areas when its names would be cramped. */
+export function layoutNeedsAreaCards(layout: PaneSize, pane: PaneSize): boolean {
+  const zoom = Math.min(pane.width / layout.width, pane.height / layout.height) / 1.24;
+  return zoom < CAPACITY_ZOOM;
+}
 
 /** Returns how many entity cards fit the pane at a zoom where their names read at 12 px. */
 export function readableCapacity(pane: PaneSize): number {

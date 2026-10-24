@@ -144,3 +144,85 @@ trash suite passed all 13 checks. Final static, readable-code, documentation syn
 checks passed; architecture review reports SHIP. The corrected capture is running, and direct
 inspection confirms the desktop Graph, phone sidebar and phone concepts now show their intended
 content. This does not replace the full independent review.
+
+## Round 5 coverage extension
+
+The first independent server-light review of the corrected captures found 0 S1 and 0 S2 across
+all 164 main-tour images (SA:80, SB:84). Three S3 rows remain as recorded in those reports.
+
+The capture list now also includes all eight existing Admin section tours, a real concept-mapping
+graph, and Graph and Neighborhood in full screen. These are capture-only additions; the responsive
+suite already checks Admin independently. The expected complete matrix is 52 screens × 4 sizes ×
+4 mode/theme combinations = 832 images. Both tools support substring selection for supplements.
+Local batches will include these screens directly; server supplements add the missing views to
+its already frozen main-tour batch. The production UI remains at `253165e` throughout this round.
+Static checks passed and independent architecture review reports SHIP. Supplemental capture
+execution and independent image review remain pending.
+
+## Round 5 remaining graph defects
+
+Server dark review completed all 164 images: SC found 0 S1/0 S2; SD found 0 S1/1 S2
+(insufficient relationship-line contrast). Local capture then exposed wrapped area headings
+colliding with count cards. The local batch was stopped and is incomplete; only the two inspected
+phone images are recorded in round-5-LE-diagnostic. No full-round clean result is claimed.
+
+Generic capture previously measured ordinary UI text while excluding graph nodes. Capture now
+also runs the graph geometry assertions and fails on any measurement problem. New heading and
+paint checks reproduced four phone title collisions and sub-3:1 edges. Neighborhood reproduced
+the existing 55% canvas-height failure; its suspected card overlap did not reproduce.
+
+The grouped layout now reserves two largest-size heading lines, titles clamp to two lines with
+their complete native tooltip, and graph names grow to a full 12 px floor. Default edge strokes
+retain screen width and use stronger shared idle tokens without reducing focus dimming. The
+phone walk controls share a row with Other files. Singular relationship counts and full-path
+wording are corrected as well.
+
+The first focused capture passed the normal phone graph and Neighborhood checks, then the new
+full-screen screens exposed a measurement-scope issue: the text checker was examining workspace
+text that is intentionally behind native full screen. It now measures the visible full-screen
+canvas, matching the control checker’s existing scope. No timing budget or timeout changed.
+A TypeScript literal-inference error for SVG vectorEffect was fixed with a literal type.
+
+The strengthened layout and theme unit checks passed: 19 tests, 0 failures, 3,724 assertions.
+Further focused capture and full viewport verification are in progress before the next round.
+
+
+Focused graph follow-up (round 5 LF): the independent reviewer inspected all 16 light images and
+found two S1, two S2 and one S3. Phone Controls retained their old position after full-screen entry
+and clipped the direction selector; full-detail neighborhood cards touched; wide Network views
+formed a dense mesh. Controls now reposition after layout commits and viewport/full-screen changes,
+and expansion controls wrap. Neighborhood rows are 180 canvas pixels, preserving a gap around the
+measured full-detail cards. Layered is the initial model layout and retains its ELK route vertices
+until live handles move. Fully collapsed areas use compact packing. Controls anchoring, horizontal
+containment, minimum neighbor gaps and edge/card clearance are measured at the viewport matrix.
+The first Layered focused capture failed at 390 px: collapsed areas formed an unreadably long chain.
+Compact packing fixes that root cause; no text-size floor was reduced. Targeted units: 26 pass,
+zero failures, 3,750 assertions across three files. Full browser and visual verification is pending.
+
+The first retained ELK route attempt still used fallback curves for internal links. Diagnostic
+inspection established that root-stored edges can declare a compound `container`; route vertices
+now receive that container's absolute origin. All 183 bundled routes are unit-checked against
+absolute source and target borders. A subsequent focused review found wide-layout name cramming
+and summary counts clipped by the old fixed 60-pixel CSS height. Actual layout proportions now
+participate in the existing initial-area decision; manual expansion remains available. Summary
+cards reserve 96 pixels in both layout engines and their rendered height follows their layout.
+The focused count-clipping assertion reproduced the CSS defect and then passed at all four sizes.
+Targeted units now pass 28 tests, zero failures, 4,487 assertions across three files. The canonical
+graph tour keeps ownership of its existing manual-all-open name-size exception; complete captures
+measure graph geometry directly. Existing edge attachment checks now explicitly select Network
+for worker checks and drag cards in both layout choices, preserving their endpoint tolerance.
+
+Independent focused reviews `round-5-LG-focused.md` and `round-5-DG-focused.md` inspected all 32
+light/dark Graph and Neighborhood images at native resolution: zero S1, zero S2, one S3 each
+(the same compact DocumentReference word break). These are focused reviews, not a clean full round.
+`bun run test:edges` passed all six checks on port 5175, including live endpoint measurements on
+every drag frame and dragging after both Layered and Network layout changes. Static check passed.
+Both production ELK constructors and the unit engine now explicitly register the box packer.
+Open phone Controls are additionally measured before the canonical graph tour folds them again;
+full-screen captures reopen, measure and close Controls after the full-screen transition.
+
+The graph viewport matrix passed all four checks at 390×844, 1280×720, 1440×900 and 2560×1440
+(`RESPONSIVE_ONLY='graph canvases:'`, Vite 5175). This includes expanded-area geometry and the
+open phone Controls assertions. Targeted units remained 28/28 with 4,487 assertions. Build passed.
+Architecture review reports SHIP after explicit box registration. The complete capture inventory
+is 52 named screens; the next full round will capture 208 per mode/theme, 832 total.

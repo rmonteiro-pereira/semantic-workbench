@@ -70,7 +70,7 @@ export function layoutGraph(ids: string[], edges: Link[]) {
 // left, neighbors it points at on the right; two-way neighbors join the shorter side. Each side
 // wraps outward into extra columns, and every column is centered on the center's row.
 export const NEIGHBOR_COLUMN = 400;
-export const NEIGHBOR_ROW = 130;
+export const NEIGHBOR_ROW = 180;
 export const NEIGHBOR_ROWS = 6;
 /** Places incoming and outgoing neighbors in bounded columns around the center. */
 export function neighborhoodLayout(

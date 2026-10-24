@@ -4,9 +4,10 @@ import ELK from 'elkjs/lib/elk-api.js';
 import { layoutNetwork } from '../src/network-layout';
 import { layoutFullGraph, packNetwork } from '../src/full-layout';
 import { inspect } from '../src/model';
+import { groupRelationships } from '../src/graph-view';
 function engine() {
   return new ELK({
-    algorithms: ['layered', 'sporeOverlap'],
+    algorithms: ['layered', 'sporeOverlap', 'box'],
     workerFactory: () => new Worker(import.meta.resolve('elkjs/lib/elk-worker.min.js')),
   });
 }
@@ -19,7 +20,7 @@ function checkGeometry(result: any, count: number) {
     const parent = byId.get(child.parentId);
     expect(parent).toBeDefined();
     expect(child.x).toBeGreaterThanOrEqual(0);
-    expect(child.y).toBeGreaterThanOrEqual(0);
+    expect(child.y).toBeGreaterThanOrEqual(136);
     expect(child.x + child.width).toBeLessThanOrEqual(parent.width + 0.01);
     expect(child.y + child.height).toBeLessThanOrEqual(parent.height + 0.01);
   }
@@ -61,6 +62,18 @@ test('ELK compound layout retains groups and a route for every bundled connectio
     checkGeometry(result, 45);
     expect(Object.keys(result.routes)).toHaveLength(183);
     expect(Object.values(result.routes).every(sections => sections.length > 0)).toBe(true);
+    const nodes = new Map(result.nodes.map(node => [node.id, node]));
+    for (const connection of groupRelationships(m.edges)) {
+      const source = nodes.get(connection.source)!;
+      const target = nodes.get(connection.target)!;
+      const sourceArea = nodes.get(source.parentId!)!;
+      const targetArea = nodes.get(target.parentId!)!;
+      const points = result.routes[connection.id].flat();
+      expect(points[0].x).toBeCloseTo(source.x + sourceArea.x + source.width, 2);
+      expect(points[0].y).toBeCloseTo(source.y + sourceArea.y + source.height / 2, 2);
+      expect(points.at(-1)!.x).toBeCloseTo(target.x + targetArea.x, 2);
+      expect(points.at(-1)!.y).toBeCloseTo(target.y + targetArea.y + target.height / 2, 2);
+    }
   } finally {
     elk.terminateWorker();
   }

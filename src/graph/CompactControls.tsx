@@ -24,6 +24,20 @@ function usePanelTop(button: React.RefObject<HTMLButtonElement | null>, open: bo
   const [top, setTop] = useState(0);
   useLayoutEffect(() => {
     if (open && button.current) setTop(button.current.getBoundingClientRect().bottom + 4);
+  });
+  useEffect(() => {
+    if (!open) return;
+    const positionPanel = () => {
+      if (button.current) setTop(button.current.getBoundingClientRect().bottom + 4);
+    };
+    window.addEventListener('resize', positionPanel);
+    window.addEventListener('scroll', positionPanel, true);
+    document.addEventListener('fullscreenchange', positionPanel);
+    return () => {
+      window.removeEventListener('resize', positionPanel);
+      window.removeEventListener('scroll', positionPanel, true);
+      document.removeEventListener('fullscreenchange', positionPanel);
+    };
   }, [open, button]);
   return top;
 }
@@ -43,6 +57,18 @@ export function CompactControls({
   const [open, setOpen] = useState(false);
   const button = useRef<HTMLButtonElement>(null);
   const top = usePanelTop(button, open);
+  useEffect(() => {
+    const canvas = button.current?.closest('.canvas-row');
+    if (!canvas) return;
+    let fullscreen = canvas.classList.contains('is-fullscreen');
+    const observer = new MutationObserver(() => {
+      const current = canvas.classList.contains('is-fullscreen');
+      if (current !== fullscreen) setOpen(false);
+      fullscreen = current;
+    });
+    observer.observe(canvas, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, [compact]);
   useEffect(() => {
     if (!open) return;
     const closeOnEscape = (event: KeyboardEvent) => {

@@ -183,6 +183,10 @@ try {
   await page.goto(appUrl());
   await expect(page.locator('h1')).toContainText('Flights');
   await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
+  await viewOptions(page, async options => {
+    await options.getByLabel('Graph layout').selectOption('network');
+  });
+  await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
   // A small pane opens with one card per area; these checks measure entity cards.
   await showEveryEntity(page);
   await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
@@ -224,6 +228,8 @@ try {
       });
       await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
       await attached(layout);
+      await drag(page, '.react-flow__node-entity .full-entity', 48, 24);
+      await attached(`${layout} after dragging`);
     }
   });
   await page.screenshot({ path: '/tmp/edge-attachment-network.png' });

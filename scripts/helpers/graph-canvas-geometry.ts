@@ -2,9 +2,16 @@
 // read, detail lines only where they read, cards that do not overlap, a toolbar that fits, and a
 // canvas that keeps most of a phone screen.
 import type { Page } from '@playwright/test';
+import {
+  graphHeadingProblems,
+  graphEdgeContrastProblems,
+  graphNameContainmentProblems,
+  graphControlsProblems,
+  graphEdgeClearanceProblems,
+} from './graph-paint-geometry';
 
 /** The smallest on-screen size of an entity name, and of a detail line where one is shown. */
-export const MIN_NAME_PX = 11.5;
+export const MIN_NAME_PX = 12;
 export const MIN_DETAIL_PX = 12;
 /** The share of the window height the canvas keeps on a phone. */
 export const MIN_PHONE_CANVAS_SHARE = 0.55;
@@ -13,7 +20,7 @@ type Which = 'model' | 'neighborhood';
 
 /** Returns what is wrong with the graph now on screen; an empty list means it is clean. */
 export async function graphCanvasProblems(page: Page, which: Which): Promise<string[]> {
-  return page.evaluate(
+  const problems = await page.evaluate(
     ({ which, minName, minDetail, minShare }) => {
       const out: string[] = [];
       const root = document.querySelector(
@@ -82,6 +89,18 @@ export async function graphCanvasProblems(page: Page, which: Which): Promise<str
       cards.forEach((first, index) =>
         cards.slice(index + 1).forEach(second => {
           if (overlap(first.rect, second.rect)) out.push('two cards overlap');
+          if (which === 'neighborhood') {
+            const horizontal =
+              Math.min(first.rect.right, second.rect.right) -
+              Math.max(first.rect.left, second.rect.left);
+            const gap = Math.max(
+              first.rect.top - second.rect.bottom,
+              second.rect.top - first.rect.bottom,
+            );
+            if (horizontal > 1 && gap >= -1 && gap < 8 * scale) {
+              out.push('neighbor cards have less than eight canvas pixels between them');
+            }
+          }
         }),
       );
       const toolbar = root.querySelector('.full-graph-tools, .neighborhood-tools');
@@ -96,4 +115,14 @@ export async function graphCanvasProblems(page: Page, which: Which): Promise<str
     },
     { which, minName: MIN_NAME_PX, minDetail: MIN_DETAIL_PX, minShare: MIN_PHONE_CANVAS_SHARE },
   );
+  problems.push(...(await graphControlsProblems(page)));
+  if (which === 'model') {
+    problems.push(
+      ...(await graphHeadingProblems(page)),
+      ...(await graphEdgeContrastProblems(page)),
+      ...(await graphNameContainmentProblems(page)),
+      ...(await graphEdgeClearanceProblems(page)),
+    );
+  }
+  return problems;
 }

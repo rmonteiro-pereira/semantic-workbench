@@ -77,7 +77,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `scripts/helpers/examples-tour.ts` | The metric screens of every example for the responsive suite and the browser steps that check one metric of each kind | Suite selection |
 | `scripts/helpers/edit-tour.ts`, `scripts/helpers/odcs-tour.ts` | The editing, metrics, mapping and data contract screens and dialogs as screens of the responsive suite | Suite selection |
 | `scripts/helpers/graph-options.ts` | Opens the Controls panel of a phone toolbar and the options dialog of a graph toolbar so browser checks drive its controls | Assertions about the controls |
-| `scripts/helpers/graph-tour.ts`, `scripts/helpers/graph-canvas-geometry.ts` | The whole-model graph and neighborhood screens, and their measurement: names and detail lines on screen, overlapping cards, the toolbar and a phone canvas | Suite selection |
+| `scripts/helpers/graph-tour.ts`, `scripts/helpers/graph-canvas-geometry.ts`, `scripts/helpers/graph-paint-geometry.ts` | The whole-model graph and neighborhood screens, and their measurement: names and detail lines on screen, overlapping cards and headings, painted edge contrast and width, paths crossing unrelated cards, card containment, popup anchoring, the toolbar and a phone canvas | Suite selection |
 | `scripts/helpers/sync-dialog.ts`, `scripts/helpers/dialog-geometry.ts`, `scripts/helpers/project-dialog-tour.ts`, `scripts/helpers/dialogs-tour.ts`, `scripts/helpers/page-layout.ts` | Driving the Source control Sync and remote dialogs from the browser suites; the fit, text-size and collision assertions for an open dialog, and the standard every dialog must meet (width, padding, main action last, readable disabled button); the Source control and project dialogs, each drawn over the project it is about, as screens of the responsive suite; the file dialogs; and the layout promises of the overview, catalog, mappings and Source control pages. `authGeometry` in `sign-in.ts` takes the element whose text it measures | Suite selection |
 | `scripts/helpers/text-geometry.ts` (with `lowDisabledContrastProblems`), `scripts/helpers/control-geometry.ts` (form controls drawn with theme colours), `scripts/helpers/shell-tour.ts` (header, tab strip, sidebar tree and content width), `scripts/helpers/screen-tour.ts` | Browser measurement of text below the 12 px minimum and of text covered by other elements; the list of screens and dialogs that the responsive suite and `scripts/polish-capture.ts` walk | Suite selection |
 | `scripts/helpers/processes.ts` | Command execution, loopback ports, bounded readiness and once-only signal cleanup | Suite selection or provider configuration |
@@ -219,6 +219,9 @@ inline labels for values and let type/status chips explain themselves. Source Co
 page margin and places its visibly labelled commit counts below branch actions. The current
 branch holder wraps below the branch selector instead of being cut inside its selected option.
 
+The whole-model graph reserves two compensated heading lines above entity cards. Names grow
+to preserve a full 12 px floor in compact views; default edges keep their screen width and at
+least 3:1 painted contrast against the canvas. Focus still dims unrelated edges.
 The whole-model graph keeps its 12 px detail lines only at zoom 1 or higher. Small header counts and badges
 share that threshold; names use the existing zoom compensation. The browser measures detail
 font size multiplied by the actual viewport scale, and a targeted mutant guards the cutoff.
@@ -234,6 +237,9 @@ when its contents or size change. Native dialogs are excluded from ODCS content-
 the shared dialog geometry check verifies viewport centring. Relationships shares the other
 ODCS sections’ readable width.
 Catalog title tooltips and current-step fills are checked by the edit tour at all four sizes.
+`helpers/all-tours.ts` keeps the normal browser tours and the complete capture screen list together.
+Capture-only coverage reuses Admin navigation and adds real mapping and full-screen graph views;
+it does not duplicate the responsive suite’s Admin matrix.
 
 - **Text size and colour**: `src/style.css` defines `--text-small` (12 px, the smallest text the
   interface shows) and `--text-muted` (the softest text colour, at least 4.5:1 contrast on white).
@@ -691,3 +697,7 @@ the rest. The client's view uses `agentRead`, so the agent routes in `handler.ts
 catalog, context and plan from `ws.documentsFor(requestReader(req))`, never resolve a reference
 into a project the client cannot read. The agent rows are marked `audited`, so every allowed call
 is recorded as well as every refusal.
+
+The model graph initially uses Layered layout and retains ELK route vertices while they match live
+handles. Moving a card falls back to live routing. Fully collapsed areas are packed compactly rather
+than stretched into a layered chain. Neighborhood row spacing includes full-detail card height.

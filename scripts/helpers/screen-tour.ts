@@ -1,6 +1,7 @@
 // The screens and dialogs a person reaches from the sidebar and the view tabs. The responsive
 // suite measures each of them at every viewport size, and the screenshot tool captures them.
 import { expect, type Page } from '@playwright/test';
+import { graphCanvasProblems } from './graph-canvas-geometry';
 import { layoutProblems } from './layout-geometry';
 import { smallTextProblems, textCollisionProblems } from './text-geometry';
 
@@ -96,6 +97,7 @@ export function tourScreens({ ontology, contract }: TourFiles): Screen[] {
 export async function showScreen(page: Page, screen: Screen) {
   await page.keyboard.press('Escape');
   await screen.show(page);
+  await expect(page.locator('.full-graph-loading')).toHaveCount(0);
   await page.waitForTimeout(300);
 }
 
@@ -110,7 +112,18 @@ export async function geometryProblems(page: Page, within = 'body'): Promise<str
 
 /** Returns control, text size and text collision problems of the screen now shown. */
 export async function screenProblems(page: Page, screen: Screen): Promise<string[]> {
-  const problems = await geometryProblems(page, screen.dialog ?? 'body');
+  let within = screen.dialog ?? 'body';
+  if (await page.locator('.canvas-row.is-fullscreen').isVisible()) {
+    within = '.canvas-row.is-fullscreen';
+  }
+  const problems = await geometryProblems(page, within);
+  const graphTour = screen.name.startsWith('graph-');
+  if (!screen.dialog && !graphTour && (await page.locator('.full-graph').isVisible())) {
+    problems.push(...(await graphCanvasProblems(page, 'model')));
+  }
+  if (!screen.dialog && !graphTour && (await page.locator('.neighborhood-graph').isVisible())) {
+    problems.push(...(await graphCanvasProblems(page, 'neighborhood')));
+  }
   if (screen.name === 'source-control') {
     const branch = page.getByRole('combobox', { name: 'Branch', exact: true });
     await expect(branch).toBeVisible();

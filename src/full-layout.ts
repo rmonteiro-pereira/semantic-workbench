@@ -3,6 +3,10 @@ import type { GroupingOptions } from './overview';
 import { modelOverview } from './overview';
 import { groupRelationships } from './graph-view';
 import type { Entity, Relationship } from './model';
+import { modelCardHeight } from './graph/overview-capacity';
+// Area titles grow as the graph zooms out; reserve two lines at their largest size.
+const GROUP_HEADER_HEIGHT = 136;
+
 /** Lays out nodes and edges within their model groups. */
 export async function layoutFullGraph(
   entities: Entity[],
@@ -13,10 +17,13 @@ export async function layoutFullGraph(
 ) {
   const overview = modelOverview(entities, edges, name, false, grouping);
   const connections = groupRelationships(overview.links);
+  const allAreasCollapsed =
+    entities.length > 0 && entities.every(entity => entity.definition?.collapsedArea);
   const graph: any = {
     id: 'root',
     layoutOptions: {
-      'elk.algorithm': 'layered',
+      'elk.algorithm': allAreasCollapsed ? 'box' : 'layered',
+      'elk.aspectRatio': '1.5',
       'elk.direction': 'RIGHT',
       'elk.edgeRouting': 'ORTHOGONAL',
       'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
@@ -29,14 +36,14 @@ export async function layoutFullGraph(
     children: overview.groups.map(group => ({
       id: 'area:' + group.id,
       layoutOptions: {
-        'elk.padding': '[top=62,left=24,bottom=24,right=24]',
+        'elk.padding': `[top=${GROUP_HEADER_HEIGHT},left=24,bottom=24,right=24]`,
         'elk.spacing.nodeNode': '24',
         'elk.layered.spacing.nodeNodeBetweenLayers': '48',
       },
       children: group.entities.map(e => ({
         id: e.id,
         width: 184,
-        height: 60,
+        height: modelCardHeight(Boolean(e.definition?.collapsedArea)),
         layoutOptions: { 'elk.portConstraints': 'FIXED_SIDE' },
         ports: [
           { id: e.id + '::out', width: 0, height: 0, layoutOptions: { 'elk.port.side': 'EAST' } },
@@ -61,9 +68,12 @@ export async function layoutFullGraph(
     group?: string;
   }[] = [];
   const routes: Record<string, { x: number; y: number }[][]> = {};
+  const origins = new Map<string, { x: number; y: number }>();
+  const routedEdges: { edge: any; container: string }[] = [];
   function visit(node: any, ox = 0, oy = 0, parentId?: string) {
     const x = ox + (node.x ?? 0);
     const y = oy + (node.y ?? 0);
+    origins.set(node.id, { x, y });
     if (node.id !== 'root')
       nodes.push({
         id: node.id,
@@ -74,17 +84,23 @@ export async function layoutFullGraph(
         parentId,
         group: node.id.startsWith('area:') ? node.id.slice(5) : undefined,
       });
-    for (const edge of node.edges ?? [])
-      routes[edge.id] = (edge.sections ?? []).map((section: any) =>
-        [section.startPoint, ...(section.bendPoints ?? []), section.endPoint].map((p: any) => ({
-          x: p.x + x,
-          y: p.y + y,
-        })),
-      );
+    for (const edge of node.edges ?? []) {
+      routedEdges.push({ edge, container: edge.container ?? node.id });
+    }
     for (const child of node.children ?? [])
       visit(child, x, y, node.id === 'root' ? undefined : node.id);
   }
   visit(result);
+  // ELK can store an edge on the root while expressing its points in a compound container.
+  for (const { edge, container } of routedEdges) {
+    const origin = origins.get(container) ?? { x: 0, y: 0 };
+    routes[edge.id] = (edge.sections ?? []).map((section: any) =>
+      [section.startPoint, ...(section.bendPoints ?? []), section.endPoint].map((point: any) => ({
+        x: point.x + origin.x,
+        y: point.y + origin.y,
+      })),
+    );
+  }
   return {
     nodes,
     routes,
@@ -110,7 +126,7 @@ export async function packNetwork(
         layoutOptions: {
           'elk.algorithm': 'sporeOverlap',
           'elk.spacing.nodeNode': '24',
-          'elk.padding': '[top=62,left=28,bottom=28,right=28]',
+          'elk.padding': `[top=${GROUP_HEADER_HEIGHT},left=28,bottom=28,right=28]`,
         },
         children: result.nodes
           .filter((n: any) => n.parentId === g.id)

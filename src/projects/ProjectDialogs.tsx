@@ -121,7 +121,7 @@ export function MoveDialog({
             </select>
           </label>
           <label className="compact-field">
-            Path in that project
+            Path in that project (folder and file name)
             <input value={toPath} onChange={e => setToPath(e.target.value)} />
           </label>
           {error && (

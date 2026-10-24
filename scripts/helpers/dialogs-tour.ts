@@ -1,5 +1,5 @@
 // Dialogs that no other tour opens. The check every dialog must pass is in dialog-geometry.ts.
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { openFile, showSidebar, type Screen } from './screen-tour';
 
 async function openFileMoveDialog(page: Page, file: string) {
@@ -9,6 +9,7 @@ async function openFileMoveDialog(page: Page, file: string) {
     .getByRole('button', { name: new RegExp(`^Actions for ${file} in `) })
     .click({ force: true });
   await page.getByRole('menuitem', { name: 'Move' }).click();
+  await expect(page.getByLabel('Path in that project (folder and file name)')).toBeVisible();
 }
 
 /** Lists the dialogs reached from a file's menu in the sidebar. */
