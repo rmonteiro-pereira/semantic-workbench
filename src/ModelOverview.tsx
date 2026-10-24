@@ -163,7 +163,9 @@ export function ModelOverview(props: Props) {
                     ))}
                   </div>
                   <footer>
-                    <span>{internal} internal relationships</span>
+                    <span>
+                      {internal} internal {internal === 1 ? 'relationship' : 'relationships'}
+                    </span>
                     <button
                       aria-label={`Explore relationships for ${group.name}`}
                       disabled={!external}

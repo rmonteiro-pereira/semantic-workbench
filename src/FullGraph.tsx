@@ -2,6 +2,8 @@
 import { ScrollStrip } from './ScrollStrip';
 import type { GroupingOptions } from './overview';
 import { RoutedEdge } from './RoutedEdge';
+import { roundedPath, pointAtHalf, type Point } from './odcs/edge-route';
+import { pathMatchesEndpoints } from './edge-path';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ReactFlow,
@@ -26,7 +28,7 @@ import { Layers, Maximize, Maximize2, Minimize2, RefreshCw, Focus, Gauge } from 
 import { useViewRestore, type Fullscreen } from './graph/fullscreen';
 import { GraphOptions, OptionGroup } from './graph/GraphOptions';
 import { ZoomButtons } from './graph/ZoomButtons';
-import { startsCollapsed, textSizesAt } from './graph/overview-capacity';
+import { startsCollapsed, textSizesAt, layoutNeedsAreaCards } from './graph/overview-capacity';
 import { CompactControls } from './graph/CompactControls';
 import { modelOverview } from './overview';
 import { groupRelationships } from './graph-view';
@@ -35,6 +37,12 @@ import { FALLBACK_GROUP_COLOR } from './theme-palette';
 import { layoutFullGraph, packNetwork } from './full-layout';
 import type { Entity, Relationship } from './model';
 import { timeOperation } from './observability/page-reporting';
+function relationshipOpacity(emphasized: boolean, hasFocus: boolean) {
+  if (emphasized) return 0.95;
+  if (hasFocus) return 0.07;
+  return 1;
+}
+
 const sides = [
   ['n', Position.Top],
   ['e', Position.Right],
@@ -66,7 +74,10 @@ const EntityNode = memo(({ data }: NodeProps) => (
         .replaceAll('_', ' ')}
     </strong>
     {!!data.collapsedArea && (
-      <small>{String(data.internalCount ?? 0)} internal relationships · click to expand</small>
+      <small>
+        {String(data.internalCount ?? 0)} internal relationship
+        {Number(data.internalCount ?? 0) === 1 ? '' : 's'} · click to expand
+      </small>
     )}
     {Array.isArray(data.kpis) && data.kpis.length > 0 && (
       <span className="kpi-badge node-kpi-badge" title={`Metrics: ${data.kpis.join(', ')}`}>
@@ -84,6 +95,26 @@ const AreaNode = memo(({ data }: NodeProps) => (
   </div>
 ));
 const GraphEdge = memo((props: EdgeProps) => {
+  const points = props.data?.layoutRoute as Point[] | undefined;
+  const path = points && roundedPath(points, 8);
+  if (
+    path &&
+    pathMatchesEndpoints(path, props.sourceX, props.sourceY, props.targetX, props.targetY, 1.1)
+  ) {
+    const anchored = [...points!];
+    anchored[0] = { x: props.sourceX, y: props.sourceY };
+    anchored[anchored.length - 1] = { x: props.targetX, y: props.targetY };
+    const label = pointAtHalf(anchored);
+    return (
+      <BaseEdge
+        {...props}
+        path={roundedPath(anchored, 8)}
+        labelX={label.x}
+        labelY={label.y}
+        interactionWidth={24}
+      />
+    );
+  }
   if (props.source === props.target) {
     const { sourceX: x, sourceY: y, targetX: tx, targetY: ty } = props;
     return (
@@ -156,7 +187,8 @@ export function FullGraph(props: Props) {
   const [size, setSize] = useState({ width: 1200, height: 650 });
   const flow = useRef<ReactFlowInstance<any, any> | null>(null);
   const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
-  const [algorithm, setAlgorithm] = useState<'network' | 'layered'>('network');
+  const [algorithm, setAlgorithm] = useState<'network' | 'layered'>('layered');
+  const [layoutRoutes, setLayoutRoutes] = useState<LayoutResult['routes']>({});
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState('');
   const [hover, setHover] = useState('');
@@ -216,12 +248,13 @@ export function FullGraph(props: Props) {
   // card each when the entities would not read at the size the pane gives them.
   const [firstPane, setFirstPane] = useState<{ width: number; height: number } | null>(null);
   const [collapseChoice, setCollapseChoice] = useState<Set<string> | null>(null);
+  const [layoutCramped, setLayoutCramped] = useState(false);
   const autoCollapsed = useMemo(
     () =>
-      firstPane && startsCollapsed(overview.entities.length, firstPane)
+      firstPane && (layoutCramped || startsCollapsed(overview.entities.length, firstPane))
         ? new Set(overview.groups.map(g => g.id))
         : new Set<string>(),
-    [overview, firstPane],
+    [overview, firstPane, layoutCramped],
   );
   const collapsed = collapseChoice ?? autoCollapsed;
   const setCollapsed = (next: Set<string>) => setCollapseChoice(next);
@@ -326,6 +359,11 @@ export function FullGraph(props: Props) {
     setRouteMetrics(null);
     function apply(result: LayoutResult) {
       if (cancelled) return;
+      if (!collapseChoice && !collapsed.size && layoutNeedsAreaCards(result, firstPane!)) {
+        setLayoutCramped(true);
+        return;
+      }
+      setLayoutRoutes(result.routes ?? {});
       cache.set(key, result);
       if (cache.size > 6) cache.delete(cache.keys().next().value!);
       setNodes(
@@ -383,7 +421,7 @@ export function FullGraph(props: Props) {
           }
         } else {
           elk = new ELK({
-            algorithms: ['layered', 'sporeOverlap'],
+            algorithms: ['layered', 'sporeOverlap', 'box'],
             workerFactory: () => new Worker(elkWorkerUrl),
           });
           packNetwork(data.result, elk)
@@ -412,7 +450,7 @@ export function FullGraph(props: Props) {
       });
     } else {
       elk = new ELK({
-        algorithms: ['layered', 'sporeOverlap'],
+        algorithms: ['layered', 'sporeOverlap', 'box'],
         workerFactory: () => new Worker(elkWorkerUrl),
       });
       timeOperation(
@@ -543,6 +581,10 @@ export function FullGraph(props: Props) {
           source = 'e';
           target = 's';
         }
+        if (algorithm === 'layered') {
+          source = 'e';
+          target = 'w';
+        }
         const active = e.data.relationships.some(r => r.id === props.selectedEdge);
         const adjacent = e.source === focus || e.target === focus;
         const visible = (p: any) =>
@@ -557,7 +599,12 @@ export function FullGraph(props: Props) {
           (active || adjacent || (viewport.zoom >= 0.35 && visible(a) && visible(b)));
         return {
           ...e,
-          data: { ...e.data, algorithm, routeDetailed },
+          data: {
+            ...e.data,
+            algorithm,
+            routeDetailed,
+            layoutRoute: algorithm === 'layered' ? layoutRoutes[e.id]?.flat() : undefined,
+          },
           type: 'routed',
           sourceHandle: 'source-' + source,
           targetHandle: 'target-' + target,
@@ -579,8 +626,8 @@ export function FullGraph(props: Props) {
           style: {
             stroke: active || adjacent ? 'var(--color-edge-active)' : 'var(--color-edge-idle)',
             strokeWidth: active ? 2 : 1.2,
-            strokeOpacity:
-              active || adjacent ? 0.95 : focus ? 0.07 : viewport.zoom < 0.6 ? 0.22 : 0.48,
+            vectorEffect: 'non-scaling-stroke' as const,
+            strokeOpacity: relationshipOpacity(active || adjacent, Boolean(focus)),
           },
         };
       }),
@@ -592,6 +639,7 @@ export function FullGraph(props: Props) {
       labels,
       hoverEdge,
       algorithm,
+      layoutRoutes,
       viewport,
       size,
       dragging,
@@ -627,6 +675,7 @@ export function FullGraph(props: Props) {
   const textStyle = {
     '--entity-name-size': `${sizes.entityName}px`,
     '--entity-name-lines': sizes.entityLines,
+    '--entity-card-padding-block': `${sizes.entityPadding}px`,
     '--area-title-size': `${sizes.areaTitle}px`,
     '--entity-detail-display': sizes.showDetail ? 'block' : 'none',
   } as React.CSSProperties;

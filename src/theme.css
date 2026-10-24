@@ -76,7 +76,7 @@
   --color-mask-opaque: #000000;
 
   /* Graph edges and the edge legend. */
-  --color-edge-idle: #98aaa3;
+  --color-edge-idle: #566c65;
   --color-edge-active: var(--color-accent);
   --color-edge-feeds: #7d9c91;
   --color-edge-foreign-key: var(--color-warning);
@@ -171,7 +171,7 @@
     --color-rose-border: #6b3b51;
     --color-shadow: #000000;
     --color-mask-opaque: #000000;
-    --color-edge-idle: #6b8a7f;
+    --color-edge-idle: #a3b8b1;
     --color-edge-feeds: #86a99b;
     --color-syntax-property: #9cdcfe;
     --color-syntax-tag: #569cd6;
@@ -250,7 +250,7 @@
   --color-rose-border: #6b3b51;
   --color-shadow: #000000;
   --color-mask-opaque: #000000;
-  --color-edge-idle: #6b8a7f;
+  --color-edge-idle: #a3b8b1;
   --color-edge-feeds: #86a99b;
   --color-syntax-property: #9cdcfe;
   --color-syntax-tag: #569cd6;

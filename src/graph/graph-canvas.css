@@ -35,6 +35,11 @@
   border-radius: 9px;
   box-shadow: 0 8px 24px color-mix(in srgb, var(--color-shadow) 14%, transparent);
 }
+.compact-controls-panel .pierce-controls {
+  flex-wrap: wrap;
+  flex-basis: 100%;
+  min-width: 0;
+}
 
 /* The lineage view on a phone: one short toolbar row, one hop row, and a legend of kinds only, so
    the canvas keeps more than half of the screen. */
@@ -57,6 +62,7 @@
    sets the sizes from its zoom. */
 .full-graph .full-entity strong {
   font-size: var(--entity-name-size, 16px);
+  line-height: 1.2;
   -webkit-line-clamp: var(--entity-name-lines, 2);
 }
 .full-graph .full-area-title {
@@ -120,7 +126,23 @@
 }
 
 .full-graph .full-area-title strong {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-height: 1.2;
   white-space: normal;
-  overflow: visible;
+  overflow: hidden;
   overflow-wrap: anywhere;
+}
+.full-graph .full-area-title {
+  pointer-events: auto;
+}
+@media (max-width: 650px) {
+  .neighborhood-graph .neighborhood-links .walk-trail {
+    flex-basis: 200px;
+  }
+}
+
+.full-graph .full-entity {
+  padding-block: var(--entity-card-padding-block, 9px);
 }

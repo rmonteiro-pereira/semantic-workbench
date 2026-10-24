@@ -27,6 +27,10 @@ try {
   const start = performance.now();
   await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
   await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 120000 });
+  await viewOptions(page, async options => {
+    await options.getByLabel('Graph layout').selectOption('network');
+  });
+  await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 120000 });
   const laidOut = performance.now();
   await page.getByRole('button', { name: 'Fit model', exact: true }).click();
   await page.waitForTimeout(300);

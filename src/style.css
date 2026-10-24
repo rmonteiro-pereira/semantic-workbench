@@ -1100,7 +1100,7 @@ main {
 }
 .full-entity {
   width: 184px;
-  height: 60px;
+  height: 100%;
   border: 1px solid var(--color-accent-border);
   border-radius: 7px;
   background: var(--color-surface);

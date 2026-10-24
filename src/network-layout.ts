@@ -5,6 +5,7 @@ import fcose from 'cytoscape-fcose';
 import { modelOverview } from './overview';
 import { groupRelationships } from './graph-view';
 import type { Entity, Relationship } from './model';
+import { modelCardHeight } from './graph/overview-capacity';
 cytoscape.use(fcose);
 /** Requests a worker-computed layout for a model network. */
 export function layoutNetwork(
@@ -21,13 +22,22 @@ export function layoutNetwork(
     styleEnabled: true,
     elements: [
       ...o.groups.map(g => ({ data: { id: 'area:' + g.id } })),
-      ...o.entities.map(e => ({ data: { id: e.id, parent: 'area:' + o.groupOf.get(e.id) } })),
+      ...o.entities.map(e => ({
+        data: {
+          id: e.id,
+          parent: 'area:' + o.groupOf.get(e.id),
+          cardHeight: modelCardHeight(Boolean(e.definition?.collapsedArea)),
+        },
+      })),
       ...connections.map(e => ({
         data: { id: 'edge:' + e.id, source: e.source, target: e.target },
       })),
     ],
     style: [
-      { selector: 'node', style: { width: 184, height: 60, 'border-width': 0, padding: '0px' } },
+      {
+        selector: 'node[cardHeight]',
+        style: { width: 184, height: 'data(cardHeight)', 'border-width': 0, padding: '0px' },
+      },
       {
         selector: ':parent',
         style: { padding: '38px', 'compound-sizing-wrt-labels': 'exclude', 'border-width': 0 },
@@ -84,7 +94,7 @@ export function layoutNetwork(
         x: b.x1 - parent.x1,
         y: b.y1 - parent.y1,
         width: 184,
-        height: 60,
+        height: modelCardHeight(Boolean(e.definition?.collapsedArea)),
         group: undefined as string | undefined,
         parentId: 'area:' + g,
       };

@@ -267,7 +267,7 @@ counts and relationship summaries follow the detail zoom threshold.
 Small graph summaries and metric badges hide when zoom would make them smaller than
 12 px. Entity names remain zoom-aware, and group headings stay opaque over relationship lines.
 
-The **Graph** tab is a real React Flow canvas, separate from the preserved **Overview** and relationship matrix. It retains every business entity and relationship, with directed parallel-link bundles exposing original definitions. The toolbar has **Fit model**, zoom in and out, **View options…** and full screen. **View options…** offers the **Network (fCoSE)** and **Layered (ELK)** layouts, area zoom, **Re-layout**, **Collapse areas** and **Expand all**, a **Value types** switch that hides value types and built-in concepts with their relationships (remembered per model in this browser), switches for labels, metrics and a **Map** (the mini-map, off until asked for and then remembered), and links to the Overview and Neighborhood. The canvas has compound business-area boundaries, explicit overlap cleanup, selection highlighting and manual dragging.
+The **Graph** tab is a real React Flow canvas, separate from the preserved **Overview** and relationship matrix. It retains every business entity and relationship, with directed parallel-link bundles exposing original definitions. The toolbar has **Fit model**, zoom in and out, **View options…** and full screen. **View options…** offers the **Layered (ELK)** layout (the default) and **Network (fCoSE)** layout, area zoom, **Re-layout**, **Collapse areas** and **Expand all**, a **Value types** switch that hides value types and built-in concepts with their relationships (remembered per model in this browser), switches for labels, metrics and a **Map** (the mini-map, off until asked for and then remembered), and links to the Overview and Neighborhood. The canvas has compound business-area boundaries, explicit overlap cleanup, selection highlighting and manual dragging. Layered views retain ELK’s orthogonal routes between areas; moving a card switches stale routes to routing from its live handles. Fully collapsed areas use a compact packed arrangement. The initial view also uses counted areas when the actual layout is too long or tall for distinguishable names; **Expand all** still opens every entity. Phone Controls panels follow their trigger when entering or leaving full screen, and their expansion selector wraps within the panel. Neighborhood rows reserve space for full-detail cards and a visible gap.
 
 Detailed edge routing uses React Flow Smart Edge's shared background worker. At whole-model zoom, the canvas uses inexpensive native paths; obstacle-aware routes are computed for visible or selected connections at useful detail. This avoids queueing thousands of costly routes for edges too small to inspect. The first view follows the window: when the entities would not read at 12 px on screen (about 15 entities in a 1280 px window, about 70 in a 2560 px one, always above 250), each area opens as one card with its readable entity count; click an area card, or use **Expand all** in View options, to open it. Internal links remain folded into the area card until expansion. When the canvas is zoomed out further, names and area titles grow so they stay readable and unfocused links fade.
 
@@ -1286,7 +1286,12 @@ includes a Team section and a status field needed by the tour. Existing-project 
 show the server refusal rather than a local move preview. An administrator capture fails on any
 skipped screen. Local captures also fail on a skipped screen. Each viewport starts on a fresh
 page; tab navigation explicitly enters Model explorer and verifies the selected tab before
-photographing it. Neither capture tool uses the owner's data directory.
+photographing it. The complete tour includes 52 screens: the 41 shared screens plus eight Admin
+sections, a real mapping graph, and Graph and Neighborhood in full screen. At four viewports this
+is 208 images per mode/theme, or 832 for the complete matrix. Both tools accept `SW_ONLY` as a
+screen-name substring filter for supplementary captures. Captures stop on geometry failures,
+including graph heading collisions, edge contrast and width, and undersized names. Full-screen
+measurements cover the visible full-screen canvas. Neither tool uses the owner's data directory.
 
 ### Mutation checks
 

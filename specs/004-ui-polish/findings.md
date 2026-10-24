@@ -161,3 +161,9 @@ The release audit remains open until fresh captures and independent review find 
 | F97 | Server folder change | Preserve clone-instead guidance for authorized requests while concealing unreadable projects. | open: regression and capture verification in progress |
 | F98 | Server review wording and layout | Wrap branch holders, compact phone mapping context and clarify Import/folder guidance. | open: viewport checks and complete recapture pending |
 | F99 | Capture coverage | Enter and verify each intended tab; isolate server viewport pages and assert sidebar visibility. | open: complete recapture pending |
+| F100 | Graph heading geometry | Reserve two compensated title lines above cards; measure title/card collisions and enforce the full 12 px name floor. | open: focused capture verification in progress |
+| F101 | Graph edges | Keep default strokes at screen width and measure composited contrast in both themes. | open: focused capture verification in progress |
+| F102 | Phone canvas and wording | Share the walk/Other files row; correct singular relationship counts and explain destination file paths. | open: focused capture verification in progress |
+
+| F103 | Phone graph controls | Reposition after full-screen entry and wrap the expansion selector. | open: focused capture pending |
+| F104 | Wide graph layout | Use initial Layered routes and reserve visible gaps between full-detail neighbors. | open: focused capture pending |

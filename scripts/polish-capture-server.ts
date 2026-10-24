@@ -12,7 +12,7 @@ import { startMockOidc } from '../tests/helpers/mock-oidc';
 import { freeAuthPort, startAuthApi } from './auth-environment';
 import { authViewports, signIn, type SignInTarget } from './helpers/sign-in';
 import { screenProblems, showScreen } from './helpers/screen-tour';
-import { tourGroups } from './helpers/all-tours';
+import { captureScreens } from './helpers/all-tours';
 
 const outputDirectory = process.argv[2];
 if (!outputDirectory) throw new Error('Pass an output directory.');
@@ -99,7 +99,7 @@ await withCleanup(stopCapture, async () => {
     await page.goto(url);
     await page.locator('.workspace-sidebar button.document').first().waitFor({ state: 'attached' });
     await page.locator('.tabs').waitFor();
-    const screens = tourGroups({
+    const screens = captureScreens({
       ontology: files.find(name => name.includes('ontology')) ?? files[0] ?? '',
       contract:
         files.find(name => name === 'orders.odcs.yaml') ??
@@ -107,8 +107,9 @@ await withCleanup(stopCapture, async () => {
         files[0] ??
         '',
       metricsModel: files.find(name => name.includes('semantic')) ?? files[0] ?? '',
+      mapping: files.find(name => name.includes('mapping')) ?? '',
       serverMode: true,
-    }).flatMap(group => group.screens);
+    }).filter(screen => screen.name.includes(process.env.SW_ONLY ?? ''));
     for (const screen of screens) {
       try {
         await showScreen(page, screen);
@@ -121,6 +122,7 @@ await withCleanup(stopCapture, async () => {
       const problems = await screenProblems(page, screen);
       console.log(`MEASURE ${screen.name} ${width} problems=${problems.length}`);
       for (const problem of problems.slice(0, 8)) console.log('   ', problem);
+      if (problems.length) throw Error(`Capture geometry failed for ${screen.name}.`);
     }
     await page.close();
   }

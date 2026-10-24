@@ -88,12 +88,12 @@ try {
         'data-relationship-count',
         '277',
       );
-      await page.screenshot({ path: '/tmp/real-graph-network.png' });
+      await page.screenshot({ path: '/tmp/real-graph-layered.png' });
       await viewOptions(page, async options => {
-        await options.getByLabel('Graph layout').selectOption('layered');
+        await options.getByLabel('Graph layout').selectOption('network');
       });
       await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
-      await page.screenshot({ path: '/tmp/real-graph-layered.png' });
+      await page.screenshot({ path: '/tmp/real-graph-network.png' });
     },
   );
   await check(

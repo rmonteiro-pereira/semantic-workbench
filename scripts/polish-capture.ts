@@ -9,7 +9,7 @@ import { mkdirSync } from 'node:fs';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { authViewports } from './helpers/sign-in';
 import { screenProblems, showScreen } from './helpers/screen-tour';
-import { tourGroups } from './helpers/all-tours';
+import { captureScreens } from './helpers/all-tours';
 import { withCleanup } from './helpers/processes';
 
 const outputDirectory = process.argv[2];
@@ -33,13 +33,12 @@ await withCleanup(
     await api.ws.loadExample('commerce');
     await api.ws.loadExample('mall');
     browser = await chromium.launch();
-    const screens = tourGroups({
+    const screens = captureScreens({
       ontology: 'ubl.ontology.yaml',
       contract: 'commerce.odcs.yaml',
       metricsModel: 'mall.semantic.yaml',
-    })
-      .flatMap(group => group.screens)
-      .filter(screen => screen.name.includes(process.env.SW_ONLY ?? ''));
+      mapping: 'commerce.mapping.yaml',
+    }).filter(screen => screen.name.includes(process.env.SW_ONLY ?? ''));
 
     for (const [width, height] of authViewports) {
       const page = await browser.newPage({ viewport: { width, height } });
@@ -58,6 +57,7 @@ await withCleanup(
         const problems = await screenProblems(page, screen);
         console.log(`MEASURE ${screen.name} ${width} problems=${problems.length}`);
         for (const problem of problems.slice(0, 8)) console.log('   ', problem);
+        if (problems.length) throw Error(`Capture geometry failed for ${screen.name}.`);
       }
       await page.close();
     }
