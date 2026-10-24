@@ -663,3 +663,14 @@ complete audit are recorded separately.
 The focused round 12 native review inspected all eight waiting-state originals and found
 0 S1, 0 S2 and 0 S3. The diagnostic serious row and complete disposition are in
 `audit/round-12-progress.md`; no complete round 12 is claimed.
+
+## Round 13: complete fresh visual result
+
+At `58aa8c4d828b8857e81b1be15aa5d822faad3103`, authentication light/dark passed
+84 images each; local/server light/dark passed 216 each with zero geometry or legibility
+problems, skips or browser errors. Git setup passed all 11 checks and produced eight delayed
+connection-wait images at four widths in both themes. Independent native review accounts for
+all 1,040 originals exactly once: 0 S1 / 0 S2 / 18 repeated S3 rows. Source/output hashes and
+original dimensions were validated for every saved JPEG. No crop or resize was applied.
+The repeated minor rows cover only F118, F119 and F124. The full gate now restarts on the
+artifact commit with unchanged runtime source. Earlier attempts remain recorded above.

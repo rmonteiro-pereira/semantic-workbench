@@ -1,0 +1,71 @@
+{
+  "capture_head": "58aa8c4d828b8857e81b1be15aa5d822faad3103",
+  "round": 13,
+  "conversion": "JPEG quality 95, subsampling 0; original dimensions, no crop or resize",
+  "images": [
+    {
+      "file": "clone-wait/workbench-clone-connecting-dark-1280.jpg",
+      "theme": "dark",
+      "width": 1280,
+      "height": 720,
+      "source_png_sha256": "796fa754e12127944c5e5169b5eee7c0fe1c138757332f64c70162cad3cf2d85",
+      "jpeg_sha256": "d6bc4953d19007adfcab892d71b929370285dff5d2dc769511d33d16d7edd750"
+    },
+    {
+      "file": "clone-wait/workbench-clone-connecting-dark-1440.jpg",
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "source_png_sha256": "a4030733665f3c8ce5374193731a4d084a5567568ca0cb924e7a4b7afdafb109",
+      "jpeg_sha256": "4208d70dbe67512012b6814ee0c2c9c7afe6920800a3424181707cd38b774de1"
+    },
+    {
+      "file": "clone-wait/workbench-clone-connecting-dark-2560.jpg",
+      "theme": "dark",
+      "width": 2560,
+      "height": 1440,
+      "source_png_sha256": "74c77c6ccbebdacbb3ff978e39c80afeb2a1643382c9a4dd64d4fb9f455be681",
+      "jpeg_sha256": "d617f1a8c430188ecbd664b079cab71448a65af86efb2bc739f799469d3fad67"
+    },
+    {
+      "file": "clone-wait/workbench-clone-connecting-dark-390.jpg",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "source_png_sha256": "5bd516427eacae7375199d3be4957edb48a27dade008555f90bc9922784c14a7",
+      "jpeg_sha256": "8e7182896aab55ba917c50916f2ce4b0a433256470b6884f2b09195e78e1a8fd"
+    },
+    {
+      "file": "clone-wait/workbench-clone-connecting-light-1280.jpg",
+      "theme": "light",
+      "width": 1280,
+      "height": 720,
+      "source_png_sha256": "6c41a1684703626a8c510f561c7528e9a7574b3c6c60cd8fa23bac7a81a5d3a6",
+      "jpeg_sha256": "fbb30371b8edf014757dae50c2d7bed322c1ea16c6f9ea56202b643ffdeaec8a"
+    },
+    {
+      "file": "clone-wait/workbench-clone-connecting-light-1440.jpg",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "source_png_sha256": "ad054dfd47b693486083918312a08b8266120e6b8a3238bc9f647109213ddf2a",
+      "jpeg_sha256": "10b55a2ed2f52065bf742d292bd68855eeec52716933ef407cb458c739be9fe1"
+    },
+    {
+      "file": "clone-wait/workbench-clone-connecting-light-2560.jpg",
+      "theme": "light",
+      "width": 2560,
+      "height": 1440,
+      "source_png_sha256": "03338a870b24099fe0541b1f4e6732886896fe19135a51156e84fcbdf600c126",
+      "jpeg_sha256": "5939b363ed98a73bb69e1d43a98945a45c9426e210f5766341c8e7b51af2ed90"
+    },
+    {
+      "file": "clone-wait/workbench-clone-connecting-light-390.jpg",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "source_png_sha256": "fa0c02e75894f57a55c4d93cf47ea9c2a0d2136fb021dccba56234901782ec13",
+      "jpeg_sha256": "fd8be38846ad6245c922a0cb76935abb04bc172a6c39719141a7d3dfeea31e1e"
+    }
+  ]
+}

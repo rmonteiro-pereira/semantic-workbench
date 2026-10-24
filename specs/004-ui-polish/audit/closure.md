@@ -44,7 +44,21 @@ visual review and replaces the saved final tour, including both authentication t
 | Round 10 capture coverage | 1 fixed | Shared account-dialog theme setup and computed CSS theme assertion; `f648e4a` |
 | Round 11 complete | 0 to fix | 1,032 native reviews; 0 S1 / 0 S2 / 12 S3 |
 
-The release completion resolves **115 observed serious rows** across baseline, repeated and
+The release completion resolves **116 observed serious rows** across baseline, repeated and
 focused reviews, plus six justified baseline triages. This is not a distinct-defect count.
 Round 11 is the complete expanded-scope clean result, at `f648e4aaaa07a4ce82c340cafa84baefad71328a`.
 The twelve main-tour and six authentication reports account for every fresh original.
+
+
+| Final fresh review | Serious rows resolved | Evidence |
+| --- | --- | --- |
+| Round 12 clone progress diagnostic and focus | 1 fixed | Atomic progress state and connection readiness; `58aa8c4`; eight focused originals clear |
+| Round 13 complete expanded scope | 0 to fix | 1,040 fresh originals: 0 S1 / 0 S2 / 18 repeated S3 rows |
+
+Round 13 supersedes round 11 as the final complete visual round, at
+`58aa8c4d828b8857e81b1be15aa5d822faad3103`. Its twelve tour partitions cover 864
+images, six authentication partitions cover 168, and the clone-wait report covers eight.
+Exact review union, original dimensions and source/output hashes were validated for all 1,040.
+The 18 minor rows repeat three patterns: sidebar scroll boundaries, a long-name orphan line,
+and phone deprecation form spacing. These remain nonblocking S3 observations.
+The final full gate and supplemental R11 acceptance proof are still pending.
