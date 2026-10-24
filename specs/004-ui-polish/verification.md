@@ -597,3 +597,17 @@ foreign-key sentence, font size, collision and layout assertions at all four siz
 behavior, timeout or timing budget changed. This is a stale wording contract, not a load rerun.
 Focused lineage replay passed all 19 checks. Full static checks, formatter and readability pass;
 independent actual-diff review reports SHIP. The final ten consecutive runs remain required.
+
+## Browser preflight: responsive sidebar readiness
+
+At `c4e79d7`, autosave, SQL, Git setup, monorepo, dialogs, telemetry and terminology passed.
+Mapping cards passed all six viewport checks, then empty-mapping navigation found a hidden
+sidebar. A fresh mutation trace reproduced the cause: after resizing to 1024 px, the helper
+read the old desktop `Hide sidebar` control before React committed `Open workspace`. The
+helper now waits for the control family matching the current viewport, using the application's
+existing breakpoint constant, before its unchanged open/show actions and visibility assertion.
+No timeout, geometry assertion or product behavior changed. An instrumented run with screenshots
+had passed because capture delayed the query; the mutation trace without that delay reproduced
+the stale state. This is a deterministic readiness correction, not a machine-load rerun.
+Focused mapping-layout replay passed all four checks at six viewports. Full static checks,
+formatter and readability pass; independent actual-diff review reports SHIP.
