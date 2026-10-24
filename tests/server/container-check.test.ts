@@ -3,7 +3,12 @@ import { expect, test } from 'bun:test';
 import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-function harness(root: string, uid: number, build = false) {
+function harness(
+  root: string,
+  uid: number,
+  build = false,
+  ports: { environment?: string; argument?: string } = {},
+) {
   const preload = `${root}/runtime.ts`;
   writeFileSync(
     preload,
@@ -36,8 +41,13 @@ function harness(root: string, uid: number, build = false) {
       preload,
       resolve('scripts/container-check.ts'),
       ...(build ? ['--build'] : ['--image', 'test-image']),
+      ...(ports.argument ? ['--port', ports.argument] : []),
     ],
-    { env: { ...process.env, TMPDIR: root }, stdout: 'pipe', stderr: 'pipe' },
+    {
+      env: { ...process.env, TMPDIR: root, SW_CONTAINER_PORT: ports.environment ?? '4310' },
+      stdout: 'pipe',
+      stderr: 'pipe',
+    },
   );
 }
 
@@ -138,3 +148,27 @@ test('the checked container runs read-only, without capabilities and with a /tmp
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+for (const argument of [undefined, '4382']) {
+  test(`container port uses ${argument ? 'the explicit flag' : 'the environment default'}`, async () => {
+    const root = mkdtempSync('/tmp/workbench-container-port-');
+    const child = harness(root, 1000, false, { environment: '4380', argument });
+    try {
+      const reader = child.stdout.getReader();
+      expect(new TextDecoder().decode((await reader.read()).value)).toContain('ready');
+      reader.releaseLock();
+      child.kill('SIGTERM');
+      expect(await child.exited).toBe(143);
+      const commands = readFileSync(`${root}/commands`, 'utf8')
+        .trim()
+        .split('\n')
+        .map(line => JSON.parse(line) as string[]);
+      const started = commands.find(args => args[1] === 'run')!;
+      expect(started).toContain(`SW_PORT=${argument ?? '4380'}`);
+    } finally {
+      child.kill();
+      await child.exited;
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+}

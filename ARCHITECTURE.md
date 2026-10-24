@@ -803,3 +803,8 @@ choice; `tests/expansion-viewport.test.ts` adds three tests and
 `scripts/graph-expansion-checks.ts` checks all four sizes in both themes through `test:graph`.
 Three targeted faults bring the mutation inventory to 660. Final release totals are recorded
 in `specs/004-ui-polish/FINAL.md` after the complete new-head gate.
+
+Container validation uses `SW_CONTAINER_PORT` as its base port (default 4310); an explicit
+`--port` takes precedence. Set a free base port such as 4315 when another local API uses 4310.
+The setting also reaches the container step of `ci:validate`; checks require the base port
+and its successor to be free before starting. It configures only validation, not the application server.
