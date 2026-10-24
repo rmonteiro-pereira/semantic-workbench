@@ -1,5 +1,5 @@
 // The whole-model graph and neighborhood screens, for the responsive suite and the capture tools.
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { revealGraphControls } from './graph-options';
 import { fileTab, type Screen } from './screen-tour';
 import { graphCanvasProblems } from './graph-canvas-geometry';
@@ -45,10 +45,21 @@ export function graphScreens(ontology: string): Screen[] {
   ];
 }
 
+// Phone controls must be opened before their labels can be inspected.
+async function expectExpansionLabel(page: Page) {
+  const controls = page.getByRole('button', { name: 'Controls', exact: true });
+  const folded = (await controls.count()) > 0;
+  const wasClosed = folded && (await controls.getAttribute('aria-expanded')) === 'false';
+  await revealGraphControls(page);
+  await expect(page.locator('.neighborhood-graph .pierce-direction-label')).toHaveText('Expand:');
+  if (wasClosed) await controls.click();
+}
+
 /** Returns the graph problems of a screen of this tour; dialogs are covered by the text checks. */
 export async function graphScreenProblems(page: Page, screen: Screen): Promise<string[]> {
   if (screen.dialog) return [];
   const which = screen.name.startsWith('graph-model') ? 'model' : 'neighborhood';
+  if (which === 'neighborhood') await expectExpansionLabel(page);
   // With every area open the model zooms out, so only the first view must keep names readable.
   const allOpen = screen.name === 'graph-model-all-areas';
   const problems = (await graphCanvasProblems(page, which)).filter(

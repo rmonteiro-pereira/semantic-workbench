@@ -118,3 +118,9 @@
   background: var(--color-surface-page);
   border-radius: 4px;
 }
+
+.full-graph .full-area-title strong {
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: anywhere;
+}

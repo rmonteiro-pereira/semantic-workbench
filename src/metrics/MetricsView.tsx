@@ -78,7 +78,7 @@ export function MetricsView({
     <div className={`metrics-view${current ? ' has-detail' : ''}`}>
       <section className="metrics-list" aria-label="Metrics">
         <header className="metrics-heading">
-          <small>METRICS{projectName ? ` · ${projectName.toUpperCase()}` : ''}</small>
+          <small>{projectName ? `Project: ${projectName}` : 'Project metrics'}</small>
           <div className="metrics-title">
             <h2>Metrics</h2>
             {project && onNew && (

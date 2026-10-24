@@ -122,6 +122,13 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `tests/` | Unit and handler tests (`bun test`), always on temporary data roots; `tests/helpers/mock-oidc.ts` is a loopback OpenID provider with Entra, Keycloak and generic claim shapes, an optional Entra endpoint layout that drives the MSAL path (`tests/helpers/entra-provider.ts` starts it for tests), and a Microsoft Graph stand-in; `tests/fixtures/auth-workspace/` is the access test workspace and `tests/helpers/auth-identities.ts` its people and groups | Calls to a real identity provider |
 | `scripts/` | Browser checks (Playwright against an isolated API), the mutation suite, example generators, `dev.ts` | |
 
+The mapping page owns its concept-list scroll. When no bindings exist, it summarises unbound
+concepts until a search requests individual ones. Source actions carry the selected mapping
+document ID into `WorkspaceCanvas`, which resolves it before opening the shared Source tab.
+Dataset quality uses the same Source navigation. Graph labels are placed only inside the
+card-layout bounds; labels without room remain available on hover. The compact wizard stepper
+shows the count once and names the step in its menu.
+
 ## Data flow
 
 Opening and editing a file:

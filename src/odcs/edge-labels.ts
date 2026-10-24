@@ -41,6 +41,7 @@ const touches = (a: Rect, b: Rect, gap = 0) =>
 export function placeEdgeLabels(
   requests: readonly LabelRequest[],
   obstacles: readonly Rect[],
+  bounds?: Rect,
 ): Map<string, Rect> {
   const placed = new Map<string, Rect>();
   const ordered = [...requests].sort((a, b) => a.priority - b.priority || a.at.y - b.at.y);
@@ -53,6 +54,13 @@ export function placeEdgeLabels(
     const clear = h / 2 + LINE_CLEARANCE;
     for (const shift of [-clear, clear, 0, h + GAP_AROUND, -(h + GAP_AROUND)]) {
       const spot = { x: centre.x - w / 2, y: centre.y + shift - h / 2, w, h };
+      const outside =
+        bounds &&
+        (spot.x < bounds.x ||
+          spot.y < bounds.y ||
+          spot.x + spot.w > bounds.x + bounds.w ||
+          spot.y + spot.h > bounds.y + bounds.h);
+      if (outside) continue;
       const blocked =
         obstacles.some(o => touches(spot, o)) ||
         [...placed.values()].some(o => touches(spot, o, GAP_AROUND));
@@ -133,6 +141,12 @@ export function buildLineLabels(
     w: CARD_W,
     h: context.heights.get(id) ?? 0,
   }));
-  const placed = placeEdgeLabels(requests, obstacles);
+  // Fitting cards does not include edge loops, so labels stay inside the same world bounds.
+  const left = Math.min(...obstacles.map(card => card.x));
+  const top = Math.min(...obstacles.map(card => card.y));
+  const right = Math.max(...obstacles.map(card => card.x + card.w));
+  const bottom = Math.max(...obstacles.map(card => card.y + card.h));
+  const bounds = { x: left, y: top, w: right - left, h: bottom - top };
+  const placed = placeEdgeLabels(requests, obstacles, bounds);
   return new Map([...texts].map(([id, text]) => [id, { lines: text, place: placed.get(id) }]));
 }

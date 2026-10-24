@@ -1,6 +1,18 @@
-// Faults in the wording of refusals shown to people, apart from the older inventory. Each tuple is
-// the category, the module, the exact text and its replacement.
+// Focused faults guard readable graph details, contained labels and actionable save refusals.
+// Each tuple names the category, module, original text and replacement.
 export const polishMutants: [string, string, string, string][] = [
+  [
+    'edge-label-bounds',
+    'src/odcs/edge-labels.ts',
+    'if (outside) continue;',
+    'if (false) continue;',
+  ],
+  [
+    'edge-label-bounds',
+    'src/odcs/edge-labels.ts',
+    'placeEdgeLabels(requests, obstacles, bounds)',
+    'placeEdgeLabels(requests, obstacles)',
+  ],
   [
     'graph-detail-zoom',
     'src/graph/overview-capacity.ts',

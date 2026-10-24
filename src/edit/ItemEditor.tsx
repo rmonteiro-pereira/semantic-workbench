@@ -280,6 +280,17 @@ export function ItemEditor({
           Saving changes what these show.
         </p>
       )}
+      {issues.length > 0 && (
+        <ul className="item-findings" aria-label="Findings">
+          {fragmentIssues(issues, fragment, text).map((i, n) => (
+            <li key={n} className={i.severity}>
+              <AlertTriangle size={12} />
+              {i.line ? `Line ${i.line}: ` : ''}
+              {i.message}
+            </li>
+          ))}
+        </ul>
+      )}
       <div className="item-tabs" role="tablist" aria-label="Edit as">
         <button
           role="tab"
@@ -501,17 +512,7 @@ export function ItemEditor({
           )}
         </section>
       )}
-      {issues.length > 0 && (
-        <ul className="item-findings" aria-label="Findings">
-          {fragmentIssues(issues, fragment, text).map((i, n) => (
-            <li key={n} className={i.severity}>
-              <AlertTriangle size={12} />
-              {i.line ? `Line ${i.line}: ` : ''}
-              {i.message}
-            </li>
-          ))}
-        </ul>
-      )}
+
       {error && (
         <p role="alert" className="dialog-error">
           {error}

@@ -20,6 +20,7 @@ type Props = {
   gitVersion: number;
   docText: (id: string) => string;
   applySaved: (saved: Saved[], label: string) => void;
+  onOpenSource: () => void;
 };
 /** Why some property controls are read-only for people who may not classify. */
 function protectedPropertiesNote(protectedLevel = 'confidential') {
@@ -37,6 +38,7 @@ export function ContractView({
   gitVersion,
   docText,
   applySaved,
+  onOpenSource,
 }: Props) {
   const access = useCapabilities(current.project);
   const lockedForPerson = !access.local && !access.can('editGuarded');
@@ -48,6 +50,7 @@ export function ContractView({
       objectName={contractObject}
       projectDocs={docs.filter(d => d.project === current.project)}
       onBack={() => setContractObject(null)}
+      onOpenSource={onOpenSource}
       onOpenObject={setContractObject}
       onOpenInLineage={openInLineage}
       onNeighborhood={continueInNeighborhood}

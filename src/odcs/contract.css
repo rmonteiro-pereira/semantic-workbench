@@ -219,6 +219,12 @@
     grid-column: 2;
     min-width: 0;
   }
+  .odcs-table.stack td.col-actions::before {
+    content: none;
+  }
+  .odcs-table.stack td.col-actions > button {
+    justify-self: start;
+  }
   .odcs-table.stack td.col-name {
     padding-left: 0 !important;
   }

@@ -71,7 +71,7 @@ export function MappingExplorer({
   dirty: boolean;
   onEditItem?: (docId: string, path: (string | number)[]) => void;
   /** Shows the source of the open file, where a binding is added. */
-  onOpenSource?: () => void;
+  onOpenSource?: (documentId: string) => void;
 }) {
   const requestVersion = useRef(0);
   const [options, setOptions] = useState<MappingOption[]>([]);
@@ -189,6 +189,10 @@ export function MappingExplorer({
     setPlan(null);
     setPlanError('');
   };
+  function openBindingSource() {
+    setComposing(false);
+    onOpenSource?.(mappingId.split('#')[0]);
+  }
   const openConcept = (name: string) => {
     requestVersion.current++;
     setLoading(false);
@@ -306,6 +310,7 @@ export function MappingExplorer({
           error={planError}
           onPreview={() => void preview()}
           onClose={() => setComposing(false)}
+          onOpenSource={onOpenSource ? openBindingSource : undefined}
         />
       )}
       {context && (
@@ -348,23 +353,29 @@ export function MappingExplorer({
                 <button aria-pressed={!concept} onClick={() => openConcept('')}>
                   All concepts
                 </button>
-                {concepts.map(c => {
-                  const bindingCount = context.bindings.filter(
-                    binding => binding.rootConcept === c.concept || binding.concept === c.concept,
-                  ).length;
-                  return (
-                    <button
-                      key={c.concept}
-                      aria-pressed={concept === c.concept}
-                      onClick={() => openConcept(c.concept)}
-                    >
-                      {c.concept}
-                      <small>
-                        {bindingCount} {bindingCount === 1 ? 'binding' : 'bindings'}
-                      </small>
-                    </button>
-                  );
-                })}
+                {context.bindings.length === 0 && !query ? (
+                  <p className="mapping-empty-concepts">
+                    {concepts.length} concepts, none mapped. Find a concept to inspect it.
+                  </p>
+                ) : (
+                  concepts.map(c => {
+                    const bindingCount = context.bindings.filter(
+                      binding => binding.rootConcept === c.concept || binding.concept === c.concept,
+                    ).length;
+                    return (
+                      <button
+                        key={c.concept}
+                        aria-pressed={concept === c.concept}
+                        onClick={() => openConcept(c.concept)}
+                      >
+                        {c.concept}
+                        <small>
+                          {bindingCount} {bindingCount === 1 ? 'binding' : 'bindings'}
+                        </small>
+                      </button>
+                    );
+                  })
+                )}
               </div>
             </div>
             <div className="mapping-detail">
@@ -373,7 +384,9 @@ export function MappingExplorer({
                 <EmptyState
                   title={concept ? `No binding for ${concept}` : 'No bindings in this mapping'}
                   action={
-                    onOpenSource && <button onClick={onOpenSource}>Open Source to add one</button>
+                    onOpenSource && (
+                      <button onClick={openBindingSource}>Open Source to add one</button>
+                    )
                   }
                 >
                   {mappingFile ?? 'This mapping'} does not bind{' '}

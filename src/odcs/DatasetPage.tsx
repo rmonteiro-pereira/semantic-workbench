@@ -44,6 +44,7 @@ type Props = {
   objectName: string;
   projectDocs: Doc[];
   onBack: () => void;
+  onOpenSource?: () => void;
   onOpenObject: (name: string) => void;
   onOpenInLineage?: (name: string) => void;
   onNeighborhood?: (card: LineageCard) => void;
@@ -61,6 +62,7 @@ export function DatasetPage({
   objectName,
   projectDocs,
   onBack,
+  onOpenSource,
   onOpenObject,
   onOpenInLineage,
   onNeighborhood,
@@ -242,7 +244,7 @@ export function DatasetPage({
         {tab === 'History' && (
           <HistoryTab versions={versions} error={historyError} objectName={objectName} />
         )}
-        {tab === 'Data Quality' && <QualityTab object={object} />}
+        {tab === 'Data Quality' && <QualityTab object={object} onOpenSource={onOpenSource} />}
       </div>
     </section>
   );
@@ -676,7 +678,7 @@ function qualityColumns(rows: QualityRow[]): QualityColumn[] {
   return columns.filter(column => column.filled);
 }
 
-function QualityTab({ object }: { object: any }) {
+function QualityTab({ object, onOpenSource }: { object: any; onOpenSource?: () => void }) {
   const rules: QualityRow[] = [
     ...list(object.quality).map(r => ({ scope: 'Table', rule: r })),
     ...flattenProperties(object.properties).flatMap(p =>
@@ -687,7 +689,11 @@ function QualityTab({ object }: { object: any }) {
   return (
     <>
       {!rules.length ? (
-        <EmptyState icon={<ShieldCheck size={28} />} title="No quality rules declared">
+        <EmptyState
+          icon={<ShieldCheck size={28} />}
+          title="No quality rules declared"
+          action={onOpenSource && <button onClick={onOpenSource}>Open Source tab</button>}
+        >
           Add a quality list to this table or to one of its properties in the contract file (Source
           tab). Rules appear here as declared; the workbench does not run them.
         </EmptyState>

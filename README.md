@@ -223,9 +223,25 @@ Example files are under `public/examples/commerce/` and downloadable at `/exampl
 
 Walk the model by activating a neighbor (**Walk here**, click, or keyboard): it becomes the center and the previous center stays visible, marked *Previous center*. The **Walk** trail lists every center with the relationship it was reached through; **Back** and **Forward** move along it, and any crumb jumps back. When the center is defined in another file of the project as well (a shared IRI, physical name or business definition, or an Ossie concept mapping of the same concept), **Continue in <file>** carries the walk into that file; Back returns. Concepts with metrics carry a metric badge, and **Open N metrics for <concept>** opens the Metrics list filtered to that concept.
 
-**Pierce through.** **+** on a node (or activating a relationship line) expands it in place: its neighbors join the same canvas beside it, nothing already placed moves, and the trail records "expanded X"; **−** collapses what that expansion alone added (a node another expansion also reached stays). **Undo expansion**, **Back** and **Forward** restore the exact earlier canvas; walking to a new center starts a fresh one. **Show all connected** (the full pierce) expands everything reachable from the selected node or the center in the chosen direction (**Out**, **In**, **Both**), each entity once, following the **Value types**, **Technical resources** and **Metrics** switches (Value types shares the Graph view's setting). It stops at 150 entities: frontier nodes show "+N hidden", a banner reads "N entities shown in K steps · M more reachable" with **Expand further** (up to 500) and **Stop**. The closure is computed in a worker and large additions appear over several frames, so the page stays responsive. The lineage and mapping canvases use the same budgets, counted in cards, and offer Expand, Collapse, Show all connected (from a column or a card, upstream, downstream or both) and Undo expansion.
+**Pierce through.** **+** on a node (or activating a relationship line) expands it in place: its
+neighbors join the same canvas beside it, nothing already placed moves, and the trail records
+"expanded X"; **−** collapses what that expansion alone added (a node another expansion also reached
+stays). **Undo expansion**, **Back** and **Forward** restore the exact earlier canvas; walking to a
+new center starts a fresh one. **Show all connected** (the full pierce) expands everything reachable
+from the selected node or the center in the chosen direction (**Outgoing**, **Incoming**, **Both**,
+under **Expand**), each entity once, following the **Value types**, **Technical resources** and
+**Metrics** switches (Value types shares the Graph view's setting). It stops at 150 entities:
+frontier nodes show "+N hidden", a banner reads "N entities shown in K steps · M more reachable"
+with **Expand further** (up to 500) and **Stop**. The closure is computed in a worker and large
+additions appear over several frames, so the page stays responsive. The lineage and mapping canvases
+use the same budgets, counted in cards, and offer Expand, Collapse, Show all connected (from a
+column or a card, upstream, downstream or both) and Undo expansion.
 
 Choose a center with **Find a center**, a searchable picker that ranks exact names first (also for the 1,000-entity scale model); toolbar search lists matches and the chosen one stays the center after the search is cleared. OWL models show classes only, with or without a center; **Technical resources** adds property resources, restrictions and other RDF resources on request. **Re-center** puts dragged nodes back in their columns. **Graph** opens the complete interactive model; **Overview** retains the business-area map and relationship matrix. **Full screen** (the toolbar button or the **F** key) lets Graph or Neighborhood fill the screen; the details panel then opens over the graph. **Escape** or **Exit full screen** brings back the earlier layout, zoom and selection. If the browser refuses full screen, the view fills the browser window instead. The catalog exposes all definitions. RDF literals remain in entity definitions rather than becoming nodes. Blank nodes retain their identity within each parsed document.
+
+Graph cards hide detail lines below 1× zoom so those labels stay at least 12 px when shown.
+Area titles wrap, the legend explains area colors and relationship lines, and names retain
+full-name tooltips. Edge labels without room inside the layout remain available on hover.
 
 Click nodes or relationships to inspect their source definitions. Relationship inspection includes endpoints, roles, multiplicity, verbalizations, join keys or RDF predicates. Ontology n-ary relationships expand into navigation edges referring to the same original definition. Metric edges show explicit dataset references in expressions, not observed execution lineage.
 
@@ -340,7 +356,22 @@ The interface uses **Metric** for both ordinary and governed metrics. Stored met
 
 Metric attributes are stored in the Ossie files themselves, so they travel with the model and diff cleanly: each metric carries a `custom_extensions` entry with `vendor_name: SEMANTIC_WORKBENCH` whose `data` is JSON validated against [schemas/semantic-workbench-metric-v1.json](schemas/semantic-workbench-metric-v1.json); the metric-to-concept bindings (`measures`, optional `of`) are one line per metric in the root extension of the standalone mapping document (or of the embedded semantic model in a consolidated file), validated against [schemas/semantic-workbench-mapping-v1.json](schemas/semantic-workbench-mapping-v1.json). Errors in these blocks are reported at the exact line and column. Without extensions, type and additivity are inferred, and concept mappings whose expression is a metric name are shown as evidence. The graph shows metric nodes (with a *Metrics shown/hidden* toggle) and a metric badge on concepts that metrics measure or describe, also in the catalog. Every shipped example declares this for its metrics (see [Metrics in the examples](#metrics-in-the-examples)).
 
-**New metric** (Metrics) opens a wizard in eight steps, shown below 1200 px as one line (*Step 3 of 8 · Type and inputs*) with a progress bar and a menu of the steps already reached, and from 1200 px as a list of the steps that marks completed, current and pending ones, with **Back** and **Next** in the footer and long names wrapping: the concept it measures and the entity it is about; the semantic model; type and inputs (a simple aggregation of a field, a ratio of two metrics with a `NULLIF` guard, or a derived, cumulative or filtered metric over named metrics), label, name and additivity; time dimension, grains and breakdowns; target and thresholds; owner, steward, status, unit and format; the explanation and SQL preview of the new metric (computed, not executed); and the exact lines each file will gain. **Save to file** writes the metric (its formula only as the Ossie expression) with its extension into the semantic model and one binding line, in sorted position, into the project's mapping document, in one journaled save; a project without a mapping document gets a minimal one (`concept_mappings: []`), and a consolidated file keeps the binding in its embedded semantic model. **Edit metric** follows the status rules: draft → proposed → approved → deprecated; changing the definition of an approved metric returns it to proposed; deprecation needs `replaced_by` or `deprecation_reason`; the metrics and bindings that use the metric are listed before saving.
+**New metric** (Metrics) opens a wizard in eight steps, shown below 1200 px as one line (*Step 3 of
+8*) with a progress bar and a menu naming the current step and the steps already reached, and from
+1200 px as a list of the steps that marks completed, current and pending ones, with **Back** and
+**Next** in the footer and long names wrapping: the concept it measures and the entity it is about;
+the semantic model; type and inputs (a simple aggregation of a field, a ratio of two metrics with a
+`NULLIF` guard, or a derived, cumulative or filtered metric over named metrics), label, name and
+additivity; time dimension, grains and breakdowns; target and thresholds; owner, steward, status,
+unit and format; the explanation and SQL preview of the new metric (computed, not executed); and the
+exact lines each file will gain. **Save to file** writes the metric (its formula only as the Ossie
+expression) with its extension into the semantic model and one binding line, in sorted position,
+into the project's mapping document, in one journaled save; a project without a mapping document
+gets a minimal one (`concept_mappings: []`), and a consolidated file keeps the binding in its
+embedded semantic model. **Edit metric** follows the status rules: draft → proposed → approved →
+deprecated; changing the definition of an approved metric returns it to proposed; deprecation needs
+`replaced_by` or `deprecation_reason`; the metrics and bindings that use the metric are listed
+before saving.
 
 API: `GET /api/projects/:slug/metrics` (every metric, each with `governed`), `POST /api/projects/:slug/metrics` (and `…/metrics/preview`; `existing: true` adds attributes to a metric already in the model; the v0.2.0 `…/kpis` paths remain as aliases), `POST /api/projects/:slug/save-batch` and `GET /api/projects/:slug/files/*path/explain/:metric?grain=&dimension=&rollup=sum` ([contract](specs/001-workbench-improvements/contracts/http-api.md)).
 
@@ -361,7 +392,16 @@ The metrics follow the storage rules above: definitions in the semantic model wi
 
 ### Ontology mappings and agent tools
 
-**Load mapped commerce** demonstrates separate ontology, semantic model, and mapping documents. The **Mappings** tab resolves object/referent/link mappings, displays source evidence and physical sources, exposes governed metrics and AI metadata, exports agent context, and, in the **Compose a query…** dialog, composes a new revenue-by-region SQL preview from selected building blocks (shown, never run); the dialog groups the mapped fields by dataset and has a **Find a field** box. The page opens with one summary line of the four layers and a concept list that scrolls whole cards. Missing or ambiguous document/field/concept references are reported.
+**Load mapped commerce** demonstrates separate ontology, semantic model, and mapping documents. The
+**Mappings** tab resolves object/referent/link mappings, displays source evidence and physical
+sources, exposes governed metrics and AI metadata, exports agent context, and, in the **Compose a
+query…** dialog, composes a new revenue-by-region SQL preview from selected building blocks (shown,
+never run); the dialog groups the mapped fields by dataset and has a **Find a field** box. The page
+opens with one summary line of the four layers and a concept list in the page scroll, without a
+nested scrolling region. Missing or ambiguous document/field/concept references are reported. A
+mapping with no bindings summarises its unbound concepts in one row; search still finds individual
+concepts. Its empty state and query composer offer **Open Source** for the selected mapping
+document. Empty dataset quality checks also offer **Open Source tab**.
 
 Each binding reads as a chain of labelled steps: concept, relationship path, field or metric, dataset and physical source, with its condition and its findings attached. Bindings are grouped by dataset (a view choice; groups collapse and show their counts). A finding offers **Edit item**, which opens the item editor on the offending mapping item, or Source at its line when the item has no form. Concepts and bindings sit side by side; below 760 px they stack. Long names wrap at `.` and `_`, each arrow stays with the step it leads to, and counts read `1 binding` or `N bindings`.
 
@@ -1163,7 +1203,7 @@ sign-in pages and the accent, and confirms that a script in a logo does not run.
 ## Checking your work
 
 ```sh
-bun test              # 1,832 tests in 257 files
+bun test              # unit and handler checks
 bun run check         # tsc, fmt:check, oxlint, the comment check, the theme check and the brand check
 bun run build         # compiles the schemas, then the production frontend
 ```
@@ -1213,7 +1253,7 @@ they need no Vite.
 | `test:theme` | Swapping `--color-accent` in the browser changes the primary button, the selected tab and the graph selection; the Theme control sets, stores and clears dark; System follows the browser; the stored choice is applied by a script before the app loads; muted text keeps 4.5:1 on its surfaces; the main tour in the light theme and every tour in the dark theme at 1280×720 have readable text, enough contrast and no overlaps |
 | `test:telemetry` | With a mocked API, a thrown error and an unhandled rejection reach the report route with quoted text replaced and only the documented fields; nothing is sent when the server has telemetry off; the page contacts no host but the workbench |
 | `test:terminology` | The interface, this README and `docs/` call every metric a metric and use the older term nowhere except in verbatim data and the stored `kpi_bindings` key |
-| `test:mappings-layout`, `test:mapping-graph` | Binding cards at six viewports; every mapping graph line against the resolver's bindings |
+| `test:mappings-layout`, `test:mapping-graph` | Binding cards and selected-document Source actions at six viewports; every mapping graph line against the resolver's bindings |
 | `test:auth` | The mock provider in Entra's endpoint layout: every fixture person, role provenance, refresh, expiry, Graph overage and failure, live updates, sign-out, agent clients' bearer tokens, guarded changes, the owner picker, remote credentials; screenshots of each screen at 390×844, 1280×720, 1440×900 and 2560×1440 |
 | `test:two-editors` | Two Editors, a Steward and a Viewer on one repository: edits, drafts, branches, commits and pulls stay in each copy, each commit names its author, a branch held by another copy cannot be chosen, a publish reaches the Viewer |
 | `test:admin` | The Admin panel against the real API: timed grant, access-check and rollback flows, custom roles, policy rollback, audit export, routing (reload and Back), every section and dialog at four sizes. |
@@ -1237,13 +1277,11 @@ SW_SCREENSHOT_DIR=/tmp/admin-shots bun test tests/admin-geometry.test.tsx  # eve
 
 ### Mutation checks
 
-`bun run test:mutation` is targeted, not a whole-project score. It introduces 535
-deliberate faults into temporary copies of the code, each of which a test must detect, plus five
-`bun run test:mutation` is targeted, not a whole-project score. It introduces 521
-deliberate faults into temporary copies of the code, each of which a test must detect, plus three
-faults injected into a running browser page (an empty neighborhood projection, a status line drawn
-over the map controls, status messages that never dismiss, a label below the minimum text size and
-a save state cut with an ellipsis in a wide header). Each module's unmodified baseline
+`bun run test:mutation` introduces deliberate faults into temporary code copies and browser
+pages. Each fault must be detected by its focused check. Browser faults cover an empty
+neighborhood projection, a status line over controls, persistent status messages, undersized
+labels and graph text, clipped save state and missing catalog description access.
+Each module's unmodified baseline
 must pass first, and formatting and lint must be clean. It never changes application sources.
 The faults cover validation, RDF, size limits, layout, grouping, exports, edits, metrics, the
 example sets (a file that carries a metric, its binding or its contract dropped) and the
@@ -1252,8 +1290,8 @@ folder store; Git safety (no shell strings, no remote command outside an explici
 boundary; the access boundary, guards and working copies; the Admin panel (an unpreviewed or
 invalid change activated, a built-in role changed, a deactivated principal allowed, a stale review
 confirmed); the folder path check, the sparse-checkout arguments and the partial clone; the colour
-literal scanner, the theme check and the theme codemod; and the delivery scripts.
-confirmed); the delivery scripts; and logging, telemetry and browser reports (redaction of secrets,
+literal scanner, the theme check and the theme codemod; delivery scripts; graph detail zoom
+and edge-label bounds; and logging, telemetry and browser reports (redaction of secrets,
 content and locations, the rule that local mode and a missing connection string never export,
 report validation and limits, the reporter's queue limits, and the exporter's usage reporting).
 

@@ -117,6 +117,13 @@ export async function editContainmentProblems(page: Page, screenName: string): P
       if (offCentre > 2) problems.push(`the add dialog is ${offCentre}px off centre`);
       if (panel.left < 0 || panel.right > width) problems.push('the add dialog leaves the screen');
     }
+    if (name === 'item-editor') {
+      const findings = box('dialog[open] .item-findings');
+      const tabs = box('dialog[open] .item-tabs');
+      if (findings && tabs && findings.bottom > tabs.top + 1) {
+        problems.push('the editor hides its validation coverage below the form');
+      }
+    }
     if (name === 'item-editor' || name === 'metric-wizard') {
       const bodyElement = document.querySelector<HTMLElement>('dialog[open] .dialog-body');
       if (bodyElement && Number.parseFloat(getComputedStyle(bodyElement).paddingBottom) < 24) {
@@ -136,6 +143,13 @@ export async function editContainmentProblems(page: Page, screenName: string): P
       }
     }
     if (name === 'query-composer') {
+      const choices = document.querySelectorAll('dialog[open] input[type="checkbox"]');
+      const sourceAction = [...document.querySelectorAll('dialog[open] button')].find(
+        button => button.textContent === 'Open Source to add bindings',
+      );
+      if (!choices.length && !sourceAction) {
+        problems.push('an empty query composer has no direct route to add bindings');
+      }
       const scrollers = [...document.querySelectorAll<HTMLElement>('dialog[open] *')].filter(el => {
         const overflow = getComputedStyle(el).overflowY;
         return ['auto', 'scroll'].includes(overflow) && el.scrollHeight > el.clientHeight + 1;
@@ -143,6 +157,10 @@ export async function editContainmentProblems(page: Page, screenName: string): P
       if (scrollers.length > 1) problems.push(`${scrollers.length} nested scroll regions`);
     }
     if (name === 'metric-wizard' && panel) {
+      const progressTitle = document.querySelector('.wizard-stepper-title');
+      if (width < 1200 && !/^Step \d+ of \d+$/.test(progressTitle?.textContent?.trim() ?? '')) {
+        problems.push('compact wizard progress repeats the step name beside its selector');
+      }
       if (
         Math.abs(panel.left + panel.width / 2 - width / 2) > 2 ||
         Math.abs(panel.top + panel.height / 2 - height / 2) > 2
@@ -163,6 +181,12 @@ export async function editContainmentProblems(page: Page, screenName: string): P
         if (pending && style.backgroundColor === getComputedStyle(pending).backgroundColor) {
           problems.push('the current step has the same fill as a pending step');
         }
+      }
+    }
+    if (name === 'metrics-list' || name === 'metric-detail') {
+      const scope = document.querySelector('.metrics-heading small');
+      if (scope && !scope.textContent?.startsWith('Project')) {
+        problems.push('the metrics heading does not identify its project scope');
       }
     }
     if (name === 'metrics-list' && width <= 700) {

@@ -325,7 +325,7 @@ The metric attributes wizard showed a seven-step strip that scrolled sideways wi
 two-line body above a large empty area, and no strategy for long metric names.
 
 1. A shared stepper (`src/projects/WizardStepper.tsx`) replaces any scrolling step strip. Below
-   1200 px it is one line, "Step 2 of 8 · Data", a progress bar and a menu of all steps; from
+   1200 px it is one line, "Step 2 of 8", a progress bar and a menu naming the current step once; from
    1200 px it is a vertical list that marks completed, current and pending steps. Labels are at
    least 12 px. It never scrolls sideways.
 2. Cancel, Back and Next sit in the shared dialog footer; the body takes the height of its step.

@@ -9,6 +9,42 @@ import { observabilityCase } from './observability-cases';
 setActiveBrand(loadBrandBundle());
 const m = await import(process.argv[2]);
 const category = process.argv[3];
+if (category === 'edge-label-bounds') {
+  const bounds = { x: 0, y: 0, w: 400, h: 200 };
+  const request = { id: 'outside', lines: ['2'], at: { x: 200, y: -200 }, room: null, priority: 1 };
+  assert.equal(m.placeEdgeLabels([request], [], bounds).size, 0);
+  const line = {
+    id: 'loop',
+    from: 'a.row',
+    to: 'b.row',
+    fromCard: 'a',
+    toCard: 'b',
+    kind: 'foreign-key',
+    onPath: false,
+    count: 2,
+    edges: [],
+  };
+  const context = {
+    graph: {},
+    positions: { a: { x: 0, y: 0 }, b: { x: 600, y: 0 } },
+    routes: {
+      loop: [
+        { x: 300, y: -400 },
+        { x: 500, y: -400 },
+      ],
+    },
+    layoutCards: new Map([
+      ['a', { id: 'a', rows: [] }],
+      ['b', { id: 'b', rows: [] }],
+    ]),
+    heights: new Map([
+      ['a', 200],
+      ['b', 200],
+    ]),
+    scrolling: new Set(),
+  };
+  assert.equal(m.buildLineLabels(context, [line]).get('loop').place, undefined);
+}
 if (category === 'graph-detail-zoom') {
   assert.equal(m.textSizesAt(1).showDetail, true);
   assert.equal(m.textSizesAt(0.99).showDetail, false);

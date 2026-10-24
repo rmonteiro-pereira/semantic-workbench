@@ -478,7 +478,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
                     e.kind
                   )}
                 </small>
-                <strong>{e.name}</strong>
+                <strong title={e.name}>{e.name}</strong>
                 <span>
                   {e.fields.length
                     ? `${e.fields.length} ${e.fields.length === 1 ? 'field' : 'fields'}`
@@ -825,7 +825,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
                     choose(e.id);
                   }}
                 >
-                  <strong>{e.name}</strong>
+                  <strong title={e.name}>{e.name}</strong>
                   <small>{e.kind}</small>
                 </li>
               ))}
@@ -1035,7 +1035,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
                   {searchResults.map(e => (
                     <li key={e.id} role="option" aria-selected={false}>
                       <button onClick={() => choose(e.id)}>
-                        <strong>{e.name}</strong>
+                        <strong title={e.name}>{e.name}</strong>
                         <small>{e.kind}</small>
                       </button>
                     </li>

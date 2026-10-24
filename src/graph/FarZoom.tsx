@@ -2,10 +2,10 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { useStore } from '@xyflow/react';
 
-// Detail lines are 12 px, so below a zoom of 0.92 they would read smaller than 11 px and the
-// cards drop them. Each lower level makes the name larger again.
+// Detail lines are 12 px, so cards drop them below their natural scale.
+// Each lower level makes the name larger again.
 /** Zoom levels below which cards switch to a larger name, from first to last. */
-const FAR_ZOOM_LEVELS = [0.92, 0.75, 0.6, 0.45, 0.35, 0.28];
+const FAR_ZOOM_LEVELS = [1, 0.75, 0.6, 0.45, 0.35, 0.28];
 /** The lowest zoom a first view uses: names are at 12 px there, and a wider canvas is panned. */
 export const LOWEST_FIT_ZOOM = 0.3;
 /** The zoom at or above which cards show their detail lines. */

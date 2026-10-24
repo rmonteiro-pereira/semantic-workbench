@@ -11,6 +11,14 @@ export async function pageLayoutProblems(page: Page, screenName: string) {
       return boxes.filter(box => box.width > 0 && Math.abs(box.top - boxes[0].top) < 2);
     };
     if (name === 'ontology-overview') {
+      for (const count of document.querySelectorAll('.area-count')) {
+        if (!count.textContent?.includes('entities')) problems.push('an area count has no unit');
+      }
+      if (
+        !document.querySelector('.overview-top p')?.textContent?.includes('declared relationships')
+      ) {
+        problems.push('the overview does not explain entity counts');
+      }
       const first = rows('.business-area');
       if (first.some(box => Math.abs(box.height - first[0].height) > 1)) {
         problems.push('group cards of one row differ in height');
@@ -32,8 +40,23 @@ export async function pageLayoutProblems(page: Page, screenName: string) {
         problems.push('the layer summary items differ in height');
       }
       const list = document.querySelector('.mapping-concept-list');
-      if (list && getComputedStyle(list).maskImage === 'none') {
-        problems.push('the concept list has no fade at its edge');
+      if (list) {
+        const style = getComputedStyle(list);
+        if (style.maskImage !== 'none' || list.scrollHeight > list.clientHeight + 1) {
+          problems.push('the concept list clips cards inside a nested scroll region');
+        }
+        const empty = document.querySelector('.mapping-detail .empty-state');
+        const buttons = list.querySelectorAll('button');
+        const search = document.querySelector<HTMLInputElement>('[aria-label="Find concept"]');
+        if (empty && !search?.value && buttons.length > 1) {
+          problems.push('an unbound mapping repeats a card for every unmapped concept');
+        }
+      }
+    }
+    if (['source-editor', 'ontology-source'].includes(name) && innerWidth <= 480) {
+      const cursor = document.querySelector('.code-editor-position');
+      if (cursor && getComputedStyle(cursor).display !== 'none') {
+        problems.push('the optional cursor readout crowds phone editor navigation');
       }
     }
     if (name === 'source-control') {

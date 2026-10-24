@@ -184,6 +184,10 @@ export function WorkspaceCanvas({
   crossFile,
   crossTo,
 }: Props) {
+  function openMappingSource(documentId: string) {
+    const document = docs.find(candidate => candidate.id === documentId);
+    if (document && openDocument(document)) setTab('source');
+  }
   function renderCanvasView() {
     if (tab === 'contract' && isContract && current) {
       return (
@@ -198,6 +202,7 @@ export function WorkspaceCanvas({
           gitVersion={gitVersion}
           docText={docText}
           applySaved={applySaved}
+          onOpenSource={() => setTab('source')}
         />
       );
     }
@@ -243,7 +248,7 @@ export function WorkspaceCanvas({
       return (
         <MappingExplorer
           onEditItem={editMappingItem}
-          onOpenSource={() => setTab('source')}
+          onOpenSource={openMappingSource}
           currentId={current?.id}
           revisionKey={docs.map(d => d.id + ':' + d.hash).join('|')}
           dirty={!!current && source !== current.source}
