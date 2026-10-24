@@ -730,3 +730,9 @@ is recorded as well as every refusal.
 The model graph initially uses Layered layout and retains ELK route vertices while they match live
 handles. Moving a card falls back to live routing. Fully collapsed areas are packed compactly rather
 than stretched into a layered chain. Neighborhood row spacing includes full-detail card height.
+
+The release screenshot manifest in `specs/004-ui-polish/screenshots/after/manifest.json` records
+the capture commit, original dimensions and source/output hashes. Conversion preserves the native
+viewport without cropping or resizing. Capture runs freeze source and builds because schema
+generation causes Vite reloads. The standalone large-graph and UBL browser checks supplement the
+29 canonical suites in `scripts/gate-suites.ts`; they use the same isolated API boundary.

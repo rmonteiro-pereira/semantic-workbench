@@ -356,3 +356,22 @@ The final graph matrix passed all four viewports with this correction. Focused v
 passed 17 unit tests / 135 assertions, four Admin viewport checks, six edge checks, and the full
 Admin browser suite. The 24 changed Admin captures were independently reviewed without S1/S2.
 These focused passes do not replace the pending complete round across both modes and themes.
+
+## Complete round 8
+
+Frozen source/capture head: `6363a0e16699c6a891728de2d69acc4e4c78e4e9`. Server light
+completed at 06:49:37 UTC, server dark at 06:54:51, local light at 07:00:54 and local dark at
+07:06:58 on 24 October 2026. Each produced 216 images and 216 zero-problem measurements,
+with no skips. All 864 originals were independently inspected at native size. Every filename is
+accounted for in the twelve reports: **0 S1, 0 S2, 8 S3 rows**, two repeated minor patterns.
+Final JPEGs preserve dimensions, quality 95 and no chroma subsampling; the manifest records
+source and output hashes. R10's capture/review loop is complete.
+
+The Vite log also recorded two ResizeObserver notification-loop errors during local capture.
+They do not invalidate the measured/native visual result. The release gate must still pass its
+uncaught-browser-error assertions; this observation is retained for root-cause diagnosis if it
+reproduces. No browser error assertion is suppressed or weakened.
+
+The pending full gate includes all 29 canonical browser suites, Keycloak compatibility, the
+standalone large-graph check with all areas expanded, the standalone UBL check and example data
+verification. Retired inspection scripts documented in README are not current release suites.

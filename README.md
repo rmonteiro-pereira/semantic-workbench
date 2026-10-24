@@ -1284,6 +1284,11 @@ the current layout, fail on stale selectors and are kept for reference only. `bu
 scripts/live-inspect.ts` reads the real running workspace without writing anything (every non-GET
 request is refused) and compares exported documents with their project files.
 
+The standalone `bun scripts/large-graph-browser-check.ts` checks the 1,000-entity graph;
+`EXPAND_ALL=1` also expands every area. `bun scripts/ubl-browser-check.ts` checks the UBL
+example across its graph serializations and neighborhood. These supplement the 29 canonical
+browser gate suites and the optional Keycloak compatibility suite.
+
 ### Without a browser
 
 The admin dialogs run against canned responses shaped like the contract
@@ -1314,6 +1319,9 @@ explicitly so its concept-mapping graph uses a real mapping document. Both tools
 screen-name substring filter for supplementary captures. Captures stop on geometry failures,
 including graph heading collisions, edge contrast and width, and undersized names. Full-screen
 measurements cover the visible full-screen canvas. Neither tool uses the owner's data directory.
+Keep source, formatting and builds frozen throughout a capture: schema generation reloads Vite.
+The final screenshot manifest records native dimensions and source/output hashes. Saved JPEGs
+use quality 95 without chroma subsampling, resizing or cropping.
 
 ### Mutation checks
 

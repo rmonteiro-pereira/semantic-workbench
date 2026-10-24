@@ -358,7 +358,7 @@ Every finding maps to a requirement. Status values are open, fixed, deferred (wi
 | F56, F57 | R4 | fixed |
 | F58 | R5 | fixed |
 | F59 | R6 | fixed |
-| F61 | R10 | open |
+| F61 | R10 | fixed: round 8, 864 independently reviewed images, zero S1/S2 |
 | F62 | R1 | open |
 | F63 | R2 | open |
 | F65 | R2a, R4 | fixed |
