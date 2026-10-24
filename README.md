@@ -1518,3 +1518,8 @@ The authentication expiry browser fixture expires its refresh token before the a
 Equal lifetimes allow token timestamp rounding to rotate a fresh refresh token before expiry,
 so that setup does not deterministically reach an ended session. The original expiry deadline
 and provider-redirection assertions remain unchanged.
+
+The release runtime uses MSAL Node 7.1.0 and explicitly installs the current `libbrotli1`
+security update. The container build requires `libbrotli1` at least `1.1.0-2+deb13u1`; a stale
+package mirror fails the build. Image scanning retains its original HIGH/CRITICAL gate and
+no vulnerability exceptions are approved.

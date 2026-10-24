@@ -69,7 +69,7 @@
   },
   "dependencies": {
     "@azure/monitor-opentelemetry-exporter": "1.0.0-beta.32",
-    "@azure/msal-node": "7.0.1",
+    "@azure/msal-node": "7.1.0",
     "@cedar-policy/cedar-wasm": "4.14.0",
     "@codemirror/commands": "6.11.1",
     "@codemirror/lang-json": "6.0.2",
