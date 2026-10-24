@@ -1231,6 +1231,10 @@ bun run build         # compiles the schemas, then the production frontend
 `bun run ci:validate` runs everything below in one command and is what the delivery pipeline
 runs. Tests always use temporary data roots and never touch `data/`.
 
+Authorization route tests verify both access filtering and supported outcomes. An authorized
+server folder-preview request must return the exact clone-instead refusal; an unreadable
+project must remain hidden with 404. These checks also scan response bodies for hidden content.
+
 ### Browser suites
 
 Browser suites need Playwright's Chromium (`bun node_modules/@playwright/test/cli.js install

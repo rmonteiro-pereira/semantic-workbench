@@ -438,3 +438,22 @@ The full release gate and the separate R11 acceptance evidence remain pending.
 
 Capture completion times on 24 October 2026 (UTC): server light 07:40:07; server dark
 07:45:20; local light 07:51:24; local dark 07:57:27. The source remained frozen throughout.
+
+
+## Release gate attempt 2: route-contract correction
+
+At `0d82e1021d77af2c83e1d6e431af226f5e7407d6`, the standalone large graph and UBL
+checks passed. `bun test` completed with 1,842 pass / 1 fail, 108,662 assertions across 257
+files in 224.86 seconds. The authorization read-route inventory still rejected every authorized
+HTTP 400, including the intentionally unsupported server folder preview introduced with its
+clone-instead guidance. The dedicated sparse-worktree tests already require that refusal.
+The matrix now demands the exact 400 status and exact guidance JSON only for the authorized
+GET project folder-preview route. All other allowed-read status assertions, denied-target
+statuses and response leak scanning remain unchanged. This is a contract correction, not a
+machine-load rerun; no timeout or timing budget changed. Application behavior is unchanged,
+so the round 9 native screenshot evidence remains applicable. The full gate restarts on the
+committed correction rather than continuing after a failed unit suite.
+
+Focused correction checks passed: 19 tests / 33,794 assertions across the authorization matrix
+and sparse-worktree files (22.76 seconds), formatter, full static checks and readable-code scan.
+Independent review of the actual diff reports SHIP.
