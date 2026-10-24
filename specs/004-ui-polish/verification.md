@@ -518,3 +518,19 @@ static checks and readability checks pass; independent actual-diff architecture 
 SHIP. The complete round will run against a committed, rebuilt head with no concurrent edits.
 Independent review of the twelve corrected account-dialog images confirms genuine dark styling
 at every size, with zero S1/S2/S3. The focused report is `audit/round-10-dark-focus.md`.
+
+
+## Round 11 complete visual audit
+
+Frozen capture head: `f648e4aaaa07a4ce82c340cafa84baefad71328a`. All four workspace mode/theme tours passed,
+each with 216 native PNGs, 216 zero-problem measurements, no skips and no uncaught errors.
+The light and dark authentication runs each passed all 36 checks and saved 84 native PNGs,
+with computed theme assertions and unfiltered browser-error collection.
+Three independent reviewers inspected every original at native resolution. The eighteen reports
+account for all **1,032 images**: **0 S1, 0 S2, 12 S3**.
+The minor rows repeat sidebar scroll-edge fragments, a long-name orphan line and compact phone
+deprecation-form spacing. No new product correction was needed in this round.
+Saved JPEGs retain native dimensions without crop or resize, quality 95 and no chroma subsampling;
+main and authentication manifests record the capture head and source/output hashes.
+Full static checks and formatter passed. The full final gate and supplemental R11 browser proof
+run after this audit artifact commit, with source and builds frozen during each browser run.

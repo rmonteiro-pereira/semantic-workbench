@@ -1,6 +1,6 @@
 # Serious finding closure ledger
 
-Round 8 is the first complete local/server, light/dark round with no S1 or S2 findings.
+Round 8 is the first complete workspace-tour local/server, light/dark round with no S1 or S2 findings.
 Round 9 repeats the complete clean result after the resize runtime correction. All 864 fresh
 native images were independently reviewed; every filename is listed in its partition.
 Round 9 tour capture and product head: `a5c45ee02294f887ba37c7b01172b70d350bf6ab`.
@@ -27,11 +27,24 @@ history rather than counted as work performed during this release completion.
 
 The required new server reports are named `round-2-SA.md` and `round-2-SB.md`; they came from
 the fourth capture iteration. No separate round-4 visual set is claimed. Later rounds include
-explicit diagnostic and focused sets; rounds 8 and 9 establish the complete clean result.
+explicit diagnostic and focused sets; rounds 8 and 9 establish the clean workspace-tour result before authentication expanded the scope.
 
 
 The round 9 tour's 864 images remain clear, but its 84-image authentication supplement found
 four serious rows (two repeated logo rows, one refusal header, one unsettled graph capture).
 See `round-9-AUTH-A.md`, `round-9-AUTH-B.md` and `round-9-AUTH-C.md`. The complete release
-visual result is reopened until a fresh round, including the settled authentication views,
-finds no serious rows. Round 10 will replace the saved final tour after these corrections.
+visual result was reopened for a fresh round including settled authentication views. Round 10
+was stopped after a dark account-dialog capture coverage failure. Round 11 closes the expanded
+visual review and replaces the saved final tour, including both authentication themes.
+
+
+| Follow-up review | Serious rows resolved | Fix evidence |
+| --- | --- | --- |
+| Round 9 authentication and focused content | 5 fixed | Public brand policy, refusal header and settled graph capture; `351163b` |
+| Round 10 capture coverage | 1 fixed | Shared account-dialog theme setup and computed CSS theme assertion; `f648e4a` |
+| Round 11 complete | 0 to fix | 1,032 native reviews; 0 S1 / 0 S2 / 12 S3 |
+
+The release completion resolves **115 observed serious rows** across baseline, repeated and
+focused reviews, plus six justified baseline triages. This is not a distinct-defect count.
+Round 11 is the complete expanded-scope clean result, at `f648e4aaaa07a4ce82c340cafa84baefad71328a`.
+The twelve main-tour and six authentication reports account for every fresh original.

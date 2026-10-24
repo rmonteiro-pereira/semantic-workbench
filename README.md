@@ -1251,7 +1251,9 @@ SW_BASE_URL=http://127.0.0.1:5180 bun run test:projects
 ```
 
 `SW_BASE_URL` defaults to `http://127.0.0.1:5173` (the older name `UI_URL` is still accepted).
-`SW_SCREENSHOT_DIR` keeps a suite's screenshots in one folder; without it they go to `/tmp`. `bun run polish:capture <folder>` and `bun run polish:capture:server <folder>` photograph every screen and dialog at the four sizes; `SW_THEME=dark` photographs the dark theme, and `SW_ONLY=odcs-` photographs only the screens whose name contains that text.
+`SW_SCREENSHOT_DIR` selects a screenshot folder in supported suites. Older browser drivers
+keep their documented `/tmp/workbench-*.png` paths; release collection checks file timestamps
+against the successful suite run before saving those images. `bun run polish:capture <folder>` and `bun run polish:capture:server <folder>` photograph every screen and dialog at the four sizes; `SW_THEME=dark` photographs the dark theme, and `SW_ONLY=odcs-` photographs only the screens whose name contains that text.
 `bun scripts/polish-capture.ts <folder>` photographs the same tour of screens at the four sizes
 and prints what the checks find on each, which is the quickest way to review a visual change.
 `test:auth`, `test:two-editors` and `test:admin` build the frontend and serve it themselves, so
@@ -1486,3 +1488,7 @@ The code style is part of the project's constitution (Readable Code):
   `git config blame.ignoreRevsFile .git-blame-ignore-revs` once to skip it in `git blame`.
 - [ARCHITECTURE.md](ARCHITECTURE.md) is the map of the code; update it with any new module, route
   or setting, together with the [configuration contract](specs/003-authn-authz/contracts/configuration.md).
+
+The release visual audit includes the complete 864-image workspace matrix plus 84 light and
+84 dark authentication captures: 1,032 native images. Its eighteen independent review reports
+and source/output hash manifests are under `specs/004-ui-polish/`.
