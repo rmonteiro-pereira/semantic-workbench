@@ -120,3 +120,27 @@ Independent architecture review reports SHIP. The complete capture restarted aft
 Complete server-light capture: 164 images, 41 screens at all four sizes, no skips and
 0 automated geometry findings. Independent review is in progress. The focused mutation baseline
 passed and the former not-found refusal was killed. Build and final static checks passed.
+
+## Server diagnostic review and capture coverage correction
+
+Independent reviewers inspected all 164 server-light images in round-2-SA/SB. They found four
+product S2 rows and one capture-coverage S2 row (SA: 3 S2; SB: 2 S2). Desktop main-tab captures
+retained Source Control from the preceding viewport; the first phone sidebar capture raced the
+compact layout transition. The zero geometry count did not establish correct screen coverage.
+The batch was stopped, and it is diagnostic evidence only. No clean-round claim is made.
+
+Shared tab navigation now explicitly enters Model explorer and asserts the active tab. Server
+viewports use fresh pages in the authenticated context, matching local capture isolation. Sidebar
+navigation asserts visibility, and local capture also fails on skips. The new full batch uses
+`/tmp/polish-round5`, leaving diagnostic pixels unchanged.
+
+The branch holder now wraps outside its selector; phone mapping summaries use two columns and a
+shorter introduction; Import names definitions; folder help names the server restriction before
+submission. Browser tours check the branch label, first-view concepts, import wording and folder
+hint at the viewport matrix. Singular dataset, binding and delete-file grammar is also corrected.
+
+The strengthened edit and main-screen matrices each passed all four viewport checks. The
+trash suite passed all 13 checks. Final static, readable-code, documentation sync and structure
+checks passed; architecture review reports SHIP. The corrected capture is running, and direct
+inspection confirms the desktop Graph, phone sidebar and phone concepts now show their intended
+content. This does not replace the full independent review.

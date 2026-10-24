@@ -142,6 +142,16 @@ export async function editContainmentProblems(page: Page, screenName: string): P
         if (footer.right > width + 1) problems.push('the drawer footer leaves the screen');
       }
     }
+    if (name === 'mappings' && width <= 480) {
+      const summary = document.querySelector('.mapping-layer-chain');
+      if (summary && getComputedStyle(summary).gridTemplateColumns.split(' ').length !== 2) {
+        problems.push('the phone layer summary does not use two compact columns');
+      }
+      const concept = box('.mapping-concept-list button:nth-child(2)');
+      if (concept && concept.top >= height - 60) {
+        problems.push('the phone introduction pushes every concept below the first view');
+      }
+    }
     if (name === 'query-composer') {
       const choices = document.querySelectorAll('dialog[open] input[type="checkbox"]');
       const sourceAction = [...document.querySelectorAll('dialog[open] button')].find(

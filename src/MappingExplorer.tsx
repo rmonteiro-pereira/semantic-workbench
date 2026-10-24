@@ -245,9 +245,9 @@ export function MappingExplorer({
         <div>
           <small>CONNECTED LAYERS</small>
           <h2>Ontology mappings</h2>
-          <p>Follow business concepts into governed fields, metrics and physical sources.</p>
+          <p>Follow concepts into fields, metrics and physical sources.</p>
           <p className="mapping-heading-note">
-            Export agent context downloads this mapping as JSON for an AI agent.
+            Export agent context saves mapping JSON for AI tools.
           </p>
         </div>
         <div className="mapping-heading-actions">
@@ -326,7 +326,10 @@ export function MappingExplorer({
               Semantic model<strong>{context.semanticModel.name ?? 'Unresolved'}</strong>
             </span>
             <span>
-              Physical sources<strong>{context.datasets.length} datasets</strong>
+              Physical sources
+              <strong>
+                {context.datasets.length} {context.datasets.length === 1 ? 'dataset' : 'datasets'}
+              </strong>
             </span>
           </div>
           {unboundFindings.length > 0 && (
@@ -402,7 +405,10 @@ export function MappingExplorer({
                 open={bindings.length <= 12}
                 hidden={!bindings.length}
               >
-                <summary>{bindings.length} resolved bindings · source evidence</summary>
+                <summary>
+                  {bindings.length} resolved {bindings.length === 1 ? 'binding' : 'bindings'} ·
+                  source evidence
+                </summary>
                 {[...groups].map(([dataset, items]) => (
                   <details className="mapping-group" data-dataset={dataset} key={dataset} open>
                     <summary>

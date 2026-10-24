@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { FolderInput, Upload } from 'lucide-react';
 import { Modal } from './Modal';
 import type { ProjectInfo } from './api';
-// A batch creates one project named after its ontology, or joins an existing project. Filename
+// A batch creates one project named after its definition, or joins an existing project. Filename
 // conflicts and source repairs are handled in subsequent dialogs.
 /** Chooses a destination and files for a project import. */
 export function ImportDialog({
@@ -60,7 +60,7 @@ export function ImportDialog({
           />
           <span>
             <strong>A new project</strong>
-            <small>Uses the name of the ontology you import.</small>
+            <small>Uses the name of the definition you import.</small>
           </span>
         </label>
         <label className="radio">

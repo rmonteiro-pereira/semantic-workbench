@@ -216,14 +216,18 @@ At short heights, its footer pairs Examples and Import in the existing action gr
 
 The metrics split view retains Unit and hides Type first when space is tight. Phone cards use
 inline labels for values and let type/status chips explain themselves. Source Control keeps a
-page margin and places its visibly labelled commit counts below branch actions.
+page margin and places its visibly labelled commit counts below branch actions. The current
+branch holder wraps below the branch selector instead of being cut inside its selected option.
 
 The whole-model graph keeps its 12 px detail lines only at zoom 1 or higher. Small header counts and badges
 share that threshold; names use the existing zoom compensation. The browser measures detail
 font size multiplied by the actual viewport scale, and a targeted mutant guards the cutoff.
 
 Delete confirmation separates the project/history scope from its counted list of files.
-Mapping empty states name the source-file bindings needed before query preview can run.
+Mapping empty states name the source-file bindings needed before query preview can run. The
+phone layer summary uses two columns so concepts remain in the first view. Import guidance names
+definitions rather than assuming an ontology, and folder help explains the server restriction
+before submission.
 
 `ScrollStrip` reserves cue margins before revealing the selected tab and repeats that reveal
 when its contents or size change. Native dialogs are excluded from ODCS content-width caps;
