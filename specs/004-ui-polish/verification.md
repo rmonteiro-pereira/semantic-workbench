@@ -573,3 +573,15 @@ The full responsive replay passed all 137 checks, including every viewport tour,
 phone drawer and unfiltered browser-error assertion. Formatter, full static checks and readability
 pass; independent actual-diff review reports SHIP. Remaining browser suites are preflighted
 before the next complete final-head gate to surface any other stale post-polish scenario.
+
+## Browser preflight: neighborhood metric detail
+
+At `0cf83f8`, edges, grouping validation, example UI, projects, trash and metrics passed.
+Graph navigation passed its first eight checks, then attempted to click a node metric badge
+hidden by the intentional far-zoom presentation. The captured Property overview retained its
+visible toolbar link to all ten metrics. The graph scenario now asserts the badge is hidden,
+zooms into detail using the existing controls and default polling budget, and retains the
+original metric filter and Occupancy rate assertions. No application change or timeout change
+was needed. Focused graph replay passed all 16 checks, including expansion, mapping navigation,
+large-model responsiveness and the unfiltered browser error assertion. This corrects a stale
+scenario; it is not a machine-load rerun. The clean round 11 product images remain valid.

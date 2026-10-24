@@ -257,7 +257,18 @@ try {
       await expectCentered();
       expect(await neighborhoodEdgeProblems(page)).toEqual([]);
       await shot('mall');
-      await page.getByRole('button', { name: /^Open \d+ metrics for Property$/ }).click();
+      const metricBadge = page.getByRole('button', {
+        name: /^Open \d+ metrics for Property$/,
+      });
+      await expect(metricBadge).toBeHidden();
+      await expect
+        .poll(async () => {
+          if (await metricBadge.isVisible()) return true;
+          await page.getByRole('button', { name: 'Zoom in', exact: true }).click();
+          return metricBadge.isVisible();
+        })
+        .toBe(true);
+      await metricBadge.click();
       await expect(page.getByRole('textbox', { name: 'Find a metric' })).toHaveValue('Property');
       await expect(page.getByRole('region', { name: 'Metrics' })).toContainText('Occupancy rate');
     },
