@@ -53,7 +53,10 @@ export function authProcessEnvironment(
 }
 
 /** Extra server settings and a change to the data root made before the server starts. */
-export type AuthApiOptions = { env?: Record<string, string>; prepare?: (root: string) => void };
+export type AuthApiOptions = {
+  env?: Record<string, string>;
+  prepare?: (root: string) => void | Promise<void>;
+};
 
 /** Starts the built application with fixture grants and removes it even after startup failure. */
 export async function startAuthApi(
@@ -65,32 +68,33 @@ export async function startAuthApi(
   const fixture = local
     ? localFixture()
     : await authWorkspace({ keycloak: provider.kind === 'keycloak' });
-  fixture.ws?.close();
-  options.prepare?.(fixture.root);
-  const env = local
-    ? {
-        SW_MODE: 'local',
-        SW_HOST: '127.0.0.1',
-        SW_PORT: new URL(url).port,
-        SW_SERVE_STATIC: '1',
-        DATA_DIR: fixture.root,
-        SW_CACHE_DIR: fixture.root + '/cache',
-      }
-    : authEnvironment(fixture.root, url, provider, randomBytes(32).toString('base64'));
-  const child = Bun.spawn([process.execPath, 'server/index.ts'], {
-    env: authProcessEnvironment(process.env, { ...env, ...options.env }),
-    stdout: 'inherit',
-    stderr: 'inherit',
-  });
+  let child: ReturnType<typeof Bun.spawn> | undefined;
   async function stop() {
     try {
-      child.kill('SIGTERM');
-      await child.exited;
+      child?.kill('SIGTERM');
+      await child?.exited;
     } finally {
       fixture.dispose();
     }
   }
   try {
+    fixture.ws?.close();
+    await options.prepare?.(fixture.root);
+    const env = local
+      ? {
+          SW_MODE: 'local',
+          SW_HOST: '127.0.0.1',
+          SW_PORT: new URL(url).port,
+          SW_SERVE_STATIC: '1',
+          DATA_DIR: fixture.root,
+          SW_CACHE_DIR: fixture.root + '/cache',
+        }
+      : authEnvironment(fixture.root, url, provider, randomBytes(32).toString('base64'));
+    child = Bun.spawn([process.execPath, 'server/index.ts'], {
+      env: authProcessEnvironment(process.env, { ...env, ...options.env }),
+      stdout: 'inherit',
+      stderr: 'inherit',
+    });
     await waitReady(url);
     return { root: fixture.root, stop };
   } catch (error) {

@@ -66,7 +66,7 @@ export const moveMessage = (folder: string) => `Move the project into ${folder}`
 // copies by cloning the folder instead.
 function assertLocalMode(reader: Reader) {
   if (reader.view !== undefined || reader.copy !== undefined)
-    throw new NotFoundError(
+    throw new BadRequestError(
       'Choosing a folder for an existing project works in local mode. Clone the folder instead.',
     );
 }

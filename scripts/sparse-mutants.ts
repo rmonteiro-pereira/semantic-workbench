@@ -3,7 +3,14 @@
 const FOLDER = 'src/scm/repository-folder.ts';
 const SPARSE = 'server/projects/sparse-folder.ts';
 
+/** Deliberate faults in sparse project boundaries and checkout behavior. */
 export const sparseMutants: [string, string, string, string][] = [
+  [
+    'folder-refusal-reason',
+    'server/projects/project-folder.ts',
+    "throw new BadRequestError(\n      'Choosing a folder",
+    "throw new NotFoundError(\n      'Choosing a folder",
+  ],
   ['sparse-folder-path', FOLDER, "segment === '..'", 'false'],
   ['sparse-folder-path', FOLDER, "segment === '.'", 'false'],
   ['sparse-folder-path', FOLDER, "segment === ''", 'false'],
