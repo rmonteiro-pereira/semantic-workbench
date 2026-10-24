@@ -148,4 +148,10 @@ The release audit remains open until fresh captures and independent review find 
 | F84 | Catalog | Keep long titles on one line with their full name in a tooltip. | open: edit matrix passes; final audit pending |
 | F85 | Item forms and wizard | Stack phone fields, preserve scroll padding, and distinguish the current step. | open: strengthened edit matrix passes; final audit pending |
 | F86 | Dialog chrome | Full-row footer hints and a stronger native-dialog scrim. | open: strengthened edit matrix passes; final audit pending |
-| F87 | ODCS layout | Keep modal overlays out of page width limits and remove the narrower Relationships cap. | open: strengthened assertions reproduced the defects; rerun pending |
+| F87 | ODCS layout | Keep modal overlays out of page width limits and remove the narrower Relationships cap. | open: strengthened dataset matrix passes; independent focused review confirms geometry |
+| F88 | Graph detail | Hide summaries and metric badges below their readable zoom; keep headings above lines. | open: four graph viewport checks pass; final audit pending |
+| F89 | Tab neighbors | Hide clipped fragments and explicitly reveal keyboard focus with edge clearance. | open: four keyboard viewport checks pass; final audit pending |
+| F90 | Sidebar | Remove file-name fades and reclaim footer height on short windows. | open: four shell viewport checks pass; final audit pending |
+| F91 | Metrics and Git | Retain units, match headings to cells, compact phone cards and label push/pull counts. | open: four edit viewport checks pass; full gate pending |
+| F92 | Editing wording | Name required inputs, explain missing bindings, separate project scope from counted files. | open: edit matrix, 13 trash and 8 monorepo checks pass; final audit pending |
+| F93 | Wizard and disabled actions | Center content-height metric wizards; distinguish disabled actions without fading text. | open: four edit viewport checks pass; final audit pending |

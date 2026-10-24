@@ -4,7 +4,8 @@
   display: grid;
   grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
   gap: 0;
-  height: 100%;
+  height: calc(100% - 24px);
+  margin: 12px;
   min-height: 0;
   background: var(--color-surface);
   border: 1px solid var(--color-border-subtle);
@@ -30,9 +31,9 @@
   padding: 10px;
   overflow: auto;
 }
-/* The empty pane sits in the middle of the free space instead of under the top edge. */
+/* Keep the next-step message near the controls, even when no diff is open. */
 .scm-main > .empty-state {
-  margin-block: auto;
+  margin-block: 16px auto;
 }
 .scm-head {
   display: flex;
@@ -1000,4 +1001,9 @@
   font-size: var(--text-small);
   color: var(--text-muted);
   overflow-wrap: anywhere;
+}
+
+.scm-sync {
+  order: 1;
+  flex-basis: 100%;
 }

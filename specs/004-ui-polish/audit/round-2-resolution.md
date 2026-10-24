@@ -20,4 +20,17 @@ LB-14 needs no palette change on the baseline: the actual dark screenshot uses d
 not white text, on the salmon Delete button. Confirm computed contrast during theme verification
 before resolving that row.
 
+The next batch implements the following rows, with full audit closure still pending:
+
+| Baseline rows | Change | Verification |
+| --- | --- | --- |
+| LA-4, LD-1, LD-2 (detail and layering) | Hide unreadable summaries/badges and draw edges behind opaque headings. | Four graph viewport checks pass; zoom unit checks pass. |
+| LA-5, LA-6, LB-9, LD-4 | Center the short wizard and distinguish disabled actions with readable text and dashed borders. | Four edit viewport checks pass. |
+| LA-9, LB-10, LB-11, LD-5, LD-6 | Clear input prompts, binding guidance, counted file lists, file-move and export wording. | Four edit checks, 13 trash checks and 8 monorepo checks pass. |
+| LA-13, LB-4, LC-22 | Remove tree fades/insets; pair Examples and Import on short windows. | Four shell viewport checks pass. |
+| LB-1, LC-15 | Name the catalog open action and retain full-description tooltips. | Four edit viewport checks pass. |
+| LC-12, LD-9 | Compact phone metric cards; retain Unit and hide Type with its heading. | Four edit viewport checks pass, including column correspondence. |
+| LB-13, LC-21 | Add Source Control margin, move its empty state near controls, label counts and keep Sync with branch controls. | New geometry assertions; full page matrix pending. |
+| LA-14, LB-7 (wording) | Short schema-coverage note with the exact supported version. | Static checks pass; final source capture pending. |
+
 Rows not listed here remain open. No S1/S2-free round has been established.

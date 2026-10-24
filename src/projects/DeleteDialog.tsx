@@ -60,10 +60,8 @@ function RemovedList({
       </li>
     );
   if (!impact) return <li>Loading…</li>;
-  const history = deletedScope(impact);
   return (
     <>
-      <li>The project, {history}</li>
       {impact.removes.files.map(file => (
         <li key={file}>{file}</li>
       ))}
@@ -322,7 +320,8 @@ export function DeleteDialog({ target, projects, dirty, onCancel, onDeleted, onR
       )}
       {!removing && (
         <>
-          <h3>Removed</h3>
+          <h3>Moved to trash</h3>
+          {target.kind === 'project' && impact && <p>The project, {deletedScope(impact)}.</p>}
           <RemovedSummary line={removedSummary(target, impact, projects)} />
           <ul className="delete-list">
             <RemovedList target={target} impact={impact} projects={projects} name={name} />

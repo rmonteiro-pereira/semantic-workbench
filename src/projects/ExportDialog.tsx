@@ -113,7 +113,7 @@ export function ExportDialog({ project, dirty, saveOpenFile, onClose, onDone }: 
     <Modal title={`Export ${project.name}`} onCancel={onClose} footer={footer} size="narrow">
       <p className="dialog-intro">
         Downloads a .zip of the project's files in their folders. Files that Git ignores are left
-        out. Tick the box to add the Git history.
+        out. You can include the full change history.
       </p>
       <fieldset className="export-choice">
         <label className="check-row">
@@ -125,7 +125,7 @@ export function ExportDialog({ project, dirty, saveOpenFile, onClose, onDone }: 
           <span className="choice-text">
             <span className="choice-title">Include Git history</span>
             <span className="choice-hint">
-              Adds a Git bundle of the repository that git clone can read.
+              Includes the full change history in a file you can reopen with Git.
             </span>
           </span>
         </label>

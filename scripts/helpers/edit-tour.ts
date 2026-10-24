@@ -143,6 +143,12 @@ export async function editContainmentProblems(page: Page, screenName: string): P
       if (scrollers.length > 1) problems.push(`${scrollers.length} nested scroll regions`);
     }
     if (name === 'metric-wizard' && panel) {
+      if (
+        Math.abs(panel.left + panel.width / 2 - width / 2) > 2 ||
+        Math.abs(panel.top + panel.height / 2 - height / 2) > 2
+      ) {
+        problems.push('the metric wizard is not centred in the viewport');
+      }
       const picker =
         box('dialog[open] .wizard-stepper-compact') ?? box('dialog[open] .wizard-stepper-list');
       if (!picker || picker.right > panel.right) problems.push('the step list leaves the dialog');
@@ -159,7 +165,40 @@ export async function editContainmentProblems(page: Page, screenName: string): P
         }
       }
     }
+    if (name === 'metrics-list' && width <= 700) {
+      const cells = document.querySelectorAll('.metrics-table td');
+      for (const cell of cells) {
+        const labelStyle = getComputedStyle(cell, '::before');
+        const isChip = ['Type', 'Status'].includes(cell.getAttribute('data-label') ?? '');
+        if (isChip && labelStyle.display !== 'none') {
+          problems.push('phone metric chips repeat their field labels');
+        }
+        if (
+          !isChip &&
+          cell.getAttribute('data-label') !== 'Metric' &&
+          labelStyle.display !== 'inline'
+        ) {
+          problems.push('phone metric values do not use compact inline labels');
+        }
+      }
+    }
     if (name === 'metric-detail') {
+      const tableElement = document.querySelector('.metrics-table');
+      const visible = (selector: string) =>
+        [...(tableElement?.querySelectorAll(selector) ?? [])].filter(
+          cell => getComputedStyle(cell).display !== 'none',
+        );
+      const headings = visible('thead th').map(cell => cell.textContent?.trim());
+      const values = visible('tbody tr:not(.metrics-group):first-of-type td').map(cell =>
+        cell.getAttribute('data-label'),
+      );
+      if (width >= 1280 && headings.join('|') !== values.join('|')) {
+        problems.push('visible metric column headings do not match their cells');
+      }
+      const unit = document.querySelector<HTMLElement>('.metrics-table .col-unit');
+      if (width >= 1280 && unit && getComputedStyle(unit).display === 'none') {
+        problems.push('the metric unit is hidden in the split view');
+      }
       const table = box('.metrics-table');
       const wrap = box('.metrics-table-wrap');
       if (table && wrap && table.right > wrap.right + 1) {
@@ -179,6 +218,11 @@ export async function editContainmentProblems(page: Page, screenName: string): P
         paragraph => paragraph.scrollHeight > paragraph.clientHeight && !paragraph.title,
       );
       if (clamped) problems.push('a clamped card description has no tooltip with the full text');
+      for (const card of document.querySelectorAll('.catalog-card')) {
+        if (card.querySelector('.catalog-details')?.textContent !== 'View details') {
+          problems.push('a catalog card has no visible open action');
+        }
+      }
       for (const title of document.querySelectorAll<HTMLElement>('.catalog-card strong')) {
         if (title.scrollWidth > title.clientWidth && title.title !== title.textContent) {
           problems.push('a truncated catalog title has no full name tooltip');

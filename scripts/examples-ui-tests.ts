@@ -313,7 +313,7 @@ try {
       .click();
     await expect(page.locator('.mapping-binding')).toHaveCount(4);
     await expect(page.locator('.mapping-bindings')).toHaveAttribute('open', '');
-    await page.getByRole('button', { name: 'All mapped concepts', exact: true }).click();
+    await page.getByRole('button', { name: 'All concepts', exact: true }).click();
   });
   await check(
     'billing query selected in the UI produces verified net revenue, distinct counts and governed ratios',

@@ -50,3 +50,9 @@
 .catalog {
   padding-bottom: 40px;
 }
+
+.catalog-details {
+  font-size: var(--text-small);
+  color: var(--color-accent-text);
+  text-decoration: underline;
+}

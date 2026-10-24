@@ -471,7 +471,7 @@ try {
         .click();
       await expect(page.locator('.mapping-binding')).toHaveCount(1);
       await expect(page.locator('.mapping-binding')).toContainText('gross_revenue');
-      await page.getByRole('button', { name: 'All mapped concepts', exact: true }).click();
+      await page.getByRole('button', { name: 'All concepts', exact: true }).click();
       await openComposer(page);
       await page.getByRole('checkbox', { name: 'Metric gross_revenue', exact: true }).check();
       await page.getByRole('checkbox', { name: 'Dimension customers.region', exact: true }).check();

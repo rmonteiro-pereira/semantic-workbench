@@ -1,24 +1,17 @@
 /* The sidebar: navigation on top, the project tree in the middle, the workspace actions below. */
 
-/* The tree is the part that scrolls. A thin scrollbar, a shadow at each edge that has more rows
-   beyond it, and a line above and below tell a person it scrolls. Scrolling always comes to rest with a row
-   starting at the top edge, so no row is cut at the top; the shadow at the bottom edge says more rows follow. */
+/* The scrollbar and borders explain overflow without fading away file names. Snap rows flush
+   with the top edge so a previous row cannot leave a rounded fragment above the first one. */
 .workspace-sidebar .documents {
   flex: 1 1 auto;
   min-height: 160px;
-  padding-block: 6px;
+  padding-block: 0;
   overflow-y: auto;
   scrollbar-width: thin;
   scroll-snap-type: y mandatory;
-  scroll-padding-block: 6px;
+  scroll-padding-block: 0;
   border-block: 1px solid var(--color-border-subtle);
-  background:
-    linear-gradient(var(--color-surface) 30%, transparent) top / 100% 24px no-repeat local,
-    linear-gradient(transparent, var(--color-surface) 70%) bottom / 100% 24px no-repeat local,
-    linear-gradient(color-mix(in srgb, var(--color-shadow) 40%, transparent), transparent) top /
-      100% 14px no-repeat scroll,
-    linear-gradient(transparent, color-mix(in srgb, var(--color-shadow) 40%, transparent)) bottom /
-      100% 14px no-repeat scroll;
+  background: none;
 }
 .documents .project-tree :is(.repository, .project) > .tree-row,
 .documents .project-tree .project-file {
@@ -60,5 +53,16 @@
 @media (max-height: 800px) {
   .sidebar-footer .local small {
     display: none;
+  }
+}
+
+/* Pair frequent actions on short windows so the file list keeps more height. */
+@media (max-height: 800px) {
+  .sidebar-footer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .sidebar-footer > :not(.examples-menu, .import) {
+    grid-column: 1 / -1;
   }
 }

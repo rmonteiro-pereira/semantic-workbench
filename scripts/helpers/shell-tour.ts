@@ -1,6 +1,6 @@
 // The shell screens of the responsive suite: the header, the tab strip, the sidebar tree, the
 // source editor's findings and the content width on wide windows.
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { fileTab, openFile, showSidebar, type Screen } from './screen-tour';
 
 /** Lists the screens whose shell parts the suite measures at every window size. */
@@ -70,7 +70,17 @@ export async function tabStripProblems(page: Page): Promise<string[]> {
         const overlaps = cueBox.right > box.left + 1 && cueBox.left < box.right - 1;
         if (overlaps) found.push(`the ${side} cue covers the tab strip`);
       }
+      for (const tab of strip.querySelectorAll<HTMLElement>(':scope > button')) {
+        const bounds = tab.getBoundingClientRect();
+        const partial = bounds.left < box.left - 1 || bounds.right > box.right + 1;
+        if (partial && getComputedStyle(tab).opacity !== '0') {
+          found.push('a clipped tab label is visible');
+        }
+      }
       const selected = strip.querySelector<HTMLElement>('.selected');
+      if (selected && getComputedStyle(selected).opacity !== '1') {
+        found.push('the active tab is hidden');
+      }
       if (selected && scrolls) {
         const tab = selected.getBoundingClientRect();
         if (tab.left < box.left - 1 || tab.right > box.right + 1) {
@@ -91,6 +101,18 @@ export async function sidebarTreeProblems(page: Page, file: string): Promise<str
     const scroller = document.querySelector<HTMLElement>('.workspace-sidebar .documents');
     const row = document.querySelector<HTMLElement>('[role="treeitem"][aria-selected="true"]');
     if (!scroller || !row) return ['the tree or the open file is missing'];
+    const treeStyle = getComputedStyle(scroller);
+    if (treeStyle.backgroundImage !== 'none' || treeStyle.scrollPaddingTop !== '0px') {
+      found.push('the tree still fades or leaves room for fragments above its first row');
+    }
+    const examples = document.querySelector('.sidebar-footer .examples-menu');
+    const importButton = document.querySelector('.sidebar-footer .import');
+    if (innerHeight <= 800 && examples && importButton) {
+      const offset = Math.abs(
+        examples.getBoundingClientRect().top - importButton.getBoundingClientRect().top,
+      );
+      if (offset > 1) found.push('the short-window footer does not pair Examples and Import');
+    }
     const frame = scroller.getBoundingClientRect();
     const box = row.getBoundingClientRect();
     if (box.top < frame.top - 1 || box.bottom > frame.bottom + 1) {
@@ -121,4 +143,35 @@ export async function contentWidthProblems(page: Page, width: number): Promise<s
     if (Math.abs(left - right) > 40) found.push(`the page is not centred (${left} and ${right})`);
     return found;
   });
+}
+
+/** Keyboard navigation reveals complete tab labels even when their neighbors begin clipped. */
+export async function expectKeyboardTabReveal(page: Page): Promise<void> {
+  const strip = page.locator('.tabs').first();
+  if (!(await strip.isVisible())) return;
+  if (await strip.evaluate(element => !!element.closest('[inert]'))) return;
+  const candidate = await strip.evaluate(element => {
+    const frame = element.getBoundingClientRect();
+    return [...element.querySelectorAll('button')].findIndex(
+      button => button.getBoundingClientRect().right > frame.right + 1,
+    );
+  });
+  if (candidate < 1) return;
+  const buttons = strip.locator(':scope > button');
+  const previous = buttons.nth(candidate - 1);
+  await previous.focus();
+  await expect(previous).toBeFocused();
+  await page.keyboard.press('Tab');
+  const focused = buttons.nth(candidate);
+  await expect(focused).toBeFocused();
+  await expect(focused).toHaveCSS('opacity', '1');
+  const inside = await focused.evaluate(button => {
+    const frame = button.parentElement!.getBoundingClientRect();
+    const bounds = button.getBoundingClientRect();
+    return bounds.left >= frame.left - 1 && bounds.right <= frame.right + 1;
+  });
+  expect(inside, 'keyboard focus reveals the whole neighboring tab').toBe(true);
+  const selected = strip.locator('.selected');
+  await selected.focus();
+  await expect(selected).toHaveCSS('opacity', '1');
 }

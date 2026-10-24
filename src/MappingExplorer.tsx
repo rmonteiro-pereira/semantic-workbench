@@ -346,7 +346,7 @@ export function MappingExplorer({
               </label>
               <div className="mapping-concept-list">
                 <button aria-pressed={!concept} onClick={() => openConcept('')}>
-                  All mapped concepts
+                  All concepts
                 </button>
                 {concepts.map(c => {
                   const bindingCount = context.bindings.filter(

@@ -36,3 +36,21 @@ Work started from `bce884c` on `004-ui-polish`. Browser checks use an isolated A
 - Check and build passed again after those captures. The full release gate remains pending.
 
 No timing budget, timeout or assertion was relaxed. No load-related rerun has been needed.
+
+## Readable first views and edit states
+
+- Check and build passed after this batch; the overview-capacity unit file passed 5 tests.
+- Graph canvas matrix: 4 passed, including rendered detail size multiplied by viewport scale.
+- Strengthened edit matrix: 4 passed, including retained metric units and matching column headings.
+- Shell matrix: 4 passed, including keyboard traversal to an initially clipped neighboring tab.
+- `test:trash`: 13 passed. `test:monorepo`: 8 passed.
+- Architecture review caught a Type heading left visible after its cells were hidden. The heading
+  now shares the cell class, and a browser assertion compares visible headings with cell labels.
+- The new keyboard assertion exposed native focus leaving a tab partially visible. ScrollStrip
+  now explicitly reveals a focused control with the same clearance as the selected tab.
+- Two subsequent keyboard-check failures were test-state problems: the check left an unselected
+  tab in view before the next screen, and attempted focus through an inert phone drawer background.
+  It now restores selected focus and checks only interactive strips. All four sizes then passed.
+- These are documented diagnostic reruns, not machine-load reruns. Existing timing budgets,
+  timeouts and assertions are unchanged. The mutation inventory has one new zoom-cutoff fault;
+  the complete mutation run remains part of the pending final release gate.
