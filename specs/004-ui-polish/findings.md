@@ -184,3 +184,18 @@ full round; local capture follows the fixes.
 | F109 | Mapping graph counts | Name reachable and total assets separately from visible card counts. | open: focused verification pending |
 | F110 | Built-in roles | Label fixed definitions as Built-in role rather than read-only permissions. | open: focused verification pending |
 | F111 | Admin guidance | Use Access grants consistently and explain person IDs and action prerequisites. | open: focused follow-up identified two wording rows |
+
+## Round 7 local follow-up
+
+All 832 images were reviewed at native resolution. Server light/dark have no S1 or S2.
+Local light/dark each have one S1 and four S2 rows; these are five distinct defects.
+
+| Finding | Area | Remediation | Status |
+| --- | --- | --- | --- |
+| F112 | Neighborhood relationship labels | Scale labels at fitted zoom; reserve bounds, show leaders, use an opaque layer above paths, and suppress clipped fragments. | open: final audit pending |
+| F113 | Empty access grants | Explain local full access and Add grant next step. | open: final audit pending |
+| F114 | Empty allowed-host policy | Explain that no configured hosts means server remote access is refused. | open: final audit pending |
+| F115 | Empty active sessions | Explain no sessions and local sign-in context. | open: final audit pending |
+| F116 | Project preview actions | Name project access and agent grant scopes and explain preview before saving. | open: final audit pending |
+
+| F117 | Graph attribution | Apply the shared 12 px and readable muted tokens; include attribution in interface legibility checks. | open: final audit pending |

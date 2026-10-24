@@ -4,6 +4,11 @@ import { AdminConfirmation } from './AdminConfirmation';
 import { canConfirm, proposalKey } from './change-review';
 import type { AccessArea, DryRun, Proposal } from './types';
 
+const previewLabels: Partial<Record<AccessArea, string>> = {
+  projects: 'Preview project access',
+  agents: 'Preview agent grants',
+};
+
 /** Shows every changed case and each person's gained or lost project actions. */
 export function DryRunResult({ result }: { result: DryRun }) {
   return (
@@ -132,7 +137,7 @@ export function ReviewChange({
       {inline && ready && review && <DryRunResult result={review.result} />}
       <div className="admin-actions">
         <button className={ready ? '' : 'primary'} disabled={busy || disabled} onClick={preview}>
-          Dry run
+          {previewLabels[area] ?? 'Dry run'}
         </button>
         {inline && ready && review && confirmButtons}
       </div>

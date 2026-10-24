@@ -297,3 +297,62 @@ restart from a fresh root. Application code remains at `31f4dbc`; completed serv
 The corrected local mapping capture passed all four viewports with zero geometry problems.
 Static, formatter, readable-code and documentation checks pass. The fixture-only change does not
 alter application source or invalidate the 416 completed server captures.
+
+The replacement local captures both completed: light at 05:59:32 UTC and dark at 06:05:23 UTC.
+All four modes produced 208 PNGs and zero-problem measurements with no skips: 832 images.
+Independent native reviews SA–SF found no serious server defects; LA–LF found five distinct
+local defects, repeated in light/dark (one S1 and four S2 per theme). The full round is not clean.
+
+## Round 7 local fixes
+
+Relationship text/background use the existing discrete zoom compensation, and pure placement
+reserves the enlarged bounds. Shared Admin empty states explain grants and sessions; the remote
+host policy says when none are configured. The shared preview component names project/agent
+scopes. README, architecture and graph-design prose describe these changes.
+
+Focused unit run: 14 pass, zero fail, 22 assertions across two files. Removing scaled collision
+bounds in an external diagnostic copy produces a failing card-overlap assertion (705.375 square
+canvas pixels); the working tree remains unchanged. Static checks and production build pass.
+Independent architecture review reports SHIP. The first focused browser attempt exposed a new
+tour setup error: opening Labels on left phone Controls open over the canvas. The intended labels
+view now closes that panel before measuring, preserving every geometry assertion. This is a
+fixture correction, not a timing or load rerun. The full focused sequence restarts.
+
+The strengthened Labels-on matrix exposed the fixed-candidate fallback covering cards. Placement
+now adds genuinely clear lanes; the dense regression passes along with existing placement tests.
+The focused unit run is now 15 pass, zero fail, 127 assertions. A diagnostic Labels-on capture
+then exposed detached/off-canvas text at overview zoom. Below zoom 1, labels now appear on hover
+or selection, with explicit View options guidance to zoom in for all labels. The detail-zoom
+Labels-on view and a real pointer-hover view are now in both the browser matrix and capture tour.
+SVG label text uses the shared readable muted token and gets an actual 4.5:1 contrast check.
+The previous in-progress focused run was stopped deliberately after the graph matrix passed,
+before screenshots, to verify this final behavior consistently. No timing assertion was changed.
+The expanded tour has 54 states: 216 images per mode/theme, 864 per complete round.
+
+The 96-image focused capture completed all zero-problem measurements, but independent SJ/SK
+reviews of all 56 changed images found remaining serious label issues: a detached phone hover
+count, clipped fragments at detail zoom, and paths painting over label text. These are real
+visual failures; the focused audit is not clean. Labels now use React Flow's shared HTML label
+layer above paths, with opaque theme backgrounds, solid route leaders and whole-label viewport
+visibility. Geometry checks now measure HTML canvas/label transforms, clipping, layering and
+leader association; the existing edge/UI suites include the new labels in their selectors.
+The placement, leader and visibility units pass: 17 tests, zero failures, 135 assertions.
+
+A build was mistakenly run during focus10 capture. Schema regeneration triggered Vite page
+reloads at 06:34:57 UTC; the normal1440 light screenshot was written at 06:34:58 and showed the
+startup contract graph, not Neighborhood. This is an invalidated capture, not machine load or a
+product-navigation failure. The complete light partition restarts without concurrent build or
+formatting. File/tab checks now also verify selection after their existing settling interval, and
+capture geometry rejects a missing intended Neighborhood canvas. All browser budgets stay intact.
+Dark capture followed the reload and its16 native images passed independent SN review with no
+S1/S2. The short leader dashes were also replaced with solid non-scaling1.5px lines: native phone
+review confirms visible association. The geometry check rejects subpixel dashes and thin leaders.
+
+The replacement light capture completed all 16 measurements without concurrent source changes.
+Independent SM review found no S1 or S2; SN likewise cleared all 16 dark images. A subsequent
+native review found the library attribution still used 10 px text (SO). It now uses the shared
+12 px token and readable theme colours, and participates in ordinary interface legibility checks.
+The final graph matrix passed all four viewports with this correction. Focused validation also
+passed 17 unit tests / 135 assertions, four Admin viewport checks, six edge checks, and the full
+Admin browser suite. The 24 changed Admin captures were independently reviewed without S1/S2.
+These focused passes do not replace the pending complete round across both modes and themes.

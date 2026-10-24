@@ -3,6 +3,8 @@
 // canvas that keeps most of a phone screen.
 import type { Page } from '@playwright/test';
 import {
+  graphRelationshipContrastProblems,
+  graphRelationshipLabelProblems,
   graphHeadingProblems,
   graphEdgeContrastProblems,
   graphNameContainmentProblems,
@@ -127,6 +129,12 @@ export async function graphCanvasProblems(page: Page, which: Which): Promise<str
     { which, minName: MIN_NAME_PX, minDetail: MIN_DETAIL_PX, minShare: MIN_PHONE_CANVAS_SHARE },
   );
   problems.push(...(await graphControlsProblems(page)));
+  if (which === 'neighborhood') {
+    problems.push(
+      ...(await graphRelationshipLabelProblems(page)),
+      ...(await graphRelationshipContrastProblems(page)),
+    );
+  }
   if (which === 'model') {
     problems.push(
       ...(await graphHeadingProblems(page)),

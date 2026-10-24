@@ -103,7 +103,7 @@ try {
   await check('canvas is calm and graph controls remain visible', async () => {
     await page.mouse.move(250, 100);
     await expectNeighborhood();
-    await expect(page.locator('.react-flow__edge-text')).toHaveCount(0);
+    await expect(page.locator('.react-flow__edge-text, .relationship-label')).toHaveCount(0);
     await expect(await example(page, /Load UBL business model/)).toBeInViewport();
     await expect(page.getByRole('button', { name: /^View options/ })).toBeInViewport();
     await expect(

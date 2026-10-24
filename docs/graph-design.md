@@ -87,4 +87,17 @@ Browser assertions measure graph heading/card collisions, count clipping, 12 px 
 3:1 default edge paint contrast, screen-width strokes and routes crossing unrelated cards.
 Mapping graph footers label reachable and total assets separately from visible card counts.
 
+Neighborhood relationship labels compensate for zoom with the same discrete levels as card names.
+Their backgrounds scale with the text, and routing reserves the enlarged bounds to avoid cards
+and other labels. The browser viewport matrix measures the final canvas and label screen transforms and
+requires at least 12 screen pixels for every visible relationship label.
+
+Displaced relationship labels have solid leaders to the nearest point on their route.
+Labels that would cross the canvas boundary stay hidden until panning brings them fully inside.
+The shared label layer stays above every relationship path.
+
+At zoom below 1, Neighborhood shows readable relationship labels on hover or selection.
+View options explains that all labels appear after zooming in; dense overviews avoid detached
+labels around the cards. The all-label browser view uses detail zoom explicitly.
+
 The graph engines are not OWL reasoners or SHACL validators. Layout positions are browser-session state; document export preserves the original definitions rather than exporting a screenshot.

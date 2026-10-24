@@ -266,57 +266,104 @@ export function assignRoutes(
 // segment of its route (longest first), then the same points shifted up and down; widths are
 // estimated from the text (12 px labels).
 /** The space an edge label of this text takes when centred on a point. */
-export function labelBox(text: string, center: [number, number]): Box {
-  const width = text.length * 7.5 + 16;
-  const height = 22;
+export function labelBox(text: string, center: [number, number], labelScale = 1): Box {
+  const width = (text.length * 7.5 + 16) * labelScale;
+  const height = 22 * labelScale;
   return { x: center[0] - width / 2, y: center[1] - height / 2, width, height };
 }
-/** Puts each label on its line clear of other labels and of nodes, stacking when space is tight. */
+function labelCandidates(points: [number, number][]) {
+  return points
+    .slice(1)
+    .map((point, index) => {
+      const previous = points[index];
+      return {
+        center: [(point[0] + previous[0]) / 2, (point[1] + previous[1]) / 2] as [number, number],
+        length: Math.abs(point[0] - previous[0]) + Math.abs(point[1] - previous[1]),
+      };
+    })
+    .sort((first, second) => second.length - first.length)
+    .map(segment => segment.center);
+}
+
+function rectanglesOverlap(first: Box, second: Box) {
+  return (
+    first.x < second.x + second.width &&
+    second.x < first.x + first.width &&
+    first.y < second.y + second.height &&
+    second.y < first.y + first.height
+  );
+}
+
+function clearLabelPosition(
+  text: string,
+  candidates: [number, number][],
+  obstacles: Box[],
+  labelScale: number,
+): [number, number] {
+  const clear = (position: [number, number]) =>
+    !obstacles.some(obstacle => rectanglesOverlap(obstacle, labelBox(text, position, labelScale)));
+  const onRoute = candidates.find(clear);
+  if (onRoute) return onRoute;
+  // Dense routes need more than a fixed number of lanes to keep enlarged labels off cards.
+  for (let offset = 22 * labelScale; ; offset += 22 * labelScale) {
+    for (const [centerX, centerY] of candidates) {
+      const above: [number, number] = [centerX, centerY - offset];
+      if (clear(above)) return above;
+      const below: [number, number] = [centerX, centerY + offset];
+      if (clear(below)) return below;
+    }
+  }
+}
+
+/** Puts each label clear of other labels and nodes, adding lanes when routes are crowded. */
 export function placeLabels(
   items: { id: string; text: string; points: [number, number][] }[],
   boxes: Box[],
+  labelScale = 1,
 ) {
-  const placed: Box[] = [];
-  const out = new Map<string, [number, number]>();
-  const hits = (a: Box, b: Box) =>
-    a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
-  const overlapArea = (a: Box, b: Box) =>
-    Math.max(0, Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x)) *
-    Math.max(0, Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y));
+  const obstacles = [...boxes];
+  const positions = new Map<string, [number, number]>();
   for (const item of items) {
-    const mids = item.points
-      .slice(1)
-      .map((p, i) => {
-        const q = item.points[i];
-        return {
-          at: [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2] as [number, number],
-          len: Math.abs(p[0] - q[0]) + Math.abs(p[1] - q[1]),
-        };
-      })
-      .sort((a, b) => b.len - a.len)
-      .map(m => m.at);
-    const candidates = [
-      ...mids,
-      ...[22, -22, 44, -44, 66, -66, 88, -88].flatMap(dy =>
-        mids.map(m => [m[0], m[1] + dy] as [number, number]),
-      ),
-    ];
-    const box = (c: [number, number]) => labelBox(item.text, c);
-    const clearOfLabels = (c: [number, number]) => !placed.some(b => hits(b, box(c)));
-    const clearOfNodes = (c: [number, number]) => !boxes.some(b => hits(b, box(c)));
-    // When every spot touches another label, the one that covers the least of them is used.
-    const leastOverlap = () =>
-      candidates.reduce((best, c) => {
-        const covered = (at: [number, number]) =>
-          placed.reduce((sum, b) => sum + overlapArea(b, box(at)), 0);
-        return covered(c) < covered(best) ? c : best;
-      }, mids[0]);
-    const free =
-      candidates.find(c => clearOfLabels(c) && clearOfNodes(c)) ??
-      candidates.find(clearOfLabels) ??
-      leastOverlap();
-    placed.push(box(free));
-    out.set(item.id, free);
+    const candidates = labelCandidates(item.points);
+    if (!candidates.length) continue;
+    const position = clearLabelPosition(item.text, candidates, obstacles, labelScale);
+    obstacles.push(labelBox(item.text, position, labelScale));
+    positions.set(item.id, position);
   }
-  return out;
+  return positions;
+}
+
+/** Finds the closest point on an orthogonal route for a displaced label's leader. */
+export function nearestRoutePoint(points: [number, number][], center: [number, number]) {
+  let nearest = points[0];
+  let distance = Infinity;
+  for (let index = 1; index < points.length; index++) {
+    const start = points[index - 1];
+    const end = points[index];
+    const candidate: [number, number] = [
+      Math.max(Math.min(start[0], end[0]), Math.min(Math.max(start[0], end[0]), center[0])),
+      Math.max(Math.min(start[1], end[1]), Math.min(Math.max(start[1], end[1]), center[1])),
+    ];
+    const reach = Math.hypot(candidate[0] - center[0], candidate[1] - center[1]);
+    if (reach >= distance) continue;
+    nearest = candidate;
+    distance = reach;
+  }
+  return nearest;
+}
+
+/** Keeps an entire label inside the visible canvas instead of showing clipped fragments. */
+export function labelInViewport(
+  box: Box,
+  transform: [number, number, number],
+  width: number,
+  height: number,
+) {
+  const [offsetX, offsetY, zoom] = transform;
+  return (
+    box.x * zoom + offsetX >= 2 &&
+    box.y * zoom + offsetY >= 2 &&
+    (box.x + box.width) * zoom + offsetX <= width - 2 &&
+    (box.y + box.height) * zoom + offsetY <= height - 2
+  );
 }

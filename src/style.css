@@ -442,7 +442,14 @@ p {
 }
 .react-flow__edge-text {
   font-size: var(--text-small);
-  fill: var(--color-neutral-strong);
+  fill: var(--color-text-muted);
+}
+.react-flow__attribution {
+  font-size: var(--text-small);
+  background: var(--color-surface-page);
+}
+.react-flow__attribution a {
+  color: var(--color-text-muted);
 }
 footer {
   display: flex;
@@ -2937,7 +2944,7 @@ button.danger:hover {
   cursor: pointer;
 }
 .react-flow__edge.edge-lateral .react-flow__edge-text {
-  fill: var(--color-neutral-strong);
+  fill: var(--color-text-muted);
 }
 /* Full screen: the canvas row fills the screen (or the window when the browser refuses); details
    open over the graph instead of beside it. */

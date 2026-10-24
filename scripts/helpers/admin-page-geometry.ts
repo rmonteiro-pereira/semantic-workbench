@@ -37,7 +37,12 @@ export async function adminPageProblems(page: Page): Promise<string[]> {
     }
     return found;
   });
-  return [...problems, ...(await adminGuidanceProblems(page)), ...(await tabStripProblems(page))];
+  return [
+    ...problems,
+    ...(await adminGuidanceProblems(page)),
+    ...(await adminEmptyStateProblems(page)),
+    ...(await tabStripProblems(page)),
+  ];
 }
 
 async function adminGuidanceProblems(page: Page): Promise<string[]> {
@@ -56,6 +61,46 @@ async function adminGuidanceProblems(page: Page): Promise<string[]> {
     const instructions = document.getElementById('access-check-guidance')?.textContent;
     if (!instructions?.includes('Enter a project for Who can access.')) {
       problems.push('the access checker does not explain action prerequisites');
+    }
+    return problems;
+  });
+}
+
+async function adminEmptyStateProblems(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const content = document.querySelector('.admin-content');
+    if (!content) return [];
+    const problems: string[] = [];
+    const grants = content.closest('.admin-page')?.querySelector('[aria-label="Access grants"]');
+    const body = grants?.querySelector('tbody');
+    if (body && !body.children.length && !grants?.textContent?.includes('No access grants yet')) {
+      problems.push('empty access grants have no explanation or next step');
+    }
+    for (const paragraph of content.querySelectorAll('p')) {
+      if (paragraph.textContent?.trim() === 'Allowed hosts:') {
+        problems.push('the empty remote-host policy has no explanation');
+      }
+    }
+    for (const heading of content.querySelectorAll('h3')) {
+      if (
+        heading.textContent === 'Active sessions' &&
+        !heading.nextElementSibling?.textContent?.trim()
+      ) {
+        problems.push('the empty active sessions section has no explanation');
+      }
+    }
+    const scopes = [
+      ['Save project access', 'Preview project access'],
+      ['Save agent grants', 'Preview agent grants'],
+    ];
+    for (const [scope, label] of scopes) {
+      const review = content.querySelector(`[aria-label="${scope}"]`);
+      if (
+        review &&
+        ![...review.querySelectorAll('button')].some(button => button.textContent?.trim() === label)
+      ) {
+        problems.push(`the ${scope} preview does not name its scope`);
+      }
     }
     return problems;
   });

@@ -551,10 +551,13 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
       }),
     [nodes, center, previous, selected, kpiBadges, groupColorOf, view, canvasState, pierceSet],
   );
+  const farZoom = useFarZoom();
+  const labelScale = farZoom.labelScale;
+  const showAllLabels = labels && !farZoom.className;
   const labelText = (g: (typeof groups)[number]) =>
     g.data.relationships.length > 1 ? `${g.data.relationships.length} relationships` : g.label;
   const shownLabels = groups.filter(
-    g => labels || hovered === g.id || g.data.relationships.some(r => r.id === selectedEdge),
+    g => showAllLabels || hovered === g.id || g.data.relationships.some(r => r.id === selectedEdge),
   );
   const labelAt = useMemo(
     () =>
@@ -574,8 +577,9 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
           ];
         }),
         [...boxes.values()],
+        labelScale,
       ),
-    [shownLabels.map(g => g.id).join('|'), routes, boxes],
+    [shownLabels.map(g => g.id).join('|'), routes, boxes, labelScale],
   );
   const renderedIds = new Set(nodes.map(n => n.id));
   const visibleEdges = groups
@@ -594,8 +598,14 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
       return {
         ...g,
         type: 'relationship',
-        data: { ...g.data, route: routes.get(g.id), direction: kind, labelAt: labelAt.get(g.id) },
-        label: labels || active || hovered === g.id ? labelText(g) : undefined,
+        data: {
+          ...g.data,
+          route: routes.get(g.id),
+          direction: kind,
+          labelAt: labelAt.get(g.id),
+          labelScale,
+        },
+        label: showAllLabels || active || hovered === g.id ? labelText(g) : undefined,
         selected: active,
         interactionWidth: 24,
         markerEnd: { type: MarkerType.ArrowClosed, color, width: 14, height: 14 },
@@ -611,7 +621,6 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   // Fit once the nodes of a new membership are measured; refit when the canvas is resized.
   const canvas = useRef<HTMLDivElement>(null);
   const { fitBounds, getViewport, setViewport, setCenter, zoomIn, zoomOut } = useReactFlow();
-  const farZoom = useFarZoom();
   const [fitted, setFitted] = useState('');
   const held = useViewRestore(
     !!props.fullscreen?.active,
@@ -890,6 +899,9 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
               <button onClick={() => setLabels(v => !v)} aria-pressed={labels}>
                 Labels {labels ? 'on' : 'off'}
               </button>
+              {farZoom.className && (
+                <p>Hover or select a relationship for its label. Zoom in to show all labels.</p>
+              )}
               {valueCount > 0 && (
                 <button
                   onClick={() =>

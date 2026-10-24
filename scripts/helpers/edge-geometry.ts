@@ -52,7 +52,9 @@ export async function neighborhoodEdgeProblems(page: Page) {
             }
           }
     const labels = [
-      ...document.querySelectorAll('.neighborhood-canvas .react-flow__edge-textwrapper'),
+      ...document.querySelectorAll(
+        '.neighborhood-canvas .react-flow__edge-textwrapper, .neighborhood-canvas .relationship-label',
+      ),
     ].map(l => ({ text: l.textContent, box: l.getBoundingClientRect() }));
     for (let i = 0; i < labels.length; i++)
       for (let j = i + 1; j < labels.length; j++) {
