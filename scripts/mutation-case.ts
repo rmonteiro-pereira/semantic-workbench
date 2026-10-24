@@ -9,6 +9,15 @@ import { observabilityCase } from './observability-cases';
 setActiveBrand(loadBrandBundle());
 const m = await import(process.argv[2]);
 const category = process.argv[3];
+if (category === 'folder-refusal-reason') {
+  const folders = m.createProjectFolders({});
+  const reader = { ...LOCAL_READER, view: {} };
+  function explainsRefusal(error: Error) {
+    return error.name === 'BadRequestError' && error.message.includes('Clone the folder instead.');
+  }
+  await assert.rejects(folders.preview('project', 'folder', reader), explainsRefusal);
+  await assert.rejects(folders.apply('project', 'folder', {}, reader), explainsRefusal);
+}
 if (category === 'edge-label-bounds') {
   const bounds = { x: 0, y: 0, w: 400, h: 200 };
   const request = { id: 'outside', lines: ['2'], at: { x: 200, y: -200 }, room: null, priority: 1 };

@@ -81,3 +81,42 @@ No timing budget, timeout or assertion was relaxed. No load-related rerun has be
 - Final strengthened graph matrix: 4 checks passed. Static check and build passed afterward.
 - Readable-code, documentation sync and architecture structure checks passed. Independent
   architecture review reports SHIP. Full release gate and complete visual review remain pending.
+
+## Complete server capture setup
+
+The first server capture was stopped: beyond permission-dependent Import and Add concept skips,
+the minimal access fixture lacked Team and status, so the tour skipped those dialogs too.
+Clone also depended on workspace creation rights. This incomplete batch is retained at
+`/tmp/polish-round4-incomplete` and is excluded from audit evidence.
+
+The server capture now defaults to the existing mock administrator, expands only its temporary
+orders contract with Team and status, explicitly selects that contract, and photographs the
+server folder-change refusal instead of waiting for the local-only preview. Any skipped screen
+fails an administrator capture. No application permissions or persistent fixture files changed.
+The complete four-mode capture matrix has restarted.
+
+The first expanded-fixture start correctly failed the published-checkout guard because the
+preparation had left an uncommitted change. Preparation now awaits a commit through the existing
+Git service inside that temporary project before starting server mode. The guard and its timeout
+are unchanged. This was a capture setup failure, not a machine-load rerun.
+
+The next server run reached all formerly missing phone dialogs, then the Export tour's broad
+strict locator matched both the new modal and the drawer during its closing render. The tour
+now explicitly waits for exactly one dialog before checking the named Export modal; a drawer
+that remains open still fails. No timeout or assertion was relaxed. Preparation and capture
+cleanup now also cover initialization failures and termination through the shared cleanup edge.
+
+The next capture exposed a production refusal bug: server folder changes threw a not-found error,
+so the privacy boundary replaced the clone-instead instruction with a generic 404. The service
+now uses a bad-request refusal after route authorization. A regression exercises preview and apply
+for an administrator and an unreadable project. The red test reproduced 404 instead of 400.
+Its first green attempt used an editor for the administrative apply action and correctly received
+403; the test now uses the capture administrator. Permissions remain unchanged.
+
+Folder regression verification: 15 tests passed, 0 failed, 115 assertions across two files.
+Static checks, readable-code, documentation sync and architecture structure checks passed.
+Independent architecture review reports SHIP. The complete capture restarted after these checks.
+
+Complete server-light capture: 164 images, 41 screens at all four sizes, no skips and
+0 automated geometry findings. Independent review is in progress. The focused mutation baseline
+passed and the former not-found refusal was killed. Build and final static checks passed.

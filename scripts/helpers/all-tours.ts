@@ -13,6 +13,7 @@ export type AllTourFiles = {
   ontology: string;
   contract: string;
   metricsModel: string;
+  serverMode?: boolean;
 };
 
 /** A named group of screens and what the suite says about it in its check names. */
@@ -54,7 +55,7 @@ export function tourGroups(files: AllTourFiles): TourGroup[] {
     {
       title: 'folder dialogs',
       summary: 'readable text and no overlaps',
-      screens: sparseScreens(),
+      screens: sparseScreens(files.serverMode),
     },
   ];
 }

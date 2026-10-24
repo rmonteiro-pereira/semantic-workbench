@@ -26,14 +26,23 @@ async function showCloneFolder(page: Page, folder: string) {
   await dialog.getByLabel('Folder in repository').fill(folder);
 }
 
-async function showMovePreview(page: Page) {
+async function showMovePreview(page: Page, serverMode = false) {
   const dialog = await openRemoteWithFolder(page, 'semantic/ubl');
   await dialog.getByRole('button', { name: 'Save remote' }).click();
+  if (serverMode) {
+    await dialog
+      .getByText(
+        'Choosing a folder for an existing project works in local mode. Clone the folder instead.',
+        { exact: true },
+      )
+      .waitFor();
+    return;
+  }
   await dialog.getByRole('list', { name: 'Files that move' }).waitFor();
 }
 
 /** Lists the dialogs that carry the Folder in repository field and its confirmation. */
-export function sparseScreens(): Screen[] {
+export function sparseScreens(serverMode = false): Screen[] {
   return [
     {
       name: 'clone-folder',
@@ -50,6 +59,10 @@ export function sparseScreens(): Screen[] {
       show: async page => void (await openRemoteWithFolder(page, 'semantic/ubl')),
       dialog: 'dialog[open]',
     },
-    { name: 'remote-folder-preview', show: showMovePreview, dialog: 'dialog[open]' },
+    {
+      name: serverMode ? 'remote-folder-refused' : 'remote-folder-preview',
+      show: page => showMovePreview(page, serverMode),
+      dialog: 'dialog[open]',
+    },
   ];
 }

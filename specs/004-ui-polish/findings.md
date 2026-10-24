@@ -158,3 +158,5 @@ The release audit remains open until fresh captures and independent review find 
 | F94 | Mapping empty states | Summarise unbound concepts, use one page scroll and open the selected mapping Source. | open: six-size navigation matrix passes; full audit pending |
 | F95 | Graph explanations | Name expansion directions and count units; wrap area titles; keep edge labels inside card-layout bounds. | open: focused units pass; full matrix and audit pending |
 | F96 | Form and page guidance | Put schema findings first; link empty quality checks to Source; name project scope; remove repeated compact wizard step names and phone Edit labels. | open: full matrix and audit pending |
+
+| F97 | Server folder change | Preserve clone-instead guidance for authorized requests while concealing unreadable projects. | open: regression and capture verification in progress |

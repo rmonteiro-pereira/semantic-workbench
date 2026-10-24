@@ -3,7 +3,10 @@
 //   bun scripts/polish-capture-server.ts <output directory> [user]
 // Set SW_THEME=dark to photograph the dark theme; file names then start with server-dark-.
 import { chromium } from '@playwright/test';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { createGit } from '../server/projects/git';
+import { withCleanup } from './helpers/processes';
 import { TEST_USERS } from '../tests/helpers/auth-identities';
 import { startMockOidc } from '../tests/helpers/mock-oidc';
 import { freeAuthPort, startAuthApi } from './auth-environment';
@@ -15,7 +18,7 @@ const outputDirectory = process.argv[2];
 if (!outputDirectory) throw new Error('Pass an output directory.');
 const dark = process.env.SW_THEME === 'dark';
 const prefix = dark ? 'server-dark' : 'server';
-const requestedUser = process.argv[3] ?? 'alice';
+const requestedUser = process.argv[3] ?? 'dave';
 if (!(requestedUser in TEST_USERS)) {
   throw new Error(
     `Unknown user ${requestedUser}; use one of ${Object.keys(TEST_USERS).join(', ')}.`,
@@ -33,9 +36,54 @@ const mock = await startMockOidc({
   postLogoutRedirectUris: [url + '/auth/signed-out'],
   frontChannelLogoutUri: url + '/auth/front-channel-logout',
 });
-const api = await startAuthApi(url, { ...mock, kind: 'entra' });
-const browser = await chromium.launch({ headless: true });
-try {
+// Access fixtures are deliberately minimal; the visual tour also needs section and edit dialogs.
+async function prepareCaptureContract(root: string) {
+  const path = join(root, 'projects', 'sales-contracts', 'orders.odcs.yaml');
+  const lines = [
+    readFileSync(path, 'utf8').trimEnd(),
+    '      - name: status',
+    '        logicalType: string',
+    '        description: Order fulfillment status.',
+    'team:',
+    '  - username: sales-data',
+    '    role: owner',
+    '',
+  ];
+  writeFileSync(path, lines.join('\n'));
+  const projectsRoot = join(root, 'projects');
+  const git = createGit({ projectsRoot });
+  const result = await git.commitPaths(
+    join(projectsRoot, 'sales-contracts'),
+    ['orders.odcs.yaml'],
+    'Prepare visual capture contract',
+  );
+  if (!result.committed) throw Error(`Capture fixture commit refused: ${result.reason}`);
+}
+
+let api: Awaited<ReturnType<typeof startAuthApi>> | undefined;
+let browser: Awaited<ReturnType<typeof chromium.launch>> | undefined;
+
+async function stopCapture() {
+  try {
+    await browser?.close();
+  } finally {
+    try {
+      await api?.stop();
+    } finally {
+      await mock.stop();
+    }
+  }
+}
+
+await withCleanup(stopCapture, async () => {
+  api = await startAuthApi(
+    url,
+    { ...mock, kind: 'entra' },
+    {
+      prepare: prepareCaptureContract,
+    },
+  );
+  browser = await chromium.launch({ headless: true });
   const target: SignInTarget = { url, issuer: mock.endpointBase, kind: 'entra' };
   const page = await browser.newPage();
   if (dark) await page.addInitScript(() => localStorage.setItem('workbench.theme', 'dark'));
@@ -45,14 +93,20 @@ try {
     await page.setViewportSize({ width, height });
     const screens = tourGroups({
       ontology: files.find(name => name.includes('ontology')) ?? files[0] ?? '',
-      contract: files.find(name => name.includes('odcs')) ?? files[0] ?? '',
+      contract:
+        files.find(name => name === 'orders.odcs.yaml') ??
+        files.find(name => name.includes('odcs')) ??
+        files[0] ??
+        '',
       metricsModel: files.find(name => name.includes('semantic')) ?? files[0] ?? '',
+      serverMode: true,
     }).flatMap(group => group.screens);
     for (const screen of screens) {
       try {
         await showScreen(page, screen);
       } catch (error) {
         console.log('SKIP', screen.name, width, String(error).split('\n')[0]);
+        if (user === 'dave') throw error;
         continue;
       }
       await page.screenshot({ path: `${outputDirectory}/${prefix}-${screen.name}-${width}.png` });
@@ -61,8 +115,4 @@ try {
       for (const problem of problems.slice(0, 8)) console.log('   ', problem);
     }
   }
-} finally {
-  await browser.close();
-  await api.stop();
-  await mock.stop();
-}
+});

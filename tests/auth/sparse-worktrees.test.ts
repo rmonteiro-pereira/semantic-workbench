@@ -85,3 +85,27 @@ test('a commit outside the folder is refused in a personal copy too', async () =
     team.dispose();
   }
 });
+
+test('folder changes explain the server restriction without revealing unreadable projects', async () => {
+  const { team, fixture, project, as } = await sparseServerWorkspace();
+  try {
+    const administrator = as(person('dave'));
+    const carol = as(person('carol'));
+    const route = `/api/projects/${project.slug}/git/folder`;
+    const guidance =
+      'Choosing a folder for an existing project works in local mode. Clone the folder instead.';
+    for (const method of ['GET', 'PUT']) {
+      const path = method === 'GET' ? `${route}?folder=semantic%2Fother` : route;
+      const body = method === 'PUT' ? { folder: 'semantic/other' } : undefined;
+      const refused = await administrator.call(path, method, body);
+      expect(refused.status).toBe(400);
+      expect(refused.body.error).toBe(guidance);
+      const hidden = await carol.call(path, method, body);
+      expect(hidden.status).toBe(404);
+      expect(hidden.body.error).not.toContain('Clone the folder');
+    }
+  } finally {
+    fixture.dispose();
+    team.dispose();
+  }
+});

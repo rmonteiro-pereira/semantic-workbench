@@ -70,7 +70,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `scripts/auth-*.ts` | Sign-in orchestration, disposable environments, mock lifecycle checks, Keycloak compatibility and server container checks | Shared browser assertions or generic process lifecycle |
 | `scripts/examples/agent-client.ts` | Runnable example of an agent client that gets its Entra token with MSAL and reads the agent catalog | Anything the server imports |
 | `scripts/helpers/sign-in.ts` | Shared identity, storage, native sign-out and responsive browser assertions | Provider startup |
-| `scripts/polish-capture.ts`, `scripts/polish-capture-server.ts` (`bun run polish:capture`, `polish:capture:server`) | Photograph the screen tour at the four sizes in local mode and in server mode (mock sign-in) and print the measured problems of each screen | Assertions of the suites |
+| `scripts/polish-capture.ts`, `scripts/polish-capture-server.ts` (`bun run polish:capture`, `polish:capture:server`) | Photograph the screen tour at the four sizes in local mode and in server mode (mock administrator sign-in), using an expanded temporary access fixture for section and property dialogs; server folder moves capture the explicit refusal. Print the measured problems of each screen and reject skipped administrator screens | Assertions of the suites |
 | `src/projects/examples.ts` | The registry of example sets: which files each one loads, its first tab and its message | Reading the files |
 | `scripts/*-example.ts`, `scripts/*-metrics.ts`, `scripts/billing-contract.ts`, `scripts/helpers/example-metrics.ts` | Generators of the commerce, UBL, billing and mall examples; the governed metrics of an example are declared in its `*-metrics.ts` and written with the helper that renders the extension and binding text as the metric wizard does (the commerce, UBL and billing generators share it; mall writes its own text) | Browser checks |
 | `scripts/example-metric-checks.ts`, `scripts/example-metric-mutants.ts` | What every example set must show (counts, one simple, one composed and one cross-table metric, owner, status, concept bindings, contract lineage, an unexecuted SQL preview), clean validation and untouched upstream hashes; the faults that drop a metric, binding or contract from a set | Browser steps |
@@ -163,7 +163,9 @@ the contents a judged pull will read, with the person's credential, before readi
 mode each working copy is made without a checkout and limited to the same folder through its own
 configuration (`extensions.worktreeConfig`). Moving an existing project into a folder
 (`project-folder.ts`) renames its files and swaps the registry in one journal operation, then
-commits the move; confirming again finishes a move that stopped before its commit.
+commits the move; confirming again finishes a move that stopped before its commit. Authorized
+server requests receive a bad-request response explaining that they must clone the folder instead;
+unreadable projects retain the concealed not-found response.
 
 The workspace shell memoizes its sidebar, toolbar, header and status footer. Display props carry
 booleans, counts and save status instead of the editor text. `src/app/useStableHandler.ts`

@@ -1,12 +1,13 @@
 // The Export project dialog as screens of the responsive suite, with the Git history choice off
 // and on, so both states are measured at every viewport size.
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { openProjectMenuItem } from './project-dialog-tour';
 import type { Screen } from './screen-tour';
 
 async function openExportDialog(page: Page, file: string) {
   await openProjectMenuItem(page, file, 'Export project…');
-  await page.getByRole('dialog').waitFor();
+  await expect(page.getByRole('dialog')).toHaveCount(1);
+  await page.getByRole('dialog', { name: /^Export / }).waitFor();
 }
 
 async function openExportDialogWithHistory(page: Page, file: string) {
