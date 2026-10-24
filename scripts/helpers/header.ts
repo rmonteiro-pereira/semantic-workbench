@@ -20,8 +20,10 @@ export async function headerProblems(page: Page): Promise<string[]> {
     const box = header.getBoundingClientRect();
     const phone = window.innerWidth < 700;
     const controlHeight = phone ? 34 : 36;
+    // Native dialogs render in the top layer even when their DOM belongs to the account menu.
+    const belongsToHeader = (element: Element) => !element.closest('[role=menu], dialog');
     const controls = [...header.querySelectorAll<HTMLElement>('button')].filter(
-      element => !element.closest('[role=menu]') && element.getBoundingClientRect().width > 0,
+      element => belongsToHeader(element) && element.getBoundingClientRect().width > 0,
     );
     const describe = (element: Element) =>
       element.getAttribute('aria-label') ?? element.textContent?.trim() ?? element.className;
@@ -61,7 +63,9 @@ export async function headerProblems(page: Page): Promise<string[]> {
     }
     // Controls on one row share a centre line. The account cluster stays on the first row.
     const toggle = header.querySelector('.workspace-toggle')?.getBoundingClientRect();
-    const firstRow = [...header.querySelectorAll('.workspace-toggle, .header-account button')];
+    const firstRow = [
+      ...header.querySelectorAll('.workspace-toggle, .header-account button'),
+    ].filter(belongsToHeader);
     for (const element of firstRow) {
       const rect = element.getBoundingClientRect();
       if (rect.width === 0 || !toggle) continue;

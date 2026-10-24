@@ -238,3 +238,14 @@ These supplemental findings reopen the complete visual result until a fresh roun
 | F121 | Public identity-page branding | Serve only sanitized bundle assets without workspace access; preserve strict asset policies and verify decoded logos at every size. | open: focused browser verification pending |
 | F122 | Long refusal header | Reserve readable title width and let the shared action group shrink instead of creating a zero-width, very tall title. | open: focused browser verification pending |
 | F123 | Authentication capture completeness | Wait for settled calculations and graphs, then assert whole graph bounds and header geometry at every size. | open: focused browser verification pending |
+
+
+## Round 10 coverage correction
+
+The 168 authentication originals were independently reviewed. Twelve requested dark account
+screens were light because their separate capture helper bypassed shared theme setup. The main
+tour was stopped while incomplete; no complete round 10 is claimed. See `audit/round-10-coverage.md`.
+
+| Finding | Area | Remediation | Status |
+| --- | --- | --- | --- |
+| F125 | Account-dialog dark capture | Use the shared authentication capture helper and assert the active CSS color scheme. | open: focused verification and fresh complete round pending |

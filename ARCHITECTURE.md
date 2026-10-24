@@ -755,3 +755,6 @@ strict content policy remain authoritative. The outer server boundary preserves 
 `scripts/helpers/auth-page-geometry.ts` owns settled-content, decoded-brand and bounded-header
 assertions for authentication captures. The shared header reserves title width while its action
 group yields room for long refusal messages.
+
+Account/connection dialog screenshots delegate to the shared authentication capture helper;
+separate drivers must not bypass theme, settled-content, geometry or browser-error assertions.

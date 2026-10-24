@@ -388,3 +388,4 @@ Every finding maps to a requirement. Status values are open, fixed, deferred (wi
 | F121 | R8, R10, R17 | open: public brand access and fresh audit pending |
 | F122 | R7, R8 | open: refusal-header verification pending |
 | F123 | R10, R11 | open: settled authentication capture and fresh audit pending |
+| F125 | R1, R10 | open: complete dark account capture verification pending |

@@ -157,7 +157,11 @@ export async function authGeometry(
 ) {
   const original = page.viewportSize();
   const errors = authPageErrors(page);
-  await page.emulateMedia({ colorScheme: process.env.SW_THEME === 'dark' ? 'dark' : 'light' });
+  const captureTheme = process.env.SW_THEME === 'dark' ? 'dark' : 'light';
+  await page.emulateMedia({ colorScheme: captureTheme });
+  await expect
+    .poll(() => page.evaluate(() => getComputedStyle(document.documentElement).colorScheme))
+    .toBe(captureTheme);
   for (const [width, height] of authViewports) {
     await page.setViewportSize({ width, height });
     if (scope) await closeWorkspaceDrawer(page, reopen);
