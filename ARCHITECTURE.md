@@ -74,6 +74,7 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `src/projects/examples.ts` | The registry of example sets: which files each one loads, its first tab and its message | Reading the files |
 | `scripts/*-example.ts`, `scripts/*-metrics.ts`, `scripts/billing-contract.ts`, `scripts/helpers/example-metrics.ts` | Generators of the commerce, UBL, billing and mall examples; the governed metrics of an example are declared in its `*-metrics.ts` and written with the helper that renders the extension and binding text as the metric wizard does (the commerce, UBL and billing generators share it; mall writes its own text) | Browser checks |
 | `scripts/example-metric-checks.ts`, `scripts/example-metric-mutants.ts` | What every example set must show (counts, one simple, one composed and one cross-table metric, owner, status, concept bindings, contract lineage, an unexecuted SQL preview), clean validation and untouched upstream hashes; the faults that drop a metric, binding or contract from a set | Browser steps |
+| `scripts/helpers/auth-page-geometry.ts` | Loaded brand images, settled and centered graph/calculation content, bounded headers and persistent browser-error recording for authentication captures | Identity flows |
 | `scripts/helpers/examples-tour.ts` | The metric screens of every example for the responsive suite and the browser steps that check one metric of each kind | Suite selection |
 | `scripts/helpers/edit-tour.ts`, `scripts/helpers/odcs-tour.ts` | The editing, metrics, mapping and data contract screens and dialogs as screens of the responsive suite | Suite selection |
 | `scripts/helpers/graph-options.ts` | Opens the Controls panel of a phone toolbar and the options dialog of a graph toolbar so browser checks drive its controls | Assertions about the controls |
@@ -744,7 +745,13 @@ unchanged pane sizes preserve state identity. This avoids changing an ancestor d
 browser's resize delivery. Other size hooks retain their existing measurement behavior.
 Both release capture tools reject uncaught browser errors as well as geometry problems.
 
-
 The authorization read-route matrix distinguishes access decisions from supported operations.
 An allowed server folder preview must return its exact clone-instead refusal; denied targets
 retain their authorization status. Both paths still pass through hidden-content response scanning.
+
+The public GET/HEAD brand inventory entry precedes the protected workspace-page entry. It
+terminates through `server/brand/route.ts`, whose filename allowlist, sanitization, MIME and
+strict content policy remain authoritative. The outer server boundary preserves that policy.
+`scripts/helpers/auth-page-geometry.ts` owns settled-content, decoded-brand and bounded-header
+assertions for authentication captures. The shared header reserves title width while its action
+group yields room for long refusal messages.

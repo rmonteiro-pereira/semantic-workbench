@@ -358,7 +358,7 @@ Every finding maps to a requirement. Status values are open, fixed, deferred (wi
 | F56, F57 | R4 | fixed |
 | F58 | R5 | fixed |
 | F59 | R6 | fixed |
-| F61 | R10 | open: round 8 visually clear; runtime follow-up requires fresh capture |
+| F61 | R10 | open: round 9 tour clear; authentication supplement requires round 10 |
 | F62 | R1 | open |
 | F63 | R2 | open |
 | F65 | R2a, R4 | fixed |
@@ -385,3 +385,6 @@ Every finding maps to a requirement. Status values are open, fixed, deferred (wi
 | F113, F114, F115, F116 | R3 | open: final audit pending |
 | F117 | R9 | open: final audit pending |
 | F120 | R8, R11 | open: resize runtime follow-up and complete verification pending |
+| F121 | R8, R10, R17 | open: public brand access and fresh audit pending |
+| F122 | R7, R8 | open: refusal-header verification pending |
+| F123 | R10, R11 | open: settled authentication capture and fresh audit pending |

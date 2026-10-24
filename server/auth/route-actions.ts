@@ -199,6 +199,11 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   publicRow('GET', '/auth/github/callback'),
   publicRow('GET', '/healthz'),
   publicRow('GET', '/readyz'),
+  {
+    ...publicRow('GET', '/brand/:file'),
+    methods: ['GET', 'HEAD'],
+    serverOnly: true,
+  },
   pageRow,
 ];
 /** Finds the first matching method and path, or refuses an unmapped entry point. */

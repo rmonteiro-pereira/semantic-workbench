@@ -1220,6 +1220,10 @@ technical identities that must not follow a brand: the committer of server commi
 sentences. `bun run test:brand` shows a test bundle in the header, the title, the favicon, the
 sign-in pages and the accent, and confirms that a script in a logo does not run.
 
+The sanitized `/brand/<file>` bundle is public in server mode so script-free sign-in,
+no-access and signed-out pages can show their logo, favicon and theme. Only known bundle files
+are served; workspace pages, build assets and API data retain their access requirements.
+
 ## Checking your work
 
 ```sh
@@ -1326,6 +1330,13 @@ measurements cover the visible full-screen canvas. Neither tool uses the owner's
 Keep source, formatting and builds frozen throughout a capture: schema generation reloads Vite.
 The final screenshot manifest records native dimensions and source/output hashes. Saved JPEGs
 use quality 95 without chroma subsampling, resizing or cropping.
+
+Authentication screenshots wait for decoded logos and settled calculation/graph content and
+check the shared header and complete graph bounds at every supported viewport.
+
+For supplemental authentication captures, `SW_THEME=dark bun scripts/auth-browser-check.ts`
+saves the same complete viewport set in the dark theme. `SW_SCREENSHOT_DIR` selects its folder.
+These captures reject every uncaught browser error without filtering.
 
 ### Mutation checks
 

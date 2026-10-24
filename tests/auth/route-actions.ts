@@ -122,6 +122,7 @@ export const routeExamples: { method: string; path: string; body?: unknown }[] =
   { method: 'GET', path: '/auth/github/callback' },
   { method: 'GET', path: '/healthz' },
   { method: 'GET', path: '/readyz' },
+  { method: 'GET', path: '/brand/logo-mark.svg' },
   { method: 'GET', path: '/catalog' },
 ];
 

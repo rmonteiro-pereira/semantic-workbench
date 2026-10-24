@@ -45,7 +45,7 @@ from the v0.4.0 build). `screenshots/after/` holds the same screens after the fi
 | F58 | Foreign-key steps | The foreign-key hops are confusing in the lineage and graph steps and in the data view. Each hop reads as `orders.customer_id → customers.id`, the direction is clear, the hop count and path show in one place, the stepping control has plain labels and one line of help. | local-contract-graph-1280 | fixed: Hops row, path line, foreign-key dialog and sentences in the data view |
 | F59 | Sidebar Examples | The Examples button becomes a fly-out menu anchored to the button, keyboard accessible. | local-ontology-overview-1280 | fixed: Examples is a fly-out menu on the shared menu |
 | F60 | Header, top-right corner | Person menu, mode badge, save state and the rest are ungrouped and uneven. Group them, keep the essentials, move the rest into the person or an overflow menu, align heights and spacing, and make it work at 390 px. | server-projects-1280 | fixed: header grouped into file, save and account clusters at 36/34 px, icons only below 1100 px |
-| F61 | Visual audit | Every screen and dialog at four sizes, local and server mode, light and dark where the app has both, reviewed strictly by a separate reviewer until a round finds no S1 or S2 item. | specs/004-ui-polish/screenshots/after | open: round 8 was visually clear; resize runtime fix requires fresh final capture |
+| F61 | Visual audit | Every screen and dialog at four sizes, local and server mode, light and dark where the app has both, reviewed strictly by a separate reviewer until a round finds no S1 or S2 item. | specs/004-ui-polish/screenshots/after | open: round 9 tour clear; supplemental authentication findings require round 10 |
 | F62 | Theme | Colours are literals spread over CSS, inline styles and renderers, so changing the palette is hard. One theme file of semantic tokens, light and dark value sets, a check that fails on a literal elsewhere, docs and a browser check that swaps the accent. | src/style.css | open |
 | F63 | Lineage view | A dedicated redesign pass: defects listed first, readable cards, clean first view, no overlaps, path highlight, plain hop sentences, Full pierce kept, understandable fan-out collapse, shared toolbar plus View options. | local-contract-graph-1280 | open |
 | F64 | Earlier owner asks | Full-screen graph, YAML highlighting with SQL, trash icons, file list hierarchy, real concept mappings, VS Code-like source control and click-to-edit must still work and look right after the polish. | specs/004-ui-polish/screenshots/after | open |
@@ -223,3 +223,18 @@ retain native dimensions, with source/output hashes in `screenshots/after/manife
 | Finding | Area | Remediation | Status |
 | --- | --- | --- | --- |
 | F120 | Graph and strip resize delivery | Queue layout-changing resize publication outside observer delivery; cancel pending work and reject uncaught errors in capture. | open: instrumented reproduction and fresh complete audit pending |
+
+
+## Authentication supplement after round 9
+
+The complete 864-image tour was clear. Independent review of all 84 authentication-suite
+screenshots then found four serious rows in `audit/round-9-AUTH-{A,B,C}.md`: the same broken
+public-page logo in two partitions, the long-refusal header and a cropped phone graph captured
+before resize fitting. Loading metric/viewer captures also lacked settled content evidence.
+These supplemental findings reopen the complete visual result until a fresh round is clear.
+
+| Finding | Area | Remediation | Status |
+| --- | --- | --- | --- |
+| F121 | Public identity-page branding | Serve only sanitized bundle assets without workspace access; preserve strict asset policies and verify decoded logos at every size. | open: focused browser verification pending |
+| F122 | Long refusal header | Reserve readable title width and let the shared action group shrink instead of creating a zero-width, very tall title. | open: focused browser verification pending |
+| F123 | Authentication capture completeness | Wait for settled calculations and graphs, then assert whole graph bounds and header geometry at every size. | open: focused browser verification pending |
