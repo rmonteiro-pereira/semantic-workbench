@@ -404,3 +404,7 @@ validated for every saved JPEG. No crop or resize was applied.
 The dependency and runtime security updates retain the clean complete visual result. The full
 49-command gate now restarts at this artifact commit; supplemental R11 evidence will be
 refreshed at the verified gate head. Earlier failures remain documented, without relaxed checks.
+
+| Finding | Requirements | Status |
+| --- | --- | --- |
+| F131 | R2, R9, R11 | fixed: direct readable expansion viewport; ten clean graph runs; round 16 and final gate pending |

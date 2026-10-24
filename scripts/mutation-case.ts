@@ -9,6 +9,15 @@ import { observabilityCase } from './observability-cases';
 setActiveBrand(loadBrandBundle());
 const m = await import(process.argv[2]);
 const category = process.argv[3];
+if (category === 'expansion-viewport') {
+  const viewport = m.expansionViewport(
+    { x: 0, y: 0, width: 5000, height: 2000 },
+    { x: 400, y: 200 },
+    { width: 1000, height: 600 },
+    1,
+  );
+  assert.deepEqual(viewport, { x: 100, y: 100, zoom: 1 });
+}
 if (category === 'clone-progress') {
   const operation = { op: 'clone-one', name: 'Orders' };
   const failure = { op: operation.op, phase: 'failed', message: 'Folder missing.' };

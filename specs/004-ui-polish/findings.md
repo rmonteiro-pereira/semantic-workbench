@@ -272,3 +272,9 @@ validated for every saved JPEG. No crop or resize was applied.
 The dependency and runtime security updates retain the clean complete visual result. The full
 49-command gate now restarts at this artifact commit; supplemental R11 evidence will be
 refreshed at the verified gate head. Earlier failures remain documented, without relaxed checks.
+
+## Expansion performance follow-up
+
+| Finding | Area | Observed issue | Evidence | Resolution | Status |
+| --- | --- | --- | --- | --- | --- |
+| F131 | Neighborhood large expansion | An intermediate fit-all viewport mounts otherwise offscreen nodes and can exceed the 100 ms main-thread budget. | audit/round-15-performance.md | Choose and publish the readable viewport once; retain the original performance assertion. | fixed: three decision tests, three targeted mutants, ten clean graph runs and 80 transition checks; fresh round 16 and final gate pending |

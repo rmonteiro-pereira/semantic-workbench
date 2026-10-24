@@ -18,6 +18,9 @@ const temp = await mkdtemp('/tmp/workbench-mutations-');
 // tree as the real sources, without relying on Bun caches.
 await symlink(resolve(root, 'node_modules'), resolve(temp, 'node_modules'), 'dir');
 const mutants: [string, string, string, string][] = [
+  ['expansion-viewport', 'src/graph/expansion-viewport.ts', 'fitted.zoom >= readableZoom', 'true'],
+  ['expansion-viewport', 'src/graph/expansion-viewport.ts', 'pane.width / 2', '0'],
+  ['expansion-viewport', 'src/graph/expansion-viewport.ts', 'pane.height / 2', '0'],
   ['clone-progress', 'src/scm/clone-progress.ts', 'state.events[operation.op]', 'undefined'],
   ['clone-progress', 'src/scm/clone-progress.ts', 'event.op !== state.operation?.op', 'false'],
   [

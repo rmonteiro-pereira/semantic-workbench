@@ -32,6 +32,7 @@ import {
   type ExpansionSet,
 } from './graph/expansion';
 import { placeLayers, placeNew } from './graph/incremental-layout';
+import { expansionViewport } from './graph/expansion-viewport';
 import { PIERCE_BUDGET, PIERCE_MAX } from './graph/pierce';
 import { PierceBanner, PierceControls, usePierce } from './graph/PierceControls';
 import { GraphOptions, OptionGroup } from './graph/GraphOptions';
@@ -676,21 +677,17 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
     const y0 = Math.min(...bs.map(b => b.y));
     const x1 = Math.max(...bs.map(b => b.x + b.width));
     const y1 = Math.max(...bs.map(b => b.y + b.height));
-    void fitBounds(
+    const origin = boxes.get(s.from)!;
+    const pane = canvas.current;
+    if (!pane) return false;
+    const originShift = s.kind === 'pierce' && s.direction !== 'in' ? NEIGHBOR_COLUMN * 0.9 : 0;
+    const viewport = expansionViewport(
       { x: x0, y: y0, width: x1 - x0, height: y1 - y0 },
-      { padding: 0.08, duration: 0 },
-    ).then(() => {
-      if (getViewport().zoom < READABLE) {
-        const o = boxes.get(s.from)!;
-        void setCenter(
-          o.x +
-            o.width / 2 +
-            (s.kind === 'pierce' && s.direction !== 'in' ? NEIGHBOR_COLUMN * 0.9 : 0),
-          o.y + o.height / 2,
-          { zoom: READABLE, duration: 0 },
-        );
-      }
-    });
+      { x: origin.x + origin.width / 2 + originShift, y: origin.y + origin.height / 2 },
+      { width: pane.clientWidth, height: pane.clientHeight },
+      READABLE,
+    );
+    void setViewport(viewport, { duration: 0 });
     return true;
   };
   useEffect(() => {
@@ -1035,6 +1032,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
       <div
         className="neighborhood-canvas"
         ref={canvas}
+        data-viewport-ready={measured && fitted === membership}
         data-canvas-nodes={canvasState.nodes.length}
         data-canvas-ids={canvasState.nodes.join(' ')}
       >

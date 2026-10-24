@@ -741,3 +741,33 @@ validated for every saved JPEG. No crop or resize was applied.
 The dependency and runtime security updates retain the clean complete visual result. The full
 49-command gate now restarts at this artifact commit; supplemental R11 evidence will be
 refreshed at the verified gate head. Earlier failures remain documented, without relaxed checks.
+
+## Full gate attempt 10: repeatable expansion render stall
+
+At `e9d0992df3034802f9c1bb4415b55351a626f79a`, container validation passed 25 local
+suites and 30 explicit server/persistence checks. Standalone large-graph and UBL passed. Unit
+passed 1,848 tests, 129,528 assertions and 259 files in 241.51 seconds; static checks, build
+and all 657 mutants passed. Authentication, Keycloak, collaboration, admin, UI, all 137
+responsive checks, edges, grouping, examples UI, projects, trash and metrics passed.
+
+Graph then failed its unchanged 100 ms main-thread budget with a 123 ms pierce task. Five
+unchanged reproductions measured 0, 157, 108, 140 and 76 ms; three failed. Load was low, so
+this was treated as a repeatable defect. CPU sampling showed React/DOM work dominating the
+measured operation. Inspection found that expansion focus first published a fit-all viewport,
+then restored readable zoom in a promise continuation. With viewport culling enabled, that
+intermediate zoom could mount the whole expansion before removing offscreen nodes again.
+
+The fix calculates the final viewport before publishing it. Compact expansions still fit;
+large expansions open directly around their origin at readable zoom. The existing 100 ms
+assertion, functional checks, timeouts and node budgets are unchanged. Three decision tests
+and three targeted mutants cover the viewport choice; the graph suite adds eight transition
+checks across light/dark and all four sizes. The new browser setup opens the phone drawer
+and Controls panel, waits for graph fit readiness, and measures only expanded membership,
+excluding the old canvas while its worker is starting. Fresh complete capture and full gate
+follow focused verification; no final success is inferred from partial results.
+
+Focused verification passed three decision tests (five assertions), all three new targeted
+mutants, formatter, static and readability checks. Ten consecutive complete graph runs passed
+with longest observed tasks of 81, 61, 76, 79, 62, 0, 78, 78, 78 and 53 ms. All 80
+size/theme transition checks passed. Independent actual-diff review reports SHIP after the
+current mutation inventory was corrected to 660. No timing limit or existing assertion changed.
