@@ -585,3 +585,15 @@ original metric filter and Occupancy rate assertions. No application change or t
 was needed. Focused graph replay passed all 16 checks, including expansion, mapping navigation,
 large-model responsiveness and the unfiltered browser error assertion. This corrects a stale
 scenario; it is not a machine-load rerun. The clean round 11 product images remain valid.
+
+## Browser preflight: foreign-key summary wording
+
+At `5e86722`, editor, item editing, RDF editing, source control and ODCS passed. Lineage passed
+its graph topology, timing, readability, full-screen, expansion and four-size geometry checks,
+then expected the old arrow route in the compact hop row. The polished row deliberately shows
+`orders · 2 connected tables`; its title retains the full arrow route. The scenario now verifies
+that exact summary and the original route prefix in the title, while retaining hop, dialog,
+foreign-key sentence, font size, collision and layout assertions at all four sizes. No application
+behavior, timeout or timing budget changed. This is a stale wording contract, not a load rerun.
+Focused lineage replay passed all 19 checks. Full static checks, formatter and readability pass;
+independent actual-diff review reports SHIP. The final ten consecutive runs remain required.
