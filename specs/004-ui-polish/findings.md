@@ -45,22 +45,22 @@ from the v0.4.0 build). `screenshots/after/` holds the same screens after the fi
 | F58 | Foreign-key steps | The foreign-key hops are confusing in the lineage and graph steps and in the data view. Each hop reads as `orders.customer_id → customers.id`, the direction is clear, the hop count and path show in one place, the stepping control has plain labels and one line of help. | local-contract-graph-1280 | fixed: Hops row, path line, foreign-key dialog and sentences in the data view |
 | F59 | Sidebar Examples | The Examples button becomes a fly-out menu anchored to the button, keyboard accessible. | local-ontology-overview-1280 | fixed: Examples is a fly-out menu on the shared menu |
 | F60 | Header, top-right corner | Person menu, mode badge, save state and the rest are ungrouped and uneven. Group them, keep the essentials, move the rest into the person or an overflow menu, align heights and spacing, and make it work at 390 px. | server-projects-1280 | fixed: header grouped into file, save and account clusters at 36/34 px, icons only below 1100 px |
-| F61 | Visual audit | Every screen and dialog at four sizes, local and server mode, light and dark where the app has both, reviewed strictly by a separate reviewer until a round finds no S1 or S2 item. | specs/004-ui-polish/screenshots/after | open: round 13 visual audit clear; final gate pending |
-| F62 | Theme | Colours are literals spread over CSS, inline styles and renderers, so changing the palette is hard. One theme file of semantic tokens, light and dark value sets, a check that fails on a literal elsewhere, docs and a browser check that swaps the accent. | src/style.css | open: round 13 visual audit clear; final gate pending |
-| F63 | Lineage view | A dedicated redesign pass: defects listed first, readable cards, clean first view, no overlaps, path highlight, plain hop sentences, Full pierce kept, understandable fan-out collapse, shared toolbar plus View options. | local-contract-graph-1280 | open: round 13 visual audit clear; final gate pending |
-| F64 | Earlier owner asks | Full-screen graph, YAML highlighting with SQL, trash icons, file list hierarchy, real concept mappings, VS Code-like source control and click-to-edit must still work and look right after the polish. | specs/004-ui-polish/screenshots/after | open: round 13 clear; supplemental R11 browser proof and gate pending |
+| F61 | Visual audit | Every screen and dialog at four sizes, local and server mode, light and dark where the app has both, reviewed strictly by a separate reviewer until a round finds no S1 or S2 item. | specs/004-ui-polish/screenshots/after | open: round 14 visual audit clear; final gate pending |
+| F62 | Theme | Colours are literals spread over CSS, inline styles and renderers, so changing the palette is hard. One theme file of semantic tokens, light and dark value sets, a check that fails on a literal elsewhere, docs and a browser check that swaps the accent. | src/style.css | open: round 14 visual audit clear; final gate pending |
+| F63 | Lineage view | A dedicated redesign pass: defects listed first, readable cards, clean first view, no overlaps, path highlight, plain hop sentences, Full pierce kept, understandable fan-out collapse, shared toolbar plus View options. | local-contract-graph-1280 | open: round 14 visual audit clear; final gate pending |
+| F64 | Earlier owner asks | Full-screen graph, YAML highlighting with SQL, trash icons, file list hierarchy, real concept mappings, VS Code-like source control and click-to-edit must still work and look right after the polish. | specs/004-ui-polish/screenshots/after | open: round 14 clear; supplemental R11 browser proof and gate pending |
 | F65 | Table cards on the lineage canvas and the ODCS graph | A card shows "93 more columns" and page buttons "1 2 ... 11". Cards must show the columns that matter (keys, columns with an edge in view or on the path, search matches), end with "+ N more columns" that expands in place to one scrollable, virtualised list with a filter above about 30 columns and "Show fewer", with no page numbers anywhere and edges anchored to scrolled rows. | owner photo | fixed: cards open in place to a scrolling list with filter and Show fewer; no page numbers |
 | F66 | Edge labels on parallel edges | The word "lines" repeats on several parallel dashed edges. A bundle is labelled once, or its label shows on hover or selection. | owner photo | fixed: a bundle carries its count once; labels without room show on hover |
 | F67 | Built-in examples | The examples have no metrics, so the Metrics view, breakdown, lineage path and SQL preview show nothing for them. Add workbench-authored metrics (simple, derived, foreign-key path; owner and status) bound to real ODCS columns, without editing hash-checked upstream files. | local-ontology-metrics-1280 | fixed: metrics in commerce, mapped commerce, billing, ubl, flights and mall, in labelled workbench-authored files |
 | F68 | Project menu | New feature: Export project... after Import files into this project; byte-exact zip, optional Git history bundle, drafts excluded, server mode filtered by read access and audited, streamed under the size limits. | owner photo | fixed: Export project... with byte-exact streamed zip, optional history bundle, server filtering and audit |
 | F69 | Project menu popup | The menu is cut off by the file list (Delete is half hidden) and fades into the names behind it, because it sits inside the masked, scrolling list. Menus must be opaque, anchored in the viewport and fixed in the shared menu component. | owner photo, shots-measure/menu | fixed: every menu is drawn in the window, opaque and flipped when short of room |
 | F70 | Remote and Clone dialogs | New feature for v0.5.0: a Folder in repository field, with sparse checkout, so a project can live in a subfolder of a shared remote repository and clone, pull and push touch that folder only. | src/scm | fixed: Folder in repository field with sparse checkout, previewed move for local projects, per-user worktrees in server mode (moving an existing project in server mode is refused with a message to clone the folder instead) |
-| F71 | Metric attributes wizard (GitHub issue 10) | The seven-step strip scrolls sideways with a native scrollbar and a cut last step, step labels are under the 12 px floor, the body is two lines above a large empty area with floating actions, and long metric names such as valor_aluguel_merchandising_gerencial_total have no wrapping. A shared stepper (compact line, progress bar and step menu below 1200 px, a state-marked list from 1200 px), footer actions, wrapped names, and checks at four widths. | issue 10 screenshot | open: round 13 visual audit clear; final gate pending |
-| F72 | Phone drawer while loading | The drawer a person opens during start-up closes by itself when the first file opens. | responsive: sidebar, phone drawer during loading | The start-up open keeps the drawer as it is | open: round 13 visual audit clear; final gate pending |
-| F73 | Metric wizard drawer | The drawer is as tall as the window even for a short step. | workbench-item-kpi-wizard | The wizard is as tall as its step | open: round 13 visual audit clear; final gate pending |
-| F74 | Delete dialogs | The dialog lists files without saying how many go to the trash. | local-trash-delete | A line with the count above the list | open: round 13 visual audit clear; final gate pending |
-| F75 | Sidebar tree | Scrolling stops with a row cut at the top edge; repository rows were not snap targets. | local-monorepo-390 | Rows snap to the top edge, repository rows included | open: round 13 visual audit clear; final gate pending |
-| F76 | Dialogs from 1920 px | An old rule made narrow dialogs 720 px wide on large screens, a third width. | local-trash-2560 | Rule removed; dialogs keep the two standard widths | open: round 13 visual audit clear; final gate pending |
+| F71 | Metric attributes wizard (GitHub issue 10) | The seven-step strip scrolls sideways with a native scrollbar and a cut last step, step labels are under the 12 px floor, the body is two lines above a large empty area with floating actions, and long metric names such as valor_aluguel_merchandising_gerencial_total have no wrapping. A shared stepper (compact line, progress bar and step menu below 1200 px, a state-marked list from 1200 px), footer actions, wrapped names, and checks at four widths. | issue 10 screenshot | open: round 14 visual audit clear; final gate pending |
+| F72 | Phone drawer while loading | The drawer a person opens during start-up closes by itself when the first file opens. | responsive: sidebar, phone drawer during loading | The start-up open keeps the drawer as it is | open: round 14 visual audit clear; final gate pending |
+| F73 | Metric wizard drawer | The drawer is as tall as the window even for a short step. | workbench-item-kpi-wizard | The wizard is as tall as its step | open: round 14 visual audit clear; final gate pending |
+| F74 | Delete dialogs | The dialog lists files without saying how many go to the trash. | local-trash-delete | A line with the count above the list | open: round 14 visual audit clear; final gate pending |
+| F75 | Sidebar tree | Scrolling stops with a row cut at the top edge; repository rows were not snap targets. | local-monorepo-390 | Rows snap to the top edge, repository rows included | open: round 14 visual audit clear; final gate pending |
+| F76 | Dialogs from 1920 px | An old rule made narrow dialogs 720 px wide on large screens, a third width. | local-trash-2560 | Rule removed; dialogs keep the two standard widths | open: round 14 visual audit clear; final gate pending |
 | F77 | Sidebar, header, document title, sign-in pages | The product name is written into the code in four places, so a deployment cannot show its own name. | responsive: sidebar | The name is read from `brand.json` in the browser and from the active brand on the server | fixed |
 | F78 | Sidebar and sign-in pages | The logo is an inline icon and a text wordmark, copied into two files. | responsive: sidebar | The logo is `logo.svg` and `logo-mark.svg` in the brand bundle, shown as images | fixed |
 | F79 | Deployment | Changing the name or logo needs a rebuild of the image. | test:brand | `SW_BRAND_DIR` mounts a folder; the server serves it at `/brand/*` | fixed |
@@ -145,29 +145,29 @@ The full release gate and R11 acceptance evidence remain pending.
 
 | Finding | Area | Remediation | Status |
 | --- | --- | --- | --- |
-| F83 | Shared navigation | Reveal selected tabs after cue sizing and resizing; wrap header titles. | open: round 13 visual audit clear; final gate pending |
-| F84 | Catalog | Keep long titles on one line with their full name in a tooltip. | open: round 13 visual audit clear; final gate pending |
-| F85 | Item forms and wizard | Stack phone fields, preserve scroll padding, and distinguish the current step. | open: round 13 visual audit clear; final gate pending |
-| F86 | Dialog chrome | Full-row footer hints and a stronger native-dialog scrim. | open: round 13 visual audit clear; final gate pending |
-| F87 | ODCS layout | Keep modal overlays out of page width limits and remove the narrower Relationships cap. | open: round 13 visual audit clear; final gate pending |
-| F88 | Graph detail | Hide summaries and metric badges below their readable zoom; keep headings above lines. | open: round 13 visual audit clear; final gate pending |
-| F89 | Tab neighbors | Hide clipped fragments and explicitly reveal keyboard focus with edge clearance. | open: round 13 visual audit clear; final gate pending |
-| F90 | Sidebar | Remove file-name fades and reclaim footer height on short windows. | open: round 13 visual audit clear; final gate pending |
-| F91 | Metrics and Git | Retain units, match headings to cells, compact phone cards and label push/pull counts. | open: round 13 visual audit clear; final gate pending |
-| F92 | Editing wording | Name required inputs, explain missing bindings, separate project scope from counted files. | open: round 13 visual audit clear; final gate pending |
-| F93 | Wizard and disabled actions | Center content-height metric wizards; distinguish disabled actions without fading text. | open: round 13 visual audit clear; final gate pending |
-| F94 | Mapping empty states | Summarise unbound concepts, use one page scroll and open the selected mapping Source. | open: round 13 visual audit clear; final gate pending |
-| F95 | Graph explanations | Name expansion directions and count units; wrap area titles; keep edge labels inside card-layout bounds. | open: round 13 visual audit clear; final gate pending |
-| F96 | Form and page guidance | Put schema findings first; link empty quality checks to Source; name project scope; remove repeated compact wizard step names and phone Edit labels. | open: round 13 visual audit clear; final gate pending |
-| F97 | Server folder change | Preserve clone-instead guidance for authorized requests while concealing unreadable projects. | open: round 13 visual audit clear; final gate pending |
-| F98 | Server review wording and layout | Wrap branch holders, compact phone mapping context and clarify Import/folder guidance. | open: round 13 visual audit clear; final gate pending |
-| F99 | Capture coverage | Enter and verify each intended tab; isolate server viewport pages and assert sidebar visibility. | open: round 13 visual audit clear; final gate pending |
-| F100 | Graph heading geometry | Reserve two compensated title lines above cards; measure title/card collisions and enforce the full 12 px name floor. | open: round 13 visual audit clear; final gate pending |
-| F101 | Graph edges | Keep default strokes at screen width and measure composited contrast in both themes. | open: round 13 visual audit clear; final gate pending |
-| F102 | Phone canvas and wording | Share the walk/Other files row; correct singular relationship counts and explain destination file paths. | open: round 13 visual audit clear; final gate pending |
+| F83 | Shared navigation | Reveal selected tabs after cue sizing and resizing; wrap header titles. | open: round 14 visual audit clear; final gate pending |
+| F84 | Catalog | Keep long titles on one line with their full name in a tooltip. | open: round 14 visual audit clear; final gate pending |
+| F85 | Item forms and wizard | Stack phone fields, preserve scroll padding, and distinguish the current step. | open: round 14 visual audit clear; final gate pending |
+| F86 | Dialog chrome | Full-row footer hints and a stronger native-dialog scrim. | open: round 14 visual audit clear; final gate pending |
+| F87 | ODCS layout | Keep modal overlays out of page width limits and remove the narrower Relationships cap. | open: round 14 visual audit clear; final gate pending |
+| F88 | Graph detail | Hide summaries and metric badges below their readable zoom; keep headings above lines. | open: round 14 visual audit clear; final gate pending |
+| F89 | Tab neighbors | Hide clipped fragments and explicitly reveal keyboard focus with edge clearance. | open: round 14 visual audit clear; final gate pending |
+| F90 | Sidebar | Remove file-name fades and reclaim footer height on short windows. | open: round 14 visual audit clear; final gate pending |
+| F91 | Metrics and Git | Retain units, match headings to cells, compact phone cards and label push/pull counts. | open: round 14 visual audit clear; final gate pending |
+| F92 | Editing wording | Name required inputs, explain missing bindings, separate project scope from counted files. | open: round 14 visual audit clear; final gate pending |
+| F93 | Wizard and disabled actions | Center content-height metric wizards; distinguish disabled actions without fading text. | open: round 14 visual audit clear; final gate pending |
+| F94 | Mapping empty states | Summarise unbound concepts, use one page scroll and open the selected mapping Source. | open: round 14 visual audit clear; final gate pending |
+| F95 | Graph explanations | Name expansion directions and count units; wrap area titles; keep edge labels inside card-layout bounds. | open: round 14 visual audit clear; final gate pending |
+| F96 | Form and page guidance | Put schema findings first; link empty quality checks to Source; name project scope; remove repeated compact wizard step names and phone Edit labels. | open: round 14 visual audit clear; final gate pending |
+| F97 | Server folder change | Preserve clone-instead guidance for authorized requests while concealing unreadable projects. | open: round 14 visual audit clear; final gate pending |
+| F98 | Server review wording and layout | Wrap branch holders, compact phone mapping context and clarify Import/folder guidance. | open: round 14 visual audit clear; final gate pending |
+| F99 | Capture coverage | Enter and verify each intended tab; isolate server viewport pages and assert sidebar visibility. | open: round 14 visual audit clear; final gate pending |
+| F100 | Graph heading geometry | Reserve two compensated title lines above cards; measure title/card collisions and enforce the full 12 px name floor. | open: round 14 visual audit clear; final gate pending |
+| F101 | Graph edges | Keep default strokes at screen width and measure composited contrast in both themes. | open: round 14 visual audit clear; final gate pending |
+| F102 | Phone canvas and wording | Share the walk/Other files row; correct singular relationship counts and explain destination file paths. | open: round 14 visual audit clear; final gate pending |
 
-| F103 | Phone graph controls | Reposition after full-screen entry and wrap the expansion selector. | open: round 13 visual audit clear; final gate pending |
-| F104 | Wide graph layout | Use initial Layered routes and reserve visible gaps between full-detail neighbors. | open: round 13 visual audit clear; final gate pending |
+| F103 | Phone graph controls | Reposition after full-screen entry and wrap the expansion selector. | open: round 14 visual audit clear; final gate pending |
+| F104 | Wide graph layout | Use initial Layered routes and reserve visible gaps between full-detail neighbors. | open: round 14 visual audit clear; final gate pending |
 
 
 ## Round 6 follow-up
@@ -178,13 +178,13 @@ full round; local capture follows the fixes.
 
 | Finding | Area | Remediation | Status |
 | --- | --- | --- | --- |
-| F105 | Admin roles matrix | Keep natural table height in the page-owned vertical scroller. | open: round 13 visual audit clear; final gate pending |
-| F106 | Admin phone navigation | Hide clipped link fragments with the shared strip and reveal selected links. | open: round 13 visual audit clear; final gate pending |
-| F107 | Neighborhood actions | Compensate before paint; retain 24 px targets and 12 px icons. | open: round 13 visual audit clear; final gate pending |
-| F108 | Admin lists | Remove flex shrinking of tables and sections; show a stable page scrollbar. | open: round 13 visual audit clear; final gate pending |
-| F109 | Mapping graph counts | Name reachable and total assets separately from visible card counts. | open: round 13 visual audit clear; final gate pending |
-| F110 | Built-in roles | Label fixed definitions as Built-in role rather than read-only permissions. | open: round 13 visual audit clear; final gate pending |
-| F111 | Admin guidance | Use Access grants consistently and explain person IDs and action prerequisites. | open: round 13 visual audit clear; final gate pending |
+| F105 | Admin roles matrix | Keep natural table height in the page-owned vertical scroller. | open: round 14 visual audit clear; final gate pending |
+| F106 | Admin phone navigation | Hide clipped link fragments with the shared strip and reveal selected links. | open: round 14 visual audit clear; final gate pending |
+| F107 | Neighborhood actions | Compensate before paint; retain 24 px targets and 12 px icons. | open: round 14 visual audit clear; final gate pending |
+| F108 | Admin lists | Remove flex shrinking of tables and sections; show a stable page scrollbar. | open: round 14 visual audit clear; final gate pending |
+| F109 | Mapping graph counts | Name reachable and total assets separately from visible card counts. | open: round 14 visual audit clear; final gate pending |
+| F110 | Built-in roles | Label fixed definitions as Built-in role rather than read-only permissions. | open: round 14 visual audit clear; final gate pending |
+| F111 | Admin guidance | Use Access grants consistently and explain person IDs and action prerequisites. | open: round 14 visual audit clear; final gate pending |
 
 ## Round 7 local follow-up
 
@@ -193,13 +193,13 @@ Local light/dark each have one S1 and four S2 rows; these are five distinct defe
 
 | Finding | Area | Remediation | Status |
 | --- | --- | --- | --- |
-| F112 | Neighborhood relationship labels | Scale labels at fitted zoom; reserve bounds, show leaders, use an opaque layer above paths, and suppress clipped fragments. | open: round 13 visual audit clear; final gate pending |
-| F113 | Empty access grants | Explain local full access and Add grant next step. | open: round 13 visual audit clear; final gate pending |
-| F114 | Empty allowed-host policy | Explain that no configured hosts means server remote access is refused. | open: round 13 visual audit clear; final gate pending |
-| F115 | Empty active sessions | Explain no sessions and local sign-in context. | open: round 13 visual audit clear; final gate pending |
-| F116 | Project preview actions | Name project access and agent grant scopes and explain preview before saving. | open: round 13 visual audit clear; final gate pending |
+| F112 | Neighborhood relationship labels | Scale labels at fitted zoom; reserve bounds, show leaders, use an opaque layer above paths, and suppress clipped fragments. | open: round 14 visual audit clear; final gate pending |
+| F113 | Empty access grants | Explain local full access and Add grant next step. | open: round 14 visual audit clear; final gate pending |
+| F114 | Empty allowed-host policy | Explain that no configured hosts means server remote access is refused. | open: round 14 visual audit clear; final gate pending |
+| F115 | Empty active sessions | Explain no sessions and local sign-in context. | open: round 14 visual audit clear; final gate pending |
+| F116 | Project preview actions | Name project access and agent grant scopes and explain preview before saving. | open: round 14 visual audit clear; final gate pending |
 
-| F117 | Graph attribution | Apply the shared 12 px and readable muted tokens; include attribution in interface legibility checks. | open: round 13 visual audit clear; final gate pending |
+| F117 | Graph attribution | Apply the shared 12 px and readable muted tokens; include attribution in interface legibility checks. | open: round 14 visual audit clear; final gate pending |
 
 ## Round 8 final visual result
 
@@ -222,7 +222,7 @@ retain native dimensions, with source/output hashes in `screenshots/after/manife
 
 | Finding | Area | Remediation | Status |
 | --- | --- | --- | --- |
-| F120 | Graph and strip resize delivery | Queue layout-changing resize publication outside observer delivery; cancel pending work and reject uncaught errors in capture. | open: round 13 visual audit clear; final gate pending |
+| F120 | Graph and strip resize delivery | Queue layout-changing resize publication outside observer delivery; cancel pending work and reject uncaught errors in capture. | open: round 14 visual audit clear; final gate pending |
 
 
 ## Authentication supplement after round 9
@@ -235,9 +235,9 @@ These supplemental findings reopen the complete visual result until a fresh roun
 
 | Finding | Area | Remediation | Status |
 | --- | --- | --- | --- |
-| F121 | Public identity-page branding | Serve only sanitized bundle assets without workspace access; preserve strict asset policies and verify decoded logos at every size. | open: round 13 visual audit clear; final gate pending |
-| F122 | Long refusal header | Reserve readable title width and let the shared action group shrink instead of creating a zero-width, very tall title. | open: round 13 visual audit clear; final gate pending |
-| F123 | Authentication capture completeness | Wait for settled calculations and graphs, then assert whole graph bounds and header geometry at every size. | open: round 13 visual audit clear; final gate pending |
+| F121 | Public identity-page branding | Serve only sanitized bundle assets without workspace access; preserve strict asset policies and verify decoded logos at every size. | open: round 14 visual audit clear; final gate pending |
+| F122 | Long refusal header | Reserve readable title width and let the shared action group shrink instead of creating a zero-width, very tall title. | open: round 14 visual audit clear; final gate pending |
+| F123 | Authentication capture completeness | Wait for settled calculations and graphs, then assert whole graph bounds and header geometry at every size. | open: round 14 visual audit clear; final gate pending |
 
 
 ## Round 10 coverage correction
@@ -248,7 +248,7 @@ tour was stopped while incomplete; no complete round 10 is claimed. See `audit/r
 
 | Finding | Area | Remediation | Status |
 | --- | --- | --- | --- |
-| F125 | Account-dialog dark capture | Use the shared authentication capture helper and assert the active CSS color scheme. | open: round 13 visual audit clear; final gate pending |
+| F125 | Account-dialog dark capture | Use the shared authentication capture helper and assert the active CSS color scheme. | open: round 14 visual audit clear; final gate pending |
 
 | Finding | Area | Remediation | Status |
 | --- | --- | --- | --- |
@@ -258,4 +258,17 @@ tour was stopped while incomplete; no complete round 10 is claimed. See `audit/r
 
 | Finding | Area | Remediation | Status |
 | --- | --- | --- | --- |
-| F127 | Clone progress delivery | Wait for workspace update readiness and apply response/event transitions atomically so fast failures and completion remain visible. | open: ordering tests, Git setup and round 13 pass; final gate pending |
+| F127 | Clone progress delivery | Wait for workspace update readiness and apply response/event transitions atomically so fast failures and completion remain visible. | open: ordering tests, Git setup and round 14 pass; final gate pending |
+
+## Round 14: complete fresh security-update visual result
+
+At `2ce466ca0e39184b573e6631525c0e524c3b7ceb`, authentication light/dark passed 84 images each;
+local/server light/dark passed 216 each, with zero geometry or legibility problems, skips or
+browser errors. Git setup passed and produced eight delayed connection-wait images across
+four widths and both themes. Independent native review accounts for all 1,040 originals:
+0 S1 / 0 S2 / 18 repeated S3 rows. Original dimensions and source/output hashes are
+validated for every saved JPEG. No crop or resize was applied.
+
+The dependency and runtime security updates retain the clean complete visual result. The full
+49-command gate now restarts at this artifact commit; supplemental R11 evidence will be
+refreshed at the verified gate head. Earlier failures remain documented, without relaxed checks.
