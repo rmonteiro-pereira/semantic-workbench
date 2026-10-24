@@ -42,3 +42,7 @@ mapping scroll, equal summary columns, graph count units and legend, wrapped are
 edge labels, concise path summaries, first-position schema findings, quality Source navigation,
 compact phone editor chrome, standard Sync typography and a single phone property Edit label.
 The mapping navigation regression passes all six sizes. No S1/S2-free round has been established.
+
+Final closure: the complete round 8 independently reviewed 864 native images with zero S1/S2.
+The 59 fixed baseline serious rows and six explicit triages are resolved; see `closure.md`.
+Minor S3 preferences remain recorded rather than represented as serious defects.
