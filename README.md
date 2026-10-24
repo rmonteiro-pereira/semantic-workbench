@@ -1492,3 +1492,6 @@ The code style is part of the project's constitution (Readable Code):
 The release visual audit includes the complete 864-image workspace matrix plus 84 light and
 84 dark authentication captures: 1,032 native images. Its eighteen independent review reports
 and source/output hash manifests are under `specs/004-ui-polish/`.
+
+The UI interaction suite verifies whole-model counts in the default Layered layout, then selects
+Network explicitly to prove worker routing without depending on a layout default.

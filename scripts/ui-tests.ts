@@ -246,6 +246,14 @@ try {
       await expect(page.locator('.react-flow__node-entity')).toHaveCount(45);
       await expect(page.locator('.react-flow__edge')).toHaveCount(183);
       await viewOptions(page, async options => {
+        const layout = options.getByLabel('Graph layout');
+        await expect(layout).toHaveValue('layered');
+        await layout.selectOption('network');
+      });
+      await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
+      await expect(page.locator('.react-flow__node-entity')).toHaveCount(45);
+      await expect(page.locator('.react-flow__edge')).toHaveCount(183);
+      await viewOptions(page, async options => {
         await options.getByLabel('Zoom to group').selectOption('documents');
       });
       await page.waitForTimeout(500);
