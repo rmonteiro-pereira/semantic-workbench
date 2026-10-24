@@ -758,3 +758,8 @@ group yields room for long refusal messages.
 
 Account/connection dialog screenshots delegate to the shared authentication capture helper;
 separate drivers must not bypass theme, settled-content, geometry or browser-error assertions.
+
+The release audit combines 864 workspace-tour images with 168 authentication images across both
+themes. Eighteen independent reports account for all 1,032 originals. Authentication screenshots
+share the same capture contract, including remote dialogs. Header geometry excludes top-layer
+native-dialog descendants while whole-page layout assertions retain their control bounds.
