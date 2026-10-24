@@ -491,3 +491,30 @@ brand assets introduce no protected authorization case.
 The dark authentication replay passed all 36 checks and saved 84 images with no uncaught browser
 errors. Final independent code review reports SHIP. Error collection now also starts before
 shared sign-in navigation, retaining any initial workspace error for the subsequent capture.
+
+
+## Round 10 stopped: account-dialog theme coverage
+
+The committed `351163b` light and dark authentication runs each passed 36 checks and saved
+84 images. All 168 originals were independently inspected. Twelve account/connection dialog
+images in the requested dark set remained light: their separate screenshot helper did not
+apply the shared theme setup. Other authentication images were genuinely dark. Capture was
+stopped deliberately during the incomplete server-light tour, before changing source. No
+completed main-tour review is claimed. This is a capture-coverage correction, not a load rerun.
+The remote driver now delegates to shared authentication geometry, including content settling,
+header/graph checks, theme selection and unfiltered browser errors. Round 11 will recapture the
+entire 1,032-image set. The application source is unchanged by this correction.
+
+The first shared remote-dialog replay exposed an assertion scope error: native account dialogs
+are descendants of the header in the DOM but render in the browser top layer. Header measurements
+now exclude dialog descendants, just as they already exclude menu descendants. Existing whole-page
+control bounds still check those dialogs. Header height, alignment and overlap budgets are unchanged.
+The shared capture also asserts the computed CSS color scheme against the requested theme, so a
+future light image cannot silently pass a dark capture. This is a corrected measurement, not a
+machine-load rerun.
+
+The corrected dark authentication replay passed all 36 checks and saved all 84 images. Full
+static checks and readability checks pass; independent actual-diff architecture review reports
+SHIP. The complete round will run against a committed, rebuilt head with no concurrent edits.
+Independent review of the twelve corrected account-dialog images confirms genuine dark styling
+at every size, with zero S1/S2/S3. The focused report is `audit/round-10-dark-focus.md`.

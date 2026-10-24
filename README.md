@@ -1336,7 +1336,8 @@ check the shared header and complete graph bounds at every supported viewport.
 
 For supplemental authentication captures, `SW_THEME=dark bun scripts/auth-browser-check.ts`
 saves the same complete viewport set in the dark theme. `SW_SCREENSHOT_DIR` selects its folder.
-These captures reject every uncaught browser error without filtering.
+Account/connection dialogs use the same capture helper. These captures verify the active CSS
+color scheme and reject every uncaught browser error without filtering.
 
 ### Mutation checks
 
