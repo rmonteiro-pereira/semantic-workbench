@@ -167,3 +167,20 @@ The release audit remains open until fresh captures and independent review find 
 
 | F103 | Phone graph controls | Reposition after full-screen entry and wrap the expansion selector. | open: focused capture pending |
 | F104 | Wide graph layout | Use initial Layered routes and reserve visible gaps between full-detail neighbors. | open: focused capture pending |
+
+
+## Round 6 follow-up
+
+The complete server-light and server-dark captures each contain 208 images. Independent native
+reviews SA–SF found six distinct serious defects, repeated in both themes. This is not a clean
+full round; local capture follows the fixes.
+
+| Finding | Area | Remediation | Status |
+| --- | --- | --- | --- |
+| F105 | Admin roles matrix | Keep natural table height in the page-owned vertical scroller. | open: focused verification pending |
+| F106 | Admin phone navigation | Hide clipped link fragments with the shared strip and reveal selected links. | open: focused verification pending |
+| F107 | Neighborhood actions | Compensate before paint; retain 24 px targets and 12 px icons. | open: focused verification pending |
+| F108 | Admin lists | Remove flex shrinking of tables and sections; show a stable page scrollbar. | open: focused verification pending |
+| F109 | Mapping graph counts | Name reachable and total assets separately from visible card counts. | open: focused verification pending |
+| F110 | Built-in roles | Label fixed definitions as Built-in role rather than read-only permissions. | open: focused verification pending |
+| F111 | Admin guidance | Use Access grants consistently and explain person IDs and action prerequisites. | open: focused follow-up identified two wording rows |

@@ -94,6 +94,9 @@ async function shots(name: string) {
     await page.waitForTimeout(300);
     await graph().getByRole('button', { name: 'Fit', exact: true }).click();
     await page.waitForTimeout(300);
+    await expect(graph().locator('.lineage-reading')).toHaveText(
+      /^Saved mapping · \d+ reachable assets · \d+ total assets$/,
+    );
     await page.screenshot({ path: `/tmp/workbench-mapping-graph-${name}-${w}.png` });
     expect(
       await page.evaluate(

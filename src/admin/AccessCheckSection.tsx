@@ -77,21 +77,27 @@ export function AccessCheckSection({ principal = '' }: { principal?: string }) {
         Hypothetical person
       </label>
       {!hypothetical && (
-        <label>
-          Principal
-          <input
-            list="admin-principals"
-            value={person}
-            onChange={event => setPerson(event.target.value)}
-          />
-          <datalist id="admin-principals">
-            {users?.map(user => (
-              <option key={user.id} value={user.id}>
-                {user.name} · {user.verifiedEmail}
-              </option>
-            ))}
-          </datalist>
-        </label>
+        <>
+          <label>
+            Person ID
+            <input
+              list="admin-principals"
+              aria-describedby="access-person-guidance"
+              value={person}
+              onChange={event => setPerson(event.target.value)}
+            />
+            <datalist id="admin-principals">
+              {users?.map(user => (
+                <option key={user.id} value={user.id}>
+                  {user.name} · {user.verifiedEmail}
+                </option>
+              ))}
+            </datalist>
+          </label>
+          <p id="access-person-guidance" className="admin-section-intro">
+            Choose a signed-in person or copy their ID from Users &amp; groups.
+          </p>
+        </>
       )}
       {hypothetical && (
         <>
@@ -122,6 +128,10 @@ export function AccessCheckSection({ principal = '' }: { principal?: string }) {
         Branch
         <input value={branch} onChange={event => setBranch(event.target.value)} />
       </label>
+      <p className="admin-section-intro" id="access-check-guidance">
+        Choose a person or enable Hypothetical person for Check access. Leave Project blank to check
+        workspace access. Enter a project for Who can access.
+      </p>
       <div className="admin-actions">
         <button disabled={busy || (!hypothetical && !person)} onClick={check}>
           Check access

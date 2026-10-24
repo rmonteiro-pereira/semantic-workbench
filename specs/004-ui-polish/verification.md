@@ -226,3 +226,52 @@ The graph viewport matrix passed all four checks at 390×844, 1280×720, 1440×9
 open phone Controls assertions. Targeted units remained 28/28 with 4,487 assertions. Build passed.
 Architecture review reports SHIP after explicit box registration. The complete capture inventory
 is 52 named screens; the next full round will capture 208 per mode/theme, 832 total.
+
+
+## Round 6 server review and follow-up
+
+The frozen build at `5e3738a` produced 208 server-light images with zero reported geometry
+problems. The long-running capture runner exited 143 while server dark had produced 157 images;
+that partial directory is excluded. Vite on 5175 also stopped unexpectedly. The exact cause is
+unknown; this is an interrupted run, not evidence of machine load. A detached server-dark retry
+completed all 208 images against the same frozen build with zero geometry problems and no skips.
+Independent native review covered all 416 complete images in SA–SF. Light and dark each found
+four S1 and two S2 rows in the final 72-image partition; the other partitions found no S1/S2.
+
+New assertions reproduced clipped phone Admin labels against the old build. Initial Neighborhood
+follow-up caught four icons below 12 px in wide full screen. Default action icon minima and compact
+badge visibility now address that failure. The next attempt failed with connection refused after
+Vite stopped; restarting our Vite on 5175 allowed all eight light Neighborhood captures to pass.
+No timeout, timing budget or assertion was relaxed. Static checks, build and targeted Admin units
+passed (10 tests, zero failures, 11 assertions). Focused server capture and matching suites follow.
+
+An immediate Admin navigation measurement initially observed cues before the resize observer's
+paint. The assertion now runs with the other screen measurements after the existing screen-ready
+step; Admin geometry also waits for two animation frames after viewport changes. It retains the
+same cue, clipping and table assertions without extending any timeout or timing budget.
+
+
+The focused light follow-up inspected all 44 images: zero S1, two S2 and two S3. Tables and
+navigation are corrected; the remaining S2 rows concern the obsolete Roles & access destination
+name and missing Access check input guidance. The reviewer clarified that the relative size of
+fullscreen phone card names is S3; a numerical floor violation was not established, while the
+computed-font-times-zoom assertions pass. Both themes completed 44 focused capture measurements
+with no problems or skips. The Admin viewport matrix passed all four sizes.
+
+Architecture review identified a test-module cycle introduced by shared Admin measurements.
+Extracting `strip-geometry.ts` removes it; the independent review now reports SHIP.
+
+
+The four graph viewport checks and all 12 mapping graph checks passed. The complete Admin suite
+also exited zero, but its in-process last-Admin fixture logged six brand-route HTTP 500 errors:
+it bypassed server startup without loading the default brand. That fixture now uses the existing
+brand initializer and asserts the actual manifest response is 200. A standalone rerun verifies
+this correction; the production server and the frozen captures already initialized branding.
+
+
+Final focused verification for this batch: 64 fresh Admin captures (32 per theme) passed all
+measurements; independent review of the 16 changed Projects/Access check views found zero S1,
+zero S2 and zero S3. The strengthened Admin matrix passed all four viewports again. The standalone
+last-Admin fixture rerun exited zero with its manifest-response assertion and no brand-load errors.
+Static checks, production build, readable-code, documentation sync and structure checks pass.
+Independent architecture review reports SHIP. Full four-mode audit and the final gate remain open.

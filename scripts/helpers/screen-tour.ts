@@ -1,6 +1,7 @@
 // The screens and dialogs a person reaches from the sidebar and the view tabs. The responsive
 // suite measures each of them at every viewport size, and the screenshot tool captures them.
 import { expect, type Page } from '@playwright/test';
+import { adminPageProblems } from './admin-page-geometry';
 import { graphCanvasProblems } from './graph-canvas-geometry';
 import { layoutProblems } from './layout-geometry';
 import { smallTextProblems, textCollisionProblems } from './text-geometry';
@@ -117,6 +118,11 @@ export async function screenProblems(page: Page, screen: Screen): Promise<string
     within = '.canvas-row.is-fullscreen';
   }
   const problems = await geometryProblems(page, within);
+  if (screen.name.startsWith('admin-')) problems.push(...(await adminPageProblems(page)));
+  const mapping = page.locator('[aria-label="Mapping graph"] .lineage-reading');
+  if (await mapping.isVisible()) {
+    await expect(mapping).toHaveText(/^Saved mapping · \d+ reachable assets · \d+ total assets$/);
+  }
   const graphTour = screen.name.startsWith('graph-');
   if (!screen.dialog && !graphTour && (await page.locator('.full-graph').isVisible())) {
     problems.push(...(await graphCanvasProblems(page, 'model')));

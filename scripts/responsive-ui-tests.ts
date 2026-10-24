@@ -1,4 +1,5 @@
 // Checks responsive layouts, overlays and navigation in an isolated browser workspace.
+import { tabStripProblems } from './helpers/strip-geometry';
 import { appUrl } from './helpers/base-url';
 import { revealGraphControls, showEveryEntity, viewOptions } from './helpers/graph-options';
 import { LOCAL_READER } from '../server/projects/reader';
@@ -28,7 +29,6 @@ import {
   headerTitleProblems,
   shellScreens,
   sidebarTreeProblems,
-  tabStripProblems,
 } from './helpers/shell-tour';
 import { odcsGraphScreenProblems, odcsGraphScreens } from './helpers/odcs-graph-tour';
 import { graphScreenProblems, graphScreens } from './helpers/graph-tour';

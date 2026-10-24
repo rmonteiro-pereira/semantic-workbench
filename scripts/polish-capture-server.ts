@@ -118,8 +118,8 @@ await withCleanup(stopCapture, async () => {
         if (user === 'dave') throw error;
         continue;
       }
-      await page.screenshot({ path: `${outputDirectory}/${prefix}-${screen.name}-${width}.png` });
       const problems = await screenProblems(page, screen);
+      await page.screenshot({ path: `${outputDirectory}/${prefix}-${screen.name}-${width}.png` });
       console.log(`MEASURE ${screen.name} ${width} problems=${problems.length}`);
       for (const problem of problems.slice(0, 8)) console.log('   ', problem);
       if (problems.length) throw Error(`Capture geometry failed for ${screen.name}.`);

@@ -211,6 +211,11 @@ The metric wizard overrides the item drawer placement through its existing share
 keeps content height and viewport centering. ScrollStrip hides partial tab labels while preserving
 the controls in the focus order and retaining the space and cues needed to scroll to them.
 
+`scripts/helpers/strip-geometry.ts` measures shared strip cues and clipping independently of tours.
+`scripts/helpers/admin-page-geometry.ts` checks whole Admin tables, visible scroll affordances,
+built-in role headings, action prerequisites and the shared navigation strip. Admin content owns vertical scrolling;
+its direct children retain their natural height. The shared strip also hides clipped Admin links.
+
 The sidebar tree snaps rows flush to its border and uses a scrollbar instead of text fades.
 At short heights, its footer pairs Examples and Import in the existing action grid.
 
@@ -218,6 +223,10 @@ The metrics split view retains Unit and hides Type first when space is tight. Ph
 inline labels for values and let type/status chips explain themselves. Source Control keeps a
 page margin and places its visibly labelled commit counts below branch actions. The current
 branch holder wraps below the branch selector instead of being cut inside its selected option.
+
+Neighborhood action buttons retain 24 px screen targets and 12 px icons at fitted zoom.
+Zoom compensation runs before paint; unreadable metric badges stay hidden in compact cards.
+Mapping graph footers distinguish reachable assets from the total graph inventory.
 
 The whole-model graph reserves two compensated heading lines above entity cards. Names grow
 to preserve a full 12 px floor in compact views; default edges keep their screen width and at
@@ -239,7 +248,8 @@ ODCS sections’ readable width.
 Catalog title tooltips and current-step fills are checked by the edit tour at all four sizes.
 `helpers/all-tours.ts` keeps the normal browser tours and the complete capture screen list together.
 Capture-only coverage reuses Admin navigation and adds real mapping and full-screen graph views;
-it does not duplicate the responsive suite’s Admin matrix.
+it does not duplicate the responsive suite’s Admin matrix. The in-process last-Admin browser
+fixture loads the shipped brand just like server startup and asserts its manifest response.
 
 - **Text size and colour**: `src/style.css` defines `--text-small` (12 px, the smallest text the
   interface shows) and `--text-muted` (the softest text colour, at least 4.5:1 contrast on white).

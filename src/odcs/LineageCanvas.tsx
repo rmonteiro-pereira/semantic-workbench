@@ -1357,8 +1357,7 @@ export function LineageCanvas({
         />
         {mapping ? (
           <small className="lineage-reading">
-            The mapping's bindings as the resolver reads them (saved revision) · {reach.cards.size}{' '}
-            of {graph.cards.size} cards
+            Saved mapping · {reach.cards.size} reachable assets · {graph.cards.size} total assets
           </small>
         ) : (
           <small
