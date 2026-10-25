@@ -1,103 +1,188 @@
-# Graph rendering and layout decisions
+# Graph rendering and layout
 
-The overview, relationship matrix and actual graph are complementary representations. The overview and matrix remain available; they do not replace the graph. For entity models, the Graph tab contains the model's entities and directed relationships. Contracts use the lineage canvas described below. Large models can collapse business areas and expand them again.
+Graph views show the structure declared in definitions. They do not infer OWL facts, evaluate
+SHACL shapes or execute metric queries. The complete graph, neighborhood, relationship matrix,
+contract lineage and mapping graph are complementary views, not separate sources of business
+semantics.
 
-## References reviewed
+For controls and navigation, see [the user guide](user-guide.md#model-views-and-graph-navigation).
+For current package versions, see [the technology stack](../README.md#technology-stack).
 
-- [React Flow layout overview](https://reactflow.dev/learn/layouting/layouting): React Flow supplies interaction/rendering, while node layout is provided by external engines. ELK supports compound layout and routing; the documentation notes limitations with Dagre subflows connected to external nodes.
-- [React Flow subflows](https://reactflow.dev/learn/layouting/sub-flows): grouped nodes use `parentId`, relative positions, and parent-before-child ordering. Cross-group edges remain possible.
-- [React Flow performance](https://reactflow.dev/learn/advanced-use/performance): memoized components and callbacks, avoiding broad subscriptions, collapsing large trees, and simpler styles reduce rendering cost.
-- [ELK Layered](https://eclipse.dev/elk/reference/algorithms/org-eclipse-elk-layered.html): directed layered layout, compound graphs, ports, crossing reduction and orthogonal routes.
-- [ELK SPOrE overlap removal](https://eclipse.dev/elk/reference/algorithms/org-eclipse-elk-sporeOverlap.html): a dedicated overlap-removal pass. We use this after the network layout rather than assuming a force layout guarantees non-overlapping HTML cards.
-- [Cytoscape.js](https://js.cytoscape.org/): compound graphs, multiple layouts and renderer-specific performance controls.
-- [fCoSE](https://github.com/iVis-at-Bilkent/cytoscape.js-fcose): compound spring embedding with constraints. It is used headlessly to compute network positions; React Flow remains the renderer/editor.
-- [Sigma rendering](https://www.sigmajs.org/concepts/rendering/): WebGL rendering designed for large networks. It is a candidate for a future very-large-network visualization mode, rather than a drop-in replacement for editable React Flow nodes.
-- [React Flow Smart Edge](https://github.com/tisoap/react-flow-smart-edge): v12-compatible, shared worker routing, obstacle avoidance, incremental cache, floating connections, subflow-aware routing and circuit-style edge hops. We use the package rather than maintaining a custom pathfinder.
+## Rendering and layout engines
 
-## Implemented pipeline
+| Component | Implemented responsibility |
+| --- | --- |
+| React Flow | HTML/SVG interaction, compound nodes, selection and handles |
+| ELK Layered | Directed layout with areas, ports and orthogonal routes |
+| ELK SPOrE / box packing | Network overlap cleanup and compact area placement |
+| Cytoscape/fCoSE | Headless Network positioning; never the browser renderer |
+| React Flow Smart Edge | Shared worker routes for detailed/visible connections |
+| Local graph functions | Traversal, projection, labels and incremental placement |
 
-1. Preserve original entity IDs and all relationship definitions.
-2. Group parallel directed links by source/target while retaining every original ID and definition in the bundle.
-3. Use the shared **Group by** selection for area boundaries. Automatic chooses an available grouping with multiple groups. These are display groupings, not new standard semantics.
-4. Start with **Layered (ELK)** and offer **Network (fCoSE)** in View options.
-5. For network layout, remove residual overlaps with ELK SPOrE and pack area rectangles with ELK's box packer. Tests check actual rectangle intersections and containment.
-6. Render compound areas and entity nodes in React Flow, with controlled node state, memoized node/edge components, viewport culling, area zoom, an optional mini-map (off until switched on in View options) and manual dragging.
-7. Keep ELK's orthogonal routes in Layered while their endpoints match the live handles.
-   Compound-container origins normalize route coordinates into the canvas. Moving a card falls
-   back to routing from its live handles. Network uses inexpensive native routes at whole-model
-   zoom and a shared obstacle-routing worker at detail zoom. Selection highlights connected
-   entities without removing the rest of the model.
-8. Counted areas open when the entity count or actual layout proportions would cram names.
-   Models above 250 visible business entities always open collapsed. Fully collapsed areas use
-   compact box packing. Area cards reserve 96 canvas pixels for their summaries; headings reserve
-   two compensated lines above them. **Expand all** restores every entity. Internal relationships
-   stay in the area count and remain accessible after expansion.
-9. Fit the whole model for spatial orientation, then zoom to an area or entity for reading. A finite viewport cannot show arbitrarily many full-size entity labels simultaneously.
+Sigma/WebGL was considered for very large networks but is not an implemented mode. Adding another
+renderer would need explicit behavior for editable cards, port identity, selection and provenance;
+it is not a drop-in performance switch.
 
-## Column-level lineage canvas
+## Whole-model graph pipeline
 
-For an ODCS contract, the Graph tab and an asset page's Lineage tab use `src/odcs/LineageCanvas.tsx`. The graph builder in `src/odcs/lineage.ts` reads project definitions into table, semantic-dataset, metric and external-reference cards. It matches declared names and expression references without fetching contracts or executing SQL. Each edge retains the file and definition path that supplied it.
+`src/FullGraph.tsx` renders the projection built from original entities and relationships:
 
-The entity graph connects whole entities and offers network or layered layouts inside area boundaries. Lineage connects rows within asset cards in a left-to-right layered layout. Foreign keys run from the referenced column to the referencing column. Reads, aggregations and metric dependencies continue toward their consumers. Declared transforms connect source objects to the affected property. Grouping colours tint contract cards without adding area containers.
+1. Preserve each definition's ID and source evidence. Parallel directed relationships can share
+   one link bundle, but every original relationship remains available for inspection.
+2. Apply the selected display grouping. Automatic uses the first applicable mode with useful
+   groups. These areas are view organization, not additional standard semantics.
+3. Use Layered layout by default. Network uses fCoSE positions, then overlap cleanup and area
+   packing rather than assuming that force layout cannot overlap HTML cards.
+4. Render parent areas before their children using relative positions and `parentId`.
+5. Retain ELK route vertices while their endpoints match live handles. Dragging invalidates stale
+   routes and falls back to live geometry. SVG appearance props are selected separately so graph
+   metadata is not forwarded onto DOM elements.
+6. Compute obstacle-aware worker routes only at useful detail levels or for selected connections.
+   Whole-model views use inexpensive native paths instead of routing thousands of tiny edges.
+7. Fit the actual pane. When every entity name would be unreadable, start with counted area
+   cards. Models above 250 visible business entities always start collapsed; expanding restores
+   all entities and their folded relationships.
 
-`src/odcs/lineage-layout.ts` gives each visible column a fixed incoming port on the left and an outgoing port on the right. Card headers also have ports for references without a column. ELK computes card positions and the route of each line in a worker, with polyline routing so that a line spanning several columns runs around the cards between them; React Flow draws the cards, and each line follows its route (`edge-route.ts` rounds the corners). A line between neighbouring columns is one curve between its ports. Column rows show types and property badges.
+`src/full-layout.ts` and its workers own engine input/output. `src/graph/overview-capacity.ts`
+decides readable initial capacity. `src/graph/edge-styles.ts` supplies line/legend styles and
+SVG-safe appearance; `src/RoutedEdge.tsx` keeps fallback routes attached while a worker result is
+pending or no longer matches current endpoints.
 
-A card never pages. A collapsed card shows the columns that matter, in this order of priority: columns on the selected path or matching the search, columns with a line in the view, then keys (PK and FK). A card of eight columns or fewer shows all of them, and the number of rows is capped by the height of the pane so a card always fits it. One line, "+ N more columns", opens the card in place into a single scrolling list of at most ten rows (fewer on a short pane) with a filter box above 30 columns and a "Show fewer" line; the list is windowed, so a table of several hundred columns costs the same as a small one. Edges to hidden columns attach to the more-columns row. In an opened card the handle of each connected row follows the list as it scrolls; a row scrolled out of view keeps its handle on the list edge, drawn larger, and a marker at that edge counts the connected rows above or below. Full pierce shows every connected column. Dense connections bundle into one line with its count until a selected path needs their individual endpoints.
+Selection changes emphasis rather than deleting the rest of the model. The optional mini-map is
+off until requested. A finite viewport cannot display an unlimited number of full-size labels;
+area collapse, zoom and focused views make that trade-off explicit.
 
-A foreign key reads child to parent, `orders.customer_id → customers.id`, whichever way its line is drawn (lines run from the referenced column to the column that holds the key). `src/odcs/edge-labels.ts` writes that sentence on the line when there is room for it halfway along its route, in the gap between two columns of cards, and never over a card or another label; a label without room appears when its line is hovered. A bundle carries its count once, not the word "lines" on every bundle. The Hops row (`ForeignKeyHops.tsx`) sets how many foreign keys the view follows from the centre, shows the tables it reaches as a path with a hop badge, and opens the keys as sentences grouped by hop.
+## Neighborhood and incremental traversal
 
-Expanding a card places newly revealed cards beside it through `src/graph/incremental-layout.ts`. Existing cards keep their positions. The walk records which cards each expansion introduced, so Collapse and Undo expansion remove only that expansion's contribution. Walking to another centre starts a fresh canvas. Full pierce computes a bounded traversal in a worker and lays out the resulting cards through ELK.
+`src/NeighborhoodGraph.tsx` places the center between incoming and outgoing neighbors. Local
+functions group links, assign distinct routes and place labels; full model layout engines are not
+rerun for every small walk.
 
-The first view never shows a card cut by the edge of the pane. `src/odcs/lineage-view.ts` places the
-cards in columns the way the layout does and adds them nearest first (tables before datasets,
-metrics last) while the columns still fit the pane at the readable zoom of 0.93, which keeps 13 px
-column names at 12 px or more on screen. Only those cards are laid out; if the real layout turns out
-larger, the last card added leaves and the rest are laid out again. The cards left out wait behind a
-counted control, "N of M cards shown · Show all", and a path that reaches one of them brings every
-card in. The first view of a metric in a mapping graph also shows the datasets of the concepts the
-metric binds. **Fit** shows every card and fits them, and can zoom out further. It takes precedence
-over a pending first-view adjustment. Neighborhood drops detail lines below zoom 1 and compensates
-names to remain at least 12 px on screen down to about 0.27. Its action targets stay at least 24 px
-with 12 px icons at fitted zoom. Lineage enlarges compact card titles within its fixed header
-height; Fit can zoom below the readable first-view scale.
+A walk records centers and the relationship used to reach them. Expansion sets record their
+origin, nodes, edges and direction. `src/graph/incremental-layout.ts` places new nodes beside that
+origin without moving existing nodes. Collapse removes only nodes contributed by that expansion;
+shared contributions remain. Back, Forward and Undo reconstruct the recorded canvas.
 
-Selecting a column highlights its upstream and downstream paths and dims unrelated rows and lines. The **Selected path** list shows the connected objects, fields and metrics in dependency order: a panel beside the canvas from 1100 px, and a dialog opened from the **Selected path** button below that. Selecting a panel entry changes the highlighted path. **Clear the selected path** restores the unselected view. For semantic datasets and metrics, **Continue in Neighborhood** opens entity exploration.
+Connected traversal runs in a worker with a 150-node initial budget and a 500-node expansion cap.
+It follows requested direction and visibility switches. Frontier counts distinguish reachable
+content from content already drawn. Large additions are revealed over multiple frames so input
+remains responsive. `expansion-viewport.ts` chooses a readable target viewport before publishing
+an expanded canvas instead of briefly mounting it at fit-all scale.
 
-## Validation
+Names use identifier-boundary breaks without changing text. Relationship labels compensate for
+zoom, reserve their painted bounds and stay above edge paths. Displaced labels have leader lines;
+labels that cannot fit within the current canvas remain available on hover. At low zoom, showing
+all labels is intentionally replaced by hover/selection detail.
 
-- The UBL graph contains 45 entities, 277 relationships and 183 directed parallel-link bundles, with selectable original definitions.
-- Geometry tests assert every entity appears exactly once, has a parent, stays inside its parent,
-  and overlaps no other entity after cleanup. The layered layout produces a route for every bundle,
-  with absolute endpoint checks for all 183 routes.
-- Collapse tests account for every original entity and relationship across visible links and folded internal links.
-- Browser checks exercise the real workspace, full graph, both engines, area zoom, selection, return to overview, downloads, and large-model expansion. They capture screenshots under `/tmp`.
-- Mutation checks include deliberately removing overlap cleanup and dropping entity nodes.
+## Contract lineage and mapping graphs
 
-## Storage and identity
+`src/odcs/lineage.ts` builds project-local dependency cards for tables, semantic datasets, metrics
+and external references. Names and expression references provide evidence; no external contract
+is fetched and no SQL is run. Mapping graphs use the same canvas with cards and lines supplied
+by the mapping resolver.
 
-Documents live in the folder store: each project is a repository root or a declared subfolder of a shared repository, and an entity's identity is its document id (`<project>/<path>`) plus its path inside the document. Grouping corrections are saved per document as view state in the workbench state folder (outside the project folders, so they are not committed), never in the definitions, so export keeps the original bytes. The Neighborhood center and walk refer to entities by these ids, so they survive renames of other documents and a reload.
+The canvas differs from an entity graph: lines connect rows within cards rather than only whole
+nodes. Foreign-key dependency lines run from the referenced column toward the referencing column;
+their label still reads child to parent, for example `orders.customer_id → customers.id`.
+Reads, transforms, aggregations and metric dependencies continue toward their consumers.
 
-## Neighborhood, full screen and layout checks
+`lineage-layout.ts` assigns incoming/outgoing row ports. ELK positions cards and routes lines in a
+worker. `LineageCard.tsx` and `LineageColumnList.tsx` render those ports and rows; `edge-route.ts`
+and `edge-labels.ts` handle drawn routes, rounded corners and labels.
 
-The Neighborhood view projects a center with its incoming neighbors on the left and outgoing neighbors on the right, keeps links between neighbors as an option, pages hidden neighbors and keeps a walk history. Graph and Neighborhood can fill the screen (Fullscreen API, with a window-filling fallback); leaving restores the zoom and selection. The responsive suite checks every view from 390×844 to 2560×1440 for horizontal scroll, cut-off controls and floating overlays (mini-map, status line, bundle selector, toasts, inspector; zoom lives in the toolbar, not over the canvas) drawn over each other or over a control.
+### Visible, hidden and scrolling columns
 
-Neighborhood rows are 180 canvas pixels apart so full-detail cards keep a visible gap. Phone
-Controls reposition after full-screen and viewport changes, and their direction selector wraps.
-Browser assertions measure graph heading/card collisions, count clipping, 12 px name containment,
-3:1 default edge paint contrast, screen-width strokes and routes crossing unrelated cards.
-Mapping graph footers label reachable and total assets separately from visible card counts.
+A card never uses pagination. Its collapsed rows prioritize the selected path/search, connected
+columns and keys. Small cards show all columns; larger cards fit a pane-dependent row budget and
+use a shared **more columns** row for hidden endpoints.
 
-Neighborhood relationship labels compensate for zoom with the same discrete levels as card names.
-Their backgrounds scale with the text, and routing reserves the enlarged bounds to avoid cards
-and other labels. The browser viewport matrix measures the final canvas and label screen transforms and
-requires at least 12 screen pixels for every visible relationship label.
+Opening the card produces one windowed scrolling list, with filtering above thirty columns.
+Connected rows outside the visible list retain clamped handles at the list edge, with markers
+counting rows above/below. Filtered connected rows also retain an edge anchor. This preserves
+connections while avoiding hundreds of rendered row controls.
 
-Displaced relationship labels have solid leaders to the nearest point on their route.
-Labels that would cross the canvas boundary stay hidden until panning brings them fully inside.
-The shared label layer stays above every relationship path.
+Lineage labels are placed in available gaps, not on unrelated cards or labels. Bundles carry a
+count once. The hop control follows one to five foreign keys and lists the reached paths without
+changing the meaning or direction of the declared key.
 
-At zoom below 1, Neighborhood shows readable relationship labels on hover or selection.
-View options explains that all labels appear after zooming in; dense overviews avoid detached
-labels around the cards. The all-label browser view uses detail zoom explicitly.
+### First-view readability
 
-The graph engines are not OWL reasoners or SHACL validators. Layout positions are browser-session state; document export preserves the original definitions rather than exporting a screenshot.
+`lineage-view.ts` chooses nearby cards that fit whole at the readable entry zoom. It prioritizes
+tables, then datasets and metrics. If the actual layout is larger than estimated, the last
+candidate is removed and the view is laid out again. Omitted cards remain reachable through a
+counted Show all action or selected path. Explicit Fit can zoom out beyond the readable entry
+scale; it takes precedence over a pending automatic first-view adjustment.
+
+Graph labels and card names use zoom-dependent typography; small detail lines disappear rather
+than being shown at an unreadable size. Compensated names are bounded by card height. These are
+initial/readable-view guarantees, not a claim that arbitrary user zoom cannot make text small.
+
+## Measurement and resize lifecycle
+
+React Flow measures node bounds and handles after rendering. A fresh controlled-node object can
+invalidate those measurements even when its DOM shape did not change. Publishing layouts must
+therefore distinguish reusable dimensions from a changed node/port topology:
+
+- FullGraph preserves prior measurements only for the same node ID, type, width and height.
+  Grouping can change parent positions without invalidating unchanged local handle geometry.
+- Lineage keys reuse by visible-row identity, hidden-row count and open/closed state. An open list
+  also includes its row budget and connected-column identities. A changed port set is remeasured
+  before new connections use it.
+- The lineage watchdog retries cards left unmeasured; it is not a substitute for correct cache
+  invalidation or a reason to accept hidden cards after ordinary resize.
+
+The pinned React Flow 12.12.0 ESM patch in `patches/` batches observer-driven node updates and pane
+size changes into animation frames. Latest entries for a node win within a batch. Cleanup cancels
+pending frames, clears retained entries and disconnects pane observation even when its DOM ref
+has already cleared. Initial pane measurements and window-resize events keep their original
+synchronous behavior.
+
+The patch is applied by Bun's frozen install and copied into both Docker dependency stages.
+It does not replace the global ResizeObserver or suppress error events. Dependency upgrades must
+retain the behavior tests for both ESM entrypoints or replace the patch with a verified upstream
+fix. Parent size hooks, shared menus and strips also schedule layout-changing observer work
+outside delivery and cancel pending callbacks on cleanup.
+
+## Identity and view state
+
+Definitions live in project folders. An entity is identified by its document ID and its path
+within that document. Grouping corrections are view state outside the definition repository;
+server mode scopes them to the person. Model export keeps original definitions rather than
+exporting graph coordinates or screenshots.
+
+Cross-file navigation uses explicit matching IDs, IRIs, physical names or concept mappings.
+It does not infer equivalence from similar labels. Session navigation stores graph/walk state
+separately from the underlying model definitions.
+
+## Validation and regression coverage
+
+Pure tests cover layout bounds, parent containment, overlap cleanup, preserved relationship
+bundles, directed traversal and exact route endpoints. UBL provides a schema-derived model with
+45 entities, 277 relationships and 183 directed bundles; synthetic scale fixtures exercise larger
+navigation without claiming standards conformance.
+
+Browser checks measure rendered endpoints, row handles, card containment, edge/label clearance,
+contrast, responsive controls, worker routing, grouping transitions and source preservation.
+Readiness requires a fitted/stable viewport and rendered geometry, not merely a finished worker.
+Missing edges must not be skipped to make an attachment check pass.
+
+The graph, lineage, grouping and responsive suites record raw resize-loop events in addition to
+page/console errors. Every responsive page creation path registers the same collector, including
+custom contexts used for sidebar dragging. Failures retain their geometry/timing thresholds and
+can capture exact node/handle/viewport diagnostics. Mutation tests verify meaningful omissions
+such as dropped nodes or overlap cleanup.
+
+See [development commands](development.md#browser-suites) for the current script inventory and
+[architecture](../ARCHITECTURE.md) for server/file/access boundaries.
+
+## References
+
+- [React Flow layout](https://reactflow.dev/learn/layouting/layouting)
+- [React Flow subflows](https://reactflow.dev/learn/layouting/sub-flows)
+- [React Flow performance](https://reactflow.dev/learn/advanced-use/performance)
+- [ELK Layered](https://eclipse.dev/elk/reference/algorithms/org-eclipse-elk-layered.html)
+- [ELK SPOrE overlap cleanup](https://eclipse.dev/elk/reference/algorithms/org-eclipse-elk-sporeOverlap.html)
+- [Cytoscape.js](https://js.cytoscape.org/)
+- [fCoSE](https://github.com/iVis-at-Bilkent/cytoscape.js-fcose)
+- [React Flow Smart Edge](https://github.com/tisoap/react-flow-smart-edge)
+- [Sigma rendering](https://www.sigmajs.org/concepts/rendering/) — reviewed, not implemented

@@ -1,21 +1,26 @@
-# Owner trial
+# Target acceptance and rollback checks
 
-Run on the owner's target subscription and Azure DevOps project, never by the implementer.
-Identifiers below are placeholders. Set `<release-tag>` to the delivered tag, for example
-`v0.4.0`. Use fixture data only. Record pass or fail and the names of the checks that failed
-for every step, and turn each failure into a follow-up task. The report goes into a public
-repository, so never paste raw output: leave out tokens and cookie values (including
-`Set-Cookie` lines), the output of `scripts/examples/agent-client.ts`, audit lines that hold
-email addresses or object IDs, and the names of approvers. Replace identifiers with
-placeholders as the report template says. This trial does not gate local
-implementation completion. Commands assume the release checkout and the setup guide's variables.
+An authorized target operator runs this checklist on the intended subscription and Azure DevOps
+project. The local quality gate uses mocks and does not perform this trial. Begin with fixture
+data and record pass/fail plus failed check names for every step.
+
+Replace `<release-tag>` with the approved tag of a versioned target release commit. Its core must
+match `package.json`; existing unversioned source tags do not satisfy the delivery guard. Follow
+[release hand-over](README.md#release-hand-over) without moving a published tag.
+
+Treat a shared report as public even when the current repository is private. Never paste raw
+output containing tokens and cookie values, including `Set-Cookie` headers. Exclude output from
+`scripts/examples/agent-client.ts`, audit entries with e-mail addresses or object IDs, and the
+names of approvers. Replace target identifiers with the report template's placeholders. Use the
+approved setup variables from [target setup](README.md); do not copy production secrets into
+commands or the report. Real-target acceptance is separate from local implementation validation.
 
 1. **Set up the target.** Follow every portal action and CLI help entry in
    [Target setup](README.md). Check all resources, identities, roles, probes, mount ownership,
-   federation, pipeline permissions and environment checks. Check that branch control is on for the three service connections
-   (`sw-azure-deploy`: `refs/tags/v*`; `sw-azure-push`: `refs/heads/main` and `refs/tags/v*`,
-   with Verify branch protection; `sw-azure-pull`: `refs/tags/v*`), and that Create tag on `refs/tags/v*` is allowed for the release operator
-   only. Check the
+   federation, pipeline permissions and environment checks. Check branch control on all three
+   service connections (`sw-azure-deploy`: `refs/tags/v*`; `sw-azure-push`: `refs/heads/main` and
+   `refs/tags/v*`, with Verify branch protection; `sw-azure-pull`: `refs/tags/v*`). Only the release
+   operator should have Create tag permission on `refs/tags/v*`. Check the
    [Entra App Registration](README.md#entra-app-registration) item by item: both Web redirect
    URIs, the front-channel logout URL `https://<host>/auth/front-channel-logout`, groups claim
    and optional claims (`email`, `upn`, `xms_edov`, `sid`, `login_hint` on ID tokens, `idtyp`
@@ -27,8 +32,8 @@ implementation completion. Commands assume the release checkout and the setup gu
 2. **Hand over `<release-tag>`.** Follow the guide's push or verified bundle sequence: release
    branch, pull request into `main`, then tag. For archive fallback record the commit mapping.
    Inspect the mirror's tag and commit. Expected: the release commit matches (or the archive
-   mapping is recorded) and is on the mirror's `main`; the package declares version core
-   `0.4.0`. On a clone of the mirror,
+   mapping is recorded) and is on the mirror's `main`; the package declares the version core
+   of the approved release tag. On a clone of the mirror,
    `git merge-base --is-ancestor <release commit> origin/main` succeeds; for a test commit that
    is not on `main` it fails, and a tag on that commit fails the `check` job before any image
    is pushed. Result: [ ] pass [ ] fail.
@@ -60,8 +65,10 @@ implementation completion. Commands assume the release checkout and the setup gu
    [quickstart §5](../specs/003-authn-authz/quickstart.md#5-microsoft-entra-id-on-the-real-tenant-manual-checklist-run-by-the-owner-recorded-in-verificationmd).
    The redirect goes to `https://login.microsoftonline.com/<tenant>/oauth2/v2.0/authorize` and
    carries `x-client-SKU=msal.js.node` (MSAL signs in on the server); the browser's cookies,
-   storage and responses hold no token. People signed in before this release are signed out once,
-   at their first token refresh (audit reason `session-upgraded`), and sign in again. Sign out in
+   storage and responses hold no token. Legacy Entra sessions without an MSAL token cache end at
+   refresh with reason `session-upgraded`; current compatible sessions are not expected to end
+   merely because the application was upgraded. Record migration and ordinary restart behavior
+   separately. Sign out in
    the workbench: Entra does not ask which account. Run `scripts/examples/agent-client.ts` once
    with a granted agent registration (see
    [agent runtime](../docs/agent-runtime.md#agent-clients-in-server-mode)). Check
@@ -75,8 +82,8 @@ implementation completion. Commands assume the release checkout and the setup gu
    custom role and scoped access, No access for ungranted and unverified guest users, overage
    lookup and failure behavior, group removal after refresh, stable Signed out page, the
    session ended by the sign-out in another application, and an Editor push attributed to that
-   person. Features from later phases that are unavailable must
-   be recorded as failures/follow-ups, not marked passed. Result: [ ] pass [ ] fail.
+   person. Any required feature that fails must be recorded as a failure/follow-up, not marked
+   passed because local mocks or another release succeeded. Result: [ ] pass [ ] fail.
 7. **Restart and hand over.** In Container Apps → Revisions restart the running revision while
    a fixture user has a session and saved edits. Produce the next approved revision: choose
    the next prerelease or patch tag, bump `package.json` to its version, review the change,
@@ -99,8 +106,9 @@ implementation completion. Commands assume the release checkout and the setup gu
    `SW_OIDC_CLIENT_CERTIFICATE_KEY` when the certificate is used, are Key Vault references. Check
    that the deploy connection holds the custom role of
    [`container-app-deployer-role.json`](container-app-deployer-role.json) on the container app
-   (`containerApps/read`, `write`, `revisions/*` and the `locations/containerappOperationStatuses/read`
-   and `containerappOperationResults/read` actions) and not Contributor, so it cannot call
+   (`containerApps/read`, `write`, `revisions/*`,
+   `locations/containerappOperationStatuses/read` and `containerappOperationResults/read`) and not
+   Contributor, so it cannot call
    `listSecrets` or request an exec token. Run `az provider operation show --namespace
    Microsoft.App` to confirm the action names, then an update and the restore path
    (`az containerapp revision copy`) with the role; if a CLI version needs `listSecrets`, record
@@ -130,7 +138,8 @@ implementation completion. Commands assume the release checkout and the setup gu
     arrive under the cloud role `semantic-workbench`, that a trace and its log lines share one
     operation id, and that no document text, file name, project name, token or e-mail address
     appears in any of them. Throw an error in the browser console of a signed-in page and check
-    that a `browser.error` trace arrives. Remove the secret reference, create a revision and
+    that its `browser.error` log/report arrives. Browser reports are not standalone browser spans;
+    a sampled HTTP trace is separate evidence. Remove the secret reference, create a revision and
     check that `telemetry.enabled` is false and nothing arrives. Result: [ ] pass [ ] fail.
 
 Copy this report into `specs/003-authn-authz/verification.md` under **Owner trial**, replacing
