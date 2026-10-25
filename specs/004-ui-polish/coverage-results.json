@@ -1,0 +1,39 @@
+{
+  "base_sha": "9e206ddac80951d24e70f630f05ce23d40593462",
+  "scope": "Coverage-only follow-up; application and server runtime unchanged",
+  "ci_start_utc": "2026-10-24T22:59:56Z",
+  "ci_end_utc": "2026-10-25T00:23:48Z",
+  "ci_invocations": 1,
+  "ci": {
+    "seconds": 5032.136,
+    "failed": [],
+    "results": [
+      { "step": "verify", "seconds": 260.516 },
+      { "step": "mutation", "seconds": 906.603 },
+      { "step": "browser", "seconds": 2095.136 },
+      { "step": "image", "seconds": 66.98 },
+      { "step": "container", "seconds": 1699.397 },
+      { "step": "pipeline", "seconds": 3.504 }
+    ]
+  },
+  "unit": {
+    "passed": 1856,
+    "failed": 0,
+    "assertions": 129553,
+    "files": 261
+  },
+  "targeted": { "passed": 13, "failed": 0, "assertions": 25, "files": 2 },
+  "mutation": { "killed": 660, "total": 660 },
+  "browser_suites": 29,
+  "container": { "local_suites": 25, "explicit_checks": 30 },
+  "image_scan": { "vulnerabilities": 0, "secrets": 0 },
+  "graph_capture": { "cases": 8, "retained_diagnostics": 0, "geometry_problems": 0, "errors": 0 },
+  "tested_files_sha256": {
+    "scripts/helpers/graph-tour.ts": "b6c4cf2ef31a48981562ab26ca7da22f6404e461134f97c532151856cbc3833f",
+    "tests/admin-dialogs.test.tsx": "6d5d33626a254113aec9035f653f45d1976533e5edc68b84f618d0de750d2728",
+    "tests/harness/admin-harness.tsx": "9d105f83b8433a99b0ed7c69b5454fd49ca315e75ea9e53da64bc04a149a26d4",
+    "tests/graph-tour.test.ts": "280e89859d59e671ab7a6b374819b13aa2678191219818bfff1dc3e9505102ae"
+  },
+  "ci_log_sha256": "ef4f5adf3209b516fb49252f49b104b8f7759376e90c7fab009588e2b05760fb",
+  "raw_evidence_directory": "/tmp/polish-coverage-gate"
+}

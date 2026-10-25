@@ -810,7 +810,8 @@ Container validation uses `SW_CONTAINER_PORT` as its base port (default 4310); a
 The setting also reaches the container step of `ci:validate`; checks require the base port
 and its successor to be free before starting. It configures only validation, not the application server.
 
-The v0.5.0 completion record is [FINAL.md](specs/004-ui-polish/FINAL.md). The verified gate passes
+The v0.5.0 completion record is [FINAL.md](specs/004-ui-polish/FINAL.md).
+The original gate at `d631e56` passed
 1,853 tests (129,539 assertions, 260 files), 660/660 mutation targets, 32 direct browser suites (29
 canonical, Keycloak and two standalone graph checks), container validation, all six CI steps and ten
 consecutive lineage runs. The 1,040-image round 16 matrix is supplemented by 61 R11 proof images
@@ -821,3 +822,11 @@ CI starts each Vite process with Node 24.11+ available on PATH. The package wrap
 routes its node executable through Bun in this environment, where child launches can stay alive
 without listening. The API, commands and test runner continue using Bun. Readiness deadlines
 and bounded startup cleanup are unchanged.
+
+Post-review coverage adds a parent-driven stale Admin review regression and measured graph-tour
+filter tests. The all-areas exemption now covers only name font-size diagnostics; card containment
+remains checked. The coverage follow-up passes 1,856 tests
+(129,553 assertions, 261 files), 660/660 mutation targets and all six CI steps. Eight focused
+all-areas captures pass at four widths in both themes. Updated provenance, evidence paths and
+development-console observations are in [FINAL.md](specs/004-ui-polish/FINAL.md) and
+[verification.md](specs/004-ui-polish/verification.md).
