@@ -1,10 +1,16 @@
 /* The sidebar: navigation on top, the project tree in the middle, the workspace actions below. */
 
-/* The scrollbar and borders explain overflow without fading away file names. Snap rows flush
-   with the top edge so a previous row cannot leave a rounded fragment above the first one. */
-.workspace-sidebar .documents {
+/* The frame keeps spare height outside the scroller so its last row stays complete. */
+.workspace-sidebar .documents-frame {
   flex: 1 1 auto;
   min-height: 160px;
+  overflow: hidden;
+}
+
+/* Snap rows flush with the top edge without fading or clipping file names. */
+.workspace-sidebar .documents {
+  height: 100%;
+  min-height: 0;
   padding-block: 0;
   overflow-y: auto;
   scrollbar-width: thin;

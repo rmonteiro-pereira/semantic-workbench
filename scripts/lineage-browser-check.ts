@@ -1,5 +1,6 @@
 // Checks column lineage against reference edges and measures browser interaction latency.
 import { appUrl } from './helpers/base-url';
+import { recordResizeErrors } from './helpers/resize-errors';
 import { chromium, expect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
@@ -30,8 +31,14 @@ const errors: string[] = [];
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 page.on('pageerror', e => errors.push(e.message));
 page.on('console', m => {
-  if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push(m.text());
+  if (
+    (m.type() === 'error' && !/Failed to load resource/.test(m.text())) ||
+    (m.type() === 'warning' && m.text().includes('[React Flow]'))
+  ) {
+    errors.push(m.text());
+  }
 });
+await recordResizeErrors(page, message => errors.push(message));
 await routeApi(page, api);
 let passed = 0;
 async function check(name: string, run: () => Promise<void>) {
@@ -345,6 +352,11 @@ try {
       const center = graph().locator('.lineage-card.center');
       await expect(center).toHaveAttribute('aria-label', 'Table consignment');
       expect(await renderedRowPx()).toBeGreaterThanOrEqual(12);
+      // Opening the group adds connected handles to an already expanded column list.
+      await expect(center.getByRole('navigation')).toHaveCount(0);
+      await center.getByRole('button', { name: /^Show all \d+ columns of consignment/ }).click();
+      const list = center.getByRole('region', { name: 'Columns of consignment' });
+      await expect(list).toBeVisible();
       // The fan-out of bridge tables is one "N more tables" card, which opens on request.
       await fit();
       const group = graph().locator('.lineage-card.group').first();
@@ -359,10 +371,6 @@ try {
         })
         .toBeGreaterThan(before);
       await compare('ubl');
-      // Cards never page: a wide table opens in place into one scrolling list.
-      await expect(center.getByRole('navigation')).toHaveCount(0);
-      await center.getByRole('button', { name: /^Show all \d+ columns of consignment/ }).click();
-      const list = center.getByRole('region', { name: 'Columns of consignment' });
       await expect(list).toBeVisible();
       await compare('ubl');
       await shots('ubl');

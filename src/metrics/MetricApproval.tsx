@@ -82,13 +82,17 @@ export function MetricApproval({ project, kpi }: { project: string; kpi: KpiSumm
       )}
       {reason !== null && (
         <form className="kpi-deprecate" onSubmit={deprecate}>
-          <input
-            aria-label="Reason for deprecating"
-            placeholder="Why it is deprecated, or what replaces it"
-            value={reason}
-            onChange={event => setReason(event.target.value)}
-            autoFocus
-          />
+          <label>
+            Deprecation reason
+            <textarea
+              aria-label="Reason for deprecating"
+              placeholder="Reason or replacement metric"
+              rows={2}
+              value={reason}
+              onChange={event => setReason(event.target.value)}
+              autoFocus
+            />
+          </label>
           <button type="submit" className="primary" disabled={busy || !reason.trim()}>
             Deprecate metric
           </button>

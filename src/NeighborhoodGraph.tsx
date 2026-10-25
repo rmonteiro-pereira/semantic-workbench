@@ -1,6 +1,7 @@
 /** Displays a centered relationship graph with expansion and navigation history. */
 import { DETAIL_ZOOM, LOWEST_FIT_ZOOM, useFarZoom } from './graph/FarZoom';
 import { ScrollStrip } from './ScrollStrip';
+import { EntityName } from './graph/EntityName';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ReactFlow,
@@ -479,7 +480,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
                     e.kind
                   )}
                 </small>
-                <strong title={e.name}>{e.name}</strong>
+                <EntityName name={e.name} />
                 <span>
                   {e.fields.length
                     ? `${e.fields.length} ${e.fields.length === 1 ? 'field' : 'fields'}`
@@ -831,7 +832,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
                     choose(e.id);
                   }}
                 >
-                  <strong title={e.name}>{e.name}</strong>
+                  <EntityName name={e.name} />
                   <small>{e.kind}</small>
                 </li>
               ))}
@@ -1045,7 +1046,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
                   {searchResults.map(e => (
                     <li key={e.id} role="option" aria-selected={false}>
                       <button onClick={() => choose(e.id)}>
-                        <strong title={e.name}>{e.name}</strong>
+                        <EntityName name={e.name} />
                         <small>{e.kind}</small>
                       </button>
                     </li>

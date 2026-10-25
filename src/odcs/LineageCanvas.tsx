@@ -213,11 +213,18 @@ const readSteps = (key?: string) => {
   }
 };
 type NodeSize = { width: number; height: number };
-// React Flow forgets a card's measured size whenever it receives a fresh node object, and a card
-// that is never measured again stays hidden. This keeps the sizes React Flow reports so each new
-// node object can carry its card's last size.
+// Preserve measurements while a card keeps its rows. Changed rows invalidate the size so React
+// Flow measures their new handles before trying to connect edges to them.
 function useMeasuredNodeSizes() {
   const sizes = useRef(new Map<string, NodeSize>());
+  const shapes = useRef(new Map<string, string>());
+  const sizeFor = useCallback((id: string, shape: string) => {
+    if (shapes.current.get(id) !== shape) {
+      shapes.current.set(id, shape);
+      sizes.current.delete(id);
+    }
+    return sizes.current.get(id);
+  }, []);
   const recordSizes = useCallback((changes: NodeChange[]) => {
     for (const change of changes) {
       if (change.type === 'dimensions' && change.dimensions) {
@@ -225,7 +232,7 @@ function useMeasuredNodeSizes() {
       }
     }
   }, []);
-  return { sizes, recordSizes };
+  return { sizeFor, recordSizes };
 }
 const MEASURE_CHECK_MS = 500;
 
@@ -619,7 +626,7 @@ export function LineageCanvas({
     [layoutCards, layoutEdges],
   );
   const { result: elk, busy } = useLayout(layoutCards, layoutEdges, layoutKey);
-  const { sizes: measuredSizes, recordSizes } = useMeasuredNodeSizes();
+  const { sizeFor, recordSizes } = useMeasuredNodeSizes();
   // ELK positions, then each expansion's new cards beside their origin, in order; nothing placed
   // moves.
   const result = useMemo(() => {
@@ -835,7 +842,18 @@ export function LineageCanvas({
           id,
           type: 'card',
           position: result.layout.positions[id],
-          measured: measuredSizes.current.get(id),
+          measured: sizeFor(
+            id,
+            JSON.stringify([
+              p.rows.map(row => row.id),
+              p.hidden,
+              data.columnsOpen,
+              data.columnsOpen ? listRows : 0,
+              data.columnsOpen
+                ? c.columns.filter(row => why.connected.has(row.id)).map(row => row.id)
+                : [],
+            ]),
+          ),
           data: data as unknown as Record<string, unknown>,
           draggable: false,
           selectable: false,

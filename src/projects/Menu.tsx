@@ -66,24 +66,31 @@ export function MenuButton({
     const place = () => {
       const anchor = button.current?.getBoundingClientRect();
       if (!anchor) return;
-      menu.style.maxHeight = '';
       menu.style.width = matchButtonWidth ? `${root.current?.getBoundingClientRect().width}px` : '';
-      const natural = menu.getBoundingClientRect();
+      const box = menu.getBoundingClientRect();
+      const border = menu.offsetHeight - menu.clientHeight;
+      const natural = { width: box.width, height: menu.scrollHeight + border };
       const viewport = { width: window.innerWidth, height: window.innerHeight };
       const placed = placeMenu(anchor, natural, viewport, preference);
       menu.style.maxHeight = `${placed.maxHeight}px`;
       menu.style.top = `${placed.top}px`;
       menu.style.left = `${placed.left}px`;
     };
+    let frame = 0;
+    const schedulePlace = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(place);
+    };
     place();
-    const observer = new ResizeObserver(place);
+    const observer = new ResizeObserver(schedulePlace);
     observer.observe(menu);
-    window.addEventListener('resize', place);
-    window.addEventListener('scroll', place, true);
+    window.addEventListener('resize', schedulePlace);
+    window.addEventListener('scroll', schedulePlace, true);
     return () => {
       observer.disconnect();
-      window.removeEventListener('resize', place);
-      window.removeEventListener('scroll', place, true);
+      cancelAnimationFrame(frame);
+      window.removeEventListener('resize', schedulePlace);
+      window.removeEventListener('scroll', schedulePlace, true);
     };
   }, [open, placement, align, matchButtonWidth]);
   useEffect(() => {

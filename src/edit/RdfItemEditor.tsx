@@ -385,7 +385,7 @@ export function RdfItemEditor({
           </div>
         )
       )}
-      {result && !result.ok && (
+      {result && !result.ok && result.error !== refusal?.reason && (
         <p role="alert" className="item-note">
           <AlertTriangle size={13} />
           {result.error}

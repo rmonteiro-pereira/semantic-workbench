@@ -13,6 +13,20 @@ import {
   registryEnvironment,
 } from '../../scripts/image';
 
+test('both dependency stages receive patches before their frozen install', async () => {
+  const dockerfile = await Bun.file('Dockerfile').text();
+  for (const name of ['deps', 'prod-deps']) {
+    const stage = dockerfile
+      .split(/^FROM /m)
+      .find(block => block.split('\n')[0]?.endsWith(` AS ${name}`));
+    if (!stage) throw new Error(`Missing Docker dependency stage: ${name}`);
+    const copy = stage.indexOf('COPY patches ./patches');
+    const install = stage.indexOf('RUN bun install --frozen-lockfile');
+    expect(copy).toBeGreaterThanOrEqual(0);
+    expect(install).toBeGreaterThan(copy);
+  }
+});
+
 const context = {
   engine: 'podman' as const,
   commit: 'a'.repeat(40),

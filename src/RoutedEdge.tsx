@@ -2,6 +2,7 @@
 import { BaseEdge, BezierEdge, type EdgeProps } from '@xyflow/react';
 import { useSmartEdgePath } from '@tisoap/react-flow-smart-edge';
 import { pathMatchesEndpoints } from './edge-path';
+import { edgeAppearance } from './graph/edge-styles';
 
 /** Background routing may finish after a drag or a complete layout change. Keep using live React
  * Flow handles until the matching route arrives. */
@@ -19,6 +20,7 @@ export function RoutedEdge(props: EdgeProps) {
     preset: props.data?.algorithm === 'network' ? 'bezier' : 'smoothstep',
     options: { nodePadding: 10, gridRatio: 10, borderRadius: 5 },
   });
+  const appearance = { ...edgeAppearance(props), interactionWidth: 24 };
   if (
     isDragging ||
     !route ||
@@ -31,23 +33,23 @@ export function RoutedEdge(props: EdgeProps) {
       props.targetY,
     )
   )
-    return <BezierEdge {...props} interactionWidth={24} />;
+    return (
+      <BezierEdge
+        {...appearance}
+        sourceX={props.sourceX}
+        sourceY={props.sourceY}
+        targetX={props.targetX}
+        targetY={props.targetY}
+        sourcePosition={props.sourcePosition}
+        targetPosition={props.targetPosition}
+      />
+    );
   return (
     <BaseEdge
-      id={props.id}
+      {...appearance}
       path={route.svgPathString}
-      label={props.label}
       labelX={route.edgeCenterX}
       labelY={route.edgeCenterY}
-      markerEnd={props.markerEnd}
-      markerStart={props.markerStart}
-      style={props.style}
-      interactionWidth={24}
-      labelStyle={props.labelStyle}
-      labelShowBg={props.labelShowBg}
-      labelBgStyle={props.labelBgStyle}
-      labelBgPadding={props.labelBgPadding}
-      labelBgBorderRadius={props.labelBgBorderRadius}
     />
   );
 }

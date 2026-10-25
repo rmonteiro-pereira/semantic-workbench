@@ -213,10 +213,10 @@ requires a fresh complete round before final R10 closure.
 The [closure ledger](audit/closure.md) links earlier serious rows to their fixes. Final JPEGs
 retain native dimensions, with source/output hashes in `screenshots/after/manifest.json`.
 
-| Finding | Area | Remaining minor polish | Status |
+| Finding | Area | Observed minor polish | Status |
 | --- | --- | --- | --- |
-| F118 | Sidebar scroll boundary | A partial next row can appear above fixed actions. | deferred S3: scrolling and actions remain usable; no unreadable content |
-| F119 | Neighborhood long names | DocumentReference can wrap with a final two-letter line at 1440 px. | deferred S3: the complete name remains readable above the size floor |
+| F118 | Sidebar scroll boundary | A partial next row can appear above fixed actions. | fixed/verified in follow-up: complete rows before paint, resize and end-position tests, full gate |
+| F119 | Neighborhood long names | DocumentReference can wrap with a final two-letter line at 1440 px. | fixed/verified in follow-up: identifier-boundary wrapping, measured lines and theme captures |
 
 ## Resize delivery follow-up
 
@@ -296,16 +296,17 @@ Earlier failures remain documented, without relaxed checks.
 Round 16 reviews all 1,040 native local/server, authentication and clone-wait images: 0 S1, 0 S2,
 18 repeated S3 rows. Supplemental R11 proof reviews 61 additional images with 0 S1 and 0 S2;
 its minor observations include repeated F118 and three wording issues, F128/F129/F130. All serious
-findings are closed. The six minor
-patterns below remain explicitly deferred; they do not block controls or hide required content.
-See [FINAL.md](FINAL.md), [gate results](gate-results.json), [CI results](ci-results.json)
-and [R11 acceptance](r11-verification.md).
+findings are closed. The six minor patterns below were deferred in v0.5.0 and are now fixed and
+verified in the follow-up. No finding remains deferred. The new full gate passes 1,893 tests,
+664 mutation targets and all six steps, with no resize-loop, SVG-prop or missing-handle warnings.
+See [remaining polish closure](remaining-polish.md), [follow-up results](remaining-polish-results.json),
+[FINAL.md](FINAL.md) and [R11 acceptance](r11-verification.md).
 
-| Finding | Area | Remaining minor polish | Status |
+| Finding | Area | Observed minor polish | Status |
 | --- | --- | --- | --- |
-| F118 | Sidebar scroll boundary | A partial next row can appear above fixed actions. | deferred S3: scrolling, filenames and actions remain usable |
-| F119 | Neighborhood long names | DocumentReference can end in a two-letter wrapped line at 1440 px. | deferred S3: complete name remains readable above the size floor |
-| F124 | Phone deprecation form | Reason placeholder ends early and Cancel occupies its own line. | deferred S3: entered values and all actions remain readable and usable; shared dialog geometry passes |
-| F128 | Rename validation | A validation banner says “before importing” during rename. | deferred S3: the references panel explains rename correctly and recovery remains clear; operation-neutral wording is follow-up polish |
-| F129 | RDF refusal explanation | The refusal sentence appears both above and below the editor. | deferred S3: both copies are readable and the action/refusal is clear; consolidating the explanation is follow-up polish |
-| F130 | Repair validation counts | A singular count uses plural “errors” and “warnings”. | deferred S3: counts and issue details are clear; singular noun agreement is follow-up polish |
+| F118 | Sidebar scroll boundary | A partial next row can appear above fixed actions. | fixed/verified: whole-row fitting before paint, end-position preservation, keyboard access and responsive/container suites |
+| F119 | Neighborhood long names | DocumentReference can end in a two-letter wrapped line at 1440 px. | fixed/verified: identifier-boundary wrapping, measured character lines and light/dark captures |
+| F124 | Phone deprecation form | Reason placeholder ends early and Cancel occupies its own line. | fixed/verified: multiline reason, readable placeholder and paired actions at four viewports |
+| F128 | Rename validation | A validation banner says “before importing” during rename. | fixed/verified: operation-neutral guidance and regression assertion |
+| F129 | RDF refusal explanation | The refusal sentence appears both above and below the editor. | fixed/verified: one refusal with Source action; distinct failures remain visible |
+| F130 | Repair validation counts | A singular count uses plural “errors” and “warnings”. | fixed/verified: zero, singular and plural error/warning cases |

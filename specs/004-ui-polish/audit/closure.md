@@ -98,5 +98,7 @@ Earlier failures remain documented, without relaxed checks.
 
 The final gate passes all 49 commands at `d631e56e770ebf08d3b3d8901c61e1a2933897d6`. R11
 supplemental acceptance reviews 61 images with no S1/S2. All requirements, including R10/R11 and
-issue 10, are verified. F118, F119, F124, F128, F129 and F130 remain deferred S3 polish; see
-FINAL.md.
+issue 10, are verified. At v0.5.0, F118, F119, F124, F128, F129 and F130 were deferred S3 polish.
+The follow-up fixes and verifies all six; none remains deferred. Its full six-step gate passes
+1,893 tests and 664 mutation targets with no resize-loop, SVG-prop or missing-handle warnings.
+See [remaining polish closure](../remaining-polish.md) and [results](../remaining-polish-results.json).

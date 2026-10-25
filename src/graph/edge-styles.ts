@@ -1,4 +1,5 @@
 /** Shares edge colors and dash patterns across lineage, mappings, asset pages and legends. */
+import type { EdgeProps } from '@xyflow/react';
 // Foreign keys and metric concept bindings use dashed lines; data-flow edges are solid. Path
 // emphasis changes weight and color without changing the dash pattern.
 /** Names a dependency or foreign-key relationship in column lineage. */
@@ -48,6 +49,22 @@ export const LEGEND_LINES: Record<LegendLine, { label: string; stroke: string; d
 };
 /** Returns the shared visual style for an edge kind. */
 export const edgeStyle = (kind: EdgeKind) => EDGE_STYLES[kind];
+
+/** Selects SVG edge appearance without leaking graph metadata onto DOM elements. */
+export function edgeAppearance(props: EdgeProps) {
+  return {
+    id: props.id,
+    label: props.label,
+    markerEnd: props.markerEnd,
+    markerStart: props.markerStart,
+    style: props.style,
+    labelStyle: props.labelStyle,
+    labelShowBg: props.labelShowBg,
+    labelBgStyle: props.labelBgStyle,
+    labelBgPadding: props.labelBgPadding,
+    labelBgBorderRadius: props.labelBgBorderRadius,
+  };
+}
 // React Flow / SVG style for an edge of this kind.
 /** Returns SVG stroke properties, preserving dash patterns when emphasized. */
 export const edgeSvgStyle = (kind: EdgeKind, emphasis = false) => {

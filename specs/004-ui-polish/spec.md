@@ -448,9 +448,14 @@ All requirements are verified at the recorded gate head. See FINAL.md for proven
 
 | Finding | Requirements | Status |
 | --- | --- | --- |
-| F118 | R10 | deferred S3: partial sidebar scroll boundary |
-| F119 | R9, R10 | deferred S3: complete long name with orphan final line |
-| F124 | R8, R10 | deferred S3: usable phone deprecation form spacing |
-| F128 | R11 | deferred S3: operation wording; rename references explain recovery |
-| F129 | R11 | deferred S3: duplicate readable refusal explanation |
-| F130 | R11 | deferred S3: singular noun agreement in clear counts |
+| F118 | R10 | fixed/verified: complete sidebar rows, first-paint and resize/scroll tests |
+| F119 | R9, R10 | fixed/verified: natural identifier wrapping and measured text lines |
+| F124 | R8, R10 | fixed/verified: multiline reason and paired phone actions |
+| F128 | R11 | fixed/verified: operation-neutral recovery guidance |
+| F129 | R11 | fixed/verified: single refusal explanation with Source navigation |
+| F130 | R11 | fixed/verified: singular and plural validation labels |
+
+The follow-up closes every deferred finding. Its complete gate passes 1,893 tests,
+664/664 mutation targets and all six CI steps. Browser and container checks retain their geometry
+and timing limits; the full log contains no resize-loop, SVG-prop or missing-handle warnings.
+See [remaining-polish.md](remaining-polish.md) and [results](remaining-polish-results.json).
