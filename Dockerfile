@@ -1,6 +1,7 @@
 FROM docker.io/oven/bun:1.4@sha256:c017a211c49a21adc0e49dda7b60ac8112887c3d9465e01427f434ed107c830e AS deps
 WORKDIR /app
 COPY package.json bun.lock ./
+COPY patches ./patches
 RUN bun install --frozen-lockfile
 
 FROM deps AS build
@@ -10,6 +11,7 @@ RUN bun --bun run build
 FROM docker.io/oven/bun:1.4@sha256:c017a211c49a21adc0e49dda7b60ac8112887c3d9465e01427f434ed107c830e AS prod-deps
 WORKDIR /app
 COPY package.json bun.lock ./
+COPY patches ./patches
 RUN bun install --frozen-lockfile --production
 
 FROM docker.io/oven/bun:1.4-slim@sha256:686427843343e931d31dcca0c95221040dec48a8b5a7374c7ae9fd7959f8234d AS runtime

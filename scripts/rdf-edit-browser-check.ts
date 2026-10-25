@@ -245,6 +245,7 @@ try {
       const d = await catalogEdit('PaidOrder');
       const note = d.locator('.item-refusal');
       await expect(note).toContainText('N3 formula or rule');
+      await expect(d.getByRole('alert').filter({ hasText: 'N3 formula or rule' })).toHaveCount(1);
       await expect(d.getByRole('button', { name: 'Save to file', exact: true })).toBeDisabled();
       await expect(d.getByRole('button', { name: 'Add statement' })).toBeDisabled();
       await page.screenshot({ path: '/tmp/workbench-rdf-n3-refused.png' });

@@ -17,10 +17,17 @@ export function useStageSize(ref: RefObject<HTMLElement | null>, frozen = false)
         previous.width === width && previous.height === height ? previous : { width, height },
       );
     };
+    let frame = 0;
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(measure);
+    });
     measure();
-    const observer = new ResizeObserver(measure);
     observer.observe(element);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
   }, [ref, frozen]);
   return size;
 }

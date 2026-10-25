@@ -1,6 +1,6 @@
 /** Displays project files and validation status, keeping invalid files available for repair. */
 import { useCapabilities } from '../auth/Capabilities';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import {
   ChevronDown,
   ChevronRight,
@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import type { ProjectFile, ProjectInfo } from './api';
 import { MenuButton } from './Menu';
+import { observeTreeViewport } from './tree-viewport';
 // Project → files tree. Each file shows its document type and whether it passed validation;
 // invalid files stay listed so they can be repaired in Source.
 /** Names actions available from a project or file tree row. */
@@ -301,12 +302,15 @@ export function ProjectTree({
 }) {
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const tree = useRef<HTMLUListElement>(null);
-  // The open file stays in view when it is chosen from elsewhere, such as the Source tab.
-  useEffect(() => {
+  // Reveal the selected row before fitting the viewport that will be painted.
+  useLayoutEffect(() => {
     const row = tree.current?.querySelector<HTMLElement>('[aria-selected="true"]');
     const scroller = tree.current?.closest<HTMLElement>('.documents');
     if (shown && row && scroller) revealRow(scroller, row);
   }, [currentId, shown]);
+  useLayoutEffect(() => {
+    if (shown && tree.current) return observeTreeViewport(tree.current);
+  }, [currentId, shown, projects, collapsed]);
   const toggle = (key: string) =>
     setCollapsed(old => {
       const next = new Set(old);

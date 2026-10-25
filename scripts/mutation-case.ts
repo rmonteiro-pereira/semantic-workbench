@@ -9,6 +9,18 @@ import { observabilityCase } from './observability-cases';
 setActiveBrand(loadBrandBundle());
 const m = await import(process.argv[2]);
 const category = process.argv[3];
+if (category === 'edge-appearance') {
+  const appearance = m.edgeAppearance({ id: 'edge', sourceX: 10, selectable: true, label: 'Link' });
+  assert.equal(appearance.label, 'Link');
+  assert.equal(Object.hasOwn(appearance, 'sourceX'), false);
+  assert.equal(Object.hasOwn(appearance, 'selectable'), false);
+}
+if (category === 'tree-viewport') {
+  assert.equal(m.completeRowsHeight(160, [36, 89, 142, 195]), 142);
+  assert.equal(m.completeRowsHeight(142, [36, 89, 142, 195]), 142);
+  assert.equal(m.completeRowsHeight(20, [36, 89]), 20);
+  assert.equal(m.completeRowsHeight(160, []), 160);
+}
 if (category === 'expansion-viewport') {
   const viewport = m.expansionViewport(
     { x: 0, y: 0, width: 5000, height: 2000 },

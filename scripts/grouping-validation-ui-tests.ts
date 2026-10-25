@@ -1,5 +1,6 @@
 // Checks grouping suggestions and validation dialogs in an isolated browser workspace.
 import { appUrl } from './helpers/base-url';
+import { recordResizeErrors } from './helpers/resize-errors';
 import { showEveryEntity } from './helpers/graph-options';
 import { chromium, expect, type Locator } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
@@ -32,6 +33,7 @@ const page = await browser.newPage({
 });
 const errors: string[] = [];
 page.on('pageerror', error => errors.push(error.message));
+await recordResizeErrors(page, message => errors.push(message));
 await routeApi(page, api);
 let passed = 0;
 async function check(name: string, action: () => Promise<void>) {
@@ -89,6 +91,24 @@ async function unchangedExport(filename: string) {
   );
 }
 const selectedText = (editor: Locator) => editorSelection(editor);
+async function attachmentFailureDetails() {
+  await page.screenshot({ path: '/tmp/workbench-grouping-attachment-failure.png' });
+  const state = await page.evaluate(() => ({
+    grouping: (document.querySelector('[aria-label="Group model by"]') as HTMLSelectElement)?.value,
+    status: document.querySelector('.full-graph-status')?.textContent,
+    loading: document.querySelector('.full-graph-loading')?.textContent,
+    viewport: document.querySelector('.react-flow__viewport')?.getAttribute('style'),
+    edgeCount: document.querySelectorAll('.react-flow__edge').length,
+    nodes: [...document.querySelectorAll<HTMLElement>('.react-flow__node')].map(node => ({
+      id: node.dataset.id,
+      hidden: getComputedStyle(node).visibility,
+      style: node.getAttribute('style'),
+      handles: node.querySelectorAll('.react-flow__handle').length,
+    })),
+  }));
+  console.error('Grouping attachment state:', JSON.stringify(state));
+}
+
 async function attachedFlights() {
   const links = groupRelationships(
     inspect(originals.get('flights.ontology.yaml')!, 'flights.ontology.yaml').edges,
@@ -146,7 +166,15 @@ async function attachedFlights() {
         message: 'Grouping changes retain edge attachment to rendered entity borders',
       },
     )
-    .toBeLessThanOrEqual(4.5);
+    .toBeLessThanOrEqual(4.5)
+    .catch(async error => {
+      try {
+        await attachmentFailureDetails();
+      } catch (diagnosticError) {
+        console.error('Could not capture grouping diagnostics:', diagnosticError);
+      }
+      throw error;
+    });
 }
 
 try {

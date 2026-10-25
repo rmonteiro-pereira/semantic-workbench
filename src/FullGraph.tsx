@@ -5,6 +5,7 @@ import type { GroupingOptions } from './overview';
 import { RoutedEdge } from './RoutedEdge';
 import { roundedPath, pointAtHalf, type Point } from './odcs/edge-route';
 import { pathMatchesEndpoints } from './edge-path';
+import { edgeAppearance } from './graph/edge-styles';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ReactFlow,
@@ -96,6 +97,7 @@ const AreaNode = memo(({ data }: NodeProps) => (
   </div>
 ));
 const GraphEdge = memo((props: EdgeProps) => {
+  const appearance = edgeAppearance(props);
   const points = props.data?.layoutRoute as Point[] | undefined;
   const path = points && roundedPath(points, 8);
   if (
@@ -108,7 +110,7 @@ const GraphEdge = memo((props: EdgeProps) => {
     const label = pointAtHalf(anchored);
     return (
       <BaseEdge
-        {...props}
+        {...appearance}
         path={roundedPath(anchored, 8)}
         labelX={label.x}
         labelY={label.y}
@@ -380,14 +382,22 @@ export function FullGraph(props: Props) {
       setLayoutRoutes(result.routes ?? {});
       cache.set(key, result);
       if (cache.size > 6) cache.delete(cache.keys().next().value!);
-      setNodes(
-        result.nodes.map(n => {
+      setNodes(previous => {
+        const previousById = new Map(previous.map(node => [node.id, node]));
+        return result.nodes.map(n => {
           const group = n.group
             ? groupById.get(n.group)
             : groupById.get(overview.groupOf.get(n.id)!);
+          const type = n.group ? 'businessArea' : 'entity';
+          const prior = previousById.get(n.id);
+          const sameSize =
+            prior?.type === type &&
+            prior.style?.width === n.width &&
+            prior.style?.height === n.height;
           return {
             id: n.id,
-            type: n.group ? 'businessArea' : 'entity',
+            type,
+            measured: sameSize ? prior.measured : undefined,
             position: { x: n.x, y: n.y },
             parentId: n.parentId,
             extent: n.parentId ? 'parent' : undefined,
@@ -416,8 +426,8 @@ export function FullGraph(props: Props) {
                   color: group?.color ?? FALLBACK_GROUP_COLOR,
                 },
           };
-        }),
-      );
+        });
+      });
       setBusy(false);
       setTimeout(fit, 150);
     }

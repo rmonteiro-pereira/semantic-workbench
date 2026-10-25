@@ -1111,14 +1111,22 @@
   color: var(--color-text-muted);
 }
 .kpi-deprecate {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
   flex: 1 1 100%;
 }
-.kpi-deprecate input {
-  flex: 1 1 200px;
+.kpi-deprecate label {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 6px;
   min-width: 0;
+  font-size: var(--text-small);
+}
+.kpi-deprecate textarea {
+  width: 100%;
+  min-width: 0;
+  resize: vertical;
 }
 .kpi-unverified {
   margin-left: 6px;

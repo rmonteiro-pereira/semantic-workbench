@@ -1,5 +1,10 @@
 # Semantic Workbench v0.5.0 completion
 
+This document preserves the v0.5.0 evidence. The follow-up closes all six minor findings and the
+browser warnings: [remaining-polish.md](remaining-polish.md) and
+[remaining-polish-results.json](remaining-polish-results.json). Its complete gate passes
+1,893 tests, 664/664 mutants and all six CI steps; no deferred finding remains.
+
 Verified head: `d631e56e770ebf08d3b3d8901c61e1a2933897d6` on `004-ui-polish`.
 Final visual capture head: `fb098531c69398cd0b68ae44e1b2d309df5fc1ea`.
 The completion commit adds documentation and evidence only; runtime source is identical to the
@@ -75,9 +80,10 @@ SQL highlighting/lint, row trash icons, the project file list, real concept mapp
 control, and click-to-edit entities and relationships. Browser interactions and fresh screenshot
 reviews verify each one.
 
-## Remaining work
+## Remaining work at v0.5.0
 
-No S1/S2 or required gate work remains. Six S3 patterns are explicitly deferred:
+The following records the original release. All six items are fixed in the linked follow-up.
+No S1/S2 or required gate work remained at v0.5.0; six S3 patterns were deferred:
 
 - F118: a partial next file row at the sidebar's independent scroll boundary; names and actions
   remain reachable and readable.

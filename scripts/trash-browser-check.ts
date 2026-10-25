@@ -212,9 +212,18 @@ try {
     async () => {
       await fileButton('flights.ontology.yaml').first().click();
       await page.locator('.tabs').getByRole('button', { name: 'Source', exact: true }).click();
+      const original = await read('flights.ontology.yaml');
+      // Invalid text remains a draft even if menu navigation outlasts the autosave pause.
       await fillEditor(
         page.getByLabel('Definition source'),
-        (await read('flights.ontology.yaml')) + '# unsaved\n',
+        original + '\n# unsaved\nunclosed: [\n',
+      );
+      await expect(page.locator('.save-state-text')).toHaveText(/^Not saved: \d+ errors?$/);
+      await expect
+        .poll(() => api.ws.state.drafts().map(draft => draft.path))
+        .toContain('flights.ontology.yaml');
+      expect(await Bun.file(join(api.root, 'projects/flights/flights.ontology.yaml')).text()).toBe(
+        original,
       );
       await menu('flights.ontology.yaml in Flights', 'Delete');
       const dialog = page.getByRole('dialog', { name: 'Delete flights.ontology.yaml?' });

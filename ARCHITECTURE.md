@@ -31,6 +31,8 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `src/observability/` | The browser's reporting: `browser-report.ts` is the schema, limits and budgets shared with the server, `reporter.ts` the bounded queue and batching, `page-reporting.ts` the page listeners, the sender and `timeOperation` | Calls to any host but the workbench API; clicks, keystrokes or file content |
 | `server/shutdown.ts` | Signal cleanup shared with hot reload | Workspace logic |
 | `Dockerfile`, `compose.yaml` | Non-root image, local profile and owner-only Keycloak profile | Secrets |
+| `patches/@xyflow%2Freact@12.12.0.patch` | Bun-applied ESM fix for React Flow observer-driven node and pane measurement: merge pending entries, measure on the next frame, cancel and clear on unmount, disconnect even after the pane ref clears. Initial pane sizing and window-resize events stay synchronous. The dependency is pinned, and both Docker dependency stages copy patches before installation | Global observer overrides or error suppression |
+| `scripts/helpers/resize-errors.ts` | Records raw browser resize-loop events in graph and responsive checks, including events not surfaced through Playwright pageerror | Preventing or filtering browser errors |
 | `scripts/dev.ts`, `scripts/api-readiness.ts` | Development launcher: starts the API, waits for `/readyz`, then starts Vite, and stops both together | Production serving |
 | `scripts/container-*.ts` | Docker/Podman image checks and browser suite groups | Delivery pipeline |
 | `scripts/container-hardening.ts` | The read-only, no-capability run flags shared by the container checks and mirrored in `compose.yaml` | Image build logic |
@@ -113,6 +115,9 @@ exactly as it was. Nothing runs queries: SQL is coloured, linted and previewed, 
 | `src/overview.ts`, `src/communities.ts` | Group by: modes, communities, Auto | Rendering |
 | `src/edit/` | Item editors and the patch builders that keep untouched bytes exact | Network calls |
 | `src/editor/` | The CodeMirror source editor (`useCodeMirror`, extensions, navigation) | Saving logic |
+| `src/projects/tree-viewport.ts` | Whole-row boundaries for the sidebar scroller; observes its independent frame and tree, and schedules measurements outside resize delivery | File filtering or project state |
+| `src/graph/EntityName.tsx` | Neighborhood titles with wrapping opportunities at camel-case and identifier separators; preserves the exact name | Renaming entities |
+| `src/graph/edge-styles.ts` | Shared line colors, dash patterns and legend labels; `edgeAppearance` selects SVG-safe marker and label props for layout-routed and background-routed edges | Forwarding node IDs, handle metadata or layout options onto SVG DOM elements |
 | `src/odcs/` | Contract pages (`ContractOverview.tsx`, `DatasetPage.tsx`, `PropertiesTab.tsx`, with the property edit dialog in `PropertyEditors.tsx`) and the column-level lineage canvas (`lineage.ts` builds the graph and decides which rows a card shows, `LineageCanvas.tsx` draws it, `LineageCard.tsx` and `LineageColumnList.tsx` draw a card and its scrolling column list, `lineage-view.ts` picks the cards of the first view, `edge-labels.ts` and `edge-route.ts` place line labels and draw routed lines, `ForeignKeyHops.tsx` shows the hop row and the list of foreign keys, `SelectedPath.tsx` lists the highlighted path as a side panel or, on a narrow window, a dialog) | |
 | `src/graph/`, `src/FullGraph.tsx`, `src/NeighborhoodGraph.tsx` | Entity graph views, layout and routing; `GraphOptions.tsx` (the options dialog every graph toolbar uses for its secondary controls) and `ZoomButtons.tsx` (zoom in the toolbar, never over the canvas), `FarZoom.tsx` (the zoom level at which cards drop detail lines for a larger name; `.zoom-far` in `src/style.css`), `CompactControls.tsx` (folds a toolbar's secondary controls behind one button on a phone), `overview-capacity.ts` (how many entities of the whole-model graph read at 12 px in a pane, and the text sizes that keep names readable when zoomed out) and `graph-canvas.css` (the rules of those two) | |
 | `src/metrics/`, `src/mappings/`, `src/sql/` | Metrics tab (list rules in `metric-filters.ts`, table in `MetricsTable.tsx`, filters in `MetricFiltersDialog.tsx`) and wizard, mapping views and the query composer (fields grouped by dataset in `field-groups.ts`), SQL regions and lint | |
@@ -802,8 +807,10 @@ Neighborhood expansion now chooses its readable viewport before publishing it, a
 transient fit-all render of offscreen nodes. `src/graph/expansion-viewport.ts` holds the pure
 choice; `tests/expansion-viewport.test.ts` adds three tests and
 `scripts/graph-expansion-checks.ts` checks all four sizes in both themes through `test:graph`.
-Three targeted faults bring the mutation inventory to 660. The complete new-head gate passes;
-release totals are recorded in `specs/004-ui-polish/FINAL.md`.
+Those three targeted faults brought the v0.5.0 mutation inventory to 660; its completed gate is
+recorded in `specs/004-ui-polish/FINAL.md`. The whole-row sidebar decision adds three targets and
+SVG appearance filtering adds one, for 664 in the follow-up. Current changes and their separate validation are recorded in
+[remaining-polish.md](specs/004-ui-polish/remaining-polish.md).
 
 Container validation uses `SW_CONTAINER_PORT` as its base port (default 4310); an explicit
 `--port` takes precedence. Set a free base port such as 4315 when another local API uses 4310.
@@ -830,3 +837,11 @@ remains checked. The coverage follow-up passes 1,856 tests
 all-areas captures pass at four widths in both themes. Updated provenance, evidence paths and
 development-console observations are in [FINAL.md](specs/004-ui-polish/FINAL.md) and
 [verification.md](specs/004-ui-polish/verification.md).
+
+The remaining-polish follow-up closes all six deferred UI findings. Its frozen complete gate
+passes 1,893 tests (129,672 assertions, 267 files), 664/664 mutation targets and all six CI steps,
+including browser and container validation. Node measurements survive layout regrouping only
+when node identity, type and dimensions match. The complete log has no resize-loop events,
+unrecognized SVG-prop warnings or missing-handle warnings. The closure report and tested-file
+hashes are in [remaining-polish.md](specs/004-ui-polish/remaining-polish.md) and
+[remaining-polish-results.json](specs/004-ui-polish/remaining-polish-results.json).

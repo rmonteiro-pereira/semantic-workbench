@@ -2,6 +2,20 @@
 // Each tuple names the category, module, original text and replacement.
 export const polishMutants: [string, string, string, string][] = [
   [
+    'edge-appearance',
+    'src/graph/edge-styles.ts',
+    'return {\n    id: props.id,',
+    'return {\n    ...props,\n    id: props.id,',
+  ],
+  ['tree-viewport', 'src/projects/tree-viewport.ts', 'bottom <= available', 'true'],
+  [
+    'tree-viewport',
+    'src/projects/tree-viewport.ts',
+    'Math.max(...boundaries)',
+    'Math.min(...boundaries)',
+  ],
+  ['tree-viewport', 'src/projects/tree-viewport.ts', ': available;', ': 0;'],
+  [
     'edge-label-bounds',
     'src/odcs/edge-labels.ts',
     'if (outside) continue;',

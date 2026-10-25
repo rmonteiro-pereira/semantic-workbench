@@ -17,21 +17,23 @@ export function ValidationPanel({
 }) {
   const feature = useMemo(() => featureLabeler(source), [source]);
   const lines = useMemo(() => source?.split('\n'), [source]);
+  const errorCount = issues.filter(issue => issue.severity === 'error').length;
+  const warningCount = issues.filter(issue => issue.severity === 'warning').length;
   const fixes: Record<string, string> = {
     reference: 'Choose an existing definition identifier, or add the referenced definition.',
     duplicate: 'Give each definition a unique identifier; update references if you rename it.',
     'inheritance-cycle':
       'Remove or redirect an inheritance link so that no definition inherits from itself through a chain.',
     required: 'Add the required property at the affected feature shown below.',
-    empty: 'Paste a definition or select a file before importing.',
+    empty: 'Provide a definition before continuing.',
     filename: 'Use a filename without directory separators or control characters.',
     size: 'Split this definition into files smaller than 2 MB.',
   };
   return (
     <div className="validation-report" aria-label="Validation report">
       <p>
-        {issues.filter(i => i.severity === 'error').length} errors ·{' '}
-        {issues.filter(i => i.severity === 'warning').length} warnings
+        {errorCount} {errorCount === 1 ? 'error' : 'errors'} · {warningCount}{' '}
+        {warningCount === 1 ? 'warning' : 'warnings'}
       </p>
       <ul>
         {issues.map((issue, i) => (

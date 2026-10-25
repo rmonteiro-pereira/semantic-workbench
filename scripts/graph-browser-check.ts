@@ -1,5 +1,6 @@
 // Checks graph navigation and rendering at multiple scales in an isolated browser workspace.
 import { appUrl } from './helpers/base-url';
+import { recordResizeErrors } from './helpers/resize-errors';
 import { checkExpansionViewports } from './graph-expansion-checks';
 import { viewOptions } from './helpers/graph-options';
 import { chromium, expect } from '@playwright/test';
@@ -24,6 +25,15 @@ const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
 const errors: string[] = [];
 page.on('pageerror', e => errors.push(e.message));
+page.on('console', message => {
+  if (
+    (message.type() === 'error' && !/Failed to load resource/.test(message.text())) ||
+    (message.type() === 'warning' && message.text().includes('[React Flow]'))
+  ) {
+    errors.push(message.text());
+  }
+});
+await recordResizeErrors(page, message => errors.push(message));
 // Record any frame in which the empty-state message is shown.
 await page.addInitScript(() => {
   (window as any).__emptySeen = 0;

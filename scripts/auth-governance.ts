@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { expect, type Browser, type Locator, type Page } from '@playwright/test';
 import type { TestUserName } from '../tests/helpers/auth-identities';
-import { authGeometry, check, signIn, type SignInTarget } from './helpers/sign-in';
+import { authGeometry, authViewports, check, signIn, type SignInTarget } from './helpers/sign-in';
 
 const METRICS = { project: 'sales-metrics', path: 'sales.semantic.yaml' };
 const CONTRACT = { project: 'sales-contracts', path: 'orders.odcs.yaml' };
@@ -114,6 +114,33 @@ async function expectDeprecateFormOnItsOwnRow(detail: Locator) {
   assert(form.width >= area.width - 2, `The form is ${form.width}px of ${area.width}px`);
 }
 
+async function expectDeprecateLayout(page: Page, detail: Locator) {
+  const original = page.viewportSize();
+  try {
+    for (const [width, height] of authViewports) {
+      await page.setViewportSize({ width, height });
+      const form = detail.locator('.kpi-deprecate');
+      await expect(form.getByRole('textbox')).toHaveAttribute('rows', '2');
+      const boxes = await form
+        .locator('button')
+        .evaluateAll(buttons => buttons.map(button => button.getBoundingClientRect().toJSON()));
+      assert.equal(boxes.length, 2);
+      assert(Math.abs(boxes[0].top - boxes[1].top) < 1, `Actions wrap at ${width}px`);
+      const placeholderFits = await form.locator('textarea').evaluate(input => {
+        const style = getComputedStyle(input);
+        const context = document.createElement('canvas').getContext('2d')!;
+        context.font = style.font;
+        const available =
+          input.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+        return context.measureText(input.placeholder).width <= available;
+      });
+      assert(placeholderFits, `Reason placeholder is clipped at ${width}px`);
+    }
+  } finally {
+    if (original) await page.setViewportSize(original);
+  }
+}
+
 async function stewardApproves(page: Page, target: SignInTarget) {
   const own = await openMetric(page, target, 'gross_revenue');
   const deprecate = own.getByRole('button', { name: 'Deprecate', exact: true });
@@ -128,6 +155,7 @@ async function stewardApproves(page: Page, target: SignInTarget) {
   await detail.getByRole('button', { name: 'Deprecate', exact: true }).click();
   await expect(detail.getByLabel('Reason for deprecating')).toBeVisible();
   await expectDeprecateFormOnItsOwnRow(detail);
+  await expectDeprecateLayout(page, detail);
   await authGeometry(page, 'metric-deprecate-form');
   await detail.getByRole('button', { name: 'Cancel', exact: true }).click();
   await publishApproval(page, target);

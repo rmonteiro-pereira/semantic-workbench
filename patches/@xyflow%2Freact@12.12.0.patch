@@ -1,0 +1,131 @@
+diff --git a/node_modules/@xyflow/react/.bun-tag-67318dc175c50c49 b/.bun-tag-67318dc175c50c49
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+diff --git a/dist/esm/index.js b/dist/esm/index.js
+index 422889fc98ea26cf4c4b45d6d7b84479550f4728..29e6ec01fb4b65a5b1e83509c0c5b9d07fe05e86 100644
+--- a/dist/esm/index.js
++++ b/dist/esm/index.js
+@@ -1280,13 +1280,17 @@ function useResizeHandler(domNode) {
+         if (domNode.current) {
+             updateDimensions();
+             window.addEventListener('resize', updateDimensions);
+-            const resizeObserver = new ResizeObserver(() => updateDimensions());
++            let resizeFrame = 0;
++            const scheduleDimensions = () => {
++                cancelAnimationFrame(resizeFrame);
++                resizeFrame = requestAnimationFrame(updateDimensions);
++            };
++            const resizeObserver = new ResizeObserver(scheduleDimensions);
+             resizeObserver.observe(domNode.current);
+             return () => {
+                 window.removeEventListener('resize', updateDimensions);
+-                if (resizeObserver && domNode.current) {
+-                    resizeObserver.unobserve(domNode.current);
+-                }
++                resizeObserver.disconnect();
++                cancelAnimationFrame(resizeFrame);
+             };
+         }
+     }, []);
+@@ -2146,26 +2150,34 @@ function useVisibleNodeIds(onlyRenderVisible) {
+ const selector$b = (s) => s.updateNodeInternals;
+ function useResizeObserver() {
+     const updateNodeInternals = useStore(selector$b);
++    const pendingUpdates = useRef(new Map());
++    const frame = useRef(0);
+     const [resizeObserver] = useState(() => {
+         if (typeof ResizeObserver === 'undefined') {
+             return null;
+         }
+         return new ResizeObserver((entries) => {
+-            const updates = new Map();
+             entries.forEach((entry) => {
+                 const id = entry.target.getAttribute('data-id');
+-                updates.set(id, {
++                pendingUpdates.current.set(id, {
+                     id,
+                     nodeElement: entry.target,
+                     force: true,
+                 });
+             });
+-            updateNodeInternals(updates);
++            cancelAnimationFrame(frame.current);
++            frame.current = requestAnimationFrame(() => {
++                const updates = pendingUpdates.current;
++                pendingUpdates.current = new Map();
++                updateNodeInternals(updates);
++            });
+         });
+     });
+     useEffect(() => {
+         return () => {
+             resizeObserver?.disconnect();
++            cancelAnimationFrame(frame.current);
++            pendingUpdates.current.clear();
+         };
+     }, [resizeObserver]);
+     return resizeObserver;
+diff --git a/dist/esm/index.mjs b/dist/esm/index.mjs
+index 422889fc98ea26cf4c4b45d6d7b84479550f4728..29e6ec01fb4b65a5b1e83509c0c5b9d07fe05e86 100644
+--- a/dist/esm/index.mjs
++++ b/dist/esm/index.mjs
+@@ -1280,13 +1280,17 @@ function useResizeHandler(domNode) {
+         if (domNode.current) {
+             updateDimensions();
+             window.addEventListener('resize', updateDimensions);
+-            const resizeObserver = new ResizeObserver(() => updateDimensions());
++            let resizeFrame = 0;
++            const scheduleDimensions = () => {
++                cancelAnimationFrame(resizeFrame);
++                resizeFrame = requestAnimationFrame(updateDimensions);
++            };
++            const resizeObserver = new ResizeObserver(scheduleDimensions);
+             resizeObserver.observe(domNode.current);
+             return () => {
+                 window.removeEventListener('resize', updateDimensions);
+-                if (resizeObserver && domNode.current) {
+-                    resizeObserver.unobserve(domNode.current);
+-                }
++                resizeObserver.disconnect();
++                cancelAnimationFrame(resizeFrame);
+             };
+         }
+     }, []);
+@@ -2146,26 +2150,34 @@ function useVisibleNodeIds(onlyRenderVisible) {
+ const selector$b = (s) => s.updateNodeInternals;
+ function useResizeObserver() {
+     const updateNodeInternals = useStore(selector$b);
++    const pendingUpdates = useRef(new Map());
++    const frame = useRef(0);
+     const [resizeObserver] = useState(() => {
+         if (typeof ResizeObserver === 'undefined') {
+             return null;
+         }
+         return new ResizeObserver((entries) => {
+-            const updates = new Map();
+             entries.forEach((entry) => {
+                 const id = entry.target.getAttribute('data-id');
+-                updates.set(id, {
++                pendingUpdates.current.set(id, {
+                     id,
+                     nodeElement: entry.target,
+                     force: true,
+                 });
+             });
+-            updateNodeInternals(updates);
++            cancelAnimationFrame(frame.current);
++            frame.current = requestAnimationFrame(() => {
++                const updates = pendingUpdates.current;
++                pendingUpdates.current = new Map();
++                updateNodeInternals(updates);
++            });
+         });
+     });
+     useEffect(() => {
+         return () => {
+             resizeObserver?.disconnect();
++            cancelAnimationFrame(frame.current);
++            pendingUpdates.current.clear();
+         };
+     }, [resizeObserver]);
+     return resizeObserver;

@@ -576,8 +576,10 @@ try {
     'every example lists its governed metrics; a simple, a composed and a cross-table metric show owner, lineage, breakdown and an unexecuted SQL preview',
     async () => {
       for (const [setId, expected] of Object.entries(EXPECTED_EXAMPLE_METRICS)) {
-        const loader = new RegExp(`Load ${exampleSet(setId)!.name}`, 'i');
+        const set = exampleSet(setId)!;
+        const loader = new RegExp(`Load ${set.name}`, 'i');
         await (await example(page, loader)).click();
+        await expect(page.locator('main > .status')).toHaveText(set.message);
         await page
           .locator('.tabs')
           .getByRole('button', { name: /^Metrics/ })

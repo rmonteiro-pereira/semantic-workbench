@@ -1,5 +1,6 @@
 // Checks responsive layouts, overlays and navigation in an isolated browser workspace.
 import { tabStripProblems } from './helpers/strip-geometry';
+import { recordResizeErrors } from './helpers/resize-errors';
 import { appUrl } from './helpers/base-url';
 import { expectInitialGraphSettled } from './helpers/graph-readiness';
 import { revealGraphControls, showEveryEntity, viewOptions } from './helpers/graph-options';
@@ -113,9 +114,19 @@ async function check(name: string, action: () => Promise<void>) {
   console.log('PASS', name);
   passed++;
 }
+async function recordPageErrors(page: Page, label: string) {
+  page.on('pageerror', error => errors.push(`${label}: ${error.message}`));
+  await recordResizeErrors(page, message => errors.push(`${label}: ${message}`));
+  page.on('console', message => {
+    if (message.type() === 'error' && !/Failed to load resource/.test(message.text())) {
+      errors.push(`${label}: ${message.text()}`);
+    }
+  });
+}
+
 async function openPage(width: number, height: number) {
   const page = await browser.newPage({ viewport: { width, height } });
-  page.on('pageerror', error => errors.push(`${width}×${height}: ${error.message}`));
+  await recordPageErrors(page, `${width}×${height}`);
   await routeApi(page, api);
   // Mutants for the mutation harness: a status line back over the mini-map and controls, and
   // status messages that never dismiss by themselves.
@@ -706,6 +717,7 @@ try {
     async () => {
       for (const [width, height] of six) {
         const page = await browser.newPage({ viewport: { width, height } });
+        await recordPageErrors(page, `roles ${width}×${height}`);
         try {
           await routeApi(page, api, async route => {
             const path = new URL(route.request().url()).pathname;
@@ -1390,7 +1402,7 @@ try {
     async () => {
       const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
       const page = await context.newPage();
-      page.on('pageerror', error => errors.push(`sidebar: ${error.message}`));
+      await recordPageErrors(page, 'sidebar');
       await routeApi(page, api);
       await page.goto(appUrl());
       const sidebar = page.locator('#workspace-sidebar');
@@ -1682,7 +1694,7 @@ try {
         [2560, 1440],
       ]) {
         const examplePage = await browser.newPage({ viewport: { width: width!, height: height! } });
-        examplePage.on('pageerror', error => errors.push(`${width}×${height}: ${error.message}`));
+        await recordPageErrors(examplePage, `examples ${width}×${height}`);
         await routeApi(examplePage, exampleApi);
         await examplePage.goto(appUrl());
         await expect(examplePage.locator('h1')).toBeVisible();

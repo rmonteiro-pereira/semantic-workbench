@@ -31,7 +31,7 @@
         "@opentelemetry/sdk-trace-base": "2.12.0",
         "@tisoap/react-flow-smart-edge": "^5.0.0",
         "@xmldom/xmldom": "^0.9.12",
-        "@xyflow/react": "^12.0.0",
+        "@xyflow/react": "12.12.0",
         "ajv": "^8.20.0",
         "ajv-formats": "^3.0.1",
         "cytoscape": "^3.34.4",
@@ -59,6 +59,9 @@
         "vite-plus": "1.2.0",
       },
     },
+  },
+  "patchedDependencies": {
+    "@xyflow/react@12.12.0": "patches/@xyflow%2Freact@12.12.0.patch",
   },
   "overrides": {
     "vite": "npm:@voidzero-dev/vite-plus-core@1.2.0",

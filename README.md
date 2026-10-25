@@ -26,6 +26,13 @@ Full CI validation also needs Node 24.11+ on PATH for isolated Vite processes. T
 continue to run with Bun. Without a real Node executable, the package wrapper can route Vite
 through Bun and silently fail readiness in child launches.
 
+Bun automatically applies the checked-in patch for the pinned React Flow 12.12.0 dependency.
+The ESM patch batches observer-driven node and pane measurements into the next animation frame
+and cancels pending work on unmount, preventing resize feedback without suppressing errors.
+Initial pane measurement and ordinary window-resize events keep their synchronous behavior. Keep `patches/`
+alongside `package.json` and `bun.lock` when installing from a copied source tree. Both Docker
+dependency stages include the patch before their frozen installs.
+
 ```sh
 bun install
 bun run dev
@@ -107,8 +114,13 @@ The sections below apply to both modes unless they say otherwise. Server mode di
 
 ### Where your data lives
 
-The sidebar file list scrolls without fading names. On short windows Examples and Import share
-a row to leave more height for files.
+The sidebar file list scrolls without fading names and ends on a complete row above its footer.
+All files remain reachable by scrolling or keyboard focus. On short windows Examples and Import
+share a row to leave more height for files. Long neighborhood names wrap at identifier boundaries
+without changing their spelling. Validation counts use singular labels for one finding, and
+recovery guidance applies to the current operation rather than assuming an import. RDF editing
+shows a refusal once, with its Source navigation action. In server mode, metric deprecation has
+a multiline reason and keeps Deprecate and Cancel together on phone-sized screens.
 
 Everything stays under the data root, `data/` by default. Set `DATA_DIR` to use another folder (the tests and browser checks always use temporary ones):
 
@@ -1507,7 +1519,9 @@ workspace updates…** while it waits. A failed clone retains its reason and rec
 including creating a missing repository folder with the first push.
 
 The clone progress reducer adds four ordering tests and three targeted mutation faults; the
-mutation inventory is now 660 targets after the expansion viewport coverage below.
+v0.5.0 mutation inventory reached 660 targets after the expansion viewport coverage below.
+Whole-row sidebar coverage adds three targets and SVG appearance filtering adds one in the
+follow-up, for 664 total.
 Final release totals and verified results are recorded in
 [FINAL.md](specs/004-ui-polish/FINAL.md).
 
@@ -1531,8 +1545,9 @@ Neighborhood expansion now chooses its readable viewport before publishing it, a
 transient fit-all render of offscreen nodes. `src/graph/expansion-viewport.ts` holds the pure
 choice; `tests/expansion-viewport.test.ts` adds three tests and
 `scripts/graph-expansion-checks.ts` checks all four sizes in both themes through `test:graph`.
-Three targeted faults bring the mutation inventory to 660. The complete new-head gate passes;
-release totals are recorded in `specs/004-ui-polish/FINAL.md`.
+Those three targeted faults brought the v0.5.0 mutation inventory to 660; its completed gate is
+recorded in `specs/004-ui-polish/FINAL.md`. Current follow-up changes and their separate validation
+are recorded in [remaining-polish.md](specs/004-ui-polish/remaining-polish.md).
 
 Container validation uses `SW_CONTAINER_PORT` as its base port (default 4310); an explicit
 `--port` takes precedence. Set a free base port such as 4315 when another local API uses 4310.
@@ -1554,3 +1569,10 @@ remains checked. The coverage follow-up passes 1,856 tests
 all-areas captures pass at four widths in both themes. Updated provenance, evidence paths and
 development-console observations are in [FINAL.md](specs/004-ui-polish/FINAL.md) and
 [verification.md](specs/004-ui-polish/verification.md).
+
+The remaining-polish follow-up closes all six deferred UI findings. Its frozen complete gate
+passes 1,893 tests (129,672 assertions, 267 files), 664/664 mutation targets, all 29 canonical
+browser suites, image scanning, container validation and all six CI steps. The complete log has
+no resize-loop events, unrecognized SVG-prop warnings or missing-handle warnings. The earlier
+failed runs and fixes are retained in [the closure report](specs/004-ui-polish/remaining-polish.md);
+[the result record](specs/004-ui-polish/remaining-polish-results.json) includes tested-file hashes.
