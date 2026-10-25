@@ -96,3 +96,63 @@ No S1/S2 or required gate work remains. Six S3 patterns are explicitly deferred:
 
 These minor observations do not obstruct tasks. Their native review rows remain in the audit;
 no cosmetic change was made merely to remove them from the release record.
+
+## Post-review coverage validation
+
+The coverage follow-up on `004-ui-polish`, based on
+`9e206ddac80951d24e70f630f05ce23d40593462`, passed a fresh complete `ci:validate` before commit.
+The original full gate above remains historical evidence at `d631e56`; its 1,853-test total does
+not describe the coverage follow-up. Application and server runtime files are unchanged. Only the
+four reviewed test/audit files and completion documentation are changed.
+
+The all-areas graph exemption now matches only name font-size diagnostics, retaining vertical
+padding and other containment diagnostics. Chromium regression tests exercise measured geometry.
+The Admin component test changes its proposal from its parent while review is open, verifies that
+confirmation disappears without a write, then requires a fresh review before saving the new role.
+The existing cancellation test now names the behavior it actually exercises. The coordinator's
+independent fault checks made each new regression test fail when its corresponding guard/filter
+was removed; those checks were supplied review evidence, not repeated during integration.
+
+| Working-tree validation | Result |
+| --- | --- |
+| Targeted Admin and graph tests | 13 passed; 0 failed; 25 assertions; 2 files |
+| Complete unit suite within CI | 1,856 passed; 0 failed; 129,553 assertions; 261 files |
+| Check and build | passed separately and within CI |
+| Mutation | 660/660 killed; all unmodified baselines passed |
+| Canonical browser suites | all 29 passed; responsive suite: 137 checks |
+| Image scan | zero vulnerabilities; zero secrets |
+| Container | 25 local suites and 30 explicit server/persistence checks passed |
+| Complete CI | all 6 steps passed; 5,032.136 seconds; exit 0 |
+| All-areas graph capture | 8 cases: four widths in both themes; zero retained diagnostics |
+
+The single CI invocation ran from 2026-10-24 22:59:56 to 2026-10-25 00:23:48 UTC through
+`human-architecture/scripts/suite_runner.py`. Its saved result reports `tree_changed: false`.
+Documentation was appended afterward; the four tested file hashes remain unchanged. A complete CI
+plus focused changed-diagnostic capture covers this test-only patch; the original 49-command
+sequence and ten-run lineage proof were not repeated or claimed as new-state results.
+
+Evidence is under `/tmp/polish-coverage-gate/`: `ci.log`, `ci-results.json`, `targeted.log`,
+`check.log`, `build.log`, `graph-diagnostics.json`, `capture-manifest.json` and `captures/`.
+`working-tree-sha256.json` records all final changed-file hashes; `patch-sha256.txt` records the
+four tested files. The durable summary and tested-file hashes are in
+[coverage-results.json](coverage-results.json). Original `/tmp/polish-final-gate` logs and the
+historical result JSON files remain unchanged. See [verification.md](verification.md) for commands,
+timings and log observations.
+
+Tested file SHA-256 values:
+
+```text
+scripts/helpers/graph-tour.ts
+b6c4cf2ef31a48981562ab26ca7da22f6404e461134f97c532151856cbc3833f
+tests/admin-dialogs.test.tsx
+6d5d33626a254113aec9035f653f45d1976533e5edc68b84f618d0de750d2728
+tests/harness/admin-harness.tsx
+9d105f83b8433a99b0ed7c69b5454fd49ca315e75ea9e53da64bc04a149a26d4
+tests/graph-tour.test.ts
+280e89859d59e671ab7a6b374819b13aa2678191219818bfff1dc3e9505102ae
+```
+
+No production containment defect was found by the strengthened graph checks. No assertion,
+deadline, budget, scan or exclusion was weakened. No commit, repository push, merge, tag,
+deployment, image upload or real Azure/Entra call was performed. Tests used temporary roots;
+owner services at 4310/5173 and the existing worktree Vite at 5175 were left running.

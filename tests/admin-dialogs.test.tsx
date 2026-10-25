@@ -1,7 +1,7 @@
 // Exercises the Admin page in Chromium against canned responses shaped like the HTTP API.
 import { afterAll, beforeAll, expect, test } from 'bun:test';
 import { chromium, expect as browserExpect, type Browser, type Page } from '@playwright/test';
-import { adminMockState, openAdminHarness } from './helpers/admin-api-mock';
+import { adminMockState, openAdminHarness, buildAdminHarness } from './helpers/admin-api-mock';
 import { adminArea, cancelAdminDialog } from '../scripts/helpers/admin-browser';
 
 let browser: Browser | undefined;
@@ -18,7 +18,7 @@ afterAll(async () => {
   await browser?.close();
 });
 
-test('grant edits invalidate review and server guard errors stay visible', async () => {
+test('cancelled grant reviews require a new dry run and server guard errors stay visible', async () => {
   const grants = await openArea('Access grants');
   await grants.getByRole('button', { name: 'Add grant', exact: true }).click();
   const form = page.getByRole('region', { name: 'Add grant', exact: true });
@@ -29,6 +29,7 @@ test('grant edits invalidate review and server guard errors stay visible', async
   await browserExpect(preview.getByRole('region', { name: 'Dry-run result' })).toContainText(
     'Erin',
   );
+  expect(await preview.evaluate(element => element.matches(':modal'))).toBe(true);
   await preview.getByRole('button', { name: 'Cancel changes', exact: true }).click();
   await form.getByLabel('Role', { exact: true }).selectOption('editor');
   await browserExpect(page.getByRole('button', { name: 'Confirm save changes' })).toHaveCount(0);
@@ -176,4 +177,37 @@ test('sections have their own address, and Back returns to the previous section'
   expect(new URL(page.url()).hash).toBe('');
   await page.goBack();
   await browserExpect(page.locator('.admin-page')).toBeVisible();
+}, 20_000);
+
+test('a proposal update while review is open requires a fresh component review', async () => {
+  const reviewPage = await browser!.newPage();
+  const reviewState = adminMockState();
+  try {
+    await openAdminHarness(reviewPage, reviewState);
+    await reviewPage.goto('http://admin.test/?review');
+    const { script, style } = await buildAdminHarness();
+    await reviewPage.addStyleTag({ content: style });
+    await reviewPage.addScriptTag({ content: script, type: 'module' });
+    await reviewPage.getByRole('button', { name: 'Dry run', exact: true }).click();
+    await browserExpect(
+      reviewPage.getByRole('button', { name: 'Confirm save changes' }),
+    ).toBeVisible();
+    await reviewPage.evaluate(() => window.dispatchEvent(new Event('review-proposal-changed')));
+    await browserExpect(reviewPage.getByRole('dialog')).toHaveCount(0);
+    await browserExpect(
+      reviewPage.getByRole('button', { name: 'Confirm save changes' }),
+    ).toHaveCount(0);
+    expect(reviewState.requests.filter(request => request.method === 'PUT')).toHaveLength(0);
+    await reviewPage.getByRole('button', { name: 'Dry run', exact: true }).click();
+    await reviewPage.getByRole('button', { name: 'Confirm save changes' }).click();
+    await browserExpect(reviewPage.getByRole('dialog')).toHaveCount(0);
+    const proposals = reviewState.requests.filter(request => request.method === 'POST');
+    expect(proposals.map(request => request.body.grants[0].roleId)).toEqual(['viewer', 'editor']);
+    const saved = reviewState.requests.filter(request => request.method === 'PUT');
+    expect(saved).toHaveLength(1);
+    expect(saved[0].body.grants[0].roleId).toBe('editor');
+    expect(saved[0].body.dryRunId).toBe('review');
+  } finally {
+    await reviewPage.close();
+  }
 }, 20_000);

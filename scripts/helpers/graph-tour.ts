@@ -123,7 +123,7 @@ export async function graphScreenProblems(page: Page, screen: Screen): Promise<s
   // With every area open the model zooms out, so only the first view must keep names readable.
   const allOpen = screen.name === 'graph-model-all-areas';
   const problems = (await graphCanvasProblems(page, which)).filter(
-    problem => !(allOpen && problem.startsWith('name ')),
+    problem => !(allOpen && /^name "[\s\S]*" is \d+\.\d px on screen$/.test(problem)),
   );
   return problems.map(problem => `${screen.name}: ${problem}`);
 }

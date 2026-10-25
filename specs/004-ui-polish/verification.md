@@ -834,3 +834,102 @@ the 61 supplemental proof images, 1,101 saved JPEGs preserve original dimensions
 hashes. Runtime files are unchanged from the visual capture head; only test-port configuration
 differs at the gate head. The completion commit adds documentation and evidence only. See
 [FINAL.md](FINAL.md).
+
+## Post-review test coverage and working-tree gate
+
+Base: `9e206ddac80951d24e70f630f05ce23d40593462` on `004-ui-polish`; no new commit.
+The four integrated files match the independently reviewed patch byte-for-byte after formatting.
+The patch changes tests, their harness and audit filtering; application/server runtime is unchanged.
+Original full-gate evidence above and `gate-results.json` / `ci-results.json` remains historical.
+
+Commands completed successfully:
+
+```sh
+bun run fmt
+bun test tests/admin-dialogs.test.tsx tests/graph-tour.test.ts
+bun --bun run check
+bun --bun run build
+python3 ~/.claude/skills/readable-code/scripts/readable_check.py --changed \
+  scripts/helpers/graph-tour.ts tests/admin-dialogs.test.tsx \
+  tests/harness/admin-harness.tsx tests/graph-tour.test.ts
+git diff --check
+```
+
+Targeted tests: 13 passed, 0 failed, 25 assertions across two files, 3.55 seconds.
+The formatter covers the four code files; its configuration excludes Markdown. Documentation
+follows the existing layout with new prose wrapped to 100 columns.
+
+The exact executable reused from the original gate is
+`/home/rodrigo/.local/share/zed/node/node-v24.11.0-linux-x64/bin/node`, verified as `v24.11.0`.
+Its directory was prepended to PATH. Source inspection found `SW_CONTAINER_PORT` in
+`scripts/container-check.ts`, with explicit `--port` precedence; there is no
+`SW_CONTAINER_BASE_PORT` reader. Both environment variables were set to 4315 for the run,
+so the actual source setting selected 4315/4316. Both ports were free before the gate.
+The existing Vite listener at 5175 was verified through `/proc/2046462/cwd` and its command line
+as belonging to this worktree before use. Owner listener PIDs were 4193379 (4310) and
+4193584 (5173), and remained the same after validation.
+
+The one complete CI command was awaited through the cached suite runner:
+
+```sh
+python3 /home/rodrigo/.claude/skills/human-architecture/scripts/suite_runner.py \
+  --wait 1 --repo "$PWD" -- bash /tmp/polish-coverage-gate/run-ci.sh
+```
+
+The wrapper sets the verified Node PATH and container ports, clears tour selectors, runs exactly
+one `bun run ci:validate`, records its exit and timestamps, and copies the new summary separately.
+Calling the same runner command after completion returned the saved exact-tree result: exit 0,
+5,032 seconds, `tree_changed: false`. No second full CI was launched. It ran from
+2026-10-24 22:59:56 to 2026-10-25 00:23:48 UTC.
+
+| CI step | Seconds | Result |
+| --- | --- | --- |
+| verify | 260.516 | check, 1,856 unit tests and build passed |
+| mutation | 906.603 | 660/660 killed; all baselines passed |
+| browser | 2,095.136 | all 29 canonical suites passed |
+| image | 66.980 | build, scan and SBOM passed; zero vulnerabilities/secrets |
+| container | 1,699.397 | 25 local suites; 30 explicit server/persistence checks passed |
+| pipeline | 3.504 | lint and mocked PR/main/tag plans passed |
+
+Unit totals were 1,856 passed, 0 failed, 129,553 assertions across 261 files (250.24 seconds).
+The old 1,853-test total remains attached to the original gate. The new image identifies the
+base as `9e206ddac80951d24e70f630f05ce23d40593462-dirty`; there is no new artifact commit.
+Pipeline plan output contains simulated deploy commands; it did not deploy or contact Azure.
+
+The Vite CI log contains ResizeObserver notification-loop messages, React DOM-prop warnings and
+React Flow missing-handle warnings. These were preserved, not filtered out. Comparable messages
+also occur in the original successful CI log. The existing responsive suite's final browser-error
+assertion passed, as did all 137 responsive checks; no exclusion was added. Passing CI does not
+assert a warning-free development console. The focused graph capture separately collected page
+errors and reported none. No production fix was attempted in this coverage integration.
+
+### Strengthened all-areas diagnostic capture
+
+The stock `captureScreens` list does not include `graph-model-all-areas`; selecting that name
+with the stock capture command produced no measurements or images. Those empty logs are retained
+as `capture-light.log` and `capture-dark.log` and are not counted as evidence. The temporary driver
+`/tmp/polish-coverage-gate/graph-capture.ts` instead calls the existing `graphScreens`,
+`showScreen`, `graphCanvasProblems`, `graphScreenProblems` and `geometryProblems` functions.
+It uses an isolated temporary API seeded with UBL and the verified worktree Vite at 5175:
+
+```sh
+bun /tmp/polish-coverage-gate/graph-capture.ts
+```
+
+All eight cases passed: 390×844, 1280×720, 1440×900 and 2560×1440 in light and dark.
+At each of the three smaller widths, raw measurements contained 45 name font-size diagnostics;
+only those were exempted. At 2560 px the raw list was empty in both themes. Every case had zero
+retained graph diagnostics, zero page geometry problems and zero browser errors. All eight PNGs
+were inspected; names remain intentionally zoomed out in the all-areas view. No vertical-padding
+or other containment diagnostic was hidden. `graph-diagnostics.json` retains every raw result;
+`capture-manifest.json` records dimensions, timestamps and SHA-256 values for all eight images.
+
+Full CI plus this focused changed-diagnostic tour validates the test-only patch without repeating
+the old 49-command sequence. The coordinator's independently supplied guard-removal and broad-filter
+fault checks are recorded in FINAL.md; they were not rerun or counted as new local commands.
+
+All new evidence is in `/tmp/polish-coverage-gate/`. Final file hashes, base SHA, command results
+and evidence hashes are in `working-tree-sha256.json` and `validation-evidence.json` there.
+The original logs under `/tmp/polish-final-gate` and historical result JSON files are preserved.
+Only documentation changed after CI; tested code hashes were checked again. No commit or push
+was made, and no required validation remains pending.
