@@ -1,11 +1,23 @@
-# Target setup
+# Azure target setup and delivery
 
-This guide is run by the target owner. The repository runs no automation and the implementer
-never connects to the target. Use fixture data until workspace filtering and administration
-are complete. Provision resources by hand; this guide is not infrastructure as code.
+Use this guide to prepare an Azure Container Apps target, its identity and storage, and the
+Azure DevOps pipelines that deliver an approved image. These are operator-run instructions:
+reading them, running the app or passing the local quality gate does not provision resources or
+deploy anything. Start target acceptance with fixture data. Resources are provisioned explicitly;
+this repository is not an infrastructure-as-code package.
 
-The [delivery contract](../specs/003-authn-authz/contracts/delivery-pipeline.md) is the complete
-settings and roles checklist. The [trial runbook](trial-runbook.md) records acceptance.
+Before starting, read [server operation](../docs/server-mode.md),
+[runtime configuration](../docs/configuration.md) and the
+[stack/architecture overview](../README.md#technology-stack). The
+[acceptance runbook](trial-runbook.md) records real-target results. The
+[delivery contract](../specs/003-authn-authz/contracts/delivery-pipeline.md) retains the detailed
+pipeline/schema checklist.
+
+**Version prerequisite:** the source tags identify Git releases, but the current checkout has no
+package version. Real tag delivery requires a release commit with a matching `package.json`
+version and an approved tag. Set that version in the target release workflow before tagging;
+do not move or recreate an already published source tag to add it. Ordinary builds otherwise
+report `dev`, and the version guard refuses real tag deployment.
 
 ## Azure resources, in order
 
@@ -80,7 +92,7 @@ Configure the app using **Revisions**, **Scale**, **Ingress**, **Volumes**, **Id
 | Runtime | `SW_MODE=server`, `SW_HOST=0.0.0.0`, `SW_PORT=4310`, `DATA_DIR=/data` |
 | Proxy | `SW_TRUSTED_PROXY_HOPS=1`: Container Apps ingress is one proxy, so rate limits use the client address it forwards instead of its own |
 | Cache | `SW_CACHE_DIR=/tmp/sw-cache` on ephemeral disk |
-| Brand (optional) | `SW_BRAND_DIR=/brand` with an AzureFile volume holding `logo.svg`, `logo-mark.svg`, `favicon.svg`, `brand.json` and `brand.css`, mounted read-only at `/brand`; see White-labelling in the main README. Without it the shipped brand is used |
+| Brand (optional) | `SW_BRAND_DIR=/brand` with an AzureFile volume holding `logo.svg`, `logo-mark.svg`, `favicon.svg`, `brand.json` and `brand.css`, mounted read-only at `/brand`; see [brand bundles](../docs/theme.md#white-labelling). Without it the shipped brand is used |
 | Logging | `SW_LOG_LEVEL` (optional; `debug`, `info`, `warn`, `error` or `silent`; default `info`). Server mode writes one JSON object per line to stdout |
 | Telemetry (optional) | `APPLICATIONINSIGHTS_CONNECTION_STRING` as a Key Vault reference, see [Logging and telemetry](#logging-and-telemetry). Unset means no telemetry. Optional `SW_TRACE_SAMPLE_RATIO` (default `0.1`) and `SW_TELEMETRY_ACTOR_SALT` (Key Vault reference) |
 | Public URL | `SW_PUBLIC_URL=https://<host>`, equal to the pipeline variable `SW_PUBLIC_URL` |
@@ -96,7 +108,7 @@ Use **Container Apps → Edit and deploy** for these settings. CLI counterparts 
 `az containerapp revision set-mode --help`, `az containerapp identity assign --help`,
 `az containerapp registry set --help`, and `az containerapp secret set --help`.
 For optional agent audience, GitHub OAuth, committer and group configuration use the
-[configuration contract](../specs/003-authn-authz/contracts/configuration.md). Secrets are always
+[runtime configuration](../docs/configuration.md). Secrets are always
 platform references. Deployment preflight names drift before promoting or updating an image,
 including ingress that allows plain HTTP, a CORS policy for another origin, and an app
 `SW_PUBLIC_URL` that differs from the variable group.
@@ -130,7 +142,9 @@ Microsoft Entra admin center under **App registrations → New registration**:
      certificate beside the old one, switching both settings, then removing the old one.
    - **Federated credential.** Under **Certificates & secrets → Federated credentials** add the
      scenario **Managed identity** with `id-sw-app` and set
-     `SW_OIDC_CLIENT_ASSERTION=managed-identity`. No secret exists anywhere.
+     `SW_OIDC_CLIENT_ASSERTION=managed-identity`. This removes the long-lived client secret or
+     private key for that credential; the application's session key and any other integration
+     secrets are still required.
    - **Client secret.** Create one under **Client secrets**, store it in Key Vault and reference
      it as `SW_OIDC_CLIENT_SECRET`. Note its expiry date.
 4. **Token configuration.** **Add groups claim → Security groups** (group IDs) for the ID and
@@ -138,8 +152,9 @@ Microsoft Entra admin center under **App registrations → New registration**:
    to the enterprise application, which avoids overage. **Add optional claim → ID** with
    `email`, `upn`, `xms_edov`, `sid` (front-channel logout names it) and `login_hint` (sent
    back as `logout_hint`, so sign-out does not ask which account), and **Add optional claim →
-   Access** with `idtyp` (agent tokens without it are refused). When a person belongs to more groups than fit in a token,
-   Entra leaves them out and marks the overage; the server then asks Microsoft Graph which of the
+   Access** with `idtyp` (agent tokens without it are refused). When a person belongs to more
+   groups than fit in a token, Entra leaves them out and marks the overage. The server asks
+   Microsoft Graph which of the
    granted groups the person is in (needs `GroupMember.Read.All` below; `SW_GROUP_OVERAGE=off`
    disables it).
 5. **API permissions.** Microsoft Graph delegated `openid`, `profile`, `email`, `offline_access`
@@ -206,9 +221,10 @@ Traces, metrics and logs reach Application Insights only when you opt in:
 The workbench accepts only an `https://` ingestion address on an Application Insights host in the
 connection string and refuses to start with anything else. Data goes only to that resource: the
 exporter's own usage reporting to Microsoft is switched off. Traces are sampled
-(`SW_TRACE_SAMPLE_RATIO`, default `0.1`); metrics and logs are not. What the records hold and
-never hold is listed in the README section "Logging and telemetry". If data does not arrive, look for `telemetry.export-problem` lines on stdout, which carry the
-exporter's own warnings. Removing the secret reference
+(`SW_TRACE_SAMPLE_RATIO`, default `0.1`); metrics and logs are not. Record contents and limits are
+explained in [server observability](../docs/server-mode.md#logging-telemetry-and-outbound-traffic).
+If data does not arrive, look for `telemetry.export-problem` lines on stdout, which carry the
+exporter's warnings. Removing the secret reference
 and creating a revision turns telemetry off again.
 
 ### CLI creation and inspection
@@ -312,8 +328,9 @@ with the portal settings table. Confirm the final inspected template matches eve
    let a deployment run read the app's secrets or open a shell in it. The custom role allows
    `Microsoft.App/containerApps/read`, `write`, `revisions/*` and the
    `Microsoft.App/locations/containerappOperationStatuses/read` and
-   `containerappOperationResults/read` actions only. If the trial proves it necessary, add a custom role with only the environment join
-   action on the environment, and **Managed Identity Operator** on `id-sw-app` when assigning
+   `containerappOperationResults/read` actions only. If the trial proves it necessary, add a
+   custom role with only the environment join action on the environment, and
+   **Managed Identity Operator** on `id-sw-app` when assigning
    that identity. Record the final roles and scopes in the trial report; do not grant
    subscription-wide Contributor.
 4. Create environment `production` under **Pipelines → Environments**. Configure named approvers,
@@ -339,13 +356,17 @@ with the portal settings table. Confirm the final inspected template matches eve
    are the protection. Only the push connection also serves `main`, whose branch policy of
    step 8 the check verifies. The trial confirms this (step 10).
 5. Create **Library → Variable groups → semantic-workbench-target**. Enter every value below,
-   none marked secret. Restrict this group and both service connections to the two imported
+   none marked secret. Restrict this group and all three service connections to the two imported
    pipelines; disable access for all pipelines.
-6. Choose Microsoft-hosted `ubuntu-latest`, or a self-hosted Linux pool with Docker/buildx,
-   Azure CLI and network access to the target. Set compile-time `agentPool` or `vmImage`.
+6. Choose a Microsoft-hosted Linux image or a self-hosted Linux pool with Node 24.11+,
+   Docker/buildx, Azure CLI and target network access. Set compile-time `agentPool` or `vmImage`.
+   The setup template installs Bun 1.4.3 and Chromium, not Node. Verify the selected image has the
+   required Node
+   version rather than assuming `ubuntu-latest` will keep the same preinstalled tools forever.
 7. Import `azure-pipelines.yml` and `azure-pipelines-rollback.yml` from the mirror. Set parameters
    `variableGroup`, `acrServiceConnection`, `acrPullServiceConnection`,
-   `deployServiceConnection`, `deployEnvironment`, `agentPool`, `vmImage` to target names. Never replace them with runtime connection macros.
+   `deployServiceConnection`, `deployEnvironment`, `agentPool`, `vmImage` to target names.
+   Never replace them with runtime connection macros.
 8. In **Repos → Branches → main → Branch policies**, require build validation with the main
    pipeline for pull requests. Validate and Image must pass before completion.
 9. Use the Azure DevOps Runs API with `previewRun: true` for each imported pipeline, selecting
@@ -431,37 +452,46 @@ again; a version tag that points to another digest stops the run.
 
 ## Release hand-over
 
-Set and validate the package version before tagging. Run the complete `bun run ci:validate` on
-the release commit. Create the annotated tag, then use one of these owner-operated routes:
+Prepare an approved release commit with a declared package version. Validate that exact commit,
+create an annotated matching tag, and transfer it through one of the routes below. Existing
+unversioned source tags must not be moved to satisfy the target's version guard.
+
+Set `RELEASE_TAG` to the approved tag and `TARGET_MIRROR_URL` to the target repository. The value
+below is deliberately a placeholder, not a claim that such a release already exists:
 
 ```sh
-git remote add target <mirror-url>
-git push target v0.4.0-alpha.1^{commit}:refs/heads/release/v0.4.0-alpha.1
+RELEASE_TAG=vX.Y.Z
+git remote add target "$TARGET_MIRROR_URL"
+git push target "${RELEASE_TAG}^{commit}:refs/heads/release/${RELEASE_TAG}"
 ```
 
-Open and complete a pull request from `release/v0.4.0-alpha.1` into `main`, waiting for the branch
-policy. Then push the tag, which still points to the original release commit:
+Open a pull request from that release branch into `main` and wait for branch validation. Use a
+merge strategy that retains the tagged commit as an ancestor of `main`; squashing or rebasing it
+would make the original tag fail the ancestor check. Then push the unchanged tag:
 
 ```sh
-git push target v0.4.0-alpha.1
+git push target "$RELEASE_TAG"
 ```
 
-Without shared access, send a bundle and checksum:
+Without shared repository access, send a bundle and checksum:
 
 ```sh
-git bundle create semantic-workbench-v0.4.0-alpha.1.bundle v0.4.0-alpha.1
-sha256sum semantic-workbench-v0.4.0-alpha.1.bundle > semantic-workbench-v0.4.0-alpha.1.bundle.sha256
-sha256sum -c semantic-workbench-v0.4.0-alpha.1.bundle.sha256
-git bundle verify semantic-workbench-v0.4.0-alpha.1.bundle
-git fetch ./semantic-workbench-v0.4.0-alpha.1.bundle 'refs/tags/*:refs/tags/*'
+BUNDLE="semantic-workbench-${RELEASE_TAG}.bundle"
+git bundle create "$BUNDLE" "$RELEASE_TAG"
+sha256sum "$BUNDLE" > "${BUNDLE}.sha256"
+sha256sum -c "${BUNDLE}.sha256"
+git bundle verify "$BUNDLE"
+git fetch "./${BUNDLE}" 'refs/tags/*:refs/tags/*'
 ```
 
-The receiver verifies both files, fetches into a mirror clone, and follows the release branch,
-pull request, then tag sequence above. Commit and tag identifiers stay unchanged. As a fallback,
-`git archive --format=tar.gz --output=release.tar.gz v0.4.0-alpha.1` supplies source; the receiver
-commits it in the mirror and records `release v0.4.0-alpha.1 = mirror commit <sha>` in the tag
-message. The image and health commit then refer to the mirror commit. Never configure a scheduled
-mirror sync or a pipeline connection to this repository.
+The receiver verifies the checksum and bundle, fetches into the target clone, and follows the
+release-branch, pull-request and tag sequence. Commit/tag identities remain unchanged.
+
+As a fallback, `git archive --format=tar.gz --output=release.tar.gz "$RELEASE_TAG"` transfers only
+source. The receiver must create and validate a target commit, record the source-to-target commit
+mapping and create the approved target tag on that commit. Image and health metadata then identify
+the target commit, not the original source commit. Never configure scheduled mirror fetching or a
+pipeline connection back to this source repository.
 
 ## Moving a data folder from local mode to server mode
 

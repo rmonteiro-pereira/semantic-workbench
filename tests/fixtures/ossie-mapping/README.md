@@ -1,13 +1,19 @@
-# Official Apache Ossie examples
+# Pinned Apache Ossie fixtures
 
-All five files in the upstream `examples/` directory are snapshotted unchanged from Apache Ossie commit `64a1ae44035f5360dcd53401a29bcd900fdce349` (also the upstream main HEAD when verified on 2026-10-16). `manifest.json` records immutable URLs and SHA-256 hashes. The source files retain their ASF license headers.
+The five upstream example files are unchanged snapshots from Apache Ossie commit
+`64a1ae44035f5360dcd53401a29bcd900fdce349`, verified on 2026-10-16. `manifest.json` records their
+immutable source URLs and SHA-256 hashes. Preserve the files and ASF license headers exactly;
+do not repair an upstream example to satisfy a test.
 
-- `flights.ontology.yaml`, `flights.semantic_model.yaml`, `flights.mapping.yaml`: separate ontology, semantic model and standalone mapping.
-- `flights.yaml`: ontology with the deprecated embedded semantic model/mappings.
-- `tpcds_semantic_model.yaml`: retail semantic model with five datasets and eight metrics, including window expressions.
+The public [Ossie example guide](../../../public/examples/ossie/README.md) explains the layouts,
+coverage warning, conditional mappings and separately labelled workbench additions. Those added
+metric/contract files are not part of this upstream fixture manifest.
 
-`bun run test:examples` imports all five through the HTTP handler into isolated SQLite, verifies byte-exact exports and hashes, and resolves both Flights mapping forms (60 bindings each, two conditional bindings). Two mapped airport projections execute on a synthetic SQLite mirror. The test adapter changes only the SQL catalog prefix `DATABASE.SCHEMA` to `flights`; original inputs and previews remain unchanged.
+`bun run test:examples` imports these fixtures through the handler into a temporary file workspace,
+checks source/export hashes and resolves both Flights mapping forms. Separate verification code
+runs two airport projections on a synthetic SQLite mirror. It changes only the generated SQL's
+catalog prefix for that test; source definitions and original previews remain unchanged.
 
-TPC-DS declares `ss_ticket_number` as a primary-key column but does not expose it in the logical field list. This is a coverage warning, not a syntax/schema rejection: physical key metadata and the public logical field list need not coincide. The model still imports unchanged (13 graph nodes, 17 links). Its advanced window expressions are preserved, inspected, and exported; **their query execution is not claimed**. The upstream example does not include an ontology mapping or physical warehouse data.
-
-Flights' conditional population mappings are preserved and reported; they are not silently applied as query-wide filters. `bun run test:examples:ui` exercises imports, graph rendering, mapping/context inspection, actual SQL preview execution on the synthetic mirror, exports, and the generated billing model.
+TPC-DS must retain its documented physical-key coverage warning and advanced window expressions.
+Its query execution is not claimed. Conditional Flights bindings remain evidence rather than
+silently becoming query-wide filters. The application does not execute the fixture SQL.

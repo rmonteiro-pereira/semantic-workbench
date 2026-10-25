@@ -90,7 +90,8 @@ test('browser setup defaults on for validation and off for deployment', () => {
 test('trial follows the delivered tag and checks previous after automatic recovery', async () => {
   const runbook = await Bun.file('deploy/trial-runbook.md').text();
   expect(runbook).toContain('<release-tag>');
-  expect(runbook).toContain('v0.4.0');
+  expect(runbook).toMatch(/core must\s+match `package\.json`/);
+  expect(runbook).toContain('without moving a published tag');
   expect(runbook).not.toContain('v0.4.0-alpha.1');
   expect(runbook).toContain('next prerelease or patch tag');
   expect(runbook).toContain('bump `package.json`');
