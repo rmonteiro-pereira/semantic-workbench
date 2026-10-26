@@ -22,6 +22,9 @@ test('regeneration is byte-identical to the checked-in validators', () => {
         readFileSync(`${existing}/${name}`, 'utf8'),
       );
     }
+    const generated = readFileSync(join(root, 'validators.js'), 'utf8');
+    expect(generated).toContain('const odcsContractSchema =');
+    expect(generated).not.toMatch(/\bschema\d+\b/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

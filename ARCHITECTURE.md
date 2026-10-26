@@ -151,7 +151,8 @@ check that happens to succeed.
 - `src/mappings/` owns mapping schemas, built-ins and the mapping explorer. `src/core/` holds the
   shared model, document references and export projection.
 - `schemas/` contains pinned standards and application schemas. `scripts/compile-schemas.ts`
-  produces checked-in standalone browser validators under `src/generated/schema-validators/`;
+  produces checked-in, formatted standalone browser validators grouped by schema family in
+  `src/generated/validators.js`;
   browser CSP does not need runtime evaluation to compile schemas.
 - `src/editor/` owns CodeMirror configuration, serialization/embedded-language highlighting,
   findings and byte-range patches. `documentMode.ts`, `viewportYaml.ts`, `largeYaml.ts` and
@@ -178,9 +179,10 @@ check that happens to succeed.
 - `src/shared/` contains UI and small utilities used by multiple domains; `src/theme/` owns theme
   tokens, runtime palettes and browser preference. The root of `src/` is reserved for the entry,
   global stylesheet and browser type declarations.
-- `src/auth/` consumes server-reported identity and capabilities. `src/admin/` proposes/reviews
-  access changes through its typed client. Admin URL hashes select sections; no general routing
-  framework computes authorization in the browser.
+- `src/auth/` consumes server-reported identity and capabilities. `src/app/admin/` is the browser
+  administration feature: it proposes/reviews access changes through its typed client and is
+  separate from the server's versioned `DATA_DIR/admin/` configuration repository. Admin URL hashes
+  select sections; no general routing framework computes authorization in the browser.
 - `src/graph/` owns whole-model and neighborhood views, traversal, grouping projection, layout,
   workers, controls, name wrapping and shared edge appearance. `overview.ts` and `communities.ts`
   decide display grouping, not standard semantics.

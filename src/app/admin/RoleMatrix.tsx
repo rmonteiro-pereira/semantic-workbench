@@ -1,5 +1,5 @@
 import type { Role } from './types';
-import type { Action } from '../server/auth/actions';
+import type { Action } from '../../server/auth/actions';
 import { actionLabel } from './helpers';
 
 /** Displays the fixed built-in permission matrix without editable controls. */

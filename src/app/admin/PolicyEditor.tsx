@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { AdminPane, type PaneProps } from './AdminPane';
 import { SelectField } from './SelectField';
-import { CodeEditor } from '../editor/CodeEditor';
+import { CodeEditor } from '../../editor/CodeEditor';
 import { adminApi, problemText } from './api';
 import { ReviewChange } from './ReviewChange';
 import { PolicyTemplateForm } from './PolicyTemplateForm';
 import { ProjectAccessSection } from './ProjectAccessSection';
 import type { Policy } from './types';
-import type { Issue } from '../validation/diagnostics';
+import type { Issue } from '../../validation/diagnostics';
 
 const templates = [
   'Metric ownership and steward',

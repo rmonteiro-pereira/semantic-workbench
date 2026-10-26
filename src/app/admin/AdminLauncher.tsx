@@ -1,4 +1,4 @@
-import { useMe, type Me } from '../auth/useMe';
+import { useMe, type Me } from '../../auth/useMe';
 import { useAdminRoute } from './admin-route';
 
 /** Uses the server's capability, including the implicit local administrator. */

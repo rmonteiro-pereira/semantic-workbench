@@ -62,6 +62,6 @@
     "public/**",
     "dist/**",
     "data/**",
-    "src/generated/validators.js"
+    "src/generated/**"
   ]
 }

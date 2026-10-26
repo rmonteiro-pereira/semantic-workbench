@@ -1,4 +1,4 @@
-import { useMe } from '../auth/useMe';
+import { useMe } from '../../auth/useMe';
 
 /** Says so when the signed-in person holds Admin only through server configuration. */
 export function BootstrapNotice() {

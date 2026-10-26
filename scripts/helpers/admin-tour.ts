@@ -1,7 +1,7 @@
 // The Admin page sections for the responsive suite: each one at every viewport size.
 import type { Page } from '@playwright/test';
-import { ADMIN_SECTIONS } from '../../src/admin/admin-sections';
-import { adminHash } from '../../src/admin/admin-route';
+import { ADMIN_SECTIONS } from '../../src/app/admin/admin-sections';
+import { adminHash } from '../../src/app/admin/admin-route';
 import type { Screen } from './screen-tour';
 
 async function showSection(page: Page, id: (typeof ADMIN_SECTIONS)[number]['id']) {
