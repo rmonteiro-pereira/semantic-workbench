@@ -5,12 +5,12 @@ import { expect, test } from 'bun:test';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { checkRepositoryFolder } from '../src/scm/repository-folder';
-import { createGit } from '../server/projects/git';
+import { createGit } from '../src/server/projects/git';
 import {
   conePathspecs,
   fetchMissingContents,
   sparseSetArguments,
-} from '../server/projects/sparse-folder';
+} from '../src/server/projects/sparse-folder';
 import { testWorkspace } from './helpers/temp-data-dir';
 import { call, ok, ontology, sh } from './helpers/scm';
 import {

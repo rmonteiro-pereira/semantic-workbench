@@ -2,9 +2,9 @@
 import { expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { createState } from '../../server/projects/state';
-import { dataLayout } from '../../server/projects/paths';
-import { localPrincipal } from '../../server/auth/principal';
+import { createState } from '../../src/server/projects/state';
+import { dataLayout } from '../../src/server/projects/paths';
+import { localPrincipal } from '../../src/server/auth/principal';
 import { tempDataDir } from '../helpers/temp-data-dir';
 
 test('sign-ins retain only identity fields and atomically update a stable unique handle', () => {

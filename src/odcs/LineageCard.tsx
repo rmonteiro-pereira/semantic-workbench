@@ -7,7 +7,7 @@ import { KindIcon, KIND_LABEL } from '../graph/LineageLegend';
 import { moreRowId, type LineageCard as Card, type LineageColumn } from './lineage';
 import { CARD_W, HEADER_H, ROW_H, MORE_H } from './lineage-layout';
 import { ColumnList, ColumnRow, Port } from './LineageColumnList';
-import { PropertyBadges } from '../PropertyBadges';
+import { PropertyBadges } from '../shared/PropertyBadges';
 // Hidden column edges attach to the shared more-columns row. Path rows stay on the card while they
 // are selected, and the more-columns row opens the card's full list.
 /** Supplies visible rows, selection state and actions for a lineage card. */

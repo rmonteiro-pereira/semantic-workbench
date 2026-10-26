@@ -7,7 +7,7 @@ import { mapLiteral, readTokens, rewriteText } from '../scripts/theme-codemod';
 import { themedFiles } from '../scripts/helpers/theme-files';
 
 const fixture = (name: string) => readFileSync(`tests/fixtures/theme/${name}`, 'utf8');
-const tokens = readTokens(readFileSync('src/theme.css', 'utf8'));
+const tokens = readTokens(readFileSync('src/theme/theme.css', 'utf8'));
 
 test('the check reports each literal of a stylesheet with its line and ignores comments', () => {
   const found = violationsIn('src/fixture.css', fixture('leaky.css'));
@@ -34,7 +34,7 @@ test('the check finds literals in script strings and not in prose or comments', 
 });
 
 test('the check skips the theme files and generated code', () => {
-  expect(violationsIn('src/theme.css', 'a{color:#fff}')).toEqual([]);
+  expect(violationsIn('src/theme/theme.css', 'a{color:#fff}')).toEqual([]);
   expect(violationsIn('src/generated/schema.ts', "const x = '#fff';")).toEqual([]);
 });
 
@@ -68,14 +68,14 @@ test('a second codemod run changes nothing', () => {
 });
 
 test('the sign-in stylesheet carries the theme tokens and uses them for every colour', async () => {
-  const { authStylesheet } = await import('../server/routes/auth-stylesheet');
+  const { authStylesheet } = await import('../src/server/routes/auth-stylesheet');
   const css = authStylesheet();
   expect(css).toContain('--color-surface:');
   expect(css).toContain('background:var(--color-surface-page)');
   expect(violationsIn('src/auth.css', css.slice(css.indexOf('body{')))).toEqual([]);
 });
 
-const themeCss = readFileSync('src/theme.css', 'utf8');
+const themeCss = readFileSync('src/theme/theme.css', 'utf8');
 
 // The value of each `--color-*: #hex;` declaration inside one block of the theme file.
 function tokenValues(block: string): Map<string, string> {

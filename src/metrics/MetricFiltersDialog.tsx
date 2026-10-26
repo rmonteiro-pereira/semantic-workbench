@@ -1,6 +1,6 @@
 /** The metrics list's filters and grouping, opened from one Filters button. */
 import React, { useMemo } from 'react';
-import type { KpiSummary } from '../../server/agent/explain';
+import type { KpiSummary } from '../server/agent/explain';
 import { Modal } from '../projects/Modal';
 import { typeLabel } from './format';
 import type { GroupBy, MetricFilters } from './metric-filters';

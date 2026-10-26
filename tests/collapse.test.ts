@@ -1,8 +1,8 @@
 // Tests collapsed graph groups and their connections.
 import { test, expect } from 'bun:test';
-import { inspect } from '../src/model';
-import { modelOverview } from '../src/overview';
-import { collapseAreas } from '../src/collapse';
+import { inspect } from '../src/core/model';
+import { modelOverview } from '../src/graph/overview';
+import { collapseAreas } from '../src/graph/collapse';
 test('area collapse accounts for every original entity and relationship exactly once', async () => {
   const m = inspect(await Bun.file('public/examples/ubl/ubl.ontology.yaml').text());
   const o = modelOverview(m.entities, m.edges, m.name);

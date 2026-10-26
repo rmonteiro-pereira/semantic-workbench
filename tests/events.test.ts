@@ -1,7 +1,7 @@
 // Tests workspace event streaming, replay and external file changes.
 import { test, expect } from 'bun:test';
 import { appendFileSync } from 'node:fs';
-import { createEvents } from '../server/projects/events';
+import { createEvents } from '../src/server/projects/events';
 import { testWorkspace } from './helpers/temp-data-dir';
 // Events that carry no suggestion counting; the stubs keep a count round cheap.
 const noSuggestions = { suggestionIndex: () => [], sharedSuggestionCount: () => 0 };
@@ -56,7 +56,7 @@ test('Last-Event-ID replays missed events from the ring; older ids get resync', 
   expect(resync).toContain('event: resync');
 });
 test('heartbeat comments keep the stream alive (15 s by default)', async () => {
-  expect((await import('../server/projects/events')).HEARTBEAT_MS).toBe(15_000);
+  expect((await import('../src/server/projects/events')).HEARTBEAT_MS).toBe(15_000);
   const e = createEvents({ ...noSuggestions, heartbeatMs: 30 });
   const text = await read(
     e.stream(new Request('http://x/api/events')),

@@ -1,6 +1,6 @@
 /** Caches parsed project files by content hash for lineage, skipping RDF serializations. */
 import { parse } from 'yaml';
-import { rdfSyntax } from '../rdf';
+import { rdfSyntax } from '../validation/rdf';
 import type { Doc } from '../projects/api';
 import type { ProjectFile } from './lineage';
 // Project files parsed once per content hash, for lineage (RDF files are not YAML/JSON and are

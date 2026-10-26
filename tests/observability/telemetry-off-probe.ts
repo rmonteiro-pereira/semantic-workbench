@@ -2,8 +2,8 @@
 // instrumented code, and reports whether the SDK was loaded or any network call was tried.
 import net from 'node:net';
 import tls from 'node:tls';
-import { readConfig } from '../../server/config';
-import { startTelemetry } from '../../server/observability/telemetry';
+import { readConfig } from '../../src/server/config';
+import { startTelemetry } from '../../src/server/observability/telemetry';
 
 const attempts: string[] = [];
 function forbid(name: string, owner: object, method: string) {
@@ -33,9 +33,9 @@ const environments = [
   },
 ];
 
-const { withSpan } = await import('../../server/observability/tracing');
-const { recordRequest, recordGitCommand } = await import('../../server/observability/metrics');
-const { log } = await import('../../server/observability/log');
+const { withSpan } = await import('../../src/server/observability/tracing');
+const { recordRequest, recordGitCommand } = await import('../../src/server/observability/metrics');
+const { log } = await import('../../src/server/observability/log');
 for (const environment of environments) {
   const config = readConfig(environment);
   const telemetry = await startTelemetry({ settings: config.observability.telemetry, service });

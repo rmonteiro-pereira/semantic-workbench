@@ -1,7 +1,7 @@
 // Git's own output stays in the server log; local mode keeps showing it.
 import { expect, spyOn, test } from 'bun:test';
-import { GitError } from '../../server/projects/git';
-import { errorResponse } from '../../server/routes/http';
+import { GitError } from '../../src/server/projects/git';
+import { errorResponse } from '../../src/server/routes/http';
 
 const failure = () =>
   new GitError('git push failed', {

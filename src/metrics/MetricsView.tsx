@@ -2,7 +2,7 @@
 import { useCapabilities } from '../auth/Capabilities';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Gauge, ListFilter, Plus, Search } from 'lucide-react';
-import type { KpiSummary } from '../../server/agent/explain';
+import type { KpiSummary } from '../server/agent/explain';
 import { MetricDetail } from './MetricDetail';
 import { MetricFiltersDialog } from './MetricFiltersDialog';
 import { MetricsTable } from './MetricsTable';

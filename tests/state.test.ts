@@ -2,8 +2,8 @@
 import { test, expect } from 'bun:test';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { dataLayout } from '../server/projects/paths';
-import { createState } from '../server/projects/state';
+import { dataLayout } from '../src/server/projects/paths';
+import { createState } from '../src/server/projects/state';
 import { tempDataDir } from './helpers/temp-data-dir';
 test('every state file carries formatVersion and round-trips', () => {
   const d = tempDataDir();

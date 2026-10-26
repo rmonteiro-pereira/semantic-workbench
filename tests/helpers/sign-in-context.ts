@@ -1,11 +1,11 @@
 // Opens server-mode authentication against an in-memory provider and a disposable workspace, and
 // signs people in through the real handler.
 import { join } from 'node:path';
-import { createServerAuthentication } from '../../server/auth/authentication';
-import { createOidcClient } from '../../server/auth/oidc';
-import type { ServerConfig } from '../../server/config';
-import { createHandler } from '../../server/handler';
-import type { HandlerOptions } from '../../server/auth/middleware';
+import { createServerAuthentication } from '../../src/server/auth/authentication';
+import { createOidcClient } from '../../src/server/auth/oidc';
+import type { ServerConfig } from '../../src/server/config';
+import { createHandler } from '../../src/server/handler';
+import type { HandlerOptions } from '../../src/server/auth/middleware';
 import { authWorkspace } from './auth-workspace';
 import { oidcTransport } from './oidc-transport';
 

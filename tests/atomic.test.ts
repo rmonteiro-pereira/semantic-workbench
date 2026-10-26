@@ -12,7 +12,7 @@ import {
   type RenameEnvironment,
   sha256,
   TEMP_SUFFIX,
-} from '../server/projects/atomic';
+} from '../src/server/projects/atomic';
 import { tempDataDir } from './helpers/temp-data-dir';
 test('SHA-256 of bytes and of the UTF-8 text agree', () => {
   expect(sha256('abc')).toBe('ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');

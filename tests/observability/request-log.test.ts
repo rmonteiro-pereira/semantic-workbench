@@ -2,18 +2,18 @@
 // while it is handled, and one finished-request line with the route template and a pseudonymous
 // actor.
 import { afterEach, beforeEach, expect, test } from 'bun:test';
-import { createAccessControl } from '../../server/auth/authorize';
-import { createHandler } from '../../server/handler';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { createHandler } from '../../src/server/handler';
 import {
   createLogger,
   addLogSink,
   configureLogging,
   log,
   type LogRecord,
-} from '../../server/observability/log';
-import { levelForStatus, methodLabel } from '../../server/observability/http-request';
-import { routeTemplate } from '../../server/auth/route-actions';
-import { configureActorSalt } from '../../server/observability/request-context';
+} from '../../src/server/observability/log';
+import { levelForStatus, methodLabel } from '../../src/server/observability/http-request';
+import { routeTemplate } from '../../src/server/auth/route-actions';
+import { configureActorSalt } from '../../src/server/observability/request-context';
 import { accessFixture, person } from '../auth/access-fixture';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 import { testWorkspace } from '../helpers/temp-data-dir';

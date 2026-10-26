@@ -1,6 +1,6 @@
 /** Presentation and event handling for metrics panel. */
 import React from 'react';
-import type { KpiSummary } from '../../server/agent/explain';
+import type { KpiSummary } from '../server/agent/explain';
 import { MetricsView } from '../metrics/MetricsView';
 import type { ProjectInfo } from '../projects/api';
 

@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { chromium, expect, type Browser, type Page } from '@playwright/test';
-import { principalKey } from '../server/auth/principal';
+import { principalKey } from '../src/server/auth/principal';
 import {
   TEST_GROUPS,
   TEST_TENANT_ID,

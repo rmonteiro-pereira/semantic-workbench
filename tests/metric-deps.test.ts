@@ -3,8 +3,8 @@ import { test, expect } from 'bun:test';
 import { Glob } from 'bun';
 import { parse } from 'yaml';
 import { datasetReferences, expressionRefs, metricDependencies } from '../src/metrics/deps';
-import { inspect } from '../src/model';
-import { columnRefs, parseExpression } from '../server/agent/sql';
+import { inspect } from '../src/core/model';
+import { columnRefs, parseExpression } from '../src/server/agent/sql';
 
 function expressions(value: any, out: string[] = []) {
   if (Array.isArray(value)) value.forEach(v => expressions(v, out));

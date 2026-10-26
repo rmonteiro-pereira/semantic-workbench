@@ -1,8 +1,8 @@
 // Exercises the last human administrator invariant using recorded sign-in times.
 import { expect, test } from 'bun:test';
-import { checkLastAdmin, isBootstrapAdmin } from '../../server/auth/admin-guard';
-import { emptyAccessConfig } from '../../server/auth/access-config';
-import { localPrincipal } from '../../server/auth/principal';
+import { checkLastAdmin, isBootstrapAdmin } from '../../src/server/auth/admin-guard';
+import { emptyAccessConfig } from '../../src/server/auth/access-config';
+import { localPrincipal } from '../../src/server/auth/principal';
 
 const user = {
   ...localPrincipal(),

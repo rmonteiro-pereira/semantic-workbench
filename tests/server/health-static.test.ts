@@ -3,9 +3,9 @@ import { expect, test } from 'bun:test';
 import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { healthResponse } from '../../server/routes/health';
-import { securityHeaders, serveStatic } from '../../server/static';
-import { probeDataRoot } from '../../server/projects/data-root';
+import { healthResponse } from '../../src/server/routes/health';
+import { securityHeaders, serveStatic } from '../../src/server/static';
+import { probeDataRoot } from '../../src/server/projects/data-root';
 
 for (const state of ['starting', 'refused', 'handover', 'serving'] as const) {
   test(`health and readiness in ${state}`, async () => {
@@ -99,8 +99,8 @@ test('failed writable probe names the root and uid', () => {
 });
 
 test('configured origins keep API host and origin checks in force', async () => {
-  const { openWorkspace } = await import('../../server/projects/workspace');
-  const { createHandler } = await import('../../server/handler');
+  const { openWorkspace } = await import('../../src/server/projects/workspace');
+  const { createHandler } = await import('../../src/server/handler');
   const root = mkdtempSync(join(tmpdir(), 'workbench-origins-'));
   const workspace = await openWorkspace({ root, cacheDir: null });
   try {
@@ -132,7 +132,7 @@ test('configured origins keep API host and origin checks in force', async () => 
 
 test('cache directory is separate from durable workspace state', async () => {
   const { existsSync } = await import('node:fs');
-  const { openWorkspace } = await import('../../server/projects/workspace');
+  const { openWorkspace } = await import('../../src/server/projects/workspace');
   const root = mkdtempSync(join(tmpdir(), 'workbench-cache-'));
   const cacheDir = join(root, 'cache');
   const workspaceRoot = join(root, 'workspace');

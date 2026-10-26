@@ -2,11 +2,11 @@
 import { test, expect } from 'bun:test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { createCache } from '../server/projects/cache';
-import { createGit } from '../server/projects/git';
-import { dataLayout } from '../server/projects/paths';
-import { createScanner, serializationOf, indexBytes } from '../server/projects/scanner';
-import { encode } from '../server/projects/atomic';
+import { createCache } from '../src/server/projects/cache';
+import { createGit } from '../src/server/projects/git';
+import { dataLayout } from '../src/server/projects/paths';
+import { createScanner, serializationOf, indexBytes } from '../src/server/projects/scanner';
+import { encode } from '../src/server/projects/atomic';
 import { tempDataDir } from './helpers/temp-data-dir';
 test('serializations come from extensions, with .owl sniffed', () => {
   expect(

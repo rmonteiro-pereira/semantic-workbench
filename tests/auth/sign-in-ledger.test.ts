@@ -3,10 +3,10 @@ import { afterEach, expect, spyOn, test } from 'bun:test';
 import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { sha256 } from '../../server/projects/atomic';
-import { ATTEMPT_TTL_SECONDS, createAttemptStore } from '../../server/auth/attempts';
-import { createServerAuthentication } from '../../server/auth/authentication';
-import { createOidcClient } from '../../server/auth/oidc';
+import { sha256 } from '../../src/server/projects/atomic';
+import { ATTEMPT_TTL_SECONDS, createAttemptStore } from '../../src/server/auth/attempts';
+import { createServerAuthentication } from '../../src/server/auth/authentication';
+import { createOidcClient } from '../../src/server/auth/oidc';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { oidcTransport } from '../helpers/oidc-transport';
 

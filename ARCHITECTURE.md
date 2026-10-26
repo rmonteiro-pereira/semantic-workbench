@@ -75,23 +75,25 @@ check that happens to succeed.
 
 ### HTTP, startup and ownership
 
-- `server/index.ts` composes startup, storage, authentication, brand, telemetry and the listener.
-  `server/config.ts` is the typed runtime configuration boundary. Startup diagnostics live in
-  `server/startup-log.ts`; signal and hot-reload cleanup live in `server/shutdown.ts`.
-- `server/handler.ts` composes health/static handling and route dispatch.
-  `server/request.ts` owns bounded body/path parsing. `server/serve-options.ts` owns listener
-  behavior, and `server/routes/http.ts` maps typed failures to HTTP responses.
-- `server/routes/` parses resource-specific requests and calls owning services. It must not
+- `src/server/` contains the Bun-only runtime, grouped under the same source root as the browser
+  application. `src/server/index.ts` composes startup, storage, authentication, brand, telemetry and
+  the listener; browser modules must not import server modules.
+  `src/server/config.ts` is the typed runtime configuration boundary. Startup diagnostics live in
+  `src/server/startup-log.ts`; signal and hot-reload cleanup live in `src/server/shutdown.ts`.
+- `src/server/handler.ts` composes health/static handling and route dispatch.
+  `src/server/request.ts` owns bounded body/path parsing. `src/server/serve-options.ts` owns listener
+  behavior, and `src/server/routes/http.ts` maps typed failures to HTTP responses.
+- `src/server/routes/` parses resource-specific requests and calls owning services. It must not
   implement Git subprocesses, filesystem transactions or independent authorization rules.
-- `server/static.ts` serves `dist/` with path confinement and security policy.
-  `server/routes/health.ts` exposes liveness/readiness without workspace inspection.
-- `server/projects/data-root.ts` probes writable storage. `instance-lock.ts` owns the exclusive
+- `src/server/static.ts` serves `dist/` with path confinement and security policy.
+  `src/server/routes/health.ts` exposes liveness/readiness without workspace inspection.
+- `src/server/projects/data-root.ts` probes writable storage. `instance-lock.ts` owns the exclusive
   lease and revision handover. Recovery, migration, scanning and access-service initialization
   follow ownership; a waiting instance must not initialize another writer's workspace.
 
 ### Filesystem, Git and personal working copies
 
-- `server/projects/workspace.ts` is the workspace composition root. It wires registration,
+- `src/server/projects/workspace.ts` is the workspace composition root. It wires registration,
   reads/saves, scanning, Git, journals, trash, working copies, publishing and event delivery.
 - `paths.ts` owns data layouts and path validation; `state.ts` owns the registry and persistent
   state; `reader.ts` defines the caller's filtered view, owner and content guard.
@@ -116,7 +118,7 @@ check that happens to succeed.
 
 ### Identity, authorization, governance and administration
 
-- `server/auth/authentication.ts` composes provider identity, sessions, directory membership and
+- `src/server/auth/authentication.ts` composes provider identity, sessions, directory membership and
   the single administration repository. It does not depend on provider-specific protocol details.
 - `sign-in-provider.ts` selects a provider interface implementation: `msal-provider.ts` for
   Entra, `oidc.ts` for Keycloak/generic. `managed-identity.ts`, `id-token.ts` and
@@ -143,8 +145,11 @@ check that happens to succeed.
 
 ### Parsing, editing, metrics and agent planning
 
-- `src/model.ts`, `validation.ts`, `input.ts`, `odcs.ts` and `rdf*.ts` parse supported definitions
-  into entities, relationships and findings. They are reused by browser and server logic.
+- `src/core/model.ts` projects supported definitions into entities and relationships.
+  `src/validation/` owns input checks, diagnostics and RDF parsing; `src/odcs/foreign-keys.ts`
+  resolves contract relationships. These modules are reused by browser and server logic.
+- `src/mappings/` owns mapping schemas, built-ins and the mapping explorer. `src/core/` holds the
+  shared model, document references and export projection.
 - `schemas/` contains pinned standards and application schemas. `scripts/compile-schemas.ts`
   produces checked-in standalone browser validators under `src/generated/schema-validators/`;
   browser CSP does not need runtime evaluation to compile schemas.
@@ -155,7 +160,7 @@ check that happens to succeed.
   patch construction. RDF edits additionally verify the intended graph difference.
 - `src/metrics/`, `src/mappings/` and `src/sql/` own definition presentation, authoring,
   binding traversal and supported SQL syntax. They do not access a data source.
-- `server/agent/explain.ts`, `runtime.ts` and `sql.ts` produce filtered catalog/context,
+- `src/server/agent/explain.ts`, `runtime.ts` and `sql.ts` produce filtered catalog/context,
   definition-preserving metric explanations and governed query plans. They never execute a plan or
   call an LLM. Synthetic example execution belongs only to verification scripts/tests.
 
@@ -169,13 +174,16 @@ check that happens to succeed.
   `Sidebar.tsx` and `tree-viewport.ts` keep the selected file and whole-row viewport reachable.
 - `src/scm/` owns Source Control, diffs, branch/commit/remote/clone dialogs and personal-credential
   prompts. `src/projects/Modal.tsx`, `Menu.tsx`, `WizardStepper.tsx`, `EmptyState.tsx` and
-  `src/ScrollStrip.tsx` provide shared interaction and layout behavior.
+  `src/shared/ScrollStrip.tsx` provide shared interaction and layout behavior.
+- `src/shared/` contains UI and small utilities used by multiple domains; `src/theme/` owns theme
+  tokens, runtime palettes and browser preference. The root of `src/` is reserved for the entry,
+  global stylesheet and browser type declarations.
 - `src/auth/` consumes server-reported identity and capabilities. `src/admin/` proposes/reviews
   access changes through its typed client. Admin URL hashes select sections; no general routing
   framework computes authorization in the browser.
-- `src/FullGraph.tsx` and `NeighborhoodGraph.tsx` render entity graphs. `src/graph/` owns traversal,
-  grouping projection, incremental placement, controls, name wrapping and shared edge appearance.
-  `overview.ts` and `communities.ts` decide display grouping, not standard semantics.
+- `src/graph/` owns whole-model and neighborhood views, traversal, grouping projection, layout,
+  workers, controls, name wrapping and shared edge appearance. `overview.ts` and `communities.ts`
+  decide display grouping, not standard semantics.
 - `src/odcs/lineage.ts` builds declared column dependencies; `LineageCanvas.tsx`, `LineageCard.tsx`
   and `LineageColumnList.tsx` draw row ports, selection and windowed column lists. Mapping canvases
   reuse this infrastructure with resolver-derived cards/lines.
@@ -184,16 +192,17 @@ check that happens to succeed.
 
 ### Branding, observability and delivery
 
-- `src/theme.css` defines semantic light/dark tokens; `theme-palette.ts` is the runtime group
-  palette. `theme-preference.ts`, `ThemeControl.tsx` and `public/theme-init.js` own browser choice.
-- `public/brand/` is the default bundle. `server/brand/` loads and sanitizes it once at startup;
+- `src/theme/theme.css` defines semantic light/dark tokens; `theme-palette.ts` is the runtime group
+  palette. `theme-preference.ts`, `src/app/ThemeControl.tsx` and `public/theme-init.js` own browser
+  choice.
+- `public/brand/` is the default bundle. `src/server/brand/` loads and sanitizes it once at startup;
   `src/brand/` consumes the known public assets. Product identity must not be duplicated in view
   components. `docs/theme.md` owns deployment/customization details.
-- `server/observability/` owns typed settings, redaction, request context, explicit spans/metrics,
+- `src/server/observability/` owns typed settings, redaction, request context, explicit spans/metrics,
   logs, browser report recording and optional exporter loading. SDK/exporter imports stay behind
   `telemetry.ts`; ordinary application code uses the no-op-capable OpenTelemetry API.
 - `src/observability/` owns bounded browser reporting to the workbench API. No browser exporter
-  contacts an external ingestion host. `server/auth/audit.ts` remains a separate durable security
+  contacts an external ingestion host. `src/server/auth/audit.ts` remains a separate durable security
   record, with integrity verification described in `docs/audit-tamper-evidence.md`.
 - `Dockerfile`, `compose.yaml`, `scripts/image.ts` and `container-*.ts` own image construction and
   local validation. `scripts/ci-validate.ts` orchestrates the canonical gate/suite inventories.
@@ -269,17 +278,17 @@ check that happens to succeed.
 
 | Behavior | Starting point |
 | --- | --- |
-| Runtime setting | `server/config.ts`, then `docs/configuration.md` |
-| Route/resource | `server/routes/` and `auth/route-actions.ts` |
+| Runtime setting | `src/server/config.ts`, then `docs/configuration.md` |
+| Route/resource | `src/server/routes/` and `auth/route-actions.ts` |
 | Access decision | `auth/authorize.ts`, Cedar policies and grant/compiler modules |
 | Content protection | `src/governance/`, then server/client bindings |
-| Definition syntax | `src/model.ts`, validators, parsers and pinned schemas |
+| Definition syntax | `src/core/model.ts`, `src/validation/`, `src/odcs/` and pinned schemas |
 | Byte-preserving item edit | `src/edit/` and `src/editor/patch.ts` |
-| Metrics/bindings/plans | `src/metrics/`, `src/mappings/`, `server/agent/` |
+| Metrics/bindings/plans | `src/metrics/`, `src/mappings/`, `src/server/agent/` |
 | Graph layout/routing | `FullGraph.tsx`, `src/graph/`, `src/odcs/` |
-| Git/repository behavior | `server/projects/git.ts`, `scm.ts`, working-copy modules |
-| Theme/brand | Tokens and `public/brand/`; server sanitation under `server/brand/` |
-| Diagnostics/export | `server/observability/`, browser report schema and recorder |
+| Git/repository behavior | `src/server/projects/git.ts`, `scm.ts`, working-copy modules |
+| Theme/brand | Tokens and `public/brand/`; server sanitation under `src/server/brand/` |
+| Diagnostics/export | `src/server/observability/`, browser report schema and recorder |
 | Quality gate | `scripts/gate-suites.ts`, container suites and `ci-validate.ts` |
 
 Use [the development guide](docs/development.md) for command syntax, fixture rules and validation.

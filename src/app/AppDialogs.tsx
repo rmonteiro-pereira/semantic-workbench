@@ -1,14 +1,14 @@
 /** Presentation and event handling for app dialogs. */
 import { useGitSetup } from '../scm/GitSetup';
 import React from 'react';
-import type { KpiSummary } from '../../server/agent/explain';
-import type { ImportDraft } from '../ValidationPanel';
-import { ImportRepair, ValidationPanel } from '../ValidationPanel';
-import type { Issue } from '../diagnostics';
+import type { KpiSummary } from '../server/agent/explain';
+import type { ImportDraft } from '../validation/ValidationPanel';
+import { ImportRepair, ValidationPanel } from '../validation/ValidationPanel';
+import type { Issue } from '../validation/diagnostics';
 import type { Saved } from '../edit/ItemEditor';
 import type { Choices, ItemKind, Path } from '../edit/item-model';
 import type { CodeEditorHandle } from '../editor/CodeEditor';
-import type { Entity, Relationship } from '../model';
+import type { Entity, Relationship } from '../core/model';
 import type { DeleteTarget } from '../projects/DeleteDialog';
 import { ImportDialog } from '../projects/ImportDialog';
 import { Modal } from '../projects/Modal';
@@ -225,7 +225,7 @@ export function AppDialogs({
   commitImports,
 }: Props) {
   const openGitSetup = useGitSetup();
-  function handleValidationPanelLocate(issue: import('../diagnostics').Issue) {
+  function handleValidationPanelLocate(issue: import('../validation/diagnostics').Issue) {
     setShowValidation(false);
     setTab('source');
     setTimeout(() => {

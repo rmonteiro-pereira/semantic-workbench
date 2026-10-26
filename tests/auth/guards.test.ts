@@ -2,16 +2,16 @@
 // may change classifications and protected properties.
 import { describe, expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
-import { createAccessControl } from '../../server/auth/authorize';
-import { requestAccess, requestReader } from '../../server/auth/request-scope';
-import { GuardedChangeError } from '../../server/auth/guards';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { requestAccess, requestReader } from '../../src/server/auth/request-scope';
+import { GuardedChangeError } from '../../src/server/auth/guards';
 import {
   classificationLevel,
   guardedChanges,
   type ClassificationSettings,
   type FileChange,
-} from '../../server/auth/guards';
-import { clientPrincipal, type NormalizedPrincipal } from '../../server/auth/principal';
+} from '../../src/server/auth/guards';
+import { clientPrincipal, type NormalizedPrincipal } from '../../src/server/auth/principal';
 import type { TestUserName } from '../helpers/auth-identities';
 import { accessFixture, person } from './access-fixture';
 

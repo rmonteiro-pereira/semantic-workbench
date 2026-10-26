@@ -1,12 +1,12 @@
 // Telemetry is off unless the server runs in server mode with a valid connection string, and the
 // connection string can only point at Application Insights.
 import { describe, expect, test } from 'bun:test';
-import { ConfigError, readConfig } from '../../server/config';
+import { ConfigError, readConfig } from '../../src/server/config';
 import {
   connectionStringProblem,
   DEFAULT_SAMPLE_RATIO,
   readTelemetry,
-} from '../../server/observability/settings';
+} from '../../src/server/observability/settings';
 
 const KEY = '4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f';
 const GOOD = `InstrumentationKey=${KEY};IngestionEndpoint=https://westeurope-5.in.applicationinsights.azure.com/`;

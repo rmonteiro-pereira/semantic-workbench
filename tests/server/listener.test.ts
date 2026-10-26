@@ -1,8 +1,8 @@
 // The production listener's edge: no debug page, one answer for failures, and no idle timeout
 // except for the event stream.
 import { expect, spyOn, test } from 'bun:test';
-import { createHandler } from '../../server/handler';
-import { serveOptions } from '../../server/serve-options';
+import { createHandler } from '../../src/server/handler';
+import { serveOptions } from '../../src/server/serve-options';
 import { testWorkspace } from '../helpers/temp-data-dir';
 
 const settings = { hostname: '127.0.0.1', port: 4310, fetch: () => new Response('ok') };

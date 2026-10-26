@@ -9,7 +9,7 @@ import {
   repoDir,
   projectPrefix,
   PathError,
-} from '../server/projects/paths';
+} from '../src/server/projects/paths';
 import { testWorkspace } from './helpers/temp-data-dir';
 import { call, ok } from './helpers/scm';
 // Project and repository folders come from the registry. Entries without `folder` or `repo` use

@@ -1,11 +1,11 @@
 // Tests migration from the SQLite workspace to the folder store.
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 import { test, expect } from 'bun:test';
 import { Database } from 'bun:sqlite';
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { sha256 } from '../server/projects/atomic';
-import { MIGRATION_COMMIT } from '../server/projects/migration';
+import { sha256 } from '../src/server/projects/atomic';
+import { MIGRATION_COMMIT } from '../src/server/projects/migration';
 import { tempDataDir, testWorkspace, example } from './helpers/temp-data-dir';
 // A v0.1.0 workspace, created with the exact v0.1.0 schema. The connection stays open with
 // automatic checkpoints off, so the documents live only in the WAL file, as in a real workspace.

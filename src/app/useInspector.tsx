@@ -1,7 +1,7 @@
 /** Manages inspector focus, keyboard shortcuts, and canvas fullscreen behavior. */
 import React, { useEffect, useRef, useState } from 'react';
 import { useFullscreen } from '../graph/fullscreen';
-import type { Entity, Relationship } from '../model';
+import type { Entity, Relationship } from '../core/model';
 import type { ValidatedModel } from './types';
 
 type Options = {

@@ -1,21 +1,21 @@
 /** Presentation and event handling for workspace canvas. */
 import { Network } from 'lucide-react';
 import React from 'react';
-import type { KpiSummary } from '../../server/agent/explain';
-import type { Issue } from '../diagnostics';
+import type { KpiSummary } from '../server/agent/explain';
+import type { Issue } from '../validation/diagnostics';
 import type { Path } from '../edit/item-model';
 import type { Saved } from '../edit/ItemEditor';
 import type { CodeEditorHandle } from '../editor/CodeEditor';
 import type { Fullscreen } from '../graph/fullscreen';
 import type { Walk, WalkAction } from '../graph/walk';
-import { MappingExplorer } from '../MappingExplorer';
-import type { Entity } from '../model';
-import type { CrossFileTarget } from '../NeighborhoodGraph';
+import { MappingExplorer } from '../mappings/MappingExplorer';
+import type { Entity } from '../core/model';
+import type { CrossFileTarget } from '../graph/NeighborhoodGraph';
 import type { LineageCard, LineageGraph } from '../odcs/lineage';
-import type { GroupingOptions, modelOverview } from '../overview';
+import type { GroupingOptions, modelOverview } from '../graph/overview';
 import type { Doc, ProjectInfo } from '../projects/api';
 import type { AutosaveState } from '../projects/autosave';
-import type { ImportDraft } from '../ValidationPanel';
+import type { ImportDraft } from '../validation/ValidationPanel';
 import { CatalogView } from './CatalogView';
 import { ContractView } from './ContractView';
 import { GraphViews } from './GraphViews';

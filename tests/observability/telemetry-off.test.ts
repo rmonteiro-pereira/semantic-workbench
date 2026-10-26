@@ -53,18 +53,18 @@ test('nothing the server imports at start reaches the SDK except through the tel
       }
     }
   }
-  visit(resolve(root, 'server/index.ts'));
+  visit(resolve(root, 'src/server/index.ts'));
   expect(reached).toEqual([]);
   expect(seen.size).toBeGreaterThan(50);
 });
 
 test('the only dynamic loads of the SDK are in the telemetry starter and its two loaders', () => {
-  const starter = readFileSync(resolve(root, 'server/observability/telemetry.ts'), 'utf8');
+  const starter = readFileSync(resolve(root, 'src/server/observability/telemetry.ts'), 'utf8');
   expect(starter).toContain("await import('./pipeline')");
   expect(starter).toContain("await import('./azure-backends')");
 });
 
 test('the exporter loader is the only file that names the Azure exporter', () => {
-  const loader = readFileSync(resolve(root, 'server/observability/azure-backends.ts'), 'utf8');
+  const loader = readFileSync(resolve(root, 'src/server/observability/azure-backends.ts'), 'utf8');
   expect(loader).toContain("await import('@azure/monitor-opentelemetry-exporter')");
 });

@@ -1,6 +1,6 @@
 // Checks cross-document invariants at the single configuration validation boundary.
 import { expect, test } from 'bun:test';
-import { validateAccessConfig, AccessConfigError } from '../../server/auth/access-config';
+import { validateAccessConfig, AccessConfigError } from '../../src/server/auth/access-config';
 import { accessFixture } from './access-fixture';
 
 test('duplicate grant ids and equivalent assignments are refused', () => {

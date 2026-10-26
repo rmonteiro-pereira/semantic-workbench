@@ -4,9 +4,9 @@
 import { expect, spyOn, test } from 'bun:test';
 import { existsSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { createAccessControl } from '../../server/auth/authorize';
-import { MANIFEST_FILE } from '../../server/projects/repositories';
-import { DEFAULT_BRANCH_KEY } from '../../server/projects/worktrees';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { MANIFEST_FILE } from '../../src/server/projects/repositories';
+import { DEFAULT_BRANCH_KEY } from '../../src/server/projects/worktrees';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { accessFixture, person } from './access-fixture';
 import { moveCase } from './guard-cases';

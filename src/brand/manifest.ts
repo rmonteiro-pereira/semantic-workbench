@@ -1,7 +1,7 @@
 // The product identity a deployment can replace: its name, a short name and a support link.
 // The server validates brand.json with this reader before serving it, and the browser reads the
 // same file through it, so both sides agree on what a valid manifest is.
-import { hasControlCharacter } from '../control-characters';
+import { hasControlCharacter } from '../shared/control-characters';
 
 /**
  * The text of brand.json once it has been checked. `shortName` is reserved for narrow headers and

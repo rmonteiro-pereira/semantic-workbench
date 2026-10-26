@@ -3,8 +3,8 @@ import { Braces, Network, Pencil, Trash2 } from 'lucide-react';
 import React from 'react';
 import { itemName } from '../edit/item-model';
 import { itemValue } from '../edit/yaml-patch';
-import type { Relationship } from '../model';
-import { editEntity } from '../model';
+import type { Relationship } from '../core/model';
+import { editEntity } from '../core/model';
 import type { Doc } from '../projects/api';
 import type { ItemTarget, RdfTarget, ValidatedModel } from './types';
 

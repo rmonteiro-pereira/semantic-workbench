@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Modal } from '../projects/Modal';
 import { api, StaleSave, type Doc } from '../projects/api';
 import { diffPatches } from '../editor/patch';
-import { validateInput } from '../input';
+import { validateInput } from '../validation/input';
 import { findReferences, removeDependents, type Reference } from './references';
 import { kindLabel, type ItemKind, type Path } from './item-model';
 import type { Saved } from './ItemEditor';

@@ -1,6 +1,6 @@
 /** Builds column-level lineage from declared names and parsed expressions without fetching or
  * running data. */
-import { odcsForeignKeys } from '../odcs';
+import { odcsForeignKeys } from './foreign-keys';
 import { ansiExpression, expressionRefs, metricDependencies } from '../metrics/deps';
 import { readMetricExtension } from '../metrics/extension';
 // Shared readers for the column-level lineage below: semantic models in a project file, physical
@@ -39,9 +39,9 @@ const columnOf = (p: any) =>
 // Edges follow referenced key → foreign key → semantic field → metric → dependent metric. Cards
 // include contract objects, semantic datasets, metrics and external stubs. Matching uses declared
 // names and parsed expressions; nothing is fetched or executed.
-import { odcsExternalForeignKeys } from '../odcs';
+import { odcsExternalForeignKeys } from './foreign-keys';
 import { flattenProperties } from './odcs-diff';
-import { propertyBadges, badge, type BadgeInfo } from '../PropertyBadges';
+import { propertyBadges, badge, type BadgeInfo } from '../shared/PropertyBadges';
 import type { LineageEdgeKind, MappingEdgeKind } from '../graph/edge-styles';
 /** Names an asset category rendered as a lineage card. */
 export type CardKind = 'object' | 'dataset' | 'metric' | 'external' | 'concept';

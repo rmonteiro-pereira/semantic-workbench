@@ -4,10 +4,10 @@ import { expect, test } from 'bun:test';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createAccessControl } from '../../server/auth/authorize';
-import { guardFor, GuardedChangeError } from '../../server/auth/guards';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { guardFor, GuardedChangeError } from '../../src/server/auth/guards';
 import { demoteMetric } from '../../src/governance/guards';
-import { payloadChanges } from '../../server/projects/trash';
+import { payloadChanges } from '../../src/server/projects/trash';
 import { accessFixture, person } from './access-fixture';
 
 const METRICS = readFileSync(

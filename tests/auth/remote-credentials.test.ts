@@ -18,16 +18,16 @@ import {
   startRemoteSetup,
   type RemoteSetup,
 } from './remote-setup';
-import { repoDir } from '../../server/projects/paths';
-import { ASKPASS_PROGRAM, credentialSetup, maskToken } from '../../server/projects/git';
+import { repoDir } from '../../src/server/projects/paths';
+import { ASKPASS_PROGRAM, credentialSetup, maskToken } from '../../src/server/projects/git';
 import {
   AZURE_DEVOPS_HOSTS,
   RemoteHostError,
   allowedRemoteAddresses,
   allowedRemoteHost,
   credentialKind,
-} from '../../server/auth/remote-hosts';
-import { githubUsable } from '../../server/auth/remote-credentials';
+} from '../../src/server/auth/remote-hosts';
+import { githubUsable } from '../../src/server/auth/remote-credentials';
 
 beforeAll(useDefaultBrand);
 

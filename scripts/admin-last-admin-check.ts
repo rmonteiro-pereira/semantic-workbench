@@ -3,9 +3,9 @@ import { expect, type Browser, type Route } from '@playwright/test';
 import { useDefaultBrand } from '../tests/helpers/brand-fixture';
 import { authWorkspace } from '../tests/helpers/auth-workspace';
 import { oidcTransport } from '../tests/helpers/oidc-transport';
-import { createOidcClient } from '../server/auth/oidc';
-import { createServerAuthentication } from '../server/auth/authentication';
-import { createHandler } from '../server/handler';
+import { createOidcClient } from '../src/server/auth/oidc';
+import { createServerAuthentication } from '../src/server/auth/authentication';
+import { createHandler } from '../src/server/handler';
 import { adminArea, adminGeometry } from './helpers/admin-browser';
 
 async function forward(route: Route, handler: ReturnType<typeof createHandler>) {

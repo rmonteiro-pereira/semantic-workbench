@@ -2,10 +2,10 @@
 // same repositories and look at their working copies on disk.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { createAccessControl } from '../../server/auth/authorize';
-import type { NormalizedPrincipal } from '../../server/auth/principal';
-import { createHandler } from '../../server/handler';
-import type { Workspace } from '../../server/projects/workspace';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import type { NormalizedPrincipal } from '../../src/server/auth/principal';
+import { createHandler } from '../../src/server/handler';
+import type { Workspace } from '../../src/server/projects/workspace';
 import { TEST_GROUPS } from '../helpers/auth-identities';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 import { accessFixture, person } from './access-fixture';

@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { treeRowProblems } from './helpers/tree-geometry';
 import { expectEditorValue, fillEditor } from './helpers/code-editor';
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 // Browser check: suggestions accept/dismiss, delete with confirmation, undo, trash restore and
 // purge, project delete, Clear, without any page reload. Runs against an isolated temporary data
 // root.

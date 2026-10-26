@@ -10,12 +10,12 @@ import {
   symlinkSync,
 } from 'node:fs';
 import { join } from 'node:path';
-import { createGit, GitError } from '../../server/projects/git';
+import { createGit, GitError } from '../../src/server/projects/git';
 import {
   openAdminRepository,
   AdminConfigError,
   withSettingsDefaults,
-} from '../../server/auth/admin-repo';
+} from '../../src/server/auth/admin-repo';
 import { tempDataDir } from '../helpers/temp-data-dir';
 const author = { name: 'Admin Person', email: 'admin@example.org' };
 test('first use creates one commit and changes preserve authorship, history and rollback', async () => {

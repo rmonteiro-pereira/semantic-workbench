@@ -1,10 +1,10 @@
 // Regression coverage for restrictions, live membership and request-scoped decisions.
 import { expect, test } from 'bun:test';
-import { createAccessControl } from '../../server/auth/authorize';
-import { InvalidResourceError, normalizeResource } from '../../server/auth/resource';
-import { validateAccessConfig } from '../../server/auth/access-config';
-import { BUILTIN_ROLE_IDS } from '../../server/auth/actions';
-import { clientFromToken, localPrincipal } from '../../server/auth/principal';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { InvalidResourceError, normalizeResource } from '../../src/server/auth/resource';
+import { validateAccessConfig } from '../../src/server/auth/access-config';
+import { BUILTIN_ROLE_IDS } from '../../src/server/auth/actions';
+import { clientFromToken, localPrincipal } from '../../src/server/auth/principal';
 import { accessFixture, person } from './access-fixture';
 
 const project = { type: 'project', project: 'sales-contracts' } as const;

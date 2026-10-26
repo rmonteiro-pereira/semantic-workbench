@@ -1,7 +1,7 @@
 /** Approve and Deprecate actions of a metric for the people who may approve it (server mode). */
 import React, { useState } from 'react';
 import { BadgeCheck, Archive } from 'lucide-react';
-import type { KpiSummary } from '../../server/agent/explain';
+import type { KpiSummary } from '../server/agent/explain';
 import { useCapabilities } from '../auth/Capabilities';
 import { approvalControl } from '../auth/guards-client';
 import { useMe } from '../auth/useMe';

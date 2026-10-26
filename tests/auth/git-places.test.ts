@@ -1,10 +1,10 @@
 // Authorization reads the repository in the place the command will run in: the person's copy
 // once it exists, even for a project where they hold no right to edit.
 import { expect, test } from 'bun:test';
-import type { Role } from '../../server/auth/access-config';
-import { createAccessControl } from '../../server/auth/authorize';
-import type { CloneEvent } from '../../server/projects/clone';
-import { LOCAL_READER } from '../../server/projects/reader';
+import type { Role } from '../../src/server/auth/access-config';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import type { CloneEvent } from '../../src/server/projects/clone';
+import { LOCAL_READER } from '../../src/server/projects/reader';
 import { bareRepository } from '../helpers/git-fixtures';
 import { testWorkspace } from '../helpers/temp-data-dir';
 import { accessFixture, person } from './access-fixture';

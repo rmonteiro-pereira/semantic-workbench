@@ -1,8 +1,8 @@
 # Theme and white-labelling
 
-Every interface color is a CSS custom property in `src/theme.css`. A startup-loaded brand bundle
-can override product identity and permitted tokens without rebuilding the application. This guide
-is the canonical reference for light/dark behavior, palette changes and deployment branding;
+Every interface color is a CSS custom property in `src/theme/theme.css`. A startup-loaded brand
+bundle can override product identity and permitted tokens without rebuilding the application. This
+guide is the canonical reference for light/dark behavior, palette changes and deployment branding;
 [the README](../README.md#theme-and-white-labelling) gives the overview.
 
 ## The tokens
@@ -37,12 +37,12 @@ values:
 The matching `color-scheme` setting makes native form controls and scrollbars follow the theme.
 
 The Theme control (System, Light, Dark) in the sidebar footer lives in
-`src/app/ThemeControl.tsx`. `src/theme-preference.ts` parses, reads and stores the choice under the
-local-storage key `workbench.theme`; every read and write is wrapped in `try`, so blocked storage
+`src/app/ThemeControl.tsx`. `src/theme/theme-preference.ts` parses, reads and stores the choice under
+the local-storage key `workbench.theme`; every read and write is wrapped in `try`, so blocked storage
 leaves the system setting in charge. `public/theme-init.js` is a plain script in the page head. It
 sets `data-theme` from the stored choice before the first paint. The server's sign-in pages carry no
-script and follow the system setting; `server/routes/auth-stylesheet.ts` serves them
-`src/theme.css` followed by their layout.
+script and follow the system setting; `src/server/routes/auth-stylesheet.ts` serves them
+`src/theme/theme.css` followed by their layout.
 
 React Flow draws its own minimap, controls and edge labels. `src/style.css` maps its `--xy-*`
 variables to the tokens so those follow the theme as well.
@@ -50,12 +50,12 @@ variables to the tokens so those follow the theme as well.
 ## Colors chosen at runtime
 
 Groups of entities take a color from a list at run time. The list is the one place besides the
-theme file where literals may live: `src/theme-palette.ts`. Every entry is a mid-tone that reads on
-a light and on a dark page.
+theme file where literals may live: `src/theme/theme-palette.ts`. Every entry is a mid-tone that
+reads on a light and on a dark page.
 
 ## Changing the palette
 
-Edit the value of a token in `src/theme.css`. To change the accent for both themes, edit
+Edit the value of a token in `src/theme/theme.css`. To change the accent for both themes, edit
 `--color-accent` (and `--color-accent-hover`, `--color-accent-text` and the soft tints beside it) in
 the light set and in both dark blocks. To try a color without saving it, set it on `<html>` in the
 browser's developer tools:
@@ -72,7 +72,7 @@ contrast target (muted text 4.5:1 on every surface, strong borders and icons 3:1
 ## The check
 
 `bun run check:theme` (part of `bun run check`) prints `file:line` for every color literal in
-`src/`, `server/` and `index.html` outside `src/theme.css` and `src/theme-palette.ts`. It looks at
+`src/`, `server/` and `index.html` outside `src/theme/theme.css` and `src/theme/theme-palette.ts`. It looks at
 hex values, `rgb()`, `rgba()`, `hsl()` and the other color functions, and named colors; it ignores
 comments, `transparent`, `currentColor`, `inherit`, `var()` and generated code. The scanner is
 `scripts/helpers/color-literals.ts`; the check is `scripts/check-theme.ts`.
@@ -80,7 +80,7 @@ comments, `transparent`, `currentColor`, `inherit`, `var()` and generated code. 
 ## The codemod
 
 `bun scripts/theme-codemod.ts` replaces literals by tokens. It reads the light values of the tokens
-in `src/theme.css` and gives each literal the closest token of a fitting job, measured as CIE76
+in `src/theme/theme.css` and gives each literal the closest token of a fitting job, measured as CIE76
 color distance between the colors:
 
 - A background maps to a surface, solid, pale-line or text token; a border or outline to a border,
@@ -192,7 +192,7 @@ Build the application first, then start a local built server:
 
 ```sh
 bun run build
-SW_SERVE_STATIC=1 SW_BRAND_DIR=/absolute/path/to/brand bun server/index.ts
+SW_SERVE_STATIC=1 SW_BRAND_DIR=/absolute/path/to/brand bun src/server/index.ts
 ```
 
 For a container, mount the directory read-only and set the environment variable:

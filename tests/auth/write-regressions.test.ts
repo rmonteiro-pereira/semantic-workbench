@@ -4,13 +4,13 @@ import { existsSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { accessFixture, person } from './access-fixture';
-import { createAccessControl } from '../../server/auth/authorize';
-import { createHandler } from '../../server/handler';
-import { ROUTE_ACTIONS, routeFor } from '../../server/auth/route-actions';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { createHandler } from '../../src/server/handler';
+import { ROUTE_ACTIONS, routeFor } from '../../src/server/auth/route-actions';
 import { routeExamples } from './route-actions';
-import type { Workspace } from '../../server/projects/workspace';
-import { LOCAL_READER } from '../../server/projects/reader';
-import { projectFile } from '../../server/projects/paths';
+import type { Workspace } from '../../src/server/projects/workspace';
+import { LOCAL_READER } from '../../src/server/projects/reader';
+import { projectFile } from '../../src/server/projects/paths';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 
 const origin = 'http://127.0.0.1:4310';
@@ -251,8 +251,8 @@ test('creation and clone refuse a hidden domain even when the caller has the rou
 });
 
 test('write checks require a request scope and preserve protected-branch context', async () => {
-  const { authorizeWrite } = await import('../../server/auth/write-access');
-  const { requestAccess, requestScope } = await import('../../server/auth/request-scope');
+  const { authorizeWrite } = await import('../../src/server/auth/write-access');
+  const { requestAccess, requestScope } = await import('../../src/server/auth/request-scope');
   const req = request('/api/projects/sales-contracts/git/push');
   expect(() => requestScope(req)).toThrow('no access scope');
   expect(() => authorizeWrite(req, 'push', [])).toThrow('no access scope');
@@ -263,7 +263,7 @@ test('write checks require a request scope and preserve protected-branch context
   const project = { type: 'project' as const, project: 'sales-contracts' };
   expect(() => authorizeWrite(req, 'push', [project], { branch: 'feature' })).not.toThrow();
   expect(() => authorizeWrite(req, 'push', [project], { branch: 'main' })).toThrow();
-  const { localPrincipal } = await import('../../server/auth/principal');
+  const { localPrincipal } = await import('../../src/server/auth/principal');
   const local = createAccessControl({ ...options, mode: 'local' });
   Object.assign(req, { [requestAccess]: local.forRequest(localPrincipal()) });
   expect(() => authorizeWrite(req, 'push', [project], { branch: 'main' })).not.toThrow();

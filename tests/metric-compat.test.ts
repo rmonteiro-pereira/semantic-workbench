@@ -2,7 +2,7 @@
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { parse } from 'yaml';
-import { validateInput } from '../src/input';
+import { validateInput } from '../src/validation/input';
 import { valuePatches, edit } from '../src/edit/yaml-patch';
 import { extensionOf } from '../src/edit/item-model';
 import { readKpiBindings } from '../src/metrics/extension';

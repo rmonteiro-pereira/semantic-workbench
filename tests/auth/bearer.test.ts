@@ -4,12 +4,12 @@ import { decodeJwt, SignJWT } from 'jose';
 import { oidcTransport } from '../helpers/oidc-transport';
 import { AUTH_PROJECTS, authWorkspace } from '../helpers/auth-workspace';
 import { TEST_CLIENTS } from '../helpers/auth-identities';
-import { createOidcClient } from '../../server/auth/oidc';
-import { createServerAuthentication } from '../../server/auth/authentication';
-import { createHandler } from '../../server/handler';
-import { openAdminRepository } from '../../server/auth/admin-repo';
-import { ROUTE_ACTIONS } from '../../server/auth/route-actions';
-import { compareAccess } from '../../server/auth/dry-run';
+import { createOidcClient } from '../../src/server/auth/oidc';
+import { createServerAuthentication } from '../../src/server/auth/authentication';
+import { createHandler } from '../../src/server/handler';
+import { openAdminRepository } from '../../src/server/auth/admin-repo';
+import { ROUTE_ACTIONS } from '../../src/server/auth/route-actions';
+import { compareAccess } from '../../src/server/auth/dry-run';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 

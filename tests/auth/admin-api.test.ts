@@ -1,12 +1,12 @@
 // Exercises administrative writes through the real handler without opening sockets.
 import { expect, test } from 'bun:test';
 import { authWorkspace } from '../helpers/auth-workspace';
-import { createHandler } from '../../server/handler';
-import { createAccessControl } from '../../server/auth/authorize';
-import { openAdminRepository } from '../../server/auth/admin-repo';
+import { createHandler } from '../../src/server/handler';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { openAdminRepository } from '../../src/server/auth/admin-repo';
 import { person, accessFixture } from './access-fixture';
-import type { HandlerOptions } from '../../server/auth/middleware';
-import type { Bootstrap } from '../../server/auth/grants';
+import type { HandlerOptions } from '../../src/server/auth/middleware';
+import type { Bootstrap } from '../../src/server/auth/grants';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 
 /** Opens an isolated handler with fixture identities and a recent human administrator. */
@@ -200,7 +200,7 @@ test('preview cannot activate a different proposal; rollback restores decisions 
 
 test('Steward audit paging and both exports exclude other domains and workspace events', async () => {
   using fixture = await adminFixture();
-  const { createAuditLog } = await import('../../server/auth/audit');
+  const { createAuditLog } = await import('../../src/server/auth/audit');
   const audit = createAuditLog({ dir: fixture.ws.layout.state + '/audit' });
   for (const project of ['sales-metrics', 'hr-people', undefined]) {
     audit.append({
@@ -231,7 +231,7 @@ test('Steward audit paging and both exports exclude other domains and workspace 
 
 test('Steward audit pages and exports omit restricted paths the Steward cannot read', async () => {
   using fixture = await adminFixture();
-  const { createAuditLog } = await import('../../server/auth/audit');
+  const { createAuditLog } = await import('../../src/server/auth/audit');
   // Bob stays Steward of sales-contracts but is no longer listed on its restricted finance path.
   const config = structuredClone(fixture.access.snapshot().config);
   config.projects.projects['sales-contracts'].restricted[0].emails = [];
@@ -722,7 +722,7 @@ test('audit queries read the current month by default and only the months in ran
 }, 30000);
 
 test('a failed adminChange audit write is logged with the request id and the new version', async () => {
-  const { createAuditLog } = await import('../../server/auth/audit');
+  const { createAuditLog } = await import('../../src/server/auth/audit');
   const { tempDataDir } = await import('../helpers/temp-data-dir');
   const dir = tempDataDir();
   const working = createAuditLog({ dir: dir.root });
@@ -814,7 +814,7 @@ test('a dry run taken before another save cannot activate its proposal', async (
 }, 30000);
 
 test('a Steward allowed to read audit records is audited with the rule that let them in', async () => {
-  const { createAuditLog } = await import('../../server/auth/audit');
+  const { createAuditLog } = await import('../../src/server/auth/audit');
   using fixture = await authWorkspace();
   const access = createAccessControl(accessFixture());
   const audit = createAuditLog({ dir: fixture.ws.layout.state + '/audit' });

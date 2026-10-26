@@ -11,9 +11,9 @@ import {
   msalSignInError,
   providerNetwork,
   sessionTokenCache,
-} from '../../server/auth/msal-provider';
-import { providerDetail } from '../../server/auth/authentication';
-import { ClaimError } from '../../server/auth/principal';
+} from '../../src/server/auth/msal-provider';
+import { providerDetail } from '../../src/server/auth/authentication';
+import { ClaimError } from '../../src/server/auth/principal';
 import { TEST_TENANT_ID } from '../helpers/auth-identities';
 import { oidcConfig } from '../helpers/server-auth';
 

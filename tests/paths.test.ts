@@ -9,7 +9,7 @@ import {
   projectPath,
   slugify,
   uniqueName,
-} from '../server/projects/paths';
+} from '../src/server/projects/paths';
 const layout = dataLayout('/tmp/workbench-paths-test');
 test('data layout follows DATA_DIR', () => {
   expect(layout.projects).toBe('/tmp/workbench-paths-test/projects');

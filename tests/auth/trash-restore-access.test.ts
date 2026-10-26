@@ -3,8 +3,8 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test } from 'bun:test';
-import { openAdminRepository } from '../../server/auth/admin-repo';
-import { LOCAL_READER } from '../../server/projects/reader';
+import { openAdminRepository } from '../../src/server/auth/admin-repo';
+import { LOCAL_READER } from '../../src/server/projects/reader';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { person } from './access-fixture';
 import { copyFolder, gitOutput, signedIn } from './working-copy-fixture';

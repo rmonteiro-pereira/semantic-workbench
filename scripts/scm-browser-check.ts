@@ -14,7 +14,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { startIsolatedApi, routeApi, type IsolatedApi } from './helpers/isolated-api';
-import { projectDir, projectFile } from '../server/projects/paths';
+import { projectDir, projectFile } from '../src/server/projects/paths';
 import { editorValue, fillEditor } from './helpers/code-editor';
 import { example } from './helpers/examples';
 // Local remotes and a second clone exercise conflicts and credential cancellation without network

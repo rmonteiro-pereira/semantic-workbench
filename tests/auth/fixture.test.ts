@@ -1,12 +1,12 @@
 // Checks that the access fixture loads cleanly and holds what the access tests rely on.
-import { LOCAL_READER } from '../../server/projects/reader';
+import { LOCAL_READER } from '../../src/server/projects/reader';
 import { expect, test } from 'bun:test';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import Ajv2020 from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
 import accessSchema from '../../schemas/semantic-workbench-access-v1.json';
-import { buildContext } from '../../server/agent/runtime';
+import { buildContext } from '../../src/server/agent/runtime';
 import {
   AUTH_FIXTURE,
   AUTH_PROJECTS,

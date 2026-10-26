@@ -23,6 +23,7 @@ import { startBrowserReporting } from './observability/page-reporting';
 // Stylesheet order matters: React Flow's base styles must come after the component styles and
 // before the app's own overrides, as they always have.
 import '@xyflow/react/dist/style.css';
+import './theme/theme.css';
 import './style.css';
 function App() {
   const [message, setMessage] = useState('');

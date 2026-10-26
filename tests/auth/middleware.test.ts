@@ -1,13 +1,13 @@
 // Exercises request identity, existence hiding, and audit outcomes through the real handler.
 import { expect, test, spyOn } from 'bun:test';
 import { join } from 'node:path';
-import { createAccessMiddleware, shouldAudit } from '../../server/auth/middleware';
-import { routeFor } from '../../server/auth/route-actions';
-import { createHandler } from '../../server/handler';
-import { createAuditLog } from '../../server/auth/audit';
-import { createAccessControl } from '../../server/auth/authorize';
+import { createAccessMiddleware, shouldAudit } from '../../src/server/auth/middleware';
+import { routeFor } from '../../src/server/auth/route-actions';
+import { createHandler } from '../../src/server/handler';
+import { createAuditLog } from '../../src/server/auth/audit';
+import { createAccessControl } from '../../src/server/auth/authorize';
 import { accessFixture } from './access-fixture';
-import { localPrincipal } from '../../server/auth/principal';
+import { localPrincipal } from '../../src/server/auth/principal';
 import { testWorkspace } from '../helpers/temp-data-dir';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 

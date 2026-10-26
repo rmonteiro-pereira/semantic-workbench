@@ -1,12 +1,12 @@
 // Checks automatic saves, stale drafts and commits using an isolated workspace and local remote.
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
-import { projectDir, projectFile } from '../server/projects/paths';
+import { projectDir, projectFile } from '../src/server/projects/paths';
 import { expectEditorValue, fillEditor } from './helpers/code-editor';
 // Invalid edits must remain drafts across reloads; stale saves must show both versions. Valid
 // saves must change only the edited lines.

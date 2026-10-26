@@ -1,6 +1,6 @@
 // Verifies proposal binding and decision deltas independently of HTTP and persistence.
 import { expect, test } from 'bun:test';
-import { compareAccess } from '../../server/auth/dry-run';
+import { compareAccess } from '../../src/server/auth/dry-run';
 import { accessFixture, person } from './access-fixture';
 
 test('grant removal reports exactly the changed people and project actions', () => {
@@ -95,10 +95,10 @@ test('a new client grant lists only its newly readable project', () => {
 test('rollback restores every shipped matrix decision through the administration service', async () => {
   const { cpSync } = await import('node:fs');
   const { tempDataDir } = await import('../helpers/temp-data-dir');
-  const { openAdminRepository } = await import('../../server/auth/admin-repo');
-  const { createAccessControl } = await import('../../server/auth/authorize');
-  const { createAccessAdmin } = await import('../../server/auth/access-admin');
-  const { createAuditLog } = await import('../../server/auth/audit');
+  const { openAdminRepository } = await import('../../src/server/auth/admin-repo');
+  const { createAccessControl } = await import('../../src/server/auth/authorize');
+  const { createAccessAdmin } = await import('../../src/server/auth/access-admin');
+  const { createAuditLog } = await import('../../src/server/auth/audit');
   const dir = tempDataDir();
   try {
     cpSync('tests/fixtures/auth-workspace/admin', dir.root + '/admin', { recursive: true });
@@ -171,10 +171,10 @@ test('deleting a custom role with its grants lists exactly the people who lose i
 test('activation needs a matching dry run and a valid policy set in every area', async () => {
   const { cpSync } = await import('node:fs');
   const { tempDataDir } = await import('../helpers/temp-data-dir');
-  const { openAdminRepository } = await import('../../server/auth/admin-repo');
-  const { createAccessControl } = await import('../../server/auth/authorize');
-  const { createAccessAdmin } = await import('../../server/auth/access-admin');
-  const { createAuditLog } = await import('../../server/auth/audit');
+  const { openAdminRepository } = await import('../../src/server/auth/admin-repo');
+  const { createAccessControl } = await import('../../src/server/auth/authorize');
+  const { createAccessAdmin } = await import('../../src/server/auth/access-admin');
+  const { createAuditLog } = await import('../../src/server/auth/audit');
   const dir = tempDataDir();
   try {
     cpSync('tests/fixtures/auth-workspace/admin', dir.root + '/admin', { recursive: true });

@@ -4,10 +4,10 @@ import { chromium, expect, type Locator, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { parse } from 'yaml';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
-import { projectDir, projectFile } from '../server/projects/paths';
+import { projectDir, projectFile } from '../src/server/projects/paths';
 import { editorValue, fillEditor } from './helpers/code-editor';
 import { newItem } from './helpers/header';
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 
 // A very long metric name must wrap, never widen the wizard, at every width the app supports: the
 // drawer does not scroll sideways, its footer is in the window, and every step can be reached.

@@ -4,7 +4,7 @@ import {
   checkProjectFolders,
   detectProjectFolders,
   parseManifest,
-} from '../server/projects/repositories';
+} from '../src/server/projects/repositories';
 
 const manifest = (projects: unknown, extra: Record<string, unknown> = {}) =>
   JSON.stringify({ schema: 'semantic-workbench/repository/v1', projects, ...extra });

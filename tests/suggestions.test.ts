@@ -2,11 +2,11 @@
 import { test, expect } from 'bun:test';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { factsOf, inferSuggestions, evidenceBetween } from '../server/projects/suggestions';
+import { factsOf, inferSuggestions, evidenceBetween } from '../src/server/projects/suggestions';
 import { testWorkspace, example } from './helpers/temp-data-dir';
-import { createAccessControl } from '../server/auth/authorize';
+import { createAccessControl } from '../src/server/auth/authorize';
 import { accessFixture, person } from './auth/access-fixture';
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 const api = (t: { handler: (r: Request) => Promise<Response> }, method: string, path: string) =>
   t.handler(new Request('http://127.0.0.1:4310' + path, { method }));
 test('facts come from declared names, references, IRIs and physical names only', async () => {

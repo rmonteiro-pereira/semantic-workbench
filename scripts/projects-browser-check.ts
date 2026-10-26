@@ -1,5 +1,5 @@
 // Checks project navigation, external changes and stale saves in an isolated browser workspace.
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 import { appUrl } from './helpers/base-url';
 import { chromium, expect } from '@playwright/test';
 import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { expectEditorValue, fillEditor } from './helpers/code-editor';
 import { geometryProblems } from './helpers/screen-tour';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
-import { sha256 } from '../server/projects/atomic';
+import { sha256 } from '../src/server/projects/atomic';
 import { readZip } from '../tests/helpers/zip-reader';
 // Browser check: project tree, live refresh after external edits, two-tab stale save, cache
 // deletion and restart. Runs against an isolated temporary data root.

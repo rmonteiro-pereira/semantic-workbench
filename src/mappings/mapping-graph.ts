@@ -1,7 +1,7 @@
 /** Turns resolved concept mappings into lineage cards and binding edges without reparsing the
  * mapping. */
-import { OSSIE_BUILTINS } from '../ossie-builtins';
-import { badge, type BadgeInfo } from '../PropertyBadges';
+import { OSSIE_BUILTINS } from './ossie-builtins';
+import { badge, type BadgeInfo } from '../shared/PropertyBadges';
 import type { LineageCard, LineageColumn, ColumnEdge, LineageGraph } from '../odcs/lineage';
 import type { MappingEdgeKind } from '../graph/edge-styles';
 // Cards represent concepts, datasets and metrics; rows hold relationships and fields. Object,

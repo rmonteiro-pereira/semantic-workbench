@@ -3,8 +3,8 @@
 import { expect, test } from 'bun:test';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { LOCAL_READER } from '../server/projects/reader';
-import { plannedMoves } from '../server/projects/project-folder';
+import { LOCAL_READER } from '../src/server/projects/reader';
+import { plannedMoves } from '../src/server/projects/project-folder';
 import { bareRepository } from './helpers/git-fixtures';
 import { testWorkspace } from './helpers/temp-data-dir';
 import { call, ok, ontology, scmProject, sh } from './helpers/scm';

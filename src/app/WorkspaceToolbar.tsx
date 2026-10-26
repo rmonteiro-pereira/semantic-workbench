@@ -1,11 +1,11 @@
 /** Presentation and event handling for workspace toolbar. */
 import { Box, FileCheck2, FileCode, Focus, Gauge, Layers, Network, Search } from 'lucide-react';
 import React from 'react';
-import type { KpiSummary } from '../../server/agent/explain';
-import { GroupingControls } from '../GroupingControls';
-import type { Relationship } from '../model';
-import type { GroupingOptions, modelOverview } from '../overview';
-import { ScrollStrip } from '../ScrollStrip';
+import type { KpiSummary } from '../server/agent/explain';
+import { GroupingControls } from '../graph/GroupingControls';
+import type { Relationship } from '../core/model';
+import type { GroupingOptions, modelOverview } from '../graph/overview';
+import { ScrollStrip } from '../shared/ScrollStrip';
 
 type Props = {
   tab: string;

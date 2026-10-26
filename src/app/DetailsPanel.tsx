@@ -3,7 +3,7 @@ import { Box } from 'lucide-react';
 import React from 'react';
 import type { Path } from '../edit/item-model';
 import { type ItemKind } from '../edit/item-model';
-import type { Entity, Relationship } from '../model';
+import type { Entity, Relationship } from '../core/model';
 import type { Doc } from '../projects/api';
 import { EntityDetails } from './EntityDetails';
 import { RelationshipDetails } from './RelationshipDetails';

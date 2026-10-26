@@ -1,7 +1,7 @@
 // Tests grouping related documents into projects.
 import { test, expect } from 'bun:test';
-import { inspect, type Entity, type Relationship } from '../src/model';
-import { modelOverview } from '../src/overview';
+import { inspect, type Entity, type Relationship } from '../src/core/model';
+import { modelOverview } from '../src/graph/overview';
 const node = (id: string, kind = 'EntityType', definition: any = {}): Entity => ({
   id,
   name: id,

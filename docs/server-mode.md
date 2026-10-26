@@ -30,7 +30,7 @@ export SW_OIDC_CLIENT_SECRET=YOUR-SECRET
 export SW_SESSION_KEY="$(openssl rand -base64 32)"
 export SW_BOOTSTRAP_ADMINS=admin@example.org
 export DATA_DIR=/path/to/workbench
-bun server/index.ts
+bun src/server/index.ts
 ```
 
 Keep the same session key across restarts. Certificate credentials or managed-identity assertions

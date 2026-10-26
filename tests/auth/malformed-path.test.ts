@@ -1,12 +1,12 @@
 // A malformed escape in a URL is the caller's mistake: 400, not an internal error.
 import { expect, test } from 'bun:test';
-import { createAuditLog } from '../../server/auth/audit';
-import { createAccessControl } from '../../server/auth/authorize';
-import { localPrincipal } from '../../server/auth/principal';
-import { routeFor } from '../../server/auth/route-actions';
-import { createHandler } from '../../server/handler';
-import { decodeSegment } from '../../server/request';
-import { PathError } from '../../server/projects/paths';
+import { createAuditLog } from '../../src/server/auth/audit';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { localPrincipal } from '../../src/server/auth/principal';
+import { routeFor } from '../../src/server/auth/route-actions';
+import { createHandler } from '../../src/server/handler';
+import { decodeSegment } from '../../src/server/request';
+import { PathError } from '../../src/server/projects/paths';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 import { testWorkspace } from '../helpers/temp-data-dir';
 import { accessFixture } from './access-fixture';

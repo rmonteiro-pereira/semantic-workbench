@@ -1,6 +1,6 @@
 /** Coordinates automatic saves, conflict recovery, and drafts when leaving a file. */
 import React, { useRef, useState } from 'react';
-import type { Issue } from '../diagnostics';
+import type { Issue } from '../validation/diagnostics';
 import { validateInWorker } from '../editor/lint';
 import { diffPatches, normalize } from '../editor/patch';
 import type { Doc, ProjectInfo } from '../projects/api';

@@ -1,8 +1,8 @@
 // Checks policy generation and rejects permissions the resource schema cannot support.
 import { expect, test } from 'bun:test';
 import builtin from '../../policies/builtin-roles.json';
-import { compileRoles, RoleError, validateCustomRole } from '../../server/auth/role-compiler';
-import type { Role } from '../../server/auth/grants';
+import { compileRoles, RoleError, validateCustomRole } from '../../src/server/auth/role-compiler';
+import type { Role } from '../../src/server/auth/grants';
 
 const custom: Role = {
   id: 'r_review',

@@ -5,7 +5,7 @@ import {
   createAnonymousAuditGate,
   createRateLimitReport,
   createRateLimiter,
-} from '../../server/auth/rate-limit';
+} from '../../src/server/auth/rate-limit';
 
 function clock() {
   let milliseconds = 1_000_000;

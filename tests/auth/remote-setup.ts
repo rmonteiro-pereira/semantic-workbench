@@ -22,10 +22,10 @@ import {
   startRedirectingServer,
   type CredentialGitServer,
 } from './credential-git-server';
-import { createServerAuthentication } from '../../server/auth/authentication';
-import { createHandler } from '../../server/handler';
-import { repoDir } from '../../server/projects/paths';
-import { parseWorktreeList } from '../../server/projects/worktrees';
+import { createServerAuthentication } from '../../src/server/auth/authentication';
+import { createHandler } from '../../src/server/handler';
+import { repoDir } from '../../src/server/projects/paths';
+import { parseWorktreeList } from '../../src/server/projects/worktrees';
 
 /** The public origin of the workbench under test. */
 export const origin = 'http://127.0.0.1:4310';

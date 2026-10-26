@@ -1,9 +1,9 @@
 /** Displays contract metadata and a searchable schema-object summary. */
 import React, { useDeferredValue, useMemo, useState } from 'react';
 import { ChevronRight, FileCheck2, Search, Table2, Workflow } from 'lucide-react';
-import { odcsForeignKeys } from '../odcs';
+import { odcsForeignKeys } from './foreign-keys';
 import { flattenProperties } from './odcs-diff';
-import { Badge } from '../PropertyBadges';
+import { Badge } from '../shared/PropertyBadges';
 import { Modal } from '../projects/Modal';
 import { ContractId } from './ContractId';
 import { ReadMore } from './ReadMore';

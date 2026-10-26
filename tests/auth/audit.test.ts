@@ -2,8 +2,8 @@
 import { expect, test } from 'bun:test';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { createAuditLog, reportAuditFailure } from '../../server/auth/audit';
-import { sha256 } from '../../server/projects/atomic';
+import { createAuditLog, reportAuditFailure } from '../../src/server/auth/audit';
+import { sha256 } from '../../src/server/projects/atomic';
 import { tempDataDir } from '../helpers/temp-data-dir';
 
 const input = {

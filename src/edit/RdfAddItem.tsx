@@ -2,7 +2,7 @@
 import { useCapabilities } from '../auth/Capabilities';
 import React, { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
-import type { Issue } from '../diagnostics';
+import type { Issue } from '../validation/diagnostics';
 import { Modal } from '../projects/Modal';
 import { api, StaleSave, type Doc } from '../projects/api';
 import { diffPatches } from '../editor/patch';

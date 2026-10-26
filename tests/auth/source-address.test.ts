@@ -1,6 +1,6 @@
 // Which address a request is limited by, with and without trusted reverse proxies.
 import { expect, test } from 'bun:test';
-import { addressKey, clientAddress } from '../../server/auth/source-address';
+import { addressKey, clientAddress } from '../../src/server/auth/source-address';
 
 test('with no trusted proxy the socket peer is the client and the header is ignored', () => {
   expect(clientAddress('10.0.0.9', '203.0.113.5', 0)).toBe('10.0.0.9');

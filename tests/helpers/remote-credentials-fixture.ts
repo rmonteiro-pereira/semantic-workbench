@@ -1,7 +1,7 @@
 // Server-mode handlers always need a remote credential service. Tests that are not about remote
 // credentials use this one: it accepts every address as given and hands Git no credential, so
 // their local bare repositories keep working as remotes.
-import type { RemoteCredentials } from '../../server/auth/remote-credentials';
+import type { RemoteCredentials } from '../../src/server/auth/remote-credentials';
 
 /** A credential service that allows every remote and gives every command no credential. */
 export function allowEveryRemote(): RemoteCredentials {

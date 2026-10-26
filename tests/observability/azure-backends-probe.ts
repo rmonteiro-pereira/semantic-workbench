@@ -2,7 +2,7 @@
 // the attempts it saw.
 import net from 'node:net';
 import tls from 'node:tls';
-import { azureBackends } from '../../server/observability/azure-backends';
+import { azureBackends } from '../../src/server/observability/azure-backends';
 
 const attempts: string[] = [];
 function forbid(name: string, owner: object, method: string) {

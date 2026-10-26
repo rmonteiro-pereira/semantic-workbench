@@ -7,7 +7,7 @@ import {
   assertRoomForDraft,
   MAX_DRAFTS_PER_OWNER,
   MAX_DRAFTS_PER_PROJECT,
-} from '../server/routes/drafts';
+} from '../src/server/routes/drafts';
 import { testWorkspace } from './helpers/temp-data-dir';
 import { ontologyText } from './helpers/git-fixtures';
 

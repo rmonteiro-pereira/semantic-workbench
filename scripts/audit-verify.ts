@@ -10,8 +10,8 @@ import {
   readStoredMonths,
   verifyAuditChain,
   type ChainBreak,
-} from '../server/auth/audit';
-import { dataLayout } from '../server/projects/paths';
+} from '../src/server/auth/audit';
+import { dataLayout } from '../src/server/projects/paths';
 
 const REASONS: Record<ChainBreak['reason'], string> = {
   unreadable: 'the record is not readable',

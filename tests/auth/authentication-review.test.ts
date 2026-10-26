@@ -5,11 +5,11 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { join } from 'node:path';
 import { oidcTransport } from '../helpers/oidc-transport';
 import { authWorkspace } from '../helpers/auth-workspace';
-import { createOidcClient } from '../../server/auth/oidc';
-import { createServerAuthentication, providerDetail } from '../../server/auth/authentication';
-import { createSessionStore } from '../../server/auth/sessions';
-import { SignInError } from '../../server/auth/sign-in-error';
-import { createHandler } from '../../server/handler';
+import { createOidcClient } from '../../src/server/auth/oidc';
+import { createServerAuthentication, providerDetail } from '../../src/server/auth/authentication';
+import { createSessionStore } from '../../src/server/auth/sessions';
+import { SignInError } from '../../src/server/auth/sign-in-error';
+import { createHandler } from '../../src/server/handler';
 
 beforeAll(useDefaultBrand);
 

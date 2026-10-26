@@ -2,7 +2,7 @@
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { sha256 } from '../server/projects/atomic';
+import { sha256 } from '../src/server/projects/atomic';
 import { browserSqlFindings } from '../src/sql/browser';
 import { testWorkspace } from './helpers/temp-data-dir';
 // SQL findings through the API: the file findings carry the same SQL warnings as the browser

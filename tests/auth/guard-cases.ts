@@ -3,14 +3,14 @@ import { expect } from 'bun:test';
 import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createAccessControl } from '../../server/auth/authorize';
-import { createHandler } from '../../server/handler';
-import type { Workspace } from '../../server/projects/workspace';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { createHandler } from '../../src/server/handler';
+import type { Workspace } from '../../src/server/projects/workspace';
 import type { TestUserName } from '../helpers/auth-identities';
 import { sh } from '../helpers/scm';
-import { LOCAL_READER } from '../../server/projects/reader';
+import { LOCAL_READER } from '../../src/server/projects/reader';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
-import { sha256 } from '../../server/projects/atomic';
+import { sha256 } from '../../src/server/projects/atomic';
 import { accessFixture, person } from './access-fixture';
 
 /** A write request and the guarded part it must name when an Editor sends it. */

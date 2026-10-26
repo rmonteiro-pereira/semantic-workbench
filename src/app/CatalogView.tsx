@@ -1,7 +1,7 @@
 /** Presentation and event handling for catalog view. */
 import { Gauge, Pencil } from 'lucide-react';
 import React from 'react';
-import type { Entity } from '../model';
+import type { Entity } from '../core/model';
 import type { ItemTarget, RdfTarget, ValidatedModel } from './types';
 import './catalog.css';
 

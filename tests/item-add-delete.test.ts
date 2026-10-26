@@ -10,7 +10,7 @@ import {
   rewriteReferences,
   type ProjectDoc,
 } from '../src/edit/references';
-import { validateInput } from '../src/input';
+import { validateInput } from '../src/validation/input';
 
 const read = (p: string) => readFileSync(p, 'utf8');
 const doc = (path: string, dir = 'public/examples/commerce'): ProjectDoc => ({

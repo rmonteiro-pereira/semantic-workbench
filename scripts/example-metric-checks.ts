@@ -3,9 +3,9 @@
 // never executed, clean validation and untouched upstream files.
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { explainMetric, projectMetrics, type KpiSummary } from '../server/agent/explain';
-import type { StoredDocument } from '../server/agent/runtime';
-import { validateInput } from '../src/input';
+import { explainMetric, projectMetrics, type KpiSummary } from '../src/server/agent/explain';
+import type { StoredDocument } from '../src/server/agent/runtime';
+import { validateInput } from '../src/validation/input';
 import { EXAMPLE_SETS, type ExampleSet } from '../src/projects/examples';
 import manifest from '../tests/fixtures/ossie-mapping/manifest.json';
 

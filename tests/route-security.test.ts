@@ -11,10 +11,10 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { gitEnv, redactCredentials } from '../server/projects/git';
-import { loopbackHost } from '../server/handler';
+import { gitEnv, redactCredentials } from '../src/server/projects/git';
+import { loopbackHost } from '../src/server/handler';
 import { testWorkspace } from './helpers/temp-data-dir';
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 // Checks symbolic links, DNS rebinding, Git option injection, transport helpers, environment
 // isolation and credential redaction.
 const api = (

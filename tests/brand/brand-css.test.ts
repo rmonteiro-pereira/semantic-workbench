@@ -1,6 +1,6 @@
 // Tests that brand.css is reduced to theme tokens under the theme selectors.
 import { expect, test } from 'bun:test';
-import { sanitizeBrandCss } from '../../server/brand/sanitize-css';
+import { sanitizeBrandCss } from '../../src/server/brand/sanitize-css';
 
 test('token overrides under the theme selectors are kept', () => {
   const { css, dropped } = sanitizeBrandCss(`

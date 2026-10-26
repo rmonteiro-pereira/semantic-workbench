@@ -6,8 +6,8 @@ import {
   requestAgentToken,
   type AgentSettings,
 } from '../scripts/examples/agent-client';
-import { createBearerValidator } from '../server/auth/bearer';
-import { providerNetwork } from '../server/auth/msal-provider';
+import { createBearerValidator } from '../src/server/auth/bearer';
+import { providerNetwork } from '../src/server/auth/msal-provider';
 import { TEST_CLIENTS, TEST_TENANT_ID } from './helpers/auth-identities';
 import { entraConfig, withEntraProvider } from './helpers/entra-provider';
 

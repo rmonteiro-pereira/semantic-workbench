@@ -7,7 +7,7 @@ import { ReviewChange } from './ReviewChange';
 import { PolicyTemplateForm } from './PolicyTemplateForm';
 import { ProjectAccessSection } from './ProjectAccessSection';
 import type { Policy } from './types';
-import type { Issue } from '../diagnostics';
+import type { Issue } from '../validation/diagnostics';
 
 const templates = [
   'Metric ownership and steward',

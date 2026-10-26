@@ -1,9 +1,9 @@
 // Tests cached parsing and stable comparison of blank nodes.
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 import { test, expect } from 'bun:test';
 import { Database } from 'bun:sqlite';
 import { rmSync, writeFileSync } from 'node:fs';
-import { CACHE_VERSION, createCache } from '../server/projects/cache';
+import { CACHE_VERSION, createCache } from '../src/server/projects/cache';
 import { testWorkspace, example } from './helpers/temp-data-dir';
 // Rdflib numbers blank nodes with a process-wide counter, so their labels differ between parses in
 // one process (not between restarts); compare them by position only.

@@ -1,13 +1,13 @@
 // Faults in the folder path check, the sparse-checkout arguments and the partial clone, apart from
 // the older inventory. Each tuple is the category, the module, the exact text and its replacement.
 const FOLDER = 'src/scm/repository-folder.ts';
-const SPARSE = 'server/projects/sparse-folder.ts';
+const SPARSE = 'src/server/projects/sparse-folder.ts';
 
 /** Deliberate faults in sparse project boundaries and checkout behavior. */
 export const sparseMutants: [string, string, string, string][] = [
   [
     'folder-refusal-reason',
-    'server/projects/project-folder.ts',
+    'src/server/projects/project-folder.ts',
     "throw new BadRequestError(\n      'Choosing a folder",
     "throw new NotFoundError(\n      'Choosing a folder",
   ],
@@ -47,15 +47,15 @@ export const sparseMutants: [string, string, string, string][] = [
   ['sparse-checkout-arguments', SPARSE, 'let depth = 1;', 'let depth = 2;'],
   [
     'sparse-partial-clone',
-    'server/projects/git.ts',
+    'src/server/projects/git.ts',
     "['--filter=blob:none', '--no-checkout']",
     "['--no-checkout']",
   ],
   [
     'sparse-partial-clone',
-    'server/projects/git.ts',
+    'src/server/projects/git.ts',
     "['--filter=blob:none', '--no-checkout']",
     "['--filter=blob:none']",
   ],
-  ['sparse-partial-clone', 'server/projects/git.ts', 'options.partial ?', 'true ?'],
+  ['sparse-partial-clone', 'src/server/projects/git.ts', 'options.partial ?', 'true ?'],
 ];
