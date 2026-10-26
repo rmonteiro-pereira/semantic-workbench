@@ -9,8 +9,7 @@ import { join } from 'node:path';
 import { chromium, expect, type Browser } from '@playwright/test';
 import { freeAuthPort, startAuthApi } from './auth-environment';
 import { check } from './helpers/sign-in';
-import { setActiveBrand } from '../server/brand/active-brand';
-import { loadBrandBundle } from '../server/brand/bundle';
+import { loadBrandBundle, setActiveBrand } from '../server/brand/bundle';
 import { createAuthRoutes } from '../server/routes/auth';
 import { serveStatic } from '../server/static';
 

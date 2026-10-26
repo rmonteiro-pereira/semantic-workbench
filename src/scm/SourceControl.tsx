@@ -4,7 +4,6 @@ import { useCapabilities } from '../auth/Capabilities';
 import { useGitSetup } from './GitSetup';
 import { looksLikeAuthFailure } from './CredentialGuide';
 import { EmptyState } from '../projects/EmptyState';
-import { repositoryLocation } from './repository-location';
 import {
   ConnectPrompt,
   actionTitle,
@@ -44,6 +43,17 @@ import { BranchPicker } from './BranchPicker';
 import { SyncDialog } from './SyncDialog';
 import { ignoreChoices } from './gitignore';
 import './scm.css';
+
+/** Names the remote, branch and folder a sparse project lives in. */
+export function repositoryLocation(
+  status: Pick<GitStatus, 'upstream' | 'remotes' | 'branch' | 'folder'>,
+): string {
+  const remote = status.upstream
+    ? status.upstream.slice(0, status.upstream.indexOf('/'))
+    : (Object.keys(status.remotes)[0] ?? 'no remote');
+  return [remote, status.branch, status.folder].filter(Boolean).join(' · ');
+}
+
 // Changes include diffs, staging, branches, history and explicit remote actions. Hidden-type files
 // remain read-only; remote actions expose progress and cancellation.
 type Group = 'conflicts' | 'staged' | 'changes';

@@ -1,6 +1,6 @@
 // The panel header names the remote, the branch and the folder a sparse project lives in.
 import { expect, test } from 'bun:test';
-import { repositoryLocation } from '../src/scm/repository-location';
+import { repositoryLocation } from '../src/scm/SourceControl';
 
 const base = { upstream: '', remotes: { origin: '/team.git' }, branch: 'main' };
 

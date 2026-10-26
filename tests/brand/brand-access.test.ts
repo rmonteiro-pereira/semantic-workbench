@@ -2,7 +2,7 @@
 import { beforeEach, expect, test } from 'bun:test';
 import { createHandler } from '../../server/handler';
 import { createAccessControl } from '../../server/auth/authorize';
-import { activeBrand } from '../../server/brand/active-brand';
+import { activeBrand } from '../../server/brand/bundle';
 import { accessFixture, person } from '../auth/access-fixture';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { useDefaultBrand } from '../helpers/brand-fixture';

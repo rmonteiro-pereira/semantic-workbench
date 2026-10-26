@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { whenLabel } from './format';
+import { whenLabel } from './helpers';
 import { SelectField } from './SelectField';
 import { adminApi, problemText } from './api';
 import { useAdminData } from './useAdminData';

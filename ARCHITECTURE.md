@@ -131,7 +131,7 @@ check that happens to succeed.
   resolve identity once and attach the filtered scope. Unmapped protected routes fail closed.
 - `write-access.ts`, `git-access.ts` and `project-creation.ts` authorize concrete write targets,
   repository-wide actions and new-project domains before mutation.
-- `src/governance/guards.ts` and `levels.ts` contain shared pure content rules. Server
+- `src/governance/guards.ts` contains shared pure content rules and classification levels. Server
   `auth/guards.ts` binds them to a principal. Browser `src/auth/guards-client.ts` explains the
   controls but cannot authorize a write.
 - `admin-repo.ts`, `access-admin.ts`, `dry-run.ts`, `admin-guard.ts`, `policies.ts` and

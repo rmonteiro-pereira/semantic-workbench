@@ -10,7 +10,6 @@ import odcs from '../schemas/odcs-v3.1.0.json';
 import ossie from '../schemas/ossie-0.2.0.dev0.json';
 import ontology from '../schemas/ossie-ontology-0.2.0.dev0.json';
 import mapping from '../schemas/ossie-mapping-0.2.0.dev0.json';
-import core from '../schemas/ossie-core-mapping-dependencies.json';
 import metric from '../schemas/semantic-workbench-metric-v1.json';
 import bindings from '../schemas/semantic-workbench-mapping-v1.json';
 
@@ -27,7 +26,7 @@ for (const validator of [contracts, semantics, mappings]) addFormats(validator);
 mappings.addFormat('iri', /^[a-z][a-z\d+.-]*:[^\s]+$/i);
 const ontologyId = 'https://raw.githubusercontent.com/apache/ossie/main/ontology/ontology.json';
 mappings.addSchema(
-  core,
+  ossie,
   'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json',
 );
 mappings.addSchema(ontology, ontologyId);
