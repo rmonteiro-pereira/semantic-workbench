@@ -3,7 +3,7 @@ import type { Role } from './types';
 import { SelectField } from './SelectField';
 import { BRANCH_ACTIONS, FILE_ACTIONS, LEVELS, type Action } from '../../server/auth/actions';
 import { commaList } from './change-review';
-import { actionLabel } from './action-labels';
+import { actionLabel } from './format';
 
 const groups = {
   Read: ['read', 'export', 'history', 'viewOwnState'],

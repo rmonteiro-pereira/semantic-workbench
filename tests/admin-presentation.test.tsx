@@ -1,4 +1,4 @@
-import { actionLabel } from '../src/admin/action-labels';
+import { actionLabel, whenLabel } from '../src/admin/format';
 import { expect, test } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { DryRunResult } from '../src/admin/ReviewChange';
@@ -7,7 +7,6 @@ import { grantScope } from '../src/admin/GrantForm';
 import { RolePermissions } from '../src/admin/RolePermissions';
 import type { Me } from '../src/auth/useMe';
 import builtin from '../policies/builtin-roles.json';
-import { whenLabel } from '../src/admin/when';
 import { decisionLabel } from '../src/admin/AccessCheckSection';
 import { inUseMessage } from '../src/admin/ReviewChange';
 import { grantSummary } from '../src/admin/RolesAccessSection';
