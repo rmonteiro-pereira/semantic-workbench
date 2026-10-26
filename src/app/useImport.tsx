@@ -1,10 +1,10 @@
 /** Imports file batches and routes invalid documents to the repair dialog. */
 import React from 'react';
 import { useProjectDomain } from '../projects/useProjectDomain';
-import { validateInput } from '../input';
+import { validateInput } from '../validation/input';
 import type { Doc } from '../projects/api';
 import { api } from '../projects/api';
-import { type ImportDraft } from '../ValidationPanel';
+import { type ImportDraft } from '../validation/ValidationPanel';
 
 type Options = {
   setPendingImport: React.Dispatch<React.SetStateAction<ImportDraft[] | null>>;

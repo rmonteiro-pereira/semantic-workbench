@@ -90,7 +90,7 @@ export async function startAuthApi(
           SW_CACHE_DIR: fixture.root + '/cache',
         }
       : authEnvironment(fixture.root, url, provider, randomBytes(32).toString('base64'));
-    child = Bun.spawn([process.execPath, 'server/index.ts'], {
+    child = Bun.spawn([process.execPath, 'src/server/index.ts'], {
       env: authProcessEnvironment(process.env, { ...env, ...options.env }),
       stdout: 'inherit',
       stderr: 'inherit',

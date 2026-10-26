@@ -7,8 +7,8 @@ import { authWorkspace, fixtureFiles, leakMarker } from '../helpers/auth-workspa
 import { readZip } from '../helpers/zip-reader';
 import { accessFixture, person } from './access-fixture';
 import { apiRequest, ORIGIN, salesViewer } from './working-copy-fixture';
-import { createAccessControl } from '../../server/auth/authorize';
-import { createHandler } from '../../server/handler';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { createHandler } from '../../src/server/handler';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 
 const HIDDEN = 'finance/revenue-recognition.odcs.yaml';

@@ -1,6 +1,6 @@
 // Generates runtime dry-run cases from the same requests and identities as authorization tests.
 import { routeExamples } from '../tests/auth/route-actions';
-import { routeFor } from '../server/auth/route-actions';
+import { routeFor } from '../src/server/auth/route-actions';
 import { person } from '../tests/auth/access-fixture';
 import { TEST_USERS, type TestUserName } from '../tests/helpers/auth-identities';
 

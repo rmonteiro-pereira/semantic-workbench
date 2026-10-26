@@ -6,4 +6,6 @@ export type ItemTarget = { docId: string; path: Path; kind: ItemKind };
 export type RdfTarget = { docId: string; subject: string; label: string; kind: string };
 
 /** Parsed model accepted by the workspace validation pipeline. */
-export type ValidatedModel = ReturnType<typeof import('../input').validateInput>['model'];
+export type ValidatedModel = ReturnType<
+  typeof import('../validation/input').validateInput
+>['model'];

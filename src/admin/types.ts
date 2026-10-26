@@ -1,6 +1,6 @@
-import type { Grant, Role, ProjectsConfig, AgentsConfig } from '../../server/auth/access-config';
-import type { Action } from '../../server/auth/actions';
-import type { AdminRule, PolicyTemplate } from '../../server/auth/policies';
+import type { Grant, Role, ProjectsConfig, AgentsConfig } from '../server/auth/access-config';
+import type { Action } from '../server/auth/actions';
+import type { AdminRule, PolicyTemplate } from '../server/auth/policies';
 
 export type { Grant, Role, ProjectsConfig, AgentsConfig, AdminRule, PolicyTemplate };
 /** A persisted policy and its editor metadata. */

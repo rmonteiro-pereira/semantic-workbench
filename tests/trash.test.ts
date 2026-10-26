@@ -1,10 +1,10 @@
 // Tests deletion, undo, restore and purge without overwriting occupied paths.
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 import { test, expect } from 'bun:test';
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { sha256 } from '../server/projects/atomic';
-import { UNDO_MS, ulid } from '../server/projects/trash';
+import { sha256 } from '../src/server/projects/atomic';
+import { UNDO_MS, ulid } from '../src/server/projects/trash';
 import { testWorkspace } from './helpers/temp-data-dir';
 const ont = (name: string) => `name: ${name}\nontology: [{concept: ${name}}]\n`;
 const api = (

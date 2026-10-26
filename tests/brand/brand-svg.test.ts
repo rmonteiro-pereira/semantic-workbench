@@ -1,7 +1,7 @@
 // Tests that a brand SVG can only draw: scripts, foreign content, handlers and outside
 // references are removed, and a file that is not an SVG is refused.
 import { expect, test } from 'bun:test';
-import { sanitizeSvg } from '../../server/brand/sanitize-svg';
+import { sanitizeSvg } from '../../src/server/brand/sanitize-svg';
 
 const NAMESPACE = 'xmlns="http://www.w3.org/2000/svg"';
 

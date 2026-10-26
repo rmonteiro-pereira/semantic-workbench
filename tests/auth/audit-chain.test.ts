@@ -9,8 +9,8 @@ import {
   readStoredMonths,
   verifyAuditChain,
   type AuditAnchor,
-} from '../../server/auth/audit';
-import { sha256 } from '../../server/projects/atomic';
+} from '../../src/server/auth/audit';
+import { sha256 } from '../../src/server/projects/atomic';
 import { tempDataDir } from '../helpers/temp-data-dir';
 
 const input = {

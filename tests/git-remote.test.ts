@@ -2,11 +2,11 @@
 import { test, expect } from 'bun:test';
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { createGit, gitEnv, REMOTE_TIMEOUT_MS, subcommandOf } from '../server/projects/git';
-import { dataLayout } from '../server/projects/paths';
+import { createGit, gitEnv, REMOTE_TIMEOUT_MS, subcommandOf } from '../src/server/projects/git';
+import { dataLayout } from '../src/server/projects/paths';
 import { tempDataDir } from './helpers/temp-data-dir';
 import { call, ok, ontology, scmProject, sh } from './helpers/scm';
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 test('push to a local bare remote sets the upstream; pull merges a commit made elsewhere', async () => {
   const p = await scmProject();
   try {

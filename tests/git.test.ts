@@ -2,8 +2,8 @@
 import { test, expect } from 'bun:test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { createGit, gitEnv, parseStatus, LOCAL_TIMEOUT_MS } from '../server/projects/git';
-import { dataLayout } from '../server/projects/paths';
+import { createGit, gitEnv, parseStatus, LOCAL_TIMEOUT_MS } from '../src/server/projects/git';
+import { dataLayout } from '../src/server/projects/paths';
 import { tempDataDir } from './helpers/temp-data-dir';
 function setup(binary?: string) {
   const d = tempDataDir();

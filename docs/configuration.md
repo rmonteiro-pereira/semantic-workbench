@@ -1,8 +1,8 @@
 # Configuration
 
 The server reads its environment at startup. Changes require a restart unless they are Admin
-settings explicitly applied at runtime. `server/config.ts` and
-`server/observability/settings.ts` implement the checks described here. They report invalid
+settings explicitly applied at runtime. `src/server/config.ts` and
+`src/server/observability/settings.ts` implement the checks described here. They report invalid
 variable names without printing secret values.
 
 Local mode needs no identity configuration. Server mode requires a valid provider setup, a
@@ -15,7 +15,7 @@ POSIX shell, serving a built local frontend:
 
 ```sh
 bun run build
-DATA_DIR=/path/to/workbench-data SW_SERVE_STATIC=1 bun server/index.ts
+DATA_DIR=/path/to/workbench-data SW_SERVE_STATIC=1 bun src/server/index.ts
 ```
 
 PowerShell:
@@ -24,7 +24,7 @@ PowerShell:
 bun run build
 $env:DATA_DIR = "C:\workbench-data"
 $env:SW_SERVE_STATIC = "1"
-bun server/index.ts
+bun src/server/index.ts
 ```
 
 For shared-server startup, use
@@ -32,7 +32,7 @@ For shared-server startup, use
 To load a deliberately selected environment file with Bun:
 
 ```sh
-bun --env-file .env.server server/index.ts
+bun --env-file .env.server src/server/index.ts
 ```
 
 `.env.server.example` is the loopback Keycloak development profile. Copy it only for that profile,

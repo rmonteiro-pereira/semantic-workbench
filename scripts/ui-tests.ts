@@ -1,10 +1,10 @@
 // Checks workspace interactions in the browser using isolated example projects.
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 import { appUrl } from './helpers/base-url';
 import { showEveryEntity, viewOptions } from './helpers/graph-options';
 import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
-import { inspect } from '../src/model';
+import { inspect } from '../src/core/model';
 import { readFile } from 'node:fs/promises';
 import { editorValue, expectEditorValue, fillEditor } from './helpers/code-editor';
 import { example } from './helpers/examples';
@@ -78,7 +78,7 @@ await routeApi(page, api, async route => {
   return false;
 });
 if (process.env.UI_MUTATION === 'clear-nodes')
-  await page.route('**/src/NeighborhoodGraph.tsx*', async route => {
+  await page.route('**/src/graph/NeighborhoodGraph.tsx*', async route => {
     const response = await route.fetch();
     const source = await response.text(); // The node list is the expansion canvas, revealed in chunks.
     const anchor = 'const build = (limit = reveal) => shownEntities.slice(0, limit).map';

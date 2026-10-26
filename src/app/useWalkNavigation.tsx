@@ -1,8 +1,8 @@
 /** Maintains navigation between neighborhood centers and related files. */
 import React from 'react';
 import type { Walk, WalkAction } from '../graph/walk';
-import type { Relationship } from '../model';
-import type { CrossFileTarget } from '../NeighborhoodGraph';
+import type { Relationship } from '../core/model';
+import type { CrossFileTarget } from '../graph/NeighborhoodGraph';
 import { type Doc } from '../projects/api';
 import type { ValidatedModel } from './types';
 

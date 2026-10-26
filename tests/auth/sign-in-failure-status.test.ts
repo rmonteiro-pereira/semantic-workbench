@@ -1,7 +1,7 @@
 // A failed sign-in is a failed request: the page explains it, and the status says so.
 import { beforeAll, expect, spyOn, test } from 'bun:test';
 import { useDefaultBrand } from '../helpers/brand-fixture';
-import { SignInError, type SignInReason } from '../../server/auth/sign-in-error';
+import { SignInError, type SignInReason } from '../../src/server/auth/sign-in-error';
 import { signInContext } from '../helpers/sign-in-context';
 
 beforeAll(useDefaultBrand);

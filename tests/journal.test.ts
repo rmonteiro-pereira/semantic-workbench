@@ -2,9 +2,9 @@
 import { test, expect } from 'bun:test';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { atomicWriteJson } from '../server/projects/atomic';
-import { createJournal } from '../server/projects/journal';
-import { dataLayout } from '../server/projects/paths';
+import { atomicWriteJson } from '../src/server/projects/atomic';
+import { createJournal } from '../src/server/projects/journal';
+import { dataLayout } from '../src/server/projects/paths';
 import { tempDataDir } from './helpers/temp-data-dir';
 function setup() {
   const d = tempDataDir();

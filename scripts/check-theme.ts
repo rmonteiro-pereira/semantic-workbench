@@ -1,5 +1,5 @@
 // Fails when a colour literal appears outside the theme files. Every colour belongs in
-// src/theme.css as a token, or, when data chooses it at run time, in src/theme-palette.ts.
+// src/theme/theme.css as a token, or, when data chooses it at run time, in src/theme/theme-palette.ts.
 //
 //   bun scripts/check-theme.ts            check src, server and index.html
 //   bun scripts/check-theme.ts <paths>    check only the given files or folders
@@ -30,11 +30,13 @@ export function themeViolations(paths?: string[]): ThemeViolation[] {
 export function runThemeCheck(paths?: string[]): number {
   const violations = themeViolations(paths);
   if (!violations.length) {
-    console.log('No colour literals outside src/theme.css and src/theme-palette.ts.');
+    console.log('No colour literals outside src/theme/theme.css and src/theme/theme-palette.ts.');
     return 0;
   }
   for (const { file, line, literal } of violations) {
-    console.error(`${file}:${line}  colour literal ${literal}; use a token from src/theme.css`);
+    console.error(
+      `${file}:${line}  colour literal ${literal}; use a token from src/theme/theme.css`,
+    );
   }
   console.error(
     `${violations.length} colour literals outside the theme. Run bun scripts/theme-codemod.ts ` +

@@ -1,7 +1,7 @@
 /** Finds broken dependencies and rename occurrences across project files for explicit user
  * review. */
 import { isMap, isScalar, isSeq, parseDocument, type Document } from 'yaml';
-import { rdfSyntax } from '../rdf';
+import { rdfSyntax } from '../validation/rdf';
 import { VENDOR } from '../metrics/extension';
 import { itemValue, removePatches, valuePatches, edit } from './yaml-patch';
 import type { ItemKind, Path } from './item-model';

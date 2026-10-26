@@ -3,7 +3,7 @@ import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { applyPatches } from '../src/editor/patch';
 import { valuePatches, insertPatches, removePatches, itemValue } from '../src/edit/yaml-patch';
-import { validateInput } from '../src/input';
+import { validateInput } from '../src/validation/input';
 // YAML item edits change only the edited node's text: comments, anchors, key order, quoting and
 // indentation elsewhere keep their bytes.
 const set = (src: string, path: (string | number)[], value: any) =>

@@ -2,9 +2,9 @@
 import { expect, test } from 'bun:test';
 import { oidcTransport } from '../helpers/oidc-transport';
 import { authWorkspace } from '../helpers/auth-workspace';
-import { createOidcClient } from '../../server/auth/oidc';
-import { createServerAuthentication } from '../../server/auth/authentication';
-import { createHandler } from '../../server/handler';
+import { createOidcClient } from '../../src/server/auth/oidc';
+import { createServerAuthentication } from '../../src/server/auth/authentication';
+import { createHandler } from '../../src/server/handler';
 import { person } from './access-fixture';
 
 test('deactivation closes streams and sessions; reactivation restores the next sign-in', async () => {

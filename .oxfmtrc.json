@@ -20,7 +20,6 @@
     "tests/fixtures/**",
     "graphify-out/**",
     "*.md",
-    "bun.lock",
-    "src/generated/schema-validators/**"
+    "bun.lock"
   ]
 }

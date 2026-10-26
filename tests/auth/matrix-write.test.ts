@@ -3,12 +3,12 @@ import { expect, test } from 'bun:test';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { authWorkspace } from '../helpers/auth-workspace';
-import { createAccessControl } from '../../server/auth/authorize';
-import { createHandler } from '../../server/handler';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { createHandler } from '../../src/server/handler';
 import { accessFixture, person } from './access-fixture';
 import { routeExamples } from './route-actions';
-import { routeFor } from '../../server/auth/route-actions';
-import { LOCAL_READER } from '../../server/projects/reader';
+import { routeFor } from '../../src/server/auth/route-actions';
+import { LOCAL_READER } from '../../src/server/projects/reader';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 
 function snapshot(root: string, prefix = ''): Record<string, string> {

@@ -3,9 +3,9 @@
 import { expect, test } from 'bun:test';
 import { mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { createCache } from '../server/projects/cache';
-import { dataLayout } from '../server/projects/paths';
-import { createScanner } from '../server/projects/scanner';
+import { createCache } from '../src/server/projects/cache';
+import { dataLayout } from '../src/server/projects/paths';
+import { createScanner } from '../src/server/projects/scanner';
 import { tempDataDir } from './helpers/temp-data-dir';
 
 test('an index path in another letter case than the disk is not indexed', async () => {

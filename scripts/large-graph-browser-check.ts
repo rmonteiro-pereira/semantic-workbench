@@ -3,7 +3,7 @@ import { appUrl } from './helpers/base-url';
 import { viewOptions } from './helpers/graph-options';
 import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 async function openGraphOverview(page: Page) {
   await page.getByRole('button', { name: /^View options/ }).click();
   const options = page.getByRole('dialog', { name: 'View options' });

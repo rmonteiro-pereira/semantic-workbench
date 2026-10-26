@@ -1,12 +1,12 @@
 /** Presentation and event handling for graph views. */
 import React, { useCallback, useMemo } from 'react';
-import { FullGraph } from '../FullGraph';
+import { FullGraph } from '../graph/FullGraph';
 import { MappingCanvas } from '../mappings/MappingCanvas';
-import { ModelOverview } from '../ModelOverview';
-import { NeighborhoodGraph } from '../NeighborhoodGraph';
+import { ModelOverview } from '../graph/ModelOverview';
+import { NeighborhoodGraph } from '../graph/NeighborhoodGraph';
 import { LineageCanvas } from '../odcs/LineageCanvas';
 import type { LineageCard } from '../odcs/lineage';
-import type { modelOverview } from '../overview';
+import type { modelOverview } from '../graph/overview';
 
 type GroupLook = { name: string; color: string };
 
@@ -38,26 +38,26 @@ type Props = {
     | {
         kind: string;
         name: any;
-        entities: import('../model').Entity[];
-        edges: import('../model').Relationship[];
-        issues: import('../diagnostics').Issue[];
+        entities: import('../core/model').Entity[];
+        edges: import('../core/model').Relationship[];
+        issues: import('../validation/diagnostics').Issue[];
       }
     | {
         kind: string;
         layout: string | undefined;
         name: any;
-        entities: import('../model').Entity[];
-        edges: import('../model').Relationship[];
-        issues: import('../diagnostics').Issue[];
+        entities: import('../core/model').Entity[];
+        edges: import('../core/model').Relationship[];
+        issues: import('../validation/diagnostics').Issue[];
         document: any;
       }
     | null;
   kpiBadges: Map<string, string[]>;
   groupingOverview: ReturnType<typeof modelOverview> | null;
   grouping: {
-    value: import('../overview').GroupingOptions;
+    value: import('../graph/overview').GroupingOptions;
     error: string;
-    change: (value: import('../overview').GroupingOptions) => void;
+    change: (value: import('../graph/overview').GroupingOptions) => void;
   };
   selected: string;
   selectedEdge: string;
@@ -76,8 +76,10 @@ type Props = {
   setSelectedEdge: React.Dispatch<React.SetStateAction<string>>;
   handleNeighborhoodGraphFullGraph: () => void;
   handleNeighborhoodGraphOpenKpis: (concept: string) => void;
-  crossFile: (e: import('../model').Entity) => import('../NeighborhoodGraph').CrossFileTarget[];
-  crossTo: (t: import('../NeighborhoodGraph').CrossFileTarget) => void;
+  crossFile: (
+    e: import('../core/model').Entity,
+  ) => import('../graph/NeighborhoodGraph').CrossFileTarget[];
+  crossTo: (t: import('../graph/NeighborhoodGraph').CrossFileTarget) => void;
 };
 /** Renders graph views. */
 export function GraphViews({

@@ -9,10 +9,10 @@ import {
   loadBrandBundle,
   resetActiveBrand,
   setActiveBrand,
-} from '../../server/brand/bundle';
-import { authPage } from '../../server/routes/auth';
+} from '../../src/server/brand/bundle';
+import { authPage } from '../../src/server/routes/auth';
 import { useDefaultBrand } from '../helpers/brand-fixture';
-import { serveStatic } from '../../server/static';
+import { serveStatic } from '../../src/server/static';
 
 const folders: string[] = [];
 

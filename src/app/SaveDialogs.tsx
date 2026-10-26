@@ -2,7 +2,7 @@
 import React from 'react';
 import { useGitSetup } from '../scm/GitSetup';
 import { looksLikeAuthFailure } from '../scm/CredentialGuide';
-import type { KpiSummary } from '../../server/agent/explain';
+import type { KpiSummary } from '../server/agent/explain';
 import { MetricWizard } from '../metrics/MetricWizard';
 import type { Doc, ProjectInfo } from '../projects/api';
 import type { AutosaveState } from '../projects/autosave';

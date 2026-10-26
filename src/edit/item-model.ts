@@ -1,6 +1,6 @@
 /** Defines editable item kinds, field schemas and status rules for each document format. */
 import { VENDOR, GRAINS } from '../metrics/extension';
-import { isMapping } from '../mapping-schema';
+import { isMapping } from '../mappings/mapping-schema';
 import { isObject } from './source-text';
 // Field paths address either the item or its workbench metric extension. Child lists and insertion
 // locations depend on the document format.

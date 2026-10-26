@@ -1,10 +1,10 @@
 /** Matches related documents and cross-file entities by their shared identities. */
 import React, { useMemo } from 'react';
-import { groupRelationships } from '../graph-view';
-import type { Entity } from '../model';
-import type { CrossFileTarget } from '../NeighborhoodGraph';
+import { groupRelationships } from '../graph/graph-view';
+import type { Entity } from '../core/model';
+import type { CrossFileTarget } from '../graph/NeighborhoodGraph';
 import type { Doc } from '../projects/api';
-import { entityKeys } from '../references';
+import { entityKeys } from '../core/references';
 import type { ValidatedModel } from './types';
 
 type Options = {

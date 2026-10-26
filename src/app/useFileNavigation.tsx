@@ -1,7 +1,7 @@
 /** Opens documents and restores unsaved drafts without discarding current edits. */
 import { apiFetch } from '../projects/api';
 import React from 'react';
-import { validateInput } from '../input';
+import { validateInput } from '../validation/input';
 import { scm as scmApi, type Doc } from '../projects/api';
 
 /** Opening a document leaves the phone drawer open only when the caller says so. */

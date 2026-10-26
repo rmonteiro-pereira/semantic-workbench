@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { parse } from 'yaml';
 import { ArrowLeft, ShieldCheck, Table2, Workflow } from 'lucide-react';
-import { odcsForeignKeys } from '../odcs';
+import { odcsForeignKeys } from './foreign-keys';
 import { scm, type Doc, type GitCommit as Commit } from '../projects/api';
 import { diffObject, flattenProperties, lastChange, type ObjectDiff } from './odcs-diff';
 import {
@@ -21,7 +21,7 @@ import { rulesOf, tableTypeBadge } from './ContractOverview';
 import { PropertiesTab } from './PropertiesTab';
 import type { PropertyEditor } from './PropertyEditors';
 import { ReadMore } from './ReadMore';
-import { ScrollStrip } from '../ScrollStrip';
+import { ScrollStrip } from '../shared/ScrollStrip';
 import './odcs.css';
 // Quality rules are displayed as declared and never executed. Git history compares versions at
 // property level.

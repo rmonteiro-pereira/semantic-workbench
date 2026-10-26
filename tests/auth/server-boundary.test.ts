@@ -3,11 +3,11 @@ import { beforeAll, expect, test } from 'bun:test';
 import { useDefaultBrand } from '../helpers/brand-fixture';
 import { oidcTransport } from '../helpers/oidc-transport';
 import { authWorkspace } from '../helpers/auth-workspace';
-import { createOidcClient } from '../../server/auth/oidc';
-import { createServerAuthentication } from '../../server/auth/authentication';
-import { openAdminRepository } from '../../server/auth/admin-repo';
+import { createOidcClient } from '../../src/server/auth/oidc';
+import { createServerAuthentication } from '../../src/server/auth/authentication';
+import { openAdminRepository } from '../../src/server/auth/admin-repo';
 import { TEST_USERS, TEST_TENANT_ID } from '../helpers/auth-identities';
-import { createHandler } from '../../server/handler';
+import { createHandler } from '../../src/server/handler';
 
 beforeAll(useDefaultBrand);
 
@@ -114,9 +114,9 @@ test('pages redirect, denied identities stay outside, refresh removes grants, lo
 
 test('the auth modules never import HTTP routing, which depends on them', async () => {
   const { readdirSync, readFileSync } = await import('node:fs');
-  const modules = readdirSync('server/auth').filter(name => name.endsWith('.ts'));
+  const modules = readdirSync('src/server/auth').filter(name => name.endsWith('.ts'));
   const importers = modules.filter(name =>
-    /from '\.\.\/routes\//.test(readFileSync('server/auth/' + name, 'utf8')),
+    /from '\.\.\/routes\//.test(readFileSync('src/server/auth/' + name, 'utf8')),
   );
   expect(importers).toEqual([]);
 });

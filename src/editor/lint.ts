@@ -1,7 +1,7 @@
 /** Maps findings to editor ranges and requests validation from a shared worker. */
 import type { Text } from '@codemirror/state';
 import type { Diagnostic } from '@codemirror/lint';
-import type { Issue } from '../diagnostics';
+import type { Issue } from '../validation/diagnostics';
 import { timeOperation } from '../observability/page-reporting';
 // Findings → editor diagnostics. A finding with a line (and column) becomes a range from that
 // position to the end of the token there; one without a reliable location stays document-level and

@@ -2,7 +2,7 @@
  * them. */
 import React from 'react';
 import { ArrowRight, Database, FileCheck2, Gauge, Table2 } from 'lucide-react';
-import type { KpiExplanation, Trust } from '../../server/agent/explain';
+import type { KpiExplanation, Trust } from '../server/agent/explain';
 // Physical names link metric input fields to contract objects and properties. Quality rules and
 // service levels are displayed as declared, never checked here.
 const slaText = (s: Trust) =>

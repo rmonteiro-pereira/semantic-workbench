@@ -75,7 +75,7 @@ function launch(name: string, args: string[]): Service {
 }
 
 async function startServices(): Promise<void> {
-  const api = launch('API', ['--hot', 'server/index.ts']);
+  const api = launch('API', ['--hot', 'src/server/index.ts']);
 
   console.log('[dev] Waiting for the API to be ready...');
   const result = await waitForApi({

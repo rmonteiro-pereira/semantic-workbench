@@ -1,18 +1,18 @@
 // Validates example models and executes their governed metrics against synthetic fixtures.
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { Database } from 'bun:sqlite';
 import { parse } from 'yaml';
 import { testWorkspace } from '../tests/helpers/temp-data-dir';
-import { validateInput } from '../src/input';
-import { exportDocument } from '../src/export';
+import { validateInput } from '../src/validation/input';
+import { exportDocument } from '../src/core/export';
 import {
   agentCatalog,
   buildContext,
   planQuery,
   type StoredDocument,
-} from '../server/agent/runtime';
+} from '../src/server/agent/runtime';
 import manifest from '../tests/fixtures/ossie-mapping/manifest.json';
 import { checkMall } from './mall-checks';
 /** Validates example models and checks governed query results against fixture expectations. */

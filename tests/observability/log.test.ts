@@ -1,8 +1,8 @@
 // The logger filters by level, writes JSON lines or readable lines, redacts, and tags each line
 // with the request being handled.
 import { describe, expect, test } from 'bun:test';
-import { createLogger, formatRecord, type LogRecord } from '../../server/observability/log';
-import { runInRequest } from '../../server/observability/request-context';
+import { createLogger, formatRecord, type LogRecord } from '../../src/server/observability/log';
+import { runInRequest } from '../../src/server/observability/request-context';
 import { parseLevel } from './log-helpers';
 
 const fixedClock = () => new Date('2026-10-23T12:30:45.000Z');

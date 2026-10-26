@@ -1,6 +1,6 @@
 // A trace may say which Git subcommand ran and with which options, never with which values.
 import { expect, test } from 'bun:test';
-import { summarizeGitArgs } from '../../server/observability/git-command';
+import { summarizeGitArgs } from '../../src/server/observability/git-command';
 
 test('option names are kept and their values are not', () => {
   const summary = summarizeGitArgs([

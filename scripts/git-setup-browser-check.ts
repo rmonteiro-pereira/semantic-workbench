@@ -16,7 +16,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { sh, ontology } from '../tests/helpers/scm';
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 
 const api = await startIsolatedApi();
 const extra = mkdtempSync(join(tmpdir(), 'workbench-git-setup-'));

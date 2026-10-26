@@ -1,6 +1,6 @@
 // Checks platform assertion exchange and confidential-client choices without network calls.
 import { expect, test } from 'bun:test';
-import { managedIdentityAssertion } from '../../server/auth/managed-identity';
+import { managedIdentityAssertion } from '../../src/server/auth/managed-identity';
 
 test('managed identity asks the platform only for the Azure token-exchange audience', async () => {
   let requested = '';
@@ -27,7 +27,7 @@ test('managed identity asks the platform only for the Azure token-exchange audie
 
 test('private-key and managed-identity assertions authenticate the token exchange', async () => {
   const { generateKeyPair, exportPKCS8, jwtVerify } = await import('jose');
-  const { createOidcClient } = await import('../../server/auth/oidc');
+  const { createOidcClient } = await import('../../src/server/auth/oidc');
   const { oidcTransport } = await import('../helpers/oidc-transport');
   const { tempDataDir } = await import('../helpers/temp-data-dir');
   const { TEST_WORKBENCH_CLIENT } = await import('../helpers/auth-identities');

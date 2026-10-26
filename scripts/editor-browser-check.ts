@@ -5,9 +5,9 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
-import { projectFile } from '../server/projects/paths';
+import { projectFile } from '../src/server/projects/paths';
 import { startApiProcess } from './helpers/api-process';
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 // Findings must appear within 500 ms of a typing pause. Patch saves must preserve untouched bytes,
 // including mixed line endings.
 const api = await startIsolatedApi();

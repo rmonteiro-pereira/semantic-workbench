@@ -8,7 +8,7 @@ import {
   normalizeClaims,
   principalKey,
   type ClaimMapping,
-} from '../../server/auth/principal';
+} from '../../src/server/auth/principal';
 
 const tenant = '4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f';
 const entra: ClaimMapping = { provider: 'entra', groupClaim: 'groups', tenantId: tenant };

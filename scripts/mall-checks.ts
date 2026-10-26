@@ -1,8 +1,8 @@
 // Checks shopping center metrics against expected values computed directly from fixture rows.
 import assert from 'node:assert/strict';
 import { Database } from 'bun:sqlite';
-import { validateInput } from '../src/input';
-import { buildContext, planQuery, type StoredDocument } from '../server/agent/runtime';
+import { validateInput } from '../src/validation/input';
+import { buildContext, planQuery, type StoredDocument } from '../src/server/agent/runtime';
 // Executes governed shopping-center KPIs on the synthetic fixture and compares them with
 // expected.json, which the generator computes from rows, not from SQL.
 const dir = 'public/examples/mall/';

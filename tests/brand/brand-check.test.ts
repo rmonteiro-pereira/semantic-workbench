@@ -23,8 +23,8 @@ test('schema identifiers and the extension vendor name are not a brand', () => {
 
 test('an allow-listed technical identity passes only in its own file', () => {
   const text = "const committer = 'Semantic Workbench';";
-  expect(brandViolationsIn('server/projects/git.ts', text)).toEqual([]);
-  expect(brandViolationsIn('server/routes/auth.ts', text)).toHaveLength(1);
+  expect(brandViolationsIn('src/server/projects/git.ts', text)).toEqual([]);
+  expect(brandViolationsIn('src/server/routes/auth.ts', text)).toHaveLength(1);
 });
 
 test('the repository has no hard-coded brand', () => {

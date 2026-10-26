@@ -1,9 +1,9 @@
 // Checks revocation and attempt replay protection using deterministic clocks.
 import { expect, test } from 'bun:test';
-import { createSessionStore } from '../../server/auth/sessions';
-import { createAttemptStore, ATTEMPT_TTL_SECONDS } from '../../server/auth/attempts';
-import { localPrincipal } from '../../server/auth/principal';
-import { createEvents } from '../../server/projects/events';
+import { createSessionStore } from '../../src/server/auth/sessions';
+import { createAttemptStore, ATTEMPT_TTL_SECONDS } from '../../src/server/auth/attempts';
+import { localPrincipal } from '../../src/server/auth/principal';
+import { createEvents } from '../../src/server/projects/events';
 import { tempDataDir } from '../helpers/temp-data-dir';
 // Events that carry no suggestion counting; the stubs keep a count round cheap.
 const noSuggestions = { suggestionIndex: () => [], sharedSuggestionCount: () => 0 };

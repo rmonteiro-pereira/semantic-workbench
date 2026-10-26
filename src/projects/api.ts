@@ -1,9 +1,9 @@
 /** Defines browser requests and response types for project files, metrics and source control. */
-import type { KpiSummary, KpiExplanation } from '../../server/agent/explain';
-import type { GitIdentity } from '../../server/projects/git';
-import type { CloneEvent } from '../../server/projects/clone';
-import type { ProjectCandidates } from '../../server/projects/repository-projects';
-import type { RepositoryProject } from '../../server/projects/repositories';
+import type { KpiSummary, KpiExplanation } from '../server/agent/explain';
+import type { GitIdentity } from '../server/projects/git';
+import type { CloneEvent } from '../server/projects/clone';
+import type { ProjectCandidates } from '../server/projects/repository-projects';
+import type { RepositoryProject } from '../server/projects/repositories';
 import type { ClassificationSettings, Demotion, Person } from '../governance/guards';
 // Browser client for the project API (contracts/http-api.md).
 /** Summarizes a project file’s type, validation, visibility, Git state and hash. */

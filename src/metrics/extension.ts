@@ -1,8 +1,7 @@
 /** Reads and validates workbench metric attributes stored as JSON in Ossie custom extensions. */
 import type { ValidateFunction } from 'ajv';
-import checkMetric from '../generated/schema-validators/metric.js';
-import checkMapping from '../generated/schema-validators/mapping-extension.js';
-import type { Issue } from '../diagnostics';
+import { metric as checkMetric, mapping as checkMapping } from '../generated/validators.js';
+import type { Issue } from '../validation/diagnostics';
 import { ansiExpression, expressionRefs, metricDependencies } from './deps';
 // Metric attributes in Ossie `custom_extensions`: an entry with vendor_name SEMANTIC_WORKBENCH
 // whose `data` is a JSON string. Validated against the pinned application schemas by the same code

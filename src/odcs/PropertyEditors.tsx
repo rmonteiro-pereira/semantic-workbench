@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { valuePatches } from '../edit/yaml-patch';
 import { applyPatches, diffPatches } from '../editor/patch';
-import { validateInput } from '../input';
+import { validateInput } from '../validation/input';
 import { api, StaleSave, type Doc } from '../projects/api';
 import type { Saved } from '../edit/ItemEditor';
 import { Modal } from '../projects/Modal';

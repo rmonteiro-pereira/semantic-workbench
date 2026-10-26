@@ -1,9 +1,9 @@
 import { expect, test } from 'bun:test';
 import { authWorkspace, fixtureFiles } from '../helpers/auth-workspace';
 import { accessFixture, boundaryReader, person } from './access-fixture';
-import { createAccessControl } from '../../server/auth/authorize';
-import { createHandler } from '../../server/handler';
-import { LOCAL_READER } from '../../server/projects/reader';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { createHandler } from '../../src/server/handler';
+import { LOCAL_READER } from '../../src/server/projects/reader';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 
 test('Git rejects restricted paths even when they no longer exist', async () => {
@@ -60,7 +60,7 @@ test('history counts hidden-only commits and lists only readable paths', async (
 
 test('status and history use the deepest project owner in a shared repository', async () => {
   const { testWorkspace } = await import('../helpers/temp-data-dir');
-  const { LOCAL_READER } = await import('../../server/projects/reader');
+  const { LOCAL_READER } = await import('../../src/server/projects/reader');
   using fixture = await testWorkspace();
   const source = fixtureFiles('sales-metrics').find(
     file => file.path === 'sales.semantic.yaml',

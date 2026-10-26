@@ -4,8 +4,8 @@
 import { expect, test } from 'bun:test';
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { createGit } from '../../server/projects/git';
-import { createWorktrees } from '../../server/projects/worktrees';
+import { createGit } from '../../src/server/projects/git';
+import { createWorktrees } from '../../src/server/projects/worktrees';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { gitOutput } from './working-copy-fixture';
 

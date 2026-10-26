@@ -3,7 +3,7 @@ import { expect, test } from 'bun:test';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { ConfigError, readConfig } from '../../server/config';
+import { ConfigError, readConfig } from '../../src/server/config';
 
 test('no brand folder means the shipped brand', () => {
   expect(readConfig({}).brandDir).toBeNull();

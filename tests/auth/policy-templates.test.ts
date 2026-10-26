@@ -5,10 +5,10 @@ import {
   policyTemplate,
   policyTemplateFrom,
   policyTexts,
-} from '../../server/auth/policies';
+} from '../../src/server/auth/policies';
 import { accessFixture, person } from './access-fixture';
-import { createAccessControl } from '../../server/auth/authorize';
-import { clientPrincipal } from '../../server/auth/principal';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { clientPrincipal } from '../../src/server/auth/principal';
 
 test('Git action template validates and unrestricted Admin forbids are refused', () => {
   const config = accessFixture().config;
@@ -84,8 +84,8 @@ test('raw policy validation returns the rule and source position', () => {
 });
 
 test('branch protection and agent scope templates produce ordinary versioned documents', async () => {
-  const { policyDataTemplate } = await import('../../server/auth/policies');
-  const { validateAccessDocument } = await import('../../server/auth/access-config');
+  const { policyDataTemplate } = await import('../../src/server/auth/policies');
+  const { validateAccessDocument } = await import('../../src/server/auth/access-config');
   const config = accessFixture().config;
   const projects = policyDataTemplate(config, {
     template: 'branch-protection',

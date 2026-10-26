@@ -10,7 +10,7 @@ import {
   dataLayout,
   projectFile,
   type DirectoryLister,
-} from '../server/projects/paths';
+} from '../src/server/projects/paths';
 
 // A listing as the on-disk names of a small tree: `secret/plan.yaml` and `Notes.yaml`.
 const tree: Record<string, string[]> = {

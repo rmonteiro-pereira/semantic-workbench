@@ -7,8 +7,8 @@ import type { Candidate } from './security-review-scm-cases';
 
 async function scannerCase(candidate: Candidate) {
   const { tempDataDir } = await import('../tests/helpers/temp-data-dir');
-  const { createCache } = await import('../server/projects/cache');
-  const { dataLayout } = await import('../server/projects/paths');
+  const { createCache } = await import('../src/server/projects/cache');
+  const { dataLayout } = await import('../src/server/projects/paths');
   const data = tempDataDir();
   try {
     const layout = dataLayout(data.root);
@@ -88,7 +88,7 @@ async function publishedCase(candidate: Candidate) {
 }
 
 async function auditMirrorCase(candidate: Candidate) {
-  const { sha256 } = await import('../server/projects/atomic');
+  const { sha256 } = await import('../src/server/projects/atomic');
   const line = (month: string, prev: string) =>
     JSON.stringify({ type: 'audit', at: `${month}-05T00:00:00.000Z`, prev });
   const first = line('2026-09', '0'.repeat(64));

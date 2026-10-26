@@ -1,7 +1,7 @@
 // Tests metric extension validation across shipped examples.
 import { test, expect } from 'bun:test';
 import { parseDocument, stringify } from 'yaml';
-import { validateInput } from '../src/input';
+import { validateInput } from '../src/validation/input';
 import { ansiExpression } from '../src/metrics/deps';
 import { inferredAdditivity, inferredType, readMetricExtension } from '../src/metrics/extension';
 // Metric extensions on copies of the 59 metrics shipped in the examples.

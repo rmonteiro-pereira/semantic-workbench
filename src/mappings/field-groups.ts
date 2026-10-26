@@ -1,5 +1,5 @@
 /** Groups the mapped fields of a query composer by dataset, after a text filter. */
-import type { RuntimeContext } from '../../server/agent/runtime';
+import type { RuntimeContext } from '../server/agent/runtime';
 
 type Field = RuntimeContext['fields'][number];
 

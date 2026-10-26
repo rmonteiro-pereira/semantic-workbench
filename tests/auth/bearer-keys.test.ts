@@ -1,7 +1,7 @@
 // Checks the real remote key cache through a controlled HTTP edge without opening sockets.
 import { expect, test, spyOn } from 'bun:test';
 import { exportJWK, generateKeyPair, SignJWT } from 'jose';
-import { BearerError, createBearerValidator } from '../../server/auth/bearer';
+import { BearerError, createBearerValidator } from '../../src/server/auth/bearer';
 import { oidcConfig } from '../helpers/server-auth';
 import { TEST_TENANT_ID } from '../helpers/auth-identities';
 

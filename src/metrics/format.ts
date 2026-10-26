@@ -1,5 +1,5 @@
 /** Shares readable metric labels, formulas and targets between tables, details and graph badges. */
-import type { ConceptLink, KpiSummary } from '../../server/agent/explain';
+import type { ConceptLink, KpiSummary } from '../server/agent/explain';
 import { expressionRefs } from './deps';
 // Wording shared by the Metrics view, the metric detail and the graph badges.
 export const typeLabel: Record<KpiSummary['type'], string> = {

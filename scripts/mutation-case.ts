@@ -1,7 +1,7 @@
 // Runs focused assertions against candidate modules to detect deliberately introduced faults.
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 import assert from 'node:assert/strict';
-import { loadBrandBundle, setActiveBrand } from '../server/brand/bundle';
+import { loadBrandBundle, setActiveBrand } from '../src/server/brand/bundle';
 import { allowEveryRemote } from '../tests/helpers/remote-credentials-fixture';
 import { observabilityCase } from './observability-cases';
 // Sign-in pages render the brand, so every candidate runs with the shipped bundle active.
@@ -396,7 +396,7 @@ if (
       assert.equal(fs.readFileSync(join(d.root, 's/a'), 'utf8'), 'A');
     }
     if (category === 'events-origin') {
-      const { openWorkspace } = await import('../server/projects/workspace');
+      const { openWorkspace } = await import('../src/server/projects/workspace');
       const ws = await openWorkspace({ root: d.root });
       try {
         const h = m.createHandler(ws);
@@ -426,8 +426,8 @@ if (
     }
     if (category === 'trash') {
       let clock = Date.parse('2026-10-21T10:00:00Z');
-      const { openWorkspace } = await import('../server/projects/workspace');
-      const { LOCAL_READER } = await import('../server/projects/reader');
+      const { openWorkspace } = await import('../src/server/projects/workspace');
+      const { LOCAL_READER } = await import('../src/server/projects/reader');
       const ws = await openWorkspace({ root: d.root, now: () => clock });
       try {
         await ws.importBatch({ files: [{ path: 'a.yaml', source }] }, LOCAL_READER);
@@ -488,7 +488,7 @@ if (
       assert.throws(() => m.requireConfirm({}));
       assert.throws(() => m.requireConfirm({ confirm: 'yes' }));
       m.requireConfirm({ confirm: true });
-      const { openWorkspace } = await import('../server/projects/workspace');
+      const { openWorkspace } = await import('../src/server/projects/workspace');
       const ws = await openWorkspace({ root: d.root });
       try {
         await ws.importBatch({ files: [{ path: 'a.yaml', source }] }, LOCAL_READER);
@@ -516,10 +516,10 @@ if (
     }
     if (category === 'migration') {
       const { Database } = await import('bun:sqlite');
-      const { dataLayout } = await import('../server/projects/paths');
-      const { createState } = await import('../server/projects/state');
-      const { createJournal } = await import('../server/projects/journal');
-      const { createGit } = await import('../server/projects/git');
+      const { dataLayout } = await import('../src/server/projects/paths');
+      const { createState } = await import('../src/server/projects/state');
+      const { createJournal } = await import('../src/server/projects/journal');
+      const { createGit } = await import('../src/server/projects/git');
       const layout = dataLayout(d.root);
       for (const dir of [layout.projects, layout.state, layout.backup])
         fs.mkdirSync(dir, { recursive: true });
@@ -550,7 +550,7 @@ if (
 }
 
 if (category === 'overview') {
-  const { inspect } = await import('../src/model');
+  const { inspect } = await import('../src/core/model');
   const input = inspect(await Bun.file('public/examples/ubl/ubl.ontology.yaml').text());
   const o = m.modelOverview(input.entities, input.edges, input.name);
   const flights = inspect(await Bun.file('public/examples/ossie/flights.ontology.yaml').text());
@@ -1320,7 +1320,7 @@ if (category === 'lineage') {
 }
 if (category === 'mapping-graph') {
   const { buildContext, agentCatalog } = await import(
-    new URL('../server/agent/runtime.ts', import.meta.url).href
+    new URL('../src/server/agent/runtime.ts', import.meta.url).href
   );
   const { readFileSync } = await import('node:fs');
   const dir = new URL('../public/examples/commerce/', import.meta.url).pathname;
@@ -1613,7 +1613,7 @@ if (category === 'manifest') {
 // A repository with two subprojects, Sales and Finance, in a temporary workspace.
 async function teamRepositoryWorkspace() {
   const { tempDataDir } = await import('../tests/helpers/temp-data-dir');
-  const { openWorkspace } = await import('../server/projects/workspace');
+  const { openWorkspace } = await import('../src/server/projects/workspace');
   const d = tempDataDir();
   const ws = await openWorkspace({ root: d.root });
   const text = (name: string) =>
@@ -1783,7 +1783,7 @@ if (category === 'auth-decision') {
   assert.throws(() => m.createAccessControl(options));
 }
 if (category === 'auth-admin-guard') {
-  const { emptyAccessConfig } = await import('../server/auth/access-config');
+  const { emptyAccessConfig } = await import('../src/server/auth/access-config');
   assert.deepEqual(
     m.checkLastAdmin(emptyAccessConfig(), {
       users: [],
@@ -1796,8 +1796,8 @@ if (category === 'auth-admin-guard') {
 }
 if (category === 'auth-middleware') {
   const { testWorkspace } = await import('../tests/helpers/temp-data-dir');
-  const { localPrincipal } = await import('../server/auth/principal');
-  const { createAuditLog } = await import('../server/auth/audit');
+  const { localPrincipal } = await import('../src/server/auth/principal');
+  const { createAuditLog } = await import('../src/server/auth/audit');
   using workspace = await testWorkspace();
   const audit = createAuditLog({ dir: workspace.root + '/audit' });
   const handler = m.createAccessMiddleware(
@@ -1872,7 +1872,7 @@ if (category === 'auth-audit') {
 
 if (category === 'auth-middleware') {
   const { testWorkspace } = await import('../tests/helpers/temp-data-dir');
-  const { createAuditLog } = await import('../server/auth/audit');
+  const { createAuditLog } = await import('../src/server/auth/audit');
   using workspace = await testWorkspace();
   const audit = createAuditLog({ dir: workspace.root + '/audit-allowed' });
   let calls = 0;
@@ -2026,7 +2026,7 @@ if (category === 'signin-directory') {
   assert.equal(await directory.groups('person', ['grant-group']), null);
 }
 if (category === 'signin-pages') {
-  const { localPrincipal } = await import('../server/auth/principal');
+  const { localPrincipal } = await import('../src/server/auth/principal');
   const page = await m.authPage('no-access', { principal: localPrincipal(), csrf: 'token' }).text();
   assert.doesNotMatch(page, /workspace-data|projects|files|count/);
   const route = m.createAuthRoutes({
@@ -2129,7 +2129,7 @@ if (category === 'deploy-smoke') {
 }
 if (category.startsWith('read-')) {
   const { accessFixture, person } = await import('../tests/auth/access-fixture');
-  const { createAccessControl } = await import('../server/auth/authorize');
+  const { createAccessControl } = await import('../src/server/auth/authorize');
   const access = createAccessControl(accessFixture());
   const principal = access.principalFor(person('alice'));
   const view = access.view(principal);
@@ -2206,7 +2206,7 @@ if (category.startsWith('read-')) {
       assert(!(await response.text()).includes('LEAK-hr-'));
     }
     if (category === 'read-drafts') {
-      const { requestAccess } = await import('../server/auth/request-scope');
+      const { requestAccess } = await import('../src/server/auth/request-scope');
       fixture.ws.state.writeDraft('sales-contracts', 'orders.odcs.yaml', {
         baseHash: null,
         text: 'LEAK-other-owner',
@@ -2218,7 +2218,7 @@ if (category.startsWith('read-')) {
       assert.equal(response.status, 404);
     }
     if (category === 'read-git') {
-      const { requestAccess } = await import('../server/auth/request-scope');
+      const { requestAccess } = await import('../src/server/auth/request-scope');
       const request = new Request(
         'http://localhost/api/projects/sales-contracts/git/show?path=finance/removed.yaml&commit=HEAD',
       );
@@ -2232,9 +2232,9 @@ if (category.startsWith('read-')) {
 }
 
 if (category === 'write-targets') {
-  const { createAccessControl } = await import('../server/auth/authorize');
+  const { createAccessControl } = await import('../src/server/auth/authorize');
   const { accessFixture, person } = await import('../tests/auth/access-fixture');
-  const { requestAccess } = await import('../server/auth/request-scope');
+  const { requestAccess } = await import('../src/server/auth/request-scope');
   const scope = createAccessControl(accessFixture()).forRequest({
     ...person('alice'),
     grants: [],
@@ -2251,7 +2251,7 @@ if (category === 'write-targets') {
 }
 
 if (category === 'write-drafts') {
-  const { createAccessControl } = await import('../server/auth/authorize');
+  const { createAccessControl } = await import('../src/server/auth/authorize');
   const { accessFixture, person } = await import('../tests/auth/access-fixture');
   const access = createAccessControl(accessFixture());
   const route = m.routeFor('PUT', '/api/drafts/hr-people/people.odcs.yaml');
@@ -2278,9 +2278,9 @@ if (category === 'write-body-flags') {
 
 if (['write-body-legacy', 'write-body-suggestions', 'write-body-trash'].includes(category)) {
   const { authWorkspace } = await import('../tests/helpers/auth-workspace');
-  const { createAccessControl } = await import('../server/auth/authorize');
+  const { createAccessControl } = await import('../src/server/auth/authorize');
   const { accessFixture, person } = await import('../tests/auth/access-fixture');
-  const { requestAccess } = await import('../server/auth/request-scope');
+  const { requestAccess } = await import('../src/server/auth/request-scope');
   using fixture = await authWorkspace();
   const access = createAccessControl(accessFixture());
   const principal = access.principalFor(person('alice'));
@@ -2450,9 +2450,9 @@ if (category === 'bearer-audience') {
   await assert.rejects(async () => validate('Bearer ' + (await tokenFor('other'))));
 }
 if (category === 'bearer-grants') {
-  const { emptyAccessConfig } = await import('../server/auth/access-config');
-  const { clientFromToken } = await import('../server/auth/principal');
-  const { loadPolicySet } = await import('../server/auth/cedar');
+  const { emptyAccessConfig } = await import('../src/server/auth/access-config');
+  const { clientFromToken } = await import('../src/server/auth/principal');
+  const { loadPolicySet } = await import('../src/server/auth/cedar');
   const builtin = await import('../policies/builtin-roles.json');
   const config = emptyAccessConfig();
   config.agents.clients = [
@@ -2476,9 +2476,9 @@ if (category === 'bearer-grants') {
 }
 if (category === 'bearer-cookie') {
   const { testWorkspace } = await import('../tests/helpers/temp-data-dir');
-  const { createAuditLog } = await import('../server/auth/audit');
-  const { createAccessControl } = await import('../server/auth/authorize');
-  const { clientFromToken } = await import('../server/auth/principal');
+  const { createAuditLog } = await import('../src/server/auth/audit');
+  const { createAccessControl } = await import('../src/server/auth/authorize');
+  const { clientFromToken } = await import('../src/server/auth/principal');
   const { accessFixture, person } = await import('../tests/auth/access-fixture');
   using workspace = await testWorkspace();
   const origin = 'http://127.0.0.1:4444';
@@ -2518,9 +2518,9 @@ if (category === 'bearer-delegated') {
 
 // Governance guards: each case fails when its guard is removed or weakened.
 if (category.startsWith('guard-')) {
-  const { createAccessControl } = await import('../server/auth/authorize');
+  const { createAccessControl } = await import('../src/server/auth/authorize');
   const { accessFixture, person } = await import('../tests/auth/access-fixture');
-  const { requestAccess, requestRemote } = await import('../server/auth/request-scope');
+  const { requestAccess, requestRemote } = await import('../src/server/auth/request-scope');
   const access = createAccessControl(accessFixture());
   const fs = await import('node:fs');
   const metrics = fs.readFileSync(
@@ -2594,7 +2594,7 @@ if (category.startsWith('guard-')) {
   }
   if (category === 'guard-new-project') {
     const { tempDataDir } = await import('../tests/helpers/temp-data-dir');
-    const { guardFor } = await import('../server/auth/guards');
+    const { guardFor } = await import('../src/server/auth/guards');
     const dir = tempDataDir();
     const ws = await m.openWorkspace({ root: dir.root });
     try {
@@ -2792,7 +2792,7 @@ if (category === 'remote-explicit') {
 }
 
 if (category === 'remote-admin') {
-  const { createAccessControl } = await import('../server/auth/authorize');
+  const { createAccessControl } = await import('../src/server/auth/authorize');
   const { accessFixture, person } = await import('../tests/auth/access-fixture');
   const access = createAccessControl(accessFixture());
   // An Editor and a Steward each hold every other permission these rows could be mistaken for.
@@ -2909,7 +2909,7 @@ if (category === 'askpass') {
 if (category === 'remote-guarded-fetch') {
   const fs = await import('node:fs');
   const path = await import('node:path');
-  const { repoDir } = await import('../server/projects/paths');
+  const { repoDir } = await import('../src/server/projects/paths');
   const { startCredentialGitServer } = await import('../tests/auth/credential-git-server');
   const team = await teamRepositoryWorkspace();
   const token = 'SECRET-GUARDED-FETCH';
@@ -2961,8 +2961,8 @@ if (category === 'remote-consent') {
   const fs = await import('node:fs');
   const os = await import('node:os');
   const path = await import('node:path');
-  const { createSessionStore } = await import('../server/auth/sessions');
-  const { localPrincipal } = await import('../server/auth/principal');
+  const { createSessionStore } = await import('../src/server/auth/sessions');
+  const { localPrincipal } = await import('../src/server/auth/principal');
   const { oidcConfig } = await import('../tests/helpers/server-auth');
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'workbench-mutations-consent-'));
   try {
@@ -3013,9 +3013,10 @@ if (category === 'remote-consent') {
 // Per-person working copies: shared helpers for the cases below.
 async function copyFixture() {
   const { authWorkspace } = await import('../tests/helpers/auth-workspace');
-  const { createAccessControl } = await import('../server/auth/authorize');
+  const { createAccessControl } = await import('../src/server/auth/authorize');
   const { accessFixture, person } = await import('../tests/auth/access-fixture');
-  const { attachRemoteCredentials, requestAccess } = await import('../server/auth/request-scope');
+  const { attachRemoteCredentials, requestAccess } =
+    await import('../src/server/auth/request-scope');
   const { allowEveryRemote } = await import('../tests/helpers/remote-credentials-fixture');
   const fixture = await authWorkspace();
   const access = createAccessControl(accessFixture());
@@ -3041,7 +3042,7 @@ async function copyFixture() {
 }
 
 if (category === 'copy-author') {
-  const { requestReader } = await import('../server/auth/request-scope');
+  const { requestReader } = await import('../src/server/auth/request-scope');
   const { join } = await import('node:path');
   const { fixture, scoped, keyOf } = await copyFixture();
   try {
@@ -3064,7 +3065,7 @@ if (category === 'copy-author') {
 }
 
 if (category === 'copy-worktrees') {
-  const { createGit } = await import('../server/projects/git');
+  const { createGit } = await import('../src/server/projects/git');
   const { writeFileSync } = await import('node:fs');
   const { join } = await import('node:path');
   const { fixture } = await copyFixture();
@@ -3097,7 +3098,7 @@ if (category === 'copy-worktrees') {
 }
 
 if (category === 'copy-publish') {
-  const { createGit } = await import('../server/projects/git');
+  const { createGit } = await import('../src/server/projects/git');
   const { rmSync, writeFileSync } = await import('node:fs');
   const { join } = await import('node:path');
   const { fixture } = await copyFixture();
@@ -3164,7 +3165,7 @@ if (category === 'copy-publish') {
 
 if (category === 'copy-drafts') {
   const { tempDataDir } = await import('../tests/helpers/temp-data-dir');
-  const { dataLayout } = await import('../server/projects/paths');
+  const { dataLayout } = await import('../src/server/projects/paths');
   const data = tempDataDir();
   try {
     const state = m.createState(dataLayout(data.root));
@@ -3178,7 +3179,7 @@ if (category === 'copy-drafts') {
 }
 
 if (category === 'copy-save') {
-  const { createHandler } = await import('../server/handler');
+  const { createHandler } = await import('../src/server/handler');
   const { readFileSync } = await import('node:fs');
   const { join } = await import('node:path');
   const { fixture, access, person } = await copyFixture();
@@ -3245,8 +3246,8 @@ if (category === 'copy-subproject') {
   const { join } = await import('node:path');
   const { tempDataDir } = await import('../tests/helpers/temp-data-dir');
   const { bareRepository } = await import('../tests/helpers/git-fixtures');
-  const { LOCAL_READER } = await import('../server/projects/reader');
-  const { createAccessControl } = await import('../server/auth/authorize');
+  const { LOCAL_READER } = await import('../src/server/projects/reader');
+  const { createAccessControl } = await import('../src/server/auth/authorize');
   const { accessFixture, person } = await import('../tests/auth/access-fixture');
   const { saveText, signedIn } = await import('../tests/auth/working-copy-fixture');
   const remote = bareRepository('monorepo');
@@ -3292,7 +3293,7 @@ if (category === 'copy-subproject') {
 }
 
 if (category === 'copy-suggestions') {
-  const { requestReader } = await import('../server/auth/request-scope');
+  const { requestReader } = await import('../src/server/auth/request-scope');
   const { fixture, scoped } = await copyFixture();
   fixture.ws.close();
   const ws = await m.openWorkspace({ root: fixture.root });
@@ -3399,7 +3400,7 @@ if (category === 'msal-host') {
 if (category === 'front-channel-issuer') {
   const helpers = await import('../tests/helpers/entra-provider');
   const { authWorkspace } = await import('../tests/helpers/auth-workspace');
-  const { createHandler } = await import('../server/handler');
+  const { createHandler } = await import('../src/server/handler');
   await helpers.withEntraProvider(async provider => {
     using fixture = await authWorkspace();
     const config = helpers.entraConfig(provider);
@@ -3446,7 +3447,7 @@ if (category === 'msal-certificate') {
 if (category === 'msal-overage') {
   const helpers = await import('../tests/helpers/entra-provider');
   const { authWorkspace } = await import('../tests/helpers/auth-workspace');
-  const { createHandler } = await import('../server/handler');
+  const { createHandler } = await import('../src/server/handler');
   await helpers.withEntraProvider(async provider => {
     using fixture = await authWorkspace();
     const auth = await m.createServerAuthentication(fixture.ws, helpers.entraConfig(provider));

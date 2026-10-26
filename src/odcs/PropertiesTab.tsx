@@ -1,10 +1,10 @@
 /** Lists an ODCS object's properties as read-only rows, with filter, sort and an edit dialog. */
 import React, { useMemo, useState } from 'react';
 import { ArrowDown, ArrowUp, Pencil, Search } from 'lucide-react';
-import { odcsForeignKeys } from '../odcs';
+import { odcsForeignKeys } from './foreign-keys';
 import { flattenProperties } from './odcs-diff';
 import { hopSentence } from './lineage';
-import { Badge, badge } from '../PropertyBadges';
+import { Badge, badge } from '../shared/PropertyBadges';
 import type { PropertyEditor } from './PropertyEditors';
 import './odcs.css';
 import './contract.css';

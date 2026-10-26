@@ -4,8 +4,8 @@ import { chromium, expect, type Locator, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { parse } from 'yaml';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
-import { projectDir, projectFile } from '../server/projects/paths';
-import { LOCAL_READER } from '../server/projects/reader';
+import { projectDir, projectFile } from '../src/server/projects/paths';
+import { LOCAL_READER } from '../src/server/projects/reader';
 // Contract property edits must change only the edited value. Screenshots use
 // /tmp/workbench-odcs-*.png.
 const api = await startIsolatedApi();

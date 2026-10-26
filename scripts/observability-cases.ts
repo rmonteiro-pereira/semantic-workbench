@@ -2,7 +2,7 @@
 // report code. `m` is the candidate module (faulty or not) for the named category.
 import assert from 'node:assert/strict';
 import net from 'node:net';
-import { requestAccess } from '../server/auth/request-scope';
+import { requestAccess } from '../src/server/auth/request-scope';
 
 const JWT = 'eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.c2lnbmF0dXJl';
 const KEY = '4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f';

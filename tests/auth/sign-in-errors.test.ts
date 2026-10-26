@@ -2,9 +2,9 @@
 import { expect, test } from 'bun:test';
 import * as oidc from 'openid-client';
 import { errors } from 'jose';
-import { ClaimError } from '../../server/auth/principal';
-import { signInError } from '../../server/auth/oidc';
-import { SignInError } from '../../server/auth/sign-in-error';
+import { ClaimError } from '../../src/server/auth/principal';
+import { signInError } from '../../src/server/auth/oidc';
+import { SignInError } from '../../src/server/auth/sign-in-error';
 
 for (const [error, reason] of [
   [new ClaimError('private context', 'tenant-mismatch'), 'tenant-mismatch'],

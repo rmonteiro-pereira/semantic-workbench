@@ -1,7 +1,7 @@
 /** Keeps editor validation responsive while deriving models for the other views. */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { Issue } from '../diagnostics';
-import { validateInput } from '../input';
+import type { Issue } from '../validation/diagnostics';
+import { validateInput } from '../validation/input';
 import type { Doc } from '../projects/api';
 import { isGitignore } from '../scm/gitignore';
 

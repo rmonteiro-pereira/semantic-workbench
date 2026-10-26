@@ -4,10 +4,10 @@ import { chromium, expect, type Locator } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { Parser, Writer } from 'n3';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
-import { projectDir, projectFile } from '../server/projects/paths';
+import { projectDir, projectFile } from '../src/server/projects/paths';
 import { editorValue, fillEditor } from './helpers/code-editor';
 import { newItem } from './helpers/header';
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 // RDF edits must change only the selected resource statements. Unsupported rules and edits
 // spanning other resources must be refused with a link to Source.
 const api = await startIsolatedApi();

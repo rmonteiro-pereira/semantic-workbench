@@ -15,7 +15,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { openWorkspace } from '../server/projects/workspace';
+import { openWorkspace } from '../src/server/projects/workspace';
 import { tempDataDir, testWorkspace } from './helpers/temp-data-dir';
 import { call, ok, ontology, sh } from './helpers/scm';
 

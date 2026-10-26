@@ -9,18 +9,18 @@ import {
 } from '@opentelemetry/sdk-trace-base';
 import type { PushMetricExporter, ResourceMetrics } from '@opentelemetry/sdk-metrics';
 import type { LogRecordExporter, ReadableLogRecord } from '@opentelemetry/sdk-logs';
-import { createAccessControl } from '../../server/auth/authorize';
-import { createHandler } from '../../server/handler';
-import { configureLogging, log } from '../../server/observability/log';
-import { withSpan } from '../../server/observability/tracing';
-import { actorPseudonym } from '../../server/observability/request-context';
-import { startTelemetry, type Telemetry } from '../../server/observability/telemetry';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { createHandler } from '../../src/server/handler';
+import { configureLogging, log } from '../../src/server/observability/log';
+import { withSpan } from '../../src/server/observability/tracing';
+import { actorPseudonym } from '../../src/server/observability/request-context';
+import { startTelemetry, type Telemetry } from '../../src/server/observability/telemetry';
 import { accessFixture, person } from '../auth/access-fixture';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 import { TEST_USERS } from '../helpers/auth-identities';
 import { useQuietLogging } from '../helpers/quiet-logging';
-import { recordRequest } from '../../server/observability/metrics';
+import { recordRequest } from '../../src/server/observability/metrics';
 
 const SUCCESS = { code: 0 };
 const SECRET_TOKEN = 'SECRETBEARERTOKEN0123456789';

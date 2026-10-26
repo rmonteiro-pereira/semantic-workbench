@@ -2,8 +2,8 @@
 import { expect, test } from 'bun:test';
 import { oidcTransport } from '../helpers/oidc-transport';
 import { mkdtempSync, rmSync } from 'node:fs';
-import { createAttemptStore, ATTEMPT_TTL_SECONDS } from '../../server/auth/attempts';
-import { createOidcClient } from '../../server/auth/oidc';
+import { createAttemptStore, ATTEMPT_TTL_SECONDS } from '../../src/server/auth/attempts';
+import { createOidcClient } from '../../src/server/auth/oidc';
 
 for (const [label, claims] of [
   ['issuer', { iss: 'https://wrong.example' }],

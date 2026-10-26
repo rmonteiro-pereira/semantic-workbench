@@ -3,9 +3,9 @@
 import { expect, spyOn, test } from 'bun:test';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { createServerAuthentication } from '../../server/auth/authentication';
-import { createSessionStore } from '../../server/auth/sessions';
-import { createHandler } from '../../server/handler';
+import { createServerAuthentication } from '../../src/server/auth/authentication';
+import { createSessionStore } from '../../src/server/auth/sessions';
+import { createHandler } from '../../src/server/handler';
 import { authWorkspace } from '../helpers/auth-workspace';
 import type { MockOidc } from '../helpers/mock-oidc';
 import { entraConfig, withEntraProvider } from '../helpers/entra-provider';

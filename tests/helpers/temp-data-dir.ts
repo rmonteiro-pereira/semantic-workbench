@@ -6,9 +6,9 @@ import {
   openWorkspace,
   type WorkspaceOptions,
   type ImportFile,
-} from '../../server/projects/workspace';
-import { createHandler } from '../../server/handler';
-import { LOCAL_READER } from '../../server/projects/reader';
+} from '../../src/server/projects/workspace';
+import { createHandler } from '../../src/server/handler';
+import { LOCAL_READER } from '../../src/server/projects/reader';
 // Isolated data roots for tests: never the owner's data/. Git gets its own global config with a
 // test identity, and the system config is ignored, for the whole test process.
 let gitHome: string | undefined;

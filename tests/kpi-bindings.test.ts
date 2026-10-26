@@ -1,14 +1,14 @@
 // Tests metric-to-concept bindings and their validation.
 import { test, expect } from 'bun:test';
 import { parseDocument } from 'yaml';
-import { validateInput } from '../src/input';
+import { validateInput } from '../src/validation/input';
 import {
   readKpiBindings,
   resolveBindings,
   resolveConcept,
   mappingExpressionBindings,
 } from '../src/metrics/bindings';
-import { projectMetrics } from '../server/agent/explain';
+import { projectMetrics } from '../src/server/agent/explain';
 
 const mall = async (f: string) => Bun.file('public/examples/mall/' + f).text();
 const bindingsData = (list: any[]) =>

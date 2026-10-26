@@ -1,7 +1,7 @@
 // Tests how the server reads its environment: modes, required server settings and the checks that
 // stop start-up with a message naming the variable at fault.
 import { describe, expect, test } from 'bun:test';
-import { ConfigError, readConfig, type ServerConfig } from '../../server/config';
+import { ConfigError, readConfig, type ServerConfig } from '../../src/server/config';
 
 const sessionKey = Buffer.from(Array.from({ length: 32 }, (_, index) => index)).toString('base64');
 

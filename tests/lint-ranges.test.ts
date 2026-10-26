@@ -2,7 +2,7 @@
 import { test, expect } from 'bun:test';
 import { Text } from '@codemirror/state';
 import { issueRange, summarizeDiagnostics, toDiagnostics } from '../src/editor/lint';
-import { validateInput } from '../src/input';
+import { validateInput } from '../src/validation/input';
 
 const doc = (s: string) => Text.of(s.split('\n'));
 test('a finding with line and column covers the token there', () => {

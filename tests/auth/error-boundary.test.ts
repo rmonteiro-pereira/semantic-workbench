@@ -2,11 +2,11 @@
 // other error becomes a plain 500 whose cause only the server log holds.
 import { expect, spyOn, test } from 'bun:test';
 import { join } from 'node:path';
-import { createAuditLog } from '../../server/auth/audit';
-import { createAccessControl } from '../../server/auth/authorize';
-import { localPrincipal } from '../../server/auth/principal';
+import { createAuditLog } from '../../src/server/auth/audit';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { localPrincipal } from '../../src/server/auth/principal';
 import { accessFixture } from './access-fixture';
-import { createHandler } from '../../server/handler';
+import { createHandler } from '../../src/server/handler';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 import { testWorkspace } from '../helpers/temp-data-dir';
 

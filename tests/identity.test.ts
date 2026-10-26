@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { testWorkspace } from './helpers/temp-data-dir';
 import { call, ok, ontology, sh } from './helpers/scm';
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 
 const isolatedGlobal = process.env.GIT_CONFIG_GLOBAL;
 const emptyHomes: string[] = [];

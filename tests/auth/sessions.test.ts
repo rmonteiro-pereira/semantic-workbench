@@ -4,8 +4,8 @@ import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
-import { createSessionStore, sessionCookie } from '../../server/auth/sessions';
-import { localPrincipal } from '../../server/auth/principal';
+import { createSessionStore, sessionCookie } from '../../src/server/auth/sessions';
+import { localPrincipal } from '../../src/server/auth/principal';
 
 const roots: string[] = [];
 afterEach(() => roots.splice(0).forEach(root => rmSync(root, { recursive: true, force: true })));

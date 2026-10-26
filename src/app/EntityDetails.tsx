@@ -3,8 +3,8 @@ import { Box, Braces, FileCode, Focus, Pencil, Plus, Trash2 } from 'lucide-react
 import React from 'react';
 import type { Path } from '../edit/item-model';
 import { type ItemKind } from '../edit/item-model';
-import type { Entity } from '../model';
-import { editEntity } from '../model';
+import type { Entity } from '../core/model';
+import { editEntity } from '../core/model';
 import type { Doc } from '../projects/api';
 import type { ItemTarget, RdfTarget, ValidatedModel } from './types';
 

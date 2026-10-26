@@ -1,6 +1,6 @@
 /** Loads project metrics and maintains metric selection, filters, and concept badges. */
 import { useEffect, useMemo, useState } from 'react';
-import type { KpiSummary } from '../../server/agent/explain';
+import type { KpiSummary } from '../server/agent/explain';
 import type { Doc } from '../projects/api';
 import { api } from '../projects/api';
 

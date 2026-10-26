@@ -1,7 +1,7 @@
 /** Loads SQL dialect grammars on demand inside the validation worker to keep typing responsive. */
 import { lintSql, lintRegion, grammarsNeeded, type Astify, type SqlFinding } from './lint';
 import { grammarOf, sqlRegions, type SqlRegion } from './regions';
-import type { Issue } from '../diagnostics';
+import type { Issue } from '../validation/diagnostics';
 // The browser's SQL lint: one node-sql-parser grammar build per dialect, imported on first need
 // (each 180–300 KB), inside the validation worker so typing never waits.
 const builds: Record<string, () => Promise<any>> = {

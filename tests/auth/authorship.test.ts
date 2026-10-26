@@ -1,6 +1,6 @@
 // Server-mode commits are written for the signed-in person and committed by the service.
 import { expect, test } from 'bun:test';
-import { authorship, SERVICE_COMMITTER } from '../../server/projects/git';
+import { authorship, SERVICE_COMMITTER } from '../../src/server/projects/git';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { person } from './access-fixture';
 import { copyFolder, gitOutput, openCopy, saveText, signedIn } from './working-copy-fixture';

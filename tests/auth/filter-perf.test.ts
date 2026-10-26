@@ -1,7 +1,7 @@
 // Measures real Cedar-backed filtering with cold request caches on a synthetic workspace.
 import { expect, test } from 'bun:test';
-import { createAccessControl, type ResourceRef } from '../../server/auth/authorize';
-import { localPrincipal } from '../../server/auth/principal';
+import { createAccessControl, type ResourceRef } from '../../src/server/auth/authorize';
+import { localPrincipal } from '../../src/server/auth/principal';
 import { accessFixture, person } from './access-fixture';
 
 function measuredMedian(run: () => void): number {

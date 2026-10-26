@@ -6,7 +6,7 @@ import {
   readThemePreference,
   storeThemePreference,
   type ThemePreference,
-} from '../theme-preference';
+} from '../theme/theme-preference';
 import './ThemeControl.css';
 
 const LABELS: Record<ThemePreference, string> = { system: 'System', light: 'Light', dark: 'Dark' };

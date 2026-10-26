@@ -1,7 +1,7 @@
 /** Plans metric and concept-binding writes across semantic models and mapping documents. */
-import { validateInput } from '../input';
-import { rdfSyntax } from '../rdf';
-import { isMapping } from '../mapping-schema';
+import { validateInput } from '../validation/input';
+import { rdfSyntax } from '../validation/rdf';
+import { isMapping } from '../mappings/mapping-schema';
 import { applyPatches } from '../editor/patch';
 import { insertPatches, valuePatches, itemValue } from '../edit/yaml-patch';
 import { extensionOf, semanticModelPrefix, writeExtension, type Path } from '../edit/item-model';

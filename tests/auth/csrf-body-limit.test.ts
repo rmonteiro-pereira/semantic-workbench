@@ -1,6 +1,6 @@
 // The logout form's body is bounded before it is read, whatever the caller declares.
 import { expect, test } from 'bun:test';
-import { validCsrf } from '../../server/auth/csrf';
+import { validCsrf } from '../../src/server/auth/csrf';
 
 const origin = 'https://workbench.example';
 const formHeaders = {
