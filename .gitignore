@@ -5,3 +5,5 @@ data/
 .env.server
 out/
 .server-workspace/
+.bun-cache-repair/
+specs/004-ui-polish/screenshots/before/

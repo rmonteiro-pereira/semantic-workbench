@@ -10,8 +10,8 @@ dialog or progressive disclosure over more controls in a panel), the ODCS data v
 that is readable at normal zoom.
 
 Severity: **S1** content overlaps, is cut off or cannot be reached; **S2** crammed, hard to use
-or hard to read; **S3** polish. Screenshots are in `screenshots/before/` (taken before any fix,
-from the v0.4.0 build). `screenshots/after/` holds the same screens after the fixes.
+or hard to read; **S3** polish. The v0.4.0 baseline screenshots were removed to reduce repository
+size; `screenshots/after/` retains the reviewed final captures and manifests.
 
 ## S1: overlap, cut-off or unreachable content
 
