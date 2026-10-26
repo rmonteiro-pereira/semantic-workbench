@@ -1,6 +1,8 @@
 // Keeps checked-in validators reproducible and equivalent to the pinned schema compiler.
 import { expect, test } from 'bun:test';
 import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import Ajv2020 from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
 import { compileSchemas } from '../scripts/compile-schemas';
@@ -12,7 +14,7 @@ import metric from '../src/generated/schema-validators/metric.js';
 import mapping from '../src/generated/schema-validators/mapping-extension.js';
 
 test('regeneration is byte-identical to the checked-in validators', () => {
-  const root = mkdtempSync('/tmp/workbench-schemas-');
+  const root = mkdtempSync(join(tmpdir(), 'workbench-schemas-'));
   try {
     compileSchemas(root);
     const existing = 'src/generated/schema-validators';

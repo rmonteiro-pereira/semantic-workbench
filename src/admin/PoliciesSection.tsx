@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AdminConfirmation } from './AdminConfirmation';
-import { newIdentifier } from './identifiers';
+import { newIdentifier } from './helpers';
 import { adminApi } from './api';
 import { useAdminData } from './useAdminData';
 import { PolicyEditor } from './PolicyEditor';

@@ -3,9 +3,21 @@ import { useEffect, useRef, useState } from 'react';
 import { useNarrowScreen } from './useNarrowScreen';
 import { DIALOG_CLOSED_EVENT, DIALOG_OPENED_EVENT } from '../projects/Modal';
 
-type Options = { readSidebarWidth: () => number };
+/** Keeps sidebar widths within the supported desktop range. */
+export const clampSidebarWidth = (width: number) => Math.max(220, Math.min(520, Math.round(width)));
+
+/** Reads a valid persisted width, or the default width when storage is unavailable. */
+function readSidebarWidth(): number {
+  try {
+    const stored = localStorage.getItem('workbench.sidebarWidth');
+    const width = Number(stored);
+    if (stored?.trim() && Number.isFinite(width)) return clampSidebarWidth(width);
+  } catch {}
+  return 300;
+}
+
 /** Manages sidebar. */
-export function useSidebar({ readSidebarWidth }: Options) {
+export function useSidebar() {
   const compact = useNarrowScreen();
   const [drawerOpen, setSidebarOpen] = useState(false);
   const [sidebarHidden, setSidebarHidden] = useState(() => {

@@ -7,7 +7,7 @@ import type { RemoteCredentials } from '../auth/remote-credentials';
 import type { Route } from './http';
 import { securityHeaders } from '../static';
 import { authStylesheet } from './auth-stylesheet';
-import { activeBrand } from '../brand/active-brand';
+import { activeBrand } from '../brand/bundle';
 
 function escapeHtml(value: string): string {
   return value

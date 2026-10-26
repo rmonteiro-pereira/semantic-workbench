@@ -22,12 +22,12 @@ Mapping/ontology snapshots come from Apache Ossie commit
 
 - `ontology/mapping.json` → `ossie-mapping-0.2.0.dev0.json`
 - `ontology/ontology.json` → `ossie-ontology-0.2.0.dev0.json`
-- `core-spec/ossie-schema.json` → `ossie-core-mapping-dependencies.json`
+- `core-spec/ossie-schema.json` → `ossie-0.2.0.dev0.json` (same pinned snapshot)
 
 Remote `$ref` identifiers resolve to these local files. The earlier core semantic snapshot
-`ossie-0.2.0.dev0.json` remains the existing semantic-import schema; adding mapping support does
-not silently replace that snapshot. Versioned ontologies use the pinned ontology schema;
-unversioned compatibility layouts retain their documented structural profile.
+`ossie-0.2.0.dev0.json` is shared by semantic imports and mapping dependencies because both pinned
+upstream paths contain identical schema bytes. Versioned ontologies use the pinned ontology
+schema; unversioned compatibility layouts retain their documented structural profile.
 
 ## Application schemas
 

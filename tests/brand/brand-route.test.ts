@@ -4,8 +4,12 @@ import { afterEach, beforeEach, expect, test } from 'bun:test';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { loadBrandBundle } from '../../server/brand/bundle';
-import { activeBrand, resetActiveBrand, setActiveBrand } from '../../server/brand/active-brand';
+import {
+  activeBrand,
+  loadBrandBundle,
+  resetActiveBrand,
+  setActiveBrand,
+} from '../../server/brand/bundle';
 import { authPage } from '../../server/routes/auth';
 import { useDefaultBrand } from '../helpers/brand-fixture';
 import { serveStatic } from '../../server/static';

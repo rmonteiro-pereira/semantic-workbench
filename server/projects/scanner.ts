@@ -2,9 +2,11 @@
 // while invalid supported files remain visible.
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, posix } from 'node:path';
+import { Parser } from 'node-sql-parser';
 import { validateInput } from '../../src/input';
 import { rdfSyntax } from '../../src/rdf';
 import type { Issue } from '../../src/diagnostics';
+import { lintSql } from '../../src/sql/lint';
 import { decode, sha256, TEMP_SUFFIX } from './atomic';
 import type { CachedFile, CopyIndex } from './cache';
 import type { Git, FileGitState } from './git';
@@ -17,12 +19,24 @@ import {
   type DataLayout,
   type DirectoryLister,
 } from './paths';
-import { sqlFindings } from '../sql/lint';
 import {
   observeScan,
   observeValidation,
   type ValidationTrigger,
 } from '../observability/workspace-work';
+const parser = new Parser();
+
+/** Returns shared SQL findings, falling back to no findings if linting fails. */
+export function sqlFindings(source: string, filename: string): Issue[] {
+  try {
+    return lintSql(source, filename, (sql, grammar) => {
+      parser.astify(sql, { database: grammar });
+    });
+  } catch {
+    return [];
+  }
+}
+
 /** A recognized file syntax, Git ignore file, or unsupported format. */
 export type Serialization =
   | 'yaml'

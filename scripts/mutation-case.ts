@@ -1,8 +1,7 @@
 // Runs focused assertions against candidate modules to detect deliberately introduced faults.
 import { LOCAL_READER } from '../server/projects/reader';
 import assert from 'node:assert/strict';
-import { setActiveBrand } from '../server/brand/active-brand';
-import { loadBrandBundle } from '../server/brand/bundle';
+import { loadBrandBundle, setActiveBrand } from '../server/brand/bundle';
 import { allowEveryRemote } from '../tests/helpers/remote-credentials-fixture';
 import { observabilityCase } from './observability-cases';
 // Sign-in pages render the brand, so every candidate runs with the shipped bundle active.

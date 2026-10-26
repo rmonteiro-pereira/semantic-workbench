@@ -176,7 +176,7 @@ export const brandMutants: [string, string, string, string][] = [
   ['brand-css', 'server/brand/sanitize-css.ts', 'doubleQuotes % 2 === 0', 'true'],
   [
     'brand-active',
-    'server/brand/active-brand.ts',
+    'server/brand/bundle.ts',
     "if (!active) throw new Error('The brand bundle has not been loaded.');",
     "active ??= { files: new Map(), manifest: { productName: 'x', shortName: 'x' } };",
   ],

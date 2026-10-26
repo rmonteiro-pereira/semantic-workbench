@@ -11,6 +11,7 @@ import { DetailsPanel } from './app/DetailsPanel';
 import { SidebarResizeHandle } from './app/SidebarResizeHandle';
 import { StatusFooter } from './app/StatusFooter';
 import { useStableHandler } from './app/useStableHandler';
+import { clampSidebarWidth } from './app/useSidebar';
 import { useWorkbench } from './app/useWorkbench';
 import { WorkspaceCanvas } from './app/WorkspaceCanvas';
 import { WorkspaceHeader } from './app/WorkspaceHeader';
@@ -32,7 +33,6 @@ function App() {
   }, [message]);
   const {
     sample,
-    clampSidebarWidth,
     sidebar,
     stale,
     current,

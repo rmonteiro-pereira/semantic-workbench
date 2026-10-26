@@ -1,7 +1,7 @@
 // Tests SQL warning locations without changing source text.
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
-import { sqlFindings } from '../server/sql/lint';
+import { sqlFindings } from '../server/projects/scanner';
 import { fillPlaceholders, type SqlFinding } from '../src/sql/lint';
 import { validateInput } from '../src/input';
 // SQL lint: findings at exact, hand-computed positions, warnings only, nothing changed.

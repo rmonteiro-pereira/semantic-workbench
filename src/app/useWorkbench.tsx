@@ -16,7 +16,6 @@ import { useGrouping } from '../useGrouping';
 import { type ImportDraft } from '../ValidationPanel';
 import { parsedDoc } from './parsedDocument';
 import { sample } from './sample';
-import { clampSidebarWidth, readSidebarWidth } from './sidebarWidth';
 import { useExamples } from './useExamples';
 import { useFileNavigation } from './useFileNavigation';
 import { useImport } from './useImport';
@@ -104,7 +103,7 @@ export function useWorkbench({ setMessage }: Options) {
         },
       });
   };
-  const sidebar = useSidebar({ readSidebarWidth });
+  const sidebar = useSidebar();
   const { compact, closeWorkspace } = sidebar;
   const workspaceEvents = useWorkspaceEvents({
     docsRef,
@@ -320,7 +319,6 @@ export function useWorkbench({ setMessage }: Options) {
 
   return {
     sample,
-    clampSidebarWidth,
     sidebar,
     stale,
     current,

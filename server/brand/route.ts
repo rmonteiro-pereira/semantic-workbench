@@ -1,6 +1,6 @@
 // Serves the brand bundle at /brand/<file> from memory. The file names are looked up in the
 // loaded bundle, so no request path ever reaches the file system.
-import { activeBrand } from './active-brand';
+import { activeBrand } from './bundle';
 import { contentSecurityPolicyOf, isBrandFileName } from './files';
 
 const BRAND_PREFIX = '/brand/';

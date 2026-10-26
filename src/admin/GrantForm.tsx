@@ -2,7 +2,7 @@ import { useMe } from '../auth/useMe';
 import { useEffect, useState } from 'react';
 import { SelectField } from './SelectField';
 import { AdminPane, type PaneProps } from './AdminPane';
-import { newIdentifier } from './identifiers';
+import { newIdentifier } from './helpers';
 import { adminApi, problemText } from './api';
 import { commaList } from './change-review';
 import { ReviewChange } from './ReviewChange';

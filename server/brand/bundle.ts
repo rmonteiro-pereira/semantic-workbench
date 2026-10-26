@@ -30,6 +30,24 @@ export type BrandBundle = {
   manifest: BrandManifest;
 };
 
+let active: BrandBundle | undefined;
+
+/** Makes the bundle the one the server serves. */
+export function setActiveBrand(bundle: BrandBundle): void {
+  active = bundle;
+}
+
+/** The bundle in use; throws when start-up has not set one. */
+export function activeBrand(): BrandBundle {
+  if (!active) throw new Error('The brand bundle has not been loaded.');
+  return active;
+}
+
+/** Forgets the chosen bundle, for tests that swap brands. */
+export function resetActiveBrand(): void {
+  active = undefined;
+}
+
 /** Where the shipped defaults live; the image carries this folder next to server/. */
 export const DEFAULT_BRAND_DIRECTORY = fileURLToPath(
   new URL('../../public/brand/', import.meta.url),
