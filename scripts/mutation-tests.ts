@@ -918,9 +918,9 @@ const mutants: [string, string, string, string][] = [
     'await deps.rescan(slug);',
   ],
   // Admin panel: a save is confirmed only for the reviewed proposal and never without a dry run.
-  ['admin-review', 'src/admin/change-review.ts', 'review.key === key', 'true'],
-  ['admin-review', 'src/admin/change-review.ts', 'Boolean(review.result.dryRunId)', 'true'],
-  ['admin-save', 'src/admin/api.ts', 'if (!dryRunId)', 'if (false)'],
+  ['admin-review', 'src/app/admin/change-review.ts', 'review.key === key', 'true'],
+  ['admin-review', 'src/app/admin/change-review.ts', 'Boolean(review.result.dryRunId)', 'true'],
+  ['admin-save', 'src/app/admin/api.ts', 'if (!dryRunId)', 'if (false)'],
 ];
 // Governance guards: approval, demotion, classification, and the write paths that apply them.
 mutants.push(

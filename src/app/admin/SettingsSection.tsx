@@ -1,6 +1,6 @@
 import { Fragment, useCallback, useState } from 'react';
-import { useMe } from '../auth/useMe';
-import { EmptyState } from '../projects/EmptyState';
+import { useMe } from '../../auth/useMe';
+import { EmptyState } from '../../projects/EmptyState';
 import { whenLabel } from './helpers';
 import { AdminConfirmation } from './AdminConfirmation';
 import { adminApi, problemText } from './api';

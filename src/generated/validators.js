@@ -4,8 +4,8 @@ import * as semanticRuntime0Module from 'ajv/dist/runtime/ucs2length.js';
 import * as mappingsRuntime0Module from 'ajv/dist/runtime/ucs2length.js';
 import * as extensionsRuntime0Module from 'ajv/dist/runtime/ucs2length.js';
 import * as extensionsRuntime1Module from 'ajv/dist/runtime/equal.js';
-const generated0 = (() => {
-  const schema21 = {
+const generatedContract = (() => {
+  const odcsContractSchema = {
     $schema: 'https://json-schema.org/draft/2019-09/schema',
     title: 'Open Data Contract Standard (ODCS)',
     description:
@@ -1970,7 +1970,7 @@ const generated0 = (() => {
       },
     },
   };
-  const schema22 = {
+  const odcsContractTagsSchema = {
     type: 'array',
     description:
       'A list of tags that may be assigned to the elements (object or property); the tags keyword may appear at any level. Tags may be used to better categorize an element. For example, `finance`, `sensitive`, `employee_record`.',
@@ -1978,7 +1978,7 @@ const generated0 = (() => {
     items: { type: 'string' },
   };
   const func1 = Object.prototype.hasOwnProperty;
-  const schema23 = {
+  const DataSourcePhysicallyStoredSchema = {
     type: 'object',
     description: 'Data source details of where data is physically stored.',
     properties: {
@@ -2178,7 +2178,7 @@ const generated0 = (() => {
     required: ['server', 'type'],
     unevaluatedProperties: false,
   };
-  const schema24 = {
+  const ApiServerSchema = {
     type: 'object',
     title: 'ApiServer',
     properties: {
@@ -2191,7 +2191,7 @@ const generated0 = (() => {
     },
     required: ['location'],
   };
-  const schema25 = {
+  const AthenaServerSchema = {
     type: 'object',
     title: 'AthenaServer',
     properties: {
@@ -2219,7 +2219,7 @@ const generated0 = (() => {
     },
     required: ['stagingDir', 'schema'],
   };
-  const schema26 = {
+  const AzureServerSchema = {
     type: 'object',
     title: 'AzureServer',
     properties: {
@@ -2247,7 +2247,7 @@ const generated0 = (() => {
     },
     required: ['location', 'format'],
   };
-  const schema27 = {
+  const BigQueryServerSchema = {
     type: 'object',
     title: 'BigQueryServer',
     properties: {
@@ -2256,7 +2256,7 @@ const generated0 = (() => {
     },
     required: ['project', 'dataset'],
   };
-  const schema28 = {
+  const ClickHouseServerSchema = {
     type: 'object',
     title: 'ClickHouseServer',
     properties: {
@@ -2266,7 +2266,7 @@ const generated0 = (() => {
     },
     required: ['host', 'port', 'database'],
   };
-  const schema29 = {
+  const DatabricksServerSchema = {
     type: 'object',
     title: 'DatabricksServer',
     properties: {
@@ -2280,7 +2280,7 @@ const generated0 = (() => {
     },
     required: ['catalog', 'schema'],
   };
-  const schema30 = {
+  const DenodoServerSchema = {
     type: 'object',
     title: 'DenodoServer',
     properties: {
@@ -2290,7 +2290,7 @@ const generated0 = (() => {
     },
     required: ['host', 'port'],
   };
-  const schema31 = {
+  const DremioServerSchema = {
     type: 'object',
     title: 'DremioServer',
     properties: {
@@ -2300,7 +2300,7 @@ const generated0 = (() => {
     },
     required: ['host', 'port'],
   };
-  const schema32 = {
+  const DuckdbServerSchema = {
     type: 'object',
     title: 'DuckdbServer',
     properties: {
@@ -2309,7 +2309,7 @@ const generated0 = (() => {
     },
     required: ['database'],
   };
-  const schema33 = {
+  const GlueServerSchema = {
     type: 'object',
     title: 'GlueServer',
     properties: {
@@ -2337,7 +2337,7 @@ const generated0 = (() => {
     },
     required: ['account', 'database'],
   };
-  const schema34 = {
+  const GoogleCloudSqlServerSchema = {
     type: 'object',
     title: 'GoogleCloudSqlServer',
     properties: {
@@ -2348,7 +2348,7 @@ const generated0 = (() => {
     },
     required: ['host', 'port', 'database', 'schema'],
   };
-  const schema35 = {
+  const IBMDB2ServerSchema = {
     type: 'object',
     title: 'IBMDB2Server',
     properties: {
@@ -2359,7 +2359,7 @@ const generated0 = (() => {
     },
     required: ['host', 'port', 'database'],
   };
-  const schema36 = {
+  const HiveServerSchema = {
     type: 'object',
     title: 'HiveServer',
     properties: {
@@ -2369,7 +2369,7 @@ const generated0 = (() => {
     },
     required: ['host', 'database'],
   };
-  const schema37 = {
+  const ImpalaServerSchema = {
     type: 'object',
     title: 'ImpalaServer',
     properties: {
@@ -2379,7 +2379,7 @@ const generated0 = (() => {
     },
     required: ['host', 'database'],
   };
-  const schema38 = {
+  const InformixServerSchema = {
     type: 'object',
     title: 'InformixServer',
     properties: {
@@ -2389,7 +2389,7 @@ const generated0 = (() => {
     },
     required: ['host', 'database'],
   };
-  const schema39 = {
+  const ZenServerSchema = {
     type: 'object',
     title: 'ZenServer',
     properties: {
@@ -2399,7 +2399,7 @@ const generated0 = (() => {
     },
     required: ['host', 'database'],
   };
-  const schema40 = {
+  const CustomServerSchema = {
     type: 'object',
     title: 'CustomServer',
     properties: {
@@ -2427,7 +2427,7 @@ const generated0 = (() => {
       stream: { type: 'string', description: 'Name of the data stream.' },
     },
   };
-  const schema41 = {
+  const KafkaServerSchema = {
     type: 'object',
     title: 'KafkaServer',
     description: 'Kafka Server',
@@ -2442,7 +2442,7 @@ const generated0 = (() => {
     },
     required: ['host'],
   };
-  const schema42 = {
+  const KinesisDataStreamsServerSchema = {
     type: 'object',
     title: 'KinesisDataStreamsServer',
     description: 'Kinesis Data Streams Server',
@@ -2455,7 +2455,7 @@ const generated0 = (() => {
       },
     },
   };
-  const schema43 = {
+  const LocalServerSchema = {
     type: 'object',
     title: 'LocalServer',
     properties: {
@@ -2472,7 +2472,7 @@ const generated0 = (() => {
     },
     required: ['path', 'format'],
   };
-  const schema44 = {
+  const MySqlServerSchema = {
     type: 'object',
     title: 'MySqlServer',
     properties: {
@@ -2482,7 +2482,7 @@ const generated0 = (() => {
     },
     required: ['host', 'port', 'database'],
   };
-  const schema45 = {
+  const OracleServerSchema = {
     type: 'object',
     title: 'OracleServer',
     properties: {
@@ -2500,7 +2500,7 @@ const generated0 = (() => {
     },
     required: ['host', 'port', 'serviceName'],
   };
-  const schema46 = {
+  const PostgresServerSchema = {
     type: 'object',
     title: 'PostgresServer',
     properties: {
@@ -2511,7 +2511,7 @@ const generated0 = (() => {
     },
     required: ['host', 'port', 'database', 'schema'],
   };
-  const schema48 = {
+  const PrestoServerSchema = {
     type: 'object',
     title: 'PrestoServer',
     properties: {
@@ -2525,13 +2525,13 @@ const generated0 = (() => {
     },
     required: ['host'],
   };
-  const schema49 = {
+  const PubSubServerSchema = {
     type: 'object',
     title: 'PubSubServer',
     properties: { project: { type: 'string', description: 'The GCP project name.' } },
     required: ['project'],
   };
-  const schema50 = {
+  const RedshiftServerSchema = {
     type: 'object',
     title: 'RedshiftServer',
     properties: {
@@ -2547,7 +2547,7 @@ const generated0 = (() => {
     },
     required: ['database', 'schema'],
   };
-  const schema51 = {
+  const S3ServerSchema = {
     type: 'object',
     title: 'S3Server',
     properties: {
@@ -2577,7 +2577,7 @@ const generated0 = (() => {
     },
     required: ['location'],
   };
-  const schema52 = {
+  const SftpServerSchema = {
     type: 'object',
     title: 'SftpServer',
     properties: {
@@ -2602,7 +2602,7 @@ const generated0 = (() => {
     },
     required: ['location'],
   };
-  const schema53 = {
+  const SnowflakeServerSchema = {
     type: 'object',
     title: 'SnowflakeServer',
     properties: {
@@ -2618,7 +2618,7 @@ const generated0 = (() => {
     },
     required: ['account', 'database', 'schema'],
   };
-  const schema54 = {
+  const SqlserverServerSchema = {
     type: 'object',
     title: 'SqlserverServer',
     properties: {
@@ -2646,7 +2646,7 @@ const generated0 = (() => {
     },
     required: ['host', 'database', 'schema'],
   };
-  const schema55 = {
+  const SynapseServerSchema = {
     type: 'object',
     title: 'SynapseServer',
     properties: {
@@ -2656,7 +2656,7 @@ const generated0 = (() => {
     },
     required: ['host', 'port', 'database'],
   };
-  const schema56 = {
+  const TrinoServerSchema = {
     type: 'object',
     title: 'TrinoServer',
     properties: {
@@ -2671,7 +2671,7 @@ const generated0 = (() => {
     },
     required: ['host', 'port', 'catalog', 'schema'],
   };
-  const schema57 = {
+  const VerticaServerSchema = {
     type: 'object',
     title: 'VerticaServer',
     properties: {
@@ -2682,7 +2682,7 @@ const generated0 = (() => {
     },
     required: ['host', 'port', 'database', 'schema'],
   };
-  const schema58 = {
+  const StableTechnicalIdentifierReferencesSchema = {
     type: 'string',
     description:
       "Stable technical identifier for references. Must be unique within its containing array. Per RFC-0026a an id cannot contain '.', '#', '/', '\\', '@', '!', '%', '&' or '^', nor whitespace.",
@@ -2691,7 +2691,7 @@ const generated0 = (() => {
   const formats0 = formats.uri;
   const pattern2 = new RegExp('^sftp://.*', 'u');
   const pattern3 = new RegExp('^[^\\s.#/\\\\@!%&^]+$', 'u');
-  const schema59 = {
+  const OdcsContractSchemaComponent = {
     type: 'object',
     properties: {
       id: { $ref: '#/$defs/StableId' },
@@ -2717,12 +2717,12 @@ const generated0 = (() => {
     required: ['role'],
     additionalProperties: false,
   };
-  const schema61 = {
+  const ListKeyValuePairsSchema = {
     type: 'array',
     description: 'A list of key/value pairs for custom properties.',
     items: { $ref: '#/$defs/CustomProperty' },
   };
-  const schema62 = {
+  const OdcsContractSchemaComponentSchema2 = {
     type: 'object',
     properties: {
       id: { $ref: '#/$defs/StableId' },
@@ -2737,7 +2737,7 @@ const generated0 = (() => {
     required: ['property', 'value'],
     additionalProperties: false,
   };
-  const schema64 = {
+  const OdcsContractSchemaComponentSchema3 = {
     anyOf: [
       { type: 'string' },
       { type: 'number' },
@@ -2748,6 +2748,7 @@ const generated0 = (() => {
       { type: 'object' },
     ],
   };
+
   function validate22(
     data,
     {
@@ -3057,6 +3058,7 @@ const generated0 = (() => {
     return errors === 0;
   }
   validate22.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   function validate21(
     data,
     {
@@ -3111,6 +3113,7 @@ const generated0 = (() => {
     return errors === 0;
   }
   validate21.evaluated = { items: true, dynamicProps: false, dynamicItems: false };
+
   function validate20(
     data,
     {
@@ -3325,6 +3328,7 @@ const generated0 = (() => {
     return errors === 0;
   }
   validate20.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   function validate19(
     data,
     {
@@ -9872,7 +9876,7 @@ const generated0 = (() => {
             instancePath: instancePath + '/type',
             schemaPath: '#/properties/type/enum',
             keyword: 'enum',
-            params: { allowedValues: schema23.properties.type.enum },
+            params: { allowedValues: DataSourcePhysicallyStoredSchema.properties.type.enum },
             message: 'must be equal to one of the allowed values',
           };
           if (vErrors === null) {
@@ -10003,7 +10007,8 @@ const generated0 = (() => {
     return errors === 0;
   }
   validate19.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
-  const schema65 = {
+
+  const ListLinksSourcesProvideSchema = {
     type: 'array',
     description:
       'List of links to sources that provide more details on the dataset; examples would be a link to an external definition, a training video, a git repo, data catalog, or another tool. Authoritative definitions follow the same structure in the standard.',
@@ -10033,6 +10038,7 @@ const generated0 = (() => {
       additionalProperties: false,
     },
   };
+
   function validate28(
     data,
     {
@@ -10224,7 +10230,8 @@ const generated0 = (() => {
     return errors === 0;
   }
   validate28.evaluated = { items: true, dynamicProps: false, dynamicItems: false };
-  const schema67 = {
+
+  const OdcsContractSchemaComponentSchema4 = {
     type: 'object',
     properties: {
       logicalType: {
@@ -10255,7 +10262,7 @@ const generated0 = (() => {
     required: ['name'],
     unevaluatedProperties: false,
   };
-  const schema68 = {
+  const OdcsContractSchemaComponentSchema5 = {
     type: 'object',
     properties: {
       id: { $ref: '#/$defs/StableId' },
@@ -10272,6 +10279,7 @@ const generated0 = (() => {
       customProperties: { $ref: '#/$defs/CustomProperties' },
     },
   };
+
   function validate32(
     data,
     {
@@ -10491,13 +10499,14 @@ const generated0 = (() => {
     dynamicProps: false,
     dynamicItems: false,
   };
-  const schema71 = {
+
+  const OdcsContractSchemaComponentSchema6 = {
     type: 'object',
     $ref: '#/$defs/SchemaBaseProperty',
     required: ['name'],
     unevaluatedProperties: false,
   };
-  const schema72 = {
+  const OdcsContractSchemaComponentSchema7 = {
     type: 'object',
     properties: {
       primaryKey: {
@@ -10898,7 +10907,7 @@ const generated0 = (() => {
     ],
     unevaluatedProperties: false,
   };
-  const schema73 = {
+  const OdcsContractSchemaComponentSchema8 = {
     type: 'object',
     $ref: '#/$defs/SchemaBaseProperty',
     properties: {
@@ -10912,6 +10921,7 @@ const generated0 = (() => {
   };
   const wrapper1 = { validate: validate37 };
   const wrapper0 = { validate: validate36 };
+
   function validate39(
     data,
     {
@@ -11028,7 +11038,8 @@ const generated0 = (() => {
     return errors === 0;
   }
   validate39.evaluated = { props: true, dynamicProps: false, dynamicItems: true };
-  const schema75 = {
+
+  const RelationshipDefinitionAtPropertySchema = {
     type: 'object',
     description:
       "Relationship definition at property level, where 'from' is implicitly the current property.",
@@ -11043,7 +11054,7 @@ const generated0 = (() => {
     ],
     unevaluatedProperties: false,
   };
-  const schema76 = {
+  const BaseDefinitionRelationshipsBetweenSchema = {
     type: 'object',
     description:
       'Base definition for relationships between properties, typically for foreign key constraints.',
@@ -11103,12 +11114,12 @@ const generated0 = (() => {
       customProperties: { $ref: '#/$defs/CustomProperties' },
     },
   };
-  const schema77 = {
+  const ShorthandNotationUsingNameSchema = {
     type: 'string',
     description: 'Shorthand notation using name fields (table_name.column_name)',
     pattern: '^[A-Za-z_][A-Za-z0-9_\\-]*(\\.[A-Za-z_][A-Za-z0-9_\\-]*)+$',
   };
-  const schema78 = {
+  const FullyQualifiedNotationUsingSchema = {
     type: 'string',
     description:
       'Fully qualified notation using id fields (section/id/properties/id), optionally prefixed with external file reference',
@@ -11120,6 +11131,7 @@ const generated0 = (() => {
     '^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+)*$',
     'u',
   );
+
   function validate42(
     data,
     {
@@ -11162,7 +11174,9 @@ const generated0 = (() => {
             instancePath: instancePath + '/type',
             schemaPath: '#/properties/type/enum',
             keyword: 'enum',
-            params: { allowedValues: schema76.properties.type.enum },
+            params: {
+              allowedValues: BaseDefinitionRelationshipsBetweenSchema.properties.type.enum,
+            },
             message: 'must be equal to one of the allowed values',
           };
           if (vErrors === null) {
@@ -11786,6 +11800,7 @@ const generated0 = (() => {
     dynamicProps: false,
     dynamicItems: false,
   };
+
   function validate41(
     data,
     {
@@ -11918,13 +11933,14 @@ const generated0 = (() => {
     return errors === 0;
   }
   validate41.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
-  const schema85 = {
+
+  const DataQualityRulesAllSchema = {
     type: 'array',
     description:
       'Data quality rules with all the relevant information for rule setup and execution.',
     items: { $ref: '#/$defs/DataQuality' },
   };
-  const schema86 = {
+  const OdcsContractSchemaComponentSchema9 = {
     type: 'object',
     properties: {
       id: { $ref: '#/$defs/StableId' },
@@ -12006,7 +12022,7 @@ const generated0 = (() => {
     ],
     unevaluatedProperties: false,
   };
-  const schema91 = {
+  const OdcsContractSchemaComponentSchema10 = {
     type: 'object',
     properties: {
       engine: {
@@ -12018,7 +12034,7 @@ const generated0 = (() => {
     },
     required: ['engine', 'implementation'],
   };
-  const schema87 = {
+  const OdcsContractSchemaComponentSchema11 = {
     type: 'object',
     allOf: [{ $ref: '#/$defs/DataQualityOperators' }],
     properties: {
@@ -12032,7 +12048,7 @@ const generated0 = (() => {
     },
     required: ['metric'],
   };
-  const schema88 = {
+  const CommonComparisonOperatorsDataSchema = {
     type: 'object',
     description: 'Common comparison operators for data quality checks.',
     oneOf: [
@@ -12122,6 +12138,7 @@ const generated0 = (() => {
       },
     ],
   };
+
   function validate48(
     data,
     {
@@ -12766,7 +12783,7 @@ const generated0 = (() => {
             instancePath: instancePath + '/metric',
             schemaPath: '#/properties/metric/enum',
             keyword: 'enum',
-            params: { allowedValues: schema87.properties.metric.enum },
+            params: { allowedValues: OdcsContractSchemaComponentSchema11.properties.metric.enum },
             message: 'must be equal to one of the allowed values',
           };
           if (vErrors === null) {
@@ -12832,7 +12849,8 @@ const generated0 = (() => {
     return errors === 0;
   }
   validate48.evaluated = { dynamicProps: true, dynamicItems: false };
-  const schema89 = {
+
+  const OdcsContractSchemaComponentSchema12 = {
     type: 'object',
     allOf: [{ $ref: '#/$defs/DataQualityOperators' }],
     properties: {
@@ -12844,6 +12862,7 @@ const generated0 = (() => {
     },
     required: ['query'],
   };
+
   function validate50(
     data,
     {
@@ -13493,6 +13512,7 @@ const generated0 = (() => {
     return errors === 0;
   }
   validate50.evaluated = { dynamicProps: true, dynamicItems: false };
+
   function validate47(
     data,
     {
@@ -14112,7 +14132,7 @@ const generated0 = (() => {
             instancePath: instancePath + '/dimension',
             schemaPath: '#/properties/dimension/enum',
             keyword: 'enum',
-            params: { allowedValues: schema86.properties.dimension.enum },
+            params: { allowedValues: OdcsContractSchemaComponentSchema9.properties.dimension.enum },
             message: 'must be equal to one of the allowed values',
           };
           if (vErrors === null) {
@@ -14269,7 +14289,7 @@ const generated0 = (() => {
             instancePath: instancePath + '/type',
             schemaPath: '#/properties/type/enum',
             keyword: 'enum',
-            params: { allowedValues: schema86.properties.type.enum },
+            params: { allowedValues: OdcsContractSchemaComponentSchema9.properties.type.enum },
             message: 'must be equal to one of the allowed values',
           };
           if (vErrors === null) {
@@ -14335,6 +14355,7 @@ const generated0 = (() => {
     return errors === 0;
   }
   validate47.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   function validate46(
     data,
     {
@@ -14389,6 +14410,7 @@ const generated0 = (() => {
     return errors === 0;
   }
   validate46.evaluated = { items: true, dynamicProps: false, dynamicItems: false };
+
   function validate37(
     data,
     {
@@ -15332,7 +15354,8 @@ const generated0 = (() => {
                   keyword: 'enum',
                   params: {
                     allowedValues:
-                      schema72.allOf[4].then.properties.logicalTypeOptions.properties.format.enum,
+                      OdcsContractSchemaComponentSchema7.allOf[4].then.properties.logicalTypeOptions
+                        .properties.format.enum,
                   },
                   message: 'must be equal to one of the allowed values',
                 };
@@ -15609,7 +15632,8 @@ const generated0 = (() => {
                   keyword: 'enum',
                   params: {
                     allowedValues:
-                      schema72.allOf[5].then.properties.logicalTypeOptions.properties.format.enum,
+                      OdcsContractSchemaComponentSchema7.allOf[5].then.properties.logicalTypeOptions
+                        .properties.format.enum,
                   },
                   message: 'must be equal to one of the allowed values',
                 };
@@ -16263,7 +16287,9 @@ const generated0 = (() => {
             instancePath: instancePath + '/logicalType',
             schemaPath: '#/properties/logicalType/enum',
             keyword: 'enum',
-            params: { allowedValues: schema72.properties.logicalType.enum },
+            params: {
+              allowedValues: OdcsContractSchemaComponentSchema7.properties.logicalType.enum,
+            },
             message: 'must be equal to one of the allowed values',
           };
           if (vErrors === null) {
@@ -16778,6 +16804,7 @@ const generated0 = (() => {
     return errors === 0;
   }
   validate37.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   function validate36(
     data,
     {
@@ -16838,7 +16865,8 @@ const generated0 = (() => {
     return errors === 0;
   }
   validate36.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
-  const schema94 = {
+
+  const RelationshipDefinitionAtSchemaSchema = {
     type: 'object',
     description:
       "Relationship definition at schema level, requiring both 'from' and 'to' fields with matching types.",
@@ -16864,6 +16892,7 @@ const generated0 = (() => {
     ],
     unevaluatedProperties: false,
   };
+
   function validate58(
     data,
     {
@@ -17161,6 +17190,7 @@ const generated0 = (() => {
     return errors === 0;
   }
   validate58.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   function validate31(
     data,
     {
@@ -17224,7 +17254,9 @@ const generated0 = (() => {
             instancePath: instancePath + '/logicalType',
             schemaPath: '#/properties/logicalType/enum',
             keyword: 'enum',
-            params: { allowedValues: schema67.properties.logicalType.enum },
+            params: {
+              allowedValues: OdcsContractSchemaComponentSchema4.properties.logicalType.enum,
+            },
             message: 'must be equal to one of the allowed values',
           };
           if (vErrors === null) {
@@ -17402,12 +17434,13 @@ const generated0 = (() => {
     return errors === 0;
   }
   validate31.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
-  const schema95 = {
+
+  const TopLevelSupportChannelsSchema = {
     type: 'array',
     description: 'Top level for support channels.',
     items: { $ref: '#/$defs/SupportItem' },
   };
-  const schema96 = {
+  const OdcsContractSchemaComponentSchema13 = {
     type: 'object',
     properties: {
       id: { $ref: '#/$defs/StableId' },
@@ -17439,6 +17472,7 @@ const generated0 = (() => {
     required: ['channel'],
     additionalProperties: false,
   };
+
   function validate64(
     data,
     {
@@ -17671,6 +17705,7 @@ const generated0 = (() => {
     return errors === 0;
   }
   validate64.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   function validate63(
     data,
     {
@@ -17725,7 +17760,8 @@ const generated0 = (() => {
     return errors === 0;
   }
   validate63.evaluated = { items: true, dynamicProps: false, dynamicItems: false };
-  const schema98 = {
+
+  const OdcsContractSchemaComponentSchema14 = {
     type: 'object',
     properties: {
       id: { $ref: '#/$defs/StableId' },
@@ -17744,6 +17780,7 @@ const generated0 = (() => {
     },
     additionalProperties: false,
   };
+
   function validate68(
     data,
     {
@@ -17892,7 +17929,8 @@ const generated0 = (() => {
     return errors === 0;
   }
   validate68.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
-  const schema100 = {
+
+  const TeamInformationSchema = {
     type: 'object',
     description: 'Team information.',
     additionalProperties: false,
@@ -17914,7 +17952,7 @@ const generated0 = (() => {
       authoritativeDefinitions: { $ref: '#/$defs/AuthoritativeDefinitions' },
     },
   };
-  const schema102 = {
+  const TeamMemberInformationSchema = {
     type: 'object',
     description: 'Team member information.',
     additionalProperties: false,
@@ -17953,6 +17991,7 @@ const generated0 = (() => {
     required: ['username'],
   };
   const formats18 = formats.date;
+
   function validate71(
     data,
     {
@@ -17989,7 +18028,7 @@ const generated0 = (() => {
         errors++;
       }
       for (const key0 in data) {
-        if (!func1.call(schema102.properties, key0)) {
+        if (!func1.call(TeamMemberInformationSchema.properties, key0)) {
           const err1 = {
             instancePath,
             schemaPath: '#/additionalProperties',
@@ -18296,6 +18335,7 @@ const generated0 = (() => {
     return errors === 0;
   }
   validate71.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   function validate70(
     data,
     {
@@ -18549,7 +18589,8 @@ const generated0 = (() => {
     return errors === 0;
   }
   validate70.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
-  const schema106 = {
+
+  const OdcsContractSchemaComponentSchema15 = {
     type: 'object',
     properties: {
       id: { $ref: '#/$defs/StableId' },
@@ -18609,7 +18650,7 @@ const generated0 = (() => {
     required: ['property', 'value'],
     additionalProperties: false,
   };
-  const schema108 = {
+  const OdcsContractSchemaComponentSchema16 = {
     anyOf: [
       { type: 'string' },
       { type: 'number' },
@@ -18618,6 +18659,7 @@ const generated0 = (() => {
       { type: 'null' },
     ],
   };
+
   function validate80(
     data,
     {
@@ -18669,7 +18711,7 @@ const generated0 = (() => {
         errors++;
       }
       for (const key0 in data) {
-        if (!func1.call(schema106.properties, key0)) {
+        if (!func1.call(OdcsContractSchemaComponentSchema15.properties, key0)) {
           const err2 = {
             instancePath,
             schemaPath: '#/additionalProperties',
@@ -19095,7 +19137,9 @@ const generated0 = (() => {
     return errors === 0;
   }
   validate80.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   const formats22 = formats['date-time'];
+
   function validate18(
     data,
     {
@@ -19192,7 +19236,7 @@ const generated0 = (() => {
         errors++;
       }
       for (const key0 in data) {
-        if (!func1.call(schema21.properties, key0)) {
+        if (!func1.call(odcsContractSchema.properties, key0)) {
           const err5 = {
             instancePath,
             schemaPath: '#/additionalProperties',
@@ -19247,7 +19291,7 @@ const generated0 = (() => {
             instancePath: instancePath + '/kind',
             schemaPath: '#/properties/kind/enum',
             keyword: 'enum',
-            params: { allowedValues: schema21.properties.kind.enum },
+            params: { allowedValues: odcsContractSchema.properties.kind.enum },
             message: 'must be equal to one of the allowed values',
           };
           if (vErrors === null) {
@@ -19290,7 +19334,7 @@ const generated0 = (() => {
             instancePath: instancePath + '/apiVersion',
             schemaPath: '#/properties/apiVersion/enum',
             keyword: 'enum',
-            params: { allowedValues: schema21.properties.apiVersion.enum },
+            params: { allowedValues: odcsContractSchema.properties.apiVersion.enum },
             message: 'must be equal to one of the allowed values',
           };
           if (vErrors === null) {
@@ -19890,13 +19934,15 @@ const generated0 = (() => {
     return errors === 0;
   }
   validate18.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   return { contract: validate18 };
 })();
-const generated1 = (() => {
+const generatedSemantic = (() => {
   const semanticRuntime0 = semanticRuntime0Module.default?.__esModule
     ? semanticRuntime0Module.default
     : semanticRuntime0Module;
-  const schema31 = {
+
+  const ossieSemanticModelSchema = {
     $schema: 'https://json-schema.org/draft/2020-12/schema',
     $id: 'https://github.com/apache/ossie/core-spec/ossie-schema.json',
     title: 'Apache Ossie Core Metadata Specification',
@@ -20175,13 +20221,16 @@ const generated1 = (() => {
       },
     },
   };
-  const schema32 = {
+  const ossieSemanticModelSemanticModelNameSchema = {
     type: 'string',
     minLength: 1,
     description: 'Unique identifier for the semantic model',
   };
-  const schema33 = { type: 'string', description: 'Human-readable description' };
-  const schema34 = {
+  const ossieSemanticModelSemanticModelDescriptionSchema = {
+    type: 'string',
+    description: 'Human-readable description',
+  };
+  const ossieSemanticModelAIContextSchema = {
     description: 'Additional context for AI tools',
     oneOf: [
       { type: 'string' },
@@ -20208,13 +20257,13 @@ const generated1 = (() => {
     ],
   };
   const func1 = semanticRuntime0.default;
-  const schema35 = {
+  const CollectionLogicalDatasetsSchema = {
     type: 'array',
     items: { $ref: '#/$defs/Dataset' },
     minItems: 1,
     description: 'Collection of logical datasets',
   };
-  const schema36 = {
+  const LogicalDatasetRepresentingBusinessSchema = {
     type: 'object',
     description: 'Logical dataset representing a business entity (fact or dimension table)',
     properties: {
@@ -20244,7 +20293,7 @@ const generated1 = (() => {
     required: ['name', 'source'],
     additionalProperties: false,
   };
-  const schema38 = {
+  const RowLevelAttributeGroupingSchema = {
     type: 'object',
     description: 'Row-level attribute for grouping, filtering, and metric expressions',
     properties: {
@@ -20264,7 +20313,7 @@ const generated1 = (() => {
     required: ['name', 'expression'],
     additionalProperties: false,
   };
-  const schema42 = {
+  const DimensionMetadataSchema = {
     type: 'object',
     description: 'Dimension metadata',
     properties: {
@@ -20276,7 +20325,7 @@ const generated1 = (() => {
     },
     additionalProperties: false,
   };
-  const schema43 = {
+  const LogicalDataTypeFieldsSchema = {
     type: 'string',
     enum: [
       'String',
@@ -20293,7 +20342,7 @@ const generated1 = (() => {
     description:
       'Logical data type for fields and metrics, independent of role (e.g. dimension vs fact) and physical representation. `Decimal` is exact base-10 with unspecified precision and scale; `Float` is approximate. `DateTime` has no timezone or offset, while `DateTimeTz` identifies an instant using offset or timezone context but does not guarantee preservation of a named timezone. Omit `datatype` when unknown; use `Opaque` plus `custom_extensions` for a known type outside the portable vocabulary.',
   };
-  const schema39 = {
+  const ExpressionDefinitionMultiDialectSchema = {
     type: 'object',
     description: 'Expression definition with multi-dialect support',
     properties: {
@@ -20302,7 +20351,7 @@ const generated1 = (() => {
     required: ['dialects'],
     additionalProperties: false,
   };
-  const schema40 = {
+  const ExpressionSpecificDialectSchema = {
     type: 'object',
     description: 'Expression in a specific dialect',
     properties: {
@@ -20312,7 +20361,7 @@ const generated1 = (() => {
     required: ['dialect', 'expression'],
     additionalProperties: false,
   };
-  const schema41 = {
+  const SupportedSQLExpressionLanguageSchema = {
     type: 'string',
     enum: [
       'ANSI_SQL',
@@ -20330,6 +20379,7 @@ const generated1 = (() => {
     ],
     description: 'Supported SQL and expression language dialects',
   };
+
   function validate25(
     data,
     {
@@ -20434,7 +20484,7 @@ const generated1 = (() => {
             instancePath: instancePath + '/dialect',
             schemaPath: '#/$defs/Dialect/enum',
             keyword: 'enum',
-            params: { allowedValues: schema41.enum },
+            params: { allowedValues: SupportedSQLExpressionLanguageSchema.enum },
             message: 'must be equal to one of the allowed values',
           };
           if (vErrors === null) {
@@ -20481,6 +20531,7 @@ const generated1 = (() => {
     return errors === 0;
   }
   validate25.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   function validate24(
     data,
     {
@@ -20601,7 +20652,8 @@ const generated1 = (() => {
     return errors === 0;
   }
   validate24.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
-  const schema45 = {
+
+  const VendorSpecificAttributesExtensibilitySchema = {
     type: 'object',
     description: 'Vendor-specific attributes for extensibility',
     properties: {
@@ -20611,7 +20663,7 @@ const generated1 = (() => {
     required: ['vendor_name', 'data'],
     additionalProperties: false,
   };
-  const schema46 = {
+  const VendorNameCustomExtensionsSchema = {
     type: 'string',
     examples: [
       'COMMON',
@@ -20626,6 +20678,7 @@ const generated1 = (() => {
     ],
     description: 'Vendor name for custom extensions. Any string value is accepted.',
   };
+
   function validate28(
     data,
     {
@@ -20746,6 +20799,7 @@ const generated1 = (() => {
     return errors === 0;
   }
   validate28.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   function validate23(
     data,
     {
@@ -20994,7 +21048,7 @@ const generated1 = (() => {
             instancePath: instancePath + '/datatype',
             schemaPath: '#/$defs/DataType/enum',
             keyword: 'enum',
-            params: { allowedValues: schema43.enum },
+            params: { allowedValues: LogicalDataTypeFieldsSchema.enum },
             message: 'must be equal to one of the allowed values',
           };
           if (vErrors === null) {
@@ -21227,6 +21281,7 @@ const generated1 = (() => {
     return errors === 0;
   }
   validate23.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   function validate22(
     data,
     {
@@ -21785,6 +21840,7 @@ const generated1 = (() => {
     return errors === 0;
   }
   validate22.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   function validate21(
     data,
     {
@@ -21854,12 +21910,13 @@ const generated1 = (() => {
     return errors === 0;
   }
   validate21.evaluated = { items: true, dynamicProps: false, dynamicItems: false };
-  const schema47 = {
+
+  const DefinesHowDatasetsConnectedSchema = {
     type: 'array',
     items: { $ref: '#/$defs/Relationship' },
     description: 'Defines how datasets are connected',
   };
-  const schema48 = {
+  const ForeignKeyRelationshipBetweenSchema = {
     type: 'object',
     description: 'Foreign key relationship between datasets',
     properties: {
@@ -21892,6 +21949,7 @@ const generated1 = (() => {
     required: ['name', 'from', 'to', 'from_columns', 'to_columns'],
     additionalProperties: false,
   };
+
   function validate35(
     data,
     {
@@ -22442,6 +22500,7 @@ const generated1 = (() => {
     return errors === 0;
   }
   validate35.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   function validate34(
     data,
     {
@@ -22496,12 +22555,13 @@ const generated1 = (() => {
     return errors === 0;
   }
   validate34.evaluated = { items: true, dynamicProps: false, dynamicItems: false };
-  const schema50 = {
+
+  const QuantifiableMeasuresSpanningDatasetsSchema = {
     type: 'array',
     items: { $ref: '#/$defs/Metric' },
     description: 'Quantifiable measures spanning datasets',
   };
-  const schema51 = {
+  const QuantitativeMeasureDefinedBusinessSchema = {
     type: 'object',
     description: 'Quantitative measure defined on business data',
     properties: {
@@ -22518,6 +22578,7 @@ const generated1 = (() => {
     required: ['name', 'expression'],
     additionalProperties: false,
   };
+
   function validate40(
     data,
     {
@@ -22694,7 +22755,7 @@ const generated1 = (() => {
             instancePath: instancePath + '/datatype',
             schemaPath: '#/$defs/DataType/enum',
             keyword: 'enum',
-            params: { allowedValues: schema43.enum },
+            params: { allowedValues: LogicalDataTypeFieldsSchema.enum },
             message: 'must be equal to one of the allowed values',
           };
           if (vErrors === null) {
@@ -22927,6 +22988,7 @@ const generated1 = (() => {
     return errors === 0;
   }
   validate40.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   function validate39(
     data,
     {
@@ -22981,7 +23043,12 @@ const generated1 = (() => {
     return errors === 0;
   }
   validate39.evaluated = { items: true, dynamicProps: false, dynamicItems: false };
-  const schema54 = { type: 'array', items: { $ref: '#/$defs/CustomExtension' } };
+
+  const OssieSemanticModelSchemaComponent = {
+    type: 'array',
+    items: { $ref: '#/$defs/CustomExtension' },
+  };
+
   function validate45(
     data,
     {
@@ -23036,6 +23103,7 @@ const generated1 = (() => {
     return errors === 0;
   }
   validate45.evaluated = { items: true, dynamicProps: false, dynamicItems: false };
+
   function validate20(
     data,
     {
@@ -23046,8 +23114,8 @@ const generated1 = (() => {
       dynamicAnchors = {},
     } = {},
   ) {
-    /*# sourceURL="https://github.com/apache/ossie/core-spec/ossie-schema.json" */ let vErrors =
-      null;
+    /*# sourceURL="https://github.com/apache/ossie/core-spec/ossie-schema.json" */
+    let vErrors = null;
     let errors = 0;
     const evaluated0 = validate20.evaluated;
     if (evaluated0.dynamicProps) {
@@ -23463,13 +23531,15 @@ const generated1 = (() => {
     return errors === 0;
   }
   validate20.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   return { semantic: validate20 };
 })();
-const generated2 = (() => {
+const generatedMappings = (() => {
   const mappingsRuntime0 = mappingsRuntime0Module.default?.__esModule
     ? mappingsRuntime0Module.default
     : mappingsRuntime0Module;
-  const schema31 = {
+
+  const ossieMappingSchema = {
     $schema: 'https://json-schema.org/draft/2020-12/schema',
     $id: 'https://github.com/apache/ossie/ontology/mapping.json',
     title: 'Apache Ossie Mapping Specification',
@@ -23530,7 +23600,7 @@ const generated2 = (() => {
       },
     },
   };
-  const schema32 = {
+  const ossieMappingDocumentReferenceSchema = {
     type: 'object',
     description:
       'Reference to another Ossie document by its logical name, with an iri saying where to resolve it from',
@@ -23552,7 +23622,7 @@ const generated2 = (() => {
     additionalProperties: false,
   };
   const func1 = mappingsRuntime0.default;
-  const schema71 = {
+  const MappingsLogicalModelConstructsSchema = {
     type: 'object',
     description: 'Mappings from logical model constructs to some ontology component',
     properties: {
@@ -23579,7 +23649,7 @@ const generated2 = (() => {
     anyOf: [{ required: ['object_mappings'] }, { required: ['link_mappings'] }],
     additionalProperties: false,
   };
-  const schema72 = {
+  const PatternLogicalLevelExpressionsSchema = {
     type: 'object',
     description:
       'Pattern of logical-level expressions for identifying objects of some concept using the values in one or more fields',
@@ -23599,8 +23669,8 @@ const generated2 = (() => {
     anyOf: [{ required: ['expression'] }, { required: ['referent_mappings'] }],
     additionalProperties: false,
   };
-  const schema60 = { type: 'string', description: 'ANSI SQL expression' };
-  const schema73 = {
+  const ossieOntologyExpressionSchema = { type: 'string', description: 'ANSI SQL expression' };
+  const MappingLogicalModelConstructsSchema = {
     type: 'object',
     description:
       'Mapping from logical model constructs to a relationship used to references some entity type in the ontology',
@@ -23614,6 +23684,7 @@ const generated2 = (() => {
     additionalProperties: false,
   };
   const wrapper0 = { validate: validate58 };
+
   function validate58(
     data,
     {
@@ -23837,6 +23908,7 @@ const generated2 = (() => {
     return errors === 0;
   }
   validate58.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   function validate57(
     data,
     {
@@ -24042,7 +24114,8 @@ const generated2 = (() => {
     return errors === 0;
   }
   validate57.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
-  const schema76 = {
+
+  const MappingLogicalSchemaLinksSchema = {
     type: 'object',
     description: 'Mapping from logical schema to the links of relationships in the ontology',
     properties: {
@@ -24061,6 +24134,7 @@ const generated2 = (() => {
     additionalProperties: false,
   };
   const wrapper1 = { validate: validate61 };
+
   function validate61(
     data,
     {
@@ -24200,6 +24274,7 @@ const generated2 = (() => {
     return errors === 0;
   }
   validate61.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   function validate66(
     data,
     {
@@ -24452,8 +24527,9 @@ const generated2 = (() => {
     return errors === 0;
   }
   validate66.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
-  const schema58 = { type: 'array', items: { $ref: '#/$defs/CustomExtension' } };
-  const schema49 = {
+
+  const OssieMappingSchemaComponent = { type: 'array', items: { $ref: '#/$defs/CustomExtension' } };
+  const VendorSpecificAttributesExtensibilitySchema = {
     type: 'object',
     description: 'Vendor-specific attributes for extensibility',
     properties: {
@@ -24463,7 +24539,7 @@ const generated2 = (() => {
     required: ['vendor_name', 'data'],
     additionalProperties: false,
   };
-  const schema50 = {
+  const VendorNameCustomExtensionsSchema = {
     type: 'string',
     examples: [
       'COMMON',
@@ -24478,6 +24554,7 @@ const generated2 = (() => {
     ],
     description: 'Vendor name for custom extensions. Any string value is accepted.',
   };
+
   function validate30(
     data,
     {
@@ -24598,6 +24675,7 @@ const generated2 = (() => {
     return errors === 0;
   }
   validate30.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   function validate70(
     data,
     {
@@ -24652,6 +24730,7 @@ const generated2 = (() => {
     return errors === 0;
   }
   validate70.evaluated = { items: true, dynamicProps: false, dynamicItems: false };
+
   function validate20(
     data,
     {
@@ -24662,7 +24741,8 @@ const generated2 = (() => {
       dynamicAnchors = {},
     } = {},
   ) {
-    /*# sourceURL="https://github.com/apache/ossie/ontology/mapping.json" */ let vErrors = null;
+    /*# sourceURL="https://github.com/apache/ossie/ontology/mapping.json" */
+    let vErrors = null;
     let errors = 0;
     const evaluated0 = validate20.evaluated;
     if (evaluated0.dynamicProps) {
@@ -25163,10 +25243,11 @@ const generated2 = (() => {
     return errors === 0;
   }
   validate20.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
-  const schema79 = {
+
+  const ossieMappingReferencedSchema = {
     $ref: 'https://raw.githubusercontent.com/apache/ossie/main/ontology/ontology.json#/$defs/OntologyMap',
   };
-  const schema70 = {
+  const MapConstructsLogicalModelSchema = {
     type: 'object',
     description: 'Map from the constructs of some logical model to some ontology',
     properties: {
@@ -25188,7 +25269,7 @@ const generated2 = (() => {
     required: ['semantic_model', 'concept_mappings'],
     additionalProperties: false,
   };
-  const schema35 = {
+  const ApacheOssieCoreMetadataSpecificationSchema = {
     $schema: 'https://json-schema.org/draft/2020-12/schema',
     $id: 'https://github.com/apache/ossie/core-spec/ossie-schema.json',
     title: 'Apache Ossie Core Metadata Specification',
@@ -25467,13 +25548,16 @@ const generated2 = (() => {
       },
     },
   };
-  const schema36 = {
+  const UniqueIdentifierSemanticModelSchema = {
     type: 'string',
     minLength: 1,
     description: 'Unique identifier for the semantic model',
   };
-  const schema37 = { type: 'string', description: 'Human-readable description' };
-  const schema38 = {
+  const HumanReadableDescriptionSchema = {
+    type: 'string',
+    description: 'Human-readable description',
+  };
+  const ossieSemanticModelAIContextSchema = {
     description: 'Additional context for AI tools',
     oneOf: [
       { type: 'string' },
@@ -25499,13 +25583,13 @@ const generated2 = (() => {
       },
     ],
   };
-  const schema39 = {
+  const CollectionLogicalDatasetsSchema = {
     type: 'array',
     items: { $ref: '#/$defs/Dataset' },
     minItems: 1,
     description: 'Collection of logical datasets',
   };
-  const schema40 = {
+  const LogicalDatasetRepresentingBusinessSchema = {
     type: 'object',
     description: 'Logical dataset representing a business entity (fact or dimension table)',
     properties: {
@@ -25535,7 +25619,7 @@ const generated2 = (() => {
     required: ['name', 'source'],
     additionalProperties: false,
   };
-  const schema42 = {
+  const RowLevelAttributeGroupingSchema = {
     type: 'object',
     description: 'Row-level attribute for grouping, filtering, and metric expressions',
     properties: {
@@ -25555,7 +25639,7 @@ const generated2 = (() => {
     required: ['name', 'expression'],
     additionalProperties: false,
   };
-  const schema46 = {
+  const DimensionMetadataSchema = {
     type: 'object',
     description: 'Dimension metadata',
     properties: {
@@ -25567,7 +25651,7 @@ const generated2 = (() => {
     },
     additionalProperties: false,
   };
-  const schema47 = {
+  const LogicalDataTypeFieldsSchema = {
     type: 'string',
     enum: [
       'String',
@@ -25584,7 +25668,7 @@ const generated2 = (() => {
     description:
       'Logical data type for fields and metrics, independent of role (e.g. dimension vs fact) and physical representation. `Decimal` is exact base-10 with unspecified precision and scale; `Float` is approximate. `DateTime` has no timezone or offset, while `DateTimeTz` identifies an instant using offset or timezone context but does not guarantee preservation of a named timezone. Omit `datatype` when unknown; use `Opaque` plus `custom_extensions` for a known type outside the portable vocabulary.',
   };
-  const schema43 = {
+  const ExpressionDefinitionMultiDialectSchema = {
     type: 'object',
     description: 'Expression definition with multi-dialect support',
     properties: {
@@ -25593,7 +25677,7 @@ const generated2 = (() => {
     required: ['dialects'],
     additionalProperties: false,
   };
-  const schema44 = {
+  const ExpressionSpecificDialectSchema = {
     type: 'object',
     description: 'Expression in a specific dialect',
     properties: {
@@ -25603,7 +25687,7 @@ const generated2 = (() => {
     required: ['dialect', 'expression'],
     additionalProperties: false,
   };
-  const schema45 = {
+  const SupportedSQLExpressionLanguageSchema = {
     type: 'string',
     enum: [
       'ANSI_SQL',
@@ -25621,6 +25705,7 @@ const generated2 = (() => {
     ],
     description: 'Supported SQL and expression language dialects',
   };
+
   function validate27(
     data,
     {
@@ -25725,7 +25810,7 @@ const generated2 = (() => {
             instancePath: instancePath + '/dialect',
             schemaPath: '#/$defs/Dialect/enum',
             keyword: 'enum',
-            params: { allowedValues: schema45.enum },
+            params: { allowedValues: SupportedSQLExpressionLanguageSchema.enum },
             message: 'must be equal to one of the allowed values',
           };
           if (vErrors === null) {
@@ -25772,6 +25857,7 @@ const generated2 = (() => {
     return errors === 0;
   }
   validate27.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   function validate26(
     data,
     {
@@ -25892,6 +25978,7 @@ const generated2 = (() => {
     return errors === 0;
   }
   validate26.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   function validate25(
     data,
     {
@@ -26140,7 +26227,7 @@ const generated2 = (() => {
             instancePath: instancePath + '/datatype',
             schemaPath: '#/$defs/DataType/enum',
             keyword: 'enum',
-            params: { allowedValues: schema47.enum },
+            params: { allowedValues: LogicalDataTypeFieldsSchema.enum },
             message: 'must be equal to one of the allowed values',
           };
           if (vErrors === null) {
@@ -26373,6 +26460,7 @@ const generated2 = (() => {
     return errors === 0;
   }
   validate25.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   function validate24(
     data,
     {
@@ -26931,6 +27019,7 @@ const generated2 = (() => {
     return errors === 0;
   }
   validate24.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   function validate23(
     data,
     {
@@ -27000,12 +27089,13 @@ const generated2 = (() => {
     return errors === 0;
   }
   validate23.evaluated = { items: true, dynamicProps: false, dynamicItems: false };
-  const schema51 = {
+
+  const DefinesHowDatasetsConnectedSchema = {
     type: 'array',
     items: { $ref: '#/$defs/Relationship' },
     description: 'Defines how datasets are connected',
   };
-  const schema52 = {
+  const ForeignKeyRelationshipBetweenSchema = {
     type: 'object',
     description: 'Foreign key relationship between datasets',
     properties: {
@@ -27038,6 +27128,7 @@ const generated2 = (() => {
     required: ['name', 'from', 'to', 'from_columns', 'to_columns'],
     additionalProperties: false,
   };
+
   function validate37(
     data,
     {
@@ -27588,6 +27679,7 @@ const generated2 = (() => {
     return errors === 0;
   }
   validate37.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   function validate36(
     data,
     {
@@ -27642,12 +27734,13 @@ const generated2 = (() => {
     return errors === 0;
   }
   validate36.evaluated = { items: true, dynamicProps: false, dynamicItems: false };
-  const schema54 = {
+
+  const QuantifiableMeasuresSpanningDatasetsSchema = {
     type: 'array',
     items: { $ref: '#/$defs/Metric' },
     description: 'Quantifiable measures spanning datasets',
   };
-  const schema55 = {
+  const QuantitativeMeasureDefinedBusinessSchema = {
     type: 'object',
     description: 'Quantitative measure defined on business data',
     properties: {
@@ -27664,6 +27757,7 @@ const generated2 = (() => {
     required: ['name', 'expression'],
     additionalProperties: false,
   };
+
   function validate42(
     data,
     {
@@ -27840,7 +27934,7 @@ const generated2 = (() => {
             instancePath: instancePath + '/datatype',
             schemaPath: '#/$defs/DataType/enum',
             keyword: 'enum',
-            params: { allowedValues: schema47.enum },
+            params: { allowedValues: LogicalDataTypeFieldsSchema.enum },
             message: 'must be equal to one of the allowed values',
           };
           if (vErrors === null) {
@@ -28073,6 +28167,7 @@ const generated2 = (() => {
     return errors === 0;
   }
   validate42.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   function validate41(
     data,
     {
@@ -28127,6 +28222,7 @@ const generated2 = (() => {
     return errors === 0;
   }
   validate41.evaluated = { items: true, dynamicProps: false, dynamicItems: false };
+
   function validate47(
     data,
     {
@@ -28181,6 +28277,7 @@ const generated2 = (() => {
     return errors === 0;
   }
   validate47.evaluated = { items: true, dynamicProps: false, dynamicItems: false };
+
   function validate22(
     data,
     {
@@ -28191,8 +28288,8 @@ const generated2 = (() => {
       dynamicAnchors = {},
     } = {},
   ) {
-    /*# sourceURL="https://github.com/apache/ossie/core-spec/ossie-schema.json" */ let vErrors =
-      null;
+    /*# sourceURL="https://github.com/apache/ossie/core-spec/ossie-schema.json" */
+    let vErrors = null;
     let errors = 0;
     const evaluated0 = validate22.evaluated;
     if (evaluated0.dynamicProps) {
@@ -28608,6 +28705,7 @@ const generated2 = (() => {
     return errors === 0;
   }
   validate22.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   function validate56(
     data,
     {
@@ -28860,6 +28958,7 @@ const generated2 = (() => {
     return errors === 0;
   }
   validate56.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   function validate74(
     data,
     {
@@ -29035,6 +29134,7 @@ const generated2 = (() => {
     return errors === 0;
   }
   validate74.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   function validate73(
     data,
     {
@@ -29064,7 +29164,8 @@ const generated2 = (() => {
     return errors === 0;
   }
   validate73.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
-  const schema34 = {
+
+  const ossieOntologySchema = {
     $schema: 'https://json-schema.org/draft/2020-12/schema',
     $id: 'https://github.com/apache/ossie/ontology/ontology.json',
     title: 'Apache Ossie Ontology Metadata Specification',
@@ -29327,7 +29428,7 @@ const generated2 = (() => {
       },
     },
   };
-  const schema61 = {
+  const OntologyComponentDefinesSingleSchema = {
     type: 'object',
     description:
       'Ontology component that defines a single concept and any relationships that are keyed primarily by that concept',
@@ -29373,13 +29474,13 @@ const generated2 = (() => {
     required: ['concept', 'type'],
     additionalProperties: false,
   };
-  const schema62 = {
+  const ConceptEitherEntityTypeSchema = {
     type: 'string',
     enum: ['EntityType', 'ValueType'],
     description: 'A concept is either an entity type or a value type',
   };
   const func14 = Object.prototype.hasOwnProperty;
-  const schema65 = {
+  const RelationshipBetweenConceptsOntologySchema = {
     type: 'object',
     description: 'Relationship between concepts in the ontology',
     properties: {
@@ -29418,7 +29519,7 @@ const generated2 = (() => {
     required: ['name', 'verbalizes'],
     additionalProperties: false,
   };
-  const schema66 = {
+  const RoleRelationshipContainerSchema = {
     type: 'object',
     description: 'Role in some relationship (the container)',
     properties: {
@@ -29432,11 +29533,12 @@ const generated2 = (() => {
     required: ['concept'],
     additionalProperties: false,
   };
-  const schema67 = {
+  const RelationshipMultiplicitySchema = {
     type: 'string',
     enum: ['ManyToOne', 'OneToOne'],
     description: 'Relationship multiplicity',
   };
+
   function validate51(
     data,
     {
@@ -29676,7 +29778,7 @@ const generated2 = (() => {
             instancePath: instancePath + '/multiplicity',
             schemaPath: '#/$defs/Multiplicity/enum',
             keyword: 'enum',
-            params: { allowedValues: schema67.enum },
+            params: { allowedValues: RelationshipMultiplicitySchema.enum },
             message: 'must be equal to one of the allowed values',
           };
           if (vErrors === null) {
@@ -29834,6 +29936,7 @@ const generated2 = (() => {
     return errors === 0;
   }
   validate51.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   function validate50(
     data,
     {
@@ -29885,7 +29988,7 @@ const generated2 = (() => {
         errors++;
       }
       for (const key0 in data) {
-        if (!func14.call(schema61.properties, key0)) {
+        if (!func14.call(OntologyComponentDefinesSingleSchema.properties, key0)) {
           const err2 = {
             instancePath,
             schemaPath: '#/additionalProperties',
@@ -29940,7 +30043,7 @@ const generated2 = (() => {
             instancePath: instancePath + '/type',
             schemaPath: '#/$defs/ConceptType/enum',
             keyword: 'enum',
-            params: { allowedValues: schema62.enum },
+            params: { allowedValues: ConceptEitherEntityTypeSchema.enum },
             message: 'must be equal to one of the allowed values',
           };
           if (vErrors === null) {
@@ -30186,6 +30289,7 @@ const generated2 = (() => {
     return errors === 0;
   }
   validate50.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   function validate54(
     data,
     {
@@ -30361,7 +30465,9 @@ const generated2 = (() => {
     return errors === 0;
   }
   validate54.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   const formats0 = /^[a-z][a-z\d+.-]*:[^\s]+$/i;
+
   function validate21(
     data,
     {
@@ -30372,7 +30478,8 @@ const generated2 = (() => {
       dynamicAnchors = {},
     } = {},
   ) {
-    /*# sourceURL="https://github.com/apache/ossie/ontology/ontology.json" */ let vErrors = null;
+    /*# sourceURL="https://github.com/apache/ossie/ontology/ontology.json" */
+    let vErrors = null;
     let errors = 0;
     const evaluated0 = validate21.evaluated;
     if (evaluated0.dynamicProps) {
@@ -30893,16 +31000,18 @@ const generated2 = (() => {
     return errors === 0;
   }
   validate21.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   return { standalone: validate20, embedded: validate73, ontology: validate21 };
 })();
-const generated3 = (() => {
+const generatedExtensions = (() => {
   const extensionsRuntime0 = extensionsRuntime0Module.default?.__esModule
     ? extensionsRuntime0Module.default
     : extensionsRuntime0Module;
   const extensionsRuntime1 = extensionsRuntime1Module.default?.__esModule
     ? extensionsRuntime1Module.default
     : extensionsRuntime1Module;
-  const schema31 = {
+
+  const metricExtensionSchema = {
     $schema: 'https://json-schema.org/draft/2020-12/schema',
     $id: 'semantic-workbench/metric/v1',
     title: 'Semantic Workbench metric extension (application schema, not part of Apache Ossie)',
@@ -31049,10 +31158,10 @@ const generated3 = (() => {
       },
     ],
   };
-  const schema32 = { type: 'string', minLength: 1 };
-  const schema35 = { enum: ['day', 'week', 'month', 'quarter', 'year'] };
-  const schema36 = { type: 'string', pattern: '^[^.\\s]+\\.[^.\\s]+$' };
-  const schema42 = {
+  const metricExtensionMetricNameSchema = { type: 'string', minLength: 1 };
+  const metricExtensionGrainSchema = { enum: ['day', 'week', 'month', 'quarter', 'year'] };
+  const metricExtensionFieldRefSchema = { type: 'string', pattern: '^[^.\\s]+\\.[^.\\s]+$' };
+  const metricExtensionOperatorSetSchema = {
     type: 'object',
     minProperties: 1,
     additionalProperties: false,
@@ -31071,6 +31180,7 @@ const generated3 = (() => {
   const func2 = extensionsRuntime0.default;
   const func0 = extensionsRuntime1.default;
   const pattern4 = new RegExp('^[^.\\s]+\\.[^.\\s]+$', 'u');
+
   function validate20(
     data,
     {
@@ -31081,7 +31191,8 @@ const generated3 = (() => {
       dynamicAnchors = {},
     } = {},
   ) {
-    /*# sourceURL="semantic-workbench/metric/v1" */ let vErrors = null;
+    /*# sourceURL="semantic-workbench/metric/v1" */
+    let vErrors = null;
     let errors = 0;
     const evaluated0 = validate20.evaluated;
     if (evaluated0.dynamicProps) {
@@ -31611,7 +31722,7 @@ const generated3 = (() => {
         errors++;
       }
       for (const key0 in data) {
-        if (!func1.call(schema31.properties, key0)) {
+        if (!func1.call(metricExtensionSchema.properties, key0)) {
           const err27 = {
             instancePath,
             schemaPath: '#/additionalProperties',
@@ -31676,7 +31787,7 @@ const generated3 = (() => {
             instancePath: instancePath + '/type',
             schemaPath: '#/properties/type/enum',
             keyword: 'enum',
-            params: { allowedValues: schema31.properties.type.enum },
+            params: { allowedValues: metricExtensionSchema.properties.type.enum },
             message: 'must be equal to one of the allowed values',
           };
           if (vErrors === null) {
@@ -31895,7 +32006,9 @@ const generated3 = (() => {
                 instancePath: instancePath + '/window/kind',
                 schemaPath: '#/properties/window/properties/kind/enum',
                 keyword: 'enum',
-                params: { allowedValues: schema31.properties.window.properties.kind.enum },
+                params: {
+                  allowedValues: metricExtensionSchema.properties.window.properties.kind.enum,
+                },
                 message: 'must be equal to one of the allowed values',
               };
               if (vErrors === null) {
@@ -31956,7 +32069,7 @@ const generated3 = (() => {
                 instancePath: instancePath + '/window/grain',
                 schemaPath: '#/$defs/grain/enum',
                 keyword: 'enum',
-                params: { allowedValues: schema35.enum },
+                params: { allowedValues: metricExtensionGrainSchema.enum },
                 message: 'must be equal to one of the allowed values',
               };
               if (vErrors === null) {
@@ -31990,7 +32103,7 @@ const generated3 = (() => {
             instancePath: instancePath + '/additivity',
             schemaPath: '#/properties/additivity/enum',
             keyword: 'enum',
-            params: { allowedValues: schema31.properties.additivity.enum },
+            params: { allowedValues: metricExtensionSchema.properties.additivity.enum },
             message: 'must be equal to one of the allowed values',
           };
           if (vErrors === null) {
@@ -32025,7 +32138,7 @@ const generated3 = (() => {
             instancePath: instancePath + '/period_aggregation',
             schemaPath: '#/properties/period_aggregation/enum',
             keyword: 'enum',
-            params: { allowedValues: schema31.properties.period_aggregation.enum },
+            params: { allowedValues: metricExtensionSchema.properties.period_aggregation.enum },
             message: 'must be equal to one of the allowed values',
           };
           if (vErrors === null) {
@@ -32120,7 +32233,7 @@ const generated3 = (() => {
                 instancePath: instancePath + '/time/min_grain',
                 schemaPath: '#/$defs/grain/enum',
                 keyword: 'enum',
-                params: { allowedValues: schema35.enum },
+                params: { allowedValues: metricExtensionGrainSchema.enum },
                 message: 'must be equal to one of the allowed values',
               };
               if (vErrors === null) {
@@ -32150,7 +32263,7 @@ const generated3 = (() => {
                     instancePath: instancePath + '/time/allowed_grains/' + i2,
                     schemaPath: '#/$defs/grain/enum',
                     keyword: 'enum',
-                    params: { allowedValues: schema35.enum },
+                    params: { allowedValues: metricExtensionGrainSchema.enum },
                     message: 'must be equal to one of the allowed values',
                   };
                   if (vErrors === null) {
@@ -32415,7 +32528,8 @@ const generated3 = (() => {
                     schemaPath: '#/properties/filters/items/properties/operator/enum',
                     keyword: 'enum',
                     params: {
-                      allowedValues: schema31.properties.filters.items.properties.operator.enum,
+                      allowedValues:
+                        metricExtensionSchema.properties.filters.items.properties.operator.enum,
                     },
                     message: 'must be equal to one of the allowed values',
                   };
@@ -32556,7 +32670,7 @@ const generated3 = (() => {
                     instancePath: instancePath + '/targets/' + i7 + '/grain',
                     schemaPath: '#/$defs/grain/enum',
                     keyword: 'enum',
-                    params: { allowedValues: schema35.enum },
+                    params: { allowedValues: metricExtensionGrainSchema.enum },
                     message: 'must be equal to one of the allowed values',
                   };
                   if (vErrors === null) {
@@ -32598,7 +32712,8 @@ const generated3 = (() => {
                     schemaPath: '#/properties/targets/items/properties/direction/enum',
                     keyword: 'enum',
                     params: {
-                      allowedValues: schema31.properties.targets.items.properties.direction.enum,
+                      allowedValues:
+                        metricExtensionSchema.properties.targets.items.properties.direction.enum,
                     },
                     message: 'must be equal to one of the allowed values',
                   };
@@ -33446,7 +33561,7 @@ const generated3 = (() => {
             instancePath: instancePath + '/status',
             schemaPath: '#/properties/status/enum',
             keyword: 'enum',
-            params: { allowedValues: schema31.properties.status.enum },
+            params: { allowedValues: metricExtensionSchema.properties.status.enum },
             message: 'must be equal to one of the allowed values',
           };
           if (vErrors === null) {
@@ -33527,7 +33642,8 @@ const generated3 = (() => {
     return errors === 0;
   }
   validate20.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
-  const schema45 = {
+
+  const mappingExtensionSchema = {
     $schema: 'https://json-schema.org/draft/2020-12/schema',
     $id: 'semantic-workbench/mapping/v1',
     title: 'Semantic Workbench mapping extension (application schema, not part of Apache Ossie)',
@@ -33566,6 +33682,7 @@ const generated3 = (() => {
       },
     },
   };
+
   function validate21(
     data,
     {
@@ -33576,7 +33693,8 @@ const generated3 = (() => {
       dynamicAnchors = {},
     } = {},
   ) {
-    /*# sourceURL="semantic-workbench/mapping/v1" */ let vErrors = null;
+    /*# sourceURL="semantic-workbench/mapping/v1" */
+    let vErrors = null;
     let errors = 0;
     const evaluated0 = validate21.evaluated;
     if (evaluated0.dynamicProps) {
@@ -33857,12 +33975,13 @@ const generated3 = (() => {
     return errors === 0;
   }
   validate21.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
   return { metric: validate20, mapping: validate21 };
 })();
-export const contract = generated0.contract;
-export const semantic = generated1.semantic;
-export const standalone = generated2.standalone;
-export const embedded = generated2.embedded;
-export const ontology = generated2.ontology;
-export const metric = generated3.metric;
-export const mapping = generated3.mapping;
+export const contract = generatedContract.contract;
+export const semantic = generatedSemantic.semantic;
+export const standalone = generatedMappings.standalone;
+export const embedded = generatedMappings.embedded;
+export const ontology = generatedMappings.ontology;
+export const metric = generatedExtensions.metric;
+export const mapping = generatedExtensions.mapping;

@@ -329,6 +329,7 @@ owns the data root; merely increasing container replicas is not safe scaling.
 | Area | Owns |
 | --- | --- |
 | `src/app/`, `src/main.tsx` | Browser composition, workspace state and shared navigation |
+| `src/app/admin/` | Browser access-administration UI and its typed API client; separate from `DATA_DIR/admin/` |
 | `src/editor/`, `src/edit/` | Source/item edits, validation display and byte-range patches |
 | `src/metrics/`, `src/mappings/`, `src/odcs/` | Metric, mapping and contract/lineage views |
 | `src/graph/` | Whole-model and neighborhood graphs, layout, traversal and workers |
@@ -344,6 +345,7 @@ owns the data root; merely increasing container replicas is not safe scaling.
 | `public/brand/`, `src/server/brand/`, `src/theme/theme.css` | Product identity and semantic theme tokens |
 | `scripts/`, `tests/`, `patches/` | Tooling, isolated verification and locked dependency fixes |
 | `deploy/`, pipeline YAML | Target setup, source hand-over and explicit delivery |
+| `.github/` | Shared Copilot instructions and reusable agent skills |
 
 [ARCHITECTURE.md](ARCHITECTURE.md) expands this map with concrete service owners, request flows,
 authorization boundaries and invariants. It is the detailed reference for changing behavior.

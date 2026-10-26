@@ -6,7 +6,7 @@ import { whenLabel } from './helpers';
 import { adminApi, problemText } from './api';
 import { useAdminData } from './useAdminData';
 import { DryRunResult } from './ReviewChange';
-import { DiffView } from '../scm/DiffView';
+import { DiffView } from '../../scm/DiffView';
 import type { DryRun, VersionDiff } from './types';
 
 /** Compares administration versions and rolls back after reviewing who gains or loses access. */

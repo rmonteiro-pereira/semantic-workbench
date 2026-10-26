@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { EmptyState } from '../projects/EmptyState';
-import { useMe } from '../auth/useMe';
+import { EmptyState } from '../../projects/EmptyState';
+import { useMe } from '../../auth/useMe';
 import { AdminConfirmation } from './AdminConfirmation';
 import { newIdentifier, whenLabel } from './helpers';
-import { MenuButton } from '../projects/Menu';
+import { MenuButton } from '../../projects/Menu';
 import { adminApi } from './api';
 import { useAdminData } from './useAdminData';
 import { GrantForm, scopeLabel } from './GrantForm';

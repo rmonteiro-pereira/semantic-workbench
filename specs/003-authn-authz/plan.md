@@ -215,7 +215,7 @@ policies/{schema.cedarschema,baseline.cedar,builtin-roles.json,matrix-cases.json
 schemas/semantic-workbench-access-v1.json
 src/
 ├── auth/{useMe.ts,can.ts,guards-client.ts}   # /api/me, capability checks, shared guard use
-├── admin/{AdminLauncher.tsx,UsersDialog.tsx,RolesAccessDialog.tsx,GrantForm.tsx,RoleEditor.tsx,
+├── app/admin/{AdminLauncher.tsx,UsersDialog.tsx,RolesAccessDialog.tsx,GrantForm.tsx,RoleEditor.tsx,
 │          PoliciesDialog.tsx,PolicyEditor.tsx,AccessCheckDialog.tsx,ProjectAccessDialog.tsx,
 │          AuditDialog.tsx,SettingsDialog.tsx,VersionHistory.tsx}
 ├── projects/{api.ts (X-SW-Request, 401 → reload, which redirects to the provider), Sidebar.tsx (role badge, hidden count)}
@@ -241,7 +241,7 @@ tests/pipeline/{azure-pipelines.test.ts,deploy.test.ts,deploy-smoke.test.ts,dry-
 
 **Structure Decision**: same web-application layout; all access logic in `server/auth/` behind
 `authorize`/`filter`; per-person Git in `server/projects/worktrees.ts`; Admin UI as dialogs in
-`src/admin/`; pure logic (claim mapping, grant matching, role compilation, guards, filters,
+`src/app/admin/`; pure logic (claim mapping, grant matching, role compilation, guards, filters,
 last-Admin guard, dry run) in plain modules for unit and mutation tests.
 
 ## Delivery phases (detail in tasks.md)

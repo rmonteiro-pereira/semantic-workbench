@@ -4,7 +4,7 @@ import { authViewports } from './sign-in';
 import { layoutProblems } from './layout-geometry';
 import { smallTextProblems, textCollisionProblems } from './text-geometry';
 import { screenshotPath } from './screenshots';
-import { ADMIN_SECTIONS } from '../../src/admin/admin-sections';
+import { ADMIN_SECTIONS } from '../../src/app/admin/admin-sections';
 import { adminPageProblems } from './admin-page-geometry';
 
 /** The sections the Admin page lists, in its navigation order. */
