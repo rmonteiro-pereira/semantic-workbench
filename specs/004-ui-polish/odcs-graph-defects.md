@@ -1,8 +1,8 @@
 # ODCS graph defects (Graph tab of a contract)
 
 Captured before the fix at 390x844, 1280x720, 1440x900 and 2560x1440 for the commerce example
-(4 tables), the mall contract (142 tables) and the UBL contract (169 tables). Screenshots are in
-`screenshots/before/`.
+(4 tables), the mall contract (142 tables) and the UBL contract (169 tables). The baseline
+screenshots were removed to reduce repository size; the defect descriptions are retained below.
 
 1. The first view crops cards: customers is cut at the left edge and order_lines at the top right,
    so no card is whole next to the centre. `odcs-commerce-graph-1280`
