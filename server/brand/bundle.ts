@@ -4,6 +4,7 @@
 // reported by name and the default stays in its place.
 import { lstatSync, readdirSync, readFileSync, realpathSync } from 'node:fs';
 import { join, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   BrandManifestError,
   parseBrandManifest,
@@ -30,7 +31,9 @@ export type BrandBundle = {
 };
 
 /** Where the shipped defaults live; the image carries this folder next to server/. */
-export const DEFAULT_BRAND_DIRECTORY = new URL('../../public/brand/', import.meta.url).pathname;
+export const DEFAULT_BRAND_DIRECTORY = fileURLToPath(
+  new URL('../../public/brand/', import.meta.url),
+);
 
 type Warn = (message: string) => void;
 

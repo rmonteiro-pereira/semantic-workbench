@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useMe } from '../auth/useMe';
-import { whenLabel } from './when';
+import { whenLabel } from './format';
 import { MenuButton } from '../projects/Menu';
 import { AdminConfirmation } from './AdminConfirmation';
 import { AdminPane } from './AdminPane';

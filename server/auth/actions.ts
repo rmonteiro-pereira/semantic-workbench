@@ -82,7 +82,7 @@ export function isAction(value: unknown): value is Action {
 }
 
 /** Classification levels, defined with the governance rules the browser shares. */
-export { LEVELS, levelNumber, type Level } from '../../src/governance/levels';
+export { LEVELS, levelNumber, type Level } from '../../src/governance/guards';
 
 /** Reserved roles supplied by the built-in policy model. */
 export const BUILTIN_ROLE_IDS: readonly string[] = ['viewer', 'editor', 'steward', 'admin'];

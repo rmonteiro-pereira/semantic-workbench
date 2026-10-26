@@ -4,8 +4,8 @@ All seven acceptance rows are verified in the browser. The final gate head and c
 are in `gate-results.json`; native screenshots retain original dimensions and source/output
 hashes. The round 16 workspace and authentication matrix covers every required size and theme.
 The supplemental proof index adds 61 images from successful suites and the click-to-edit walk.
-Independent reports `audit/r11-proof-A.md` through `r11-proof-D.md` review every supplemental
-original. There are no S1 or S2 findings. Repeated sidebar fragments are deferred F118. Minor
+The supplemental originals were independently reviewed; there are no S1 or S2 findings.
+Repeated sidebar fragments are deferred F118. Minor
 rename-operation wording and a duplicated
 RDF refusal explanation are deferred F128/F129; the reference panel and refusal remain clear.
 The repair summary’s singular noun agreement is deferred F130; counts and details remain clear.

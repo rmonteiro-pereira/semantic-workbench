@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { AdminConfirmation } from './AdminConfirmation';
 import { AdminPane, type PaneProps } from './AdminPane';
 import { SelectField } from './SelectField';
-import { whenLabel } from './when';
+import { whenLabel } from './format';
 import { adminApi, problemText } from './api';
 import { useAdminData } from './useAdminData';
 import { DryRunResult } from './ReviewChange';
